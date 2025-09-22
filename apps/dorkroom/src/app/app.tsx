@@ -99,8 +99,8 @@ function PlaceholderPage({
 
 export function App() {
   return (
-    <div className="min-h-screen bg-background text-white">
-      <div className="backdrop-gradient min-h-screen">
+    <div className="h-dvh bg-background text-white">
+      <div className="backdrop-gradient min-h-dvh">
         <header className="sticky top-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4 sm:px-10">
             <Link to="/" className="flex items-center gap-3 text-white">
@@ -121,7 +121,8 @@ export function App() {
                     className={({ isActive }) =>
                       cn(
                         'flex min-w-fit items-center gap-2 rounded-full px-4 py-2 font-medium text-zinc-300 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
-                        isActive && 'bg-white text-background shadow-subtle'
+                        isActive &&
+                          'bg-white hover:text-black text-background shadow-subtle'
                       )
                     }
                   >
@@ -152,7 +153,12 @@ export function App() {
                 <Route
                   key={item.to}
                   path={item.to}
-                  element={<PlaceholderPage title={item.label} summary={item.summary} />}
+                  element={
+                    <PlaceholderPage
+                      title={item.label}
+                      summary={item.summary}
+                    />
+                  }
                 />
               ))}
           </Routes>

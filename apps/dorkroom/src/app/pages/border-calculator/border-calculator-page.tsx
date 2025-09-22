@@ -1,5 +1,12 @@
 import { useState, useMemo } from 'react';
-import { RotateCw, RotateCcw, Square, Share2, Save, Trash2 } from 'lucide-react';
+import {
+  RotateCw,
+  RotateCcw,
+  Square,
+  Share2,
+  Save,
+  Trash2,
+} from 'lucide-react';
 import { cn } from '../../lib/cn';
 
 // Components
@@ -10,7 +17,11 @@ import { ToggleSwitch } from '../../components/ui/toggle-switch';
 import { Select } from '../../components/ui/select';
 import { WarningAlert } from '../../components/ui/warning-alert';
 import { ResultRow } from '../../components/ui/result-row';
-import { AnimatedPreview, BorderInfoSection, MobileBorderCalculator } from '../../components/border-calculator';
+import {
+  AnimatedPreview,
+  BorderInfoSection,
+  MobileBorderCalculator,
+} from '../../components/border-calculator';
 
 // Constants and hooks
 import {
@@ -183,10 +194,7 @@ export default function BorderCalculatorPage() {
       </div>
 
       <div
-        className={cn(
-          'gap-8',
-          isDesktop ? 'grid grid-cols-2' : 'space-y-8'
-        )}
+        className={cn('gap-8', isDesktop ? 'grid grid-cols-2' : 'space-y-8')}
       >
         {calculation && (
           <div className="space-y-6">
@@ -224,7 +232,9 @@ export default function BorderCalculatorPage() {
               <div className="space-y-2">
                 <ResultRow
                   label="Image Dimensions:"
-                  value={`${calculation.printWidth.toFixed(2)} × ${calculation.printHeight.toFixed(2)} inches`}
+                  value={`${calculation.printWidth.toFixed(
+                    2
+                  )} × ${calculation.printHeight.toFixed(2)} inches`}
                 />
                 <ResultRow
                   label="Left Blade:"
@@ -359,9 +369,13 @@ export default function BorderCalculatorPage() {
           {aspectRatio === 'custom' && (
             <DimensionInputGroup
               widthValue={String(customAspectWidth)}
-              onWidthChange={(value) => setCustomAspectWidth(Number(value) || 0)}
+              onWidthChange={(value) =>
+                setCustomAspectWidth(Number(value) || 0)
+              }
               heightValue={String(customAspectHeight)}
-              onHeightChange={(value) => setCustomAspectHeight(Number(value) || 0)}
+              onHeightChange={(value) =>
+                setCustomAspectHeight(Number(value) || 0)
+              }
               widthLabel="Width:"
               heightLabel="Height:"
               widthPlaceholder="Width"
@@ -382,7 +396,9 @@ export default function BorderCalculatorPage() {
               widthValue={String(customPaperWidth)}
               onWidthChange={(value) => setCustomPaperWidth(Number(value) || 0)}
               heightValue={String(customPaperHeight)}
-              onHeightChange={(value) => setCustomPaperHeight(Number(value) || 0)}
+              onHeightChange={(value) =>
+                setCustomPaperHeight(Number(value) || 0)
+              }
               widthLabel="Width (inches):"
               heightLabel="Height (inches):"
               widthPlaceholder="Width"
