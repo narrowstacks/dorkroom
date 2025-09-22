@@ -29,10 +29,13 @@ export function LabeledSliderInput({
 }: LabeledSliderInputProps) {
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = parseFloat(e.target.value);
-    if (continuousUpdate) {
+    if (onSliderChange) {
+      // Prefer dedicated slider handler to avoid routing through text-input logic
+      onSliderChange(newValue);
+    } else {
+      // Fallback: if no slider-specific handler provided, use onChange
       onChange(newValue);
     }
-    onSliderChange?.(newValue);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
