@@ -1,4 +1,4 @@
-import { cn } from '../../lib/cn';
+import { cn } from '../lib/cn';
 
 interface TextInputProps {
   value: string;
@@ -25,7 +25,7 @@ export function TextInput({
       <input
         type="text"
         value={value}
-        onChange={(e) => onValueChange(e.target.value)}
+        onChange={(e) => onValueChange((e.target as HTMLInputElement).value)}
         placeholder={placeholder}
         className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-white/50 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
       />

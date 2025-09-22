@@ -1,7 +1,5 @@
 import { X } from 'lucide-react';
-import { LabeledSliderInput } from '../../ui/labeled-slider-input';
-import { ToggleSwitch } from '../../ui/toggle-switch';
-import { WarningAlert } from '../../ui/warning-alert';
+import { LabeledSliderInput, ToggleSwitch, WarningAlert } from '@dorkroom/ui';
 import {
   OFFSET_SLIDER_MIN,
   OFFSET_SLIDER_MAX,

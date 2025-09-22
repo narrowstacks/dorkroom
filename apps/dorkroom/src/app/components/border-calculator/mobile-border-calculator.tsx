@@ -14,8 +14,7 @@ import {
 import { BladeResultsDisplay } from './blade-results-display';
 import { AnimatedPreview } from './animated-preview';
 import { SettingsButton } from './settings-button';
-import { WarningAlert } from '../ui/warning-alert';
-import { Drawer, DrawerContent, DrawerBody } from '../ui/drawer';
+import { WarningAlert, Drawer, DrawerContent, DrawerBody } from '@dorkroom/ui';
 
 // Sections
 import {

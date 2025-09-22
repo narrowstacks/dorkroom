@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import { cn } from '../../lib/cn';
+import { cn } from '../lib/cn';
 
 interface LabeledSliderInputProps {
   label: string;
@@ -29,14 +29,14 @@ export function LabeledSliderInput({
   continuousUpdate = false,
 }: LabeledSliderInputProps) {
   const handleSliderChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newValue = parseFloat(e.target.value);
+    const newValue = parseFloat((e.target as HTMLInputElement).value);
     // For slider interactions, prefer the dedicated slider change handler
     // to keep state strictly numeric during continuous updates.
     onSliderChange?.(newValue);
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newValue = parseFloat(e.target.value) || 0;
+    const newValue = parseFloat((e.target as HTMLInputElement).value) || 0;
     onChange(newValue);
   };
 

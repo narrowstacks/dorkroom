@@ -1,6 +1,5 @@
 import { X, RotateCw, Square } from 'lucide-react';
-import { Select } from '../../ui/select';
-import { DimensionInputGroup } from '../../ui/dimension-input-group';
+import { Select, DimensionInputGroup } from '@dorkroom/ui';
 import { ASPECT_RATIOS, PAPER_SIZES, type SelectItem } from '@dorkroom/logic';
 
 interface PaperSizeSectionProps {
