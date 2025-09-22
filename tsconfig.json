@@ -4,7 +4,10 @@
   "files": [],
   "references": [
     {
-      "path": "./apps/react-demo"
+      "path": "./apps/dorkroom"
+    },
+    {
+      "path": "./packages/logic"
     }
   ]
 }

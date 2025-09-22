@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@source "../../../**/*.{js,ts,jsx,tsx}";
+
+@theme {
+  --font-family-sans: "Inter Variable", Inter, ui-sans-serif, system-ui;
+  --color-background: #09090b;
+  --color-surface: #121214;
+  --color-surface-muted: #1c1c1f;
+  --color-primary: #6ef3a4;
+  --color-secondary: #7dd6ff;
+  --color-accent: #f99f96;
+  --color-highlight: #e5ff7d;
+  --spacing-18: 4.5rem;
+  --border-radius-hero: 36px;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+@layer base {
+  html,
+  body {
+    @apply font-sans bg-background text-white antialiased min-h-screen;
+  }
+
+  ::selection {
+    @apply bg-primary/40 text-white;
+  }
+}
+
+@layer utilities {
+  .backdrop-gradient {
+    background:
+      radial-gradient(circle at 20% 20%, rgba(110, 243, 164, 0.2), transparent 60%),
+      radial-gradient(circle at 80% 20%, rgba(125, 214, 255, 0.16), transparent 55%),
+      radial-gradient(circle at 40% 80%, rgba(249, 159, 150, 0.14), transparent 60%),
+      #09090b;
+  }
+
+  .card-ring {
+    position: relative;
+  }
+
+  .card-ring::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0));
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+  }
+}
