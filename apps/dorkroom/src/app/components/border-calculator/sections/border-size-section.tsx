@@ -12,6 +12,7 @@ interface BorderSizeSectionProps {
   onClose: () => void;
   minBorder: number;
   setMinBorder: (value: number) => void;
+  setMinBorderSlider: (value: number) => void;
   minBorderWarning?: string;
 }
 
@@ -19,6 +20,7 @@ export function BorderSizeSection({
   onClose,
   minBorder,
   setMinBorder,
+  setMinBorderSlider,
   minBorderWarning,
 }: BorderSizeSectionProps) {
   return (
@@ -38,7 +40,7 @@ export function BorderSizeSection({
           label="Minimum Border (inches):"
           value={minBorder}
           onChange={setMinBorder}
-          onSliderChange={setMinBorder}
+          onSliderChange={setMinBorderSlider}
           min={SLIDER_MIN_BORDER}
           max={SLIDER_MAX_BORDER}
           step={SLIDER_STEP_BORDER}
