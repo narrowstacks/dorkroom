@@ -26,12 +26,12 @@ import {
 } from './sections';
 
 // Hooks
-import { useBorderCalculator } from '../../hooks/border-calculator';
-import { useBorderPresets } from '../../hooks/use-border-presets';
-import type {
-  BorderPreset,
-  BorderSettings,
-} from '../../types/border-calculator';
+import {
+  useModularBorderCalculator as useBorderCalculator,
+  useBorderPresets,
+  type BorderPreset,
+  type BorderSettings,
+} from '@dorkroom/logic';
 
 // Active section type
 type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';

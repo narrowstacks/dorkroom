@@ -6,7 +6,7 @@ import {
   SLIDER_MAX_BORDER,
   SLIDER_STEP_BORDER,
   BORDER_SLIDER_LABELS,
-} from '../../../constants/border-calculator';
+} from '@dorkroom/logic';
 
 interface BorderSizeSectionProps {
   onClose: () => void;
@@ -53,10 +53,13 @@ export function BorderSizeSection({
         )}
 
         <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-          <h4 className="text-sm font-medium text-white mb-2">About Border Size</h4>
+          <h4 className="text-sm font-medium text-white mb-2">
+            About Border Size
+          </h4>
           <p className="text-xs text-white/70 leading-relaxed">
-            The minimum border determines how much white space surrounds your image.
-            Larger borders provide more safety margin but reduce the effective image size.
+            The minimum border determines how much white space surrounds your
+            image. Larger borders provide more safety margin but reduce the
+            effective image size.
           </p>
         </div>
       </div>

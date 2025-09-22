@@ -98,6 +98,14 @@ export interface BorderCalculation {
   isNonStandardPaperSize: boolean;
   easelSize: { width: number; height: number };
   easelSizeLabel: string;
+  // Warning states
+  offsetWarning: string | null;
+  bladeWarning: string | null;
+  minBorderWarning: string | null;
+  paperSizeWarning: string | null;
+  lastValidMinBorder: number;
+  clampedHorizontalOffset: number;
+  clampedVerticalOffset: number;
 }
 
 // Reducer actions

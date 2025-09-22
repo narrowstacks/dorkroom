@@ -1,6 +1,6 @@
 import { ChevronDown } from 'lucide-react';
 import { cn } from '../../lib/cn';
-import type { SelectItem } from '../../types/border-calculator';
+import type { SelectItem } from '@dorkroom/logic';
 
 interface SelectProps {
   label?: string;
@@ -19,7 +19,6 @@ export function Select({
   placeholder,
   className,
 }: SelectProps) {
-
   return (
     <div className={cn('space-y-2', className)}>
       {label && (

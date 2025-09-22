@@ -7,7 +7,7 @@ import {
   OFFSET_SLIDER_MAX,
   OFFSET_SLIDER_STEP,
   OFFSET_SLIDER_LABELS,
-} from '../../../constants/border-calculator';
+} from '@dorkroom/logic';
 
 interface PositionOffsetsSectionProps {
   onClose: () => void;

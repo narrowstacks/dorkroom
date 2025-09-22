@@ -11,7 +11,7 @@
 \* ------------------------------------------------------------------ */
 
 import { useMemo, useState, useEffect } from 'react';
-import type { BorderCalculation } from '../../types/border-calculator';
+import type { BorderCalculation } from '@dorkroom/logic';
 
 interface AnimatedPreviewProps {
   calculation: BorderCalculation | null;

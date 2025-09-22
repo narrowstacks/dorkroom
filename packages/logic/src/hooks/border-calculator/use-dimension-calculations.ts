@@ -38,7 +38,7 @@ export const useDimensionCalculations = (state: BorderCalculatorState) => {
     }
 
     // Use O(1) lookup with fallback
-    const p = PAPER_SIZE_MAP[state.paperSize];
+    const p = PAPER_SIZE_MAP.get(state.paperSize);
     return p
       ? { w: p.width, h: p.height, custom: false }
       : { w: 8, h: 10, custom: false }; // fallback to 8x10
@@ -69,7 +69,7 @@ export const useDimensionCalculations = (state: BorderCalculatorState) => {
     }
 
     // Use O(1) lookup with safer fallback
-    const r = ASPECT_RATIO_MAP[state.aspectRatio];
+    const r = ASPECT_RATIO_MAP.get(state.aspectRatio);
     return r ? { w: r.width || 1, h: r.height || 1 } : { w: 3, h: 2 }; // fallback to 3:2
   }, [
     state.aspectRatio,

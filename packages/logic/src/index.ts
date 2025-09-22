@@ -1,1 +1,26 @@
-export * from './lib/logic';
+// Types exports
+export * from './types/border-calculator';
+
+// Constants exports
+export * from './constants/border-calculator';
+export * from './constants/calculations';
+
+// Utils exports
+export * from './utils/border-calculations';
+export * from './utils/input-validation';
+
+// Hook exports
+export { useWindowDimensions } from './hooks/use-window-dimensions';
+export { useBorderPresets } from './hooks/use-border-presets';
+export { useBorderCalculator } from './hooks/use-border-calculator';
+
+// Border calculator modular hooks
+export {
+  useBorderCalculator as useModularBorderCalculator,
+  useBorderCalculatorState,
+  useDimensionCalculations,
+  useGeometryCalculations,
+  useWarningSystem,
+  useImageHandling,
+  useInputHandlers,
+} from './hooks/border-calculator';
