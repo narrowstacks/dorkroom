@@ -25,6 +25,10 @@ import {
 
 // Constants and hooks
 import {
+  useModularBorderCalculator as useBorderCalculator,
+  useBorderPresets,
+  useWindowDimensions,
+  type SelectItem,
   DESKTOP_BREAKPOINT,
   SLIDER_MIN_BORDER,
   SLIDER_MAX_BORDER,
@@ -37,10 +41,7 @@ import {
   ASPECT_RATIOS,
   PAPER_SIZES,
   DEFAULT_BORDER_PRESETS,
-} from '../../constants/border-calculator';
-import { useBorderCalculator } from '../../hooks/border-calculator';
-import { useBorderPresets } from '../../hooks/use-border-presets';
-import { useWindowDimensions } from '../../hooks/use-window-dimensions';
+} from '@dorkroom/logic';
 
 export default function BorderCalculatorPage() {
   const { width } = useWindowDimensions();
@@ -362,7 +363,7 @@ export default function BorderCalculatorPage() {
             label="Aspect Ratio:"
             selectedValue={aspectRatio}
             onValueChange={setAspectRatio}
-            items={ASPECT_RATIOS}
+            items={ASPECT_RATIOS as SelectItem[]}
             placeholder="Select Aspect Ratio"
           />
 
@@ -387,7 +388,7 @@ export default function BorderCalculatorPage() {
             label="Paper Size:"
             selectedValue={paperSize}
             onValueChange={setPaperSize}
-            items={PAPER_SIZES}
+            items={PAPER_SIZES as SelectItem[]}
             placeholder="Select Paper Size"
           />
 

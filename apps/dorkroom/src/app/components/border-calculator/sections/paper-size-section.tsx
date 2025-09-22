@@ -1,7 +1,7 @@
 import { X, RotateCw, Square } from 'lucide-react';
 import { Select } from '../../ui/select';
 import { DimensionInputGroup } from '../../ui/dimension-input-group';
-import { ASPECT_RATIOS, PAPER_SIZES } from '../../../constants/border-calculator';
+import { ASPECT_RATIOS, PAPER_SIZES, type SelectItem } from '@dorkroom/logic';
 
 interface PaperSizeSectionProps {
   onClose: () => void;
@@ -59,7 +59,7 @@ export function PaperSizeSection({
           label="Aspect Ratio:"
           selectedValue={aspectRatio}
           onValueChange={setAspectRatio}
-          items={ASPECT_RATIOS}
+          items={ASPECT_RATIOS as SelectItem[]}
           placeholder="Select Aspect Ratio"
         />
 
@@ -68,7 +68,9 @@ export function PaperSizeSection({
             widthValue={String(customAspectWidth)}
             onWidthChange={(value) => setCustomAspectWidth(Number(value) || 0)}
             heightValue={String(customAspectHeight)}
-            onHeightChange={(value) => setCustomAspectHeight(Number(value) || 0)}
+            onHeightChange={(value) =>
+              setCustomAspectHeight(Number(value) || 0)
+            }
             widthLabel="Width:"
             heightLabel="Height:"
             widthPlaceholder="Width"
@@ -80,7 +82,7 @@ export function PaperSizeSection({
           label="Paper Size:"
           selectedValue={paperSize}
           onValueChange={setPaperSize}
-          items={PAPER_SIZES}
+          items={PAPER_SIZES as SelectItem[]}
           placeholder="Select Paper Size"
         />
 

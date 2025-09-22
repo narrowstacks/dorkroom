@@ -162,7 +162,7 @@ export const useGeometryCalculations = (
 
     // Pre-calculate easel size label to avoid template literal in object
     const easelKey = `${easelSize.width}×${easelSize.height}`;
-    const easelSizeLabel = EASEL_SIZE_MAP[easelKey]?.label ?? easelKey;
+    const easelSizeLabel = EASEL_SIZE_MAP.get(easelKey)?.label ?? easelKey;
 
     // Return optimized object with minimal computation during creation
     return {

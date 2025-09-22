@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
-import type { BorderCalculation } from '../../types/border-calculator';
+import type { BorderCalculation } from '@dorkroom/logic';
 
 interface BladeResultsDisplayProps {
   calculation: BorderCalculation | null;
@@ -15,8 +15,12 @@ export function BladeResultsDisplay({
   if (!calculation) {
     return (
       <div className="rounded-xl border border-white/10 bg-zinc-800/80 p-6">
-        <h2 className="text-xl font-semibold text-white mb-4 text-center">Blade Positions</h2>
-        <p className="text-white/60 text-center">Configure your settings to see blade positions</p>
+        <h2 className="text-xl font-semibold text-white mb-4 text-center">
+          Blade Positions
+        </h2>
+        <p className="text-white/60 text-center">
+          Configure your settings to see blade positions
+        </p>
       </div>
     );
   }
@@ -24,9 +28,12 @@ export function BladeResultsDisplay({
   return (
     <div className="rounded-xl border border-white/10 bg-zinc-800/80 p-6">
       <div className="text-center mb-6">
-        <h2 className="text-xl font-semibold text-white mb-2">Blade Positions</h2>
+        <h2 className="text-xl font-semibold text-white mb-2">
+          Blade Positions
+        </h2>
         <p className="text-white/70">
-          {calculation.printWidth.toFixed(2)}" × {calculation.printHeight.toFixed(2)}" image on {paperSize}
+          {calculation.printWidth.toFixed(2)}" ×{' '}
+          {calculation.printHeight.toFixed(2)}" image on {paperSize}
         </p>
       </div>
 
@@ -77,7 +84,8 @@ export function BladeResultsDisplay({
           <p className="text-center text-sm text-blue-200">
             <strong>Non-Standard Paper Size</strong>
             <br />
-            Position paper in the {calculation.easelSizeLabel} slot all the way to the left.
+            Position paper in the {calculation.easelSizeLabel} slot all the way
+            to the left.
           </p>
         </div>
       )}
