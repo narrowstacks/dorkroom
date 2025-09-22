@@ -27,7 +27,7 @@ const isBrowser = () => typeof window !== 'undefined';
 
 const createInitialState = (): BorderCalculatorState => ({
   aspectRatio: ASPECT_RATIOS[0].value,
-  paperSize: PAPER_SIZES[3].value,
+  paperSize: PAPER_SIZES[2].value,
 
   customAspectWidth: DEFAULT_CUSTOM_ASPECT_WIDTH,
   customAspectHeight: DEFAULT_CUSTOM_ASPECT_HEIGHT,
