@@ -101,7 +101,7 @@ export function App() {
   return (
     <div className="h-dvh bg-background text-white">
       <div className="backdrop-gradient min-h-dvh">
-        <header className="sticky top-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur">
+        <header className="sticky top-[env(safe-area-inset-top)] z-50 border-b border-white/5 bg-background/80 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4 sm:px-10">
             <Link to="/" className="flex items-center gap-3 text-white">
               <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/10 text-lg font-semibold">
