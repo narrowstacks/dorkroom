@@ -28,7 +28,10 @@ import {
 // Hooks
 import { useBorderCalculator } from '../../hooks/border-calculator';
 import { useBorderPresets } from '../../hooks/use-border-presets';
-import type { BorderPreset, BorderSettings } from '../../types/border-calculator';
+import type {
+  BorderPreset,
+  BorderSettings,
+} from '../../types/border-calculator';
 
 // Active section type
 type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
@@ -48,7 +51,8 @@ export function MobileBorderCalculator({
 }: MobileBorderCalculatorProps) {
   // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<ActiveSection>('paperSize');
+  const [activeSection, setActiveSection] =
+    useState<ActiveSection>('paperSize');
   const [currentPreset, setCurrentPreset] = useState<BorderPreset | null>(null);
 
   // Border calculator hooks
@@ -175,7 +179,7 @@ export function MobileBorderCalculator({
   };
 
   return (
-    <div className="min-h-screen bg-zinc-900 p-4 pb-20">
+    <div className="min-h-dvh bg-zinc-900 p-4 pb-20">
       <div className="mx-auto max-w-md space-y-6">
         {/* Hero Section - Blade Results */}
         <BladeResultsDisplay
@@ -192,9 +196,7 @@ export function MobileBorderCalculator({
         />
 
         {/* Warnings */}
-        {bladeWarning && (
-          <WarningAlert message={bladeWarning} action="error" />
-        )}
+        {bladeWarning && <WarningAlert message={bladeWarning} action="error" />}
         {minBorderWarning && (
           <WarningAlert message={minBorderWarning} action="error" />
         )}

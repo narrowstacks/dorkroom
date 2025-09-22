@@ -22,7 +22,7 @@
 @layer base {
   html,
   body {
-    @apply font-sans bg-background text-white antialiased min-h-screen;
+    @apply font-sans bg-background text-white antialiased h-dvh;
   }
 
   ::selection {
@@ -34,7 +34,7 @@
   .backdrop-gradient {
     background: radial-gradient(
         circle at 20% 20%,
-        rgba(110, 243, 164, 0.2),
+        rgba(243 110 110 / 0.2),
         transparent 60%
       ),
       radial-gradient(
@@ -44,7 +44,7 @@
       ),
       radial-gradient(
         circle at 40% 80%,
-        rgba(249, 159, 150, 0.14),
+        rgba(246 249 150 / 0.14),
         transparent 60%
       ),
       #09090b;

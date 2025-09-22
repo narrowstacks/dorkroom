@@ -114,9 +114,7 @@ export function HomePage() {
         <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-xl space-y-6">
             <div className="inline-flex items-center gap-2 pr-4 py-2 text-4xl font-black tracking-tight sm:text-5xl">
-              <span className="grainy-red-glow" data-text="Dorkroom.art">
-                Dorkroom.art
-              </span>
+              <span>Dorkroom.art</span>
             </div>
             <div className="space-y-4">
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -124,9 +122,11 @@ export function HomePage() {
               </h1>
               <p className="text-lg leading-relaxed text-zinc-200">
                 Dorkroom keeps the math and planning out of the way so you can
-                focus on making prints and beautiful exposures. Explore
-                calculators that balance exposure, size prints, and guide
-                darkroom chemistry.
+                focus on making prints and beautiful exposures.{' '}
+              </p>
+              <p className="text-lg leading-relaxed text-zinc-200">
+                Explore calculators that balance exposure, size prints, and
+                guide darkroom chemistry.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
