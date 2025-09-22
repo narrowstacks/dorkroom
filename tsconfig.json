@@ -8,6 +8,9 @@
     },
     {
       "path": "./packages/logic"
+    },
+    {
+      "path": "./packages/ui"
     }
   ]
 }
