@@ -17,8 +17,10 @@ interface PositionOffsetsSectionProps {
   setIgnoreMinBorder: (value: boolean) => void;
   horizontalOffset: number;
   setHorizontalOffset: (value: number) => void;
+  setHorizontalOffsetSlider: (value: number) => void;
   verticalOffset: number;
   setVerticalOffset: (value: number) => void;
+  setVerticalOffsetSlider: (value: number) => void;
   offsetWarning?: string;
 }
 
@@ -30,8 +32,10 @@ export function PositionOffsetsSection({
   setIgnoreMinBorder,
   horizontalOffset,
   setHorizontalOffset,
+  setHorizontalOffsetSlider,
   verticalOffset,
   setVerticalOffset,
+  setVerticalOffsetSlider,
   offsetWarning,
 }: PositionOffsetsSectionProps) {
   return (
@@ -72,7 +76,7 @@ export function PositionOffsetsSection({
                 label="Horizontal Offset:"
                 value={horizontalOffset}
                 onChange={setHorizontalOffset}
-                onSliderChange={setHorizontalOffset}
+                onSliderChange={setHorizontalOffsetSlider}
                 min={OFFSET_SLIDER_MIN}
                 max={OFFSET_SLIDER_MAX}
                 step={OFFSET_SLIDER_STEP}
@@ -85,7 +89,7 @@ export function PositionOffsetsSection({
                 label="Vertical Offset:"
                 value={verticalOffset}
                 onChange={setVerticalOffset}
-                onSliderChange={setVerticalOffset}
+                onSliderChange={setVerticalOffsetSlider}
                 min={OFFSET_SLIDER_MIN}
                 max={OFFSET_SLIDER_MAX}
                 step={OFFSET_SLIDER_STEP}

@@ -71,14 +71,17 @@ export function MobileBorderCalculator({
     setCustomPaperHeight,
     minBorder,
     setMinBorder,
+    setMinBorderSlider,
     enableOffset,
     setEnableOffset,
     ignoreMinBorder,
     setIgnoreMinBorder,
     horizontalOffset,
     setHorizontalOffset,
+    setHorizontalOffsetSlider,
     verticalOffset,
     setVerticalOffset,
+    setVerticalOffsetSlider,
     showBlades,
     setShowBlades,
     isLandscape,
@@ -303,6 +306,7 @@ export function MobileBorderCalculator({
                   onClose={closeDrawer}
                   minBorder={minBorder}
                   setMinBorder={setMinBorder}
+                  setMinBorderSlider={setMinBorderSlider}
                   minBorderWarning={minBorderWarning || undefined}
                 />
               )}
@@ -316,8 +320,10 @@ export function MobileBorderCalculator({
                   setIgnoreMinBorder={setIgnoreMinBorder}
                   horizontalOffset={horizontalOffset}
                   setHorizontalOffset={setHorizontalOffset}
+                  setHorizontalOffsetSlider={setHorizontalOffsetSlider}
                   verticalOffset={verticalOffset}
                   setVerticalOffset={setVerticalOffset}
+                  setVerticalOffsetSlider={setVerticalOffsetSlider}
                   offsetWarning={offsetWarning || undefined}
                 />
               )}
