@@ -1,4 +1,4 @@
-import { cn } from '../../lib/cn';
+import { cn } from '../lib/cn';
 
 interface DimensionInputGroupProps {
   widthValue: string;
@@ -34,7 +34,7 @@ export function DimensionInputGroup({
         <input
           type="number"
           value={widthValue}
-          onChange={(e) => onWidthChange(e.target.value)}
+          onChange={(e) => onWidthChange((e.target as HTMLInputElement).value)}
           placeholder={widthPlaceholder}
           className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-white/50 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
         />
@@ -46,7 +46,7 @@ export function DimensionInputGroup({
         <input
           type="number"
           value={heightValue}
-          onChange={(e) => onHeightChange(e.target.value)}
+          onChange={(e) => onHeightChange((e.target as HTMLInputElement).value)}
           placeholder={heightPlaceholder}
           className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-white/50 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
         />

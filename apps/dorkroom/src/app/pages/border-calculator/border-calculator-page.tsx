@@ -7,16 +7,18 @@ import {
   Save,
   Trash2,
 } from 'lucide-react';
-import { cn } from '../../lib/cn';
-
-// Components
-import { LabeledSliderInput } from '../../components/ui/labeled-slider-input';
-import { TextInput } from '../../components/ui/text-input';
-import { DimensionInputGroup } from '../../components/ui/dimension-input-group';
-import { ToggleSwitch } from '../../components/ui/toggle-switch';
-import { Select } from '../../components/ui/select';
-import { WarningAlert } from '../../components/ui/warning-alert';
-import { ResultRow } from '../../components/ui/result-row';
+// UI Components from @dorkroom/ui package
+import {
+  LabeledSliderInput,
+  TextInput,
+  DimensionInputGroup,
+  ToggleSwitch,
+  Select,
+  WarningAlert,
+  CalculatorCard,
+  CalculatorPageHeader,
+  CalculatorStat,
+} from '@dorkroom/ui';
 import {
   AnimatedPreview,
   BorderInfoSection,
@@ -184,138 +186,151 @@ export default function BorderCalculatorPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8 sm:px-10">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-          Border Calculator
-        </h1>
-        <p className="mt-3 text-base text-zinc-300">
-          Calculate precise easel blade positions for consistent print borders
-        </p>
-      </div>
+    <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
+      <CalculatorPageHeader
+        eyebrow="Printmaking"
+        title="Border Calculator"
+        description="Calculate precise easel blade positions for consistent print borders."
+      />
 
-      <div
-        className={cn('gap-8', isDesktop ? 'grid grid-cols-2' : 'space-y-8')}
-      >
-        {calculation && (
-          <div className="space-y-6">
-            <div className="flex justify-center">
-              <div className="relative">
-                <AnimatedPreview
-                  calculation={calculation}
-                  showBlades={showBlades}
-                  className="max-w-full"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <button
-                onClick={() => setIsLandscape(!isLandscape)}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
+      <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        <div className="space-y-6">
+          {calculation && (
+            <>
+              <CalculatorCard
+                title="Preview & orientation"
+                description="Visualize the paper, borders, and blade setup before you walk to the enlarger."
+                accent="violet"
+                padding="compact"
               >
-                <RotateCw className="h-4 w-4" />
-                Flip Paper
-              </button>
-              <button
-                onClick={() => setIsRatioFlipped(!isRatioFlipped)}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
+                <div className="flex justify-center">
+                  <div className="relative">
+                    <AnimatedPreview
+                      calculation={calculation}
+                      showBlades={showBlades}
+                      className="max-w-full"
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <button
+                    onClick={() => setIsLandscape(!isLandscape)}
+                    className="flex items-center justify-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  >
+                    <RotateCw className="h-4 w-4" />
+                    Flip Paper
+                  </button>
+                  <button
+                    onClick={() => setIsRatioFlipped(!isRatioFlipped)}
+                    className="flex items-center justify-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  >
+                    <Square className="h-4 w-4" />
+                    Flip Ratio
+                  </button>
+                </div>
+                <button
+                  onClick={resetToDefaults}
+                  className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border border-red-400/40 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-100 transition hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Reset to defaults
+                </button>
+              </CalculatorCard>
+
+              <CalculatorCard
+                title="Blade readings"
+                description="Dial these values on your easel for a centered print."
+                accent="emerald"
+                padding="compact"
               >
-                <Square className="h-4 w-4" />
-                Flip Ratio
-              </button>
-            </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <CalculatorStat
+                    label="Left blade"
+                    value={`${calculation.leftBladeReading.toFixed(2)} in`}
+                    className="p-4"
+                  />
+                  <CalculatorStat
+                    label="Right blade"
+                    value={`${calculation.rightBladeReading.toFixed(2)} in`}
+                    className="p-4"
+                  />
+                  <CalculatorStat
+                    label="Top blade"
+                    value={`${calculation.topBladeReading.toFixed(2)} in`}
+                    className="p-4"
+                  />
+                  <CalculatorStat
+                    label="Bottom blade"
+                    value={`${calculation.bottomBladeReading.toFixed(2)} in`}
+                    className="p-4"
+                  />
+                  <CalculatorStat
+                    label="Image size"
+                    value={`${calculation.printWidth.toFixed(
+                      2
+                    )} × ${calculation.printHeight.toFixed(2)} in`}
+                    helperText="Final image area within the borders."
+                    className="sm:col-span-2 p-4"
+                  />
+                </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/5 p-6">
-              <h3 className="mb-4 text-lg font-semibold text-white">
-                Blade Readings
-              </h3>
-              <div className="space-y-2">
-                <ResultRow
-                  label="Image Dimensions:"
-                  value={`${calculation.printWidth.toFixed(
-                    2
-                  )} × ${calculation.printHeight.toFixed(2)} inches`}
-                />
-                <ResultRow
-                  label="Left Blade:"
-                  value={`${calculation.leftBladeReading.toFixed(2)} inches`}
-                />
-                <ResultRow
-                  label="Right Blade:"
-                  value={`${calculation.rightBladeReading.toFixed(2)} inches`}
-                />
-                <ResultRow
-                  label="Top Blade:"
-                  value={`${calculation.topBladeReading.toFixed(2)} inches`}
-                />
-                <ResultRow
-                  label="Bottom Blade:"
-                  value={`${calculation.bottomBladeReading.toFixed(2)} inches`}
-                />
-              </div>
-
-              <button
-                onClick={resetToDefaults}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-              >
-                <RotateCcw className="h-4 w-4" />
-                Reset to Defaults
-              </button>
-
-              {calculation.isNonStandardPaperSize && (
-                <div className="mt-4 rounded-lg border border-blue-500/50 bg-blue-500/10 p-4">
-                  <p className="text-center text-sm text-blue-200">
-                    <strong>Non-Standard Paper Size</strong>
+                {calculation.isNonStandardPaperSize && (
+                  <div className="mt-4 rounded-2xl border border-blue-400/30 bg-blue-500/10 px-4 py-3 text-center text-sm text-blue-100">
+                    <strong className="font-semibold">
+                      Non-standard paper
+                    </strong>
                     <br />
                     Position paper in the {calculation.easelSizeLabel} slot all
                     the way to the left.
-                  </p>
-                </div>
-              )}
+                  </div>
+                )}
 
-              {bladeWarning && (
-                <div className="mt-4">
-                  <WarningAlert message={bladeWarning} action="error" />
-                </div>
-              )}
-              {minBorderWarning && (
-                <div className="mt-4">
-                  <WarningAlert message={minBorderWarning} action="error" />
-                </div>
-              )}
-              {paperSizeWarning && (
-                <div className="mt-4">
-                  <WarningAlert message={paperSizeWarning} action="warning" />
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+                {bladeWarning && (
+                  <div className="mt-4">
+                    <WarningAlert message={bladeWarning} action="error" />
+                  </div>
+                )}
+                {minBorderWarning && (
+                  <div className="mt-4">
+                    <WarningAlert message={minBorderWarning} action="error" />
+                  </div>
+                )}
+                {paperSizeWarning && (
+                  <div className="mt-4">
+                    <WarningAlert message={paperSizeWarning} action="warning" />
+                  </div>
+                )}
+              </CalculatorCard>
+            </>
+          )}
+        </div>
 
         <div className="space-y-6">
-          <div className="space-y-4">
-            <div className="flex items-end gap-3">
+          <CalculatorCard
+            title="Presets"
+            description="Save, recall, and share the setups you use most often."
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
               <div className="flex-1">
                 <Select
-                  label="Presets:"
+                  label="Presets"
                   selectedValue={selectedPresetId}
                   onValueChange={handleSelectPreset}
                   items={presetItems}
-                  placeholder="Select Preset"
+                  placeholder="Select preset"
                 />
               </div>
               <div className="flex gap-2">
                 <button
-                  className="rounded-lg border border-white/20 bg-white/5 p-2 text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
-                  title="Share Preset"
+                  className="rounded-full border border-white/12 bg-white/5 p-2 text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  title="Share preset"
                 >
                   <Share2 className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setIsEditingPreset(true)}
-                  className="rounded-lg border border-white/20 bg-white/5 p-2 text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
-                  title="Edit Preset"
+                  className="rounded-full border border-white/12 bg-white/5 p-2 text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  title="Edit preset"
                 >
                   <Save className="h-4 w-4" />
                 </button>
@@ -327,13 +342,13 @@ export default function BorderCalculatorPage() {
                 <TextInput
                   value={presetName}
                   onValueChange={setPresetName}
-                  placeholder="Preset Name"
-                  label="Preset Name"
+                  placeholder="Preset name"
+                  label="Preset name"
                 />
-                <div className="flex gap-2">
+                <div className="grid gap-2 sm:grid-cols-3">
                   <button
                     onClick={savePreset}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60"
                   >
                     <Save className="h-4 w-4" />
                     Save
@@ -341,7 +356,7 @@ export default function BorderCalculatorPage() {
                   <button
                     onClick={updatePresetHandler}
                     disabled={!selectedPresetId}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-sky-400/40 bg-sky-500/10 px-4 py-2 text-sm font-semibold text-sky-100 transition hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Save className="h-4 w-4" />
                     Update
@@ -349,7 +364,7 @@ export default function BorderCalculatorPage() {
                   <button
                     onClick={deletePresetHandler}
                     disabled={!selectedPresetId}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-red-400/40 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-100 transition hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Trash2 className="h-4 w-4" />
                     Delete
@@ -357,127 +372,143 @@ export default function BorderCalculatorPage() {
                 </div>
               </div>
             )}
-          </div>
+          </CalculatorCard>
 
-          <Select
-            label="Aspect Ratio:"
-            selectedValue={aspectRatio}
-            onValueChange={setAspectRatio}
-            items={ASPECT_RATIOS as SelectItem[]}
-            placeholder="Select Aspect Ratio"
-          />
-
-          {aspectRatio === 'custom' && (
-            <DimensionInputGroup
-              widthValue={String(customAspectWidth)}
-              onWidthChange={(value) =>
-                setCustomAspectWidth(Number(value) || 0)
-              }
-              heightValue={String(customAspectHeight)}
-              onHeightChange={(value) =>
-                setCustomAspectHeight(Number(value) || 0)
-              }
-              widthLabel="Width:"
-              heightLabel="Height:"
-              widthPlaceholder="Width"
-              heightPlaceholder="Height"
-            />
-          )}
-
-          <Select
-            label="Paper Size:"
-            selectedValue={paperSize}
-            onValueChange={setPaperSize}
-            items={PAPER_SIZES as SelectItem[]}
-            placeholder="Select Paper Size"
-          />
-
-          {paperSize === 'custom' && (
-            <DimensionInputGroup
-              widthValue={String(customPaperWidth)}
-              onWidthChange={(value) => setCustomPaperWidth(Number(value) || 0)}
-              heightValue={String(customPaperHeight)}
-              onHeightChange={(value) =>
-                setCustomPaperHeight(Number(value) || 0)
-              }
-              widthLabel="Width (inches):"
-              heightLabel="Height (inches):"
-              widthPlaceholder="Width"
-              heightPlaceholder="Height"
-            />
-          )}
-
-          <LabeledSliderInput
-            label="Minimum Border (inches):"
-            value={minBorder}
-            onChange={setMinBorder}
-            onSliderChange={setMinBorderSlider}
-            min={SLIDER_MIN_BORDER}
-            max={SLIDER_MAX_BORDER}
-            step={SLIDER_STEP_BORDER}
-            labels={BORDER_SLIDER_LABELS}
-            continuousUpdate={true}
-          />
-
-          <div className="flex gap-6">
-            <ToggleSwitch
-              label="Enable Offsets"
-              value={enableOffset}
-              onValueChange={setEnableOffset}
-            />
-            <ToggleSwitch
-              label="Show Easel Blades"
-              value={showBlades}
-              onValueChange={setShowBlades}
-            />
-          </div>
-
-          {enableOffset && (
-            <div className="space-y-4">
-              <ToggleSwitch
-                label="Ignore Min Border"
-                value={ignoreMinBorder}
-                onValueChange={setIgnoreMinBorder}
+          <CalculatorCard
+            title="Paper setup"
+            description="Match the paper size and aspect ratio you're printing on."
+          >
+            <div className="space-y-5">
+              <Select
+                label="Aspect ratio"
+                selectedValue={aspectRatio}
+                onValueChange={setAspectRatio}
+                items={ASPECT_RATIOS as SelectItem[]}
+                placeholder="Select"
               />
-              {ignoreMinBorder && (
-                <p className="text-sm text-white/70">
-                  Print can be positioned freely but will stay within paper
-                  edges
-                </p>
+
+              {aspectRatio === 'custom' && (
+                <DimensionInputGroup
+                  widthValue={String(customAspectWidth)}
+                  onWidthChange={(value) =>
+                    setCustomAspectWidth(Number(value) || 0)
+                  }
+                  heightValue={String(customAspectHeight)}
+                  onHeightChange={(value) =>
+                    setCustomAspectHeight(Number(value) || 0)
+                  }
+                  widthLabel="Width"
+                  heightLabel="Height"
+                  widthPlaceholder="Width"
+                  heightPlaceholder="Height"
+                />
               )}
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <LabeledSliderInput
-                  label="Horizontal Offset:"
-                  value={horizontalOffset}
-                  onChange={setHorizontalOffset}
-                  onSliderChange={setHorizontalOffsetSlider}
-                  min={OFFSET_SLIDER_MIN}
-                  max={OFFSET_SLIDER_MAX}
-                  step={OFFSET_SLIDER_STEP}
-                  labels={OFFSET_SLIDER_LABELS}
-                  warning={!!offsetWarning}
-                  continuousUpdate={true}
+              <Select
+                label="Paper size"
+                selectedValue={paperSize}
+                onValueChange={setPaperSize}
+                items={PAPER_SIZES as SelectItem[]}
+                placeholder="Select"
+              />
+
+              {paperSize === 'custom' && (
+                <DimensionInputGroup
+                  widthValue={String(customPaperWidth)}
+                  onWidthChange={(value) =>
+                    setCustomPaperWidth(Number(value) || 0)
+                  }
+                  heightValue={String(customPaperHeight)}
+                  onHeightChange={(value) =>
+                    setCustomPaperHeight(Number(value) || 0)
+                  }
+                  widthLabel="Width (inches)"
+                  heightLabel="Height (inches)"
+                  widthPlaceholder="Width"
+                  heightPlaceholder="Height"
                 />
-                <LabeledSliderInput
-                  label="Vertical Offset:"
-                  value={verticalOffset}
-                  onChange={setVerticalOffset}
-                  onSliderChange={setVerticalOffsetSlider}
-                  min={OFFSET_SLIDER_MIN}
-                  max={OFFSET_SLIDER_MAX}
-                  step={OFFSET_SLIDER_STEP}
-                  labels={OFFSET_SLIDER_LABELS}
-                  warning={!!offsetWarning}
-                  continuousUpdate={true}
+              )}
+            </div>
+          </CalculatorCard>
+
+          <CalculatorCard
+            title="Borders & offsets"
+            description="Control the border thickness and fine-tune print placement."
+          >
+            <div className="space-y-5">
+              <LabeledSliderInput
+                label="Minimum border (inches)"
+                value={minBorder}
+                onChange={setMinBorder}
+                onSliderChange={setMinBorderSlider}
+                min={SLIDER_MIN_BORDER}
+                max={SLIDER_MAX_BORDER}
+                step={SLIDER_STEP_BORDER}
+                labels={BORDER_SLIDER_LABELS}
+                continuousUpdate
+              />
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <ToggleSwitch
+                  label="Enable offsets"
+                  value={enableOffset}
+                  onValueChange={setEnableOffset}
+                />
+                <ToggleSwitch
+                  label="Show easel blades"
+                  value={showBlades}
+                  onValueChange={setShowBlades}
                 />
               </div>
 
-              {offsetWarning && (
-                <WarningAlert message={offsetWarning} action="warning" />
+              {enableOffset && (
+                <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <ToggleSwitch
+                    label="Ignore min border"
+                    value={ignoreMinBorder}
+                    onValueChange={setIgnoreMinBorder}
+                  />
+                  {ignoreMinBorder && (
+                    <p className="text-sm text-white/70">
+                      Print can be positioned freely but will stay within the
+                      paper edges.
+                    </p>
+                  )}
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <LabeledSliderInput
+                      label="Horizontal offset"
+                      value={horizontalOffset}
+                      onChange={setHorizontalOffset}
+                      onSliderChange={setHorizontalOffsetSlider}
+                      min={OFFSET_SLIDER_MIN}
+                      max={OFFSET_SLIDER_MAX}
+                      step={OFFSET_SLIDER_STEP}
+                      labels={OFFSET_SLIDER_LABELS}
+                      warning={!!offsetWarning}
+                      continuousUpdate
+                    />
+                    <LabeledSliderInput
+                      label="Vertical offset"
+                      value={verticalOffset}
+                      onChange={setVerticalOffset}
+                      onSliderChange={setVerticalOffsetSlider}
+                      min={OFFSET_SLIDER_MIN}
+                      max={OFFSET_SLIDER_MAX}
+                      step={OFFSET_SLIDER_STEP}
+                      labels={OFFSET_SLIDER_LABELS}
+                      warning={!!offsetWarning}
+                      continuousUpdate
+                    />
+                  </div>
+
+                  {offsetWarning && (
+                    <WarningAlert message={offsetWarning} action="warning" />
+                  )}
+                </div>
               )}
             </div>
-          )}
+          </CalculatorCard>
         </div>
       </div>
 

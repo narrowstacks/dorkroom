@@ -1,6 +1,5 @@
 import { X } from 'lucide-react';
-import { LabeledSliderInput } from '../../ui/labeled-slider-input';
-import { WarningAlert } from '../../ui/warning-alert';
+import { LabeledSliderInput, WarningAlert } from '@dorkroom/ui';
 import {
   SLIDER_MIN_BORDER,
   SLIDER_MAX_BORDER,

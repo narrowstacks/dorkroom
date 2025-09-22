@@ -12,6 +12,7 @@ import {
 import { cn } from './lib/cn';
 import HomePage from './pages/home-page';
 import BorderCalculatorPage from './pages/border-calculator/border-calculator-page';
+import ResizeCalculatorPage from './pages/resize-calculator/resize-calculator-page';
 
 const navItems = [
   {
@@ -147,8 +148,9 @@ export function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/border" element={<BorderCalculatorPage />} />
+            <Route path="/resize" element={<ResizeCalculatorPage />} />
             {navItems
-              .filter((item) => item.to !== '/' && item.to !== '/border')
+              .filter((item) => item.to !== '/' && item.to !== '/border' && item.to !== '/resize')
               .map((item) => (
                 <Route
                   key={item.to}

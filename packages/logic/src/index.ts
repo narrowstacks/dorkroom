@@ -13,6 +13,7 @@ export * from './utils/input-validation';
 export { useWindowDimensions } from './hooks/use-window-dimensions';
 export { useBorderPresets } from './hooks/use-border-presets';
 export { useBorderCalculator } from './hooks/use-border-calculator';
+export { useResizeCalculator } from './hooks/use-resize-calculator';
 
 // Border calculator modular hooks
 export {

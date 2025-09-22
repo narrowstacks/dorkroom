@@ -1,5 +1,5 @@
 import { AlertTriangle, AlertCircle } from 'lucide-react';
-import { cn } from '../../lib/cn';
+import { cn } from '../lib/cn';
 
 interface WarningAlertProps {
   message: string;

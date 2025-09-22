@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react';
-import { cn } from '../../lib/cn';
+import { cn } from '../lib/cn';
 import type { SelectItem } from '@dorkroom/logic';
 
 interface SelectProps {
@@ -29,7 +29,7 @@ export function Select({
       <div className="relative">
         <select
           value={selectedValue}
-          onChange={(e) => onValueChange(e.target.value)}
+          onChange={(e) => onValueChange((e.target as HTMLSelectElement).value)}
           className="w-full appearance-none rounded-lg border border-white/20 bg-white/5 px-3 py-2 pr-8 text-white focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
         >
           {placeholder && !selectedValue && (
