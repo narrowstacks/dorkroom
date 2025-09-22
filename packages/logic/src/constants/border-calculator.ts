@@ -12,6 +12,7 @@ import type {
 
 export const DESKTOP_BREAKPOINT = 768;
 
+
 // ---- Border slider ----
 export const SLIDER_MIN_BORDER = 0;
 export const SLIDER_MAX_BORDER = 6;
@@ -99,7 +100,7 @@ export const EASEL_SIZE_MAP = new Map(
   EASEL_SIZES.map((size) => [size.value, size])
 );
 
-export const BLADE_THICKNESS = 0.125;
+export const BLADE_THICKNESS = 15;
 
 export const DEFAULT_BORDER_PRESETS: BorderPreset[] = [
   {

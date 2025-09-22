@@ -37,12 +37,6 @@ const AnimatedBlade = ({
   borderColor,
   opacity,
 }: BladeProps) => {
-  const [animatedPosition, setAnimatedPosition] = useState(positionPercent);
-
-  useEffect(() => {
-    setAnimatedPosition(positionPercent);
-  }, [positionPercent]);
-
   const baseStyle = {
     position: 'absolute' as const,
     backgroundColor: borderColor,
@@ -58,7 +52,7 @@ const AnimatedBlade = ({
           top: -1000,
           bottom: -1000,
           width: thickness,
-          left: `${animatedPosition}%`,
+          left: `${positionPercent}%`,
           transform:
             position === 'left'
               ? `translateX(-${thickness}px)`
@@ -68,7 +62,7 @@ const AnimatedBlade = ({
           left: -1000,
           right: -1000,
           height: thickness,
-          top: `${animatedPosition}%`,
+          top: `${positionPercent}%`,
           transform:
             position === 'top'
               ? `translateY(-${thickness}px)`
@@ -97,7 +91,7 @@ export function AnimatedPreview({
       width: calculation.previewWidth || 400,
       height: calculation.previewHeight || 300,
     };
-  }, [calculation?.previewWidth, calculation?.previewHeight]);
+  }, [calculation]);
 
   // Calculate transform values
   const transformValues = useMemo(() => {
@@ -154,7 +148,7 @@ export function AnimatedPreview({
   if (!calculation || !transformValues) {
     return (
       <div
-        className={`border border-white/10 bg-white/5 rounded-sm flex items-center justify-center ${className}`}
+        className={`border bg-white/5 flex items-center justify-center ${className}`}
         style={staticDimensions}
       >
         <div className="text-white/60">Preview</div>
@@ -178,7 +172,7 @@ export function AnimatedPreview({
 
   return (
     <div
-      className={`relative border border-white/10 bg-white rounded-lg overflow-hidden ${className}`}
+      className={`relative bg-white overflow-hidden ${className}`}
       style={staticDimensions}
     >
       {/* Paper background */}
