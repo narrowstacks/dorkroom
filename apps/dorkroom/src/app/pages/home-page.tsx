@@ -5,9 +5,8 @@ import {
   Camera,
   Crop,
   Gauge,
-  Github,
+  GitBranch,
   Mic,
-  Palette,
   Ruler,
   Timer,
 } from 'lucide-react';
@@ -34,7 +33,7 @@ const quickActions = [
 const highlights = [
   { icon: Camera, label: 'Built for analog photographers' },
   { icon: Timer, label: 'Fast exposure & reciprocity math' },
-  { icon: Github, label: 'Open source, community powered' },
+  { icon: GitBranch, label: 'Open source, community powered' },
 ];
 
 const calculators = [
@@ -98,7 +97,7 @@ const communityLinks = [
   {
     label: 'Contribute on GitHub',
     href: 'https://github.com/dorkroom',
-    icon: Github,
+    icon: GitBranch,
   },
   {
     label: 'Support on Ko-fi',
@@ -110,15 +109,17 @@ const communityLinks = [
 export function HomePage() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-16 px-6 pb-24 pt-12 sm:px-10">
-      <section className="relative overflow-hidden rounded-hero border border-white/10 bg-surface/80 px-6 py-12 shadow-glow sm:px-12">
+      <section className="relative overflow-hidden rounded-lg border border-white/10 bg-surface/80 px-6 py-12 shadow-glow sm:px-12">
         <div className="pointer-events-none absolute inset-0 bg-hero-glow opacity-90" />
         <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-xl space-y-6">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-sm font-medium text-zinc-100">
-              <Palette className="h-4 w-4" /> Dorkroom Toolkit
-            </span>
+            <div className="inline-flex items-center gap-2 pr-4 py-2 text-4xl font-black tracking-tight sm:text-5xl">
+              <span className="grainy-red-glow" data-text="Dorkroom.art">
+                Dorkroom.art
+              </span>
+            </div>
             <div className="space-y-4">
-              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
                 Skip the math. Make prints.
               </h1>
               <p className="text-lg leading-relaxed text-zinc-200">
@@ -157,9 +158,6 @@ export function HomePage() {
           </div>
           <div className="flex flex-col justify-between gap-6 rounded-3xl border border-white/10 bg-black/30 p-6 shadow-subtle backdrop-blur">
             <div className="space-y-2">
-              <p className="text-sm uppercase tracking-[0.3em] text-zinc-400">
-                At a glance
-              </p>
               <p className="text-3xl font-semibold text-white">
                 Built for darkroom obsessives.
               </p>
@@ -201,7 +199,9 @@ export function HomePage() {
                   <tool.icon className="h-4 w-4 text-white/80" />
                 </div>
                 <div className="space-y-2">
-                  <p className="text-xl font-semibold text-white">{tool.title}</p>
+                  <p className="text-xl font-semibold text-white">
+                    {tool.title}
+                  </p>
                   <p className="text-sm text-white/80">{tool.description}</p>
                 </div>
                 <span className="mt-auto flex items-center gap-2 text-sm font-medium text-white/90 opacity-0 transition-opacity group-hover:opacity-100">
@@ -235,10 +235,17 @@ export function HomePage() {
                 rel="noreferrer"
                 className={cn(
                   'flex items-center gap-2 rounded-full border border-white/10 px-5 py-2 text-sm font-medium transition hover:border-white/30 hover:bg-white/10',
-                  link.label.includes('Ko-fi') && 'bg-gradient-to-r from-rose-500/30 to-orange-400/20'
+                  link.label.includes('Ko-fi') &&
+                    'bg-gradient-to-r from-rose-500/30 to-orange-400/20'
                 )}
               >
-                <link.icon className="h-4 w-4" />
+                {/* render icon component explicitly to satisfy JSX typing */}
+                {(() => {
+                  const IconComp = link.icon as React.ComponentType<{
+                    className?: string;
+                  }>;
+                  return <IconComp className="h-4 w-4" />;
+                })()}
                 {link.label}
               </a>
             ))}
