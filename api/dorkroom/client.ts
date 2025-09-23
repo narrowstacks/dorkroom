@@ -28,17 +28,17 @@ import {
   ConsoleLogger,
   joinURL,
 } from "./transport";
-import { debounce } from "../utils/throttle";
+import { debounce } from "../../utils/throttle";
 import {
   getApiEndpointConfig,
   getEnvironmentConfig,
-} from "../utils/platformDetection";
-import { debugLog } from "../utils/debugLogger";
+} from "../../utils/platformDetection";
+import { debugLog } from "../../utils/debugLogger";
 import {
   enhanceFilmResults,
   enhanceDeveloperResults,
   DEFAULT_TOKENIZED_CONFIG,
-} from "../utils/tokenizedSearch";
+} from "../../utils/tokenizedSearch";
 
 /**
  * Cache entry with expiration.
@@ -122,34 +122,6 @@ class TTLCache<T> {
   }
 }
 
-const LOCAL_CACHE_KEY = 'dorkroom_development_data';
-
-type CachedDevelopmentData = {
-  films: Film[];
-  developers: Developer[];
-  combinations: Combination[];
-  timestamp: number;
-};
-
-const getPersistentStorage = (): Storage | null => {
-  if (typeof window === 'undefined' || !('localStorage' in window)) {
-    return null;
-  }
-
-  try {
-    return window.localStorage;
-  } catch (error) {
-    console.warn("Local storage unavailable:", error);
-    return null;
-  }
-};
-
-let inMemoryCache: CachedDevelopmentData | null = null;
-
-const isDevelopmentEnvironment =
-  (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') ||
-  (typeof window !== 'undefined' && (window as any).__DORKROOM_DEV__ === true);
-
 /**
  * Main client for interacting with the Dorkroom REST API.
  */
@@ -195,7 +167,7 @@ export class DorkroomClient {
     this.logger = config.logger || new ConsoleLogger();
 
     // Log the platform configuration for debugging
-    if (config.logger || isDevelopmentEnvironment) {
+    if (config.logger || __DEV__) {
       const envConfig = getEnvironmentConfig();
       this.logger.debug(
         `Dorkroom client initialized for ${envConfig.platform} platform ` +
@@ -257,109 +229,90 @@ export class DorkroomClient {
     developers: Developer[],
     combinations: Combination[],
   ): Promise<void> {
-    const cacheData: CachedDevelopmentData = {
-      films,
-      developers,
-      combinations,
-      timestamp: Date.now(),
-    };
+    try {
+      const cacheData = {
+        films,
+        developers,
+        combinations,
+        timestamp: Date.now(),
+      };
 
-    const storage = getPersistentStorage();
-
-    if (storage) {
-      try {
-        storage.setItem(LOCAL_CACHE_KEY, JSON.stringify(cacheData));
-        this.logger.debug("Data cached to local storage");
-        return;
-      } catch (error) {
-        this.logger.warn(`Failed to store local cache (localStorage): ${error}`);
-      }
+      const AsyncStorage =
+        require("@react-native-async-storage/async-storage").default;
+      await AsyncStorage.setItem(
+        "dorkroom_development_data",
+        JSON.stringify(cacheData),
+      );
+      this.logger.debug("Data cached to local storage");
+    } catch (error) {
+      this.logger.warn(`Failed to store local cache: ${error}`);
     }
-
-    inMemoryCache = cacheData;
-    this.logger.debug("Data cached in memory");
   }
 
   /**
    * Retrieve data from persistent local cache using AsyncStorage.
    */
-  private async getLocalCache(): Promise<CachedDevelopmentData | null> {
-    const storage = getPersistentStorage();
+  private async getLocalCache(): Promise<{
+    films: Film[];
+    developers: Developer[];
+    combinations: Combination[];
+    timestamp: number;
+  } | null> {
+    try {
+      const AsyncStorage =
+        require("@react-native-async-storage/async-storage").default;
+      const cachedData = await AsyncStorage.getItem(
+        "dorkroom_development_data",
+      );
 
-    const parseCache = (raw: string | null): CachedDevelopmentData | null => {
-      if (!raw) {
+      if (!cachedData) {
         return null;
       }
 
-      try {
-        const parsed = JSON.parse(raw) as CachedDevelopmentData;
+      const parsed = JSON.parse(cachedData);
 
-        if (
-          !parsed.films ||
-          !parsed.developers ||
-          !parsed.combinations ||
-          !parsed.timestamp
-        ) {
-          this.logger.warn("Invalid cache structure, ignoring");
-          return null;
-        }
-
-        const cacheAge = Date.now() - parsed.timestamp;
-        if (cacheAge > DorkroomClient.DATA_CACHE_TTL) {
-          this.logger.debug(
-            `Local cache expired (age: ${Math.round(cacheAge / 1000)}s), ignoring`,
-          );
-          return null;
-        }
-
-        this.logger.debug(
-          `Using local cache (age: ${Math.round(cacheAge / 1000)}s)`,
-        );
-        return parsed;
-      } catch (error) {
-        this.logger.warn(`Failed to parse local cache: ${error}`);
+      // Validate cache structure
+      if (
+        !parsed.films ||
+        !parsed.developers ||
+        !parsed.combinations ||
+        !parsed.timestamp
+      ) {
+        this.logger.warn("Invalid cache structure, ignoring");
         return null;
       }
-    };
 
-    if (storage) {
-      const cachedData = storage.getItem(LOCAL_CACHE_KEY);
-      const parsed = parseCache(cachedData);
-      if (parsed) {
-        inMemoryCache = parsed;
-        return parsed;
-      }
-    }
-
-    if (inMemoryCache) {
-      const cacheAge = Date.now() - inMemoryCache.timestamp;
-      if (cacheAge <= DorkroomClient.DATA_CACHE_TTL) {
+      // Check if cache is expired (30 minutes)
+      const cacheAge = Date.now() - parsed.timestamp;
+      if (cacheAge > DorkroomClient.DATA_CACHE_TTL) {
         this.logger.debug(
-          `Using in-memory cache (age: ${Math.round(cacheAge / 1000)}s)`,
+          `Local cache expired (age: ${Math.round(cacheAge / 1000)}s), ignoring`,
         );
-        return inMemoryCache;
+        return null;
       }
-    }
 
-    return null;
+      this.logger.debug(
+        `Using local cache (age: ${Math.round(cacheAge / 1000)}s)`,
+      );
+      return parsed;
+    } catch (error) {
+      this.logger.warn(`Failed to retrieve local cache: ${error}`);
+      return null;
+    }
   }
 
   /**
    * Clear the persistent local cache.
    */
   private async clearLocalCache(): Promise<void> {
-    const storage = getPersistentStorage();
-
-    if (storage) {
-      try {
-        storage.removeItem(LOCAL_CACHE_KEY);
-        this.logger.debug("Local cache cleared");
-      } catch (error) {
-        this.logger.warn(`Failed to clear local cache (localStorage): ${error}`);
-      }
+    try {
+      const AsyncStorage =
+        require("@react-native-async-storage/async-storage").default;
+      await AsyncStorage.removeItem("dorkroom_development_data");
+      this.logger.debug("Local cache cleared");
+    } catch (error) {
+      this.logger.warn(`Failed to clear local cache: ${error}`);
     }
-
-    inMemoryCache = null;
   }
 
   /**
@@ -397,16 +350,13 @@ export class DorkroomClient {
         try {
           const apiResponse = (await response.json()) as ApiResponse<T>;
           if (apiResponse && apiResponse.data) {
-            // Transform PostgreSQL arrays to JSON arrays
-            const transformedData = this.transformPostgreSQLArrays(apiResponse.data);
-            
             // Cache the result
             this.searchCache.set(
               cacheKey,
-              transformedData as any,
+              apiResponse.data as any,
               this.cacheTTL,
             );
-            return transformedData;
+            return apiResponse.data;
           }
           throw new DataParseError(
             `Invalid API response structure from ${resource}`,
@@ -431,60 +381,6 @@ export class DorkroomClient {
         }
       }
     });
-  }
-
-  /**
-   * Transform PostgreSQL array format to JSON arrays.
-   * Converts strings like '{"item1","item2","item3"}' to ["item1","item2","item3"]
-   */
-  private transformPostgreSQLArrays<T>(data: T[]): T[] {
-    return data.map((item: any) => {
-      const transformed = { ...item };
-      
-      // Transform manufacturer_notes if it exists and is a string
-      if (typeof transformed.manufacturer_notes === 'string') {
-        transformed.manufacturer_notes = this.parsePostgreSQLArray(transformed.manufacturer_notes);
-      }
-      
-      // Transform any other fields that might be PostgreSQL arrays
-      for (const [key, value] of Object.entries(transformed)) {
-        if (typeof value === 'string' && this.isPostgreSQLArray(value)) {
-          transformed[key] = this.parsePostgreSQLArray(value);
-        }
-      }
-      
-      return transformed;
-    });
-  }
-
-  /**
-   * Check if a string looks like a PostgreSQL array format.
-   */
-  private isPostgreSQLArray(str: string): boolean {
-    return /^\{.*\}$/.test(str.trim()) && str.includes('","');
-  }
-
-  /**
-   * Parse PostgreSQL array format string to JSON array.
-   * Converts '{"item1","item2","item3"}' to ["item1","item2","item3"]
-   */
-  private parsePostgreSQLArray(pgArray: string): string[] {
-    try {
-      // Remove outer braces and split by '","'
-      const cleaned = pgArray.trim().slice(1, -1); // Remove { and }
-      if (!cleaned) return [];
-      
-      // Split by '","' and clean up quotes
-      const items = cleaned.split('","').map(item => {
-        // Remove leading and trailing quotes if present
-        return item.replace(/^"/, '').replace(/"$/, '');
-      });
-      
-      return items;
-    } catch (error) {
-      this.logger.warn(`Failed to parse PostgreSQL array: ${pgArray} - ${error}`);
-      return [];
-    }
   }
 
   /**
@@ -1034,16 +930,7 @@ export class DorkroomClient {
           this.timeout,
         );
 
-        const rawData = await response.json();
-        
-        // Transform PostgreSQL arrays to JSON arrays
-        let data = rawData;
-        if (rawData && rawData.data) {
-          data = {
-            ...rawData,
-            data: this.transformPostgreSQLArrays(rawData.data)
-          };
-        }
+        const data = await response.json();
 
         // Handle single record response (when querying by ID)
         if (
