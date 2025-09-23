@@ -12,6 +12,11 @@ export { WarningAlert } from './components/warning-alert';
 export { ResultRow } from './components/result-row';
 export { Drawer, DrawerContent, DrawerBody } from './components/drawer';
 
+// Sharing Components
+export { ShareButton } from './components/share-button';
+export { ShareModal } from './components/share-modal';
+export { SaveBeforeShareModal } from './components/save-before-share-modal';
+
 // Calculator Components
 export {
   CalculatorCard,
