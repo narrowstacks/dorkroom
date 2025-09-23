@@ -1,0 +1,7 @@
+{
+  "buildCommand": "npx nx build dorkroom",
+  "outputDirectory": "apps/dorkroom/dist",
+  "devCommand": "npx nx serve dorkroom",
+  "installCommand": "npm install",
+  "framework": null
+}
