@@ -206,13 +206,17 @@ export function App() {
           aria-controls="mobile-navigation"
           onClick={() => setIsMobileMenuOpen((open) => !open)}
         >
-          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {isMobileMenuOpen ? (
+            <X className="h-5 w-5" />
+          ) : (
+            <Menu className="h-5 w-5" />
+          )}
         </button>
 
         {isMobileMenuOpen && (
           <>
             <div
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity"
+              className="fixed inset-0 z-40 h-screen min-h-dvh bg-black/60 backdrop-blur-sm transition-opacity"
               aria-hidden="true"
               onClick={() => setIsMobileMenuOpen(false)}
             />
