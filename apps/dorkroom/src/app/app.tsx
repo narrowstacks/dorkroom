@@ -1,4 +1,5 @@
-import { Link, NavLink, Route, Routes } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import {
   Aperture,
   Beaker,
@@ -13,6 +14,7 @@ import { cn } from './lib/cn';
 import HomePage from './pages/home-page';
 import BorderCalculatorPage from './pages/border-calculator/border-calculator-page';
 import ResizeCalculatorPage from './pages/resize-calculator/resize-calculator-page';
+import ReciprocityCalculatorPage from './pages/reciprocity-calculator/reciprocity-calculator-page';
 
 const navItems = [
   {
@@ -65,6 +67,17 @@ const navItems = [
   },
 ];
 
+const ROUTE_TITLES: Record<string, string> = {
+  '/': 'Home',
+  '/border': 'Border Calculator',
+  '/resize': 'Print Resize Calculator',
+  '/reciprocity': 'Reciprocity Failure Calculator',
+  '/stops': 'Stops Calculator',
+  '/exposure': 'Exposure Calculator',
+  '/development': 'Development Recipes',
+  '/infobase': 'Infobase',
+};
+
 function PlaceholderPage({
   title,
   summary,
@@ -99,6 +112,22 @@ function PlaceholderPage({
 }
 
 export function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const normalisedPath = location.pathname.replace(/\/+$/, '') || '/';
+    const pageTitle =
+      ROUTE_TITLES[normalisedPath] ||
+      navItems.find((item) => item.to === normalisedPath)?.label ||
+      'Dorkroom';
+    document.title =
+      pageTitle === 'Dorkroom' ? 'Dorkroom' : `${pageTitle} - Dorkroom`;
+  }, [location.pathname]);
+
   return (
     <div className="h-dvh bg-background text-white">
       <div className="backdrop-gradient min-h-dvh">
@@ -149,8 +178,12 @@ export function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/border" element={<BorderCalculatorPage />} />
             <Route path="/resize" element={<ResizeCalculatorPage />} />
+            <Route path="/reciprocity" element={<ReciprocityCalculatorPage />} />
             {navItems
-              .filter((item) => item.to !== '/' && item.to !== '/border' && item.to !== '/resize')
+              .filter(
+                (item) =>
+                  !['/', '/border', '/resize', '/reciprocity'].includes(item.to)
+              )
               .map((item) => (
                 <Route
                   key={item.to}
