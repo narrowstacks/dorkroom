@@ -17,7 +17,7 @@ import {
   CircuitBreakerError,
 } from "./errors";
 import type { Logger } from "./types";
-import { getApiUrl, getApiEndpointConfig } from "../utils/platformDetection";
+import { getApiUrl, getEnvironmentConfig } from "../../utils/platformDetection";
 
 /**
  * Protocol for HTTP transport layer dependency injection.
@@ -204,25 +204,13 @@ export class FetchHTTPTransport implements HTTPTransport {
           const timeoutId = setTimeout(() => controller.abort(), timeout);
 
           try {
-            // Get API configuration to determine if auth is required
-            const apiConfig = getApiEndpointConfig();
-            const headers: Record<string, string> = {
-              Accept: "application/json",
-              "User-Agent": "Dorkroom-Client-TS/1.0",
-            };
-            
-            // Add Authorization header if authentication is required
-            if (apiConfig.requiresAuth && typeof process !== 'undefined') {
-              const supabaseMasterKey = process.env.SUPABASE_MASTER_API_KEY;
-              if (supabaseMasterKey) {
-                headers.Authorization = `Bearer ${supabaseMasterKey}`;
-              }
-            }
-
             const response = await fetch(url, {
               method: "GET",
               signal: controller.signal,
-              headers,
+              headers: {
+                Accept: "application/json",
+                "User-Agent": "Dorkroom-Client-TS/1.0",
+              },
             });
 
             clearTimeout(timeoutId);

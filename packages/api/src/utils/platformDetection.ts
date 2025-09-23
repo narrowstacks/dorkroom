@@ -9,7 +9,7 @@ export interface ApiEndpointConfig {
 const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
 const isDev =
   (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') ||
-  (typeof window !== 'undefined' && (window as any).__DORKROOM_DEV__ === true);
+  (typeof window !== 'undefined' && (window as { __DORKROOM_DEV__?: boolean }).__DORKROOM_DEV__ === true);
 
 const getEnvBaseUrl = (): string | undefined => {
   if (typeof process !== 'undefined') {
@@ -51,16 +51,32 @@ export function isNativePlatform(): boolean {
 }
 
 export function getApiEndpointConfig(): ApiEndpointConfig {
-  const baseUrl =
-    getEnvBaseUrl() ||
-    getWindowBaseUrl() ||
-    (isWebPlatform() && !isDev ? '/api' : undefined) ||
-    DEFAULT_BASE_URL;
+  // Check if we have Supabase master API key for direct access
+  const supabaseMasterKey = typeof process !== 'undefined' 
+    ? process.env.SUPABASE_MASTER_API_KEY 
+    : undefined;
+  
+  let baseUrl: string;
+  let requiresAuth = false;
+  
+  if (supabaseMasterKey) {
+    // Use direct Supabase endpoints when we have the master key
+    baseUrl = 'https://ukpdbjhbudgsjqsxlays.supabase.co/functions/v1';
+    requiresAuth = true;
+  } else {
+    // Fall back to API proxy endpoints
+    baseUrl =
+      getEnvBaseUrl() ||
+      getWindowBaseUrl() ||
+      (isWebPlatform() && !isDev ? '/api' : undefined) ||
+      DEFAULT_BASE_URL;
+    requiresAuth = false;
+  }
 
   return {
     baseUrl,
     platform: getPlatformType(),
-    requiresAuth: false,
+    requiresAuth,
   };
 }
 
