@@ -55,8 +55,6 @@ export function Drawer({
     right: 'right-0 top-0 bottom-0',
   };
 
-  const isBottomAnchor = anchor === 'bottom';
-
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
@@ -76,16 +74,10 @@ export function Drawer({
             ? `${sizeClasses[size]} rounded-t-xl`
             : 'w-80 h-full',
           positionClasses[anchor],
-          transformClasses[anchor],
-          'relative overflow-hidden'
+          transformClasses[anchor]
         )}
       >
-        {isBottomAnchor && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-b from-transparent via-black/40 to-black/70 backdrop-blur-sm" />
-        )}
-        <div className="relative z-10 h-full">
         {children}
-        </div>
       </div>
     </div>
   );

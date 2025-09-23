@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import {
   Aperture,
@@ -7,8 +7,10 @@ import {
   Crop,
   Gauge,
   Home,
+  Menu,
   Ruler,
   Timer,
+  X,
 } from 'lucide-react';
 import { cn } from './lib/cn';
 import HomePage from './pages/home-page';
@@ -114,6 +116,7 @@ function PlaceholderPage({
 
 export function App() {
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (typeof document === 'undefined') {
@@ -129,10 +132,31 @@ export function App() {
       pageTitle === 'Dorkroom' ? 'Dorkroom' : `${pageTitle} - Dorkroom`;
   }, [location.pathname]);
 
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    if (isMobileMenuOpen) {
+      const previousOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+
+      return () => {
+        document.body.style.overflow = previousOverflow;
+      };
+    }
+
+    document.body.style.removeProperty('overflow');
+  }, [isMobileMenuOpen]);
+
   return (
     <div className="h-dvh bg-background text-white">
       <div className="backdrop-gradient min-h-dvh">
-        <header className="sticky top-[env(safe-area-inset-top)] z-50 border-b border-white/5 bg-background/80 backdrop-blur">
+        <header className="sticky top-[env(safe-area-inset-top)] z-50 hidden border-b border-white/5 bg-background/80 backdrop-blur sm:block">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4 sm:px-10">
             <Link to="/" className="flex items-center gap-3 text-white">
               <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/10 text-lg font-semibold">
@@ -142,7 +166,7 @@ export function App() {
                 Dorkroom
               </span>
             </Link>
-            <nav className="flex flex-1 justify-center">
+            <nav className="hidden flex-1 justify-center sm:flex">
               <div className="flex max-w-full gap-1 overflow-x-auto rounded-full border border-white/10 bg-black/40 p-1 text-sm backdrop-blur">
                 {navItems.map(({ label, to, icon: Icon }) => (
                   <NavLink
@@ -173,6 +197,58 @@ export function App() {
             </a>
           </div>
         </header>
+
+        <button
+          type="button"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/10 text-white shadow-lg backdrop-blur transition hover:border-white/30 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 sm:hidden"
+          aria-label={isMobileMenuOpen ? 'Close navigation' : 'Open navigation'}
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="mobile-navigation"
+          onClick={() => setIsMobileMenuOpen((open) => !open)}
+        >
+          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+
+        {isMobileMenuOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity"
+              aria-hidden="true"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <nav
+              id="mobile-navigation"
+              className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-50 flex justify-end px-6"
+              role="dialog"
+              aria-modal="true"
+            >
+              <div className="mt-4 w-full max-w-xs rounded-3xl border border-white/10 bg-background/95 p-5 shadow-xl backdrop-blur">
+                <ul className="space-y-2.5">
+                  {navItems.map(({ label, to, icon: Icon }) => (
+                    <li key={to}>
+                      <NavLink
+                        to={to}
+                        end={to === '/'}
+                        className={({ isActive }) =>
+                          cn(
+                            'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium text-zinc-200 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
+                            isActive && 'bg-white text-background shadow-subtle'
+                          )
+                        }
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/10">
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <span className="flex-1 text-left">{label}</span>
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </nav>
+          </>
+        )}
 
         <main>
           <Routes>
