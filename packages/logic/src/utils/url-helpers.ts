@@ -10,7 +10,7 @@ const URL_CONFIG = {
   NATIVE_SCHEME: 'dorkroom',
 
   // Paths
-  BORDER_CALCULATOR_PATH: '/border-calculator',
+  BORDER_CALCULATOR_PATH: '/border',
 };
 
 /**
