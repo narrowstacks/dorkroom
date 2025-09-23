@@ -1,17 +1,24 @@
 // Types exports
 export * from './types/border-calculator';
 export * from './types/reciprocity';
+export * from './types/custom-recipes';
+export * from './types/development-recipes-url';
 
 // Constants exports
 export * from './constants/border-calculator';
 export * from './constants/calculations';
 export * from './constants/reciprocity';
+export * from './constants/development-recipes';
+export * from './constants/feature-flags';
 
 // Utils exports
 export * from './utils/border-calculations';
 export * from './utils/input-validation';
 export * from './utils/preset-sharing';
 export * from './utils/url-helpers';
+export * from './utils/recipe-sharing';
+export * from './utils/custom-recipe-helpers';
+export { debugLog, debugWarn, debugError } from './utils/debug-logger';
 
 // Hook exports
 export { useWindowDimensions } from './hooks/use-window-dimensions';
@@ -25,6 +32,13 @@ export {
   formatReciprocityTime,
   parseReciprocityTime,
 } from './hooks/use-reciprocity-calculator';
+export { useFeatureFlags } from './hooks/use-feature-flags';
+export { useDebounce, useDebouncedCallback } from './hooks/use-debounce';
+export { usePagination } from './hooks/use-pagination';
+export { useCustomRecipes } from './hooks/development-recipes/use-custom-recipes';
+export { useCustomRecipeSharing } from './hooks/development-recipes/use-custom-recipe-sharing';
+export { useRecipeUrlState } from './hooks/development-recipes/use-recipe-url-state';
+export { useDevelopmentRecipes } from './hooks/development-recipes/use-development-recipes';
 
 // Border calculator modular hooks
 export {

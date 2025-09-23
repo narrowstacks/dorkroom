@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "es2020",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "outDir": "./dist",
+    "rootDir": "../",
+    "baseUrl": "../",
+    "types": ["node"],
+    "lib": ["es2020", "dom"],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["**/*.ts", "../utils/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts",
+    "dist",
+    "../node_modules",
+    "../**/*.test.ts",
+    "../**/__mocks__/**",
+    "../**/__tests__/**"
+  ]
+}

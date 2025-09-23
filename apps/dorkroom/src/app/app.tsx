@@ -15,6 +15,7 @@ import HomePage from './pages/home-page';
 import BorderCalculatorPage from './pages/border-calculator/border-calculator-page';
 import ResizeCalculatorPage from './pages/resize-calculator/resize-calculator-page';
 import ReciprocityCalculatorPage from './pages/reciprocity-calculator/reciprocity-calculator-page';
+import DevelopmentRecipesPage from './pages/development-recipes/development-recipes-page';
 
 const navItems = [
   {
@@ -179,10 +180,13 @@ export function App() {
             <Route path="/border" element={<BorderCalculatorPage />} />
             <Route path="/resize" element={<ResizeCalculatorPage />} />
             <Route path="/reciprocity" element={<ReciprocityCalculatorPage />} />
+            <Route path="/development" element={<DevelopmentRecipesPage />} />
             {navItems
               .filter(
                 (item) =>
-                  !['/', '/border', '/resize', '/reciprocity'].includes(item.to)
+                  !['/', '/border', '/resize', '/reciprocity', '/development'].includes(
+                    item.to,
+                  )
               )
               .map((item) => (
                 <Route

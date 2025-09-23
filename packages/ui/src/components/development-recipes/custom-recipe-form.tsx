@@ -1,0 +1,352 @@
+import { useState } from 'react';
+import type {
+  CustomRecipeFormData,
+  CustomFilmData,
+  CustomDeveloperData,
+} from '@dorkroom/logic';
+import { TextInput } from '../text-input';
+import { Select } from '../select';
+import type { SelectItem } from '@dorkroom/logic';
+import { cn } from '../../lib/cn';
+
+interface CustomRecipeFormProps {
+  initialValue: CustomRecipeFormData;
+  onSubmit: (data: CustomRecipeFormData) => void;
+  onCancel?: () => void;
+  filmOptions: SelectItem[];
+  developerOptions: SelectItem[];
+  isSubmitting?: boolean;
+}
+
+const defaultCustomFilm = (): CustomFilmData => ({
+  brand: '',
+  name: '',
+  isoSpeed: 400,
+  colorType: 'bw',
+  grainStructure: '',
+  description: '',
+});
+
+const defaultCustomDeveloper = (): CustomDeveloperData => ({
+  manufacturer: '',
+  name: '',
+  type: 'powder',
+  filmOrPaper: 'film',
+  workingLifeHours: undefined,
+  stockLifeMonths: undefined,
+  notes: '',
+  mixingInstructions: '',
+  safetyNotes: '',
+  dilutions: [{ name: 'Stock', dilution: 'Stock' }],
+});
+
+export function CustomRecipeForm({
+  initialValue,
+  onSubmit,
+  onCancel,
+  filmOptions,
+  developerOptions,
+  isSubmitting,
+}: CustomRecipeFormProps) {
+  const [formData, setFormData] = useState<CustomRecipeFormData>(initialValue);
+
+  const handleChange = <K extends keyof CustomRecipeFormData>(
+    key: K,
+    value: CustomRecipeFormData[K],
+  ) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleCustomFilmChange = <K extends keyof CustomFilmData>(
+    key: K,
+    value: CustomFilmData[K],
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      customFilm: {
+        ...(prev.customFilm || defaultCustomFilm()),
+        [key]: value,
+      },
+    }));
+  };
+
+  const handleCustomDeveloperChange = <K extends keyof CustomDeveloperData>(
+    key: K,
+    value: CustomDeveloperData[K],
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      customDeveloper: {
+        ...(prev.customDeveloper || defaultCustomDeveloper()),
+        [key]: value,
+      },
+    }));
+  };
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6 text-sm text-white/80">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-white">Film</h3>
+          <label className="flex items-center gap-2 text-xs text-white/70">
+            <input
+              type="checkbox"
+              checked={!formData.useExistingFilm}
+              onChange={(event) =>
+                handleChange('useExistingFilm', !event.target.checked)
+              }
+            />
+            Use custom film data
+          </label>
+        </div>
+
+        {formData.useExistingFilm ? (
+          <Select
+            label="Film"
+            selectedValue={formData.selectedFilmId || ''}
+            onValueChange={(value) => handleChange('selectedFilmId', value)}
+            items={filmOptions}
+          />
+        ) : (
+          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <TextInput
+              label="Brand"
+              value={formData.customFilm?.brand || ''}
+              onChange={(value) => handleCustomFilmChange('brand', value)}
+              placeholder="Ilford"
+            />
+            <TextInput
+              label="Film name"
+              value={formData.customFilm?.name || ''}
+              onChange={(value) => handleCustomFilmChange('name', value)}
+              placeholder="HP5 Plus"
+            />
+            <TextInput
+              label="ISO"
+              value={String(formData.customFilm?.isoSpeed ?? 400)}
+              onChange={(value) =>
+                handleCustomFilmChange('isoSpeed', Number(value) || 0)
+              }
+              placeholder="400"
+            />
+            <Select
+              label="Color type"
+              selectedValue={formData.customFilm?.colorType || 'bw'}
+              onValueChange={(value) =>
+                handleCustomFilmChange('colorType', value as CustomFilmData['colorType'])
+              }
+              items={[
+                { label: 'Black & White', value: 'bw' },
+                { label: 'Color', value: 'color' },
+                { label: 'Slide', value: 'slide' },
+              ]}
+            />
+            <TextInput
+              label="Grain structure"
+              value={formData.customFilm?.grainStructure || ''}
+              onChange={(value) => handleCustomFilmChange('grainStructure', value)}
+              placeholder="Fine"
+            />
+            <TextInput
+              label="Description"
+              value={formData.customFilm?.description || ''}
+              onChange={(value) => handleCustomFilmChange('description', value)}
+              placeholder="Optional notes about this film"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-white">Developer</h3>
+          <label className="flex items-center gap-2 text-xs text-white/70">
+            <input
+              type="checkbox"
+              checked={!formData.useExistingDeveloper}
+              onChange={(event) =>
+                handleChange('useExistingDeveloper', !event.target.checked)
+              }
+            />
+            Use custom developer data
+          </label>
+        </div>
+
+        {formData.useExistingDeveloper ? (
+          <Select
+            label="Developer"
+            selectedValue={formData.selectedDeveloperId || ''}
+            onValueChange={(value) => handleChange('selectedDeveloperId', value)}
+            items={developerOptions}
+          />
+        ) : (
+          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <TextInput
+              label="Manufacturer"
+              value={formData.customDeveloper?.manufacturer || ''}
+              onChange={(value) => handleCustomDeveloperChange('manufacturer', value)}
+              placeholder="Kodak"
+            />
+            <TextInput
+              label="Developer name"
+              value={formData.customDeveloper?.name || ''}
+              onChange={(value) => handleCustomDeveloperChange('name', value)}
+              placeholder="D-76"
+            />
+            <TextInput
+              label="Type"
+              value={formData.customDeveloper?.type || ''}
+              onChange={(value) => handleCustomDeveloperChange('type', value)}
+              placeholder="Powder"
+            />
+            <Select
+              label="Film or paper"
+              selectedValue={formData.customDeveloper?.filmOrPaper || 'film'}
+              onValueChange={(value) =>
+                handleCustomDeveloperChange(
+                  'filmOrPaper',
+                  value as CustomDeveloperData['filmOrPaper'],
+                )
+              }
+              items={[
+                { label: 'Film', value: 'film' },
+                { label: 'Paper', value: 'paper' },
+                { label: 'Both', value: 'both' },
+              ]}
+            />
+            <TextInput
+              label="Working life (hours)"
+              value={String(formData.customDeveloper?.workingLifeHours ?? '')}
+              onChange={(value) =>
+                handleCustomDeveloperChange(
+                  'workingLifeHours',
+                  value ? Number(value) : undefined,
+                )
+              }
+              placeholder="24"
+            />
+            <TextInput
+              label="Stock life (months)"
+              value={String(formData.customDeveloper?.stockLifeMonths ?? '')}
+              onChange={(value) =>
+                handleCustomDeveloperChange(
+                  'stockLifeMonths',
+                  value ? Number(value) : undefined,
+                )
+              }
+              placeholder="6"
+            />
+            <TextInput
+              label="Notes"
+              value={formData.customDeveloper?.notes || ''}
+              onChange={(value) => handleCustomDeveloperChange('notes', value)}
+              placeholder="Optional developer notes"
+            />
+            <TextInput
+              label="Mixing instructions"
+              value={formData.customDeveloper?.mixingInstructions || ''}
+              onChange={(value) =>
+                handleCustomDeveloperChange('mixingInstructions', value)
+              }
+              placeholder="e.g. 1+1 from stock"
+            />
+            <TextInput
+              label="Safety notes"
+              value={formData.customDeveloper?.safetyNotes || ''}
+              onChange={(value) => handleCustomDeveloperChange('safetyNotes', value)}
+              placeholder="Wear gloves"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <TextInput
+          label="Temperature (°F)"
+          value={String(formData.temperatureF)}
+          onChange={(value) => handleChange('temperatureF', Number(value) || 0)}
+          placeholder="68"
+        />
+        <TextInput
+          label="Development time (minutes)"
+          value={String(formData.timeMinutes)}
+          onChange={(value) => handleChange('timeMinutes', Number(value) || 0)}
+          placeholder="9.75"
+        />
+        <TextInput
+          label="Shooting ISO"
+          value={String(formData.shootingIso)}
+          onChange={(value) => handleChange('shootingIso', Number(value) || 0)}
+          placeholder="400"
+        />
+        <Select
+          label="Push/Pull"
+          selectedValue={String(formData.pushPull)}
+          onValueChange={(value) => handleChange('pushPull', Number(value) as number)}
+          items={[-2, -1, 0, 1, 2].map((value) => ({
+            label: value === 0 ? 'Normal' : value > 0 ? `Push +${value}` : `Pull ${Math.abs(value)}`,
+            value: String(value),
+          }))}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <TextInput
+          label="Agitation schedule"
+          value={formData.agitationSchedule}
+          onChange={(value) => handleChange('agitationSchedule', value)}
+          placeholder="30s initial, 10s every minute"
+        />
+        <TextInput
+          label="Custom dilution"
+          value={formData.customDilution}
+          onChange={(value) => handleChange('customDilution', value)}
+          placeholder="1+1"
+        />
+      </div>
+
+      <TextInput
+        label="Notes"
+        value={formData.notes}
+        onChange={(value) => handleChange('notes', value)}
+        placeholder="Optional notes about this recipe"
+      />
+
+      <label className="flex items-center gap-2 text-xs text-white/70">
+        <input
+          type="checkbox"
+          checked={formData.isPublic}
+          onChange={(event) => handleChange('isPublic', event.target.checked)}
+        />
+        Suggest submitting to the public recipe database
+      </label>
+
+      <div className="flex flex-col gap-3 pt-2 md:flex-row md:justify-end">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/70 transition hover:border-white/40 hover:text-white"
+          >
+            Cancel
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className={cn(
+            'rounded-full bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90',
+            isSubmitting && 'cursor-wait opacity-70',
+          )}
+        >
+          {isSubmitting ? 'Saving…' : 'Save recipe'}
+        </button>
+      </div>
+    </form>
+  );
+}
