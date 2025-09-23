@@ -144,15 +144,11 @@ export default function ReciprocityCalculatorPage() {
       ? `Parsed as: ${formattedTime}`
       : null;
 
-  const addedExposureRaw = calculation
+  const addedExposure = calculation
     ? formatTime(
         Math.max(calculation.adjustedTime - calculation.originalTime, 0)
       )
-    : null;
-  const addedExposure = addedExposureRaw ? `+${addedExposureRaw}` : '--';
-  const addedExposureHelper = calculation
-    ? `${Math.round(calculation.percentageIncrease)}% more than the metered reading`
-    : 'Extra time required beyond the metered reading';
+    : '--';
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
@@ -235,7 +231,7 @@ export default function ReciprocityCalculatorPage() {
                 <CalculatorStat
                   label="Added exposure"
                   value={addedExposure}
-                  helperText={addedExposureHelper}
+                  helperText="% more time needed"
                 />
               </div>
 
