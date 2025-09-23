@@ -1,12 +1,12 @@
-import React from "react";
-import { TouchableOpacity } from "react-native";
-import { Text, VStack } from "@gluestack-ui/themed";
-import { Filter } from "lucide-react-native";
-import { FormGroup } from "@/components/ui/forms/FormSection";
-import { StyledSelect } from "@/components/ui/select/StyledSelect";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { DEVELOPER_TYPES } from "@/constants/developmentRecipes";
-import type { Film, Developer } from "@/api/dorkroom/types";
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
+import { Text, VStack } from '@gluestack-ui/themed';
+import { Filter } from 'lucide-react-native';
+import { FormGroup } from '@/components/ui/forms/FormSection';
+import { StyledSelect } from '@/components/ui/select/StyledSelect';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { DEVELOPER_TYPES } from '@/constants/developmentRecipes';
+import type { Film, Developer } from '@/api/dorkroom/types';
 
 interface FiltersSectionProps {
   showFilters: boolean;
@@ -37,15 +37,15 @@ export function FiltersSection({
   getAvailableDilutions,
   getAvailableISOs,
 }: FiltersSectionProps) {
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
 
   return (
     <>
       {/* Filter Toggle */}
       <TouchableOpacity
         style={{
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           padding: 8,
           gap: 8,
         }}
@@ -54,11 +54,11 @@ export function FiltersSection({
         <Filter size={16} color={developmentTint} />
         <Text
           style={[
-            { fontSize: 14, fontWeight: "500" },
+            { fontSize: 14, fontWeight: '500' },
             { color: developmentTint },
           ]}
         >
-          {showFilters ? "Hide Filters" : "Show Filters"}
+          {showFilters ? 'Hide Filters' : 'Show Filters'}
         </Text>
       </TouchableOpacity>
 

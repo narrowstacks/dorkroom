@@ -129,7 +129,7 @@ export function useReciprocityCalculator(): ReciprocityCalculatorState & {
       Math.min(
         MAX_BAR_WIDTH,
         (Math.log(time + 1) / Math.log(Math.max(adjustedTime, 10) + 1)) *
-          MAX_BAR_WIDTH,
+          MAX_BAR_WIDTH
       );
 
     const timeBarWidth = logScale(originalTime);

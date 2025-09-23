@@ -4,8 +4,5 @@
   "devCommand": "npx nx serve dorkroom",
   "installCommand": "npm install",
   "framework": null,
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/" }
-  ]
+  "routes": [{ "handle": "filesystem" }, { "src": "/(.*)", "dest": "/" }]
 }

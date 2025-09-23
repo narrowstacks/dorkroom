@@ -29,17 +29,24 @@ export function SettingsButton({
       )}
     >
       <div className="flex items-center justify-between">
-        <div className={cn('flex items-center gap-3', centerLabel && 'flex-1 justify-center')}>
+        <div
+          className={cn(
+            'flex items-center gap-3',
+            centerLabel && 'flex-1 justify-center'
+          )}
+        >
           {Icon && <Icon className="h-5 w-5 text-white/70" />}
           <div className={cn(centerLabel && 'text-center')}>
             {label && (
               <div className="text-sm font-medium text-white/90">{label}</div>
             )}
             {value && (
-              <div className={cn(
-                'text-sm text-white/70',
-                !label && 'font-medium text-white/90'
-              )}>
+              <div
+                className={cn(
+                  'text-sm text-white/70',
+                  !label && 'font-medium text-white/90'
+                )}
+              >
                 {value}
               </div>
             )}

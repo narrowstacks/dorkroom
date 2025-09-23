@@ -1,9 +1,8 @@
-
 import { CalculatorCard } from '@dorkroom/ui';
 
 const INFO_HOW_TO_USE = [
   'Select your desired aspect ratio (the ratio of your negative or image)',
-  'Choose your paper size (the size of photo paper you\'re printing on)',
+  "Choose your paper size (the size of photo paper you're printing on)",
   'Set your minimum border width (at least 0.5" recommended)',
   'Optionally enable offsets to shift the image from center',
   'View the blade positions in the results section',
@@ -27,9 +26,9 @@ export function BorderInfoSection() {
       >
         <div className="space-y-5 text-sm text-white/75">
           <p>
-            The border calculator helps you determine the optimal placement of your
-            enlarger easel blades when printing photos, ensuring consistent and
-            aesthetically pleasing borders.
+            The border calculator helps you determine the optimal placement of
+            your enlarger easel blades when printing photos, ensuring consistent
+            and aesthetically pleasing borders.
           </p>
 
           <div className="space-y-3">
@@ -53,10 +52,11 @@ export function BorderInfoSection() {
               Blade measurements
             </h4>
             <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-xs text-white/90">
-              The measurements shown are distances from the edge of your enlarger
-              baseboard to where each blade should be positioned. For non-standard paper
-              sizes (sizes that don't have a standard easel slot), follow the
-              instructions to place your paper in the appropriate easel slot.
+              The measurements shown are distances from the edge of your
+              enlarger baseboard to where each blade should be positioned. For
+              non-standard paper sizes (sizes that don't have a standard easel
+              slot), follow the instructions to place your paper in the
+              appropriate easel slot.
             </div>
           </div>
 

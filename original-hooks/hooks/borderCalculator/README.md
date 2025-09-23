@@ -27,7 +27,7 @@ This directory contains the modular implementation of the border calculator func
 ### Standard Usage
 
 ```typescript
-import { useBorderCalculator } from "@/hooks/borderCalculator";
+import { useBorderCalculator } from '@/hooks/borderCalculator';
 
 function MyComponent() {
   const {
@@ -44,19 +44,12 @@ function MyComponent() {
 ### Advanced Usage (Individual Hooks)
 
 ```typescript
-import {
-  useBorderCalculatorState,
-  useDimensionCalculations,
-  useGeometryCalculations,
-} from "@/hooks/borderCalculator";
+import { useBorderCalculatorState, useDimensionCalculations, useGeometryCalculations } from '@/hooks/borderCalculator';
 
 function MyComponent() {
   const { state, dispatch } = useBorderCalculatorState();
   const { orientedDimensions } = useDimensionCalculations(state);
-  const { calculation } = useGeometryCalculations(
-    state,
-    orientedDimensions /* ... */,
-  );
+  const { calculation } = useGeometryCalculations(state, orientedDimensions /* ... */);
 }
 ```
 

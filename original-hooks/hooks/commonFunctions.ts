@@ -37,7 +37,7 @@ export const parseShutterSpeed = (speed: string): number => {
     const [, num, denom] = frac;
     const n = Number(num),
       d = Number(denom);
-    if (d === 0) throw new RangeError("Denominator cannot be 0");
+    if (d === 0) throw new RangeError('Denominator cannot be 0');
     return n / d;
   }
   const val = Number.parseFloat(trimmed);
@@ -58,7 +58,7 @@ export const formatShutterSpeed = (seconds: number): string => {
 export const calculateEV = (
   aperture: number,
   iso: number,
-  speed: number,
+  speed: number
 ): number => {
   const log2 = Math.log2;
   return log2(aperture ** 2) + log2(1 / speed) - log2(iso / 100);
@@ -87,16 +87,16 @@ export const parseTimeInput = (input: string): number | null => {
   let match: RegExpExecArray | null;
 
   TIME_RE.lastIndex = 0; // reset global regex state
-  while ((match = TIME_RE.exec(input.toLowerCase().replace(/\s+/g, "")))) {
+  while ((match = TIME_RE.exec(input.toLowerCase().replace(/\s+/g, '')))) {
     const value = Number(match[1]);
     switch (match[2]) {
-      case "h":
+      case 'h':
         seconds += value * 3600;
         break;
-      case "m":
+      case 'm':
         seconds += value * 60;
         break;
-      case "s":
+      case 's':
         seconds += value;
         break;
     }
@@ -112,12 +112,12 @@ export const findClosestValue = <T extends string | number>(
   target: number,
   options: T[],
   toNumber: (t: T) => number = (t) =>
-    typeof t === "number" ? t : Number.parseFloat(String(t)),
+    typeof t === 'number' ? t : Number.parseFloat(String(t))
 ): T =>
   options.reduce((best, cur) =>
     Math.abs(toNumber(cur) - target) < Math.abs(toNumber(best) - target)
       ? cur
-      : best,
+      : best
   );
 
 ////////////////////////
@@ -128,7 +128,7 @@ export const calculateBladeThickness = (
   paperWidth: number,
   paperHeight: number,
   baseArea: number = BASE_PAPER_AREA,
-  baseThickness: number = BASE_BLADE_THICKNESS,
+  baseThickness: number = BASE_BLADE_THICKNESS
 ): number => {
   const scale = baseArea / (paperWidth * paperHeight);
   const capped = scale > 2 ? 2 : scale;

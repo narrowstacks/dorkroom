@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import {
   isRunningOnMobileWeb,
   checkNativeAppAvailability,
   openInNativeApp,
   createAppDetectionMessage,
-} from "@/utils/appDetection";
-import { MOBILE_WEB_APP_CONFIG } from "@/constants/urls";
+} from '@/utils/appDetection';
+import { MOBILE_WEB_APP_CONFIG } from '@/constants/urls';
 
 interface UseAppDetectionResult {
   isOnMobileWeb: boolean;
@@ -22,7 +22,7 @@ interface UseAppDetectionOptions {
 }
 
 export const useAppDetection = (
-  options: UseAppDetectionOptions = {},
+  options: UseAppDetectionOptions = {}
 ): UseAppDetectionResult => {
   const { hasSharedContent = false, autoCheck = true } = options;
 
@@ -55,7 +55,7 @@ export const useAppDetection = (
           setShowAppBanner(true);
         }
       } catch (error) {
-        console.warn("App detection failed:", error);
+        console.warn('App detection failed:', error);
         setIsAppAvailable(false);
       }
     };
@@ -74,8 +74,8 @@ export const useAppDetection = (
   const dismissBanner = () => {
     setShowAppBanner(false);
     // Store dismissal in localStorage to remember user preference
-    if (typeof window !== "undefined") {
-      localStorage.setItem("dorkroom-app-banner-dismissed", "true");
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dorkroom-app-banner-dismissed', 'true');
     }
   };
 

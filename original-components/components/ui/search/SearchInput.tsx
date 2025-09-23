@@ -1,24 +1,24 @@
-import React from "react";
+import React from 'react';
 import {
   Platform,
   StyleSheet,
   TextInput,
   TouchableOpacity,
-} from "react-native";
-import { Box, HStack } from "@gluestack-ui/themed";
-import { Search, X } from "lucide-react-native";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
-import { MobileSelectButton } from "@/components/ui/select/MobileSelectButton";
-import type { Film, Developer } from "@/api/dorkroom/types";
+} from 'react-native';
+import { Box, HStack } from '@gluestack-ui/themed';
+import { Search, X } from 'lucide-react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
+import { MobileSelectButton } from '@/components/ui/select/MobileSelectButton';
+import type { Film, Developer } from '@/api/dorkroom/types';
 
 interface BaseSearchInputProps {
   placeholder: string;
-  type: "film" | "developer";
+  type: 'film' | 'developer';
 }
 
 interface DesktopSearchInputProps extends BaseSearchInputProps {
-  variant: "desktop";
+  variant: 'desktop';
   value: string;
   onChangeText: (text: string) => void;
   onClear: () => void;
@@ -27,7 +27,7 @@ interface DesktopSearchInputProps extends BaseSearchInputProps {
 }
 
 interface MobileSearchInputProps extends BaseSearchInputProps {
-  variant: "mobile";
+  variant: 'mobile';
   selectedItem?: Film | Developer | null;
   onPress: () => void;
   onClear?: () => void;
@@ -37,18 +37,18 @@ type SearchInputProps = DesktopSearchInputProps | MobileSearchInputProps;
 
 export function SearchInput(props: SearchInputProps) {
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > 768;
+  const isDesktop = Platform.OS === 'web' && width > 768;
 
   // Always call hooks at the top level
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "borderColor");
-  const inputBackground = useThemeColor({}, "inputBackground");
-  const iconColor = useThemeColor({}, "icon");
+  const textColor = useThemeColor({}, 'text');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const inputBackground = useThemeColor({}, 'inputBackground');
+  const iconColor = useThemeColor({}, 'icon');
 
   // Auto-detect variant if not specified based on platform
-  const variant = props.variant || (isDesktop ? "desktop" : "mobile");
+  const variant = props.variant || (isDesktop ? 'desktop' : 'mobile');
 
-  if (variant === "mobile") {
+  if (variant === 'mobile') {
     const mobileProps = props as MobileSearchInputProps;
     const hasSelection = !!mobileProps.selectedItem;
 
@@ -56,7 +56,7 @@ export function SearchInput(props: SearchInputProps) {
       <HStack space="sm" style={styles.mobileContainer}>
         <Box style={styles.mobileSelectContainer}>
           <MobileSelectButton
-            label={mobileProps.type === "film" ? "Film" : "Developer"}
+            label={mobileProps.type === 'film' ? 'Film' : 'Developer'}
             selectedItem={mobileProps.selectedItem}
             onPress={mobileProps.onPress}
             type={mobileProps.type}
@@ -64,7 +64,7 @@ export function SearchInput(props: SearchInputProps) {
         </Box>
         {hasSelection && mobileProps.onClear && (
           <TouchableOpacity
-            style={[styles.mobileClearButton, { backgroundColor: "white" }]}
+            style={[styles.mobileClearButton, { backgroundColor: 'white' }]}
             onPress={mobileProps.onClear}
           >
             <X size={20} color="#000" />
@@ -110,12 +110,12 @@ export function SearchInput(props: SearchInputProps) {
 
 const styles = StyleSheet.create({
   searchContainer: {
-    position: "relative",
-    flexDirection: "row",
-    alignItems: "center",
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   searchIcon: {
-    position: "absolute",
+    position: 'absolute',
     left: 10,
     zIndex: 1,
   },
@@ -129,13 +129,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   clearButton: {
-    position: "absolute",
+    position: 'absolute',
     right: 10,
     zIndex: 1,
     padding: 4,
   },
   mobileContainer: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   mobileSelectContainer: {
     flex: 1,
@@ -144,9 +144,9 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,

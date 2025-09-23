@@ -1,9 +1,9 @@
-import React from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
-import { Text, VStack } from "@gluestack-ui/themed";
-import { ChevronDown } from "lucide-react-native";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import type { Film, Developer } from "@/api/dorkroom/types";
+import React from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, VStack } from '@gluestack-ui/themed';
+import { ChevronDown } from 'lucide-react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import type { Film, Developer } from '@/api/dorkroom/types';
 
 interface MobileSelectButtonProps {
   label: string;
@@ -11,7 +11,7 @@ interface MobileSelectButtonProps {
   selectedValue?: string;
   selectedLabel?: string;
   onPress: () => void;
-  type: "film" | "developer" | "dilution";
+  type: 'film' | 'developer' | 'dilution';
 }
 
 export function MobileSelectButton({
@@ -22,20 +22,20 @@ export function MobileSelectButton({
   onPress,
   type,
 }: MobileSelectButtonProps) {
-  const textColor = useThemeColor({}, "text");
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const borderColor = useThemeColor({}, "borderColor");
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
+  const textColor = useThemeColor({}, 'text');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
 
   const getDisplayText = () => {
-    if (type === "dilution") {
+    if (type === 'dilution') {
       if (!selectedValue) return `Select ${label}`;
       return selectedLabel || selectedValue;
     }
 
     if (!selectedItem) return `Select ${label}`;
 
-    if (type === "film") {
+    if (type === 'film') {
       const film = selectedItem as Film;
       return `${film.brand} ${film.name}`;
     } else {
@@ -44,7 +44,7 @@ export function MobileSelectButton({
     }
   };
 
-  const hasSelection = type === "dilution" ? !!selectedValue : !!selectedItem;
+  const hasSelection = type === 'dilution' ? !!selectedValue : !!selectedItem;
 
   return (
     <TouchableOpacity
@@ -84,18 +84,18 @@ export function MobileSelectButton({
 
 const styles = StyleSheet.create({
   mobileSelectButton: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
   },
   mobileSelectLabel: {
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   mobileSelectText: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
 });

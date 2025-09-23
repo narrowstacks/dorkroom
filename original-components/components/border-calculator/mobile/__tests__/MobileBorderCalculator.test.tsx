@@ -1,64 +1,66 @@
 // Test the core business logic functions of MobileBorderCalculator component
 // This approach avoids React Native component rendering issues while testing the crucial functionality
 
-describe("MobileBorderCalculator Logic Functions", () => {
-  describe("Preset Loading and Deduplication Logic", () => {
-    it("should determine when to apply loaded preset from URL", () => {
+describe('MobileBorderCalculator Logic Functions', () => {
+  describe('Preset Loading and Deduplication Logic', () => {
+    it('should determine when to apply loaded preset from URL', () => {
       // Simulate the complex preset loading logic
       const shouldApplyPreset = (
         loadedPresetFromUrl: any,
         hasAppliedLoadedPreset: boolean,
         lastAppliedPresetId: string | null,
-        currentPresetId: string,
+        currentPresetId: string
       ) => {
         if (!loadedPresetFromUrl) return false;
         return currentPresetId !== lastAppliedPresetId;
       };
 
       const mockPreset = {
-        name: "Test Preset",
-        settings: { aspectRatio: "3:2", paperSize: "8x10" },
+        name: 'Test Preset',
+        settings: { aspectRatio: '3:2', paperSize: '8x10' },
         isFromUrl: true,
       };
 
-      const presetId = `${mockPreset.name}-${JSON.stringify(mockPreset.settings)}`;
+      const presetId = `${mockPreset.name}-${JSON.stringify(
+        mockPreset.settings
+      )}`;
 
       // Should apply when preset is new
       expect(shouldApplyPreset(mockPreset, false, null, presetId)).toBe(true);
 
       // Should not apply when same preset already applied
       expect(shouldApplyPreset(mockPreset, true, presetId, presetId)).toBe(
-        false,
+        false
       );
 
       // Should apply when different preset
-      const newPresetId = "different-preset-id";
+      const newPresetId = 'different-preset-id';
       expect(shouldApplyPreset(mockPreset, true, presetId, newPresetId)).toBe(
-        true,
+        true
       );
 
       // Should not apply when no preset
       expect(shouldApplyPreset(null, false, null, presetId)).toBe(false);
     });
 
-    it("should generate unique preset IDs correctly", () => {
+    it('should generate unique preset IDs correctly', () => {
       const generatePresetId = (preset: any) => {
         return `${preset.name}-${JSON.stringify(preset.settings)}`;
       };
 
       const preset1 = {
-        name: "Preset A",
-        settings: { aspectRatio: "3:2", paperSize: "8x10" },
+        name: 'Preset A',
+        settings: { aspectRatio: '3:2', paperSize: '8x10' },
       };
 
       const preset2 = {
-        name: "Preset B",
-        settings: { aspectRatio: "3:2", paperSize: "8x10" },
+        name: 'Preset B',
+        settings: { aspectRatio: '3:2', paperSize: '8x10' },
       };
 
       const preset3 = {
-        name: "Preset A",
-        settings: { aspectRatio: "4:3", paperSize: "8x10" },
+        name: 'Preset A',
+        settings: { aspectRatio: '4:3', paperSize: '8x10' },
       };
 
       const id1 = generatePresetId(preset1);
@@ -70,10 +72,10 @@ describe("MobileBorderCalculator Logic Functions", () => {
       expect(id1).toBe(generatePresetId(preset1)); // Consistent generation
     });
 
-    it("should handle preset clearing logic", () => {
+    it('should handle preset clearing logic', () => {
       const handlePresetClear = (
         clearLoadedPreset: (() => void) | undefined,
-        shouldClear: boolean,
+        shouldClear: boolean
       ) => {
         if (shouldClear && clearLoadedPreset) {
           clearLoadedPreset();
@@ -97,31 +99,31 @@ describe("MobileBorderCalculator Logic Functions", () => {
       expect(handlePresetClear(undefined, true)).toBe(false);
     });
 
-    it("should create temporary preset objects correctly", () => {
+    it('should create temporary preset objects correctly', () => {
       const createTempPreset = (loadedPreset: any) => {
         return {
-          id: "shared-" + Date.now(),
+          id: 'shared-' + Date.now(),
           name: loadedPreset.name,
           settings: loadedPreset.settings,
         };
       };
 
       const mockLoadedPreset = {
-        name: "Shared Preset",
-        settings: { aspectRatio: "3:2", paperSize: "8x10" },
+        name: 'Shared Preset',
+        settings: { aspectRatio: '3:2', paperSize: '8x10' },
         isFromUrl: true,
       };
 
       const tempPreset = createTempPreset(mockLoadedPreset);
 
       expect(tempPreset.id).toMatch(/^shared-\d+$/);
-      expect(tempPreset.name).toBe("Shared Preset");
+      expect(tempPreset.name).toBe('Shared Preset');
       expect(tempPreset.settings).toEqual(mockLoadedPreset.settings);
     });
   });
 
-  describe("Settings Hash Optimization Logic", () => {
-    it("should generate settings hash for performance optimization", () => {
+  describe('Settings Hash Optimization Logic', () => {
+    it('should generate settings hash for performance optimization', () => {
       const generateSettingsHash = (settings: any) => {
         const {
           aspectRatio,
@@ -155,54 +157,54 @@ describe("MobileBorderCalculator Logic Functions", () => {
           showBlades,
           isLandscape,
           isRatioFlipped,
-        ].join("|");
+        ].join('|');
       };
 
       const settings1 = {
-        aspectRatio: "3:2",
-        paperSize: "8x10",
-        customAspectWidth: "3",
-        customAspectHeight: "2",
-        customPaperWidth: "8",
-        customPaperHeight: "10",
-        minBorder: "0.5",
+        aspectRatio: '3:2',
+        paperSize: '8x10',
+        customAspectWidth: '3',
+        customAspectHeight: '2',
+        customPaperWidth: '8',
+        customPaperHeight: '10',
+        minBorder: '0.5',
         enableOffset: false,
         ignoreMinBorder: false,
-        horizontalOffset: "0",
-        verticalOffset: "0",
+        horizontalOffset: '0',
+        verticalOffset: '0',
         showBlades: true,
         isLandscape: false,
         isRatioFlipped: false,
       };
 
-      const settings2 = { ...settings1, aspectRatio: "4:3" };
+      const settings2 = { ...settings1, aspectRatio: '4:3' };
 
       const hash1 = generateSettingsHash(settings1);
       const hash2 = generateSettingsHash(settings2);
 
       expect(hash1).not.toBe(hash2);
-      expect(hash1).toContain("3:2");
-      expect(hash2).toContain("4:3");
-      expect(typeof hash1).toBe("string");
+      expect(hash1).toContain('3:2');
+      expect(hash2).toContain('4:3');
+      expect(typeof hash1).toBe('string');
     });
 
-    it("should compare settings hashes efficiently", () => {
+    it('should compare settings hashes efficiently', () => {
       const compareSettingsHashes = (
         currentHash: string,
-        presetHash: string | null,
+        presetHash: string | null
       ) => {
         return currentHash !== presetHash;
       };
 
-      const hash1 = "3:2|8x10|3|2|8|10|0.5|false|false|0|0|true|false|false";
-      const hash2 = "4:3|8x10|4|3|8|10|0.5|false|false|0|0|true|false|false";
+      const hash1 = '3:2|8x10|3|2|8|10|0.5|false|false|0|0|true|false|false';
+      const hash2 = '4:3|8x10|4|3|8|10|0.5|false|false|0|0|true|false|false';
 
       expect(compareSettingsHashes(hash1, hash2)).toBe(true); // Different hashes
       expect(compareSettingsHashes(hash1, hash1)).toBe(false); // Same hashes
       expect(compareSettingsHashes(hash1, null)).toBe(true); // Null preset hash
     });
 
-    it("should handle preset settings hash generation", () => {
+    it('should handle preset settings hash generation', () => {
       const generatePresetSettingsHash = (currentPreset: any) => {
         if (!currentPreset) return null;
 
@@ -222,24 +224,24 @@ describe("MobileBorderCalculator Logic Functions", () => {
           settings.showBlades,
           settings.isLandscape,
           settings.isRatioFlipped,
-        ].join("|");
+        ].join('|');
       };
 
       const mockPreset = {
-        id: "preset-1",
-        name: "Test Preset",
+        id: 'preset-1',
+        name: 'Test Preset',
         settings: {
-          aspectRatio: "3:2",
-          paperSize: "8x10",
-          customAspectWidth: "3",
-          customAspectHeight: "2",
-          customPaperWidth: "8",
-          customPaperHeight: "10",
-          minBorder: "0.5",
+          aspectRatio: '3:2',
+          paperSize: '8x10',
+          customAspectWidth: '3',
+          customAspectHeight: '2',
+          customPaperWidth: '8',
+          customPaperHeight: '10',
+          minBorder: '0.5',
           enableOffset: false,
           ignoreMinBorder: false,
-          horizontalOffset: "0",
-          verticalOffset: "0",
+          horizontalOffset: '0',
+          verticalOffset: '0',
           showBlades: true,
           isLandscape: false,
           isRatioFlipped: false,
@@ -248,15 +250,15 @@ describe("MobileBorderCalculator Logic Functions", () => {
 
       const hash = generatePresetSettingsHash(mockPreset);
       expect(hash).toBeTruthy();
-      expect(hash).toContain("3:2");
+      expect(hash).toContain('3:2');
 
       // Test null preset
       expect(generatePresetSettingsHash(null)).toBe(null);
     });
   });
 
-  describe("Drawer State Management Logic", () => {
-    it("should manage drawer open/close state", () => {
+  describe('Drawer State Management Logic', () => {
+    it('should manage drawer open/close state', () => {
       let isDrawerOpen = false;
 
       const openDrawer = () => {
@@ -284,16 +286,16 @@ describe("MobileBorderCalculator Logic Functions", () => {
       expect(isDrawerOpen).toBe(false);
     });
 
-    it("should manage active section state", () => {
+    it('should manage active section state', () => {
       type ActiveSection =
-        | "paperSize"
-        | "aspectRatio"
-        | "borders"
-        | "position"
-        | "presets"
-        | "visual";
+        | 'paperSize'
+        | 'aspectRatio'
+        | 'borders'
+        | 'position'
+        | 'presets'
+        | 'visual';
 
-      let activeSection: ActiveSection = "paperSize";
+      let activeSection: ActiveSection = 'paperSize';
 
       const setActiveSection = (section: ActiveSection) => {
         activeSection = section;
@@ -301,24 +303,24 @@ describe("MobileBorderCalculator Logic Functions", () => {
       const isActiveSection = (section: ActiveSection) =>
         activeSection === section;
 
-      expect(activeSection).toBe("paperSize");
-      expect(isActiveSection("paperSize")).toBe(true);
-      expect(isActiveSection("aspectRatio")).toBe(false);
+      expect(activeSection).toBe('paperSize');
+      expect(isActiveSection('paperSize')).toBe(true);
+      expect(isActiveSection('aspectRatio')).toBe(false);
 
-      setActiveSection("aspectRatio");
-      expect(activeSection).toBe("aspectRatio");
-      expect(isActiveSection("aspectRatio")).toBe(true);
-      expect(isActiveSection("paperSize")).toBe(false);
+      setActiveSection('aspectRatio');
+      expect(activeSection).toBe('aspectRatio');
+      expect(isActiveSection('aspectRatio')).toBe(true);
+      expect(isActiveSection('paperSize')).toBe(false);
     });
 
-    it("should validate active section values", () => {
+    it('should validate active section values', () => {
       const validSections = [
-        "paperSize",
-        "aspectRatio",
-        "borders",
-        "position",
-        "presets",
-        "visual",
+        'paperSize',
+        'aspectRatio',
+        'borders',
+        'position',
+        'presets',
+        'visual',
       ];
       const isValidSection = (section: string) =>
         validSections.includes(section);
@@ -327,11 +329,11 @@ describe("MobileBorderCalculator Logic Functions", () => {
         expect(isValidSection(section)).toBe(true);
       });
 
-      expect(isValidSection("invalid")).toBe(false);
-      expect(isValidSection("")).toBe(false);
+      expect(isValidSection('invalid')).toBe(false);
+      expect(isValidSection('')).toBe(false);
     });
 
-    it("should handle drawer section opening logic", () => {
+    it('should handle drawer section opening logic', () => {
       const openDrawerSection = (section: string) => {
         const actions = {
           setIsDrawerOpen: jest.fn(),
@@ -344,14 +346,14 @@ describe("MobileBorderCalculator Logic Functions", () => {
         return actions;
       };
 
-      const actions = openDrawerSection("aspectRatio");
+      const actions = openDrawerSection('aspectRatio');
       expect(actions.setIsDrawerOpen).toHaveBeenCalledWith(true);
-      expect(actions.setActiveSection).toHaveBeenCalledWith("aspectRatio");
+      expect(actions.setActiveSection).toHaveBeenCalledWith('aspectRatio');
     });
   });
 
-  describe("Modal State Management Logic", () => {
-    it("should manage share modal state", () => {
+  describe('Modal State Management Logic', () => {
+    it('should manage share modal state', () => {
       let isShareModalVisible = false;
 
       const showShareModal = () => {
@@ -370,7 +372,7 @@ describe("MobileBorderCalculator Logic Functions", () => {
       expect(isShareModalVisible).toBe(false);
     });
 
-    it("should manage save-before-share modal state", () => {
+    it('should manage save-before-share modal state', () => {
       let isSaveBeforeShareModalVisible = false;
 
       const showSaveBeforeShareModal = () => {
@@ -389,7 +391,7 @@ describe("MobileBorderCalculator Logic Functions", () => {
       expect(isSaveBeforeShareModalVisible).toBe(false);
     });
 
-    it("should handle modal interaction flow", () => {
+    it('should handle modal interaction flow', () => {
       const modalFlow = {
         shareModalVisible: false,
         saveBeforeShareModalVisible: false,
@@ -429,95 +431,95 @@ describe("MobileBorderCalculator Logic Functions", () => {
     });
   });
 
-  describe("Toast Notification Logic", () => {
-    it("should determine appropriate toast message", () => {
+  describe('Toast Notification Logic', () => {
+    it('should determine appropriate toast message', () => {
       const getToastMessage = (presetName: string, isFromUrl: boolean) => {
         return isFromUrl
           ? `Shared preset "${presetName}" loaded!`
           : `Last settings "${presetName}" loaded`;
       };
 
-      expect(getToastMessage("My Preset", true)).toBe(
-        'Shared preset "My Preset" loaded!',
+      expect(getToastMessage('My Preset', true)).toBe(
+        'Shared preset "My Preset" loaded!'
       );
-      expect(getToastMessage("My Preset", false)).toBe(
-        'Last settings "My Preset" loaded',
+      expect(getToastMessage('My Preset', false)).toBe(
+        'Last settings "My Preset" loaded'
       );
-      expect(getToastMessage("", true)).toBe('Shared preset "" loaded!');
+      expect(getToastMessage('', true)).toBe('Shared preset "" loaded!');
     });
 
-    it("should validate toast configuration", () => {
+    it('should validate toast configuration', () => {
       const createToastConfig = (title: string) => ({
-        placement: "top" as const,
+        placement: 'top' as const,
         render: ({ id }: { id: string }) => ({
           nativeID: `toast-${id}`,
-          action: "success" as const,
-          variant: "solid" as const,
+          action: 'success' as const,
+          variant: 'solid' as const,
           title,
         }),
       });
 
-      const config = createToastConfig("Test Message");
-      expect(config.placement).toBe("top");
-      expect(typeof config.render).toBe("function");
+      const config = createToastConfig('Test Message');
+      expect(config.placement).toBe('top');
+      expect(typeof config.render).toBe('function');
 
-      const renderResult = config.render({ id: "123" });
-      expect(renderResult.nativeID).toBe("toast-123");
-      expect(renderResult.action).toBe("success");
-      expect(renderResult.variant).toBe("solid");
-      expect(renderResult.title).toBe("Test Message");
+      const renderResult = config.render({ id: '123' });
+      expect(renderResult.nativeID).toBe('toast-123');
+      expect(renderResult.action).toBe('success');
+      expect(renderResult.variant).toBe('solid');
+      expect(renderResult.title).toBe('Test Message');
     });
 
-    it("should handle toast showing logic", () => {
+    it('should handle toast showing logic', () => {
       const mockToast = {
         show: jest.fn(),
       };
 
       const showPresetLoadedToast = (toast: any, message: string) => {
         toast.show({
-          placement: "top",
+          placement: 'top',
           render: ({ id }: { id: string }) => ({
             nativeID: `toast-${id}`,
-            action: "success",
-            variant: "solid",
+            action: 'success',
+            variant: 'solid',
             title: message,
           }),
         });
       };
 
-      showPresetLoadedToast(mockToast, "Test message");
+      showPresetLoadedToast(mockToast, 'Test message');
       expect(mockToast.show).toHaveBeenCalledTimes(1);
 
       const callArgs = mockToast.show.mock.calls[0][0];
-      expect(callArgs.placement).toBe("top");
-      expect(typeof callArgs.render).toBe("function");
+      expect(callArgs.placement).toBe('top');
+      expect(typeof callArgs.render).toBe('function');
     });
   });
 
-  describe("Hook Integration Logic", () => {
-    it("should simulate border calculator hook integration", () => {
+  describe('Hook Integration Logic', () => {
+    it('should simulate border calculator hook integration', () => {
       const createMockBorderCalculator = () => ({
-        aspectRatio: "3:2",
+        aspectRatio: '3:2',
         setAspectRatio: jest.fn(),
-        paperSize: "8x10",
+        paperSize: '8x10',
         setPaperSize: jest.fn(),
-        customAspectWidth: "3",
+        customAspectWidth: '3',
         setCustomAspectWidth: jest.fn(),
-        customAspectHeight: "2",
+        customAspectHeight: '2',
         setCustomAspectHeight: jest.fn(),
-        customPaperWidth: "8",
+        customPaperWidth: '8',
         setCustomPaperWidth: jest.fn(),
-        customPaperHeight: "10",
+        customPaperHeight: '10',
         setCustomPaperHeight: jest.fn(),
-        minBorder: "0.5",
+        minBorder: '0.5',
         setMinBorder: jest.fn(),
         enableOffset: false,
         setEnableOffset: jest.fn(),
         ignoreMinBorder: false,
         setIgnoreMinBorder: jest.fn(),
-        horizontalOffset: "0",
+        horizontalOffset: '0',
         setHorizontalOffset: jest.fn(),
-        verticalOffset: "0",
+        verticalOffset: '0',
         setVerticalOffset: jest.fn(),
         showBlades: true,
         setShowBlades: jest.fn(),
@@ -537,15 +539,15 @@ describe("MobileBorderCalculator Logic Functions", () => {
       const mock = createMockBorderCalculator();
 
       // Test structure
-      expect(mock.aspectRatio).toBe("3:2");
-      expect(typeof mock.setAspectRatio).toBe("function");
-      expect(mock.paperSize).toBe("8x10");
-      expect(typeof mock.setPaperSize).toBe("function");
-      expect(typeof mock.applyPreset).toBe("function");
-      expect(typeof mock.resetToDefaults).toBe("function");
+      expect(mock.aspectRatio).toBe('3:2');
+      expect(typeof mock.setAspectRatio).toBe('function');
+      expect(mock.paperSize).toBe('8x10');
+      expect(typeof mock.setPaperSize).toBe('function');
+      expect(typeof mock.applyPreset).toBe('function');
+      expect(typeof mock.resetToDefaults).toBe('function');
     });
 
-    it("should simulate border presets hook integration", () => {
+    it('should simulate border presets hook integration', () => {
       const createMockBorderPresets = () => ({
         presets: [],
         addPreset: jest.fn(),
@@ -556,46 +558,46 @@ describe("MobileBorderCalculator Logic Functions", () => {
       const mock = createMockBorderPresets();
 
       expect(Array.isArray(mock.presets)).toBe(true);
-      expect(typeof mock.addPreset).toBe("function");
-      expect(typeof mock.updatePreset).toBe("function");
-      expect(typeof mock.removePreset).toBe("function");
+      expect(typeof mock.addPreset).toBe('function');
+      expect(typeof mock.updatePreset).toBe('function');
+      expect(typeof mock.removePreset).toBe('function');
     });
 
-    it("should simulate animation experiment hook integration", () => {
+    it('should simulate animation experiment hook integration', () => {
       const createMockAnimationExperiment = () => ({
-        engine: "skia",
+        engine: 'skia',
         setEngine: jest.fn(),
         isLoading: false,
       });
 
       const mock = createMockAnimationExperiment();
 
-      expect(mock.engine).toBe("skia");
-      expect(typeof mock.setEngine).toBe("function");
-      expect(typeof mock.isLoading).toBe("boolean");
+      expect(mock.engine).toBe('skia');
+      expect(typeof mock.setEngine).toBe('function');
+      expect(typeof mock.isLoading).toBe('boolean');
     });
   });
 
-  describe("State Synchronization Logic", () => {
-    it("should handle current preset reset when settings change", () => {
+  describe('State Synchronization Logic', () => {
+    it('should handle current preset reset when settings change', () => {
       const shouldResetCurrentPreset = (
         currentPreset: any,
         currentSettingsHash: string,
-        presetSettingsHash: string | null,
+        presetSettingsHash: string | null
       ) => {
         return !!(currentPreset && currentSettingsHash !== presetSettingsHash);
       };
 
-      const mockPreset = { id: "1", name: "Test" };
-      const hash1 = "hash1";
-      const hash2 = "hash2";
+      const mockPreset = { id: '1', name: 'Test' };
+      const hash1 = 'hash1';
+      const hash2 = 'hash2';
 
       expect(shouldResetCurrentPreset(mockPreset, hash1, hash2)).toBe(true);
       expect(shouldResetCurrentPreset(mockPreset, hash1, hash1)).toBe(false);
       expect(shouldResetCurrentPreset(null, hash1, hash2)).toBe(false);
     });
 
-    it("should track preset application state", () => {
+    it('should track preset application state', () => {
       const presetTracker = {
         hasAppliedLoadedPreset: false,
         lastAppliedPresetId: null as string | null,
@@ -620,11 +622,11 @@ describe("MobileBorderCalculator Logic Functions", () => {
       expect(presetTracker.lastAppliedPresetId).toBe(null);
 
       // Mark preset applied
-      presetTracker.markPresetApplied("preset-123");
+      presetTracker.markPresetApplied('preset-123');
       expect(presetTracker.hasAppliedLoadedPreset).toBe(true);
-      expect(presetTracker.lastAppliedPresetId).toBe("preset-123");
-      expect(presetTracker.hasAppliedPreset("preset-123")).toBe(true);
-      expect(presetTracker.hasAppliedPreset("preset-456")).toBe(false);
+      expect(presetTracker.lastAppliedPresetId).toBe('preset-123');
+      expect(presetTracker.hasAppliedPreset('preset-123')).toBe(true);
+      expect(presetTracker.hasAppliedPreset('preset-456')).toBe(false);
 
       // Reset state
       presetTracker.resetApplicationState();
@@ -633,15 +635,15 @@ describe("MobileBorderCalculator Logic Functions", () => {
     });
   });
 
-  describe("Performance Optimization Logic", () => {
-    it("should use memoization for settings comparison", () => {
+  describe('Performance Optimization Logic', () => {
+    it('should use memoization for settings comparison', () => {
       // Simulate useMemo behavior for settings hash
       let memoizedValue: string | null = null;
       let lastDependencies: any[] | null = null;
 
       const useMemoSimulation = (
         factory: () => string,
-        dependencies: any[],
+        dependencies: any[]
       ) => {
         if (
           !lastDependencies ||
@@ -660,9 +662,9 @@ describe("MobileBorderCalculator Logic Functions", () => {
       };
 
       const settings = {
-        aspectRatio: "3:2",
-        paperSize: "8x10",
-        minBorder: "0.5",
+        aspectRatio: '3:2',
+        paperSize: '8x10',
+        minBorder: '0.5',
       };
 
       const hashFactory = () =>
@@ -675,25 +677,25 @@ describe("MobileBorderCalculator Logic Functions", () => {
 
       // First calculation
       const hash1 = useMemoSimulation(hashFactory, deps);
-      expect(hash1).toBe("3:2|8x10|0.5");
+      expect(hash1).toBe('3:2|8x10|0.5');
 
       // Second calculation with same deps (should use memoized value)
       const hash2 = useMemoSimulation(hashFactory, deps);
       expect(hash2).toBe(hash1);
 
       // Third calculation with different deps (should recalculate)
-      settings.aspectRatio = "4:3";
+      settings.aspectRatio = '4:3';
       const newDeps = [
         settings.aspectRatio,
         settings.paperSize,
         settings.minBorder,
       ];
       const hash3 = useMemoSimulation(hashFactory, newDeps);
-      expect(hash3).toBe("4:3|8x10|0.5");
+      expect(hash3).toBe('4:3|8x10|0.5');
       expect(hash3).not.toBe(hash1);
     });
 
-    it("should optimize effect dependencies", () => {
+    it('should optimize effect dependencies', () => {
       const optimizeEffectDeps = (settings: any) => {
         // Simulate the effect that only runs when settings hash changes
         const relevantValues = [
@@ -713,29 +715,29 @@ describe("MobileBorderCalculator Logic Functions", () => {
           settings.isRatioFlipped,
         ];
 
-        return relevantValues.join("|");
+        return relevantValues.join('|');
       };
 
       const settings1 = {
-        aspectRatio: "3:2",
-        paperSize: "8x10",
-        customAspectWidth: "3",
-        customAspectHeight: "2",
-        customPaperWidth: "8",
-        customPaperHeight: "10",
-        minBorder: "0.5",
+        aspectRatio: '3:2',
+        paperSize: '8x10',
+        customAspectWidth: '3',
+        customAspectHeight: '2',
+        customPaperWidth: '8',
+        customPaperHeight: '10',
+        minBorder: '0.5',
         enableOffset: false,
         ignoreMinBorder: false,
-        horizontalOffset: "0",
-        verticalOffset: "0",
+        horizontalOffset: '0',
+        verticalOffset: '0',
         showBlades: true,
         isLandscape: false,
         isRatioFlipped: false,
-        irrelevantProp: "should not affect hash",
+        irrelevantProp: 'should not affect hash',
       };
 
-      const settings2 = { ...settings1, irrelevantProp: "different value" };
-      const settings3 = { ...settings1, aspectRatio: "4:3" };
+      const settings2 = { ...settings1, irrelevantProp: 'different value' };
+      const settings3 = { ...settings1, aspectRatio: '4:3' };
 
       const hash1 = optimizeEffectDeps(settings1);
       const hash2 = optimizeEffectDeps(settings2);
@@ -746,65 +748,65 @@ describe("MobileBorderCalculator Logic Functions", () => {
     });
   });
 
-  describe("Display Value Logic", () => {
-    it("should generate display values for drawer sections", () => {
+  describe('Display Value Logic', () => {
+    it('should generate display values for drawer sections', () => {
       const generateDisplayValues = (settings: any, calculation: any) => {
         return {
-          aspectRatioDisplayValue: settings.aspectRatio || "Not set",
-          paperSizeDisplayValue: settings.paperSize || "Not set",
+          aspectRatioDisplayValue: settings.aspectRatio || 'Not set',
+          paperSizeDisplayValue: settings.paperSize || 'Not set',
           borderSizeDisplayValue: settings.minBorder
             ? `${settings.minBorder}"`
-            : "Not set",
+            : 'Not set',
           positionDisplayValue: settings.enableOffset
-            ? "Offset enabled"
-            : "Centered",
-          presetsDisplayValue: "0 saved",
+            ? 'Offset enabled'
+            : 'Centered',
+          presetsDisplayValue: '0 saved',
         };
       };
 
       const mockSettings = {
-        aspectRatio: "3:2",
-        paperSize: "8x10",
-        minBorder: "0.5",
+        aspectRatio: '3:2',
+        paperSize: '8x10',
+        minBorder: '0.5',
         enableOffset: true,
       };
 
       const displayValues = generateDisplayValues(mockSettings, null);
 
-      expect(displayValues.aspectRatioDisplayValue).toBe("3:2");
-      expect(displayValues.paperSizeDisplayValue).toBe("8x10");
+      expect(displayValues.aspectRatioDisplayValue).toBe('3:2');
+      expect(displayValues.paperSizeDisplayValue).toBe('8x10');
       expect(displayValues.borderSizeDisplayValue).toBe('0.5"');
-      expect(displayValues.positionDisplayValue).toBe("Offset enabled");
-      expect(displayValues.presetsDisplayValue).toBe("0 saved");
+      expect(displayValues.positionDisplayValue).toBe('Offset enabled');
+      expect(displayValues.presetsDisplayValue).toBe('0 saved');
     });
 
-    it("should handle empty/null display values", () => {
+    it('should handle empty/null display values', () => {
       const generateDisplayValues = (settings: any, calculation: any) => {
         return {
-          aspectRatioDisplayValue: settings.aspectRatio || "Not set",
-          paperSizeDisplayValue: settings.paperSize || "Not set",
+          aspectRatioDisplayValue: settings.aspectRatio || 'Not set',
+          paperSizeDisplayValue: settings.paperSize || 'Not set',
           borderSizeDisplayValue: settings.minBorder
             ? `${settings.minBorder}"`
-            : "Not set",
+            : 'Not set',
           positionDisplayValue: settings.enableOffset
-            ? "Offset enabled"
-            : "Centered",
+            ? 'Offset enabled'
+            : 'Centered',
         };
       };
 
       const emptySettings = {
-        aspectRatio: "",
-        paperSize: "",
-        minBorder: "",
+        aspectRatio: '',
+        paperSize: '',
+        minBorder: '',
         enableOffset: false,
       };
 
       const displayValues = generateDisplayValues(emptySettings, null);
 
-      expect(displayValues.aspectRatioDisplayValue).toBe("Not set");
-      expect(displayValues.paperSizeDisplayValue).toBe("Not set");
-      expect(displayValues.borderSizeDisplayValue).toBe("Not set");
-      expect(displayValues.positionDisplayValue).toBe("Centered");
+      expect(displayValues.aspectRatioDisplayValue).toBe('Not set');
+      expect(displayValues.paperSizeDisplayValue).toBe('Not set');
+      expect(displayValues.borderSizeDisplayValue).toBe('Not set');
+      expect(displayValues.positionDisplayValue).toBe('Centered');
     });
   });
 });

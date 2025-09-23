@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import type { Film } from "@/api/dorkroom/types";
-import { DorkroomClient } from "@/api/dorkroom/client";
-import { fuzzySearchFilms } from "@/utils/fuzzySearch";
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import type { Film } from '@/api/dorkroom/types';
+import { DorkroomClient } from '@/api/dorkroom/client';
+import { fuzzySearchFilms } from '@/utils/fuzzySearch';
 
 export interface FilmsDataState {
   films: Film[];
@@ -11,17 +11,17 @@ export interface FilmsDataState {
   searchQuery: string;
   brandFilter: string;
   typeFilter: string;
-  sortBy: "name" | "brand" | "iso" | "dateAdded";
-  sortDirection: "asc" | "desc";
+  sortBy: 'name' | 'brand' | 'iso' | 'dateAdded';
+  sortDirection: 'asc' | 'desc';
 }
 
 export interface FilmsDataActions {
   setSearchQuery: (query: string) => void;
   setBrandFilter: (brand: string) => void;
   setTypeFilter: (type: string) => void;
-  setSortBy: (sortBy: FilmsDataState["sortBy"]) => void;
-  setSortDirection: (direction: FilmsDataState["sortDirection"]) => void;
-  handleSort: (field: FilmsDataState["sortBy"]) => void;
+  setSortBy: (sortBy: FilmsDataState['sortBy']) => void;
+  setSortDirection: (direction: FilmsDataState['sortDirection']) => void;
+  handleSort: (field: FilmsDataState['sortBy']) => void;
   clearFilters: () => void;
   refetch: () => Promise<void>;
   forceRefresh: () => Promise<void>;
@@ -61,11 +61,11 @@ export function useFilmsData(): UseFilmsDataReturn {
     isLoading: false,
     isLoaded: false,
     error: null,
-    searchQuery: "",
-    brandFilter: "",
-    typeFilter: "",
-    sortBy: "name",
-    sortDirection: "asc",
+    searchQuery: '',
+    brandFilter: '',
+    typeFilter: '',
+    sortBy: 'name',
+    sortDirection: 'asc',
   });
 
   const cacheRef = useRef<{ data: Film[]; timestamp: number } | null>(null);
@@ -132,7 +132,7 @@ export function useFilmsData(): UseFilmsDataReturn {
         }));
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : "Unknown error occurred";
+          error instanceof Error ? error.message : 'Unknown error occurred';
 
         setState((prev) => ({
           ...prev,
@@ -141,7 +141,7 @@ export function useFilmsData(): UseFilmsDataReturn {
         }));
       }
     },
-    [], // No dependencies since we're using DorkroomClient's internal caching
+    [] // No dependencies since we're using DorkroomClient's internal caching
   );
 
   /**
@@ -165,7 +165,7 @@ export function useFilmsData(): UseFilmsDataReturn {
     // Apply brand filter
     if (state.brandFilter) {
       filtered = filtered.filter(
-        (film) => film.brand.toLowerCase() === state.brandFilter.toLowerCase(),
+        (film) => film.brand.toLowerCase() === state.brandFilter.toLowerCase()
       );
     }
 
@@ -173,7 +173,7 @@ export function useFilmsData(): UseFilmsDataReturn {
     if (state.typeFilter) {
       filtered = filtered.filter(
         (film) =>
-          film.colorType.toLowerCase() === state.typeFilter.toLowerCase(),
+          film.colorType.toLowerCase() === state.typeFilter.toLowerCase()
       );
     }
 
@@ -183,16 +183,16 @@ export function useFilmsData(): UseFilmsDataReturn {
         let comparison = 0;
 
         switch (state.sortBy) {
-          case "name":
+          case 'name':
             comparison = a.name.localeCompare(b.name);
             break;
-          case "brand":
+          case 'brand':
             comparison = a.brand.localeCompare(b.brand);
             break;
-          case "iso":
+          case 'iso':
             comparison = a.isoSpeed - b.isoSpeed;
             break;
-          case "dateAdded":
+          case 'dateAdded':
             comparison =
               new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime();
             break;
@@ -200,7 +200,7 @@ export function useFilmsData(): UseFilmsDataReturn {
             comparison = 0;
         }
 
-        return state.sortDirection === "desc" ? -comparison : comparison;
+        return state.sortDirection === 'desc' ? -comparison : comparison;
       });
     }
 
@@ -234,7 +234,7 @@ export function useFilmsData(): UseFilmsDataReturn {
     (id: string): Film | undefined => {
       return state.films.find((film) => film.id === id || film.uuid === id);
     },
-    [state.films],
+    [state.films]
   );
 
   /**
@@ -261,7 +261,7 @@ export function useFilmsData(): UseFilmsDataReturn {
   /**
    * Update sort field
    */
-  const setSortBy = useCallback((sortBy: FilmsDataState["sortBy"]) => {
+  const setSortBy = useCallback((sortBy: FilmsDataState['sortBy']) => {
     setState((prev) => ({ ...prev, sortBy }));
   }, []);
 
@@ -269,21 +269,21 @@ export function useFilmsData(): UseFilmsDataReturn {
    * Update sort direction
    */
   const setSortDirection = useCallback(
-    (direction: FilmsDataState["sortDirection"]) => {
+    (direction: FilmsDataState['sortDirection']) => {
       setState((prev) => ({ ...prev, sortDirection: direction }));
     },
-    [],
+    []
   );
 
   /**
    * Handle sort with automatic direction toggle
    */
-  const handleSort = useCallback((field: FilmsDataState["sortBy"]) => {
+  const handleSort = useCallback((field: FilmsDataState['sortBy']) => {
     setState((prev) => ({
       ...prev,
       sortBy: field,
       sortDirection:
-        prev.sortBy === field && prev.sortDirection === "asc" ? "desc" : "asc",
+        prev.sortBy === field && prev.sortDirection === 'asc' ? 'desc' : 'asc',
     }));
   }, []);
 
@@ -293,9 +293,9 @@ export function useFilmsData(): UseFilmsDataReturn {
   const clearFilters = useCallback(() => {
     setState((prev) => ({
       ...prev,
-      searchQuery: "",
-      brandFilter: "",
-      typeFilter: "",
+      searchQuery: '',
+      brandFilter: '',
+      typeFilter: '',
     }));
   }, []);
 

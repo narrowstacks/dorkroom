@@ -1,22 +1,22 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   TextInput,
   StyleSheet,
   TouchableOpacity,
   TextInputProps,
-} from "react-native";
-import { Text, HStack } from "@gluestack-ui/themed";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from 'react-native';
+import { Text, HStack } from '@gluestack-ui/themed';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import {
   useMobileInputDetection,
   MobileInputTrigger,
   MobileInputModal,
   modalInputStyles,
-} from "./MobileInputShared";
+} from './MobileInputShared';
 
 interface TimeInputProps
-  extends Omit<TextInputProps, "value" | "onChangeText"> {
+  extends Omit<TextInputProps, 'value' | 'onChangeText'> {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
@@ -25,12 +25,12 @@ interface TimeInputProps
   helpText?: string;
 }
 
-type TimeUnit = "s" | "m" | "h";
+type TimeUnit = 's' | 'm' | 'h';
 
 const TIME_UNITS: { value: TimeUnit; label: string; fullLabel: string }[] = [
-  { value: "s", label: "secs", fullLabel: "Seconds" },
-  { value: "m", label: "mins", fullLabel: "Minutes" },
-  { value: "h", label: "hours", fullLabel: "Hours" },
+  { value: 's', label: 'secs', fullLabel: 'Seconds' },
+  { value: 'm', label: 'mins', fullLabel: 'Minutes' },
+  { value: 'h', label: 'hours', fullLabel: 'Hours' },
 ];
 
 // Unit selector buttons component
@@ -39,11 +39,11 @@ const UnitSelector: React.FC<{
   onUnitChange: (unit: TimeUnit) => void;
   isMobile?: boolean;
 }> = ({ selectedUnit, onUnitChange, isMobile = false }) => {
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "borderColor");
-  const tintColor = useThemeColor({}, "tint");
-  const inputBackground = useThemeColor({}, "inputBackground");
-  const backgroundColor = useThemeColor({}, "background");
+  const textColor = useThemeColor({}, 'text');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const tintColor = useThemeColor({}, 'tint');
+  const inputBackground = useThemeColor({}, 'inputBackground');
+  const backgroundColor = useThemeColor({}, 'background');
 
   return (
     <HStack
@@ -91,31 +91,31 @@ const parseTimeInput = (input: string): { value: string; unit: TimeUnit } => {
   if (match) {
     const [, value, unit] = match;
     return {
-      value: value || "",
-      unit: (unit as TimeUnit) || "s",
+      value: value || '',
+      unit: (unit as TimeUnit) || 's',
     };
   }
 
   // Fallback: treat as seconds if just a number
   const numberMatch = trimmed.match(/^\d*\.?\d*$/);
   if (numberMatch) {
-    return { value: trimmed, unit: "s" };
+    return { value: trimmed, unit: 's' };
   }
 
-  return { value: "", unit: "s" };
+  return { value: '', unit: 's' };
 };
 
 // Combine numeric value and unit into time string
 const combineTimeInput = (value: string, unit: TimeUnit): string => {
-  if (!value) return "";
+  if (!value) return '';
   return `${value}${unit}`;
 };
 
 export const TimeInput = ({
   value,
   onChangeText,
-  placeholder = "e.g. 30, 1.5m, 2h",
-  inputTitle = "Enter Time",
+  placeholder = 'e.g. 30, 1.5m, 2h',
+  inputTitle = 'Enter Time',
   error,
   helpText,
   ...rest
@@ -128,12 +128,12 @@ export const TimeInput = ({
   const [numericValue, setNumericValue] = useState(parsed.value);
   const [selectedUnit, setSelectedUnit] = useState<TimeUnit>(parsed.unit);
 
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "borderColor");
-  const placeholderTextColor = useThemeColor({}, "tabIconDefault");
-  const errorColor = useThemeColor({}, "errorColor");
-  const textMuted = useThemeColor({}, "textMuted");
-  const inputBackground = useThemeColor({}, "inputBackground");
+  const textColor = useThemeColor({}, 'text');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const placeholderTextColor = useThemeColor({}, 'tabIconDefault');
+  const errorColor = useThemeColor({}, 'errorColor');
+  const textMuted = useThemeColor({}, 'textMuted');
+  const inputBackground = useThemeColor({}, 'inputBackground');
 
   const inputRef = useRef<TextInput>(null);
   const isMobile = useMobileInputDetection();
@@ -164,7 +164,7 @@ export const TimeInput = ({
 
   const handleNumericChange = (text: string) => {
     // Allow only numbers and a single decimal point
-    if (text === "" || /^\d*\.?\d*$/.test(text)) {
+    if (text === '' || /^\d*\.?\d*$/.test(text)) {
       setNumericValue(text);
     }
   };
@@ -174,7 +174,7 @@ export const TimeInput = ({
   };
 
   const handleModalTextChange = (text: string) => {
-    if (text === "" || /^\d*\.?\d*$/.test(text)) {
+    if (text === '' || /^\d*\.?\d*$/.test(text)) {
       const parsed = parseTimeInput(text);
       setTempValue(combineTimeInput(parsed.value, selectedUnit));
     }
@@ -198,7 +198,9 @@ export const TimeInput = ({
           value={value}
           placeholder={placeholder}
           onPress={() => setModalVisible(true)}
-          accessibilityLabel={`Current time: ${value || placeholder}. Tap to edit.`}
+          accessibilityLabel={`Current time: ${
+            value || placeholder
+          }. Tap to edit.`}
         />
 
         <MobileInputModal
@@ -282,11 +284,11 @@ export const TimeInput = ({
 
 const styles = StyleSheet.create({
   timeInputContainer: {
-    width: "100%",
+    width: '100%',
   },
   inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
   },
   input: {
@@ -296,10 +298,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 16,
     minWidth: 100,
-    textAlign: "left",
+    textAlign: 'left',
   },
   unitSelector: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 4,
   },
   unitButton: {
@@ -308,17 +310,17 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     minWidth: 32,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   unitButtonText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   mobileUnitSelector: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 8,
-    justifyContent: "center",
+    justifyContent: 'center',
     marginTop: 16,
   },
   mobileUnitButton: {
@@ -327,16 +329,16 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   mobileUnitButtonText: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   helpText: {
     fontSize: 12,
     marginTop: 6,
-    fontStyle: "italic",
+    fontStyle: 'italic',
   },
 });

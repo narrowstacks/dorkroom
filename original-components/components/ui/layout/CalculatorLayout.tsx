@@ -1,8 +1,8 @@
-import React, { ReactNode } from "react";
-import { StyleSheet, ScrollView, Platform } from "react-native";
-import { Box, Text } from "@gluestack-ui/themed";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
-import { useThemeColor } from "@/hooks/useThemeColor";
+import React, { ReactNode } from 'react';
+import { StyleSheet, ScrollView, Platform } from 'react-native';
+import { Box, Text } from '@gluestack-ui/themed';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface CalculatorLayoutProps {
   title: string;
@@ -16,9 +16,9 @@ export function CalculatorLayout({
   infoSection,
 }: CalculatorLayoutProps) {
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > 768;
-  const backgroundColor = useThemeColor({}, "background");
-  const outline = useThemeColor({}, "outline");
+  const isDesktop = Platform.OS === 'web' && width > 768;
+  const backgroundColor = useThemeColor({}, 'background');
+  const outline = useThemeColor({}, 'outline');
 
   // Detect if we have a single child for smart centering
   const isSingleChild = React.Children.count(children) === 1;
@@ -31,7 +31,7 @@ export function CalculatorLayout({
     >
       <Box
         className="flex-1 p-4 web:mx-auto web:w-full web:max-w-5xl web:p-6"
-        style={[styles.content, Platform.OS === "web" && styles.webContent]}
+        style={[styles.content, Platform.OS === 'web' && styles.webContent]}
       >
         <Box
           className="mb-6 w-full flex-row items-center justify-center border-b pb-4"
@@ -49,8 +49,8 @@ export function CalculatorLayout({
           className="w-full web:flex-row web:items-start web:gap-10"
           style={[
             styles.mainContent,
-            Platform.OS === "web" && isDesktop && styles.webMainContent,
-            Platform.OS === "web" &&
+            Platform.OS === 'web' && isDesktop && styles.webMainContent,
+            Platform.OS === 'web' &&
               isDesktop &&
               isSingleChild &&
               styles.webMainContentCentered,
@@ -65,7 +65,7 @@ export function CalculatorLayout({
             className="mt-8 w-full"
             style={[
               styles.infoContainer,
-              Platform.OS === "web" && isDesktop && styles.webInfoContainer,
+              Platform.OS === 'web' && isDesktop && styles.webInfoContainer,
             ]}
           >
             {infoSection}
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingBottom:
-      Platform.OS === "ios" || Platform.OS === "android" ? 100 : 80,
+      Platform.OS === 'ios' || Platform.OS === 'android' ? 100 : 80,
   },
   content: {
     flex: 1,
@@ -91,41 +91,41 @@ const styles = StyleSheet.create({
   },
   webContent: {
     maxWidth: 1024,
-    marginHorizontal: "auto",
-    width: "100%",
+    marginHorizontal: 'auto',
+    width: '100%',
     padding: 24,
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
     marginBottom: 24,
     paddingBottom: 16,
     borderBottomWidth: 1,
   },
   title: {
     fontSize: 28,
-    textAlign: "center",
-    fontWeight: "600",
+    textAlign: 'center',
+    fontWeight: '600',
   },
   mainContent: {
-    width: "100%",
+    width: '100%',
   },
   webMainContent: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 40,
-    alignItems: "flex-start",
+    alignItems: 'flex-start',
   },
   webMainContentCentered: {
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   infoContainer: {
-    width: "100%",
+    width: '100%',
     marginTop: 32,
   },
   webInfoContainer: {
-    maxWidth: "100%",
+    maxWidth: '100%',
     marginTop: 40,
   },
 });

@@ -4,8 +4,8 @@
 
 // Base URLs for different environments
 export const BASE_URLS = {
-  DEVELOPMENT: "http://localhost:8081",
-  PRODUCTION: "https://beta.dorkroom.art",
+  DEVELOPMENT: 'http://localhost:8081',
+  PRODUCTION: 'https://beta.dorkroom.art',
 } as const;
 
 // Sharing URLs for different calculators

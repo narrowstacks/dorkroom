@@ -37,8 +37,12 @@ export { useDebounce, useDebouncedCallback } from './hooks/use-debounce';
 export { usePagination } from './hooks/use-pagination';
 export { useCustomRecipes } from './hooks/development-recipes/use-custom-recipes';
 export { useCustomRecipeSharing } from './hooks/development-recipes/use-custom-recipe-sharing';
+export { useRecipeSharing } from './hooks/development-recipes/use-recipe-sharing';
 export { useRecipeUrlState } from './hooks/development-recipes/use-recipe-url-state';
-export { useDevelopmentRecipes } from './hooks/development-recipes/use-development-recipes';
+export { 
+  useDevelopmentRecipes,
+  type CustomRecipeFilter 
+} from './hooks/development-recipes/use-development-recipes';
 
 // Border calculator modular hooks
 export {

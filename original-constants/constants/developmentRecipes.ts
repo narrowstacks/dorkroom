@@ -2,15 +2,15 @@
 
 // Filter options for film types (restricted to black and white only)
 export const FILM_COLOR_TYPES = [
-  { label: "All Films", value: "" },
-  { label: "Black & White", value: "bw" },
+  { label: 'All Films', value: '' },
+  { label: 'Black & White', value: 'bw' },
 ];
 
 // Filter options for developer types
 export const DEVELOPER_TYPES = [
-  { label: "All Developers", value: "" },
-  { label: "Powder", value: "powder" },
-  { label: "Concentrate", value: "concentrate" },
+  { label: 'All Developers', value: '' },
+  { label: 'Powder', value: 'powder' },
+  { label: 'Concentrate', value: 'concentrate' },
 ];
 
 // Temperature conversion utilities
@@ -36,18 +36,18 @@ export function formatTime(minutes: number): string {
 
 // Sort options for results
 export const SORT_OPTIONS = [
-  { label: "Development Time", value: "timeMinutes" },
-  { label: "Temperature", value: "temperatureF" },
-  { label: "ISO", value: "shootingIso" },
+  { label: 'Development Time', value: 'timeMinutes' },
+  { label: 'Temperature', value: 'temperatureF' },
+  { label: 'ISO', value: 'shootingIso' },
 ];
 
 // Push/pull labels
 export const PUSH_PULL_LABELS: { [key: number]: string } = {
-  [-2]: "Pull 2 stops",
-  [-1]: "Pull 1 stop",
-  0: "Normal",
-  1: "Push 1 stop",
-  2: "Push 2 stops",
+  [-2]: 'Pull 2 stops',
+  [-1]: 'Pull 1 stop',
+  0: 'Box Speed',
+  1: 'Push 1 stop',
+  2: 'Push 2 stops',
 };
 
 export default {

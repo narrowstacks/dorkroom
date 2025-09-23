@@ -1,10 +1,10 @@
-import React, { useMemo } from "react";
-import { Box } from "@gluestack-ui/themed";
-import { AnimatedPreview } from "@/components/border-calculator";
-import { AnimatedPreview as AnimatedPreviewReanimated } from "@/components/border-calculator/AnimatedPreview.reanimated";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useIsReanimatedEnabled } from "@/hooks/useAnimationExperiment";
-import type { BorderCalculation } from "@/types/borderTypes";
+import React, { useMemo } from 'react';
+import { Box } from '@gluestack-ui/themed';
+import { AnimatedPreview } from '@/components/border-calculator';
+import { AnimatedPreview as AnimatedPreviewReanimated } from '@/components/border-calculator/AnimatedPreview.reanimated';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useIsReanimatedEnabled } from '@/hooks/useAnimationExperiment';
+import type { BorderCalculation } from '@/types/borderTypes';
 
 interface CompactPreviewProps {
   calculation: BorderCalculation;
@@ -13,7 +13,7 @@ interface CompactPreviewProps {
 
 export const CompactPreview: React.FC<CompactPreviewProps> = React.memo(
   ({ calculation, showBlades }) => {
-    const borderColor = useThemeColor({}, "icon");
+    const borderColor = useThemeColor({}, 'icon');
     const isReanimatedEnabled = useIsReanimatedEnabled();
 
     // Fixed container dimensions that never change
@@ -30,15 +30,15 @@ export const CompactPreview: React.FC<CompactPreviewProps> = React.memo(
     // Select the appropriate AnimatedPreview component (cached to avoid re-selection)
     const AnimatedPreviewComponent = useMemo(
       () => (isReanimatedEnabled ? AnimatedPreviewReanimated : AnimatedPreview),
-      [isReanimatedEnabled],
+      [isReanimatedEnabled]
     );
 
     return (
       <Box
         style={{
-          alignItems: "center",
-          justifyContent: "center",
-          width: "100%",
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
           marginBottom: 0,
         }}
       >
@@ -47,18 +47,18 @@ export const CompactPreview: React.FC<CompactPreviewProps> = React.memo(
           style={{
             width: CONTAINER_WIDTH,
             height: CONTAINER_HEIGHT,
-            alignItems: "center",
-            justifyContent: "center",
-            overflow: "hidden", // Ensure content never escapes the bounds
-            backgroundColor: "transparent",
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden', // Ensure content never escapes the bounds
+            backgroundColor: 'transparent',
           }}
         >
           {/* Scaled preview content */}
           <Box
             style={{
               transform: [{ scale }],
-              alignItems: "center",
-              justifyContent: "center",
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             <AnimatedPreviewComponent
@@ -70,7 +70,7 @@ export const CompactPreview: React.FC<CompactPreviewProps> = React.memo(
         </Box>
       </Box>
     );
-  },
+  }
 );
 
-CompactPreview.displayName = "CompactPreview";
+CompactPreview.displayName = 'CompactPreview';

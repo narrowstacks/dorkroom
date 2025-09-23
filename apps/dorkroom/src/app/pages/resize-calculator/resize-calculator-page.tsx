@@ -95,16 +95,17 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
             How to use
           </h4>
           <ul className="space-y-2">
-            {(isEnlargerHeightMode ? HOW_TO_USE_ENLARGER : HOW_TO_USE_PRINT).map(
-              (item, index) => (
-                <li
-                  key={index}
-                  className="rounded-2xl border border-white/5 bg-white/5 px-4 py-2 text-white/75"
-                >
-                  {item}
-                </li>
-              )
-            )}
+            {(isEnlargerHeightMode
+              ? HOW_TO_USE_ENLARGER
+              : HOW_TO_USE_PRINT
+            ).map((item, index) => (
+              <li
+                key={index}
+                className="rounded-2xl border border-white/5 bg-white/5 px-4 py-2 text-white/75"
+              >
+                {item}
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -167,15 +168,15 @@ export default function ResizeCalculatorPage() {
     ? stopsNumber > 0
       ? 'emerald'
       : stopsNumber < 0
-        ? 'sky'
-        : 'default'
+      ? 'sky'
+      : 'default'
     : 'default';
   const stopsHelper = Number.isFinite(stopsNumber)
     ? stopsNumber > 0
       ? 'The new print is larger — expect to add light.'
       : stopsNumber < 0
-        ? 'The new print is smaller — expect to cut exposure.'
-        : 'Same size print — keep your original exposure.'
+      ? 'The new print is smaller — expect to cut exposure.'
+      : 'Same size print — keep your original exposure.'
     : undefined;
 
   return (

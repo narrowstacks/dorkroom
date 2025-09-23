@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Modal,
   ModalBackdrop,
@@ -14,11 +14,11 @@ import {
   ButtonText,
   HStack,
   VStack,
-} from "@gluestack-ui/themed";
-import { ThemedSelect } from "@/components/ui/select/ThemedSelect";
-import { DimensionInputGroup } from "@/components/ui/forms";
-import { RotateCwSquare, Proportions } from "lucide-react-native";
-import { ASPECT_RATIOS, PAPER_SIZES } from "@/constants/border";
+} from '@gluestack-ui/themed';
+import { ThemedSelect } from '@/components/ui/select/ThemedSelect';
+import { DimensionInputGroup } from '@/components/ui/forms';
+import { RotateCwSquare, Proportions } from 'lucide-react-native';
+import { ASPECT_RATIOS, PAPER_SIZES } from '@/constants/border';
 
 interface PaperSizeModalProps {
   isVisible: boolean;
@@ -84,7 +84,7 @@ export const PaperSizeModal: React.FC<PaperSizeModalProps> = ({
                 placeholder="Select Aspect Ratio"
               />
 
-              {aspectRatio === "custom" && (
+              {aspectRatio === 'custom' && (
                 <DimensionInputGroup
                   widthValue={String(customAspectWidth)}
                   onWidthChange={setCustomAspectWidth}
@@ -110,7 +110,7 @@ export const PaperSizeModal: React.FC<PaperSizeModalProps> = ({
                 placeholder="Select Paper Size"
               />
 
-              {paperSize === "custom" && (
+              {paperSize === 'custom' && (
                 <DimensionInputGroup
                   widthValue={String(customPaperWidth)}
                   onWidthChange={setCustomPaperWidth}
@@ -152,7 +152,7 @@ export const PaperSizeModal: React.FC<PaperSizeModalProps> = ({
         </ModalBody>
 
         <ModalFooter>
-          <HStack space="md" style={{ justifyContent: "flex-end" }}>
+          <HStack space="md" style={{ justifyContent: 'flex-end' }}>
             <Button
               variant="outline"
               size="sm"

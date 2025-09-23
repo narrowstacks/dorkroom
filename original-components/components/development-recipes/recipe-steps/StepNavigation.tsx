@@ -1,8 +1,8 @@
-import React from "react";
-import { Button, ButtonText, HStack } from "@gluestack-ui/themed";
-import { Save } from "lucide-react-native";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import type { CustomRecipe } from "@/types/customRecipeTypes";
+import React from 'react';
+import { Button, ButtonText, HStack } from '@gluestack-ui/themed';
+import { Save } from 'lucide-react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import type { CustomRecipe } from '@/types/customRecipeTypes';
 
 interface StepNavigationProps {
   currentStep: number;
@@ -47,7 +47,7 @@ export function StepNavigation({
   showGitHubSubmit = false,
   isDesktop = false,
 }: StepNavigationProps) {
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
 
   const isLastStep = currentStep === totalSteps - 1;
 
@@ -69,8 +69,8 @@ export function StepNavigation({
           style={{ flex: 1, backgroundColor: developmentTint }}
         >
           <Save size={16} color="#fff" />
-          <ButtonText style={{ marginLeft: 8, color: "#fff" }}>
-            {isLoading ? "Saving..." : recipe ? "Update Recipe" : "Save Recipe"}
+          <ButtonText style={{ marginLeft: 8, color: '#fff' }}>
+            {isLoading ? 'Saving...' : recipe ? 'Update Recipe' : 'Save Recipe'}
           </ButtonText>
         </Button>
       ) : (
@@ -79,7 +79,7 @@ export function StepNavigation({
           disabled={!canProceed}
           style={{ flex: 1, backgroundColor: developmentTint }}
         >
-          <ButtonText style={{ color: "#fff" }}>Next</ButtonText>
+          <ButtonText style={{ color: '#fff' }}>Next</ButtonText>
         </Button>
       )}
     </HStack>

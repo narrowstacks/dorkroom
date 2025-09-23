@@ -1,8 +1,8 @@
-import React from "react";
-import { Box } from "@gluestack-ui/themed";
-import { RecipeCard } from "@/components/development-recipes";
-import type { Film, Developer, Combination } from "@/api/dorkroom/types";
-import type { CustomRecipe } from "@/types/customRecipeTypes";
+import React from 'react';
+import { Box } from '@gluestack-ui/themed';
+import { RecipeCard } from '@/components/development-recipes';
+import type { Film, Developer, Combination } from '@/api/dorkroom/types';
+import type { CustomRecipe } from '@/types/customRecipeTypes';
 
 interface CardsViewProps {
   paginatedCombinations: Combination[];
@@ -27,9 +27,9 @@ export function CardsView({
     <Box
       style={{
         flex: 1,
-        flexDirection: "row",
-        flexWrap: "wrap",
-        justifyContent: "center",
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
         paddingVertical: 8,
       }}
     >

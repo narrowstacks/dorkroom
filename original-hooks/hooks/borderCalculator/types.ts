@@ -45,54 +45,54 @@ export interface BorderCalculatorState {
 
 // Reducer actions
 type SetFieldAction<K extends keyof BorderCalculatorState> = {
-  type: "SET_FIELD";
+  type: 'SET_FIELD';
   key: K;
   value: BorderCalculatorState[K];
 };
 
 export type BorderCalculatorAction =
   | SetFieldAction<keyof BorderCalculatorState>
-  | { type: "SET_PAPER_SIZE"; value: string }
-  | { type: "SET_ASPECT_RATIO"; value: string }
+  | { type: 'SET_PAPER_SIZE'; value: string }
+  | { type: 'SET_ASPECT_RATIO'; value: string }
   | {
-      type: "SET_IMAGE_FIELD";
+      type: 'SET_IMAGE_FIELD';
       key: Exclude<
         keyof BorderCalculatorState,
-        "imageDimensions" | "cropOffset"
+        'imageDimensions' | 'cropOffset'
       >;
       value: any;
     }
-  | { type: "SET_IMAGE_DIMENSIONS"; value: { width: number; height: number } }
-  | { type: "SET_CROP_OFFSET"; value: { x: number; y: number } }
-  | { type: "RESET" }
+  | { type: 'SET_IMAGE_DIMENSIONS'; value: { width: number; height: number } }
+  | { type: 'SET_CROP_OFFSET'; value: { x: number; y: number } }
+  | { type: 'RESET' }
   | {
-      type: "INTERNAL_UPDATE";
+      type: 'INTERNAL_UPDATE';
       payload: Partial<
         Pick<
           BorderCalculatorState,
-          | "offsetWarning"
-          | "bladeWarning"
-          | "minBorderWarning"
-          | "paperSizeWarning"
-          | "lastValidMinBorder"
+          | 'offsetWarning'
+          | 'bladeWarning'
+          | 'minBorderWarning'
+          | 'paperSizeWarning'
+          | 'lastValidMinBorder'
         >
       >;
     }
   | {
-      type: "SET_IMAGE_CROP_DATA";
+      type: 'SET_IMAGE_CROP_DATA';
       payload: Partial<
         Pick<
           BorderCalculatorState,
-          | "selectedImageUri"
-          | "imageDimensions"
-          | "isCropping"
-          | "cropOffset"
-          | "cropScale"
+          | 'selectedImageUri'
+          | 'imageDimensions'
+          | 'isCropping'
+          | 'cropOffset'
+          | 'cropScale'
         >
       >;
     }
   | {
-      type: "BATCH_UPDATE";
+      type: 'BATCH_UPDATE';
       payload: Partial<BorderCalculatorState>;
     };
 
@@ -175,4 +175,4 @@ export const DEFAULT_CUSTOM_PAPER_WIDTH = 13;
 export const DEFAULT_CUSTOM_PAPER_HEIGHT = 10;
 export const DEFAULT_CUSTOM_ASPECT_WIDTH = 2;
 export const DEFAULT_CUSTOM_ASPECT_HEIGHT = 3;
-export const CALC_STORAGE_KEY = "borderCalculatorState";
+export const CALC_STORAGE_KEY = 'borderCalculatorState';

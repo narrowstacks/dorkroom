@@ -11,10 +11,10 @@
   - Performance monitoring integration
 \* ------------------------------------------------------------------ */
 
-import { useReducer, useEffect, useMemo, useRef, useCallback } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ASPECT_RATIOS, PAPER_SIZES } from "@/constants/border";
-import type { BorderCalculatorState as PersistableState } from "@/types/borderPresetTypes";
+import { useReducer, useEffect, useMemo, useRef, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ASPECT_RATIOS, PAPER_SIZES } from '@/constants/border';
+import type { BorderCalculatorState as PersistableState } from '@/types/borderPresetTypes';
 import {
   BorderCalculatorState,
   BorderCalculatorAction,
@@ -24,7 +24,7 @@ import {
   DEFAULT_CUSTOM_ASPECT_WIDTH,
   DEFAULT_CUSTOM_ASPECT_HEIGHT,
   CALC_STORAGE_KEY,
-} from "./types";
+} from './types';
 
 /* ---------- initial state --------------------------------------- */
 
@@ -68,17 +68,17 @@ export const initialState: BorderCalculatorState = {
 
 function optimizedReducer(
   state: BorderCalculatorState,
-  action: BorderCalculatorAction,
+  action: BorderCalculatorAction
 ): BorderCalculatorState {
   switch (action.type) {
-    case "SET_FIELD":
+    case 'SET_FIELD':
       // Only update if value actually changed
       if (state[action.key] === action.value) return state;
       return { ...state, [action.key]: action.value };
 
-    case "SET_PAPER_SIZE": {
+    case 'SET_PAPER_SIZE': {
       if (state.paperSize === action.value) return state;
-      const isCustom = action.value === "custom";
+      const isCustom = action.value === 'custom';
       return {
         ...state,
         paperSize: action.value,
@@ -87,32 +87,32 @@ function optimizedReducer(
       };
     }
 
-    case "SET_ASPECT_RATIO":
+    case 'SET_ASPECT_RATIO':
       if (state.aspectRatio === action.value) return state;
       return { ...state, aspectRatio: action.value, isRatioFlipped: false };
 
-    case "SET_IMAGE_FIELD":
+    case 'SET_IMAGE_FIELD':
       if (state[action.key] === action.value) return state;
       return { ...state, [action.key]: action.value };
 
-    case "SET_IMAGE_DIMENSIONS":
+    case 'SET_IMAGE_DIMENSIONS':
       if (state.imageDimensions === action.value) return state;
       return { ...state, imageDimensions: action.value };
 
-    case "SET_CROP_OFFSET":
+    case 'SET_CROP_OFFSET':
       if (state.cropOffset === action.value) return state;
       return { ...state, cropOffset: action.value };
 
-    case "RESET":
+    case 'RESET':
       return { ...initialState };
 
-    case "INTERNAL_UPDATE":
+    case 'INTERNAL_UPDATE':
       return { ...state, ...action.payload };
 
-    case "SET_IMAGE_CROP_DATA":
+    case 'SET_IMAGE_CROP_DATA':
       return { ...state, ...action.payload };
 
-    case "BATCH_UPDATE":
+    case 'BATCH_UPDATE':
       // Optimized batch update - only apply changes that actually differ
       const updates: Partial<BorderCalculatorState> = {};
       let hasChanges = false;
@@ -207,7 +207,7 @@ export const useOptimizedBorderCalculatorState = () => {
       // Only write if different from last persisted state
       if (lastPersistableStateRef.current !== serialized) {
         AsyncStorage.setItem(CALC_STORAGE_KEY, serialized).catch((e) =>
-          console.warn("Failed to save calculator state", e),
+          console.warn('Failed to save calculator state', e)
         );
       }
     }, 300); // Reduced debounce time for better responsiveness
@@ -223,12 +223,12 @@ export const useOptimizedBorderCalculatorState = () => {
         const json = await AsyncStorage.getItem(CALC_STORAGE_KEY);
         if (json) {
           const cached: PersistableState = JSON.parse(json);
-          if (cached && typeof cached === "object") {
-            dispatch({ type: "BATCH_UPDATE", payload: cached });
+          if (cached && typeof cached === 'object') {
+            dispatch({ type: 'BATCH_UPDATE', payload: cached });
           }
         }
       } catch (e) {
-        console.warn("Failed to load calculator state", e);
+        console.warn('Failed to load calculator state', e);
       }
     })();
   }, []);

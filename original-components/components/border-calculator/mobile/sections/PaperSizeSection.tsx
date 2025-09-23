@@ -1,10 +1,10 @@
-import React from "react";
-import { VStack, Button, ButtonText, ButtonIcon } from "@gluestack-ui/themed";
-import { ThemedSelect } from "@/components/ui/select/ThemedSelect";
-import { DimensionInputGroup } from "@/components/ui/forms";
-import { RotateCwSquare, Proportions } from "lucide-react-native";
-import { ASPECT_RATIOS, PAPER_SIZES } from "@/constants/border";
-import { SectionWrapper } from "./SectionWrapper";
+import React from 'react';
+import { VStack, Button, ButtonText, ButtonIcon } from '@gluestack-ui/themed';
+import { ThemedSelect } from '@/components/ui/select/ThemedSelect';
+import { DimensionInputGroup } from '@/components/ui/forms';
+import { RotateCwSquare, Proportions } from 'lucide-react-native';
+import { ASPECT_RATIOS, PAPER_SIZES } from '@/constants/border';
+import { SectionWrapper } from './SectionWrapper';
 
 interface PaperSizeSectionProps {
   onClose: () => void;
@@ -57,7 +57,7 @@ export const PaperSizeSection: React.FC<PaperSizeSectionProps> = ({
           placeholder="Select Aspect Ratio"
         />
 
-        {aspectRatio === "custom" && (
+        {aspectRatio === 'custom' && (
           <DimensionInputGroup
             widthValue={String(customAspectWidth)}
             onWidthChange={setCustomAspectWidth}
@@ -83,7 +83,7 @@ export const PaperSizeSection: React.FC<PaperSizeSectionProps> = ({
           placeholder="Select Paper Size"
         />
 
-        {paperSize === "custom" && (
+        {paperSize === 'custom' && (
           <DimensionInputGroup
             widthValue={String(customPaperWidth)}
             onWidthChange={setCustomPaperWidth}

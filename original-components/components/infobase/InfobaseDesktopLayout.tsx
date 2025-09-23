@@ -1,5 +1,5 @@
-import React from "react";
-import { Platform, StyleSheet, FlatList } from "react-native";
+import React from 'react';
+import { Platform, StyleSheet, FlatList } from 'react-native';
 import {
   Box,
   Text,
@@ -7,21 +7,21 @@ import {
   Button,
   ButtonText,
   Spinner,
-} from "@gluestack-ui/themed";
-import { RefreshCw } from "lucide-react-native";
+} from '@gluestack-ui/themed';
+import { RefreshCw } from 'lucide-react-native';
 
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { FilmListItem } from "./FilmListItem";
-import { DeveloperListItem } from "./DeveloperListItem";
-import { FilmDetailPanel } from "./FilmDetailPanel";
-import { DeveloperDetailPanel } from "./DeveloperDetailPanel";
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { FilmListItem } from './FilmListItem';
+import { DeveloperListItem } from './DeveloperListItem';
+import { FilmDetailPanel } from './FilmDetailPanel';
+import { DeveloperDetailPanel } from './DeveloperDetailPanel';
 
 import type {
   Film as FilmType,
   Developer as DeveloperType,
-} from "@/api/dorkroom/types";
+} from '@/api/dorkroom/types';
 
-type TabType = "films" | "developers";
+type TabType = 'films' | 'developers';
 
 interface InfobaseDesktopLayoutProps {
   activeTab: TabType;
@@ -50,21 +50,21 @@ export function InfobaseDesktopLayout({
   onDeveloperSelect,
   onRefresh,
 }: InfobaseDesktopLayoutProps) {
-  const backgroundColor = useThemeColor({}, "background");
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const borderColor = useThemeColor({}, "borderColor");
-  const infobaseTint = useThemeColor({}, "infobaseTint");
+  const backgroundColor = useThemeColor({}, 'background');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const infobaseTint = useThemeColor({}, 'infobaseTint');
 
   const handleItemPress = (item: FilmType | DeveloperType) => {
-    if (activeTab === "films") {
+    if (activeTab === 'films') {
       const film = item as FilmType;
       onFilmSelect(selectedFilm?.id === film.id ? null : film);
     } else {
       const developer = item as DeveloperType;
       onDeveloperSelect(
-        selectedDeveloper?.id === developer.id ? null : developer,
+        selectedDeveloper?.id === developer.id ? null : developer
       );
     }
   };
@@ -92,7 +92,7 @@ export function InfobaseDesktopLayout({
   };
 
   const renderItem = ({ item }: { item: FilmType | DeveloperType }) => {
-    if (activeTab === "films") {
+    if (activeTab === 'films') {
       return renderFilmItem({ item: item as FilmType });
     } else {
       return renderDeveloperItem({ item: item as DeveloperType });
@@ -152,7 +152,7 @@ export function InfobaseDesktopLayout({
         initialNumToRender={10}
         maxToRenderPerBatch={10}
         windowSize={5}
-        removeClippedSubviews={Platform.OS === "android"}
+        removeClippedSubviews={Platform.OS === 'android'}
       />
     );
   };
@@ -192,7 +192,7 @@ export function InfobaseDesktopLayout({
 
       {/* Right Panel - Detail */}
       <Box style={styles.detailPanel}>
-        {activeTab === "films" ? (
+        {activeTab === 'films' ? (
           <FilmDetailPanel
             film={selectedFilm}
             onClose={() => onFilmSelect(null)}
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
   resultsText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   listContent: {
     flex: 1,
@@ -236,41 +236,41 @@ const styles = StyleSheet.create({
   },
   centerContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 32,
   },
   loadingText: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
   },
   errorText: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: '#007AFF',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 12,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   retryButtonText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   noResultsText: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   noResultsSubtext: {
     fontSize: 14,
-    textAlign: "center",
+    textAlign: 'center',
   },
 });

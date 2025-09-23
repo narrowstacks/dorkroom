@@ -1,6 +1,6 @@
 // Tree-shakable debug logging - production builds will remove these entirely
 const DEBUG_ENABLED =
-  (typeof __DEV__ !== "undefined" ? __DEV__ : false) || false;
+  (typeof __DEV__ !== 'undefined' ? __DEV__ : false) || false;
 const PERF_MONITORING_ENABLED = false;
 
 // Use conditional compilation for better tree-shaking
@@ -79,11 +79,11 @@ const measureFrame =
 
 export const startContinuousFPSMonitoring =
   DEBUG_ENABLED && PERF_MONITORING_ENABLED
-    ? (label: string = "Page") => {
+    ? (label: string = 'Page') => {
         if (fpsMonitoringState.isActive) return;
 
         debugLog(
-          `📊 [FPS MONITOR] Starting continuous monitoring for ${label}`,
+          `📊 [FPS MONITOR] Starting continuous monitoring for ${label}`
         );
 
         fpsMonitoringState.isActive = true;
@@ -111,23 +111,27 @@ export const startContinuousFPSMonitoring =
 
             const quality =
               avgFPS >= 55
-                ? "excellent"
+                ? 'excellent'
                 : avgFPS >= 45
-                  ? "good"
-                  : avgFPS >= 30
-                    ? "fair"
-                    : "poor";
+                ? 'good'
+                : avgFPS >= 30
+                ? 'fair'
+                : 'poor';
             const qualityColor =
               avgFPS >= 55
-                ? "🟢"
+                ? '🟢'
                 : avgFPS >= 45
-                  ? "🟡"
-                  : avgFPS >= 30
-                    ? "🟠"
-                    : "🔴";
+                ? '🟡'
+                : avgFPS >= 30
+                ? '🟠'
+                : '🔴';
 
             debugLog(
-              `${qualityColor} [FPS MONITOR] ${label} - Avg: ${avgFPS.toFixed(1)}fps | Min: ${minFPS.toFixed(1)}fps | Max: ${maxFPS.toFixed(1)}fps | Quality: ${quality}`,
+              `${qualityColor} [FPS MONITOR] ${label} - Avg: ${avgFPS.toFixed(
+                1
+              )}fps | Min: ${minFPS.toFixed(1)}fps | Max: ${maxFPS.toFixed(
+                1
+              )}fps | Quality: ${quality}`
             );
 
             debugLogPerformance(`Continuous FPS - ${label}`, {
@@ -168,7 +172,11 @@ export const stopContinuousFPSMonitoring =
           const totalTime = performance.now() - fpsMonitoringState.startTime;
           const avgFPS = (fpsMonitoringState.frameCount / totalTime) * 1000;
           debugLog(
-            `📊 [FPS MONITOR] Final Summary - Total time: ${(totalTime / 1000).toFixed(1)}s | Avg FPS: ${avgFPS.toFixed(1)}fps | Total frames: ${fpsMonitoringState.frameCount}`,
+            `📊 [FPS MONITOR] Final Summary - Total time: ${(
+              totalTime / 1000
+            ).toFixed(1)}s | Avg FPS: ${avgFPS.toFixed(1)}fps | Total frames: ${
+              fpsMonitoringState.frameCount
+            }`
           );
         }
       }
@@ -187,16 +195,18 @@ export const debugLogAnimationFrame =
         // Only log if frameTime is reasonable (avoid division by zero or tiny values)
         if (frameTime > 0 && frameTime < 1000) {
           const fps = 1000 / frameTime;
-          const fpsColor = fps >= 55 ? "🟢" : fps >= 45 ? "🟡" : "🔴";
+          const fpsColor = fps >= 55 ? '🟢' : fps >= 45 ? '🟡' : '🔴';
           debugLog(
-            `${fpsColor} [ANIMATION] ${label}: ${fps.toFixed(1)}fps (${frameTime.toFixed(2)}ms)`,
+            `${fpsColor} [ANIMATION] ${label}: ${fps.toFixed(
+              1
+            )}fps (${frameTime.toFixed(2)}ms)`
           );
 
           // Also log detailed FPS data
           debugLogPerformance(`FPS - ${label}`, {
             fps: parseFloat(fps.toFixed(1)),
             frameTime: parseFloat(frameTime.toFixed(2)),
-            quality: fps >= 55 ? "excellent" : fps >= 45 ? "good" : "poor",
+            quality: fps >= 55 ? 'excellent' : fps >= 45 ? 'good' : 'poor',
             timestamp: new Date().toISOString(),
           });
         } else {

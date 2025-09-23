@@ -28,118 +28,148 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
   /**
    * Generate a shareable URL for the given preset
    */
-  const generateShareUrl = useCallback((preset: PresetToShare): string | null => {
-    const encoded = encodePreset(preset);
-    if (!encoded) {
-      return null;
-    }
+  const generateShareUrl = useCallback(
+    (preset: PresetToShare): string | null => {
+      const encoded = encodePreset(preset);
+      if (!encoded) {
+        return null;
+      }
 
-    const { webUrl } = generateSharingUrls(encoded);
-    return webUrl;
-  }, []);
+      const { webUrl } = generateSharingUrls(encoded);
+      return webUrl;
+    },
+    []
+  );
 
   /**
    * Copy text to clipboard
    */
-  const copyToClipboard = useCallback(async (text: string): Promise<boolean> => {
-    if (!isClipboardSupported()) {
-      return false;
-    }
+  const copyToClipboard = useCallback(
+    async (text: string): Promise<boolean> => {
+      if (!isClipboardSupported()) {
+        return false;
+      }
 
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
-      return false;
-    }
-  }, []);
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (error) {
+        console.error('Failed to copy to clipboard:', error);
+        return false;
+      }
+    },
+    []
+  );
 
   /**
    * Share using the Web Share API
    */
-  const shareNatively = useCallback(async (
-    url: string,
-    title: string = 'Border Calculator Preset'
-  ): Promise<boolean> => {
-    if (!isWebShareSupported()) {
-      return false;
-    }
+  const shareNatively = useCallback(
+    async (
+      url: string,
+      title: string = 'Border Calculator Preset'
+    ): Promise<boolean> => {
+      if (!isWebShareSupported()) {
+        return false;
+      }
 
-    try {
-      await navigator.share({
-        title,
-        text: `Check out this border calculator preset: ${title}`,
-        url,
-      });
-      return true;
-    } catch (error) {
-      // User cancelled or share failed
-      console.error('Native share failed:', error);
-      return false;
-    }
-  }, []);
+      try {
+        await navigator.share({
+          title,
+          text: `Check out this border calculator preset: ${title}`,
+          url,
+        });
+        return true;
+      } catch (error) {
+        // User cancelled or share failed
+        console.error('Native share failed:', error);
+        return false;
+      }
+    },
+    []
+  );
 
   /**
    * Main share function - tries different methods in order of preference
    */
-  const sharePreset = useCallback(async (
-    preset: PresetToShare,
-    preferClipboard: boolean = false
-  ): Promise<ShareResult> => {
-    setIsSharing(true);
+  const sharePreset = useCallback(
+    async (
+      preset: PresetToShare,
+      preferClipboard: boolean = false
+    ): Promise<ShareResult> => {
+      setIsSharing(true);
 
-    try {
-      const url = generateShareUrl(preset);
-      if (!url) {
-        const error = 'Failed to generate share URL';
-        onShareError?.(error);
-        return { success: false, error };
-      }
+      try {
+        const url = generateShareUrl(preset);
+        if (!url) {
+          const error = 'Failed to generate share URL';
+          onShareError?.(error);
+          return { success: false, error };
+        }
 
-      setLastSharedUrl(url);
+        setLastSharedUrl(url);
 
-      // Try preferred method first
-      if (preferClipboard) {
+        // Try preferred method first
+        if (preferClipboard) {
+          const clipboardSuccess = await copyToClipboard(url);
+          if (clipboardSuccess) {
+            const result: ShareResult = {
+              success: true,
+              method: 'clipboard',
+              url,
+            };
+            onShareSuccess?.(result);
+            return result;
+          }
+        }
+
+        // Try native share if available and not preferring clipboard
+        if (!preferClipboard && isWebShareSupported()) {
+          const shareSuccess = await shareNatively(url, preset.name);
+          if (shareSuccess) {
+            const result: ShareResult = {
+              success: true,
+              method: 'native',
+              url,
+            };
+            onShareSuccess?.(result);
+            return result;
+          }
+        }
+
+        // Fallback to clipboard
         const clipboardSuccess = await copyToClipboard(url);
         if (clipboardSuccess) {
-          const result: ShareResult = { success: true, method: 'clipboard', url };
+          const result: ShareResult = {
+            success: true,
+            method: 'clipboard',
+            url,
+          };
           onShareSuccess?.(result);
           return result;
         }
-      }
 
-      // Try native share if available and not preferring clipboard
-      if (!preferClipboard && isWebShareSupported()) {
-        const shareSuccess = await shareNatively(url, preset.name);
-        if (shareSuccess) {
-          const result: ShareResult = { success: true, method: 'native', url };
-          onShareSuccess?.(result);
-          return result;
-        }
-      }
-
-      // Fallback to clipboard
-      const clipboardSuccess = await copyToClipboard(url);
-      if (clipboardSuccess) {
-        const result: ShareResult = { success: true, method: 'clipboard', url };
+        // Final fallback - manual copy (provide URL for user to copy manually)
+        const result: ShareResult = { success: true, method: 'manual', url };
         onShareSuccess?.(result);
         return result;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error occurred';
+        onShareError?.(errorMessage);
+        return { success: false, error: errorMessage };
+      } finally {
+        setIsSharing(false);
       }
-
-      // Final fallback - manual copy (provide URL for user to copy manually)
-      const result: ShareResult = { success: true, method: 'manual', url };
-      onShareSuccess?.(result);
-      return result;
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      onShareError?.(errorMessage);
-      return { success: false, error: errorMessage };
-    } finally {
-      setIsSharing(false);
-    }
-  }, [generateShareUrl, copyToClipboard, shareNatively, onShareSuccess, onShareError]);
+    },
+    [
+      generateShareUrl,
+      copyToClipboard,
+      shareNatively,
+      onShareSuccess,
+      onShareError,
+    ]
+  );
 
   /**
    * Update the current page URL with the preset (for bookmarking)

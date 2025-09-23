@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
-import { FILM_TYPES } from "@/constants/reciprocity";
-import { ReciprocityCalculation } from "@/types/reciprocityTypes";
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { FILM_TYPES } from '@/constants/reciprocity';
+import { ReciprocityCalculation } from '@/types/reciprocityTypes';
 
 // Maximum width for visual representation of time bars in pixels
 const MAX_BAR_WIDTH = 300;
@@ -62,12 +62,12 @@ const parseTimeInput = (input: string): number | null => {
 };
 
 export const useReciprocityCalculator = () => {
-  const initialMeteredTime = "30s";
+  const initialMeteredTime = '30s';
 
   // Form state
   const [filmType, setFilmType] = useState(FILM_TYPES[0].value);
   const [meteredTime, setMeteredTime] = useState(initialMeteredTime);
-  const [customFactor, setCustomFactor] = useState("1.3");
+  const [customFactor, setCustomFactor] = useState('1.3');
   // Initialize formattedTime based on initialMeteredTime
   const [formattedTime, setFormattedTime] = useState<string | null>(() => {
     const initialSeconds = parseTimeInput(initialMeteredTime);
@@ -90,7 +90,7 @@ export const useReciprocityCalculator = () => {
     if (parsedSeconds !== null) {
       setFormattedTime(formatTime(parsedSeconds));
     } else if (text.trim()) {
-      setTimeFormatError("Invalid time format. Try: 30s, 1m30s, 1h15m");
+      setTimeFormatError('Invalid time format. Try: 30s, 1m30s, 1h15m');
       setFormattedTime(null);
     } else {
       setFormattedTime(null);
@@ -105,11 +105,11 @@ export const useReciprocityCalculator = () => {
 
     // Get the reciprocity factor
     let factor = 1;
-    let filmName = "";
+    let filmName = '';
 
-    if (filmType === "custom") {
+    if (filmType === 'custom') {
       factor = parseFloat(customFactor) || 1;
-      filmName = "Custom";
+      filmName = 'Custom';
     } else {
       const selectedFilm = FILM_TYPES.find((film) => film.value === filmType);
       if (selectedFilm) {
@@ -130,7 +130,7 @@ export const useReciprocityCalculator = () => {
       Math.min(
         MAX_BAR_WIDTH,
         (Math.log(time + 1) / Math.log(Math.max(adjustedTime, 10) + 1)) *
-          MAX_BAR_WIDTH,
+          MAX_BAR_WIDTH
       );
 
     const timeBarWidth = logScale(originalTime);

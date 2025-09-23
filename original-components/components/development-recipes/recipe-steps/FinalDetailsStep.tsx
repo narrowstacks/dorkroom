@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Text,
   HStack,
@@ -6,12 +6,12 @@ import {
   Switch,
   Textarea,
   TextareaInput,
-} from "@gluestack-ui/themed";
-import { FormGroup } from "@/components/ui/forms/FormSection";
-import { TextInput } from "@/components/ui/forms";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { normalizeDilution } from "@/utils/dilutionUtils";
-import type { CustomRecipeFormData } from "@/types/customRecipeTypes";
+} from '@gluestack-ui/themed';
+import { FormGroup } from '@/components/ui/forms/FormSection';
+import { TextInput } from '@/components/ui/forms';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { normalizeDilution } from '@/utils/dilutionUtils';
+import type { CustomRecipeFormData } from '@/types/customRecipeTypes';
 
 interface FinalDetailsStepProps {
   formData: CustomRecipeFormData;
@@ -37,15 +37,15 @@ export function FinalDetailsStep({
   selectedDilution,
   isDesktop = false,
 }: FinalDetailsStepProps) {
-  const textColor = useThemeColor({}, "text");
+  const textColor = useThemeColor({}, 'text');
 
   return (
     <VStack space="lg">
       <FormGroup
         label={
-          selectedDilution && selectedDilution !== "custom"
+          selectedDilution && selectedDilution !== 'custom'
             ? `Dilution (${selectedDilution})`
-            : "Custom Dilution (Optional)"
+            : 'Custom Dilution (Optional)'
         }
       >
         <TextInput
@@ -55,7 +55,7 @@ export function FinalDetailsStep({
           }
           placeholder="e.g., 1+1, 1+9, Stock"
           inputTitle="Enter Custom Dilution"
-          editable={!selectedDilution || selectedDilution === "custom"}
+          editable={!selectedDilution || selectedDilution === 'custom'}
         />
       </FormGroup>
 
@@ -88,17 +88,17 @@ export function FinalDetailsStep({
       {/* Public/GitHub Submission */}
       <HStack
         style={{
-          alignItems: "center",
-          justifyContent: "space-between",
+          alignItems: 'center',
+          justifyContent: 'space-between',
           padding: 16,
-          backgroundColor: "rgba(255, 255, 255, 0.05)",
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
           borderRadius: 12,
           borderWidth: 1,
-          borderColor: "rgba(255, 255, 255, 0.1)",
+          borderColor: 'rgba(255, 255, 255, 0.1)',
         }}
       >
         <VStack style={{ flex: 1 }}>
-          <Text style={{ fontSize: 14, fontWeight: "600", color: textColor }}>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: textColor }}>
             Public Recipe
           </Text>
           <Text

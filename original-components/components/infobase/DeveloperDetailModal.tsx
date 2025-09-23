@@ -1,11 +1,11 @@
-import React from "react";
+import React from 'react';
 import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Linking,
-} from "react-native";
+} from 'react-native';
 import {
   Box,
   Text,
@@ -16,7 +16,7 @@ import {
   Modal,
   ModalBackdrop,
   ModalContent,
-} from "@gluestack-ui/themed";
+} from '@gluestack-ui/themed';
 import {
   X,
   Beaker,
@@ -30,15 +30,15 @@ import {
   ExternalLink,
   Package,
   Layers,
-} from "lucide-react-native";
-import type { Developer } from "@/api/dorkroom/types";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from 'lucide-react-native';
+import type { Developer } from '@/api/dorkroom/types';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import {
   getBrandKey,
   getDeveloperTypeColor,
   getContrastingTextColor,
-} from "@/constants/brands";
-import { Colors } from "@/constants/Colors";
+} from '@/constants/brands';
+import { Colors } from '@/constants/Colors';
 
 interface DeveloperDetailModalProps {
   developer: Developer | null;
@@ -51,17 +51,17 @@ export function DeveloperDetailModal({
   isOpen,
   onClose,
 }: DeveloperDetailModalProps) {
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const borderColor = useThemeColor({}, "borderColor");
-  const infobaseTint = useThemeColor({}, "infobaseTint");
-  const backgroundColor = useThemeColor({}, "background");
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const infobaseTint = useThemeColor({}, 'infobaseTint');
+  const backgroundColor = useThemeColor({}, 'background');
 
   if (!developer) return null;
 
   // Get brand color from theme
-  const colorScheme = backgroundColor === "#fff" ? "light" : "dark";
+  const colorScheme = backgroundColor === '#fff' ? 'light' : 'dark';
   const brandKey = getBrandKey(developer.manufacturer);
   const brandColorKey = `${brandKey}BrandColor` as keyof typeof Colors.light;
   const brandColor =
@@ -75,13 +75,13 @@ export function DeveloperDetailModal({
     try {
       return new Date(dateString).toLocaleDateString();
     } catch {
-      return "N/A";
+      return 'N/A';
     }
   };
 
   const formatLifetime = (value: number | null | undefined, unit: string) => {
-    if (!value) return "N/A";
-    return `${value} ${unit}${value !== 1 ? "s" : ""}`;
+    if (!value) return 'N/A';
+    return `${value} ${unit}${value !== 1 ? 's' : ''}`;
   };
 
   const handleDatasheetPress = async (url: string) => {
@@ -91,7 +91,7 @@ export function DeveloperDetailModal({
         await Linking.openURL(url);
       }
     } catch (error) {
-      console.error("Error opening datasheet URL:", error);
+      console.error('Error opening datasheet URL:', error);
     }
   };
 
@@ -102,7 +102,7 @@ export function DeveloperDetailModal({
         style={{
           backgroundColor: cardBackground,
           margin: 0,
-          maxHeight: "100%",
+          maxHeight: '100%',
           flex: 1,
         }}
       >
@@ -142,7 +142,7 @@ export function DeveloperDetailModal({
               <HStack
                 space="sm"
                 alignItems="center"
-                style={{ flexWrap: "wrap" }}
+                style={{ flexWrap: 'wrap' }}
               >
                 <Box
                   style={[styles.brandBadge, { backgroundColor: brandColor }]}
@@ -171,7 +171,7 @@ export function DeveloperDetailModal({
                   <Badge
                     style={[
                       styles.discontinuedBadge,
-                      { backgroundColor: "#ff6b6b" },
+                      { backgroundColor: '#ff6b6b' },
                     ]}
                   >
                     <AlertTriangle size={14} color="#fff" />
@@ -258,7 +258,7 @@ export function DeveloperDetailModal({
                           ]}
                         >
                           <BadgeText
-                            style={[styles.dilutionText, { color: "#fff" }]}
+                            style={[styles.dilutionText, { color: '#fff' }]}
                           >
                             {dilution.dilution}
                           </BadgeText>
@@ -287,7 +287,7 @@ export function DeveloperDetailModal({
                         Working Life:
                       </Text>
                       <Text style={[styles.detailValue, { color: textColor }]}>
-                        {formatLifetime(developer.workingLifeHours, "hour")}
+                        {formatLifetime(developer.workingLifeHours, 'hour')}
                       </Text>
                     </HStack>
                   )}
@@ -301,7 +301,7 @@ export function DeveloperDetailModal({
                         Stock Life:
                       </Text>
                       <Text style={[styles.detailValue, { color: textColor }]}>
-                        {formatLifetime(developer.stockLifeMonths, "month")}
+                        {formatLifetime(developer.stockLifeMonths, 'month')}
                       </Text>
                     </HStack>
                   )}
@@ -348,17 +348,17 @@ export function DeveloperDetailModal({
               <VStack space="md" style={styles.section}>
                 <HStack space="sm" alignItems="center">
                   <Shield size={18} color="#ff6b6b" />
-                  <Text style={[styles.sectionTitle, { color: "#ff6b6b" }]}>
+                  <Text style={[styles.sectionTitle, { color: '#ff6b6b' }]}>
                     Safety Information
                   </Text>
                 </HStack>
                 <Box
                   style={[
                     styles.safetyCard,
-                    { backgroundColor: "#fff5f5", borderColor: "#ff6b6b" },
+                    { backgroundColor: '#fff5f5', borderColor: '#ff6b6b' },
                   ]}
                 >
-                  <Text style={[styles.description, { color: "#dc2626" }]}>
+                  <Text style={[styles.description, { color: '#dc2626' }]}>
                     {developer.safetyNotes}
                   </Text>
                 </Box>
@@ -420,7 +420,7 @@ export function DeveloperDetailModal({
                   <Text
                     style={[
                       styles.detailValue,
-                      { color: textColor, fontFamily: "monospace" },
+                      { color: textColor, fontFamily: 'monospace' },
                     ]}
                   >
                     {developer.uuid}
@@ -434,7 +434,7 @@ export function DeveloperDetailModal({
                   <Text
                     style={[
                       styles.detailValue,
-                      { color: textColor, fontFamily: "monospace" },
+                      { color: textColor, fontFamily: 'monospace' },
                     ]}
                   >
                     {developer.slug}
@@ -457,12 +457,12 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "700",
+    fontWeight: '700',
     lineHeight: 24,
   },
   modalSubtitle: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
     marginTop: 2,
   },
   closeButton: {
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
   },
   brandBadge: {
@@ -487,8 +487,8 @@ const styles = StyleSheet.create({
   },
   brandText: {
     fontSize: 14,
-    fontWeight: "600",
-    textTransform: "uppercase",
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   typeBadge: {
     paddingHorizontal: 8,
@@ -497,30 +497,30 @@ const styles = StyleSheet.create({
   },
   typeText: {
     fontSize: 12,
-    fontWeight: "500",
-    textTransform: "capitalize",
+    fontWeight: '500',
+    textTransform: 'capitalize',
   },
   discontinuedBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
   discontinuedText: {
     fontSize: 12,
-    fontWeight: "500",
-    color: "#fff",
+    fontWeight: '500',
+    color: '#fff',
   },
   detailLabel: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
     minWidth: 100,
   },
   detailValue: {
     fontSize: 14,
-    fontWeight: "400",
+    fontWeight: '400',
     flex: 1,
   },
   description: {
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
   },
   dilutionName: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   dilutionBadge: {
     paddingHorizontal: 8,
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   },
   dilutionText: {
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   instructionCard: {
     padding: 12,
@@ -562,6 +562,6 @@ const styles = StyleSheet.create({
   },
   datasheetText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
 });

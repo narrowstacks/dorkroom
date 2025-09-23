@@ -1,11 +1,11 @@
-import React from "react";
-import { StyleSheet, TouchableOpacity, Platform } from "react-native";
-import { Box, Text, HStack, VStack } from "@gluestack-ui/themed";
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
-import { StyledTextInput } from "@/components/ui/forms/StyledTextInput";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
-import type { PaginationState, PaginationActions } from "@/hooks/usePagination";
+import React from 'react';
+import { StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { Box, Text, HStack, VStack } from '@gluestack-ui/themed';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { StyledTextInput } from '@/components/ui/forms/StyledTextInput';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
+import type { PaginationState, PaginationActions } from '@/hooks/usePagination';
 
 interface PaginationControlsProps extends PaginationState, PaginationActions {
   className?: string;
@@ -26,16 +26,16 @@ export const PaginationControls = React.memo(function PaginationControls({
   className,
   style,
 }: PaginationControlsProps) {
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const borderColor = useThemeColor({}, "borderColor");
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const borderColor = useThemeColor({}, 'borderColor');
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > 768;
+  const isDesktop = Platform.OS === 'web' && width > 768;
 
   const [pageInputValue, setPageInputValue] = React.useState(
-    currentPage.toString(),
+    currentPage.toString()
   );
 
   // Update input value when current page changes externally
@@ -66,7 +66,9 @@ export const PaginationControls = React.memo(function PaginationControls({
     handlePageInputSubmit();
   };
 
-  const showingText = `Showing ${startIndex + 1}-${endIndex} of ${totalItems} recipes`;
+  const showingText = `Showing ${
+    startIndex + 1
+  }-${endIndex} of ${totalItems} recipes`;
   const pageText = `Page ${currentPage} of ${totalPages}`;
 
   if (isDesktop) {
@@ -260,35 +262,35 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
   desktopContent: {
-    alignItems: "center",
-    justifyContent: "space-between",
+    alignItems: 'center',
+    justifyContent: 'space-between',
     flex: 1,
   },
   mobileContent: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   desktopSpacer: {
     flex: 1,
   },
   infoText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   mobileInfoText: {
-    textAlign: "center",
+    textAlign: 'center',
     fontSize: 13,
   },
   navigationControls: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   mobileNavigation: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
   },
   navButton: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 6,
@@ -296,8 +298,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   mobileNavButton: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 6,
@@ -310,32 +312,32 @@ const styles = StyleSheet.create({
   },
   navButtonText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   pageInputContainer: {
-    alignItems: "center",
+    alignItems: 'center',
     marginHorizontal: 8,
   },
   pageText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   mobilePageText: {
-    textAlign: "center",
+    textAlign: 'center',
     fontSize: 13,
   },
   pageInput: {
     width: 50,
     height: 32,
-    textAlign: "center",
+    textAlign: 'center',
     borderWidth: 1,
     borderRadius: 4,
     paddingHorizontal: 4,
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   mobilePageInfo: {
     flex: 1,
-    alignItems: "center",
+    alignItems: 'center',
   },
 });

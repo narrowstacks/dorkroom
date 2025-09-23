@@ -1,32 +1,32 @@
-import { Platform } from "react-native";
-import type { ViewStyle } from "react-native";
+import { Platform } from 'react-native';
+import type { ViewStyle } from 'react-native';
 
 export enum ModalSize {
-  SMALL = "small",
-  MEDIUM = "medium",
-  LARGE = "large",
+  SMALL = 'small',
+  MEDIUM = 'medium',
+  LARGE = 'large',
 }
 
 export interface ModalConfiguration {
-  size: "xs" | "sm" | "md" | "lg" | "full";
+  size: 'xs' | 'sm' | 'md' | 'lg' | 'full';
   className?: string;
   style?: ViewStyle;
 }
 
 export function getModalConfiguration(
   modalSize: ModalSize,
-  isDesktop: boolean,
+  isDesktop: boolean
 ): ModalConfiguration {
   switch (modalSize) {
     case ModalSize.SMALL:
       return {
-        size: isDesktop ? "md" : "full",
-        className: isDesktop ? "max-w-2xl" : "h-full",
+        size: isDesktop ? 'md' : 'full',
+        className: isDesktop ? 'max-w-2xl' : 'h-full',
         style:
-          Platform.OS !== "web" && !isDesktop
+          Platform.OS !== 'web' && !isDesktop
             ? {
-                maxHeight: "65%",
-                marginTop: "auto",
+                maxHeight: '65%',
+                marginTop: 'auto',
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
                 borderBottomLeftRadius: 24,
@@ -37,13 +37,13 @@ export function getModalConfiguration(
 
     case ModalSize.MEDIUM:
       return {
-        size: isDesktop ? "md" : "full",
-        className: isDesktop ? "max-w-2xl" : "h-full",
+        size: isDesktop ? 'md' : 'full',
+        className: isDesktop ? 'max-w-2xl' : 'h-full',
         style:
-          Platform.OS !== "web" && !isDesktop
+          Platform.OS !== 'web' && !isDesktop
             ? {
-                maxHeight: "95%",
-                marginTop: "auto",
+                maxHeight: '95%',
+                marginTop: 'auto',
                 borderTopLeftRadius: 48,
                 borderTopRightRadius: 48,
                 borderBottomLeftRadius: 48,
@@ -54,13 +54,13 @@ export function getModalConfiguration(
 
     case ModalSize.LARGE:
       return {
-        size: isDesktop ? "lg" : "full",
-        className: isDesktop ? "max-w-3xl max-h-[95vh] m-4" : "h-full w-full",
+        size: isDesktop ? 'lg' : 'full',
+        className: isDesktop ? 'max-w-3xl max-h-[95vh] m-4' : 'h-full w-full',
         style:
-          Platform.OS !== "web"
+          Platform.OS !== 'web'
             ? {
-                maxHeight: "95%",
-                marginTop: "auto",
+                maxHeight: '95%',
+                marginTop: 'auto',
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
                 borderBottomLeftRadius: 0,
@@ -71,22 +71,22 @@ export function getModalConfiguration(
 
     default:
       return {
-        size: "md",
-        className: "max-w-2xl",
+        size: 'md',
+        className: 'max-w-2xl',
       };
   }
 }
 
 // Convenience functions for common modal types
 export const getRecipeDetailModalConfig = (
-  isDesktop: boolean,
+  isDesktop: boolean
 ): ModalConfiguration => getModalConfiguration(ModalSize.SMALL, isDesktop);
 
 // Use the same configuration for both regular and custom recipe modals
 export const getCustomRecipeDetailModalConfig = (
-  isDesktop: boolean,
+  isDesktop: boolean
 ): ModalConfiguration => getModalConfiguration(ModalSize.SMALL, isDesktop);
 
 export const getRecipeFormModalConfig = (
-  isDesktop: boolean,
+  isDesktop: boolean
 ): ModalConfiguration => getModalConfiguration(ModalSize.SMALL, isDesktop);

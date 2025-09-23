@@ -26,7 +26,7 @@ export interface UsePaginationReturn<T>
 
 export const usePagination = <T>(
   items: T[],
-  pageSize: number = 50,
+  pageSize: number = 50
 ): UsePaginationReturn<T> => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const totalItems = items.length;
@@ -69,7 +69,7 @@ export const usePagination = <T>(
         setCurrentPage(page);
       }
     },
-    [paginationState.totalPages],
+    [paginationState.totalPages]
   );
 
   const goToNext = useCallback(() => {

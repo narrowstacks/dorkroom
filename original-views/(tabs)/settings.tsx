@@ -1,36 +1,36 @@
-import React, { useState } from "react";
-import { ScrollView, View, Text, Pressable, Platform } from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import { debugLog } from "@/utils/debugLogger";
+import React, { useState } from 'react';
+import { ScrollView, View, Text, Pressable, Platform } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import { debugLog } from '@/utils/debugLogger';
 
 export default function SettingsScreen() {
-  const [selectedTheme, setSelectedTheme] = useState("system");
-  const [selectedLengthUnit, setSelectedLengthUnit] = useState("inches");
-  const [selectedVolumeUnit, setSelectedVolumeUnit] = useState("ml");
+  const [selectedTheme, setSelectedTheme] = useState('system');
+  const [selectedLengthUnit, setSelectedLengthUnit] = useState('inches');
+  const [selectedVolumeUnit, setSelectedVolumeUnit] = useState('ml');
 
   // Placeholder functions for settings changes
   const handleThemeChange = (value: string) => {
-    debugLog("Theme changed to:", value);
+    debugLog('Theme changed to:', value);
     setSelectedTheme(value);
   };
 
   const handleLengthUnitChange = (value: string) => {
-    debugLog("Length unit changed to:", value);
+    debugLog('Length unit changed to:', value);
     setSelectedLengthUnit(value);
   };
 
   const handleVolumeUnitChange = (value: string) => {
-    debugLog("Volume unit changed to:", value);
+    debugLog('Volume unit changed to:', value);
     setSelectedVolumeUnit(value);
   };
 
   // Theme options
   const themeOptions = [
-    { label: "Light", value: "light" },
-    { label: "Dark", value: "dark" },
-    { label: "System", value: "system" },
-    { label: "High Contrast", value: "highContrast" },
-    { label: "Darkroom", value: "darkroom" },
+    { label: 'Light', value: 'light' },
+    { label: 'Dark', value: 'dark' },
+    { label: 'System', value: 'system' },
+    { label: 'High Contrast', value: 'highContrast' },
+    { label: 'Darkroom', value: 'darkroom' },
   ];
 
   const SettingsRow = ({
@@ -41,7 +41,9 @@ export default function SettingsScreen() {
     isLast?: boolean;
   }) => (
     <View
-      className={`${!isLast ? "border-b border-gray-200 dark:border-gray-700" : ""}`}
+      className={`${
+        !isLast ? 'border-b border-gray-200 dark:border-gray-700' : ''
+      }`}
     >
       {children}
     </View>
@@ -83,11 +85,11 @@ export default function SettingsScreen() {
                     selectedValue={selectedTheme}
                     onValueChange={handleThemeChange}
                     style={{
-                      height: Platform.OS === "ios" ? 120 : 50,
-                      width: "100%",
+                      height: Platform.OS === 'ios' ? 120 : 50,
+                      width: '100%',
                     }}
                     itemStyle={
-                      Platform.OS === "ios"
+                      Platform.OS === 'ios'
                         ? {
                             height: 120,
                             fontSize: 16,
@@ -123,17 +125,17 @@ export default function SettingsScreen() {
                 <View className="flex-row rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
                   <Pressable
                     className={`flex-1 rounded-md px-4 py-2 ${
-                      selectedLengthUnit === "inches"
-                        ? "bg-blue-500 dark:bg-blue-600"
-                        : "bg-transparent"
+                      selectedLengthUnit === 'inches'
+                        ? 'bg-blue-500 dark:bg-blue-600'
+                        : 'bg-transparent'
                     }`}
-                    onPress={() => handleLengthUnitChange("inches")}
+                    onPress={() => handleLengthUnitChange('inches')}
                   >
                     <Text
                       className={`text-center text-sm font-medium ${
-                        selectedLengthUnit === "inches"
-                          ? "text-white"
-                          : "text-gray-700 dark:text-gray-300"
+                        selectedLengthUnit === 'inches'
+                          ? 'text-white'
+                          : 'text-gray-700 dark:text-gray-300'
                       }`}
                     >
                       Inches
@@ -141,17 +143,17 @@ export default function SettingsScreen() {
                   </Pressable>
                   <Pressable
                     className={`flex-1 rounded-md px-4 py-2 ${
-                      selectedLengthUnit === "mm"
-                        ? "bg-blue-500 dark:bg-blue-600"
-                        : "bg-transparent"
+                      selectedLengthUnit === 'mm'
+                        ? 'bg-blue-500 dark:bg-blue-600'
+                        : 'bg-transparent'
                     }`}
-                    onPress={() => handleLengthUnitChange("mm")}
+                    onPress={() => handleLengthUnitChange('mm')}
                   >
                     <Text
                       className={`text-center text-sm font-medium ${
-                        selectedLengthUnit === "mm"
-                          ? "text-white"
-                          : "text-gray-700 dark:text-gray-300"
+                        selectedLengthUnit === 'mm'
+                          ? 'text-white'
+                          : 'text-gray-700 dark:text-gray-300'
                       }`}
                     >
                       Millimeters
@@ -170,17 +172,17 @@ export default function SettingsScreen() {
                 <View className="flex-row rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
                   <Pressable
                     className={`flex-1 rounded-md px-4 py-2 ${
-                      selectedVolumeUnit === "floz"
-                        ? "bg-blue-500 dark:bg-blue-600"
-                        : "bg-transparent"
+                      selectedVolumeUnit === 'floz'
+                        ? 'bg-blue-500 dark:bg-blue-600'
+                        : 'bg-transparent'
                     }`}
-                    onPress={() => handleVolumeUnitChange("floz")}
+                    onPress={() => handleVolumeUnitChange('floz')}
                   >
                     <Text
                       className={`text-center text-sm font-medium ${
-                        selectedVolumeUnit === "floz"
-                          ? "text-white"
-                          : "text-gray-700 dark:text-gray-300"
+                        selectedVolumeUnit === 'floz'
+                          ? 'text-white'
+                          : 'text-gray-700 dark:text-gray-300'
                       }`}
                     >
                       Fl. Oz / Gallons
@@ -188,17 +190,17 @@ export default function SettingsScreen() {
                   </Pressable>
                   <Pressable
                     className={`flex-1 rounded-md px-4 py-2 ${
-                      selectedVolumeUnit === "ml"
-                        ? "bg-blue-500 dark:bg-blue-600"
-                        : "bg-transparent"
+                      selectedVolumeUnit === 'ml'
+                        ? 'bg-blue-500 dark:bg-blue-600'
+                        : 'bg-transparent'
                     }`}
-                    onPress={() => handleVolumeUnitChange("ml")}
+                    onPress={() => handleVolumeUnitChange('ml')}
                   >
                     <Text
                       className={`text-center text-sm font-medium ${
-                        selectedVolumeUnit === "ml"
-                          ? "text-white"
-                          : "text-gray-700 dark:text-gray-300"
+                        selectedVolumeUnit === 'ml'
+                          ? 'text-white'
+                          : 'text-gray-700 dark:text-gray-300'
                       }`}
                     >
                       Milliliters / Liters

@@ -8,12 +8,14 @@ import {
 import { debugError } from '../../utils/debug-logger';
 import type { InitialUrlState } from '../../types/development-recipes-url';
 
+export type CustomRecipeFilter = 'all' | 'hide-custom' | 'only-custom';
+
 export interface DevelopmentRecipesState {
-  filmSearch: string;
-  developerSearch: string;
   developerTypeFilter: string;
   dilutionFilter: string;
   isoFilter: string;
+  customRecipeFilter: CustomRecipeFilter;
+  tagFilter: string;
   sortBy: string;
   sortDirection: 'asc' | 'desc';
   selectedFilm: Film | null;
@@ -27,11 +29,11 @@ export interface DevelopmentRecipesState {
 }
 
 export interface DevelopmentRecipesActions {
-  setFilmSearch: (search: string) => void;
-  setDeveloperSearch: (search: string) => void;
   setDeveloperTypeFilter: (filter: string) => void;
   setDilutionFilter: (filter: string) => void;
   setIsoFilter: (filter: string) => void;
+  setCustomRecipeFilter: (filter: CustomRecipeFilter) => void;
+  setTagFilter: (filter: string) => void;
   setSortBy: (sort: string) => void;
   setSortDirection: (direction: 'asc' | 'desc') => void;
   handleSort: (sortKey: string) => void;
@@ -46,29 +48,30 @@ export interface DevelopmentRecipesActions {
   getCombinationsForDeveloper: (developerId: string) => Combination[];
   getAvailableDilutions: () => { label: string; value: string }[];
   getAvailableISOs: () => { label: string; value: string }[];
+  getAvailableTags: () => { label: string; value: string }[];
 }
 
 const client = new DorkroomClient();
 
 export const useDevelopmentRecipes = (
-  initialUrlState?: InitialUrlState,
+  initialUrlState?: InitialUrlState
 ): DevelopmentRecipesState & DevelopmentRecipesActions => {
-  const [filmSearch, setFilmSearch] = useState('');
-  const [developerSearch, setDeveloperSearch] = useState('');
   const [developerTypeFilter, setDeveloperTypeFilter] = useState('');
   const [dilutionFilter, setDilutionFilter] = useState(
-    initialUrlState?.dilutionFilter || '',
+    initialUrlState?.dilutionFilter || ''
   );
   const [isoFilter, setIsoFilter] = useState(initialUrlState?.isoFilter || '');
+  const [customRecipeFilter, setCustomRecipeFilter] = useState<CustomRecipeFilter>('all');
+  const [tagFilter, setTagFilter] = useState('');
   const [sortBy, setSortBy] = useState('filmName');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const [selectedFilm, setSelectedFilmState] = useState<Film | null>(
-    (initialUrlState?.selectedFilm as Film | undefined) || null,
+    (initialUrlState?.selectedFilm as Film | undefined) || null
   );
   const [selectedDeveloper, setSelectedDeveloperState] =
     useState<Developer | null>(
-      (initialUrlState?.selectedDeveloper as Developer | undefined) || null,
+      (initialUrlState?.selectedDeveloper as Developer | undefined) || null
     );
 
   const setSelectedFilm = useCallback((film: Film | null) => {
@@ -103,6 +106,7 @@ export const useDevelopmentRecipes = (
       const allDevelopersData = client.getAllDevelopers();
       const combinations = client.getAllCombinations();
 
+      // Filter for black & white films only
       const films = allFilmsData.filter((film: Film) => {
         if (!film.colorType) {
           return false;
@@ -111,24 +115,24 @@ export const useDevelopmentRecipes = (
         return ct === 'bw' || ct === 'b&w' || ct === 'b & w';
       });
 
+      // Filter for film developers only (filmOrPaper: true = film, false = paper)
       const developers = allDevelopersData.filter((developer: Developer) => {
-        if (!developer.filmOrPaper) {
-          return false;
-        }
-        return developer.filmOrPaper.toLowerCase() === 'film';
+        return developer.filmOrPaper === true;
       });
 
       const sortedFilms = films
         .slice()
-        .sort((a: Film, b: Film) =>
-          a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name),
+        .sort(
+          (a: Film, b: Film) =>
+            a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name)
         );
 
       const sortedDevelopers = developers
         .slice()
-        .sort((a: Developer, b: Developer) =>
-          a.manufacturer.localeCompare(b.manufacturer) ||
-          a.name.localeCompare(b.name),
+        .sort(
+          (a: Developer, b: Developer) =>
+            a.manufacturer.localeCompare(b.manufacturer) ||
+            a.name.localeCompare(b.name)
         );
 
       setAllFilms(sortedFilms);
@@ -169,20 +173,19 @@ export const useDevelopmentRecipes = (
           const ct = film.colorType.toLowerCase();
           return ct === 'bw' || ct === 'b&w' || ct === 'b & w';
         })
-        .sort((a: Film, b: Film) =>
-          a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name),
+        .sort(
+          (a: Film, b: Film) =>
+            a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name)
         );
 
       const developers = allDevelopersData
         .filter((developer: Developer) => {
-          if (!developer.filmOrPaper) {
-            return false;
-          }
-          return developer.filmOrPaper.toLowerCase() === 'film';
+          return developer.filmOrPaper === true;
         })
-        .sort((a: Developer, b: Developer) =>
-          a.manufacturer.localeCompare(b.manufacturer) ||
-          a.name.localeCompare(b.name),
+        .sort(
+          (a: Developer, b: Developer) =>
+            a.manufacturer.localeCompare(b.manufacturer) ||
+            a.name.localeCompare(b.name)
         );
 
       setAllFilms(films);
@@ -211,12 +214,10 @@ export const useDevelopmentRecipes = (
       const key = String(id);
       return allFilms.find(
         (film) =>
-          film.id === key ||
-          film.uuid === key ||
-          film.slug === key,
+          film.id.toString() === key || film.uuid === key || film.slug === key
       );
     },
-    [allFilms],
+    [allFilms]
   );
 
   const getDeveloperById = useCallback(
@@ -225,23 +226,19 @@ export const useDevelopmentRecipes = (
       const key = String(id);
       return allDevelopers.find(
         (dev) =>
-          dev.id === key ||
-          dev.uuid === key ||
-          dev.slug === key,
+          dev.id.toString() === key || dev.uuid === key || dev.slug === key
       );
     },
-    [allDevelopers],
+    [allDevelopers]
   );
 
   const getCombinationsForFilm = useCallback(
     (filmId: string): Combination[] => {
       return allCombinations.filter(
-        (combo) =>
-          combo.filmStockId === filmId ||
-          combo.filmSlug === filmId,
+        (combo) => combo.filmStockId === filmId || combo.filmSlug === filmId
       );
     },
-    [allCombinations],
+    [allCombinations]
   );
 
   const getCombinationsForDeveloper = useCallback(
@@ -249,10 +246,10 @@ export const useDevelopmentRecipes = (
       return allCombinations.filter(
         (combo) =>
           combo.developerId === developerId ||
-          combo.developerSlug === developerId,
+          combo.developerSlug === developerId
       );
     },
-    [allCombinations],
+    [allCombinations]
   );
 
   const getAvailableDilutions = useCallback((): {
@@ -267,13 +264,14 @@ export const useDevelopmentRecipes = (
     const combinations = allCombinations.filter(
       (combo) =>
         combo.developerId === selectedDeveloper.uuid ||
-        combo.developerSlug === selectedDeveloper.slug,
+        combo.developerSlug === selectedDeveloper.slug
     );
 
     combinations.forEach((combo) => {
+      // Use custom dilution if available, otherwise look up dilution from developer
       const dilutionInfo =
         combo.customDilution ||
-        selectedDeveloper.dilutions.find((d: any) => d.id === combo.dilutionId)
+        selectedDeveloper.dilutions.find((d) => d.id === combo.dilutionId)
           ?.dilution ||
         'Stock';
       dilutionSet.add(dilutionInfo);
@@ -288,7 +286,10 @@ export const useDevelopmentRecipes = (
     return dilutions;
   }, [selectedDeveloper, allCombinations]);
 
-  const getAvailableISOs = useCallback((): { label: string; value: string }[] => {
+  const getAvailableISOs = useCallback((): {
+    label: string;
+    value: string;
+  }[] => {
     if (!selectedFilm) return [];
 
     const isos = [{ label: 'All ISOs', value: '' }];
@@ -297,7 +298,7 @@ export const useDevelopmentRecipes = (
     const combinations = allCombinations.filter(
       (combo) =>
         combo.filmStockId === selectedFilm.uuid ||
-        combo.filmSlug === selectedFilm.slug,
+        combo.filmSlug === selectedFilm.slug
     );
 
     combinations.forEach((combo) => {
@@ -313,6 +314,34 @@ export const useDevelopmentRecipes = (
     return isos;
   }, [selectedFilm, allCombinations]);
 
+  const getAvailableTags = useCallback((): {
+    label: string;
+    value: string;
+  }[] => {
+    const tags = [{ label: 'All tags', value: '' }];
+    const tagSet = new Set<string>();
+
+    // Collect tags from all combinations
+    allCombinations.forEach((combo) => {
+      if (combo.tags && combo.tags.length > 0) {
+        combo.tags.forEach((tag) => {
+          tagSet.add(tag);
+        });
+      }
+    });
+
+    // Add 'custom' tag for custom recipes
+    tagSet.add('custom');
+
+    Array.from(tagSet)
+      .sort()
+      .forEach((tag) => {
+        tags.push({ label: tag, value: tag });
+      });
+
+    return tags;
+  }, [allCombinations]);
+
   const handleSort = useCallback(
     (sortKey: string) => {
       if (sortBy === sortKey) {
@@ -322,15 +351,15 @@ export const useDevelopmentRecipes = (
         setSortDirection('asc');
       }
     },
-    [sortBy, sortDirection],
+    [sortBy, sortDirection]
   );
 
   const clearFilters = useCallback(() => {
-    setFilmSearch('');
-    setDeveloperSearch('');
     setDeveloperTypeFilter('');
     setDilutionFilter('');
     setIsoFilter('');
+    setCustomRecipeFilter('all');
+    setTagFilter('');
     setSelectedFilm(null);
     setSelectedDeveloper(null);
     setSortBy('filmName');
@@ -340,80 +369,59 @@ export const useDevelopmentRecipes = (
   const filteredCombinations = useMemo(() => {
     let combinations = [...allCombinations];
 
+    // Filter by selected film
     if (selectedFilm) {
       combinations = combinations.filter(
         (combo) =>
           combo.filmStockId === selectedFilm.uuid ||
-          combo.filmSlug === selectedFilm.slug,
-      );
-    } else if (filmSearch.trim()) {
-      const lowerSearch = filmSearch.toLowerCase();
-      const matchingFilms = allFilms.filter(
-        (film) =>
-          film.name.toLowerCase().includes(lowerSearch) ||
-          film.brand.toLowerCase().includes(lowerSearch),
-      );
-      const filmKeys = matchingFilms
-        .flatMap((film) => [film.uuid, film.slug])
-        .filter(Boolean);
-      combinations = combinations.filter((combo) =>
-        filmKeys.includes(combo.filmStockId ?? '') ||
-        filmKeys.includes(combo.filmSlug ?? ''),
+          combo.filmSlug === selectedFilm.slug
       );
     }
 
+    // Filter by selected developer
     if (selectedDeveloper) {
       combinations = combinations.filter(
         (combo) =>
           combo.developerId === selectedDeveloper.uuid ||
-          combo.developerSlug === selectedDeveloper.slug,
-      );
-    } else if (developerSearch.trim()) {
-      const lowerSearch = developerSearch.toLowerCase();
-      const matchingDevelopers = allDevelopers.filter(
-        (dev) =>
-          dev.name.toLowerCase().includes(lowerSearch) ||
-          dev.manufacturer.toLowerCase().includes(lowerSearch),
-      );
-      const developerKeys = matchingDevelopers
-        .flatMap((dev) => [dev.uuid, dev.slug])
-        .filter(Boolean);
-      combinations = combinations.filter((combo) =>
-        developerKeys.includes(combo.developerId ?? '') ||
-        developerKeys.includes(combo.developerSlug ?? ''),
+          combo.developerSlug === selectedDeveloper.slug
       );
     }
 
+    // Filter by developer type
     if (developerTypeFilter) {
       const matchingDevelopers = allDevelopers.filter(
-        (dev) => dev.type === developerTypeFilter,
+        (dev) => dev.type === developerTypeFilter
       );
       const developerKeys = matchingDevelopers
         .flatMap((dev) => [dev.uuid, dev.slug])
         .filter(Boolean);
-      combinations = combinations.filter((combo) =>
-        developerKeys.includes(combo.developerId ?? '') ||
-        developerKeys.includes(combo.developerSlug ?? ''),
+      combinations = combinations.filter(
+        (combo) =>
+          developerKeys.includes(combo.developerId) ||
+          developerKeys.includes(combo.developerSlug)
       );
     }
 
+    // Filter by dilution
     if (dilutionFilter && selectedDeveloper) {
       combinations = combinations.filter((combo) => {
         const dilutionInfo =
           combo.customDilution ||
-          selectedDeveloper.dilutions.find((d: any) => d.id === combo.dilutionId)
+          selectedDeveloper.dilutions.find((d) => d.id === combo.dilutionId)
             ?.dilution ||
           'Stock';
         return dilutionInfo.toLowerCase() === dilutionFilter.toLowerCase();
       });
     }
 
+    // Filter by ISO
     if (isoFilter && selectedFilm) {
       combinations = combinations.filter(
-        (combo) => combo.shootingIso.toString() === isoFilter,
+        (combo) => combo.shootingIso.toString() === isoFilter
       );
     }
 
+    // Sort combinations
     combinations.sort((a, b) => {
       let comparison = 0;
 
@@ -453,10 +461,7 @@ export const useDevelopmentRecipes = (
     return combinations;
   }, [
     allCombinations,
-    allFilms,
     allDevelopers,
-    filmSearch,
-    developerSearch,
     developerTypeFilter,
     dilutionFilter,
     isoFilter,
@@ -469,11 +474,11 @@ export const useDevelopmentRecipes = (
   ]);
 
   return {
-    filmSearch,
-    developerSearch,
     developerTypeFilter,
     dilutionFilter,
     isoFilter,
+    customRecipeFilter,
+    tagFilter,
     sortBy,
     sortDirection,
     selectedFilm,
@@ -484,11 +489,11 @@ export const useDevelopmentRecipes = (
     allFilms,
     allDevelopers,
     filteredCombinations,
-    setFilmSearch,
-    setDeveloperSearch,
     setDeveloperTypeFilter,
     setDilutionFilter,
     setIsoFilter,
+    setCustomRecipeFilter,
+    setTagFilter,
     setSortBy,
     setSortDirection,
     handleSort,
@@ -503,5 +508,6 @@ export const useDevelopmentRecipes = (
     getCombinationsForDeveloper,
     getAvailableDilutions,
     getAvailableISOs,
+    getAvailableTags,
   };
 };

@@ -25,7 +25,7 @@ export const FEATURE_FLAGS: FeatureFlags = isDevelopment
   : PRODUCTION_FLAGS;
 
 export const isFeatureEnabled = <K extends keyof FeatureFlags>(
-  featureName: K,
+  featureName: K
 ): boolean => FEATURE_FLAGS[featureName];
 
 export const FEATURE_FLAG_DESCRIPTIONS: Record<keyof FeatureFlags, string> = {

@@ -1,27 +1,27 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Platform, ScrollView, Linking } from "react-native";
-import { Box, Text, Button, ButtonText, HStack } from "@gluestack-ui/themed";
-import { X } from "lucide-react-native";
+import React, { useState, useEffect, useCallback } from 'react';
+import { Platform, ScrollView, Linking } from 'react-native';
+import { Box, Text, Button, ButtonText, HStack } from '@gluestack-ui/themed';
+import { X } from 'lucide-react-native';
 
-import { useThemeColor } from "@/hooks/useThemeColor";
+import { useThemeColor } from '@/hooks/useThemeColor';
 import {
   showAlert,
   showConfirmAlert,
-} from "@/components/ui/layout/ConfirmAlert";
-import { useDevelopmentRecipes } from "@/hooks/useDevelopmentRecipes";
-import { useCustomRecipes } from "@/hooks/useCustomRecipes";
+} from '@/components/ui/layout/ConfirmAlert';
+import { useDevelopmentRecipes } from '@/hooks/useDevelopmentRecipes';
+import { useCustomRecipes } from '@/hooks/useCustomRecipes';
 import {
   createRecipeIssue,
   createIssueUrl,
-} from "@/utils/githubIssueGenerator";
-import { normalizeDilution } from "@/utils/dilutionUtils";
-import { debugLog } from "@/utils/debugLogger";
+} from '@/utils/githubIssueGenerator';
+import { normalizeDilution } from '@/utils/dilutionUtils';
+import { debugLog } from '@/utils/debugLogger';
 import type {
   CustomRecipe,
   CustomRecipeFormData,
   CustomFilmData,
   CustomDeveloperData,
-} from "@/types/customRecipeTypes";
+} from '@/types/customRecipeTypes';
 
 // Step components
 import {
@@ -32,7 +32,7 @@ import {
   DevelopmentParamsStep,
   FinalDetailsStep,
   SaveSubmitStep,
-} from "./recipe-steps";
+} from './recipe-steps';
 
 interface CustomRecipeFormProps {
   recipe?: CustomRecipe; // For editing existing recipes
@@ -43,11 +43,11 @@ interface CustomRecipeFormProps {
 }
 
 const STEP_TITLES = [
-  "Recipe Identity",
-  "Developer Setup",
-  "Development Parameters",
-  "Final Details",
-  "Save & Submit",
+  'Recipe Identity',
+  'Developer Setup',
+  'Development Parameters',
+  'Final Details',
+  'Save & Submit',
 ];
 
 export function CustomRecipeForm({
@@ -57,8 +57,8 @@ export function CustomRecipeForm({
   isDesktop = false,
   isMobileWeb = false,
 }: CustomRecipeFormProps) {
-  debugLog("[CustomRecipeForm] ===== COMPONENT RENDER =====");
-  debugLog("[CustomRecipeForm] Props received:", {
+  debugLog('[CustomRecipeForm] ===== COMPONENT RENDER =====');
+  debugLog('[CustomRecipeForm] Props received:', {
     hasRecipe: !!recipe,
     recipeId: recipe?.id,
     recipeName: recipe?.name,
@@ -68,13 +68,13 @@ export function CustomRecipeForm({
     isMobileWeb,
   });
   debugLog(
-    "[CustomRecipeForm] Full recipe object:",
-    JSON.stringify(recipe, null, 2),
+    '[CustomRecipeForm] Full recipe object:',
+    JSON.stringify(recipe, null, 2)
   );
 
-  const textColor = useThemeColor({}, "text");
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const outline = useThemeColor({}, "outline");
+  const textColor = useThemeColor({}, 'text');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const outline = useThemeColor({}, 'outline');
 
   const { allFilms, allDevelopers, getFilmById, getDeveloperById } =
     useDevelopmentRecipes();
@@ -88,7 +88,7 @@ export function CustomRecipeForm({
   // Step state management
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedDilution, setSelectedDilution] = useState<string>("");
+  const [selectedDilution, setSelectedDilution] = useState<string>('');
 
   // Form data initialization
   const [formData, setFormData] = useState<CustomRecipeFormData>(() => {
@@ -107,55 +107,55 @@ export function CustomRecipeForm({
         timeMinutes: recipe.timeMinutes,
         shootingIso: recipe.shootingIso,
         pushPull: recipe.pushPull,
-        agitationSchedule: recipe.agitationSchedule || "",
-        notes: recipe.notes || "",
-        customDilution: recipe.customDilution || "",
+        agitationSchedule: recipe.agitationSchedule || '',
+        notes: recipe.notes || '',
+        customDilution: recipe.customDilution || '',
         isPublic: recipe.isPublic,
       };
     }
 
     return {
-      name: "",
+      name: '',
       useExistingFilm: true,
       selectedFilmId: undefined,
       customFilm: {
-        brand: "",
-        name: "",
+        brand: '',
+        name: '',
         isoSpeed: 400,
-        colorType: "bw",
-        grainStructure: "",
-        description: "",
+        colorType: 'bw',
+        grainStructure: '',
+        description: '',
       },
       useExistingDeveloper: true,
       selectedDeveloperId: undefined,
       customDeveloper: {
-        manufacturer: "",
-        name: "",
-        type: "",
-        filmOrPaper: "film",
+        manufacturer: '',
+        name: '',
+        type: '',
+        filmOrPaper: 'film',
         workingLifeHours: undefined,
         stockLifeMonths: undefined,
-        notes: "",
-        mixingInstructions: "",
-        safetyNotes: "",
-        dilutions: [{ name: "Stock", dilution: "1+1" }],
+        notes: '',
+        mixingInstructions: '',
+        safetyNotes: '',
+        dilutions: [{ name: 'Stock', dilution: '1+1' }],
       },
       temperatureF: 68,
       timeMinutes: 7,
       shootingIso: 400, // Will be auto-updated by useEffect when film is selected
       pushPull: 0,
-      agitationSchedule: "",
-      notes: "",
-      customDilution: "",
+      agitationSchedule: '',
+      notes: '',
+      customDilution: '',
       isPublic: false,
     };
   });
 
   // Film and developer options for selects
   const filmOptions = [
-    { label: "Select a film...", value: "" },
+    { label: 'Select a film...', value: '' },
     ...allFilms
-      .filter((film) => film.colorType === "bw") // Only show black and white films
+      .filter((film) => film.colorType === 'bw') // Only show black and white films
       .map((film) => ({
         label: `${film.brand} ${film.name}`,
         value: film.uuid,
@@ -172,12 +172,12 @@ export function CustomRecipeForm({
     if (!selectedDeveloper) return [];
 
     const options = [
-      { label: "Select a dilution...", value: "" },
+      { label: 'Select a dilution...', value: '' },
       ...selectedDeveloper.dilutions.map((d: any) => ({
         label: `${d.name} (${d.dilution})`,
         value: d.dilution,
       })),
-      { label: "Custom dilution", value: "custom" },
+      { label: 'Custom dilution', value: 'custom' },
     ];
 
     return options;
@@ -192,12 +192,12 @@ export function CustomRecipeForm({
       selectedDeveloper
     ) {
       const matchingDilution = selectedDeveloper.dilutions.find(
-        (d: any) => d.dilution === formData.customDilution,
+        (d: any) => d.dilution === formData.customDilution
       );
       if (matchingDilution) {
         setSelectedDilution(matchingDilution.dilution);
       } else {
-        setSelectedDilution("custom");
+        setSelectedDilution('custom');
       }
     }
   }, [
@@ -279,7 +279,7 @@ export function CustomRecipeForm({
     (updates: Partial<CustomRecipeFormData>) => {
       setFormData((prev) => ({ ...prev, ...updates }));
     },
-    [],
+    []
   );
 
   const updateCustomFilm = (updates: Partial<CustomFilmData>) => {
@@ -303,7 +303,7 @@ export function CustomRecipeForm({
       updateCustomDeveloper({
         dilutions: [
           ...formData.customDeveloper.dilutions,
-          { name: "", dilution: "" },
+          { name: '', dilution: '' },
         ],
       });
     }
@@ -311,13 +311,13 @@ export function CustomRecipeForm({
 
   const updateDilution = (
     index: number,
-    field: "name" | "dilution",
-    value: string,
+    field: 'name' | 'dilution',
+    value: string
   ) => {
     if (formData.customDeveloper) {
       const newDilutions = [...formData.customDeveloper.dilutions];
       const processedValue =
-        field === "dilution" ? normalizeDilution(value) : value;
+        field === 'dilution' ? normalizeDilution(value) : value;
       newDilutions[index] = { ...newDilutions[index], [field]: processedValue };
       updateCustomDeveloper({ dilutions: newDilutions });
     }
@@ -329,7 +329,7 @@ export function CustomRecipeForm({
       formData.customDeveloper.dilutions.length > 1
     ) {
       const newDilutions = formData.customDeveloper.dilutions.filter(
-        (_, i) => i !== index,
+        (_, i) => i !== index
       );
       updateCustomDeveloper({ dilutions: newDilutions });
     }
@@ -337,10 +337,10 @@ export function CustomRecipeForm({
 
   const handleDilutionChange = (value: string) => {
     setSelectedDilution(value);
-    if (value && value !== "custom") {
+    if (value && value !== 'custom') {
       updateFormData({ customDilution: value });
-    } else if (value === "custom") {
-      updateFormData({ customDilution: "" });
+    } else if (value === 'custom') {
+      updateFormData({ customDilution: '' });
     }
   };
 
@@ -362,7 +362,7 @@ export function CustomRecipeForm({
 
     // Update shooting ISO if we have a valid film ISO
     if (filmIso) {
-      debugLog("[CustomRecipeForm] Auto-updating shooting ISO to", filmIso);
+      debugLog('[CustomRecipeForm] Auto-updating shooting ISO to', filmIso);
       updateFormData({ shootingIso: filmIso });
     }
   }, [
@@ -390,47 +390,47 @@ export function CustomRecipeForm({
   // Validation and save functions
   const validateForm = (): string | null => {
     if (!validateRecipeIdentity())
-      return "Please complete recipe identity information";
-    if (!validateDeveloperSetup()) return "Please complete developer setup";
+      return 'Please complete recipe identity information';
+    if (!validateDeveloperSetup()) return 'Please complete developer setup';
     if (!validateDevelopmentParams())
-      return "Please check development parameters";
+      return 'Please check development parameters';
     return null;
   };
 
   const handleSave = async () => {
-    debugLog("[CustomRecipeForm] handleSave called");
+    debugLog('[CustomRecipeForm] handleSave called');
 
     const validationError = validateForm();
     if (validationError) {
-      debugLog("[CustomRecipeForm] Validation failed:", validationError);
-      showAlert("Validation Error", validationError);
+      debugLog('[CustomRecipeForm] Validation failed:', validationError);
+      showAlert('Validation Error', validationError);
       return;
     }
 
-    debugLog("[CustomRecipeForm] Validation passed, starting save operation");
+    debugLog('[CustomRecipeForm] Validation passed, starting save operation');
     setIsLoading(true);
     try {
       let savedRecipeId: string;
 
       if (recipe) {
-        debugLog("[CustomRecipeForm] Updating existing recipe:", recipe.id);
+        debugLog('[CustomRecipeForm] Updating existing recipe:', recipe.id);
         await updateCustomRecipe(recipe.id, formData);
         savedRecipeId = recipe.id;
       } else {
-        debugLog("[CustomRecipeForm] Adding new recipe");
+        debugLog('[CustomRecipeForm] Adding new recipe');
         savedRecipeId = await addCustomRecipe(formData);
       }
 
-      debugLog("[CustomRecipeForm] Successfully saved recipe:", savedRecipeId);
+      debugLog('[CustomRecipeForm] Successfully saved recipe:', savedRecipeId);
       onSave?.(savedRecipeId);
       onClose();
     } catch (error) {
-      debugLog("[CustomRecipeForm] Save operation failed:", error);
+      debugLog('[CustomRecipeForm] Save operation failed:', error);
       const errorMessage =
         error instanceof Error
           ? `Failed to save recipe: ${error.message}`
-          : "Failed to save recipe";
-      showAlert("Error", errorMessage);
+          : 'Failed to save recipe';
+      showAlert('Error', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -440,7 +440,7 @@ export function CustomRecipeForm({
   const performDeletion = async () => {
     if (!recipe) return;
 
-    debugLog("[CustomRecipeForm] Starting delete operation");
+    debugLog('[CustomRecipeForm] Starting delete operation');
     setIsLoading(true);
 
     try {
@@ -456,9 +456,9 @@ export function CustomRecipeForm({
       const errorMessage =
         error instanceof Error
           ? `Failed to delete recipe: ${error.message}`
-          : "Failed to delete recipe";
+          : 'Failed to delete recipe';
 
-      showAlert("Error", errorMessage);
+      showAlert('Error', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -468,19 +468,19 @@ export function CustomRecipeForm({
     if (!recipe) return;
 
     showConfirmAlert(
-      "Delete Recipe",
-      "Are you sure you want to delete this recipe? This action cannot be undone.",
+      'Delete Recipe',
+      'Are you sure you want to delete this recipe? This action cannot be undone.',
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: performDeletion },
-      ],
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: performDeletion },
+      ]
     );
   };
 
   const handleSubmitToGitHub = async () => {
     const validationError = validateForm();
     if (validationError) {
-      showAlert("Validation Error", validationError);
+      showAlert('Validation Error', validationError);
       return;
     }
 
@@ -493,10 +493,10 @@ export function CustomRecipeForm({
       : formData.customDeveloper;
 
     const tempRecipe: CustomRecipe = {
-      id: recipe?.id || "temp",
+      id: recipe?.id || 'temp',
       name: formData.name,
-      filmId: formData.selectedFilmId || "custom",
-      developerId: formData.selectedDeveloperId || "custom",
+      filmId: formData.selectedFilmId || 'custom',
+      developerId: formData.selectedDeveloperId || 'custom',
       temperatureF: formData.temperatureF,
       timeMinutes: formData.timeMinutes,
       shootingIso: formData.shootingIso,
@@ -517,17 +517,17 @@ export function CustomRecipeForm({
       tempRecipe,
       filmData,
       developerData,
-      "",
+      ''
     );
     const githubUrl = createIssueUrl(issueData);
 
-    if (Platform.OS === "web") {
-      window.open(githubUrl, "_blank");
+    if (Platform.OS === 'web') {
+      window.open(githubUrl, '_blank');
     } else {
       try {
         await Linking.openURL(githubUrl);
       } catch {
-        showAlert("Error", "Could not open GitHub in browser");
+        showAlert('Error', 'Could not open GitHub in browser');
       }
     }
   };
@@ -607,22 +607,22 @@ export function CustomRecipeForm({
       style={{
         flex: 1,
         backgroundColor: cardBackground,
-        display: "flex",
-        flexDirection: "column",
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       {/* Header with progress indicator */}
       <Box
         style={{
           paddingTop:
-            Platform.OS === "ios" ? 20 : Platform.OS === "android" ? 16 : 16,
+            Platform.OS === 'ios' ? 20 : Platform.OS === 'android' ? 16 : 16,
           paddingHorizontal: 16,
           paddingBottom: 16,
           borderBottomWidth: 1,
           borderBottomColor: outline,
           backgroundColor: cardBackground,
           // For native mobile, optimized for bottom-sheet style modal
-          ...(Platform.OS !== "web" && {
+          ...(Platform.OS !== 'web' && {
             paddingTop: 24, // Extra padding for rounded top corners
             minHeight: 80,
             borderTopLeftRadius: 48,
@@ -634,13 +634,13 @@ export function CustomRecipeForm({
       >
         <HStack
           style={{
-            justifyContent: "space-between",
-            alignItems: "center",
+            justifyContent: 'space-between',
+            alignItems: 'center',
             marginBottom: 12,
           }}
         >
-          <Text style={{ fontSize: 18, fontWeight: "600", color: textColor }}>
-            {recipe ? "Edit Recipe" : "New Recipe"}
+          <Text style={{ fontSize: 18, fontWeight: '600', color: textColor }}>
+            {recipe ? 'Edit Recipe' : 'New Recipe'}
           </Text>
           {!isDesktop && (
             <Button onPress={onClose} variant="outline" size="sm">
@@ -670,7 +670,7 @@ export function CustomRecipeForm({
             flexGrow: 1,
             padding: 16,
             // For native mobile, ensure comfortable spacing for modal bottom sheet
-            ...(Platform.OS !== "web" && {
+            ...(Platform.OS !== 'web' && {
               paddingBottom: 24,
             }),
           }}
@@ -686,13 +686,13 @@ export function CustomRecipeForm({
         style={{
           paddingHorizontal: 16,
           paddingTop: 16,
-          paddingBottom: Platform.OS === "ios" ? 34 : 16,
+          paddingBottom: Platform.OS === 'ios' ? 34 : 16,
           borderTopWidth: 1,
           borderTopColor: outline,
           backgroundColor: cardBackground,
           // For native mobile bottom-sheet style, ensure comfortable thumb access
-          ...(Platform.OS !== "web" && {
-            paddingBottom: Platform.OS === "ios" ? 34 : 20,
+          ...(Platform.OS !== 'web' && {
+            paddingBottom: Platform.OS === 'ios' ? 34 : 20,
             minHeight: 70,
           }),
         }}

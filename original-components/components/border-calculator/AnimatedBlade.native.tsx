@@ -1,9 +1,9 @@
-import React, { useMemo } from "react";
-import { Animated } from "react-native";
+import React, { useMemo } from 'react';
+import { Animated } from 'react-native';
 
 interface AnimatedBladeProps {
-  orientation: "vertical" | "horizontal";
-  position: "left" | "right" | "top" | "bottom";
+  orientation: 'vertical' | 'horizontal';
+  position: 'left' | 'right' | 'top' | 'bottom';
   bladePositionValue: Animated.Value;
   opacity: Animated.Value;
   thickness: number;
@@ -29,32 +29,32 @@ export const AnimatedBlade = React.memo(
         inputRange: [0, 100],
         outputRange: [
           0,
-          orientation === "vertical" ? containerWidth : containerHeight,
+          orientation === 'vertical' ? containerWidth : containerHeight,
         ],
-        extrapolate: "clamp", // Prevent values outside bounds
+        extrapolate: 'clamp', // Prevent values outside bounds
       });
     }, [bladePositionValue, orientation, containerWidth, containerHeight]);
 
     // Memoize common styles to prevent object recreation
     const commonStyle = useMemo(
       () => ({
-        position: "absolute" as const,
+        position: 'absolute' as const,
         backgroundColor: borderColor,
         // Native shadow properties for iOS
-        shadowColor: "#000",
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 4,
         // Android elevation
         elevation: 5,
       }),
-      [borderColor],
+      [borderColor]
     );
 
     // Memoize orientation-specific styles
     const orientationStyle = useMemo(
       () =>
-        orientation === "vertical"
+        orientation === 'vertical'
           ? {
               top: -1000,
               bottom: -1000,
@@ -67,23 +67,23 @@ export const AnimatedBlade = React.memo(
               height: thickness,
               top: 0, // Base position, will be overridden by transform
             },
-      [orientation, thickness],
+      [orientation, thickness]
     );
 
     // Memoize transform calculation to prevent recalculation on every render
     const transform = useMemo(() => {
       // Position-specific offset adjustments so blades are adjacent to print area
       const offsetTranslation =
-        position === "left"
+        position === 'left'
           ? [{ translateX: -thickness }] // Left blade: move left so right edge touches print area left edge
-          : position === "right"
-            ? [{ translateX: 0 }] // Right blade: no offset so left edge touches print area right edge
-            : position === "top"
-              ? [{ translateY: -thickness }] // Top blade: move up so bottom edge touches print area top edge
-              : [{ translateY: 0 }]; // Bottom blade: no offset so top edge touches print area bottom edge
+          : position === 'right'
+          ? [{ translateX: 0 }] // Right blade: no offset so left edge touches print area right edge
+          : position === 'top'
+          ? [{ translateY: -thickness }] // Top blade: move up so bottom edge touches print area top edge
+          : [{ translateY: 0 }]; // Bottom blade: no offset so top edge touches print area bottom edge
 
       // Combine position transform with offset transform
-      if (orientation === "vertical") {
+      if (orientation === 'vertical') {
         return [{ translateX: transformValue }, ...offsetTranslation];
       } else {
         return [{ translateY: transformValue }, ...offsetTranslation];
@@ -102,7 +102,7 @@ export const AnimatedBlade = React.memo(
         ]}
       />
     );
-  },
+  }
 );
 
-AnimatedBlade.displayName = "AnimatedBlade";
+AnimatedBlade.displayName = 'AnimatedBlade';

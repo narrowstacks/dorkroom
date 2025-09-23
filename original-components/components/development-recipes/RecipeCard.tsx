@@ -1,12 +1,12 @@
-import React, { useMemo, useCallback } from "react";
-import { StyleSheet, TouchableOpacity, Platform } from "react-native";
-import { Box, Text } from "@gluestack-ui/themed";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
-import { formatTime } from "@/constants/developmentRecipes";
-import { formatDilution } from "@/utils/dilutionUtils";
-import { ShareButton } from "@/components/ShareButton";
-import type { Film, Developer, Combination } from "@/api/dorkroom/types";
+import React, { useMemo, useCallback } from 'react';
+import { StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { Box, Text } from '@gluestack-ui/themed';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
+import { formatTime } from '@/constants/developmentRecipes';
+import { formatDilution } from '@/utils/dilutionUtils';
+import { ShareButton } from '@/components/ShareButton';
+import type { Film, Developer, Combination } from '@/api/dorkroom/types';
 
 interface RecipeCardProps {
   combination: Combination;
@@ -26,11 +26,11 @@ export const RecipeCard = React.memo(function RecipeCard({
   onShare,
 }: RecipeCardProps) {
   // Get theme colors (hooks must be called at top level)
-  const textColor = useThemeColor({}, "text");
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const borderColor = useThemeColor({}, "borderColor");
-  const resultRowBackground = useThemeColor({}, "resultRowBackground");
+  const textColor = useThemeColor({}, 'text');
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const resultRowBackground = useThemeColor({}, 'resultRowBackground');
 
   // Consolidate theme colors into one object
   const colors = useMemo(
@@ -47,25 +47,25 @@ export const RecipeCard = React.memo(function RecipeCard({
       cardBackground,
       borderColor,
       resultRowBackground,
-    ],
+    ]
   );
 
   const { width } = useWindowDimensions();
   const isMobile = useMemo(
-    () => Platform.OS !== "web" || width <= 768,
-    [width],
+    () => Platform.OS !== 'web' || width <= 768,
+    [width]
   );
 
   // Memoize card width calculation
   const cardWidth = useMemo(() => {
     if (isMobile) {
-      return "46%"; // 2 cards per row on mobile with more space
+      return '46%'; // 2 cards per row on mobile with more space
     } else if (width > 1600) {
-      return "23%"; // 4 cards per row on very large desktop
+      return '23%'; // 4 cards per row on very large desktop
     } else if (width > 1200) {
-      return "30%"; // 3 cards per row on large desktop
+      return '30%'; // 3 cards per row on large desktop
     } else {
-      return "47%"; // 2 cards per row on medium desktop
+      return '47%'; // 2 cards per row on medium desktop
     }
   }, [isMobile, width]);
 
@@ -75,7 +75,7 @@ export const RecipeCard = React.memo(function RecipeCard({
       ? isMobile
         ? film.name
         : `${film.brand} ${film.name}`
-      : "Unknown Film";
+      : 'Unknown Film';
   }, [film, isMobile]);
 
   // Memoize ISO calculations
@@ -90,18 +90,22 @@ export const RecipeCard = React.memo(function RecipeCard({
   // Memoize push/pull calculations
   const pushPullInfo = useMemo(() => {
     const formatPushPullNumber = (num: number): string => {
-      if (num === undefined || num === null) return "";
+      if (num === undefined || num === null) return '';
       return num % 1 === 0
         ? num.toString()
         : Number(num)
             .toFixed(2)
-            .replace(/\.?0+$/, "");
+            .replace(/\.?0+$/, '');
     };
 
     const pushPullValue = combination.pushPull ?? 0;
     const display =
       pushPullValue !== 0
-        ? ` ${pushPullValue > 0 ? `+${formatPushPullNumber(pushPullValue)}` : formatPushPullNumber(pushPullValue)}`
+        ? ` ${
+            pushPullValue > 0
+              ? `+${formatPushPullNumber(pushPullValue)}`
+              : formatPushPullNumber(pushPullValue)
+          }`
         : null;
 
     return { pushPullValue, display };
@@ -113,7 +117,7 @@ export const RecipeCard = React.memo(function RecipeCard({
       ? isMobile
         ? developer.name
         : `${developer.name}`
-      : "Unknown Developer";
+      : 'Unknown Developer';
   }, [developer, isMobile]);
 
   // Memoize dilution info
@@ -122,7 +126,7 @@ export const RecipeCard = React.memo(function RecipeCard({
       combination.customDilution ||
         developer?.dilutions.find((d) => d.id === combination.dilutionId)
           ?.dilution ||
-        "Stock",
+        'Stock'
     );
   }, [
     combination.customDilution,
@@ -157,7 +161,7 @@ export const RecipeCard = React.memo(function RecipeCard({
         { backgroundColor: colors.resultRowBackground },
       ],
     }),
-    [cardWidth, colors],
+    [cardWidth, colors]
   );
 
   // Optimize callback to prevent recreation
@@ -177,13 +181,13 @@ export const RecipeCard = React.memo(function RecipeCard({
             {filmName}
             {isoInfo.isNonStandardISO && (
               <Text style={[styles.cardISO, { color: colors.developmentTint }]}>
-                {" @ "}
+                {' @ '}
                 {isoInfo.display} ISO
               </Text>
             )}
             {!isoInfo.isNonStandardISO && (
               <Text style={[styles.cardISO, { color: colors.text }]}>
-                {" @ "}
+                {' @ '}
                 {isoInfo.display} ISO
               </Text>
             )}
@@ -270,7 +274,7 @@ export const RecipeCard = React.memo(function RecipeCard({
               ]}
             >
               {temperatureInfo.display}
-              {temperatureInfo.isNonStandardTemp && " ⚠"}
+              {temperatureInfo.isNonStandardTemp && ' ⚠'}
             </Text>
           </Box>
         </Box>
@@ -290,7 +294,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     padding: 16,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -300,31 +304,31 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 16,
     minHeight: 24,
   },
   cardHeaderActions: {
-    flexDirection: "row",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: 6,
   },
   cardFilmName: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
     flex: 1,
     lineHeight: 22,
     marginRight: 8,
   },
   cardISO: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   pushPullText: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   customBadge: {
     width: 8,
@@ -337,35 +341,35 @@ const styles = StyleSheet.create({
   },
   customBadgeText: {
     fontSize: 6,
-    color: "#fff",
-    textAlign: "center",
+    color: '#fff',
+    textAlign: 'center',
     lineHeight: 8,
   },
   cardParams: {
     gap: 6,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   cardParamLabel: {
     fontSize: 12,
-    fontWeight: "bold",
-    textAlign: "center",
+    fontWeight: 'bold',
+    textAlign: 'center',
     marginBottom: 2,
   },
   cardParamValue: {
     fontSize: 13,
-    textAlign: "center",
-    fontWeight: "400",
+    textAlign: 'center',
+    fontWeight: '400',
   },
   paramBox: {
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 6,
     flex: 1,
-    maxWidth: "48%",
-    minWidth: "48%",
-    alignItems: "center",
+    maxWidth: '48%',
+    minWidth: '48%',
+    alignItems: 'center',
   },
   firstParamSection: {
     marginBottom: 6,

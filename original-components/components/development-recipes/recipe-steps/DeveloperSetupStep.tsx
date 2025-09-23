@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Platform, TouchableOpacity } from "react-native";
+import React, { useState } from 'react';
+import { Platform, TouchableOpacity } from 'react-native';
 import {
   Box,
   Text,
@@ -8,21 +8,21 @@ import {
   Switch,
   Button,
   ButtonText,
-} from "@gluestack-ui/themed";
-import { Plus, Trash2 } from "lucide-react-native";
-import { FormGroup } from "@/components/ui/forms/FormSection";
-import { StyledSelect } from "@/components/ui/select/StyledSelect";
-import { NumberInput, TextInput } from "@/components/ui/forms";
-import { SearchInput, SearchDropdown } from "@/components/ui/search";
-import { MobileSelectButton } from "@/components/ui/select/MobileSelectButton";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
-import { DEVELOPER_TYPES } from "@/constants/developmentRecipes";
+} from '@gluestack-ui/themed';
+import { Plus, Trash2 } from 'lucide-react-native';
+import { FormGroup } from '@/components/ui/forms/FormSection';
+import { StyledSelect } from '@/components/ui/select/StyledSelect';
+import { NumberInput, TextInput } from '@/components/ui/forms';
+import { SearchInput, SearchDropdown } from '@/components/ui/search';
+import { MobileSelectButton } from '@/components/ui/select/MobileSelectButton';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
+import { DEVELOPER_TYPES } from '@/constants/developmentRecipes';
 import type {
   CustomRecipeFormData,
   CustomDeveloperData,
-} from "@/types/customRecipeTypes";
-import type { Developer } from "@/api/dorkroom/types";
+} from '@/types/customRecipeTypes';
+import type { Developer } from '@/api/dorkroom/types';
 
 interface DeveloperSetupStepProps {
   formData: CustomRecipeFormData;
@@ -36,14 +36,14 @@ interface DeveloperSetupStepProps {
   addDilution: () => void;
   updateDilution: (
     index: number,
-    field: "name" | "dilution",
-    value: string,
+    field: 'name' | 'dilution',
+    value: string
   ) => void;
   removeDilution: (index: number) => void;
   isDesktop?: boolean;
 }
 
-const FILM_OR_PAPER_TYPES = [{ label: "Film", value: "film" }];
+const FILM_OR_PAPER_TYPES = [{ label: 'Film', value: 'film' }];
 
 /**
  * DeveloperSetupStep Component
@@ -78,12 +78,12 @@ export function DeveloperSetupStep({
   removeDilution,
   isDesktop = false,
 }: DeveloperSetupStepProps) {
-  const textColor = useThemeColor({}, "text");
+  const textColor = useThemeColor({}, 'text');
   const { width } = useWindowDimensions();
-  const isMobile = Platform.OS !== "web" || width <= 768;
+  const isMobile = Platform.OS !== 'web' || width <= 768;
 
   // State for developer search and dropdown
-  const [developerSearch, setDeveloperSearch] = useState("");
+  const [developerSearch, setDeveloperSearch] = useState('');
   const [isDeveloperSearchFocused, setIsDeveloperSearchFocused] =
     useState(false);
   const [developerSearchPosition, setDeveloperSearchPosition] = useState<{
@@ -105,7 +105,7 @@ export function DeveloperSetupStep({
     return allDevelopers.filter(
       (dev) =>
         dev.name.toLowerCase().includes(developerSearch.toLowerCase()) ||
-        dev.manufacturer.toLowerCase().includes(developerSearch.toLowerCase()),
+        dev.manufacturer.toLowerCase().includes(developerSearch.toLowerCase())
     );
   }, [allDevelopers, developerSearch, isDeveloperSearchFocused]);
 
@@ -117,7 +117,7 @@ export function DeveloperSetupStep({
         title: developer.name,
         subtitle: developer.manufacturer,
       })),
-    [filteredDevelopers],
+    [filteredDevelopers]
   );
 
   // Handle dropdown item selection
@@ -129,7 +129,7 @@ export function DeveloperSetupStep({
     const developer = allDevelopers.find((d) => d.uuid === item.id);
     if (developer) {
       updateFormData({ selectedDeveloperId: developer.uuid });
-      setDeveloperSearch("");
+      setDeveloperSearch('');
       setIsDeveloperSearchFocused(false);
     }
   };
@@ -144,14 +144,14 @@ export function DeveloperSetupStep({
           width: number,
           height: number,
           pageX: number,
-          pageY: number,
+          pageY: number
         ) => {
           setDeveloperSearchPosition({
             top: pageY + height,
             left: pageX,
             width: width,
           });
-        },
+        }
       );
     }
   };
@@ -160,11 +160,11 @@ export function DeveloperSetupStep({
     <VStack space="lg">
       {/* Developer Section */}
       <VStack space="sm">
-        <Text style={{ fontSize: 16, fontWeight: "600", color: textColor }}>
+        <Text style={{ fontSize: 16, fontWeight: '600', color: textColor }}>
           Developer
         </Text>
 
-        <HStack style={{ alignItems: "center", marginBottom: 8 }}>
+        <HStack style={{ alignItems: 'center', marginBottom: 8 }}>
           <Switch
             value={formData.useExistingDeveloper}
             onValueChange={(value) =>
@@ -182,8 +182,8 @@ export function DeveloperSetupStep({
               <Box
                 ref={developerSearchRef}
                 style={{
-                  position: "relative",
-                  overflow: "visible",
+                  position: 'relative',
+                  overflow: 'visible',
                   zIndex: 999999,
                 }}
                 onLayout={handleDeveloperSearchLayout}
@@ -195,7 +195,7 @@ export function DeveloperSetupStep({
                     placeholder="Type to search developers..."
                     value={developerSearch}
                     onChangeText={setDeveloperSearch}
-                    onClear={() => setDeveloperSearch("")}
+                    onClear={() => setDeveloperSearch('')}
                     onFocus={() => {
                       setIsDeveloperSearchFocused(true);
                       handleDeveloperSearchLayout();
@@ -224,15 +224,15 @@ export function DeveloperSetupStep({
                     style={{
                       marginTop: 8,
                       padding: 8,
-                      backgroundColor: "rgba(0,0,0,0.05)",
+                      backgroundColor: 'rgba(0,0,0,0.05)',
                       borderRadius: 8,
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
                     }}
                   >
                     <Text style={{ fontSize: 14, color: textColor }}>
-                      Selected: {selectedDeveloper.manufacturer}{" "}
+                      Selected: {selectedDeveloper.manufacturer}{' '}
                       {selectedDeveloper.name}
                     </Text>
                     <TouchableOpacity
@@ -265,7 +265,7 @@ export function DeveloperSetupStep({
                     selectedValue={selectedDilution}
                     selectedLabel={
                       dilutionOptions.find(
-                        (opt) => opt.value === selectedDilution,
+                        (opt) => opt.value === selectedDilution
                       )?.label
                     }
                     onPress={() => setShowMobileDilutionModal(true)}
@@ -279,14 +279,14 @@ export function DeveloperSetupStep({
           <VStack space="sm">
             <Box
               style={{
-                flexDirection: isDesktop ? "row" : "column",
+                flexDirection: isDesktop ? 'row' : 'column',
                 gap: isDesktop ? 12 : 8,
               }}
             >
               <Box style={{ flex: isDesktop ? 1 : undefined }}>
                 <FormGroup label="Developer Manufacturer">
                   <TextInput
-                    value={formData.customDeveloper?.manufacturer || ""}
+                    value={formData.customDeveloper?.manufacturer || ''}
                     onChangeText={(value: string) =>
                       updateCustomDeveloper({ manufacturer: value })
                     }
@@ -299,7 +299,7 @@ export function DeveloperSetupStep({
               <Box style={{ flex: isDesktop ? 1 : undefined }}>
                 <FormGroup label="Developer Name">
                   <TextInput
-                    value={formData.customDeveloper?.name || ""}
+                    value={formData.customDeveloper?.name || ''}
                     onChangeText={(value: string) =>
                       updateCustomDeveloper({ name: value })
                     }
@@ -312,14 +312,14 @@ export function DeveloperSetupStep({
 
             <Box
               style={{
-                flexDirection: isDesktop ? "row" : "column",
+                flexDirection: isDesktop ? 'row' : 'column',
                 gap: isDesktop ? 12 : 8,
               }}
             >
               <Box style={{ flex: isDesktop ? 1 : undefined }}>
                 <FormGroup label="Developer Type">
                   <StyledSelect
-                    value={formData.customDeveloper?.type || ""}
+                    value={formData.customDeveloper?.type || ''}
                     onValueChange={(value) =>
                       updateCustomDeveloper({ type: value })
                     }
@@ -331,10 +331,10 @@ export function DeveloperSetupStep({
               <Box style={{ flex: isDesktop ? 1 : undefined }}>
                 <FormGroup label="For Use With">
                   <StyledSelect
-                    value={formData.customDeveloper?.filmOrPaper || "film"}
+                    value={formData.customDeveloper?.filmOrPaper || 'film'}
                     onValueChange={(value) =>
                       updateCustomDeveloper({
-                        filmOrPaper: value as "film" | "paper" | "both",
+                        filmOrPaper: value as 'film' | 'paper' | 'both',
                       })
                     }
                     items={FILM_OR_PAPER_TYPES}
@@ -345,7 +345,7 @@ export function DeveloperSetupStep({
 
             <Box
               style={{
-                flexDirection: isDesktop ? "row" : "column",
+                flexDirection: isDesktop ? 'row' : 'column',
                 gap: isDesktop ? 12 : 8,
               }}
             >
@@ -353,7 +353,7 @@ export function DeveloperSetupStep({
                 <FormGroup label="Working Life (Hours) - Optional">
                   <NumberInput
                     value={String(
-                      formData.customDeveloper?.workingLifeHours || "",
+                      formData.customDeveloper?.workingLifeHours || ''
                     )}
                     onChangeText={(value) =>
                       updateCustomDeveloper({
@@ -371,7 +371,7 @@ export function DeveloperSetupStep({
                 <FormGroup label="Stock Life (Months) - Optional">
                   <NumberInput
                     value={String(
-                      formData.customDeveloper?.stockLifeMonths || "",
+                      formData.customDeveloper?.stockLifeMonths || ''
                     )}
                     onChangeText={(value) =>
                       updateCustomDeveloper({
@@ -391,7 +391,7 @@ export function DeveloperSetupStep({
               <Text
                 style={{
                   fontSize: 14,
-                  fontWeight: "600",
+                  fontWeight: '600',
                   color: textColor,
                   marginBottom: 8,
                 }}
@@ -400,12 +400,12 @@ export function DeveloperSetupStep({
               </Text>
               <VStack space="xs">
                 {formData.customDeveloper?.dilutions.map((dilution, index) => (
-                  <HStack key={index} style={{ alignItems: "center", gap: 8 }}>
+                  <HStack key={index} style={{ alignItems: 'center', gap: 8 }}>
                     <Box style={{ flex: 1 }}>
                       <TextInput
                         value={dilution.name}
                         onChangeText={(value: string) =>
-                          updateDilution(index, "name", value)
+                          updateDilution(index, 'name', value)
                         }
                         placeholder="e.g., Stock, 1+1, 1+9"
                         inputTitle="Enter Dilution Name"
@@ -415,7 +415,7 @@ export function DeveloperSetupStep({
                       <TextInput
                         value={dilution.dilution}
                         onChangeText={(value: string) =>
-                          updateDilution(index, "dilution", value)
+                          updateDilution(index, 'dilution', value)
                         }
                         placeholder="e.g., Stock, 1+1, 1+9"
                         inputTitle="Enter Dilution Ratio"
@@ -446,7 +446,7 @@ export function DeveloperSetupStep({
             <VStack space="sm">
               <FormGroup label="Mixing Instructions (Optional)">
                 <TextInput
-                  value={formData.customDeveloper?.mixingInstructions || ""}
+                  value={formData.customDeveloper?.mixingInstructions || ''}
                   onChangeText={(value: string) =>
                     updateCustomDeveloper({ mixingInstructions: value })
                   }
@@ -458,7 +458,7 @@ export function DeveloperSetupStep({
 
               <FormGroup label="Safety Notes (Optional)">
                 <TextInput
-                  value={formData.customDeveloper?.safetyNotes || ""}
+                  value={formData.customDeveloper?.safetyNotes || ''}
                   onChangeText={(value: string) =>
                     updateCustomDeveloper({ safetyNotes: value })
                   }
@@ -470,7 +470,7 @@ export function DeveloperSetupStep({
 
               <FormGroup label="General Notes (Optional)">
                 <TextInput
-                  value={formData.customDeveloper?.notes || ""}
+                  value={formData.customDeveloper?.notes || ''}
                   onChangeText={(value: string) =>
                     updateCustomDeveloper({ notes: value })
                   }

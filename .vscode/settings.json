@@ -1,6 +1,4 @@
 {
-    "nxConsole.generateAiAgentRules": true,
-    "cSpell.words": [
-        "isos"
-    ]
+  "nxConsole.generateAiAgentRules": true,
+  "cSpell.words": ["isos"]
 }

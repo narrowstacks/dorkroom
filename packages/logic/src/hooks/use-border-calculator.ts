@@ -1,5 +1,8 @@
 import { useState, useMemo } from 'react';
-import type { BorderCalculation, BorderSettings } from '../types/border-calculator';
+import type {
+  BorderCalculation,
+  BorderSettings,
+} from '../types/border-calculator';
 
 export function useBorderCalculator() {
   const [aspectRatio, setAspectRatio] = useState('2:3');
@@ -90,10 +93,21 @@ export function useBorderCalculator() {
 
     // Debug: Log the actual values
     console.log('Blade calculation debug:', {
-      paperW, paperH, printWidth, printHeight,
-      leftBorder, rightBorder, topBorder, bottomBorder,
-      leftBladeReading, rightBladeReading, topBladeReading, bottomBladeReading,
-      horizontalOffset, verticalOffset, enableOffset
+      paperW,
+      paperH,
+      printWidth,
+      printHeight,
+      leftBorder,
+      rightBorder,
+      topBorder,
+      bottomBorder,
+      leftBladeReading,
+      rightBladeReading,
+      topBladeReading,
+      bottomBladeReading,
+      horizontalOffset,
+      verticalOffset,
+      enableOffset,
     });
 
     return {
@@ -161,9 +175,19 @@ export function useBorderCalculator() {
   const offsetWarning = useMemo(() => {
     if (!calculation || !enableOffset) return null;
 
-    const { leftBladeReading, rightBladeReading, topBladeReading, bottomBladeReading } = calculation;
+    const {
+      leftBladeReading,
+      rightBladeReading,
+      topBladeReading,
+      bottomBladeReading,
+    } = calculation;
 
-    if (leftBladeReading < 0 || rightBladeReading < 0 || topBladeReading < 0 || bottomBladeReading < 0) {
+    if (
+      leftBladeReading < 0 ||
+      rightBladeReading < 0 ||
+      topBladeReading < 0 ||
+      bottomBladeReading < 0
+    ) {
       return 'Image extends beyond paper edges with current offset';
     }
 
@@ -173,9 +197,19 @@ export function useBorderCalculator() {
   const bladeWarning = useMemo(() => {
     if (!calculation) return null;
 
-    const { leftBladeReading, rightBladeReading, topBladeReading, bottomBladeReading } = calculation;
+    const {
+      leftBladeReading,
+      rightBladeReading,
+      topBladeReading,
+      bottomBladeReading,
+    } = calculation;
 
-    if (leftBladeReading < 0.125 || rightBladeReading < 0.125 || topBladeReading < 0.125 || bottomBladeReading < 0.125) {
+    if (
+      leftBladeReading < 0.125 ||
+      rightBladeReading < 0.125 ||
+      topBladeReading < 0.125 ||
+      bottomBladeReading < 0.125
+    ) {
       return 'Blade positions may be too close to paper edge for reliable trimming';
     }
 
@@ -190,7 +224,10 @@ export function useBorderCalculator() {
   }, [minBorder]);
 
   const paperSizeWarning = useMemo(() => {
-    if (paperSize === 'custom' && (customPaperWidth < 4 || customPaperHeight < 4)) {
+    if (
+      paperSize === 'custom' &&
+      (customPaperWidth < 4 || customPaperHeight < 4)
+    ) {
       return 'Paper size may be too small for practical use';
     }
     return null;

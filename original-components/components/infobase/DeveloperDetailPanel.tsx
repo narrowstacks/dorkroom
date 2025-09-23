@@ -1,10 +1,10 @@
-import React from "react";
+import React from 'react';
 import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   Linking,
-} from "react-native";
+} from 'react-native';
 import {
   Box,
   Text,
@@ -12,7 +12,7 @@ import {
   HStack,
   Badge,
   BadgeText,
-} from "@gluestack-ui/themed";
+} from '@gluestack-ui/themed';
 import {
   X,
   Beaker,
@@ -26,15 +26,15 @@ import {
   ExternalLink,
   Package,
   Layers,
-} from "lucide-react-native";
-import type { Developer } from "@/api/dorkroom/types";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from 'lucide-react-native';
+import type { Developer } from '@/api/dorkroom/types';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import {
   getBrandKey,
   getDeveloperTypeColor,
   getContrastingTextColor,
-} from "@/constants/brands";
-import { Colors } from "@/constants/Colors";
+} from '@/constants/brands';
+import { Colors } from '@/constants/Colors';
 
 interface DeveloperDetailPanelProps {
   developer: Developer | null;
@@ -45,12 +45,12 @@ export function DeveloperDetailPanel({
   developer,
   onClose,
 }: DeveloperDetailPanelProps) {
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const borderColor = useThemeColor({}, "borderColor");
-  const infobaseTint = useThemeColor({}, "infobaseTint");
-  const backgroundColor = useThemeColor({}, "background");
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const infobaseTint = useThemeColor({}, 'infobaseTint');
+  const backgroundColor = useThemeColor({}, 'background');
 
   if (!developer) {
     return (
@@ -74,7 +74,7 @@ export function DeveloperDetailPanel({
   }
 
   // Get brand color from theme
-  const colorScheme = backgroundColor === "#fff" ? "light" : "dark";
+  const colorScheme = backgroundColor === '#fff' ? 'light' : 'dark';
   const brandKey = getBrandKey(developer.manufacturer);
   const brandColorKey = `${brandKey}BrandColor` as keyof typeof Colors.light;
   const brandColor =
@@ -88,13 +88,13 @@ export function DeveloperDetailPanel({
     try {
       return new Date(dateString).toLocaleDateString();
     } catch {
-      return "N/A";
+      return 'N/A';
     }
   };
 
   const formatLifetime = (value: number | null | undefined, unit: string) => {
-    if (!value) return "N/A";
-    return `${value} ${unit}${value !== 1 ? "s" : ""}`;
+    if (!value) return 'N/A';
+    return `${value} ${unit}${value !== 1 ? 's' : ''}`;
   };
 
   const handleDatasheetPress = async (url: string) => {
@@ -104,7 +104,7 @@ export function DeveloperDetailPanel({
         await Linking.openURL(url);
       }
     } catch (error) {
-      console.error("Error opening datasheet URL:", error);
+      console.error('Error opening datasheet URL:', error);
     }
   };
 
@@ -149,7 +149,7 @@ export function DeveloperDetailPanel({
       >
         {/* Brand and Status */}
         <VStack space="md" style={styles.section}>
-          <HStack space="sm" alignItems="center" style={{ flexWrap: "wrap" }}>
+          <HStack space="sm" alignItems="center" style={{ flexWrap: 'wrap' }}>
             <Box style={[styles.brandBadge, { backgroundColor: brandColor }]}>
               <Text
                 style={[
@@ -171,7 +171,7 @@ export function DeveloperDetailPanel({
               <Badge
                 style={[
                   styles.discontinuedBadge,
-                  { backgroundColor: "#ff6b6b" },
+                  { backgroundColor: '#ff6b6b' },
                 ]}
               >
                 <AlertTriangle size={12} color="#fff" />
@@ -256,7 +256,7 @@ export function DeveloperDetailPanel({
                       ]}
                     >
                       <BadgeText
-                        style={[styles.dilutionText, { color: "#fff" }]}
+                        style={[styles.dilutionText, { color: '#fff' }]}
                       >
                         {dilution.dilution}
                       </BadgeText>
@@ -283,7 +283,7 @@ export function DeveloperDetailPanel({
                     Working Life:
                   </Text>
                   <Text style={[styles.detailValue, { color: textColor }]}>
-                    {formatLifetime(developer.workingLifeHours, "hour")}
+                    {formatLifetime(developer.workingLifeHours, 'hour')}
                   </Text>
                 </HStack>
               )}
@@ -295,7 +295,7 @@ export function DeveloperDetailPanel({
                     Stock Life:
                   </Text>
                   <Text style={[styles.detailValue, { color: textColor }]}>
-                    {formatLifetime(developer.stockLifeMonths, "month")}
+                    {formatLifetime(developer.stockLifeMonths, 'month')}
                   </Text>
                 </HStack>
               )}
@@ -342,17 +342,17 @@ export function DeveloperDetailPanel({
           <VStack space="md" style={styles.section}>
             <HStack space="sm" alignItems="center">
               <Shield size={16} color="#ff6b6b" />
-              <Text style={[styles.sectionTitle, { color: "#ff6b6b" }]}>
+              <Text style={[styles.sectionTitle, { color: '#ff6b6b' }]}>
                 Safety Information
               </Text>
             </HStack>
             <Box
               style={[
                 styles.safetyCard,
-                { backgroundColor: "#fff5f5", borderColor: "#ff6b6b" },
+                { backgroundColor: '#fff5f5', borderColor: '#ff6b6b' },
               ]}
             >
-              <Text style={[styles.description, { color: "#dc2626" }]}>
+              <Text style={[styles.description, { color: '#dc2626' }]}>
                 {developer.safetyNotes}
               </Text>
             </Box>
@@ -411,7 +411,7 @@ export function DeveloperDetailPanel({
               <Text
                 style={[
                   styles.detailValue,
-                  { color: textColor, fontFamily: "monospace", fontSize: 12 },
+                  { color: textColor, fontFamily: 'monospace', fontSize: 12 },
                 ]}
               >
                 {developer.uuid}
@@ -425,7 +425,7 @@ export function DeveloperDetailPanel({
               <Text
                 style={[
                   styles.detailValue,
-                  { color: textColor, fontFamily: "monospace", fontSize: 12 },
+                  { color: textColor, fontFamily: 'monospace', fontSize: 12 },
                 ]}
               >
                 {developer.slug}
@@ -450,12 +450,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: '700',
     lineHeight: 22,
   },
   subtitle: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
     marginTop: 2,
   },
   closeButton: {
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
   },
   brandBadge: {
@@ -480,8 +480,8 @@ const styles = StyleSheet.create({
   },
   brandText: {
     fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   typeBadge: {
     paddingHorizontal: 6,
@@ -490,30 +490,30 @@ const styles = StyleSheet.create({
   },
   typeText: {
     fontSize: 11,
-    fontWeight: "500",
-    textTransform: "capitalize",
+    fontWeight: '500',
+    textTransform: 'capitalize',
   },
   discontinuedBadge: {
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 4,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 4,
   },
   discontinuedText: {
     fontSize: 10,
-    fontWeight: "500",
-    color: "#fff",
+    fontWeight: '500',
+    color: '#fff',
   },
   detailLabel: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: '500',
     minWidth: 90,
   },
   detailValue: {
     fontSize: 13,
-    fontWeight: "400",
+    fontWeight: '400',
     flex: 1,
   },
   description: {
@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
   },
   dilutionName: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   dilutionBadge: {
     paddingHorizontal: 6,
@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
   },
   dilutionText: {
     fontSize: 11,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   instructionCard: {
     padding: 10,
@@ -555,24 +555,24 @@ const styles = StyleSheet.create({
   },
   datasheetText: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   emptyState: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 32,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginTop: 16,
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 14,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 20,
   },
 });

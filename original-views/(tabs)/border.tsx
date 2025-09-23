@@ -1,29 +1,29 @@
-import React from "react";
-import { Platform } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import React from 'react';
+import { Platform } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   startContinuousFPSMonitoring,
   stopContinuousFPSMonitoring,
   debugLog,
-} from "@/utils/debugLogger";
+} from '@/utils/debugLogger';
 // UI Components
 import {
   LabeledSliderInput,
   TextInput,
   DimensionInputGroup,
   ToggleSwitch,
-} from "@/components/ui/forms";
-import { WarningAlert } from "@/components/ui/feedback";
-import { ResultRow } from "@/components/ui/calculator";
+} from '@/components/ui/forms';
+import { WarningAlert } from '@/components/ui/feedback';
+import { ResultRow } from '@/components/ui/calculator';
 // Border Calculator Specific Components
 import {
   AnimatedPreview,
   BorderInfoSection,
-} from "@/components/border-calculator";
+} from '@/components/border-calculator';
 import {
   MobileBorderCalculator,
   useResponsiveDetection,
-} from "@/components/border-calculator/mobile";
+} from '@/components/border-calculator/mobile';
 
 import {
   DESKTOP_BREAKPOINT,
@@ -35,17 +35,17 @@ import {
   OFFSET_SLIDER_MAX,
   OFFSET_SLIDER_STEP,
   OFFSET_SLIDER_LABELS,
-} from "@/constants/borderCalc";
+} from '@/constants/borderCalc';
 
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 import {
   useBorderCalculator,
   useBorderPresets,
-} from "@/hooks/borderCalculator";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { ASPECT_RATIOS, PAPER_SIZES } from "@/constants/border";
-import { ThemedSelect } from "@/components/ui/select/ThemedSelect";
-import { DEFAULT_BORDER_PRESETS } from "@/constants/borderPresets";
+} from '@/hooks/borderCalculator';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { ASPECT_RATIOS, PAPER_SIZES } from '@/constants/border';
+import { ThemedSelect } from '@/components/ui/select/ThemedSelect';
+import { DEFAULT_BORDER_PRESETS } from '@/constants/borderPresets';
 import {
   RotateCwSquare,
   Proportions,
@@ -55,14 +55,14 @@ import {
   Check,
   Trash2,
   Share2,
-} from "lucide-react-native";
-import type { BorderPreset } from "@/types/borderPresetTypes";
-import * as Clipboard from "expo-clipboard";
-import { encodePreset } from "@/utils/presetSharing";
-import { useSharedPresetLoader } from "@/hooks/useSharedPresetLoader";
-import { generateSharingUrls } from "@/utils/urlHelpers";
-import { useAppDetection } from "@/hooks/useAppDetection";
-import { AppBanner } from "@/components/ui/feedback/AppBanner";
+} from 'lucide-react-native';
+import type { BorderPreset } from '@/types/borderPresetTypes';
+import * as Clipboard from 'expo-clipboard';
+import { encodePreset } from '@/utils/presetSharing';
+import { useSharedPresetLoader } from '@/hooks/useSharedPresetLoader';
+import { generateSharingUrls } from '@/utils/urlHelpers';
+import { useAppDetection } from '@/hooks/useAppDetection';
+import { AppBanner } from '@/components/ui/feedback/AppBanner';
 
 import {
   Box,
@@ -87,19 +87,19 @@ import {
   Button,
   ButtonText,
   ButtonIcon,
-} from "@gluestack-ui/themed";
+} from '@gluestack-ui/themed';
 
 export default function BorderCalculator() {
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > DESKTOP_BREAKPOINT;
+  const isDesktop = Platform.OS === 'web' && width > DESKTOP_BREAKPOINT;
   const { shouldUseMobileLayout } = useResponsiveDetection();
-  const backgroundColor = useThemeColor({}, "background");
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "icon");
-  const tintColor = useThemeColor({}, "tint");
-  const outline = useThemeColor({}, "outline");
-  const shadowColor = useThemeColor({}, "shadowColor");
+  const backgroundColor = useThemeColor({}, 'background');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textColor = useThemeColor({}, 'text');
+  const borderColor = useThemeColor({}, 'icon');
+  const tintColor = useThemeColor({}, 'tint');
+  const outline = useThemeColor({}, 'outline');
+  const shadowColor = useThemeColor({}, 'shadowColor');
 
   const {
     aspectRatio,
@@ -150,8 +150,8 @@ export default function BorderCalculator() {
       hasSharedContent: !!loadedPresetFromUrl,
     });
 
-  const [selectedPresetId, setSelectedPresetId] = React.useState("");
-  const [presetName, setPresetName] = React.useState("");
+  const [selectedPresetId, setSelectedPresetId] = React.useState('');
+  const [presetName, setPresetName] = React.useState('');
   const [isEditingPreset, setIsEditingPreset] = React.useState(false);
   const [isShareModalVisible, setShareModalVisible] = React.useState(false);
   const loadedPresetRef = React.useRef<BorderPreset | null>(null);
@@ -189,14 +189,14 @@ export default function BorderCalculator() {
       showBlades,
       isLandscape,
       isRatioFlipped,
-    ],
+    ]
   );
   const presetDirty = React.useMemo(
     () =>
       loadedPresetRef.current &&
       JSON.stringify(loadedPresetRef.current.settings) !==
         JSON.stringify(currentSettings),
-    [currentSettings],
+    [currentSettings]
   );
 
   React.useEffect(() => {
@@ -206,11 +206,11 @@ export default function BorderCalculator() {
   // Start/stop continuous FPS monitoring when page is focused/unfocused
   useFocusEffect(
     React.useCallback(() => {
-      startContinuousFPSMonitoring("Border Calculator");
+      startContinuousFPSMonitoring('Border Calculator');
       return () => {
         stopContinuousFPSMonitoring();
       };
-    }, []),
+    }, [])
   );
 
   React.useEffect(() => {
@@ -219,12 +219,12 @@ export default function BorderCalculator() {
       setPresetName(loadedPresetFromUrl.name);
       // Create a temporary preset object to indicate it's loaded, but not saved yet
       const tempPreset = {
-        id: "shared-" + Date.now(),
+        id: 'shared-' + Date.now(),
         name: loadedPresetFromUrl.name,
         settings: loadedPresetFromUrl.settings,
       };
       loadedPresetRef.current = tempPreset;
-      setSelectedPresetId(""); // It's not a saved preset yet
+      setSelectedPresetId(''); // It's not a saved preset yet
       setIsEditingPreset(true); // Encourage user to save it
 
       // Determine the appropriate toast message
@@ -234,7 +234,7 @@ export default function BorderCalculator() {
         : `Last settings "${loadedPresetFromUrl.name}" loaded`;
 
       toast.show({
-        placement: "top",
+        placement: 'top',
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="success" variant="solid">
             <ToastVStack space="xs">
@@ -253,14 +253,14 @@ export default function BorderCalculator() {
   const presetItems = React.useMemo(
     () => [
       ...presets.map((p) => ({ label: p.name, value: p.id })),
-      { label: "────────", value: "__divider__" },
+      { label: '────────', value: '__divider__' },
       ...DEFAULT_BORDER_PRESETS.map((p) => ({ label: p.name, value: p.id })),
     ],
-    [presets],
+    [presets]
   );
 
   const handleSelectPreset = (id: string) => {
-    if (id === "__divider__") return;
+    if (id === '__divider__') return;
     setSelectedPresetId(id);
     const preset =
       presets.find((p) => p.id === id) ||
@@ -276,7 +276,7 @@ export default function BorderCalculator() {
   const savePreset = () => {
     if (!presetName.trim()) return;
     const newPreset = {
-      id: "user-" + Date.now(),
+      id: 'user-' + Date.now(),
       name: presetName.trim(),
       settings: currentSettings,
     };
@@ -301,8 +301,8 @@ export default function BorderCalculator() {
   const deletePresetHandler = () => {
     if (!selectedPresetId) return;
     removePreset(selectedPresetId);
-    setSelectedPresetId("");
-    setPresetName("");
+    setSelectedPresetId('');
+    setPresetName('');
     loadedPresetRef.current = null;
     setIsEditingPreset(false);
   };
@@ -314,7 +314,7 @@ export default function BorderCalculator() {
     const encoded = encodePreset(preset);
     if (!encoded) {
       toast.show({
-        placement: "top",
+        placement: 'top',
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="error" variant="solid">
             <ToastTitle>Failed to create share link.</ToastTitle>
@@ -325,11 +325,11 @@ export default function BorderCalculator() {
     }
 
     const { webUrl, nativeUrl } = generateSharingUrls(encoded);
-    const urlToCopy = Platform.OS === "web" ? webUrl : nativeUrl;
+    const urlToCopy = Platform.OS === 'web' ? webUrl : nativeUrl;
 
     await Clipboard.setStringAsync(urlToCopy);
     toast.show({
-      placement: "top",
+      placement: 'top',
       render: ({ id }) => (
         <Toast nativeID={`toast-${id}`} action="success" variant="solid">
           <ToastVStack space="xs">
@@ -345,7 +345,7 @@ export default function BorderCalculator() {
   const handleSharePreset = async () => {
     // Check if the current settings match a saved preset
     const matchedPreset = presets.find(
-      (p) => JSON.stringify(p.settings) === JSON.stringify(currentSettings),
+      (p) => JSON.stringify(p.settings) === JSON.stringify(currentSettings)
     );
 
     if (matchedPreset) {
@@ -360,7 +360,7 @@ export default function BorderCalculator() {
   const handleSaveAndShare = () => {
     if (!presetName.trim()) {
       toast.show({
-        placement: "top",
+        placement: 'top',
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="error" variant="solid">
             <ToastTitle>Please enter a name for the preset.</ToastTitle>
@@ -370,7 +370,7 @@ export default function BorderCalculator() {
       return;
     }
     const newPreset = {
-      id: "user-" + Date.now(),
+      id: 'user-' + Date.now(),
       name: presetName.trim(),
       settings: currentSettings,
     };
@@ -418,7 +418,7 @@ export default function BorderCalculator() {
       contentContainerStyle={{
         flexGrow: 1,
         paddingBottom:
-          Platform.OS === "ios" || Platform.OS === "android" ? 100 : 80,
+          Platform.OS === 'ios' || Platform.OS === 'android' ? 100 : 80,
       }}
     >
       <AppBanner
@@ -453,7 +453,7 @@ export default function BorderCalculator() {
             />
           </ModalBody>
           <ModalFooter>
-            <HStack sx={{ gap: 12, justifyContent: "flex-end" }}>
+            <HStack sx={{ gap: 12, justifyContent: 'flex-end' }}>
               <Button
                 variant="outline"
                 size="sm"
@@ -474,39 +474,39 @@ export default function BorderCalculator() {
         sx={{
           flex: 1,
           p: 16,
-          ...(Platform.OS === "web" && {
+          ...(Platform.OS === 'web' && {
             maxWidth: 1024,
-            marginHorizontal: "auto",
-            width: "100%",
+            marginHorizontal: 'auto',
+            width: '100%',
             p: 24,
           }),
         }}
       >
         <Box
           sx={{
-            flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
-            width: "100%",
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
             mb: 24,
             pb: 16,
             borderBottomWidth: 1,
             borderBottomColor: outline,
           }}
         >
-          <Text sx={{ fontSize: 30, textAlign: "center", fontWeight: "600" }}>
+          <Text sx={{ fontSize: 30, textAlign: 'center', fontWeight: '600' }}>
             Border Calculator
           </Text>
         </Box>
 
         <Box
           sx={{
-            width: "100%",
-            ...(Platform.OS === "web" &&
+            width: '100%',
+            ...(Platform.OS === 'web' &&
               isDesktop && {
-                flexDirection: "row",
+                flexDirection: 'row',
                 gap: 32,
-                alignItems: "flex-start",
+                alignItems: 'flex-start',
               }),
           }}
         >
@@ -514,29 +514,29 @@ export default function BorderCalculator() {
             <Box
               sx={{
                 gap: 16,
-                alignItems: "center",
-                width: "100%",
-                mb: Platform.OS === "web" ? 0 : 32,
-                ...(Platform.OS === "web" &&
-                  isDesktop && { flex: 1, alignSelf: "flex-start", mb: 0 }),
+                alignItems: 'center',
+                width: '100%',
+                mb: Platform.OS === 'web' ? 0 : 32,
+                ...(Platform.OS === 'web' &&
+                  isDesktop && { flex: 1, alignSelf: 'flex-start', mb: 0 }),
               }}
             >
               {/* Fixed-size preview container to prevent layout shifts */}
               <Box
                 sx={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "100%",
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
                 }}
               >
                 <Box
                   sx={{
                     width: isDesktop ? 400 : 320,
                     height: isDesktop ? 300 : 240,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    overflow: "hidden",
-                    backgroundColor: "transparent",
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    backgroundColor: 'transparent',
                   }}
                 >
                   <Box
@@ -548,12 +548,12 @@ export default function BorderCalculator() {
                               (calculation.previewWidth || 1),
                             (isDesktop ? 300 : 240) /
                               (calculation.previewHeight || 1),
-                            1,
+                            1
                           ),
                         },
                       ],
-                      alignItems: "center",
-                      justifyContent: "center",
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
                     <AnimatedPreview
@@ -566,9 +566,9 @@ export default function BorderCalculator() {
               </Box>
 
               {!shouldUseMobileLayout &&
-                (Platform.OS === "web" && isDesktop ? (
+                (Platform.OS === 'web' && isDesktop ? (
                   <HStack
-                    sx={{ flex: 1, justifyContent: "space-between", gap: 12 }}
+                    sx={{ flex: 1, justifyContent: 'space-between', gap: 12 }}
                   >
                     <Button
                       onPress={() => setIsLandscape(!isLandscape)}
@@ -578,7 +578,7 @@ export default function BorderCalculator() {
                     >
                       <ButtonIcon as={RotateCwSquare} size="md" />
                       <ButtonText
-                        style={{ fontSize: 12.5, fontWeight: "bold" }}
+                        style={{ fontSize: 12.5, fontWeight: 'bold' }}
                       >
                         Flip Paper Orientation
                       </ButtonText>
@@ -591,14 +591,14 @@ export default function BorderCalculator() {
                     >
                       <ButtonIcon as={Proportions} size="md" />
                       <ButtonText
-                        style={{ fontSize: 12.5, fontWeight: "bold" }}
+                        style={{ fontSize: 12.5, fontWeight: 'bold' }}
                       >
                         Flip Aspect Ratio
                       </ButtonText>
                     </Button>
                   </HStack>
                 ) : (
-                  <VStack sx={{ flex: 1, gap: 12, width: "100%" }}>
+                  <VStack sx={{ flex: 1, gap: 12, width: '100%' }}>
                     <Button
                       onPress={() => setIsLandscape(!isLandscape)}
                       variant="solid"
@@ -635,20 +635,22 @@ export default function BorderCalculator() {
                   shadowRadius: 8,
                   elevation: 4,
                   borderWidth: 1,
-                  alignItems: "center",
+                  alignItems: 'center',
                   gap: 8,
-                  width: "100%",
+                  width: '100%',
                   maxWidth: 400,
-                  alignSelf: "center",
+                  alignSelf: 'center',
                   borderRadius: 16,
                   padding: 16,
-                  minWidth: Platform.OS === "web" ? 140 : 160,
-                  justifyContent: "center",
+                  minWidth: Platform.OS === 'web' ? 140 : 160,
+                  justifyContent: 'center',
                 }}
               >
                 <ResultRow
                   label="Image Dimensions:"
-                  value={`${calculation.printWidth.toFixed(2)} x ${calculation.printHeight.toFixed(2)} inches`}
+                  value={`${calculation.printWidth.toFixed(
+                    2
+                  )} x ${calculation.printHeight.toFixed(2)} inches`}
                 />
                 <ResultRow
                   label="Left Blade:"
@@ -686,15 +688,15 @@ export default function BorderCalculator() {
                       borderRadius: 8,
                       mt: 16,
                       mb: 8,
-                      width: "100%",
+                      width: '100%',
                       borderColor: tintColor,
                       backgroundColor: `${tintColor}20`,
                     }}
                   >
-                    <Text sx={{ fontSize: 16, textAlign: "center", mb: 8 }}>
+                    <Text sx={{ fontSize: 16, textAlign: 'center', mb: 8 }}>
                       Non-Standard Paper Size
                     </Text>
-                    <Text sx={{ fontSize: 14, textAlign: "center" }}>
+                    <Text sx={{ fontSize: 14, textAlign: 'center' }}>
                       Position paper in the {calculation.easelSizeLabel} slot
                       all the way to the left.
                     </Text>
@@ -716,8 +718,8 @@ export default function BorderCalculator() {
           <Box
             sx={{
               gap: 16,
-              width: "100%",
-              ...(Platform.OS === "web" &&
+              width: '100%',
+              ...(Platform.OS === 'web' &&
                 isDesktop && { flex: 1, maxWidth: 480 }),
             }}
           >
@@ -725,8 +727,8 @@ export default function BorderCalculator() {
               <HStack
                 style={{
                   gap: 12,
-                  alignItems: "center",
-                  justifyContent: "space-between",
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
                   marginBottom: 12,
                 }}
               >
@@ -739,7 +741,7 @@ export default function BorderCalculator() {
                     placeholder="Select Preset"
                   />
                 </Box>
-                <Box style={{ marginTop: 12, flexDirection: "row", gap: 8 }}>
+                <Box style={{ marginTop: 12, flexDirection: 'row', gap: 8 }}>
                   <Button onPress={handleSharePreset} size="md" variant="solid">
                     <ButtonIcon as={Share2} />
                   </Button>
@@ -763,7 +765,7 @@ export default function BorderCalculator() {
                     placeholder="Preset Name"
                     inputTitle="Enter Preset Name"
                   />
-                  <HStack style={{ gap: 8, justifyContent: "space-between" }}>
+                  <HStack style={{ gap: 8, justifyContent: 'space-between' }}>
                     <Button
                       onPress={savePreset}
                       variant="solid"
@@ -811,7 +813,7 @@ export default function BorderCalculator() {
               items={ASPECT_RATIOS as any}
               placeholder="Select Aspect Ratio"
             />
-            {aspectRatio === "custom" && (
+            {aspectRatio === 'custom' && (
               <DimensionInputGroup
                 widthValue={String(customAspectWidth)}
                 onWidthChange={setCustomAspectWidth}
@@ -833,7 +835,7 @@ export default function BorderCalculator() {
               items={PAPER_SIZES as any}
               placeholder="Select Paper Size"
             />
-            {paperSize === "custom" && (
+            {paperSize === 'custom' && (
               <DimensionInputGroup
                 widthValue={String(customPaperWidth)}
                 onWidthChange={setCustomPaperWidth}
@@ -860,11 +862,11 @@ export default function BorderCalculator() {
               textColor={textColor}
               borderColor={borderColor}
               tintColor={tintColor}
-              inputWidth={Platform.OS === "web" && isDesktop ? 80 : undefined}
+              inputWidth={Platform.OS === 'web' && isDesktop ? 80 : undefined}
               continuousUpdate={true}
             />
 
-            <HStack sx={{ flexDirection: "row", gap: 16, width: "100%" }}>
+            <HStack sx={{ flexDirection: 'row', gap: 16, width: '100%' }}>
               <ToggleSwitch
                 label="Enable Offsets:"
                 value={enableOffset}
@@ -895,8 +897,8 @@ export default function BorderCalculator() {
                 <Box sx={{ gap: 8 }}>
                   <Box
                     sx={{
-                      flexDirection: "row",
-                      alignItems: "flex-start",
+                      flexDirection: 'row',
+                      alignItems: 'flex-start',
                       gap: 24,
                       mt: 8,
                     }}

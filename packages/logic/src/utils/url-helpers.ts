@@ -36,7 +36,9 @@ function getBaseUrl(): string {
 /**
  * Generate a dynamic share URL for the border calculator
  */
-export function getDynamicShareUrl(path: string = URL_CONFIG.BORDER_CALCULATOR_PATH): string {
+export function getDynamicShareUrl(
+  path: string = URL_CONFIG.BORDER_CALCULATOR_PATH
+): string {
   const baseUrl = getBaseUrl();
   return `${baseUrl}${path}`;
 }

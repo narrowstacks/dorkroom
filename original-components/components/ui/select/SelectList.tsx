@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Select,
   SelectTrigger,
@@ -10,8 +10,8 @@ import {
   SelectDragIndicatorWrapper,
   SelectDragIndicator,
   SelectItem,
-} from "@/components/ui/select";
-import { ChevronDownIcon } from "@/components/ui/icon";
+} from '@/components/ui/select';
+import { ChevronDownIcon } from '@/components/ui/icon';
 
 interface SelectListProps {
   value: string;
@@ -24,7 +24,7 @@ export function SelectList({
   value,
   onValueChange,
   items,
-  placeholder = "Select an option",
+  placeholder = 'Select an option',
 }: SelectListProps) {
   return (
     <Select selectedValue={value} onValueChange={onValueChange}>

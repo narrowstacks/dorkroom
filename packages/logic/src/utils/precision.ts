@@ -6,12 +6,11 @@
 
 import { CALCULATION_CONSTANTS } from '../constants/calculations';
 
-const { ROUNDING_MULTIPLIER, DECIMAL_PLACES } =
-  CALCULATION_CONSTANTS.PRECISION;
+const { ROUNDING_MULTIPLIER, DECIMAL_PLACES } = CALCULATION_CONSTANTS.PRECISION;
 
 export const roundToPrecision = (
   value: number,
-  places: number = DECIMAL_PLACES,
+  places: number = DECIMAL_PLACES
 ): number => {
   const multiplier = Math.pow(10, places);
   return Math.round(value * multiplier) / multiplier;
@@ -28,7 +27,7 @@ export const createMemoKey = (
     .map((val) =>
       typeof val === 'number'
         ? Math.round(val * ROUNDING_MULTIPLIER).toString()
-        : val.toString(),
+        : val.toString()
     )
     .join(':');
 };

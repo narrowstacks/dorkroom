@@ -23,7 +23,7 @@ import type {
 
 // Pre-calculate max easel dimension for O(1) lookup
 const MAX_EASEL_DIMENSION = Math.max(
-  ...EASEL_SIZES.flatMap((e) => [e.width, e.height]),
+  ...EASEL_SIZES.flatMap((e) => [e.width, e.height])
 );
 
 export const useDimensionCalculations = (state: BorderCalculatorState) => {

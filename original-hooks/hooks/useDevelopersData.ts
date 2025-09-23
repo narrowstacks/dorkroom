@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import type { Developer } from "@/api/dorkroom/types";
-import { getApiUrl } from "@/utils/platformDetection";
-import { fuzzySearchDevelopers } from "@/utils/fuzzySearch";
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import type { Developer } from '@/api/dorkroom/types';
+import { getApiUrl } from '@/utils/platformDetection';
+import { fuzzySearchDevelopers } from '@/utils/fuzzySearch';
 
 export interface DevelopersDataState {
   developers: Developer[];
@@ -12,8 +12,8 @@ export interface DevelopersDataState {
   manufacturerFilter: string;
   typeFilter: string;
   filmOrPaperFilter: string;
-  sortBy: "name" | "manufacturer" | "type" | "dateAdded";
-  sortDirection: "asc" | "desc";
+  sortBy: 'name' | 'manufacturer' | 'type' | 'dateAdded';
+  sortDirection: 'asc' | 'desc';
 }
 
 export interface DevelopersDataActions {
@@ -21,9 +21,9 @@ export interface DevelopersDataActions {
   setManufacturerFilter: (manufacturer: string) => void;
   setTypeFilter: (type: string) => void;
   setFilmOrPaperFilter: (filmOrPaper: string) => void;
-  setSortBy: (sortBy: DevelopersDataState["sortBy"]) => void;
-  setSortDirection: (direction: DevelopersDataState["sortDirection"]) => void;
-  handleSort: (field: DevelopersDataState["sortBy"]) => void;
+  setSortBy: (sortBy: DevelopersDataState['sortBy']) => void;
+  setSortDirection: (direction: DevelopersDataState['sortDirection']) => void;
+  handleSort: (field: DevelopersDataState['sortBy']) => void;
   clearFilters: () => void;
   refetch: () => Promise<void>;
   forceRefresh: () => Promise<void>;
@@ -66,16 +66,16 @@ export function useDevelopersData(): UseDevelopersDataReturn {
     isLoading: false,
     isLoaded: false,
     error: null,
-    searchQuery: "",
-    manufacturerFilter: "",
-    typeFilter: "",
-    filmOrPaperFilter: "",
-    sortBy: "name",
-    sortDirection: "asc",
+    searchQuery: '',
+    manufacturerFilter: '',
+    typeFilter: '',
+    filmOrPaperFilter: '',
+    sortBy: 'name',
+    sortDirection: 'asc',
   });
 
   const cacheRef = useRef<{ data: Developer[]; timestamp: number } | null>(
-    null,
+    null
   );
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -121,14 +121,14 @@ export function useDevelopersData(): UseDevelopersDataReturn {
       try {
         const params = new URLSearchParams();
         if (debouncedSearchQuery.trim()) {
-          params.set("query", debouncedSearchQuery.trim());
-          params.set("fuzzy", "true");
+          params.set('query', debouncedSearchQuery.trim());
+          params.set('fuzzy', 'true');
         }
-        params.set("limit", "1000"); // Get all developers
+        params.set('limit', '1000'); // Get all developers
 
         const queryString = params.toString();
         const url = getApiUrl(
-          `developers${queryString ? `?${queryString}` : ""}`,
+          `developers${queryString ? `?${queryString}` : ''}`
         );
 
         const response = await fetch(url, {
@@ -137,14 +137,14 @@ export function useDevelopersData(): UseDevelopersDataReturn {
 
         if (!response.ok) {
           throw new Error(
-            `Failed to fetch developers: ${response.status} ${response.statusText}`,
+            `Failed to fetch developers: ${response.status} ${response.statusText}`
           );
         }
 
         const result = await response.json();
 
         if (!result.data || !Array.isArray(result.data)) {
-          throw new Error("Invalid response format from developers API");
+          throw new Error('Invalid response format from developers API');
         }
 
         const developersData = result.data as Developer[];
@@ -163,12 +163,12 @@ export function useDevelopersData(): UseDevelopersDataReturn {
           error: null,
         }));
       } catch (error) {
-        if (error instanceof Error && error.name === "AbortError") {
+        if (error instanceof Error && error.name === 'AbortError') {
           return; // Request was cancelled, don't update state
         }
 
         const errorMessage =
-          error instanceof Error ? error.message : "Unknown error occurred";
+          error instanceof Error ? error.message : 'Unknown error occurred';
 
         setState((prev) => ({
           ...prev,
@@ -177,7 +177,7 @@ export function useDevelopersData(): UseDevelopersDataReturn {
         }));
       }
     },
-    [debouncedSearchQuery],
+    [debouncedSearchQuery]
   );
 
   /**
@@ -203,7 +203,7 @@ export function useDevelopersData(): UseDevelopersDataReturn {
       filtered = filtered.filter(
         (developer) =>
           developer.manufacturer.toLowerCase() ===
-          state.manufacturerFilter.toLowerCase(),
+          state.manufacturerFilter.toLowerCase()
       );
     }
 
@@ -211,7 +211,7 @@ export function useDevelopersData(): UseDevelopersDataReturn {
     if (state.typeFilter) {
       filtered = filtered.filter(
         (developer) =>
-          developer.type.toLowerCase() === state.typeFilter.toLowerCase(),
+          developer.type.toLowerCase() === state.typeFilter.toLowerCase()
       );
     }
 
@@ -220,7 +220,7 @@ export function useDevelopersData(): UseDevelopersDataReturn {
       filtered = filtered.filter(
         (developer) =>
           developer.filmOrPaper.toLowerCase() ===
-          state.filmOrPaperFilter.toLowerCase(),
+          state.filmOrPaperFilter.toLowerCase()
       );
     }
 
@@ -230,16 +230,16 @@ export function useDevelopersData(): UseDevelopersDataReturn {
         let comparison = 0;
 
         switch (state.sortBy) {
-          case "name":
+          case 'name':
             comparison = a.name.localeCompare(b.name);
             break;
-          case "manufacturer":
+          case 'manufacturer':
             comparison = a.manufacturer.localeCompare(b.manufacturer);
             break;
-          case "type":
+          case 'type':
             comparison = a.type.localeCompare(b.type);
             break;
-          case "dateAdded":
+          case 'dateAdded':
             comparison =
               new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime();
             break;
@@ -247,7 +247,7 @@ export function useDevelopersData(): UseDevelopersDataReturn {
             comparison = 0;
         }
 
-        return state.sortDirection === "desc" ? -comparison : comparison;
+        return state.sortDirection === 'desc' ? -comparison : comparison;
       });
     }
 
@@ -291,7 +291,7 @@ export function useDevelopersData(): UseDevelopersDataReturn {
     (id: string): Developer | undefined => {
       return state.developers.find((dev) => dev.id === id || dev.uuid === id);
     },
-    [state.developers],
+    [state.developers]
   );
 
   /**
@@ -325,7 +325,7 @@ export function useDevelopersData(): UseDevelopersDataReturn {
   /**
    * Update sort field
    */
-  const setSortBy = useCallback((sortBy: DevelopersDataState["sortBy"]) => {
+  const setSortBy = useCallback((sortBy: DevelopersDataState['sortBy']) => {
     setState((prev) => ({ ...prev, sortBy }));
   }, []);
 
@@ -333,21 +333,21 @@ export function useDevelopersData(): UseDevelopersDataReturn {
    * Update sort direction
    */
   const setSortDirection = useCallback(
-    (direction: DevelopersDataState["sortDirection"]) => {
+    (direction: DevelopersDataState['sortDirection']) => {
       setState((prev) => ({ ...prev, sortDirection: direction }));
     },
-    [],
+    []
   );
 
   /**
    * Handle sort with automatic direction toggle
    */
-  const handleSort = useCallback((field: DevelopersDataState["sortBy"]) => {
+  const handleSort = useCallback((field: DevelopersDataState['sortBy']) => {
     setState((prev) => ({
       ...prev,
       sortBy: field,
       sortDirection:
-        prev.sortBy === field && prev.sortDirection === "asc" ? "desc" : "asc",
+        prev.sortBy === field && prev.sortDirection === 'asc' ? 'desc' : 'asc',
     }));
   }, []);
 
@@ -357,10 +357,10 @@ export function useDevelopersData(): UseDevelopersDataReturn {
   const clearFilters = useCallback(() => {
     setState((prev) => ({
       ...prev,
-      searchQuery: "",
-      manufacturerFilter: "",
-      typeFilter: "",
-      filmOrPaperFilter: "",
+      searchQuery: '',
+      manufacturerFilter: '',
+      typeFilter: '',
+      filmOrPaperFilter: '',
     }));
   }, []);
 

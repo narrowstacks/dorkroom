@@ -1,5 +1,5 @@
-import React, { ReactNode } from "react";
-import { View, TouchableOpacity, Platform, SafeAreaView } from "react-native";
+import React, { ReactNode } from 'react';
+import { View, TouchableOpacity, Platform, SafeAreaView } from 'react-native';
 import {
   Text,
   Button,
@@ -10,15 +10,15 @@ import {
   Modal as GluestackModal,
   ModalBackdrop,
   ModalContent,
-} from "@gluestack-ui/themed";
-import { X, Check } from "lucide-react-native";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
+} from '@gluestack-ui/themed';
+import { X, Check } from 'lucide-react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 
 // Hook for detecting if mobile input should be used
 export const useMobileInputDetection = () => {
   const { width } = useWindowDimensions();
-  return Platform.OS !== "web" || width < 768;
+  return Platform.OS !== 'web' || width < 768;
 };
 
 // Mobile input trigger button component
@@ -37,9 +37,9 @@ export const MobileInputTrigger: React.FC<MobileInputTriggerProps> = ({
   style,
   accessibilityLabel,
 }) => {
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "icon");
-  const placeholderTextColor = useThemeColor({}, "tabIconDefault");
+  const textColor = useThemeColor({}, 'text');
+  const borderColor = useThemeColor({}, 'icon');
+  const placeholderTextColor = useThemeColor({}, 'tabIconDefault');
 
   const triggerStyles = [
     {
@@ -48,8 +48,8 @@ export const MobileInputTrigger: React.FC<MobileInputTriggerProps> = ({
       paddingVertical: 8,
       paddingHorizontal: 10,
       minWidth: 65,
-      justifyContent: "center" as const,
-      alignItems: "center" as const,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
       borderColor: borderColor,
     },
     style,
@@ -68,7 +68,7 @@ export const MobileInputTrigger: React.FC<MobileInputTriggerProps> = ({
       <Text
         style={{
           fontSize: 14,
-          textAlign: "center" as const,
+          textAlign: 'center' as const,
           color: value ? textColor : placeholderTextColor,
         }}
       >
@@ -96,9 +96,9 @@ export const MobileInputModal: React.FC<MobileInputModalProps> = ({
   children,
   extraContent,
 }) => {
-  const textColor = useThemeColor({}, "text");
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const borderColor = useThemeColor({}, "icon");
+  const textColor = useThemeColor({}, 'text');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const borderColor = useThemeColor({}, 'icon');
 
   return (
     <GluestackModal isOpen={visible} onClose={onClose}>
@@ -108,19 +108,19 @@ export const MobileInputModal: React.FC<MobileInputModalProps> = ({
           backgroundColor: cardBackground,
           margin: 20,
           maxWidth: 400,
-          width: "90%",
-          alignSelf: "center",
+          width: '90%',
+          alignSelf: 'center',
         }}
       >
         <SafeAreaView>
           <VStack space="lg" style={{ padding: 24 }}>
             {/* Header */}
-            <View style={{ position: "relative", alignItems: "center" }}>
+            <View style={{ position: 'relative', alignItems: 'center' }}>
               <Text
                 style={{
                   fontSize: 18,
-                  fontWeight: "600",
-                  textAlign: "center",
+                  fontWeight: '600',
+                  textAlign: 'center',
                   color: textColor,
                 }}
               >
@@ -129,7 +129,7 @@ export const MobileInputModal: React.FC<MobileInputModalProps> = ({
               <TouchableOpacity
                 onPress={onClose}
                 style={{
-                  position: "absolute",
+                  position: 'absolute',
                   right: 0,
                   top: 0,
                   padding: 4,
@@ -140,13 +140,13 @@ export const MobileInputModal: React.FC<MobileInputModalProps> = ({
             </View>
 
             {/* Input Section */}
-            <VStack space="md" style={{ alignItems: "center" }}>
+            <VStack space="md" style={{ alignItems: 'center' }}>
               {children}
               {extraContent}
             </VStack>
 
             {/* Action Buttons */}
-            <HStack space="md" style={{ justifyContent: "center" }}>
+            <HStack space="md" style={{ justifyContent: 'center' }}>
               <Button
                 variant="outline"
                 onPress={onClose}
@@ -174,9 +174,9 @@ export const modalInputStyles = {
     paddingVertical: 12,
     paddingHorizontal: 16,
     fontSize: 24,
-    fontWeight: "600" as const,
-    textAlign: "center" as const,
+    fontWeight: '600' as const,
+    textAlign: 'center' as const,
     minWidth: 120,
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
   },
 };

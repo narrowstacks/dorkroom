@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Modal,
   ModalBackdrop,
@@ -12,12 +12,12 @@ import {
   ButtonText,
   VStack,
   HStack,
-} from "@gluestack-ui/themed";
-import { X } from "lucide-react-native";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { formatTime } from "@/constants/developmentRecipes";
-import type { Film, Developer } from "@/api/dorkroom/types";
-import type { CustomRecipe } from "@/types/customRecipeTypes";
+} from '@gluestack-ui/themed';
+import { X } from 'lucide-react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { formatTime } from '@/constants/developmentRecipes';
+import type { Film, Developer } from '@/api/dorkroom/types';
+import type { CustomRecipe } from '@/types/customRecipeTypes';
 
 interface RecipeImportModalProps {
   isOpen: boolean;
@@ -25,7 +25,7 @@ interface RecipeImportModalProps {
   onImport: () => void;
   sharedCustomRecipe: Omit<
     CustomRecipe,
-    "id" | "dateCreated" | "dateModified"
+    'id' | 'dateCreated' | 'dateModified'
   > | null;
   getFilmById: (filmId: string) => Film | undefined;
   getDeveloperById: (developerId: string) => Developer | undefined;
@@ -39,12 +39,12 @@ export function RecipeImportModal({
   getFilmById,
   getDeveloperById,
 }: RecipeImportModalProps) {
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const inputBackground = useThemeColor({}, "inputBackground");
-  const borderColor = useThemeColor({}, "borderColor");
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const inputBackground = useThemeColor({}, 'inputBackground');
+  const borderColor = useThemeColor({}, 'borderColor');
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
@@ -52,7 +52,7 @@ export function RecipeImportModal({
       <ModalContent style={{ backgroundColor: cardBackground }}>
         <ModalHeader>
           <Text
-            style={[{ fontSize: 18, fontWeight: "600" }, { color: textColor }]}
+            style={[{ fontSize: 18, fontWeight: '600' }, { color: textColor }]}
           >
             Import Shared Recipe
           </Text>
@@ -82,7 +82,7 @@ export function RecipeImportModal({
                   <VStack space="sm">
                     <Text
                       style={[
-                        { fontSize: 16, fontWeight: "600" },
+                        { fontSize: 16, fontWeight: '600' },
                         { color: developmentTint },
                       ]}
                     >
@@ -92,15 +92,15 @@ export function RecipeImportModal({
                     {/* Film and Developer Information */}
                     <HStack
                       space="md"
-                      style={{ justifyContent: "space-around" }}
+                      style={{ justifyContent: 'space-around' }}
                     >
                       <VStack
                         space="xs"
-                        style={{ alignItems: "center", flex: 1 }}
+                        style={{ alignItems: 'center', flex: 1 }}
                       >
                         <Text
                           style={[
-                            { fontSize: 12, fontWeight: "500" },
+                            { fontSize: 12, fontWeight: '500' },
                             { color: textSecondary },
                           ]}
                         >
@@ -108,7 +108,7 @@ export function RecipeImportModal({
                         </Text>
                         <Text
                           style={[
-                            { fontSize: 14, fontWeight: "600" },
+                            { fontSize: 14, fontWeight: '600' },
                             { color: textColor },
                           ]}
                           numberOfLines={2}
@@ -122,11 +122,11 @@ export function RecipeImportModal({
                               return `${sharedCustomRecipe.customFilm.brand} ${sharedCustomRecipe.customFilm.name}`;
                             } else {
                               const film = getFilmById(
-                                sharedCustomRecipe.filmId,
+                                sharedCustomRecipe.filmId
                               );
                               return film
                                 ? `${film.brand} ${film.name}`
-                                : "Unknown Film";
+                                : 'Unknown Film';
                             }
                           })()}
                         </Text>
@@ -134,11 +134,11 @@ export function RecipeImportModal({
 
                       <VStack
                         space="xs"
-                        style={{ alignItems: "center", flex: 1 }}
+                        style={{ alignItems: 'center', flex: 1 }}
                       >
                         <Text
                           style={[
-                            { fontSize: 12, fontWeight: "500" },
+                            { fontSize: 12, fontWeight: '500' },
                             { color: textSecondary },
                           ]}
                         >
@@ -146,7 +146,7 @@ export function RecipeImportModal({
                         </Text>
                         <Text
                           style={[
-                            { fontSize: 14, fontWeight: "600" },
+                            { fontSize: 14, fontWeight: '600' },
                             { color: textColor },
                           ]}
                           numberOfLines={2}
@@ -160,11 +160,11 @@ export function RecipeImportModal({
                               return `${sharedCustomRecipe.customDeveloper.manufacturer} ${sharedCustomRecipe.customDeveloper.name}`;
                             } else {
                               const developer = getDeveloperById(
-                                sharedCustomRecipe.developerId,
+                                sharedCustomRecipe.developerId
                               );
                               return developer
                                 ? `${developer.manufacturer} ${developer.name}`
-                                : "Unknown Developer";
+                                : 'Unknown Developer';
                             }
                           })()}
                         </Text>
@@ -173,15 +173,15 @@ export function RecipeImportModal({
 
                     <HStack
                       space="md"
-                      style={{ justifyContent: "space-around" }}
+                      style={{ justifyContent: 'space-around' }}
                     >
                       <VStack
                         space="xs"
-                        style={{ alignItems: "center", flex: 1 }}
+                        style={{ alignItems: 'center', flex: 1 }}
                       >
                         <Text
                           style={[
-                            { fontSize: 12, fontWeight: "500" },
+                            { fontSize: 12, fontWeight: '500' },
                             { color: textSecondary },
                           ]}
                         >
@@ -189,7 +189,7 @@ export function RecipeImportModal({
                         </Text>
                         <Text
                           style={[
-                            { fontSize: 14, fontWeight: "600" },
+                            { fontSize: 14, fontWeight: '600' },
                             { color: textColor },
                           ]}
                         >
@@ -199,11 +199,11 @@ export function RecipeImportModal({
 
                       <VStack
                         space="xs"
-                        style={{ alignItems: "center", flex: 1 }}
+                        style={{ alignItems: 'center', flex: 1 }}
                       >
                         <Text
                           style={[
-                            { fontSize: 12, fontWeight: "500" },
+                            { fontSize: 12, fontWeight: '500' },
                             { color: textSecondary },
                           ]}
                         >
@@ -211,7 +211,7 @@ export function RecipeImportModal({
                         </Text>
                         <Text
                           style={[
-                            { fontSize: 14, fontWeight: "600" },
+                            { fontSize: 14, fontWeight: '600' },
                             { color: textColor },
                           ]}
                         >
@@ -221,11 +221,11 @@ export function RecipeImportModal({
 
                       <VStack
                         space="xs"
-                        style={{ alignItems: "center", flex: 1 }}
+                        style={{ alignItems: 'center', flex: 1 }}
                       >
                         <Text
                           style={[
-                            { fontSize: 12, fontWeight: "500" },
+                            { fontSize: 12, fontWeight: '500' },
                             { color: textSecondary },
                           ]}
                         >
@@ -233,7 +233,7 @@ export function RecipeImportModal({
                         </Text>
                         <Text
                           style={[
-                            { fontSize: 14, fontWeight: "600" },
+                            { fontSize: 14, fontWeight: '600' },
                             { color: textColor },
                           ]}
                         >
@@ -246,7 +246,7 @@ export function RecipeImportModal({
                       <VStack space="xs">
                         <Text
                           style={[
-                            { fontSize: 12, fontWeight: "500" },
+                            { fontSize: 12, fontWeight: '500' },
                             { color: textSecondary },
                           ]}
                         >
@@ -264,7 +264,7 @@ export function RecipeImportModal({
                 <VStack space="md">
                   <Text
                     style={[
-                      { fontSize: 16, fontWeight: "600" },
+                      { fontSize: 16, fontWeight: '600' },
                       { color: textColor },
                     ]}
                   >
@@ -287,7 +287,7 @@ export function RecipeImportModal({
                       onPress={onImport}
                       style={[{ flex: 1, backgroundColor: developmentTint }]}
                     >
-                      <ButtonText style={[{ color: "white" }]}>
+                      <ButtonText style={[{ color: 'white' }]}>
                         Import Recipe
                       </ButtonText>
                     </Button>

@@ -1,28 +1,28 @@
-import React from "react";
+import React from 'react';
 import {
   VStack,
   HStack,
   Heading,
   Button,
   ButtonIcon,
-} from "@gluestack-ui/themed";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { X } from "lucide-react-native";
+} from '@gluestack-ui/themed';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { X } from 'lucide-react-native';
 
 interface SectionWrapperProps {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
-  space?: "sm" | "md" | "lg" | "xl";
+  space?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 export const SectionWrapper: React.FC<SectionWrapperProps> = ({
   title,
   onClose,
   children,
-  space = "lg",
+  space = 'lg',
 }) => {
-  const backgroundColor = useThemeColor({}, "background");
+  const backgroundColor = useThemeColor({}, 'background');
 
   return (
     <VStack
@@ -36,7 +36,7 @@ export const SectionWrapper: React.FC<SectionWrapperProps> = ({
       }}
     >
       {/* Header with close button */}
-      <HStack style={{ justifyContent: "space-between", alignItems: "center" }}>
+      <HStack style={{ justifyContent: 'space-between', alignItems: 'center' }}>
         <Heading size="lg">{title}</Heading>
         <Button onPress={onClose} variant="outline" size="sm">
           <ButtonIcon as={X} />

@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Modal,
   ModalBackdrop,
@@ -15,16 +15,16 @@ import {
   HStack,
   VStack,
   Text,
-} from "@gluestack-ui/themed";
-import { LabeledSliderInput, ToggleSwitch } from "@/components/ui/forms";
-import { WarningAlert } from "@/components/ui/feedback";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from '@gluestack-ui/themed';
+import { LabeledSliderInput, ToggleSwitch } from '@/components/ui/forms';
+import { WarningAlert } from '@/components/ui/feedback';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import {
   OFFSET_SLIDER_MIN,
   OFFSET_SLIDER_MAX,
   OFFSET_SLIDER_STEP,
   OFFSET_SLIDER_LABELS,
-} from "@/constants/borderCalc";
+} from '@/constants/borderCalc';
 
 interface PositionOffsetsModalProps {
   isVisible: boolean;
@@ -53,9 +53,9 @@ export const PositionOffsetsModal: React.FC<PositionOffsetsModalProps> = ({
   setVerticalOffset,
   offsetWarning,
 }) => {
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "icon");
-  const tintColor = useThemeColor({}, "tint");
+  const textColor = useThemeColor({}, 'text');
+  const borderColor = useThemeColor({}, 'icon');
+  const tintColor = useThemeColor({}, 'tint');
 
   return (
     <Modal isOpen={isVisible} onClose={onClose} size="lg">
@@ -71,7 +71,7 @@ export const PositionOffsetsModal: React.FC<PositionOffsetsModalProps> = ({
         <ModalBody>
           <VStack space="lg">
             <Text
-              style={{ fontSize: 16, color: textColor, textAlign: "center" }}
+              style={{ fontSize: 16, color: textColor, textAlign: 'center' }}
             >
               Control image positioning and offset behavior
             </Text>
@@ -150,7 +150,7 @@ export const PositionOffsetsModal: React.FC<PositionOffsetsModalProps> = ({
         </ModalBody>
 
         <ModalFooter>
-          <HStack space="md" style={{ justifyContent: "flex-end" }}>
+          <HStack space="md" style={{ justifyContent: 'flex-end' }}>
             <Button
               variant="outline"
               size="sm"

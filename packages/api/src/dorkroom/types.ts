@@ -1,179 +1,151 @@
-/**
- * TypeScript interfaces for the public Dorkroom API client.
- *
- * These interfaces mirror the current responses from
- * https://beta.dorkroom.art/api and expose a camel-cased shape that the rest
- * of the app consumes.
- */
+// Core data types for the Dorkroom API
 
-/**
- * Represents a film stock entry returned by the API.
- */
 export interface Film {
-  /** Numeric identifier from the API (stringified for stability across platforms). */
-  id: string;
-  /** Dorkroom UUID for the film. */
+  id: number;
   uuid: string;
-  /** URL-friendly slug. */
   slug: string;
-  /** Manufacturer or brand name. */
   brand: string;
-  /** Marketing name. */
   name: string;
-  /** ISO speed rating. */
-  isoSpeed: number;
-  /** API-provided color classification (e.g. "bw", "color"). */
   colorType: string;
-  /** Longer descriptive copy if available. */
-  description?: string | null;
-  /** Whether the stock is discontinued (0 = no, 1 = yes for backwards compatibility). */
-  discontinued: number;
-  /** Array form of manufacturer notes. */
-  manufacturerNotes: string[];
-  /** Snake_case alias for consumers that still expect it. */
-  manufacturer_notes?: string[];
-  /** Grain structure description. */
-  grainStructure?: string | null;
-  /** Snake_case alias. */
-  grain_structure?: string | null;
-  /** Reciprocity failure information (minutes multiplier). */
-  reciprocityFailure?: number | null;
-  /** Snake_case alias. */
-  reciprocity_failure?: number | null;
-  /** Optional product imagery. */
-  staticImageURL?: string | null;
-  /** Snake_case alias. */
-  static_image_url?: string | null;
-  /** First known appearance in the catalogue. */
-  dateAdded?: string;
-  /** Snake_case alias. */
-  date_added?: string;
-  /** Timestamps from the upstream service. */
-  createdAt?: string;
-  updatedAt?: string;
+  isoSpeed: number;
+  grainStructure: string | null;
+  description: string;
+  manufacturerNotes: string[] | null;
+  reciprocityFailure: string | null;
+  discontinued: boolean;
+  staticImageUrl: string | null;
+  dateAdded: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-/**
- * Dilution option for a developer.
- */
 export interface Dilution {
-  id: number;
+  id: string;
   name: string;
   dilution: string;
 }
 
-/**
- * Developer entry returned by the API.
- */
 export interface Developer {
-  id: string;
+  id: number;
   uuid: string;
   slug: string;
   name: string;
   manufacturer: string;
   type: string;
-  /** Free-form description (mapped from the upstream `description` field). */
-  description?: string | null;
-  /** Legacy alias that existing UI components reference. */
-  notes?: string | null;
-  mixingInstructions?: string | null;
-  storageRequirements?: string | null;
-  safetyNotes?: string | null;
+  description: string;
+  filmOrPaper: boolean;
   dilutions: Dilution[];
-  /** "film" if the upstream `film_or_paper` flag is true, otherwise "paper". */
-  filmOrPaper: 'film' | 'paper' | 'both' | 'unspecified';
-  workingLifeHours?: number | null;
-  stockLifeMonths?: number | null;
-  datasheetUrl?: string[];
-  discontinued: number;
-  dateAdded?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  mixingInstructions: string | null;
+  storageRequirements: string | null;
+  safetyNotes: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
-/**
- * Combination of film + developer returned by the API.
- */
 export interface Combination {
-  id: string;
+  id: number;
+  uuid: string;
+  name: string;
+  filmStockId: string;
+  filmSlug: string;
+  developerId: string;
+  developerSlug: string;
+  shootingIso: number;
+  dilutionId: string | null;
+  customDilution: string | null;
+  temperatureC: number;
+  temperatureF: number;
+  timeMinutes: number;
+  agitationMethod: string;
+  agitationSchedule: string | null;
+  pushPull: number;
+  tags: string[] | null;
+  notes: string | null;
+  infoSource: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// API Response types
+export interface FilmsApiResponse {
+  data: Film[];
+  count: number;
+}
+
+export interface DevelopersApiResponse {
+  data: Developer[];
+  count: number;
+}
+
+export interface CombinationsApiResponse {
+  data: Combination[];
+  count: number;
+}
+
+// API raw response types (snake_case from server)
+export interface RawFilm {
+  id: number;
+  uuid: string;
+  slug: string;
+  brand: string;
+  name: string;
+  color_type: string;
+  iso_speed: number;
+  grain_structure: string | null;
+  description: string;
+  manufacturer_notes: string[] | null;
+  reciprocity_failure: string | null;
+  discontinued: boolean;
+  static_image_url: string | null;
+  date_added: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RawDeveloper {
+  id: number;
   uuid: string;
   slug: string;
   name: string;
-  /** UUID (when available) of the film used in the recipe. */
-  filmStockId: string | null;
-  /** Raw slug from the upstream payload (handy for debugging/filtering). */
-  filmSlug?: string | null;
-  /** UUID (when available) of the developer. */
-  developerId: string | null;
-  /** Raw slug from the upstream payload. */
-  developerSlug?: string | null;
-  /** Temperature converted to Fahrenheit to match legacy UI expectations. */
-  temperatureF: number;
-  /** Temperature in Celsius as supplied by the upstream service. */
-  temperatureC?: number | null;
-  /** Total development time in minutes. */
-  timeMinutes: number;
-  /** ISO at which the film was exposed. */
-  shootingIso: number;
-  /** Push/pull delta expressed in stops. */
-  pushPull: number;
-  agitationSchedule?: string | null;
-  notes?: string | null;
-  dilutionId?: number;
-  customDilution?: string | null;
-  /** Classification tags such as `official-ilford`. */
-  tags?: string[];
-  /** Source URL for the data when provided. */
-  infoSource?: string | null;
-  dateAdded?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  manufacturer: string;
+  type: string;
+  description: string;
+  film_or_paper: boolean;
+  dilutions: Dilution[];
+  mixing_instructions: string | null;
+  storage_requirements: string | null;
+  safety_notes: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
-/**
- * Configuration options for the DorkroomClient.
- */
-export interface DorkroomClientConfig {
-  baseUrl?: string;
-  timeout?: number;
-  logger?: Logger;
-  cacheTTL?: number;
+export interface RawCombination {
+  id: number;
+  uuid: string;
+  name: string;
+  film_stock: string;
+  developer: string;
+  shooting_iso: number;
+  dilution_id: string | null;
+  temperature_celsius: number;
+  time_minutes: number;
+  agitation_method: string;
+  push_pull: number;
+  tags: string | null;
+  info_source: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
-/**
- * Minimal logger contract so callers can inject structured logging.
- */
-export interface Logger {
-  debug(message: string, meta?: unknown): void;
-  info(message: string, meta?: unknown): void;
-  warn(message: string, meta?: unknown): void;
-  error(message: string, meta?: unknown): void;
-}
-
-/**
- * Shape of collection responses returned by beta.dorkroom.art.
- */
-export interface ApiResponse<T> {
-  data: T[];
-  count?: number;
-  filters?: Record<string, unknown>;
-}
-
-/**
- * Paginated response helpers (the upstream API sometimes echoes page metadata).
- */
-export interface PaginatedApiResponse<T> extends ApiResponse<T> {
-  page?: number;
-  perPage?: number;
-}
-
-/**
- * Query parameters supported by the combinations endpoint.
- */
-export interface CombinationFetchOptions {
-  filmSlug?: string;
-  developerSlug?: string;
-  count?: number;
-  page?: number;
-  id?: string;
+// Error types
+export class DorkroomApiError extends Error {
+  constructor(
+    message: string,
+    public statusCode?: number,
+    public endpoint?: string
+  ) {
+    super(message);
+    this.name = 'DorkroomApiError';
+  }
 }

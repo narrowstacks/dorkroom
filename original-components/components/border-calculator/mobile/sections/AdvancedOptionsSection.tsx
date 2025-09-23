@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Box,
   VStack,
@@ -7,10 +7,10 @@ import {
   Heading,
   Button,
   ButtonIcon,
-} from "@gluestack-ui/themed";
-import { ToggleSwitch } from "@/components/ui/forms";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { X } from "lucide-react-native";
+} from '@gluestack-ui/themed';
+import { ToggleSwitch } from '@/components/ui/forms';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { X } from 'lucide-react-native';
 
 interface AdvancedOptionsSectionProps {
   onClose: () => void;
@@ -23,9 +23,9 @@ export const AdvancedOptionsSection: React.FC<AdvancedOptionsSectionProps> = ({
   showBlades,
   setShowBlades,
 }) => {
-  const backgroundColor = useThemeColor({}, "background");
-  const borderColor = useThemeColor({}, "outline");
-  const textColor = useThemeColor({}, "text");
+  const backgroundColor = useThemeColor({}, 'background');
+  const borderColor = useThemeColor({}, 'outline');
+  const textColor = useThemeColor({}, 'text');
 
   return (
     <Box
@@ -41,8 +41,8 @@ export const AdvancedOptionsSection: React.FC<AdvancedOptionsSectionProps> = ({
       {/* Header with close button */}
       <HStack
         style={{
-          justifyContent: "space-between",
-          alignItems: "center",
+          justifyContent: 'space-between',
+          alignItems: 'center',
           marginBottom: 16,
         }}
       >
@@ -53,7 +53,7 @@ export const AdvancedOptionsSection: React.FC<AdvancedOptionsSectionProps> = ({
       </HStack>
 
       <VStack space="lg">
-        <Text style={{ fontSize: 16, color: textColor, textAlign: "center" }}>
+        <Text style={{ fontSize: 16, color: textColor, textAlign: 'center' }}>
           Configure advanced display and behavior options
         </Text>
 

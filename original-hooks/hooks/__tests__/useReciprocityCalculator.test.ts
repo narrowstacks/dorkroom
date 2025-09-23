@@ -1,48 +1,48 @@
-describe("useReciprocityCalculator", () => {
-  describe("hook functionality", () => {
-    it("should be importable", () => {
+describe('useReciprocityCalculator', () => {
+  describe('hook functionality', () => {
+    it('should be importable', () => {
       const {
         useReciprocityCalculator,
-      } = require("../useReciprocityCalculator");
-      expect(typeof useReciprocityCalculator).toBe("function");
+      } = require('../useReciprocityCalculator');
+      expect(typeof useReciprocityCalculator).toBe('function');
     });
 
-    it("should export default hook", () => {
+    it('should export default hook', () => {
       const useReciprocityCalculatorDefault =
-        require("../useReciprocityCalculator").default;
-      expect(typeof useReciprocityCalculatorDefault).toBe("function");
+        require('../useReciprocityCalculator').default;
+      expect(typeof useReciprocityCalculatorDefault).toBe('function');
     });
   });
 
-  describe("constants and types", () => {
-    it("should import film types constants", () => {
-      const { FILM_TYPES } = require("../../constants/reciprocity");
+  describe('constants and types', () => {
+    it('should import film types constants', () => {
+      const { FILM_TYPES } = require('../../constants/reciprocity');
 
       expect(Array.isArray(FILM_TYPES)).toBe(true);
       expect(FILM_TYPES.length).toBeGreaterThan(0);
 
       // Verify structure of first film type
       if (FILM_TYPES.length > 0) {
-        expect(FILM_TYPES[0]).toHaveProperty("label");
-        expect(FILM_TYPES[0]).toHaveProperty("value");
-        expect(FILM_TYPES[0]).toHaveProperty("factor");
-        expect(typeof FILM_TYPES[0].label).toBe("string");
-        expect(typeof FILM_TYPES[0].value).toBe("string");
-        expect(typeof FILM_TYPES[0].factor).toBe("number");
+        expect(FILM_TYPES[0]).toHaveProperty('label');
+        expect(FILM_TYPES[0]).toHaveProperty('value');
+        expect(FILM_TYPES[0]).toHaveProperty('factor');
+        expect(typeof FILM_TYPES[0].label).toBe('string');
+        expect(typeof FILM_TYPES[0].value).toBe('string');
+        expect(typeof FILM_TYPES[0].factor).toBe('number');
         expect(FILM_TYPES[0].factor).toBeGreaterThan(1);
       }
     });
 
-    it("should have valid film factors", () => {
-      const { FILM_TYPES } = require("../../constants/reciprocity");
+    it('should have valid film factors', () => {
+      const { FILM_TYPES } = require('../../constants/reciprocity');
 
       FILM_TYPES.forEach((film: any) => {
         expect(film.label.length).toBeGreaterThan(0);
         expect(film.value.length).toBeGreaterThan(0);
 
         // Custom film type doesn't have a factor
-        if (film.value !== "custom") {
-          expect(typeof film.factor).toBe("number");
+        if (film.value !== 'custom') {
+          expect(typeof film.factor).toBe('number');
           expect(film.factor).toBeGreaterThan(1);
           expect(film.factor).toBeLessThan(2); // Reasonable upper bound for reciprocity factors
         }
@@ -50,42 +50,42 @@ describe("useReciprocityCalculator", () => {
     });
   });
 
-  describe("time parsing functionality", () => {
+  describe('time parsing functionality', () => {
     // We'll test the parsing logic by examining the hook's behavior with different inputs
 
-    it("should handle simple numeric seconds", () => {
+    it('should handle simple numeric seconds', () => {
       // Test by checking if the module imports the logic correctly
-      const useReciprocityCalculatorModule = require("../useReciprocityCalculator");
+      const useReciprocityCalculatorModule = require('../useReciprocityCalculator');
       expect(
-        typeof useReciprocityCalculatorModule.useReciprocityCalculator,
-      ).toBe("function");
+        typeof useReciprocityCalculatorModule.useReciprocityCalculator
+      ).toBe('function');
     });
 
-    it("should validate time parsing with known good inputs", () => {
+    it('should validate time parsing with known good inputs', () => {
       // Since parseTimeInput is internal, we'll test through the hook's behavior
       // These tests verify the logic works with expected input formats
 
       // Test simple seconds format
       const numericPattern = /^\d+(\.\d+)?$/;
-      expect(numericPattern.test("30")).toBe(true);
-      expect(numericPattern.test("1.5")).toBe(true);
-      expect(numericPattern.test("abc")).toBe(false);
+      expect(numericPattern.test('30')).toBe(true);
+      expect(numericPattern.test('1.5')).toBe(true);
+      expect(numericPattern.test('abc')).toBe(false);
 
       // Test complex format patterns
       const timePattern = /(\d+(\.\d+)?)\s*[hms]/;
-      expect(timePattern.test("30s")).toBe(true);
-      expect(timePattern.test("1h")).toBe(true);
-      expect(timePattern.test("5m")).toBe(true);
+      expect(timePattern.test('30s')).toBe(true);
+      expect(timePattern.test('1h')).toBe(true);
+      expect(timePattern.test('5m')).toBe(true);
     });
   });
 
-  describe("time formatting functionality", () => {
-    it("should format seconds correctly", () => {
+  describe('time formatting functionality', () => {
+    it('should format seconds correctly', () => {
       // Test the formatTime function indirectly through module structure
-      const useReciprocityCalculatorModule = require("../useReciprocityCalculator");
+      const useReciprocityCalculatorModule = require('../useReciprocityCalculator');
       expect(
-        typeof useReciprocityCalculatorModule.useReciprocityCalculator,
-      ).toBe("function");
+        typeof useReciprocityCalculatorModule.useReciprocityCalculator
+      ).toBe('function');
 
       // Test time conversion logic
       expect(Math.round(30 * 10) / 10).toBe(30); // Seconds rounding
@@ -95,7 +95,7 @@ describe("useReciprocityCalculator", () => {
       expect(Math.floor((3900 % 3600) / 60)).toBe(5); // Remaining minutes
     });
 
-    it("should handle different time ranges", () => {
+    it('should handle different time ranges', () => {
       // Test the logic for different time ranges
 
       // Under 60 seconds
@@ -112,9 +112,9 @@ describe("useReciprocityCalculator", () => {
     });
   });
 
-  describe("reciprocity calculation logic", () => {
-    it("should calculate reciprocity compensation correctly", () => {
-      const { FILM_TYPES } = require("../../constants/reciprocity");
+  describe('reciprocity calculation logic', () => {
+    it('should calculate reciprocity compensation correctly', () => {
+      const { FILM_TYPES } = require('../../constants/reciprocity');
 
       // Test the mathematical formula: adjustedTime = originalTime^factor
       const originalTime = 30; // 30 seconds
@@ -131,14 +131,14 @@ describe("useReciprocityCalculator", () => {
       expect(percentageIncrease).toBeCloseTo(187, 0); // About 187% increase
     });
 
-    it("should handle different reciprocity factors", () => {
-      const { FILM_TYPES } = require("../../constants/reciprocity");
+    it('should handle different reciprocity factors', () => {
+      const { FILM_TYPES } = require('../../constants/reciprocity');
 
       const originalTime = 60; // 1 minute
 
       FILM_TYPES.forEach((film: any) => {
         // Skip custom film type as it doesn't have a factor
-        if (film.value === "custom") return;
+        if (film.value === 'custom') return;
 
         const adjustedTime = Math.pow(originalTime, film.factor);
         expect(adjustedTime).toBeGreaterThan(originalTime);
@@ -149,7 +149,7 @@ describe("useReciprocityCalculator", () => {
       });
     });
 
-    it("should handle edge cases in calculations", () => {
+    it('should handle edge cases in calculations', () => {
       // Test with very short exposures (time = 1 second)
       const shortTime = 1;
       const factor = 1.3;
@@ -172,7 +172,7 @@ describe("useReciprocityCalculator", () => {
       expect(normalCase).toBeCloseTo(15.8, 1); // 10^1.2 ≈ 15.8
     });
 
-    it("should calculate percentage increases correctly", () => {
+    it('should calculate percentage increases correctly', () => {
       const testCases = [
         { original: 30, factor: 1.31, expectedIncrease: 187 },
         { original: 60, factor: 1.26, expectedIncrease: 190 },
@@ -187,8 +187,8 @@ describe("useReciprocityCalculator", () => {
     });
   });
 
-  describe("visual bar width calculations", () => {
-    it("should calculate logarithmic bar widths", () => {
+  describe('visual bar width calculations', () => {
+    it('should calculate logarithmic bar widths', () => {
       const MAX_BAR_WIDTH = 300;
 
       // Test the logarithmic scaling function
@@ -196,7 +196,7 @@ describe("useReciprocityCalculator", () => {
         Math.min(
           MAX_BAR_WIDTH,
           (Math.log(time + 1) / Math.log(Math.max(maxTime, 10) + 1)) *
-            MAX_BAR_WIDTH,
+            MAX_BAR_WIDTH
         );
 
       // Test with different time values
@@ -219,7 +219,7 @@ describe("useReciprocityCalculator", () => {
       expect(smallBarWidth).toBeLessThan(MAX_BAR_WIDTH);
     });
 
-    it("should handle maximum bar width limits", () => {
+    it('should handle maximum bar width limits', () => {
       const MAX_BAR_WIDTH = 300;
 
       // Any calculated width should not exceed the maximum
@@ -233,68 +233,68 @@ describe("useReciprocityCalculator", () => {
     });
   });
 
-  describe("film type validation", () => {
-    it("should handle known film types", () => {
-      const { FILM_TYPES } = require("../../constants/reciprocity");
+  describe('film type validation', () => {
+    it('should handle known film types', () => {
+      const { FILM_TYPES } = require('../../constants/reciprocity');
 
       // Test finding film by value
-      const triX = FILM_TYPES.find((film: any) => film.value === "tri-x");
+      const triX = FILM_TYPES.find((film: any) => film.value === 'tri-x');
       expect(triX).toBeDefined();
       if (triX) {
-        expect(triX.label).toContain("Tri-X");
+        expect(triX.label).toContain('Tri-X');
         expect(triX.factor).toBeGreaterThan(1);
       }
 
       // Test that all film types have valid structures
       FILM_TYPES.forEach((film: any) => {
-        expect(typeof film.label).toBe("string");
-        expect(typeof film.value).toBe("string");
+        expect(typeof film.label).toBe('string');
+        expect(typeof film.value).toBe('string');
         expect(film.label.length).toBeGreaterThan(0);
         expect(film.value.length).toBeGreaterThan(0);
 
         // Custom film type doesn't have a factor
-        if (film.value !== "custom") {
-          expect(typeof film.factor).toBe("number");
+        if (film.value !== 'custom') {
+          expect(typeof film.factor).toBe('number');
           expect(film.factor).toBeGreaterThan(1);
         }
       });
     });
 
-    it("should handle custom factors", () => {
+    it('should handle custom factors', () => {
       // Test custom factor parsing
-      const customFactor = "1.35";
+      const customFactor = '1.35';
       const parsedFactor = parseFloat(customFactor);
       expect(parsedFactor).toBe(1.35);
 
       // Test invalid custom factors
-      const invalidFactor = "invalid";
+      const invalidFactor = 'invalid';
       const parsedInvalid = parseFloat(invalidFactor) || 1;
       expect(parsedInvalid).toBe(1); // Should fallback to 1
 
       // Test boundary values
-      expect(parseFloat("1.1")).toBe(1.1);
-      expect(parseFloat("2.0")).toBe(2.0);
+      expect(parseFloat('1.1')).toBe(1.1);
+      expect(parseFloat('2.0')).toBe(2.0);
     });
   });
 
-  describe("practical photography scenarios", () => {
-    it("should calculate realistic reciprocity scenarios", () => {
-      const { FILM_TYPES } = require("../../constants/reciprocity");
+  describe('practical photography scenarios', () => {
+    it('should calculate realistic reciprocity scenarios', () => {
+      const { FILM_TYPES } = require('../../constants/reciprocity');
 
       // Common long exposure scenarios
       const scenarios = [
         {
-          description: "Star trails",
+          description: 'Star trails',
           originalTime: 240,
           expectedRange: [300, 2000],
         }, // 4 minutes
         {
-          description: "Cityscape at dusk",
+          description: 'Cityscape at dusk',
           originalTime: 30,
           expectedRange: [35, 100],
         }, // 30 seconds
         {
-          description: "Water motion",
+          description: 'Water motion',
           originalTime: 120,
           expectedRange: [140, 600],
         }, // 2 minutes
@@ -302,7 +302,7 @@ describe("useReciprocityCalculator", () => {
 
       scenarios.forEach(({ description, originalTime, expectedRange }) => {
         // Test with Tri-X as example
-        const triX = FILM_TYPES.find((film: any) => film.value === "tri-x");
+        const triX = FILM_TYPES.find((film: any) => film.value === 'tri-x');
         if (triX) {
           const adjustedTime = Math.pow(originalTime, triX.factor);
           expect(adjustedTime).toBeGreaterThanOrEqual(expectedRange[0]);
@@ -311,15 +311,15 @@ describe("useReciprocityCalculator", () => {
       });
     });
 
-    it("should show meaningful percentage increases", () => {
-      const { FILM_TYPES } = require("../../constants/reciprocity");
+    it('should show meaningful percentage increases', () => {
+      const { FILM_TYPES } = require('../../constants/reciprocity');
 
       // For long exposures, percentage increases should be significant
       const longExposure = 180; // 3 minutes
 
       FILM_TYPES.forEach((film: any) => {
         // Skip custom film type as it doesn't have a factor
-        if (film.value === "custom") return;
+        if (film.value === 'custom') return;
 
         const adjustedTime = Math.pow(longExposure, film.factor);
         const percentageIncrease =
@@ -331,15 +331,15 @@ describe("useReciprocityCalculator", () => {
       });
     });
 
-    it("should handle very short exposures appropriately", () => {
-      const { FILM_TYPES } = require("../../constants/reciprocity");
+    it('should handle very short exposures appropriately', () => {
+      const { FILM_TYPES } = require('../../constants/reciprocity');
 
       // Very short exposures (< 1 second) with factor > 1 actually get shorter
       const shortExposure = 0.5; // 1/2 second
 
       FILM_TYPES.forEach((film: any) => {
         // Skip custom film type as it doesn't have a factor
-        if (film.value === "custom") return;
+        if (film.value === 'custom') return;
 
         const adjustedTime = Math.pow(shortExposure, film.factor);
         const percentageChange =
@@ -353,11 +353,11 @@ describe("useReciprocityCalculator", () => {
     });
   });
 
-  describe("error handling and validation", () => {
-    it("should handle invalid time inputs", () => {
+  describe('error handling and validation', () => {
+    it('should handle invalid time inputs', () => {
       // Test time parsing validation patterns
-      const validInputs = ["30", "30s", "1m30s", "1h15m", "2.5"];
-      const invalidInputs = ["", "abc", "30x", "invalid"];
+      const validInputs = ['30', '30s', '1m30s', '1h15m', '2.5'];
+      const invalidInputs = ['', 'abc', '30x', 'invalid'];
 
       validInputs.forEach((input) => {
         // Valid inputs should match expected patterns
@@ -374,7 +374,7 @@ describe("useReciprocityCalculator", () => {
       });
     });
 
-    it("should handle zero and negative times", () => {
+    it('should handle zero and negative times', () => {
       // Test boundary conditions
       const zeroTime = 0;
       const negativeTime = -5;
@@ -388,7 +388,7 @@ describe("useReciprocityCalculator", () => {
       expect(validTime > 0).toBe(true);
     });
 
-    it("should handle extreme factor values", () => {
+    it('should handle extreme factor values', () => {
       // Test with extreme but possible factors
       const extremeFactors = [1.01, 1.99, 1.5];
       const testTime = 60;
@@ -402,24 +402,24 @@ describe("useReciprocityCalculator", () => {
     });
   });
 
-  describe("integration and state management", () => {
-    it("should maintain consistent state structure", () => {
-      const { FILM_TYPES } = require("../../constants/reciprocity");
-      const useReciprocityCalculatorModule = require("../useReciprocityCalculator");
+  describe('integration and state management', () => {
+    it('should maintain consistent state structure', () => {
+      const { FILM_TYPES } = require('../../constants/reciprocity');
+      const useReciprocityCalculatorModule = require('../useReciprocityCalculator');
 
       // Verify module exports
       expect(
-        typeof useReciprocityCalculatorModule.useReciprocityCalculator,
-      ).toBe("function");
+        typeof useReciprocityCalculatorModule.useReciprocityCalculator
+      ).toBe('function');
 
       // Verify film types structure consistency
       expect(FILM_TYPES.length).toBeGreaterThan(0);
-      expect(FILM_TYPES[0]).toHaveProperty("value");
-      expect(FILM_TYPES[0]).toHaveProperty("factor");
+      expect(FILM_TYPES[0]).toHaveProperty('value');
+      expect(FILM_TYPES[0]).toHaveProperty('factor');
     });
 
-    it("should handle default values appropriately", () => {
-      const { FILM_TYPES } = require("../../constants/reciprocity");
+    it('should handle default values appropriately', () => {
+      const { FILM_TYPES } = require('../../constants/reciprocity');
 
       // Test that default selections are valid
       expect(FILM_TYPES.length).toBeGreaterThan(0);
@@ -435,8 +435,8 @@ describe("useReciprocityCalculator", () => {
       expect(defaultCustomFactor).toBeLessThan(2);
 
       // Default time should be parseable
-      const defaultTime = "30s";
-      expect(typeof defaultTime).toBe("string");
+      const defaultTime = '30s';
+      expect(typeof defaultTime).toBe('string');
       expect(defaultTime.length).toBeGreaterThan(0);
     });
   });

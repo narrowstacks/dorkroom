@@ -38,9 +38,7 @@ export function CalculatorStat({
       <div className="mt-3 text-3xl font-semibold tracking-tight text-white">
         {value}
       </div>
-      {helperText && (
-        <p className="mt-2 text-xs text-white/70">{helperText}</p>
-      )}
+      {helperText && <p className="mt-2 text-xs text-white/70">{helperText}</p>}
     </div>
   );
 }

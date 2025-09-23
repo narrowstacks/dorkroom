@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect } from 'react';
 import {
   Select,
   SelectTrigger,
@@ -9,10 +9,10 @@ import {
   SelectContent,
   SelectItem,
   SelectScrollView,
-} from "@/components/ui/select";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { ChevronDownIcon } from "@/components/ui/icon";
-import { debugLog } from "@/utils/debugLogger";
+} from '@/components/ui/select';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { ChevronDownIcon } from '@/components/ui/icon';
+import { debugLog } from '@/utils/debugLogger';
 
 interface StyledSelectProps {
   value: string;
@@ -25,18 +25,18 @@ export function StyledSelect({
   value,
   onValueChange,
   items,
-  placeholder = "Select an option",
+  placeholder = 'Select an option',
 }: StyledSelectProps) {
   // Get theme colors
-  const textColor = useThemeColor({}, "text");
-  const backgroundColor = useThemeColor({}, "background");
-  const borderColor = useThemeColor({}, "borderColor");
-  const placeholderTextColor = useThemeColor({}, "tabIconDefault");
+  const textColor = useThemeColor({}, 'text');
+  const backgroundColor = useThemeColor({}, 'background');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const placeholderTextColor = useThemeColor({}, 'tabIconDefault');
 
   // Dropdown specific background for better contrast
   const dropdownBackgroundColor = useThemeColor(
-    { light: "#ffffff", dark: "#2c2c2c" },
-    "cardBackground",
+    { light: '#ffffff', dark: '#2c2c2c' },
+    'cardBackground'
   );
 
   const selectedItem = items.find((item) => item.value === value);
@@ -44,10 +44,10 @@ export function StyledSelect({
   // Basic debug logging
   useEffect(() => {
     debugLog(
-      "[StyledSelect] Gluestack Select mounted - value:",
+      '[StyledSelect] Gluestack Select mounted - value:',
       value,
-      "items:",
-      items.length,
+      'items:',
+      items.length
     );
   }, [value, items]);
 
@@ -55,7 +55,7 @@ export function StyledSelect({
     <Select
       selectedValue={value}
       onValueChange={(newValue) => {
-        debugLog("[StyledSelect] Value changed to:", newValue);
+        debugLog('[StyledSelect] Value changed to:', newValue);
         onValueChange(newValue);
       }}
     >
@@ -69,7 +69,7 @@ export function StyledSelect({
       >
         <SelectInput
           placeholder={placeholder}
-          value={selectedItem?.label || ""}
+          value={selectedItem?.label || ''}
           style={{
             color: textColor,
           }}

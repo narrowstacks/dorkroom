@@ -1,49 +1,49 @@
-import React, { useState, useMemo, useRef } from "react";
-import { Platform, StyleSheet } from "react-native";
-import { router } from "expo-router";
-import { Box, Text, Button, ButtonText, VStack } from "@gluestack-ui/themed";
-import { Spinner } from "@/components/ui/spinner";
-import { RefreshCw } from "lucide-react-native";
+import React, { useState, useMemo, useRef } from 'react';
+import { Platform, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
+import { Box, Text, Button, ButtonText, VStack } from '@gluestack-ui/themed';
+import { Spinner } from '@/components/ui/spinner';
+import { RefreshCw } from 'lucide-react-native';
 
-import { CalculatorLayout } from "@/components/ui/layout/CalculatorLayout";
-import { FormSection } from "@/components/ui/forms/FormSection";
+import { CalculatorLayout } from '@/components/ui/layout/CalculatorLayout';
+import { FormSection } from '@/components/ui/forms/FormSection';
 import {
   InfoSection,
   InfoText,
   InfoSubtitle,
   InfoList,
-} from "@/components/ui/calculator/InfoSection";
-import { SearchDropdown } from "@/components/ui/search";
-import { PaginationControls } from "@/components/ui/pagination";
+} from '@/components/ui/calculator/InfoSection';
+import { SearchDropdown } from '@/components/ui/search';
+import { PaginationControls } from '@/components/ui/pagination';
 
 // Import new componentized parts
-import { SearchSection } from "@/components/development-recipes/filters/SearchSection";
-import { SelectedItemsDisplay } from "@/components/development-recipes/filters/SelectedItemsDisplay";
-import { FiltersSection } from "@/components/development-recipes/filters/FiltersSection";
-import { ResultsHeader } from "@/components/development-recipes/results/ResultsHeader";
-import { ActionButtons } from "@/components/development-recipes/results/ActionButtons";
-import { TableView } from "@/components/development-recipes/results/TableView";
-import { CardsView } from "@/components/development-recipes/results/CardsView";
-import { RecipeImportModal } from "@/components/development-recipes/modals/RecipeImportModal";
-import { ApiRecipeModal } from "@/components/development-recipes/modals/ApiRecipeModal";
-import { CustomRecipeModal } from "@/components/development-recipes/modals/CustomRecipeModal";
-import { CustomRecipeFormModal } from "@/components/development-recipes/modals/CustomRecipeFormModal";
-import { MobileSearchModals } from "@/components/development-recipes/modals/MobileSearchModals";
+import { SearchSection } from '@/components/development-recipes/filters/SearchSection';
+import { SelectedItemsDisplay } from '@/components/development-recipes/filters/SelectedItemsDisplay';
+import { FiltersSection } from '@/components/development-recipes/filters/FiltersSection';
+import { ResultsHeader } from '@/components/development-recipes/results/ResultsHeader';
+import { ActionButtons } from '@/components/development-recipes/results/ActionButtons';
+import { TableView } from '@/components/development-recipes/results/TableView';
+import { CardsView } from '@/components/development-recipes/results/CardsView';
+import { RecipeImportModal } from '@/components/development-recipes/modals/RecipeImportModal';
+import { ApiRecipeModal } from '@/components/development-recipes/modals/ApiRecipeModal';
+import { CustomRecipeModal } from '@/components/development-recipes/modals/CustomRecipeModal';
+import { CustomRecipeFormModal } from '@/components/development-recipes/modals/CustomRecipeFormModal';
+import { MobileSearchModals } from '@/components/development-recipes/modals/MobileSearchModals';
 import {
   getCustomRecipeFilm,
   getCustomRecipeDeveloper,
-} from "@/components/development-recipes/utils/RecipeHelpers";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useDevelopmentRecipes } from "@/hooks/useDevelopmentRecipes";
-import { useRecipeUrlState } from "@/hooks/useRecipeUrlState";
-import { useCustomRecipes } from "@/hooks/useCustomRecipes";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
-import { useFeatureFlags } from "@/hooks/useFeatureFlags";
-import { useDebounce } from "@/hooks/useDebounce";
-import { usePagination } from "@/hooks/usePagination";
-import type { Film, Developer, Combination } from "@/api/dorkroom/types";
-import type { CustomRecipe } from "@/types/customRecipeTypes";
-import { debugError } from "@/utils/debugLogger";
+} from '@/components/development-recipes/utils/RecipeHelpers';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useDevelopmentRecipes } from '@/hooks/useDevelopmentRecipes';
+import { useRecipeUrlState } from '@/hooks/useRecipeUrlState';
+import { useCustomRecipes } from '@/hooks/useCustomRecipes';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { useDebounce } from '@/hooks/useDebounce';
+import { usePagination } from '@/hooks/usePagination';
+import type { Film, Developer, Combination } from '@/api/dorkroom/types';
+import type { CustomRecipe } from '@/types/customRecipeTypes';
+import { debugError } from '@/utils/debugLogger';
 
 export default function DevelopmentRecipes() {
   // Get development recipes data (this loads the data and provides films/developers for URL parsing)
@@ -155,7 +155,7 @@ export default function DevelopmentRecipes() {
       dilutionFilter,
       isoFilter,
     },
-    recipesByUuid, // Recipe lookup map for shared recipe functionality
+    recipesByUuid // Recipe lookup map for shared recipe functionality
   );
 
   // URL state management for shared recipes
@@ -218,12 +218,12 @@ export default function DevelopmentRecipes() {
     if (hasSharedRecipe && sharedRecipe && !isLoadingSharedRecipe) {
       // Check if it's a custom recipe or API recipe
       const isCustomRecipe = customRecipes.some(
-        (recipe) => recipe.id === sharedRecipe.id,
+        (recipe) => recipe.id === sharedRecipe.id
       );
 
       if (isCustomRecipe) {
         const customRecipe = customRecipes.find(
-          (recipe) => recipe.id === sharedRecipe.id,
+          (recipe) => recipe.id === sharedRecipe.id
         );
         if (customRecipe) {
           setSelectedCustomRecipe(customRecipe);
@@ -246,7 +246,7 @@ export default function DevelopmentRecipes() {
   React.useEffect(() => {
     if (sharedRecipeError) {
       // Handle shared recipe error (could show toast notification)
-      console.warn("Shared recipe error:", sharedRecipeError);
+      console.warn('Shared recipe error:', sharedRecipeError);
     }
   }, [sharedRecipeError]);
 
@@ -291,7 +291,7 @@ export default function DevelopmentRecipes() {
     CustomRecipe | undefined
   >(undefined);
   const [showCustomRecipes, setShowCustomRecipes] = useState(true);
-  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [showMobileFilmModal, setShowMobileFilmModal] = useState(false);
   const [showMobileDeveloperModal, setShowMobileDeveloperModal] =
     useState(false);
@@ -314,9 +314,9 @@ export default function DevelopmentRecipes() {
   } | null>(null);
 
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > 768;
-  const textColor = useThemeColor({}, "text");
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
+  const isDesktop = Platform.OS === 'web' && width > 768;
+  const textColor = useThemeColor({}, 'text');
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
 
   // Combined API + custom recipes for display
   const allCombinations = React.useMemo(() => {
@@ -409,7 +409,7 @@ export default function DevelopmentRecipes() {
 
         // If no specific filters applied, include all custom recipes
         return true;
-      },
+      }
     );
 
     // Sort custom recipes by creation date (newest first) to show recently added ones at the top
@@ -462,7 +462,7 @@ export default function DevelopmentRecipes() {
   };
 
   const getCustomRecipeDeveloperHelper = (
-    recipeId: string,
+    recipeId: string
   ): Developer | undefined => {
     return getCustomRecipeDeveloper(recipeId, customRecipes, getDeveloperById);
   };
@@ -472,7 +472,7 @@ export default function DevelopmentRecipes() {
     if (!selectedCustomRecipe) return null;
     // Find the current version from the customRecipes array
     const currentVersion = customRecipes.find(
-      (r) => r.id === selectedCustomRecipe.id,
+      (r) => r.id === selectedCustomRecipe.id
     );
     return currentVersion || selectedCustomRecipe; // Fallback to original if not found
   }, [selectedCustomRecipe, customRecipes]);
@@ -513,9 +513,9 @@ export default function DevelopmentRecipes() {
         timeMinutes: sharedCustomRecipe.timeMinutes,
         shootingIso: sharedCustomRecipe.shootingIso,
         pushPull: sharedCustomRecipe.pushPull,
-        agitationSchedule: sharedCustomRecipe.agitationSchedule || "",
-        notes: sharedCustomRecipe.notes || "",
-        customDilution: sharedCustomRecipe.customDilution || "",
+        agitationSchedule: sharedCustomRecipe.agitationSchedule || '',
+        notes: sharedCustomRecipe.notes || '',
+        customDilution: sharedCustomRecipe.customDilution || '',
         customFilm: sharedCustomRecipe.customFilm,
         customDeveloper: sharedCustomRecipe.customDeveloper,
         isPublic: sharedCustomRecipe.isPublic,
@@ -533,7 +533,7 @@ export default function DevelopmentRecipes() {
       // Show success message
       // You could add a toast notification here if desired
     } catch (error) {
-      debugError("Failed to import custom recipe:", error);
+      debugError('Failed to import custom recipe:', error);
       // You could show an error toast here if desired
     }
   };
@@ -552,7 +552,7 @@ export default function DevelopmentRecipes() {
       await forceRefreshData();
       // Force refresh completed
     } catch (error) {
-      debugError("Force refresh failed:", error);
+      debugError('Force refresh failed:', error);
     }
   };
 
@@ -600,7 +600,7 @@ export default function DevelopmentRecipes() {
   // Handle duplicating a recipe (either API or custom)
   const handleDuplicateRecipe = (
     combination: Combination,
-    isCustom: boolean = false,
+    isCustom: boolean = false
   ) => {
     const customRecipe = isCustom
       ? customRecipes.find((r) => r.id === combination.id)
@@ -612,8 +612,12 @@ export default function DevelopmentRecipes() {
 
     // Create a new custom recipe based on the existing one
     const duplicateRecipe: CustomRecipe = {
-      id: `duplicate_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-      name: `Copy of ${combination.name || (film ? `${film.brand} ${film.name}` : "Unknown")}`,
+      id: `duplicate_${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(2, 11)}`,
+      name: `Copy of ${
+        combination.name || (film ? `${film.brand} ${film.name}` : 'Unknown')
+      }`,
       filmId:
         isCustom && customRecipe?.isCustomFilm
           ? customRecipe.filmId
@@ -660,7 +664,7 @@ export default function DevelopmentRecipes() {
       filtered = allFilms.filter(
         (film) =>
           film.name.toLowerCase().includes(debouncedFilmSearch.toLowerCase()) ||
-          film.brand.toLowerCase().includes(debouncedFilmSearch.toLowerCase()),
+          film.brand.toLowerCase().includes(debouncedFilmSearch.toLowerCase())
       );
     }
 
@@ -680,7 +684,7 @@ export default function DevelopmentRecipes() {
             .includes(debouncedDeveloperSearch.toLowerCase()) ||
           dev.manufacturer
             .toLowerCase()
-            .includes(debouncedDeveloperSearch.toLowerCase()),
+            .includes(debouncedDeveloperSearch.toLowerCase())
       );
     }
 
@@ -696,7 +700,7 @@ export default function DevelopmentRecipes() {
         title: film.name,
         subtitle: film.brand,
       })),
-    [filteredFilms],
+    [filteredFilms]
   );
 
   const developerDropdownItems = React.useMemo(
@@ -706,7 +710,7 @@ export default function DevelopmentRecipes() {
         title: developer.name,
         subtitle: developer.manufacturer,
       })),
-    [filteredDevelopers],
+    [filteredDevelopers]
   );
 
   // Handle dropdown item selection
@@ -718,7 +722,7 @@ export default function DevelopmentRecipes() {
     const film = allFilms.find((f) => f.uuid === item.id);
     if (film) {
       setSelectedFilm(film);
-      setFilmSearch("");
+      setFilmSearch('');
       setIsFilmSearchFocused(false);
     }
   };
@@ -731,7 +735,7 @@ export default function DevelopmentRecipes() {
     const developer = allDevelopers.find((d) => d.uuid === item.id);
     if (developer) {
       setSelectedDeveloper(developer);
-      setDeveloperSearch("");
+      setDeveloperSearch('');
       setIsDeveloperSearchFocused(false);
     }
   };
@@ -746,14 +750,14 @@ export default function DevelopmentRecipes() {
           width: number,
           height: number,
           pageX: number,
-          pageY: number,
+          pageY: number
         ) => {
           setFilmSearchPosition({
             top: pageY + height,
             left: pageX,
             width: width,
           });
-        },
+        }
       );
     }
   };
@@ -767,14 +771,14 @@ export default function DevelopmentRecipes() {
           width: number,
           height: number,
           pageX: number,
-          pageY: number,
+          pageY: number
         ) => {
           setDeveloperSearchPosition({
             top: pageY + height,
             left: pageX,
             width: width,
           });
-        },
+        }
       );
     }
   };
@@ -790,11 +794,11 @@ export default function DevelopmentRecipes() {
       <InfoSubtitle>How to Use:</InfoSubtitle>
       <InfoList
         items={[
-          "Search for films by name or brand",
-          "Search for developers by manufacturer or name",
-          "Use filters to narrow by film type or developer type",
-          "Sort results by film name, developer, time, temperature, or ISO",
-          "View detailed development parameters for each combination",
+          'Search for films by name or brand',
+          'Search for developers by manufacturer or name',
+          'Use filters to narrow by film type or developer type',
+          'Sort results by film name, developer, time, temperature, or ISO',
+          'View detailed development parameters for each combination',
         ]}
       />
 
@@ -808,10 +812,10 @@ export default function DevelopmentRecipes() {
       <InfoSubtitle>Tips:</InfoSubtitle>
       <InfoList
         items={[
-          "Temperature is critical - maintain consistency within ±0.5°F",
-          "Agitation schedule affects contrast and grain structure",
-          "Push/pull processing changes both time and development characteristics",
-          "Always refer to manufacturer data sheets for safety information",
+          'Temperature is critical - maintain consistency within ±0.5°F',
+          'Agitation schedule affects contrast and grain structure',
+          'Push/pull processing changes both time and development characteristics',
+          'Always refer to manufacturer data sheets for safety information',
         ]}
       />
     </InfoSection>
@@ -857,7 +861,7 @@ export default function DevelopmentRecipes() {
         <Box style={styles.leftPanel}>
           {/* Search and Filter Section */}
           <FormSection>
-            <VStack space="md" style={{ overflow: "visible" }}>
+            <VStack space="md" style={{ overflow: 'visible' }}>
               {/* Search/Selection Fields */}
               <SearchSection
                 filmSearch={filmSearch}
@@ -866,8 +870,8 @@ export default function DevelopmentRecipes() {
                 selectedDeveloper={selectedDeveloper}
                 onFilmSearchChange={setFilmSearch}
                 onDeveloperSearchChange={setDeveloperSearch}
-                onFilmClear={() => setFilmSearch("")}
-                onDeveloperClear={() => setDeveloperSearch("")}
+                onFilmClear={() => setFilmSearch('')}
+                onDeveloperClear={() => setDeveloperSearch('')}
                 onFilmFocus={() => {
                   setIsFilmSearchFocused(true);
                   handleFilmSearchLayout();
@@ -944,7 +948,7 @@ export default function DevelopmentRecipes() {
               }
               onNewCustomRecipe={handleNewCustomRecipe}
               onToggleViewMode={() =>
-                setViewMode(viewMode === "cards" ? "table" : "cards")
+                setViewMode(viewMode === 'cards' ? 'table' : 'cards')
               }
             />
 
@@ -977,7 +981,7 @@ export default function DevelopmentRecipes() {
                   resetToFirstPage={resetToFirstPage}
                 />
 
-                {isDesktop && viewMode === "table" ? (
+                {isDesktop && viewMode === 'table' ? (
                   <TableView
                     paginatedCombinations={paginatedCombinations}
                     customRecipes={customRecipes}
@@ -987,7 +991,7 @@ export default function DevelopmentRecipes() {
                     onRowPress={(combination, isCustom) => {
                       if (isCustom) {
                         const customRecipe = customRecipes.find(
-                          (r) => r.id === combination.id,
+                          (r) => r.id === combination.id
                         );
                         if (customRecipe) {
                           handleCustomRecipePress(customRecipe);
@@ -1008,7 +1012,7 @@ export default function DevelopmentRecipes() {
                     onCardPress={(combination, isCustom) => {
                       if (isCustom) {
                         const customRecipe = customRecipes.find(
-                          (r) => r.id === combination.id,
+                          (r) => r.id === combination.id
                         );
                         if (customRecipe) {
                           handleCustomRecipePress(customRecipe);
@@ -1138,68 +1142,68 @@ export default function DevelopmentRecipes() {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    width: "100%",
-    overflow: "visible",
+    width: '100%',
+    overflow: 'visible',
   },
   leftPanel: {
     flex: 1,
-    overflow: "visible",
+    overflow: 'visible',
   },
   resultsSection: {
     flex: 1,
     marginTop: 16,
-    position: "relative",
+    position: 'relative',
   },
   // Loading and Error Styles
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 40,
   },
   loadingText: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
   },
   errorContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 40,
   },
   errorText: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: '#007AFF',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   retryButtonText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   noResultsContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 40,
   },
   noResultsText: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   noResultsSubtext: {
     fontSize: 14,
-    textAlign: "center",
+    textAlign: 'center',
   },
 });

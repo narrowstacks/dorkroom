@@ -1,53 +1,53 @@
-import { Text, TextProps, TextStyle } from "react-native";
-import { useThemeColor } from "@/hooks/useThemeColor";
+import { Text, TextProps, TextStyle } from 'react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 export type TextType =
-  | "default"
-  | "defaultSemiBold"
-  | "defaultBold"
-  | "small"
-  | "smallSemiBold"
-  | "smallBold"
-  | "large"
-  | "largeSemiBold"
-  | "largeBold";
+  | 'default'
+  | 'defaultSemiBold'
+  | 'defaultBold'
+  | 'small'
+  | 'smallSemiBold'
+  | 'smallBold'
+  | 'large'
+  | 'largeSemiBold'
+  | 'largeBold';
 
 const textStyles: Record<TextType, TextStyle> = {
   default: {
     fontSize: 16,
-    fontWeight: "400",
+    fontWeight: '400',
   },
   defaultSemiBold: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   defaultBold: {
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   small: {
     fontSize: 14,
-    fontWeight: "400",
+    fontWeight: '400',
   },
   smallSemiBold: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   smallBold: {
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   large: {
     fontSize: 18,
-    fontWeight: "400",
+    fontWeight: '400',
   },
   largeSemiBold: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   largeBold: {
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: '700',
   },
 };
 
@@ -62,10 +62,10 @@ export function ThemedText(props: ThemedTextProps) {
     style,
     lightColor,
     darkColor,
-    type = "default",
+    type = 'default',
     ...otherProps
   } = props;
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, "text");
+  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
   const textStyle = type ? textStyles[type] : undefined;
 
   return <Text style={[textStyle, { color }, style]} {...otherProps} />;

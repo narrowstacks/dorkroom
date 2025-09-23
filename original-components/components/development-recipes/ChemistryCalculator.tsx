@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleSheet } from "react-native";
+import React from 'react';
+import { StyleSheet } from 'react-native';
 import {
   Box,
   Text,
@@ -7,14 +7,14 @@ import {
   HStack,
   Button,
   ButtonText,
-} from "@gluestack-ui/themed";
-import { Beaker, RotateCcw } from "lucide-react-native";
+} from '@gluestack-ui/themed';
+import { Beaker, RotateCcw } from 'lucide-react-native';
 
-import { FormGroup } from "@/components/ui/forms/FormSection";
-import { TextInput } from "@/components/ui/forms";
-import { StyledSelect } from "@/components/ui/select/StyledSelect";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useChemistryCalculator } from "@/hooks/useChemistryCalculator";
+import { FormGroup } from '@/components/ui/forms/FormSection';
+import { TextInput } from '@/components/ui/forms';
+import { StyledSelect } from '@/components/ui/select/StyledSelect';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useChemistryCalculator } from '@/hooks/useChemistryCalculator';
 
 interface ChemistryCalculatorProps {
   availableDilutions?: { label: string; value: string }[];
@@ -22,14 +22,14 @@ interface ChemistryCalculatorProps {
 }
 
 export function ChemistryCalculator({
-  availableDilutions = [{ label: "Stock", value: "Stock" }],
+  availableDilutions = [{ label: 'Stock', value: 'Stock' }],
   defaultDilution,
 }: ChemistryCalculatorProps) {
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const outline = useThemeColor({}, "outline");
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const outline = useThemeColor({}, 'outline');
 
   const chemistry = useChemistryCalculator();
 
@@ -41,14 +41,14 @@ export function ChemistryCalculator({
   }, [defaultDilution, chemistry]);
 
   const volumeUnits = [
-    { label: "Milliliters (ml)", value: "ml" },
-    { label: "Fluid Ounces (fl oz)", value: "oz" },
-    { label: "Number of Rolls", value: "rolls" },
+    { label: 'Milliliters (ml)', value: 'ml' },
+    { label: 'Fluid Ounces (fl oz)', value: 'oz' },
+    { label: 'Number of Rolls', value: 'rolls' },
   ];
 
   const filmFormats = [
-    { label: "35mm (300ml per roll)", value: "35mm" },
-    { label: "120 (500ml per roll)", value: "120" },
+    { label: '35mm (300ml per roll)', value: '35mm' },
+    { label: '120 (500ml per roll)', value: '120' },
   ];
 
   return (
@@ -74,7 +74,7 @@ export function ChemistryCalculator({
           />
         </FormGroup>
 
-        {chemistry.unit === "rolls" ? (
+        {chemistry.unit === 'rolls' ? (
           <>
             <FormGroup label="Film Format">
               <StyledSelect
@@ -99,7 +99,7 @@ export function ChemistryCalculator({
             <TextInput
               value={chemistry.totalVolume}
               onChangeText={chemistry.setTotalVolume}
-              placeholder={chemistry.unit === "ml" ? "500" : "16.9"}
+              placeholder={chemistry.unit === 'ml' ? '500' : '16.9'}
               keyboardType="numeric"
               inputTitle={`Enter Total Volume (${chemistry.unit})`}
             />
@@ -108,7 +108,7 @@ export function ChemistryCalculator({
 
         <FormGroup label="Dilution Ratio">
           <StyledSelect
-            value={chemistry.selectedDilution || ""}
+            value={chemistry.selectedDilution || ''}
             onValueChange={(value) =>
               chemistry.setSelectedDilution(value || null)
             }
@@ -189,15 +189,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   header: {
-    alignItems: "center",
+    alignItems: 'center',
     padding: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(0,0,0,0.1)",
+    borderBottomColor: 'rgba(0,0,0,0.1)',
   },
   title: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   content: {
     padding: 16,
@@ -209,38 +209,38 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 1,
     borderRadius: 8,
-    backgroundColor: "rgba(0,0,0,0.02)",
+    backgroundColor: 'rgba(0,0,0,0.02)',
   },
   resultsTitle: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
   },
   resultRow: {
-    justifyContent: "space-between",
-    alignItems: "center",
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   resultLabel: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   resultValue: {
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   errorContainer: {
     padding: 8,
-    backgroundColor: "rgba(255, 0, 0, 0.1)",
+    backgroundColor: 'rgba(255, 0, 0, 0.1)',
     borderRadius: 6,
   },
   errorText: {
     fontSize: 12,
-    color: "#d32f2f",
+    color: '#d32f2f',
   },
   resetButton: {
-    alignSelf: "center",
-    flexDirection: "row",
-    alignItems: "center",
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
   resetButtonText: {

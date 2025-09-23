@@ -20,25 +20,25 @@ import {
   ApiResponse,
   PaginatedApiResponse,
   CombinationFetchOptions,
-} from "./types";
-import { DataFetchError, DataParseError, DataNotLoadedError } from "./errors";
+} from './types';
+import { DataFetchError, DataParseError, DataNotLoadedError } from './errors';
 import {
   HTTPTransport,
   FetchHTTPTransport,
   ConsoleLogger,
   joinURL,
-} from "./transport";
-import { debounce } from "../../utils/throttle";
+} from './transport';
+import { debounce } from '../../utils/throttle';
 import {
   getApiEndpointConfig,
   getEnvironmentConfig,
-} from "../../utils/platformDetection";
-import { debugLog } from "../../utils/debugLogger";
+} from '../../utils/platformDetection';
+import { debugLog } from '../../utils/debugLogger';
 import {
   enhanceFilmResults,
   enhanceDeveloperResults,
   DEFAULT_TOKENIZED_CONFIG,
-} from "../../utils/tokenizedSearch";
+} from '../../utils/tokenizedSearch';
 
 /**
  * Cache entry with expiration.
@@ -171,25 +171,25 @@ export class DorkroomClient {
       const envConfig = getEnvironmentConfig();
       this.logger.debug(
         `Dorkroom client initialized for ${envConfig.platform} platform ` +
-          `with base URL: ${this.baseUrl}`,
+          `with base URL: ${this.baseUrl}`
       );
     }
 
     // Initialize HTTP transport
     this.transport = new FetchHTTPTransport(
       { maxRetries: config.maxRetries || 3 },
-      this.logger,
+      this.logger
     );
 
     // Initialize debounced search methods
     this.debouncedFuzzySearchFilms = debounce(
       this.performFuzzySearchFilms.bind(this),
-      config.searchDebounceMs || 300,
+      config.searchDebounceMs || 300
     );
 
     this.debouncedFuzzySearchDevelopers = debounce(
       this.performFuzzySearchDevelopers.bind(this),
-      config.searchDebounceMs || 300,
+      config.searchDebounceMs || 300
     );
 
     // Cleanup expired cache entries periodically
@@ -209,7 +209,7 @@ export class DorkroomClient {
       const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
 
       const response = await fetch(this.baseUrl, {
-        method: "HEAD",
+        method: 'HEAD',
         signal: controller.signal,
       });
 
@@ -227,7 +227,7 @@ export class DorkroomClient {
   private async storeLocalCache(
     films: Film[],
     developers: Developer[],
-    combinations: Combination[],
+    combinations: Combination[]
   ): Promise<void> {
     try {
       const cacheData = {
@@ -238,12 +238,12 @@ export class DorkroomClient {
       };
 
       const AsyncStorage =
-        require("@react-native-async-storage/async-storage").default;
+        require('@react-native-async-storage/async-storage').default;
       await AsyncStorage.setItem(
-        "dorkroom_development_data",
-        JSON.stringify(cacheData),
+        'dorkroom_development_data',
+        JSON.stringify(cacheData)
       );
-      this.logger.debug("Data cached to local storage");
+      this.logger.debug('Data cached to local storage');
     } catch (error) {
       this.logger.warn(`Failed to store local cache: ${error}`);
     }
@@ -260,9 +260,9 @@ export class DorkroomClient {
   } | null> {
     try {
       const AsyncStorage =
-        require("@react-native-async-storage/async-storage").default;
+        require('@react-native-async-storage/async-storage').default;
       const cachedData = await AsyncStorage.getItem(
-        "dorkroom_development_data",
+        'dorkroom_development_data'
       );
 
       if (!cachedData) {
@@ -278,7 +278,7 @@ export class DorkroomClient {
         !parsed.combinations ||
         !parsed.timestamp
       ) {
-        this.logger.warn("Invalid cache structure, ignoring");
+        this.logger.warn('Invalid cache structure, ignoring');
         return null;
       }
 
@@ -286,13 +286,13 @@ export class DorkroomClient {
       const cacheAge = Date.now() - parsed.timestamp;
       if (cacheAge > DorkroomClient.DATA_CACHE_TTL) {
         this.logger.debug(
-          `Local cache expired (age: ${Math.round(cacheAge / 1000)}s), ignoring`,
+          `Local cache expired (age: ${Math.round(cacheAge / 1000)}s), ignoring`
         );
         return null;
       }
 
       this.logger.debug(
-        `Using local cache (age: ${Math.round(cacheAge / 1000)}s)`,
+        `Using local cache (age: ${Math.round(cacheAge / 1000)}s)`
       );
       return parsed;
     } catch (error) {
@@ -307,9 +307,9 @@ export class DorkroomClient {
   private async clearLocalCache(): Promise<void> {
     try {
       const AsyncStorage =
-        require("@react-native-async-storage/async-storage").default;
-      await AsyncStorage.removeItem("dorkroom_development_data");
-      this.logger.debug("Local cache cleared");
+        require('@react-native-async-storage/async-storage').default;
+      await AsyncStorage.removeItem('dorkroom_development_data');
+      this.logger.debug('Local cache cleared');
     } catch (error) {
       this.logger.warn(`Failed to clear local cache: ${error}`);
     }
@@ -321,7 +321,7 @@ export class DorkroomClient {
   private async fetch<T>(
     resource: string,
     params: URLSearchParams = new URLSearchParams(),
-    requestKey?: string,
+    requestKey?: string
   ): Promise<T[]> {
     const url = joinURL(this.baseUrl, `${resource}?${params.toString()}`);
     const cacheKey = requestKey || url;
@@ -343,7 +343,7 @@ export class DorkroomClient {
 
       try {
         this.logger.debug(
-          `Fetching ${resource} with params: ${params.toString()}`,
+          `Fetching ${resource} with params: ${params.toString()}`
         );
         const response = await this.transport.get(url, this.timeout);
 
@@ -354,17 +354,17 @@ export class DorkroomClient {
             this.searchCache.set(
               cacheKey,
               apiResponse.data as any,
-              this.cacheTTL,
+              this.cacheTTL
             );
             return apiResponse.data;
           }
           throw new DataParseError(
-            `Invalid API response structure from ${resource}`,
+            `Invalid API response structure from ${resource}`
           );
         } catch (error) {
           throw new DataParseError(
             `Invalid JSON in ${resource}: ${error}`,
-            error as Error,
+            error as Error
           );
         }
       } catch (error) {
@@ -373,7 +373,7 @@ export class DorkroomClient {
         }
         throw new DataFetchError(
           `Failed to fetch ${resource}: ${error}`,
-          error as Error,
+          error as Error
         );
       } finally {
         if (requestKey) {
@@ -428,7 +428,7 @@ export class DorkroomClient {
       this.lastLoadedTimestamp = localCache.timestamp;
 
       this.logger.debug(
-        `Using local cache data (${this.films.length} films, ${this.developers.length} developers, ${this.combinations.length} combinations)`,
+        `Using local cache data (${this.films.length} films, ${this.developers.length} developers, ${this.combinations.length} combinations)`
       );
       return;
     }
@@ -440,7 +440,7 @@ export class DorkroomClient {
         return;
       } catch (error) {
         this.logger.warn(
-          `Failed to fetch fresh data, falling back to local cache if available: ${error}`,
+          `Failed to fetch fresh data, falling back to local cache if available: ${error}`
         );
 
         // If API fails but we have local cache (even if expired), use it
@@ -452,7 +452,7 @@ export class DorkroomClient {
           this.loaded = true;
           this.lastLoadedTimestamp = localCache.timestamp;
 
-          this.logger.info("Using expired local cache due to API failure");
+          this.logger.info('Using expired local cache due to API failure');
           return;
         }
 
@@ -464,7 +464,7 @@ export class DorkroomClient {
     // No network and no cache - this is an error state
     if (!localCache) {
       throw new DataFetchError(
-        "No network connectivity and no local cache available",
+        'No network connectivity and no local cache available'
       );
     }
 
@@ -477,7 +477,7 @@ export class DorkroomClient {
     this.lastLoadedTimestamp = localCache.timestamp;
 
     this.logger.info(
-      "Using expired local cache due to no network connectivity",
+      'Using expired local cache due to no network connectivity'
     );
   }
 
@@ -486,7 +486,7 @@ export class DorkroomClient {
    * This method will clear local cache and always fetch fresh data.
    */
   async forceReload(): Promise<void> {
-    this.logger.info("Force reloading data from API");
+    this.logger.info('Force reloading data from API');
 
     // Clear local cache when force reloading
     await this.clearLocalCache();
@@ -500,14 +500,14 @@ export class DorkroomClient {
   private async performLoad(): Promise<void> {
     try {
       // Fetch all data in parallel
-      debugLog("[DorkroomClient] Starting parallel data fetch...");
+      debugLog('[DorkroomClient] Starting parallel data fetch...');
       const [rawFilms, rawDevelopers, rawCombinations] = await Promise.all([
-        this.fetch<Film>("films"),
-        this.fetch<Developer>("developers"),
-        this.fetch<any>("combinations"),
+        this.fetch<Film>('films'),
+        this.fetch<Developer>('developers'),
+        this.fetch<any>('combinations'),
       ]);
 
-      debugLog("[DorkroomClient] Raw data fetched:", {
+      debugLog('[DorkroomClient] Raw data fetched:', {
         films: rawFilms.length,
         developers: rawDevelopers.length,
         combinations: rawCombinations.length,
@@ -515,12 +515,12 @@ export class DorkroomClient {
 
       // Log sample raw data to understand structure
       if (rawFilms.length > 0) {
-        debugLog("[DorkroomClient] Sample raw film data:", rawFilms[0]);
+        debugLog('[DorkroomClient] Sample raw film data:', rawFilms[0]);
       }
       if (rawDevelopers.length > 0) {
         debugLog(
-          "[DorkroomClient] Sample raw developer data:",
-          rawDevelopers[0],
+          '[DorkroomClient] Sample raw developer data:',
+          rawDevelopers[0]
         );
       }
 
@@ -560,7 +560,7 @@ export class DorkroomClient {
           staticImageURL: rawFilm.static_image_url || rawFilm.staticImageURL,
           dateAdded:
             rawFilm.date_added || rawFilm.dateAdded || rawFilm.created_at,
-        }),
+        })
       );
 
       // Transform developers from API response format to match TypeScript interface
@@ -575,10 +575,10 @@ export class DorkroomClient {
           // Convert boolean film_or_paper to string filmOrPaper
           filmOrPaper:
             rawDev.film_or_paper === true
-              ? "film"
+              ? 'film'
               : rawDev.film_or_paper === false
-                ? "paper"
-                : rawDev.filmOrPaper || "film",
+              ? 'paper'
+              : rawDev.filmOrPaper || 'film',
           dilutions: rawDev.dilutions || [],
           workingLifeHours:
             rawDev.working_life_hours || rawDev.workingLifeHours,
@@ -592,22 +592,22 @@ export class DorkroomClient {
             ? rawDev.datasheet_url
             : rawDev.datasheetUrl || [],
           dateAdded: rawDev.date_added || rawDev.dateAdded || rawDev.created_at,
-        }),
+        })
       );
 
-      debugLog("[DorkroomClient] Transformed data:", {
+      debugLog('[DorkroomClient] Transformed data:', {
         films: this.films.length,
         developers: this.developers.length,
       });
 
       // Log sample transformed data
       if (this.films.length > 0) {
-        debugLog("[DorkroomClient] Sample transformed film:", this.films[0]);
+        debugLog('[DorkroomClient] Sample transformed film:', this.films[0]);
       }
       if (this.developers.length > 0) {
         debugLog(
-          "[DorkroomClient] Sample transformed developer:",
-          this.developers[0],
+          '[DorkroomClient] Sample transformed developer:',
+          this.developers[0]
         );
       }
 
@@ -636,7 +636,7 @@ export class DorkroomClient {
           id: String(c.id),
           uuid: c.uuid ?? String(c.id),
           slug: c.slug ?? c.uuid ?? String(c.id),
-          name: c.name ?? "",
+          name: c.name ?? '',
           filmStockId: filmUuid,
           developerId: developerUuid,
           temperatureF: temperatureF ?? 68, // default to room temp if missing
@@ -663,10 +663,10 @@ export class DorkroomClient {
       await this.storeLocalCache(
         this.films,
         this.developers,
-        this.combinations,
+        this.combinations
       );
 
-      debugLog("[DorkroomClient] Data loading completed successfully:", {
+      debugLog('[DorkroomClient] Data loading completed successfully:', {
         films: this.films.length,
         developers: this.developers.length,
         combinations: this.combinations.length,
@@ -676,7 +676,7 @@ export class DorkroomClient {
       this.logger.info(
         `Loaded ${this.films.length} films, ` +
           `${this.developers.length} developers, ` +
-          `${this.combinations.length} combinations.`,
+          `${this.combinations.length} combinations.`
       );
     } catch (error) {
       this.logger.error(`Failed to load data: ${error}`);
@@ -689,26 +689,26 @@ export class DorkroomClient {
    */
   private parseManufacturerNotes(notes: any): string[] | null {
     if (Array.isArray(notes)) {
-      debugLog("[DorkroomClient] Manufacturer notes already an array:", notes);
+      debugLog('[DorkroomClient] Manufacturer notes already an array:', notes);
       return notes;
     }
 
-    if (typeof notes === "string") {
+    if (typeof notes === 'string') {
       try {
         // Handle PostgreSQL array format: {"item1","item2","item3"}
-        if (notes.startsWith("{") && notes.endsWith("}")) {
-          debugLog("[DorkroomClient] Parsing PostgreSQL array format:", notes);
+        if (notes.startsWith('{') && notes.endsWith('}')) {
+          debugLog('[DorkroomClient] Parsing PostgreSQL array format:', notes);
 
           // Remove outer braces and split by comma
           const inner = notes.slice(1, -1);
-          if (inner.trim() === "") {
-            debugLog("[DorkroomClient] Empty array detected");
+          if (inner.trim() === '') {
+            debugLog('[DorkroomClient] Empty array detected');
             return [];
           }
 
           // Parse quoted items, handling escaped quotes
           const items: string[] = [];
-          let current = "";
+          let current = '';
           let inQuotes = false;
           let escaped = false;
 
@@ -721,7 +721,7 @@ export class DorkroomClient {
               continue;
             }
 
-            if (char === "\\") {
+            if (char === '\\') {
               escaped = true;
               continue;
             }
@@ -731,9 +731,9 @@ export class DorkroomClient {
               continue;
             }
 
-            if (char === "," && !inQuotes) {
+            if (char === ',' && !inQuotes) {
               items.push(current.trim());
-              current = "";
+              current = '';
               continue;
             }
 
@@ -745,26 +745,26 @@ export class DorkroomClient {
           }
 
           debugLog(
-            "[DorkroomClient] Successfully parsed manufacturer notes:",
-            items,
+            '[DorkroomClient] Successfully parsed manufacturer notes:',
+            items
           );
           return items;
         } else {
           debugLog(
-            "[DorkroomClient] String format not recognized as PostgreSQL array:",
-            notes,
+            '[DorkroomClient] String format not recognized as PostgreSQL array:',
+            notes
           );
         }
       } catch (error) {
-        debugLog("[DorkroomClient] Failed to parse manufacturer notes:", error);
+        debugLog('[DorkroomClient] Failed to parse manufacturer notes:', error);
         return null;
       }
     }
 
     debugLog(
-      "[DorkroomClient] Manufacturer notes not a string or array:",
+      '[DorkroomClient] Manufacturer notes not a string or array:',
       typeof notes,
-      notes,
+      notes
     );
     return null;
   }
@@ -890,28 +890,28 @@ export class DorkroomClient {
    * This method leverages the Supabase edge function's filtering capabilities.
    */
   async fetchCombinations(
-    options: CombinationFetchOptions = {},
+    options: CombinationFetchOptions = {}
   ): Promise<PaginatedApiResponse<Combination>> {
     const params = new URLSearchParams();
 
     if (options.filmSlug) {
-      params.set("film", options.filmSlug);
+      params.set('film', options.filmSlug);
     }
 
     if (options.developerSlug) {
-      params.set("developer", options.developerSlug);
+      params.set('developer', options.developerSlug);
     }
 
     if (options.count && options.count > 0) {
-      params.set("count", options.count.toString());
+      params.set('count', options.count.toString());
     }
 
     if (options.page && options.page > 0) {
-      params.set("page", options.page.toString());
+      params.set('page', options.page.toString());
     }
 
     if (options.id) {
-      params.set("id", options.id);
+      params.set('id', options.id);
     }
 
     const requestKey = `combinations-${params.toString()}`;
@@ -927,7 +927,7 @@ export class DorkroomClient {
       try {
         const response = await this.transport.get(
           joinURL(this.baseUrl, `combinations?${params.toString()}`),
-          this.timeout,
+          this.timeout
         );
 
         const data = await response.json();
@@ -936,7 +936,7 @@ export class DorkroomClient {
         if (
           options.id &&
           data &&
-          typeof data === "object" &&
+          typeof data === 'object' &&
           !Array.isArray(data.data)
         ) {
           const result: PaginatedApiResponse<Combination> = {
@@ -970,10 +970,14 @@ export class DorkroomClient {
         return result;
       } catch (error) {
         this.logger.error(
-          `Failed to fetch combinations with options ${JSON.stringify(options)}: ${error}`,
+          `Failed to fetch combinations with options ${JSON.stringify(
+            options
+          )}: ${error}`
         );
         throw new DataFetchError(
-          `Failed to fetch combinations: ${error instanceof Error ? error.message : "Unknown error"}`,
+          `Failed to fetch combinations: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`
         );
       }
     });
@@ -993,7 +997,7 @@ export class DorkroomClient {
    * More efficient than client-side filtering for large datasets.
    */
   async getCombinationsForDeveloperSlug(
-    developerSlug: string,
+    developerSlug: string
   ): Promise<Combination[]> {
     const response = await this.fetchCombinations({ developerSlug });
     return response.data;
@@ -1005,7 +1009,7 @@ export class DorkroomClient {
    */
   async getCombinationsForFilmAndDeveloper(
     filmSlug: string,
-    developerSlug: string,
+    developerSlug: string
   ): Promise<Combination[]> {
     const response = await this.fetchCombinations({ filmSlug, developerSlug });
     return response.data;
@@ -1027,7 +1031,7 @@ export class DorkroomClient {
   async getPaginatedCombinations(
     page: number = 1,
     count: number = 25,
-    filters?: { filmSlug?: string; developerSlug?: string },
+    filters?: { filmSlug?: string; developerSlug?: string }
   ): Promise<PaginatedApiResponse<Combination>> {
     const options: CombinationFetchOptions = {
       page,
@@ -1090,27 +1094,27 @@ export class DorkroomClient {
    */
   private async performFuzzySearchFilms(
     query: string,
-    options: FuzzySearchOptions = {},
+    options: FuzzySearchOptions = {}
   ): Promise<Film[]> {
     const params = new URLSearchParams({
       query,
-      fuzzy: "true",
+      fuzzy: 'true',
     });
 
     if (options.limit) {
-      params.append("limit", options.limit.toString());
+      params.append('limit', options.limit.toString());
     }
 
     const requestKey = `fuzzy-films-${query}-${JSON.stringify(options)}`;
 
     // Get raw fuzzy results from API
-    const rawResults = await this.fetch<Film>("films", params, requestKey);
+    const rawResults = await this.fetch<Film>('films', params, requestKey);
 
     // Apply tokenization post-processing to improve relevance
     const enhancedResults = enhanceFilmResults(
       query,
       rawResults,
-      DEFAULT_TOKENIZED_CONFIG,
+      DEFAULT_TOKENIZED_CONFIG
     );
 
     // Extract just the film items from the scored results
@@ -1130,31 +1134,31 @@ export class DorkroomClient {
    */
   private async performFuzzySearchDevelopers(
     query: string,
-    options: FuzzySearchOptions = {},
+    options: FuzzySearchOptions = {}
   ): Promise<Developer[]> {
     const params = new URLSearchParams({
       query,
-      fuzzy: "true",
+      fuzzy: 'true',
     });
 
     if (options.limit) {
-      params.append("limit", options.limit.toString());
+      params.append('limit', options.limit.toString());
     }
 
     const requestKey = `fuzzy-developers-${query}-${JSON.stringify(options)}`;
 
     // Get raw fuzzy results from API
     const rawResults = await this.fetch<Developer>(
-      "developers",
+      'developers',
       params,
-      requestKey,
+      requestKey
     );
 
     // Apply tokenization post-processing to improve relevance
     const enhancedResults = enhanceDeveloperResults(
       query,
       rawResults,
-      DEFAULT_TOKENIZED_CONFIG,
+      DEFAULT_TOKENIZED_CONFIG
     );
 
     // Extract just the developer items from the scored results
@@ -1174,7 +1178,7 @@ export class DorkroomClient {
    */
   async fuzzySearchFilms(
     query: string,
-    options: FuzzySearchOptions = {},
+    options: FuzzySearchOptions = {}
   ): Promise<Film[]> {
     return new Promise((resolve, reject) => {
       this.debouncedFuzzySearchFilms(query, options)
@@ -1189,7 +1193,7 @@ export class DorkroomClient {
    */
   async fuzzySearchDevelopers(
     query: string,
-    options: FuzzySearchOptions = {},
+    options: FuzzySearchOptions = {}
   ): Promise<Developer[]> {
     return new Promise((resolve, reject) => {
       this.debouncedFuzzySearchDevelopers(query, options)

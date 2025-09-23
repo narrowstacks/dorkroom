@@ -1,5 +1,5 @@
-import React from "react";
-import { Platform } from "react-native";
+import React from 'react';
+import { Platform } from 'react-native';
 import {
   Modal,
   ModalBackdrop,
@@ -21,22 +21,22 @@ import {
   Toast,
   ToastTitle,
   VStack as ToastVStack,
-} from "@gluestack-ui/themed";
+} from '@gluestack-ui/themed';
 import {
   Copy,
   Share2,
   ExternalLink,
   Smartphone,
   Clock,
-} from "lucide-react-native";
-import * as Clipboard from "expo-clipboard";
-import * as Sharing from "expo-sharing";
-import { encodePreset } from "@/utils/presetSharing";
-import { generateSharingUrls } from "@/utils/urlHelpers";
-import { isRunningOnMobileWeb, openInNativeApp } from "@/utils/appDetection";
-import { MOBILE_WEB_APP_CONFIG } from "@/constants/urls";
-import { debugError } from "@/utils/debugLogger";
-import type { BorderPresetSettings } from "@/types/borderPresetTypes";
+} from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
+import * as Sharing from 'expo-sharing';
+import { encodePreset } from '@/utils/presetSharing';
+import { generateSharingUrls } from '@/utils/urlHelpers';
+import { isRunningOnMobileWeb, openInNativeApp } from '@/utils/appDetection';
+import { MOBILE_WEB_APP_CONFIG } from '@/constants/urls';
+import { debugError } from '@/utils/debugLogger';
+import type { BorderPresetSettings } from '@/types/borderPresetTypes';
 
 interface ShareModalProps {
   isVisible: boolean;
@@ -49,7 +49,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   isVisible,
   onClose,
   currentSettings,
-  presetName = "Border Settings",
+  presetName = 'Border Settings',
 }) => {
   const toast = useToast();
   const isMobileWeb = isRunningOnMobileWeb();
@@ -71,7 +71,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     try {
       await Clipboard.setStringAsync(url);
       toast.show({
-        placement: "top",
+        placement: 'top',
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="success" variant="solid">
             <ToastVStack space="xs">
@@ -82,7 +82,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       });
     } catch {
       toast.show({
-        placement: "top",
+        placement: 'top',
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="error" variant="solid">
             <ToastTitle>Failed to copy to clipboard</ToastTitle>
@@ -99,16 +99,16 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(shareData.webUrl, {
           dialogTitle: `Share ${presetName}`,
-          mimeType: "text/plain",
+          mimeType: 'text/plain',
         });
       } else {
         // Fallback to clipboard
-        await copyToClipboard(shareData.webUrl, "Share link");
+        await copyToClipboard(shareData.webUrl, 'Share link');
       }
     } catch {
-      debugError("Share failed");
+      debugError('Share failed');
       toast.show({
-        placement: "top",
+        placement: 'top',
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="error" variant="solid">
             <ToastTitle>Sharing failed</ToastTitle>
@@ -125,7 +125,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       const success = await openInNativeApp(shareData.nativeUrl);
       if (success) {
         toast.show({
-          placement: "top",
+          placement: 'top',
           render: ({ id }) => (
             <Toast nativeID={`toast-${id}`} action="success" variant="solid">
               <ToastVStack space="xs">
@@ -137,7 +137,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         onClose(); // Close the modal since we're switching to the app
       } else {
         toast.show({
-          placement: "top",
+          placement: 'top',
           render: ({ id }) => (
             <Toast nativeID={`toast-${id}`} action="warning" variant="solid">
               <ToastVStack space="xs">
@@ -148,9 +148,9 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         });
       }
     } catch (error) {
-      debugError("Failed to open in app:", error);
+      debugError('Failed to open in app:', error);
       toast.show({
-        placement: "top",
+        placement: 'top',
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="error" variant="solid">
             <ToastTitle>Failed to open in app</ToastTitle>
@@ -245,13 +245,13 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 
             {/* Web URL Section */}
             <VStack space="sm">
-              <Text style={{ fontWeight: "bold", fontSize: 16 }}>Web Link</Text>
+              <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Web Link</Text>
               <Text style={{ fontSize: 14, opacity: 0.8 }}>
                 Works on any device with a web browser
               </Text>
-              <HStack space="sm" style={{ alignItems: "center" }}>
+              <HStack space="sm" style={{ alignItems: 'center' }}>
                 <Button
-                  onPress={() => copyToClipboard(shareData.webUrl, "Web link")}
+                  onPress={() => copyToClipboard(shareData.webUrl, 'Web link')}
                   variant="outline"
                   action="secondary"
                   size="sm"
@@ -271,18 +271,18 @@ export const ShareModal: React.FC<ShareModalProps> = ({
             </VStack>
 
             {/* Native App URI Section - only show on native apps, not mobile web */}
-            {Platform.OS !== "web" && (
+            {Platform.OS !== 'web' && (
               <VStack space="sm">
-                <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                <Text style={{ fontWeight: 'bold', fontSize: 16 }}>
                   App Link
                 </Text>
                 <Text style={{ fontSize: 14, opacity: 0.8 }}>
                   Opens directly in the Dorkroom app
                 </Text>
-                <HStack space="sm" style={{ alignItems: "center" }}>
+                <HStack space="sm" style={{ alignItems: 'center' }}>
                   <Button
                     onPress={() =>
-                      copyToClipboard(shareData.nativeUrl, "App link")
+                      copyToClipboard(shareData.nativeUrl, 'App link')
                     }
                     variant="outline"
                     action="secondary"

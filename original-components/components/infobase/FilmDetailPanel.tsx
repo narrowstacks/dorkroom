@@ -1,5 +1,5 @@
-import { StyleSheet, ScrollView, TouchableOpacity, Image } from "react-native";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
+import { StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 import {
   Box,
   Text,
@@ -7,7 +7,7 @@ import {
   HStack,
   Badge,
   BadgeText,
-} from "@gluestack-ui/themed";
+} from '@gluestack-ui/themed';
 import {
   Camera,
   Calendar,
@@ -18,16 +18,16 @@ import {
   Package,
   Layers,
   X,
-} from "lucide-react-native";
-import type { Film } from "@/api/dorkroom/types";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from 'lucide-react-native';
+import type { Film } from '@/api/dorkroom/types';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import {
   getBrandKey,
   getFilmTypeColor,
   getContrastingTextColor,
-} from "@/constants/brands";
-import { Colors } from "@/constants/Colors";
-import { formatFilmType } from "@/utils/filmTypeFormatter";
+} from '@/constants/brands';
+import { Colors } from '@/constants/Colors';
+import { formatFilmType } from '@/utils/filmTypeFormatter';
 
 interface FilmDetailPanelProps {
   film: Film | null;
@@ -36,11 +36,11 @@ interface FilmDetailPanelProps {
 
 export function FilmDetailPanel({ film, onClose }: FilmDetailPanelProps) {
   const { height } = useWindowDimensions();
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const borderColor = useThemeColor({}, "borderColor");
-  const backgroundColor = useThemeColor({}, "background");
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const backgroundColor = useThemeColor({}, 'background');
 
   if (!film) {
     return (
@@ -64,7 +64,7 @@ export function FilmDetailPanel({ film, onClose }: FilmDetailPanelProps) {
   }
 
   // Get brand color from theme
-  const colorScheme = backgroundColor === "#fff" ? "light" : "dark";
+  const colorScheme = backgroundColor === '#fff' ? 'light' : 'dark';
   const brandKey = getBrandKey(film.brand);
   const brandColorKey = `${brandKey}BrandColor` as keyof typeof Colors.light;
   const brandColor =
@@ -81,14 +81,14 @@ export function FilmDetailPanel({ film, onClose }: FilmDetailPanelProps) {
     try {
       return new Date(dateString).toLocaleDateString();
     } catch {
-      return "N/A";
+      return 'N/A';
     }
   };
 
   const formatISO = (iso?: number) => {
     const isoValue = iso || film.iso_speed || film.isoSpeed;
     if (isoValue === undefined || isoValue === null || Number.isNaN(isoValue))
-      return "N/A";
+      return 'N/A';
     return isoValue.toString();
   };
 
@@ -151,7 +151,7 @@ export function FilmDetailPanel({ film, onClose }: FilmDetailPanelProps) {
 
         {/* Brand and Status */}
         <VStack space="md" style={styles.section}>
-          <HStack space="sm" alignItems="center" style={{ flexWrap: "wrap" }}>
+          <HStack space="sm" alignItems="center" style={{ flexWrap: 'wrap' }}>
             <Box style={[styles.brandBadge, { backgroundColor: brandColor }]}>
               <Text
                 style={[
@@ -173,7 +173,7 @@ export function FilmDetailPanel({ film, onClose }: FilmDetailPanelProps) {
               <Badge
                 style={[
                   styles.discontinuedBadge,
-                  { backgroundColor: "#ff6b6b" },
+                  { backgroundColor: '#ff6b6b' },
                 ]}
               >
                 <AlertTriangle size={12} color="#fff" />
@@ -273,7 +273,7 @@ export function FilmDetailPanel({ film, onClose }: FilmDetailPanelProps) {
                     Reciprocity Failure:
                   </Text>
                   <Text style={[styles.detailValue, { color: textColor }]}>
-                    {film.reciprocity_failure || film.reciprocityFailure}{" "}
+                    {film.reciprocity_failure || film.reciprocityFailure}{' '}
                   </Text>
                 </VStack>
               </HStack>
@@ -295,7 +295,7 @@ export function FilmDetailPanel({ film, onClose }: FilmDetailPanelProps) {
                     >
                       Qualities:
                     </Text>
-                    <HStack space="xs" style={{ flexWrap: "wrap" }}>
+                    <HStack space="xs" style={{ flexWrap: 'wrap' }}>
                       {(film.manufacturer_notes || film.manufacturerNotes).map(
                         (note, index) => (
                           <Box
@@ -314,7 +314,7 @@ export function FilmDetailPanel({ film, onClose }: FilmDetailPanelProps) {
                               {note}
                             </Text>
                           </Box>
-                        ),
+                        )
                       )}
                     </HStack>
                   </VStack>
@@ -337,7 +337,7 @@ export function FilmDetailPanel({ film, onClose }: FilmDetailPanelProps) {
               <Text
                 style={[
                   styles.detailValue,
-                  { color: textColor, fontFamily: "monospace", fontSize: 12 },
+                  { color: textColor, fontFamily: 'monospace', fontSize: 12 },
                 ]}
               >
                 {film.uuid}
@@ -351,7 +351,7 @@ export function FilmDetailPanel({ film, onClose }: FilmDetailPanelProps) {
               <Text
                 style={[
                   styles.detailValue,
-                  { color: textColor, fontFamily: "monospace", fontSize: 12 },
+                  { color: textColor, fontFamily: 'monospace', fontSize: 12 },
                 ]}
               >
                 {film.slug}
@@ -370,14 +370,14 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
   },
   imageContainer: {
-    width: "100%",
+    width: '100%',
     borderRadius: 8,
     borderWidth: 1,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   filmImage: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
   },
   header: {
     paddingHorizontal: 16,
@@ -386,12 +386,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: '700',
     lineHeight: 22,
   },
   subtitle: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
     marginTop: 2,
   },
   closeButton: {
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
   },
   brandBadge: {
@@ -416,8 +416,8 @@ const styles = StyleSheet.create({
   },
   brandText: {
     fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   typeBadge: {
     paddingHorizontal: 6,
@@ -426,30 +426,30 @@ const styles = StyleSheet.create({
   },
   typeText: {
     fontSize: 11,
-    fontWeight: "500",
-    textTransform: "capitalize",
+    fontWeight: '500',
+    textTransform: 'capitalize',
   },
   discontinuedBadge: {
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 4,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 4,
   },
   discontinuedText: {
     fontSize: 10,
-    fontWeight: "500",
-    color: "#fff",
+    fontWeight: '500',
+    color: '#fff',
   },
   detailLabel: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: '500',
     minWidth: 90,
   },
   detailValue: {
     fontSize: 13,
-    fontWeight: "400",
+    fontWeight: '400',
     flex: 1,
   },
   description: {
@@ -474,24 +474,24 @@ const styles = StyleSheet.create({
   },
   noteTagText: {
     fontSize: 11,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   emptyState: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 32,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginTop: 16,
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 14,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 20,
   },
 });

@@ -28,7 +28,7 @@ export function ImportRecipeForm({
         label="Shared recipe code or URL"
         placeholder="Paste a shared recipe link or encoded recipe data"
         value={encoded}
-        onChange={setEncoded}
+        onValueChange={setEncoded}
       />
       {error && (
         <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200">
@@ -50,7 +50,7 @@ export function ImportRecipeForm({
           disabled={!encoded.trim() || isProcessing}
           className={cn(
             'rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90',
-            (isProcessing || !encoded.trim()) && 'cursor-not-allowed opacity-70',
+            (isProcessing || !encoded.trim()) && 'cursor-not-allowed opacity-70'
           )}
         >
           {isProcessing ? 'Importing…' : 'Import recipe'}

@@ -62,7 +62,11 @@ export const useCustomRecipeSharing = () => {
   const [lastSharedUrl, setLastSharedUrl] = useState<string | null>(null);
 
   const generateCustomRecipeShareUrl = useCallback(
-    ({ recipe, baseUrl, includeSource = true }: CustomRecipeShareOptions): string | null => {
+    ({
+      recipe,
+      baseUrl,
+      includeSource = true,
+    }: CustomRecipeShareOptions): string | null => {
       try {
         setIsGenerating(true);
         const encodedData = encodeCustomRecipe(recipe);
@@ -87,11 +91,13 @@ export const useCustomRecipeSharing = () => {
         setIsGenerating(false);
       }
     },
-    [],
+    []
   );
 
   const shareCustomRecipe = useCallback(
-    async (options: CustomRecipeShareOptions): Promise<CustomRecipeShareResult> => {
+    async (
+      options: CustomRecipeShareOptions
+    ): Promise<CustomRecipeShareResult> => {
       try {
         const shareUrl = generateCustomRecipeShareUrl(options);
         if (!shareUrl) {
@@ -110,7 +116,10 @@ export const useCustomRecipeSharing = () => {
             });
             return { success: true, method: 'webShare', url: shareUrl };
           } catch (shareError) {
-            debugLog('[CUSTOM RECIPE SHARE] Web Share failed, falling back:', shareError);
+            debugLog(
+              '[CUSTOM RECIPE SHARE] Web Share failed, falling back:',
+              shareError
+            );
           }
         }
 
@@ -118,15 +127,19 @@ export const useCustomRecipeSharing = () => {
         return { success: true, method: 'clipboard', url: shareUrl };
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : 'Failed to share custom recipe';
+          error instanceof Error
+            ? error.message
+            : 'Failed to share custom recipe';
         return { success: false, error: errorMessage };
       }
     },
-    [generateCustomRecipeShareUrl],
+    [generateCustomRecipeShareUrl]
   );
 
   const copyCustomRecipeToClipboard = useCallback(
-    async (options: CustomRecipeShareOptions): Promise<CustomRecipeShareResult> => {
+    async (
+      options: CustomRecipeShareOptions
+    ): Promise<CustomRecipeShareResult> => {
       try {
         const shareUrl = generateCustomRecipeShareUrl(options);
         if (!shareUrl) {
@@ -137,11 +150,13 @@ export const useCustomRecipeSharing = () => {
         return { success: true, method: 'clipboard', url: shareUrl };
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : 'Failed to copy to clipboard';
+          error instanceof Error
+            ? error.message
+            : 'Failed to copy to clipboard';
         return { success: false, error: errorMessage };
       }
     },
-    [generateCustomRecipeShareUrl],
+    [generateCustomRecipeShareUrl]
   );
 
   const decodeSharedCustomRecipe = useCallback(
@@ -162,13 +177,13 @@ export const useCustomRecipeSharing = () => {
         isValid: true,
       };
     },
-    [],
+    []
   );
 
   const isCustomRecipeUrl = useCallback((recipeParam: string): boolean => {
     if (
       recipeParam.match(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       )
     ) {
       return false;
@@ -178,7 +193,10 @@ export const useCustomRecipeSharing = () => {
   }, []);
 
   const getSharingMethodDescription = useCallback(async (): Promise<string> => {
-    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+    if (
+      typeof navigator !== 'undefined' &&
+      typeof navigator.share === 'function'
+    ) {
       return 'Share recipe';
     }
 
@@ -187,8 +205,7 @@ export const useCustomRecipeSharing = () => {
 
   const isSharingAvailable = useCallback(async (): Promise<boolean> => {
     return (
-      typeof navigator !== 'undefined' &&
-      typeof navigator.share === 'function'
+      typeof navigator !== 'undefined' && typeof navigator.share === 'function'
     );
   }, []);
 

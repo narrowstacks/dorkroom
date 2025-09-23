@@ -31,6 +31,103 @@
 }
 
 @layer utilities {
+  /* Custom Animation Keyframes */
+  @keyframes slideInFromTop {
+    0% {
+      opacity: 0;
+      transform: translateY(-1rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInFromBottom {
+    0% {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  /* Animation Utility Classes */
+  .animate-slide-in-from-top {
+    animation: slideInFromTop 500ms ease-out both;
+  }
+
+  .animate-slide-in-from-bottom {
+    animation: slideInFromBottom 500ms ease-out both;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 500ms ease-out both;
+  }
+
+  .animate-slide-fade-top {
+    animation: slideInFromTop 500ms ease-out both, fadeIn 500ms ease-out both;
+  }
+
+  .animate-slide-fade-bottom {
+    animation: slideInFromBottom 500ms ease-out both, fadeIn 500ms ease-out both;
+  }
+
+  /* Stagger delay utilities */
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .animate-delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .animate-delay-500 {
+    animation-delay: 500ms;
+  }
+
+  .animate-delay-600 {
+    animation-delay: 600ms;
+  }
+
+  .animate-delay-700 {
+    animation-delay: 700ms;
+  }
+
+  .animate-delay-800 {
+    animation-delay: 800ms;
+  }
+
+  /* Respect reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-slide-in-from-top,
+    .animate-slide-in-from-bottom,
+    .animate-fade-in,
+    .animate-slide-fade-top,
+    .animate-slide-fade-bottom {
+      animation: none;
+    }
+  }
+
   .backdrop-gradient {
     background: radial-gradient(
         circle at 20% 20%,

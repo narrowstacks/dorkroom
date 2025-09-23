@@ -1,8 +1,8 @@
-import React from "react";
-import { Pressable, View } from "react-native";
-import { Circle } from "lucide-react-native";
-import { cn } from "@/lib/utils";
-import { Text } from "@gluestack-ui/themed";
+import React from 'react';
+import { Pressable, View } from 'react-native';
+import { Circle } from 'lucide-react-native';
+import { cn } from '@/lib/utils';
+import { Text } from '@gluestack-ui/themed';
 
 const RadioContext = React.createContext<{
   value?: string;
@@ -31,7 +31,7 @@ export function RadioGroup({
 }: RadioGroupProps) {
   return (
     <RadioContext.Provider value={{ value, onChange, isReadOnly }}>
-      <View className={cn("flex-col", className)}>{children}</View>
+      <View className={cn('flex-col', className)}>{children}</View>
     </RadioContext.Provider>
   );
 }
@@ -52,7 +52,7 @@ export function Radio({
   const context = React.useContext(RadioContext);
 
   if (!context) {
-    throw new Error("Radio must be used within a RadioGroup");
+    throw new Error('Radio must be used within a RadioGroup');
   }
 
   const { value: groupValue, onChange, isReadOnly } = context;
@@ -71,10 +71,10 @@ export function Radio({
         onPress={handlePress}
         disabled={!isInteractive}
         className={cn(
-          "flex-row items-center gap-2 py-1",
-          isInteractive && "cursor-pointer",
-          isDisabled && "opacity-50",
-          className,
+          'flex-row items-center gap-2 py-1',
+          isInteractive && 'cursor-pointer',
+          isDisabled && 'opacity-50',
+          className
         )}
       >
         {children}
@@ -99,9 +99,9 @@ export function RadioIndicator({ children, className }: RadioIndicatorProps) {
   return (
     <View
       className={cn(
-        "h-5 w-5 items-center justify-center rounded-full border-2",
-        isSelected ? "border-blue-500 bg-blue-50" : "border-gray-300",
-        className,
+        'h-5 w-5 items-center justify-center rounded-full border-2',
+        isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300',
+        className
       )}
     >
       {isSelected && children}
@@ -121,7 +121,7 @@ export function RadioIcon({
   const context = React.useContext(RadioContext);
   if (!context) return null;
 
-  return <IconComponent size={12} className={cn("text-blue-500", className)} />;
+  return <IconComponent size={12} className={cn('text-blue-500', className)} />;
 }
 
 interface RadioLabelProps {
@@ -131,6 +131,6 @@ interface RadioLabelProps {
 
 export function RadioLabel({ children, className }: RadioLabelProps) {
   return (
-    <Text className={cn("text-base text-gray-700", className)}>{children}</Text>
+    <Text className={cn('text-base text-gray-700', className)}>{children}</Text>
   );
 }

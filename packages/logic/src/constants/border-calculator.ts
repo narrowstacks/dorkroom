@@ -12,7 +12,6 @@ import type {
 
 export const DESKTOP_BREAKPOINT = 768;
 
-
 // ---- Border slider ----
 export const SLIDER_MIN_BORDER = 0;
 export const SLIDER_MAX_BORDER = 6;
@@ -31,19 +30,19 @@ export const COMMON_BORDER_RADIUS = 8;
 
 // Raw data replicated from the original project
 const rawAspectRatiosData = [
-  { label: "35mm standard frame, 6x9 (3:2)", width: 3, height: 2 },
-  { label: "XPan Pano (65:24)", width: 65, height: 24 },
-  { label: "6x4.5/6x8/35mm Half Frame (4:3)", width: 4, height: 3 },
-  { label: "6x6/Square (1:1)", width: 1, height: 1 },
-  { label: "6x7", width: 7, height: 6 },
-  { label: "4x5", width: 5, height: 4 },
-  { label: "5x7", width: 7, height: 5 },
-  { label: "HDTV (16:9)", width: 16, height: 9 },
-  { label: "Academy Ratio (1.37:1)", width: 1.37, height: 1 },
-  { label: "Widescreen (1.85:1)", width: 1.85, height: 1 },
-  { label: "Univisium (2:1)", width: 2, height: 1 },
-  { label: "CinemaScope (2.39:1)", width: 2.39, height: 1 },
-  { label: "Ultra Panavision (2.76:1)", width: 2.76, height: 1 },
+  { label: '35mm standard frame, 6x9 (3:2)', width: 3, height: 2 },
+  { label: 'XPan Pano (65:24)', width: 65, height: 24 },
+  { label: '6x4.5/6x8/35mm Half Frame (4:3)', width: 4, height: 3 },
+  { label: '6x6/Square (1:1)', width: 1, height: 1 },
+  { label: '6x7', width: 7, height: 6 },
+  { label: '4x5', width: 5, height: 4 },
+  { label: '5x7', width: 7, height: 5 },
+  { label: 'HDTV (16:9)', width: 16, height: 9 },
+  { label: 'Academy Ratio (1.37:1)', width: 1.37, height: 1 },
+  { label: 'Widescreen (1.85:1)', width: 1.85, height: 1 },
+  { label: 'Univisium (2:1)', width: 2, height: 1 },
+  { label: 'CinemaScope (2.39:1)', width: 2.39, height: 1 },
+  { label: 'Ultra Panavision (2.76:1)', width: 2.76, height: 1 },
 ] as const;
 
 const rawPaperSizesData = [

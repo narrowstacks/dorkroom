@@ -1,16 +1,16 @@
-import { useCallback, useState } from "react";
-import { Platform } from "react-native";
-import * as Sharing from "expo-sharing";
-import * as Clipboard from "expo-clipboard";
-import type { CustomRecipe } from "@/types/customRecipeTypes";
+import { useCallback, useState } from 'react';
+import { Platform } from 'react-native';
+import * as Sharing from 'expo-sharing';
+import * as Clipboard from 'expo-clipboard';
+import type { CustomRecipe } from '@/types/customRecipeTypes';
 import {
   encodeCustomRecipe,
   decodeCustomRecipe,
   createCustomRecipeFromEncoded,
   isValidCustomRecipeEncoding,
   type EncodedCustomRecipe,
-} from "@/utils/recipeSharing";
-import { debugLog } from "@/utils/debugLogger";
+} from '@/utils/recipeSharing';
+import { debugLog } from '@/utils/debugLogger';
 
 export interface CustomRecipeShareOptions {
   recipe: CustomRecipe;
@@ -21,12 +21,12 @@ export interface CustomRecipeShareOptions {
 export interface CustomRecipeShareResult {
   success: boolean;
   error?: string;
-  method?: "webShare" | "expo" | "clipboard";
+  method?: 'webShare' | 'expo' | 'clipboard';
   url?: string;
 }
 
 export interface ImportedCustomRecipe {
-  recipe: Omit<CustomRecipe, "id" | "dateCreated" | "dateModified">;
+  recipe: Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'>;
   encodedData: string;
   isValid: boolean;
 }
@@ -48,14 +48,14 @@ export const useCustomRecipeSharing = () => {
       try {
         setIsGenerating(true);
         debugLog(
-          "🔧 [CUSTOM RECIPE SHARE] Generating share URL for recipe:",
-          recipe.name,
+          '🔧 [CUSTOM RECIPE SHARE] Generating share URL for recipe:',
+          recipe.name
         );
 
         // Encode the custom recipe
         const encodedData = encodeCustomRecipe(recipe);
         if (!encodedData) {
-          debugLog("🔧 [CUSTOM RECIPE SHARE] Failed to encode recipe");
+          debugLog('🔧 [CUSTOM RECIPE SHARE] Failed to encode recipe');
           return null;
         }
 
@@ -64,26 +64,26 @@ export const useCustomRecipeSharing = () => {
 
         // Build URL parameters
         const params = new URLSearchParams();
-        params.set("recipe", encodedData);
+        params.set('recipe', encodedData);
 
         // Add source parameter to track shared links
         if (includeSource) {
-          params.set("source", "share");
+          params.set('source', 'share');
         }
 
         const shareUrl = `${base}/developmentRecipes?${params.toString()}`;
-        debugLog("🔧 [CUSTOM RECIPE SHARE] Generated share URL:", shareUrl);
+        debugLog('🔧 [CUSTOM RECIPE SHARE] Generated share URL:', shareUrl);
 
         setLastSharedUrl(shareUrl);
         return shareUrl;
       } catch (error) {
-        debugLog("🔧 [CUSTOM RECIPE SHARE] Error generating share URL:", error);
+        debugLog('🔧 [CUSTOM RECIPE SHARE] Error generating share URL:', error);
         return null;
       } finally {
         setIsGenerating(false);
       }
     },
-    [],
+    []
   );
 
   /**
@@ -91,14 +91,14 @@ export const useCustomRecipeSharing = () => {
    */
   const shareCustomRecipe = useCallback(
     async (
-      options: CustomRecipeShareOptions,
+      options: CustomRecipeShareOptions
     ): Promise<CustomRecipeShareResult> => {
       try {
         const shareUrl = generateCustomRecipeShareUrl(options);
         if (!shareUrl) {
           return {
             success: false,
-            error: "Failed to generate share URL",
+            error: 'Failed to generate share URL',
           };
         }
 
@@ -108,7 +108,7 @@ export const useCustomRecipeSharing = () => {
         const title = `Custom Development Recipe: ${recipe.name}`;
         const message = `Check out this custom film development recipe: ${shareUrl}`;
 
-        debugLog("🔧 [CUSTOM RECIPE SHARE] Attempting to share:", {
+        debugLog('🔧 [CUSTOM RECIPE SHARE] Attempting to share:', {
           title,
           message,
           shareUrl,
@@ -116,8 +116,8 @@ export const useCustomRecipeSharing = () => {
 
         // Try Web Share API first (modern browsers and mobile)
         if (
-          Platform.OS === "web" &&
-          typeof navigator !== "undefined" &&
+          Platform.OS === 'web' &&
+          typeof navigator !== 'undefined' &&
           navigator.share
         ) {
           try {
@@ -128,29 +128,29 @@ export const useCustomRecipeSharing = () => {
             });
             return {
               success: true,
-              method: "webShare",
+              method: 'webShare',
               url: shareUrl,
             };
           } catch (webShareError) {
             // User cancelled or Web Share API failed, fallback to clipboard
             debugLog(
-              "🔧 [CUSTOM RECIPE SHARE] Web Share API cancelled or failed:",
-              webShareError,
+              '🔧 [CUSTOM RECIPE SHARE] Web Share API cancelled or failed:',
+              webShareError
             );
           }
         }
 
         // Use Expo Sharing for native platforms
-        if (Platform.OS !== "web") {
+        if (Platform.OS !== 'web') {
           const isAvailable = await Sharing.isAvailableAsync();
           if (isAvailable) {
             await Sharing.shareAsync(shareUrl, {
-              mimeType: "text/plain",
+              mimeType: 'text/plain',
               dialogTitle: title,
             });
             return {
               success: true,
-              method: "expo",
+              method: 'expo',
               url: shareUrl,
             };
           }
@@ -160,19 +160,19 @@ export const useCustomRecipeSharing = () => {
         await Clipboard.setStringAsync(shareUrl);
         return {
           success: true,
-          method: "clipboard",
+          method: 'clipboard',
           url: shareUrl,
         };
       } catch (error) {
         const errorMessage =
           error instanceof Error
             ? error.message
-            : "Failed to share custom recipe";
-        debugLog("🔧 [CUSTOM RECIPE SHARE] Share error:", error);
+            : 'Failed to share custom recipe';
+        debugLog('🔧 [CUSTOM RECIPE SHARE] Share error:', error);
         return { success: false, error: errorMessage };
       }
     },
-    [generateCustomRecipeShareUrl],
+    [generateCustomRecipeShareUrl]
   );
 
   /**
@@ -180,32 +180,32 @@ export const useCustomRecipeSharing = () => {
    */
   const copyCustomRecipeToClipboard = useCallback(
     async (
-      options: CustomRecipeShareOptions,
+      options: CustomRecipeShareOptions
     ): Promise<CustomRecipeShareResult> => {
       try {
         const shareUrl = generateCustomRecipeShareUrl(options);
         if (!shareUrl) {
           return {
             success: false,
-            error: "Failed to generate share URL",
+            error: 'Failed to generate share URL',
           };
         }
 
         await Clipboard.setStringAsync(shareUrl);
         return {
           success: true,
-          method: "clipboard",
+          method: 'clipboard',
           url: shareUrl,
         };
       } catch (error) {
         const errorMessage =
           error instanceof Error
             ? error.message
-            : "Failed to copy to clipboard";
+            : 'Failed to copy to clipboard';
         return { success: false, error: errorMessage };
       }
     },
-    [generateCustomRecipeShareUrl],
+    [generateCustomRecipeShareUrl]
   );
 
   /**
@@ -215,18 +215,18 @@ export const useCustomRecipeSharing = () => {
     (encodedData: string): ImportedCustomRecipe | null => {
       try {
         debugLog(
-          "🔧 [CUSTOM RECIPE IMPORT] Attempting to decode:",
-          encodedData.substring(0, 50) + "...",
+          '🔧 [CUSTOM RECIPE IMPORT] Attempting to decode:',
+          encodedData.substring(0, 50) + '...'
         );
 
         if (!isValidCustomRecipeEncoding(encodedData)) {
-          debugLog("🔧 [CUSTOM RECIPE IMPORT] Invalid encoding format");
+          debugLog('🔧 [CUSTOM RECIPE IMPORT] Invalid encoding format');
           return null;
         }
 
         const decodedRecipe = decodeCustomRecipe(encodedData);
         if (!decodedRecipe) {
-          debugLog("🔧 [CUSTOM RECIPE IMPORT] Failed to decode recipe");
+          debugLog('🔧 [CUSTOM RECIPE IMPORT] Failed to decode recipe');
           return null;
         }
 
@@ -234,8 +234,8 @@ export const useCustomRecipeSharing = () => {
         const recipe = createCustomRecipeFromEncoded(decodedRecipe);
 
         debugLog(
-          "🔧 [CUSTOM RECIPE IMPORT] Successfully decoded recipe:",
-          recipe.name,
+          '🔧 [CUSTOM RECIPE IMPORT] Successfully decoded recipe:',
+          recipe.name
         );
 
         return {
@@ -244,11 +244,11 @@ export const useCustomRecipeSharing = () => {
           isValid: true,
         };
       } catch (error) {
-        debugLog("🔧 [CUSTOM RECIPE IMPORT] Error decoding recipe:", error);
+        debugLog('🔧 [CUSTOM RECIPE IMPORT] Error decoding recipe:', error);
         return null;
       }
     },
-    [],
+    []
   );
 
   /**
@@ -258,7 +258,7 @@ export const useCustomRecipeSharing = () => {
     // If it's a UUID format, it's not a custom recipe
     if (
       recipeParam.match(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       )
     ) {
       return false;
@@ -272,26 +272,26 @@ export const useCustomRecipeSharing = () => {
    * Get the appropriate sharing method description for UI
    */
   const getSharingMethodDescription = useCallback(async (): Promise<string> => {
-    if (Platform.OS === "web") {
+    if (Platform.OS === 'web') {
       if (
-        typeof navigator !== "undefined" &&
-        typeof navigator.share === "function"
+        typeof navigator !== 'undefined' &&
+        typeof navigator.share === 'function'
       ) {
-        return "Share recipe";
+        return 'Share recipe';
       }
-      return "Copy link";
+      return 'Copy link';
     }
 
     const isAvailable = await Sharing.isAvailableAsync();
-    return isAvailable ? "Share recipe" : "Copy link";
+    return isAvailable ? 'Share recipe' : 'Copy link';
   }, []);
 
   /**
    * Check if native sharing is available
    */
   const isSharingAvailable = useCallback(async (): Promise<boolean> => {
-    if (Platform.OS === "web") {
-      return typeof navigator !== "undefined" && !!navigator.share;
+    if (Platform.OS === 'web') {
+      return typeof navigator !== 'undefined' && !!navigator.share;
     }
     return await Sharing.isAvailableAsync();
   }, []);
@@ -318,14 +318,14 @@ export const useCustomRecipeSharing = () => {
  * Get the base URL for the current environment
  */
 function getBaseUrl(): string {
-  if (Platform.OS === "web") {
-    if (typeof window !== "undefined") {
+  if (Platform.OS === 'web') {
+    if (typeof window !== 'undefined') {
       return `${window.location.protocol}//${window.location.host}`;
     }
     // Fallback for SSR or when window is not available
-    return "https://darkroom-recipes.app"; // Replace with your actual domain
+    return 'https://darkroom-recipes.app'; // Replace with your actual domain
   }
 
   // For native platforms, use a web fallback URL
-  return "https://darkroom-recipes.app"; // Replace with your actual domain
+  return 'https://darkroom-recipes.app'; // Replace with your actual domain
 }

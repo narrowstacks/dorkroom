@@ -11,11 +11,11 @@
   - Performance monitoring integration
 \* ------------------------------------------------------------------ */
 
-import { useMemo, useRef, useCallback } from "react";
-import { useWindowDimensions } from "react-native";
-import { EASEL_SIZE_MAP } from "@/constants/border";
-import { calculateBladeThickness } from "@/utils/borderCalculations";
-import { useWorkerCalculation } from "../useWorkerCalculation";
+import { useMemo, useRef, useCallback } from 'react';
+import { useWindowDimensions } from 'react-native';
+import { EASEL_SIZE_MAP } from '@/constants/border';
+import { calculateBladeThickness } from '@/utils/borderCalculations';
+import { useWorkerCalculation } from '../useWorkerCalculation';
 import type {
   BorderCalculatorState,
   OrientedDimensions,
@@ -27,7 +27,7 @@ import type {
   EaselData,
   PaperShift,
   BladeData,
-} from "./types";
+} from './types';
 
 // Constants for performance optimization
 const PREVIEW_SCALE_CACHE_SIZE = 50;
@@ -42,7 +42,7 @@ export const useOptimizedGeometryCalculations = (
   orientedDimensions: OrientedDimensions,
   minBorderData: MinBorderData,
   paperEntry: PaperEntry,
-  paperSizeWarning: string | null,
+  paperSizeWarning: string | null
 ) => {
   const { width: winW, height: winH } = useWindowDimensions();
 

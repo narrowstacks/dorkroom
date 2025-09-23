@@ -85,7 +85,7 @@ export const encodeCustomRecipe = (recipe: CustomRecipe): string => {
 };
 
 export const decodeCustomRecipe = (
-  encoded: string,
+  encoded: string
 ): EncodedCustomRecipe | null => {
   try {
     let base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
@@ -107,7 +107,7 @@ export const decodeCustomRecipe = (
 
     if (!recipe.version || recipe.version > CURRENT_RECIPE_SHARING_VERSION) {
       console.warn(
-        'Recipe was created with a newer version and may not import correctly',
+        'Recipe was created with a newer version and may not import correctly'
       );
     }
 
@@ -118,7 +118,10 @@ export const decodeCustomRecipe = (
     }
 
     if (recipe.isCustomDeveloper && recipe.customDeveloper) {
-      if (!recipe.customDeveloper.name || !recipe.customDeveloper.manufacturer) {
+      if (
+        !recipe.customDeveloper.name ||
+        !recipe.customDeveloper.manufacturer
+      ) {
         throw new Error('Invalid custom developer data');
       }
     }
@@ -131,7 +134,7 @@ export const decodeCustomRecipe = (
 };
 
 export const createCustomRecipeFromEncoded = (
-  encodedRecipe: EncodedCustomRecipe,
+  encodedRecipe: EncodedCustomRecipe
 ): Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'> => {
   const timestamp = Date.now();
 

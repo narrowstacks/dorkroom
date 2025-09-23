@@ -1,6 +1,6 @@
-import React from "react";
-import { HStack, Button, ButtonText, ButtonIcon } from "@gluestack-ui/themed";
-import { Copy, Share2, Bookmark } from "lucide-react-native";
+import React from 'react';
+import { HStack, Button, ButtonText, ButtonIcon } from '@gluestack-ui/themed';
+import { Copy, Share2, Bookmark } from 'lucide-react-native';
 
 interface ActionButtonsProps {
   onCopyResults: () => void;
@@ -17,8 +17,8 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
     <HStack
       space="md"
       style={{
-        justifyContent: "space-between",
-        width: "100%",
+        justifyContent: 'space-between',
+        width: '100%',
         paddingHorizontal: 4,
         marginTop: 16,
       }}

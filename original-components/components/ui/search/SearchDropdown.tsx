@@ -1,15 +1,15 @@
-import React from "react";
+import React from 'react';
 import {
   Platform,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-} from "react-native";
-import { Box, Text, Modal } from "@gluestack-ui/themed";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
-import { MobileSelectionModal } from "../select/MobileSelectionModal";
-import type { Film, Developer } from "@/api/dorkroom/types";
+} from 'react-native';
+import { Box, Text, Modal } from '@gluestack-ui/themed';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
+import { MobileSelectionModal } from '../select/MobileSelectionModal';
+import type { Film, Developer } from '@/api/dorkroom/types';
 
 export interface SearchDropdownItem {
   id: string;
@@ -24,9 +24,9 @@ interface BaseSearchDropdownProps {
 }
 
 interface DesktopSearchDropdownProps extends BaseSearchDropdownProps {
-  variant: "desktop";
+  variant: 'desktop';
   items: SearchDropdownItem[];
-  position: "left" | "right";
+  position: 'left' | 'right';
   dynamicPosition?: {
     top: number;
     left: number;
@@ -35,8 +35,8 @@ interface DesktopSearchDropdownProps extends BaseSearchDropdownProps {
 }
 
 interface MobileSearchDropdownProps extends BaseSearchDropdownProps {
-  variant: "mobile";
-  type: "film" | "developer" | "dilution";
+  variant: 'mobile';
+  type: 'film' | 'developer' | 'dilution';
   films?: Film[];
   developers?: Developer[];
   dilutionOptions?: { label: string; value: string }[];
@@ -51,21 +51,21 @@ type SearchDropdownProps =
   | MobileSearchDropdownProps;
 
 export const SearchDropdown = React.memo(function SearchDropdown(
-  props: SearchDropdownProps,
+  props: SearchDropdownProps
 ) {
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > 768;
+  const isDesktop = Platform.OS === 'web' && width > 768;
 
   // Colors and theme
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "borderColor");
-  const cardBackground = useThemeColor({}, "cardBackground");
+  const textColor = useThemeColor({}, 'text');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const cardBackground = useThemeColor({}, 'cardBackground');
 
-  const variant = props.variant || (isDesktop ? "desktop" : "mobile");
+  const variant = props.variant || (isDesktop ? 'desktop' : 'mobile');
 
   // Sort items alphabetically by manufacturer (subtitle) - memoized for performance
   const sortedItems = React.useMemo(() => {
-    if (variant === "desktop") {
+    if (variant === 'desktop') {
       const desktopProps = props as DesktopSearchDropdownProps;
       return desktopProps.items
         .slice()
@@ -74,10 +74,10 @@ export const SearchDropdown = React.memo(function SearchDropdown(
     return [];
   }, [
     variant,
-    variant === "desktop" ? (props as DesktopSearchDropdownProps).items : [],
+    variant === 'desktop' ? (props as DesktopSearchDropdownProps).items : [],
   ]);
 
-  if (variant === "mobile") {
+  if (variant === 'mobile') {
     const mobileProps = props as MobileSearchDropdownProps;
     return (
       <MobileSelectionModal
@@ -132,14 +132,14 @@ export const SearchDropdown = React.memo(function SearchDropdown(
   }
 
   const dynamicOverlayStyle = {
-    position: "absolute" as const,
+    position: 'absolute' as const,
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "transparent",
-    justifyContent: "flex-start" as const,
-    alignItems: "flex-start" as const,
+    backgroundColor: 'transparent',
+    justifyContent: 'flex-start' as const,
+    alignItems: 'flex-start' as const,
     paddingTop: desktopProps.dynamicPosition.top,
     paddingLeft: desktopProps.dynamicPosition.left,
     paddingRight: 0,
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 1000,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   dropdownScroll: {
     maxHeight: 200,
@@ -211,18 +211,18 @@ const styles = StyleSheet.create({
   dropdownItem: {
     padding: 12,
     borderBottomWidth: 1,
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
   },
   dropdownItemTitle: {
     fontSize: 15,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 4,
     lineHeight: 20,
   },
   dropdownItemSubtitle: {
     fontSize: 13,
     opacity: 0.75,
-    fontWeight: "500",
+    fontWeight: '500',
     lineHeight: 16,
   },
 });

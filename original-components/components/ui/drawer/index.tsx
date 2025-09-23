@@ -1,37 +1,37 @@
-"use client";
-import React from "react";
-import { createModal as createDrawer } from "@gluestack-ui/modal";
+'use client';
+import React from 'react';
+import { createModal as createDrawer } from '@gluestack-ui/modal';
 import {
   Pressable,
   View,
   ScrollView,
   Dimensions,
   ViewStyle,
-} from "react-native";
+} from 'react-native';
 import {
   Motion,
   AnimatePresence,
   createMotionAnimatedComponent,
   MotionComponentProps,
-} from "@legendapp/motion";
-import { tva } from "@gluestack-ui/nativewind-utils/tva";
+} from '@legendapp/motion';
+import { tva } from '@gluestack-ui/nativewind-utils/tva';
 import {
   withStyleContext,
   useStyleContext,
-} from "@gluestack-ui/nativewind-utils/withStyleContext";
-import { cssInterop } from "nativewind";
-import type { VariantProps } from "@gluestack-ui/nativewind-utils";
+} from '@gluestack-ui/nativewind-utils/withStyleContext';
+import { cssInterop } from 'nativewind';
+import type { VariantProps } from '@gluestack-ui/nativewind-utils';
 
 type IAnimatedPressableProps = React.ComponentProps<typeof Pressable> &
   MotionComponentProps<typeof Pressable, ViewStyle, unknown, unknown, unknown>;
 
 const AnimatedPressable = createMotionAnimatedComponent(
-  Pressable,
+  Pressable
 ) as React.ComponentType<IAnimatedPressableProps>;
 
-const SCOPE = "MODAL";
-const screenWidth = Dimensions.get("window").width;
-const screenHeight = Dimensions.get("window").height;
+const SCOPE = 'MODAL';
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 const sizes: { [key: string]: number } = {
   sm: 0.25,
   smd: 0.35,
@@ -56,111 +56,111 @@ const UIDrawer = createDrawer({
   AnimatePresence: AnimatePresence,
 });
 
-cssInterop(AnimatedPressable, { className: "style" });
-cssInterop(MotionView, { className: "style" });
+cssInterop(AnimatedPressable, { className: 'style' });
+cssInterop(MotionView, { className: 'style' });
 
 const drawerStyle = tva({
-  base: "relative h-full w-full web:pointer-events-none",
+  base: 'relative h-full w-full web:pointer-events-none',
   variants: {
     size: {
-      sm: "",
-      md: "",
-      lg: "",
-      full: "",
+      sm: '',
+      md: '',
+      lg: '',
+      full: '',
     },
     anchor: {
-      left: "items-start",
-      right: "items-end",
-      top: "justify-start",
-      bottom: "justify-end",
+      left: 'items-start',
+      right: 'items-end',
+      top: 'justify-start',
+      bottom: 'justify-end',
     },
   },
 });
 
 const drawerBackdropStyle = tva({
-  base: "absolute bottom-0 left-0 right-0 top-0 bg-background-dark web:cursor-default",
+  base: 'absolute bottom-0 left-0 right-0 top-0 bg-background-dark web:cursor-default',
 });
 
 const drawerContentStyle = tva({
-  base: "absolute overflow-scroll border-outline-100 bg-background-0 p-6",
+  base: 'absolute overflow-scroll border-outline-100 bg-background-0 p-6',
   parentVariants: {
     size: {
-      sm: "w-1/4",
-      smd: "w-1/3",
-      md: "w-1/2",
-      lg: "w-3/4",
-      full: "w-full",
+      sm: 'w-1/4',
+      smd: 'w-1/3',
+      md: 'w-1/2',
+      lg: 'w-3/4',
+      full: 'w-full',
     },
     anchor: {
-      left: "h-full border-r",
-      right: "h-full border-l",
-      top: "w-full border-b",
-      bottom: "w-full border-t",
+      left: 'h-full border-r',
+      right: 'h-full border-l',
+      top: 'w-full border-b',
+      bottom: 'w-full border-t',
     },
   },
   parentCompoundVariants: [
     {
-      anchor: "top",
-      size: "sm",
-      class: "h-1/4",
+      anchor: 'top',
+      size: 'sm',
+      class: 'h-1/4',
     },
     {
-      anchor: "top",
-      size: "smd",
-      class: "h-1/3",
+      anchor: 'top',
+      size: 'smd',
+      class: 'h-1/3',
     },
     {
-      anchor: "top",
-      size: "md",
-      class: "h-1/2",
+      anchor: 'top',
+      size: 'md',
+      class: 'h-1/2',
     },
     {
-      anchor: "top",
-      size: "lg",
-      class: "h-3/4",
+      anchor: 'top',
+      size: 'lg',
+      class: 'h-3/4',
     },
     {
-      anchor: "top",
-      size: "full",
-      class: "h-full",
+      anchor: 'top',
+      size: 'full',
+      class: 'h-full',
     },
     {
-      anchor: "bottom",
-      size: "sm",
-      class: "h-1/4",
+      anchor: 'bottom',
+      size: 'sm',
+      class: 'h-1/4',
     },
     {
-      anchor: "bottom",
-      size: "md",
-      class: "h-1/2",
+      anchor: 'bottom',
+      size: 'md',
+      class: 'h-1/2',
     },
     {
-      anchor: "bottom",
-      size: "lg",
-      class: "h-3/4",
+      anchor: 'bottom',
+      size: 'lg',
+      class: 'h-3/4',
     },
     {
-      anchor: "bottom",
-      size: "full",
-      class: "h-full",
+      anchor: 'bottom',
+      size: 'full',
+      class: 'h-full',
     },
   ],
 });
 
 const drawerCloseButtonStyle = tva({
-  base: "z-10 cursor-pointer rounded web:outline-0 data-[focus-visible=true]:web:bg-background-100",
+  base: 'z-10 cursor-pointer rounded web:outline-0 data-[focus-visible=true]:web:bg-background-100',
 });
 
 const drawerHeaderStyle = tva({
-  base: "flex-row items-center justify-between",
+  base: 'flex-row items-center justify-between',
 });
 
 const drawerBodyStyle = tva({
-  base: "mb-6 mt-4 shrink-0",
+  base: 'mb-6 mt-4 shrink-0',
 });
 
 const drawerFooterStyle = tva({
-  base: "flex-row items-center justify-end",
+  base: 'flex-row items-center justify-end',
 });
 
 type IDrawerProps = React.ComponentProps<typeof UIDrawer> &
@@ -189,7 +189,7 @@ type IDrawerCloseButtonProps = React.ComponentProps<
 const Drawer = React.forwardRef<
   React.ComponentRef<typeof UIDrawer>,
   IDrawerProps
->(function Drawer({ className, size = "sm", anchor = "left", ...props }, ref) {
+>(function Drawer({ className, size = 'sm', anchor = 'left', ...props }, ref) {
   return (
     <UIDrawer
       ref={ref}
@@ -218,11 +218,11 @@ const DrawerBackdrop = React.forwardRef<
         opacity: 0,
       }}
       transition={{
-        type: "spring",
+        type: 'spring',
         damping: 18,
         stiffness: 250,
         opacity: {
-          type: "timing",
+          type: 'timing',
           duration: 250,
         },
       }}
@@ -243,21 +243,21 @@ const DrawerContent = React.forwardRef<
   const drawerHeight = screenHeight * (sizes[parentSize] || sizes.md);
   const drawerWidth = screenWidth * (sizes[parentSize] || sizes.md);
 
-  const isHorizontal = parentAnchor === "left" || parentAnchor === "right";
+  const isHorizontal = parentAnchor === 'left' || parentAnchor === 'right';
 
   const initialObj = isHorizontal
-    ? { x: parentAnchor === "left" ? -drawerWidth : drawerWidth }
-    : { y: parentAnchor === "top" ? -drawerHeight : drawerHeight };
+    ? { x: parentAnchor === 'left' ? -drawerWidth : drawerWidth }
+    : { y: parentAnchor === 'top' ? -drawerHeight : drawerHeight };
 
   const animateObj = isHorizontal ? { x: 0 } : { y: 0 };
 
   const exitObj = isHorizontal
-    ? { x: parentAnchor === "left" ? -drawerWidth : drawerWidth }
-    : { y: parentAnchor === "top" ? -drawerHeight : drawerHeight };
+    ? { x: parentAnchor === 'left' ? -drawerWidth : drawerWidth }
+    : { y: parentAnchor === 'top' ? -drawerHeight : drawerHeight };
 
   const customClass = isHorizontal
-    ? `top-0 ${parentAnchor === "left" ? "left-0" : "right-0"}`
-    : `left-0 ${parentAnchor === "top" ? "top-0" : "bottom-0"}`;
+    ? `top-0 ${parentAnchor === 'left' ? 'left-0' : 'right-0'}`
+    : `left-0 ${parentAnchor === 'top' ? 'top-0' : 'bottom-0'}`;
 
   return (
     <UIDrawer.Content
@@ -266,7 +266,7 @@ const DrawerContent = React.forwardRef<
       animate={animateObj}
       exit={exitObj}
       transition={{
-        type: "timing",
+        type: 'timing',
         duration: 300,
       }}
       {...props}
@@ -342,13 +342,13 @@ const DrawerCloseButton = React.forwardRef<
   );
 });
 
-Drawer.displayName = "Drawer";
-DrawerBackdrop.displayName = "DrawerBackdrop";
-DrawerContent.displayName = "DrawerContent";
-DrawerHeader.displayName = "DrawerHeader";
-DrawerBody.displayName = "DrawerBody";
-DrawerFooter.displayName = "DrawerFooter";
-DrawerCloseButton.displayName = "DrawerCloseButton";
+Drawer.displayName = 'Drawer';
+DrawerBackdrop.displayName = 'DrawerBackdrop';
+DrawerContent.displayName = 'DrawerContent';
+DrawerHeader.displayName = 'DrawerHeader';
+DrawerBody.displayName = 'DrawerBody';
+DrawerFooter.displayName = 'DrawerFooter';
+DrawerCloseButton.displayName = 'DrawerCloseButton';
 
 export {
   Drawer,

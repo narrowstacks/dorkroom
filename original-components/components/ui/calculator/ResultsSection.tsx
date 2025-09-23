@@ -1,8 +1,8 @@
-import React, { ReactNode } from "react";
-import { StyleSheet, Platform } from "react-native";
-import { Box, Text } from "@gluestack-ui/themed";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
-import { useThemeColor } from "@/hooks/useThemeColor";
+import React, { ReactNode } from 'react';
+import { StyleSheet, Platform } from 'react-native';
+import { Box, Text } from '@gluestack-ui/themed';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface ResultRowProps {
   label: string;
@@ -17,14 +17,16 @@ interface ResultsSectionProps {
 }
 
 export function ResultRow({ label, value, isLast = false }: ResultRowProps) {
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const outline = useThemeColor({}, "outline");
-  const resultRowBackground = useThemeColor({}, "resultRowBackground");
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const outline = useThemeColor({}, 'outline');
+  const resultRowBackground = useThemeColor({}, 'resultRowBackground');
 
   return (
     <Box
-      className={`w-full flex-row items-center justify-between gap-4 rounded-xl px-4 py-3 ${!isLast ? "border-b" : ""}`}
+      className={`w-full flex-row items-center justify-between gap-4 rounded-xl px-4 py-3 ${
+        !isLast ? 'border-b' : ''
+      }`}
       style={[
         styles.resultRow,
         !isLast && { borderBottomColor: outline },
@@ -50,14 +52,14 @@ export function ResultRow({ label, value, isLast = false }: ResultRowProps) {
 }
 
 export function ResultsSection({
-  title = "Result",
+  title = 'Result',
   children,
   show = true,
 }: ResultsSectionProps) {
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > 768;
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const shadowColor = useThemeColor({}, "shadowColor");
+  const isDesktop = Platform.OS === 'web' && width > 768;
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const shadowColor = useThemeColor({}, 'shadowColor');
 
   if (!show) return null;
 
@@ -66,7 +68,7 @@ export function ResultsSection({
       className="mb-8 w-full items-center gap-5 web:mb-0 web:flex-1 web:self-stretch"
       style={[
         // styles.resultsSection,
-        Platform.OS === "web" && isDesktop && styles.webResultsSection,
+        Platform.OS === 'web' && isDesktop && styles.webResultsSection,
       ]}
     >
       <Text
@@ -95,19 +97,19 @@ export function ResultsSection({
 const styles = StyleSheet.create({
   webResultsSection: {
     flex: 1,
-    alignSelf: "stretch",
+    alignSelf: 'stretch',
     marginBottom: 0,
   },
   subtitle: {
     fontSize: 22,
     marginBottom: 16,
-    textAlign: "center",
-    fontWeight: "600",
+    textAlign: 'center',
+    fontWeight: '600',
   },
   resultContainer: {
-    alignItems: "center",
+    alignItems: 'center',
     gap: 16,
-    width: "100%",
+    width: '100%',
     maxWidth: 480,
     padding: 24,
     borderRadius: 16,
@@ -120,10 +122,10 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   resultRow: {
-    flexDirection: "row",
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 16,
     borderRadius: 12,
     paddingHorizontal: 16,
@@ -132,13 +134,13 @@ const styles = StyleSheet.create({
   },
   resultLabel: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
     minWidth: 80,
   },
   resultValue: {
     fontSize: 18,
-    textAlign: "right",
-    fontWeight: "600",
+    textAlign: 'right',
+    fontWeight: '600',
     flex: 1,
   },
 });

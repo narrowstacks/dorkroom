@@ -1,5 +1,5 @@
-import React from "react";
-import { Platform, StyleSheet, TouchableOpacity } from "react-native";
+import React from 'react';
+import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
 import {
   Box,
   Text,
@@ -7,7 +7,7 @@ import {
   VStack,
   Badge,
   BadgeText,
-} from "@gluestack-ui/themed";
+} from '@gluestack-ui/themed';
 import {
   Beaker,
   Calendar,
@@ -16,40 +16,40 @@ import {
   Shield,
   FileText,
   Droplets,
-} from "lucide-react-native";
-import type { Developer } from "@/api/dorkroom/types";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
+} from 'lucide-react-native';
+import type { Developer } from '@/api/dorkroom/types';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 import {
   getBrandKey,
   getDeveloperTypeColor,
   getContrastingTextColor,
-} from "@/constants/brands";
-import { Colors } from "@/constants/Colors";
+} from '@/constants/brands';
+import { Colors } from '@/constants/Colors';
 
 interface DeveloperCardProps {
   developer: Developer;
   onPress?: (developer: Developer) => void;
-  variant?: "default" | "compact";
+  variant?: 'default' | 'compact';
 }
 
 export function DeveloperCard({
   developer,
   onPress,
-  variant = "default",
+  variant = 'default',
 }: DeveloperCardProps) {
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > 768;
+  const isDesktop = Platform.OS === 'web' && width > 768;
 
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const borderColor = useThemeColor({}, "borderColor");
-  const shadowColor = useThemeColor({}, "shadowColor");
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const shadowColor = useThemeColor({}, 'shadowColor');
 
   // Get brand color from theme
   const colorScheme =
-    useThemeColor({}, "background") === "#fff" ? "light" : "dark";
+    useThemeColor({}, 'background') === '#fff' ? 'light' : 'dark';
   const brandKey = getBrandKey(developer.manufacturer);
   const brandColorKey = `${brandKey}BrandColor` as keyof typeof Colors.light;
   const brandColor =
@@ -71,14 +71,14 @@ export function DeveloperCard({
     shadowColor,
     borderWidth: 1,
     borderRadius: 12,
-    padding: variant === "compact" ? 12 : 16,
+    padding: variant === 'compact' ? 12 : 16,
     marginBottom: 12,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
     ...(isDesktop && {
-      maxWidth: variant === "compact" ? 280 : 320,
+      maxWidth: variant === 'compact' ? 280 : 320,
     }),
   };
 
@@ -86,13 +86,13 @@ export function DeveloperCard({
     try {
       return new Date(dateString).toLocaleDateString();
     } catch {
-      return "N/A";
+      return 'N/A';
     }
   };
 
   const formatLifetime = (value: number | null | undefined, unit: string) => {
-    if (!value) return "N/A";
-    return `${value} ${unit}${value !== 1 ? "s" : ""}`;
+    if (!value) return 'N/A';
+    return `${value} ${unit}${value !== 1 ? 's' : ''}`;
   };
 
   const Component = onPress ? TouchableOpacity : Box;
@@ -123,7 +123,7 @@ export function DeveloperCard({
         </Text>
         {developer.discontinued === 1 && (
           <Badge
-            style={[styles.discontinuedBadge, { backgroundColor: "#ff6b6b" }]}
+            style={[styles.discontinuedBadge, { backgroundColor: '#ff6b6b' }]}
           >
             <AlertTriangle size={12} color="#fff" />
             <BadgeText style={styles.discontinuedText}>Discontinued</BadgeText>
@@ -155,13 +155,13 @@ export function DeveloperCard({
             <Droplets size={12} color={textSecondary} />
             <Text style={[styles.smallDetailText, { color: textSecondary }]}>
               {developer.dilutions.length} dilution
-              {developer.dilutions.length !== 1 ? "s" : ""} available
+              {developer.dilutions.length !== 1 ? 's' : ''} available
             </Text>
           </HStack>
         )}
 
         {/* Lifetimes */}
-        {variant !== "compact" &&
+        {variant !== 'compact' &&
           (developer.workingLifeHours || developer.stockLifeMonths) && (
             <VStack space="xs">
               {developer.workingLifeHours && (
@@ -170,8 +170,8 @@ export function DeveloperCard({
                   <Text
                     style={[styles.smallDetailText, { color: textSecondary }]}
                   >
-                    Working:{" "}
-                    {formatLifetime(developer.workingLifeHours, "hour")}
+                    Working:{' '}
+                    {formatLifetime(developer.workingLifeHours, 'hour')}
                   </Text>
                 </HStack>
               )}
@@ -182,7 +182,7 @@ export function DeveloperCard({
                   <Text
                     style={[styles.smallDetailText, { color: textSecondary }]}
                   >
-                    Stock: {formatLifetime(developer.stockLifeMonths, "month")}
+                    Stock: {formatLifetime(developer.stockLifeMonths, 'month')}
                   </Text>
                 </HStack>
               )}
@@ -190,7 +190,7 @@ export function DeveloperCard({
           )}
 
         {/* Notes */}
-        {developer.notes && variant !== "compact" && (
+        {developer.notes && variant !== 'compact' && (
           <Text
             style={[styles.description, { color: textSecondary }]}
             numberOfLines={2}
@@ -200,7 +200,7 @@ export function DeveloperCard({
         )}
 
         {/* Date Added */}
-        {variant !== "compact" && (
+        {variant !== 'compact' && (
           <HStack space="xs" alignItems="center">
             <Calendar size={12} color={textSecondary} />
             <Text style={[styles.smallDetailText, { color: textSecondary }]}>
@@ -216,7 +216,7 @@ export function DeveloperCard({
         {developer.safetyNotes && (
           <HStack space="xs" alignItems="center">
             <Shield size={12} color="#ff6b6b" />
-            <Text style={[styles.indicatorText, { color: "#ff6b6b" }]}>
+            <Text style={[styles.indicatorText, { color: '#ff6b6b' }]}>
               Safety
             </Text>
           </HStack>
@@ -258,25 +258,25 @@ const styles = StyleSheet.create({
   },
   brandText: {
     fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   discontinuedBadge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 4,
   },
   discontinuedText: {
     fontSize: 10,
-    fontWeight: "500",
-    color: "#fff",
+    fontWeight: '500',
+    color: '#fff',
   },
   developerName: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
     lineHeight: 20,
     flex: 1,
   },
@@ -284,11 +284,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   typeRow: {
-    flexWrap: "wrap",
+    flexWrap: 'wrap',
   },
   detailText: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   typeBadge: {
     paddingHorizontal: 6,
@@ -297,8 +297,8 @@ const styles = StyleSheet.create({
   },
   typeText: {
     fontSize: 11,
-    fontWeight: "500",
-    textTransform: "capitalize",
+    fontWeight: '500',
+    textTransform: 'capitalize',
   },
   description: {
     fontSize: 12,
@@ -307,15 +307,15 @@ const styles = StyleSheet.create({
   },
   smallDetailText: {
     fontSize: 11,
-    fontWeight: "400",
+    fontWeight: '400',
   },
   indicatorsRow: {
     marginTop: 8,
-    flexWrap: "wrap",
+    flexWrap: 'wrap',
   },
   indicatorText: {
     fontSize: 10,
-    fontWeight: "500",
+    fontWeight: '500',
   },
 });
 

@@ -18,7 +18,7 @@ function findIndexByValue<T extends { value: string }>(
   options: T[],
   value: string
 ): number {
-  return options.findIndex(option => option.value === value);
+  return options.findIndex((option) => option.value === value);
 }
 
 /**
@@ -59,7 +59,10 @@ export function encodePreset(preset: PresetToShare): string {
     parts.push(encodeURIComponent(name));
 
     // Find indices for aspect ratio and paper size
-    const aspectRatioIndex = findIndexByValue(ASPECT_RATIOS, settings.aspectRatio);
+    const aspectRatioIndex = findIndexByValue(
+      ASPECT_RATIOS,
+      settings.aspectRatio
+    );
     const paperSizeIndex = findIndexByValue(PAPER_SIZES, settings.paperSize);
 
     if (aspectRatioIndex === -1 || paperSizeIndex === -1) {

@@ -128,7 +128,7 @@ export const useCustomRecipes = () => {
         setIsLoading(false);
       }
     },
-    [loadRecipes, saveRecipes],
+    [loadRecipes, saveRecipes]
   );
 
   const updateCustomRecipe = useCallback(
@@ -137,7 +137,9 @@ export const useCustomRecipes = () => {
 
       try {
         const currentRecipes = await loadRecipes();
-        const recipeIndex = currentRecipes.findIndex((recipe) => recipe.id === id);
+        const recipeIndex = currentRecipes.findIndex(
+          (recipe) => recipe.id === id
+        );
 
         if (recipeIndex === -1) {
           throw new Error(`Recipe with id ${id} not found`);
@@ -184,7 +186,7 @@ export const useCustomRecipes = () => {
         setIsLoading(false);
       }
     },
-    [loadRecipes, saveRecipes],
+    [loadRecipes, saveRecipes]
   );
 
   const deleteCustomRecipe = useCallback(
@@ -193,7 +195,9 @@ export const useCustomRecipes = () => {
 
       try {
         const currentRecipes = await loadRecipes();
-        const updatedRecipes = currentRecipes.filter((recipe) => recipe.id !== id);
+        const updatedRecipes = currentRecipes.filter(
+          (recipe) => recipe.id !== id
+        );
         await saveRecipes(updatedRecipes);
         await loadRecipes();
       } catch (error) {
@@ -203,7 +207,7 @@ export const useCustomRecipes = () => {
         setIsLoading(false);
       }
     },
-    [loadRecipes, saveRecipes],
+    [loadRecipes, saveRecipes]
   );
 
   const clearAllCustomRecipes = useCallback(async () => {

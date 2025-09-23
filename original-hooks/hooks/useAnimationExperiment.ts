@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   debugLog,
   debugLogPerformance,
   debugLogMemory,
-} from "@/utils/debugLogger";
+} from '@/utils/debugLogger';
 
-const ANIMATION_EXPERIMENT_KEY = "@animation_experiment";
+const ANIMATION_EXPERIMENT_KEY = '@animation_experiment';
 
-export type AnimationEngine = "legacy" | "reanimated";
+export type AnimationEngine = 'legacy' | 'reanimated';
 
 interface AnimationExperimentState {
   engine: AnimationEngine;
@@ -21,7 +21,7 @@ interface AnimationExperimentState {
  * Only available in development environment
  */
 export const useAnimationExperiment = (): AnimationExperimentState => {
-  const [engine, setEngineState] = useState<AnimationEngine>("legacy");
+  const [engine, setEngineState] = useState<AnimationEngine>('legacy');
   const [isLoading, setIsLoading] = useState(true);
 
   // Load saved preference on mount
@@ -34,16 +34,16 @@ export const useAnimationExperiment = (): AnimationExperimentState => {
 
       try {
         const saved = await AsyncStorage.getItem(ANIMATION_EXPERIMENT_KEY);
-        const savedEngine = (saved as AnimationEngine) || "legacy";
+        const savedEngine = (saved as AnimationEngine) || 'legacy';
 
-        debugLog("🔬 [ANIMATION EXPERIMENT] Loaded saved engine:", savedEngine);
+        debugLog('🔬 [ANIMATION EXPERIMENT] Loaded saved engine:', savedEngine);
         setEngineState(savedEngine);
       } catch (error) {
         debugLog(
-          "🔬 [ANIMATION EXPERIMENT] Failed to load saved engine:",
-          error,
+          '🔬 [ANIMATION EXPERIMENT] Failed to load saved engine:',
+          error
         );
-        setEngineState("legacy");
+        setEngineState('legacy');
       } finally {
         setIsLoading(false);
       }
@@ -55,7 +55,7 @@ export const useAnimationExperiment = (): AnimationExperimentState => {
   const setEngine = async (newEngine: AnimationEngine) => {
     if (!__DEV__) {
       debugLog(
-        "🔬 [ANIMATION EXPERIMENT] Not in dev mode, ignoring engine change",
+        '🔬 [ANIMATION EXPERIMENT] Not in dev mode, ignoring engine change'
       );
       return;
     }
@@ -73,7 +73,7 @@ export const useAnimationExperiment = (): AnimationExperimentState => {
       setEngineState(newEngine);
 
       // Log the switch
-      debugLogPerformance("Animation Engine Switch", {
+      debugLogPerformance('Animation Engine Switch', {
         from: previousEngine,
         to: newEngine,
         timestamp: new Date().toISOString(),
@@ -85,8 +85,8 @@ export const useAnimationExperiment = (): AnimationExperimentState => {
       }, 100);
     } catch (error) {
       debugLog(
-        "🔬 [ANIMATION EXPERIMENT] Failed to save engine preference:",
-        error,
+        '🔬 [ANIMATION EXPERIMENT] Failed to save engine preference:',
+        error
       );
     }
   };
@@ -94,7 +94,7 @@ export const useAnimationExperiment = (): AnimationExperimentState => {
   // In production, always return legacy engine
   if (!__DEV__) {
     return {
-      engine: "legacy",
+      engine: 'legacy',
       setEngine: () => {},
       isLoading: false,
     };
@@ -112,5 +112,5 @@ export const useAnimationExperiment = (): AnimationExperimentState => {
  */
 export const useIsReanimatedEnabled = (): boolean => {
   const { engine } = useAnimationExperiment();
-  return __DEV__ && engine === "reanimated";
+  return __DEV__ && engine === 'reanimated';
 };

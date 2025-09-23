@@ -1,6 +1,7 @@
 const DEBUG_ENABLED =
   (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') ||
-  (typeof window !== 'undefined' && (window as any).__DORKROOM_DEBUG__ === true);
+  (typeof window !== 'undefined' &&
+    (window as any).__DORKROOM_DEBUG__ === true);
 
 export const debugLog: (...args: unknown[]) => void = DEBUG_ENABLED
   ? (...args) => console.log(...args)

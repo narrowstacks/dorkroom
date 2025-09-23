@@ -1,8 +1,8 @@
-import React from "react";
-import { Modal, ModalBackdrop, ModalContent } from "@gluestack-ui/themed";
-import { RecipeDetail } from "@/components/development-recipes";
-import { getRecipeDetailModalConfig } from "@/components/development-recipes/ModalStyles";
-import type { Film, Developer, Combination } from "@/api/dorkroom/types";
+import React from 'react';
+import { Modal, ModalBackdrop, ModalContent } from '@gluestack-ui/themed';
+import { RecipeDetail } from '@/components/development-recipes';
+import { getRecipeDetailModalConfig } from '@/components/development-recipes/ModalStyles';
+import type { Film, Developer, Combination } from '@/api/dorkroom/types';
 
 interface ApiRecipeModalProps {
   isOpen: boolean;

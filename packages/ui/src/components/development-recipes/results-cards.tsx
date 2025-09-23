@@ -1,35 +1,18 @@
-import { Share2, Info, Beaker, ExternalLink } from 'lucide-react';
+import { Beaker, ExternalLink, Share2, Edit2, Trash2 } from 'lucide-react';
 import type { DevelopmentCombinationView } from './results-table';
+import { useTemperature } from '../../contexts/temperature-context';
+import { formatTemperatureWithUnit } from '../../lib/temperature';
+import { cn } from '../../lib/cn';
+import { Tag } from '../ui/tag';
 
 interface DevelopmentResultsCardsProps {
   rows: DevelopmentCombinationView[];
   onSelectCombination?: (view: DevelopmentCombinationView) => void;
   onShareCombination?: (view: DevelopmentCombinationView) => void;
+  onCopyCombination?: (view: DevelopmentCombinationView) => void;
+  onEditCustomRecipe?: (view: DevelopmentCombinationView) => void;
+  onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;
 }
-
-const formatTemperature = (view: DevelopmentCombinationView) => {
-  const { temperatureF, temperatureC } = view.combination;
-  const fahrenheit = Number.isFinite(temperatureF) ? temperatureF : null;
-  const celsius = Number.isFinite(temperatureC ?? NaN)
-    ? temperatureC!
-    : fahrenheit !== null
-      ? ((fahrenheit - 32) * 5) / 9
-      : null;
-
-  if (fahrenheit !== null && celsius !== null) {
-    return `${fahrenheit.toFixed(1)}°F · ${celsius.toFixed(1)}°C`;
-  }
-
-  if (fahrenheit !== null) {
-    return `${fahrenheit.toFixed(1)}°F`;
-  }
-
-  if (celsius !== null) {
-    return `${celsius.toFixed(1)}°C`;
-  }
-
-  return '—';
-};
 
 const formatTime = (minutes: number) => {
   if (minutes < 1) {
@@ -53,7 +36,7 @@ const formatDilution = (view: DevelopmentCombinationView): string => {
 
   if (developer) {
     const match = developer.dilutions.find(
-      (dilution) => dilution.id === combination.dilutionId,
+      (dilution) => dilution.id === combination.dilutionId
     );
     if (match) {
       return match.dilution || match.name;
@@ -67,17 +50,35 @@ export function DevelopmentResultsCards({
   rows,
   onSelectCombination,
   onShareCombination,
+  onCopyCombination,
+  onEditCustomRecipe,
+  onDeleteCustomRecipe,
 }: DevelopmentResultsCardsProps) {
+  const { unit } = useTemperature();
   return (
-    <div className="grid gap-4">
-      {rows.map((row) => {
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {rows.map((row, index) => {
         const { combination, film, developer } = row;
         return (
           <div
             key={combination.uuid || combination.id}
-            className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-subtle"
+            onClick={() => onSelectCombination?.(row)}
+            className={cn(
+              'cursor-pointer rounded-2xl border border-white/10 bg-white/5 p-4 shadow-subtle transition-all duration-200 hover:border-white/20 hover:bg-white/10 hover:scale-[1.02]',
+              'animate-slide-fade-bottom',
+              row.source === 'custom' &&
+                'bg-purple-950/20 hover:bg-purple-900/30',
+              index === 0 && 'animate-delay-100',
+              index === 1 && 'animate-delay-200',
+              index === 2 && 'animate-delay-300',
+              index === 3 && 'animate-delay-400',
+              index === 4 && 'animate-delay-500',
+              index === 5 && 'animate-delay-600',
+              index === 6 && 'animate-delay-700',
+              index >= 7 && 'animate-delay-800'
+            )}
           >
-            <div className="flex items-start justify-between gap-3">
+            <div>
               <div>
                 <div className="text-sm font-semibold text-white">
                   {film ? `${film.brand} ${film.name}` : 'Unknown film'}
@@ -95,36 +96,9 @@ export function DevelopmentResultsCards({
                 {combination.tags && combination.tags.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {combination.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-white/60"
-                      >
-                        {tag.replace(/-/g, ' ')}
-                      </span>
+                      <Tag key={tag}>{tag}</Tag>
                     ))}
                   </div>
-                )}
-              </div>
-              <div className="flex gap-2">
-                {onShareCombination && row.canShare && (
-                  <button
-                    type="button"
-                    onClick={() => onShareCombination(row)}
-                    className="rounded-full border border-white/20 p-2 text-white/70 transition hover:border-white/40 hover:text-white"
-                    aria-label="Share recipe"
-                  >
-                    <Share2 className="h-4 w-4" />
-                  </button>
-                )}
-                {onSelectCombination && (row.canViewDetails ?? true) && (
-                  <button
-                    type="button"
-                    onClick={() => onSelectCombination(row)}
-                    className="rounded-full border border-white/20 p-2 text-white/70 transition hover:border-white/40 hover:text-white"
-                    aria-label="View recipe details"
-                  >
-                    <Info className="h-4 w-4" />
-                  </button>
                 )}
               </div>
             </div>
@@ -132,15 +106,35 @@ export function DevelopmentResultsCards({
             <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-white/70">
               <div>
                 <div className="text-white/40">ISO</div>
-                <div className="text-sm text-white">{combination.shootingIso}</div>
+                <div className="text-sm text-white">
+                  {combination.shootingIso}
+                </div>
               </div>
               <div>
                 <div className="text-white/40">Time</div>
-                <div className="text-sm text-white">{formatTime(combination.timeMinutes)}</div>
+                <div className="text-sm text-white">
+                  {formatTime(combination.timeMinutes)}
+                </div>
               </div>
               <div>
                 <div className="text-white/40">Temperature</div>
-                <div className="text-sm text-white">{formatTemperature(row)}</div>
+                {(() => {
+                  const temp = formatTemperatureWithUnit(
+                    row.combination.temperatureF,
+                    row.combination.temperatureC,
+                    unit
+                  );
+                  return (
+                    <div
+                      className={cn(
+                        'text-sm text-white',
+                        temp.isNonStandard && 'text-amber-300 font-medium'
+                      )}
+                    >
+                      {temp.text}
+                    </div>
+                  );
+                })()}
               </div>
               <div>
                 <div className="text-white/40">Dilution</div>
@@ -167,6 +161,52 @@ export function DevelopmentResultsCards({
                 )}
               </div>
             )}
+
+            <div className="mt-4 flex justify-end gap-2">
+              {row.source === 'custom' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditCustomRecipe?.(row);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-1 text-xs text-white/70 transition hover:bg-white/10 hover:text-white"
+                    title="Edit custom recipe"
+                  >
+                    <Edit2 className="h-3 w-3" />
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteCustomRecipe?.(row);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-md bg-red-500/10 px-2 py-1 text-xs text-red-300 transition hover:bg-red-500/20 hover:text-red-200"
+                    title="Delete custom recipe"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    Delete
+                  </button>
+                </>
+              ) : (
+                (onShareCombination || onCopyCombination) && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onShareCombination?.(row);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-1 text-xs text-white/70 transition hover:bg-white/10 hover:text-white"
+                    title="Share recipe"
+                  >
+                    <Share2 className="h-3 w-3" />
+                    Share
+                  </button>
+                )
+              )}
+            </div>
           </div>
         );
       })}

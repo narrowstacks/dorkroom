@@ -1,25 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { Platform } from "react-native";
-import * as Haptics from "expo-haptics";
+import React, { useState, useEffect } from 'react';
+import { Platform } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import {
   Button,
   ButtonText,
   useToast,
   Toast,
   ToastTitle,
-} from "@gluestack-ui/themed";
-import { Share, Copy, Check } from "lucide-react-native";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from '@gluestack-ui/themed';
+import { Share, Copy, Check } from 'lucide-react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import {
   useShareLink,
   ShareLinkOptions,
   ShareResult,
-} from "@/hooks/useShareLink";
+} from '@/hooks/useShareLink';
 
 export interface ShareButtonProps {
   recipe: any; // Combination type
-  variant?: "outline" | "solid";
-  size?: "xs" | "sm" | "md" | "lg";
+  variant?: 'outline' | 'solid';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   showText?: boolean;
   style?: any;
   onShareStart?: () => void;
@@ -28,21 +28,21 @@ export interface ShareButtonProps {
 
 export function ShareButton({
   recipe,
-  variant = "outline",
-  size = "sm",
+  variant = 'outline',
+  size = 'sm',
   showText = false,
   style,
   onShareStart,
   onShareComplete,
 }: ShareButtonProps) {
   const [isSharing, setIsSharing] = useState(false);
-  const [sharingMethod, setSharingMethod] = useState<string>("Share");
+  const [sharingMethod, setSharingMethod] = useState<string>('Share');
   const [showSuccess, setShowSuccess] = useState(false);
 
   const toast = useToast();
   const { shareRecipe, getSharingMethodDescription } = useShareLink();
-  const textColor = useThemeColor({}, "text");
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
+  const textColor = useThemeColor({}, 'text');
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
 
   // Update sharing method description on mount
   useEffect(() => {
@@ -60,7 +60,7 @@ export function ShareButton({
     onShareStart?.();
 
     // Add haptic feedback on mobile
-    if (Platform.OS !== "web") {
+    if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
@@ -78,17 +78,17 @@ export function ShareButton({
         setTimeout(() => setShowSuccess(false), 2000);
 
         // Show appropriate success message
-        let successMessage = "Recipe shared successfully!";
-        if (result.method === "clipboard") {
-          successMessage = "Recipe link copied to clipboard!";
-        } else if (result.method === "webShare") {
-          successMessage = "Recipe shared!";
-        } else if (result.method === "expo") {
-          successMessage = "Recipe shared!";
+        let successMessage = 'Recipe shared successfully!';
+        if (result.method === 'clipboard') {
+          successMessage = 'Recipe link copied to clipboard!';
+        } else if (result.method === 'webShare') {
+          successMessage = 'Recipe shared!';
+        } else if (result.method === 'expo') {
+          successMessage = 'Recipe shared!';
         }
 
         toast.show({
-          placement: "top",
+          placement: 'top',
           render: ({ id }) => (
             <Toast nativeID={`toast-${id}`} action="success" variant="solid">
               <ToastTitle>{successMessage}</ToastTitle>
@@ -98,11 +98,11 @@ export function ShareButton({
       } else {
         // Show error message
         toast.show({
-          placement: "top",
+          placement: 'top',
           render: ({ id }) => (
             <Toast nativeID={`toast-${id}`} action="error" variant="solid">
               <ToastTitle>
-                {result.error || "Failed to share recipe"}
+                {result.error || 'Failed to share recipe'}
               </ToastTitle>
             </Toast>
           ),
@@ -112,10 +112,10 @@ export function ShareButton({
       onShareComplete?.(result);
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to share recipe";
+        error instanceof Error ? error.message : 'Failed to share recipe';
 
       toast.show({
-        placement: "top",
+        placement: 'top',
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="error" variant="solid">
             <ToastTitle>{errorMessage}</ToastTitle>
@@ -135,7 +135,7 @@ export function ShareButton({
       return <Check size={16} color={developmentTint} />;
     }
 
-    if (sharingMethod.toLowerCase().includes("copy")) {
+    if (sharingMethod.toLowerCase().includes('copy')) {
       return <Copy size={16} color={textColor} />;
     }
 
@@ -145,18 +145,18 @@ export function ShareButton({
   // Button text based on state and props
   const getButtonText = () => {
     if (showSuccess) {
-      return "Shared!";
+      return 'Shared!';
     }
 
     if (isSharing) {
-      return "Sharing...";
+      return 'Sharing...';
     }
 
     if (showText) {
       return sharingMethod;
     }
 
-    return "";
+    return '';
   };
 
   return (
@@ -169,29 +169,29 @@ export function ShareButton({
         {
           width: showText
             ? undefined
-            : size === "xs"
-              ? 24
-              : size === "sm"
-                ? 32
-                : 40,
+            : size === 'xs'
+            ? 24
+            : size === 'sm'
+            ? 32
+            : 40,
           height: showText
             ? undefined
-            : size === "xs"
-              ? 24
-              : size === "sm"
-                ? 32
-                : 40,
+            : size === 'xs'
+            ? 24
+            : size === 'sm'
+            ? 32
+            : 40,
           padding: showText ? undefined : 0,
           minHeight: showText
             ? undefined
-            : size === "xs"
-              ? 24
-              : size === "sm"
-                ? 32
-                : 40,
-          justifyContent: "center",
-          alignItems: "center",
-          flexDirection: showText ? "row" : "column",
+            : size === 'xs'
+            ? 24
+            : size === 'sm'
+            ? 32
+            : 40,
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: showText ? 'row' : 'column',
           gap: showText ? 8 : 0,
         },
         style,
@@ -201,7 +201,7 @@ export function ShareButton({
       {showText && (
         <ButtonText
           style={{
-            fontSize: size === "xs" ? 12 : size === "sm" ? 14 : 16,
+            fontSize: size === 'xs' ? 12 : size === 'sm' ? 14 : 16,
             color: showSuccess ? developmentTint : textColor,
           }}
         >

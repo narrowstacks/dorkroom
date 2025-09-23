@@ -1,7 +1,7 @@
-import React from "react";
-import { Box, Text, HStack, VStack } from "@gluestack-ui/themed";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import type { BorderCalculation } from "@/types/borderTypes";
+import React from 'react';
+import { Box, Text, HStack, VStack } from '@gluestack-ui/themed';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import type { BorderCalculation } from '@/types/borderTypes';
 
 interface BladeResultsDisplayProps {
   calculation: BorderCalculation;
@@ -30,20 +30,20 @@ const BladeResultBox: React.FC<BladeResultBoxProps> = ({
       borderWidth: 1,
       borderRadius: 12,
       padding: 12,
-      alignItems: "center",
+      alignItems: 'center',
     }}
   >
     <Text
       style={{
         fontSize: 20,
-        fontWeight: "800",
+        fontWeight: '800',
         color: textColor,
         marginBottom: 8,
       }}
     >
       {label}
     </Text>
-    <Text style={{ fontSize: 16, fontWeight: "bold", color: textColor }}>
+    <Text style={{ fontSize: 16, fontWeight: 'bold', color: textColor }}>
       {value.toFixed(2)}&quot;
     </Text>
   </Box>
@@ -54,11 +54,11 @@ export const BladeResultsDisplay: React.FC<BladeResultsDisplayProps> = ({
   paperSize,
   aspectRatio,
 }) => {
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const textColor = useThemeColor({}, "text");
-  const outline = useThemeColor({}, "outline");
-  const shadowColor = useThemeColor({}, "shadowColor");
-  const tintColor = useThemeColor({}, "tint");
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textColor = useThemeColor({}, 'text');
+  const outline = useThemeColor({}, 'outline');
+  const shadowColor = useThemeColor({}, 'shadowColor');
+  const tintColor = useThemeColor({}, 'tint');
 
   return (
     <Box
@@ -74,23 +74,23 @@ export const BladeResultsDisplay: React.FC<BladeResultsDisplayProps> = ({
         borderRadius: 16,
         padding: 10,
         marginBottom: 4,
-        width: "100%",
+        width: '100%',
       }}
     >
       {/* Header with image info */}
-      <VStack space="sm" style={{ alignItems: "center", marginBottom: 20 }}>
-        <Text style={{ fontSize: 20, fontWeight: "600", color: textColor }}>
+      <VStack space="sm" style={{ alignItems: 'center', marginBottom: 20 }}>
+        <Text style={{ fontSize: 20, fontWeight: '600', color: textColor }}>
           Blade Positions
         </Text>
-        <Text style={{ fontSize: 16, color: textColor, textAlign: "center" }}>
-          {calculation.printWidth.toFixed(2)}&quot; ×{" "}
+        <Text style={{ fontSize: 16, color: textColor, textAlign: 'center' }}>
+          {calculation.printWidth.toFixed(2)}&quot; ×{' '}
           {calculation.printHeight.toFixed(2)}&quot; image on {paperSize}
         </Text>
       </VStack>
 
       {/* Blade position grid */}
       <VStack space="md">
-        <HStack space="md" style={{ justifyContent: "space-between" }}>
+        <HStack space="md" style={{ justifyContent: 'space-between' }}>
           <BladeResultBox
             label="← L"
             value={calculation.leftBladeReading}
@@ -133,15 +133,15 @@ export const BladeResultsDisplay: React.FC<BladeResultsDisplayProps> = ({
           <Text
             style={{
               fontSize: 16,
-              textAlign: "center",
+              textAlign: 'center',
               marginBottom: 8,
-              fontWeight: "600",
+              fontWeight: '600',
               color: textColor,
             }}
           >
             Non-Standard Paper Size
           </Text>
-          <Text style={{ fontSize: 14, textAlign: "center", color: textColor }}>
+          <Text style={{ fontSize: 14, textAlign: 'center', color: textColor }}>
             Position paper in the {calculation.easelSizeLabel} slot all the way
             to the left.
           </Text>

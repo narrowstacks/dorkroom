@@ -54,7 +54,7 @@ export function Modal({
       <div
         className={cn(
           'relative w-full rounded-2xl border border-white/10 bg-black/80 p-6 text-white shadow-xl backdrop-blur-lg',
-          SIZE_CLASSES[size],
+          SIZE_CLASSES[size]
         )}
       >
         {!hideCloseButton && (
@@ -76,6 +76,6 @@ export function Modal({
         {footer && <div className="mt-6 flex flex-col gap-2">{footer}</div>}
       </div>
     </div>,
-    document.body,
+    document.body
   );
 }

@@ -4,9 +4,9 @@ import {
   useWindowDimensions,
   Pressable,
   Animated,
-} from "react-native";
-import { useRouter } from "expo-router";
-import React, { useMemo } from "react";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import React, { useMemo } from 'react';
 import {
   Box,
   VStack,
@@ -15,7 +15,7 @@ import {
   ScrollView,
   Center,
   HStack,
-} from "@gluestack-ui/themed";
+} from '@gluestack-ui/themed';
 import {
   MoveIcon,
   TimerIcon,
@@ -26,9 +26,9 @@ import {
   FlaskConicalIcon,
   ArrowRightIcon,
   FrameIcon,
-} from "lucide-react-native";
-import { Colors } from "@/constants/Colors";
-import * as Haptics from "expo-haptics";
+} from 'lucide-react-native';
+import { Colors } from '@/constants/Colors';
+import * as Haptics from 'expo-haptics';
 import Svg, {
   Defs,
   LinearGradient as SvgLinearGradient,
@@ -39,10 +39,10 @@ import Svg, {
   FeTurbulence,
   FeColorMatrix,
   FeComposite,
-} from "react-native-svg";
+} from 'react-native-svg';
 
 const sanitizeId = (value: string) =>
-  value.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  value.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
 const lightenHex = (hex: string, factor: number) => {
   const rgb = hexToRgb(hex);
@@ -53,7 +53,7 @@ const lightenHex = (hex: string, factor: number) => {
   const mixChannel = (channel: number, target: number) =>
     clamp(channel + (target - channel) * ratio);
   const toHex = (value: number) =>
-    Math.round(value).toString(16).padStart(2, "0");
+    Math.round(value).toString(16).padStart(2, '0');
 
   const r = mixChannel(rgb.r, 255);
   const g = mixChannel(rgb.g, 255);
@@ -71,7 +71,7 @@ const darkenHex = (hex: string, factor: number) => {
   const mixChannel = (channel: number, target: number) =>
     clamp(channel + (target - channel) * ratio);
   const toHex = (value: number) =>
-    Math.round(value).toString(16).padStart(2, "0");
+    Math.round(value).toString(16).padStart(2, '0');
 
   const r = mixChannel(rgb.r, 0);
   const g = mixChannel(rgb.g, 0);
@@ -81,7 +81,7 @@ const darkenHex = (hex: string, factor: number) => {
 };
 
 const hexToRgb = (hex: string) => {
-  const normalized = hex.replace("#", "");
+  const normalized = hex.replace('#', '');
   if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
     return null;
   }
@@ -95,12 +95,12 @@ const hexToRgb = (hex: string) => {
 const withAlpha = (hex: string, alpha: number) => {
   if (!/^#?[0-9a-fA-F]{6,8}$/.test(hex)) return hex;
 
-  const normalized = hex.replace("#", "");
+  const normalized = hex.replace('#', '');
   const base = normalized.substring(0, 6);
   const clamped = Math.min(1, Math.max(0, alpha));
   const alphaHex = Math.round(clamped * 255)
     .toString(16)
-    .padStart(2, "0");
+    .padStart(2, '0');
 
   return `#${base}${alphaHex}`;
 };
@@ -127,14 +127,14 @@ const FeatureCard = ({
   tag,
 }: FeatureCardProps) => {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? "light"];
+  const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
   const [isHovered, setIsHovered] = React.useState(false);
   const [isFocused, setIsFocused] = React.useState(false);
   const glow = React.useRef(new Animated.Value(0)).current;
   const gradientId = React.useMemo(
-    () => `feature-card-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-    [title],
+    () => `feature-card-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+    [title]
   );
 
   React.useEffect(() => {
@@ -145,15 +145,15 @@ const FeatureCard = ({
     }).start();
   }, [isHovered, isFocused, glow]);
 
-  const bg = color + "26"; // ~15% alpha
-  const border = color + "33"; // ~20% alpha
+  const bg = color + '26'; // ~15% alpha
+  const border = color + '33'; // ~20% alpha
 
   const pressable = (
     <Pressable
       onPress={() => {
         if (disabled) return;
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        if (href.startsWith("http")) {
+        if (href.startsWith('http')) {
           Linking.openURL(href);
         } else {
           router.push(href as any);
@@ -187,7 +187,7 @@ const FeatureCard = ({
       <Animated.View
         pointerEvents="none"
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: -1,
           left: -1,
           right: -1,
@@ -205,14 +205,14 @@ const FeatureCard = ({
       />
       <Box
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          overflow: "hidden",
+          overflow: 'hidden',
           borderRadius: 20,
-          pointerEvents: "none" as any,
+          pointerEvents: 'none' as any,
         }}
       >
         <Svg
@@ -294,7 +294,7 @@ const FeatureCard = ({
               color: colors.textMuted,
               fontSize: 12,
               letterSpacing: 1,
-              textTransform: "uppercase",
+              textTransform: 'uppercase',
             }}
           >
             {tag}
@@ -303,7 +303,7 @@ const FeatureCard = ({
         <HStack
           space="md"
           alignItems="center"
-          style={{ justifyContent: "space-between" }}
+          style={{ justifyContent: 'space-between' }}
         >
           <HStack space="md" alignItems="center" style={{ flex: 1 }}>
             <Box
@@ -311,11 +311,11 @@ const FeatureCard = ({
                 width: 48,
                 height: 48,
                 borderRadius: 24,
-                backgroundColor: color + "1A", // ~10% alpha like PillLink
+                backgroundColor: color + '1A', // ~10% alpha like PillLink
                 borderWidth: 1,
-                borderColor: color + "33", // ~20% alpha like PillLink
-                alignItems: "center",
-                justifyContent: "center",
+                borderColor: color + '33', // ~20% alpha like PillLink
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
               <Icon size={22} color={color} />
@@ -331,7 +331,7 @@ const FeatureCard = ({
               </Text>
               <Text
                 className="text-sm"
-                style={{ color: colors.textMuted, flexWrap: "wrap" }}
+                style={{ color: colors.textMuted, flexWrap: 'wrap' }}
                 numberOfLines={2}
                 ellipsizeMode="tail"
               >
@@ -346,8 +346,8 @@ const FeatureCard = ({
               paddingVertical: 6,
               paddingHorizontal: 12,
               borderRadius: 9999,
-              alignSelf: "flex-start",
-              backgroundColor: color + "33",
+              alignSelf: 'flex-start',
+              backgroundColor: color + '33',
             }}
           >
             <Text className="text-xs font-semibold" style={{ color }}>
@@ -377,7 +377,7 @@ interface PillLinkProps {
 
 const PillLink = ({ href, title, color, icon: Icon }: PillLinkProps) => {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? "light"];
+  const colors = Colors[colorScheme ?? 'light'];
   const [isHovered, setIsHovered] = React.useState(false);
   const [isFocused, setIsFocused] = React.useState(false);
   const glow = React.useRef(new Animated.Value(0)).current;
@@ -390,9 +390,9 @@ const PillLink = ({ href, title, color, icon: Icon }: PillLinkProps) => {
   }, [isHovered, isFocused, glow]);
   // Soft-tinted background + subtle border to match overall styling
   // Also lighten very dark brand colors in dark mode so they don't blend in
-  const isDarkMode = (colorScheme ?? "light") === "dark";
+  const isDarkMode = (colorScheme ?? 'light') === 'dark';
   const toRgb = (hex: string) => {
-    const h = hex.replace("#", "");
+    const h = hex.replace('#', '');
     const r = parseInt(h.substring(0, 2), 16);
     const g = parseInt(h.substring(2, 4), 16);
     const b = parseInt(h.substring(4, 6), 16);
@@ -416,8 +416,8 @@ const PillLink = ({ href, title, color, icon: Icon }: PillLinkProps) => {
   })();
   const baseTint =
     isDarkMode && isLowLuminance ? lightenHex(color, 0.55) : color;
-  const bg = baseTint + "26"; // ~15% alpha
-  const border = baseTint + "33"; // ~20% alpha
+  const bg = baseTint + '26'; // ~15% alpha
+  const border = baseTint + '33'; // ~20% alpha
   return (
     <Pressable
       onPress={() => {
@@ -432,9 +432,9 @@ const PillLink = ({ href, title, color, icon: Icon }: PillLinkProps) => {
         paddingVertical: 12,
         paddingHorizontal: 18,
         borderRadius: 9999,
-        backgroundColor: hovered ? baseTint + "33" : bg,
+        backgroundColor: hovered ? baseTint + '33' : bg,
         borderWidth: 1,
-        borderColor: hovered ? baseTint + "66" : border,
+        borderColor: hovered ? baseTint + '66' : border,
         transform: [{ scale: pressed ? 0.985 : 1 }],
         // Subtle glow on hover/focus
         shadowColor: baseTint,
@@ -449,7 +449,7 @@ const PillLink = ({ href, title, color, icon: Icon }: PillLinkProps) => {
       <Animated.View
         pointerEvents="none"
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: -1,
           left: -1,
           right: -1,
@@ -467,9 +467,9 @@ const PillLink = ({ href, title, color, icon: Icon }: PillLinkProps) => {
       />
       <Box
         style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "flex-start",
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
           gap: 12,
           flex: 1,
         }}
@@ -480,11 +480,11 @@ const PillLink = ({ href, title, color, icon: Icon }: PillLinkProps) => {
               width: 28,
               height: 28,
               borderRadius: 14,
-              backgroundColor: baseTint + "1A", // ~10% alpha
+              backgroundColor: baseTint + '1A', // ~10% alpha
               borderWidth: 1,
-              borderColor: baseTint + "33", // ~20% alpha
-              alignItems: "center",
-              justifyContent: "center",
+              borderColor: baseTint + '33', // ~20% alpha
+              alignItems: 'center',
+              justifyContent: 'center',
               flexShrink: 0, // Prevent shrinking
             }}
           >
@@ -496,7 +496,7 @@ const PillLink = ({ href, title, color, icon: Icon }: PillLinkProps) => {
           style={{
             color: colors.text,
             flex: 1,
-            textAlign: "left",
+            textAlign: 'left',
           }}
         >
           {title}
@@ -512,7 +512,7 @@ interface HeroActionButtonProps {
   description?: string;
   color: string;
   icon: React.ComponentType<any>;
-  variant?: "solid" | "ghost";
+  variant?: 'solid' | 'ghost';
 }
 
 const HeroActionButton = ({
@@ -521,11 +521,11 @@ const HeroActionButton = ({
   description,
   color,
   icon: Icon,
-  variant = "solid",
+  variant = 'solid',
 }: HeroActionButtonProps) => {
   const router = useRouter();
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? "light"];
+  const colors = Colors[colorScheme ?? 'light'];
   const [isHovered, setIsHovered] = React.useState(false);
   const [isFocused, setIsFocused] = React.useState(false);
   const glow = React.useRef(new Animated.Value(0)).current;
@@ -538,59 +538,59 @@ const HeroActionButton = ({
     }).start();
   }, [glow, isFocused, isHovered]);
 
-  const isGhost = variant === "ghost";
+  const isGhost = variant === 'ghost';
   const sanitizedLabel = React.useMemo(
-    () => sanitizeId(label || "action"),
-    [label],
+    () => sanitizeId(label || 'action'),
+    [label]
   );
   const gradientId = React.useMemo(
     () => `hero-action-${sanitizedLabel}-gradient`,
-    [sanitizedLabel],
+    [sanitizedLabel]
   );
   const noiseId = React.useMemo(
     () => `hero-action-${sanitizedLabel}-noise`,
-    [sanitizedLabel],
+    [sanitizedLabel]
   );
 
   const baseBackground = isGhost
-    ? color + "40" // ~25% alpha - more opaque for better contrast
-    : color + "E6"; // ~90% alpha - slightly transparent for better contrast
+    ? color + '40' // ~25% alpha - more opaque for better contrast
+    : color + 'E6'; // ~90% alpha - slightly transparent for better contrast
   const hoverBackground = isGhost
-    ? color + "4D" // ~30% alpha
-    : color + "F0"; // ~94% alpha
+    ? color + '4D' // ~30% alpha
+    : color + 'F0'; // ~94% alpha
   const pressedBackground = isGhost
-    ? color + "47" // ~28% alpha
-    : color + "E0"; // ~88% alpha
+    ? color + '47' // ~28% alpha
+    : color + 'E0'; // ~88% alpha
   const borderColor = isGhost
-    ? color + "66" // ~40% alpha - more visible border
-    : color + "80"; // ~50% alpha
+    ? color + '66' // ~40% alpha - more visible border
+    : color + '80'; // ~50% alpha
   const shadowColor = darkenHex(color, 0.22);
   const textColor = isGhost ? colors.text : colors.background;
   const descriptionColor = isGhost
     ? colors.textMuted // Use muted text color for better contrast
     : withAlpha(colors.background, 0.9); // More opaque description text
   const iconColor = isGhost
-    ? href === "/(tabs)/developmentRecipes"
+    ? href === '/(tabs)/developmentRecipes'
       ? colors.background
       : color // White for dev recipes, brand color for other ghost buttons
     : colors.background; // Background for solid buttons
   const iconBackground = isGhost
-    ? color + "1A" // ~10% alpha for ghost
+    ? color + '1A' // ~10% alpha for ghost
     : withAlpha(colors.background, 0.2); // Background-based for solid
   const iconBorder = isGhost
-    ? color + "33" // ~20% alpha for ghost
+    ? color + '33' // ~20% alpha for ghost
     : withAlpha(colors.background, 0.4); // Background-based for solid
   const arrowBackground = isGhost
-    ? color + "1A" // ~10% alpha to match icon
+    ? color + '1A' // ~10% alpha to match icon
     : withAlpha(colors.background, 0.2); // Match icon background
   const arrowBorder = isGhost
-    ? color + "33" // ~20% alpha to match icon
+    ? color + '33' // ~20% alpha to match icon
     : withAlpha(colors.background, 0.4); // Match icon border
   const arrowColor = iconColor;
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (href.startsWith("http")) {
+    if (href.startsWith('http')) {
       Linking.openURL(href);
     } else {
       router.push(href as any);
@@ -615,15 +615,15 @@ const HeroActionButton = ({
         backgroundColor: pressed
           ? pressedBackground
           : hovered
-            ? hoverBackground
-            : baseBackground,
+          ? hoverBackground
+          : baseBackground,
         transform: [{ scale: pressed ? 0.985 : 1 }],
         shadowColor,
         shadowOpacity: hovered ? 0.36 : 0.22,
         shadowRadius: hovered ? 20 : 14,
         // shadowOffset: { width: 0, height: hovered ? 10 : 6 },
         elevation: hovered ? 5 : 3,
-        overflow: "hidden",
+        overflow: 'hidden',
       })}
     >
       <Svg
@@ -633,7 +633,7 @@ const HeroActionButton = ({
         viewBox="0 0 100 60"
         preserveAspectRatio="none"
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: 0,
           left: 0,
           right: 0,
@@ -697,7 +697,7 @@ const HeroActionButton = ({
       <Animated.View
         pointerEvents="none"
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: -1,
           left: -1,
           right: -1,
@@ -716,7 +716,7 @@ const HeroActionButton = ({
         <HStack
           alignItems="center"
           space="sm"
-          style={{ justifyContent: "space-between" }}
+          style={{ justifyContent: 'space-between' }}
         >
           <HStack alignItems="center" space="sm" style={{ flex: 1 }}>
             <Box
@@ -727,8 +727,8 @@ const HeroActionButton = ({
                 backgroundColor: iconBackground,
                 borderWidth: 1,
                 borderColor: iconBorder,
-                alignItems: "center",
-                justifyContent: "center",
+                alignItems: 'center',
+                justifyContent: 'center',
                 shadowColor: color,
                 shadowOpacity: isGhost ? 0.15 : 0.25,
                 shadowRadius: 10,
@@ -754,8 +754,8 @@ const HeroActionButton = ({
               backgroundColor: arrowBackground,
               borderWidth: 1,
               borderColor: arrowBorder,
-              alignItems: "center",
-              justifyContent: "center",
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             <ArrowRightIcon size={16} color={arrowColor} />
@@ -773,102 +773,102 @@ const HeroActionButton = ({
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? "light"];
+  const colors = Colors[colorScheme ?? 'light'];
   const { width } = useWindowDimensions();
 
   // Responsive columns
   const columns = width >= 1200 ? 3 : width >= 768 ? 2 : 1;
   const basis = useMemo(() => {
-    if (columns === 3) return "33.333%";
-    if (columns === 2) return "50%";
-    return "100%";
+    if (columns === 3) return '33.333%';
+    if (columns === 2) return '50%';
+    return '100%';
   }, [columns]);
 
   const features = [
     {
-      href: "/(tabs)/border",
-      title: "Border Calculator",
-      subtitle: "Calculate precise print borders",
+      href: '/(tabs)/border',
+      title: 'Border Calculator',
+      subtitle: 'Calculate precise print borders',
       color: colors.borderCalcTint,
       icon: FrameIcon,
-      tag: "Printmaking",
+      tag: 'Printmaking',
     },
     {
-      href: "/(tabs)/exposure",
-      title: "Stops Calculator",
-      subtitle: "Calculate exposure in stops and time",
+      href: '/(tabs)/exposure',
+      title: 'Stops Calculator',
+      subtitle: 'Calculate exposure in stops and time',
       color: colors.stopCalcTint,
       icon: TimerIcon,
-      tag: "Exposure math",
+      tag: 'Exposure math',
     },
     {
-      href: "/(tabs)/resize",
-      title: "Resize Calculator",
-      subtitle: "Scale prints without making tons of test strips",
+      href: '/(tabs)/resize',
+      title: 'Resize Calculator',
+      subtitle: 'Scale prints without making tons of test strips',
       color: colors.resizeCalcTint,
       icon: MoveIcon,
-      tag: "Digital prep",
+      tag: 'Digital prep',
     },
     {
-      href: "/(tabs)/cameraExposure",
-      title: "Exposure Calculator",
-      subtitle: "Aperture, shutter, ISO trade-offs",
+      href: '/(tabs)/cameraExposure',
+      title: 'Exposure Calculator',
+      subtitle: 'Aperture, shutter, ISO trade-offs',
       color: colors.cameraExposureCalcTint,
       icon: CameraIcon,
-      tag: "On-location",
+      tag: 'On-location',
     },
     {
-      href: "/(tabs)/reciprocity",
-      title: "Reciprocity",
-      subtitle: "Correct for long exposure failure",
+      href: '/(tabs)/reciprocity',
+      title: 'Reciprocity',
+      subtitle: 'Correct for long exposure failure',
       color: colors.reciprocityCalcTint,
       icon: ClockIcon,
-      tag: "Long exposure",
+      tag: 'Long exposure',
     },
   ] as const;
 
   const heroActions = [
     {
-      href: "/(tabs)/border",
-      label: "Launch border calculator",
-      description: "Get instant print guides and trim-safe borders",
+      href: '/(tabs)/border',
+      label: 'Launch border calculator',
+      description: 'Get instant print guides and trim-safe borders',
       color: colors.borderCalcTint,
       icon: FrameIcon,
     },
     {
-      href: "/(tabs)/developmentRecipes",
-      label: "Browse development recipes",
-      description: "Film + chemistry pairings with trusted results",
+      href: '/(tabs)/developmentRecipes',
+      label: 'Browse development recipes',
+      description: 'Film + chemistry pairings with trusted results',
       color: colors.developmentRecipesTint,
       icon: FlaskConicalIcon,
-      variant: "ghost" as const,
+      variant: 'ghost' as const,
     },
   ] as const;
 
   const heroHighlights = [
     {
       icon: CameraIcon,
-      label: "Built for analog photographers",
+      label: 'Built for analog photographers',
     },
     {
       icon: ClockIcon,
-      label: "Fast exposure & reciprocity math",
+      label: 'Fast exposure & reciprocity math',
     },
     {
       icon: GitBranchIcon,
-      label: "Open source, community powered",
+      label: 'Open source, community powered',
     },
   ] as const;
 
   const activeFeatures = features.filter(
-    (feature) => !(feature as any).disabled,
+    (feature) => !(feature as any).disabled
   );
   const featureSections = [
     {
-      key: "active",
-      heading: "Calculators",
+      key: 'active',
+      heading: 'Calculators',
       description:
-        "Everything you need to plan exposures, prints, and reciprocity fixes in the darkroom.",
+        'Everything you need to plan exposures, prints, and reciprocity fixes in the darkroom.',
       items: activeFeatures,
       basis,
     },
@@ -876,15 +876,15 @@ export default function HomeScreen() {
 
   const externalLinks = [
     {
-      href: "https://github.com/narrowstacks/DorkroomReact",
-      title: "Contribute on GitHub",
-      color: "#24292e",
+      href: 'https://github.com/narrowstacks/DorkroomReact',
+      title: 'Contribute on GitHub',
+      color: '#24292e',
       icon: GitBranchIcon,
     },
     {
-      href: "https://ko-fi.com/affords",
-      title: "Support on Ko-fi",
-      color: "#FF5E5B",
+      href: 'https://ko-fi.com/affords',
+      title: 'Support on Ko-fi',
+      color: '#FF5E5B',
       icon: HeartIcon,
     },
   ] as const;
@@ -901,16 +901,16 @@ export default function HomeScreen() {
       <Box className="w-full" style={{ paddingHorizontal: 16, paddingTop: 48 }}>
         <Box
           style={{
-            width: "100%",
+            width: '100%',
             maxWidth: 1080,
-            alignSelf: "center",
+            alignSelf: 'center',
             gap: 32,
           }}
         >
           <Box
             style={{
-              position: "relative",
-              overflow: "hidden",
+              position: 'relative',
+              overflow: 'hidden',
               borderRadius: 32,
               paddingVertical: width >= 768 ? 48 : 36,
               paddingHorizontal: width >= 768 ? 48 : 24,
@@ -926,7 +926,7 @@ export default function HomeScreen() {
               viewBox="0 0 100 60"
               preserveAspectRatio="none"
               style={{
-                position: "absolute",
+                position: 'absolute',
                 top: 0,
                 left: 0,
                 right: 0,
@@ -1076,8 +1076,8 @@ export default function HomeScreen() {
 
               <Box
                 style={{
-                  flexDirection: width >= 768 ? "row" : "column",
-                  alignItems: width >= 768 ? "center" : "stretch",
+                  flexDirection: width >= 768 ? 'row' : 'column',
+                  alignItems: width >= 768 ? 'center' : 'stretch',
                 }}
               >
                 {heroActions.map((action, index) => (
@@ -1101,8 +1101,8 @@ export default function HomeScreen() {
 
               <Box
                 style={{
-                  flexDirection: width >= 768 ? "row" : "column",
-                  flexWrap: "wrap",
+                  flexDirection: width >= 768 ? 'row' : 'column',
+                  flexWrap: 'wrap',
                 }}
               >
                 {heroHighlights.map((item, index) => (
@@ -1123,11 +1123,11 @@ export default function HomeScreen() {
                         width: 30,
                         height: 30,
                         borderRadius: 15,
-                        backgroundColor: colors.text + "1A", // ~10% alpha like PillLink
+                        backgroundColor: colors.text + '1A', // ~10% alpha like PillLink
                         borderWidth: 1,
-                        borderColor: colors.text + "33", // ~20% alpha like PillLink
-                        alignItems: "center",
-                        justifyContent: "center",
+                        borderColor: colors.text + '33', // ~20% alpha like PillLink
+                        alignItems: 'center',
+                        justifyContent: 'center',
                       }}
                     >
                       <item.icon size={16} color={colors.text} />
@@ -1168,8 +1168,8 @@ export default function HomeScreen() {
                 </VStack>
                 <Box
                   style={{
-                    flexDirection: "row",
-                    flexWrap: "wrap",
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
                     marginHorizontal: -8,
                   }}
                 >
@@ -1204,8 +1204,8 @@ export default function HomeScreen() {
               <Center>
                 <Box
                   style={{
-                    flexDirection: width >= 480 ? "row" : "column",
-                    alignItems: "center",
+                    flexDirection: width >= 480 ? 'row' : 'column',
+                    alignItems: 'center',
                   }}
                 >
                   {externalLinks.map((link, index) => (

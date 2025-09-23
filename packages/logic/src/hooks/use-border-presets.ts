@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
-import type { BorderPreset, BorderPresetSettings } from '../types/border-calculator';
+import type {
+  BorderPreset,
+  BorderPresetSettings,
+} from '../types/border-calculator';
 
 const STORAGE_KEY = 'borderPresets';
 const isBrowser = () => typeof window !== 'undefined';
@@ -38,7 +41,11 @@ export function useBorderPresets() {
   };
 
   const updatePreset = (id: string, updates: Partial<BorderPreset>) => {
-    persist(presets.map((preset) => (preset.id === id ? { ...preset, ...updates } : preset)));
+    persist(
+      presets.map((preset) =>
+        preset.id === id ? { ...preset, ...updates } : preset
+      )
+    );
   };
 
   const removePreset = (id: string) => {

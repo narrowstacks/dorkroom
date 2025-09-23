@@ -1,5 +1,5 @@
-import React from "react";
-import { Platform, StyleSheet, FlatList } from "react-native";
+import React from 'react';
+import { Platform, StyleSheet, FlatList } from 'react-native';
 import {
   Box,
   Text,
@@ -7,22 +7,22 @@ import {
   Button,
   ButtonText,
   Spinner,
-} from "@gluestack-ui/themed";
-import { RefreshCw } from "lucide-react-native";
+} from '@gluestack-ui/themed';
+import { RefreshCw } from 'lucide-react-native';
 
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
-import { FilmCard } from "./FilmCard";
-import { DeveloperCard } from "./DeveloperCard";
-import { FilmDetailModal } from "./FilmDetailModal";
-import { DeveloperDetailModal } from "./DeveloperDetailModal";
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
+import { FilmCard } from './FilmCard';
+import { DeveloperCard } from './DeveloperCard';
+import { FilmDetailModal } from './FilmDetailModal';
+import { DeveloperDetailModal } from './DeveloperDetailModal';
 
 import type {
   Film as FilmType,
   Developer as DeveloperType,
-} from "@/api/dorkroom/types";
+} from '@/api/dorkroom/types';
 
-type TabType = "films" | "developers";
+type TabType = 'films' | 'developers';
 
 interface InfobaseMobileLayoutProps {
   activeTab: TabType;
@@ -52,11 +52,11 @@ export function InfobaseMobileLayout({
   onRefresh,
 }: InfobaseMobileLayoutProps) {
   const { width } = useWindowDimensions();
-  const backgroundColor = useThemeColor({}, "background");
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const infobaseTint = useThemeColor({}, "infobaseTint");
+  const backgroundColor = useThemeColor({}, 'background');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const infobaseTint = useThemeColor({}, 'infobaseTint');
 
   // Get grid columns based on screen size (always use grid mode)
   const getNumColumns = () => {
@@ -67,7 +67,7 @@ export function InfobaseMobileLayout({
   const numColumns = getNumColumns();
 
   const handleItemPress = (item: FilmType | DeveloperType) => {
-    if (activeTab === "films") {
+    if (activeTab === 'films') {
       onFilmSelect(item as FilmType);
     } else {
       onDeveloperSelect(item as DeveloperType);
@@ -75,7 +75,7 @@ export function InfobaseMobileLayout({
   };
 
   const handleModalClose = () => {
-    if (activeTab === "films") {
+    if (activeTab === 'films') {
       onFilmSelect(null);
     } else {
       onDeveloperSelect(null);
@@ -149,7 +149,7 @@ export function InfobaseMobileLayout({
       <FlatList<FilmType | DeveloperType>
         data={displayData}
         renderItem={({ item }) => {
-          if (activeTab === "films") {
+          if (activeTab === 'films') {
             return renderFilmItem({ item: item as FilmType });
           } else {
             return renderDeveloperItem({ item: item as DeveloperType });
@@ -163,7 +163,7 @@ export function InfobaseMobileLayout({
         initialNumToRender={20}
         maxToRenderPerBatch={20}
         windowSize={10}
-        removeClippedSubviews={Platform.OS === "android"}
+        removeClippedSubviews={Platform.OS === 'android'}
       />
     );
   };
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.1)",
+    borderTopColor: 'rgba(0,0,0,0.1)',
     marginBottom: 8,
   },
   resultsRow: {
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
   },
   resultsText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   spacer: {
     flex: 1,
@@ -250,42 +250,42 @@ const styles = StyleSheet.create({
   },
   centerContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 32,
   },
   loadingText: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
   },
   errorText: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: '#007AFF',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 12,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   retryButtonText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
     borderRadius: 12,
   },
   noResultsText: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   noResultsSubtext: {
     fontSize: 14,
-    textAlign: "center",
+    textAlign: 'center',
   },
 });

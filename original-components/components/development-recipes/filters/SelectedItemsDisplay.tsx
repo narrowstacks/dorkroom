@@ -1,9 +1,9 @@
-import React from "react";
-import { TouchableOpacity } from "react-native";
-import { Box, Text, HStack } from "@gluestack-ui/themed";
-import { X } from "lucide-react-native";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import type { Film, Developer } from "@/api/dorkroom/types";
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
+import { Box, Text, HStack } from '@gluestack-ui/themed';
+import { X } from 'lucide-react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import type { Film, Developer } from '@/api/dorkroom/types';
 
 interface SelectedItemsDisplayProps {
   selectedFilm: Film | null;
@@ -20,8 +20,8 @@ export function SelectedItemsDisplay({
   onClearFilm,
   onClearDeveloper,
 }: SelectedItemsDisplayProps) {
-  const textColor = useThemeColor({}, "text");
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
+  const textColor = useThemeColor({}, 'text');
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
 
   if (!selectedFilm && !selectedDeveloper) {
     return null;
@@ -32,14 +32,14 @@ export function SelectedItemsDisplay({
       <HStack
         space="sm"
         style={{
-          justifyContent: "space-between",
-          alignItems: "center",
+          justifyContent: 'space-between',
+          alignItems: 'center',
           marginBottom: 8,
         }}
       >
         <Text
           style={[
-            { fontSize: 16, fontWeight: "600", marginBottom: 8 },
+            { fontSize: 16, fontWeight: '600', marginBottom: 8 },
             { color: textColor },
           ]}
         >
@@ -48,7 +48,7 @@ export function SelectedItemsDisplay({
         <TouchableOpacity onPress={onClearAll}>
           <Text
             style={[
-              { fontSize: 14, fontWeight: "500" },
+              { fontSize: 14, fontWeight: '500' },
               { color: developmentTint },
             ]}
           >
@@ -60,11 +60,11 @@ export function SelectedItemsDisplay({
       {selectedFilm && (
         <Box
           style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             padding: 8,
-            backgroundColor: "rgba(0,0,0,0.05)",
+            backgroundColor: 'rgba(0,0,0,0.05)',
             borderRadius: 8,
             marginBottom: 4,
           }}
@@ -81,11 +81,11 @@ export function SelectedItemsDisplay({
       {selectedDeveloper && (
         <Box
           style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             padding: 8,
-            backgroundColor: "rgba(0,0,0,0.05)",
+            backgroundColor: 'rgba(0,0,0,0.05)',
             borderRadius: 8,
             marginBottom: 4,
           }}
