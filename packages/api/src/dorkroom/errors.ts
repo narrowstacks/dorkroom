@@ -31,7 +31,7 @@ export class DataFetchError extends DorkroomAPIError {
     message: string,
     cause?: Error,
     public readonly statusCode?: number,
-    public readonly isRetryable: boolean = false,
+    public readonly isRetryable = false,
   ) {
     super(message, cause);
     this.name = "DataFetchError";
@@ -52,7 +52,7 @@ export class DataParseError extends DorkroomAPIError {
  * Raised when data operations are attempted before loading.
  */
 export class DataNotLoadedError extends DorkroomAPIError {
-  constructor(message: string = "Call loadAll() before using the client.") {
+  constructor(message = "Call loadAll() before using the client.") {
     super(message);
     this.name = "DataNotLoadedError";
   }
@@ -100,7 +100,7 @@ export class RateLimitError extends DorkroomAPIError {
  */
 export class CircuitBreakerError extends DorkroomAPIError {
   constructor(
-    message: string = "Circuit breaker is open - too many recent failures",
+    message = "Circuit breaker is open - too many recent failures",
     public readonly nextAttemptTime?: Date,
   ) {
     super(message);
@@ -115,7 +115,7 @@ export class ServerError extends DorkroomAPIError {
   constructor(
     message: string,
     public readonly statusCode: number,
-    public readonly isRetryable: boolean = true,
+    public readonly isRetryable = true,
   ) {
     super(message);
     this.name = "ServerError";

@@ -1,7 +1,7 @@
 /**
  * Throttle helper function with configurable leading/trailing execution
  */
-export const throttle = <T extends (...args: any[]) => any>(
+export const throttle = <T extends (...args: unknown[]) => unknown>(
   func: T,
   delay: number,
   options: { leading?: boolean; trailing?: boolean } = {},
@@ -52,7 +52,7 @@ export const throttle = <T extends (...args: any[]) => any>(
  * Debounce helper function that delays execution until after delay milliseconds
  * have elapsed since the last time the function was invoked.
  */
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (...args: unknown[]) => unknown>(
   func: T,
   delay: number,
   options: { immediate?: boolean } = {},
@@ -61,8 +61,8 @@ export const debounce = <T extends (...args: any[]) => any>(
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
   let lastArgs: Parameters<T> | null = null;
   let pendingResolvers: {
-    resolve: (value: any) => void;
-    reject: (error: any) => void;
+    resolve: (value: unknown) => void;
+    reject: (error: unknown) => void;
   }[] = [];
 
   const debounced = (...args: Parameters<T>) => {

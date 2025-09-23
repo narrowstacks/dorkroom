@@ -1,4 +1,4 @@
-import { Share2, Info, Beaker } from 'lucide-react';
+import { Share2, Info, Beaker, ExternalLink } from 'lucide-react';
 import type { DevelopmentCombinationView } from './results-table';
 
 interface DevelopmentResultsCardsProps {
@@ -7,9 +7,28 @@ interface DevelopmentResultsCardsProps {
   onShareCombination?: (view: DevelopmentCombinationView) => void;
 }
 
-const formatTemperature = (temperatureF: number) => {
-  const celsius = ((temperatureF - 32) * 5) / 9;
-  return `${temperatureF.toFixed(1)}°F · ${celsius.toFixed(1)}°C`;
+const formatTemperature = (view: DevelopmentCombinationView) => {
+  const { temperatureF, temperatureC } = view.combination;
+  const fahrenheit = Number.isFinite(temperatureF) ? temperatureF : null;
+  const celsius = Number.isFinite(temperatureC ?? NaN)
+    ? temperatureC!
+    : fahrenheit !== null
+      ? ((fahrenheit - 32) * 5) / 9
+      : null;
+
+  if (fahrenheit !== null && celsius !== null) {
+    return `${fahrenheit.toFixed(1)}°F · ${celsius.toFixed(1)}°C`;
+  }
+
+  if (fahrenheit !== null) {
+    return `${fahrenheit.toFixed(1)}°F`;
+  }
+
+  if (celsius !== null) {
+    return `${celsius.toFixed(1)}°C`;
+  }
+
+  return '—';
 };
 
 const formatTime = (minutes: number) => {
@@ -73,6 +92,18 @@ export function DevelopmentResultsCards({
                     <Beaker className="h-3 w-3" /> Custom recipe
                   </span>
                 )}
+                {combination.tags && combination.tags.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {combination.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-white/60"
+                      >
+                        {tag.replace(/-/g, ' ')}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="flex gap-2">
                 {onShareCombination && row.canShare && (
@@ -109,9 +140,7 @@ export function DevelopmentResultsCards({
               </div>
               <div>
                 <div className="text-white/40">Temperature</div>
-                <div className="text-sm text-white">
-                  {formatTemperature(combination.temperatureF)}
-                </div>
+                <div className="text-sm text-white">{formatTemperature(row)}</div>
               </div>
               <div>
                 <div className="text-white/40">Dilution</div>
@@ -119,9 +148,23 @@ export function DevelopmentResultsCards({
               </div>
             </div>
 
-            {combination.notes && (
-              <div className="mt-4 rounded-xl bg-white/10 p-3 text-xs text-white/80">
-                {combination.notes}
+            {(combination.notes || combination.infoSource) && (
+              <div className="mt-4 space-y-2">
+                {combination.notes && (
+                  <div className="rounded-xl bg-white/10 p-3 text-xs text-white/80">
+                    {combination.notes}
+                  </div>
+                )}
+                {combination.infoSource && (
+                  <a
+                    href={combination.infoSource}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-white/60 underline-offset-4 hover:text-white hover:underline"
+                  >
+                    <ExternalLink className="h-3 w-3" /> Source
+                  </a>
+                )}
               </div>
             )}
           </div>

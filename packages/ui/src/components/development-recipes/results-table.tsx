@@ -1,4 +1,4 @@
-import { Share2, Info, Beaker } from 'lucide-react';
+import { Share2, Info, Beaker, ExternalLink } from 'lucide-react';
 import type { Combination, Film, Developer } from '@dorkroom/api';
 import { cn } from '../../lib/cn';
 
@@ -20,9 +20,29 @@ interface DevelopmentResultsTableProps {
   onSort?: (key: 'filmName' | 'developerName' | 'timeMinutes' | 'temperatureF' | 'shootingIso') => void;
 }
 
-const formatTemperature = (temperatureF: number) => {
-  const celsius = ((temperatureF - 32) * 5) / 9;
-  return `${temperatureF.toFixed(1)}°F / ${celsius.toFixed(1)}°C`;
+const formatTemperature = (combination: Combination) => {
+  const fahrenheit = Number.isFinite(combination.temperatureF)
+    ? combination.temperatureF
+    : null;
+  const celsius = Number.isFinite(combination.temperatureC ?? NaN)
+    ? combination.temperatureC!
+    : fahrenheit !== null
+      ? ((fahrenheit - 32) * 5) / 9
+      : null;
+
+  if (fahrenheit !== null && celsius !== null) {
+    return `${fahrenheit.toFixed(1)}°F / ${celsius.toFixed(1)}°C`;
+  }
+
+  if (fahrenheit !== null) {
+    return `${fahrenheit.toFixed(1)}°F`;
+  }
+
+  if (celsius !== null) {
+    return `${celsius.toFixed(1)}°C`;
+  }
+
+  return '—';
 };
 
 const formatTime = (minutes: number) => {
@@ -118,25 +138,37 @@ export function DevelopmentResultsTable({
           {rows.map((row) => {
             const { combination, film, developer } = row;
             return (
-              <tr
-                key={combination.uuid || combination.id}
-                className={cn(
-                  'transition hover:bg-white/10',
-                  row.source === 'custom' && 'bg-purple-950/40 hover:bg-purple-900/40',
+            <tr
+              key={combination.uuid || combination.id}
+              className={cn(
+                'transition hover:bg-white/10',
+                row.source === 'custom' && 'bg-purple-950/40 hover:bg-purple-900/40',
+              )}
+            >
+              <td className="px-4 py-4 align-top">
+                <div className="font-medium text-white">
+                  {film ? `${film.brand} ${film.name}` : 'Unknown film'}
+                </div>
+                <div className="text-xs text-white/50">
+                  {combination.pushPull === 0
+                    ? 'Normal'
+                    : combination.pushPull > 0
+                      ? `Push +${combination.pushPull}`
+                      : `Pull ${combination.pushPull}`}
+                </div>
+                {combination.tags && combination.tags.length > 0 && (
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {combination.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-white/60"
+                      >
+                        {tag.replace(/-/g, ' ')}
+                      </span>
+                    ))}
+                  </div>
                 )}
-              >
-                <td className="px-4 py-4 align-top">
-                  <div className="font-medium text-white">
-                    {film ? `${film.brand} ${film.name}` : 'Unknown film'}
-                  </div>
-                  <div className="text-xs text-white/50">
-                    {combination.pushPull === 0
-                      ? 'Normal'
-                      : combination.pushPull > 0
-                        ? `Push +${combination.pushPull}`
-                        : `Pull ${combination.pushPull}`}
-                  </div>
-                </td>
+              </td>
                 <td className="px-4 py-4 align-top">
                   <div className="font-medium text-white">
                     {developer
@@ -151,7 +183,7 @@ export function DevelopmentResultsTable({
                 </td>
                 <td className="px-3 py-4 align-top text-white">{combination.shootingIso}</td>
                 <td className="px-3 py-4 align-top text-white">{formatTime(combination.timeMinutes)}</td>
-                <td className="px-3 py-4 align-top text-white">{formatTemperature(combination.temperatureF)}</td>
+                <td className="px-3 py-4 align-top text-white">{formatTemperature(combination)}</td>
                 <td className="px-3 py-4 align-top text-white">
                   {formatDilution(combination, developer)}
                 </td>
@@ -160,6 +192,16 @@ export function DevelopmentResultsTable({
                     <span className="line-clamp-2">{combination.notes}</span>
                   ) : (
                     <span className="text-white/30">—</span>
+                  )}
+                  {combination.infoSource && (
+                    <a
+                      href={combination.infoSource}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 inline-flex items-center gap-1 text-xs text-white/60 underline-offset-4 hover:text-white hover:underline"
+                    >
+                      <ExternalLink className="h-3 w-3" /> Source
+                    </a>
                   )}
                 </td>
                 <td className="px-3 py-4 align-top">

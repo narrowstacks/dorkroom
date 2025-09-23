@@ -1,1555 +1,577 @@
-/**
- * Main client for interacting with the Dorkroom REST API.
- *
- * This client provides methods to fetch film stocks, developers, and
- * development combinations from the Dorkroom REST API. Features:
- * - Automatic retries and timeouts with circuit breaker
- * - Indexed lookups for O(1) performance
- * - API-driven fuzzy searching with debouncing
- * - Request caching and deduplication
- * - Comprehensive error handling
- */
-
-import {
-  Film,
-  Developer,
+import type {
   Combination,
+  Developer,
+  Dilution,
   DorkroomClientConfig,
+  Film,
   Logger,
-  FuzzySearchOptions,
-  ApiResponse,
   PaginatedApiResponse,
   CombinationFetchOptions,
-} from "./types";
-import { DataFetchError, DataParseError, DataNotLoadedError } from "./errors";
+} from './types';
 import {
-  HTTPTransport,
-  FetchHTTPTransport,
-  ConsoleLogger,
-  joinURL,
-} from "./transport";
-import { debounce } from "../utils/throttle";
-import {
-  getApiEndpointConfig,
-  getEnvironmentConfig,
-} from "../utils/platformDetection";
-import { debugLog } from "../utils/debugLogger";
-import {
-  enhanceFilmResults,
-  enhanceDeveloperResults,
-  DEFAULT_TOKENIZED_CONFIG,
-} from "../utils/tokenizedSearch";
+  DataFetchError,
+  DataNotLoadedError,
+  DataParseError,
+  TimeoutError,
+} from './errors';
+import { getApiEndpointConfig } from '../utils/platformDetection';
 
-/**
- * Cache entry with expiration.
- */
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  ttl: number;
+const DEFAULT_TIMEOUT = 10_000;
+const DEFAULT_CACHE_TTL = 30 * 60 * 1_000;
+
+interface ApiCollectionResponse<T> {
+  data: T[];
+  count?: number;
+  filters?: Record<string, unknown>;
+  page?: number;
+  perPage?: number;
 }
 
-/**
- * Request deduplication manager.
- */
-class RequestDeduplicator {
-  private pendingRequests = new Map<string, Promise<any>>();
-
-  async deduplicate<T>(key: string, operation: () => Promise<T>): Promise<T> {
-    if (this.pendingRequests.has(key)) {
-      return this.pendingRequests.get(key) as Promise<T>;
-    }
-
-    const promise = operation().finally(() => {
-      this.pendingRequests.delete(key);
-    });
-
-    this.pendingRequests.set(key, promise);
-    return promise;
-  }
-
-  cancel(key: string): void {
-    this.pendingRequests.delete(key);
-  }
-
-  clear(): void {
-    this.pendingRequests.clear();
-  }
+interface RawFilm {
+  id: number;
+  uuid: string;
+  slug: string;
+  brand: string;
+  name: string;
+  color_type: string | null;
+  iso_speed: number | string;
+  grain_structure?: string | null;
+  description?: string | null;
+  manufacturer_notes?: string | string[] | null;
+  reciprocity_failure?: number | string | null;
+  discontinued?: boolean | null;
+  static_image_url?: string | null;
+  date_added?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
-/**
- * Simple in-memory cache with TTL support.
- */
-class TTLCache<T> {
-  private cache = new Map<string, CacheEntry<T>>();
-
-  set(key: string, value: T, ttlMs = 300000): void {
-    // Default 5 minutes
-    this.cache.set(key, {
-      data: value,
-      timestamp: Date.now(),
-      ttl: ttlMs,
-    });
-  }
-
-  get(key: string): T | undefined {
-    const entry = this.cache.get(key);
-    if (!entry) return undefined;
-
-    if (Date.now() - entry.timestamp > entry.ttl) {
-      this.cache.delete(key);
-      return undefined;
-    }
-
-    return entry.data;
-  }
-
-  clear(): void {
-    this.cache.clear();
-  }
-
-  size(): number {
-    return this.cache.size;
-  }
-
-  cleanup(): void {
-    const now = Date.now();
-    for (const [key, entry] of this.cache.entries()) {
-      if (now - entry.timestamp > entry.ttl) {
-        this.cache.delete(key);
-      }
-    }
-  }
+interface RawDilution {
+  id: number | string;
+  name?: string | null;
+  dilution?: string | null;
 }
 
-const LOCAL_CACHE_KEY = 'dorkroom_development_data';
+interface RawDeveloper {
+  id: number;
+  uuid: string;
+  slug: string;
+  name: string;
+  manufacturer: string;
+  type: string;
+  description?: string | null;
+  mixing_instructions?: string | null;
+  storage_requirements?: string | null;
+  safety_notes?: string | null;
+  dilutions?: RawDilution[] | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  film_or_paper?: boolean | null;
+}
 
-type CachedDevelopmentData = {
-  films: Film[];
-  developers: Developer[];
-  combinations: Combination[];
-  timestamp: number;
+interface RawCombination {
+  id: number;
+  uuid: string;
+  slug?: string | null;
+  name?: string | null;
+  film_stock?: string | null;
+  developer?: string | null;
+  film_stock_id?: string | null;
+  developer_id?: string | null;
+  dilution_id?: number | string | null;
+  custom_dilution?: string | null;
+  temperature_celsius?: number | string | null;
+  temperature_fahrenheit?: number | string | null;
+  time_minutes?: number | string | null;
+  agitation_method?: string | null;
+  notes?: string | null;
+  shooting_iso?: number | string | null;
+  push_pull?: number | string | null;
+  tags?: string[] | null;
+  info_source?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+const defaultLogger: Logger = {
+  debug(message, meta) {
+    if (meta !== undefined) {
+      console.debug(`[dorkroom] ${message}`, meta);
+    } else {
+      console.debug(`[dorkroom] ${message}`);
+    }
+  },
+  info(message, meta) {
+    if (meta !== undefined) {
+      console.info(`[dorkroom] ${message}`, meta);
+    } else {
+      console.info(`[dorkroom] ${message}`);
+    }
+  },
+  warn(message, meta) {
+    if (meta !== undefined) {
+      console.warn(`[dorkroom] ${message}`, meta);
+    } else {
+      console.warn(`[dorkroom] ${message}`);
+    }
+  },
+  error(message, meta) {
+    if (meta !== undefined) {
+      console.error(`[dorkroom] ${message}`, meta);
+    } else {
+      console.error(`[dorkroom] ${message}`);
+    }
+  },
 };
 
-const getPersistentStorage = (): Storage | null => {
-  if (typeof window === 'undefined' || !('localStorage' in window)) {
-    return null;
-  }
-
-  try {
-    return window.localStorage;
-  } catch (error) {
-    console.warn("Local storage unavailable:", error);
-    return null;
-  }
-};
-
-let inMemoryCache: CachedDevelopmentData | null = null;
-
-const isDevelopmentEnvironment =
-  (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') ||
-  (typeof window !== 'undefined' && (window as any).__DORKROOM_DEV__ === true);
-
-/**
- * Main client for interacting with the Dorkroom REST API.
- */
 export class DorkroomClient {
   private readonly baseUrl: string;
   private readonly timeout: number;
-  private readonly transport: HTTPTransport;
-  private readonly logger: Logger;
   private readonly cacheTTL: number;
+  private readonly logger: Logger;
 
-  // Data cache TTL (30 minutes as requested)
-  private static readonly DATA_CACHE_TTL = 1800000; // 30 minutes in milliseconds
+  private loaded = false;
+  private lastLoadedAt: number | null = null;
 
-  // Data storage
   private films: Film[] = [];
   private developers: Developer[] = [];
   private combinations: Combination[] = [];
-  private loaded = false;
-  private lastLoadedTimestamp: number | null = null;
 
-  // Indexes for O(1) lookup
-  private filmIndex = new Map<string, Film>();
-  private developerIndex = new Map<string, Developer>();
-  private combinationIndex = new Map<string, Combination>();
+  private filmByUuid = new Map<string, Film>();
+  private filmBySlug = new Map<string, Film>();
+  private filmById = new Map<string, Film>();
 
-  // Caching and deduplication
-  private searchCache = new TTLCache<any>();
-  private deduplicator = new RequestDeduplicator();
-
-  // Request cancellation
-  private abortControllers = new Map<string, AbortController>();
-
-  // Debounced search methods
-  private debouncedFuzzySearchFilms: ReturnType<typeof debounce>;
-  private debouncedFuzzySearchDevelopers: ReturnType<typeof debounce>;
+  private developerByUuid = new Map<string, Developer>();
+  private developerBySlug = new Map<string, Developer>();
+  private developerById = new Map<string, Developer>();
 
   constructor(config: DorkroomClientConfig = {}) {
-    // Use platform-aware endpoint configuration
     const apiConfig = getApiEndpointConfig();
-    this.baseUrl = config.baseUrl || apiConfig.baseUrl;
-    this.timeout = config.timeout || 10000; // 10 seconds
-    this.cacheTTL = config.cacheTTL || 300000; // 5 minutes
-    this.logger = config.logger || new ConsoleLogger();
-
-    // Log the platform configuration for debugging
-    if (config.logger || isDevelopmentEnvironment) {
-      const envConfig = getEnvironmentConfig();
-      this.logger.debug(
-        `Dorkroom client initialized for ${envConfig.platform} platform ` +
-          `with base URL: ${this.baseUrl}`,
-      );
-    }
-
-    // Initialize HTTP transport
-    this.transport = new FetchHTTPTransport(
-      { maxRetries: config.maxRetries || 3 },
-      this.logger,
-    );
-
-    // Initialize debounced search methods
-    this.debouncedFuzzySearchFilms = debounce(
-      this.performFuzzySearchFilms.bind(this),
-      config.searchDebounceMs || 300,
-    );
-
-    this.debouncedFuzzySearchDevelopers = debounce(
-      this.performFuzzySearchDevelopers.bind(this),
-      config.searchDebounceMs || 300,
-    );
-
-    // Cleanup expired cache entries periodically
-    setInterval(() => {
-      this.searchCache.cleanup();
-    }, 60000); // Every minute
+    this.baseUrl = (config.baseUrl ?? apiConfig.baseUrl).replace(/\/$/, '');
+    this.timeout = config.timeout ?? DEFAULT_TIMEOUT;
+    this.cacheTTL = config.cacheTTL ?? DEFAULT_CACHE_TTL;
+    this.logger = config.logger ?? defaultLogger;
   }
 
-  /**
-   * Check if we have internet connectivity by trying a simple network request.
-   * This is used to determine if we should bypass cache when offline.
-   */
-  private async hasNetworkConnectivity(): Promise<boolean> {
-    try {
-      // Try a simple HEAD request to the API base URL with a short timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
-
-      const response = await fetch(this.baseUrl, {
-        method: "HEAD",
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-      return response.ok || response.status < 500; // Even 4xx responses indicate connectivity
-    } catch (error) {
-      this.logger.debug(`Network connectivity check failed: ${error}`);
-      return false;
-    }
-  }
-
-  /**
-   * Store data in persistent local cache using AsyncStorage.
-   */
-  private async storeLocalCache(
-    films: Film[],
-    developers: Developer[],
-    combinations: Combination[],
-  ): Promise<void> {
-    const cacheData: CachedDevelopmentData = {
-      films,
-      developers,
-      combinations,
-      timestamp: Date.now(),
-    };
-
-    const storage = getPersistentStorage();
-
-    if (storage) {
-      try {
-        storage.setItem(LOCAL_CACHE_KEY, JSON.stringify(cacheData));
-        this.logger.debug("Data cached to local storage");
-        return;
-      } catch (error) {
-        this.logger.warn(`Failed to store local cache (localStorage): ${error}`);
-      }
-    }
-
-    inMemoryCache = cacheData;
-    this.logger.debug("Data cached in memory");
-  }
-
-  /**
-   * Retrieve data from persistent local cache using AsyncStorage.
-   */
-  private async getLocalCache(): Promise<CachedDevelopmentData | null> {
-    const storage = getPersistentStorage();
-
-    const parseCache = (raw: string | null): CachedDevelopmentData | null => {
-      if (!raw) {
-        return null;
-      }
-
-      try {
-        const parsed = JSON.parse(raw) as CachedDevelopmentData;
-
-        if (
-          !parsed.films ||
-          !parsed.developers ||
-          !parsed.combinations ||
-          !parsed.timestamp
-        ) {
-          this.logger.warn("Invalid cache structure, ignoring");
-          return null;
-        }
-
-        const cacheAge = Date.now() - parsed.timestamp;
-        if (cacheAge > DorkroomClient.DATA_CACHE_TTL) {
-          this.logger.debug(
-            `Local cache expired (age: ${Math.round(cacheAge / 1000)}s), ignoring`,
-          );
-          return null;
-        }
-
-        this.logger.debug(
-          `Using local cache (age: ${Math.round(cacheAge / 1000)}s)`,
-        );
-        return parsed;
-      } catch (error) {
-        this.logger.warn(`Failed to parse local cache: ${error}`);
-        return null;
-      }
-    };
-
-    if (storage) {
-      const cachedData = storage.getItem(LOCAL_CACHE_KEY);
-      const parsed = parseCache(cachedData);
-      if (parsed) {
-        inMemoryCache = parsed;
-        return parsed;
-      }
-    }
-
-    if (inMemoryCache) {
-      const cacheAge = Date.now() - inMemoryCache.timestamp;
-      if (cacheAge <= DorkroomClient.DATA_CACHE_TTL) {
-        this.logger.debug(
-          `Using in-memory cache (age: ${Math.round(cacheAge / 1000)}s)`,
-        );
-        return inMemoryCache;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Clear the persistent local cache.
-   */
-  private async clearLocalCache(): Promise<void> {
-    const storage = getPersistentStorage();
-
-    if (storage) {
-      try {
-        storage.removeItem(LOCAL_CACHE_KEY);
-        this.logger.debug("Local cache cleared");
-      } catch (error) {
-        this.logger.warn(`Failed to clear local cache (localStorage): ${error}`);
-      }
-    }
-
-    inMemoryCache = null;
-  }
-
-  /**
-   * Fetch and parse a JSON resource from the API.
-   */
-  private async fetch<T>(
-    resource: string,
-    params: URLSearchParams = new URLSearchParams(),
-    requestKey?: string,
-  ): Promise<T[]> {
-    const url = joinURL(this.baseUrl, `${resource}?${params.toString()}`);
-    const cacheKey = requestKey || url;
-
-    // Check cache first
-    const cached = this.searchCache.get(cacheKey);
-    if (cached) {
-      this.logger.debug(`Cache hit for ${resource}`);
-      return cached as T[];
-    }
-
-    // Use request deduplication
-    return this.deduplicator.deduplicate(cacheKey, async () => {
-      // Set up request cancellation
-      const controller = new AbortController();
-      if (requestKey) {
-        this.abortControllers.set(requestKey, controller);
-      }
-
-      try {
-        this.logger.debug(
-          `Fetching ${resource} with params: ${params.toString()}`,
-        );
-        const response = await this.transport.get(url, this.timeout);
-
-        try {
-          const apiResponse = (await response.json()) as ApiResponse<T>;
-          
-          // Debug: Log raw API response
-          debugLog(`[DorkroomClient] Raw API response for ${resource}:`, {
-            status: response.status,
-            url: url,
-            responseStructure: {
-              hasData: !!apiResponse?.data,
-              dataType: Array.isArray(apiResponse?.data) ? 'array' : typeof apiResponse?.data,
-              dataLength: Array.isArray(apiResponse?.data) ? apiResponse.data.length : 'N/A',
-              keys: apiResponse ? Object.keys(apiResponse) : []
-            },
-            firstItem: Array.isArray(apiResponse?.data) && apiResponse.data.length > 0 
-              ? apiResponse.data[0] 
-              : null
-          });
-          
-          if (apiResponse && apiResponse.data) {
-            // Debug: Log before transformation
-            debugLog(`[DorkroomClient] Before transformation for ${resource}:`, {
-              sampleItem: Array.isArray(apiResponse.data) && apiResponse.data.length > 0 
-                ? apiResponse.data[0] 
-                : null
-            });
-            
-            // Transform PostgreSQL arrays to JSON arrays
-            const transformedData = this.transformPostgreSQLArrays(apiResponse.data);
-            
-            // Debug: Log after transformation
-            debugLog(`[DorkroomClient] After transformation for ${resource}:`, {
-              sampleItem: Array.isArray(transformedData) && transformedData.length > 0 
-                ? transformedData[0] 
-                : null,
-              transformedCount: Array.isArray(transformedData) ? transformedData.length : 'N/A'
-            });
-            
-            // Cache the result
-            this.searchCache.set(
-              cacheKey,
-              transformedData as any,
-              this.cacheTTL,
-            );
-            return transformedData;
-          }
-          throw new DataParseError(
-            `Invalid API response structure from ${resource}`,
-          );
-        } catch (error) {
-          throw new DataParseError(
-            `Invalid JSON in ${resource}: ${error}`,
-            error as Error,
-          );
-        }
-      } catch (error) {
-        if (error instanceof DataParseError) {
-          throw error;
-        }
-        throw new DataFetchError(
-          `Failed to fetch ${resource}: ${error}`,
-          error as Error,
-        );
-      } finally {
-        if (requestKey) {
-          this.abortControllers.delete(requestKey);
-        }
-      }
-    });
-  }
-
-  /**
-   * Transform PostgreSQL array format to JSON arrays.
-   * Converts strings like '{"item1","item2","item3"}' to ["item1","item2","item3"]
-   */
-  private transformPostgreSQLArrays<T>(data: T[]): T[] {
-    debugLog(`[DorkroomClient] Starting PostgreSQL array transformation for ${data.length} items`);
-    
-    const transformedData = data.map((item: any, index: number) => {
-      const original = { ...item };
-      const transformed = { ...item };
-      let hasTransformations = false;
-      
-      // Transform manufacturer_notes if it exists and is a string
-      if (typeof transformed.manufacturer_notes === 'string') {
-        const originalValue = transformed.manufacturer_notes;
-        transformed.manufacturer_notes = this.parsePostgreSQLArray(transformed.manufacturer_notes);
-        if (index === 0) { // Log first item transformation for debugging
-          debugLog(`[DorkroomClient] Transformed manufacturer_notes:`, {
-            original: originalValue,
-            transformed: transformed.manufacturer_notes
-          });
-        }
-        hasTransformations = true;
-      }
-      
-      // Transform any other fields that might be PostgreSQL arrays
-      for (const [key, value] of Object.entries(transformed)) {
-        if (typeof value === 'string' && this.isPostgreSQLArray(value)) {
-          const originalValue = value;
-          transformed[key] = this.parsePostgreSQLArray(value);
-          if (index === 0) { // Log first item transformation for debugging
-            debugLog(`[DorkroomClient] Transformed PostgreSQL array field '${key}':`, {
-              original: originalValue,
-              transformed: transformed[key]
-            });
-          }
-          hasTransformations = true;
-        }
-      }
-      
-      if (index === 0 && hasTransformations) {
-        debugLog(`[DorkroomClient] Sample transformation result:`, {
-          before: original,
-          after: transformed
-        });
-      }
-      
-      return transformed;
-    });
-    
-    debugLog(`[DorkroomClient] Completed PostgreSQL array transformation for ${transformedData.length} items`);
-    return transformedData;
-  }
-
-  /**
-   * Check if a string looks like a PostgreSQL array format.
-   */
-  private isPostgreSQLArray(str: string): boolean {
-    return /^\{.*\}$/.test(str.trim()) && str.includes('","');
-  }
-
-  /**
-   * Parse PostgreSQL array format string to JSON array.
-   * Converts '{"item1","item2","item3"}' to ["item1","item2","item3"]
-   */
-  private parsePostgreSQLArray(pgArray: string): string[] {
-    try {
-      // Remove outer braces and split by '","'
-      const cleaned = pgArray.trim().slice(1, -1); // Remove { and }
-      if (!cleaned) return [];
-      
-      // Split by '","' and clean up quotes
-      const items = cleaned.split('","').map(item => {
-        // Remove leading and trailing quotes if present
-        return item.replace(/^"/, '').replace(/"$/, '');
-      });
-      
-      return items;
-    } catch (error) {
-      this.logger.warn(`Failed to parse PostgreSQL array: ${pgArray} - ${error}`);
-      return [];
-    }
-  }
-
-  /**
-   * Cancel a specific request by key.
-   */
-  cancelRequest(requestKey: string): void {
-    const controller = this.abortControllers.get(requestKey);
-    if (controller) {
-      controller.abort();
-      this.abortControllers.delete(requestKey);
-    }
-    this.deduplicator.cancel(requestKey);
-  }
-
-  /**
-   * Cancel all pending requests.
-   */
-  cancelAllRequests(): void {
-    for (const controller of this.abortControllers.values()) {
-      controller.abort();
-    }
-    this.abortControllers.clear();
-    this.deduplicator.clear();
-  }
-
-  /**
-   * Fetch and parse all JSON data, building internal indexes.
-   *
-   * This method must be called before using any other client methods.
-   * Will use local cache if available and valid, or fetch from API if needed.
-   * When offline and cache is expired, will continue using expired cache data.
-   */
   async loadAll(): Promise<void> {
-    // Check if we should use local cache
-    const localCache = await this.getLocalCache();
-    const hasNetwork = await this.hasNetworkConnectivity();
-
-    // If we have valid local cache and either no network or data isn't expired, use cache
-    if (localCache && (!hasNetwork || !this.isDataExpired())) {
-      this.films = localCache.films;
-      this.developers = localCache.developers;
-      this.combinations = localCache.combinations;
-      this.buildIndexes();
-      this.loaded = true;
-      this.lastLoadedTimestamp = localCache.timestamp;
-
-      this.logger.debug(
-        `Using local cache data (${this.films.length} films, ${this.developers.length} developers, ${this.combinations.length} combinations)`,
-      );
+    if (this.loaded && !this.isDataExpired()) {
       return;
     }
 
-    // If we have network but cache is expired, try to fetch fresh data
-    if (hasNetwork) {
-      try {
-        await this.performLoad();
-        return;
-      } catch (error) {
-        this.logger.warn(
-          `Failed to fetch fresh data, falling back to local cache if available: ${error}`,
-        );
-
-        // If API fails but we have local cache (even if expired), use it
-        if (localCache) {
-          this.films = localCache.films;
-          this.developers = localCache.developers;
-          this.combinations = localCache.combinations;
-          this.buildIndexes();
-          this.loaded = true;
-          this.lastLoadedTimestamp = localCache.timestamp;
-
-          this.logger.info("Using expired local cache due to API failure");
-          return;
-        }
-
-        // No cache available, re-throw the error
-        throw error;
-      }
-    }
-
-    // No network and no cache - this is an error state
-    if (!localCache) {
-      throw new DataFetchError(
-        "No network connectivity and no local cache available",
-      );
-    }
-
-    // Use expired cache when offline
-    this.films = localCache.films;
-    this.developers = localCache.developers;
-    this.combinations = localCache.combinations;
-    this.buildIndexes();
-    this.loaded = true;
-    this.lastLoadedTimestamp = localCache.timestamp;
-
-    this.logger.info(
-      "Using expired local cache due to no network connectivity",
-    );
+    await this.fetchAndCacheAll();
   }
 
-  /**
-   * Force reload all data from the API, bypassing cache.
-   * This method will clear local cache and always fetch fresh data.
-   */
   async forceReload(): Promise<void> {
-    this.logger.info("Force reloading data from API");
-
-    // Clear local cache when force reloading
-    await this.clearLocalCache();
-
-    await this.performLoad();
+    await this.fetchAndCacheAll(true);
   }
 
-  /**
-   * Internal method to perform the actual data loading.
-   */
-  private async performLoad(): Promise<void> {
-    try {
-      // Fetch all data in parallel
-      debugLog("[DorkroomClient] Starting parallel data fetch...");
-      const [rawFilms, rawDevelopers, rawCombinations] = await Promise.all([
-        this.fetch<Film>("films"),
-        this.fetch<Developer>("developers"),
-        this.fetch<any>("combinations"),
-      ]);
-
-      debugLog("[DorkroomClient] Raw data fetched:", {
-        films: rawFilms.length,
-        developers: rawDevelopers.length,
-        combinations: rawCombinations.length,
-      });
-
-      // Log sample raw data to understand structure
-      if (rawFilms.length > 0) {
-        debugLog("[DorkroomClient] Sample raw film data:", rawFilms[0]);
-      }
-      if (rawDevelopers.length > 0) {
-        debugLog(
-          "[DorkroomClient] Sample raw developer data:",
-          rawDevelopers[0],
-        );
-      }
-
-      // Build quick-lookup maps (slug -> uuid) for films & developers
-      const filmSlugToUuid = new Map<string, string>();
-      rawFilms.forEach((f) => {
-        if (f.slug) filmSlugToUuid.set(f.slug, f.uuid);
-      });
-      const developerSlugToUuid = new Map<string, string>();
-      rawDevelopers.forEach((d) => {
-        if (d.slug) developerSlugToUuid.set(d.slug, d.uuid);
-      });
-
-      // Transform films from API response format to match TypeScript interface
-      this.films = rawFilms.map(
-        (rawFilm: any): Film => ({
-          id: rawFilm.id || rawFilm.uuid,
-          uuid: rawFilm.uuid,
-          slug: rawFilm.slug,
-          name: rawFilm.name,
-          brand: rawFilm.brand,
-          isoSpeed: rawFilm.iso_speed || rawFilm.isoSpeed,
-          colorType: rawFilm.color_type || rawFilm.colorType,
-          description: rawFilm.description,
-          discontinued: rawFilm.discontinued ? 1 : 0,
-          manufacturerNotes:
-            this.parseManufacturerNotes(rawFilm.manufacturer_notes) ||
-            rawFilm.manufacturerNotes ||
-            [],
-          manufacturer_notes:
-            this.parseManufacturerNotes(rawFilm.manufacturer_notes) ||
-            rawFilm.manufacturerNotes ||
-            [],
-          grainStructure: rawFilm.grain_structure || rawFilm.grainStructure,
-          reciprocityFailure:
-            rawFilm.reciprocity_failure || rawFilm.reciprocityFailure,
-          staticImageURL: rawFilm.static_image_url || rawFilm.staticImageURL,
-          dateAdded:
-            rawFilm.date_added || rawFilm.dateAdded || rawFilm.created_at,
-        }),
-      );
-
-      // Transform developers from API response format to match TypeScript interface
-      this.developers = rawDevelopers.map(
-        (rawDev: any): Developer => ({
-          id: rawDev.id || rawDev.uuid,
-          uuid: rawDev.uuid,
-          slug: rawDev.slug,
-          name: rawDev.name,
-          manufacturer: rawDev.manufacturer,
-          type: rawDev.type,
-          // Convert boolean film_or_paper to string filmOrPaper
-          filmOrPaper:
-            rawDev.film_or_paper === true
-              ? "film"
-              : rawDev.film_or_paper === false
-                ? "paper"
-                : rawDev.filmOrPaper || "film",
-          dilutions: rawDev.dilutions || [],
-          workingLifeHours:
-            rawDev.working_life_hours || rawDev.workingLifeHours,
-          stockLifeMonths: rawDev.stock_life_months || rawDev.stockLifeMonths,
-          notes: rawDev.notes,
-          discontinued: rawDev.discontinued ? 1 : 0,
-          mixingInstructions:
-            rawDev.mixing_instructions || rawDev.mixingInstructions,
-          safetyNotes: rawDev.safety_notes || rawDev.safetyNotes,
-          datasheetUrl: Array.isArray(rawDev.datasheet_url)
-            ? rawDev.datasheet_url
-            : rawDev.datasheetUrl || [],
-          dateAdded: rawDev.date_added || rawDev.dateAdded || rawDev.created_at,
-        }),
-      );
-
-      debugLog("[DorkroomClient] Transformed data:", {
-        films: this.films.length,
-        developers: this.developers.length,
-      });
-
-      // Log sample transformed data
-      if (this.films.length > 0) {
-        debugLog("[DorkroomClient] Sample transformed film:", this.films[0]);
-      }
-      if (this.developers.length > 0) {
-        debugLog(
-          "[DorkroomClient] Sample transformed developer:",
-          this.developers[0],
-        );
-      }
-
-      // Normalise combinations coming from the API so they match our
-      // internal Combination camel-cased shape & use UUID references.
-      this.combinations = (rawCombinations as any[]).map((c) => {
-        // Map film/developer slugs to UUIDs when available
-        const filmUuid =
-          filmSlugToUuid.get(c.film_stock ?? c.film_stock_id) ??
-          c.filmStockId ??
-          c.film_stock ??
-          c.film_stock_id;
-        const developerUuid =
-          developerSlugToUuid.get(c.developer ?? c.developer_id) ??
-          c.developerId ??
-          c.developer ??
-          c.developer_id;
-
-        // Temperature – API may send °C, convert to °F if °F not provided
-        let temperatureF: number | undefined = c.temperature_f;
-        if (temperatureF === undefined && c.temperature_celsius !== undefined) {
-          temperatureF = Math.round((c.temperature_celsius * 9) / 5 + 32);
-        }
-
-        return {
-          id: String(c.id),
-          uuid: c.uuid ?? String(c.id),
-          slug: c.slug ?? c.uuid ?? String(c.id),
-          name: c.name ?? "",
-          filmStockId: filmUuid,
-          developerId: developerUuid,
-          temperatureF: temperatureF ?? 68, // default to room temp if missing
-          timeMinutes: c.time_minutes ?? c.timeMinutes ?? 0,
-          shootingIso: c.shooting_iso ?? c.shootingIso ?? 0,
-          pushPull: c.push_pull ?? c.pushPull ?? 0,
-          agitationSchedule: c.agitation_method ?? c.agitationSchedule,
-          notes: c.notes,
-          dilutionId: c.dilution_id
-            ? parseInt(String(c.dilution_id), 10)
-            : c.dilutionId,
-          customDilution: c.custom_dilution ?? c.customDilution ?? null,
-          dateAdded: c.created_at ?? c.dateAdded ?? new Date().toISOString(),
-        } as Combination;
-      });
-
-      // Build indexes for fast look-ups
-      this.buildIndexes();
-
-      this.loaded = true;
-      this.lastLoadedTimestamp = Date.now();
-
-      // Store data in local cache for future use
-      await this.storeLocalCache(
-        this.films,
-        this.developers,
-        this.combinations,
-      );
-
-      debugLog("[DorkroomClient] Data loading completed successfully:", {
-        films: this.films.length,
-        developers: this.developers.length,
-        combinations: this.combinations.length,
-        loaded: this.loaded,
-      });
-
-      this.logger.info(
-        `Loaded ${this.films.length} films, ` +
-          `${this.developers.length} developers, ` +
-          `${this.combinations.length} combinations.`,
-      );
-    } catch (error) {
-      this.logger.error(`Failed to load data: ${error}`);
-      throw error;
-    }
-  }
-
-  /**
-   * Parse PostgreSQL array format string to JavaScript array
-   */
-  private parseManufacturerNotes(notes: any): string[] | null {
-    if (Array.isArray(notes)) {
-      debugLog("[DorkroomClient] Manufacturer notes already an array:", notes);
-      return notes;
-    }
-
-    if (typeof notes === "string") {
-      try {
-        // Handle PostgreSQL array format: {"item1","item2","item3"}
-        if (notes.startsWith("{") && notes.endsWith("}")) {
-          debugLog("[DorkroomClient] Parsing PostgreSQL array format:", notes);
-
-          // Remove outer braces and split by comma
-          const inner = notes.slice(1, -1);
-          if (inner.trim() === "") {
-            debugLog("[DorkroomClient] Empty array detected");
-            return [];
-          }
-
-          // Parse quoted items, handling escaped quotes
-          const items: string[] = [];
-          let current = "";
-          let inQuotes = false;
-          let escaped = false;
-
-          for (let i = 0; i < inner.length; i++) {
-            const char = inner[i];
-
-            if (escaped) {
-              current += char;
-              escaped = false;
-              continue;
-            }
-
-            if (char === "\\") {
-              escaped = true;
-              continue;
-            }
-
-            if (char === '"') {
-              inQuotes = !inQuotes;
-              continue;
-            }
-
-            if (char === "," && !inQuotes) {
-              items.push(current.trim());
-              current = "";
-              continue;
-            }
-
-            current += char;
-          }
-
-          if (current.trim()) {
-            items.push(current.trim());
-          }
-
-          debugLog(
-            "[DorkroomClient] Successfully parsed manufacturer notes:",
-            items,
-          );
-          return items;
-        } else {
-          debugLog(
-            "[DorkroomClient] String format not recognized as PostgreSQL array:",
-            notes,
-          );
-        }
-      } catch (error) {
-        debugLog("[DorkroomClient] Failed to parse manufacturer notes:", error);
-        return null;
-      }
-    }
-
-    debugLog(
-      "[DorkroomClient] Manufacturer notes not a string or array:",
-      typeof notes,
-      notes,
-    );
-    return null;
-  }
-
-  /**
-   * Build internal indexes for O(1) lookups.
-   */
-  private buildIndexes(): void {
-    this.filmIndex.clear();
-    this.developerIndex.clear();
-    this.combinationIndex.clear();
-
-    for (const film of this.films) {
-      this.filmIndex.set(film.uuid, film);
-    }
-
-    for (const developer of this.developers) {
-      this.developerIndex.set(developer.uuid, developer);
-    }
-
-    for (const combination of this.combinations) {
-      this.combinationIndex.set(combination.uuid, combination);
-    }
-  }
-
-  /**
-   * Check if the cached data has expired (older than 30 minutes).
-   */
   isDataExpired(): boolean {
-    if (!this.loaded || this.lastLoadedTimestamp === null) {
+    if (!this.lastLoadedAt) {
       return true;
     }
+    return Date.now() - this.lastLoadedAt > this.cacheTTL;
+  }
+
+  getAllFilms(): Film[] {
+    this.ensureLoaded('getAllFilms');
+    return this.films;
+  }
+
+  getAllDevelopers(): Developer[] {
+    this.ensureLoaded('getAllDevelopers');
+    return this.developers;
+  }
+
+  getAllCombinations(): Combination[] {
+    this.ensureLoaded('getAllCombinations');
+    return this.combinations;
+  }
+
+  getFilmById(id: string): Film | undefined {
+    this.ensureLoaded('getFilmById');
+    const key = String(id);
     return (
-      Date.now() - this.lastLoadedTimestamp > DorkroomClient.DATA_CACHE_TTL
+      this.filmByUuid.get(key) ??
+      this.filmById.get(key) ??
+      this.filmBySlug.get(key)
     );
   }
 
-  /**
-   * Get the age of cached data in milliseconds.
-   */
-  getCacheAge(): number {
-    if (!this.loaded || this.lastLoadedTimestamp === null) {
-      return 0;
-    }
-    return Date.now() - this.lastLoadedTimestamp;
+  getDeveloperById(id: string): Developer | undefined {
+    this.ensureLoaded('getDeveloperById');
+    const key = String(id);
+    return (
+      this.developerByUuid.get(key) ??
+      this.developerById.get(key) ??
+      this.developerBySlug.get(key)
+    );
   }
 
-  /**
-   * Ensure data has been loaded before performing operations.
-   */
-  private ensureLoaded(): void {
-    if (!this.loaded) {
-      throw new DataNotLoadedError();
-    }
-  }
-
-  /**
-   * Get a film by its UUID.
-   */
-  getFilm(filmId: string): Film | undefined {
-    this.ensureLoaded();
-    return this.filmIndex.get(filmId);
-  }
-
-  /**
-   * Get a developer by its UUID.
-   */
-  getDeveloper(developerId: string): Developer | undefined {
-    this.ensureLoaded();
-    return this.developerIndex.get(developerId);
-  }
-
-  /**
-   * Get a combination by its UUID.
-   */
-  getCombination(combinationId: string): Combination | undefined {
-    this.ensureLoaded();
-    return this.combinationIndex.get(combinationId);
-  }
-
-  /**
-   * Get all films.
-   */
-  getAllFilms(): Film[] {
-    this.ensureLoaded();
-    return [...this.films];
-  }
-
-  /**
-   * Get all developers.
-   */
-  getAllDevelopers(): Developer[] {
-    this.ensureLoaded();
-    return [...this.developers];
-  }
-
-  /**
-   * Get all combinations.
-   */
-  getAllCombinations(): Combination[] {
-    this.ensureLoaded();
-    return [...this.combinations];
-  }
-
-  /**
-   * Get all development combinations for a specific film.
-   */
-  getCombinationsForFilm(filmId: string): Combination[] {
-    this.ensureLoaded();
-    return this.combinations.filter((c) => c.filmStockId === filmId);
-  }
-
-  /**
-   * Get all development combinations for a specific developer.
-   */
-  getCombinationsForDeveloper(developerId: string): Combination[] {
-    this.ensureLoaded();
-    return this.combinations.filter((c) => c.developerId === developerId);
-  }
-
-  /**
-   * Fetch combinations with server-side filtering for better performance.
-   * This method leverages the Supabase edge function's filtering capabilities.
-   */
   async fetchCombinations(
     options: CombinationFetchOptions = {},
   ): Promise<PaginatedApiResponse<Combination>> {
-    const params = new URLSearchParams();
+    await this.loadAll();
+
+    let filtered = this.combinations;
 
     if (options.filmSlug) {
-      params.set("film", options.filmSlug);
+      filtered = filtered.filter(
+        (combo) => combo.filmSlug === options.filmSlug || combo.filmStockId === options.filmSlug,
+      );
     }
 
     if (options.developerSlug) {
-      params.set("developer", options.developerSlug);
-    }
-
-    if (options.count && options.count > 0) {
-      params.set("count", options.count.toString());
-    }
-
-    if (options.page && options.page > 0) {
-      params.set("page", options.page.toString());
+      filtered = filtered.filter(
+        (combo) =>
+          combo.developerSlug === options.developerSlug ||
+          combo.developerId === options.developerSlug,
+      );
     }
 
     if (options.id) {
-      params.set("id", options.id);
+      filtered = filtered.filter(
+        (combo) => combo.uuid === options.id || combo.id === options.id,
+      );
     }
 
-    const requestKey = `combinations-${params.toString()}`;
+    const count = filtered.length;
 
-    // Check cache first
-    const cached = this.searchCache.get(requestKey);
-    if (cached) {
-      return cached;
+    if (options.count && options.count > 0) {
+      const page = Math.max(1, options.page ?? 1);
+      const offset = (page - 1) * options.count;
+      filtered = filtered.slice(offset, offset + options.count);
+      return {
+        data: filtered,
+        count,
+        page,
+        perPage: options.count,
+        filters: {
+          film: options.filmSlug,
+          developer: options.developerSlug,
+        },
+      };
     }
 
-    // Use deduplication for concurrent requests
-    return this.deduplicator.deduplicate(requestKey, async () => {
-      try {
-        const url = joinURL(this.baseUrl, `combinations?${params.toString()}`);
-        debugLog(`[DorkroomClient] Fetching combinations from: ${url}`);
-        
-        const response = await this.transport.get(url, this.timeout);
-
-        const rawData = await response.json();
-        
-        // Debug: Log raw combinations API response
-        debugLog(`[DorkroomClient] Raw combinations API response:`, {
-          status: response.status,
-          url: url,
-          responseStructure: {
-            hasData: !!rawData?.data,
-            dataType: Array.isArray(rawData?.data) ? 'array' : typeof rawData?.data,
-            dataLength: Array.isArray(rawData?.data) ? rawData.data.length : 'N/A',
-            keys: rawData ? Object.keys(rawData) : [],
-            count: rawData?.count,
-            page: rawData?.page,
-            perPage: rawData?.perPage
-          },
-          firstItem: Array.isArray(rawData?.data) && rawData.data.length > 0 
-            ? rawData.data[0] 
-            : rawData && !Array.isArray(rawData.data) ? rawData : null
-        });
-        
-        // Transform PostgreSQL arrays to JSON arrays
-        let data = rawData;
-        if (rawData && rawData.data) {
-          debugLog(`[DorkroomClient] Before PostgreSQL array transformation:`, {
-            sampleItem: Array.isArray(rawData.data) && rawData.data.length > 0 
-              ? rawData.data[0] 
-              : null
-          });
-          
-          data = {
-            ...rawData,
-            data: this.transformPostgreSQLArrays(rawData.data)
-          };
-          
-          debugLog(`[DorkroomClient] After PostgreSQL array transformation:`, {
-            sampleItem: Array.isArray(data.data) && data.data.length > 0 
-              ? data.data[0] 
-              : null
-          });
-        }
-
-        // Handle single record response (when querying by ID)
-        if (
-          options.id &&
-          data &&
-          typeof data === "object" &&
-          !Array.isArray(data.data)
-        ) {
-          const result: PaginatedApiResponse<Combination> = {
-            data: data ? [data] : [],
-            count: data ? 1 : 0,
-            filters: {
-              film: options.filmSlug,
-              developer: options.developerSlug,
-            },
-          };
-
-          // Cache the result
-          this.searchCache.set(requestKey, result, this.cacheTTL);
-          return result;
-        }
-
-        // Handle paginated/filtered response
-        const result: PaginatedApiResponse<Combination> = {
-          data: data.data || [],
-          count: data.count || null,
-          page: data.page,
-          perPage: data.perPage,
-          filters: data.filters || {
-            film: options.filmSlug,
-            developer: options.developerSlug,
-          },
-        };
-
-        // Cache the result
-        this.searchCache.set(requestKey, result, this.cacheTTL);
-        return result;
-      } catch (error) {
-        this.logger.error(
-          `Failed to fetch combinations with options ${JSON.stringify(options)}: ${error}`,
-        );
-        throw new DataFetchError(
-          `Failed to fetch combinations: ${error instanceof Error ? error.message : "Unknown error"}`,
-        );
-      }
-    });
-  }
-
-  /**
-   * Get combinations for a specific film using server-side filtering.
-   * More efficient than client-side filtering for large datasets.
-   */
-  async getCombinationsForFilmSlug(filmSlug: string): Promise<Combination[]> {
-    const response = await this.fetchCombinations({ filmSlug });
-    return response.data;
-  }
-
-  /**
-   * Get combinations for a specific developer using server-side filtering.
-   * More efficient than client-side filtering for large datasets.
-   */
-  async getCombinationsForDeveloperSlug(
-    developerSlug: string,
-  ): Promise<Combination[]> {
-    const response = await this.fetchCombinations({ developerSlug });
-    return response.data;
-  }
-
-  /**
-   * Get combinations for both a specific film and developer using server-side filtering.
-   * Most efficient way to find combinations for a specific film+developer pair.
-   */
-  async getCombinationsForFilmAndDeveloper(
-    filmSlug: string,
-    developerSlug: string,
-  ): Promise<Combination[]> {
-    const response = await this.fetchCombinations({ filmSlug, developerSlug });
-    return response.data;
-  }
-
-  /**
-   * Get a single combination by its UUID using server-side filtering.
-   * More efficient than loading all combinations when you only need one.
-   */
-  async getCombinationById(id: string): Promise<Combination | null> {
-    const response = await this.fetchCombinations({ id });
-    return response.data.length > 0 ? response.data[0] : null;
-  }
-
-  /**
-   * Get paginated combinations with optional filtering.
-   * Useful for implementing pagination in UI components.
-   */
-  async getPaginatedCombinations(
-    page = 1,
-    count = 25,
-    filters?: { filmSlug?: string; developerSlug?: string },
-  ): Promise<PaginatedApiResponse<Combination>> {
-    const options: CombinationFetchOptions = {
-      page,
-      count,
-      ...filters,
-    };
-
-    return this.fetchCombinations(options);
-  }
-
-  /**
-   * Search films by name or brand using substring matching.
-   */
-  searchFilms(query: string, colorType?: string): Film[] {
-    this.ensureLoaded();
-    const lowerQuery = query.toLowerCase().trim();
-
-    // Return empty array for empty queries
-    if (!lowerQuery) {
-      return [];
-    }
-
-    return this.films.filter((film) => {
-      const matchesQuery =
-        film.name.toLowerCase().includes(lowerQuery) ||
-        film.brand.toLowerCase().includes(lowerQuery);
-
-      const matchesColorType = !colorType || film.colorType === colorType;
-
-      return matchesQuery && matchesColorType;
-    });
-  }
-
-  /**
-   * Search developers by manufacturer or name using substring matching.
-   */
-  searchDevelopers(query: string, type?: string): Developer[] {
-    this.ensureLoaded();
-    const lowerQuery = query.toLowerCase().trim();
-
-    // Return empty array for empty queries
-    if (!lowerQuery) {
-      return [];
-    }
-
-    return this.developers.filter((developer) => {
-      const matchesQuery =
-        developer.name.toLowerCase().includes(lowerQuery) ||
-        developer.manufacturer.toLowerCase().includes(lowerQuery);
-
-      const matchesType = !type || developer.type === type;
-
-      return matchesQuery && matchesType;
-    });
-  }
-
-  /**
-   * Internal method for performing fuzzy search on films.
-   * Now enhanced with tokenization post-processing for better relevance.
-   */
-  private async performFuzzySearchFilms(
-    query: string,
-    options: FuzzySearchOptions = {},
-  ): Promise<Film[]> {
-    const params = new URLSearchParams({
-      query,
-      fuzzy: "true",
-    });
-
-    if (options.limit) {
-      params.append("limit", options.limit.toString());
-    }
-
-    const requestKey = `fuzzy-films-${query}-${JSON.stringify(options)}`;
-
-    debugLog(`[DorkroomClient] Performing fuzzy search for films:`, {
-      query,
-      options,
-      params: params.toString()
-    });
-
-    // Get raw fuzzy results from API
-    const rawResults = await this.fetch<Film>("films", params, requestKey);
-
-    debugLog(`[DorkroomClient] Raw fuzzy search results for films:`, {
-      query,
-      rawResultsCount: rawResults.length,
-      firstResult: rawResults.length > 0 ? rawResults[0] : null
-    });
-
-    // Apply tokenization post-processing to improve relevance
-    const enhancedResults = enhanceFilmResults(
-      query,
-      rawResults,
-      DEFAULT_TOKENIZED_CONFIG,
-    );
-
-    debugLog(`[DorkroomClient] Enhanced fuzzy search results for films:`, {
-      query,
-      enhancedResultsCount: enhancedResults.length,
-      firstEnhancedResult: enhancedResults.length > 0 ? {
-        combinedScore: enhancedResults[0].combinedScore,
-        tokenScore: enhancedResults[0].tokenScore,
-        item: enhancedResults[0].item
-      } : null
-    });
-
-    // Extract just the film items from the scored results
-    const processedResults = enhancedResults.map((result) => result.item);
-
-    // Apply original limit if specified, since tokenization filtering might change count
-    if (options.limit && processedResults.length > options.limit) {
-      const limitedResults = processedResults.slice(0, options.limit);
-      debugLog(`[DorkroomClient] Applied limit to fuzzy search results:`, {
-        query,
-        originalCount: processedResults.length,
-        limitedCount: limitedResults.length,
-        limit: options.limit
-      });
-      return limitedResults;
-    }
-
-    debugLog(`[DorkroomClient] Final fuzzy search results for films:`, {
-      query,
-      finalCount: processedResults.length
-    });
-
-    return processedResults;
-  }
-
-  /**
-   * Internal method for performing fuzzy search on developers.
-   * Now enhanced with tokenization post-processing for better relevance.
-   */
-  private async performFuzzySearchDevelopers(
-    query: string,
-    options: FuzzySearchOptions = {},
-  ): Promise<Developer[]> {
-    const params = new URLSearchParams({
-      query,
-      fuzzy: "true",
-    });
-
-    if (options.limit) {
-      params.append("limit", options.limit.toString());
-    }
-
-    const requestKey = `fuzzy-developers-${query}-${JSON.stringify(options)}`;
-
-    debugLog(`[DorkroomClient] Performing fuzzy search for developers:`, {
-      query,
-      options,
-      params: params.toString()
-    });
-
-    // Get raw fuzzy results from API
-    const rawResults = await this.fetch<Developer>(
-      "developers",
-      params,
-      requestKey,
-    );
-
-    debugLog(`[DorkroomClient] Raw fuzzy search results for developers:`, {
-      query,
-      rawResultsCount: rawResults.length,
-      firstResult: rawResults.length > 0 ? rawResults[0] : null
-    });
-
-    // Apply tokenization post-processing to improve relevance
-    const enhancedResults = enhanceDeveloperResults(
-      query,
-      rawResults,
-      DEFAULT_TOKENIZED_CONFIG,
-    );
-
-    debugLog(`[DorkroomClient] Enhanced fuzzy search results for developers:`, {
-      query,
-      enhancedResultsCount: enhancedResults.length,
-      firstEnhancedResult: enhancedResults.length > 0 ? {
-        combinedScore: enhancedResults[0].combinedScore,
-        tokenScore: enhancedResults[0].tokenScore,
-        item: enhancedResults[0].item
-      } : null
-    });
-
-    // Extract just the developer items from the scored results
-    const processedResults = enhancedResults.map((result) => result.item);
-
-    // Apply original limit if specified, since tokenization filtering might change count
-    if (options.limit && processedResults.length > options.limit) {
-      const limitedResults = processedResults.slice(0, options.limit);
-      debugLog(`[DorkroomClient] Applied limit to fuzzy search results:`, {
-        query,
-        originalCount: processedResults.length,
-        limitedCount: limitedResults.length,
-        limit: options.limit
-      });
-      return limitedResults;
-    }
-
-    debugLog(`[DorkroomClient] Final fuzzy search results for developers:`, {
-      query,
-      finalCount: processedResults.length
-    });
-
-    return processedResults;
-  }
-
-  /**
-   * Fuzzy search for films by name, brand, and description via the API.
-   * This method is debounced to prevent excessive API calls.
-   */
-  async fuzzySearchFilms(
-    query: string,
-    options: FuzzySearchOptions = {},
-  ): Promise<Film[]> {
-    return new Promise((resolve, reject) => {
-      this.debouncedFuzzySearchFilms(query, options)
-        .then(resolve)
-        .catch(reject);
-    });
-  }
-
-  /**
-   * Fuzzy search for developers by manufacturer, name, and notes via the API.
-   * This method is debounced to prevent excessive API calls.
-   */
-  async fuzzySearchDevelopers(
-    query: string,
-    options: FuzzySearchOptions = {},
-  ): Promise<Developer[]> {
-    return new Promise((resolve, reject) => {
-      this.debouncedFuzzySearchDevelopers(query, options)
-        .then(resolve)
-        .catch(reject);
-    });
-  }
-
-  /**
-   * Flush pending debounced search requests immediately.
-   */
-  flushPendingSearches(): void {
-    this.debouncedFuzzySearchFilms.flush();
-    this.debouncedFuzzySearchDevelopers.flush();
-  }
-
-  /**
-   * Cancel pending debounced search requests.
-   */
-  cancelPendingSearches(): void {
-    this.debouncedFuzzySearchFilms.cancel();
-    this.debouncedFuzzySearchDevelopers.cancel();
-  }
-
-  /**
-   * Get statistics about the loaded data.
-   */
-  getStats(): {
-    films: number;
-    developers: number;
-    combinations: number;
-    cacheSize: number;
-    pendingRequests: number;
-  } {
-    this.ensureLoaded();
     return {
+      data: filtered,
+      count,
+      filters: {
+        film: options.filmSlug,
+        developer: options.developerSlug,
+      },
+    };
+  }
+
+  private async fetchAndCacheAll(force = false): Promise<void> {
+    if (force) {
+      this.loaded = false;
+    }
+
+    const [filmsResponse, developersResponse, combinationsResponse] = await Promise.all([
+      this.fetchCollection<RawFilm>('films'),
+      this.fetchCollection<RawDeveloper>('developers'),
+      this.fetchCollection<RawCombination>('combinations'),
+    ]);
+
+    this.films = filmsResponse.data.map((film) => this.normaliseFilm(film));
+    this.rebuildFilmIndexes();
+
+    this.developers = developersResponse.data.map((developer) =>
+      this.normaliseDeveloper(developer),
+    );
+    this.rebuildDeveloperIndexes();
+
+    this.combinations = combinationsResponse.data.map((combination) =>
+      this.normaliseCombination(combination),
+    );
+
+    this.loaded = true;
+    this.lastLoadedAt = Date.now();
+
+    this.logger.info('Loaded development catalogue', {
       films: this.films.length,
       developers: this.developers.length,
       combinations: this.combinations.length,
-      cacheSize: this.searchCache.size(),
-      pendingRequests: this.abortControllers.size,
+      source: this.baseUrl,
+    });
+  }
+
+  private async fetchCollection<T>(endpoint: string): Promise<ApiCollectionResponse<T>> {
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timeoutHandle: ReturnType<typeof setTimeout> | null = controller
+      ? setTimeout(() => controller.abort(), this.timeout)
+      : null;
+
+    try {
+      const response = await fetch(`${this.baseUrl}/${endpoint}`, {
+        signal: controller?.signal,
+      });
+
+      if (!response.ok) {
+        throw new DataFetchError(
+          `Request to ${endpoint} failed with status ${response.status}`,
+          undefined,
+          response.status,
+          response.status >= 500,
+        );
+      }
+
+      const json = (await response.json()) as unknown;
+      if (!json || typeof json !== 'object' || !Array.isArray((json as Record<string, unknown>).data)) {
+        throw new DataParseError(`Unexpected response structure for ${endpoint}`);
+      }
+
+      return json as ApiCollectionResponse<T>;
+    } catch (error) {
+      if (error instanceof DataFetchError || error instanceof DataParseError) {
+        throw error;
+      }
+
+      if ((error as Error)?.name === 'AbortError') {
+        throw new TimeoutError(`Request to ${endpoint} timed out`, this.timeout);
+      }
+
+      throw new DataFetchError(`Failed to fetch ${endpoint}`, error as Error);
+    } finally {
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
+    }
+  }
+
+  private normaliseFilm(raw: RawFilm): Film {
+    const manufacturerNotes = this.parseStringArray(raw.manufacturer_notes);
+    const isoSpeed = this.toNumber(raw.iso_speed) ?? 0;
+    const reciprocity = this.toNumber(raw.reciprocity_failure);
+
+    const film: Film = {
+      id: String(raw.id ?? raw.uuid),
+      uuid: raw.uuid,
+      slug: raw.slug,
+      brand: raw.brand,
+      name: raw.name,
+      isoSpeed,
+      colorType: (raw.color_type ?? '').toLowerCase(),
+      description: raw.description ?? null,
+      discontinued: raw.discontinued ? 1 : 0,
+      manufacturerNotes,
+      manufacturer_notes: manufacturerNotes,
+      grainStructure: raw.grain_structure ?? null,
+      grain_structure: raw.grain_structure ?? null,
+      reciprocityFailure: reciprocity,
+      reciprocity_failure: reciprocity,
+      staticImageURL: raw.static_image_url ?? null,
+      static_image_url: raw.static_image_url ?? null,
+      dateAdded: raw.date_added ?? raw.created_at ?? undefined,
+      date_added: raw.date_added ?? undefined,
+      createdAt: raw.created_at ?? undefined,
+      updatedAt: raw.updated_at ?? undefined,
     };
+
+    return film;
   }
 
-  /**
-   * Clear all caches and cancel pending requests.
-   */
-  clearCache(): void {
-    this.searchCache.clear();
-    this.cancelAllRequests();
-    this.cancelPendingSearches();
-  }
+  private normaliseDeveloper(raw: RawDeveloper): Developer {
+    const dilutions: Dilution[] = Array.isArray(raw.dilutions)
+      ? raw.dilutions.map((entry) => ({
+          id: this.toNumber(entry.id) ?? 0,
+          name: (entry.name ?? entry.dilution ?? 'Stock') || 'Stock',
+          dilution: (entry.dilution ?? entry.name ?? 'Stock') || 'Stock',
+        }))
+      : [];
 
-  /**
-   * Check if data has been loaded.
-   */
-  isLoaded(): boolean {
-    return this.loaded;
-  }
+    const filmOrPaper = raw.film_or_paper === null || raw.film_or_paper === undefined
+      ? 'unspecified'
+      : raw.film_or_paper
+        ? 'film'
+        : 'paper';
 
-  /**
-   * Get transport layer status for monitoring.
-   */
-  getTransportStatus(): { circuitBreakerState?: string } {
-    const transport = this.transport as FetchHTTPTransport;
-    return {
-      circuitBreakerState: transport.getCircuitBreakerState?.(),
+    const developer: Developer = {
+      id: String(raw.id ?? raw.uuid),
+      uuid: raw.uuid,
+      slug: raw.slug,
+      name: raw.name,
+      manufacturer: raw.manufacturer,
+      type: raw.type,
+      description: raw.description ?? null,
+      notes: raw.description ?? null,
+      mixingInstructions: raw.mixing_instructions ?? null,
+      storageRequirements: raw.storage_requirements ?? null,
+      safetyNotes: raw.safety_notes ?? null,
+      dilutions,
+      filmOrPaper,
+      workingLifeHours: null,
+      stockLifeMonths: null,
+      datasheetUrl: [],
+      discontinued: 0,
+      dateAdded: raw.created_at ?? undefined,
+      createdAt: raw.created_at ?? undefined,
+      updatedAt: raw.updated_at ?? undefined,
     };
+
+    return developer;
   }
 
-  /**
-   * Reset the client state (useful for testing).
-   */
-  reset(): void {
-    this.films = [];
-    this.developers = [];
-    this.combinations = [];
-    this.filmIndex.clear();
-    this.developerIndex.clear();
-    this.combinationIndex.clear();
-    this.loaded = false;
-    this.lastLoadedTimestamp = null;
-    this.clearCache();
+  private normaliseCombination(raw: RawCombination): Combination {
+    const dilutionId = raw.dilution_id === null || raw.dilution_id === undefined
+      ? undefined
+      : this.toNumber(raw.dilution_id) ?? undefined;
 
-    // Reset transport layer if possible
-    const transport = this.transport as FetchHTTPTransport;
-    if (transport.resetCircuitBreaker) {
-      transport.resetCircuitBreaker();
+    const directCelsius = this.toNumber(raw.temperature_celsius);
+    const directFahrenheit = this.toNumber(raw.temperature_fahrenheit);
+
+    const temperatureCFromF = directFahrenheit !== null
+      ? ((directFahrenheit - 32) * 5) / 9
+      : null;
+    const temperatureFFromC = directCelsius !== null
+      ? (directCelsius * 9) / 5 + 32
+      : null;
+
+    const fallbackF = 68;
+    const finalTemperatureF = directFahrenheit ?? temperatureFFromC ?? fallbackF;
+    const finalTemperatureC = directCelsius ?? temperatureCFromF ?? ((fallbackF - 32) * 5) / 9;
+
+    const timeMinutes = this.toNumber(raw.time_minutes) ?? 0;
+    const shootingIso = this.toNumber(raw.shooting_iso) ?? 0;
+    const pushPull = this.toNumber(raw.push_pull) ?? 0;
+
+    const filmSlug = raw.film_stock ?? raw.film_stock_id ?? null;
+    const developerSlug = raw.developer ?? raw.developer_id ?? null;
+
+    const combination: Combination = {
+      id: String(raw.uuid ?? raw.id),
+      uuid: raw.uuid ?? String(raw.id),
+      slug: raw.slug ?? raw.uuid ?? String(raw.id),
+      name: raw.name ?? '',
+      filmStockId: this.resolveFilmReference(filmSlug),
+      filmSlug,
+      developerId: this.resolveDeveloperReference(developerSlug),
+      developerSlug,
+      temperatureF: finalTemperatureF,
+      temperatureC: finalTemperatureC,
+      timeMinutes,
+      shootingIso,
+      pushPull,
+      agitationSchedule: raw.agitation_method ?? null,
+      notes: raw.notes ?? null,
+      dilutionId,
+      customDilution: raw.custom_dilution ?? null,
+      tags: Array.isArray(raw.tags)
+        ? raw.tags.map((tag) => (typeof tag === 'string' ? tag : String(tag)))
+        : [],
+      infoSource: raw.info_source ?? null,
+      dateAdded: raw.created_at ?? undefined,
+      createdAt: raw.created_at ?? undefined,
+      updatedAt: raw.updated_at ?? undefined,
+    };
+
+    return combination;
+  }
+
+  private resolveFilmReference(reference: string | null): string | null {
+    if (!reference) {
+      return null;
+    }
+    const key = String(reference);
+    if (this.filmByUuid.has(key)) {
+      return key;
+    }
+    const bySlug = this.filmBySlug.get(key);
+    if (bySlug) {
+      return bySlug.uuid;
+    }
+    const byId = this.filmById.get(key);
+    if (byId) {
+      return byId.uuid;
+    }
+    return key;
+  }
+
+  private resolveDeveloperReference(reference: string | null): string | null {
+    if (!reference) {
+      return null;
+    }
+    const key = String(reference);
+    if (this.developerByUuid.has(key)) {
+      return key;
+    }
+    const bySlug = this.developerBySlug.get(key);
+    if (bySlug) {
+      return bySlug.uuid;
+    }
+    const byId = this.developerById.get(key);
+    if (byId) {
+      return byId.uuid;
+    }
+    return key;
+  }
+
+  private rebuildFilmIndexes(): void {
+    this.filmByUuid = new Map(this.films.map((film) => [film.uuid, film]));
+    this.filmBySlug = new Map(this.films.map((film) => [film.slug, film]));
+    this.filmById = new Map(this.films.map((film) => [film.id, film]));
+  }
+
+  private rebuildDeveloperIndexes(): void {
+    this.developerByUuid = new Map(this.developers.map((developer) => [developer.uuid, developer]));
+    this.developerBySlug = new Map(this.developers.map((developer) => [developer.slug, developer]));
+    this.developerById = new Map(this.developers.map((developer) => [developer.id, developer]));
+  }
+
+  private parseStringArray(value: unknown): string[] {
+    if (Array.isArray(value)) {
+      return value
+        .map((entry) => (typeof entry === 'string' ? entry : String(entry)))
+        .filter((entry) => entry.length > 0);
+    }
+
+    if (typeof value === 'string' && value.trim().length > 0) {
+      const trimmed = value.trim();
+      if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        const normalised = `[${trimmed.slice(1, -1)}]`;
+        try {
+          const parsed = JSON.parse(normalised.replace(/""/g, '"')) as unknown;
+          if (Array.isArray(parsed)) {
+            return parsed
+              .map((entry) =>
+                typeof entry === 'string' ? entry.replace(/\\"/g, '"') : String(entry),
+              )
+              .filter((entry) => entry.length > 0);
+          }
+        } catch (error) {
+          this.logger.warn('Failed to parse PostgreSQL array string', { value, error });
+        }
+      }
+
+      return trimmed
+        .split(',')
+        .map((entry) => entry.replace(/^"|"$/g, '').trim())
+        .filter((entry) => entry.length > 0);
+    }
+
+    return [];
+  }
+
+  private toNumber(value: unknown): number | null {
+    let numeric: number | null = null;
+
+    if (typeof value === 'number') {
+      numeric = Number.isFinite(value) ? value : null;
+    } else if (typeof value === 'string') {
+      const parsed = Number(value);
+      numeric = Number.isNaN(parsed) ? null : parsed;
+    }
+
+    if (numeric === null) {
+      return null;
+    }
+
+    return Number.isFinite(numeric) ? numeric : null;
+  }
+
+  private ensureLoaded(method: string): void {
+    if (!this.loaded) {
+      throw new DataNotLoadedError(`Call loadAll() before invoking ${method}.`);
     }
   }
 }
