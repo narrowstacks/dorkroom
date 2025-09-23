@@ -34,9 +34,9 @@ const formatDilution = (view: DevelopmentCombinationView): string => {
     return combination.customDilution;
   }
 
-  if (developer) {
+  if (developer && combination.dilutionId) {
     const match = developer.dilutions.find(
-      (dilution) => dilution.id === combination.dilutionId
+      (dilution) => String(dilution.id) === String(combination.dilutionId)
     );
     if (match) {
       return match.dilution || match.name;

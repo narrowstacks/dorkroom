@@ -161,7 +161,7 @@ export const useGeometryCalculations = (
     const bladeThickness = calculateBladeThickness(paperW, paperH);
 
     // Pre-calculate easel size label to avoid template literal in object
-    const easelKey = `${easelSize.width}×${easelSize.height}`;
+    const easelKey = `${easelSize.height}×${easelSize.width}`;
     const easelSizeLabel = EASEL_SIZE_MAP.get(easelKey)?.label ?? easelKey;
 
     // Return optimized object with minimal computation during creation

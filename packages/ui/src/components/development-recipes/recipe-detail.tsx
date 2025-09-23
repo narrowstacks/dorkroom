@@ -96,8 +96,11 @@ export function DevelopmentRecipeDetail({
           label="Dilution"
           value={
             combination.customDilution ||
-            developer?.dilutions.find((d) => d.id === combination.dilutionId)
-              ?.dilution ||
+            (developer && combination.dilutionId
+              ? developer.dilutions.find(
+                  (d) => String(d.id) === String(combination.dilutionId)
+                )?.dilution
+              : undefined) ||
             'Stock'
           }
         />
