@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleSheet, TouchableOpacity, Image } from "react-native";
+import React from 'react';
+import { StyleSheet, TouchableOpacity, Image } from 'react-native';
 import {
   Box,
   Text,
@@ -7,17 +7,17 @@ import {
   VStack,
   Badge,
   BadgeText,
-} from "@gluestack-ui/themed";
-import { Camera, AlertTriangle } from "lucide-react-native";
-import type { Film } from "@/api/dorkroom/types";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from '@gluestack-ui/themed';
+import { Camera, AlertTriangle } from 'lucide-react-native';
+import type { Film } from '@/api/dorkroom/types';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import {
   getBrandKey,
   getFilmTypeColor,
   getContrastingTextColor,
-} from "@/constants/brands";
-import { Colors } from "@/constants/Colors";
-import { formatFilmType } from "@/utils/filmTypeFormatter";
+} from '@/constants/brands';
+import { Colors } from '@/constants/Colors';
+import { formatFilmType } from '@/utils/filmTypeFormatter';
 
 interface FilmListItemProps {
   film: Film;
@@ -30,15 +30,15 @@ export function FilmListItem({
   isSelected = false,
   onPress,
 }: FilmListItemProps) {
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const borderColor = useThemeColor({}, "borderColor");
-  const backgroundColor = useThemeColor({}, "background");
-  const infobaseTint = useThemeColor({}, "infobaseTint");
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const backgroundColor = useThemeColor({}, 'background');
+  const infobaseTint = useThemeColor({}, 'infobaseTint');
 
   // Get brand color from theme
-  const colorScheme = backgroundColor === "#fff" ? "light" : "dark";
+  const colorScheme = backgroundColor === '#fff' ? 'light' : 'dark';
   const brandKey = getBrandKey(film.brand);
   const brandColorKey = `${brandKey}BrandColor` as keyof typeof Colors.light;
   const brandColor =
@@ -57,7 +57,7 @@ export function FilmListItem({
   const formatISO = (iso?: number) => {
     const isoValue = iso || film.iso_speed || film.isoSpeed;
     if (isoValue === undefined || isoValue === null || Number.isNaN(isoValue))
-      return "N/A";
+      return 'N/A';
     return isoValue.toString();
   };
 
@@ -68,7 +68,7 @@ export function FilmListItem({
       style={[
         styles.container,
         {
-          backgroundColor: isSelected ? infobaseTint + "15" : cardBackground,
+          backgroundColor: isSelected ? infobaseTint + '15' : cardBackground,
           borderColor: isSelected ? infobaseTint : borderColor,
         },
       ]}
@@ -88,7 +88,7 @@ export function FilmListItem({
             <Box
               style={[
                 styles.imagePlaceholder,
-                { backgroundColor: brandColor + "20" },
+                { backgroundColor: brandColor + '20' },
               ]}
             >
               <Camera size={20} color={brandColor} />
@@ -137,7 +137,7 @@ export function FilmListItem({
               <Badge
                 style={[
                   styles.discontinuedBadge,
-                  { backgroundColor: "#ff6b6b" },
+                  { backgroundColor: '#ff6b6b' },
                 ]}
               >
                 <AlertTriangle size={10} color="#fff" />
@@ -178,17 +178,17 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 6,
     borderWidth: 1,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   image: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
   },
   imagePlaceholder: {
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   infoContainer: {
     flex: 1,
@@ -200,21 +200,21 @@ const styles = StyleSheet.create({
   },
   brandName: {
     fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   filmName: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
     flex: 1,
   },
   label: {
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   value: {
     fontSize: 12,
-    fontWeight: "400",
+    fontWeight: '400',
   },
   typeBadge: {
     paddingHorizontal: 6,
@@ -223,21 +223,21 @@ const styles = StyleSheet.create({
   },
   typeText: {
     fontSize: 10,
-    fontWeight: "500",
-    textTransform: "capitalize",
+    fontWeight: '500',
+    textTransform: 'capitalize',
   },
   discontinuedBadge: {
     paddingHorizontal: 4,
     paddingVertical: 2,
     borderRadius: 4,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 2,
   },
   discontinuedText: {
     fontSize: 9,
-    fontWeight: "500",
-    color: "#fff",
+    fontWeight: '500',
+    color: '#fff',
   },
   description: {
     fontSize: 11,

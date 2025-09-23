@@ -1,10 +1,10 @@
-import type { Film, Developer } from "@/api/dorkroom/types";
-import type { CustomRecipe } from "@/types/customRecipeTypes";
+import type { Film, Developer } from '@/api/dorkroom/types';
+import type { CustomRecipe } from '@/types/customRecipeTypes';
 
 export const getCustomRecipeFilm = (
   recipeId: string,
   customRecipes: CustomRecipe[],
-  getFilmById: (filmId: string) => Film | undefined,
+  getFilmById: (filmId: string) => Film | undefined
 ): Film | undefined => {
   const recipe = customRecipes.find((r) => r.id === recipeId);
   if (!recipe) return undefined;
@@ -34,7 +34,7 @@ export const getCustomRecipeFilm = (
 export const getCustomRecipeDeveloper = (
   recipeId: string,
   customRecipes: CustomRecipe[],
-  getDeveloperById: (developerId: string) => Developer | undefined,
+  getDeveloperById: (developerId: string) => Developer | undefined
 ): Developer | undefined => {
   const recipe = customRecipes.find((r) => r.id === recipeId);
   if (!recipe) return undefined;

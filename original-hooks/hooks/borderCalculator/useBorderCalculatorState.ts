@@ -7,10 +7,10 @@
      - useBorderCalculatorState: Main state hook with reducer and persistence
 \* ------------------------------------------------------------------ */
 
-import { useReducer, useEffect, useMemo } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ASPECT_RATIOS, PAPER_SIZES } from "@/constants/border";
-import type { BorderCalculatorState as PersistableState } from "@/types/borderPresetTypes";
+import { useReducer, useEffect, useMemo } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ASPECT_RATIOS, PAPER_SIZES } from '@/constants/border';
+import type { BorderCalculatorState as PersistableState } from '@/types/borderPresetTypes';
 import {
   BorderCalculatorState,
   BorderCalculatorAction,
@@ -20,7 +20,7 @@ import {
   DEFAULT_CUSTOM_ASPECT_WIDTH,
   DEFAULT_CUSTOM_ASPECT_HEIGHT,
   CALC_STORAGE_KEY,
-} from "./types";
+} from './types';
 
 /* ---------- initial state --------------------------------------- */
 
@@ -64,14 +64,14 @@ export const initialState: BorderCalculatorState = {
 
 function reducer(
   state: BorderCalculatorState,
-  action: BorderCalculatorAction,
+  action: BorderCalculatorAction
 ): BorderCalculatorState {
   switch (action.type) {
-    case "SET_FIELD":
+    case 'SET_FIELD':
       return { ...state, [action.key]: action.value };
 
-    case "SET_PAPER_SIZE": {
-      const isCustom = action.value === "custom";
+    case 'SET_PAPER_SIZE': {
+      const isCustom = action.value === 'custom';
       return {
         ...state,
         paperSize: action.value,
@@ -80,28 +80,28 @@ function reducer(
       };
     }
 
-    case "SET_ASPECT_RATIO":
+    case 'SET_ASPECT_RATIO':
       return { ...state, aspectRatio: action.value, isRatioFlipped: false };
 
-    case "SET_IMAGE_FIELD":
+    case 'SET_IMAGE_FIELD':
       return { ...state, [action.key]: action.value };
 
-    case "SET_IMAGE_DIMENSIONS":
+    case 'SET_IMAGE_DIMENSIONS':
       return { ...state, imageDimensions: action.value };
 
-    case "SET_CROP_OFFSET":
+    case 'SET_CROP_OFFSET':
       return { ...state, cropOffset: action.value };
 
-    case "RESET":
+    case 'RESET':
       return { ...initialState };
 
-    case "INTERNAL_UPDATE":
+    case 'INTERNAL_UPDATE':
       return { ...state, ...action.payload };
 
-    case "SET_IMAGE_CROP_DATA":
+    case 'SET_IMAGE_CROP_DATA':
       return { ...state, ...action.payload };
 
-    case "BATCH_UPDATE":
+    case 'BATCH_UPDATE':
       return { ...state, ...action.payload };
 
     default:
@@ -137,7 +137,7 @@ export const useBorderCalculatorState = () => {
       lastValidCustomPaperHeight: state.lastValidCustomPaperHeight,
       lastValidMinBorder: state.lastValidMinBorder,
     }),
-    [state],
+    [state]
   );
 
   // Load cached state on mount
@@ -147,12 +147,12 @@ export const useBorderCalculatorState = () => {
         const json = await AsyncStorage.getItem(CALC_STORAGE_KEY);
         if (json) {
           const cached: PersistableState = JSON.parse(json);
-          if (cached && typeof cached === "object") {
-            dispatch({ type: "BATCH_UPDATE", payload: cached });
+          if (cached && typeof cached === 'object') {
+            dispatch({ type: 'BATCH_UPDATE', payload: cached });
           }
         }
       } catch (e) {
-        console.warn("Failed to load calculator state", e);
+        console.warn('Failed to load calculator state', e);
       }
     })();
   }, []);
@@ -165,8 +165,8 @@ export const useBorderCalculatorState = () => {
       timeoutId = setTimeout(() => {
         AsyncStorage.setItem(
           CALC_STORAGE_KEY,
-          JSON.stringify(stateToSave),
-        ).catch((e) => console.warn("Failed to save calculator state", e));
+          JSON.stringify(stateToSave)
+        ).catch((e) => console.warn('Failed to save calculator state', e));
       }, 500); // Debounce saves by 500ms to avoid excessive writes
     };
   }, []);

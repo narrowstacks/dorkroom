@@ -1,16 +1,16 @@
-import React, { useState } from "react";
-import { TouchableOpacity } from "react-native";
-import { Box, Text, HStack, VStack, Switch } from "@gluestack-ui/themed";
-import { FormGroup } from "@/components/ui/forms/FormSection";
-import { NumberInput, TextInput } from "@/components/ui/forms";
-import { SearchInput, SearchDropdown } from "@/components/ui/search";
-import { useThemeColor } from "@/hooks/useThemeColor";
+import React, { useState } from 'react';
+import { TouchableOpacity } from 'react-native';
+import { Box, Text, HStack, VStack, Switch } from '@gluestack-ui/themed';
+import { FormGroup } from '@/components/ui/forms/FormSection';
+import { NumberInput, TextInput } from '@/components/ui/forms';
+import { SearchInput, SearchDropdown } from '@/components/ui/search';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 import type {
   CustomRecipeFormData,
   CustomFilmData,
-} from "@/types/customRecipeTypes";
-import type { Film } from "@/api/dorkroom/types";
+} from '@/types/customRecipeTypes';
+import type { Film } from '@/api/dorkroom/types';
 
 interface RecipeIdentityStepProps {
   formData: CustomRecipeFormData;
@@ -42,10 +42,10 @@ export function RecipeIdentityStep({
   allFilms,
   isDesktop = false,
 }: RecipeIdentityStepProps) {
-  const textColor = useThemeColor({}, "text");
+  const textColor = useThemeColor({}, 'text');
 
   // State for film search and dropdown
-  const [filmSearch, setFilmSearch] = useState("");
+  const [filmSearch, setFilmSearch] = useState('');
   const [isFilmSearchFocused, setIsFilmSearchFocused] = useState(false);
   const [filmSearchPosition, setFilmSearchPosition] = useState<{
     top: number;
@@ -65,9 +65,9 @@ export function RecipeIdentityStep({
     if (
       !formData.useExistingFilm &&
       formData.customFilm &&
-      formData.customFilm.colorType !== "bw"
+      formData.customFilm.colorType !== 'bw'
     ) {
-      updateCustomFilm({ colorType: "bw" });
+      updateCustomFilm({ colorType: 'bw' });
     }
   }, [formData.useExistingFilm, formData.customFilm, updateCustomFilm]);
 
@@ -78,7 +78,7 @@ export function RecipeIdentityStep({
     return allFilms.filter(
       (film) =>
         film.name.toLowerCase().includes(filmSearch.toLowerCase()) ||
-        film.brand.toLowerCase().includes(filmSearch.toLowerCase()),
+        film.brand.toLowerCase().includes(filmSearch.toLowerCase())
     );
   }, [allFilms, filmSearch, isFilmSearchFocused]);
 
@@ -90,7 +90,7 @@ export function RecipeIdentityStep({
         title: film.name,
         subtitle: film.brand,
       })),
-    [filteredFilms],
+    [filteredFilms]
   );
 
   // Handle dropdown item selection
@@ -102,7 +102,7 @@ export function RecipeIdentityStep({
     const film = allFilms.find((f) => f.uuid === item.id);
     if (film) {
       updateFormData({ selectedFilmId: film.uuid });
-      setFilmSearch("");
+      setFilmSearch('');
       setIsFilmSearchFocused(false);
     }
   };
@@ -117,14 +117,14 @@ export function RecipeIdentityStep({
           width: number,
           height: number,
           pageX: number,
-          pageY: number,
+          pageY: number
         ) => {
           setFilmSearchPosition({
             top: pageY + height,
             left: pageX,
             width: width,
           });
-        },
+        }
       );
     }
   };
@@ -143,11 +143,11 @@ export function RecipeIdentityStep({
 
       {/* Film Section */}
       <VStack space="sm">
-        <Text style={{ fontSize: 16, fontWeight: "600", color: textColor }}>
+        <Text style={{ fontSize: 16, fontWeight: '600', color: textColor }}>
           Film
         </Text>
 
-        <HStack style={{ alignItems: "center", marginBottom: 8 }}>
+        <HStack style={{ alignItems: 'center', marginBottom: 8 }}>
           <Switch
             value={formData.useExistingFilm}
             onValueChange={(value) =>
@@ -164,8 +164,8 @@ export function RecipeIdentityStep({
             <Box
               ref={filmSearchRef}
               style={{
-                position: "relative",
-                overflow: "visible",
+                position: 'relative',
+                overflow: 'visible',
                 zIndex: 999999,
               }}
               onLayout={handleFilmSearchLayout}
@@ -177,7 +177,7 @@ export function RecipeIdentityStep({
                   placeholder="Type to search films..."
                   value={filmSearch}
                   onChangeText={setFilmSearch}
-                  onClear={() => setFilmSearch("")}
+                  onClear={() => setFilmSearch('')}
                   onFocus={() => {
                     setIsFilmSearchFocused(true);
                     handleFilmSearchLayout();
@@ -204,11 +204,11 @@ export function RecipeIdentityStep({
                   style={{
                     marginTop: 8,
                     padding: 8,
-                    backgroundColor: "rgba(0,0,0,0.05)",
+                    backgroundColor: 'rgba(0,0,0,0.05)',
                     borderRadius: 8,
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
                   }}
                 >
                   <Text style={{ fontSize: 14, color: textColor }}>
@@ -231,14 +231,14 @@ export function RecipeIdentityStep({
           <VStack space="sm">
             <Box
               style={{
-                flexDirection: isDesktop ? "row" : "column",
+                flexDirection: isDesktop ? 'row' : 'column',
                 gap: isDesktop ? 12 : 8,
               }}
             >
               <Box style={{ flex: isDesktop ? 1 : undefined }}>
                 <FormGroup label="Film Brand">
                   <TextInput
-                    value={formData.customFilm?.brand || ""}
+                    value={formData.customFilm?.brand || ''}
                     onChangeText={(value: string) =>
                       updateCustomFilm({ brand: value })
                     }
@@ -251,7 +251,7 @@ export function RecipeIdentityStep({
               <Box style={{ flex: isDesktop ? 1 : undefined }}>
                 <FormGroup label="Film Name">
                   <TextInput
-                    value={formData.customFilm?.name || ""}
+                    value={formData.customFilm?.name || ''}
                     onChangeText={(value: string) =>
                       updateCustomFilm({ name: value })
                     }
@@ -276,7 +276,7 @@ export function RecipeIdentityStep({
 
             <FormGroup label="Grain Structure (Optional)">
               <TextInput
-                value={formData.customFilm?.grainStructure || ""}
+                value={formData.customFilm?.grainStructure || ''}
                 onChangeText={(value: string) =>
                   updateCustomFilm({ grainStructure: value })
                 }

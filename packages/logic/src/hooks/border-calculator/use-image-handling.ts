@@ -12,13 +12,16 @@ import type {
 
 export const useImageHandling = (
   state: BorderCalculatorState,
-  dispatch: (action: BorderCalculatorAction) => void,
+  dispatch: (action: BorderCalculatorAction) => void
 ) => {
   const imageLayoutRef = useRef({ width: 0, height: 0 });
 
-  const setImageLayout = useCallback((layout: { width: number; height: number }) => {
-    imageLayoutRef.current = layout;
-  }, []);
+  const setImageLayout = useCallback(
+    (layout: { width: number; height: number }) => {
+      imageLayoutRef.current = layout;
+    },
+    []
+  );
 
   const setSelectedImageUri = useCallback(
     (uri: string | null) => {
@@ -28,14 +31,14 @@ export const useImageHandling = (
         value: uri,
       });
     },
-    [dispatch],
+    [dispatch]
   );
 
   const setImageDimensions = useCallback(
     (dimensions: { width: number; height: number }) => {
       dispatch({ type: 'SET_IMAGE_DIMENSIONS', value: dimensions });
     },
-    [dispatch],
+    [dispatch]
   );
 
   const setIsCropping = useCallback(
@@ -46,21 +49,21 @@ export const useImageHandling = (
         value: isCropping,
       });
     },
-    [dispatch],
+    [dispatch]
   );
 
   const setCropOffset = useCallback(
     (offset: { x: number; y: number }) => {
       dispatch({ type: 'SET_CROP_OFFSET', value: offset });
     },
-    [dispatch],
+    [dispatch]
   );
 
   const setCropScale = useCallback(
     (scale: number) => {
       dispatch({ type: 'SET_IMAGE_FIELD', key: 'cropScale', value: scale });
     },
-    [dispatch],
+    [dispatch]
   );
 
   return {

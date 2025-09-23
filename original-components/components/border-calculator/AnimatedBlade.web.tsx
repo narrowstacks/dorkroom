@@ -1,9 +1,9 @@
-import React from "react";
-import { Animated } from "react-native";
+import React from 'react';
+import { Animated } from 'react-native';
 
 interface AnimatedBladeProps {
-  orientation: "vertical" | "horizontal";
-  position: "left" | "right" | "top" | "bottom";
+  orientation: 'vertical' | 'horizontal';
+  position: 'left' | 'right' | 'top' | 'bottom';
   bladePositionValue: Animated.Value;
   opacity: Animated.Value;
   thickness: number;
@@ -21,18 +21,18 @@ export const AnimatedBlade = ({
   // Create interpolated position value
   const bladePosition = bladePositionValue.interpolate({
     inputRange: [0, 100],
-    outputRange: ["0%", "100%"],
+    outputRange: ['0%', '100%'],
   });
 
   const commonStyle = {
-    position: "absolute" as const,
-    boxShadow: "0px 2px 4px rgba(0,0,0,0.25)",
+    position: 'absolute' as const,
+    boxShadow: '0px 2px 4px rgba(0,0,0,0.25)',
     elevation: 5,
     backgroundColor: borderColor,
   };
 
   const orientationStyle =
-    orientation === "vertical"
+    orientation === 'vertical'
       ? { top: -1000, bottom: -1000, width: thickness }
       : { left: -1000, right: -1000, height: thickness };
 
@@ -41,13 +41,13 @@ export const AnimatedBlade = ({
 
   const transformStyle = {
     transform:
-      position === "left"
+      position === 'left'
         ? [{ translateX: -thickness }]
-        : position === "right"
-          ? [{ translateX: thickness }]
-          : position === "top"
-            ? [{ translateY: -thickness }]
-            : [{ translateY: thickness }],
+        : position === 'right'
+        ? [{ translateX: thickness }]
+        : position === 'top'
+        ? [{ translateY: -thickness }]
+        : [{ translateY: thickness }],
   };
 
   return (

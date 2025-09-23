@@ -1,7 +1,7 @@
-import React, { ReactNode } from "react";
-import { StyleSheet, Platform } from "react-native";
-import { Box, Text } from "@gluestack-ui/themed";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
+import React, { ReactNode } from 'react';
+import { StyleSheet, Platform } from 'react-native';
+import { Box, Text } from '@gluestack-ui/themed';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 
 interface FormGroupProps {
   label: string;
@@ -25,14 +25,14 @@ export function FormGroup({ label, children }: FormGroupProps) {
 
 export function FormSection({ children }: FormSectionProps) {
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > 768;
+  const isDesktop = Platform.OS === 'web' && width > 768;
 
   return (
     <Box
       className="w-full gap-5 web:max-w-lg web:flex-1"
       style={[
         styles.form,
-        Platform.OS === "web" && isDesktop && styles.webForm,
+        Platform.OS === 'web' && isDesktop && styles.webForm,
       ]}
     >
       {children}
@@ -43,7 +43,7 @@ export function FormSection({ children }: FormSectionProps) {
 const styles = StyleSheet.create({
   form: {
     gap: 20,
-    width: "100%",
+    width: '100%',
   },
   webForm: {
     flex: 1,
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
     marginBottom: 4,
   },
 });

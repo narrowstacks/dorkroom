@@ -7,29 +7,29 @@
      - useDimensionCalculations: Dimension and orientation logic
 \* ------------------------------------------------------------------ */
 
-import { useMemo } from "react";
+import { useMemo } from 'react';
 import {
   PAPER_SIZE_MAP,
   ASPECT_RATIO_MAP,
   EASEL_SIZES,
-} from "@/constants/border";
+} from '@/constants/border';
 import type {
   BorderCalculatorState,
   PaperEntry,
   RatioEntry,
   OrientedDimensions,
   MinBorderData,
-} from "./types";
+} from './types';
 
 // Pre-calculate max easel dimension for O(1) lookup
 const MAX_EASEL_DIMENSION = Math.max(
-  ...EASEL_SIZES.flatMap((e) => [e.width, e.height]),
+  ...EASEL_SIZES.flatMap((e) => [e.width, e.height])
 );
 
 export const useDimensionCalculations = (state: BorderCalculatorState) => {
   // Optimized paper size calculations with better caching
   const paperEntry = useMemo((): PaperEntry => {
-    if (state.paperSize === "custom") {
+    if (state.paperSize === 'custom') {
       return {
         w: state.lastValidCustomPaperWidth,
         h: state.lastValidCustomPaperHeight,
@@ -61,7 +61,7 @@ export const useDimensionCalculations = (state: BorderCalculatorState) => {
 
   // Optimized aspect ratio calculations
   const ratioEntry = useMemo((): RatioEntry => {
-    if (state.aspectRatio === "custom") {
+    if (state.aspectRatio === 'custom') {
       return {
         w: state.lastValidCustomAspectWidth,
         h: state.lastValidCustomAspectHeight,

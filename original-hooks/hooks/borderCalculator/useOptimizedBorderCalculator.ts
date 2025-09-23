@@ -12,14 +12,14 @@
   - Smart dependency tracking
 \* ------------------------------------------------------------------ */
 
-import { useMemo, useCallback } from "react";
-import type { BorderCalculation } from "@/types/borderTypes";
-import { useOptimizedBorderCalculatorState } from "./useOptimizedBorderCalculatorState";
-import { useDimensionCalculations } from "./useDimensionCalculations";
-import { useOptimizedGeometryCalculations } from "./useOptimizedGeometryCalculations";
-import { useWarningSystem } from "./useWarningSystem";
-import { useImageHandling } from "./useImageHandling";
-import { useInputHandlers } from "./useInputHandlers";
+import { useMemo, useCallback } from 'react';
+import type { BorderCalculation } from '@/types/borderTypes';
+import { useOptimizedBorderCalculatorState } from './useOptimizedBorderCalculatorState';
+import { useDimensionCalculations } from './useDimensionCalculations';
+import { useOptimizedGeometryCalculations } from './useOptimizedGeometryCalculations';
+import { useWarningSystem } from './useWarningSystem';
+import { useImageHandling } from './useImageHandling';
+import { useInputHandlers } from './useInputHandlers';
 
 export const useOptimizedBorderCalculator = () => {
   // Ultra-optimized state management with reduced re-renders
@@ -36,7 +36,7 @@ export const useOptimizedBorderCalculator = () => {
       orientedDimensions,
       minBorderData,
       paperEntry,
-      paperSizeWarning,
+      paperSizeWarning
     );
 
   // Warning system management (only run if calculation exists)
@@ -57,7 +57,7 @@ export const useOptimizedBorderCalculator = () => {
           minBorderWarning: null,
           paperSizeWarning: null,
           lastValidMinBorder: state.lastValidMinBorder,
-        },
+        }
   );
 
   // Image handling (called at top level to follow Rules of Hooks)
@@ -178,7 +178,7 @@ export const useOptimizedBorderCalculator = () => {
       cleanup,
       calculation?.clampedHorizontalOffset,
       calculation?.clampedVerticalOffset,
-    ],
+    ]
   );
 };
 

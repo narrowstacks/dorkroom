@@ -5,10 +5,7 @@
 \* ------------------------------------------------------------------ */
 
 import { useReducer, useEffect, useMemo, useRef } from 'react';
-import {
-  ASPECT_RATIOS,
-  PAPER_SIZES,
-} from '../../constants/border-calculator';
+import { ASPECT_RATIOS, PAPER_SIZES } from '../../constants/border-calculator';
 import type {
   BorderCalculatorState,
   BorderCalculatorAction,
@@ -65,7 +62,7 @@ export const initialState = createInitialState();
 
 function reducer(
   state: BorderCalculatorState,
-  action: BorderCalculatorAction,
+  action: BorderCalculatorAction
 ): BorderCalculatorState {
   switch (action.type) {
     case 'SET_FIELD':
@@ -142,7 +139,7 @@ export const useBorderCalculatorState = () => {
       lastValidCustomPaperHeight: state.lastValidCustomPaperHeight,
       lastValidMinBorder: state.lastValidMinBorder,
     }),
-    [state],
+    [state]
   );
 
   useEffect(() => {
@@ -172,7 +169,7 @@ export const useBorderCalculatorState = () => {
       try {
         window.localStorage.setItem(
           CALC_STORAGE_KEY,
-          JSON.stringify(persistableState),
+          JSON.stringify(persistableState)
         );
       } catch (error) {
         console.warn('Failed to save calculator state', error);
@@ -187,11 +184,14 @@ export const useBorderCalculatorState = () => {
     };
   }, [persistableState]);
 
-  useEffect(() => () => {
-    if (persistTimeout.current) {
-      clearTimeout(persistTimeout.current);
-    }
-  }, []);
+  useEffect(
+    () => () => {
+      if (persistTimeout.current) {
+        clearTimeout(persistTimeout.current);
+      }
+    },
+    []
+  );
 
   return { state, dispatch };
 };

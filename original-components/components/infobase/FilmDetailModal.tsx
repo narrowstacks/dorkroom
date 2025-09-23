@@ -4,8 +4,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-} from "react-native";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
+} from 'react-native';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 import {
   Box,
   Text,
@@ -16,7 +16,7 @@ import {
   Modal,
   ModalBackdrop,
   ModalContent,
-} from "@gluestack-ui/themed";
+} from '@gluestack-ui/themed';
 import {
   X,
   Camera,
@@ -27,16 +27,16 @@ import {
   FileText,
   Package,
   Layers,
-} from "lucide-react-native";
-import type { Film } from "@/api/dorkroom/types";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from 'lucide-react-native';
+import type { Film } from '@/api/dorkroom/types';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import {
   getBrandKey,
   getFilmTypeColor,
   getContrastingTextColor,
-} from "@/constants/brands";
-import { Colors } from "@/constants/Colors";
-import { formatFilmType } from "@/utils/filmTypeFormatter";
+} from '@/constants/brands';
+import { Colors } from '@/constants/Colors';
+import { formatFilmType } from '@/utils/filmTypeFormatter';
 
 interface FilmDetailModalProps {
   film: Film | null;
@@ -50,16 +50,16 @@ export function FilmDetailModal({
   onClose,
 }: FilmDetailModalProps) {
   const { height } = useWindowDimensions();
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const borderColor = useThemeColor({}, "borderColor");
-  const backgroundColor = useThemeColor({}, "background");
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const backgroundColor = useThemeColor({}, 'background');
 
   if (!film) return null;
 
   // Get brand color from theme
-  const colorScheme = backgroundColor === "#fff" ? "light" : "dark";
+  const colorScheme = backgroundColor === '#fff' ? 'light' : 'dark';
   const brandKey = getBrandKey(film.brand);
   const brandColorKey = `${brandKey}BrandColor` as keyof typeof Colors.light;
   const brandColor =
@@ -76,14 +76,14 @@ export function FilmDetailModal({
     try {
       return new Date(dateString).toLocaleDateString();
     } catch {
-      return "N/A";
+      return 'N/A';
     }
   };
 
   const formatISO = (iso?: number) => {
     const isoValue = iso || film.iso_speed || film.isoSpeed;
     if (isoValue === undefined || isoValue === null || Number.isNaN(isoValue))
-      return "N/A";
+      return 'N/A';
     return isoValue.toString();
   };
 
@@ -94,7 +94,7 @@ export function FilmDetailModal({
         style={{
           backgroundColor: cardBackground,
           margin: 0,
-          maxHeight: "100%",
+          maxHeight: '100%',
           flex: 1,
         }}
       >
@@ -157,7 +157,7 @@ export function FilmDetailModal({
               <HStack
                 space="sm"
                 alignItems="center"
-                style={{ flexWrap: "wrap" }}
+                style={{ flexWrap: 'wrap' }}
               >
                 <Box
                   style={[styles.brandBadge, { backgroundColor: brandColor }]}
@@ -186,7 +186,7 @@ export function FilmDetailModal({
                   <Badge
                     style={[
                       styles.discontinuedBadge,
-                      { backgroundColor: "#ff6b6b" },
+                      { backgroundColor: '#ff6b6b' },
                     ]}
                   >
                     <AlertTriangle size={14} color="#fff" />
@@ -298,7 +298,7 @@ export function FilmDetailModal({
 
                 {/* Manufacturer Notes */}
                 {Array.isArray(
-                  film.manufacturer_notes || film.manufacturerNotes,
+                  film.manufacturer_notes || film.manufacturerNotes
                 ) &&
                   (film.manufacturer_notes || film.manufacturerNotes).length >
                     0 && (
@@ -314,7 +314,7 @@ export function FilmDetailModal({
                         >
                           Qualities:
                         </Text>
-                        <HStack space="xs" style={{ flexWrap: "wrap" }}>
+                        <HStack space="xs" style={{ flexWrap: 'wrap' }}>
                           {(
                             film.manufacturer_notes || film.manufacturerNotes
                           ).map((note, index) => (
@@ -358,7 +358,7 @@ export function FilmDetailModal({
                   <Text
                     style={[
                       styles.detailValue,
-                      { color: textColor, fontFamily: "monospace" },
+                      { color: textColor, fontFamily: 'monospace' },
                     ]}
                   >
                     {film.uuid}
@@ -372,7 +372,7 @@ export function FilmDetailModal({
                   <Text
                     style={[
                       styles.detailValue,
-                      { color: textColor, fontFamily: "monospace" },
+                      { color: textColor, fontFamily: 'monospace' },
                     ]}
                   >
                     {film.slug}
@@ -394,23 +394,23 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   imageContainer: {
-    width: "100%",
+    width: '100%',
     borderRadius: 12,
     borderWidth: 1,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   filmImage: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "700",
+    fontWeight: '700',
     lineHeight: 24,
   },
   modalSubtitle: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
     marginTop: 2,
   },
   closeButton: {
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
   },
   brandBadge: {
@@ -435,8 +435,8 @@ const styles = StyleSheet.create({
   },
   brandText: {
     fontSize: 14,
-    fontWeight: "600",
-    textTransform: "uppercase",
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   typeBadge: {
     paddingHorizontal: 8,
@@ -445,30 +445,30 @@ const styles = StyleSheet.create({
   },
   typeText: {
     fontSize: 12,
-    fontWeight: "500",
-    textTransform: "capitalize",
+    fontWeight: '500',
+    textTransform: 'capitalize',
   },
   discontinuedBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
   discontinuedText: {
     fontSize: 12,
-    fontWeight: "500",
-    color: "#fff",
+    fontWeight: '500',
+    color: '#fff',
   },
   detailLabel: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
     minWidth: 100,
   },
   detailValue: {
     fontSize: 14,
-    fontWeight: "400",
+    fontWeight: '400',
     flex: 1,
   },
   description: {
@@ -493,6 +493,6 @@ const styles = StyleSheet.create({
   },
   noteTagText: {
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: '500',
   },
 });

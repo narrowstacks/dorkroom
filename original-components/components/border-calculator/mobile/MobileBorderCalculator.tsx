@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Platform, TouchableOpacity } from "react-native";
+import React, { useState, useEffect, useMemo } from 'react';
+import { Platform, TouchableOpacity } from 'react-native';
 import {
   Box,
   ScrollView,
@@ -12,21 +12,21 @@ import {
   Toast,
   ToastTitle,
   VStack as ToastVStack,
-} from "@gluestack-ui/themed";
+} from '@gluestack-ui/themed';
 import {
   Drawer,
   DrawerContent,
   DrawerBody,
-} from "@/components/ui/drawer/index";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { WarningAlert } from "@/components/ui/feedback";
-import { useAnimationExperiment } from "@/hooks/useAnimationExperiment";
-import { debugLog } from "@/utils/debugLogger";
+} from '@/components/ui/drawer/index';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { WarningAlert } from '@/components/ui/feedback';
+import { useAnimationExperiment } from '@/hooks/useAnimationExperiment';
+import { debugLog } from '@/utils/debugLogger';
 
 // Mobile components
-import { BladeResultsDisplay, CompactPreview, SettingsButton } from "./index";
-import { ShareModal } from "./ShareModal";
-import { SaveBeforeShareModal } from "./SaveBeforeShareModal";
+import { BladeResultsDisplay, CompactPreview, SettingsButton } from './index';
+import { ShareModal } from './ShareModal';
+import { SaveBeforeShareModal } from './SaveBeforeShareModal';
 
 // Inline sections instead of modals
 import {
@@ -34,7 +34,7 @@ import {
   BorderSizeSection,
   PositionOffsetsSection,
   PresetsSection,
-} from "./sections";
+} from './sections';
 
 // Icons
 import {
@@ -48,22 +48,22 @@ import {
   Share,
   Zap,
   Crop,
-} from "lucide-react-native";
+} from 'lucide-react-native';
 
 // Border calculator functionality
 import {
   useBorderCalculator,
   useBorderPresets,
-} from "@/hooks/borderCalculator";
-import type { BorderPreset } from "@/types/borderPresetTypes";
+} from '@/hooks/borderCalculator';
+import type { BorderPreset } from '@/types/borderPresetTypes';
 
 // Debug helper (dev only)
 if (__DEV__) {
-  import("@/utils/deepLinkDebug");
+  import('@/utils/deepLinkDebug');
 }
 
 // Active section type
-type ActiveSection = "paperSize" | "borderSize" | "positionOffsets" | "presets";
+type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
 
 interface MobileBorderCalculatorProps {
   loadedPresetFromUrl?: {
@@ -78,7 +78,7 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
   loadedPresetFromUrl,
   clearLoadedPreset,
 }) => {
-  const backgroundColor = useThemeColor({}, "background");
+  const backgroundColor = useThemeColor({}, 'background');
   const toast = useToast();
 
   // Animation experiment hook for A/B testing
@@ -91,7 +91,7 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
   // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeSection, setActiveSection] =
-    useState<ActiveSection>("paperSize");
+    useState<ActiveSection>('paperSize');
   const [currentPreset, setCurrentPreset] = useState<BorderPreset | null>(null);
 
   // Share modal state
@@ -102,7 +102,7 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
   // Track loaded preset to prevent infinite re-application
   const [hasAppliedLoadedPreset, setHasAppliedLoadedPreset] = useState(false);
   const [lastAppliedPresetId, setLastAppliedPresetId] = useState<string | null>(
-    null,
+    null
   );
 
   // Border calculator hooks
@@ -189,14 +189,16 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
     }
 
     // Create a unique ID for this preset based on its content
-    const presetId = `${loadedPresetFromUrl.name}-${JSON.stringify(loadedPresetFromUrl.settings)}`;
+    const presetId = `${loadedPresetFromUrl.name}-${JSON.stringify(
+      loadedPresetFromUrl.settings
+    )}`;
 
     // Check if this is a new preset (different from the last applied one)
     if (presetId !== lastAppliedPresetId) {
       applyPreset(loadedPresetFromUrl.settings);
       // Create a temporary preset object to indicate it's loaded
       const tempPreset = {
-        id: "shared-" + Date.now(),
+        id: 'shared-' + Date.now(),
         name: loadedPresetFromUrl.name,
         settings: loadedPresetFromUrl.settings,
       };
@@ -211,7 +213,7 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
         : `Last settings "${loadedPresetFromUrl.name}" loaded`;
 
       toast.show({
-        placement: "top",
+        placement: 'top',
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="success" variant="solid">
             <ToastVStack space="xs">
@@ -237,13 +239,13 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
 
   // Heavily optimized display values with minimal computation
   const paperSizeDisplayValue = useMemo(() => {
-    return paperSize === "custom"
+    return paperSize === 'custom'
       ? `${customPaperWidth}" × ${customPaperHeight}"`
       : paperSize;
   }, [paperSize, customPaperWidth, customPaperHeight]);
 
   const aspectRatioDisplayValue = useMemo(() => {
-    return aspectRatio === "custom"
+    return aspectRatio === 'custom'
       ? `${customAspectWidth}:${customAspectHeight}`
       : aspectRatio;
   }, [aspectRatio, customAspectWidth, customAspectHeight]);
@@ -254,14 +256,14 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
   }, [minBorder]);
 
   const positionDisplayValue = useMemo(() => {
-    if (!enableOffset) return "Centered";
+    if (!enableOffset) return 'Centered';
     const hOffset = +horizontalOffset || 0; // Fastest number conversion
     const vOffset = +verticalOffset || 0;
     return `H:${hOffset.toFixed(1)} V:${vOffset.toFixed(1)}`;
   }, [enableOffset, horizontalOffset, verticalOffset]);
 
   const presetsDisplayValue = useMemo(() => {
-    if (!currentPreset) return "Presets";
+    if (!currentPreset) return 'Presets';
     return currentPreset.name.length > 10
       ? currentPreset.name
       : `${currentPreset.name}`;
@@ -300,7 +302,7 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
       showBlades,
       isLandscape,
       isRatioFlipped,
-    ],
+    ]
   );
 
   // Action handlers
@@ -308,7 +310,7 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
   const handleShare = () => {
     // Check if the current settings match a saved preset
     const matchedPreset = presets.find(
-      (p) => JSON.stringify(p.settings) === JSON.stringify(currentSettings),
+      (p) => JSON.stringify(p.settings) === JSON.stringify(currentSettings)
     );
 
     if (matchedPreset) {
@@ -323,7 +325,7 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
   const handleSaveAndShare = (presetName: string) => {
     // Create and save the new preset
     const newPreset = {
-      id: "user-" + Date.now(),
+      id: 'user-' + Date.now(),
       name: presetName,
       settings: currentSettings,
     };
@@ -351,7 +353,7 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
       contentContainerStyle={{
         flexGrow: 1,
         paddingBottom:
-          Platform.OS === "ios" || Platform.OS === "android" ? 100 : 80,
+          Platform.OS === 'ios' || Platform.OS === 'android' ? 100 : 80,
       }}
     >
       <Box style={{ flex: 1, padding: 16 }}>
@@ -385,21 +387,21 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
             <SettingsButton
               label="Paper and Image Size"
               value={`${aspectRatioDisplayValue} on ${paperSizeDisplayValue}`}
-              onPress={() => openDrawerSection("paperSize")}
+              onPress={() => openDrawerSection('paperSize')}
               icon={ImageIcon}
             />
 
             <SettingsButton
               label="Border Size"
               value={borderSizeDisplayValue}
-              onPress={() => openDrawerSection("borderSize")}
+              onPress={() => openDrawerSection('borderSize')}
               icon={RulerIcon}
             />
 
             <SettingsButton
               label="Position & Offsets"
               value={positionDisplayValue}
-              onPress={() => openDrawerSection("positionOffsets")}
+              onPress={() => openDrawerSection('positionOffsets')}
               icon={MoveIcon}
             />
             <HStack space="sm" style={{ flex: 1 }}>
@@ -416,7 +418,7 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
               <Box style={{ flex: 1 }}>
                 <SettingsButton
                   value={presetsDisplayValue}
-                  onPress={() => openDrawerSection("presets")}
+                  onPress={() => openDrawerSection('presets')}
                   icon={BookOpen}
                 />
               </Box>
@@ -425,13 +427,13 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
                 <TouchableOpacity onPress={handleShare} activeOpacity={0.7}>
                   <Box
                     style={{
-                      backgroundColor: "#10B981",
+                      backgroundColor: '#10B981',
                       borderRadius: 12,
                       padding: 16,
                       marginBottom: 12,
                       minHeight: 56,
-                      justifyContent: "center",
-                      alignItems: "center",
+                      justifyContent: 'center',
+                      alignItems: 'center',
                     }}
                   >
                     <Share size={20} color="white" />
@@ -462,7 +464,7 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
           >
             <DrawerContent style={{ backgroundColor }}>
               <DrawerBody style={{ flex: 1, backgroundColor, padding: 0 }}>
-                {activeSection === "paperSize" && (
+                {activeSection === 'paperSize' && (
                   <PaperSizeSection
                     onClose={closeDrawer}
                     aspectRatio={aspectRatio}
@@ -484,7 +486,7 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
                   />
                 )}
 
-                {activeSection === "borderSize" && (
+                {activeSection === 'borderSize' && (
                   <BorderSizeSection
                     onClose={closeDrawer}
                     minBorder={+minBorder || 0}
@@ -495,7 +497,7 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
                   />
                 )}
 
-                {activeSection === "positionOffsets" && (
+                {activeSection === 'positionOffsets' && (
                   <PositionOffsetsSection
                     onClose={closeDrawer}
                     enableOffset={enableOffset}
@@ -514,7 +516,7 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
                   />
                 )}
 
-                {activeSection === "presets" && (
+                {activeSection === 'presets' && (
                   <PresetsSection
                     onClose={closeDrawer}
                     presets={presets}
@@ -573,7 +575,7 @@ export const MobileBorderCalculator: React.FC<MobileBorderCalculatorProps> = ({
             isVisible={isShareModalVisible}
             onClose={() => setIsShareModalVisible(false)}
             currentSettings={currentSettings}
-            presetName={currentPreset?.name || "Unnamed Preset"}
+            presetName={currentPreset?.name || 'Unnamed Preset'}
           />
 
           {/* Save Before Share Modal */}

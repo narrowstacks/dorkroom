@@ -52,14 +52,14 @@ export function CustomRecipeForm({
 
   const handleChange = <K extends keyof CustomRecipeFormData>(
     key: K,
-    value: CustomRecipeFormData[K],
+    value: CustomRecipeFormData[K]
   ) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleCustomFilmChange = <K extends keyof CustomFilmData>(
     key: K,
-    value: CustomFilmData[K],
+    value: CustomFilmData[K]
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -72,7 +72,7 @@ export function CustomRecipeForm({
 
   const handleCustomDeveloperChange = <K extends keyof CustomDeveloperData>(
     key: K,
-    value: CustomDeveloperData[K],
+    value: CustomDeveloperData[K]
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -117,19 +117,19 @@ export function CustomRecipeForm({
             <TextInput
               label="Brand"
               value={formData.customFilm?.brand || ''}
-              onChange={(value) => handleCustomFilmChange('brand', value)}
+              onValueChange={(value) => handleCustomFilmChange('brand', value)}
               placeholder="Ilford"
             />
             <TextInput
               label="Film name"
               value={formData.customFilm?.name || ''}
-              onChange={(value) => handleCustomFilmChange('name', value)}
+              onValueChange={(value) => handleCustomFilmChange('name', value)}
               placeholder="HP5 Plus"
             />
             <TextInput
               label="ISO"
               value={String(formData.customFilm?.isoSpeed ?? 400)}
-              onChange={(value) =>
+              onValueChange={(value) =>
                 handleCustomFilmChange('isoSpeed', Number(value) || 0)
               }
               placeholder="400"
@@ -138,7 +138,10 @@ export function CustomRecipeForm({
               label="Color type"
               selectedValue={formData.customFilm?.colorType || 'bw'}
               onValueChange={(value) =>
-                handleCustomFilmChange('colorType', value as CustomFilmData['colorType'])
+                handleCustomFilmChange(
+                  'colorType',
+                  value as CustomFilmData['colorType']
+                )
               }
               items={[
                 { label: 'Black & White', value: 'bw' },
@@ -149,13 +152,17 @@ export function CustomRecipeForm({
             <TextInput
               label="Grain structure"
               value={formData.customFilm?.grainStructure || ''}
-              onChange={(value) => handleCustomFilmChange('grainStructure', value)}
+              onValueChange={(value) =>
+                handleCustomFilmChange('grainStructure', value)
+              }
               placeholder="Fine"
             />
             <TextInput
               label="Description"
               value={formData.customFilm?.description || ''}
-              onChange={(value) => handleCustomFilmChange('description', value)}
+              onValueChange={(value) =>
+                handleCustomFilmChange('description', value)
+              }
               placeholder="Optional notes about this film"
             />
           </div>
@@ -181,7 +188,9 @@ export function CustomRecipeForm({
           <Select
             label="Developer"
             selectedValue={formData.selectedDeveloperId || ''}
-            onValueChange={(value) => handleChange('selectedDeveloperId', value)}
+            onValueChange={(value) =>
+              handleChange('selectedDeveloperId', value)
+            }
             items={developerOptions}
           />
         ) : (
@@ -189,19 +198,25 @@ export function CustomRecipeForm({
             <TextInput
               label="Manufacturer"
               value={formData.customDeveloper?.manufacturer || ''}
-              onChange={(value) => handleCustomDeveloperChange('manufacturer', value)}
+              onValueChange={(value) =>
+                handleCustomDeveloperChange('manufacturer', value)
+              }
               placeholder="Kodak"
             />
             <TextInput
               label="Developer name"
               value={formData.customDeveloper?.name || ''}
-              onChange={(value) => handleCustomDeveloperChange('name', value)}
+              onValueChange={(value) =>
+                handleCustomDeveloperChange('name', value)
+              }
               placeholder="D-76"
             />
             <TextInput
               label="Type"
               value={formData.customDeveloper?.type || ''}
-              onChange={(value) => handleCustomDeveloperChange('type', value)}
+              onValueChange={(value) =>
+                handleCustomDeveloperChange('type', value)
+              }
               placeholder="Powder"
             />
             <Select
@@ -210,7 +225,7 @@ export function CustomRecipeForm({
               onValueChange={(value) =>
                 handleCustomDeveloperChange(
                   'filmOrPaper',
-                  value as CustomDeveloperData['filmOrPaper'],
+                  value as CustomDeveloperData['filmOrPaper']
                 )
               }
               items={[
@@ -222,10 +237,10 @@ export function CustomRecipeForm({
             <TextInput
               label="Working life (hours)"
               value={String(formData.customDeveloper?.workingLifeHours ?? '')}
-              onChange={(value) =>
+              onValueChange={(value) =>
                 handleCustomDeveloperChange(
                   'workingLifeHours',
-                  value ? Number(value) : undefined,
+                  value ? Number(value) : undefined
                 )
               }
               placeholder="24"
@@ -233,10 +248,10 @@ export function CustomRecipeForm({
             <TextInput
               label="Stock life (months)"
               value={String(formData.customDeveloper?.stockLifeMonths ?? '')}
-              onChange={(value) =>
+              onValueChange={(value) =>
                 handleCustomDeveloperChange(
                   'stockLifeMonths',
-                  value ? Number(value) : undefined,
+                  value ? Number(value) : undefined
                 )
               }
               placeholder="6"
@@ -244,13 +259,15 @@ export function CustomRecipeForm({
             <TextInput
               label="Notes"
               value={formData.customDeveloper?.notes || ''}
-              onChange={(value) => handleCustomDeveloperChange('notes', value)}
+              onValueChange={(value) =>
+                handleCustomDeveloperChange('notes', value)
+              }
               placeholder="Optional developer notes"
             />
             <TextInput
               label="Mixing instructions"
               value={formData.customDeveloper?.mixingInstructions || ''}
-              onChange={(value) =>
+              onValueChange={(value) =>
                 handleCustomDeveloperChange('mixingInstructions', value)
               }
               placeholder="e.g. 1+1 from stock"
@@ -258,7 +275,9 @@ export function CustomRecipeForm({
             <TextInput
               label="Safety notes"
               value={formData.customDeveloper?.safetyNotes || ''}
-              onChange={(value) => handleCustomDeveloperChange('safetyNotes', value)}
+              onValueChange={(value) =>
+                handleCustomDeveloperChange('safetyNotes', value)
+              }
               placeholder="Wear gloves"
             />
           </div>
@@ -269,27 +288,40 @@ export function CustomRecipeForm({
         <TextInput
           label="Temperature (°F)"
           value={String(formData.temperatureF)}
-          onChange={(value) => handleChange('temperatureF', Number(value) || 0)}
+          onValueChange={(value) =>
+            handleChange('temperatureF', Number(value) || 0)
+          }
           placeholder="68"
         />
         <TextInput
           label="Development time (minutes)"
           value={String(formData.timeMinutes)}
-          onChange={(value) => handleChange('timeMinutes', Number(value) || 0)}
+          onValueChange={(value) =>
+            handleChange('timeMinutes', Number(value) || 0)
+          }
           placeholder="9.75"
         />
         <TextInput
           label="Shooting ISO"
           value={String(formData.shootingIso)}
-          onChange={(value) => handleChange('shootingIso', Number(value) || 0)}
+          onValueChange={(value) =>
+            handleChange('shootingIso', Number(value) || 0)
+          }
           placeholder="400"
         />
         <Select
           label="Push/Pull"
           selectedValue={String(formData.pushPull)}
-          onValueChange={(value) => handleChange('pushPull', Number(value) as number)}
+          onValueChange={(value) =>
+            handleChange('pushPull', Number(value) as number)
+          }
           items={[-2, -1, 0, 1, 2].map((value) => ({
-            label: value === 0 ? 'Normal' : value > 0 ? `Push +${value}` : `Pull ${Math.abs(value)}`,
+            label:
+              value === 0
+                ? 'Box Speed'
+                : value > 0
+                ? `Push +${value}`
+                : `Pull ${Math.abs(value)}`,
             value: String(value),
           }))}
         />
@@ -299,13 +331,13 @@ export function CustomRecipeForm({
         <TextInput
           label="Agitation schedule"
           value={formData.agitationSchedule}
-          onChange={(value) => handleChange('agitationSchedule', value)}
+          onValueChange={(value) => handleChange('agitationSchedule', value)}
           placeholder="30s initial, 10s every minute"
         />
         <TextInput
           label="Custom dilution"
           value={formData.customDilution}
-          onChange={(value) => handleChange('customDilution', value)}
+          onValueChange={(value) => handleChange('customDilution', value)}
           placeholder="1+1"
         />
       </div>
@@ -313,7 +345,7 @@ export function CustomRecipeForm({
       <TextInput
         label="Notes"
         value={formData.notes}
-        onChange={(value) => handleChange('notes', value)}
+        onValueChange={(value) => handleChange('notes', value)}
         placeholder="Optional notes about this recipe"
       />
 
@@ -341,7 +373,7 @@ export function CustomRecipeForm({
           disabled={isSubmitting}
           className={cn(
             'rounded-full bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90',
-            isSubmitting && 'cursor-wait opacity-70',
+            isSubmitting && 'cursor-wait opacity-70'
           )}
         >
           {isSubmitting ? 'Saving…' : 'Save recipe'}

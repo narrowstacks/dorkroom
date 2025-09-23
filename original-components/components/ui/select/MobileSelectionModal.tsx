@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
   SafeAreaView,
-} from "react-native";
+} from 'react-native';
 import {
   Box,
   Text,
@@ -13,11 +13,11 @@ import {
   ModalBackdrop,
   ModalContent,
   FlatList,
-} from "@gluestack-ui/themed";
-import { Search, X } from "lucide-react-native";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useDebounce } from "@/hooks/useDebounce";
-import type { Film, Developer } from "@/api/dorkroom/types";
+} from '@gluestack-ui/themed';
+import { Search, X } from 'lucide-react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useDebounce } from '@/hooks/useDebounce';
+import type { Film, Developer } from '@/api/dorkroom/types';
 
 interface DilutionOption {
   label: string;
@@ -27,7 +27,7 @@ interface DilutionOption {
 interface MobileSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  type: "film" | "developer" | "dilution";
+  type: 'film' | 'developer' | 'dilution';
   films?: Film[];
   developers?: Developer[];
   dilutionOptions?: DilutionOption[];
@@ -47,17 +47,17 @@ export function MobileSelectionModal({
   onDeveloperSelect,
   onDilutionSelect,
 }: MobileSelectionModalProps) {
-  const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState('');
   const debouncedSearchText = useDebounce(searchText, 300);
-  const textColor = useThemeColor({}, "text");
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const borderColor = useThemeColor({}, "borderColor");
+  const textColor = useThemeColor({}, 'text');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const borderColor = useThemeColor({}, 'borderColor');
 
   const filteredItems = React.useMemo(() => {
     let items: (Film | Developer | DilutionOption)[];
-    if (type === "film") {
+    if (type === 'film') {
       items = films;
-    } else if (type === "developer") {
+    } else if (type === 'developer') {
       items = developers;
     } else {
       items = dilutionOptions;
@@ -66,7 +66,7 @@ export function MobileSelectionModal({
     let filtered = items;
     if (debouncedSearchText.trim()) {
       filtered = items.filter((item) => {
-        if (type === "film") {
+        if (type === 'film') {
           const film = item as Film;
           return (
             film.name
@@ -74,7 +74,7 @@ export function MobileSelectionModal({
               .includes(debouncedSearchText.toLowerCase()) ||
             film.brand.toLowerCase().includes(debouncedSearchText.toLowerCase())
           );
-        } else if (type === "developer") {
+        } else if (type === 'developer') {
           const dev = item as Developer;
           return (
             dev.name
@@ -103,14 +103,14 @@ export function MobileSelectionModal({
   }, [type, films, developers, dilutionOptions, debouncedSearchText]);
 
   const handleSelect = (item: Film | Developer | DilutionOption) => {
-    if (type === "film" && onFilmSelect) {
+    if (type === 'film' && onFilmSelect) {
       onFilmSelect(item as Film);
-    } else if (type === "developer" && onDeveloperSelect) {
+    } else if (type === 'developer' && onDeveloperSelect) {
       onDeveloperSelect(item as Developer);
-    } else if (type === "dilution" && onDilutionSelect) {
+    } else if (type === 'dilution' && onDilutionSelect) {
       onDilutionSelect(item as DilutionOption);
     }
-    setSearchText("");
+    setSearchText('');
     onClose();
   };
 
@@ -118,11 +118,11 @@ export function MobileSelectionModal({
     let title: string;
     let subtitle: string;
 
-    if (type === "film") {
+    if (type === 'film') {
       const film = item as Film;
       title = film.name;
       subtitle = film.brand;
-    } else if (type === "developer") {
+    } else if (type === 'developer') {
       const dev = item as Developer;
       title = dev.name;
       subtitle = dev.manufacturer;
@@ -162,7 +162,7 @@ export function MobileSelectionModal({
           backgroundColor: cardBackground,
           margin: 0,
           marginTop: 80,
-          maxHeight: "100%",
+          maxHeight: '100%',
           flex: 1,
         }}
       >
@@ -191,19 +191,25 @@ export function MobileSelectionModal({
                 ]}
                 value={searchText}
                 onChangeText={setSearchText}
-                placeholder={`Search ${type === "film" ? "films" : type === "developer" ? "developers" : "dilutions"}...`}
-                placeholderTextColor={textColor + "80"}
+                placeholder={`Search ${
+                  type === 'film'
+                    ? 'films'
+                    : type === 'developer'
+                    ? 'developers'
+                    : 'dilutions'
+                }...`}
+                placeholderTextColor={textColor + '80'}
                 autoFocus
                 returnKeyType="search"
               />
               <TouchableOpacity
-                onPress={() => setSearchText("")}
+                onPress={() => setSearchText('')}
                 style={[
                   styles.modalClearButton,
                   {
-                    backgroundColor: textColor + "40",
+                    backgroundColor: textColor + '40',
                     opacity: searchText.length > 0 ? 1 : 0,
-                    pointerEvents: searchText.length > 0 ? "auto" : "none",
+                    pointerEvents: searchText.length > 0 ? 'auto' : 'none',
                   },
                 ]}
               >
@@ -224,7 +230,7 @@ export function MobileSelectionModal({
             data={filteredItems}
             renderItem={renderItem}
             keyExtractor={(item) => {
-              if (type === "dilution") {
+              if (type === 'dilution') {
                 return (item as DilutionOption).value;
               }
               return (item as Film | Developer).uuid;
@@ -252,13 +258,13 @@ export function MobileSelectionModal({
 
 const styles = StyleSheet.create({
   modalSearchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
     gap: 12,
     elevation: 5, // Android shadow
-    shadowColor: "#000", // iOS shadow
+    shadowColor: '#000', // iOS shadow
     shadowOffset: {
       width: 0,
       height: 2,
@@ -268,12 +274,12 @@ const styles = StyleSheet.create({
   },
   modalSearchInputContainer: {
     flex: 1,
-    position: "relative",
-    flexDirection: "row",
-    alignItems: "center",
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   modalSearchIcon: {
-    position: "absolute",
+    position: 'absolute',
     left: 12,
     zIndex: 1,
   },
@@ -287,18 +293,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   modalClearButton: {
-    position: "absolute",
+    position: 'absolute',
     right: 8,
     zIndex: 1,
     height: 28,
     paddingHorizontal: 12,
     borderRadius: 14,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalClearButtonText: {
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   modalCloseButton: {
     padding: 8,
@@ -309,10 +315,10 @@ const styles = StyleSheet.create({
   },
   selectionItemTitle: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   selectionItemSubtitle: {
     fontSize: 14,
-    fontWeight: "400",
+    fontWeight: '400',
   },
 });

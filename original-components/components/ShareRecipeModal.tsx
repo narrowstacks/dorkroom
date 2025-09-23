@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Platform, StyleSheet } from "react-native";
+import React, { useState, useEffect } from 'react';
+import { Platform, StyleSheet } from 'react-native';
 import {
   Modal,
   ModalBackdrop,
@@ -16,19 +16,19 @@ import {
   useToast,
   Toast,
   ToastTitle,
-} from "@gluestack-ui/themed";
-import { X, Share, Copy, Check } from "lucide-react-native";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useFeatureFlags } from "@/hooks/useFeatureFlags";
-import { useShareLink, ShareLinkOptions } from "@/hooks/useShareLink";
+} from '@gluestack-ui/themed';
+import { X, Share, Copy, Check } from 'lucide-react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { useShareLink, ShareLinkOptions } from '@/hooks/useShareLink';
 import {
   useCustomRecipeSharing,
   CustomRecipeShareOptions,
-} from "@/hooks/useCustomRecipeSharing";
-import { formatTime } from "@/constants/developmentRecipes";
-import { formatDilution } from "@/utils/dilutionUtils";
-import type { Film, Developer, Combination } from "@/api/dorkroom/types";
-import type { CustomRecipe } from "@/types/customRecipeTypes";
+} from '@/hooks/useCustomRecipeSharing';
+import { formatTime } from '@/constants/developmentRecipes';
+import { formatDilution } from '@/utils/dilutionUtils';
+import type { Film, Developer, Combination } from '@/api/dorkroom/types';
+import type { CustomRecipe } from '@/types/customRecipeTypes';
 
 export interface ShareRecipeModalProps {
   isOpen: boolean;
@@ -49,7 +49,7 @@ export function ShareRecipeModal({
   isCustomRecipe = false,
   customRecipe,
 }: ShareRecipeModalProps) {
-  const [shareUrl, setShareUrl] = useState<string>("");
+  const [shareUrl, setShareUrl] = useState<string>('');
   const [copySuccess, setCopySuccess] = useState(false);
 
   const toast = useToast();
@@ -61,12 +61,12 @@ export function ShareRecipeModal({
     copyCustomRecipeToClipboard,
   } = useCustomRecipeSharing();
 
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const borderColor = useThemeColor({}, "borderColor");
-  const resultRowBackground = useThemeColor({}, "resultRowBackground");
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const resultRowBackground = useThemeColor({}, 'resultRowBackground');
 
   // Generate share URL when modal opens
   useEffect(() => {
@@ -78,7 +78,7 @@ export function ShareRecipeModal({
           includeSource: true,
         };
         const url = generateCustomRecipeShareUrl(customShareOptions);
-        setShareUrl(url || "");
+        setShareUrl(url || '');
       } else if (!isCustomRecipe) {
         // For database recipes, use the regular sharing
         const shareOptions: ShareLinkOptions = {
@@ -89,7 +89,7 @@ export function ShareRecipeModal({
         setShareUrl(url);
       } else {
         // Custom recipe sharing is disabled
-        setShareUrl("");
+        setShareUrl('');
       }
     }
   }, [
@@ -130,7 +130,7 @@ export function ShareRecipeModal({
       } else {
         // Custom recipe sharing is disabled
         toast.show({
-          placement: "top",
+          placement: 'top',
           render: ({ id }) => (
             <Toast nativeID={`toast-${id}`} action="warning" variant="solid">
               <ToastTitle>
@@ -143,15 +143,15 @@ export function ShareRecipeModal({
       }
 
       if (result.success) {
-        let successMessage = "Recipe shared successfully!";
-        if (result.method === "clipboard") {
-          successMessage = "Recipe link copied to clipboard!";
+        let successMessage = 'Recipe shared successfully!';
+        if (result.method === 'clipboard') {
+          successMessage = 'Recipe link copied to clipboard!';
           setCopySuccess(true);
           setTimeout(() => setCopySuccess(false), 2000);
         }
 
         toast.show({
-          placement: "top",
+          placement: 'top',
           render: ({ id }) => (
             <Toast nativeID={`toast-${id}`} action="success" variant="solid">
               <ToastTitle>{successMessage}</ToastTitle>
@@ -160,16 +160,16 @@ export function ShareRecipeModal({
         });
 
         // Close modal after successful share (except for clipboard)
-        if (result.method !== "clipboard") {
+        if (result.method !== 'clipboard') {
           onClose();
         }
       } else {
         toast.show({
-          placement: "top",
+          placement: 'top',
           render: ({ id }) => (
             <Toast nativeID={`toast-${id}`} action="error" variant="solid">
               <ToastTitle>
-                {result.error || "Failed to share recipe"}
+                {result.error || 'Failed to share recipe'}
               </ToastTitle>
             </Toast>
           ),
@@ -177,10 +177,10 @@ export function ShareRecipeModal({
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to share recipe";
+        error instanceof Error ? error.message : 'Failed to share recipe';
 
       toast.show({
-        placement: "top",
+        placement: 'top',
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="error" variant="solid">
             <ToastTitle>{errorMessage}</ToastTitle>
@@ -211,7 +211,7 @@ export function ShareRecipeModal({
       } else {
         // Custom recipe sharing is disabled
         toast.show({
-          placement: "top",
+          placement: 'top',
           render: ({ id }) => (
             <Toast nativeID={`toast-${id}`} action="warning" variant="solid">
               <ToastTitle>
@@ -228,7 +228,7 @@ export function ShareRecipeModal({
         setTimeout(() => setCopySuccess(false), 2000);
 
         toast.show({
-          placement: "top",
+          placement: 'top',
           render: ({ id }) => (
             <Toast nativeID={`toast-${id}`} action="success" variant="solid">
               <ToastTitle>Recipe link copied to clipboard!</ToastTitle>
@@ -237,20 +237,20 @@ export function ShareRecipeModal({
         });
       } else {
         toast.show({
-          placement: "top",
+          placement: 'top',
           render: ({ id }) => (
             <Toast nativeID={`toast-${id}`} action="error" variant="solid">
-              <ToastTitle>{result.error || "Failed to copy link"}</ToastTitle>
+              <ToastTitle>{result.error || 'Failed to copy link'}</ToastTitle>
             </Toast>
           ),
         });
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to copy link";
+        error instanceof Error ? error.message : 'Failed to copy link';
 
       toast.show({
-        placement: "top",
+        placement: 'top',
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="error" variant="solid">
             <ToastTitle>{errorMessage}</ToastTitle>
@@ -261,15 +261,15 @@ export function ShareRecipeModal({
   };
 
   // Get recipe details for preview
-  const filmName = film ? `${film.brand} ${film.name}` : "Unknown Film";
+  const filmName = film ? `${film.brand} ${film.name}` : 'Unknown Film';
   const developerName = developer
     ? `${developer.manufacturer} ${developer.name}`
-    : "Unknown Developer";
+    : 'Unknown Developer';
 
   const dilutionInfo = formatDilution(
     recipe.customDilution ||
       developer?.dilutions.find((d) => d.id === recipe.dilutionId)?.dilution ||
-      "Stock",
+      'Stock'
   );
 
   const shareTitle = `${filmName} + ${developerName}`;
@@ -376,7 +376,7 @@ export function ShareRecipeModal({
               ) : (
                 <>
                   {/* Native Share Button */}
-                  {Platform.OS !== "web" && (
+                  {Platform.OS !== 'web' && (
                     <Button
                       variant="solid"
                       onPress={handleShare}
@@ -409,12 +409,12 @@ export function ShareRecipeModal({
                         { color: copySuccess ? developmentTint : textColor },
                       ]}
                     >
-                      {copySuccess ? "Copied!" : "Copy Link"}
+                      {copySuccess ? 'Copied!' : 'Copy Link'}
                     </ButtonText>
                   </Button>
 
                   {/* Web Share Button (Web only) */}
-                  {Platform.OS === "web" && (
+                  {Platform.OS === 'web' && (
                     <Button
                       variant="solid"
                       onPress={handleShare}
@@ -466,7 +466,7 @@ export function ShareRecipeModal({
 const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   recipePreview: {
     padding: 16,
@@ -475,40 +475,40 @@ const styles = StyleSheet.create({
   },
   previewTitle: {
     fontSize: 16,
-    fontWeight: "600",
-    textAlign: "center",
+    fontWeight: '600',
+    textAlign: 'center',
   },
   previewDetails: {
-    justifyContent: "space-around",
+    justifyContent: 'space-around',
   },
   previewColumn: {
-    alignItems: "center",
+    alignItems: 'center',
     flex: 1,
   },
   previewLabel: {
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   previewValue: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   shareButton: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     gap: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
   },
   shareButtonText: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "white",
+    fontWeight: '500',
+    color: 'white',
   },
   urlPreview: {
     padding: 12,
@@ -517,22 +517,22 @@ const styles = StyleSheet.create({
   },
   urlLabel: {
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: '500',
     marginBottom: 4,
   },
   urlText: {
     fontSize: 12,
-    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   disabledMessage: {
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
-    alignItems: "center",
+    alignItems: 'center',
   },
   disabledText: {
     fontSize: 14,
-    fontWeight: "500",
-    textAlign: "center",
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });

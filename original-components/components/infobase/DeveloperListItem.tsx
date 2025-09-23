@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import React from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import {
   Box,
   Text,
@@ -7,16 +7,16 @@ import {
   VStack,
   Badge,
   BadgeText,
-} from "@gluestack-ui/themed";
-import { Beaker, AlertTriangle, Droplets } from "lucide-react-native";
-import type { Developer } from "@/api/dorkroom/types";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from '@gluestack-ui/themed';
+import { Beaker, AlertTriangle, Droplets } from 'lucide-react-native';
+import type { Developer } from '@/api/dorkroom/types';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import {
   getBrandKey,
   getDeveloperTypeColor,
   getContrastingTextColor,
-} from "@/constants/brands";
-import { Colors } from "@/constants/Colors";
+} from '@/constants/brands';
+import { Colors } from '@/constants/Colors';
 
 interface DeveloperListItemProps {
   developer: Developer;
@@ -29,15 +29,15 @@ export function DeveloperListItem({
   isSelected = false,
   onPress,
 }: DeveloperListItemProps) {
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const borderColor = useThemeColor({}, "borderColor");
-  const backgroundColor = useThemeColor({}, "background");
-  const infobaseTint = useThemeColor({}, "infobaseTint");
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const backgroundColor = useThemeColor({}, 'background');
+  const infobaseTint = useThemeColor({}, 'infobaseTint');
 
   // Get brand color from theme
-  const colorScheme = backgroundColor === "#fff" ? "light" : "dark";
+  const colorScheme = backgroundColor === '#fff' ? 'light' : 'dark';
   const brandKey = getBrandKey(developer.manufacturer);
   const brandColorKey = `${brandKey}BrandColor` as keyof typeof Colors.light;
   const brandColor =
@@ -58,7 +58,7 @@ export function DeveloperListItem({
       style={[
         styles.container,
         {
-          backgroundColor: isSelected ? infobaseTint + "15" : cardBackground,
+          backgroundColor: isSelected ? infobaseTint + '15' : cardBackground,
           borderColor: isSelected ? infobaseTint : borderColor,
         },
       ]}
@@ -70,7 +70,7 @@ export function DeveloperListItem({
         <Box
           style={[
             styles.iconContainer,
-            { backgroundColor: brandColor + "20", borderColor },
+            { backgroundColor: brandColor + '20', borderColor },
           ]}
         >
           <Beaker size={20} color={brandColor} />
@@ -111,7 +111,7 @@ export function DeveloperListItem({
                 <Droplets size={10} color={textSecondary} />
                 <Text style={[styles.value, { color: textSecondary }]}>
                   {developer.dilutions.length} dilution
-                  {developer.dilutions.length !== 1 ? "s" : ""}
+                  {developer.dilutions.length !== 1 ? 's' : ''}
                 </Text>
               </HStack>
             )}
@@ -121,7 +121,7 @@ export function DeveloperListItem({
               <Badge
                 style={[
                   styles.discontinuedBadge,
-                  { backgroundColor: "#ff6b6b" },
+                  { backgroundColor: '#ff6b6b' },
                 ]}
               >
                 <AlertTriangle size={10} color="#fff" />
@@ -162,29 +162,29 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 6,
     borderWidth: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   infoContainer: {
     flex: 1,
   },
   manufacturerName: {
     fontSize: 14,
-    fontWeight: "600",
-    textTransform: "uppercase",
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   developerName: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
     flex: 1,
   },
   label: {
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   value: {
     fontSize: 12,
-    fontWeight: "400",
+    fontWeight: '400',
   },
   typeBadge: {
     paddingHorizontal: 6,
@@ -193,21 +193,21 @@ const styles = StyleSheet.create({
   },
   typeText: {
     fontSize: 10,
-    fontWeight: "500",
-    textTransform: "capitalize",
+    fontWeight: '500',
+    textTransform: 'capitalize',
   },
   discontinuedBadge: {
     paddingHorizontal: 4,
     paddingVertical: 2,
     borderRadius: 4,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 2,
   },
   discontinuedText: {
     fontSize: 9,
-    fontWeight: "500",
-    color: "#fff",
+    fontWeight: '500',
+    color: '#fff',
   },
   description: {
     fontSize: 11,

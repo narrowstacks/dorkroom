@@ -12,9 +12,9 @@
   - Reduced object allocations in render cycle
 \* ------------------------------------------------------------------ */
 
-import React, { useRef, useEffect, useMemo } from "react";
-import { View, Platform } from "react-native";
-import { BorderCalculation } from "@/types/borderTypes";
+import React, { useRef, useEffect, useMemo } from 'react';
+import { View, Platform } from 'react-native';
+import { BorderCalculation } from '@/types/borderTypes';
 
 // Platform-specific imports
 let Animated: any;
@@ -22,16 +22,16 @@ let useSharedValue: any;
 let useAnimatedStyle: any;
 let withTiming: any;
 
-if (Platform.OS !== "web") {
+if (Platform.OS !== 'web') {
   try {
     // Try Reanimated first for best performance
-    const reanimated = require("react-native-reanimated");
+    const reanimated = require('react-native-reanimated');
     useSharedValue = reanimated.useSharedValue;
     useAnimatedStyle = reanimated.useAnimatedStyle;
     withTiming = reanimated.withTiming;
   } catch {
     // Fallback to React Native Animated
-    Animated = require("react-native").Animated;
+    Animated = require('react-native').Animated;
   }
 }
 
@@ -44,7 +44,7 @@ interface OptimizedAnimatedPreviewProps {
 // Custom comparison function for React.memo
 const arePropsEqual = (
   prevProps: OptimizedAnimatedPreviewProps,
-  nextProps: OptimizedAnimatedPreviewProps,
+  nextProps: OptimizedAnimatedPreviewProps
 ): boolean => {
   // Quick reference equality check first
   if (
@@ -104,7 +104,7 @@ const ReanimatedPreview: React.FC<OptimizedAnimatedPreviewProps> = ({
       width: calculation?.previewWidth || 0,
       height: calculation?.previewHeight || 0,
     }),
-    [calculation?.previewWidth, calculation?.previewHeight],
+    [calculation?.previewWidth, calculation?.previewHeight]
   );
 
   // Update animations only when necessary
@@ -120,11 +120,11 @@ const ReanimatedPreview: React.FC<OptimizedAnimatedPreviewProps> = ({
     // Center the print area
     printTranslateX.value = withTiming(
       (staticDimensions.width - previewWidth) / 2,
-      { duration: 200 },
+      { duration: 200 }
     );
     printTranslateY.value = withTiming(
       (staticDimensions.height - previewHeight) / 2,
-      { duration: 200 },
+      { duration: 200 }
     );
   }, [
     calculation,
@@ -156,7 +156,7 @@ const ReanimatedPreview: React.FC<OptimizedAnimatedPreviewProps> = ({
 
   if (!calculation) return null;
 
-  const ReanimatedView = require("react-native-reanimated").default.View;
+  const ReanimatedView = require('react-native-reanimated').default.View;
 
   return (
     <View
@@ -166,10 +166,10 @@ const ReanimatedPreview: React.FC<OptimizedAnimatedPreviewProps> = ({
       <ReanimatedView
         style={[
           {
-            position: "absolute",
+            position: 'absolute',
             width: 100,
             height: 100,
-            backgroundColor: "white",
+            backgroundColor: 'white',
             borderWidth: 1,
             borderColor: borderColor,
           },
@@ -179,7 +179,7 @@ const ReanimatedPreview: React.FC<OptimizedAnimatedPreviewProps> = ({
 
       {/* Blade indicators */}
       {showBlades && (
-        <ReanimatedView style={[{ position: "absolute" }, bladeAnimatedStyle]}>
+        <ReanimatedView style={[{ position: 'absolute' }, bladeAnimatedStyle]}>
           {/* Blade rendering logic here */}
         </ReanimatedView>
       )}
@@ -203,7 +203,7 @@ const AnimatedPreview: React.FC<OptimizedAnimatedPreviewProps> = ({
       width: calculation?.previewWidth || 0,
       height: calculation?.previewHeight || 0,
     }),
-    [calculation?.previewWidth, calculation?.previewHeight],
+    [calculation?.previewWidth, calculation?.previewHeight]
   );
 
   useEffect(() => {
@@ -232,10 +232,10 @@ const AnimatedPreview: React.FC<OptimizedAnimatedPreviewProps> = ({
     >
       <Animated.View
         style={{
-          position: "absolute",
+          position: 'absolute',
           width: calculation.previewWidth,
           height: calculation.previewHeight,
-          backgroundColor: "white",
+          backgroundColor: 'white',
           borderWidth: 1,
           borderColor: borderColor,
           transform: [{ scale: animatedValues.printScale }],
@@ -245,7 +245,7 @@ const AnimatedPreview: React.FC<OptimizedAnimatedPreviewProps> = ({
       {showBlades && (
         <Animated.View
           style={{
-            position: "absolute",
+            position: 'absolute',
             opacity: animatedValues.bladeOpacity,
           }}
         >
@@ -267,7 +267,7 @@ const WebPreview: React.FC<OptimizedAnimatedPreviewProps> = ({
       width: calculation?.previewWidth || 0,
       height: calculation?.previewHeight || 0,
     }),
-    [calculation?.previewWidth, calculation?.previewHeight],
+    [calculation?.previewWidth, calculation?.previewHeight]
   );
 
   if (!calculation) return null;
@@ -277,29 +277,29 @@ const WebPreview: React.FC<OptimizedAnimatedPreviewProps> = ({
       style={{
         width: staticDimensions.width,
         height: staticDimensions.height,
-        position: "relative",
+        position: 'relative',
       }}
     >
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           width: calculation.previewWidth,
           height: calculation.previewHeight,
-          backgroundColor: "white",
+          backgroundColor: 'white',
           border: `1px solid ${borderColor}`,
-          transition: "all 0.2s ease-in-out",
-          transform: "translate(-50%, -50%)",
-          left: "50%",
-          top: "50%",
+          transition: 'all 0.2s ease-in-out',
+          transform: 'translate(-50%, -50%)',
+          left: '50%',
+          top: '50%',
         }}
       />
 
       {showBlades && (
         <div
           style={{
-            position: "absolute",
+            position: 'absolute',
             opacity: showBlades ? 1 : 0,
-            transition: "opacity 0.1s ease-in-out",
+            transition: 'opacity 0.1s ease-in-out',
           }}
         >
           {/* Blade rendering logic here */}
@@ -312,7 +312,7 @@ const WebPreview: React.FC<OptimizedAnimatedPreviewProps> = ({
 // Main component that selects the best animation approach
 export const OptimizedAnimatedPreview =
   React.memo<OptimizedAnimatedPreviewProps>((props) => {
-    if (Platform.OS === "web") {
+    if (Platform.OS === 'web') {
       return <WebPreview {...props} />;
     }
 

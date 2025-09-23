@@ -121,10 +121,7 @@ export type BorderCalculatorAction =
       type: 'SET_IMAGE_FIELD';
       key: Extract<
         keyof BorderCalculatorState,
-        | 'selectedImageUri'
-        | 'isCropping'
-        | 'cropScale'
-        | 'cropOffset'
+        'selectedImageUri' | 'isCropping' | 'cropScale' | 'cropOffset'
       >;
       value: BorderCalculatorState[keyof BorderCalculatorState];
     }

@@ -29,7 +29,7 @@ export const useBorderCalculator = () => {
     orientedDimensions,
     minBorderData,
     paperEntry,
-    paperSizeWarning,
+    paperSizeWarning
   );
 
   // Warning system management

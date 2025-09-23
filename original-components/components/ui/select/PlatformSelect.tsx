@@ -1,6 +1,6 @@
-import { Platform } from "react-native";
-import { StyledSelect } from "./StyledSelect";
-import { StyledMenu } from "./StyledMenu";
+import { Platform } from 'react-native';
+import { StyledSelect } from './StyledSelect';
+import { StyledMenu } from './StyledMenu';
 
 interface PlatformSelectProps {
   value: string;
@@ -11,7 +11,7 @@ interface PlatformSelectProps {
 
 export function PlatformSelect(props: PlatformSelectProps) {
   // Use StyledSelect for web platforms, StyledMenu for mobile
-  if (Platform.OS === "web") {
+  if (Platform.OS === 'web') {
     return <StyledSelect {...props} />;
   } else {
     return <StyledMenu {...props} />;

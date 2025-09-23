@@ -179,14 +179,21 @@ export function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/border" element={<BorderCalculatorPage />} />
             <Route path="/resize" element={<ResizeCalculatorPage />} />
-            <Route path="/reciprocity" element={<ReciprocityCalculatorPage />} />
+            <Route
+              path="/reciprocity"
+              element={<ReciprocityCalculatorPage />}
+            />
             <Route path="/development" element={<DevelopmentRecipesPage />} />
             {navItems
               .filter(
                 (item) =>
-                  !['/', '/border', '/resize', '/reciprocity', '/development'].includes(
-                    item.to,
-                  )
+                  ![
+                    '/',
+                    '/border',
+                    '/resize',
+                    '/reciprocity',
+                    '/development',
+                  ].includes(item.to)
               )
               .map((item) => (
                 <Route

@@ -20,7 +20,7 @@ The client uses `fuse.js` for fuzzy search functionality. This dependency should
 ## Quick Start
 
 ```typescript
-import { DorkroomClient } from "@/api/dorkroom";
+import { DorkroomClient } from '@/api/dorkroom';
 
 async function example() {
   // Create client instance
@@ -30,21 +30,21 @@ async function example() {
   await client.loadAll();
 
   // Search for films
-  const films = client.searchFilms("tri-x");
+  const films = client.searchFilms('tri-x');
   debugLog(films);
 
   // Fuzzy search for better results
-  const fuzzyFilms = client.fuzzySearchFilms("trix", { limit: 5 });
+  const fuzzyFilms = client.fuzzySearchFilms('trix', { limit: 5 });
   debugLog(fuzzyFilms);
 
   // Get specific film by ID
-  const film = client.getFilm("kodak-tri-x-400");
+  const film = client.getFilm('kodak-tri-x-400');
   if (film) {
     debugLog(`${film.brand} ${film.name} - ISO ${film.iso_speed}`);
   }
 
   // Find development combinations for a film
-  const combinations = client.getCombinationsForFilm("kodak-tri-x-400");
+  const combinations = client.getCombinationsForFilm('kodak-tri-x-400');
   debugLog(`Found ${combinations.length} development combinations`);
 }
 ```
@@ -52,10 +52,10 @@ async function example() {
 ## Configuration
 
 ```typescript
-import { DorkroomClient, ConsoleLogger } from "@/api/dorkroom";
+import { DorkroomClient, ConsoleLogger } from '@/api/dorkroom';
 
 const client = new DorkroomClient({
-  baseUrl: "https://custom-api-endpoint.com/", // Optional custom API endpoint
+  baseUrl: 'https://custom-api-endpoint.com/', // Optional custom API endpoint
   timeout: 15000, // 15 second timeout (default: 10000)
   maxRetries: 5, // Max retry attempts (default: 3)
   logger: new ConsoleLogger(), // Custom logger (optional)
@@ -92,7 +92,7 @@ await client.loadAll();
 Get a specific film by its ID.
 
 ```typescript
-const film = client.getFilm("kodak-tri-x-400");
+const film = client.getFilm('kodak-tri-x-400');
 ```
 
 ##### `getDeveloper(developerId: string): Developer | undefined`
@@ -100,7 +100,7 @@ const film = client.getFilm("kodak-tri-x-400");
 Get a specific developer by its ID.
 
 ```typescript
-const developer = client.getDeveloper("kodak-d76");
+const developer = client.getDeveloper('kodak-d76');
 ```
 
 ##### `searchFilms(query: string, colorType?: string): Film[]`
@@ -108,8 +108,8 @@ const developer = client.getDeveloper("kodak-d76");
 Search films by name or brand with optional color type filter.
 
 ```typescript
-const films = client.searchFilms("tri-x");
-const colorFilms = client.searchFilms("portra", "Color");
+const films = client.searchFilms('tri-x');
+const colorFilms = client.searchFilms('portra', 'Color');
 ```
 
 ##### `fuzzySearchFilms(query: string, options?: FuzzySearchOptions): Film[]`
@@ -117,7 +117,7 @@ const colorFilms = client.searchFilms("portra", "Color");
 Intelligent fuzzy search for films.
 
 ```typescript
-const films = client.fuzzySearchFilms("trix", {
+const films = client.fuzzySearchFilms('trix', {
   limit: 10,
   threshold: 0.6,
 });
@@ -128,7 +128,7 @@ const films = client.fuzzySearchFilms("trix", {
 Get all development combinations for a specific film.
 
 ```typescript
-const combinations = client.getCombinationsForFilm("kodak-tri-x-400");
+const combinations = client.getCombinationsForFilm('kodak-tri-x-400');
 ```
 
 ##### `getCombinationsForDeveloper(developerId: string): Combination[]`
@@ -136,7 +136,7 @@ const combinations = client.getCombinationsForFilm("kodak-tri-x-400");
 Get all development combinations for a specific developer.
 
 ```typescript
-const combinations = client.getCombinationsForDeveloper("kodak-d76");
+const combinations = client.getCombinationsForDeveloper('kodak-d76');
 ```
 
 ### Data Types
@@ -202,22 +202,17 @@ interface Combination {
 The client provides specific error types for different failure scenarios:
 
 ```typescript
-import {
-  DorkroomAPIError,
-  DataFetchError,
-  DataParseError,
-  DataNotLoadedError,
-} from "@/api/dorkroom";
+import { DorkroomAPIError, DataFetchError, DataParseError, DataNotLoadedError } from '@/api/dorkroom';
 
 try {
   await client.loadAll();
 } catch (error) {
   if (error instanceof DataFetchError) {
-    console.error("Network error:", error.message);
+    console.error('Network error:', error.message);
   } else if (error instanceof DataParseError) {
-    console.error("Invalid JSON response:", error.message);
+    console.error('Invalid JSON response:', error.message);
   } else if (error instanceof DataNotLoadedError) {
-    console.error("Must call loadAll() first:", error.message);
+    console.error('Must call loadAll() first:', error.message);
   }
 }
 ```
@@ -227,7 +222,7 @@ try {
 The client supports dependency injection for easy testing:
 
 ```typescript
-import { DorkroomClient, HTTPTransport } from "@/api/dorkroom";
+import { DorkroomClient, HTTPTransport } from '@/api/dorkroom';
 
 // Mock transport for testing
 class MockTransport implements HTTPTransport {

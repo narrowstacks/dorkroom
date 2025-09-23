@@ -1,14 +1,14 @@
-import React from "react";
+import React from 'react';
 import {
   Platform,
   StyleSheet,
   TextInput,
   TouchableOpacity,
-} from "react-native";
-import { Box } from "@gluestack-ui/themed";
-import { Search, X } from "lucide-react-native";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
+} from 'react-native';
+import { Box } from '@gluestack-ui/themed';
+import { Search, X } from 'lucide-react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 
 interface InfobaseSearchProps {
   value: string;
@@ -21,21 +21,21 @@ interface InfobaseSearchProps {
 export function InfobaseSearch({
   value,
   onChangeText,
-  placeholder = "Search...",
+  placeholder = 'Search...',
   onClear,
   disabled = false,
 }: InfobaseSearchProps) {
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > 768;
+  const isDesktop = Platform.OS === 'web' && width > 768;
 
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const inputBackground = useThemeColor({}, "inputBackground");
-  const borderColor = useThemeColor({}, "borderColor");
-  const cardBackground = useThemeColor({}, "cardBackground");
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const inputBackground = useThemeColor({}, 'inputBackground');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const cardBackground = useThemeColor({}, 'cardBackground');
 
   const handleClear = () => {
-    onChangeText("");
+    onChangeText('');
     if (onClear) {
       onClear();
     }
@@ -63,28 +63,28 @@ export function InfobaseSearch({
     fontSize: isDesktop ? 14 : 16,
     color: textColor,
     borderWidth: 0,
-    outline: "none" as any, // Web-specific
+    outline: 'none' as any, // Web-specific
   };
 
   const iconStyle = {
-    position: "absolute" as const,
+    position: 'absolute' as const,
     left: 12,
-    top: "50%" as any, // Web-specific percentage positioning
+    top: '50%' as any, // Web-specific percentage positioning
     transform: [{ translateY: -10 }],
     zIndex: 1,
   };
 
   const clearButtonStyle = {
-    position: "absolute" as const,
+    position: 'absolute' as const,
     right: 8,
-    top: "50%" as any, // Web-specific percentage positioning
+    top: '50%' as any, // Web-specific percentage positioning
     transform: [{ translateY: -12 }],
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.1)",
-    alignItems: "center" as const,
-    justifyContent: "center" as const,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     zIndex: 1,
   };
 
@@ -127,9 +127,9 @@ export function InfobaseSearch({
 
 const styles = StyleSheet.create({
   searchInputContainer: {
-    position: "relative",
-    flexDirection: "row",
-    alignItems: "center",
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
 

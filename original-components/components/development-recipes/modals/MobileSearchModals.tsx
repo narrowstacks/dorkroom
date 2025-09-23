@@ -1,6 +1,6 @@
-import React from "react";
-import { SearchDropdown } from "@/components/ui/search";
-import type { Film, Developer } from "@/api/dorkroom/types";
+import React from 'react';
+import { SearchDropdown } from '@/components/ui/search';
+import type { Film, Developer } from '@/api/dorkroom/types';
 
 interface MobileSearchModalsProps {
   showFilmModal: boolean;

@@ -1,16 +1,16 @@
-import React from "react";
-import { Platform, TouchableOpacity } from "react-native";
-import { Box, Text, HStack } from "@gluestack-ui/themed";
-import { RefreshCw, Plus, Grid3X3, Table } from "lucide-react-native";
-import { Spinner } from "@/components/ui/spinner";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
+import React from 'react';
+import { Platform, TouchableOpacity } from 'react-native';
+import { Box, Text, HStack } from '@gluestack-ui/themed';
+import { RefreshCw, Plus, Grid3X3, Table } from 'lucide-react-native';
+import { Spinner } from '@/components/ui/spinner';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 
 interface ActionButtonsProps {
   isLoading: boolean;
   customRecipesCount: number;
   showCustomRecipes: boolean;
-  viewMode: "cards" | "table";
+  viewMode: 'cards' | 'table';
   onRefresh: () => void;
   onToggleCustomRecipes: () => void;
   onNewCustomRecipe: () => void;
@@ -27,35 +27,35 @@ export function ActionButtons({
   onNewCustomRecipe,
   onToggleViewMode,
 }: ActionButtonsProps) {
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > 768;
+  const isDesktop = Platform.OS === 'web' && width > 768;
 
   if (isDesktop) {
     return (
       <Box
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: 0,
           right: 0,
           zIndex: 1,
         }}
       >
-        <HStack style={{ gap: 8, alignItems: "center" }}>
+        <HStack style={{ gap: 8, alignItems: 'center' }}>
           <TouchableOpacity
             onPress={onToggleViewMode}
             style={{
-              flexDirection: "row",
-              alignItems: "center",
+              flexDirection: 'row',
+              alignItems: 'center',
               padding: 8,
               borderRadius: 6,
-              backgroundColor: "transparent",
+              backgroundColor: 'transparent',
               borderWidth: 1,
-              borderColor: "currentColor",
+              borderColor: 'currentColor',
               gap: 4,
             }}
           >
-            {viewMode === "cards" ? (
+            {viewMode === 'cards' ? (
               <Table size={14} color={developmentTint} />
             ) : (
               <Grid3X3 size={14} color={developmentTint} />
@@ -64,25 +64,25 @@ export function ActionButtons({
               style={[
                 {
                   fontSize: 12,
-                  fontWeight: "500",
+                  fontWeight: '500',
                 },
                 { color: developmentTint },
               ]}
             >
-              {viewMode === "cards" ? "Table" : "Cards"}
+              {viewMode === 'cards' ? 'Table' : 'Cards'}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={onRefresh}
             style={{
-              flexDirection: "row",
-              alignItems: "center",
+              flexDirection: 'row',
+              alignItems: 'center',
               padding: 8,
               borderRadius: 6,
-              backgroundColor: "transparent",
+              backgroundColor: 'transparent',
               borderWidth: 1,
-              borderColor: "currentColor",
+              borderColor: 'currentColor',
               gap: 4,
             }}
             disabled={isLoading}
@@ -96,7 +96,7 @@ export function ActionButtons({
               style={[
                 {
                   fontSize: 12,
-                  fontWeight: "500",
+                  fontWeight: '500',
                 },
                 {
                   color: developmentTint,
@@ -104,7 +104,7 @@ export function ActionButtons({
                 },
               ]}
             >
-              {isLoading ? "Loading..." : "Refresh"}
+              {isLoading ? 'Loading...' : 'Refresh'}
             </Text>
           </TouchableOpacity>
 
@@ -113,15 +113,15 @@ export function ActionButtons({
               onPress={onToggleCustomRecipes}
               style={[
                 {
-                  flexDirection: "row",
-                  alignItems: "center",
+                  flexDirection: 'row',
+                  alignItems: 'center',
                   padding: 8,
                   borderRadius: 6,
                   backgroundColor: showCustomRecipes
                     ? developmentTint
-                    : "transparent",
+                    : 'transparent',
                   borderWidth: 1,
-                  borderColor: "currentColor",
+                  borderColor: 'currentColor',
                   gap: 4,
                 },
               ]}
@@ -130,10 +130,10 @@ export function ActionButtons({
                 style={[
                   {
                     fontSize: 12,
-                    fontWeight: "500",
+                    fontWeight: '500',
                   },
                   {
-                    color: showCustomRecipes ? "#fff" : developmentTint,
+                    color: showCustomRecipes ? '#fff' : developmentTint,
                   },
                 ]}
               >
@@ -146,13 +146,13 @@ export function ActionButtons({
             onPress={onNewCustomRecipe}
             style={[
               {
-                flexDirection: "row",
-                alignItems: "center",
+                flexDirection: 'row',
+                alignItems: 'center',
                 padding: 8,
                 borderRadius: 6,
                 backgroundColor: developmentTint,
                 borderWidth: 1,
-                borderColor: "currentColor",
+                borderColor: 'currentColor',
                 gap: 4,
               },
             ]}
@@ -162,9 +162,9 @@ export function ActionButtons({
               style={[
                 {
                   fontSize: 12,
-                  fontWeight: "500",
+                  fontWeight: '500',
                 },
-                { color: "#fff" },
+                { color: '#fff' },
               ]}
             >
               Add Recipe
@@ -179,30 +179,30 @@ export function ActionButtons({
   return (
     <Box
       style={{
-        alignItems: "center",
+        alignItems: 'center',
         marginBottom: 16,
       }}
     >
       <HStack
         style={{
           gap: 12,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         <TouchableOpacity
           onPress={onRefresh}
           style={{
-            flexDirection: "row",
-            alignItems: "center",
+            flexDirection: 'row',
+            alignItems: 'center',
             paddingHorizontal: 16,
             paddingVertical: 12,
             borderRadius: 8,
             borderWidth: 1,
-            borderColor: "currentColor",
+            borderColor: 'currentColor',
             gap: 6,
             minWidth: 120,
-            justifyContent: "center",
+            justifyContent: 'center',
           }}
           disabled={isLoading}
         >
@@ -215,7 +215,7 @@ export function ActionButtons({
             style={[
               {
                 fontSize: 14,
-                fontWeight: "600",
+                fontWeight: '600',
               },
               {
                 color: developmentTint,
@@ -223,7 +223,7 @@ export function ActionButtons({
               },
             ]}
           >
-            {isLoading ? "Loading..." : "Refresh"}
+            {isLoading ? 'Loading...' : 'Refresh'}
           </Text>
         </TouchableOpacity>
 
@@ -232,19 +232,19 @@ export function ActionButtons({
             onPress={onToggleCustomRecipes}
             style={[
               {
-                flexDirection: "row",
-                alignItems: "center",
+                flexDirection: 'row',
+                alignItems: 'center',
                 paddingHorizontal: 16,
                 paddingVertical: 12,
                 borderRadius: 8,
                 borderWidth: 1,
-                borderColor: "currentColor",
+                borderColor: 'currentColor',
                 gap: 6,
                 minWidth: 120,
-                justifyContent: "center",
+                justifyContent: 'center',
                 backgroundColor: showCustomRecipes
                   ? developmentTint
-                  : "transparent",
+                  : 'transparent',
               },
             ]}
           >
@@ -252,10 +252,10 @@ export function ActionButtons({
               style={[
                 {
                   fontSize: 14,
-                  fontWeight: "600",
+                  fontWeight: '600',
                 },
                 {
-                  color: showCustomRecipes ? "#fff" : developmentTint,
+                  color: showCustomRecipes ? '#fff' : developmentTint,
                 },
               ]}
             >
@@ -268,16 +268,16 @@ export function ActionButtons({
           onPress={onNewCustomRecipe}
           style={[
             {
-              flexDirection: "row",
-              alignItems: "center",
+              flexDirection: 'row',
+              alignItems: 'center',
               paddingHorizontal: 16,
               paddingVertical: 12,
               borderRadius: 8,
               borderWidth: 1,
-              borderColor: "currentColor",
+              borderColor: 'currentColor',
               gap: 6,
               minWidth: 120,
-              justifyContent: "center",
+              justifyContent: 'center',
               backgroundColor: developmentTint,
             },
           ]}
@@ -287,9 +287,9 @@ export function ActionButtons({
             style={[
               {
                 fontSize: 14,
-                fontWeight: "600",
+                fontWeight: '600',
               },
-              { color: "#fff" },
+              { color: '#fff' },
             ]}
           >
             Add Recipe

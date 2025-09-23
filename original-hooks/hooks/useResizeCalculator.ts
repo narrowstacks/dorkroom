@@ -1,15 +1,15 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 export const useResizeCalculator = () => {
   const [isEnlargerHeightMode, setIsEnlargerHeightMode] = useState(false);
-  const [originalWidth, setOriginalWidth] = useState("4");
-  const [originalLength, setOriginalLength] = useState("6");
-  const [newWidth, setNewWidth] = useState("6");
-  const [newLength, setNewLength] = useState("9");
-  const [originalTime, setOriginalTime] = useState("10");
+  const [originalWidth, setOriginalWidth] = useState('4');
+  const [originalLength, setOriginalLength] = useState('6');
+  const [newWidth, setNewWidth] = useState('6');
+  const [newLength, setNewLength] = useState('9');
+  const [originalTime, setOriginalTime] = useState('10');
   const [isAspectRatioMatched, setIsAspectRatioMatched] = useState(true);
-  const [originalHeight, setOriginalHeight] = useState("500");
-  const [newHeight, setNewHeight] = useState("1000");
+  const [originalHeight, setOriginalHeight] = useState('500');
+  const [newHeight, setNewHeight] = useState('1000');
 
   const checkAspectRatio = useCallback(() => {
     // Skip aspect ratio check if in enlarger height mode
@@ -52,8 +52,8 @@ export const useResizeCalculator = () => {
   // Calculate exposure directly using useMemo
   const { newTime, stopsDifference } = useMemo(() => {
     const origTime = parseFloat(originalTime);
-    let calculatedNewTime = "";
-    let calculatedStopsDifference = "";
+    let calculatedNewTime = '';
+    let calculatedStopsDifference = '';
 
     if (isEnlargerHeightMode) {
       const origHeight = parseFloat(originalHeight);

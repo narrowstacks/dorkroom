@@ -1,7 +1,7 @@
-import React, { ReactNode } from "react";
-import { StyleSheet } from "react-native";
-import { Box, Text } from "@gluestack-ui/themed";
-import { useThemeColor } from "@/hooks/useThemeColor";
+import React, { ReactNode } from 'react';
+import { StyleSheet } from 'react-native';
+import { Box, Text } from '@gluestack-ui/themed';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface InfoSectionProps {
   title: string;
@@ -32,7 +32,7 @@ export function InfoSubtitle({ children }: InfoSubtitleProps) {
 }
 
 export function InfoText({ children }: InfoTextProps) {
-  const textSecondary = useThemeColor({}, "textSecondary");
+  const textSecondary = useThemeColor({}, 'textSecondary');
 
   return (
     <Text
@@ -45,7 +45,7 @@ export function InfoText({ children }: InfoTextProps) {
 }
 
 export function InfoList({ items }: InfoListProps) {
-  const textSecondary = useThemeColor({}, "textSecondary");
+  const textSecondary = useThemeColor({}, 'textSecondary');
 
   return (
     <>
@@ -63,8 +63,8 @@ export function InfoList({ items }: InfoListProps) {
 }
 
 export function InfoFormula({ children }: InfoTextProps) {
-  const textColor = useThemeColor({}, "text");
-  const cardBackground = useThemeColor({}, "cardBackground");
+  const textColor = useThemeColor({}, 'text');
+  const cardBackground = useThemeColor({}, 'cardBackground');
 
   return (
     <Box
@@ -73,7 +73,7 @@ export function InfoFormula({ children }: InfoTextProps) {
         styles.formulaBox,
         {
           backgroundColor: cardBackground,
-          borderColor: useThemeColor({}, "outline"),
+          borderColor: useThemeColor({}, 'outline'),
         },
       ]}
     >
@@ -88,9 +88,9 @@ export function InfoFormula({ children }: InfoTextProps) {
 }
 
 export function InfoSection({ title, children }: InfoSectionProps) {
-  const outline = useThemeColor({}, "outline");
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const shadowColor = useThemeColor({}, "shadowColor");
+  const outline = useThemeColor({}, 'outline');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const shadowColor = useThemeColor({}, 'shadowColor');
 
   return (
     <Box
@@ -129,13 +129,13 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 20,
     marginBottom: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   infoSubtitle: {
     fontSize: 16,
     marginTop: 16,
     marginBottom: 8,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   infoContentText: {
     fontSize: 15,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   },
   formulaText: {
     fontSize: 14,
-    fontWeight: "600",
-    textAlign: "center",
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
-import { calculateNewTime, roundStops } from "./commonFunctions";
-import { roundToStandardPrecision } from "@/utils/precision";
+import { useState, useCallback } from 'react';
+import { calculateNewTime, roundStops } from './commonFunctions';
+import { roundToStandardPrecision } from '@/utils/precision';
 
 // Helper function to calculate and format the new time
 const getCalculatedNewTime = (time: string, stopChange: string): string => {
@@ -8,7 +8,7 @@ const getCalculatedNewTime = (time: string, stopChange: string): string => {
   const numericStops = parseFloat(stopChange);
 
   if (isNaN(numericTime) || numericTime <= 0 || isNaN(numericStops)) {
-    return "";
+    return '';
   }
 
   const calculatedTime = calculateNewTime(numericTime, numericStops);
@@ -16,15 +16,15 @@ const getCalculatedNewTime = (time: string, stopChange: string): string => {
 };
 
 export const useExposureCalculator = () => {
-  const initialOriginalTime = "10";
-  const initialStops = "1";
+  const initialOriginalTime = '10';
+  const initialStops = '1';
 
   const [originalTime, setOriginalTimeState] =
     useState<string>(initialOriginalTime);
   const [stops, setStopsState] = useState<string>(initialStops);
   // Initialize newTime based on initial values
   const [newTime, setNewTime] = useState<string>(() =>
-    getCalculatedNewTime(initialOriginalTime, initialStops),
+    getCalculatedNewTime(initialOriginalTime, initialStops)
   );
 
   // Handler for original time changes
@@ -33,16 +33,16 @@ export const useExposureCalculator = () => {
       setOriginalTimeState(time);
       setNewTime(getCalculatedNewTime(time, stops)); // Recalculate newTime with current stops
     },
-    [stops],
+    [stops]
   ); // Dependency: stops
 
   // Handler for direct stop input changes
   const handleStopChange = useCallback(
     (value: string) => {
       // Allow typing of incomplete numbers
-      if (value === "" || value === "-" || value.endsWith(".")) {
+      if (value === '' || value === '-' || value.endsWith('.')) {
         setStopsState(value);
-        setNewTime("");
+        setNewTime('');
         return;
       }
 
@@ -56,10 +56,10 @@ export const useExposureCalculator = () => {
       } else {
         // Handle non-numeric input
         setStopsState(value);
-        setNewTime("");
+        setNewTime('');
       }
     },
-    [originalTime],
+    [originalTime]
   );
 
   // Handler for adjusting stops incrementally
@@ -75,7 +75,7 @@ export const useExposureCalculator = () => {
       setStopsState(truncatedStops);
       setNewTime(getCalculatedNewTime(originalTime, truncatedStops)); // Recalculate newTime
     },
-    [originalTime, stops],
+    [originalTime, stops]
   );
 
   return {

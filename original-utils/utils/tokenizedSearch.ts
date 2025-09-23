@@ -1,4 +1,4 @@
-import type { Film, Developer } from "../api/dorkroom/types";
+import type { Film, Developer } from '../api/dorkroom/types';
 
 /**
  * Configuration for tokenized search scoring
@@ -59,19 +59,19 @@ export function extractTokens(text: string): string[] {
       .filter(
         (token) =>
           ![
-            "the",
-            "and",
-            "or",
-            "a",
-            "an",
-            "of",
-            "in",
-            "on",
-            "at",
-            "to",
-            "for",
-            "with",
-          ].includes(token),
+            'the',
+            'and',
+            'or',
+            'a',
+            'an',
+            'of',
+            'in',
+            'on',
+            'at',
+            'to',
+            'for',
+            'with',
+          ].includes(token)
       )
   );
 }
@@ -83,7 +83,7 @@ export function calculateTokenScore(
   queryTokens: string[],
   targetText: string,
   fieldWeight: number = 1.0,
-  config: TokenizedSearchConfig = DEFAULT_TOKENIZED_CONFIG,
+  config: TokenizedSearchConfig = DEFAULT_TOKENIZED_CONFIG
 ): { score: number; matchedTokens: string[] } {
   if (queryTokens.length === 0 || !targetText) {
     return { score: 0, matchedTokens: [] };
@@ -174,15 +174,15 @@ export function calculateTokenScore(
 export function calculateFilmTokenScore(
   queryTokens: string[],
   film: Film,
-  config: TokenizedSearchConfig = DEFAULT_TOKENIZED_CONFIG,
+  config: TokenizedSearchConfig = DEFAULT_TOKENIZED_CONFIG
 ): { score: number; matchedTokens: string[] } {
   const nameResult = calculateTokenScore(queryTokens, film.name, 0.7, config);
   const brandResult = calculateTokenScore(queryTokens, film.brand, 0.5, config);
   const descResult = calculateTokenScore(
     queryTokens,
-    film.description || "",
+    film.description || '',
     0.3,
-    config,
+    config
   );
 
   const combinedScore = nameResult.score + brandResult.score + descResult.score;
@@ -191,7 +191,7 @@ export function calculateFilmTokenScore(
       ...nameResult.matchedTokens,
       ...brandResult.matchedTokens,
       ...descResult.matchedTokens,
-    ]),
+    ])
   );
 
   return {
@@ -206,25 +206,25 @@ export function calculateFilmTokenScore(
 export function calculateDeveloperTokenScore(
   queryTokens: string[],
   developer: Developer,
-  config: TokenizedSearchConfig = DEFAULT_TOKENIZED_CONFIG,
+  config: TokenizedSearchConfig = DEFAULT_TOKENIZED_CONFIG
 ): { score: number; matchedTokens: string[] } {
   const nameResult = calculateTokenScore(
     queryTokens,
     developer.name,
     0.7,
-    config,
+    config
   );
   const manufacturerResult = calculateTokenScore(
     queryTokens,
     developer.manufacturer,
     0.5,
-    config,
+    config
   );
   const notesResult = calculateTokenScore(
     queryTokens,
-    developer.notes || "",
+    developer.notes || '',
     0.3,
-    config,
+    config
   );
 
   const combinedScore =
@@ -234,7 +234,7 @@ export function calculateDeveloperTokenScore(
       ...nameResult.matchedTokens,
       ...manufacturerResult.matchedTokens,
       ...notesResult.matchedTokens,
-    ]),
+    ])
   );
 
   return {
@@ -249,7 +249,7 @@ export function calculateDeveloperTokenScore(
 export function enhanceFilmResults(
   query: string,
   fuzzyResults: Film[],
-  config: TokenizedSearchConfig = DEFAULT_TOKENIZED_CONFIG,
+  config: TokenizedSearchConfig = DEFAULT_TOKENIZED_CONFIG
 ): ScoredResult<Film>[] {
   const queryTokens = extractTokens(query);
 
@@ -281,7 +281,7 @@ export function enhanceFilmResults(
     const tokenResult = calculateFilmTokenScore(
       queryTokens,
       film,
-      adjustedConfig,
+      adjustedConfig
     );
 
     // Simple combined scoring: average of fuzzy relevance and token score
@@ -315,7 +315,7 @@ export function enhanceFilmResults(
 export function enhanceDeveloperResults(
   query: string,
   fuzzyResults: Developer[],
-  config: TokenizedSearchConfig = DEFAULT_TOKENIZED_CONFIG,
+  config: TokenizedSearchConfig = DEFAULT_TOKENIZED_CONFIG
 ): ScoredResult<Developer>[] {
   const queryTokens = extractTokens(query);
 
@@ -333,7 +333,7 @@ export function enhanceDeveloperResults(
       const tokenResult = calculateDeveloperTokenScore(
         queryTokens,
         developer,
-        config,
+        config
       );
 
       // Simple combined scoring: use token score as primary
@@ -345,7 +345,7 @@ export function enhanceDeveloperResults(
         combinedScore,
         matchedTokens: tokenResult.matchedTokens,
       };
-    },
+    }
   );
 
   // Filter by minimum token score and token coverage requirements

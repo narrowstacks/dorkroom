@@ -1,9 +1,9 @@
-import React from "react";
-import { Modal, ModalBackdrop, ModalContent } from "@gluestack-ui/themed";
-import { RecipeDetail } from "@/components/development-recipes";
-import { getCustomRecipeDetailModalConfig } from "@/components/development-recipes/ModalStyles";
-import type { Film, Developer, Combination } from "@/api/dorkroom/types";
-import type { CustomRecipe } from "@/types/customRecipeTypes";
+import React from 'react';
+import { Modal, ModalBackdrop, ModalContent } from '@gluestack-ui/themed';
+import { RecipeDetail } from '@/components/development-recipes';
+import { getCustomRecipeDetailModalConfig } from '@/components/development-recipes/ModalStyles';
+import type { Film, Developer, Combination } from '@/api/dorkroom/types';
+import type { CustomRecipe } from '@/types/customRecipeTypes';
 
 interface CustomRecipeModalProps {
   isOpen: boolean;

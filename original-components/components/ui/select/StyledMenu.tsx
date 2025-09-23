@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
   Button,
   ButtonText,
@@ -10,8 +10,8 @@ import {
   Pressable,
   Text,
   Icon,
-} from "@gluestack-ui/themed";
-import { ChevronDownIcon } from "@/components/ui/icon";
+} from '@gluestack-ui/themed';
+import { ChevronDownIcon } from '@/components/ui/icon';
 
 interface StyledMenuProps {
   value: string;
@@ -24,7 +24,7 @@ export function StyledMenu({
   value,
   onValueChange,
   items,
-  placeholder = "Select an option",
+  placeholder = 'Select an option',
 }: StyledMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const selectedItem = items.find((item) => item.value === value);
@@ -60,7 +60,7 @@ export function StyledMenu({
                   className="p-4 hover:bg-gray-100 active:bg-gray-200"
                   style={{
                     backgroundColor:
-                      item.value === value ? "#f3f4f6" : "transparent",
+                      item.value === value ? '#f3f4f6' : 'transparent',
                   }}
                 >
                   <Text className="text-base">{item.label}</Text>

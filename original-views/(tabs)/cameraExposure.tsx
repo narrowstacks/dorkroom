@@ -1,30 +1,30 @@
-import React from "react";
-import { Platform, StyleSheet } from "react-native";
+import React from 'react';
+import { Platform, StyleSheet } from 'react-native';
 import {
   useCameraExposureCalculator,
   ExposureSetting,
-} from "@/hooks/useCameraExposureCalculator";
+} from '@/hooks/useCameraExposureCalculator';
 import {
   APERTURE_VALUES,
   ISO_VALUES,
   SHUTTER_SPEED_VALUES,
-} from "@/constants/exposure";
-import { Box, Text } from "@gluestack-ui/themed";
-import { CalculatorLayout } from "@/components/ui/layout/CalculatorLayout";
+} from '@/constants/exposure';
+import { Box, Text } from '@gluestack-ui/themed';
+import { CalculatorLayout } from '@/components/ui/layout/CalculatorLayout';
 import {
   ResultsSection,
   ResultRow,
-} from "@/components/ui/calculator/ResultsSection";
-import { FormSection, FormGroup } from "@/components/ui/forms/FormSection";
+} from '@/components/ui/calculator/ResultsSection';
+import { FormSection, FormGroup } from '@/components/ui/forms/FormSection';
 import {
   InfoSection,
   InfoText,
   InfoSubtitle,
-} from "@/components/ui/calculator/InfoSection";
-import { PlatformSelect } from "@/components/ui/select/PlatformSelect";
+} from '@/components/ui/calculator/InfoSection';
+import { PlatformSelect } from '@/components/ui/select/PlatformSelect';
 
 export default function CameraExposureCalculator() {
-  const isMobile = Platform.OS === "ios" || Platform.OS === "android";
+  const isMobile = Platform.OS === 'ios' || Platform.OS === 'android';
 
   const {
     aperture,
@@ -41,18 +41,18 @@ export default function CameraExposureCalculator() {
   } = useCameraExposureCalculator();
 
   const settingOptions = [
-    { label: "Aperture", value: "aperture" as ExposureSetting },
-    { label: "ISO", value: "iso" as ExposureSetting },
-    { label: "Shutter Speed", value: "shutterSpeed" as ExposureSetting },
+    { label: 'Aperture', value: 'aperture' as ExposureSetting },
+    { label: 'ISO', value: 'iso' as ExposureSetting },
+    { label: 'Shutter Speed', value: 'shutterSpeed' as ExposureSetting },
   ];
 
   const getNewValueOptions = () => {
     switch (settingToChange) {
-      case "aperture":
+      case 'aperture':
         return APERTURE_VALUES;
-      case "iso":
+      case 'iso':
         return ISO_VALUES;
-      case "shutterSpeed":
+      case 'shutterSpeed':
         return SHUTTER_SPEED_VALUES;
       default:
         return [];
@@ -118,7 +118,7 @@ export default function CameraExposureCalculator() {
           label="Aperture"
           value={`f/${equivalentExposure?.aperture}`}
         />
-        <ResultRow label="ISO" value={equivalentExposure?.iso || ""} />
+        <ResultRow label="ISO" value={equivalentExposure?.iso || ''} />
         <ResultRow
           label="Shutter Speed"
           value={`${equivalentExposure?.shutterSpeed}s`}
@@ -199,18 +199,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     marginBottom: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   mobileFormColumns: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 12,
   },
   mobileFormColumn: {
     flex: 1,
-    width: "48%",
+    width: '48%',
   },
   fullWidth: {
-    width: "100%",
+    width: '100%',
   },
 });

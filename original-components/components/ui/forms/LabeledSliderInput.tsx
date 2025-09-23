@@ -1,18 +1,18 @@
-import React, { useMemo, useCallback, useRef, useEffect } from "react";
-import { StyleSheet, Platform } from "react-native";
-import { Box, Text, Input, InputField } from "@gluestack-ui/themed";
+import React, { useMemo, useCallback, useRef, useEffect } from 'react';
+import { StyleSheet, Platform } from 'react-native';
+import { Box, Text, Input, InputField } from '@gluestack-ui/themed';
 
 // Use platform-specific slider to avoid React 19 compatibility issues
-import Slider from "@react-native-community/slider";
-import WebSlider from "./Slider.web";
-import * as Haptics from "expo-haptics";
+import Slider from '@react-native-community/slider';
+import WebSlider from './Slider.web';
+import * as Haptics from 'expo-haptics';
 
-import { getPlatformFont } from "@/styles/common";
+import { getPlatformFont } from '@/styles/common';
 import {
   COMMON_INPUT_HEIGHT,
   COMMON_BORDER_RADIUS,
-} from "@/constants/borderCalc";
-import { throttle } from "@/utils/throttle";
+} from '@/constants/borderCalc';
+import { throttle } from '@/utils/throttle';
 
 interface LabeledSliderInputProps {
   label: string;
@@ -41,8 +41,8 @@ interface LabeledSliderInputProps {
 }
 
 // Platform-adaptive throttling - native needs less aggressive throttling
-const SLIDER_THROTTLE_MS = Platform.OS === "web" ? 16 : 8; // Web: ~60 FPS, Native: ~120 FPS
-const CALCULATION_THROTTLE_MS = Platform.OS === "web" ? 16 : 32; // Separate throttling for heavy calculations
+const SLIDER_THROTTLE_MS = Platform.OS === 'web' ? 16 : 8; // Web: ~60 FPS, Native: ~120 FPS
+const CALCULATION_THROTTLE_MS = Platform.OS === 'web' ? 16 : 32; // Separate throttling for heavy calculations
 
 export const LabeledSliderInput: React.FC<LabeledSliderInputProps> = ({
   label,
@@ -71,7 +71,7 @@ export const LabeledSliderInput: React.FC<LabeledSliderInputProps> = ({
         leading: true,
         trailing: true,
       }),
-    [onChange],
+    [onChange]
   );
 
   const onSliderChangeThrottled = useMemo(
@@ -82,19 +82,19 @@ export const LabeledSliderInput: React.FC<LabeledSliderInputProps> = ({
             trailing: true,
           })
         : null,
-    [onSliderChange],
+    [onSliderChange]
   );
 
   // Immediate visual feedback for slider value (no throttling on native)
   const onVisualUpdateThrottled = useMemo(
     () =>
-      Platform.OS === "web"
+      Platform.OS === 'web'
         ? throttle(onChange, SLIDER_THROTTLE_MS, {
             leading: true,
             trailing: true,
           })
         : onChange, // No throttling on native for immediate visual feedback
-    [onChange],
+    [onChange]
   );
 
   // Velocity-based haptic feedback to prevent overwhelming the Taptic Engine
@@ -104,9 +104,9 @@ export const LabeledSliderInput: React.FC<LabeledSliderInputProps> = ({
     () =>
       throttle(
         () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light),
-        150,
+        150
       ), // Increased from 100ms
-    [],
+    []
   );
 
   // Cleanup throttled functions on unmount
@@ -160,7 +160,7 @@ export const LabeledSliderInput: React.FC<LabeledSliderInputProps> = ({
       onVisualUpdateThrottled,
       step,
       hapticThrottled,
-    ],
+    ]
   );
 
   const handleSlidingComplete = useCallback(
@@ -189,7 +189,7 @@ export const LabeledSliderInput: React.FC<LabeledSliderInputProps> = ({
       onSliderChange,
       onSliderChangeThrottled,
       onChangeThrottled,
-    ],
+    ]
   );
 
   // Memoized components for better performance
@@ -203,7 +203,7 @@ export const LabeledSliderInput: React.FC<LabeledSliderInputProps> = ({
         isReadOnly={false}
         style={[
           styles.inputContainer,
-          { borderColor: warning ? "#FFA500" : borderColor, width: inputWidth },
+          { borderColor: warning ? '#FFA500' : borderColor, width: inputWidth },
           warning && styles.inputWarning,
           sliderOnTop && styles.inputWithTopMargin,
         ]}
@@ -212,17 +212,17 @@ export const LabeledSliderInput: React.FC<LabeledSliderInputProps> = ({
           style={[styles.inputText, { color: textColor }]}
           value={String(value)}
           onChangeText={onChange}
-          keyboardType={Platform.OS === "ios" ? "decimal-pad" : "numeric"}
+          keyboardType={Platform.OS === 'ios' ? 'decimal-pad' : 'numeric'}
           placeholder="0"
           placeholderTextColor={borderColor}
         />
       </Input>
     ),
-    [warning, borderColor, inputWidth, sliderOnTop, textColor, value, onChange],
+    [warning, borderColor, inputWidth, sliderOnTop, textColor, value, onChange]
   );
 
   const slider = useMemo(() => {
-    const SliderComponent = Platform.OS === "web" ? WebSlider : Slider;
+    const SliderComponent = Platform.OS === 'web' ? WebSlider : Slider;
 
     return (
       <Box style={styles.sliderWrapper}>
@@ -262,7 +262,7 @@ export const LabeledSliderInput: React.FC<LabeledSliderInputProps> = ({
           ))}
         </Box>
       ) : null,
-    [labels, textColor],
+    [labels, textColor]
   );
 
   //----------------------------------------------------------
@@ -306,30 +306,30 @@ const styles = StyleSheet.create({
     // marginBottom: 4, // Spacing handled by container gap or Gluestack Slider mt
   },
   inputWarning: {
-    borderColor: "#FFA500", // This will be overridden by Input's isInvalid prop or sx prop
+    borderColor: '#FFA500', // This will be overridden by Input's isInvalid prop or sx prop
     borderWidth: 2, // This might need specific handling if Gluestack Input variant doesn't allow direct borderWidth override easily
   },
   inputWithTopMargin: {
     marginTop: 16, // Add extra spacing when slider is positioned above input
   },
   sliderWrapper: {
-    width: "100%",
+    width: '100%',
     marginTop: 8,
   },
   slider: {
-    width: "100%",
+    width: '100%',
     height: 40,
   },
   sliderLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
     marginTop: 8, // Increased margin for better spacing
   },
   sliderLabel: {
     fontSize: 12,
-    textAlign: "center",
+    textAlign: 'center',
     fontFamily: getPlatformFont(),
   },
 });

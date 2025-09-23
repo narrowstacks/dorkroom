@@ -40,7 +40,7 @@ export const SORT_OPTIONS = [
 export const PUSH_PULL_LABELS: Record<number, string> = {
   [-2]: 'Pull 2 stops',
   [-1]: 'Pull 1 stop',
-  0: 'Normal',
+  0: 'Box Speed',
   1: 'Push 1 stop',
   2: 'Push 2 stops',
 };

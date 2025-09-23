@@ -1,10 +1,10 @@
-import React from "react";
-import { Platform } from "react-native";
-import { Box, Text } from "@gluestack-ui/themed";
-import { SearchInput } from "@/components/ui/search";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
-import type { Film, Developer } from "@/api/dorkroom/types";
+import React from 'react';
+import { Platform } from 'react-native';
+import { Box, Text } from '@gluestack-ui/themed';
+import { SearchInput } from '@/components/ui/search';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
+import type { Film, Developer } from '@/api/dorkroom/types';
 
 interface SearchSectionProps {
   filmSearch: string;
@@ -47,9 +47,9 @@ export function SearchSection({
   onFilmSearchLayout,
   onDeveloperSearchLayout,
 }: SearchSectionProps) {
-  const textColor = useThemeColor({}, "text");
+  const textColor = useThemeColor({}, 'text');
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > 768;
+  const isDesktop = Platform.OS === 'web' && width > 768;
 
   return (
     <Box>
@@ -57,13 +57,13 @@ export function SearchSection({
         style={[
           {
             fontSize: 16,
-            fontWeight: "600",
+            fontWeight: '600',
             marginBottom: 8,
           },
           { color: textColor },
         ]}
       >
-        {isDesktop ? "Search" : "Select Film & Developer"}
+        {isDesktop ? 'Search' : 'Select Film & Developer'}
       </Text>
 
       <Box
@@ -72,13 +72,13 @@ export function SearchSection({
             gap: 16,
           },
           isDesktop && {
-            flexDirection: "row",
+            flexDirection: 'row',
             gap: 16,
           },
           {
-            overflow: "visible",
+            overflow: 'visible',
             zIndex: 999999,
-            position: "relative",
+            position: 'relative',
           },
         ]}
       >
@@ -93,14 +93,14 @@ export function SearchSection({
               minWidth: 0,
             },
             {
-              overflow: "visible",
+              overflow: 'visible',
               zIndex: 999999,
-              position: "relative",
+              position: 'relative',
             },
           ]}
           onLayout={onFilmSearchLayout}
         >
-          <Box style={{ position: "relative" }}>
+          <Box style={{ position: 'relative' }}>
             {isDesktop ? (
               <SearchInput
                 variant="desktop"
@@ -136,14 +136,14 @@ export function SearchSection({
               minWidth: 0,
             },
             {
-              overflow: "visible",
+              overflow: 'visible',
               zIndex: 999999,
-              position: "relative",
+              position: 'relative',
             },
           ]}
           onLayout={onDeveloperSearchLayout}
         >
-          <Box style={{ position: "relative" }}>
+          <Box style={{ position: 'relative' }}>
             {isDesktop ? (
               <SearchInput
                 variant="desktop"

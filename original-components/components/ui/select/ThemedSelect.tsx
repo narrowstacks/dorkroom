@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Select,
   SelectTrigger,
@@ -14,8 +14,8 @@ import {
   Text, // Using Gluestack Text for label
   Box, // Using Gluestack Box for layout
   Divider,
-} from "@gluestack-ui/themed";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from '@gluestack-ui/themed';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface Item {
   label: string;
@@ -38,27 +38,27 @@ export function ThemedSelect({
   selectedValue,
   onValueChange,
   items,
-  placeholder = "Select an option",
+  placeholder = 'Select an option',
   testID,
 }: ThemedSelectProps) {
-  const backgroundColor = useThemeColor({}, "background");
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "icon"); // Using icon color for border as per original styles
-  const selectedItemBackground = useThemeColor({}, "selectedItemBackground"); // Get the new color
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const borderColor = useThemeColor({}, 'icon'); // Using icon color for border as per original styles
+  const selectedItemBackground = useThemeColor({}, 'selectedItemBackground'); // Get the new color
 
   // Specific colors for the dropdown content to ensure good contrast
   const dropdownBackgroundColor = useThemeColor(
-    { light: "#f5f5f5", dark: "#2c2c2c" },
-    "background",
+    { light: '#f5f5f5', dark: '#2c2c2c' },
+    'background'
   );
   const dropdownTextColor = useThemeColor(
-    { light: "#000000", dark: "#ffffff" },
-    "text",
+    { light: '#000000', dark: '#ffffff' },
+    'text'
   );
 
   // Normalize items to { label: string, value: string } format
   const normalizedItems: Item[] = items.map((item) =>
-    typeof item === "string" ? { label: item, value: item } : item,
+    typeof item === 'string' ? { label: item, value: item } : item
   );
 
   // Find the label for the currently selected value
@@ -103,7 +103,7 @@ export function ThemedSelect({
               <SelectDragIndicator />
             </SelectDragIndicatorWrapper>
             {normalizedItems.map((item) => {
-              if (item.value === "__divider__") {
+              if (item.value === '__divider__') {
                 return <Divider my="$1" key="divider" />;
               }
 

@@ -28,7 +28,7 @@ const WARNING_DELAY = CALCULATION_CONSTANTS.DEBOUNCE_WARNING_DELAY;
 export const useWarningSystem = (
   state: BorderCalculatorState,
   dispatch: (action: BorderCalculatorAction) => void,
-  warningData: WarningUpdateData,
+  warningData: WarningUpdateData
 ) => {
   const timeouts = useRef<WarningTimeouts>({
     offset: null,

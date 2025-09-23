@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Box,
   VStack,
@@ -9,8 +9,8 @@ import {
   ButtonText,
   Input,
   InputField,
-} from "@gluestack-ui/themed";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from '@gluestack-ui/themed';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import {
   Save,
   Trash2,
@@ -18,14 +18,14 @@ import {
   Plus,
   Edit3,
   Copy,
-} from "lucide-react-native";
-import { showConfirmAlert } from "@/components/ui/layout/ConfirmAlert";
-import { TextInput } from "@/components/ui/forms/TextInput";
-import { SectionWrapper } from "./SectionWrapper";
+} from 'lucide-react-native';
+import { showConfirmAlert } from '@/components/ui/layout/ConfirmAlert';
+import { TextInput } from '@/components/ui/forms/TextInput';
+import { SectionWrapper } from './SectionWrapper';
 import type {
   BorderPreset,
   BorderPresetSettings,
-} from "@/types/borderPresetTypes";
+} from '@/types/borderPresetTypes';
 
 interface PresetsSectionProps {
   onClose: () => void;
@@ -37,7 +37,7 @@ interface PresetsSectionProps {
   onUpdatePreset: (
     id: string,
     name: string,
-    settings: BorderPresetSettings,
+    settings: BorderPresetSettings
   ) => void;
   getCurrentSettings: () => BorderPresetSettings;
 }
@@ -52,39 +52,39 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
   onUpdatePreset,
   getCurrentSettings,
 }) => {
-  const borderColor = useThemeColor({}, "outline");
-  const textColor = useThemeColor({}, "text");
-  const cardBackground = useThemeColor({}, "cardBackground");
+  const borderColor = useThemeColor({}, 'outline');
+  const textColor = useThemeColor({}, 'text');
+  const cardBackground = useThemeColor({}, 'cardBackground');
 
   const [showSaveForm, setShowSaveForm] = useState(false);
-  const [presetName, setPresetName] = useState("");
+  const [presetName, setPresetName] = useState('');
   const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
-  const [editingPresetName, setEditingPresetName] = useState("");
+  const [editingPresetName, setEditingPresetName] = useState('');
   const [duplicatingPresetId, setDuplicatingPresetId] = useState<string | null>(
-    null,
+    null
   );
-  const [duplicatePresetName, setDuplicatePresetName] = useState("");
+  const [duplicatePresetName, setDuplicatePresetName] = useState('');
 
   const handleSavePreset = () => {
     if (presetName.trim()) {
       onSavePreset(presetName.trim(), getCurrentSettings());
-      setPresetName("");
+      setPresetName('');
       setShowSaveForm(false);
     }
   };
 
   const handleDeletePreset = (id: string) => {
     showConfirmAlert(
-      "Delete Preset",
-      "Are you sure you want to delete this preset? This action cannot be undone.",
+      'Delete Preset',
+      'Are you sure you want to delete this preset? This action cannot be undone.',
       [
-        { text: "Cancel", style: "cancel" },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: "Delete",
-          style: "destructive",
+          text: 'Delete',
+          style: 'destructive',
           onPress: () => onDeletePreset(id),
         },
-      ],
+      ]
     );
   };
 
@@ -100,17 +100,17 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
         onUpdatePreset(
           editingPresetId,
           editingPresetName.trim(),
-          preset.settings,
+          preset.settings
         );
       }
     }
     setEditingPresetId(null);
-    setEditingPresetName("");
+    setEditingPresetName('');
   };
 
   const handleCancelEdit = () => {
     setEditingPresetId(null);
-    setEditingPresetName("");
+    setEditingPresetName('');
   };
 
   const handleDuplicatePreset = (preset: BorderPreset) => {
@@ -126,27 +126,27 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
       }
     }
     setDuplicatingPresetId(null);
-    setDuplicatePresetName("");
+    setDuplicatePresetName('');
   };
 
   const handleCancelDuplicate = () => {
     setDuplicatingPresetId(null);
-    setDuplicatePresetName("");
+    setDuplicatePresetName('');
   };
 
   const handleSaveToExistingPreset = (preset: BorderPreset) => {
     showConfirmAlert(
-      "Update Preset",
+      'Update Preset',
       `Are you sure you want to update "${preset.name}" with your current settings? This will overwrite the existing preset.`,
       [
-        { text: "Cancel", style: "cancel" },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: "Update",
-          style: "default",
+          text: 'Update',
+          style: 'default',
           onPress: () =>
             onUpdatePreset(preset.id, preset.name, getCurrentSettings()),
         },
-      ],
+      ]
     );
   };
 
@@ -168,7 +168,7 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
           </Button>
         ) : (
           <VStack space="sm">
-            <Text style={{ fontSize: 16, fontWeight: "600", color: textColor }}>
+            <Text style={{ fontSize: 16, fontWeight: '600', color: textColor }}>
               Save New Preset
             </Text>
             <Input variant="outline" size="md">
@@ -193,7 +193,7 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
                 flex={1}
                 onPress={() => {
                   setShowSaveForm(false);
-                  setPresetName("");
+                  setPresetName('');
                 }}
                 variant="outline"
                 action="secondary"
@@ -213,11 +213,11 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
             padding: 16,
             borderRadius: 8,
             borderWidth: 2,
-            borderColor: "#007AFF",
+            borderColor: '#007AFF',
           }}
         >
           <VStack space="sm">
-            <Text style={{ fontSize: 16, fontWeight: "600", color: textColor }}>
+            <Text style={{ fontSize: 16, fontWeight: '600', color: textColor }}>
               Edit Preset Name
             </Text>
             <TextInput
@@ -258,11 +258,11 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
             padding: 16,
             borderRadius: 8,
             borderWidth: 2,
-            borderColor: "#007AFF",
+            borderColor: '#007AFF',
           }}
         >
           <VStack space="sm">
-            <Text style={{ fontSize: 16, fontWeight: "600", color: textColor }}>
+            <Text style={{ fontSize: 16, fontWeight: '600', color: textColor }}>
               Duplicate Preset
             </Text>
             <TextInput
@@ -309,7 +309,7 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
           <Text style={{ fontSize: 14, color: textColor, opacity: 0.7 }}>
             Current Preset:
           </Text>
-          <Text style={{ fontSize: 16, fontWeight: "600", color: textColor }}>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: textColor }}>
             {currentPreset.name}
           </Text>
         </Box>
@@ -317,7 +317,7 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
 
       {/* Presets List */}
       <VStack space="sm">
-        <Text style={{ fontSize: 16, fontWeight: "600", color: textColor }}>
+        <Text style={{ fontSize: 16, fontWeight: '600', color: textColor }}>
           Saved Presets ({presets.length})
         </Text>
 
@@ -327,7 +327,7 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
               backgroundColor: cardBackground,
               padding: 16,
               borderRadius: 8,
-              alignItems: "center",
+              alignItems: 'center',
             }}
           >
             <Text
@@ -335,10 +335,10 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
                 fontSize: 14,
                 color: textColor,
                 opacity: 0.7,
-                textAlign: "center",
+                textAlign: 'center',
               }}
             >
-              No saved presets yet.{"\n"}Save your current settings to create
+              No saved presets yet.{'\n'}Save your current settings to create
               your first preset.
             </Text>
           </Box>
@@ -352,21 +352,21 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
                 borderRadius: 8,
                 borderWidth: currentPreset?.id === preset.id ? 2 : 1,
                 borderColor:
-                  currentPreset?.id === preset.id ? "#007AFF" : borderColor,
+                  currentPreset?.id === preset.id ? '#007AFF' : borderColor,
               }}
             >
               <VStack space="sm">
                 <HStack
                   style={{
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
                   }}
                 >
                   <VStack style={{ flex: 1 }}>
                     <Text
                       style={{
                         fontSize: 16,
-                        fontWeight: "600",
+                        fontWeight: '600',
                         color: textColor,
                       }}
                     >
@@ -375,7 +375,7 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
                     <Text
                       style={{ fontSize: 12, color: textColor, opacity: 0.7 }}
                     >
-                      {preset.settings.aspectRatio} •{" "}
+                      {preset.settings.aspectRatio} •{' '}
                       {preset.settings.paperSize} • {preset.settings.minBorder}
                       &quot;
                     </Text>
@@ -383,7 +383,7 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
                 </HStack>
 
                 {/* Action Buttons Row */}
-                <HStack space="xs" style={{ justifyContent: "space-between" }}>
+                <HStack space="xs" style={{ justifyContent: 'space-between' }}>
                   <Button
                     onPress={() => onApplyPreset(preset)}
                     variant="solid"

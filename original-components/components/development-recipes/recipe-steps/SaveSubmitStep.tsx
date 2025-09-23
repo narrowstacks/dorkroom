@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 import {
   Text,
@@ -7,13 +7,13 @@ import {
   VStack,
   HStack,
   Box,
-} from "@gluestack-ui/themed";
-import { Save, Github, Trash2, CheckCircle } from "lucide-react-native";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from '@gluestack-ui/themed';
+import { Save, Github, Trash2, CheckCircle } from 'lucide-react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import type {
   CustomRecipe,
   CustomRecipeFormData,
-} from "@/types/customRecipeTypes";
+} from '@/types/customRecipeTypes';
 
 interface SaveSubmitStepProps {
   formData: CustomRecipeFormData;
@@ -48,8 +48,8 @@ export function SaveSubmitStep({
   isLoading,
   isDesktop = false,
 }: SaveSubmitStepProps) {
-  const textColor = useThemeColor({}, "text");
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
+  const textColor = useThemeColor({}, 'text');
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
 
   return (
     <VStack space="lg">
@@ -58,18 +58,18 @@ export function SaveSubmitStep({
         space="sm"
         style={{
           padding: 20,
-          backgroundColor: "rgba(255, 255, 255, 0.05)",
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
           borderRadius: 16,
           borderWidth: 1,
-          borderColor: "rgba(255, 255, 255, 0.1)",
+          borderColor: 'rgba(255, 255, 255, 0.1)',
         }}
       >
-        <HStack style={{ alignItems: "center", marginBottom: 12 }}>
+        <HStack style={{ alignItems: 'center', marginBottom: 12 }}>
           <CheckCircle size={20} color={developmentTint} />
           <Text
             style={{
               fontSize: 16,
-              fontWeight: "600",
+              fontWeight: '600',
               color: textColor,
               marginLeft: 8,
             }}
@@ -86,8 +86,8 @@ export function SaveSubmitStep({
             marginBottom: 8,
           }}
         >
-          <Text style={{ fontWeight: "600" }}>Recipe:</Text>{" "}
-          {formData.name || "Untitled Recipe"}
+          <Text style={{ fontWeight: '600' }}>Recipe:</Text>{' '}
+          {formData.name || 'Untitled Recipe'}
         </Text>
 
         {formData.useExistingFilm ? (
@@ -99,7 +99,7 @@ export function SaveSubmitStep({
               marginBottom: 8,
             }}
           >
-            <Text style={{ fontWeight: "600" }}>Film:</Text> Selected from
+            <Text style={{ fontWeight: '600' }}>Film:</Text> Selected from
             database
           </Text>
         ) : (
@@ -111,7 +111,7 @@ export function SaveSubmitStep({
               marginBottom: 8,
             }}
           >
-            <Text style={{ fontWeight: "600" }}>Film:</Text>{" "}
+            <Text style={{ fontWeight: '600' }}>Film:</Text>{' '}
             {formData.customFilm?.brand} {formData.customFilm?.name} (Custom)
           </Text>
         )}
@@ -125,7 +125,7 @@ export function SaveSubmitStep({
               marginBottom: 8,
             }}
           >
-            <Text style={{ fontWeight: "600" }}>Developer:</Text> Selected from
+            <Text style={{ fontWeight: '600' }}>Developer:</Text> Selected from
             database
           </Text>
         ) : (
@@ -137,18 +137,18 @@ export function SaveSubmitStep({
               marginBottom: 8,
             }}
           >
-            <Text style={{ fontWeight: "600" }}>Developer:</Text>{" "}
-            {formData.customDeveloper?.manufacturer}{" "}
+            <Text style={{ fontWeight: '600' }}>Developer:</Text>{' '}
+            {formData.customDeveloper?.manufacturer}{' '}
             {formData.customDeveloper?.name} (Custom)
           </Text>
         )}
 
         <Text style={{ fontSize: 14, color: textColor, opacity: 0.9 }}>
-          <Text style={{ fontWeight: "600" }}>Settings:</Text>{" "}
-          {formData.temperatureF}°F, {formData.timeMinutes}min, ISO{" "}
+          <Text style={{ fontWeight: '600' }}>Settings:</Text>{' '}
+          {formData.temperatureF}°F, {formData.timeMinutes}min, ISO{' '}
           {formData.shootingIso}
           {formData.pushPull !== 0 &&
-            `, ${formData.pushPull > 0 ? "+" : ""}${formData.pushPull} stops`}
+            `, ${formData.pushPull > 0 ? '+' : ''}${formData.pushPull} stops`}
         </Text>
       </VStack>
 
@@ -157,9 +157,9 @@ export function SaveSubmitStep({
         <Text
           style={{
             fontSize: 16,
-            fontWeight: "600",
+            fontWeight: '600',
             color: textColor,
-            textAlign: "center",
+            textAlign: 'center',
           }}
         >
           Choose Action
@@ -180,11 +180,11 @@ export function SaveSubmitStep({
             style={{
               marginLeft: 12,
               fontSize: 16,
-              fontWeight: "600",
-              color: "#fff",
+              fontWeight: '600',
+              color: '#fff',
             }}
           >
-            {isLoading ? "Saving..." : recipe ? "Update Recipe" : "Save Recipe"}
+            {isLoading ? 'Saving...' : recipe ? 'Update Recipe' : 'Save Recipe'}
           </ButtonText>
         </Button>
 
@@ -206,7 +206,7 @@ export function SaveSubmitStep({
               style={{
                 marginLeft: 12,
                 fontSize: 16,
-                fontWeight: "600",
+                fontWeight: '600',
                 color: developmentTint,
               }}
             >
@@ -221,10 +221,10 @@ export function SaveSubmitStep({
             <Text
               style={{
                 fontSize: 14,
-                fontWeight: "600",
+                fontWeight: '600',
                 color: textColor,
                 opacity: 0.7,
-                textAlign: "center",
+                textAlign: 'center',
               }}
             >
               Other Actions
@@ -234,7 +234,7 @@ export function SaveSubmitStep({
               onPress={onDelete}
               variant="outline"
               style={{
-                borderColor: "#ff4444",
+                borderColor: '#ff4444',
                 borderWidth: 1,
                 minHeight: 48,
                 borderRadius: 12,
@@ -243,9 +243,9 @@ export function SaveSubmitStep({
             >
               <Trash2 size={18} color="#ff4444" />
               <ButtonText
-                style={{ marginLeft: 10, fontSize: 14, color: "#ff4444" }}
+                style={{ marginLeft: 10, fontSize: 14, color: '#ff4444' }}
               >
-                {isLoading ? "Deleting..." : "Delete Recipe"}
+                {isLoading ? 'Deleting...' : 'Delete Recipe'}
               </ButtonText>
             </Button>
           </VStack>
@@ -256,7 +256,7 @@ export function SaveSubmitStep({
       <Box
         style={{
           padding: 16,
-          backgroundColor: "rgba(255, 255, 255, 0.03)",
+          backgroundColor: 'rgba(255, 255, 255, 0.03)',
           borderRadius: 12,
           marginTop: 12,
         }}
@@ -266,13 +266,13 @@ export function SaveSubmitStep({
             fontSize: 13,
             color: textColor,
             opacity: 0.7,
-            textAlign: "center",
+            textAlign: 'center',
             lineHeight: 18,
           }}
         >
           {recipe
-            ? "Your changes will be saved to your local recipe collection."
-            : "Your new recipe will be added to your local collection and can be used immediately."}
+            ? 'Your changes will be saved to your local recipe collection.'
+            : 'Your new recipe will be added to your local collection and can be used immediately.'}
         </Text>
       </Box>
     </VStack>

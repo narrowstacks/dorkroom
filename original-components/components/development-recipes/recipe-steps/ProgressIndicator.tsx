@@ -1,6 +1,6 @@
-import React from "react";
-import { Box, Text, HStack, VStack } from "@gluestack-ui/themed";
-import { useThemeColor } from "@/hooks/useThemeColor";
+import React from 'react';
+import { Box, Text, HStack, VStack } from '@gluestack-ui/themed';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface ProgressIndicatorProps {
   currentStep: number;
@@ -26,9 +26,9 @@ export function ProgressIndicator({
   stepTitles,
   stepValidation,
 }: ProgressIndicatorProps) {
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
-  const textColor = useThemeColor({}, "text");
-  const outline = useThemeColor({}, "outline");
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
+  const textColor = useThemeColor({}, 'text');
+  const outline = useThemeColor({}, 'outline');
 
   return (
     <VStack space="xs">
@@ -67,7 +67,7 @@ export function ProgressIndicator({
         style={{
           fontSize: 14,
           color: textColor,
-          textAlign: "center",
+          textAlign: 'center',
           opacity: 0.8,
         }}
       >

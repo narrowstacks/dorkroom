@@ -7,21 +7,21 @@
      - useInputHandlers: Input validation and setter functions
 \* ------------------------------------------------------------------ */
 
-import { useCallback, useMemo } from "react";
-import { tryNumber, debounce } from "../utils/inputValidation";
-import { debugLogPerformance, debugLogTiming } from "@/utils/debugLogger";
-import type { BorderCalculatorState } from "./types";
+import { useCallback, useMemo } from 'react';
+import { tryNumber, debounce } from '../utils/inputValidation';
+import { debugLogPerformance, debugLogTiming } from '@/utils/debugLogger';
+import type { BorderCalculatorState } from './types';
 
 export const useInputHandlers = (
   state: BorderCalculatorState,
-  dispatch: (action: any) => void,
+  dispatch: (action: any) => void
 ) => {
   // Debounced numeric field setter for text input only (not sliders)
   const debouncedNumericFieldSetter = useMemo(
     () =>
       debounce((key: keyof BorderCalculatorState, v: string) => {
         const startTime = debugLogTiming(
-          `Border Calculator - ${key} Input Processing`,
+          `Border Calculator - ${key} Input Processing`
         );
         const num = tryNumber(v);
 
@@ -31,14 +31,14 @@ export const useInputHandlers = (
             field: key,
             oldValue: state[key],
             newValue: num,
-            type: "numeric",
+            type: 'numeric',
             timestamp: new Date().toISOString(),
           });
-          dispatch({ type: "SET_FIELD", key, value: num });
+          dispatch({ type: 'SET_FIELD', key, value: num });
           if (startTime)
             debugLogTiming(
               `Border Calculator - ${key} Input Processing`,
-              startTime,
+              startTime
             );
           return;
         }
@@ -49,29 +49,29 @@ export const useInputHandlers = (
           debugLogPerformance(`Border Calculator - ${key} In-Progress Input`, {
             field: key,
             value: v,
-            type: "in-progress",
+            type: 'in-progress',
             timestamp: new Date().toISOString(),
           });
-          dispatch({ type: "SET_FIELD", key, value: v });
+          dispatch({ type: 'SET_FIELD', key, value: v });
         }
         if (startTime)
           debugLogTiming(
             `Border Calculator - ${key} Input Processing`,
-            startTime,
+            startTime
           );
       }, 50), // Further reduced to 50ms for ultra-responsive input
-    [dispatch, state],
+    [dispatch, state]
   );
 
   // Optimized slider input handler - no debouncing, direct numeric conversion
   const setSliderField = useCallback(
     (key: keyof BorderCalculatorState, v: string | number) => {
       const startTime = debugLogTiming(
-        `Border Calculator - ${key} Slider Input`,
+        `Border Calculator - ${key} Slider Input`
       );
 
       // Convert to number directly since sliders always provide valid numeric values
-      const numericValue = typeof v === "number" ? v : parseFloat(v);
+      const numericValue = typeof v === 'number' ? v : parseFloat(v);
 
       // Only update if the value actually changed to prevent unnecessary re-renders
       if (state[key] !== numericValue) {
@@ -79,16 +79,16 @@ export const useInputHandlers = (
           field: key,
           oldValue: state[key],
           newValue: numericValue,
-          type: "slider",
+          type: 'slider',
           timestamp: new Date().toISOString(),
         });
-        dispatch({ type: "SET_FIELD", key, value: numericValue });
+        dispatch({ type: 'SET_FIELD', key, value: numericValue });
       }
 
       if (startTime)
         debugLogTiming(`Border Calculator - ${key} Slider Input`, startTime);
     },
-    [dispatch, state],
+    [dispatch, state]
   );
 
   // Text input handler with debouncing
@@ -96,229 +96,229 @@ export const useInputHandlers = (
     (key: keyof BorderCalculatorState, v: string) => {
       // For immediate UI feedback, allow the input to update immediately
       // but debounce the actual number parsing and validation
-      if (/^-?\d*\.?\d*$/.test(v) || v === "") {
-        dispatch({ type: "SET_FIELD", key, value: v });
+      if (/^-?\d*\.?\d*$/.test(v) || v === '') {
+        dispatch({ type: 'SET_FIELD', key, value: v });
       }
 
       // Debounce the heavy number validation
       debouncedNumericFieldSetter(key, v);
     },
-    [debouncedNumericFieldSetter, dispatch],
+    [debouncedNumericFieldSetter, dispatch]
   );
 
   const setCustomDimensionField = useCallback(
     (
       key: keyof BorderCalculatorState,
       lastKey: keyof BorderCalculatorState,
-      v: string,
+      v: string
     ) => {
-      dispatch({ type: "SET_FIELD", key, value: v });
+      dispatch({ type: 'SET_FIELD', key, value: v });
       const num = tryNumber(v);
       if (num && num > 0)
-        dispatch({ type: "SET_FIELD", key: lastKey, value: num });
+        dispatch({ type: 'SET_FIELD', key: lastKey, value: num });
     },
-    [dispatch],
+    [dispatch]
   );
 
   // Basic field setters
   const setAspectRatio = useCallback(
     (v: string) => {
-      debugLogPerformance("Border Calculator - Aspect Ratio Change", {
-        field: "aspectRatio",
+      debugLogPerformance('Border Calculator - Aspect Ratio Change', {
+        field: 'aspectRatio',
         oldValue: state.aspectRatio,
         newValue: v,
-        type: "selection",
+        type: 'selection',
         timestamp: new Date().toISOString(),
       });
-      dispatch({ type: "SET_ASPECT_RATIO", value: v });
+      dispatch({ type: 'SET_ASPECT_RATIO', value: v });
     },
-    [dispatch, state.aspectRatio],
+    [dispatch, state.aspectRatio]
   );
 
   const setPaperSize = useCallback(
     (v: string) => {
-      debugLogPerformance("Border Calculator - Paper Size Change", {
-        field: "paperSize",
+      debugLogPerformance('Border Calculator - Paper Size Change', {
+        field: 'paperSize',
         oldValue: state.paperSize,
         newValue: v,
-        type: "selection",
+        type: 'selection',
         timestamp: new Date().toISOString(),
       });
-      dispatch({ type: "SET_PAPER_SIZE", value: v });
+      dispatch({ type: 'SET_PAPER_SIZE', value: v });
     },
-    [dispatch, state.paperSize],
+    [dispatch, state.paperSize]
   );
 
   // Custom dimension setters
   const setCustomAspectWidth = useCallback(
     (v: string) =>
       setCustomDimensionField(
-        "customAspectWidth",
-        "lastValidCustomAspectWidth",
-        v,
+        'customAspectWidth',
+        'lastValidCustomAspectWidth',
+        v
       ),
-    [setCustomDimensionField],
+    [setCustomDimensionField]
   );
 
   const setCustomAspectHeight = useCallback(
     (v: string) =>
       setCustomDimensionField(
-        "customAspectHeight",
-        "lastValidCustomAspectHeight",
-        v,
+        'customAspectHeight',
+        'lastValidCustomAspectHeight',
+        v
       ),
-    [setCustomDimensionField],
+    [setCustomDimensionField]
   );
 
   const setCustomPaperWidth = useCallback(
     (v: string) =>
       setCustomDimensionField(
-        "customPaperWidth",
-        "lastValidCustomPaperWidth",
-        v,
+        'customPaperWidth',
+        'lastValidCustomPaperWidth',
+        v
       ),
-    [setCustomDimensionField],
+    [setCustomDimensionField]
   );
 
   const setCustomPaperHeight = useCallback(
     (v: string) =>
       setCustomDimensionField(
-        "customPaperHeight",
-        "lastValidCustomPaperHeight",
-        v,
+        'customPaperHeight',
+        'lastValidCustomPaperHeight',
+        v
       ),
-    [setCustomDimensionField],
+    [setCustomDimensionField]
   );
 
   // Numeric field setters (for text inputs)
   const setMinBorder = useCallback(
-    (v: string) => setNumericField("minBorder", v),
-    [setNumericField],
+    (v: string) => setNumericField('minBorder', v),
+    [setNumericField]
   );
 
   const setHorizontalOffset = useCallback(
-    (v: string) => setNumericField("horizontalOffset", v),
-    [setNumericField],
+    (v: string) => setNumericField('horizontalOffset', v),
+    [setNumericField]
   );
 
   const setVerticalOffset = useCallback(
-    (v: string) => setNumericField("verticalOffset", v),
-    [setNumericField],
+    (v: string) => setNumericField('verticalOffset', v),
+    [setNumericField]
   );
 
   // Slider field setters (optimized for continuous updates)
   const setMinBorderSlider = useCallback(
-    (v: string | number) => setSliderField("minBorder", v),
-    [setSliderField],
+    (v: string | number) => setSliderField('minBorder', v),
+    [setSliderField]
   );
 
   const setHorizontalOffsetSlider = useCallback(
-    (v: string | number) => setSliderField("horizontalOffset", v),
-    [setSliderField],
+    (v: string | number) => setSliderField('horizontalOffset', v),
+    [setSliderField]
   );
 
   const setVerticalOffsetSlider = useCallback(
-    (v: string | number) => setSliderField("verticalOffset", v),
-    [setSliderField],
+    (v: string | number) => setSliderField('verticalOffset', v),
+    [setSliderField]
   );
 
   // Boolean field setters with performance logging
   const setEnableOffset = useCallback(
     (v: boolean) => {
-      debugLogPerformance("Border Calculator - Enable Offset Toggle", {
-        field: "enableOffset",
+      debugLogPerformance('Border Calculator - Enable Offset Toggle', {
+        field: 'enableOffset',
         oldValue: state.enableOffset,
         newValue: v,
-        type: "boolean",
+        type: 'boolean',
         timestamp: new Date().toISOString(),
       });
-      dispatch({ type: "SET_FIELD", key: "enableOffset", value: v });
+      dispatch({ type: 'SET_FIELD', key: 'enableOffset', value: v });
     },
-    [dispatch, state.enableOffset],
+    [dispatch, state.enableOffset]
   );
 
   const setIgnoreMinBorder = useCallback(
     (v: boolean) => {
-      debugLogPerformance("Border Calculator - Ignore Min Border Toggle", {
-        field: "ignoreMinBorder",
+      debugLogPerformance('Border Calculator - Ignore Min Border Toggle', {
+        field: 'ignoreMinBorder',
         oldValue: state.ignoreMinBorder,
         newValue: v,
-        type: "boolean",
+        type: 'boolean',
         timestamp: new Date().toISOString(),
       });
-      dispatch({ type: "SET_FIELD", key: "ignoreMinBorder", value: v });
+      dispatch({ type: 'SET_FIELD', key: 'ignoreMinBorder', value: v });
     },
-    [dispatch, state.ignoreMinBorder],
+    [dispatch, state.ignoreMinBorder]
   );
 
   const setShowBlades = useCallback(
     (v: boolean) => {
-      debugLogPerformance("Border Calculator - Show Blades Toggle", {
-        field: "showBlades",
+      debugLogPerformance('Border Calculator - Show Blades Toggle', {
+        field: 'showBlades',
         oldValue: state.showBlades,
         newValue: v,
-        type: "boolean",
+        type: 'boolean',
         timestamp: new Date().toISOString(),
       });
-      dispatch({ type: "SET_FIELD", key: "showBlades", value: v });
+      dispatch({ type: 'SET_FIELD', key: 'showBlades', value: v });
     },
-    [dispatch, state.showBlades],
+    [dispatch, state.showBlades]
   );
 
   const setIsLandscape = useCallback(
     (v: boolean) => {
-      debugLogPerformance("Border Calculator - Landscape Toggle", {
-        field: "isLandscape",
+      debugLogPerformance('Border Calculator - Landscape Toggle', {
+        field: 'isLandscape',
         oldValue: state.isLandscape,
         newValue: v,
-        type: "boolean",
+        type: 'boolean',
         timestamp: new Date().toISOString(),
       });
-      dispatch({ type: "SET_FIELD", key: "isLandscape", value: v });
+      dispatch({ type: 'SET_FIELD', key: 'isLandscape', value: v });
     },
-    [dispatch, state.isLandscape],
+    [dispatch, state.isLandscape]
   );
 
   const setIsRatioFlipped = useCallback(
     (v: boolean) => {
-      debugLogPerformance("Border Calculator - Ratio Flipped Toggle", {
-        field: "isRatioFlipped",
+      debugLogPerformance('Border Calculator - Ratio Flipped Toggle', {
+        field: 'isRatioFlipped',
         oldValue: state.isRatioFlipped,
         newValue: v,
-        type: "boolean",
+        type: 'boolean',
         timestamp: new Date().toISOString(),
       });
-      dispatch({ type: "SET_FIELD", key: "isRatioFlipped", value: v });
+      dispatch({ type: 'SET_FIELD', key: 'isRatioFlipped', value: v });
     },
-    [dispatch, state.isRatioFlipped],
+    [dispatch, state.isRatioFlipped]
   );
 
   // Utility actions with performance logging
   const applyPreset = useCallback(
     (preset: Partial<BorderCalculatorState>) => {
-      const startTime = debugLogTiming("Border Calculator - Apply Preset");
-      debugLogPerformance("Border Calculator - Preset Applied", {
-        action: "applyPreset",
+      const startTime = debugLogTiming('Border Calculator - Apply Preset');
+      debugLogPerformance('Border Calculator - Preset Applied', {
+        action: 'applyPreset',
         presetFields: Object.keys(preset),
         fieldCount: Object.keys(preset).length,
         timestamp: new Date().toISOString(),
       });
-      dispatch({ type: "BATCH_UPDATE", payload: preset });
+      dispatch({ type: 'BATCH_UPDATE', payload: preset });
       if (startTime)
-        debugLogTiming("Border Calculator - Apply Preset", startTime);
+        debugLogTiming('Border Calculator - Apply Preset', startTime);
     },
-    [dispatch],
+    [dispatch]
   );
 
   const resetToDefaults = useCallback(() => {
-    const startTime = debugLogTiming("Border Calculator - Reset to Defaults");
-    debugLogPerformance("Border Calculator - Reset to Defaults", {
-      action: "resetToDefaults",
+    const startTime = debugLogTiming('Border Calculator - Reset to Defaults');
+    debugLogPerformance('Border Calculator - Reset to Defaults', {
+      action: 'resetToDefaults',
       timestamp: new Date().toISOString(),
     });
-    dispatch({ type: "RESET" });
+    dispatch({ type: 'RESET' });
     if (startTime)
-      debugLogTiming("Border Calculator - Reset to Defaults", startTime);
+      debugLogTiming('Border Calculator - Reset to Defaults', startTime);
   }, [dispatch]);
 
   return {

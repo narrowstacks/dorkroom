@@ -1,15 +1,15 @@
-import React, { useMemo } from "react";
+import React, { useMemo } from 'react';
 import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolation,
   SharedValue,
-} from "react-native-reanimated";
-import { debugLog, debugLogPerformance } from "@/utils/debugLogger";
+} from 'react-native-reanimated';
+import { debugLog, debugLogPerformance } from '@/utils/debugLogger';
 
 interface AnimatedBladeProps {
-  orientation: "vertical" | "horizontal";
-  position: "left" | "right" | "top" | "bottom";
+  orientation: 'vertical' | 'horizontal';
+  position: 'left' | 'right' | 'top' | 'bottom';
   bladePositionValue: SharedValue<number>;
   opacity: SharedValue<number>;
   thickness: number;
@@ -32,23 +32,23 @@ export const AnimatedBlade = React.memo(
     // Memoize common styles to prevent object recreation
     const commonStyle = useMemo(
       () => ({
-        position: "absolute" as const,
+        position: 'absolute' as const,
         backgroundColor: borderColor,
         // Native shadow properties for iOS
-        shadowColor: "#000",
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 4,
         // Android elevation
         elevation: 5,
       }),
-      [borderColor],
+      [borderColor]
     );
 
     // Memoize orientation-specific styles
     const orientationStyle = useMemo(() => {
       const style =
-        orientation === "vertical"
+        orientation === 'vertical'
           ? {
               top: -1000,
               bottom: -1000,
@@ -77,23 +77,23 @@ export const AnimatedBlade = React.memo(
       const transformValue = interpolate(
         bladePositionValue.value,
         [0, 100],
-        [0, orientation === "vertical" ? containerWidth : containerHeight],
-        Extrapolation.CLAMP,
+        [0, orientation === 'vertical' ? containerWidth : containerHeight],
+        Extrapolation.CLAMP
       );
 
       // Position-specific offset adjustments so blades are adjacent to print area
       const transforms = [];
       switch (position) {
-        case "left":
+        case 'left':
           transforms.push({ translateX: transformValue - thickness });
           break;
-        case "right":
+        case 'right':
           transforms.push({ translateX: transformValue });
           break;
-        case "top":
+        case 'top':
           transforms.push({ translateY: transformValue - thickness });
           break;
-        case "bottom":
+        case 'bottom':
           transforms.push({ translateY: transformValue });
           break;
       }
@@ -107,7 +107,7 @@ export const AnimatedBlade = React.memo(
     return (
       <Animated.View style={[commonStyle, orientationStyle, animatedStyle]} />
     );
-  },
+  }
 );
 
-AnimatedBlade.displayName = "AnimatedBladeReanimated";
+AnimatedBlade.displayName = 'AnimatedBladeReanimated';

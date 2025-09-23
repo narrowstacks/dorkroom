@@ -7,9 +7,9 @@
      - useGeometryCalculations: All geometry-related calculations
 \* ------------------------------------------------------------------ */
 
-import { useMemo } from "react";
-import { useWindowDimensions } from "react-native";
-import { EASEL_SIZE_MAP } from "@/constants/border";
+import { useMemo } from 'react';
+import { useWindowDimensions } from 'react-native';
+import { EASEL_SIZE_MAP } from '@/constants/border';
 import {
   calculateBladeThickness,
   findCenteringOffsets,
@@ -17,7 +17,7 @@ import {
   clampOffsets,
   bordersFromGaps,
   bladeReadings,
-} from "@/utils/borderCalculations";
+} from '@/utils/borderCalculations';
 import type {
   BorderCalculatorState,
   OrientedDimensions,
@@ -29,14 +29,14 @@ import type {
   EaselData,
   PaperShift,
   BladeData,
-} from "./types";
+} from './types';
 
 export const useGeometryCalculations = (
   state: BorderCalculatorState,
   orientedDimensions: OrientedDimensions,
   minBorderData: MinBorderData,
   paperEntry: PaperEntry,
-  paperSizeWarning: string | null,
+  paperSizeWarning: string | null
 ) => {
   const { width: winW, height: winH } = useWindowDimensions();
 
@@ -66,7 +66,7 @@ export const useGeometryCalculations = (
       orientedPaper.h,
       orientedRatio.w,
       orientedRatio.h,
-      minBorder,
+      minBorder
     );
   }, [orientedDimensions, minBorderData]);
 
@@ -84,7 +84,7 @@ export const useGeometryCalculations = (
       minBorder,
       state.enableOffset ? state.horizontalOffset : 0,
       state.enableOffset ? state.verticalOffset : 0,
-      state.ignoreMinBorder,
+      state.ignoreMinBorder
     );
   }, [
     orientedDimensions,
@@ -133,11 +133,11 @@ export const useGeometryCalculations = (
     let bladeWarning: string | null = null;
     const values = Object.values(blades);
     if (values.some((v) => v < 0))
-      bladeWarning = "Negative blade reading – use opposite side of scale.";
+      bladeWarning = 'Negative blade reading – use opposite side of scale.';
     if (values.some((v) => Math.abs(v) < 3 && v !== 0))
       bladeWarning =
-        (bladeWarning ? bladeWarning + "\n" : "") +
-        "Many easels have no markings below about 3 in.";
+        (bladeWarning ? bladeWarning + '\n' : '') +
+        'Many easels have no markings below about 3 in.';
 
     return { blades, bladeWarning };
   }, [printSize, offsetData, paperShift]);

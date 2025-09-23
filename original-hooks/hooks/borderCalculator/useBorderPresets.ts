@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
   BorderPreset,
   BorderPresetSettings,
-} from "@/types/borderPresetTypes";
+} from '@/types/borderPresetTypes';
 
-const STORAGE_KEY = "borderPresets";
+const STORAGE_KEY = 'borderPresets';
 
 export const useBorderPresets = () => {
   const [presets, setPresets] = useState<BorderPreset[]>([]);
@@ -21,7 +21,7 @@ export const useBorderPresets = () => {
           }
         }
       } catch (e) {
-        console.warn("Failed to load presets", e);
+        console.warn('Failed to load presets', e);
       }
     })();
   }, []);
@@ -31,7 +31,7 @@ export const useBorderPresets = () => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch (e) {
-      console.warn("Failed to save presets", e);
+      console.warn('Failed to save presets', e);
     }
   };
 

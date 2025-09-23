@@ -31,22 +31,25 @@ export function useUrlPresetLoader(options: UseUrlPresetLoaderOptions = {}) {
   /**
    * Load a preset from an encoded string
    */
-  const loadPresetFromEncoded = useCallback((encoded: string): LoadedPreset | null => {
-    if (!isValidEncodedPreset(encoded)) {
-      return null;
-    }
+  const loadPresetFromEncoded = useCallback(
+    (encoded: string): LoadedPreset | null => {
+      if (!isValidEncodedPreset(encoded)) {
+        return null;
+      }
 
-    const decoded = decodePreset(encoded);
-    if (!decoded) {
-      return null;
-    }
+      const decoded = decodePreset(encoded);
+      if (!decoded) {
+        return null;
+      }
 
-    return {
-      name: decoded.name,
-      settings: decoded.settings,
-      isFromUrl: true,
-    };
-  }, []);
+      return {
+        name: decoded.name,
+        settings: decoded.settings,
+        isFromUrl: true,
+      };
+    },
+    []
+  );
 
   /**
    * Check URL for preset and load it
@@ -83,7 +86,10 @@ export function useUrlPresetLoader(options: UseUrlPresetLoaderOptions = {}) {
       setIsLoading(false);
       return preset;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load preset from URL';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to load preset from URL';
       setLoadError(errorMessage);
       onLoadError?.(errorMessage);
       setIsLoading(false);
@@ -94,38 +100,42 @@ export function useUrlPresetLoader(options: UseUrlPresetLoaderOptions = {}) {
   /**
    * Manually load a preset from encoded string
    */
-  const loadPreset = useCallback((encoded: string): LoadedPreset | null => {
-    setIsLoading(true);
-    setLoadError(null);
+  const loadPreset = useCallback(
+    (encoded: string): LoadedPreset | null => {
+      setIsLoading(true);
+      setLoadError(null);
 
-    try {
-      const preset = loadPresetFromEncoded(encoded);
-      if (!preset) {
-        const error = 'Invalid encoded preset';
-        setLoadError(error);
-        onLoadError?.(error);
+      try {
+        const preset = loadPresetFromEncoded(encoded);
+        if (!preset) {
+          const error = 'Invalid encoded preset';
+          setLoadError(error);
+          onLoadError?.(error);
+          setIsLoading(false);
+          return null;
+        }
+
+        // Mark as not from URL since it was manually loaded
+        const manualPreset: LoadedPreset = {
+          ...preset,
+          isFromUrl: false,
+        };
+
+        setLoadedPreset(manualPreset);
+        onPresetLoaded?.(manualPreset);
+        setIsLoading(false);
+        return manualPreset;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to load preset';
+        setLoadError(errorMessage);
+        onLoadError?.(errorMessage);
         setIsLoading(false);
         return null;
       }
-
-      // Mark as not from URL since it was manually loaded
-      const manualPreset: LoadedPreset = {
-        ...preset,
-        isFromUrl: false,
-      };
-
-      setLoadedPreset(manualPreset);
-      onPresetLoaded?.(manualPreset);
-      setIsLoading(false);
-      return manualPreset;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load preset';
-      setLoadError(errorMessage);
-      onLoadError?.(errorMessage);
-      setIsLoading(false);
-      return null;
-    }
-  }, [loadPresetFromEncoded, onPresetLoaded, onLoadError]);
+    },
+    [loadPresetFromEncoded, onPresetLoaded, onLoadError]
+  );
 
   /**
    * Clear the currently loaded preset

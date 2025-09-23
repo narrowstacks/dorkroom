@@ -1,22 +1,22 @@
-import React from "react";
-import { Platform, StyleSheet } from "react-native";
-import { useExposureCalculator } from "@/hooks/useExposureCalculator";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { Button, ButtonText, HStack, Box, Text } from "@gluestack-ui/themed";
-import { CalculatorLayout } from "@/components/ui/layout/CalculatorLayout";
-import { ResultRow } from "@/components/ui/calculator/ResultsSection";
-import { NumberInput } from "@/components/ui/forms";
+import React from 'react';
+import { Platform, StyleSheet } from 'react-native';
+import { useExposureCalculator } from '@/hooks/useExposureCalculator';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { Button, ButtonText, HStack, Box, Text } from '@gluestack-ui/themed';
+import { CalculatorLayout } from '@/components/ui/layout/CalculatorLayout';
+import { ResultRow } from '@/components/ui/calculator/ResultsSection';
+import { NumberInput } from '@/components/ui/forms';
 import {
   InfoSection,
   InfoText,
   InfoSubtitle,
-} from "@/components/ui/calculator/InfoSection";
+} from '@/components/ui/calculator/InfoSection';
 
 export default function ExposureCalculator() {
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "borderColor");
-  const surfaceVariant = useThemeColor({}, "surfaceVariant");
-  const inputBackground = useThemeColor({}, "inputBackground");
+  const textColor = useThemeColor({}, 'text');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const surfaceVariant = useThemeColor({}, 'surfaceVariant');
+  const inputBackground = useThemeColor({}, 'inputBackground');
 
   const {
     originalTime,
@@ -40,7 +40,7 @@ export default function ExposureCalculator() {
       }}
     >
       <ButtonText
-        className={`text-sm ${Platform.OS === "web" ? "select-none" : ""}`}
+        className={`text-sm ${Platform.OS === 'web' ? 'select-none' : ''}`}
         style={{ color: textColor }}
       >
         {label}
@@ -96,7 +96,7 @@ export default function ExposureCalculator() {
               className="text-base font-medium"
               style={[
                 styles.inputLabel,
-                { color: textColor, textAlign: "center" },
+                { color: textColor, textAlign: 'center' },
               ]}
             >
               Original Exposure Time (seconds)
@@ -118,7 +118,7 @@ export default function ExposureCalculator() {
               className="text-base font-medium"
               style={[
                 styles.inputLabel,
-                { color: textColor, textAlign: "center" },
+                { color: textColor, textAlign: 'center' },
               ]}
             >
               Stop Adjustment
@@ -134,9 +134,9 @@ export default function ExposureCalculator() {
                 alignItems="center"
                 justifyContent="center"
               >
-                {renderStopButton("-1", -1)}
-                {renderStopButton("-1/2", -0.5)}
-                {renderStopButton("-1/3", -1 / 3)}
+                {renderStopButton('-1', -1)}
+                {renderStopButton('-1/2', -0.5)}
+                {renderStopButton('-1/3', -1 / 3)}
               </HStack>
 
               {/* Manual Input */}
@@ -160,9 +160,9 @@ export default function ExposureCalculator() {
                 alignItems="center"
                 justifyContent="center"
               >
-                {renderStopButton("+1/3", 1 / 3)}
-                {renderStopButton("+1/2", 0.5)}
-                {renderStopButton("+1", 1)}
+                {renderStopButton('+1/3', 1 / 3)}
+                {renderStopButton('+1/2', 0.5)}
+                {renderStopButton('+1', 1)}
               </HStack>
             </Box>
           </Box>
@@ -190,10 +190,12 @@ export default function ExposureCalculator() {
                 <ResultRow
                   label={
                     parseFloat(newTime) > parseFloat(originalTime)
-                      ? "Add"
-                      : "Remove"
+                      ? 'Add'
+                      : 'Remove'
                   }
-                  value={`${Math.abs(parseFloat(newTime) - parseFloat(originalTime)).toFixed(2)} seconds`}
+                  value={`${Math.abs(
+                    parseFloat(newTime) - parseFloat(originalTime)
+                  ).toFixed(2)} seconds`}
                 />
               )}
               <ResultRow label="New Time" value={`${newTime} seconds`} isLast />
@@ -210,7 +212,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 16,
     padding: 24,
-    width: "100%",
+    width: '100%',
     maxWidth: 672, // max-w-2xl equivalent (42rem * 16px)
   },
   inputSection: {
@@ -218,22 +220,22 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
     marginBottom: 4,
   },
   stopAdjustmentContainer: {
-    width: "100%",
+    width: '100%',
     gap: 12,
-    alignItems: "center",
+    alignItems: 'center',
   },
   inputContainer: {
-    width: "100%",
+    width: '100%',
     maxWidth: 200,
-    alignItems: "center",
+    alignItems: 'center',
   },
   divider: {
     height: 1,
-    width: "100%",
+    width: '100%',
     marginVertical: 24,
   },
   resultsSection: {
@@ -241,7 +243,7 @@ const styles = StyleSheet.create({
   },
   resultsTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
   },
 });

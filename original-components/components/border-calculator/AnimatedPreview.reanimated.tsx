@@ -1,14 +1,14 @@
-import React, { useEffect, useMemo } from "react";
-import { View } from "react-native";
+import React, { useEffect, useMemo } from 'react';
+import { View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   runOnJS,
   useAnimatedReaction,
-} from "react-native-reanimated";
-import { AnimatedBlade } from "./AnimatedBlade.reanimated";
-import { debugLog, debugLogTiming } from "@/utils/debugLogger";
+} from 'react-native-reanimated';
+import { AnimatedBlade } from './AnimatedBlade.reanimated';
+import { debugLog, debugLogTiming } from '@/utils/debugLogger';
 
 interface AnimatedPreviewProps {
   calculation: any;
@@ -35,14 +35,14 @@ export const AnimatedPreview = React.memo(
         width: calculation?.previewWidth || 0,
         height: calculation?.previewHeight || 0,
       }),
-      [calculation?.previewWidth, calculation?.previewHeight],
+      [calculation?.previewWidth, calculation?.previewHeight]
     );
 
     // Transform values calculation with performance monitoring
     const transformValues = useMemo(() => {
       if (!calculation) return null;
 
-      const startTime = debugLogTiming("Reanimated Transform Calculation");
+      const startTime = debugLogTiming('Reanimated Transform Calculation');
 
       const containerWidth = calculation.previewWidth || 0;
       const containerHeight = calculation.previewHeight || 0;
@@ -75,7 +75,7 @@ export const AnimatedPreview = React.memo(
       };
 
       if (startTime) {
-        debugLogTiming("Reanimated Transform Calculation", startTime);
+        debugLogTiming('Reanimated Transform Calculation', startTime);
       }
 
       return result;
@@ -92,32 +92,32 @@ export const AnimatedPreview = React.memo(
 
       printTranslateX.value = withTiming(
         transformValues.printTranslateX,
-        animationConfig,
+        animationConfig
       );
       printTranslateY.value = withTiming(
         transformValues.printTranslateY,
-        animationConfig,
+        animationConfig
       );
       printScaleX.value = withTiming(
         transformValues.printScaleX,
-        animationConfig,
+        animationConfig
       );
       printScaleY.value = withTiming(
         transformValues.printScaleY,
-        animationConfig,
+        animationConfig
       );
 
       leftBladePosition.value = withTiming(
         transformValues.leftBorderPercent,
-        animationConfig,
+        animationConfig
       );
       rightBladePosition.value = withTiming(
         transformValues.rightBorderPercent,
-        animationConfig,
+        animationConfig
       );
       topBladePosition.value = withTiming(
         transformValues.topBorderPercent,
-        animationConfig,
+        animationConfig
       );
       bottomBladePosition.value = withTiming(
         transformValues.bottomBorderPercent,
@@ -126,7 +126,7 @@ export const AnimatedPreview = React.memo(
           if (finished) {
             // Simple completion log without object sharing issues
           }
-        },
+        }
       );
     }, [
       transformValues,
@@ -168,15 +168,15 @@ export const AnimatedPreview = React.memo(
         ) {
           runOnJS(debugLog)();
         }
-      },
+      }
     );
 
     return (
       <View
         style={{
-          position: "relative",
-          backgroundColor: "transparent",
-          overflow: "hidden",
+          position: 'relative',
+          backgroundColor: 'transparent',
+          overflow: 'hidden',
           width: staticDimensions.width,
           height: staticDimensions.height,
           borderColor,
@@ -185,11 +185,11 @@ export const AnimatedPreview = React.memo(
       >
         <View
           style={{
-            position: "relative",
-            backgroundColor: "white",
-            overflow: "hidden",
-            width: "100%",
-            height: "100%",
+            position: 'relative',
+            backgroundColor: 'white',
+            overflow: 'hidden',
+            width: '100%',
+            height: '100%',
             borderColor,
           }}
         >
@@ -197,8 +197,8 @@ export const AnimatedPreview = React.memo(
           <Animated.View
             style={[
               {
-                position: "absolute",
-                backgroundColor: "grey",
+                position: 'absolute',
+                backgroundColor: 'grey',
                 left: 0,
                 top: 0,
                 width: staticDimensions.width,
@@ -251,7 +251,7 @@ export const AnimatedPreview = React.memo(
         </View>
       </View>
     );
-  },
+  }
 );
 
-AnimatedPreview.displayName = "AnimatedPreviewReanimated";
+AnimatedPreview.displayName = 'AnimatedPreviewReanimated';

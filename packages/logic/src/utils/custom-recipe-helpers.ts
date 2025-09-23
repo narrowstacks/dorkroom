@@ -4,27 +4,30 @@ import type { CustomRecipe } from '../types/custom-recipes';
 export const getCustomRecipeFilm = (
   recipeId: string,
   customRecipes: CustomRecipe[],
-  getFilmById: (filmId: string) => Film | undefined,
+  getFilmById: (filmId: string) => Film | undefined
 ): Film | undefined => {
   const recipe = customRecipes.find((r) => r.id === recipeId);
   if (!recipe) return undefined;
 
   if (recipe.isCustomFilm && recipe.customFilm) {
+    const now = new Date().toISOString();
     return {
+      id: parseInt(`${Date.now()}`), // Generate a numeric ID
       uuid: `custom_film_${recipe.id}`,
-      id: `custom_film_${recipe.id}`,
       slug: `custom_film_${recipe.id}`,
       brand: recipe.customFilm.brand,
       name: recipe.customFilm.name,
-      isoSpeed: recipe.customFilm.isoSpeed,
       colorType: recipe.customFilm.colorType,
-      manufacturerNotes: [],
-      discontinued: 0,
-      dateAdded: recipe.dateCreated,
-      description: recipe.customFilm.description,
+      isoSpeed: recipe.customFilm.isoSpeed,
       grainStructure: recipe.customFilm.grainStructure,
-      staticImageURL: undefined,
-      reciprocityFailure: undefined,
+      description: recipe.customFilm.description || '',
+      manufacturerNotes: [],
+      reciprocityFailure: null,
+      discontinued: false,
+      staticImageUrl: null,
+      dateAdded: recipe.dateCreated,
+      createdAt: now,
+      updatedAt: now,
     } as Film;
   }
 
@@ -34,33 +37,33 @@ export const getCustomRecipeFilm = (
 export const getCustomRecipeDeveloper = (
   recipeId: string,
   customRecipes: CustomRecipe[],
-  getDeveloperById: (developerId: string) => Developer | undefined,
+  getDeveloperById: (developerId: string) => Developer | undefined
 ): Developer | undefined => {
   const recipe = customRecipes.find((r) => r.id === recipeId);
   if (!recipe) return undefined;
 
   if (recipe.isCustomDeveloper && recipe.customDeveloper) {
+    const now = new Date().toISOString();
     return {
+      id: parseInt(`${Date.now()}`), // Generate a numeric ID
       uuid: `custom_dev_${recipe.id}`,
-      id: `custom_dev_${recipe.id}`,
       slug: `custom_dev_${recipe.id}`,
       name: recipe.customDeveloper.name,
       manufacturer: recipe.customDeveloper.manufacturer,
       type: recipe.customDeveloper.type,
-      filmOrPaper: recipe.customDeveloper.filmOrPaper,
-      discontinued: 0,
+      description: recipe.customDeveloper.notes || '',
+      filmOrPaper: recipe.customDeveloper.filmOrPaper === 'film', // Convert string to boolean
       dilutions: recipe.customDeveloper.dilutions.map((dilution, index) => ({
-        id: index,
-        name: dilution.name,
+        id: index.toString(),
+        name: dilution.name || dilution.dilution,
         dilution: dilution.dilution,
       })),
-      workingLifeHours: recipe.customDeveloper.workingLifeHours,
-      stockLifeMonths: recipe.customDeveloper.stockLifeMonths,
-      notes: recipe.customDeveloper.notes,
-      mixingInstructions: recipe.customDeveloper.mixingInstructions,
-      safetyNotes: recipe.customDeveloper.safetyNotes,
-      datasheetUrl: [],
-      dateAdded: recipe.dateCreated,
+      mixingInstructions: recipe.customDeveloper.mixingInstructions || null,
+      storageRequirements: null,
+      safetyNotes: recipe.customDeveloper.safetyNotes || null,
+      notes: recipe.customDeveloper.notes || null,
+      createdAt: now,
+      updatedAt: now,
     } as Developer;
   }
 

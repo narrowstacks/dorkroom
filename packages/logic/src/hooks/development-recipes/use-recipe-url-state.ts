@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Film, Developer, Combination } from '@dorkroom/api';
 import {
   type RecipeUrlParams,
@@ -60,7 +54,7 @@ export const filmToSlug = (film: Film | null): string => film?.slug || '';
 
 export const slugToDeveloper = (
   slug: string,
-  developers: Developer[],
+  developers: Developer[]
 ): Developer | null => {
   if (!slug || !developers.length) return null;
   return developers.find((developer) => developer.slug === slug) || null;
@@ -70,7 +64,7 @@ export const developerToSlug = (developer: Developer | null): string =>
   developer?.slug || '';
 
 export const validateUrlParams = (
-  params: RecipeUrlParams,
+  params: RecipeUrlParams
 ): UrlValidationResult => {
   const errors: string[] = [];
   const sanitized: RecipeUrlParams = {};
@@ -110,7 +104,7 @@ export const validateUrlParams = (
 
   if (params.dilution) {
     const isValidDilution = VALIDATION_CONFIG.dilutionPatterns.some((pattern) =>
-      pattern.test(params.dilution as string),
+      pattern.test(params.dilution as string)
     );
     if (isValidDilution) {
       sanitized.dilution = params.dilution;
@@ -122,7 +116,7 @@ export const validateUrlParams = (
   if (params.recipe) {
     if (
       params.recipe.match(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       ) ||
       params.recipe.length > 20
     ) {
@@ -171,9 +165,11 @@ export const useRecipeUrlState = (
     dilutionFilter: string;
     isoFilter: string;
   },
-  recipesByUuid?: Map<string, Combination>,
+  recipesByUuid?: Map<string, Combination>
 ): UseRecipeUrlStateReturn => {
-  const [params, setParams] = useState<RecipeUrlParams>(() => getCurrentParams());
+  const [params, setParams] = useState<RecipeUrlParams>(() =>
+    getCurrentParams()
+  );
   const isInitializedRef = useRef(false);
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -192,16 +188,17 @@ export const useRecipeUrlState = (
     };
   }, []);
 
-  const {
-    decodeSharedCustomRecipe,
-    isCustomRecipeUrl,
-  } = useCustomRecipeSharing();
+  const { decodeSharedCustomRecipe, isCustomRecipeUrl } =
+    useCustomRecipeSharing();
 
   const [sharedRecipe, setSharedRecipe] = useState<Combination | null>(null);
-  const [sharedCustomRecipe, setSharedCustomRecipe] =
-    useState<ImportedCustomRecipe['recipe'] | null>(null);
+  const [sharedCustomRecipe, setSharedCustomRecipe] = useState<
+    ImportedCustomRecipe['recipe'] | null
+  >(null);
   const [isLoadingSharedRecipe, setIsLoadingSharedRecipe] = useState(false);
-  const [sharedRecipeError, setSharedRecipeError] = useState<string | null>(null);
+  const [sharedRecipeError, setSharedRecipeError] = useState<string | null>(
+    null
+  );
 
   const initialUrlState = useMemo<InitialUrlState>(() => {
     if (!films.length || !developers.length) {
@@ -232,7 +229,7 @@ export const useRecipeUrlState = (
     if (validation.sanitized.developer) {
       const developer = slugToDeveloper(
         validation.sanitized.developer,
-        developers,
+        developers
       );
       if (developer) {
         state.selectedDeveloper = developer;
@@ -300,7 +297,7 @@ export const useRecipeUrlState = (
           setSharedCustomRecipe(null);
         } else {
           setSharedRecipeError(
-            `Recipe with ID ${recipeId.substring(0, 20)}... not found`,
+            `Recipe with ID ${recipeId.substring(0, 20)}... not found`
           );
           setSharedRecipe(null);
           setSharedCustomRecipe(null);
@@ -309,7 +306,7 @@ export const useRecipeUrlState = (
         setSharedRecipeError(
           error instanceof Error
             ? error.message
-            : 'Failed to load shared recipe',
+            : 'Failed to load shared recipe'
         );
         setSharedRecipe(null);
         setSharedCustomRecipe(null);
@@ -321,38 +318,41 @@ export const useRecipeUrlState = (
     handleSharedRecipeLookup();
   }, [params, recipesByUuid, isCustomRecipeUrl, decodeSharedCustomRecipe]);
 
-  const updateUrl = useCallback((newParams: Partial<RecipeUrlParams>) => {
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
-    }
-
-    updateTimeoutRef.current = setTimeout(() => {
-      if (!isInitializedRef.current || typeof window === 'undefined') {
-        return;
+  const updateUrl = useCallback(
+    (newParams: Partial<RecipeUrlParams>) => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
       }
 
-      const searchParams = new URLSearchParams(window.location.search);
-
-      MANAGED_QUERY_KEYS.forEach((key) => {
-        searchParams.delete(key);
-      });
-
-      const mergedParams: RecipeUrlParams = { ...params, ...newParams };
-
-      Object.entries(mergedParams).forEach(([key, value]) => {
-        if (value) {
-          searchParams.set(key, value as string);
+      updateTimeoutRef.current = setTimeout(() => {
+        if (!isInitializedRef.current || typeof window === 'undefined') {
+          return;
         }
-      });
 
-      const searchString = searchParams.toString();
-      const newUrl = `${window.location.pathname}${
-        searchString ? `?${searchString}` : ''
-      }${window.location.hash ?? ''}`;
-      window.history.replaceState(null, '', newUrl);
-      setParams(parseSearchParams(searchParams));
-    }, 300);
-  }, [params]);
+        const searchParams = new URLSearchParams(window.location.search);
+
+        MANAGED_QUERY_KEYS.forEach((key) => {
+          searchParams.delete(key);
+        });
+
+        const mergedParams: RecipeUrlParams = { ...params, ...newParams };
+
+        Object.entries(mergedParams).forEach(([key, value]) => {
+          if (value) {
+            searchParams.set(key, value as string);
+          }
+        });
+
+        const searchString = searchParams.toString();
+        const newUrl = `${window.location.pathname}${
+          searchString ? `?${searchString}` : ''
+        }${window.location.hash ?? ''}`;
+        window.history.replaceState(null, '', newUrl);
+        setParams(parseSearchParams(searchParams));
+      }, 300);
+    },
+    [params]
+  );
 
   useEffect(() => {
     if (!isInitializedRef.current) {

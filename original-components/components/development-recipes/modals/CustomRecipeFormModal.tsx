@@ -1,5 +1,5 @@
-import React from "react";
-import { Platform } from "react-native";
+import React from 'react';
+import { Platform } from 'react-native';
 import {
   Modal,
   ModalBackdrop,
@@ -8,11 +8,11 @@ import {
   ModalBody,
   ModalCloseButton,
   Text,
-} from "@gluestack-ui/themed";
-import { X } from "lucide-react-native";
-import { CustomRecipeForm } from "@/components/development-recipes";
-import { getRecipeFormModalConfig } from "@/components/development-recipes/ModalStyles";
-import type { CustomRecipe } from "@/types/customRecipeTypes";
+} from '@gluestack-ui/themed';
+import { X } from 'lucide-react-native';
+import { CustomRecipeForm } from '@/components/development-recipes';
+import { getRecipeFormModalConfig } from '@/components/development-recipes/ModalStyles';
+import type { CustomRecipe } from '@/types/customRecipeTypes';
 
 interface CustomRecipeFormModalProps {
   isOpen: boolean;
@@ -43,7 +43,7 @@ export function CustomRecipeFormModal({
         {isDesktop && (
           <ModalHeader className="pb-4">
             <Text className="text-lg font-semibold">
-              {editingCustomRecipe ? "Edit Recipe" : "New Recipe"}
+              {editingCustomRecipe ? 'Edit Recipe' : 'New Recipe'}
             </Text>
             <ModalCloseButton>
               <X size={20} />
@@ -56,7 +56,7 @@ export function CustomRecipeFormModal({
             onClose={onClose}
             onSave={onSave}
             isDesktop={isDesktop}
-            isMobileWeb={Platform.OS === "web" && !isDesktop}
+            isMobileWeb={Platform.OS === 'web' && !isDesktop}
           />
         </ModalBody>
       </ModalContent>

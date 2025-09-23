@@ -12,22 +12,22 @@ export const useFeatureFlags = () => {
     () =>
       <K extends keyof FeatureFlags>(featureName: K): boolean =>
         isFeatureEnabled(featureName),
-    [],
+    []
   );
 
   const isCustomRecipeSharingEnabled = useMemo(
     () => flags.CUSTOM_RECIPE_SHARING,
-    [flags.CUSTOM_RECIPE_SHARING],
+    [flags.CUSTOM_RECIPE_SHARING]
   );
 
   const isRecipeImportEnabled = useMemo(
     () => flags.RECIPE_IMPORT,
-    [flags.RECIPE_IMPORT],
+    [flags.RECIPE_IMPORT]
   );
 
   const isAdvancedChemistryCalculatorEnabled = useMemo(
     () => flags.ADVANCED_CHEMISTRY_CALCULATOR,
-    [flags.ADVANCED_CHEMISTRY_CALCULATOR],
+    [flags.ADVANCED_CHEMISTRY_CALCULATOR]
   );
 
   return {

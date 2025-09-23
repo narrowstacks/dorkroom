@@ -1,13 +1,13 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo } from 'react';
 import {
   StyleSheet,
   ScrollView,
   Platform,
   Animated,
   TouchableOpacity,
-} from "react-native";
-import { PanGestureHandler, State } from "react-native-gesture-handler";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
+} from 'react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 import {
   Box,
   Text,
@@ -18,7 +18,7 @@ import {
   useToast,
   Toast,
   ToastTitle,
-} from "@gluestack-ui/themed";
+} from '@gluestack-ui/themed';
 import {
   X,
   Calculator,
@@ -27,28 +27,28 @@ import {
   Copy,
   Trash2,
   Share,
-} from "lucide-react-native";
+} from 'lucide-react-native';
 
-import { FormGroup } from "@/components/ui/forms/FormSection";
-import { TextInput } from "@/components/ui/forms";
-import { StyledSelect } from "@/components/ui/select/StyledSelect";
-import { ChemistryCalculator } from "@/components/development-recipes/ChemistryCalculator";
-import { ShareRecipeModal } from "@/components/ShareRecipeModal";
-import { showConfirmAlert } from "@/components/ui/layout/ConfirmAlert";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useChemistryCalculator } from "@/hooks/useChemistryCalculator";
-import { useCustomRecipes } from "@/hooks/useCustomRecipes";
-import { useFeatureFlags } from "@/hooks/useFeatureFlags";
-import { debugLog } from "@/utils/debugLogger";
-import type { Film, Developer, Combination } from "@/api/dorkroom/types";
-import type { CustomRecipe } from "@/types/customRecipeTypes";
+import { FormGroup } from '@/components/ui/forms/FormSection';
+import { TextInput } from '@/components/ui/forms';
+import { StyledSelect } from '@/components/ui/select/StyledSelect';
+import { ChemistryCalculator } from '@/components/development-recipes/ChemistryCalculator';
+import { ShareRecipeModal } from '@/components/ShareRecipeModal';
+import { showConfirmAlert } from '@/components/ui/layout/ConfirmAlert';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useChemistryCalculator } from '@/hooks/useChemistryCalculator';
+import { useCustomRecipes } from '@/hooks/useCustomRecipes';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { debugLog } from '@/utils/debugLogger';
+import type { Film, Developer, Combination } from '@/api/dorkroom/types';
+import type { CustomRecipe } from '@/types/customRecipeTypes';
 import {
   convertToDisplay,
   formatTime,
   PUSH_PULL_LABELS,
-} from "@/constants/developmentRecipes";
-import { formatDilution } from "@/utils/dilutionUtils";
-import { formatFilmType } from "@/utils/filmTypeFormatter";
+} from '@/constants/developmentRecipes';
+import { formatDilution } from '@/utils/dilutionUtils';
+import { formatFilmType } from '@/utils/filmTypeFormatter';
 
 interface RecipeDetailProps {
   combination: Combination;
@@ -75,18 +75,18 @@ export function RecipeDetail({
   const [showShareModal, setShowShareModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { width } = useWindowDimensions();
-  const isMobile = Platform.OS !== "web" || width <= 768;
+  const isMobile = Platform.OS !== 'web' || width <= 768;
 
   // Animation for bottom sheet
   const translateY = React.useRef(new Animated.Value(1000)).current;
   const opacity = React.useRef(new Animated.Value(0)).current;
 
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const developmentTint = useThemeColor({}, "developmentRecipesTint");
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const outline = useThemeColor({}, "outline");
-  const inputBackground = useThemeColor({}, "inputBackground");
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const developmentTint = useThemeColor({}, 'developmentRecipesTint');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const outline = useThemeColor({}, 'outline');
+  const inputBackground = useThemeColor({}, 'inputBackground');
 
   const chemistry = useChemistryCalculator();
   const { deleteCustomRecipe, forceRefresh } = useCustomRecipes();
@@ -94,22 +94,22 @@ export function RecipeDetail({
   const toast = useToast();
 
   // Get film and developer names
-  const filmName = film ? `${film.brand} ${film.name}` : "Unknown Film";
+  const filmName = film ? `${film.brand} ${film.name}` : 'Unknown Film';
   const developerName = developer
     ? `${developer.manufacturer} ${developer.name}`
-    : "Unknown Developer";
+    : 'Unknown Developer';
 
   // Get dilution info
   const dilutionInfo = formatDilution(
     combination.customDilution ||
       developer?.dilutions.find((d) => d.id === combination.dilutionId)
         ?.dilution ||
-      "Stock",
+      'Stock'
   );
 
   // Available dilutions for calculator
   const availableDilutions = useMemo(() => {
-    const dilutions = [{ label: "Stock", value: "Stock" }];
+    const dilutions = [{ label: 'Stock', value: 'Stock' }];
 
     if (developer?.dilutions) {
       developer.dilutions.forEach((d) => {
@@ -138,14 +138,14 @@ export function RecipeDetail({
   }, [showCalculator, chemistry, dilutionInfo]);
 
   const volumeUnits = [
-    { label: "Milliliters (ml)", value: "ml" },
-    { label: "Fluid Ounces (fl oz)", value: "oz" },
-    { label: "Number of Rolls", value: "rolls" },
+    { label: 'Milliliters (ml)', value: 'ml' },
+    { label: 'Fluid Ounces (fl oz)', value: 'oz' },
+    { label: 'Number of Rolls', value: 'rolls' },
   ];
 
   const filmFormats = [
-    { label: "35mm (300ml per roll)", value: "35mm" },
-    { label: "120 (500ml per roll)", value: "120" },
+    { label: '35mm (300ml per roll)', value: '35mm' },
+    { label: '120 (500ml per roll)', value: '120' },
   ];
 
   // Animation functions for bottom sheet
@@ -186,7 +186,7 @@ export function RecipeDetail({
   const performDeletion = async () => {
     if (!combination.id) return;
 
-    debugLog("[RecipeDetail] Starting delete operation");
+    debugLog('[RecipeDetail] Starting delete operation');
     setIsLoading(true);
 
     try {
@@ -197,7 +197,7 @@ export function RecipeDetail({
 
       // Show success toast
       toast.show({
-        placement: "top",
+        placement: 'top',
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="success" variant="solid">
             <ToastTitle>&quot;{recipeName}&quot; deleted.</ToastTitle>
@@ -211,15 +211,15 @@ export function RecipeDetail({
         onClose();
       }
     } catch (error) {
-      debugLog("[RecipeDetail] Delete operation failed:", error);
+      debugLog('[RecipeDetail] Delete operation failed:', error);
       const errorMessage =
         error instanceof Error
           ? `Failed to delete recipe: ${error.message}`
-          : "Failed to delete recipe";
+          : 'Failed to delete recipe';
 
       // Show error toast
       toast.show({
-        placement: "top",
+        placement: 'top',
         render: ({ id }) => (
           <Toast nativeID={`toast-${id}`} action="error" variant="solid">
             <ToastTitle>{errorMessage}</ToastTitle>
@@ -233,19 +233,19 @@ export function RecipeDetail({
 
   const handleDelete = async () => {
     showConfirmAlert(
-      "Delete Recipe",
-      "Are you sure you want to delete this recipe? This action cannot be undone.",
+      'Delete Recipe',
+      'Are you sure you want to delete this recipe? This action cannot be undone.',
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: performDeletion },
-      ],
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: performDeletion },
+      ]
     );
   };
 
   // Handle pan gesture for swipe down
   const onGestureEvent = Animated.event(
     [{ nativeEvent: { translationY: translateY } }],
-    { useNativeDriver: true },
+    { useNativeDriver: true }
   );
 
   const onHandlerStateChange = (event: any) => {
@@ -408,7 +408,9 @@ export function RecipeDetail({
               </Text>
               <Text style={[styles.pushPullValue, { color: developmentTint }]}>
                 {PUSH_PULL_LABELS[combination.pushPull] ||
-                  `${combination.pushPull > 0 ? "+" : ""}${combination.pushPull} stops`}
+                  `${combination.pushPull > 0 ? '+' : ''}${
+                    combination.pushPull
+                  } stops`}
               </Text>
             </Box>
           )}
@@ -445,16 +447,16 @@ export function RecipeDetail({
               </Text>
               <VStack space="xs">
                 <Text style={[styles.detailText, { color: textColor }]}>
-                  <Text style={{ fontWeight: "600" }}>ISO Speed:</Text>{" "}
+                  <Text style={{ fontWeight: '600' }}>ISO Speed:</Text>{' '}
                   {film.isoSpeed}
                 </Text>
                 <Text style={[styles.detailText, { color: textColor }]}>
-                  <Text style={{ fontWeight: "600" }}>Type:</Text>{" "}
+                  <Text style={{ fontWeight: '600' }}>Type:</Text>{' '}
                   {formatFilmType(film.colorType)}
                 </Text>
                 {film.grainStructure && (
                   <Text style={[styles.detailText, { color: textColor }]}>
-                    <Text style={{ fontWeight: "600" }}>Grain:</Text>{" "}
+                    <Text style={{ fontWeight: '600' }}>Grain:</Text>{' '}
                     {film.grainStructure}
                   </Text>
                 )}
@@ -470,22 +472,22 @@ export function RecipeDetail({
               </Text>
               <VStack space="xs">
                 <Text style={[styles.detailText, { color: textColor }]}>
-                  <Text style={{ fontWeight: "600" }}>Type:</Text>{" "}
+                  <Text style={{ fontWeight: '600' }}>Type:</Text>{' '}
                   {developer.type}
                 </Text>
                 <Text style={[styles.detailText, { color: textColor }]}>
-                  <Text style={{ fontWeight: "600" }}>For:</Text>{" "}
+                  <Text style={{ fontWeight: '600' }}>For:</Text>{' '}
                   {developer.filmOrPaper}
                 </Text>
                 {developer.workingLifeHours && (
                   <Text style={[styles.detailText, { color: textColor }]}>
-                    <Text style={{ fontWeight: "600" }}>Working Life:</Text>{" "}
+                    <Text style={{ fontWeight: '600' }}>Working Life:</Text>{' '}
                     {developer.workingLifeHours} hours
                   </Text>
                 )}
                 {developer.stockLifeMonths && (
                   <Text style={[styles.detailText, { color: textColor }]}>
-                    <Text style={{ fontWeight: "600" }}>Stock Life:</Text>{" "}
+                    <Text style={{ fontWeight: '600' }}>Stock Life:</Text>{' '}
                     {developer.stockLifeMonths} months
                   </Text>
                 )}
@@ -542,7 +544,7 @@ export function RecipeDetail({
                   />
                 </FormGroup>
 
-                {chemistry.unit === "rolls" ? (
+                {chemistry.unit === 'rolls' ? (
                   <>
                     <FormGroup label="Film Format">
                       <StyledSelect
@@ -569,7 +571,7 @@ export function RecipeDetail({
                     <TextInput
                       value={chemistry.totalVolume}
                       onChangeText={chemistry.setTotalVolume}
-                      placeholder={chemistry.unit === "ml" ? "500" : "16.9"}
+                      placeholder={chemistry.unit === 'ml' ? '500' : '16.9'}
                       keyboardType="numeric"
                       inputTitle={`Enter Total Volume (${chemistry.unit})`}
                     />
@@ -578,7 +580,7 @@ export function RecipeDetail({
 
                 <FormGroup label="Dilution Ratio">
                   <StyledSelect
-                    value={chemistry.selectedDilution || ""}
+                    value={chemistry.selectedDilution || ''}
                     onValueChange={(value) =>
                       chemistry.setSelectedDilution(value || null)
                     }
@@ -770,16 +772,16 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderRadius: 12,
-    overflow: "visible",
+    overflow: 'visible',
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     padding: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(0,0,0,0.1)",
+    borderBottomColor: 'rgba(0,0,0,0.1)',
   },
   headerContent: {
     flex: 1,
@@ -787,24 +789,24 @@ const styles = StyleSheet.create({
   },
   filmName: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     lineHeight: 24,
   },
   developerName: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
     lineHeight: 20,
   },
   headerActions: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   actionButton: {
     width: 32,
     height: 32,
     padding: 0,
     minHeight: 32,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   closeButton: {
     width: 32,
@@ -822,33 +824,33 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 12,
   },
   parametersGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
   },
   parameterCard: {
     flex: 1,
-    minWidth: "45%",
+    minWidth: '45%',
     padding: 12,
-    backgroundColor: "rgba(0,0,0,0.03)",
+    backgroundColor: 'rgba(0,0,0,0.03)',
     borderRadius: 8,
   },
   parameterLabel: {
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: '500',
     marginBottom: 4,
   },
   parameterValue: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   pushPullValue: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   detailText: {
     fontSize: 14,
@@ -858,14 +860,14 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   calculatorToggle: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   calculatorToggleText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   calculator: {
     marginTop: 16,
@@ -874,12 +876,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   calculatorHeader: {
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 12,
   },
   calculatorTitle: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   input: {
     borderRadius: 8,
@@ -892,39 +894,39 @@ const styles = StyleSheet.create({
   },
   resultsTitle: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
   },
   resultRow: {
-    justifyContent: "space-between",
-    alignItems: "center",
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   resultLabel: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   resultValue: {
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   errorContainer: {
     padding: 8,
-    backgroundColor: "rgba(255, 0, 0, 0.1)",
+    backgroundColor: 'rgba(255, 0, 0, 0.1)',
     borderRadius: 6,
   },
   errorText: {
     fontSize: 12,
-    color: "#d32f2f",
+    color: '#d32f2f',
   },
   resetButton: {
-    alignSelf: "center",
+    alignSelf: 'center',
   },
   resetButtonText: {
     fontSize: 12,
   },
   // Bottom Sheet Styles
   backdrop: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
@@ -933,40 +935,40 @@ const styles = StyleSheet.create({
   },
   backdropOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   bottomSheet: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    maxHeight: "85%",
+    maxHeight: '85%',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
     zIndex: 1001,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   bottomSheetHeader: {
     paddingTop: 8,
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(0,0,0,0.1)",
+    borderBottomColor: 'rgba(0,0,0,0.1)',
   },
   dragHandle: {
     width: 40,
     height: 4,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: 'rgba(0,0,0,0.3)',
     borderRadius: 2,
-    alignSelf: "center",
+    alignSelf: 'center',
     marginBottom: 12,
   },
   bottomSheetTitleContainer: {
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
   bottomSheetTitleContent: {
     flex: 1,
@@ -974,11 +976,11 @@ const styles = StyleSheet.create({
   },
   bottomSheetTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   bottomSheetSubtitle: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   bottomSheetScrollView: {
     flex: 1,

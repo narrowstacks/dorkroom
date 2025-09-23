@@ -97,7 +97,7 @@ export const FEATURE_FLAGS = getFeatureFlags();
  * @returns Whether the feature is enabled
  */
 export const isFeatureEnabled = <K extends keyof FeatureFlags>(
-  featureName: K,
+  featureName: K
 ): boolean => {
   return FEATURE_FLAGS[featureName];
 };
@@ -106,8 +106,8 @@ export const isFeatureEnabled = <K extends keyof FeatureFlags>(
  * Feature flag descriptions for documentation and debugging
  */
 export const FEATURE_FLAG_DESCRIPTIONS: Record<keyof FeatureFlags, string> = {
-  CUSTOM_RECIPE_SHARING: "Enable sharing of user-created custom recipes",
-  RECIPE_IMPORT: "Enable importing recipes from shared URLs",
+  CUSTOM_RECIPE_SHARING: 'Enable sharing of user-created custom recipes',
+  RECIPE_IMPORT: 'Enable importing recipes from shared URLs',
   ADVANCED_CHEMISTRY_CALCULATOR:
-    "Enable advanced chemistry calculation features",
+    'Enable advanced chemistry calculation features',
 };

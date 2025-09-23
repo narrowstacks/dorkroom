@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocalSearchParams, router } from "expo-router";
-import { Film, Developer, Combination } from "../api/dorkroom/types";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocalSearchParams, router } from 'expo-router';
+import { Film, Developer, Combination } from '../api/dorkroom/types';
 import {
   RecipeUrlParams,
   InitialUrlState,
   UrlValidationConfig,
   UrlValidationResult,
-} from "../types/urlTypes";
-import type { CustomRecipe } from "../types/customRecipeTypes";
-import { useCustomRecipeSharing } from "./useCustomRecipeSharing";
+} from '../types/urlTypes';
+import type { CustomRecipe } from '../types/customRecipeTypes';
+import { useCustomRecipeSharing } from './useCustomRecipeSharing';
 
 /**
  * Configuration for URL parameter validation
@@ -31,7 +31,7 @@ export const slugToFilm = (slug: string, films: Film[]): Film | null => {
  * Helper function to convert film object to slug
  */
 export const filmToSlug = (film: Film | null): string => {
-  return film?.slug || "";
+  return film?.slug || '';
 };
 
 /**
@@ -39,7 +39,7 @@ export const filmToSlug = (film: Film | null): string => {
  */
 export const slugToDeveloper = (
   slug: string,
-  developers: Developer[],
+  developers: Developer[]
 ): Developer | null => {
   if (!slug || !developers.length) return null;
   return developers.find((developer) => developer.slug === slug) || null;
@@ -49,14 +49,14 @@ export const slugToDeveloper = (
  * Helper function to convert developer object to slug
  */
 export const developerToSlug = (developer: Developer | null): string => {
-  return developer?.slug || "";
+  return developer?.slug || '';
 };
 
 /**
  * Validate and sanitize URL parameters
  */
 export const validateUrlParams = (
-  params: RecipeUrlParams,
+  params: RecipeUrlParams
 ): UrlValidationResult => {
   // Validation of URL parameters
   const errors: string[] = [];
@@ -65,22 +65,22 @@ export const validateUrlParams = (
   // Validate film slug
   if (params.film) {
     if (params.film.length > VALIDATION_CONFIG.maxSlugLength) {
-      errors.push("Film slug too long");
+      errors.push('Film slug too long');
     } else if (/^[a-z0-9-]+$/.test(params.film)) {
       sanitized.film = params.film;
     } else {
-      errors.push("Invalid film slug format");
+      errors.push('Invalid film slug format');
     }
   }
 
   // Validate developer slug
   if (params.developer) {
     if (params.developer.length > VALIDATION_CONFIG.maxSlugLength) {
-      errors.push("Developer slug too long");
+      errors.push('Developer slug too long');
     } else if (/^[a-z0-9-]+$/.test(params.developer)) {
       sanitized.developer = params.developer;
     } else {
-      errors.push("Invalid developer slug format");
+      errors.push('Invalid developer slug format');
     }
   }
 
@@ -92,7 +92,7 @@ export const validateUrlParams = (
       isoNum < VALIDATION_CONFIG.isoRange.min ||
       isoNum > VALIDATION_CONFIG.isoRange.max
     ) {
-      errors.push("Invalid ISO value");
+      errors.push('Invalid ISO value');
     } else {
       sanitized.iso = params.iso;
     }
@@ -101,12 +101,12 @@ export const validateUrlParams = (
   // Validate dilution
   if (params.dilution) {
     const isValidDilution = VALIDATION_CONFIG.dilutionPatterns.some((pattern) =>
-      pattern.test(params.dilution!),
+      pattern.test(params.dilution!)
     );
     if (isValidDilution) {
       sanitized.dilution = params.dilution;
     } else {
-      errors.push("Invalid dilution format");
+      errors.push('Invalid dilution format');
     }
   }
 
@@ -115,20 +115,20 @@ export const validateUrlParams = (
     // UUID or encoded data validation
     if (
       params.recipe.match(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       ) ||
       params.recipe.length > 20
     ) {
       // Assume encoded data if longer
       sanitized.recipe = params.recipe;
     } else {
-      errors.push("Invalid recipe format");
+      errors.push('Invalid recipe format');
     }
   }
 
   // Copy source parameter if present
-  if (params.source === "share") {
-    sanitized.source = "share";
+  if (params.source === 'share') {
+    sanitized.source = 'share';
   }
 
   const result = {
@@ -150,7 +150,7 @@ export interface EnhancedUrlState extends InitialUrlState {
   /** Shared custom recipe data if found */
   sharedCustomRecipe?: Omit<
     CustomRecipe,
-    "id" | "dateCreated" | "dateModified"
+    'id' | 'dateCreated' | 'dateModified'
   >;
   /** Loading state for recipe lookup */
   isLoadingSharedRecipe?: boolean;
@@ -174,7 +174,7 @@ export const useRecipeUrlState = (
     dilutionFilter: string;
     isoFilter: string;
   },
-  recipesByUuid?: Map<string, Combination>, // Optional recipe lookup map
+  recipesByUuid?: Map<string, Combination> // Optional recipe lookup map
 ) => {
   const params = useLocalSearchParams();
   const isInitializedRef = useRef(false);
@@ -184,11 +184,11 @@ export const useRecipeUrlState = (
   const [sharedRecipe, setSharedRecipe] = useState<Combination | null>(null);
   const [sharedCustomRecipe, setSharedCustomRecipe] = useState<Omit<
     CustomRecipe,
-    "id" | "dateCreated" | "dateModified"
+    'id' | 'dateCreated' | 'dateModified'
   > | null>(null);
   const [isLoadingSharedRecipe, setIsLoadingSharedRecipe] = useState(false);
   const [sharedRecipeError, setSharedRecipeError] = useState<string | null>(
-    null,
+    null
   );
 
   // Custom recipe sharing hooks
@@ -210,8 +210,8 @@ export const useRecipeUrlState = (
       // Check for URL parameters on re-initialization
       const hasValidParams = Object.keys(params).some(
         (key) =>
-          ["recipe", "film", "developer", "iso", "dilution"].includes(key) &&
-          params[key],
+          ['recipe', 'film', 'developer', 'iso', 'dilution'].includes(key) &&
+          params[key]
       );
       if (!hasValidParams) {
         // No valid URL params, skip processing
@@ -242,7 +242,7 @@ export const useRecipeUrlState = (
     if (validation.sanitized.developer) {
       const developer = slugToDeveloper(
         validation.sanitized.developer,
-        developers,
+        developers
       );
       if (developer) {
         state.selectedDeveloper = developer;
@@ -274,7 +274,7 @@ export const useRecipeUrlState = (
       // Handle shared recipe lookup
       const validation = validateUrlParams(params as RecipeUrlParams);
       const recipeId = validation.sanitized.recipe;
-      const isFromShare = validation.sanitized.source === "share";
+      const isFromShare = validation.sanitized.source === 'share';
 
       // Recipe lookup parameters prepared
 
@@ -305,7 +305,7 @@ export const useRecipeUrlState = (
             return;
           } else {
             // Failed to decode custom recipe
-            setSharedRecipeError("Invalid custom recipe data");
+            setSharedRecipeError('Invalid custom recipe data');
             setSharedRecipe(null);
             setSharedCustomRecipe(null);
             setIsLoadingSharedRecipe(false);
@@ -338,7 +338,7 @@ export const useRecipeUrlState = (
         // This would require an API call to fetch the recipe
         // For now, we'll just show an error if not found in the provided map
         setSharedRecipeError(
-          `Recipe with ID ${recipeId.substring(0, 20)}... not found`,
+          `Recipe with ID ${recipeId.substring(0, 20)}... not found`
         );
         setSharedRecipe(null);
         setSharedCustomRecipe(null);
@@ -346,7 +346,7 @@ export const useRecipeUrlState = (
         setSharedRecipeError(
           error instanceof Error
             ? error.message
-            : "Failed to load shared recipe",
+            : 'Failed to load shared recipe'
         );
         setSharedRecipe(null);
         setSharedCustomRecipe(null);
@@ -371,7 +371,7 @@ export const useRecipeUrlState = (
 
         // Only include non-empty parameters
         Object.entries(newParams).forEach(([key, value]) => {
-          if (value && value !== "") {
+          if (value && value !== '') {
             cleanParams[key as keyof RecipeUrlParams] = value as any;
           }
         });
@@ -430,11 +430,11 @@ export const useRecipeUrlState = (
     sharedRecipeError: sharedRecipeError || undefined,
     hasSharedRecipe:
       !!initialUrlState.recipeId &&
-      params.source === "share" &&
+      params.source === 'share' &&
       !sharedCustomRecipe,
     hasSharedCustomRecipe:
       !!initialUrlState.recipeId &&
-      params.source === "share" &&
+      params.source === 'share' &&
       !!sharedCustomRecipe,
   };
 

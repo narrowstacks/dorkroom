@@ -7,9 +7,9 @@
      - useWarningSystem: Debounced warning state management
 \* ------------------------------------------------------------------ */
 
-import { useEffect, useRef, useCallback } from "react";
-import { CALCULATION_CONSTANTS } from "@/constants/calculations";
-import type { BorderCalculatorState, WarningTimeouts } from "./types";
+import { useEffect, useRef, useCallback } from 'react';
+import { CALCULATION_CONSTANTS } from '@/constants/calculations';
+import type { BorderCalculatorState, WarningTimeouts } from './types';
 
 export const useWarningSystem = (
   state: BorderCalculatorState,
@@ -20,7 +20,7 @@ export const useWarningSystem = (
     minBorderWarning: string | null;
     paperSizeWarning: string | null;
     lastValidMinBorder: number;
-  },
+  }
 ) => {
   const warningTimeouts = useRef<WarningTimeouts>({
     offset: null,
@@ -34,7 +34,7 @@ export const useWarningSystem = (
       warningType: keyof WarningTimeouts,
       newValue: string | null,
       currentValue: string | null,
-      stateKey: keyof BorderCalculatorState,
+      stateKey: keyof BorderCalculatorState
     ) => {
       // Clear existing timeout
       if (warningTimeouts.current[warningType]) {
@@ -43,52 +43,52 @@ export const useWarningSystem = (
 
       // If warning is being cleared (newValue is null), update immediately
       if (newValue === null && currentValue !== null) {
-        dispatch({ type: "SET_FIELD", key: stateKey, value: null });
+        dispatch({ type: 'SET_FIELD', key: stateKey, value: null });
         return;
       }
 
       // If warning is appearing or changing, debounce it
       if (newValue !== currentValue) {
         warningTimeouts.current[warningType] = setTimeout(() => {
-          dispatch({ type: "SET_FIELD", key: stateKey, value: newValue });
+          dispatch({ type: 'SET_FIELD', key: stateKey, value: newValue });
         }, CALCULATION_CONSTANTS.DEBOUNCE_WARNING_DELAY);
       }
     },
-    [dispatch],
+    [dispatch]
   );
 
   useEffect(() => {
     // Handle each warning type with debouncing
     debouncedWarningUpdate(
-      "offset",
+      'offset',
       warnings.offsetWarning,
       state.offsetWarning,
-      "offsetWarning",
+      'offsetWarning'
     );
     debouncedWarningUpdate(
-      "blade",
+      'blade',
       warnings.bladeWarning,
       state.bladeWarning,
-      "bladeWarning",
+      'bladeWarning'
     );
     debouncedWarningUpdate(
-      "minBorder",
+      'minBorder',
       warnings.minBorderWarning,
       state.minBorderWarning,
-      "minBorderWarning",
+      'minBorderWarning'
     );
     debouncedWarningUpdate(
-      "paperSize",
+      'paperSize',
       warnings.paperSizeWarning,
       state.paperSizeWarning,
-      "paperSizeWarning",
+      'paperSizeWarning'
     );
 
     // Update lastValidMinBorder immediately (not a UI warning)
     if (warnings.lastValidMinBorder !== state.lastValidMinBorder) {
       dispatch({
-        type: "SET_FIELD",
-        key: "lastValidMinBorder",
+        type: 'SET_FIELD',
+        key: 'lastValidMinBorder',
         value: warnings.lastValidMinBorder,
       });
     }

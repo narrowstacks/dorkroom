@@ -1,16 +1,16 @@
-import React from "react";
-import { ScrollView } from "react-native";
-import { Box } from "@gluestack-ui/themed";
-import { TableHeader } from "@/components/ui/table/TableHeader";
-import { RecipeRow } from "@/components/development-recipes/RecipeRow";
-import type { Film, Developer, Combination } from "@/api/dorkroom/types";
-import type { CustomRecipe } from "@/types/customRecipeTypes";
+import React from 'react';
+import { ScrollView } from 'react-native';
+import { Box } from '@gluestack-ui/themed';
+import { TableHeader } from '@/components/ui/table/TableHeader';
+import { RecipeRow } from '@/components/development-recipes/RecipeRow';
+import type { Film, Developer, Combination } from '@/api/dorkroom/types';
+import type { CustomRecipe } from '@/types/customRecipeTypes';
 
 interface TableViewProps {
   paginatedCombinations: Combination[];
   customRecipes: CustomRecipe[];
   sortBy: string;
-  sortDirection: "asc" | "desc";
+  sortDirection: 'asc' | 'desc';
   onSort: (sortKey: string) => void;
   onRowPress: (combination: Combination, isCustom: boolean) => void;
   getFilmById: (filmId: string) => Film | undefined;
@@ -36,13 +36,13 @@ export function TableView({
       style={{
         flex: 1,
         borderRadius: 12,
-        overflow: "hidden",
-        backgroundColor: "transparent",
+        overflow: 'hidden',
+        backgroundColor: 'transparent',
       }}
     >
       <Box
         style={{
-          flexDirection: "row",
+          flexDirection: 'row',
           borderBottomWidth: 2,
           paddingVertical: 12,
           paddingHorizontal: 8,

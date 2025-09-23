@@ -14,9 +14,11 @@ interface CalculatorCardProps {
 }
 
 const accentBackgrounds: Record<Exclude<AccentTone, 'none'>, string> = {
-  emerald: 'bg-gradient-to-br from-emerald-400/25 via-emerald-500/10 to-transparent',
+  emerald:
+    'bg-gradient-to-br from-emerald-400/25 via-emerald-500/10 to-transparent',
   sky: 'bg-gradient-to-br from-sky-400/25 via-sky-500/10 to-transparent',
-  violet: 'bg-gradient-to-br from-violet-400/25 via-fuchsia-500/10 to-transparent',
+  violet:
+    'bg-gradient-to-br from-violet-400/25 via-fuchsia-500/10 to-transparent',
 };
 
 export function CalculatorCard({
@@ -59,7 +61,9 @@ export function CalculatorCard({
                 </div>
               )}
             </div>
-            {actions && <div className="flex items-start justify-end">{actions}</div>}
+            {actions && (
+              <div className="flex items-start justify-end">{actions}</div>
+            )}
           </header>
         )}
         <div className="flex flex-col gap-5">{children}</div>

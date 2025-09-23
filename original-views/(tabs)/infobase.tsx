@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { Platform, StyleSheet } from "react-native";
+import React, { useState, useMemo } from 'react';
+import { Platform, StyleSheet } from 'react-native';
 import {
   Box,
   Text,
@@ -8,40 +8,40 @@ import {
   Button,
   ButtonText,
   ButtonIcon,
-} from "@gluestack-ui/themed";
-import { Film, FlaskConical } from "lucide-react-native";
+} from '@gluestack-ui/themed';
+import { Film, FlaskConical } from 'lucide-react-native';
 
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
-import { useFilmsData } from "@/hooks/useFilmsData";
-import { useDevelopersData } from "@/hooks/useDevelopersData";
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
+import { useFilmsData } from '@/hooks/useFilmsData';
+import { useDevelopersData } from '@/hooks/useDevelopersData';
 
-import { InfobaseSearch } from "@/components/infobase/InfobaseSearch";
-import { InfobaseFilters } from "@/components/infobase/InfobaseFilters";
-import { InfobaseDesktopLayout } from "@/components/infobase/InfobaseDesktopLayout";
-import { InfobaseMobileLayout } from "@/components/infobase/InfobaseMobileLayout";
+import { InfobaseSearch } from '@/components/infobase/InfobaseSearch';
+import { InfobaseFilters } from '@/components/infobase/InfobaseFilters';
+import { InfobaseDesktopLayout } from '@/components/infobase/InfobaseDesktopLayout';
+import { InfobaseMobileLayout } from '@/components/infobase/InfobaseMobileLayout';
 
 import type {
   Film as FilmType,
   Developer as DeveloperType,
-} from "@/api/dorkroom/types";
+} from '@/api/dorkroom/types';
 
-type TabType = "films" | "developers";
+type TabType = 'films' | 'developers';
 
 export default function InfobaseScreen() {
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > 768;
+  const isDesktop = Platform.OS === 'web' && width > 768;
 
-  const [activeTab, setActiveTab] = useState<TabType>("films");
+  const [activeTab, setActiveTab] = useState<TabType>('films');
   const [selectedFilm, setSelectedFilm] = useState<FilmType | null>(null);
   const [selectedDeveloper, setSelectedDeveloper] =
     useState<DeveloperType | null>(null);
 
-  const backgroundColor = useThemeColor({}, "background");
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const borderColor = useThemeColor({}, "borderColor");
-  const infobaseTint = useThemeColor({}, "infobaseTint");
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const infobaseTint = useThemeColor({}, 'infobaseTint');
 
   // Films data management
   const {
@@ -83,22 +83,22 @@ export default function InfobaseScreen() {
   } = useDevelopersData();
 
   // Computed values for active tab
-  const isLoading = activeTab === "films" ? filmsLoading : developersLoading;
-  const error = activeTab === "films" ? filmsError : developersError;
+  const isLoading = activeTab === 'films' ? filmsLoading : developersLoading;
+  const error = activeTab === 'films' ? filmsError : developersError;
   const searchQuery =
-    activeTab === "films" ? filmSearchQuery : developerSearchQuery;
+    activeTab === 'films' ? filmSearchQuery : developerSearchQuery;
   const setSearchQuery =
-    activeTab === "films" ? setFilmSearchQuery : setDeveloperSearchQuery;
+    activeTab === 'films' ? setFilmSearchQuery : setDeveloperSearchQuery;
   const clearFilters =
-    activeTab === "films" ? clearFilmFilters : clearDeveloperFilters;
-  const forceRefresh = activeTab === "films" ? refreshFilms : refreshDevelopers;
+    activeTab === 'films' ? clearFilmFilters : clearDeveloperFilters;
+  const forceRefresh = activeTab === 'films' ? refreshFilms : refreshDevelopers;
 
   // Memoized data for performance
   const displayData = useMemo(() => {
-    return activeTab === "films" ? filteredFilms : filteredDevelopers;
+    return activeTab === 'films' ? filteredFilms : filteredDevelopers;
   }, [activeTab, filteredFilms, filteredDevelopers]);
 
-  const totalCount = activeTab === "films" ? totalFilms : totalDevelopers;
+  const totalCount = activeTab === 'films' ? totalFilms : totalDevelopers;
   const displayCount = displayData.length;
 
   const handleTabPress = (tab: TabType) => {
@@ -114,7 +114,7 @@ export default function InfobaseScreen() {
 
   const tabButtonStyle = (isActive: boolean) => ({
     flex: 1,
-    backgroundColor: isActive ? infobaseTint : "transparent",
+    backgroundColor: isActive ? infobaseTint : 'transparent',
     borderColor: infobaseTint,
     borderWidth: 1,
     borderRadius: isDesktop ? 12 : 8,
@@ -125,9 +125,9 @@ export default function InfobaseScreen() {
   });
 
   const tabTextStyle = (isActive: boolean) => ({
-    color: isActive ? "#fff" : infobaseTint,
+    color: isActive ? '#fff' : infobaseTint,
     fontSize: isDesktop ? 14 : 12,
-    fontWeight: "600" as const,
+    fontWeight: '600' as const,
     marginLeft: 6,
   });
 
@@ -147,21 +147,21 @@ export default function InfobaseScreen() {
         <Box style={[styles.tabContainer]}>
           <HStack space="xs" style={styles.tabRow}>
             <Button
-              style={tabButtonStyle(activeTab === "films")}
-              onPress={() => handleTabPress("films")}
+              style={tabButtonStyle(activeTab === 'films')}
+              onPress={() => handleTabPress('films')}
             >
               <ButtonIcon as={Film} size="sm" />
-              <ButtonText style={tabTextStyle(activeTab === "films")}>
+              <ButtonText style={tabTextStyle(activeTab === 'films')}>
                 Films ({totalFilms})
               </ButtonText>
             </Button>
 
             <Button
-              style={tabButtonStyle(activeTab === "developers")}
-              onPress={() => handleTabPress("developers")}
+              style={tabButtonStyle(activeTab === 'developers')}
+              onPress={() => handleTabPress('developers')}
             >
               <ButtonIcon as={FlaskConical} size="sm" />
-              <ButtonText style={tabTextStyle(activeTab === "developers")}>
+              <ButtonText style={tabTextStyle(activeTab === 'developers')}>
                 Developers ({totalDevelopers})
               </ButtonText>
             </Button>
@@ -174,18 +174,18 @@ export default function InfobaseScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder={`Search ${activeTab}...`}
-          onClear={() => setSearchQuery("")}
+          onClear={() => setSearchQuery('')}
         />
 
         <InfobaseFilters
           variant={activeTab}
           filmFilters={
-            activeTab === "films" ? { brandFilter, typeFilter } : undefined
+            activeTab === 'films' ? { brandFilter, typeFilter } : undefined
           }
           availableBrands={availableBrands}
           availableTypes={availableTypes}
           onFilmFiltersChange={
-            activeTab === "films"
+            activeTab === 'films'
               ? ({ brandFilter: brand, typeFilter: type }) => {
                   if (brand !== undefined) setBrandFilter(brand);
                   if (type !== undefined) setTypeFilter(type);
@@ -193,7 +193,7 @@ export default function InfobaseScreen() {
               : undefined
           }
           developerFilters={
-            activeTab === "developers"
+            activeTab === 'developers'
               ? {
                   manufacturerFilter,
                   typeFilter: developerTypeFilter,
@@ -205,7 +205,7 @@ export default function InfobaseScreen() {
           availableDeveloperTypes={availableDeveloperTypes}
           availableFilmOrPaper={availableFilmOrPaper}
           onDeveloperFiltersChange={
-            activeTab === "developers"
+            activeTab === 'developers'
               ? ({
                   manufacturerFilter: manufacturer,
                   typeFilter: type,
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "700",
+    fontWeight: '700',
     marginBottom: 4,
   },
   subtitle: {
@@ -278,12 +278,12 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   tabContainer: {
-    paddingVertical: Platform.OS === "web" ? 6 : 8,
-    marginBottom: Platform.OS === "ios" || Platform.OS === "android" ? 36 : 0,
+    paddingVertical: Platform.OS === 'web' ? 6 : 8,
+    marginBottom: Platform.OS === 'ios' || Platform.OS === 'android' ? 36 : 0,
   },
   tabRow: {
     flex: 1,
-    alignItems: "stretch",
+    alignItems: 'stretch',
   },
   searchContainer: {
     paddingHorizontal: 12,

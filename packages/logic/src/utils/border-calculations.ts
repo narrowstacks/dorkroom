@@ -4,35 +4,28 @@
    Geometry helpers adapted from the original border calculator
 \* ------------------------------------------------------------------ */
 
-import {
-  EASEL_SIZES,
-  BLADE_THICKNESS,
-} from '../constants/border-calculator';
+import { EASEL_SIZES, BLADE_THICKNESS } from '../constants/border-calculator';
 import {
   CALCULATION_CONSTANTS,
   DERIVED_CONSTANTS,
 } from '../constants/calculations';
 import { roundToStandardPrecision, createMemoKey } from './precision';
 
-const {
-  BORDER_OPTIMIZATION,
-  CACHE,
-  PAPER,
-} = CALCULATION_CONSTANTS;
+const { BORDER_OPTIMIZATION, CACHE, PAPER } = CALCULATION_CONSTANTS;
 
 /* ------------------------------------------------------------------ *
    Easel fitting helpers
  * ------------------------------------------------------------------ */
 
 const SORTED_EASEL_SIZES = [...EASEL_SIZES].sort(
-  (a, b) => a.width * a.height - b.width * b.height,
+  (a, b) => a.width * a.height - b.width * b.height
 );
 
 const exactMatchLookup = new Set(
   EASEL_SIZES.flatMap((e) => [
     `${e.width}x${e.height}`,
     `${e.height}x${e.width}`,
-  ]),
+  ])
 );
 
 const fitMemo = new Map<string, ReturnType<typeof computeFit>>();
@@ -47,7 +40,7 @@ function computeFit(paperW: number, paperH: number, landscape: boolean) {
     const easel = EASEL_SIZES.find(
       (e) =>
         (e.width === oriented.width && e.height === oriented.height) ||
-        (e.height === oriented.width && e.width === oriented.height),
+        (e.height === oriented.width && e.width === oriented.height)
     );
 
     if (easel) {
@@ -105,7 +98,7 @@ function computeFit(paperW: number, paperH: number, landscape: boolean) {
 export const findCenteringOffsets = (
   paperW: number,
   paperH: number,
-  landscape: boolean,
+  landscape: boolean
 ) => {
   const key = createMemoKey(paperW, paperH, landscape);
   let cached = fitMemo.get(key);
@@ -131,8 +124,9 @@ export const calculateBladeThickness = (paperW: number, paperH: number) => {
 
   const area = paperW * paperH;
   const scale = Math.min(
-    DERIVED_CONSTANTS.BASE_PAPER_AREA / Math.max(area, BORDER_OPTIMIZATION.EPSILON),
-    PAPER.MAX_SCALE_FACTOR,
+    DERIVED_CONSTANTS.BASE_PAPER_AREA /
+      Math.max(area, BORDER_OPTIMIZATION.EPSILON),
+    PAPER.MAX_SCALE_FACTOR
   );
 
   return Math.round(BLADE_THICKNESS * scale);
@@ -146,7 +140,7 @@ const computeBorders = (
   paperW: number,
   paperH: number,
   ratio: number,
-  minBorder: number,
+  minBorder: number
 ) => {
   const availableW = paperW - 2 * minBorder;
   const availableH = paperH - 2 * minBorder;
@@ -169,7 +163,7 @@ export const calculateOptimalMinBorder = (
   paperH: number,
   ratioW: number,
   ratioH: number,
-  start: number,
+  start: number
 ) => {
   if (ratioH === 0) return start;
 
@@ -181,7 +175,7 @@ export const calculateOptimalMinBorder = (
 
   const adaptiveStep = Math.max(
     BORDER_OPTIMIZATION.STEP,
-    (upper - lower) / BORDER_OPTIMIZATION.ADAPTIVE_STEP_DIVISOR,
+    (upper - lower) / BORDER_OPTIMIZATION.ADAPTIVE_STEP_DIVISOR
   );
 
   for (let candidate = lower; candidate <= upper; candidate += adaptiveStep) {
@@ -191,10 +185,7 @@ export const calculateOptimalMinBorder = (
     let score = 0;
     for (const border of borders) {
       const remainder = border % BORDER_OPTIMIZATION.SNAP;
-      score += Math.min(
-        remainder,
-        BORDER_OPTIMIZATION.SNAP - remainder,
-      );
+      score += Math.min(remainder, BORDER_OPTIMIZATION.SNAP - remainder);
       if (score >= bestScore) break;
     }
 
@@ -217,7 +208,7 @@ export const computePrintSize = (
   paperH: number,
   ratioW: number,
   ratioH: number,
-  minBorder: number,
+  minBorder: number
 ) => {
   if (ratioH <= 0 || paperW <= 0 || paperH <= 0 || minBorder < 0) {
     return { printW: 0, printH: 0 };
@@ -250,7 +241,7 @@ export const clampOffsets = (
   minBorder: number,
   horizontalOffset: number,
   verticalOffset: number,
-  ignoreMinBorder: boolean,
+  ignoreMinBorder: boolean
 ) => {
   const halfW = (paperW - printW) / 2;
   const halfH = (paperH - printH) / 2;
@@ -274,7 +265,7 @@ export const bordersFromGaps = (
   halfW: number,
   halfH: number,
   offsetH: number,
-  offsetV: number,
+  offsetV: number
 ) => ({
   left: halfW - offsetH,
   right: halfW + offsetH,
@@ -286,7 +277,7 @@ export const bladeReadings = (
   printW: number,
   printH: number,
   shiftX: number,
-  shiftY: number,
+  shiftY: number
 ) => ({
   left: printW - 2 * shiftX,
   right: printW + 2 * shiftX,
@@ -300,7 +291,7 @@ export const validatePrintFits = (
   printW: number,
   printH: number,
   offsetH: number,
-  offsetV: number,
+  offsetV: number
 ) => {
   const halfW = (paperW - printW) / 2;
   const halfH = (paperH - printH) / 2;

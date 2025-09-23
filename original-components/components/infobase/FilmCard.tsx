@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Platform, StyleSheet, TouchableOpacity, Image } from "react-native";
+import React, { useState } from 'react';
+import { Platform, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import {
   Box,
   Text,
@@ -7,7 +7,7 @@ import {
   VStack,
   Badge,
   BadgeText,
-} from "@gluestack-ui/themed";
+} from '@gluestack-ui/themed';
 import {
   Camera,
   Calendar,
@@ -16,42 +16,42 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
-} from "lucide-react-native";
-import type { Film } from "@/api/dorkroom/types";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
+} from 'lucide-react-native';
+import type { Film } from '@/api/dorkroom/types';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 import {
   getBrandKey,
   getFilmTypeColor,
   getContrastingTextColor,
-} from "@/constants/brands";
-import { Colors } from "@/constants/Colors";
-import { formatFilmType } from "@/utils/filmTypeFormatter";
+} from '@/constants/brands';
+import { Colors } from '@/constants/Colors';
+import { formatFilmType } from '@/utils/filmTypeFormatter';
 
 interface FilmCardProps {
   film: Film;
   onPress?: (film: Film) => void;
-  variant?: "default" | "compact";
+  variant?: 'default' | 'compact';
 }
 
 export function FilmCard({
   film,
   onPress,
-  variant = "default",
+  variant = 'default',
 }: FilmCardProps) {
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > 768;
+  const isDesktop = Platform.OS === 'web' && width > 768;
   const [showNotes, setShowNotes] = useState(false);
 
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const borderColor = useThemeColor({}, "borderColor");
-  const shadowColor = useThemeColor({}, "shadowColor");
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const shadowColor = useThemeColor({}, 'shadowColor');
 
   // Get brand color from theme
   const colorScheme =
-    useThemeColor({}, "background") === "#fff" ? "light" : "dark";
+    useThemeColor({}, 'background') === '#fff' ? 'light' : 'dark';
   const brandKey = getBrandKey(film.brand);
   const brandColorKey = `${brandKey}BrandColor` as keyof typeof Colors.light;
   const brandColor =
@@ -73,14 +73,14 @@ export function FilmCard({
     shadowColor,
     borderWidth: 1,
     borderRadius: 12,
-    padding: variant === "compact" ? 12 : 16,
+    padding: variant === 'compact' ? 12 : 16,
     marginBottom: 12,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
     ...(isDesktop && {
-      maxWidth: variant === "compact" ? 280 : 320,
+      maxWidth: variant === 'compact' ? 280 : 320,
     }),
   };
 
@@ -88,7 +88,7 @@ export function FilmCard({
     try {
       return new Date(dateString).toLocaleDateString();
     } catch {
-      return "N/A";
+      return 'N/A';
     }
   };
 
@@ -96,7 +96,7 @@ export function FilmCard({
     // Handle both camelCase and snake_case
     const isoValue = iso || film.iso_speed || film.isoSpeed;
     if (isoValue === undefined || isoValue === null || Number.isNaN(isoValue))
-      return "N/A";
+      return 'N/A';
     return isoValue.toString();
   };
 
@@ -136,7 +136,7 @@ export function FilmCard({
         </Text>
         {film.discontinued === 1 && (
           <Badge
-            style={[styles.discontinuedBadge, { backgroundColor: "#ff6b6b" }]}
+            style={[styles.discontinuedBadge, { backgroundColor: '#ff6b6b' }]}
           >
             <AlertTriangle size={12} color="#fff" />
             <BadgeText style={styles.discontinuedText}>Discontinued</BadgeText>
@@ -163,7 +163,7 @@ export function FilmCard({
         </HStack>
 
         {/* Description */}
-        {film.description && variant !== "compact" && (
+        {film.description && variant !== 'compact' && (
           <Text
             style={[styles.description, { color: textSecondary }]}
             numberOfLines={2}
@@ -173,7 +173,7 @@ export function FilmCard({
         )}
 
         {/* Additional Details */}
-        {variant !== "compact" && (
+        {variant !== 'compact' && (
           <VStack space="xs">
             {/* Grain Structure */}
             {(film.grain_structure || film.grainStructure) && (
@@ -194,7 +194,7 @@ export function FilmCard({
                 <Text
                   style={[styles.smallDetailText, { color: textSecondary }]}
                 >
-                  Reciprocity:{" "}
+                  Reciprocity:{' '}
                   {film.reciprocity_failure || film.reciprocityFailure}s
                 </Text>
               </HStack>
@@ -221,12 +221,12 @@ export function FilmCard({
             >
               <HStack space="xs" alignItems="center">
                 <Text style={[styles.notesCount, { color: textSecondary }]}>
-                  {(film.manufacturer_notes || film.manufacturerNotes).length}{" "}
+                  {(film.manufacturer_notes || film.manufacturerNotes).length}{' '}
                   note
                   {(film.manufacturer_notes || film.manufacturerNotes)
                     .length !== 1
-                    ? "s"
-                    : ""}
+                    ? 's'
+                    : ''}
                 </Text>
                 {showNotes ? (
                   <ChevronUp size={14} color={textSecondary} />
@@ -246,7 +246,7 @@ export function FilmCard({
                     >
                       • {note}
                     </Text>
-                  ),
+                  )
                 )}
               </VStack>
             )}
@@ -258,16 +258,16 @@ export function FilmCard({
 
 const styles = StyleSheet.create({
   imageContainer: {
-    width: "100%",
+    width: '100%',
     height: 120,
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 12,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   filmImage: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
   },
   nameContainer: {
     marginBottom: 8,
@@ -280,25 +280,25 @@ const styles = StyleSheet.create({
   },
   brandText: {
     fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   discontinuedBadge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 4,
   },
   discontinuedText: {
     fontSize: 10,
-    fontWeight: "500",
-    color: "#fff",
+    fontWeight: '500',
+    color: '#fff',
   },
   filmName: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
     lineHeight: 20,
     flex: 1,
   },
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   typeBadge: {
     paddingHorizontal: 6,
@@ -316,8 +316,8 @@ const styles = StyleSheet.create({
   },
   typeText: {
     fontSize: 11,
-    fontWeight: "500",
-    textTransform: "capitalize",
+    fontWeight: '500',
+    textTransform: 'capitalize',
   },
   description: {
     fontSize: 12,
@@ -326,20 +326,20 @@ const styles = StyleSheet.create({
   },
   smallDetailText: {
     fontSize: 11,
-    fontWeight: "400",
+    fontWeight: '400',
   },
   notesSection: {
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.1)",
+    borderTopColor: 'rgba(0,0,0,0.1)',
   },
   notesToggle: {
     paddingVertical: 4,
   },
   notesCount: {
     fontSize: 11,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   notesList: {
     paddingLeft: 8,

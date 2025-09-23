@@ -4,4 +4,4 @@
 // - index.native.tsx for native platforms (iOS/Android)
 
 // Import and re-export the native version as the default fallback
-export { default } from "./index.native";
+export { default } from './index.native';

@@ -1,9 +1,9 @@
-import { useMemo } from "react";
+import { useMemo } from 'react';
 import {
   FEATURE_FLAGS,
   isFeatureEnabled,
   type FeatureFlags,
-} from "@/constants/featureFlags";
+} from '@/constants/featureFlags';
 
 /**
  * Hook for accessing feature flags throughout the application
@@ -42,7 +42,7 @@ export const useFeatureFlags = () => {
       <K extends keyof FeatureFlags>(featureName: K): boolean => {
         return isFeatureEnabled(featureName);
       },
-    [],
+    []
   );
 
   /**
@@ -51,7 +51,7 @@ export const useFeatureFlags = () => {
    */
   const isCustomRecipeSharingEnabled = useMemo(
     () => flags.CUSTOM_RECIPE_SHARING,
-    [flags.CUSTOM_RECIPE_SHARING],
+    [flags.CUSTOM_RECIPE_SHARING]
   );
 
   /**
@@ -60,7 +60,7 @@ export const useFeatureFlags = () => {
    */
   const isRecipeImportEnabled = useMemo(
     () => flags.RECIPE_IMPORT,
-    [flags.RECIPE_IMPORT],
+    [flags.RECIPE_IMPORT]
   );
 
   /**
@@ -69,7 +69,7 @@ export const useFeatureFlags = () => {
    */
   const isAdvancedChemistryCalculatorEnabled = useMemo(
     () => flags.ADVANCED_CHEMISTRY_CALCULATOR,
-    [flags.ADVANCED_CHEMISTRY_CALCULATOR],
+    [flags.ADVANCED_CHEMISTRY_CALCULATOR]
   );
 
   return {

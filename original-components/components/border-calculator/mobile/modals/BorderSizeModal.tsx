@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Modal,
   ModalBackdrop,
@@ -15,16 +15,16 @@ import {
   HStack,
   VStack,
   Text,
-} from "@gluestack-ui/themed";
-import { LabeledSliderInput } from "@/components/ui/forms";
-import { WarningAlert } from "@/components/ui/feedback";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from '@gluestack-ui/themed';
+import { LabeledSliderInput } from '@/components/ui/forms';
+import { WarningAlert } from '@/components/ui/feedback';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import {
   SLIDER_MIN_BORDER,
   SLIDER_MAX_BORDER,
   SLIDER_STEP_BORDER,
   BORDER_SLIDER_LABELS,
-} from "@/constants/borderCalc";
+} from '@/constants/borderCalc';
 
 interface BorderSizeModalProps {
   isVisible: boolean;
@@ -41,9 +41,9 @@ export const BorderSizeModal: React.FC<BorderSizeModalProps> = ({
   setMinBorder,
   minBorderWarning,
 }) => {
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "icon");
-  const tintColor = useThemeColor({}, "tint");
+  const textColor = useThemeColor({}, 'text');
+  const borderColor = useThemeColor({}, 'icon');
+  const tintColor = useThemeColor({}, 'tint');
 
   return (
     <Modal isOpen={isVisible} onClose={onClose} size="lg">
@@ -59,7 +59,7 @@ export const BorderSizeModal: React.FC<BorderSizeModalProps> = ({
         <ModalBody>
           <VStack space="lg">
             <Text
-              style={{ fontSize: 16, color: textColor, textAlign: "center" }}
+              style={{ fontSize: 16, color: textColor, textAlign: 'center' }}
             >
               Set the minimum border size for your print
             </Text>
@@ -88,7 +88,7 @@ export const BorderSizeModal: React.FC<BorderSizeModalProps> = ({
         </ModalBody>
 
         <ModalFooter>
-          <HStack space="md" style={{ justifyContent: "flex-end" }}>
+          <HStack space="md" style={{ justifyContent: 'flex-end' }}>
             <Button
               variant="outline"
               size="sm"

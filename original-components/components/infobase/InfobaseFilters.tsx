@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { StyleSheet, TouchableOpacity, Text as RNText } from "react-native";
+import React, { useState } from 'react';
+import { StyleSheet, TouchableOpacity, Text as RNText } from 'react-native';
 import {
   Box,
   HStack,
@@ -9,10 +9,10 @@ import {
   Button,
   ButtonText,
   ButtonIcon,
-} from "@gluestack-ui/themed";
-import { ChevronDown, ChevronUp, Filter, X } from "lucide-react-native";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { ThemedSelect } from "@/components/ui/select/ThemedSelect";
+} from '@gluestack-ui/themed';
+import { ChevronDown, ChevronUp, Filter, X } from 'lucide-react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { ThemedSelect } from '@/components/ui/select/ThemedSelect';
 
 export interface FilmFilters {
   brandFilter: string;
@@ -26,7 +26,7 @@ export interface DeveloperFilters {
 }
 
 interface InfobaseFiltersProps {
-  variant: "films" | "developers";
+  variant: 'films' | 'developers';
 
   // Film props
   filmFilters?: FilmFilters;
@@ -62,19 +62,19 @@ export function InfobaseFilters({
 }: InfobaseFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const textColor = useThemeColor({}, "text");
-  const textSecondary = useThemeColor({}, "textSecondary");
-  const borderColor = useThemeColor({}, "borderColor");
-  const infobaseTint = useThemeColor({}, "infobaseTint");
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const infobaseTint = useThemeColor({}, 'infobaseTint');
 
   // Count active filters
   const getActiveFiltersCount = () => {
-    if (variant === "films" && filmFilters) {
+    if (variant === 'films' && filmFilters) {
       return [filmFilters.brandFilter, filmFilters.typeFilter].filter(Boolean)
         .length;
     }
-    if (variant === "developers" && developerFilters) {
+    if (variant === 'developers' && developerFilters) {
       return [
         developerFilters.manufacturerFilter,
         developerFilters.typeFilter,
@@ -116,7 +116,7 @@ export function InfobaseFilters({
               onValueChange={(value) =>
                 onFilmFiltersChange({ brandFilter: value })
               }
-              items={[{ label: "All Brands", value: "" }, ...brandItems]}
+              items={[{ label: 'All Brands', value: '' }, ...brandItems]}
               placeholder="All Brands"
             />
           </Box>
@@ -128,7 +128,7 @@ export function InfobaseFilters({
               onValueChange={(value) =>
                 onFilmFiltersChange({ typeFilter: value })
               }
-              items={[{ label: "All Types", value: "" }, ...typeItems]}
+              items={[{ label: 'All Types', value: '' }, ...typeItems]}
               placeholder="All Types"
             />
           </Box>
@@ -169,7 +169,7 @@ export function InfobaseFilters({
                 onDeveloperFiltersChange({ manufacturerFilter: value })
               }
               items={[
-                { label: "All Manufacturers", value: "" },
+                { label: 'All Manufacturers', value: '' },
                 ...manufacturerItems,
               ]}
               placeholder="All Manufacturers"
@@ -183,7 +183,7 @@ export function InfobaseFilters({
               onValueChange={(value) =>
                 onDeveloperFiltersChange({ typeFilter: value })
               }
-              items={[{ label: "All Types", value: "" }, ...typeItems]}
+              items={[{ label: 'All Types', value: '' }, ...typeItems]}
               placeholder="All Types"
             />
           </Box>
@@ -196,7 +196,7 @@ export function InfobaseFilters({
             onValueChange={(value) =>
               onDeveloperFiltersChange({ filmOrPaperFilter: value })
             }
-            items={[{ label: "Film & Paper", value: "" }, ...filmOrPaperItems]}
+            items={[{ label: 'Film & Paper', value: '' }, ...filmOrPaperItems]}
             placeholder="Film & Paper"
           />
         </Box>
@@ -245,7 +245,7 @@ export function InfobaseFilters({
       {/* Filter Content */}
       {isExpanded && (
         <VStack space="md" style={styles.filterContent}>
-          {variant === "films" ? renderFilmFilters() : renderDeveloperFilters()}
+          {variant === 'films' ? renderFilmFilters() : renderDeveloperFilters()}
 
           {/* Clear Filters Button */}
           {activeFiltersCount > 0 && (
@@ -281,19 +281,19 @@ const styles = StyleSheet.create({
   },
   filterTitle: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   activeFiltersBadge: {
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 2,
     minWidth: 20,
-    alignItems: "center",
+    alignItems: 'center',
   },
   activeFiltersText: {
     fontSize: 12,
-    fontWeight: "600",
-    color: "#fff",
+    fontWeight: '600',
+    color: '#fff',
   },
   spacer: {
     flex: 1,
@@ -302,16 +302,16 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.1)",
+    borderTopColor: 'rgba(0,0,0,0.1)',
   },
   filterRow: {
-    flexWrap: "wrap",
+    flexWrap: 'wrap',
   },
   filterItem: {
     minWidth: 200,
   },
   clearButton: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     marginTop: 8,
     borderRadius: 12,
   },

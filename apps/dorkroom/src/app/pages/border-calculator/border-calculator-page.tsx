@@ -103,7 +103,10 @@ export default function BorderCalculatorPage() {
   // Sharing state
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isSaveBeforeShareOpen, setIsSaveBeforeShareOpen] = useState(false);
-  const [shareUrls, setShareUrls] = useState<{ webUrl: string; nativeUrl: string } | null>(null);
+  const [shareUrls, setShareUrls] = useState<{
+    webUrl: string;
+    nativeUrl: string;
+  } | null>(null);
   const [isGeneratingShareUrl, setIsGeneratingShareUrl] = useState(false);
 
   const currentSettings = useMemo(
@@ -142,7 +145,13 @@ export default function BorderCalculatorPage() {
   );
 
   // Sharing hooks
-  const { sharePreset, getSharingUrls, canShareNatively, canCopyToClipboard, isSharing } = usePresetSharing({
+  const {
+    sharePreset,
+    getSharingUrls,
+    canShareNatively,
+    canCopyToClipboard,
+    isSharing,
+  } = usePresetSharing({
     onShareSuccess: (result) => {
       if (result.method === 'clipboard') {
         // Show success toast for clipboard copy
@@ -229,7 +238,10 @@ export default function BorderCalculatorPage() {
 
       if (matchedPreset) {
         // If it's a saved preset, share it directly
-        const urls = getSharingUrls({ name: matchedPreset.name, settings: currentSettings });
+        const urls = getSharingUrls({
+          name: matchedPreset.name,
+          settings: currentSettings,
+        });
         if (urls) {
           setShareUrls(urls);
           setIsShareModalOpen(true);
@@ -243,7 +255,10 @@ export default function BorderCalculatorPage() {
         // If not saved, check if user has a preset name already entered
         if (presetName.trim()) {
           // User has entered a name, generate URLs and share directly
-          const urls = getSharingUrls({ name: presetName.trim(), settings: currentSettings });
+          const urls = getSharingUrls({
+            name: presetName.trim(),
+            settings: currentSettings,
+          });
           if (urls) {
             setShareUrls(urls);
             setIsShareModalOpen(true);
@@ -331,7 +346,12 @@ export default function BorderCalculatorPage() {
 
   // If not desktop, use mobile UI
   if (!isDesktop) {
-    return <MobileBorderCalculator loadedPresetFromUrl={loadedPreset} clearLoadedPreset={clearLoadedPreset} />;
+    return (
+      <MobileBorderCalculator
+        loadedPresetFromUrl={loadedPreset}
+        clearLoadedPreset={clearLoadedPreset}
+      />
+    );
   }
 
   return (
@@ -477,9 +497,24 @@ export default function BorderCalculatorPage() {
                   title="Share preset"
                 >
                   {isGeneratingShareUrl ? (
-                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                   ) : (
                     <Share2 className="h-4 w-4" />

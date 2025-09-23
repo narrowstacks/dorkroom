@@ -7,13 +7,13 @@
      - useBorderCalculator: Main hook that composes all functionality
 \* ------------------------------------------------------------------ */
 
-import type { BorderCalculation } from "@/types/borderTypes";
-import { useBorderCalculatorState } from "./useBorderCalculatorState";
-import { useDimensionCalculations } from "./useDimensionCalculations";
-import { useGeometryCalculations } from "./useGeometryCalculations";
-import { useWarningSystem } from "./useWarningSystem";
-import { useImageHandling } from "./useImageHandling";
-import { useInputHandlers } from "./useInputHandlers";
+import type { BorderCalculation } from '@/types/borderTypes';
+import { useBorderCalculatorState } from './useBorderCalculatorState';
+import { useDimensionCalculations } from './useDimensionCalculations';
+import { useGeometryCalculations } from './useGeometryCalculations';
+import { useWarningSystem } from './useWarningSystem';
+import { useImageHandling } from './useImageHandling';
+import { useInputHandlers } from './useInputHandlers';
 
 export const useBorderCalculator = () => {
   // Core state management
@@ -29,7 +29,7 @@ export const useBorderCalculator = () => {
     orientedDimensions,
     minBorderData,
     paperEntry,
-    paperSizeWarning,
+    paperSizeWarning
   );
 
   // Warning system management
@@ -120,11 +120,11 @@ export const useBorderCalculator = () => {
 export default useBorderCalculator;
 
 // Re-export sub-hooks for testing or advanced usage
-export { useBorderCalculatorState } from "./useBorderCalculatorState";
-export { useDimensionCalculations } from "./useDimensionCalculations";
-export { useGeometryCalculations } from "./useGeometryCalculations";
-export { useWarningSystem } from "./useWarningSystem";
-export { useImageHandling } from "./useImageHandling";
-export { useInputHandlers } from "./useInputHandlers";
-export { useBorderPresets } from "./useBorderPresets";
-export * from "./types";
+export { useBorderCalculatorState } from './useBorderCalculatorState';
+export { useDimensionCalculations } from './useDimensionCalculations';
+export { useGeometryCalculations } from './useGeometryCalculations';
+export { useWarningSystem } from './useWarningSystem';
+export { useImageHandling } from './useImageHandling';
+export { useInputHandlers } from './useInputHandlers';
+export { useBorderPresets } from './useBorderPresets';
+export * from './types';

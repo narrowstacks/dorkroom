@@ -1,8 +1,8 @@
-import React from "react";
-import { TouchableOpacity } from "react-native";
-import { Box, HStack, Text } from "@gluestack-ui/themed";
-import { ChevronRight } from "lucide-react-native";
-import { useThemeColor } from "@/hooks/useThemeColor";
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
+import { Box, HStack, Text } from '@gluestack-ui/themed';
+import { ChevronRight } from 'lucide-react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface SettingsButtonProps {
   label?: string | null;
@@ -21,10 +21,10 @@ export const SettingsButton: React.FC<SettingsButtonProps> = ({
   showChevron = true,
   centerLabel = false,
 }) => {
-  const cardBackground = useThemeColor({}, "cardBackground");
-  const textColor = useThemeColor({}, "text");
-  const outline = useThemeColor({}, "outline");
-  const tintColor = useThemeColor({}, "tint");
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textColor = useThemeColor({}, 'text');
+  const outline = useThemeColor({}, 'outline');
+  const tintColor = useThemeColor({}, 'tint');
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
@@ -37,15 +37,15 @@ export const SettingsButton: React.FC<SettingsButtonProps> = ({
           padding: 16,
           marginBottom: 12,
           minHeight: 56,
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         <HStack
           style={{
-            justifyContent: "space-between",
-            alignItems: "center",
-            width: "100%",
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: '100%',
           }}
         >
           {/* Left side - Icon */}
@@ -62,17 +62,17 @@ export const SettingsButton: React.FC<SettingsButtonProps> = ({
             style={{
               flex: 1,
               paddingHorizontal: centerLabel ? 0 : 8,
-              justifyContent: centerLabel ? "center" : "space-between",
-              alignItems: "center",
+              justifyContent: centerLabel ? 'center' : 'space-between',
+              alignItems: 'center',
             }}
           >
             {label && (
               <Text
                 style={{
                   fontSize: 16,
-                  fontWeight: "500",
+                  fontWeight: '500',
                   color: textColor,
-                  textAlign: centerLabel ? "center" : "left",
+                  textAlign: centerLabel ? 'center' : 'left',
                   lineHeight: 20,
                   flex: centerLabel ? 1 : 1,
                   flexShrink: 1,
@@ -88,8 +88,8 @@ export const SettingsButton: React.FC<SettingsButtonProps> = ({
                 style={{
                   fontSize: 14,
                   color: tintColor,
-                  fontWeight: "500",
-                  textAlign: "right",
+                  fontWeight: '500',
+                  textAlign: 'right',
                   lineHeight: 16,
                   marginLeft: 8,
                   flexShrink: 0,

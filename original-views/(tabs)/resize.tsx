@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Text,
   Link,
@@ -12,22 +12,22 @@ import {
   FormControl,
   FormControlLabel,
   FormControlLabelText,
-} from "@gluestack-ui/themed";
-import { useResizeCalculator } from "@/hooks/useResizeCalculator";
-import { NumberInput } from "@/components/ui/forms/NumberInput";
-import { CalculatorLayout } from "@/components/ui/layout/CalculatorLayout";
+} from '@gluestack-ui/themed';
+import { useResizeCalculator } from '@/hooks/useResizeCalculator';
+import { NumberInput } from '@/components/ui/forms/NumberInput';
+import { CalculatorLayout } from '@/components/ui/layout/CalculatorLayout';
 import {
   ResultsSection,
   ResultRow,
-} from "@/components/ui/calculator/ResultsSection";
-import { FormSection, FormGroup } from "@/components/ui/forms/FormSection";
+} from '@/components/ui/calculator/ResultsSection';
+import { FormSection, FormGroup } from '@/components/ui/forms/FormSection';
 import {
   InfoSection,
   InfoText,
   InfoSubtitle,
   InfoList,
   InfoFormula,
-} from "@/components/ui/calculator/InfoSection";
+} from '@/components/ui/calculator/InfoSection';
 
 // --- Helper Components ---
 
@@ -115,29 +115,29 @@ const DimensionInputGroup = ({
 );
 
 const HOW_TO_USE_PRINT = [
-  "1. Choose your calculation method: Print Size or Enlarger Height",
-  "2. Print size is easier to use, but enlarger height is more accurate",
-  "3. Enter the width and height of your original print",
-  "4. Enter the width and height of your desired new print size",
-  "5. Enter the original exposure time in seconds",
-  "6. The new exposure time will be calculated automatically",
+  '1. Choose your calculation method: Print Size or Enlarger Height',
+  '2. Print size is easier to use, but enlarger height is more accurate',
+  '3. Enter the width and height of your original print',
+  '4. Enter the width and height of your desired new print size',
+  '5. Enter the original exposure time in seconds',
+  '6. The new exposure time will be calculated automatically',
 ];
 
 const HOW_TO_USE_ENLARGER = [
-  "1. Choose your calculation method: Print Size or Enlarger Height",
-  "2. Print size is easier to use, but enlarger height is more accurate",
-  "3. Enter the original and new enlarger heights (lens to paper distance)",
-  "4. Enter the original exposure time in seconds",
-  "5. The new exposure time will be calculated automatically",
+  '1. Choose your calculation method: Print Size or Enlarger Height',
+  '2. Print size is easier to use, but enlarger height is more accurate',
+  '3. Enter the original and new enlarger heights (lens to paper distance)',
+  '4. Enter the original exposure time in seconds',
+  '5. The new exposure time will be calculated automatically',
 ];
 
 const TIPS = [
-  "• The results should only be treated as a best-guess estimate",
-  "• Always make a test strip when resizing prints!",
+  '• The results should only be treated as a best-guess estimate',
+  '• Always make a test strip when resizing prints!',
   '• The "stops difference" shows exposure change in photographic stops',
-  "• Positive stops = more exposure needed (larger print)",
-  "• Negative stops = less exposure needed (smaller print)",
-  "• Enlarger height method is more accurate when properly calibrated",
+  '• Positive stops = more exposure needed (larger print)',
+  '• Negative stops = less exposure needed (smaller print)',
+  '• Enlarger height method is more accurate when properly calibrated',
 ];
 
 const InfoSectionContent = ({
@@ -146,7 +146,7 @@ const InfoSectionContent = ({
   isEnlargerHeightMode: boolean;
 }) => {
   const inverseSquareLawUrl =
-    "https://en.wikipedia.org/wiki/Inverse-square_law";
+    'https://en.wikipedia.org/wiki/Inverse-square_law';
 
   return (
     <InfoSection title="About This Tool">
@@ -163,7 +163,7 @@ const InfoSectionContent = ({
       <InfoSubtitle>How It Works:</InfoSubtitle>
       <InfoText>
         When you change the size of a print, the light is spread across a
-        different area, affecting the exposure needed. This is caused by the{" "}
+        different area, affecting the exposure needed. This is caused by the{' '}
         <Link href={inverseSquareLawUrl} isExternal>
           <LinkText>inverse-square law</LinkText>
         </Link>
@@ -174,8 +174,8 @@ const InfoSectionContent = ({
 
       <InfoFormula>
         {isEnlargerHeightMode
-          ? "New Time = Original Time × (New Height)² ÷ (Original Height)²"
-          : "New Time = Original Time × (New Area ÷ Original Area)"}
+          ? 'New Time = Original Time × (New Height)² ÷ (Original Height)²'
+          : 'New Time = Original Time × (New Area ÷ Original Area)'}
       </InfoFormula>
 
       <InfoSubtitle>Tips:</InfoSubtitle>

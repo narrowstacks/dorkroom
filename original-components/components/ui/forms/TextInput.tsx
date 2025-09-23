@@ -1,16 +1,16 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from 'react';
 import {
   TextInput as RNTextInput,
   TextInputProps as RNTextInputProps,
-} from "react-native";
-import { Input, InputField } from "@gluestack-ui/themed";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from 'react-native';
+import { Input, InputField } from '@gluestack-ui/themed';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import {
   useMobileInputDetection,
   MobileInputTrigger,
   MobileInputModal,
   modalInputStyles,
-} from "./MobileInputShared";
+} from './MobileInputShared';
 
 interface TextInputProps extends RNTextInputProps {
   value: string;
@@ -18,27 +18,27 @@ interface TextInputProps extends RNTextInputProps {
   placeholder: string;
   inputTitle?: string; // Custom title for the modal
   maxLength?: number; // Maximum text length
-  autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   autoCorrect?: boolean;
-  keyboardType?: "default" | "email-address" | "numeric" | "phone-pad" | "url";
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'url';
 }
 
 export const TextInput = ({
   value,
   onChangeText,
   placeholder,
-  inputTitle = "Enter Text",
+  inputTitle = 'Enter Text',
   maxLength,
-  autoCapitalize = "sentences",
+  autoCapitalize = 'sentences',
   autoCorrect = true,
-  keyboardType = "default",
+  keyboardType = 'default',
   ...rest
 }: TextInputProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [tempValue, setTempValue] = useState(value);
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "icon");
-  const placeholderTextColor = useThemeColor({}, "tabIconDefault");
+  const textColor = useThemeColor({}, 'text');
+  const borderColor = useThemeColor({}, 'icon');
+  const placeholderTextColor = useThemeColor({}, 'tabIconDefault');
   const inputRef = useRef<RNTextInput>(null);
   const isMobile = useMobileInputDetection();
 
@@ -74,7 +74,9 @@ export const TextInput = ({
           value={value}
           placeholder={placeholder}
           onPress={() => setModalVisible(true)}
-          accessibilityLabel={`Current text: ${value || placeholder}. Tap to edit.`}
+          accessibilityLabel={`Current text: ${
+            value || placeholder
+          }. Tap to edit.`}
         />
 
         <MobileInputModal

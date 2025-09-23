@@ -1,12 +1,12 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from 'react';
 import {
   parseShutterSpeed,
   calculateEV,
   findClosestValue,
-} from "./commonFunctions";
-import { APERTURE_VALUES, SHUTTER_SPEED_VALUES } from "@/constants/exposure";
+} from './commonFunctions';
+import { APERTURE_VALUES, SHUTTER_SPEED_VALUES } from '@/constants/exposure';
 
-export type ExposureSetting = "aperture" | "iso" | "shutterSpeed";
+export type ExposureSetting = 'aperture' | 'iso' | 'shutterSpeed';
 
 export type EquivalentExposure = {
   aperture: string;
@@ -17,12 +17,12 @@ export type EquivalentExposure = {
 
 export const useCameraExposureCalculator = () => {
   // Form state with new default values
-  const [aperture, setAperture] = useState<string>("5.6");
-  const [iso, setIso] = useState<string>("100");
-  const [shutterSpeed, setShutterSpeed] = useState<string>("1/250"); // Changed from 1/60 to 1/250
+  const [aperture, setAperture] = useState<string>('5.6');
+  const [iso, setIso] = useState<string>('100');
+  const [shutterSpeed, setShutterSpeed] = useState<string>('1/250'); // Changed from 1/60 to 1/250
   const [settingToChange, setSettingToChange] =
-    useState<ExposureSetting>("aperture");
-  const [newValue, setNewValue] = useState<string>("16"); // Set default to f16
+    useState<ExposureSetting>('aperture');
+  const [newValue, setNewValue] = useState<string>('16'); // Set default to f16
 
   // Find the closest standard shutter speed value to the calculated seconds
   const findClosestShutterSpeed = useCallback((seconds: number): string => {
@@ -56,7 +56,7 @@ export const useCameraExposureCalculator = () => {
       const currentEV = calculateEV(apertureValue, isoValue, speedSeconds);
 
       // Calculate new settings based on the setting being changed
-      if (settingToChange === "aperture") {
+      if (settingToChange === 'aperture') {
         const newAperture = parseFloat(newValue);
 
         // New settings
@@ -73,7 +73,7 @@ export const useCameraExposureCalculator = () => {
           shutterSpeed: standardShutterSpeed,
           ev: currentEV.toFixed(1),
         };
-      } else if (settingToChange === "iso") {
+      } else if (settingToChange === 'iso') {
         const newIsoValue = parseInt(newValue);
 
         // New settings
@@ -89,7 +89,7 @@ export const useCameraExposureCalculator = () => {
           shutterSpeed: standardShutterSpeed,
           ev: currentEV.toFixed(1),
         };
-      } else if (settingToChange === "shutterSpeed") {
+      } else if (settingToChange === 'shutterSpeed') {
         const newSpeedSeconds = parseShutterSpeed(newValue);
 
         // New settings
@@ -102,7 +102,7 @@ export const useCameraExposureCalculator = () => {
         const closestAperture = findClosestValue(newAperture, apertureValues);
 
         return {
-          aperture: parseFloat(closestAperture).toFixed(1).replace(/\.0$/, ""),
+          aperture: parseFloat(closestAperture).toFixed(1).replace(/\.0$/, ''),
           iso: newIso,
           shutterSpeed: newValue,
           ev: currentEV.toFixed(1),

@@ -1,3 +1,3 @@
-export { SearchSection } from "./SearchSection";
-export { SelectedItemsDisplay } from "./SelectedItemsDisplay";
-export { FiltersSection } from "./FiltersSection";
+export { SearchSection } from './SearchSection';
+export { SelectedItemsDisplay } from './SelectedItemsDisplay';
+export { FiltersSection } from './FiltersSection';

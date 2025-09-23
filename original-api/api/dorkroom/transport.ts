@@ -15,9 +15,9 @@ import {
   ServerError,
   ClientError,
   CircuitBreakerError,
-} from "./errors";
-import type { Logger } from "./types";
-import { getApiUrl, getEnvironmentConfig } from "../../utils/platformDetection";
+} from './errors';
+import type { Logger } from './types';
+import { getApiUrl, getEnvironmentConfig } from '../../utils/platformDetection';
 
 /**
  * Protocol for HTTP transport layer dependency injection.
@@ -60,9 +60,9 @@ export interface CircuitBreakerConfig {
  * Circuit breaker states.
  */
 enum CircuitBreakerState {
-  CLOSED = "CLOSED",
-  OPEN = "OPEN",
-  HALF_OPEN = "HALF_OPEN",
+  CLOSED = 'CLOSED',
+  OPEN = 'OPEN',
+  HALF_OPEN = 'HALF_OPEN',
 }
 
 /**
@@ -80,8 +80,8 @@ class CircuitBreaker {
     if (this.state === CircuitBreakerState.OPEN) {
       if (Date.now() < this.nextAttemptTime) {
         throw new CircuitBreakerError(
-          "Circuit breaker is open - too many recent failures",
-          new Date(this.nextAttemptTime),
+          'Circuit breaker is open - too many recent failures',
+          new Date(this.nextAttemptTime)
         );
       } else {
         this.state = CircuitBreakerState.HALF_OPEN;
@@ -182,7 +182,7 @@ export class FetchHTTPTransport implements HTTPTransport {
   constructor(
     retryConfig: Partial<RetryConfig> = {},
     logger: Logger = new ConsoleLogger(),
-    circuitBreakerConfig: Partial<CircuitBreakerConfig> = {},
+    circuitBreakerConfig: Partial<CircuitBreakerConfig> = {}
   ) {
     this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...retryConfig };
     this.logger = logger;
@@ -205,11 +205,11 @@ export class FetchHTTPTransport implements HTTPTransport {
 
           try {
             const response = await fetch(url, {
-              method: "GET",
+              method: 'GET',
               signal: controller.signal,
               headers: {
-                Accept: "application/json",
-                "User-Agent": "Dorkroom-Client-TS/1.0",
+                Accept: 'application/json',
+                'User-Agent': 'Dorkroom-Client-TS/1.0',
               },
             });
 
@@ -217,14 +217,14 @@ export class FetchHTTPTransport implements HTTPTransport {
 
             // Classify and handle different response types
             if (response.status === 429) {
-              const retryAfter = response.headers.get("retry-after");
+              const retryAfter = response.headers.get('retry-after');
               const retryAfterMs = retryAfter
                 ? parseInt(retryAfter) * 1000
                 : 60000;
               throw new RateLimitError(
                 `Rate limit exceeded: ${response.statusText}`,
                 retryAfterMs,
-                new Date(Date.now() + retryAfterMs),
+                new Date(Date.now() + retryAfterMs)
               );
             }
 
@@ -232,14 +232,14 @@ export class FetchHTTPTransport implements HTTPTransport {
               throw new ServerError(
                 `Server error: ${response.status} ${response.statusText}`,
                 response.status,
-                true,
+                true
               );
             }
 
             if (response.status >= 400) {
               throw new ClientError(
                 `Client error: ${response.status} ${response.statusText}`,
-                response.status,
+                response.status
               );
             }
 
@@ -248,7 +248,7 @@ export class FetchHTTPTransport implements HTTPTransport {
                 `HTTP ${response.status}: ${response.statusText}`,
                 undefined,
                 response.status,
-                this.retryConfig.retryStatusCodes.includes(response.status),
+                this.retryConfig.retryStatusCodes.includes(response.status)
               );
             }
 
@@ -257,10 +257,10 @@ export class FetchHTTPTransport implements HTTPTransport {
             clearTimeout(timeoutId);
 
             // Handle different error types
-            if (error instanceof DOMException && error.name === "AbortError") {
+            if (error instanceof DOMException && error.name === 'AbortError') {
               throw new TimeoutError(
                 `Request timed out after ${timeout}ms`,
-                timeout,
+                timeout
               );
             }
 
@@ -289,7 +289,9 @@ export class FetchHTTPTransport implements HTTPTransport {
             Math.pow(this.retryConfig.backoffFactor, attempt);
 
           this.logger.warn(
-            `Request failed (attempt ${attempt + 1}), retrying in ${delay}ms: ${error}`,
+            `Request failed (attempt ${
+              attempt + 1
+            }), retrying in ${delay}ms: ${error}`
           );
 
           await this.sleep(delay);
@@ -298,10 +300,12 @@ export class FetchHTTPTransport implements HTTPTransport {
 
       // All retries exhausted
       throw new DataFetchError(
-        `Failed to fetch ${url} after ${this.retryConfig.maxRetries + 1} attempts`,
+        `Failed to fetch ${url} after ${
+          this.retryConfig.maxRetries + 1
+        } attempts`,
         lastError || undefined,
         undefined,
-        false,
+        false
       );
     });
   }
@@ -359,8 +363,8 @@ export class FetchHTTPTransport implements HTTPTransport {
  */
 export function joinURL(baseUrl: string, ...segments: string[]): string {
   // Check if this is a request for any of the Supabase API endpoints
-  const allSegments = [baseUrl, ...segments].join("/");
-  const apiEndpoints = ["developers", "films", "combinations"];
+  const allSegments = [baseUrl, ...segments].join('/');
+  const apiEndpoints = ['developers', 'films', 'combinations'];
 
   for (const endpoint of apiEndpoints) {
     if (
@@ -374,24 +378,24 @@ export function joinURL(baseUrl: string, ...segments: string[]): string {
 
   // Handle empty baseUrl case
   if (!baseUrl && segments.length === 1 && !segments[0]) {
-    return "/";
+    return '/';
   }
 
   // Remove trailing slash from base
-  let result = baseUrl.replace(/\/$/, "");
+  let result = baseUrl.replace(/\/$/, '');
 
   // Join all segments
   let hasSegments = false;
   for (const segment of segments) {
     if (segment !== undefined && segment !== null) {
       // Remove leading and trailing slashes from segment
-      const cleanSegment = segment.replace(/^\/+|\/+$/g, "");
+      const cleanSegment = segment.replace(/^\/+|\/+$/g, '');
       if (cleanSegment) {
         result += `/${cleanSegment}`;
         hasSegments = true;
-      } else if (segment === "" && !hasSegments) {
+      } else if (segment === '' && !hasSegments) {
         // Special case: if we have an empty string as the first segment, add trailing slash
-        result += "/";
+        result += '/';
         hasSegments = true;
       }
     }

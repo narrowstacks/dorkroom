@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   TextInput,
@@ -6,17 +6,17 @@ import {
   TouchableOpacity,
   TextInputProps,
   Platform,
-} from "react-native";
-import { Text, HStack } from "@gluestack-ui/themed";
-import { Minus, Plus } from "lucide-react-native";
-import { ThemedText } from "@/components/ui/core/ThemedText";
-import { useThemeColor } from "@/hooks/useThemeColor";
+} from 'react-native';
+import { Text, HStack } from '@gluestack-ui/themed';
+import { Minus, Plus } from 'lucide-react-native';
+import { ThemedText } from '@/components/ui/core/ThemedText';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import {
   useMobileInputDetection,
   MobileInputTrigger,
   MobileInputModal,
   modalInputStyles,
-} from "./MobileInputShared";
+} from './MobileInputShared';
 
 interface NumberInputProps extends TextInputProps {
   value: string;
@@ -33,8 +33,8 @@ const NumberStepperButtons: React.FC<{
   onIncrement: () => void;
   onDecrement: () => void;
 }> = ({ tempValue, step, onIncrement, onDecrement }) => {
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "icon");
+  const textColor = useThemeColor({}, 'text');
+  const borderColor = useThemeColor({}, 'icon');
 
   const formatStepLabel = (step: number) => {
     if (step < 1) {
@@ -44,7 +44,7 @@ const NumberStepperButtons: React.FC<{
   };
 
   return (
-    <HStack space="md" style={{ alignItems: "center" }}>
+    <HStack space="md" style={{ alignItems: 'center' }}>
       <TouchableOpacity
         onPress={onDecrement}
         style={[styles.stepperButton, { borderColor: borderColor }]}
@@ -70,16 +70,16 @@ export const NumberInput = ({
   value,
   onChangeText,
   placeholder,
-  inputTitle = "Enter Value",
+  inputTitle = 'Enter Value',
   step = 0.1,
   ...rest
 }: NumberInputProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [tempValue, setTempValue] = useState(value);
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "icon");
-  const placeholderTextColor = useThemeColor({}, "tabIconDefault");
-  const inputBackground = useThemeColor({}, "inputBackground");
+  const textColor = useThemeColor({}, 'text');
+  const borderColor = useThemeColor({}, 'icon');
+  const placeholderTextColor = useThemeColor({}, 'tabIconDefault');
+  const inputBackground = useThemeColor({}, 'inputBackground');
   const inputRef = useRef<TextInput>(null);
   const isMobile = useMobileInputDetection();
 
@@ -107,7 +107,7 @@ export const NumberInput = ({
     if (parseFloat(newValue) >= 0) {
       onChangeText(newValue);
     } else {
-      onChangeText("0" + (step < 1 ? ".0" : ""));
+      onChangeText('0' + (step < 1 ? '.0' : ''));
     }
   };
 
@@ -125,14 +125,14 @@ export const NumberInput = ({
     if (parseFloat(newValue) >= 0) {
       setTempValue(newValue);
     } else {
-      setTempValue("0" + (step < 1 ? ".0" : ""));
+      setTempValue('0' + (step < 1 ? '.0' : ''));
     }
   };
 
   const handleTextChange = (text: string) => {
     // Allow only numbers and a single decimal point
     // Allow empty string for clearing input
-    if (text === "" || /^\d*\.?\d*$/.test(text)) {
+    if (text === '' || /^\d*\.?\d*$/.test(text)) {
       onChangeText(text);
     }
   };
@@ -140,7 +140,7 @@ export const NumberInput = ({
   const handleModalTextChange = (text: string) => {
     // Allow only numbers and a single decimal point
     // Allow empty string for clearing input
-    if (text === "" || /^\d*\.?\d*$/.test(text)) {
+    if (text === '' || /^\d*\.?\d*$/.test(text)) {
       setTempValue(text);
     }
   };
@@ -163,7 +163,9 @@ export const NumberInput = ({
           value={value}
           placeholder={placeholder}
           onPress={() => setModalVisible(true)}
-          accessibilityLabel={`Current value: ${value || placeholder}. Tap to edit.`}
+          accessibilityLabel={`Current value: ${
+            value || placeholder
+          }. Tap to edit.`}
         />
 
         <MobileInputModal
@@ -224,7 +226,7 @@ export const NumberInput = ({
         <TouchableOpacity
           style={[
             styles.spinnerButton,
-            Platform.OS === "web" && { cursor: "pointer" },
+            Platform.OS === 'web' && { cursor: 'pointer' },
           ]}
           onPress={increment}
         >
@@ -233,7 +235,7 @@ export const NumberInput = ({
         <TouchableOpacity
           style={[
             styles.spinnerButton,
-            Platform.OS === "web" && { cursor: "pointer" },
+            Platform.OS === 'web' && { cursor: 'pointer' },
           ]}
           onPress={decrement}
         >
@@ -246,9 +248,9 @@ export const NumberInput = ({
 
 const styles = StyleSheet.create({
   numberInputContainer: {
-    flexDirection: "column",
-    alignItems: "center",
-    position: "relative",
+    flexDirection: 'column',
+    alignItems: 'center',
+    position: 'relative',
     width: 120,
   },
   input: {
@@ -257,47 +259,47 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     width: 120,
-    textAlign: "center",
+    textAlign: 'center',
     paddingRight: 35,
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   spinnerButtons: {
-    position: "absolute",
+    position: 'absolute',
     right: 2,
     top: 2,
     bottom: 2,
     width: 28,
-    justifyContent: "space-evenly",
-    alignItems: "center",
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
     borderLeftWidth: 1,
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
     borderTopRightRadius: 10,
     borderBottomRightRadius: 10,
   },
   spinnerButton: {
-    width: "100%",
-    height: "50%",
-    justifyContent: "center",
-    alignItems: "center",
+    width: '100%',
+    height: '50%',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 4,
   },
   spinnerButtonText: {
     fontSize: 12,
     lineHeight: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   stepperButton: {
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   stepperLabel: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
     minWidth: 40,
-    textAlign: "center",
+    textAlign: 'center',
   },
 });

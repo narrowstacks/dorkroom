@@ -20,14 +20,5 @@ export const RECIPROCITY_FILM_TYPES: ReciprocityFilmType[] = [
 
 // Common exposure time presets in seconds
 export const RECIPROCITY_EXPOSURE_PRESETS = [
-  1,
-  2,
-  4,
-  8,
-  15,
-  30,
-  60,
-  120,
-  240,
-  480,
+  1, 2, 4, 8, 15, 30, 60, 120, 240, 480,
 ];

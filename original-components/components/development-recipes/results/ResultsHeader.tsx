@@ -1,8 +1,8 @@
-import React from "react";
-import { Platform } from "react-native";
-import { Text } from "@gluestack-ui/themed";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { useWindowDimensions } from "@/hooks/useWindowDimensions";
+import React from 'react';
+import { Platform } from 'react-native';
+import { Text } from '@gluestack-ui/themed';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 
 interface ResultsHeaderProps {
   totalItems: number;
@@ -19,34 +19,34 @@ export function ResultsHeader({
   customRecipesCount,
   showCustomRecipes,
 }: ResultsHeaderProps) {
-  const textColor = useThemeColor({}, "text");
+  const textColor = useThemeColor({}, 'text');
   const { width } = useWindowDimensions();
-  const isDesktop = Platform.OS === "web" && width > 768;
+  const isDesktop = Platform.OS === 'web' && width > 768;
 
   return (
     <Text
       style={[
         {
           fontSize: 18,
-          fontWeight: "600",
+          fontWeight: '600',
           marginBottom: 12,
-          textAlign: isDesktop ? "left" : "center",
+          textAlign: isDesktop ? 'left' : 'center',
         },
         { color: textColor },
       ]}
     >
       {totalItems} Development Recipe
-      {totalItems !== 1 ? "s" : ""}
+      {totalItems !== 1 ? 's' : ''}
       {totalPages > 1 && (
         <Text
           style={{
             fontSize: 14,
-            fontWeight: "normal",
+            fontWeight: 'normal',
             color: textColor,
             opacity: 0.7,
           }}
         >
-          {" "}
+          {' '}
           (Page {currentPage} of {totalPages})
         </Text>
       )}
@@ -54,12 +54,12 @@ export function ResultsHeader({
         <Text
           style={{
             fontSize: 14,
-            fontWeight: "normal",
+            fontWeight: 'normal',
             color: textColor,
             opacity: 0.7,
           }}
         >
-          {" "}
+          {' '}
           ({customRecipesCount} custom)
         </Text>
       )}

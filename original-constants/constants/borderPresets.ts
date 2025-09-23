@@ -1,12 +1,12 @@
-import type { BorderPreset } from "@/types/borderPresetTypes";
+import type { BorderPreset } from '@/types/borderPresetTypes';
 
 export const DEFAULT_BORDER_PRESETS: BorderPreset[] = [
   {
-    id: "default-35mm-8x10",
-    name: "35mm on 8x10",
+    id: 'default-35mm-8x10',
+    name: '35mm on 8x10',
     settings: {
-      aspectRatio: "3/2",
-      paperSize: "8x10",
+      aspectRatio: '3/2',
+      paperSize: '8x10',
       customAspectWidth: 3,
       customAspectHeight: 2,
       customPaperWidth: 8,
@@ -22,11 +22,11 @@ export const DEFAULT_BORDER_PRESETS: BorderPreset[] = [
     },
   },
   {
-    id: "default-6x7-11x14",
-    name: "6x7 on 11x14",
+    id: 'default-6x7-11x14',
+    name: '6x7 on 11x14',
     settings: {
-      aspectRatio: "7/6",
-      paperSize: "11x14",
+      aspectRatio: '7/6',
+      paperSize: '11x14',
       customAspectWidth: 7,
       customAspectHeight: 6,
       customPaperWidth: 11,

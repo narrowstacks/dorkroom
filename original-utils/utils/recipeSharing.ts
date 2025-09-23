@@ -1,10 +1,10 @@
-import { Buffer } from "buffer";
+import { Buffer } from 'buffer';
 import type {
   CustomRecipe,
   CustomFilmData,
   CustomDeveloperData,
-} from "@/types/customRecipeTypes";
-import { debugLog, debugError } from "@/utils/debugLogger";
+} from '@/types/customRecipeTypes';
+import { debugLog, debugError } from '@/utils/debugLogger';
 
 const CURRENT_RECIPE_SHARING_VERSION = 1;
 
@@ -53,31 +53,31 @@ export const encodeCustomRecipe = (recipe: CustomRecipe): string => {
 
     // Convert to JSON string and encode to base64 URL-safe format
     const jsonString = JSON.stringify(encodedRecipe);
-    const encoded = Buffer.from(jsonString, "utf8")
-      .toString("base64")
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/, "");
+    const encoded = Buffer.from(jsonString, 'utf8')
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
 
     return encoded;
   } catch (error) {
-    debugError("Failed to encode custom recipe:", error);
-    return "";
+    debugError('Failed to encode custom recipe:', error);
+    return '';
   }
 };
 
 export const decodeCustomRecipe = (
-  encoded: string,
+  encoded: string
 ): EncodedCustomRecipe | null => {
   try {
     // Convert back from URL-safe base64
-    let base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
+    let base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
     while (base64.length % 4) {
-      base64 += "=";
+      base64 += '=';
     }
 
     // Decode from base64 to JSON string
-    const jsonString = Buffer.from(base64, "base64").toString("utf8");
+    const jsonString = Buffer.from(base64, 'base64').toString('utf8');
 
     // Parse JSON
     const recipe: EncodedCustomRecipe = JSON.parse(jsonString);
@@ -85,24 +85,24 @@ export const decodeCustomRecipe = (
     // Validate required fields
     if (
       !recipe.name ||
-      typeof recipe.temperatureF !== "number" ||
-      typeof recipe.timeMinutes !== "number" ||
-      typeof recipe.shootingIso !== "number"
+      typeof recipe.temperatureF !== 'number' ||
+      typeof recipe.timeMinutes !== 'number' ||
+      typeof recipe.shootingIso !== 'number'
     ) {
-      throw new Error("Invalid recipe data: missing required fields");
+      throw new Error('Invalid recipe data: missing required fields');
     }
 
     // Validate version compatibility
     if (!recipe.version || recipe.version > CURRENT_RECIPE_SHARING_VERSION) {
       console.warn(
-        "Recipe was created with a newer version and may not import correctly",
+        'Recipe was created with a newer version and may not import correctly'
       );
     }
 
     // Validate custom film/developer data if present
     if (recipe.isCustomFilm && recipe.customFilm) {
       if (!recipe.customFilm.name || !recipe.customFilm.brand) {
-        throw new Error("Invalid custom film data");
+        throw new Error('Invalid custom film data');
       }
     }
 
@@ -111,20 +111,20 @@ export const decodeCustomRecipe = (
         !recipe.customDeveloper.name ||
         !recipe.customDeveloper.manufacturer
       ) {
-        throw new Error("Invalid custom developer data");
+        throw new Error('Invalid custom developer data');
       }
     }
 
     return recipe;
   } catch (error) {
-    debugError("Failed to decode custom recipe:", error);
+    debugError('Failed to decode custom recipe:', error);
     return null;
   }
 };
 
 export const createCustomRecipeFromEncoded = (
-  encodedRecipe: EncodedCustomRecipe,
-): Omit<CustomRecipe, "id" | "dateCreated" | "dateModified"> => {
+  encodedRecipe: EncodedCustomRecipe
+): Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'> => {
   const timestamp = Date.now();
 
   return {
@@ -154,7 +154,7 @@ export const createCustomRecipeFromEncoded = (
 };
 
 export const isValidCustomRecipeEncoding = (encoded: string): boolean => {
-  if (!encoded || typeof encoded !== "string") {
+  if (!encoded || typeof encoded !== 'string') {
     return false;
   }
 

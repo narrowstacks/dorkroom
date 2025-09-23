@@ -1,14 +1,16 @@
-import { TextInput } from '../text-input';
+import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
-import type { SelectItem } from '@dorkroom/logic';
+import type { SelectItem, CustomRecipeFilter } from '@dorkroom/logic';
 import { cn } from '../../lib/cn';
 
 interface DevelopmentFiltersProps {
   className?: string;
-  filmSearch: string;
-  onFilmSearchChange: (value: string) => void;
-  developerSearch: string;
-  onDeveloperSearchChange: (value: string) => void;
+  selectedFilm: string;
+  onFilmChange: (value: string) => void;
+  filmOptions: SelectItem[];
+  selectedDeveloper: string;
+  onDeveloperChange: (value: string) => void;
+  developerOptions: SelectItem[];
   developerTypeFilter: string;
   onDeveloperTypeFilterChange: (value: string) => void;
   developerTypeOptions: SelectItem[];
@@ -18,15 +20,23 @@ interface DevelopmentFiltersProps {
   isoFilter: string;
   onIsoFilterChange: (value: string) => void;
   isoOptions: SelectItem[];
+  customRecipeFilter: CustomRecipeFilter;
+  onCustomRecipeFilterChange: (value: CustomRecipeFilter) => void;
+  tagFilter: string;
+  onTagFilterChange: (value: string) => void;
+  tagOptions: SelectItem[];
   onClearFilters: () => void;
+  showDeveloperTypeFilter?: boolean;
 }
 
 export function DevelopmentFiltersPanel({
   className,
-  filmSearch,
-  onFilmSearchChange,
-  developerSearch,
-  onDeveloperSearchChange,
+  selectedFilm,
+  onFilmChange,
+  filmOptions,
+  selectedDeveloper,
+  onDeveloperChange,
+  developerOptions,
   developerTypeFilter,
   onDeveloperTypeFilterChange,
   developerTypeOptions,
@@ -36,20 +46,33 @@ export function DevelopmentFiltersPanel({
   isoFilter,
   onIsoFilterChange,
   isoOptions,
+  customRecipeFilter,
+  onCustomRecipeFilterChange,
+  tagFilter,
+  onTagFilterChange,
+  tagOptions,
   onClearFilters,
+  showDeveloperTypeFilter = true,
 }: DevelopmentFiltersProps) {
+  const customRecipeOptions: SelectItem[] = [
+    { label: 'All recipes', value: 'all' },
+    { label: 'Hide custom recipes', value: 'hide-custom' },
+    { label: 'Only custom recipes', value: 'only-custom' },
+  ];
+
   return (
     <div
       className={cn(
         'rounded-2xl border border-white/10 bg-white/5 p-6 shadow-subtle backdrop-blur',
-        className,
+        className
       )}
     >
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
           <h3 className="text-base font-semibold text-white">Filters</h3>
           <p className="text-sm text-white/60">
-            Narrow down combinations by film, developer, dilution, and ISO.
+            Narrow down combinations by film, developer, dilution, ISO, recipe
+            type, and tags.
           </p>
         </div>
         <button
@@ -62,24 +85,28 @@ export function DevelopmentFiltersPanel({
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <TextInput
-          label="Film search"
-          placeholder="Search by film brand or name"
-          value={filmSearch}
-          onChange={onFilmSearchChange}
+        <SearchableSelect
+          label="Film"
+          placeholder="Search films..."
+          selectedValue={selectedFilm}
+          onValueChange={onFilmChange}
+          items={filmOptions}
         />
-        <TextInput
-          label="Developer search"
-          placeholder="Search by developer or manufacturer"
-          value={developerSearch}
-          onChange={onDeveloperSearchChange}
+        <SearchableSelect
+          label="Developer"
+          placeholder="Search developers..."
+          selectedValue={selectedDeveloper}
+          onValueChange={onDeveloperChange}
+          items={developerOptions}
         />
-        <Select
-          label="Developer type"
-          selectedValue={developerTypeFilter}
-          onValueChange={onDeveloperTypeFilterChange}
-          items={developerTypeOptions}
-        />
+        {showDeveloperTypeFilter && (
+          <Select
+            label="Developer type"
+            selectedValue={developerTypeFilter}
+            onValueChange={onDeveloperTypeFilterChange}
+            items={developerTypeOptions}
+          />
+        )}
         <Select
           label="Dilution"
           selectedValue={dilutionFilter}
@@ -91,6 +118,18 @@ export function DevelopmentFiltersPanel({
           selectedValue={isoFilter}
           onValueChange={onIsoFilterChange}
           items={isoOptions}
+        />
+        <Select
+          label="Recipe type"
+          selectedValue={customRecipeFilter}
+          onValueChange={onCustomRecipeFilterChange}
+          items={customRecipeOptions}
+        />
+        <Select
+          label="Tag"
+          selectedValue={tagFilter}
+          onValueChange={onTagFilterChange}
+          items={tagOptions}
         />
       </div>
     </div>

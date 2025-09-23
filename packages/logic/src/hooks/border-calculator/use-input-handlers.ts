@@ -9,11 +9,14 @@
 
 import { useCallback, useMemo } from 'react';
 import { tryNumber, debounce } from '../../utils/input-validation';
-import type { BorderCalculatorState, BorderCalculatorAction } from '../../types/border-calculator';
+import type {
+  BorderCalculatorState,
+  BorderCalculatorAction,
+} from '../../types/border-calculator';
 
 export const useInputHandlers = (
   state: BorderCalculatorState,
-  dispatch: (action: BorderCalculatorAction) => void,
+  dispatch: (action: BorderCalculatorAction) => void
 ) => {
   // Debounced numeric field setter for text input only (not sliders)
   const debouncedNumericFieldSetter = useMemo(
@@ -33,7 +36,7 @@ export const useInputHandlers = (
           dispatch({ type: 'SET_FIELD', key, value: v });
         }
       }, 50), // 50ms for ultra-responsive input
-    [dispatch],
+    [dispatch]
   );
 
   // Optimized slider input handler - no debouncing, direct numeric conversion
@@ -47,7 +50,7 @@ export const useInputHandlers = (
         dispatch({ type: 'SET_FIELD', key, value: numericValue });
       }
     },
-    [dispatch, state],
+    [dispatch, state]
   );
 
   // Text input handler with debouncing
@@ -62,21 +65,21 @@ export const useInputHandlers = (
       // Debounce the heavy number validation
       debouncedNumericFieldSetter(key, v);
     },
-    [debouncedNumericFieldSetter, dispatch],
+    [debouncedNumericFieldSetter, dispatch]
   );
 
   const setCustomDimensionField = useCallback(
     (
       key: keyof BorderCalculatorState,
       lastKey: keyof BorderCalculatorState,
-      v: string,
+      v: string
     ) => {
       dispatch({ type: 'SET_FIELD', key, value: v });
       const num = tryNumber(v);
       if (num && num > 0)
         dispatch({ type: 'SET_FIELD', key: lastKey, value: num });
     },
-    [dispatch],
+    [dispatch]
   );
 
   // Basic field setters
@@ -84,14 +87,14 @@ export const useInputHandlers = (
     (v: string) => {
       dispatch({ type: 'SET_ASPECT_RATIO', value: v });
     },
-    [dispatch],
+    [dispatch]
   );
 
   const setPaperSize = useCallback(
     (v: string) => {
       dispatch({ type: 'SET_PAPER_SIZE', value: v });
     },
-    [dispatch],
+    [dispatch]
   );
 
   // Custom dimension setters
@@ -101,10 +104,10 @@ export const useInputHandlers = (
       setCustomDimensionField(
         'customAspectWidth',
         'lastValidCustomAspectWidth',
-        stringValue,
+        stringValue
       );
     },
-    [setCustomDimensionField],
+    [setCustomDimensionField]
   );
 
   const setCustomAspectHeight = useCallback(
@@ -113,10 +116,10 @@ export const useInputHandlers = (
       setCustomDimensionField(
         'customAspectHeight',
         'lastValidCustomAspectHeight',
-        stringValue,
+        stringValue
       );
     },
-    [setCustomDimensionField],
+    [setCustomDimensionField]
   );
 
   const setCustomPaperWidth = useCallback(
@@ -125,10 +128,10 @@ export const useInputHandlers = (
       setCustomDimensionField(
         'customPaperWidth',
         'lastValidCustomPaperWidth',
-        stringValue,
+        stringValue
       );
     },
-    [setCustomDimensionField],
+    [setCustomDimensionField]
   );
 
   const setCustomPaperHeight = useCallback(
@@ -137,10 +140,10 @@ export const useInputHandlers = (
       setCustomDimensionField(
         'customPaperHeight',
         'lastValidCustomPaperHeight',
-        stringValue,
+        stringValue
       );
     },
-    [setCustomDimensionField],
+    [setCustomDimensionField]
   );
 
   // Numeric field setters (for text inputs)
@@ -149,7 +152,7 @@ export const useInputHandlers = (
       const stringValue = typeof v === 'string' ? v : String(v);
       setNumericField('minBorder', stringValue);
     },
-    [setNumericField],
+    [setNumericField]
   );
 
   const setHorizontalOffset = useCallback(
@@ -157,7 +160,7 @@ export const useInputHandlers = (
       const stringValue = typeof v === 'string' ? v : String(v);
       setNumericField('horizontalOffset', stringValue);
     },
-    [setNumericField],
+    [setNumericField]
   );
 
   const setVerticalOffset = useCallback(
@@ -165,23 +168,23 @@ export const useInputHandlers = (
       const stringValue = typeof v === 'string' ? v : String(v);
       setNumericField('verticalOffset', stringValue);
     },
-    [setNumericField],
+    [setNumericField]
   );
 
   // Slider field setters (optimized for continuous updates)
   const setMinBorderSlider = useCallback(
     (v: string | number) => setSliderField('minBorder', v),
-    [setSliderField],
+    [setSliderField]
   );
 
   const setHorizontalOffsetSlider = useCallback(
     (v: string | number) => setSliderField('horizontalOffset', v),
-    [setSliderField],
+    [setSliderField]
   );
 
   const setVerticalOffsetSlider = useCallback(
     (v: string | number) => setSliderField('verticalOffset', v),
-    [setSliderField],
+    [setSliderField]
   );
 
   // Boolean field setters
@@ -189,35 +192,35 @@ export const useInputHandlers = (
     (v: boolean) => {
       dispatch({ type: 'SET_FIELD', key: 'enableOffset', value: v });
     },
-    [dispatch],
+    [dispatch]
   );
 
   const setIgnoreMinBorder = useCallback(
     (v: boolean) => {
       dispatch({ type: 'SET_FIELD', key: 'ignoreMinBorder', value: v });
     },
-    [dispatch],
+    [dispatch]
   );
 
   const setShowBlades = useCallback(
     (v: boolean) => {
       dispatch({ type: 'SET_FIELD', key: 'showBlades', value: v });
     },
-    [dispatch],
+    [dispatch]
   );
 
   const setIsLandscape = useCallback(
     (v: boolean) => {
       dispatch({ type: 'SET_FIELD', key: 'isLandscape', value: v });
     },
-    [dispatch],
+    [dispatch]
   );
 
   const setIsRatioFlipped = useCallback(
     (v: boolean) => {
       dispatch({ type: 'SET_FIELD', key: 'isRatioFlipped', value: v });
     },
-    [dispatch],
+    [dispatch]
   );
 
   // Utility actions
@@ -225,7 +228,7 @@ export const useInputHandlers = (
     (preset: Partial<BorderCalculatorState>) => {
       dispatch({ type: 'BATCH_UPDATE', payload: preset });
     },
-    [dispatch],
+    [dispatch]
   );
 
   const resetToDefaults = useCallback(() => {

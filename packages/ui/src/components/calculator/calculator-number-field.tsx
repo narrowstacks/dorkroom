@@ -42,9 +42,7 @@ export function CalculatorNumberField({
         inputTitle={inputTitle ?? `Enter ${label}`}
         className="w-full"
       />
-      {helperText && (
-        <p className="text-xs text-white/60">{helperText}</p>
-      )}
+      {helperText && <p className="text-xs text-white/60">{helperText}</p>}
     </div>
   );
 }

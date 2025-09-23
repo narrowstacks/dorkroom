@@ -36,7 +36,7 @@ export const useGeometryCalculations = (
   orientedDimensions: OrientedDimensions,
   minBorderData: MinBorderData,
   paperEntry: PaperEntry,
-  paperSizeWarning: string | null,
+  paperSizeWarning: string | null
 ) => {
   const { width: winW, height: winH } = useWindowDimensions();
 
@@ -65,7 +65,7 @@ export const useGeometryCalculations = (
       orientedPaper.h,
       orientedRatio.w,
       orientedRatio.h,
-      minBorder,
+      minBorder
     );
   }, [orientedDimensions, minBorderData]);
 
@@ -83,7 +83,7 @@ export const useGeometryCalculations = (
       minBorder,
       state.enableOffset ? state.horizontalOffset : 0,
       state.enableOffset ? state.verticalOffset : 0,
-      state.ignoreMinBorder,
+      state.ignoreMinBorder
     );
   }, [
     orientedDimensions,
