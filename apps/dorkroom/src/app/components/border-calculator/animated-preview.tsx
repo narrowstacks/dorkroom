@@ -12,10 +12,12 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import type { BorderCalculation } from '@dorkroom/logic';
+import { BladeReadingsOverlay } from './blade-readings-overlay';
 
 interface AnimatedPreviewProps {
   calculation: BorderCalculation | null;
   showBlades?: boolean;
+  showBladeReadings?: boolean;
   borderColor?: string;
   className?: string;
 }
@@ -75,6 +77,7 @@ const AnimatedBlade = ({
 export function AnimatedPreview({
   calculation,
   showBlades = true,
+  showBladeReadings = false,
   borderColor = '#353535',
   className,
 }: AnimatedPreviewProps) {
@@ -222,6 +225,16 @@ export function AnimatedPreview({
             opacity={animatedValues.bladeOpacity}
           />
         </>
+      )}
+
+      {/* Blade readings overlay */}
+      {calculation && (
+        <BladeReadingsOverlay
+          calculation={calculation}
+          containerWidth={staticDimensions.width}
+          containerHeight={staticDimensions.height}
+          showReadings={showBladeReadings}
+        />
       )}
     </div>
   );

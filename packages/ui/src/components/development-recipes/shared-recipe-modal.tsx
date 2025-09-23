@@ -75,7 +75,9 @@ export function SharedRecipeModal({
         <div className="mb-2 text-xs uppercase tracking-wide text-white/50">
           Recipe
         </div>
-        <div className="mb-3 text-lg font-semibold text-white">{recipeName}</div>
+        <div className="mb-3 text-lg font-semibold text-white">
+          {recipeName}
+        </div>
 
         <DevelopmentRecipeDetail view={recipe} />
       </div>
@@ -91,7 +93,9 @@ export function SharedRecipeModal({
       <Drawer isOpen={isOpen} onClose={onClose} size="lg" anchor="bottom">
         <DrawerContent className="h-full max-h-[85vh] bg-zinc-900">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-            <div className="text-base font-semibold text-white">{modalTitle}</div>
+            <div className="text-base font-semibold text-white">
+              {modalTitle}
+            </div>
             <button
               type="button"
               onClick={onClose}
@@ -101,10 +105,10 @@ export function SharedRecipeModal({
               <X className="h-5 w-5" />
             </button>
           </div>
-          <DrawerBody className="px-4 pb-6 pt-4">
-            {body}
-          </DrawerBody>
-          <div className="border-t border-white/10 px-4 pb-4 pt-3">{actions}</div>
+          <DrawerBody className="px-4 pb-6 pt-4">{body}</DrawerBody>
+          <div className="border-t border-white/10 px-4 pb-4 pt-3">
+            {actions}
+          </div>
         </DrawerContent>
       </Drawer>
     );
