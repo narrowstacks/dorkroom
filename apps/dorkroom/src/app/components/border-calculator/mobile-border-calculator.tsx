@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   RotateCcw,
   EyeOff,
@@ -8,6 +8,7 @@ import {
   Image,
   Ruler,
   Move,
+  Target,
 } from 'lucide-react';
 
 // Components
@@ -83,6 +84,8 @@ export function MobileBorderCalculator({
     setVerticalOffsetSlider,
     showBlades,
     setShowBlades,
+    showBladeReadings,
+    setShowBladeReadings,
     isLandscape,
     setIsLandscape,
     isRatioFlipped,
@@ -97,6 +100,22 @@ export function MobileBorderCalculator({
   } = useBorderCalculator();
 
   const { presets, addPreset, updatePreset, removePreset } = useBorderPresets();
+
+  useEffect(() => {
+    if (!loadedPresetFromUrl) return;
+
+    applyPreset(loadedPresetFromUrl.settings);
+
+    setCurrentPreset({
+      id: `loaded-${Date.now()}`,
+      name: loadedPresetFromUrl.name,
+      settings: loadedPresetFromUrl.settings,
+    });
+
+    if (clearLoadedPreset) {
+      clearLoadedPreset();
+    }
+  }, [loadedPresetFromUrl, applyPreset, clearLoadedPreset]);
 
   // Display values
   const paperSizeDisplayValue = useMemo(() => {
@@ -127,6 +146,10 @@ export function MobileBorderCalculator({
       : `${currentPreset.name}`;
   }, [currentPreset]);
 
+  const hasWarnings = Boolean(
+    bladeWarning || minBorderWarning || paperSizeWarning || offsetWarning
+  );
+
   // Current settings for sharing
   const currentSettings = useMemo(
     () => ({
@@ -142,6 +165,7 @@ export function MobileBorderCalculator({
       horizontalOffset,
       verticalOffset,
       showBlades,
+      showBladeReadings,
       isLandscape,
       isRatioFlipped,
     }),
@@ -158,27 +182,76 @@ export function MobileBorderCalculator({
       horizontalOffset,
       verticalOffset,
       showBlades,
+      showBladeReadings,
       isLandscape,
       isRatioFlipped,
     ]
   );
 
   // Action handlers
-  const handleShare = () => {
-    // For now, just alert - in the real app this would open share modal
+  const handleShare = useCallback(() => {
     alert('Share functionality would be implemented here');
-  };
+  }, []);
 
   // Open drawer handlers
-  const openDrawerSection = (section: ActiveSection) => {
+  const openDrawerSection = useCallback((section: ActiveSection) => {
     setActiveSection(section);
     setIsDrawerOpen(true);
-  };
+  }, []);
 
   // Close drawer handler
-  const closeDrawer = () => {
+  const closeDrawer = useCallback(() => {
     setIsDrawerOpen(false);
-  };
+  }, []);
+
+  const toggleBlades = useCallback(() => {
+    setShowBlades((prev) => !prev);
+  }, [setShowBlades]);
+
+  const toggleBladeReadings = useCallback(() => {
+    setShowBladeReadings((prev) => !prev);
+  }, [setShowBladeReadings]);
+
+  const handleApplyPreset = useCallback(
+    (preset: BorderPreset) => {
+      applyPreset(preset.settings);
+      setCurrentPreset(preset);
+      closeDrawer();
+    },
+    [applyPreset, closeDrawer]
+  );
+
+  const handleSavePreset = useCallback(
+    (name: string, settings: BorderSettings) => {
+      const newPreset: BorderPreset = {
+        id: Date.now().toString(),
+        name,
+        settings,
+      };
+      addPreset(newPreset);
+      setCurrentPreset(newPreset);
+      closeDrawer();
+    },
+    [addPreset, closeDrawer, setCurrentPreset]
+  );
+
+  const handleUpdatePreset = useCallback(
+    (id: string, name: string, settings: BorderSettings) => {
+      updatePreset(id, { name, settings });
+      setCurrentPreset((prev) =>
+        prev?.id === id ? { ...prev, name, settings } : prev
+      );
+    },
+    [updatePreset, setCurrentPreset]
+  );
+
+  const handleDeletePreset = useCallback(
+    (id: string) => {
+      removePreset(id);
+      setCurrentPreset((prev) => (prev?.id === id ? null : prev));
+    },
+    [removePreset, setCurrentPreset]
+  );
 
   return (
     <div className="min-h-dvh bg-zinc-900 p-4 pb-20">
@@ -194,19 +267,26 @@ export function MobileBorderCalculator({
         <AnimatedPreview
           calculation={calculation}
           showBlades={showBlades}
+          showBladeReadings={showBladeReadings}
           className="max-w-full"
         />
 
         {/* Warnings */}
-        {bladeWarning && <WarningAlert message={bladeWarning} action="error" />}
-        {minBorderWarning && (
-          <WarningAlert message={minBorderWarning} action="error" />
-        )}
-        {paperSizeWarning && (
-          <WarningAlert message={paperSizeWarning} action="warning" />
-        )}
-        {offsetWarning && (
-          <WarningAlert message={offsetWarning} action="warning" />
+        {hasWarnings && (
+          <div className="space-y-2">
+            {bladeWarning && (
+              <WarningAlert message={bladeWarning} action="error" />
+            )}
+            {minBorderWarning && (
+              <WarningAlert message={minBorderWarning} action="error" />
+            )}
+            {paperSizeWarning && (
+              <WarningAlert message={paperSizeWarning} action="warning" />
+            )}
+            {offsetWarning && (
+              <WarningAlert message={offsetWarning} action="warning" />
+            )}
+          </div>
         )}
 
         {/* Settings Buttons */}
@@ -232,17 +312,25 @@ export function MobileBorderCalculator({
             icon={Move}
           />
 
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <SettingsButton
-                label="Blades"
-                onPress={() => setShowBlades(!showBlades)}
-                icon={showBlades ? EyeOff : Crop}
-                showChevron={false}
-                centerLabel={true}
-              />
-            </div>
+          <div className="grid grid-cols-2 gap-3">
+            <SettingsButton
+              label="Blades"
+              onPress={toggleBlades}
+              icon={showBlades ? EyeOff : Crop}
+              showChevron={false}
+              centerLabel={true}
+            />
 
+            <SettingsButton
+              label="Readings"
+              onPress={toggleBladeReadings}
+              icon={showBladeReadings ? EyeOff : Target}
+              showChevron={false}
+              centerLabel={true}
+            />
+          </div>
+
+          <div className="flex gap-3">
             <div className="flex-1">
               <SettingsButton
                 value={presetsDisplayValue}
@@ -253,7 +341,8 @@ export function MobileBorderCalculator({
 
             <button
               onClick={handleShare}
-              className="rounded-lg bg-green-600 p-4 text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="rounded-full border border-white/12 bg-white/5 p-4 text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              title="Share preset"
             >
               <Share className="h-5 w-5" />
             </button>
@@ -263,7 +352,7 @@ export function MobileBorderCalculator({
         {/* Reset Button */}
         <button
           onClick={resetToDefaults}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-100 transition hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60"
         >
           <RotateCcw className="h-4 w-4" />
           Reset to Defaults
@@ -332,33 +421,10 @@ export function MobileBorderCalculator({
                   onClose={closeDrawer}
                   presets={presets}
                   currentPreset={currentPreset}
-                  onApplyPreset={(preset) => {
-                    applyPreset(preset.settings);
-                    setCurrentPreset(preset);
-                    closeDrawer();
-                  }}
-                  onSavePreset={(name, settings) => {
-                    const newPreset: BorderPreset = {
-                      id: Date.now().toString(),
-                      name,
-                      settings,
-                    };
-                    addPreset(newPreset);
-                    setCurrentPreset(newPreset);
-                    closeDrawer();
-                  }}
-                  onUpdatePreset={(id, name, settings) => {
-                    updatePreset(id, { name, settings });
-                    if (currentPreset?.id === id) {
-                      setCurrentPreset({ ...currentPreset, name, settings });
-                    }
-                  }}
-                  onDeletePreset={(id) => {
-                    removePreset(id);
-                    if (currentPreset?.id === id) {
-                      setCurrentPreset(null);
-                    }
-                  }}
+                  onApplyPreset={handleApplyPreset}
+                  onSavePreset={handleSavePreset}
+                  onUpdatePreset={handleUpdatePreset}
+                  onDeletePreset={handleDeletePreset}
                   getCurrentSettings={() => currentSettings}
                 />
               )}
