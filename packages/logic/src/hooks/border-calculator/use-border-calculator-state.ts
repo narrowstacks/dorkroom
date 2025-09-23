@@ -42,6 +42,7 @@ const createInitialState = (): BorderCalculatorState => ({
   horizontalOffset: 0,
   verticalOffset: 0,
   showBlades: false,
+  showBladeReadings: false,
   isLandscape: true,
   isRatioFlipped: false,
 
@@ -131,6 +132,7 @@ export const useBorderCalculatorState = () => {
       horizontalOffset: state.horizontalOffset,
       verticalOffset: state.verticalOffset,
       showBlades: state.showBlades,
+      showBladeReadings: state.showBladeReadings,
       isLandscape: state.isLandscape,
       isRatioFlipped: state.isRatioFlipped,
       lastValidCustomAspectWidth: state.lastValidCustomAspectWidth,

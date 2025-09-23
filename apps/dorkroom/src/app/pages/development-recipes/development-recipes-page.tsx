@@ -911,7 +911,9 @@ export default function DevelopmentRecipesPage() {
           >
             <DrawerContent className="h-full max-h-[85vh] bg-zinc-900">
               <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-                <h2 className="text-base font-semibold text-white">Recipe details</h2>
+                <h2 className="text-base font-semibold text-white">
+                  Recipe details
+                </h2>
                 <button
                   type="button"
                   onClick={() => setIsDetailOpen(false)}
@@ -929,24 +931,29 @@ export default function DevelopmentRecipesPage() {
                     onDeleteCustomRecipe={handleDeleteCustomRecipe}
                   />
                 )}
-                {detailView?.source === 'custom' && flags.CUSTOM_RECIPE_SHARING && (
-                  <div className="flex flex-col gap-2 pt-2 sm:flex-row">
-                    <button
-                      type="button"
-                      onClick={() => detailView && handleShareCombination(detailView)}
-                      className="w-full rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
-                    >
-                      Share recipe
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => detailView && handleCopyCombination(detailView)}
-                      className="w-full rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/40 hover:text-white"
-                    >
-                      Copy link
-                    </button>
-                  </div>
-                )}
+                {detailView?.source === 'custom' &&
+                  flags.CUSTOM_RECIPE_SHARING && (
+                    <div className="flex flex-col gap-2 pt-2 sm:flex-row">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          detailView && handleShareCombination(detailView)
+                        }
+                        className="w-full rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+                      >
+                        Share recipe
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          detailView && handleCopyCombination(detailView)
+                        }
+                        className="w-full rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/40 hover:text-white"
+                      >
+                        Copy link
+                      </button>
+                    </div>
+                  )}
               </DrawerBody>
             </DrawerContent>
           </Drawer>
@@ -968,14 +975,18 @@ export default function DevelopmentRecipesPage() {
               <div className="flex gap-2 pt-4">
                 <button
                   type="button"
-                  onClick={() => detailView && handleShareCombination(detailView)}
+                  onClick={() =>
+                    detailView && handleShareCombination(detailView)
+                  }
                   className="flex-1 rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
                 >
                   Share recipe
                 </button>
                 <button
                   type="button"
-                  onClick={() => detailView && handleCopyCombination(detailView)}
+                  onClick={() =>
+                    detailView && handleCopyCombination(detailView)
+                  }
                   className="flex-1 rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/40 hover:text-white"
                 >
                   Copy link

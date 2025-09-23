@@ -72,9 +72,7 @@ export function useRecipeSharing() {
   );
 
   const shareRegularRecipe = useCallback(
-    async (
-      options: RegularRecipeShareOptions
-    ): Promise<RecipeShareResult> => {
+    async (options: RegularRecipeShareOptions): Promise<RecipeShareResult> => {
       try {
         const shareUrl = generateRegularRecipeShareUrl(options);
         if (!shareUrl) {
@@ -87,7 +85,9 @@ export function useRecipeSharing() {
         ) {
           try {
             await navigator.share({
-              title: `Development Recipe${options.recipeName ? `: ${options.recipeName}` : ''}`,
+              title: `Development Recipe${
+                options.recipeName ? `: ${options.recipeName}` : ''
+              }`,
               text: `Check out this film development recipe: ${shareUrl}`,
               url: shareUrl,
             });
@@ -104,9 +104,7 @@ export function useRecipeSharing() {
         return { success: true, method: 'clipboard', url: shareUrl };
       } catch (error) {
         const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Failed to share recipe';
+          error instanceof Error ? error.message : 'Failed to share recipe';
         return { success: false, error: errorMessage };
       }
     },
@@ -114,9 +112,7 @@ export function useRecipeSharing() {
   );
 
   const copyRegularRecipeToClipboard = useCallback(
-    async (
-      options: RegularRecipeShareOptions
-    ): Promise<RecipeShareResult> => {
+    async (options: RegularRecipeShareOptions): Promise<RecipeShareResult> => {
       try {
         const shareUrl = generateRegularRecipeShareUrl(options);
         if (!shareUrl) {
@@ -160,9 +156,11 @@ export function useRecipeSharing() {
     copyRegularRecipeToClipboard,
 
     // Custom recipe sharing (delegated)
-    generateCustomRecipeShareUrl: customRecipeSharing.generateCustomRecipeShareUrl,
+    generateCustomRecipeShareUrl:
+      customRecipeSharing.generateCustomRecipeShareUrl,
     shareCustomRecipe: customRecipeSharing.shareCustomRecipe,
-    copyCustomRecipeToClipboard: customRecipeSharing.copyCustomRecipeToClipboard,
+    copyCustomRecipeToClipboard:
+      customRecipeSharing.copyCustomRecipeToClipboard,
     decodeSharedCustomRecipe: customRecipeSharing.decodeSharedCustomRecipe,
     isCustomRecipeUrl: customRecipeSharing.isCustomRecipeUrl,
 

@@ -118,6 +118,7 @@ export const DEFAULT_BORDER_PRESETS: BorderPreset[] = [
       horizontalOffset: 0,
       verticalOffset: 0,
       showBlades: false,
+      showBladeReadings: false,
       isLandscape: true,
       isRatioFlipped: false,
     },

@@ -209,6 +209,13 @@ export const useInputHandlers = (
     [dispatch]
   );
 
+  const setShowBladeReadings = useCallback(
+    (v: boolean) => {
+      dispatch({ type: 'SET_FIELD', key: 'showBladeReadings', value: v });
+    },
+    [dispatch]
+  );
+
   const setIsLandscape = useCallback(
     (v: boolean) => {
       dispatch({ type: 'SET_FIELD', key: 'isLandscape', value: v });
@@ -260,6 +267,7 @@ export const useInputHandlers = (
     setEnableOffset,
     setIgnoreMinBorder,
     setShowBlades,
+    setShowBladeReadings,
     setIsLandscape,
     setIsRatioFlipped,
 

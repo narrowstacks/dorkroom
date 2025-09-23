@@ -61,7 +61,8 @@ export const useDevelopmentRecipes = (
     initialUrlState?.dilutionFilter || ''
   );
   const [isoFilter, setIsoFilter] = useState(initialUrlState?.isoFilter || '');
-  const [customRecipeFilter, setCustomRecipeFilter] = useState<CustomRecipeFilter>('all');
+  const [customRecipeFilter, setCustomRecipeFilter] =
+    useState<CustomRecipeFilter>('all');
   const [tagFilter, setTagFilter] = useState('');
   const [sortBy, setSortBy] = useState('filmName');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');

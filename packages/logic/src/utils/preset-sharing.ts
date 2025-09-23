@@ -31,6 +31,7 @@ function getBooleanBitmask(settings: BorderPresetSettings): number {
   if (settings.showBlades) mask |= 4;
   if (settings.isLandscape) mask |= 8;
   if (settings.isRatioFlipped) mask |= 16;
+  if (settings.showBladeReadings) mask |= 32;
   return mask;
 }
 
@@ -44,6 +45,7 @@ function fromBooleanBitmask(mask: number): Partial<BorderPresetSettings> {
     showBlades: !!(mask & 4),
     isLandscape: !!(mask & 8),
     isRatioFlipped: !!(mask & 16),
+    showBladeReadings: !!(mask & 32),
   };
 }
 
@@ -145,6 +147,7 @@ export function decodePreset(encoded: string): SharedPreset | null {
       enableOffset: booleanSettings.enableOffset ?? false,
       ignoreMinBorder: booleanSettings.ignoreMinBorder ?? false,
       showBlades: booleanSettings.showBlades ?? true,
+      showBladeReadings: booleanSettings.showBladeReadings ?? false,
       isLandscape: booleanSettings.isLandscape ?? false,
       isRatioFlipped: booleanSettings.isRatioFlipped ?? false,
       customAspectWidth: 0,

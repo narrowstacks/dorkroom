@@ -39,9 +39,9 @@ export { useCustomRecipes } from './hooks/development-recipes/use-custom-recipes
 export { useCustomRecipeSharing } from './hooks/development-recipes/use-custom-recipe-sharing';
 export { useRecipeSharing } from './hooks/development-recipes/use-recipe-sharing';
 export { useRecipeUrlState } from './hooks/development-recipes/use-recipe-url-state';
-export { 
+export {
   useDevelopmentRecipes,
-  type CustomRecipeFilter 
+  type CustomRecipeFilter,
 } from './hooks/development-recipes/use-development-recipes';
 
 // Border calculator modular hooks
