@@ -18,6 +18,7 @@ const getEnvBaseUrl = (): string | undefined => {
       process.env.VITE_DORKROOM_API_BASE_URL ||
       process.env.PUBLIC_DORKROOM_API_BASE_URL ||
       process.env.DORKROOM_API_BASE_URL ||
+      process.env.DORKROOM_API?.replace(/\/$/, '') || // Support DORKROOM_API and remove trailing slash
       undefined
     );
   }
