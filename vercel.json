@@ -3,5 +3,9 @@
   "outputDirectory": "apps/dorkroom/dist",
   "devCommand": "npx nx serve dorkroom",
   "installCommand": "npm install",
-  "framework": null
+  "framework": null,
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/" }
+  ]
 }
