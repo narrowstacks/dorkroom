@@ -42,6 +42,7 @@ export interface BorderPresetSettings {
   horizontalOffset: number;
   verticalOffset: number;
   showBlades: boolean;
+  showBladeReadings: boolean;
   isLandscape: boolean;
   isRatioFlipped: boolean;
 }

@@ -65,6 +65,7 @@ export const useBorderCalculator = () => {
     horizontalOffset: state.horizontalOffset,
     verticalOffset: state.verticalOffset,
     showBlades: state.showBlades,
+    showBladeReadings: state.showBladeReadings,
     isLandscape: state.isLandscape,
     isRatioFlipped: state.isRatioFlipped,
 

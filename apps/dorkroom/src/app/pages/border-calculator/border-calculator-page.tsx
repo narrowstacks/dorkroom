@@ -81,6 +81,8 @@ export default function BorderCalculatorPage() {
     setVerticalOffsetSlider,
     showBlades,
     setShowBlades,
+    showBladeReadings,
+    setShowBladeReadings,
     isLandscape,
     setIsLandscape,
     isRatioFlipped,
@@ -123,6 +125,7 @@ export default function BorderCalculatorPage() {
       horizontalOffset,
       verticalOffset,
       showBlades,
+      showBladeReadings,
       isLandscape,
       isRatioFlipped,
     }),
@@ -139,6 +142,7 @@ export default function BorderCalculatorPage() {
       horizontalOffset,
       verticalOffset,
       showBlades,
+      showBladeReadings,
       isLandscape,
       isRatioFlipped,
     ]
@@ -356,13 +360,7 @@ export default function BorderCalculatorPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
-      <CalculatorPageHeader
-        eyebrow="Printmaking"
-        title="Border Calculator"
-        description="Calculate precise easel blade positions for consistent print borders."
-      />
-
-      <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <div className="mt-2 grid gap-2 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <div className="space-y-6">
           {calculation && (
             <>
@@ -377,6 +375,7 @@ export default function BorderCalculatorPage() {
                     <AnimatedPreview
                       calculation={calculation}
                       showBlades={showBlades}
+                      showBladeReadings={showBladeReadings}
                       className="max-w-full"
                     />
                   </div>
@@ -476,6 +475,151 @@ export default function BorderCalculatorPage() {
 
         <div className="space-y-6">
           <CalculatorCard
+            title="Paper setup"
+            description="Match the paper size and aspect ratio you're printing on."
+          >
+            <div className="space-y-5">
+              <Select
+                label="Aspect ratio"
+                selectedValue={aspectRatio}
+                onValueChange={setAspectRatio}
+                items={ASPECT_RATIOS as SelectItem[]}
+                placeholder="Select"
+              />
+
+              {aspectRatio === 'custom' && (
+                <DimensionInputGroup
+                  widthValue={String(customAspectWidth)}
+                  onWidthChange={(value) =>
+                    setCustomAspectWidth(Number(value) || 0)
+                  }
+                  heightValue={String(customAspectHeight)}
+                  onHeightChange={(value) =>
+                    setCustomAspectHeight(Number(value) || 0)
+                  }
+                  widthLabel="Width"
+                  heightLabel="Height"
+                  widthPlaceholder="Width"
+                  heightPlaceholder="Height"
+                />
+              )}
+
+              <Select
+                label="Paper size"
+                selectedValue={paperSize}
+                onValueChange={setPaperSize}
+                items={PAPER_SIZES as SelectItem[]}
+                placeholder="Select"
+              />
+
+              {paperSize === 'custom' && (
+                <DimensionInputGroup
+                  widthValue={String(customPaperWidth)}
+                  onWidthChange={(value) =>
+                    setCustomPaperWidth(Number(value) || 0)
+                  }
+                  heightValue={String(customPaperHeight)}
+                  onHeightChange={(value) =>
+                    setCustomPaperHeight(Number(value) || 0)
+                  }
+                  widthLabel="Width (inches)"
+                  heightLabel="Height (inches)"
+                  widthPlaceholder="Width"
+                  heightPlaceholder="Height"
+                />
+              )}
+            </div>
+          </CalculatorCard>
+
+          <CalculatorCard
+            title="Borders & offsets"
+            description="Control the border thickness and fine-tune print placement."
+          >
+            <div className="space-y-5">
+              <LabeledSliderInput
+                label="Minimum border (inches)"
+                value={minBorder}
+                onChange={setMinBorder}
+                onSliderChange={setMinBorderSlider}
+                min={SLIDER_MIN_BORDER}
+                max={SLIDER_MAX_BORDER}
+                step={SLIDER_STEP_BORDER}
+                labels={BORDER_SLIDER_LABELS}
+                continuousUpdate
+              />
+
+              <ToggleSwitch
+                label="Enable offsets"
+                value={enableOffset}
+                onValueChange={setEnableOffset}
+              />
+
+              {enableOffset && (
+                <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <ToggleSwitch
+                    label="Ignore min border"
+                    value={ignoreMinBorder}
+                    onValueChange={setIgnoreMinBorder}
+                  />
+                  {ignoreMinBorder && (
+                    <p className="text-sm text-white/70">
+                      Print can be positioned freely but will stay within the
+                      paper edges.
+                    </p>
+                  )}
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <LabeledSliderInput
+                      label="Horizontal offset"
+                      value={horizontalOffset}
+                      onChange={setHorizontalOffset}
+                      onSliderChange={setHorizontalOffsetSlider}
+                      min={OFFSET_SLIDER_MIN}
+                      max={OFFSET_SLIDER_MAX}
+                      step={OFFSET_SLIDER_STEP}
+                      labels={OFFSET_SLIDER_LABELS}
+                      warning={!!offsetWarning}
+                      continuousUpdate
+                    />
+                    <LabeledSliderInput
+                      label="Vertical offset"
+                      value={verticalOffset}
+                      onChange={setVerticalOffset}
+                      onSliderChange={setVerticalOffsetSlider}
+                      min={OFFSET_SLIDER_MIN}
+                      max={OFFSET_SLIDER_MAX}
+                      step={OFFSET_SLIDER_STEP}
+                      labels={OFFSET_SLIDER_LABELS}
+                      warning={!!offsetWarning}
+                      continuousUpdate
+                    />
+                  </div>
+
+                  {offsetWarning && (
+                    <WarningAlert message={offsetWarning} action="warning" />
+                  )}
+                </div>
+              )}
+            </div>
+          </CalculatorCard>
+          <CalculatorCard
+            title="Blade visualization"
+            description="Control the display of easel blades and measurements on the preview."
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <ToggleSwitch
+                label="Show easel blades"
+                value={showBlades}
+                onValueChange={setShowBlades}
+              />
+              <ToggleSwitch
+                label="Show blade readings"
+                value={showBladeReadings}
+                onValueChange={setShowBladeReadings}
+              />
+            </div>
+          </CalculatorCard>
+          <CalculatorCard
             title="Presets"
             description="Save, recall, and share the setups you use most often."
           >
@@ -565,142 +709,6 @@ export default function BorderCalculatorPage() {
                 </div>
               </div>
             )}
-          </CalculatorCard>
-
-          <CalculatorCard
-            title="Paper setup"
-            description="Match the paper size and aspect ratio you're printing on."
-          >
-            <div className="space-y-5">
-              <Select
-                label="Aspect ratio"
-                selectedValue={aspectRatio}
-                onValueChange={setAspectRatio}
-                items={ASPECT_RATIOS as SelectItem[]}
-                placeholder="Select"
-              />
-
-              {aspectRatio === 'custom' && (
-                <DimensionInputGroup
-                  widthValue={String(customAspectWidth)}
-                  onWidthChange={(value) =>
-                    setCustomAspectWidth(Number(value) || 0)
-                  }
-                  heightValue={String(customAspectHeight)}
-                  onHeightChange={(value) =>
-                    setCustomAspectHeight(Number(value) || 0)
-                  }
-                  widthLabel="Width"
-                  heightLabel="Height"
-                  widthPlaceholder="Width"
-                  heightPlaceholder="Height"
-                />
-              )}
-
-              <Select
-                label="Paper size"
-                selectedValue={paperSize}
-                onValueChange={setPaperSize}
-                items={PAPER_SIZES as SelectItem[]}
-                placeholder="Select"
-              />
-
-              {paperSize === 'custom' && (
-                <DimensionInputGroup
-                  widthValue={String(customPaperWidth)}
-                  onWidthChange={(value) =>
-                    setCustomPaperWidth(Number(value) || 0)
-                  }
-                  heightValue={String(customPaperHeight)}
-                  onHeightChange={(value) =>
-                    setCustomPaperHeight(Number(value) || 0)
-                  }
-                  widthLabel="Width (inches)"
-                  heightLabel="Height (inches)"
-                  widthPlaceholder="Width"
-                  heightPlaceholder="Height"
-                />
-              )}
-            </div>
-          </CalculatorCard>
-
-          <CalculatorCard
-            title="Borders & offsets"
-            description="Control the border thickness and fine-tune print placement."
-          >
-            <div className="space-y-5">
-              <LabeledSliderInput
-                label="Minimum border (inches)"
-                value={minBorder}
-                onChange={setMinBorder}
-                onSliderChange={setMinBorderSlider}
-                min={SLIDER_MIN_BORDER}
-                max={SLIDER_MAX_BORDER}
-                step={SLIDER_STEP_BORDER}
-                labels={BORDER_SLIDER_LABELS}
-                continuousUpdate
-              />
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <ToggleSwitch
-                  label="Enable offsets"
-                  value={enableOffset}
-                  onValueChange={setEnableOffset}
-                />
-                <ToggleSwitch
-                  label="Show easel blades"
-                  value={showBlades}
-                  onValueChange={setShowBlades}
-                />
-              </div>
-
-              {enableOffset && (
-                <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <ToggleSwitch
-                    label="Ignore min border"
-                    value={ignoreMinBorder}
-                    onValueChange={setIgnoreMinBorder}
-                  />
-                  {ignoreMinBorder && (
-                    <p className="text-sm text-white/70">
-                      Print can be positioned freely but will stay within the
-                      paper edges.
-                    </p>
-                  )}
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <LabeledSliderInput
-                      label="Horizontal offset"
-                      value={horizontalOffset}
-                      onChange={setHorizontalOffset}
-                      onSliderChange={setHorizontalOffsetSlider}
-                      min={OFFSET_SLIDER_MIN}
-                      max={OFFSET_SLIDER_MAX}
-                      step={OFFSET_SLIDER_STEP}
-                      labels={OFFSET_SLIDER_LABELS}
-                      warning={!!offsetWarning}
-                      continuousUpdate
-                    />
-                    <LabeledSliderInput
-                      label="Vertical offset"
-                      value={verticalOffset}
-                      onChange={setVerticalOffset}
-                      onSliderChange={setVerticalOffsetSlider}
-                      min={OFFSET_SLIDER_MIN}
-                      max={OFFSET_SLIDER_MAX}
-                      step={OFFSET_SLIDER_STEP}
-                      labels={OFFSET_SLIDER_LABELS}
-                      warning={!!offsetWarning}
-                      continuousUpdate
-                    />
-                  </div>
-
-                  {offsetWarning && (
-                    <WarningAlert message={offsetWarning} action="warning" />
-                  )}
-                </div>
-              )}
-            </div>
           </CalculatorCard>
         </div>
       </div>
