@@ -54,9 +54,10 @@ const formatDilution = (
     return combination.customDilution;
   }
 
-  if (developer) {
+  if (developer && combination.dilutionId) {
     const dilution = developer.dilutions.find(
-      (dilutionOption) => dilutionOption.id === combination.dilutionId
+      (dilutionOption) =>
+        String(dilutionOption.id) === String(combination.dilutionId)
     );
 
     if (dilution) {

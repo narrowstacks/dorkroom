@@ -239,6 +239,6 @@ export const DEFAULT_CUSTOM_PAPER_WIDTH = 13;
 export const DEFAULT_CUSTOM_PAPER_HEIGHT = 10;
 export const DEFAULT_CUSTOM_ASPECT_WIDTH = 2;
 export const DEFAULT_CUSTOM_ASPECT_HEIGHT = 3;
-export const CALC_STORAGE_KEY = 'borderCalculatorState';
+export const CALC_STORAGE_KEY = 'borderCalculatorState_v2';
 
 export type { BorderCalculatorState as PersistedBorderCalculatorState };
