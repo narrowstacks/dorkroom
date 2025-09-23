@@ -10,7 +10,9 @@
     "rootDir": "src",
     "jsx": "react-jsx",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
-    "lib": ["es2022", "dom"]
+    "lib": ["es2022", "dom"],
+    "emitDeclarationOnly": false,
+    "declaration": true
   },
   "exclude": [
     "out-tsc",

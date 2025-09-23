@@ -9,6 +9,7 @@
         "cwd": "packages/logic",
         "command": "tsc --project tsconfig.lib.json"
       },
+      "dependsOn": ["^build"],
       "cache": true,
       "inputs": [
         "production",
