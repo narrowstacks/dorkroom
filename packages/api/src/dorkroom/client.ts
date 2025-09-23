@@ -83,7 +83,7 @@ class RequestDeduplicator {
 class TTLCache<T> {
   private cache = new Map<string, CacheEntry<T>>();
 
-  set(key: string, value: T, ttlMs: number = 300000): void {
+  set(key: string, value: T, ttlMs = 300000): void {
     // Default 5 minutes
     this.cache.set(key, {
       data: value,
@@ -396,9 +396,40 @@ export class DorkroomClient {
 
         try {
           const apiResponse = (await response.json()) as ApiResponse<T>;
+          
+          // Debug: Log raw API response
+          debugLog(`[DorkroomClient] Raw API response for ${resource}:`, {
+            status: response.status,
+            url: url,
+            responseStructure: {
+              hasData: !!apiResponse?.data,
+              dataType: Array.isArray(apiResponse?.data) ? 'array' : typeof apiResponse?.data,
+              dataLength: Array.isArray(apiResponse?.data) ? apiResponse.data.length : 'N/A',
+              keys: apiResponse ? Object.keys(apiResponse) : []
+            },
+            firstItem: Array.isArray(apiResponse?.data) && apiResponse.data.length > 0 
+              ? apiResponse.data[0] 
+              : null
+          });
+          
           if (apiResponse && apiResponse.data) {
+            // Debug: Log before transformation
+            debugLog(`[DorkroomClient] Before transformation for ${resource}:`, {
+              sampleItem: Array.isArray(apiResponse.data) && apiResponse.data.length > 0 
+                ? apiResponse.data[0] 
+                : null
+            });
+            
             // Transform PostgreSQL arrays to JSON arrays
             const transformedData = this.transformPostgreSQLArrays(apiResponse.data);
+            
+            // Debug: Log after transformation
+            debugLog(`[DorkroomClient] After transformation for ${resource}:`, {
+              sampleItem: Array.isArray(transformedData) && transformedData.length > 0 
+                ? transformedData[0] 
+                : null,
+              transformedCount: Array.isArray(transformedData) ? transformedData.length : 'N/A'
+            });
             
             // Cache the result
             this.searchCache.set(
@@ -438,23 +469,53 @@ export class DorkroomClient {
    * Converts strings like '{"item1","item2","item3"}' to ["item1","item2","item3"]
    */
   private transformPostgreSQLArrays<T>(data: T[]): T[] {
-    return data.map((item: any) => {
+    debugLog(`[DorkroomClient] Starting PostgreSQL array transformation for ${data.length} items`);
+    
+    const transformedData = data.map((item: any, index: number) => {
+      const original = { ...item };
       const transformed = { ...item };
+      let hasTransformations = false;
       
       // Transform manufacturer_notes if it exists and is a string
       if (typeof transformed.manufacturer_notes === 'string') {
+        const originalValue = transformed.manufacturer_notes;
         transformed.manufacturer_notes = this.parsePostgreSQLArray(transformed.manufacturer_notes);
+        if (index === 0) { // Log first item transformation for debugging
+          debugLog(`[DorkroomClient] Transformed manufacturer_notes:`, {
+            original: originalValue,
+            transformed: transformed.manufacturer_notes
+          });
+        }
+        hasTransformations = true;
       }
       
       // Transform any other fields that might be PostgreSQL arrays
       for (const [key, value] of Object.entries(transformed)) {
         if (typeof value === 'string' && this.isPostgreSQLArray(value)) {
+          const originalValue = value;
           transformed[key] = this.parsePostgreSQLArray(value);
+          if (index === 0) { // Log first item transformation for debugging
+            debugLog(`[DorkroomClient] Transformed PostgreSQL array field '${key}':`, {
+              original: originalValue,
+              transformed: transformed[key]
+            });
+          }
+          hasTransformations = true;
         }
+      }
+      
+      if (index === 0 && hasTransformations) {
+        debugLog(`[DorkroomClient] Sample transformation result:`, {
+          before: original,
+          after: transformed
+        });
       }
       
       return transformed;
     });
+    
+    debugLog(`[DorkroomClient] Completed PostgreSQL array transformation for ${transformedData.length} items`);
+    return transformedData;
   }
 
   /**
@@ -1029,20 +1090,50 @@ export class DorkroomClient {
     // Use deduplication for concurrent requests
     return this.deduplicator.deduplicate(requestKey, async () => {
       try {
-        const response = await this.transport.get(
-          joinURL(this.baseUrl, `combinations?${params.toString()}`),
-          this.timeout,
-        );
+        const url = joinURL(this.baseUrl, `combinations?${params.toString()}`);
+        debugLog(`[DorkroomClient] Fetching combinations from: ${url}`);
+        
+        const response = await this.transport.get(url, this.timeout);
 
         const rawData = await response.json();
+        
+        // Debug: Log raw combinations API response
+        debugLog(`[DorkroomClient] Raw combinations API response:`, {
+          status: response.status,
+          url: url,
+          responseStructure: {
+            hasData: !!rawData?.data,
+            dataType: Array.isArray(rawData?.data) ? 'array' : typeof rawData?.data,
+            dataLength: Array.isArray(rawData?.data) ? rawData.data.length : 'N/A',
+            keys: rawData ? Object.keys(rawData) : [],
+            count: rawData?.count,
+            page: rawData?.page,
+            perPage: rawData?.perPage
+          },
+          firstItem: Array.isArray(rawData?.data) && rawData.data.length > 0 
+            ? rawData.data[0] 
+            : rawData && !Array.isArray(rawData.data) ? rawData : null
+        });
         
         // Transform PostgreSQL arrays to JSON arrays
         let data = rawData;
         if (rawData && rawData.data) {
+          debugLog(`[DorkroomClient] Before PostgreSQL array transformation:`, {
+            sampleItem: Array.isArray(rawData.data) && rawData.data.length > 0 
+              ? rawData.data[0] 
+              : null
+          });
+          
           data = {
             ...rawData,
             data: this.transformPostgreSQLArrays(rawData.data)
           };
+          
+          debugLog(`[DorkroomClient] After PostgreSQL array transformation:`, {
+            sampleItem: Array.isArray(data.data) && data.data.length > 0 
+              ? data.data[0] 
+              : null
+          });
         }
 
         // Handle single record response (when querying by ID)
@@ -1138,8 +1229,8 @@ export class DorkroomClient {
    * Useful for implementing pagination in UI components.
    */
   async getPaginatedCombinations(
-    page: number = 1,
-    count: number = 25,
+    page = 1,
+    count = 25,
     filters?: { filmSlug?: string; developerSlug?: string },
   ): Promise<PaginatedApiResponse<Combination>> {
     const options: CombinationFetchOptions = {
@@ -1216,8 +1307,20 @@ export class DorkroomClient {
 
     const requestKey = `fuzzy-films-${query}-${JSON.stringify(options)}`;
 
+    debugLog(`[DorkroomClient] Performing fuzzy search for films:`, {
+      query,
+      options,
+      params: params.toString()
+    });
+
     // Get raw fuzzy results from API
     const rawResults = await this.fetch<Film>("films", params, requestKey);
+
+    debugLog(`[DorkroomClient] Raw fuzzy search results for films:`, {
+      query,
+      rawResultsCount: rawResults.length,
+      firstResult: rawResults.length > 0 ? rawResults[0] : null
+    });
 
     // Apply tokenization post-processing to improve relevance
     const enhancedResults = enhanceFilmResults(
@@ -1226,13 +1329,35 @@ export class DorkroomClient {
       DEFAULT_TOKENIZED_CONFIG,
     );
 
+    debugLog(`[DorkroomClient] Enhanced fuzzy search results for films:`, {
+      query,
+      enhancedResultsCount: enhancedResults.length,
+      firstEnhancedResult: enhancedResults.length > 0 ? {
+        combinedScore: enhancedResults[0].combinedScore,
+        tokenScore: enhancedResults[0].tokenScore,
+        item: enhancedResults[0].item
+      } : null
+    });
+
     // Extract just the film items from the scored results
     const processedResults = enhancedResults.map((result) => result.item);
 
     // Apply original limit if specified, since tokenization filtering might change count
     if (options.limit && processedResults.length > options.limit) {
-      return processedResults.slice(0, options.limit);
+      const limitedResults = processedResults.slice(0, options.limit);
+      debugLog(`[DorkroomClient] Applied limit to fuzzy search results:`, {
+        query,
+        originalCount: processedResults.length,
+        limitedCount: limitedResults.length,
+        limit: options.limit
+      });
+      return limitedResults;
     }
+
+    debugLog(`[DorkroomClient] Final fuzzy search results for films:`, {
+      query,
+      finalCount: processedResults.length
+    });
 
     return processedResults;
   }
@@ -1256,12 +1381,24 @@ export class DorkroomClient {
 
     const requestKey = `fuzzy-developers-${query}-${JSON.stringify(options)}`;
 
+    debugLog(`[DorkroomClient] Performing fuzzy search for developers:`, {
+      query,
+      options,
+      params: params.toString()
+    });
+
     // Get raw fuzzy results from API
     const rawResults = await this.fetch<Developer>(
       "developers",
       params,
       requestKey,
     );
+
+    debugLog(`[DorkroomClient] Raw fuzzy search results for developers:`, {
+      query,
+      rawResultsCount: rawResults.length,
+      firstResult: rawResults.length > 0 ? rawResults[0] : null
+    });
 
     // Apply tokenization post-processing to improve relevance
     const enhancedResults = enhanceDeveloperResults(
@@ -1270,13 +1407,35 @@ export class DorkroomClient {
       DEFAULT_TOKENIZED_CONFIG,
     );
 
+    debugLog(`[DorkroomClient] Enhanced fuzzy search results for developers:`, {
+      query,
+      enhancedResultsCount: enhancedResults.length,
+      firstEnhancedResult: enhancedResults.length > 0 ? {
+        combinedScore: enhancedResults[0].combinedScore,
+        tokenScore: enhancedResults[0].tokenScore,
+        item: enhancedResults[0].item
+      } : null
+    });
+
     // Extract just the developer items from the scored results
     const processedResults = enhancedResults.map((result) => result.item);
 
     // Apply original limit if specified, since tokenization filtering might change count
     if (options.limit && processedResults.length > options.limit) {
-      return processedResults.slice(0, options.limit);
+      const limitedResults = processedResults.slice(0, options.limit);
+      debugLog(`[DorkroomClient] Applied limit to fuzzy search results:`, {
+        query,
+        originalCount: processedResults.length,
+        limitedCount: limitedResults.length,
+        limit: options.limit
+      });
+      return limitedResults;
     }
+
+    debugLog(`[DorkroomClient] Final fuzzy search results for developers:`, {
+      query,
+      finalCount: processedResults.length
+    });
 
     return processedResults;
   }
