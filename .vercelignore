@@ -1,0 +1,11 @@
+node_modules
+.nx
+.git
+*.log
+.DS_Store
+original-*
+out-tsc
+packages/*/dist
+packages/*/out-tsc
+apps/*/out-tsc
+*.tsbuildinfo
