@@ -1,62 +1,60 @@
 /**
- * TypeScript interfaces for Dorkroom API data structures.
+ * TypeScript interfaces for the public Dorkroom API client.
  *
- * These interfaces represent the data structures returned by the
- * Dorkroom REST API for film stocks, developers, and development combinations.
+ * These interfaces mirror the current responses from
+ * https://beta.dorkroom.art/api and expose a camel-cased shape that the rest
+ * of the app consumes.
  */
 
 /**
- * Represents a film stock with all its properties.
+ * Represents a film stock entry returned by the API.
  */
 export interface Film {
-  /** Unique identifier for the film */
+  /** Numeric identifier from the API (stringified for stability across platforms). */
   id: string;
-  /** Display name of the film */
-  name: string;
-  /** Manufacturer/brand name */
-  brand: string;
-  /** ISO speed rating */
-  isoSpeed: number;
-  /** Type of film (color, b&w, etc.) */
-  colorType: string;
-  /** Optional detailed description */
-  description?: string;
-  /** Whether film is discontinued (0=no, 1=yes) */
-  discontinued: number;
-  /** List of notes from manufacturer */
-  manufacturerNotes: string[];
-  /** Description of grain characteristics */
-  grainStructure?: string | null;
-  /** Information about reciprocity failure */
-  reciprocityFailure?: number | null;
-  /** URL for a static image of the film box */
-  staticImageURL?: string;
-  /** Date the film was added to the database */
-  dateAdded: string;
-  /** UUID for the film */
+  /** Dorkroom UUID for the film. */
   uuid: string;
-  /** URL-friendly slug for the film */
+  /** URL-friendly slug. */
   slug: string;
-
-  // Snake_case variants from actual API response
-  /** ISO speed rating (snake_case) */
-  iso_speed?: number;
-  /** Type of film (snake_case) */
-  color_type?: string;
-  /** List of notes from manufacturer (snake_case) */
+  /** Manufacturer or brand name. */
+  brand: string;
+  /** Marketing name. */
+  name: string;
+  /** ISO speed rating. */
+  isoSpeed: number;
+  /** API-provided color classification (e.g. "bw", "color"). */
+  colorType: string;
+  /** Longer descriptive copy if available. */
+  description?: string | null;
+  /** Whether the stock is discontinued (0 = no, 1 = yes for backwards compatibility). */
+  discontinued: number;
+  /** Array form of manufacturer notes. */
+  manufacturerNotes: string[];
+  /** Snake_case alias for consumers that still expect it. */
   manufacturer_notes?: string[];
-  /** Description of grain characteristics (snake_case) */
+  /** Grain structure description. */
+  grainStructure?: string | null;
+  /** Snake_case alias. */
   grain_structure?: string | null;
-  /** Information about reciprocity failure (snake_case) */
+  /** Reciprocity failure information (minutes multiplier). */
+  reciprocityFailure?: number | null;
+  /** Snake_case alias. */
   reciprocity_failure?: number | null;
-  /** URL for a static image of the film box (snake_case) */
-  static_image_url?: string;
-  /** Date the film was added to the database (snake_case) */
+  /** Optional product imagery. */
+  staticImageURL?: string | null;
+  /** Snake_case alias. */
+  static_image_url?: string | null;
+  /** First known appearance in the catalogue. */
+  dateAdded?: string;
+  /** Snake_case alias. */
   date_added?: string;
+  /** Timestamps from the upstream service. */
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
- * Represents a dilution ratio for a developer.
+ * Dilution option for a developer.
  */
 export interface Dilution {
   id: number;
@@ -65,160 +63,117 @@ export interface Dilution {
 }
 
 /**
- * Represents a film/paper developer with all its properties.
+ * Developer entry returned by the API.
  */
 export interface Developer {
-  /** Unique identifier for the developer */
   id: string;
-  /** Display name of the developer */
-  name: string;
-  /** Manufacturer/brand name */
-  manufacturer: string;
-  /** Type of developer (e.g., "concentrate") */
-  type: string;
-  /** Whether for film or paper development */
-  filmOrPaper: string;
-  /** List of available dilution ratios */
-  dilutions: Dilution[];
-  /** Working solution lifetime in hours */
-  workingLifeHours?: number | null;
-  /** Stock solution lifetime in months */
-  stockLifeMonths?: number | null;
-  /** Additional notes about the developer */
-  notes?: string;
-  /** Whether developer is discontinued (0=no, 1=yes) */
-  discontinued: number;
-  /** How to prepare the developer */
-  mixingInstructions?: string | null;
-  /** Safety information and warnings */
-  safetyNotes?: string | null;
-  /** URLs to manufacturer datasheets */
-  datasheetUrl?: string[];
-  /** UUID for the developer */
   uuid: string;
-  /** URL-friendly slug for the developer */
   slug: string;
-  /** Date the developer was added */
-  dateAdded: string;
+  name: string;
+  manufacturer: string;
+  type: string;
+  /** Free-form description (mapped from the upstream `description` field). */
+  description?: string | null;
+  /** Legacy alias that existing UI components reference. */
+  notes?: string | null;
+  mixingInstructions?: string | null;
+  storageRequirements?: string | null;
+  safetyNotes?: string | null;
+  dilutions: Dilution[];
+  /** "film" if the upstream `film_or_paper` flag is true, otherwise "paper". */
+  filmOrPaper: 'film' | 'paper' | 'both' | 'unspecified';
+  workingLifeHours?: number | null;
+  stockLifeMonths?: number | null;
+  datasheetUrl?: string[];
+  discontinued: number;
+  dateAdded?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
- * Represents a film+developer combination with development parameters.
+ * Combination of film + developer returned by the API.
  */
 export interface Combination {
-  /** Unique identifier for the combination */
   id: string;
-  /** Display name describing the combination */
-  name: string;
-  /** UUID of the film used */
-  filmStockId: string;
-  /** UUID of the developer used */
-  developerId: string;
-  /** Development temperature in Fahrenheit */
-  temperatureF: number;
-  /** Development time in minutes */
-  timeMinutes: number;
-  /** ISO at which the film was shot */
-  shootingIso: number;
-  /** Push/pull processing offset (0=normal, +1=push 1 stop, etc.) */
-  pushPull: number;
-  /** Description of agitation pattern */
-  agitationSchedule?: string;
-  /** Additional development notes */
-  notes?: string;
-  /** ID of specific dilution used */
-  dilutionId?: number;
-  /** Custom dilution ratio if not standard */
-  customDilution?: string | null;
-  /** UUID for the combination */
   uuid: string;
-  /** URL-friendly slug for the combination */
   slug: string;
-  /** Date the combination was added */
-  dateAdded: string;
+  name: string;
+  /** UUID (when available) of the film used in the recipe. */
+  filmStockId: string | null;
+  /** Raw slug from the upstream payload (handy for debugging/filtering). */
+  filmSlug?: string | null;
+  /** UUID (when available) of the developer. */
+  developerId: string | null;
+  /** Raw slug from the upstream payload. */
+  developerSlug?: string | null;
+  /** Temperature converted to Fahrenheit to match legacy UI expectations. */
+  temperatureF: number;
+  /** Temperature in Celsius as supplied by the upstream service. */
+  temperatureC?: number | null;
+  /** Total development time in minutes. */
+  timeMinutes: number;
+  /** ISO at which the film was exposed. */
+  shootingIso: number;
+  /** Push/pull delta expressed in stops. */
+  pushPull: number;
+  agitationSchedule?: string | null;
+  notes?: string | null;
+  dilutionId?: number;
+  customDilution?: string | null;
+  /** Classification tags such as `official-ilford`. */
+  tags?: string[];
+  /** Source URL for the data when provided. */
+  infoSource?: string | null;
+  dateAdded?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
  * Configuration options for the DorkroomClient.
  */
 export interface DorkroomClientConfig {
-  /** Base URL for the API endpoints */
   baseUrl?: string;
-  /** Request timeout in milliseconds */
   timeout?: number;
-  /** Maximum number of retry attempts */
-  maxRetries?: number;
-  /** Custom logger instance */
   logger?: Logger;
-  /** Cache TTL in milliseconds (default: 5 minutes) */
   cacheTTL?: number;
-  /** Debounce delay for search requests in milliseconds (default: 300ms) */
-  searchDebounceMs?: number;
 }
 
 /**
- * Simple logger interface for dependency injection.
+ * Minimal logger contract so callers can inject structured logging.
  */
 export interface Logger {
-  debug(message: string): void;
-  info(message: string): void;
-  warn(message: string): void;
-  error(message: string): void;
+  debug(message: string, meta?: unknown): void;
+  info(message: string, meta?: unknown): void;
+  warn(message: string, meta?: unknown): void;
+  error(message: string, meta?: unknown): void;
 }
 
 /**
- * Options for fuzzy search operations.
- */
-export interface FuzzySearchOptions {
-  /** Maximum number of results to return */
-  limit?: number;
-  /** Minimum similarity score (0-1) to include in results */
-  threshold?: number;
-}
-
-/**
- * Represents the structure of a successful API response.
+ * Shape of collection responses returned by beta.dorkroom.art.
  */
 export interface ApiResponse<T> {
   data: T[];
-  success: boolean;
-  message: string;
-  total: number;
+  count?: number;
+  filters?: Record<string, unknown>;
 }
 
 /**
- * Represents the structure of a paginated API response from Supabase edge functions.
+ * Paginated response helpers (the upstream API sometimes echoes page metadata).
  */
-export interface PaginatedApiResponse<T> {
-  /** The data array */
-  data: T[];
-  /** Total count of records matching the query */
-  count: number | null;
-  /** Current page number (only present for paginated requests) */
+export interface PaginatedApiResponse<T> extends ApiResponse<T> {
   page?: number;
-  /** Number of items per page (only present for paginated requests) */
   perPage?: number;
-  /** Applied filters */
-  filters?: {
-    /** Film slug filter */
-    film?: string;
-    /** Developer slug filter */
-    developer?: string;
-  };
 }
 
 /**
- * Options for fetching combinations with server-side filtering.
+ * Query parameters supported by the combinations endpoint.
  */
 export interface CombinationFetchOptions {
-  /** Film slug to filter by */
   filmSlug?: string;
-  /** Developer slug to filter by */
   developerSlug?: string;
-  /** Number of results per page */
   count?: number;
-  /** Page number (starts at 1) */
   page?: number;
-  /** Specific combination UUID to fetch */
   id?: string;
 }

@@ -52,7 +52,7 @@ export function extractTokens(text: string): string[] {
       .toLowerCase()
       .trim()
       // Split on whitespace, hyphens, and common punctuation
-      .split(/[\s\-_.,;:()[\]{}\/\\]+/)
+      .split(/[\s\-_.,;:()[\]{}\\]+/)
       // Remove empty strings and very short tokens
       .filter((token) => token.length > 0)
       // Remove common stop words that don't add search value
@@ -82,7 +82,7 @@ export function extractTokens(text: string): string[] {
 export function calculateTokenScore(
   queryTokens: string[],
   targetText: string,
-  fieldWeight: number = 1.0,
+  fieldWeight = 1.0,
   config: TokenizedSearchConfig = DEFAULT_TOKENIZED_CONFIG,
 ): { score: number; matchedTokens: string[] } {
   if (queryTokens.length === 0 || !targetText) {

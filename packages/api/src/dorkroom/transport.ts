@@ -154,20 +154,36 @@ export const DEFAULT_CIRCUIT_BREAKER_CONFIG: CircuitBreakerConfig = {
  * Simple console logger implementation.
  */
 export class ConsoleLogger implements Logger {
-  debug(message: string): void {
-    console.debug(`[DEBUG] ${message}`);
+  debug(message: string, meta?: unknown): void {
+    if (meta !== undefined) {
+      console.debug(`[DEBUG] ${message}`, meta);
+    } else {
+      console.debug(`[DEBUG] ${message}`);
+    }
   }
 
-  info(message: string): void {
-    console.info(`[INFO] ${message}`);
+  info(message: string, meta?: unknown): void {
+    if (meta !== undefined) {
+      console.info(`[INFO] ${message}`, meta);
+    } else {
+      console.info(`[INFO] ${message}`);
+    }
   }
 
-  warn(message: string): void {
-    console.warn(`[WARN] ${message}`);
+  warn(message: string, meta?: unknown): void {
+    if (meta !== undefined) {
+      console.warn(`[WARN] ${message}`, meta);
+    } else {
+      console.warn(`[WARN] ${message}`);
+    }
   }
 
-  error(message: string): void {
-    console.error(`[ERROR] ${message}`);
+  error(message: string, meta?: unknown): void {
+    if (meta !== undefined) {
+      console.error(`[ERROR] ${message}`, meta);
+    } else {
+      console.error(`[ERROR] ${message}`);
+    }
   }
 }
 

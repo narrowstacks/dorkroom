@@ -152,27 +152,38 @@ export const useDevelopmentRecipes = (
     setError(null);
 
     try {
-      const [, allFilmsData, allDevelopersData, combinations] = await Promise.all([
+      await Promise.all([
         new Promise((resolve) => setTimeout(resolve, 500)),
-        client.forceReload().then(() => client.getAllFilms()),
-        client.getAllDevelopers(),
-        client.getAllCombinations(),
+        client.forceReload(),
       ]);
 
-      const films = allFilmsData.filter((film: Film) => {
-        if (!film.colorType) {
-          return false;
-        }
-        const ct = film.colorType.toLowerCase();
-        return ct === 'bw' || ct === 'b&w' || ct === 'b & w';
-      });
+      const allFilmsData = client.getAllFilms();
+      const allDevelopersData = client.getAllDevelopers();
+      const combinations = client.getAllCombinations();
 
-      const developers = allDevelopersData.filter((developer: Developer) => {
-        if (!developer.filmOrPaper) {
-          return false;
-        }
-        return developer.filmOrPaper.toLowerCase() === 'film';
-      });
+      const films = allFilmsData
+        .filter((film: Film) => {
+          if (!film.colorType) {
+            return false;
+          }
+          const ct = film.colorType.toLowerCase();
+          return ct === 'bw' || ct === 'b&w' || ct === 'b & w';
+        })
+        .sort((a: Film, b: Film) =>
+          a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name),
+        );
+
+      const developers = allDevelopersData
+        .filter((developer: Developer) => {
+          if (!developer.filmOrPaper) {
+            return false;
+          }
+          return developer.filmOrPaper.toLowerCase() === 'film';
+        })
+        .sort((a: Developer, b: Developer) =>
+          a.manufacturer.localeCompare(b.manufacturer) ||
+          a.name.localeCompare(b.name),
+        );
 
       setAllFilms(films);
       setAllDevelopers(developers);
@@ -195,18 +206,28 @@ export const useDevelopmentRecipes = (
   }, [loadData]);
 
   const getFilmById = useCallback(
-    (id: string): Film | undefined => {
+    (id?: string | null): Film | undefined => {
+      if (!id) return undefined;
+      const key = String(id);
       return allFilms.find(
-        (film) => film.id === id || film.uuid === id || film.slug === id,
+        (film) =>
+          film.id === key ||
+          film.uuid === key ||
+          film.slug === key,
       );
     },
     [allFilms],
   );
 
   const getDeveloperById = useCallback(
-    (id: string): Developer | undefined => {
+    (id?: string | null): Developer | undefined => {
+      if (!id) return undefined;
+      const key = String(id);
       return allDevelopers.find(
-        (dev) => dev.id === id || dev.uuid === id || dev.slug === id,
+        (dev) =>
+          dev.id === key ||
+          dev.uuid === key ||
+          dev.slug === key,
       );
     },
     [allDevelopers],
@@ -214,7 +235,11 @@ export const useDevelopmentRecipes = (
 
   const getCombinationsForFilm = useCallback(
     (filmId: string): Combination[] => {
-      return allCombinations.filter((combo) => combo.filmStockId === filmId);
+      return allCombinations.filter(
+        (combo) =>
+          combo.filmStockId === filmId ||
+          combo.filmSlug === filmId,
+      );
     },
     [allCombinations],
   );
@@ -222,7 +247,9 @@ export const useDevelopmentRecipes = (
   const getCombinationsForDeveloper = useCallback(
     (developerId: string): Combination[] => {
       return allCombinations.filter(
-        (combo) => combo.developerId === developerId,
+        (combo) =>
+          combo.developerId === developerId ||
+          combo.developerSlug === developerId,
       );
     },
     [allCombinations],
@@ -238,7 +265,9 @@ export const useDevelopmentRecipes = (
     const dilutionSet = new Set<string>();
 
     const combinations = allCombinations.filter(
-      (combo) => combo.developerId === selectedDeveloper.uuid,
+      (combo) =>
+        combo.developerId === selectedDeveloper.uuid ||
+        combo.developerSlug === selectedDeveloper.slug,
     );
 
     combinations.forEach((combo) => {
@@ -266,7 +295,9 @@ export const useDevelopmentRecipes = (
     const isoSet = new Set<number>();
 
     const combinations = allCombinations.filter(
-      (combo) => combo.filmStockId === selectedFilm.uuid,
+      (combo) =>
+        combo.filmStockId === selectedFilm.uuid ||
+        combo.filmSlug === selectedFilm.slug,
     );
 
     combinations.forEach((combo) => {
@@ -311,7 +342,9 @@ export const useDevelopmentRecipes = (
 
     if (selectedFilm) {
       combinations = combinations.filter(
-        (combo) => combo.filmStockId === selectedFilm.uuid,
+        (combo) =>
+          combo.filmStockId === selectedFilm.uuid ||
+          combo.filmSlug === selectedFilm.slug,
       );
     } else if (filmSearch.trim()) {
       const lowerSearch = filmSearch.toLowerCase();
@@ -320,15 +353,20 @@ export const useDevelopmentRecipes = (
           film.name.toLowerCase().includes(lowerSearch) ||
           film.brand.toLowerCase().includes(lowerSearch),
       );
-      const filmIds = matchingFilms.map((film) => film.uuid);
+      const filmKeys = matchingFilms
+        .flatMap((film) => [film.uuid, film.slug])
+        .filter(Boolean);
       combinations = combinations.filter((combo) =>
-        filmIds.includes(combo.filmStockId),
+        filmKeys.includes(combo.filmStockId ?? '') ||
+        filmKeys.includes(combo.filmSlug ?? ''),
       );
     }
 
     if (selectedDeveloper) {
       combinations = combinations.filter(
-        (combo) => combo.developerId === selectedDeveloper.uuid,
+        (combo) =>
+          combo.developerId === selectedDeveloper.uuid ||
+          combo.developerSlug === selectedDeveloper.slug,
       );
     } else if (developerSearch.trim()) {
       const lowerSearch = developerSearch.toLowerCase();
@@ -337,9 +375,12 @@ export const useDevelopmentRecipes = (
           dev.name.toLowerCase().includes(lowerSearch) ||
           dev.manufacturer.toLowerCase().includes(lowerSearch),
       );
-      const developerIds = matchingDevelopers.map((dev) => dev.uuid);
+      const developerKeys = matchingDevelopers
+        .flatMap((dev) => [dev.uuid, dev.slug])
+        .filter(Boolean);
       combinations = combinations.filter((combo) =>
-        developerIds.includes(combo.developerId),
+        developerKeys.includes(combo.developerId ?? '') ||
+        developerKeys.includes(combo.developerSlug ?? ''),
       );
     }
 
@@ -347,9 +388,12 @@ export const useDevelopmentRecipes = (
       const matchingDevelopers = allDevelopers.filter(
         (dev) => dev.type === developerTypeFilter,
       );
-      const developerIds = matchingDevelopers.map((dev) => dev.uuid);
+      const developerKeys = matchingDevelopers
+        .flatMap((dev) => [dev.uuid, dev.slug])
+        .filter(Boolean);
       combinations = combinations.filter((combo) =>
-        developerIds.includes(combo.developerId),
+        developerKeys.includes(combo.developerId ?? '') ||
+        developerKeys.includes(combo.developerSlug ?? ''),
       );
     }
 

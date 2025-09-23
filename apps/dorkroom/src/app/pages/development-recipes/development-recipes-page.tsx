@@ -117,8 +117,11 @@ export default function DevelopmentRecipesPage() {
         slug: recipe.id,
         name: recipe.name,
         filmStockId: recipe.filmId,
+        filmSlug: recipe.filmId,
         developerId: recipe.developerId,
+        developerSlug: recipe.developerId,
         temperatureF: recipe.temperatureF,
+        temperatureC: ((recipe.temperatureF - 32) * 5) / 9,
         timeMinutes: recipe.timeMinutes,
         shootingIso: recipe.shootingIso,
         pushPull: recipe.pushPull,
@@ -127,6 +130,8 @@ export default function DevelopmentRecipesPage() {
         customDilution: recipe.customDilution,
         dilutionId: recipe.dilutionId,
         dateAdded: recipe.dateCreated,
+        tags: ['custom'],
+        infoSource: null,
       } as Combination);
     });
     return map;
@@ -195,8 +200,11 @@ export default function DevelopmentRecipesPage() {
         slug: recipe.id,
         name: recipe.name,
         filmStockId: recipe.filmId,
+        filmSlug: recipe.filmId,
         developerId: recipe.developerId,
+        developerSlug: recipe.developerId,
         temperatureF: recipe.temperatureF,
+        temperatureC: ((recipe.temperatureF - 32) * 5) / 9,
         timeMinutes: recipe.timeMinutes,
         shootingIso: recipe.shootingIso,
         pushPull: recipe.pushPull,
@@ -205,6 +213,8 @@ export default function DevelopmentRecipesPage() {
         customDilution: recipe.customDilution,
         dilutionId: recipe.dilutionId,
         dateAdded: recipe.dateCreated,
+        tags: ['custom'],
+        infoSource: null,
       } as Combination;
 
       return {
