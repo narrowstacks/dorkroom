@@ -1,9 +1,11 @@
 // Types exports
 export * from './types/border-calculator';
+export * from './types/reciprocity';
 
 // Constants exports
 export * from './constants/border-calculator';
 export * from './constants/calculations';
+export * from './constants/reciprocity';
 
 // Utils exports
 export * from './utils/border-calculations';
@@ -18,6 +20,11 @@ export { useBorderCalculator } from './hooks/use-border-calculator';
 export { useResizeCalculator } from './hooks/use-resize-calculator';
 export { usePresetSharing } from './hooks/use-preset-sharing';
 export { useUrlPresetLoader } from './hooks/use-url-preset-loader';
+export {
+  useReciprocityCalculator,
+  formatReciprocityTime,
+  parseReciprocityTime,
+} from './hooks/use-reciprocity-calculator';
 
 // Border calculator modular hooks
 export {

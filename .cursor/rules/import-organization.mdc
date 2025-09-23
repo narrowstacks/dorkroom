@@ -1,0 +1,283 @@
+---
+globs: *.ts,*.tsx
+description: Import organization and barrel export patterns
+---
+
+# Import Organization & Barrel Exports
+
+## Import Order and Grouping
+
+### Standard Import Order
+
+```typescript
+// 1. Node modules (React, third-party libraries)
+import { type FC, useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { clsx } from 'clsx';
+
+// 2. Internal packages (workspace libraries)
+import type { BorderCalculationOptions } from '@dorkroom/logic';
+import { useBorderCalculator, calculateDimensions } from '@dorkroom/logic';
+import { CalculatorCard, NumberInput } from '@dorkroom/ui';
+
+// 3. Relative imports (same project)
+import type { ComponentProps } from './types';
+import { BorderPreview } from './components/border-preview';
+import { useLocalState } from '../hooks/use-local-state';
+import { CALCULATION_CONSTANTS } from '../constants';
+
+// 4. CSS imports (last)
+import './component.css';
+```
+
+### Type vs Value Imports
+
+```typescript
+// ✅ Separate type-only imports
+import type { FC, ReactNode } from 'react';
+import type {
+  BorderCalculationOptions,
+  CalculationResult,
+} from '@dorkroom/logic';
+
+// ✅ Regular imports for runtime values
+import { useState, useEffect } from 'react';
+import { calculateBorderSize, validateInput } from '@dorkroom/logic';
+
+// ✅ Mixed imports when needed
+import { type ComponentProps, cn } from '@dorkroom/ui';
+```
+
+### Import Aliases and Destructuring
+
+```typescript
+// ✅ Use descriptive aliases for conflicting names
+import { Button as UIButton } from '@dorkroom/ui';
+import { Button as RouterButton } from 'react-router-dom';
+
+// ✅ Destructure commonly used items
+import {
+  calculateBorderSize,
+  validateDimensions,
+  formatResult,
+} from '@dorkroom/logic';
+
+// ✅ Import entire module when using many exports
+import * as BorderUtils from '@dorkroom/logic/border-utils';
+```
+
+## Barrel Export Patterns
+
+### Package-Level Exports
+
+See [packages/logic/src/index.ts](mdc:packages/logic/src/index.ts) and [packages/ui/src/index.ts](mdc:packages/ui/src/index.ts) for examples.
+
+```typescript
+// ✅ Group exports by category with comments
+// packages/logic/src/index.ts
+
+// Types exports
+export type { BorderCalculationOptions } from './types/border-calculator';
+export type { CalculationResult, ValidationError } from './types/calculations';
+
+// Constants exports
+export { BORDER_PRESETS } from './constants/border-presets';
+export { PAPER_SIZES, DEFAULT_MARGINS } from './constants/dimensions';
+
+// Utility exports
+export { calculateBorderSize } from './utils/border-calculations';
+export { validateInput, formatNumber } from './utils/input-validation';
+
+// Hook exports - be explicit about what's exported
+export { useBorderCalculator } from './hooks/use-border-calculator';
+export { usePresetSharing } from './hooks/use-preset-sharing';
+
+// Re-export with aliases when needed
+export {
+  useBorderCalculator as useModularBorderCalculator,
+  useBorderCalculatorState,
+  useDimensionCalculations,
+} from './hooks/border-calculator';
+```
+
+### Component Barrel Exports
+
+```typescript
+// ✅ UI package barrel exports
+// packages/ui/src/index.ts
+
+// Core UI Components
+export { LabeledSliderInput } from './components/labeled-slider-input';
+export { TextInput } from './components/text-input';
+export { NumberInput } from './components/number-input';
+
+// Calculator-specific components
+export {
+  CalculatorCard,
+  CalculatorPageHeader,
+  CalculatorNumberField,
+  CalculatorStat,
+} from './components/calculator';
+
+// Utilities (always export utilities from packages)
+export { cn } from './lib/cn';
+```
+
+### Feature-Level Barrel Exports
+
+```typescript
+// ✅ Feature folder barrel exports
+// src/app/pages/border-calculator/index.ts
+
+export { BorderCalculatorPage } from './border-calculator-page';
+export { BorderPreview } from './components/border-preview';
+export { DimensionInputs } from './components/dimension-inputs';
+export type { BorderCalculatorPageProps } from './types';
+```
+
+## Path Mapping and Aliases
+
+### TypeScript Path Configuration
+
+Based on [tsconfig.base.json](mdc:tsconfig.base.json), use these import paths:
+
+```typescript
+// ✅ Use workspace package aliases
+import { calculateBorderSize } from '@dorkroom/logic';
+import { CalculatorCard } from '@dorkroom/ui';
+
+// ❌ Don't use relative paths for workspace packages
+import { calculateBorderSize } from '../../../packages/logic/src/utils/border-calculations';
+```
+
+### Internal Project Imports
+
+```typescript
+// ✅ Use relative imports within the same project
+import { BorderPreview } from './components/border-preview';
+import { useCalculatorState } from '../hooks/use-calculator-state';
+import { CONSTANTS } from '../../constants';
+
+// ✅ Prefer shorter relative paths when possible
+import { formatResult } from './utils';
+// Instead of:
+import { formatResult } from './utils/formatting';
+```
+
+## Module Organization Best Practices
+
+### Avoid Circular Dependencies
+
+```typescript
+// ✅ Good: Clear dependency direction
+// types/index.ts
+export interface BorderOptions {}
+
+// utils/calculations.ts
+import type { BorderOptions } from '../types';
+export const calculate = (options: BorderOptions) => {};
+
+// hooks/use-calculator.ts
+import type { BorderOptions } from '../types';
+import { calculate } from '../utils/calculations';
+```
+
+### Lazy Loading and Dynamic Imports
+
+```typescript
+// ✅ Use dynamic imports for heavy modules
+const LazyBorderCalculator = lazy(() =>
+  import('./components/border-calculator').then((module) => ({
+    default: module.BorderCalculator,
+  }))
+);
+
+// ✅ Dynamic imports in functions
+const loadCalculationWorker = async () => {
+  const { WorkerCalculator } = await import('./workers/calculation-worker');
+  return new WorkerCalculator();
+};
+```
+
+### Tree Shaking Considerations
+
+```typescript
+// ✅ Export individual functions for better tree shaking
+export const calculateBorderSize = (width: number, height: number) => {};
+export const validateDimensions = (dimensions: Dimensions) => {};
+
+// ✅ Use named exports instead of default exports for utilities
+export { calculateBorderSize, validateDimensions };
+
+// ✅ Default exports are fine for components
+export default BorderCalculator;
+```
+
+## Migration Guidelines
+
+### Moving from Legacy Structure
+
+When moving code from `original-*` folders:
+
+```typescript
+// ✅ Update imports from legacy structure
+// Before (legacy):
+import { BorderCalculator } from '../../../original-components/border-calculator';
+
+// After (new structure):
+import { BorderCalculator } from '@dorkroom/ui';
+```
+
+### Gradual Migration Pattern
+
+```typescript
+// ✅ Create compatibility re-exports during migration
+// packages/ui/src/legacy.ts (temporary)
+export {
+  BorderCalculator,
+  DimensionInput,
+} from '../../../original-components/border-calculator';
+
+// Then import from legacy file temporarily
+import { BorderCalculator } from '@dorkroom/ui/legacy';
+```
+
+## File Naming and Structure
+
+### Consistent Naming
+
+```typescript
+// ✅ Component files: PascalCase with descriptive names
+BorderCalculatorPage.tsx;
+DimensionInputGroup.tsx;
+CalculatorResult.tsx;
+
+// ✅ Hook files: camelCase starting with 'use'
+useBorderCalculator.ts;
+useCalculationState.ts;
+usePresetSharing.ts;
+
+// ✅ Utility files: camelCase or kebab-case
+borderCalculations.ts;
+input - validation.ts;
+preset - sharing.ts;
+
+// ✅ Type files: camelCase or kebab-case
+borderTypes.ts;
+calculation - types.ts;
+```
+
+### Index File Strategy
+
+```typescript
+// ✅ Use index.ts for clean imports
+// folder/index.ts
+export { Component } from './Component';
+export { useHook } from './useHook';
+export type { ComponentProps } from './types';
+
+// Allows clean imports:
+import { Component, useHook, type ComponentProps } from './folder';
+```
+
+This organization ensures clean, maintainable imports and exports across the Dorkroom monorepo.

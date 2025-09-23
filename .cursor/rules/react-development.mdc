@@ -1,0 +1,361 @@
+---
+globs: *.tsx,*.jsx
+description: React component development standards and patterns
+---
+
+# React Development Standards
+
+## Framework Configuration
+
+- React 19.0.0 with React Router 6.29.0
+- Vite build system with React plugin
+- TypeScript with JSX support
+- Entry point: [main.tsx](mdc:apps/dorkroom/src/main.tsx)
+
+## Component Architecture
+
+### Component Types
+
+```typescript
+// ✅ Use FC type for functional components
+import type { FC, ReactNode } from 'react';
+
+interface CalculatorCardProps {
+  title: string;
+  children: ReactNode;
+  onReset?: () => void;
+}
+
+export const CalculatorCard: FC<CalculatorCardProps> = ({
+  title,
+  children,
+  onReset,
+}) => {
+  return (
+    <div className="calculator-card">
+      <h2>{title}</h2>
+      {children}
+      {onReset && <button onClick={onReset}>Reset</button>}
+    </div>
+  );
+};
+```
+
+### Props Interface Conventions
+
+```typescript
+// ✅ Name props interfaces with component name + Props suffix
+interface BorderCalculatorProps {
+  initialValues?: BorderCalculationOptions;
+  onCalculationComplete?: (result: BorderResult) => void;
+  disabled?: boolean;
+}
+
+// ✅ Use optional props with sensible defaults
+interface ToggleSwitchProps {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label?: string;
+  disabled?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+export const ToggleSwitch: FC<ToggleSwitchProps> = ({
+  checked,
+  onChange,
+  label,
+  disabled = false,
+  size = 'md',
+}) => {
+  // Implementation
+};
+```
+
+### Component File Structure
+
+```typescript
+// ✅ Standard component file structure
+import { type FC, useState, useEffect } from 'react';
+import type { ComponentProps } from './types';
+import { cn } from '@dorkroom/ui';
+import { useCalculation } from '@dorkroom/logic';
+
+// Component interface
+interface MyComponentProps extends ComponentProps {
+  // Component-specific props
+}
+
+// Component implementation
+export const MyComponent: FC<MyComponentProps> = (props) => {
+  // Hooks at the top
+  const [state, setState] = useState();
+  const calculation = useCalculation();
+
+  // Effects after state
+  useEffect(() => {
+    // Effect logic
+  }, []);
+
+  // Event handlers
+  const handleClick = () => {
+    // Handler logic
+  };
+
+  // Early returns for loading/error states
+  if (calculation.loading) {
+    return <div>Loading...</div>;
+  }
+
+  // Main render
+  return (
+    <div className={cn('component-class', props.className)}>
+      {/* JSX content */}
+    </div>
+  );
+};
+
+// Default export at the end
+export default MyComponent;
+```
+
+## Hooks and State Management
+
+### Custom Hooks Pattern
+
+```typescript
+// ✅ Custom hooks should start with 'use' and return consistent interface
+interface UseBorderCalculatorReturn {
+  calculations: BorderCalculation[];
+  isCalculating: boolean;
+  error: string | null;
+  calculate: (options: BorderCalculationOptions) => Promise<void>;
+  reset: () => void;
+}
+
+export const useBorderCalculator = (
+  initialOptions?: BorderCalculationOptions
+): UseBorderCalculatorReturn => {
+  const [calculations, setCalculations] = useState<BorderCalculation[]>([]);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Implementation
+
+  return {
+    calculations,
+    isCalculating,
+    error,
+    calculate,
+    reset,
+  };
+};
+```
+
+### State Updates
+
+```typescript
+// ✅ Use functional updates for state that depends on previous state
+const [count, setCount] = useState(0);
+const increment = () => setCount((prev) => prev + 1);
+
+// ✅ Use object spread for partial state updates
+const [formState, setFormState] = useState(initialFormState);
+const updateField = (field: string, value: unknown) => {
+  setFormState((prev) => ({ ...prev, [field]: value }));
+};
+
+// ✅ Use useCallback for event handlers passed as props
+const handleSubmit = useCallback(
+  (data: FormData) => {
+    onSubmit?.(data);
+  },
+  [onSubmit]
+);
+```
+
+## Styling with Tailwind CSS
+
+### Class Name Organization
+
+```typescript
+import { cn } from '@dorkroom/ui';
+
+// ✅ Use cn utility for conditional classes
+const buttonClasses = cn(
+  // Base classes
+  'px-4 py-2 rounded-lg font-medium transition-colors',
+  // Conditional classes
+  {
+    'bg-blue-600 text-white hover:bg-blue-700': variant === 'primary',
+    'bg-gray-200 text-gray-900 hover:bg-gray-300': variant === 'secondary',
+    'opacity-50 cursor-not-allowed': disabled,
+  },
+  // Additional classes from props
+  className
+);
+
+// ✅ Group related classes logically
+const cardClasses = cn(
+  // Layout
+  'flex flex-col gap-4 p-6',
+  // Appearance
+  'bg-white rounded-xl shadow-sm border border-gray-200',
+  // Responsive
+  'sm:p-8 md:gap-6',
+  // Conditional
+  { 'shadow-lg': elevated }
+);
+```
+
+### Responsive Design
+
+```typescript
+// ✅ Use Tailwind responsive prefixes consistently
+<div className={cn(
+  'grid gap-4',
+  'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+  'p-4 sm:p-6 lg:p-8'
+)}>
+```
+
+## Event Handling
+
+### Form Handling
+
+```typescript
+// ✅ Use proper form event types
+import type { FormEvent, ChangeEvent } from 'react';
+
+const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  const formData = new FormData(event.currentTarget);
+  // Process form data
+};
+
+const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const { name, value } = event.target;
+  updateField(name, value);
+};
+```
+
+### Button and Click Handling
+
+```typescript
+// ✅ Use proper mouse event types
+import type { MouseEvent } from 'react';
+
+const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+  event.stopPropagation(); // If needed
+  // Handle click
+};
+```
+
+## Accessibility Standards
+
+### ARIA Attributes
+
+```typescript
+// ✅ Include proper ARIA attributes
+<button
+  type="button"
+  aria-label="Calculate border dimensions"
+  aria-pressed={isActive}
+  disabled={isCalculating}
+  onClick={handleCalculate}
+>
+  {isCalculating ? 'Calculating...' : 'Calculate'}
+</button>
+
+// ✅ Use semantic HTML elements
+<main role="main">
+  <section aria-labelledby="calculator-heading">
+    <h1 id="calculator-heading">Border Calculator</h1>
+    {/* Content */}
+  </section>
+</main>
+```
+
+### Keyboard Navigation
+
+```typescript
+// ✅ Handle keyboard events for interactive elements
+const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    handleActivate();
+  }
+};
+
+<div
+  role="button"
+  tabIndex={0}
+  onKeyDown={handleKeyDown}
+  onClick={handleActivate}
+>
+  Interactive content
+</div>;
+```
+
+## Error Boundaries and Error Handling
+
+### Error Boundary Implementation
+
+```typescript
+// ✅ Create error boundaries for component sections
+class CalculatorErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Calculator Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="error-fallback">
+          <h2>Something went wrong with the calculator</h2>
+          <button onClick={() => this.setState({ hasError: false })}>
+            Try again
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+```
+
+## Performance Optimization
+
+### Memoization
+
+```typescript
+// ✅ Use React.memo for components with expensive renders
+export const ExpensiveCalculationDisplay = memo<CalculationDisplayProps>(
+  ({ calculations, options }) => {
+    const processedData = useMemo(() => {
+      return calculations.map((calc) => processCalculation(calc, options));
+    }, [calculations, options]);
+
+    return <div>{/* Render processed data */}</div>;
+  }
+);
+
+// ✅ Use useMemo for expensive computations
+const expensiveValue = useMemo(() => {
+  return performExpensiveCalculation(inputData);
+}, [inputData]);
+```
+
+This ensures consistent, accessible, and performant React development across the Dorkroom application.

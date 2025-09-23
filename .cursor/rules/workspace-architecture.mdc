@@ -1,0 +1,94 @@
+---
+alwaysApply: true
+description: Workspace architecture and project structure guidelines
+---
+
+# Dorkroom Nx Workspace Architecture
+
+This is an Nx 21.4.0 monorepo with npm package management for a photography development calculator app.
+
+## Project Structure
+
+### Applications
+
+- **`apps/dorkroom/`** - Main React application (private)
+  - Uses Vite bundler, React 19, and React Router
+  - Depends on `@dorkroom/logic` and `@dorkroom/ui` packages
+  - Entry point: [main.tsx](mdc:apps/dorkroom/src/main.tsx)
+
+### Libraries
+
+- **`packages/logic/`** - Business logic and calculations (public)
+  - Pure TypeScript library with no UI dependencies
+  - Exports: types, constants, utilities, hooks
+  - Main export: [index.ts](mdc:packages/logic/src/index.ts)
+- **`packages/ui/`** - Reusable UI components (public)
+  - React components with TypeScript
+  - Depends on `@dorkroom/logic`
+  - Main export: [index.ts](mdc:packages/ui/src/index.ts)
+
+## Migration Context
+
+This workspace contains original code being migrated from a legacy structure:
+
+- `original-components/` - Legacy React components to be moved to `packages/ui/`
+- `original-constants/` - Legacy constants to be moved to `packages/logic/`
+- `original-hooks/` - Legacy hooks to be moved to `packages/logic/`
+- `original-types/` - Legacy types to be moved to `packages/logic/`
+- `original-utils/` - Legacy utilities to be moved to `packages/logic/`
+- `original-views/` - Legacy views to be moved to `apps/dorkroom/src/app/pages/`
+
+## Dependencies & Tech Stack
+
+### Core Framework
+
+- React 19.0.0 with React Router 6.29.0
+- TypeScript 5.8.2 with strict mode enabled
+- Vite 6.0.0 for build tooling
+
+### Styling & UI
+
+- Tailwind CSS 4.1.13 with PostCSS
+- Inter font family (`@fontsource-variable/inter`)
+- Lucide React icons
+- Custom utility functions with `clsx` and `tailwind-merge`
+
+### Testing & Quality
+
+- Vitest 3.0.0 with coverage and UI
+- ESLint 9.8.0 with TypeScript ESLint
+- React Testing Library
+- Prettier for code formatting
+
+## Nx Configuration Highlights
+
+### Plugins Enabled
+
+- `@nx/js/typescript` - TypeScript build and typecheck
+- `@nx/react/router-plugin` - React Router support
+- `@nx/eslint/plugin` - ESLint integration
+- `@nx/vite/plugin` - Vite build system
+
+### Available Targets
+
+- `build` - Production build
+- `dev`/`serve` - Development server
+- `test` - Run tests with Vitest
+- `lint` - ESLint checks
+- `typecheck` - TypeScript type checking
+- `preview` - Preview production build
+
+### Import Paths
+
+Use TypeScript path mapping for clean imports:
+
+- `@dorkroom/logic` - Business logic package
+- `@dorkroom/ui` - UI components package
+
+## Development Guidelines
+
+1. **Separation of Concerns**: Keep business logic in `logic` package, UI in `ui` package
+2. **Barrel Exports**: Use index.ts files to create clean public APIs
+3. **Dependency Direction**: UI can depend on logic, but logic should be UI-agnostic
+4. **Migration Priority**: Gradually move code from `original-*` folders to proper packages
+5. **Testing**: Tests should be co-located with source code using `.spec.ts` or `.test.tsx` extensions

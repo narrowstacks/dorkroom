@@ -1,0 +1,207 @@
+---
+globs: *.ts,*.tsx
+description: TypeScript coding standards and conventions
+---
+
+# TypeScript Coding Standards
+
+## Configuration Overview
+
+- TypeScript 5.8.2 with strict mode enabled
+- ES2022 target with ESNext modules
+- Bundler module resolution
+- Composite builds with declaration maps
+- See [tsconfig.base.json](mdc:tsconfig.base.json) for base configuration
+
+## Code Style Requirements
+
+### Type Definitions
+
+```typescript
+// ✅ Prefer explicit return types for functions
+export function calculateBorderSize(
+  width: number,
+  height: number
+): BorderDimensions {
+  return { width: width * 0.1, height: height * 0.1 };
+}
+
+// ✅ Use interface for object shapes
+export interface BorderCalculationOptions {
+  readonly paperWidth: number;
+  readonly paperHeight: number;
+  readonly imageWidth: number;
+  readonly imageHeight: number;
+}
+
+// ✅ Use type for unions and computed types
+export type CalculationMode = 'automatic' | 'manual' | 'preset';
+export type BorderPreset = (typeof BORDER_PRESETS)[keyof typeof BORDER_PRESETS];
+```
+
+### Strict Configuration Compliance
+
+```typescript
+// ✅ No implicit any - always provide types
+const processCalculation = (input: CalculationInput): CalculationResult => {
+  // Implementation
+};
+
+// ✅ No unused locals - remove or prefix with underscore
+const useCalculator = (options: Options) => {
+  const _unusedHelper = createHelper(); // Prefixed to indicate intentionally unused
+  return processOptions(options);
+};
+
+// ✅ No implicit returns - handle all code paths
+function validateInput(value: number): boolean {
+  if (value < 0) {
+    return false;
+  }
+  if (value > 100) {
+    return false;
+  }
+  return true; // Explicit return for all paths
+}
+
+// ✅ No fallthrough cases
+switch (calculationMode) {
+  case 'automatic':
+    return performAutoCalculation();
+  case 'manual':
+    return performManualCalculation();
+  case 'preset':
+    return applyPreset();
+  default:
+    throw new Error(`Unknown calculation mode: ${calculationMode}`);
+}
+```
+
+### Naming Conventions
+
+```typescript
+// ✅ Use PascalCase for types, interfaces, classes
+interface BorderCalculationState {}
+type CalculationResult = {};
+class BorderCalculator {}
+
+// ✅ Use camelCase for variables, functions, methods
+const borderWidth = 10;
+const calculateDimensions = () => {};
+
+// ✅ Use SCREAMING_SNAKE_CASE for constants
+const MAX_BORDER_SIZE = 100;
+const DEFAULT_PAPER_SIZES = {
+  A4: { width: 210, height: 297 },
+} as const;
+
+// ✅ Use descriptive names for boolean variables
+const isCalculationValid = true;
+const hasValidDimensions = checkDimensions();
+const canApplyPreset = validatePreset();
+```
+
+### Error Handling
+
+```typescript
+// ✅ Use custom error types
+class ValidationError extends Error {
+  constructor(field: string, value: unknown) {
+    super(`Invalid value for ${field}: ${value}`);
+    this.name = 'ValidationError';
+  }
+}
+
+// ✅ Prefer Result types for operations that can fail
+type CalculationResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: string };
+
+// ✅ Use type guards for runtime validation
+function isValidDimension(value: unknown): value is number {
+  return typeof value === 'number' && value > 0 && isFinite(value);
+}
+```
+
+### Generic Constraints
+
+```typescript
+// ✅ Use meaningful generic constraints
+interface Calculator<T extends CalculationInput> {
+  calculate(input: T): CalculationResult;
+}
+
+// ✅ Provide default generic parameters when appropriate
+interface Hook<T = unknown, E = Error> {
+  data: T | null;
+  error: E | null;
+  loading: boolean;
+}
+```
+
+### Utility Types Usage
+
+```typescript
+// ✅ Use built-in utility types effectively
+type PartialCalculationOptions = Partial<BorderCalculationOptions>;
+type RequiredPresetFields = Required<Pick<BorderPreset, 'name' | 'dimensions'>>;
+type CalculationKeys = keyof BorderCalculationOptions;
+
+// ✅ Create custom utility types for domain-specific needs
+type ReadonlyDeep<T> = {
+  readonly [P in keyof T]: T[P] extends object ? ReadonlyDeep<T[P]> : T[P];
+};
+```
+
+## File Organization
+
+### Barrel Exports
+
+- Use index.ts files to create clean public APIs
+- Group related exports logically
+- Re-export with descriptive names when needed
+
+### Type-Only Imports
+
+```typescript
+// ✅ Use type-only imports for types
+import type { BorderCalculationOptions } from './types';
+import type { FC } from 'react';
+
+// ✅ Regular imports for runtime values
+import { calculateBorderSize } from './utils';
+import { useState } from 'react';
+```
+
+### Declaration Files
+
+- Provide .d.ts files for any JavaScript libraries
+- Use module augmentation for extending third-party types
+- Keep ambient declarations in dedicated files
+
+## Performance Considerations
+
+### Const Assertions
+
+```typescript
+// ✅ Use const assertions for immutable data
+const PAPER_SIZES = {
+  A4: { width: 210, height: 297 },
+  LETTER: { width: 216, height: 279 },
+} as const;
+
+// ✅ Use satisfies operator for type checking without widening
+const config = {
+  borderWidth: 10,
+  borderHeight: 15,
+} satisfies BorderCalculationOptions;
+```
+
+### Lazy Loading Types
+
+```typescript
+// ✅ Use dynamic imports for heavy types when appropriate
+type LazyCalculator = () => Promise<typeof import('./heavy-calculator')>;
+```
+
+This configuration ensures type safety, maintainability, and consistency across the Dorkroom codebase.
