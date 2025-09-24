@@ -6,7 +6,16 @@ import {
   CalculatorPageHeader,
   CalculatorStat,
 } from '@dorkroom/ui';
-import { useResizeCalculator } from '@dorkroom/logic';
+import {
+  useResizeCalculator,
+  DEFAULT_ORIGINAL_WIDTH,
+  DEFAULT_ORIGINAL_LENGTH,
+  DEFAULT_NEW_WIDTH,
+  DEFAULT_NEW_LENGTH,
+  DEFAULT_ORIGINAL_TIME,
+  DEFAULT_ORIGINAL_HEIGHT,
+  DEFAULT_NEW_HEIGHT,
+} from '@dorkroom/logic';
 
 interface ModeToggleProps {
   isEnlargerHeightMode: boolean;
@@ -209,7 +218,7 @@ export default function ResizeCalculatorPage() {
                       label="Width"
                       value={originalWidth}
                       onChange={setOriginalWidth}
-                      placeholder="4"
+                      placeholder={DEFAULT_ORIGINAL_WIDTH}
                       step={0.1}
                       unit="in"
                     />
@@ -217,7 +226,7 @@ export default function ResizeCalculatorPage() {
                       label="Height"
                       value={originalLength}
                       onChange={setOriginalLength}
-                      placeholder="6"
+                      placeholder={DEFAULT_ORIGINAL_LENGTH}
                       step={0.1}
                       unit="in"
                     />
@@ -233,7 +242,7 @@ export default function ResizeCalculatorPage() {
                       label="Width"
                       value={newWidth}
                       onChange={setNewWidth}
-                      placeholder="6"
+                      placeholder={DEFAULT_NEW_WIDTH}
                       step={0.1}
                       unit="in"
                     />
@@ -241,7 +250,7 @@ export default function ResizeCalculatorPage() {
                       label="Height"
                       value={newLength}
                       onChange={setNewLength}
-                      placeholder="9"
+                      placeholder={DEFAULT_NEW_LENGTH}
                       step={0.1}
                       unit="in"
                     />
@@ -258,7 +267,7 @@ export default function ResizeCalculatorPage() {
                     label="Original height"
                     value={originalHeight}
                     onChange={setOriginalHeight}
-                    placeholder="12"
+                    placeholder={DEFAULT_ORIGINAL_HEIGHT}
                     step={1}
                     unit="in"
                   />
@@ -266,7 +275,7 @@ export default function ResizeCalculatorPage() {
                     label="New height"
                     value={newHeight}
                     onChange={setNewHeight}
-                    placeholder="36"
+                    placeholder={DEFAULT_NEW_HEIGHT}
                     step={1}
                     unit="in"
                   />
@@ -276,7 +285,7 @@ export default function ResizeCalculatorPage() {
 
             {!isEnlargerHeightMode && !isAspectRatioMatched && (
               <WarningAlert
-                message="The aspect ratios of the original and target prints do not match. Expect cropping or extra paper."
+                message="The aspect ratios of the original and target prints do not match. Try to match the aspect ratio of the original print to the target print as close as possible."
                 action="warning"
               />
             )}
@@ -289,7 +298,7 @@ export default function ResizeCalculatorPage() {
                 label="Time"
                 value={originalTime}
                 onChange={setOriginalTime}
-                placeholder="10"
+                placeholder={DEFAULT_ORIGINAL_TIME}
                 step={0.5}
                 unit="seconds"
                 helperText="This is the exposure that worked for your original print."

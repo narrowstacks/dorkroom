@@ -16,6 +16,7 @@ export type {
 } from './components/navigation-dropdown';
 export { WarningAlert } from './components/warning-alert';
 export { ResultRow } from './components/result-row';
+export { SettingsButton } from './components/settings-button';
 export { Drawer, DrawerContent, DrawerBody } from './components/drawer';
 export { Tag } from './components/ui/tag';
 export {

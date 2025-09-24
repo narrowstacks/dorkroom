@@ -1,4 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import {
+  DEFAULT_ORIGINAL_WIDTH,
+  DEFAULT_ORIGINAL_LENGTH,
+  DEFAULT_NEW_WIDTH,
+  DEFAULT_NEW_LENGTH,
+  DEFAULT_ORIGINAL_TIME,
+  DEFAULT_ORIGINAL_HEIGHT,
+  DEFAULT_NEW_HEIGHT,
+} from '../constants/resize-calculator';
 
 export interface UseResizeCalculatorReturn {
   isEnlargerHeightMode: boolean;
@@ -24,14 +33,14 @@ export interface UseResizeCalculatorReturn {
 
 export const useResizeCalculator = (): UseResizeCalculatorReturn => {
   const [isEnlargerHeightMode, setIsEnlargerHeightMode] = useState(false);
-  const [originalWidth, setOriginalWidth] = useState('4');
-  const [originalLength, setOriginalLength] = useState('6');
-  const [newWidth, setNewWidth] = useState('6');
-  const [newLength, setNewLength] = useState('9');
-  const [originalTime, setOriginalTime] = useState('10');
+  const [originalWidth, setOriginalWidth] = useState(DEFAULT_ORIGINAL_WIDTH);
+  const [originalLength, setOriginalLength] = useState(DEFAULT_ORIGINAL_LENGTH);
+  const [newWidth, setNewWidth] = useState(DEFAULT_NEW_WIDTH);
+  const [newLength, setNewLength] = useState(DEFAULT_NEW_LENGTH);
+  const [originalTime, setOriginalTime] = useState(DEFAULT_ORIGINAL_TIME);
   const [isAspectRatioMatched, setIsAspectRatioMatched] = useState(true);
-  const [originalHeight, setOriginalHeight] = useState('500');
-  const [newHeight, setNewHeight] = useState('1000');
+  const [originalHeight, setOriginalHeight] = useState(DEFAULT_ORIGINAL_HEIGHT);
+  const [newHeight, setNewHeight] = useState(DEFAULT_NEW_HEIGHT);
 
   const checkAspectRatio = useCallback(() => {
     // Skip aspect ratio check if in enlarger height mode

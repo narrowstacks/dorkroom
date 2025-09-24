@@ -7,6 +7,7 @@ export * from './types/exposure-calculator';
 
 // Constants exports
 export * from './constants/border-calculator';
+export * from './constants/resize-calculator';
 export * from './constants/calculations';
 export * from './constants/reciprocity';
 export * from './constants/development-recipes';
