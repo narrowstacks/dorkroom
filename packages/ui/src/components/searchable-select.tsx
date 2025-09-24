@@ -171,7 +171,7 @@ export function SearchableSelect({
         {isOpen && (
           <ul
             ref={listRef}
-            className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-white/20 bg-black/90 backdrop-blur-sm"
+            className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg border border-white/20 bg-black/90 backdrop-blur-sm"
           >
             {filteredItems.length === 0 ? (
               <li className="px-3 py-2 text-sm text-white/50">

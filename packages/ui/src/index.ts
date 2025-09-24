@@ -31,6 +31,8 @@ export { ShareModal } from './components/share-modal';
 export { SaveBeforeShareModal } from './components/save-before-share-modal';
 export { Modal } from './components/modal';
 export { DevelopmentFiltersPanel } from './components/development-recipes/filters-panel';
+export { FilmDeveloperSelection } from './components/development-recipes/film-developer-selection';
+export { CollapsibleFilters } from './components/development-recipes/collapsible-filters';
 export { DevelopmentResultsTable } from './components/development-recipes/results-table';
 export type { DevelopmentCombinationView } from './components/development-recipes/results-table';
 export { DevelopmentResultsCards } from './components/development-recipes/results-cards';
