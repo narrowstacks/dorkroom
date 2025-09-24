@@ -1,0 +1,68 @@
+import { SearchableSelect } from '../searchable-select';
+import type { SelectItem } from '@dorkroom/logic';
+import { cn } from '../../lib/cn';
+
+interface FilmDeveloperSelectionProps {
+  className?: string;
+  selectedFilm: string;
+  onFilmChange: (value: string) => void;
+  filmOptions: SelectItem[];
+  selectedDeveloper: string;
+  onDeveloperChange: (value: string) => void;
+  developerOptions: SelectItem[];
+}
+
+export function FilmDeveloperSelection({
+  className,
+  selectedFilm,
+  onFilmChange,
+  filmOptions,
+  selectedDeveloper,
+  onDeveloperChange,
+  developerOptions,
+}: FilmDeveloperSelectionProps) {
+  const hasSelections = selectedFilm || selectedDeveloper;
+
+  const clearSelections = () => {
+    onFilmChange('');
+    onDeveloperChange('');
+  };
+
+  return (
+    <div
+      className={cn(
+        'relative z-10 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-subtle backdrop-blur',
+        className
+      )}
+    >
+      <div className="flex items-center justify-between gap-4">
+        {hasSelections && (
+          <button
+            type="button"
+            onClick={clearSelections}
+            className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/70 transition hover:border-white/40 hover:text-white"
+          >
+            Clear selections
+          </button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <SearchableSelect
+          label="Film"
+          placeholder="Search films..."
+          selectedValue={selectedFilm}
+          onValueChange={onFilmChange}
+          items={filmOptions}
+        />
+        <SearchableSelect
+          label="Developer"
+          placeholder="Search developers..."
+          selectedValue={selectedDeveloper}
+          onValueChange={onDeveloperChange}
+          items={developerOptions}
+        />
+      </div>
+    </div>
+  );
+}

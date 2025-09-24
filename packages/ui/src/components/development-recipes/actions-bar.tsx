@@ -11,6 +11,7 @@ interface DevelopmentActionsBarProps {
   onRefresh: () => void;
   isRefreshing?: boolean;
   showImportButton?: boolean;
+  isMobile?: boolean;
 }
 
 export function DevelopmentActionsBar({
@@ -22,6 +23,7 @@ export function DevelopmentActionsBar({
   onRefresh,
   isRefreshing,
   showImportButton = true,
+  isMobile = false,
 }: DevelopmentActionsBarProps) {
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-subtle md:flex-row md:items-center md:justify-between">
@@ -35,30 +37,32 @@ export function DevelopmentActionsBar({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex overflow-hidden rounded-full border border-white/10 text-sm">
-          <button
-            type="button"
-            onClick={() => onViewModeChange('table')}
-            className={cn(
-              'flex items-center gap-2 px-3 py-2 text-white/60 transition hover:bg-white/10 hover:text-white',
-              viewMode === 'table' && 'bg-white text-black'
-            )}
-          >
-            <Rows className="h-4 w-4" />
-            Table
-          </button>
-          <button
-            type="button"
-            onClick={() => onViewModeChange('grid')}
-            className={cn(
-              'flex items-center gap-2 px-3 py-2 text-white/60 transition hover:bg-white/10 hover:text-white',
-              viewMode === 'grid' && 'bg-white text-black'
-            )}
-          >
-            <Grid className="h-4 w-4" />
-            Cards
-          </button>
-        </div>
+        {!isMobile && (
+          <div className="flex overflow-hidden rounded-full border border-white/10 text-sm">
+            <button
+              type="button"
+              onClick={() => onViewModeChange('table')}
+              className={cn(
+                'flex items-center gap-2 px-3 py-2 text-white/60 transition hover:bg-white/10 hover:text-white',
+                viewMode === 'table' && 'bg-white text-black'
+              )}
+            >
+              <Rows className="h-4 w-4" />
+              Table
+            </button>
+            <button
+              type="button"
+              onClick={() => onViewModeChange('grid')}
+              className={cn(
+                'flex items-center gap-2 px-3 py-2 text-white/60 transition hover:bg-white/10 hover:text-white',
+                viewMode === 'grid' && 'bg-white text-black'
+              )}
+            >
+              <Grid className="h-4 w-4" />
+              Cards
+            </button>
+          </div>
+        )}
 
         <TemperatureUnitToggle />
 

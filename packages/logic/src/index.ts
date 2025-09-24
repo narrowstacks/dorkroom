@@ -50,6 +50,10 @@ export {
   useDevelopmentRecipes,
   type CustomRecipeFilter,
 } from './hooks/development-recipes/use-development-recipes';
+export {
+  useViewPreference,
+  type ViewMode,
+} from './hooks/development-recipes/use-view-preference';
 
 // Border calculator modular hooks
 export {
