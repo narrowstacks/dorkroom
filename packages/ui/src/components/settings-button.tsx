@@ -1,5 +1,5 @@
 import { ChevronRight, LucideIcon } from 'lucide-react';
-import { cn } from '../../lib/cn';
+import { cn } from '../lib/cn';
 
 interface SettingsButtonProps {
   label?: string;
@@ -9,6 +9,7 @@ interface SettingsButtonProps {
   showChevron?: boolean;
   centerLabel?: boolean;
   className?: string;
+  isSelected?: boolean;
 }
 
 export function SettingsButton({
@@ -19,6 +20,7 @@ export function SettingsButton({
   showChevron = true,
   centerLabel = false,
   className,
+  isSelected = false,
 }: SettingsButtonProps) {
   return (
     <button
@@ -29,21 +31,30 @@ export function SettingsButton({
       )}
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
+        backgroundColor: isSelected
+          ? 'rgba(var(--color-background-rgb), 0.2)'
+          : 'rgba(var(--color-background-rgb), 0.1)',
+        outline: isSelected ? '2px solid var(--color-border-primary)' : 'none',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.backgroundColor =
           'rgba(var(--color-background-rgb), 0.1)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor =
-          'rgba(var(--color-background-rgb), 0.05)';
+        e.currentTarget.style.backgroundColor = isSelected
+          ? 'rgba(var(--color-background-rgb), 0.1)'
+          : 'rgba(var(--color-background-rgb), 0.05)';
       }}
       onFocus={(e) => {
-        e.currentTarget.style.outline = '2px solid var(--color-border-primary)';
+        if (!isSelected) {
+          e.currentTarget.style.outline =
+            '2px solid var(--color-border-primary)';
+        }
       }}
       onBlur={(e) => {
-        e.currentTarget.style.outline = 'none';
+        if (!isSelected) {
+          e.currentTarget.style.outline = 'none';
+        }
       }}
     >
       <div className="flex items-center justify-between">

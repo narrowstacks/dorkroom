@@ -31,6 +31,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === 'light' || saved === 'dark' || saved === 'system') {
       setThemeState(saved);
+    } else {
+      // First time visitor - default to system preference and save it
+      setThemeState('system');
+      localStorage.setItem(STORAGE_KEY, 'system');
     }
   }, []);
 

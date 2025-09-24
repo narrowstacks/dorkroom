@@ -1,5 +1,5 @@
 import { Moon, Sun, Monitor, Ruler, Globe } from 'lucide-react';
-import { SettingsButton } from '../components/border-calculator/settings-button';
+import { SettingsButton } from '@dorkroom/ui';
 import { useTheme } from '../contexts/theme-context';
 
 export default function SettingsPage() {
@@ -32,31 +32,28 @@ export default function SettingsPage() {
           </h2>
           <div className="space-y-3">
             <SettingsButton
-              label="Light"
-              value={`Always use light theme${
-                theme === 'light' ? ' (current)' : ''
-              }`}
-              onPress={() => setTheme('light')}
-              icon={Sun}
-              showChevron={false}
-            />
-            <SettingsButton
               label="Dark"
-              value={`Always use dark theme${
-                theme === 'dark' ? ' (current)' : ''
-              }`}
+              value="The correct choice."
               onPress={() => setTheme('dark')}
               icon={Moon}
               showChevron={false}
+              isSelected={theme === 'dark'}
+            />
+            <SettingsButton
+              label="Light"
+              value="Honestly, why would you want to do this? It's a darkroom app!"
+              onPress={() => setTheme('light')}
+              icon={Sun}
+              showChevron={false}
+              isSelected={theme === 'light'}
             />
             <SettingsButton
               label="System"
-              value={`Follow system preference${
-                theme === 'system' ? ' (current)' : ''
-              }`}
+              value="Follow system preference (chaotic neutral)"
               onPress={() => setTheme('system')}
               icon={Monitor}
               showChevron={false}
+              isSelected={theme === 'system'}
             />
           </div>
         </section>
@@ -71,14 +68,14 @@ export default function SettingsPage() {
           </h2>
           <div className="space-y-3">
             <SettingsButton
-              label="Imperial"
+              label="Imperial 🇺🇸"
               value="Inches, feet (current)"
               onPress={() => console.log('Imperial units not implemented yet')}
               icon={Ruler}
               showChevron={false}
             />
             <SettingsButton
-              label="Metric"
+              label="Metric 🌍"
               value="Millimeters, centimeters"
               onPress={() => console.log('Metric units not implemented yet')}
               icon={Globe}
