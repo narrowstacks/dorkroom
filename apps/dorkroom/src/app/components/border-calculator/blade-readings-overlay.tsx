@@ -57,13 +57,13 @@ export function BladeReadingsOverlay({
     // Minimum space needed for text display (approximate)
     const minTextWidth = 60;
     const minTextHeight = 30;
-    const padding = 15;
+    const padding = 4;
 
     // Determine if readings should be inside or outside print area
-    const leftCanFitInside = printWidth > minTextWidth + padding * 6;
-    const rightCanFitInside = printWidth > minTextWidth + padding * 6;
-    const topCanFitInside = printHeight > minTextHeight + padding * 6;
-    const bottomCanFitInside = printHeight > minTextHeight + padding * 6;
+    const leftCanFitInside = printWidth > +minTextWidth + (padding + 11) * 6;
+    const rightCanFitInside = printWidth > +minTextWidth + (padding + 11) * 6;
+    const topCanFitInside = printHeight > minTextHeight + (padding + 11) * 6;
+    const bottomCanFitInside = printHeight > minTextHeight + (padding + 11) * 6;
 
     const readings: BladeReading[] = [];
 
@@ -131,6 +131,7 @@ export function BladeReadingsOverlay({
       } ${className}`}
       style={{
         transitionDuration: '0.15s',
+        zIndex: 20,
       }}
     >
       {readings.map((reading) => (
