@@ -29,7 +29,7 @@ export function CalculatorNumberField({
       <div className="flex items-center justify-between text-sm text-white/90">
         <span className="font-medium">{label}</span>
         {unit && (
-          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.35em] text-white/70">
+          <span className="flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold uppercase text-white/70">
             {unit}
           </span>
         )}
