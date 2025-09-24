@@ -122,7 +122,9 @@ export function DevelopmentFiltersPanel({
         <Select
           label="Recipe type"
           selectedValue={customRecipeFilter}
-          onValueChange={onCustomRecipeFilterChange}
+          onValueChange={(value) =>
+            onCustomRecipeFilterChange(value as CustomRecipeFilter)
+          }
           items={customRecipeOptions}
         />
         <Select

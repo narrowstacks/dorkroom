@@ -69,13 +69,17 @@ export function Drawer({
       {/* Drawer */}
       <div
         className={cn(
-          'absolute bg-zinc-900 border border-white/10 transition-transform duration-300 ease-out',
+          'absolute border transition-transform duration-300 ease-out',
           anchor === 'bottom' || anchor === 'top'
             ? `${sizeClasses[size]} rounded-t-xl`
             : 'w-80 h-full',
           positionClasses[anchor],
           transformClasses[anchor]
         )}
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderColor: 'var(--color-border-secondary)',
+        }}
       >
         {children}
       </div>

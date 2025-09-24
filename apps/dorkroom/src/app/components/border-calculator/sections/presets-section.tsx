@@ -59,10 +59,27 @@ export function PresetsSection({
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">Presets</h3>
+        <h3
+          className="text-lg font-semibold"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
+          Presets
+        </h3>
         <button
           onClick={onClose}
-          className="rounded-lg border border-white/20 bg-white/5 p-2 text-white transition hover:bg-white/10"
+          className="rounded-lg border p-2 transition"
+          style={{
+            borderColor: 'var(--color-border-primary)',
+            backgroundColor: 'var(--color-border-muted)',
+            color: 'var(--color-text-primary)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor =
+              'var(--color-border-secondary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-border-muted)';
+          }}
         >
           <X className="h-5 w-5" />
         </button>
@@ -71,7 +88,13 @@ export function PresetsSection({
       <div className="space-y-4">
         {/* Create new preset */}
         {isCreating ? (
-          <div className="rounded-lg border border-white/20 bg-white/5 p-4 space-y-3">
+          <div
+            className="rounded-lg border p-4 space-y-3"
+            style={{
+              borderColor: 'var(--color-border-primary)',
+              backgroundColor: 'var(--color-border-muted)',
+            }}
+          >
             <TextInput
               value={newPresetName}
               onValueChange={setNewPresetName}
@@ -81,7 +104,17 @@ export function PresetsSection({
             <div className="flex gap-2">
               <button
                 onClick={handleSaveNew}
-                className="flex items-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-green-700"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition"
+                style={{
+                  backgroundColor: 'var(--color-semantic-success)',
+                  color: 'var(--color-background)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.filter = 'brightness(0.9)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.filter = 'brightness(1)';
+                }}
               >
                 <Save className="h-4 w-4" />
                 Save
@@ -91,7 +124,20 @@ export function PresetsSection({
                   setIsCreating(false);
                   setNewPresetName('');
                 }}
-                className="rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+                className="rounded-lg border px-3 py-2 text-sm font-medium transition"
+                style={{
+                  borderColor: 'var(--color-border-primary)',
+                  backgroundColor: 'var(--color-border-muted)',
+                  color: 'var(--color-text-primary)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    'var(--color-border-secondary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    'var(--color-border-muted)';
+                }}
               >
                 Cancel
               </button>
@@ -100,7 +146,12 @@ export function PresetsSection({
         ) : (
           <button
             onClick={() => setIsCreating(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-white/30 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-3 text-sm font-medium transition"
+            style={{
+              borderColor: 'var(--color-border-primary)',
+              backgroundColor: 'var(--color-border-muted)',
+              color: 'var(--color-text-primary)',
+            }}
           >
             <Plus className="h-4 w-4" />
             Create New Preset

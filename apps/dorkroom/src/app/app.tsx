@@ -1,31 +1,31 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import {
   Aperture,
   Beaker,
   BookOpen,
+  Camera,
   Crop,
   Gauge,
   Home,
   Menu,
+  Printer,
   Ruler,
+  Settings,
   Timer,
   X,
 } from 'lucide-react';
 import { cn } from './lib/cn';
+import { NavigationDropdown, NavigationItem } from '@dorkroom/ui';
 import HomePage from './pages/home-page';
 import BorderCalculatorPage from './pages/border-calculator/border-calculator-page';
 import ResizeCalculatorPage from './pages/resize-calculator/resize-calculator-page';
 import ReciprocityCalculatorPage from './pages/reciprocity-calculator/reciprocity-calculator-page';
 import DevelopmentRecipesPage from './pages/development-recipes/development-recipes-page';
+import SettingsPage from './pages/settings-page';
 
-const navItems = [
-  {
-    label: 'Home',
-    to: '/',
-    icon: Home,
-    summary: 'Skip the math. Make prints.',
-  },
+// Individual navigation items for dropdown groups
+const printingItems: NavigationItem[] = [
   {
     label: 'Border',
     to: '/border',
@@ -44,6 +44,9 @@ const navItems = [
     icon: Gauge,
     summary: 'Translate exposure stops into seconds.',
   },
+];
+
+const shootingItems: NavigationItem[] = [
   {
     label: 'Exposure',
     to: '/exposure',
@@ -57,17 +60,34 @@ const navItems = [
     summary: 'Correct for long exposure failure.',
   },
   {
-    label: 'Development',
-    to: '/development',
-    icon: Beaker,
-    summary: 'Film chemistry pairings with proven results.',
-  },
-  {
     label: 'Infobase',
     to: '/infobase',
     icon: BookOpen,
     summary: 'Reference tables, notes, and recipes.',
   },
+];
+
+// Navigation structure for rendering
+const navItems = [
+  {
+    label: 'Home',
+    to: '/',
+    icon: Home,
+    summary: 'Skip the math. Make prints.',
+  },
+  {
+    label: 'Development',
+    to: '/development',
+    icon: Beaker,
+    summary: 'Film chemistry pairings with proven results.',
+  },
+];
+
+// All navigation items combined for backward compatibility
+const allNavItems = [
+  ...navItems,
+  ...printingItems,
+  ...shootingItems,
 ];
 
 const ROUTE_TITLES: Record<string, string> = {
@@ -79,6 +99,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/exposure': 'Exposure Calculator',
   '/development': 'Development Recipes',
   '/infobase': 'Infobase',
+  '/settings': 'Settings',
 };
 
 function PlaceholderPage({
@@ -90,11 +111,22 @@ function PlaceholderPage({
 }) {
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 px-6 py-24 text-center sm:px-10">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/5 text-lg font-semibold text-white/80">
+      <div
+        className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-dashed text-lg font-semibold"
+        style={{
+          borderColor: 'var(--color-border-secondary)',
+          backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
+          color:
+            'color-mix(in oklab, var(--color-text-primary) 80%, transparent)',
+        }}
+      >
         Soon
       </div>
       <div className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+        <h1
+          className="text-3xl font-semibold tracking-tight sm:text-4xl"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
           {title}
         </h1>
         <p className="text-base text-zinc-300">
@@ -105,7 +137,13 @@ function PlaceholderPage({
       <div className="flex justify-center">
         <Link
           to="/"
-          className="rounded-full border border-white/20 px-5 py-2 text-sm font-medium text-white transition hover:border-white/40 hover:bg-white/10"
+          className="rounded-full px-5 py-2 text-sm font-medium transition"
+          style={{
+            color: 'var(--color-text-primary)',
+            borderColor: 'var(--color-border-secondary)',
+            borderWidth: 1,
+            backgroundColor: 'transparent',
+          }}
         >
           Back to home
         </Link>
@@ -116,6 +154,7 @@ function PlaceholderPage({
 
 export function App() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -126,7 +165,7 @@ export function App() {
     const normalisedPath = location.pathname.replace(/\/+$/, '') || '/';
     const pageTitle =
       ROUTE_TITLES[normalisedPath] ||
-      navItems.find((item) => item.to === normalisedPath)?.label ||
+      allNavItems.find((item) => item.to === normalisedPath)?.label ||
       'Dorkroom';
     document.title =
       pageTitle === 'Dorkroom' ? 'Dorkroom' : `${pageTitle} - Dorkroom`;
@@ -138,7 +177,7 @@ export function App() {
 
   useEffect(() => {
     if (typeof document === 'undefined') {
-      return;
+      return undefined;
     }
 
     if (isMobileMenuOpen) {
@@ -148,18 +187,37 @@ export function App() {
       return () => {
         document.body.style.overflow = previousOverflow;
       };
+    } else {
+      document.body.style.removeProperty('overflow');
+      return undefined;
     }
-
-    document.body.style.removeProperty('overflow');
   }, [isMobileMenuOpen]);
 
   return (
-    <div className="h-dvh bg-background text-white">
+    <div
+      className="h-dvh"
+      style={{ backgroundColor: 'var(--color-background)' }}
+    >
       <div className="backdrop-gradient min-h-dvh">
-        <header className="sticky top-[env(safe-area-inset-top)] z-50 hidden border-b border-white/5 bg-background/80 backdrop-blur sm:block">
+        <header
+          className="sticky top-[env(safe-area-inset-top)] z-50 hidden border-b backdrop-blur sm:block"
+          style={{
+            backgroundColor: 'rgba(var(--color-background-rgb), 0.8)',
+            borderColor: 'var(--color-border-muted)',
+          }}
+        >
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4 sm:px-10">
-            <Link to="/" className="flex items-center gap-3 text-white">
-              <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/10 text-lg font-semibold">
+            <Link
+              to="/"
+              className="flex items-center gap-3"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              <span
+                className="flex h-9 w-9 items-center justify-center rounded-2xl text-lg font-semibold"
+                style={{
+                  backgroundColor: 'rgba(var(--color-background-rgb), 0.1)',
+                }}
+              >
                 D
               </span>
               <span className="hidden text-lg font-semibold tracking-tight sm:block">
@@ -167,7 +225,13 @@ export function App() {
               </span>
             </Link>
             <nav className="hidden flex-1 justify-center sm:flex">
-              <div className="flex max-w-full gap-1 overflow-x-auto rounded-full border border-white/10 bg-black/40 p-1 text-sm backdrop-blur">
+              <div
+                className="relative flex max-w-full gap-1 rounded-full border p-1 text-sm backdrop-blur"
+                style={{
+                  borderColor: 'var(--color-border-secondary)',
+                  backgroundColor: 'rgba(var(--color-background-rgb), 0.5)',
+                }}
+              >
                 {navItems.map(({ label, to, icon: Icon }) => (
                   <NavLink
                     key={to}
@@ -175,9 +239,12 @@ export function App() {
                     end={to === '/'}
                     className={({ isActive }) =>
                       cn(
-                        'flex min-w-fit items-center gap-2 rounded-full px-4 py-2 font-medium text-zinc-300 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
+                        'flex min-w-fit items-center gap-2 rounded-full px-4 py-2 font-medium transition focus-visible:outline-none',
+                        'focus-visible:ring-2',
+                        'focus-visible:ring-[color:var(--color-border-primary)]',
+                        'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-secondary)]',
                         isActive &&
-                          'bg-white hover:text-black text-background shadow-subtle'
+                          'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--color-background)]'
                       )
                     }
                   >
@@ -185,22 +252,63 @@ export function App() {
                     {label}
                   </NavLink>
                 ))}
+                <NavigationDropdown
+                  label="Printing"
+                  icon={Printer}
+                  items={printingItems}
+                  currentPath={location.pathname}
+                  onNavigate={navigate}
+                />
+                <NavigationDropdown
+                  label="Shooting"
+                  icon={Camera}
+                  items={shootingItems}
+                  currentPath={location.pathname}
+                  onNavigate={navigate}
+                />
               </div>
             </nav>
-            <a
-              href="https://github.com/dorkroom"
-              target="_blank"
-              rel="noreferrer"
-              className="hidden rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-white transition hover:border-white/30 hover:bg-white/10 sm:block"
-            >
-              Contribute
-            </a>
+            <div className="hidden items-center gap-3 sm:flex">
+              <a
+                href="https://github.com/dorkroom"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full px-4 py-2 text-sm font-medium transition"
+                style={{
+                  color: 'var(--color-text-primary)',
+                  borderColor: 'var(--color-border-secondary)',
+                  borderWidth: 1,
+                  backgroundColor: 'transparent',
+                }}
+              >
+                Contribute
+              </a>
+              <Link
+                to="/settings"
+                className="flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none"
+                style={{
+                  color: 'var(--color-text-primary)',
+                  borderColor: 'var(--color-border-secondary)',
+                  borderWidth: 1,
+                  backgroundColor: 'transparent',
+                }}
+                aria-label="Settings"
+              >
+                <Settings className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </header>
 
         <button
           type="button"
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/10 text-white shadow-lg backdrop-blur transition hover:border-white/30 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 sm:hidden"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex h-12 w-12 items-center justify-center rounded-full shadow-lg backdrop-blur transition focus-visible:outline-none sm:hidden"
+          style={{
+            color: 'var(--color-text-primary)',
+            borderColor: 'var(--color-border-secondary)',
+            borderWidth: 1,
+            backgroundColor: 'rgba(var(--color-background-rgb), 0.1)',
+          }}
           aria-label={isMobileMenuOpen ? 'Close navigation' : 'Open navigation'}
           aria-expanded={isMobileMenuOpen}
           aria-controls="mobile-navigation"
@@ -216,7 +324,10 @@ export function App() {
         {isMobileMenuOpen && (
           <>
             <div
-              className="fixed inset-0 z-40 h-screen min-h-dvh bg-black/60 backdrop-blur-sm transition-opacity"
+              className="fixed inset-0 z-40 h-screen min-h-dvh backdrop-blur-sm transition-opacity"
+              style={{
+                backgroundColor: 'rgba(var(--color-background-rgb), 0.6)',
+              }}
               aria-hidden="true"
               onClick={() => setIsMobileMenuOpen(false)}
             />
@@ -226,8 +337,15 @@ export function App() {
               role="dialog"
               aria-modal="true"
             >
-              <div className="mt-4 w-full max-w-xs rounded-3xl border border-white/10 bg-background/95 p-5 shadow-xl backdrop-blur">
-                <ul className="space-y-2.5">
+              <div
+                className="mt-4 w-full max-w-xs rounded-3xl border p-5 shadow-xl backdrop-blur"
+                style={{
+                  backgroundColor: 'rgba(var(--color-background-rgb), 0.95)',
+                  borderColor: 'var(--color-border-secondary)',
+                }}
+              >
+                <ul className="space-y-1">
+                  {/* Main navigation items */}
                   {navItems.map(({ label, to, icon: Icon }) => (
                     <li key={to}>
                       <NavLink
@@ -235,19 +353,130 @@ export function App() {
                         end={to === '/'}
                         className={({ isActive }) =>
                           cn(
-                            'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium text-zinc-200 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
-                            isActive && 'bg-white text-background shadow-subtle'
+                            'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
+                            'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
+                            isActive &&
+                              'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
                           )
                         }
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/10">
+                        <span
+                          className="flex h-9 w-9 items-center justify-center rounded-2xl"
+                          style={{
+                            backgroundColor:
+                              'rgba(var(--color-background-rgb), 0.08)',
+                          }}
+                        >
                           <Icon className="h-4 w-4" />
                         </span>
                         <span className="flex-1 text-left">{label}</span>
                       </NavLink>
                     </li>
                   ))}
+
+                  {/* Printing section */}
+                  <li className="pt-2">
+                    <div className="px-3.5 py-1">
+                      <span
+                        className="text-xs font-semibold uppercase tracking-wide"
+                        style={{ color: 'var(--color-text-tertiary)' }}
+                      >
+                        Printing
+                      </span>
+                    </div>
+                  </li>
+                  {printingItems.map(({ label, to, icon: Icon }) => (
+                    <li key={to}>
+                      <NavLink
+                        to={to}
+                        className={({ isActive }) =>
+                          cn(
+                            'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
+                            'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
+                            isActive &&
+                              'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
+                          )
+                        }
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span
+                          className="flex h-9 w-9 items-center justify-center rounded-2xl"
+                          style={{
+                            backgroundColor:
+                              'rgba(var(--color-background-rgb), 0.08)',
+                          }}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <span className="flex-1 text-left">{label}</span>
+                      </NavLink>
+                    </li>
+                  ))}
+
+                  {/* Shooting section */}
+                  <li className="pt-2">
+                    <div className="px-3.5 py-1">
+                      <span
+                        className="text-xs font-semibold uppercase tracking-wide"
+                        style={{ color: 'var(--color-text-tertiary)' }}
+                      >
+                        Shooting
+                      </span>
+                    </div>
+                  </li>
+                  {shootingItems.map(({ label, to, icon: Icon }) => (
+                    <li key={to}>
+                      <NavLink
+                        to={to}
+                        className={({ isActive }) =>
+                          cn(
+                            'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
+                            'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
+                            isActive &&
+                              'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
+                          )
+                        }
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span
+                          className="flex h-9 w-9 items-center justify-center rounded-2xl"
+                          style={{
+                            backgroundColor:
+                              'rgba(var(--color-background-rgb), 0.08)',
+                          }}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <span className="flex-1 text-left">{label}</span>
+                      </NavLink>
+                    </li>
+                  ))}
+                  <li>
+                    <NavLink
+                      to="/settings"
+                      className={({ isActive }) =>
+                        cn(
+                          'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
+                          'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
+                          isActive &&
+                            'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
+                        )
+                      }
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <span
+                        className="flex h-9 w-9 items-center justify-center rounded-2xl"
+                        style={{
+                          backgroundColor:
+                            'rgba(var(--color-background-rgb), 0.08)',
+                        }}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </span>
+                      <span className="flex-1 text-left">Settings</span>
+                    </NavLink>
+                  </li>
                 </ul>
               </div>
             </nav>
@@ -264,7 +493,8 @@ export function App() {
               element={<ReciprocityCalculatorPage />}
             />
             <Route path="/development" element={<DevelopmentRecipesPage />} />
-            {navItems
+            <Route path="/settings" element={<SettingsPage />} />
+            {allNavItems
               .filter(
                 (item) =>
                   ![

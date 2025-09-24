@@ -9,6 +9,8 @@ export { DimensionInputGroup } from './components/dimension-input-group';
 export { ToggleSwitch } from './components/toggle-switch';
 export { Select } from './components/select';
 export { SearchableSelect } from './components/searchable-select';
+export { NavigationDropdown } from './components/navigation-dropdown';
+export type { NavigationItem, NavigationDropdownProps } from './components/navigation-dropdown';
 export { WarningAlert } from './components/warning-alert';
 export { ResultRow } from './components/result-row';
 export { Drawer, DrawerContent, DrawerBody } from './components/drawer';

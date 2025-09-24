@@ -199,14 +199,29 @@ function BladeReadingIndicator({ reading }: BladeReadingIndicatorProps) {
     transition: 'all 0.15s ease-in-out',
   };
 
-  const containerClasses = `flex items-center gap-1 bg-black/50 text-white px-2 py-1 rounded text-xs font-medium shadow-lg backdrop-blur-sm`;
+  const containerClasses = `flex items-center gap-1 px-2 py-1 rounded text-xs font-medium shadow-lg backdrop-blur-sm`;
+  const containerStyle = {
+    backgroundColor: 'var(--color-visualization-overlay)',
+    color: 'var(--color-text-primary)',
+  };
   const flexClasses = flexDirection === 'column' ? 'flex-col' : 'flex-row';
 
   return (
-    <div style={baseStyle} className={`${containerClasses} ${flexClasses}`}>
-      {arrowFirst && <span className="text-red-300 text-sm">{arrow}</span>}
+    <div
+      style={{ ...baseStyle, ...containerStyle }}
+      className={`${containerClasses} ${flexClasses}`}
+    >
+      {arrowFirst && (
+        <span className="text-sm" style={{ color: 'var(--color-accent)' }}>
+          {arrow}
+        </span>
+      )}
       <span className="whitespace-nowrap">{value}</span>
-      {!arrowFirst && <span className="text-red-300 text-sm">{arrow}</span>}
+      {!arrowFirst && (
+        <span className="text-sm" style={{ color: 'var(--color-accent)' }}>
+          {arrow}
+        </span>
+      )}
     </div>
   );
 }

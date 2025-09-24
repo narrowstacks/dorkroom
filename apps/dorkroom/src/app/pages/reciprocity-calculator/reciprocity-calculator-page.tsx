@@ -79,36 +79,54 @@ function TimeComparison({ calculation }: TimeComparisonProps) {
   return (
     <div className="space-y-3">
       <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/60">
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[color:var(--color-text-tertiary)]">
           Exposure comparison
         </p>
-        <p className="text-sm text-white/70">
+        <p className="text-sm text-[color:var(--color-text-secondary)]">
           Visualise the relative jump between your metered and corrected
           exposure times.
         </p>
       </div>
       <div className="space-y-3">
         <div className="space-y-1">
-          <div className="flex items-center justify-between text-xs text-white/60">
+          <div className="flex items-center justify-between text-xs text-[color:var(--color-text-tertiary)]">
             <span>Metered</span>
             <span>{formatReciprocityTime(calculation.originalTime)}</span>
           </div>
-          <div className="h-2 rounded-full bg-white/10">
+          <div
+            className="h-2 rounded-full"
+            style={{
+              backgroundColor: 'rgba(var(--color-background-rgb), 0.1)',
+            }}
+          >
             <div
-              className="h-full rounded-full bg-white/60"
-              style={{ width: `${originalWidth}%` }}
+              className="h-full rounded-full"
+              style={{
+                backgroundColor:
+                  'color-mix(in oklab, var(--color-text-primary) 60%, transparent)',
+                width: `${originalWidth}%`,
+              }}
             />
           </div>
         </div>
         <div className="space-y-1">
-          <div className="flex items-center justify-between text-xs text-white/60">
+          <div className="flex items-center justify-between text-xs text-[color:var(--color-text-tertiary)]">
             <span>Adjusted</span>
             <span>{formatReciprocityTime(calculation.adjustedTime)}</span>
           </div>
-          <div className="h-2 rounded-full bg-emerald-500/20">
+          <div
+            className="h-2 rounded-full"
+            style={{
+              backgroundColor:
+                'color-mix(in oklab, var(--color-primary) 20%, transparent)',
+            }}
+          >
             <div
-              className="h-full rounded-full bg-emerald-400"
-              style={{ width: `${adjustedWidth}%` }}
+              className="h-full rounded-full"
+              style={{
+                backgroundColor: 'var(--color-primary)',
+                width: `${adjustedWidth}%`,
+              }}
             />
           </div>
         </div>
@@ -183,7 +201,7 @@ export default function ReciprocityCalculatorPage() {
             )}
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm text-white/90">
+              <div className="flex items-center justify-between text-sm text-[color:var(--color-text-primary)]">
                 <span className="font-medium">Metered exposure time</span>
               </div>
               <TextInput
@@ -197,19 +215,29 @@ export default function ReciprocityCalculatorPage() {
                     key={seconds}
                     type="button"
                     onClick={() => setMeteredTimeDirectly(`${seconds}s`)}
-                    className="rounded-full border border-white/10 px-3 py-1 text-xs font-medium text-white/70 transition hover:border-white/30 hover:text-white"
+                    className="rounded-full px-3 py-1 text-xs font-medium transition"
+                    style={{
+                      color: 'var(--color-text-secondary)',
+                      borderColor: 'var(--color-border-secondary)',
+                      borderWidth: 1,
+                    }}
                   >
                     {formatReciprocityTime(seconds)}
                   </button>
                 ))}
               </div>
               {timeFormatError && (
-                <p className="text-xs font-medium text-rose-300">
+                <p
+                  className="text-xs font-medium"
+                  style={{ color: 'var(--color-accent)' }}
+                >
                   {timeFormatError}
                 </p>
               )}
               {!timeFormatError && parsedDisplay && (
-                <p className="text-xs italic text-white/60">{parsedDisplay}</p>
+                <p className="text-xs italic text-[color:var(--color-text-tertiary)]">
+                  {parsedDisplay}
+                </p>
               )}
             </div>
           </CalculatorCard>
@@ -235,13 +263,28 @@ export default function ReciprocityCalculatorPage() {
                 />
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-black/30 p-4 font-mono text-sm text-white/80">
+              <div
+                className="rounded-2xl p-4 font-mono text-sm"
+                style={{
+                  borderWidth: 1,
+                  borderColor: 'var(--color-border-secondary)',
+                  backgroundColor: 'rgba(var(--color-background-rgb), 0.18)',
+                  color:
+                    'color-mix(in oklab, var(--color-text-primary) 80%, transparent)',
+                }}
+              >
                 {`${formatReciprocityTime(calculation.originalTime)} `}
-                <span className="align-super text-xs font-semibold text-emerald-300">
+                <span
+                  className="align-super text-xs font-semibold"
+                  style={{
+                    color:
+                      'color-mix(in oklab, var(--color-primary) 80%, white)',
+                  }}
+                >
                   {calculation.factor.toFixed(2)}
                 </span>
                 <span>{' = '}</span>
-                <span className="font-semibold text-white">
+                <span className="font-semibold text-[color:var(--color-text-primary)]">
                   {formatTime(calculation.adjustedTime)}
                 </span>
               </div>
@@ -273,12 +316,16 @@ export default function ReciprocityCalculatorPage() {
               {HOW_TO_USE.map((item) => (
                 <li
                   key={item.title}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-4"
+                  className="rounded-2xl p-4 border"
+                  style={{
+                    borderColor: 'var(--color-border-secondary)',
+                    backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
+                  }}
                 >
-                  <p className="text-sm font-semibold text-white">
+                  <p className="text-sm font-semibold text-[color:var(--color-text-primary)]">
                     {item.title}
                   </p>
-                  <p className="mt-1 text-sm text-white/70">
+                  <p className="mt-1 text-sm text-[color:var(--color-text-secondary)]">
                     {item.description}
                   </p>
                 </li>
@@ -294,12 +341,22 @@ export default function ReciprocityCalculatorPage() {
               {RECIPROCITY_INSIGHTS.map((item) => (
                 <li
                   key={item.title}
-                  className="rounded-2xl border border-white/10 bg-black/30 p-4"
+                  className="rounded-2xl p-4 border"
+                  style={{
+                    borderColor: 'var(--color-border-secondary)',
+                    backgroundColor: 'rgba(var(--color-background-rgb), 0.18)',
+                  }}
                 >
-                  <p className="text-sm font-semibold uppercase tracking-[0.25em] text-white/60">
+                  <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[color:var(--color-text-tertiary)]">
                     {item.title}
                   </p>
-                  <p className="mt-2 text-sm text-white/75">
+                  <p
+                    className="mt-2 text-sm"
+                    style={{
+                      color:
+                        'color-mix(in oklab, var(--color-text-primary) 75%, transparent)',
+                    }}
+                  >
                     {item.description}
                   </p>
                 </li>

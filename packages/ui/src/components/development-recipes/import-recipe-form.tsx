@@ -31,7 +31,17 @@ export function ImportRecipeForm({
         onValueChange={setEncoded}
       />
       {error && (
-        <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+        <div
+          className="rounded-xl border px-3 py-2 text-sm"
+          style={{
+            borderColor:
+              'color-mix(in srgb, var(--color-semantic-error) 20%, transparent)',
+            backgroundColor:
+              'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)',
+            color:
+              'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))',
+          }}
+        >
           {error}
         </div>
       )}

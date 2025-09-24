@@ -15,18 +15,237 @@
   --border-radius-hero: 36px;
 }
 
-:root {
+/* Dark theme (default) */
+[data-theme='dark'] {
+  --color-background: #09090b;
+  --color-background-rgb: 9, 9, 11;
+  --color-surface: #121214;
+  --color-surface-muted: #1c1c1f;
+  --color-primary: #6ef3a4;
+  --color-secondary: #7dd6ff;
+  --color-accent: #f99f96;
+  --color-highlight: #e5ff7d;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #e4e4e7;
+  --color-text-tertiary: #a1a1aa;
+  --color-text-muted: #71717a;
+  --color-border-primary: rgba(255, 255, 255, 0.2);
+  --color-border-secondary: rgba(255, 255, 255, 0.1);
+  --color-border-muted: rgba(255, 255, 255, 0.05);
+  --color-semantic-success: #6ef3a4;
+  --color-semantic-warning: #e5ff7d;
+  --color-semantic-error: #f99f96;
+  --color-semantic-info: #7dd6ff;
+  --color-visualization-preview: #666666;
+  --color-visualization-border: #353535;
+  --color-visualization-overlay: rgba(0, 0, 0, 0.5);
+  --gradient-card-primary: linear-gradient(
+    135deg,
+    rgba(110, 243, 164, 0.45),
+    rgba(36, 146, 88, 0.34)
+  );
+  --gradient-card-secondary: linear-gradient(
+    135deg,
+    rgba(125, 214, 255, 0.42),
+    rgba(30, 96, 145, 0.35)
+  );
+  --gradient-card-accent: linear-gradient(
+    135deg,
+    rgba(249, 159, 150, 0.46),
+    rgba(141, 61, 69, 0.33)
+  );
+  --gradient-card-highlight: linear-gradient(
+    135deg,
+    rgba(229, 255, 125, 0.48),
+    rgba(139, 156, 46, 0.36)
+  );
+  --gradient-card-neutral: linear-gradient(
+    135deg,
+    rgba(47, 211, 107, 0.56),
+    rgba(14, 85, 49, 0.44)
+  );
+  --gradient-card-info: linear-gradient(
+    135deg,
+    rgba(139, 37, 195, 0.62),
+    rgba(25, 9, 61, 0.46)
+  );
+  --gradient-card-warning: linear-gradient(
+    135deg,
+    rgba(200, 165, 23, 0.64),
+    rgba(94, 46, 10, 0.47)
+  );
+  --gradient-card-error: linear-gradient(
+    135deg,
+    rgba(169, 38, 86, 0.64),
+    rgba(73, 19, 43, 0.47)
+  );
+  --color-tag-official-ilford: #6ef3a4;
+  --color-tag-official-kodak: #e5ff7d;
+  --color-tag-official-fuji: #7dd6ff;
+  --color-tag-community: #f99f96;
+  --color-tag-default: #a1a1aa;
+}
+
+/* Light theme */
+[data-theme='light'] {
+  --color-background: #ffffff;
+  --color-background-rgb: 255, 255, 255;
+  --color-surface: #f8f9fa;
+  --color-surface-muted: #f1f3f4;
+  --color-primary: #2d7a4a; /* deep green for accessible accents */
+  --color-secondary: #1e6091; /* deep blue for links/secondary accents */
+  --color-accent: #c4524a; /* warm accent for warnings/highlights */
+  --color-highlight: #7a8c1f; /* slightly cooler olive for better contrast */
+  --color-text-primary: #09090b;
+  --color-text-secondary: #27272a;
+  --color-text-tertiary: #52525b;
+  --color-text-muted: #71717a;
+  --color-border-primary: rgba(9, 9, 11, 0.18);
+  --color-border-secondary: rgba(9, 9, 11, 0.1);
+  --color-border-muted: rgba(9, 9, 11, 0.06);
+  --color-semantic-success: #2d7a4a;
+  --color-semantic-warning: #8b9c2e;
+  --color-semantic-error: #c4524a;
+  --color-semantic-info: #1e6091;
+  --color-visualization-preview: #d4d4d8;
+  --color-visualization-border: #a1a1aa;
+  --color-visualization-overlay: rgba(255, 255, 255, 0.5);
+  --gradient-card-primary: linear-gradient(
+    135deg,
+    rgba(45, 122, 74, 0.15),
+    rgba(20, 83, 45, 0.08)
+  );
+  --gradient-card-secondary: linear-gradient(
+    135deg,
+    rgba(30, 96, 145, 0.15),
+    rgba(15, 58, 87, 0.08)
+  );
+  --gradient-card-accent: linear-gradient(
+    135deg,
+    rgba(196, 82, 74, 0.15),
+    rgba(141, 61, 69, 0.08)
+  );
+  --gradient-card-highlight: linear-gradient(
+    135deg,
+    rgba(139, 156, 46, 0.15),
+    rgba(94, 105, 31, 0.08)
+  );
+  --gradient-card-neutral: linear-gradient(
+    135deg,
+    rgba(45, 122, 74, 0.18),
+    rgba(20, 83, 45, 0.1)
+  );
+  --gradient-card-info: linear-gradient(
+    135deg,
+    rgba(139, 37, 195, 0.18),
+    rgba(88, 28, 135, 0.1)
+  );
+  --gradient-card-warning: linear-gradient(
+    135deg,
+    rgba(200, 165, 23, 0.18),
+    rgba(154, 127, 18, 0.1)
+  );
+  --gradient-card-error: linear-gradient(
+    135deg,
+    rgba(169, 38, 86, 0.18),
+    rgba(127, 29, 65, 0.1)
+  );
+  --color-tag-official-ilford: #2d7a4a;
+  --color-tag-official-kodak: #8b9c2e;
+  --color-tag-official-fuji: #1e6091;
+  --color-tag-community: #c4524a;
+  --color-tag-default: #52525b;
+}
+
+/* Default to dark theme if no data-theme attribute */
+:root:not([data-theme]) {
+  --color-background: #09090b;
+  --color-background-rgb: 9, 9, 11;
+  --color-surface: #121214;
+  --color-surface-muted: #1c1c1f;
+  --color-primary: #6ef3a4;
+  --color-secondary: #7dd6ff;
+  --color-accent: #f99f96;
+  --color-highlight: #e5ff7d;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #e4e4e7;
+  --color-text-tertiary: #a1a1aa;
+  --color-text-muted: #71717a;
+  --color-border-primary: rgba(255, 255, 255, 0.2);
+  --color-border-secondary: rgba(255, 255, 255, 0.1);
+  --color-border-muted: rgba(255, 255, 255, 0.05);
+  --color-semantic-success: #6ef3a4;
+  --color-semantic-warning: #e5ff7d;
+  --color-semantic-error: #f99f96;
+  --color-semantic-info: #7dd6ff;
+  --color-visualization-preview: #666666;
+  --color-visualization-border: #353535;
+  --color-visualization-overlay: rgba(0, 0, 0, 0.5);
+  --gradient-card-primary: linear-gradient(
+    135deg,
+    rgba(110, 243, 164, 0.45),
+    rgba(36, 146, 88, 0.34)
+  );
+  --gradient-card-secondary: linear-gradient(
+    135deg,
+    rgba(125, 214, 255, 0.42),
+    rgba(30, 96, 145, 0.35)
+  );
+  --gradient-card-accent: linear-gradient(
+    135deg,
+    rgba(249, 159, 150, 0.46),
+    rgba(141, 61, 69, 0.33)
+  );
+  --gradient-card-highlight: linear-gradient(
+    135deg,
+    rgba(229, 255, 125, 0.48),
+    rgba(139, 156, 46, 0.36)
+  );
+  --gradient-card-neutral: linear-gradient(
+    135deg,
+    rgba(47, 211, 107, 0.56),
+    rgba(14, 85, 49, 0.44)
+  );
+  --gradient-card-info: linear-gradient(
+    135deg,
+    rgba(139, 37, 195, 0.62),
+    rgba(25, 9, 61, 0.46)
+  );
+  --gradient-card-warning: linear-gradient(
+    135deg,
+    rgba(200, 165, 23, 0.64),
+    rgba(94, 46, 10, 0.47)
+  );
+  --gradient-card-error: linear-gradient(
+    135deg,
+    rgba(169, 38, 86, 0.64),
+    rgba(73, 19, 43, 0.47)
+  );
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root:not([data-theme]) {
   color-scheme: dark;
 }
 
 @layer base {
   html,
   body {
-    @apply font-sans bg-background text-white antialiased h-dvh;
+    @apply font-sans antialiased h-dvh;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
   }
 
   ::selection {
-    @apply bg-primary/40 text-white;
+    @apply bg-primary/40;
+    color: var(--color-text-primary);
   }
 }
 
@@ -128,7 +347,8 @@
     }
   }
 
-  .backdrop-gradient {
+  /* Theme-aware background accents */
+  [data-theme='dark'] .backdrop-gradient {
     background: radial-gradient(
         circle at 20% 20%,
         rgba(243 110 110 / 0.2),
@@ -145,6 +365,25 @@
         transparent 60%
       ),
       #09090b;
+  }
+
+  [data-theme='light'] .backdrop-gradient {
+    background: radial-gradient(
+        1200px 800px at 15% 15%,
+        rgba(196, 82, 74, 0.1),
+        transparent 60%
+      ),
+      radial-gradient(
+        1000px 700px at 85% 20%,
+        rgba(30, 96, 145, 0.09),
+        transparent 55%
+      ),
+      radial-gradient(
+        900px 700px at 40% 85%,
+        rgba(122, 140, 31, 0.08),
+        transparent 60%
+      ),
+      #ffffff;
   }
 
   .card-ring {
@@ -166,6 +405,15 @@
       linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
+  }
+
+  /* Tweak subtle ring for light theme to use dark ink instead of white */
+  [data-theme='light'] .card-ring::before {
+    background: linear-gradient(
+      135deg,
+      rgba(9, 9, 11, 0.09),
+      rgba(9, 9, 11, 0)
+    );
   }
 
   /* Animated grain clipped to text with a subtle red glow */
@@ -249,5 +497,52 @@
     .grainy-red-glow::before {
       animation: none;
     }
+  }
+
+  /* Light theme contrast overrides for legacy utility classes inside components */
+  [data-theme='light'] .text-white\/60 {
+    color: var(--color-text-tertiary) !important;
+  }
+  [data-theme='light'] .text-white\/70 {
+    color: var(--color-text-secondary) !important;
+  }
+  [data-theme='light'] .text-white\/75 {
+    color: var(--color-text-secondary) !important;
+  }
+  [data-theme='light'] .text-white\/80 {
+    color: var(--color-text-secondary) !important;
+  }
+  [data-theme='light'] .text-white\/90 {
+    color: var(--color-text-primary) !important;
+  }
+  [data-theme='light'] .text-white {
+    color: var(--color-text-primary) !important;
+  }
+
+  [data-theme='light'] .border-white\/10,
+  [data-theme='light'] .border-white\/12,
+  [data-theme='light'] .border-white\/20 {
+    border-color: var(--color-border-secondary) !important;
+  }
+  [data-theme='light'] .hover\:border-white\/30:hover {
+    border-color: var(--color-border-primary) !important;
+  }
+  [data-theme='light'] .hover\:border-white\/40:hover {
+    border-color: var(--color-border-primary) !important;
+  }
+
+  [data-theme='light'] .bg-white\/5 {
+    background-color: rgba(var(--color-background-rgb), 0.05) !important;
+  }
+  [data-theme='light'] .hover\:bg-white\/10:hover {
+    background-color: rgba(var(--color-background-rgb), 0.1) !important;
+  }
+
+  /* Dark-surfaces used in components should become light, subtle ink in light theme */
+  [data-theme='light'] .bg-black\/30 {
+    background-color: rgba(var(--color-background-rgb), 0.18) !important;
+  }
+  [data-theme='light'] .text-emerald-300 {
+    color: var(--color-primary) !important;
   }
 }
