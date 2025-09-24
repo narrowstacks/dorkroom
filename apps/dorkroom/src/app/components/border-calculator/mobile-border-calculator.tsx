@@ -32,6 +32,7 @@ import {
   type BorderPreset,
   type BorderSettings,
 } from '@dorkroom/logic';
+import { useTheme } from '../../contexts/theme-context';
 
 // Active section type
 type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
@@ -49,6 +50,9 @@ export function MobileBorderCalculator({
   loadedPresetFromUrl,
   clearLoadedPreset,
 }: MobileBorderCalculatorProps) {
+  // Theme
+  const { resolvedTheme } = useTheme();
+
   // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeSection, setActiveSection] =
@@ -273,7 +277,10 @@ export function MobileBorderCalculator({
         >
           <div
             className="rounded-[calc(1.5rem-1px)]"
-            style={{ backgroundColor: 'var(--color-surface)' }}
+            style={{
+              backgroundColor:
+                resolvedTheme === 'light' ? '#ffffff' : 'var(--color-surface)',
+            }}
           >
             <BladeResultsDisplay
               calculation={calculation}
@@ -295,7 +302,7 @@ export function MobileBorderCalculator({
             calculation={calculation}
             showBlades={showBlades}
             showBladeReadings={showBladeReadings}
-            className="max-w-full shadow-2xl"
+            className="shadow-2xl"
             borderColor="var(--color-border-primary)"
           />
         </div>
@@ -305,12 +312,10 @@ export function MobileBorderCalculator({
           <div
             className="rounded-3xl border p-5 space-y-2"
             style={{
-              borderColor:
-                'color-mix(in srgb, var(--color-semantic-warning) 30%, transparent)',
-              background:
-                'linear-gradient(to bottom right, color-mix(in srgb, var(--color-semantic-warning) 20%, transparent), color-mix(in srgb, var(--color-semantic-warning) 10%, transparent), transparent)',
-              boxShadow:
-                '0 25px 80px -45px color-mix(in srgb, var(--color-semantic-warning) 40%, transparent)',
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'var(--color-surface-muted)',
+              background: 'var(--gradient-card-warning)',
+              boxShadow: '0 25px 80px -45px var(--color-visualization-overlay)',
             }}
           >
             {bladeWarning && (
@@ -333,8 +338,9 @@ export function MobileBorderCalculator({
           className="rounded-3xl border p-6 backdrop-blur-lg space-y-5"
           style={{
             borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'var(--color-surface-muted)',
             background:
-              'linear-gradient(to bottom right, color-mix(in srgb, var(--color-surface-muted) 90%, transparent), color-mix(in srgb, var(--color-surface-muted) 70%, transparent), color-mix(in srgb, var(--color-surface-muted) 50%, transparent))',
+              'linear-gradient(to bottom right, var(--color-surface-muted), var(--color-surface), var(--color-background))',
             boxShadow: '0 40px 120px -60px var(--color-visualization-overlay)',
           }}
         >
@@ -414,26 +420,22 @@ export function MobileBorderCalculator({
         {/* Reset Button */}
         <button
           onClick={resetToDefaults}
-          className="flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold shadow-lg transition focus-visible:outline-none focus-visible:ring-2"
+          className="flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold shadow-lg transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2"
           style={
             {
-              borderColor:
-                'color-mix(in srgb, var(--color-semantic-error) 40%, transparent)',
-              backgroundColor:
-                'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)',
-              color:
-                'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))',
-              '--tw-ring-color':
-                'color-mix(in srgb, var(--color-semantic-error) 60%, transparent)',
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
+              color: 'var(--color-semantic-error)',
+              '--tw-ring-color': 'var(--color-semantic-error)',
             } as React.CSSProperties
           }
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor =
-              'color-mix(in srgb, var(--color-semantic-error) 20%, transparent)';
+              'rgba(var(--color-background-rgb), 0.1)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor =
-              'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)';
+              'rgba(var(--color-background-rgb), 0.05)';
           }}
         >
           <RotateCcw className="h-4 w-4" />
