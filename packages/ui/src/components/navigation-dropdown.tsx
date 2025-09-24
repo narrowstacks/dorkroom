@@ -98,10 +98,7 @@ export function NavigationDropdown({
         <Icon className="h-4 w-4" />
         {label}
         <ChevronDown
-          className={cn(
-            'h-3 w-3 transition-transform',
-            isOpen && 'rotate-180'
-          )}
+          className={cn('h-3 w-3 transition-transform', isOpen && 'rotate-180')}
         />
       </button>
 
@@ -111,7 +108,8 @@ export function NavigationDropdown({
           style={{
             borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'rgba(var(--color-background-rgb), 0.95)',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            boxShadow:
+              '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
           }}
           role="menu"
         >
@@ -135,10 +133,9 @@ export function NavigationDropdown({
                 <span
                   className="flex h-8 w-8 items-center justify-center rounded-xl"
                   style={{
-                    backgroundColor:
-                      isItemActive
-                        ? 'rgba(var(--color-background-rgb), 0.2)'
-                        : 'rgba(var(--color-background-rgb), 0.08)',
+                    backgroundColor: isItemActive
+                      ? 'rgba(var(--color-background-rgb), 0.2)'
+                      : 'rgba(var(--color-background-rgb), 0.08)',
                   }}
                 >
                   <ItemIcon className="h-4 w-4" />
@@ -150,7 +147,7 @@ export function NavigationDropdown({
                     style={{
                       color: isItemActive
                         ? 'var(--color-background)'
-                        : 'var(--color-text-tertiary)'
+                        : 'var(--color-text-tertiary)',
                     }}
                   >
                     {item.summary}

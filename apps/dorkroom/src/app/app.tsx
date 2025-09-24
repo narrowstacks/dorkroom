@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import {
+  Link,
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
 import {
   Aperture,
   Beaker,
@@ -21,6 +28,7 @@ import HomePage from './pages/home-page';
 import BorderCalculatorPage from './pages/border-calculator/border-calculator-page';
 import ResizeCalculatorPage from './pages/resize-calculator/resize-calculator-page';
 import ReciprocityCalculatorPage from './pages/reciprocity-calculator/reciprocity-calculator-page';
+import ExposureCalculatorPage from './pages/exposure-calculator/exposure-calculator-page';
 import DevelopmentRecipesPage from './pages/development-recipes/development-recipes-page';
 import SettingsPage from './pages/settings-page';
 
@@ -84,11 +92,7 @@ const navItems = [
 ];
 
 // All navigation items combined for backward compatibility
-const allNavItems = [
-  ...navItems,
-  ...printingItems,
-  ...shootingItems,
-];
+const allNavItems = [...navItems, ...printingItems, ...shootingItems];
 
 const ROUTE_TITLES: Record<string, string> = {
   '/': 'Home',
@@ -488,6 +492,7 @@ export function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/border" element={<BorderCalculatorPage />} />
             <Route path="/resize" element={<ResizeCalculatorPage />} />
+            <Route path="/stops" element={<ExposureCalculatorPage />} />
             <Route
               path="/reciprocity"
               element={<ReciprocityCalculatorPage />}
@@ -501,6 +506,7 @@ export function App() {
                     '/',
                     '/border',
                     '/resize',
+                    '/stops',
                     '/reciprocity',
                     '/development',
                   ].includes(item.to)
