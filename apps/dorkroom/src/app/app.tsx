@@ -308,10 +308,12 @@ export function App() {
           type="button"
           className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex h-12 w-12 items-center justify-center rounded-full shadow-lg backdrop-blur transition focus-visible:outline-none sm:hidden"
           style={{
-            color: 'var(--color-text-primary)',
-            borderColor: 'var(--color-border-secondary)',
+            // Flip colors: use light colors in dark mode, dark colors in light mode
+            color: 'var(--color-background)',
+            borderColor: 'var(--color-background)',
             borderWidth: 1,
-            backgroundColor: 'rgba(var(--color-background-rgb), 0.1)',
+            backgroundColor: 'var(--color-text-primary)',
+            opacity: 0.9,
           }}
           aria-label={isMobileMenuOpen ? 'Close navigation' : 'Open navigation'}
           aria-expanded={isMobileMenuOpen}
