@@ -56,6 +56,8 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
     }
+
+    return undefined;
   }, [theme]);
 
   const setTheme = (newTheme: Theme) => {
