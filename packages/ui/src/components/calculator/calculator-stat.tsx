@@ -11,10 +11,32 @@ interface CalculatorStatProps {
   className?: string;
 }
 
-const toneClasses: Record<Exclude<StatTone, 'default'>, string> = {
-  emerald:
-    'border-emerald-300/30 bg-gradient-to-br from-emerald-400/15 via-emerald-500/10 to-transparent text-emerald-100',
-  sky: 'border-sky-300/30 bg-gradient-to-br from-sky-400/15 via-sky-500/10 to-transparent text-sky-50',
+// Legacy - replaced with getToneStyle function
+
+// Theme-aware tone styles
+const getToneStyle = (
+  tone: Exclude<StatTone, 'default'>
+): React.CSSProperties => {
+  switch (tone) {
+    case 'emerald':
+      return {
+        borderColor:
+          'color-mix(in srgb, var(--color-semantic-success) 30%, transparent)',
+        background:
+          'linear-gradient(to bottom right, color-mix(in srgb, var(--color-semantic-success) 15%, transparent), color-mix(in srgb, var(--color-semantic-success) 10%, transparent), transparent)',
+        color:
+          'color-mix(in srgb, var(--color-semantic-success) 90%, var(--color-text-primary))',
+      };
+    case 'sky':
+      return {
+        borderColor:
+          'color-mix(in srgb, var(--color-semantic-info) 30%, transparent)',
+        background:
+          'linear-gradient(to bottom right, color-mix(in srgb, var(--color-semantic-info) 15%, transparent), color-mix(in srgb, var(--color-semantic-info) 10%, transparent), transparent)',
+        color:
+          'color-mix(in srgb, var(--color-semantic-info) 90%, var(--color-text-primary))',
+      };
+  }
 };
 
 export function CalculatorStat({
@@ -27,18 +49,45 @@ export function CalculatorStat({
   return (
     <div
       className={cn(
-        'rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition-colors',
-        tone !== 'default' && toneClasses[tone],
+        'rounded-2xl border p-5 backdrop-blur-sm transition-colors',
         className
       )}
+      style={
+        tone !== 'default'
+          ? getToneStyle(tone)
+          : {
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'var(--color-border-muted)',
+            }
+      }
     >
-      <span className="text-xs font-semibold uppercase tracking-[0.35em] text-white/60">
+      <span
+        className="text-xs font-semibold uppercase tracking-[0.35em]"
+        style={{
+          color: tone !== 'default' ? 'inherit' : 'var(--color-text-muted)',
+        }}
+      >
         {label}
       </span>
-      <div className="mt-3 text-3xl font-semibold tracking-tight text-white">
+      <div
+        className="mt-3 text-3xl font-semibold tracking-tight"
+        style={{
+          color: tone !== 'default' ? 'inherit' : 'var(--color-text-primary)',
+        }}
+      >
         {value}
       </div>
-      {helperText && <p className="mt-2 text-xs text-white/70">{helperText}</p>}
+      {helperText && (
+        <p
+          className="mt-2 text-xs"
+          style={{
+            color:
+              tone !== 'default' ? 'inherit' : 'var(--color-text-secondary)',
+          }}
+        >
+          {helperText}
+        </p>
+      )}
     </div>
   );
 }

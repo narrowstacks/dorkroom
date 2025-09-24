@@ -31,19 +31,56 @@ export function ShareButton({
       'px-4 py-2 text-sm': size === 'md',
       'px-6 py-3 text-base': size === 'lg',
 
-      // Color variants
-      'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500':
-        variant === 'primary',
-      'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500':
-        variant === 'secondary',
-      'bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-blue-500':
-        variant === 'outline',
-
       // Loading state
       'cursor-wait': isLoading,
     },
     className
   );
+
+  const getVariantStyle = () => {
+    switch (variant) {
+      case 'primary':
+        return {
+          backgroundColor: 'var(--color-semantic-info)',
+          color: 'var(--color-surface)',
+        };
+      case 'secondary':
+        return {
+          backgroundColor: 'var(--color-text-tertiary)',
+          color: 'var(--color-surface)',
+        };
+      case 'outline':
+        return {
+          backgroundColor: 'transparent',
+          borderColor: 'var(--color-border-primary)',
+          color: 'var(--color-text-secondary)',
+        };
+      default:
+        return {};
+    }
+  };
+
+  const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (disabled || isLoading) return;
+    switch (variant) {
+      case 'primary':
+        e.currentTarget.style.backgroundColor =
+          'color-mix(in srgb, var(--color-semantic-info) 85%, transparent)';
+        break;
+      case 'secondary':
+        e.currentTarget.style.backgroundColor = 'var(--color-text-secondary)';
+        break;
+      case 'outline':
+        e.currentTarget.style.backgroundColor = 'var(--color-surface-muted)';
+        break;
+    }
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (disabled || isLoading) return;
+    const style = getVariantStyle();
+    e.currentTarget.style.backgroundColor = style.backgroundColor || '';
+  };
 
   return (
     <button
@@ -51,6 +88,9 @@ export function ShareButton({
       onClick={onClick}
       disabled={disabled || isLoading}
       className={baseClasses}
+      style={getVariantStyle()}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {isLoading && (
         <svg

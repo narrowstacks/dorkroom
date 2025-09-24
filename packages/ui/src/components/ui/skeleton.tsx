@@ -6,13 +6,22 @@ interface SkeletonProps {
 
 export function Skeleton({ className }: SkeletonProps) {
   return (
-    <div className={cn('animate-pulse rounded-md bg-white/10', className)} />
+    <div
+      className={cn('animate-pulse rounded-md', className)}
+      style={{ backgroundColor: 'var(--color-border-muted)' }}
+    />
   );
 }
 
 export function SkeletonCard() {
   return (
-    <div className="cursor-default rounded-2xl border border-white/10 bg-white/5 p-4 shadow-subtle">
+    <div
+      className="cursor-default rounded-2xl border p-4 shadow-subtle"
+      style={{
+        borderColor: 'var(--color-border-secondary)',
+        backgroundColor: 'var(--color-surface-muted)',
+      }}
+    >
       <div>
         <div>
           <Skeleton className="h-4 w-3/4 mb-2" />
@@ -44,7 +53,10 @@ export function SkeletonCard() {
 
 export function SkeletonTableRow() {
   return (
-    <tr className="border-b border-white/10">
+    <tr
+      className="border-b"
+      style={{ borderColor: 'var(--color-border-secondary)' }}
+    >
       <td className="px-4 py-3">
         <Skeleton className="h-4 w-32" />
       </td>

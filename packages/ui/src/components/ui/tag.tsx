@@ -1,5 +1,5 @@
 import { cn } from '../../lib/cn';
-import { getTagColors } from '../../lib/tag-colors';
+import { getTagThemeStyle } from '../../lib/tag-colors';
 
 interface TagProps {
   children: string;
@@ -8,18 +8,20 @@ interface TagProps {
 }
 
 export function Tag({ children, className, size = 'xs' }: TagProps) {
-  const colors = getTagColors(children);
+  const themeStyle = getTagThemeStyle(children);
 
   return (
     <span
       className={cn(
-        'rounded-full px-2 py-0.5 uppercase tracking-wide',
+        'rounded-full px-2 py-0.5 uppercase tracking-wide border',
         size === 'xs' ? 'text-[10px]' : 'text-xs',
-        colors.bg,
-        colors.text,
-        colors.border && `border ${colors.border}`,
         className
       )}
+      style={{
+        backgroundColor: themeStyle.backgroundColor,
+        color: themeStyle.color,
+        borderColor: themeStyle.borderColor,
+      }}
     >
       {children.replace(/-/g, ' ')}
     </span>

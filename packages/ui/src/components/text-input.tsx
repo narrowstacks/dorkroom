@@ -18,7 +18,10 @@ export function TextInput({
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
-        <label className="block text-sm font-medium text-white/90">
+        <label
+          className="block text-sm font-medium"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
           {label}
         </label>
       )}
@@ -27,7 +30,22 @@ export function TextInput({
         value={value}
         onChange={(e) => onValueChange((e.target as HTMLInputElement).value)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-white/50 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
+        className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2"
+        style={
+          {
+            borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'var(--color-surface-muted)',
+            color: 'var(--color-text-primary)',
+            '--tw-placeholder-color': 'var(--color-text-muted)',
+            '--tw-ring-color': 'var(--color-border-primary)',
+          } as React.CSSProperties
+        }
+        onFocus={(e) =>
+          (e.target.style.borderColor = 'var(--color-border-primary)')
+        }
+        onBlur={(e) =>
+          (e.target.style.borderColor = 'var(--color-border-secondary)')
+        }
       />
     </div>
   );

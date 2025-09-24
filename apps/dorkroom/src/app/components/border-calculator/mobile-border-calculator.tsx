@@ -254,11 +254,27 @@ export function MobileBorderCalculator({
   );
 
   return (
-    <div className="min-h-dvh bg-gradient-to-br from-zinc-950 via-zinc-900 to-black px-4 pb-24 pt-10 text-white">
+    <div
+      className="min-h-dvh px-4 pb-24 pt-10"
+      style={{
+        background:
+          'linear-gradient(to bottom right, var(--color-surface-muted), var(--color-background), var(--color-background))',
+        color: 'var(--color-text-primary)',
+      }}
+    >
       <div className="mx-auto max-w-md space-y-4">
         {/* Hero Section - Blade Results */}
-        <div className="rounded-3xl bg-gradient-to-br from-white/15 via-white/5 to-white/0 p-[1px] shadow-[0_30px_90px_-40px_rgba(0,0,0,0.9)] backdrop-blur-sm">
-          <div className="rounded-[calc(1.5rem-1px)] bg-zinc-950/80">
+        <div
+          className="rounded-3xl p-[1px] shadow-[0_30px_90px_-40px_var(--color-visualization-overlay)] backdrop-blur-sm"
+          style={{
+            background:
+              'linear-gradient(to bottom right, var(--color-border-primary), var(--color-border-muted), transparent)',
+          }}
+        >
+          <div
+            className="rounded-[calc(1.5rem-1px)]"
+            style={{ backgroundColor: 'var(--color-surface)' }}
+          >
             <BladeResultsDisplay
               calculation={calculation}
               paperSize={paperSizeDisplayValue}
@@ -268,18 +284,35 @@ export function MobileBorderCalculator({
         </div>
 
         {/* Animated Preview */}
-        <div className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-[0_35px_110px_-50px_rgba(0,0,0,0.95)] backdrop-blur-lg">
+        <div
+          className="rounded-3xl border p-6 shadow-[0_35px_110px_-50px_var(--color-visualization-overlay)] backdrop-blur-lg"
+          style={{
+            borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'var(--color-border-muted)',
+          }}
+        >
           <AnimatedPreview
             calculation={calculation}
             showBlades={showBlades}
             showBladeReadings={showBladeReadings}
-            className="max-w-full border border-white/15 shadow-2xl"
+            className="max-w-full shadow-2xl"
+            borderColor="var(--color-border-primary)"
           />
         </div>
 
         {/* Warnings */}
         {hasWarnings && (
-          <div className="rounded-3xl border border-amber-400/30 bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent p-5 shadow-[0_25px_80px_-45px_rgba(217,119,6,0.45)] space-y-2">
+          <div
+            className="rounded-3xl border p-5 space-y-2"
+            style={{
+              borderColor:
+                'color-mix(in srgb, var(--color-semantic-warning) 30%, transparent)',
+              background:
+                'linear-gradient(to bottom right, color-mix(in srgb, var(--color-semantic-warning) 20%, transparent), color-mix(in srgb, var(--color-semantic-warning) 10%, transparent), transparent)',
+              boxShadow:
+                '0 25px 80px -45px color-mix(in srgb, var(--color-semantic-warning) 40%, transparent)',
+            }}
+          >
             {bladeWarning && (
               <WarningAlert message={bladeWarning} action="error" />
             )}
@@ -296,14 +329,22 @@ export function MobileBorderCalculator({
         )}
 
         {/* Settings Buttons */}
-        <div className="rounded-3xl border border-white/12 bg-gradient-to-br from-zinc-900/90 via-zinc-900/70 to-zinc-900/50 p-6 shadow-[0_40px_120px_-60px_rgba(0,0,0,1)] backdrop-blur-lg space-y-5">
+        <div
+          className="rounded-3xl border p-6 backdrop-blur-lg space-y-5"
+          style={{
+            borderColor: 'var(--color-border-secondary)',
+            background:
+              'linear-gradient(to bottom right, color-mix(in srgb, var(--color-surface-muted) 90%, transparent), color-mix(in srgb, var(--color-surface-muted) 70%, transparent), color-mix(in srgb, var(--color-surface-muted) 50%, transparent))',
+            boxShadow: '0 40px 120px -60px var(--color-visualization-overlay)',
+          }}
+        >
           <div className="space-y-3">
             <SettingsButton
               label="Paper and Image Size"
               value={`${aspectRatioDisplayValue} on ${paperSizeDisplayValue}`}
               onPress={() => openDrawerSection('paperSize')}
               icon={Image}
-              className="border-white/20 bg-white/10 backdrop-blur-sm shadow-lg"
+              className="backdrop-blur-sm shadow-lg"
             />
 
             <SettingsButton
@@ -311,7 +352,7 @@ export function MobileBorderCalculator({
               value={borderSizeDisplayValue}
               onPress={() => openDrawerSection('borderSize')}
               icon={Ruler}
-              className="border-white/20 bg-white/10 backdrop-blur-sm shadow-lg"
+              className="backdrop-blur-sm shadow-lg"
             />
 
             <SettingsButton
@@ -319,7 +360,7 @@ export function MobileBorderCalculator({
               value={positionDisplayValue}
               onPress={() => openDrawerSection('positionOffsets')}
               icon={Move}
-              className="border-white/20 bg-white/10 backdrop-blur-sm shadow-lg"
+              className="backdrop-blur-sm shadow-lg"
             />
           </div>
 
@@ -330,7 +371,7 @@ export function MobileBorderCalculator({
               icon={showBlades ? EyeOff : Crop}
               showChevron={false}
               centerLabel={true}
-              className="border-white/20 bg-white/10 backdrop-blur-sm shadow-lg"
+              className="backdrop-blur-sm shadow-lg"
             />
 
             <SettingsButton
@@ -339,7 +380,7 @@ export function MobileBorderCalculator({
               icon={showBladeReadings ? EyeOff : Target}
               showChevron={false}
               centerLabel={true}
-              className="border-white/20 bg-white/10 backdrop-blur-sm shadow-lg"
+              className="backdrop-blur-sm shadow-lg"
             />
           </div>
 
@@ -349,13 +390,20 @@ export function MobileBorderCalculator({
                 value={presetsDisplayValue}
                 onPress={() => openDrawerSection('presets')}
                 icon={BookOpen}
-                className="border-white/20 bg-white/10 backdrop-blur-sm shadow-lg"
+                className="backdrop-blur-sm shadow-lg"
               />
             </div>
 
             <button
               onClick={handleShare}
-              className="rounded-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-lime-400 p-4 font-semibold text-emerald-950 shadow-lg transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+              className="rounded-full p-4 font-semibold shadow-lg transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2"
+              style={
+                {
+                  background: 'var(--gradient-card-primary)',
+                  color: 'var(--color-background)',
+                  '--tw-ring-color': 'var(--color-semantic-success)',
+                } as React.CSSProperties
+              }
               title="Share preset"
             >
               <Share className="h-5 w-5" />
@@ -366,7 +414,27 @@ export function MobileBorderCalculator({
         {/* Reset Button */}
         <button
           onClick={resetToDefaults}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-100 shadow-lg transition hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60"
+          className="flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold shadow-lg transition focus-visible:outline-none focus-visible:ring-2"
+          style={
+            {
+              borderColor:
+                'color-mix(in srgb, var(--color-semantic-error) 40%, transparent)',
+              backgroundColor:
+                'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)',
+              color:
+                'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))',
+              '--tw-ring-color':
+                'color-mix(in srgb, var(--color-semantic-error) 60%, transparent)',
+            } as React.CSSProperties
+          }
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor =
+              'color-mix(in srgb, var(--color-semantic-error) 20%, transparent)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor =
+              'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)';
+          }}
         >
           <RotateCcw className="h-4 w-4" />
           Reset to Defaults

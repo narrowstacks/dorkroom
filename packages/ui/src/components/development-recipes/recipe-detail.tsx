@@ -43,8 +43,10 @@ const DetailRow = ({
   value: React.ReactNode;
 }) => (
   <div className="flex justify-between gap-6 text-sm">
-    <span className="text-white/60">{label}</span>
-    <span className="text-white text-right">{value}</span>
+    <span style={{ color: 'var(--color-text-tertiary)' }}>{label}</span>
+    <span className="text-right" style={{ color: 'var(--color-text-primary)' }}>
+      {value}
+    </span>
   </div>
 );
 
@@ -57,35 +59,73 @@ export function DevelopmentRecipeDetail({
 
   return (
     <div className="space-y-5 text-sm">
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-        <div className="text-xs uppercase tracking-wide text-white/50">
+      <div
+        className="rounded-xl border p-4"
+        style={{
+          borderColor: 'var(--color-border-secondary)',
+          backgroundColor: 'var(--color-border-muted)',
+        }}
+      >
+        <div
+          className="text-xs uppercase tracking-wide"
+          style={{ color: 'var(--color-text-muted)' }}
+        >
           Film
         </div>
-        <div className="mt-1 text-base font-semibold text-white">
+        <div
+          className="mt-1 text-base font-semibold"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
           {film ? `${film.brand} ${film.name}` : 'Unknown film'}
         </div>
         {film?.description && (
-          <p className="mt-2 text-sm text-white/70">{film.description}</p>
+          <p
+            className="mt-2 text-sm"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            {film.description}
+          </p>
         )}
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-        <div className="text-xs uppercase tracking-wide text-white/50">
+      <div
+        className="rounded-xl border p-4"
+        style={{
+          borderColor: 'var(--color-border-secondary)',
+          backgroundColor: 'var(--color-border-muted)',
+        }}
+      >
+        <div
+          className="text-xs uppercase tracking-wide"
+          style={{ color: 'var(--color-text-muted)' }}
+        >
           Developer
         </div>
-        <div className="mt-1 text-base font-semibold text-white">
+        <div
+          className="mt-1 text-base font-semibold"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
           {developer
             ? `${developer.manufacturer} ${developer.name}`
             : 'Unknown developer'}
         </div>
         {(developer?.description || developer?.notes) && (
-          <p className="mt-2 text-sm text-white/70">
+          <p
+            className="mt-2 text-sm"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
             {developer?.description || developer?.notes}
           </p>
         )}
       </div>
 
-      <div className="space-y-3 rounded-xl border border-white/10 bg-white/5 p-4">
+      <div
+        className="space-y-3 rounded-xl border p-4"
+        style={{
+          borderColor: 'var(--color-border-secondary)',
+          backgroundColor: 'var(--color-border-muted)',
+        }}
+      >
         <DetailRow label="ISO" value={combination.shootingIso} />
         <DetailRow
           label="Development time"
@@ -110,7 +150,10 @@ export function DevelopmentRecipeDetail({
         />
         <DetailRow label="Push/Pull" value={combination.pushPull} />
         {combination.tags && combination.tags.length > 0 && (
-          <div className="flex flex-wrap justify-end gap-2 text-xs text-white/60">
+          <div
+            className="flex flex-wrap justify-end gap-2 text-xs"
+            style={{ color: 'var(--color-text-tertiary)' }}
+          >
             {combination.tags.map((tag) => (
               <Tag key={tag}>{tag}</Tag>
             ))}
@@ -119,8 +162,18 @@ export function DevelopmentRecipeDetail({
       </div>
 
       {combination.notes && (
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/80">
-          <div className="text-xs uppercase tracking-wide text-white/50">
+        <div
+          className="rounded-xl border p-4"
+          style={{
+            borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'var(--color-border-muted)',
+            color: 'var(--color-text-secondary)',
+          }}
+        >
+          <div
+            className="text-xs uppercase tracking-wide"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
             Notes
           </div>
           <p className="mt-2 leading-relaxed">{combination.notes}</p>
@@ -132,7 +185,14 @@ export function DevelopmentRecipeDetail({
           href={combination.infoSource}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-2 text-xs text-white/60 underline-offset-4 hover:text-white hover:underline"
+          className="inline-flex items-center gap-2 text-xs underline-offset-4 hover:underline"
+          style={{ color: 'var(--color-text-tertiary)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--color-text-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--color-text-tertiary)';
+          }}
         >
           <ExternalLink className="h-3 w-3" /> View source
         </a>
@@ -145,7 +205,21 @@ export function DevelopmentRecipeDetail({
               <button
                 type="button"
                 onClick={() => onEditCustomRecipe(view)}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white/90 transition hover:bg-white/20 hover:text-white"
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition"
+                style={{
+                  backgroundColor: 'var(--color-border-muted)',
+                  color: 'var(--color-text-secondary)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    'var(--color-border-secondary)';
+                  e.currentTarget.style.color = 'var(--color-text-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    'var(--color-border-muted)';
+                  e.currentTarget.style.color = 'var(--color-text-secondary)';
+                }}
               >
                 <Edit2 className="h-4 w-4" />
                 Edit recipe
@@ -155,7 +229,25 @@ export function DevelopmentRecipeDetail({
               <button
                 type="button"
                 onClick={() => onDeleteCustomRecipe(view)}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-red-500/10 px-4 py-2 text-sm font-medium text-red-300 transition hover:bg-red-500/20 hover:text-red-200"
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition"
+                style={{
+                  backgroundColor:
+                    'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)',
+                  color:
+                    'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    'color-mix(in srgb, var(--color-semantic-error) 20%, transparent)';
+                  e.currentTarget.style.color =
+                    'color-mix(in srgb, var(--color-semantic-error) 90%, var(--color-text-primary))';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)';
+                  e.currentTarget.style.color =
+                    'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))';
+                }}
               >
                 <Trash2 className="h-4 w-4" />
                 Delete recipe

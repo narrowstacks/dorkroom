@@ -16,7 +16,6 @@ import {
   Select,
   WarningAlert,
   CalculatorCard,
-  CalculatorPageHeader,
   CalculatorStat,
   ShareModal,
   SaveBeforeShareModal,
@@ -378,14 +377,14 @@ export default function BorderCalculatorPage() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   <button
                     onClick={() => setIsLandscape(!isLandscape)}
-                    className="flex items-center justify-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                    className="flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
                   >
                     <RotateCw className="h-4 w-4" />
                     Flip Paper
                   </button>
                   <button
                     onClick={() => setIsRatioFlipped(!isRatioFlipped)}
-                    className="flex items-center justify-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                    className="flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
                   >
                     <Square className="h-4 w-4" />
                     Flip Ratio
@@ -393,14 +392,33 @@ export default function BorderCalculatorPage() {
                 </div>
                 <button
                   onClick={resetToDefaults}
-                  className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border border-red-400/40 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-100 transition hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60"
+                  className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 hover:brightness-110"
+                  style={{
+                    color: 'var(--color-accent)',
+                    borderColor:
+                      'color-mix(in oklab, var(--color-accent) 40%, transparent)',
+                    borderWidth: 1,
+                    backgroundColor:
+                      'color-mix(in oklab, var(--color-accent) 12%, transparent)',
+                  }}
                 >
                   <RotateCcw className="h-4 w-4" />
                   Reset to defaults
                 </button>
 
                 {!isLandscape && (
-                  <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-center text-sm text-amber-100">
+                  <div
+                    className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
+                    style={{
+                      borderWidth: 1,
+                      borderColor:
+                        'color-mix(in oklab, var(--color-highlight) 30%, transparent)',
+                      backgroundColor:
+                        'color-mix(in oklab, var(--color-highlight) 10%, transparent)',
+                      color:
+                        'color-mix(in oklab, var(--color-highlight) 85%, var(--color-text-primary))',
+                    }}
+                  >
                     <strong className="font-semibold">Rotate your easel</strong>
                     <br />
                     Paper is in vertical orientation. Rotate your easel 90° to
@@ -409,7 +427,18 @@ export default function BorderCalculatorPage() {
                 )}
 
                 {calculation.isNonStandardPaperSize && (
-                  <div className="mt-4 rounded-2xl border border-blue-400/30 bg-blue-500/10 px-4 py-3 text-center text-sm text-blue-100">
+                  <div
+                    className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
+                    style={{
+                      borderWidth: 1,
+                      borderColor:
+                        'color-mix(in oklab, var(--color-secondary) 30%, transparent)',
+                      backgroundColor:
+                        'color-mix(in oklab, var(--color-secondary) 10%, transparent)',
+                      color:
+                        'color-mix(in oklab, var(--color-secondary) 85%, var(--color-text-primary))',
+                    }}
+                  >
                     <strong className="font-semibold">
                       Non-standard paper
                     </strong>
@@ -575,14 +604,20 @@ export default function BorderCalculatorPage() {
               />
 
               {enableOffset && (
-                <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div
+                  className="space-y-4 rounded-2xl p-4 border"
+                  style={{
+                    borderColor: 'var(--color-border-secondary)',
+                    backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
+                  }}
+                >
                   <ToggleSwitch
                     label="Ignore min border"
                     value={ignoreMinBorder}
                     onValueChange={setIgnoreMinBorder}
                   />
                   {ignoreMinBorder && (
-                    <p className="text-sm text-white/70">
+                    <p className="text-sm text-[color:var(--color-text-secondary)]">
                       Print can be positioned freely but will stay within the
                       paper edges.
                     </p>
@@ -657,7 +692,7 @@ export default function BorderCalculatorPage() {
                 <button
                   onClick={handleShareClick}
                   disabled={isSharing || isGeneratingShareUrl}
-                  className="rounded-full border border-white/12 bg-white/5 p-2 text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-full border p-2 transition focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:cursor-not-allowed text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
                   title="Share preset"
                 >
                   {isGeneratingShareUrl ? (
@@ -686,7 +721,7 @@ export default function BorderCalculatorPage() {
                 </button>
                 <button
                   onClick={() => setIsEditingPreset(true)}
-                  className="rounded-full border border-white/12 bg-white/5 p-2 text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  className="rounded-full border p-2 transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
                   title="Edit preset"
                 >
                   <Save className="h-4 w-4" />
@@ -705,7 +740,15 @@ export default function BorderCalculatorPage() {
                 <div className="grid gap-2 sm:grid-cols-3">
                   <button
                     onClick={savePreset}
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60"
+                    className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 hover:brightness-110"
+                    style={{
+                      color: 'var(--color-primary)',
+                      borderColor:
+                        'color-mix(in oklab, var(--color-primary) 40%, transparent)',
+                      borderWidth: 1,
+                      backgroundColor:
+                        'color-mix(in oklab, var(--color-primary) 12%, transparent)',
+                    }}
                   >
                     <Save className="h-4 w-4" />
                     Save
@@ -713,7 +756,15 @@ export default function BorderCalculatorPage() {
                   <button
                     onClick={updatePresetHandler}
                     disabled={!selectedPresetId}
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-sky-400/40 bg-sky-500/10 px-4 py-2 text-sm font-semibold text-sky-100 transition hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
+                    style={{
+                      color: 'var(--color-secondary)',
+                      borderColor:
+                        'color-mix(in oklab, var(--color-secondary) 40%, transparent)',
+                      borderWidth: 1,
+                      backgroundColor:
+                        'color-mix(in oklab, var(--color-secondary) 12%, transparent)',
+                    }}
                   >
                     <Save className="h-4 w-4" />
                     Update
@@ -721,7 +772,15 @@ export default function BorderCalculatorPage() {
                   <button
                     onClick={deletePresetHandler}
                     disabled={!selectedPresetId}
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-red-400/40 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-100 transition hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
+                    style={{
+                      color: 'var(--color-accent)',
+                      borderColor:
+                        'color-mix(in oklab, var(--color-accent) 40%, transparent)',
+                      borderWidth: 1,
+                      backgroundColor:
+                        'color-mix(in oklab, var(--color-accent) 12%, transparent)',
+                    }}
                   >
                     <Trash2 className="h-4 w-4" />
                     Delete

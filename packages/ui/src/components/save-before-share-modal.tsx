@@ -71,13 +71,29 @@ export function SaveBeforeShareModal({
         />
 
         {/* Modal */}
-        <div className="relative z-10 inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+        <div
+          className="relative z-10 inline-block transform overflow-hidden rounded-lg text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle"
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            color: 'var(--color-text-primary)',
+          }}
+        >
           <form onSubmit={handleSubmit}>
-            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div
+              className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4"
+              style={{ backgroundColor: 'var(--color-surface)' }}
+            >
               <div className="sm:flex sm:items-start">
-                <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                <div
+                  className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10"
+                  style={{
+                    backgroundColor:
+                      'color-mix(in srgb, var(--color-semantic-info) 20%, transparent)',
+                  }}
+                >
                   <svg
-                    className="h-6 w-6 text-blue-600"
+                    className="h-6 w-6"
+                    style={{ color: 'var(--color-semantic-info)' }}
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -92,11 +108,17 @@ export function SaveBeforeShareModal({
                   </svg>
                 </div>
                 <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                  <h3 className="text-lg font-medium leading-6 text-gray-900">
+                  <h3
+                    className="text-lg font-medium leading-6"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
                     Save Preset to Share
                   </h3>
                   <div className="mt-4">
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p
+                      className="text-sm mb-4"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                    >
                       To share these settings, you must first save them as a
                       named preset.
                     </p>

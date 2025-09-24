@@ -10,9 +10,9 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 
 ### Development
 
-- `npx nx serve dorkroom -- --host=0.0.0.0` - Start development server. **Check if dev server is running on port 4200 before doing this!**
+- `npx nx dev dorkroom -- --host=0.0.0.0` - Start development server. **Check if dev server is running on port 4200 before doing this!**
 - `npx nx build dorkroom` - Build production bundle
-- `npx nx dev dorkroom` - Alternative dev server
+- `npx nx serve dorkroom` - Alternative dev server (no hotloading of @dorkroom packages!)
 
 ### Code Quality (run these after completing tasks)
 

@@ -44,7 +44,7 @@ const AnimatedBlade = ({
     backgroundColor: borderColor,
     opacity,
     transition: 'all 0.15s ease-in-out',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
+    boxShadow: '0 2px 4px var(--color-visualization-overlay)',
     zIndex: 10,
   };
 
@@ -78,7 +78,7 @@ export function AnimatedPreview({
   calculation,
   showBlades = true,
   showBladeReadings = false,
-  borderColor = '#353535',
+  borderColor = 'var(--color-visualization-border)',
   className,
 }: AnimatedPreviewProps) {
   const [animatedValues, setAnimatedValues] = useState({
@@ -161,7 +161,7 @@ export function AnimatedPreview({
 
   const printStyle = {
     position: 'absolute' as const,
-    backgroundColor: '#666',
+    backgroundColor: 'var(--color-visualization-preview)',
     left: 0,
     top: 0,
     width: staticDimensions.width,
