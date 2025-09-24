@@ -7,13 +7,15 @@ import {
   useRecipeUrlState,
   usePagination,
   useFeatureFlags,
+  useViewPreference,
   getCustomRecipeFilm,
   getCustomRecipeDeveloper,
   type CustomRecipeFormData,
 } from '@dorkroom/logic';
 import {
   CalculatorPageHeader,
-  DevelopmentFiltersPanel,
+  FilmDeveloperSelection,
+  CollapsibleFilters,
   DevelopmentResultsTable,
   DevelopmentResultsCards,
   DevelopmentRecipeDetail,
@@ -159,8 +161,7 @@ export default function DevelopmentRecipesPage() {
 
   const { flags } = useFeatureFlags();
   const isMobile = useIsMobile();
-
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const { viewMode, setViewMode } = useViewPreference();
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -446,7 +447,7 @@ export default function DevelopmentRecipesPage() {
     tagFilter,
   ]);
 
-  const pagination = usePagination(combinedRows, 25);
+  const pagination = usePagination(combinedRows, 24);
   const paginatedRows = pagination.paginatedItems;
 
   const handleOpenDetail = useCallback((view: DevelopmentCombinationView) => {
@@ -761,10 +762,12 @@ export default function DevelopmentRecipesPage() {
 
         <DevelopmentActionsBar
           totalResults={combinedRows.length}
-          viewMode={viewMode === 'table' ? 'table' : 'grid'}
-          onViewModeChange={(mode) =>
-            setViewMode(mode === 'table' ? 'table' : 'grid')
-          }
+          viewMode={isMobile ? 'grid' : viewMode}
+          onViewModeChange={(mode) => {
+            if (!isMobile) {
+              setViewMode(mode);
+            }
+          }}
           onOpenImportModal={() => setIsImportModalOpen(true)}
           onOpenCustomRecipeModal={() => {
             setEditingRecipe(null);
@@ -773,9 +776,10 @@ export default function DevelopmentRecipesPage() {
           onRefresh={handleRefreshAll}
           isRefreshing={isLoading}
           showImportButton={flags.RECIPE_IMPORT}
+          isMobile={isMobile}
         />
 
-        <DevelopmentFiltersPanel
+        <FilmDeveloperSelection
           selectedFilm={selectedFilm?.uuid || ''}
           onFilmChange={(value) => {
             const film = allFilms.find((f) => f.uuid === value);
@@ -788,6 +792,9 @@ export default function DevelopmentRecipesPage() {
             setSelectedDeveloper(developer || null);
           }}
           developerOptions={developerOptions}
+        />
+
+        <CollapsibleFilters
           developerTypeFilter={developerTypeFilter}
           onDeveloperTypeFilterChange={setDeveloperTypeFilter}
           developerTypeOptions={[
@@ -808,6 +815,7 @@ export default function DevelopmentRecipesPage() {
           tagOptions={getAvailableTags()}
           onClearFilters={clearFilters}
           showDeveloperTypeFilter={!selectedDeveloper}
+          defaultCollapsed={true}
         />
 
         <div className="transition-all duration-500 ease-in-out">
@@ -837,7 +845,20 @@ export default function DevelopmentRecipesPage() {
                 </div>
               </div>
 
-              {viewMode === 'table' ? (
+              {isMobile || viewMode === 'grid' ? (
+                <div
+                  className={cn(
+                    'grid gap-4',
+                    isMobile
+                      ? 'grid-cols-2'
+                      : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                  )}
+                >
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <SkeletonCard key={i} />
+                  ))}
+                </div>
+              ) : (
                 <div
                   className="overflow-hidden rounded-2xl border"
                   style={{
@@ -882,12 +903,6 @@ export default function DevelopmentRecipesPage() {
                     </tbody>
                   </table>
                 </div>
-              ) : (
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {Array.from({ length: 12 }).map((_, i) => (
-                    <SkeletonCard key={i} />
-                  ))}
-                </div>
               )}
             </div>
           )}
@@ -897,7 +912,17 @@ export default function DevelopmentRecipesPage() {
               key={`results-${isLoaded}-${combinedRows.length}`}
               className="animate-slide-fade-top"
             >
-              {viewMode === 'table' ? (
+              {isMobile || viewMode === 'grid' ? (
+                <DevelopmentResultsCards
+                  rows={paginatedRows}
+                  onSelectCombination={handleOpenDetail}
+                  onShareCombination={handleShareCombination}
+                  onCopyCombination={handleCopyCombination}
+                  onEditCustomRecipe={handleEditCustomRecipe}
+                  onDeleteCustomRecipe={handleDeleteCustomRecipe}
+                  isMobile={isMobile}
+                />
+              ) : (
                 <DevelopmentResultsTable
                   rows={paginatedRows}
                   onSelectCombination={handleOpenDetail}
@@ -908,15 +933,6 @@ export default function DevelopmentRecipesPage() {
                   sortBy={sortBy}
                   sortDirection={sortDirection}
                   onSort={handleSort}
-                />
-              ) : (
-                <DevelopmentResultsCards
-                  rows={paginatedRows}
-                  onSelectCombination={handleOpenDetail}
-                  onShareCombination={handleShareCombination}
-                  onCopyCombination={handleCopyCombination}
-                  onEditCustomRecipe={handleEditCustomRecipe}
-                  onDeleteCustomRecipe={handleDeleteCustomRecipe}
                 />
               )}
             </div>
