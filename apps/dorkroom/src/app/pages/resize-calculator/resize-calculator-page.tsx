@@ -258,7 +258,7 @@ export default function ResizeCalculatorPage() {
                     label="Original height"
                     value={originalHeight}
                     onChange={setOriginalHeight}
-                    placeholder="500"
+                    placeholder="30"
                     step={1}
                     unit="cm"
                   />
@@ -266,7 +266,7 @@ export default function ResizeCalculatorPage() {
                     label="New height"
                     value={newHeight}
                     onChange={setNewHeight}
-                    placeholder="750"
+                    placeholder="45"
                     step={1}
                     unit="cm"
                   />
