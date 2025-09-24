@@ -205,12 +205,12 @@ export function MobileBorderCalculator({
   }, []);
 
   const toggleBlades = useCallback(() => {
-    setShowBlades((prev) => !prev);
-  }, [setShowBlades]);
+    setShowBlades(!showBlades);
+  }, [setShowBlades, showBlades]);
 
   const toggleBladeReadings = useCallback(() => {
-    setShowBladeReadings((prev) => !prev);
-  }, [setShowBladeReadings]);
+    setShowBladeReadings(!showBladeReadings);
+  }, [setShowBladeReadings, showBladeReadings]);
 
   const handleApplyPreset = useCallback(
     (preset: BorderPreset) => {
@@ -254,26 +254,32 @@ export function MobileBorderCalculator({
   );
 
   return (
-    <div className="min-h-dvh bg-zinc-900 p-4 pb-20">
-      <div className="mx-auto max-w-md space-y-6">
+    <div className="min-h-dvh bg-gradient-to-br from-zinc-950 via-zinc-900 to-black px-4 pb-24 pt-10 text-white">
+      <div className="mx-auto max-w-md space-y-4">
         {/* Hero Section - Blade Results */}
-        <BladeResultsDisplay
-          calculation={calculation}
-          paperSize={paperSizeDisplayValue}
-          aspectRatio={aspectRatioDisplayValue}
-        />
+        <div className="rounded-3xl bg-gradient-to-br from-white/15 via-white/5 to-white/0 p-[1px] shadow-[0_30px_90px_-40px_rgba(0,0,0,0.9)] backdrop-blur-sm">
+          <div className="rounded-[calc(1.5rem-1px)] bg-zinc-950/80">
+            <BladeResultsDisplay
+              calculation={calculation}
+              paperSize={paperSizeDisplayValue}
+              aspectRatio={aspectRatioDisplayValue}
+            />
+          </div>
+        </div>
 
         {/* Animated Preview */}
-        <AnimatedPreview
-          calculation={calculation}
-          showBlades={showBlades}
-          showBladeReadings={showBladeReadings}
-          className="max-w-full"
-        />
+        <div className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-[0_35px_110px_-50px_rgba(0,0,0,0.95)] backdrop-blur-lg">
+          <AnimatedPreview
+            calculation={calculation}
+            showBlades={showBlades}
+            showBladeReadings={showBladeReadings}
+            className="max-w-full border border-white/15 shadow-2xl"
+          />
+        </div>
 
         {/* Warnings */}
         {hasWarnings && (
-          <div className="space-y-2">
+          <div className="rounded-3xl border border-amber-400/30 bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent p-5 shadow-[0_25px_80px_-45px_rgba(217,119,6,0.45)] space-y-2">
             {bladeWarning && (
               <WarningAlert message={bladeWarning} action="error" />
             )}
@@ -290,27 +296,32 @@ export function MobileBorderCalculator({
         )}
 
         {/* Settings Buttons */}
-        <div className="space-y-3">
-          <SettingsButton
-            label="Paper and Image Size"
-            value={`${aspectRatioDisplayValue} on ${paperSizeDisplayValue}`}
-            onPress={() => openDrawerSection('paperSize')}
-            icon={Image}
-          />
+        <div className="rounded-3xl border border-white/12 bg-gradient-to-br from-zinc-900/90 via-zinc-900/70 to-zinc-900/50 p-6 shadow-[0_40px_120px_-60px_rgba(0,0,0,1)] backdrop-blur-lg space-y-5">
+          <div className="space-y-3">
+            <SettingsButton
+              label="Paper and Image Size"
+              value={`${aspectRatioDisplayValue} on ${paperSizeDisplayValue}`}
+              onPress={() => openDrawerSection('paperSize')}
+              icon={Image}
+              className="border-white/20 bg-white/10 backdrop-blur-sm shadow-lg"
+            />
 
-          <SettingsButton
-            label="Border Size"
-            value={borderSizeDisplayValue}
-            onPress={() => openDrawerSection('borderSize')}
-            icon={Ruler}
-          />
+            <SettingsButton
+              label="Border Size"
+              value={borderSizeDisplayValue}
+              onPress={() => openDrawerSection('borderSize')}
+              icon={Ruler}
+              className="border-white/20 bg-white/10 backdrop-blur-sm shadow-lg"
+            />
 
-          <SettingsButton
-            label="Position & Offsets"
-            value={positionDisplayValue}
-            onPress={() => openDrawerSection('positionOffsets')}
-            icon={Move}
-          />
+            <SettingsButton
+              label="Position & Offsets"
+              value={positionDisplayValue}
+              onPress={() => openDrawerSection('positionOffsets')}
+              icon={Move}
+              className="border-white/20 bg-white/10 backdrop-blur-sm shadow-lg"
+            />
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <SettingsButton
@@ -319,6 +330,7 @@ export function MobileBorderCalculator({
               icon={showBlades ? EyeOff : Crop}
               showChevron={false}
               centerLabel={true}
+              className="border-white/20 bg-white/10 backdrop-blur-sm shadow-lg"
             />
 
             <SettingsButton
@@ -327,6 +339,7 @@ export function MobileBorderCalculator({
               icon={showBladeReadings ? EyeOff : Target}
               showChevron={false}
               centerLabel={true}
+              className="border-white/20 bg-white/10 backdrop-blur-sm shadow-lg"
             />
           </div>
 
@@ -336,12 +349,13 @@ export function MobileBorderCalculator({
                 value={presetsDisplayValue}
                 onPress={() => openDrawerSection('presets')}
                 icon={BookOpen}
+                className="border-white/20 bg-white/10 backdrop-blur-sm shadow-lg"
               />
             </div>
 
             <button
               onClick={handleShare}
-              className="rounded-full border border-white/12 bg-white/5 p-4 text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              className="rounded-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-lime-400 p-4 font-semibold text-emerald-950 shadow-lg transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
               title="Share preset"
             >
               <Share className="h-5 w-5" />
@@ -352,7 +366,7 @@ export function MobileBorderCalculator({
         {/* Reset Button */}
         <button
           onClick={resetToDefaults}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-100 transition hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60"
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-100 shadow-lg transition hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60"
         >
           <RotateCcw className="h-4 w-4" />
           Reset to Defaults
