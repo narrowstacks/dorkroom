@@ -44,7 +44,7 @@ const AnimatedBlade = ({
     backgroundColor: borderColor,
     opacity,
     transition: 'all 0.15s ease-in-out',
-    boxShadow: '0 2px 4px var(--color-visualization-overlay)',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)', // Consistent dark shadow
     zIndex: 10,
   };
 
@@ -81,18 +81,41 @@ export function AnimatedPreview({
   borderColor = 'var(--color-visualization-border)',
   className,
 }: AnimatedPreviewProps) {
+  // Blades should always be dark grey to represent real-life blade color
+  const bladeColor = '#353535';
   const [animatedValues, setAnimatedValues] = useState({
     printScale: { x: 0, y: 0 },
     printTranslate: { x: 0, y: 0 },
     bladeOpacity: showBlades ? 1 : 0,
   });
 
-  // Static dimensions for consistent layout
+  // Static dimensions for consistent layout - make responsive for mobile
   const staticDimensions = useMemo(() => {
-    if (!calculation) return { width: 400, height: 300 };
+    if (!calculation) {
+      // Use responsive dimensions that fit mobile screens better
+      const isMobile = window.innerWidth < 768;
+      return {
+        width: isMobile ? Math.min(320, window.innerWidth - 80) : 400,
+        height: isMobile ? Math.min(240, (window.innerWidth - 80) * 0.75) : 300,
+      };
+    }
+
+    // Ensure preview dimensions are mobile-friendly
+    const baseWidth = calculation.previewWidth || 400;
+    const baseHeight = calculation.previewHeight || 300;
+    const isMobile = window.innerWidth < 768;
+
+    if (isMobile) {
+      const maxWidth = Math.min(320, window.innerWidth - 80);
+      const aspectRatio = baseHeight / baseWidth;
+      const width = Math.min(baseWidth, maxWidth);
+      const height = Math.min(baseHeight, width * aspectRatio);
+      return { width, height };
+    }
+
     return {
-      width: calculation.previewWidth || 400,
-      height: calculation.previewHeight || 300,
+      width: baseWidth,
+      height: baseHeight,
     };
   }, [calculation]);
 
@@ -151,7 +174,7 @@ export function AnimatedPreview({
   if (!calculation || !transformValues) {
     return (
       <div
-        className={`border bg-white/5 flex items-center justify-center ${className}`}
+        className={`border bg-white/5 flex items-center justify-center mx-auto ${className}`}
         style={staticDimensions}
       >
         <div className="text-white/60">Preview</div>
@@ -175,7 +198,7 @@ export function AnimatedPreview({
 
   return (
     <div
-      className={`relative bg-white overflow-hidden ${className}`}
+      className={`relative bg-white overflow-hidden mx-auto ${className}`}
       style={staticDimensions}
     >
       {/* Paper background */}
@@ -197,7 +220,7 @@ export function AnimatedPreview({
             position="left"
             positionPercent={transformValues.leftBorderPercent}
             thickness={bladeThickness}
-            borderColor={borderColor}
+            borderColor={bladeColor}
             opacity={animatedValues.bladeOpacity}
           />
           <AnimatedBlade
@@ -205,7 +228,7 @@ export function AnimatedPreview({
             position="right"
             positionPercent={transformValues.rightBorderPercent}
             thickness={bladeThickness}
-            borderColor={borderColor}
+            borderColor={bladeColor}
             opacity={animatedValues.bladeOpacity}
           />
           <AnimatedBlade
@@ -213,7 +236,7 @@ export function AnimatedPreview({
             position="top"
             positionPercent={transformValues.topBorderPercent}
             thickness={bladeThickness}
-            borderColor={borderColor}
+            borderColor={bladeColor}
             opacity={animatedValues.bladeOpacity}
           />
           <AnimatedBlade
@@ -221,7 +244,7 @@ export function AnimatedPreview({
             position="bottom"
             positionPercent={transformValues.bottomBorderPercent}
             thickness={bladeThickness}
-            borderColor={borderColor}
+            borderColor={bladeColor}
             opacity={animatedValues.bladeOpacity}
           />
         </>

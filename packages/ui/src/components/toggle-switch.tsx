@@ -19,18 +19,31 @@ export function ToggleSwitch({
         type="button"
         onClick={() => onValueChange(!value)}
         className={cn(
-          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 focus:ring-offset-2 focus:ring-offset-transparent',
-          value ? 'bg-white' : 'bg-white/20'
+          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
+          'focus:ring-primary/40 focus:ring-offset-transparent'
         )}
+        style={{
+          backgroundColor: value
+            ? '#7dd6ff' // Nice deep blue that works with both themes
+            : 'var(--color-border-primary)',
+        }}
       >
         <span
           className={cn(
-            'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-            value ? 'translate-x-6 bg-black' : 'translate-x-1'
+            'inline-block h-4 w-4 transform rounded-full transition-transform',
+            value
+              ? 'translate-x-6 bg-white dark:bg-black'
+              : 'translate-x-1 bg-black/70 dark:bg-white'
           )}
         />
       </button>
-      <label className="text-sm font-medium text-white/90">{label}</label>
+      <label
+        className="text-sm font-medium cursor-pointer"
+        style={{ color: 'var(--color-text-primary)' }}
+        onClick={() => onValueChange(!value)}
+      >
+        {label}
+      </label>
     </div>
   );
 }

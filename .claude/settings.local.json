@@ -1,6 +1,16 @@
 {
   "permissions": {
-    "allow": ["Bash(npx nx:*)", "Bash(npx prettier:*)", "Bash(lsof:*)"],
+    "allow": [
+      "Bash(npx nx:*)",
+      "Bash(npx prettier:*)",
+      "Bash(lsof:*)",
+      "mcp__serena__get_symbols_overview",
+      "mcp__serena__activate_project",
+      "mcp__serena__find_symbol",
+      "mcp__serena__find_file",
+      "mcp__serena__replace_symbol_body",
+      "mcp__serena__search_for_pattern"
+    ],
     "deny": [],
     "ask": []
   }

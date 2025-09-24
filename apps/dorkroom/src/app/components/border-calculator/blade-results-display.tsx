@@ -1,5 +1,6 @@
 import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
 import type { BorderCalculation } from '@dorkroom/logic';
+import { useTheme } from '../../contexts/theme-context';
 
 interface BladeResultsDisplayProps {
   calculation: BorderCalculation | null;
@@ -12,6 +13,8 @@ export function BladeResultsDisplay({
   paperSize,
   aspectRatio,
 }: BladeResultsDisplayProps) {
+  const { resolvedTheme } = useTheme();
+
   if (!calculation) {
     return (
       <div
@@ -35,7 +38,16 @@ export function BladeResultsDisplay({
   }
 
   return (
-    <div className="rounded-xl border border-white/10 bg-zinc-800/80 p-6">
+    <div
+      className="rounded-xl border p-6"
+      style={{
+        borderColor:
+          resolvedTheme === 'light'
+            ? 'var(--color-border-secondary)'
+            : 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: 'transparent', // Let parent handle background
+      }}
+    >
       <div className="text-center mb-6">
         <h2
           className="text-xl font-semibold mb-2"
