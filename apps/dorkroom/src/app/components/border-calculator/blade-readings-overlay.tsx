@@ -6,6 +6,7 @@
    -------------------------------------------------------------
    Features:
    - Dynamic positioning based on available space
+   - Boundary-aware positioning to keep readings visible
    - Arrow indicators pointing towards blade positions
    - Smooth transitions for show/hide
    - Responsive text sizing
@@ -55,9 +56,9 @@ export function BladeReadingsOverlay({
     const printHeight = printBottomPx - printTopPx;
 
     // Minimum space needed for text display (approximate)
-    const minTextWidth = 60;
-    const minTextHeight = 30;
-    const padding = 4;
+    const minTextWidth = 80; // Increased from 60 to provide more buffer
+    const minTextHeight = 40; // Increased from 30 to provide more buffer
+    const padding = 8; // Increased from 4 to provide more spacing
 
     // Determine if readings should be inside or outside print area
     const leftCanFitInside = printWidth > +minTextWidth + (padding + 11) * 6;
@@ -65,56 +66,70 @@ export function BladeReadingsOverlay({
     const topCanFitInside = printHeight > minTextHeight + (padding + 11) * 6;
     const bottomCanFitInside = printHeight > minTextHeight + (padding + 11) * 6;
 
+    // Check if readings would fall outside container bounds when placed outside print area
+    const leftHasSpaceOutside = printLeftPx - padding - minTextWidth >= 0;
+    const rightHasSpaceOutside =
+      printRightPx + padding + minTextWidth <= containerWidth;
+    const topHasSpaceOutside = printTopPx - padding - minTextHeight >= 0;
+    const bottomHasSpaceOutside =
+      printBottomPx + padding + minTextHeight <= containerHeight;
+
     const readings: BladeReading[] = [];
 
     // Left blade reading - position at left blade boundary
+    const leftShouldBeInside = leftCanFitInside || !leftHasSpaceOutside;
     readings.push({
       label: 'Left',
       value: `${calculation.leftBladeReading.toFixed(2)}"`,
       position: {
-        x: leftCanFitInside ? printLeftPx + padding : printLeftPx - padding,
+        x: leftShouldBeInside ? printLeftPx + padding : printLeftPx - padding,
         y: (printTopPx + printBottomPx) / 2,
       },
       side: 'left',
-      isInside: leftCanFitInside,
+      isInside: leftShouldBeInside,
     });
 
     // Right blade reading - position at right blade boundary
+    const rightShouldBeInside = rightCanFitInside || !rightHasSpaceOutside;
     readings.push({
       label: 'Right',
       value: `${calculation.rightBladeReading.toFixed(2)}"`,
       position: {
-        x: rightCanFitInside ? printRightPx - padding : printRightPx + padding,
+        x: rightShouldBeInside
+          ? printRightPx - padding
+          : printRightPx + padding,
         y: (printTopPx + printBottomPx) / 2,
       },
       side: 'right',
-      isInside: rightCanFitInside,
+      isInside: rightShouldBeInside,
     });
 
     // Top blade reading - position at top blade boundary
+    const topShouldBeInside = topCanFitInside || !topHasSpaceOutside;
     readings.push({
       label: 'Top',
       value: `${calculation.topBladeReading.toFixed(2)}"`,
       position: {
         x: (printLeftPx + printRightPx) / 2,
-        y: topCanFitInside ? printTopPx + padding : printTopPx - padding,
+        y: topShouldBeInside ? printTopPx + padding : printTopPx - padding,
       },
       side: 'top',
-      isInside: topCanFitInside,
+      isInside: topShouldBeInside,
     });
 
     // Bottom blade reading - position at bottom blade boundary
+    const bottomShouldBeInside = bottomCanFitInside || !bottomHasSpaceOutside;
     readings.push({
       label: 'Bottom',
       value: `${calculation.bottomBladeReading.toFixed(2)}"`,
       position: {
         x: (printLeftPx + printRightPx) / 2,
-        y: bottomCanFitInside
+        y: bottomShouldBeInside
           ? printBottomPx - padding
           : printBottomPx + padding,
       },
       side: 'bottom',
-      isInside: bottomCanFitInside,
+      isInside: bottomShouldBeInside,
     });
 
     return readings;
