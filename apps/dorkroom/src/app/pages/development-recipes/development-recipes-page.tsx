@@ -743,7 +743,18 @@ export default function DevelopmentRecipesPage() {
         ></CalculatorPageHeader>
 
         {error && (
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <div
+            className="rounded-2xl px-4 py-3 text-sm"
+            style={{
+              borderWidth: 1,
+              borderColor:
+                'color-mix(in oklab, var(--color-accent) 30%, transparent)',
+              backgroundColor:
+                'color-mix(in oklab, var(--color-accent) 10%, transparent)',
+              color:
+                'color-mix(in oklab, var(--color-accent) 85%, var(--color-text-primary))',
+            }}
+          >
             {error}
           </div>
         )}
@@ -802,15 +813,23 @@ export default function DevelopmentRecipesPage() {
         <div className="transition-all duration-500 ease-in-out">
           {isLoading && (
             <div className="space-y-4 animate-slide-fade-top">
-              <div className="flex items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm text-white/70">
+              <div
+                className="flex items-center justify-center gap-3 rounded-2xl px-6 py-4 text-sm"
+                style={{
+                  borderWidth: 1,
+                  borderColor: 'var(--color-border-secondary)',
+                  backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
+                  color: 'var(--color-text-secondary)',
+                }}
+              >
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <div>
-                  <div className="font-medium text-white">
+                  <div className="font-medium text-[color:var(--color-text-primary)]">
                     {!isLoaded
                       ? 'Loading development recipes...'
                       : 'Refreshing recipes...'}
                   </div>
-                  <div className="text-xs text-white/60">
+                  <div className="text-xs text-[color:var(--color-text-tertiary)]">
                     {!isLoaded
                       ? 'Fetching films, developers, and combinations'
                       : 'Updating data from server'}
@@ -819,26 +838,39 @@ export default function DevelopmentRecipesPage() {
               </div>
 
               {viewMode === 'table' ? (
-                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+                <div
+                  className="overflow-hidden rounded-2xl border"
+                  style={{
+                    borderColor: 'var(--color-border-secondary)',
+                    backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
+                  }}
+                >
                   <table className="w-full">
-                    <thead className="border-b border-white/10 bg-white/5">
+                    <thead
+                      className="border-b"
+                      style={{
+                        borderColor: 'var(--color-border-secondary)',
+                        backgroundColor:
+                          'rgba(var(--color-background-rgb), 0.05)',
+                      }}
+                    >
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-white/60">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[color:var(--color-text-tertiary)]">
                           Film
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-white/60">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[color:var(--color-text-tertiary)]">
                           Developer
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-white/60">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[color:var(--color-text-tertiary)]">
                           ISO
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-white/60">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[color:var(--color-text-tertiary)]">
                           Time
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-white/60">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[color:var(--color-text-tertiary)]">
                           Temperature
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-white/60">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[color:var(--color-text-tertiary)]">
                           Dilution
                         </th>
                       </tr>
@@ -909,15 +941,23 @@ export default function DevelopmentRecipesPage() {
             size="lg"
             anchor="bottom"
           >
-            <DrawerContent className="h-full max-h-[85vh] bg-zinc-900">
-              <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-                <h2 className="text-base font-semibold text-white">
+            <DrawerContent className="h-full max-h-[85vh] bg-[color:var(--color-surface)]">
+              <div
+                className="flex items-center justify-between border-b px-4 py-3"
+                style={{ borderColor: 'var(--color-border-secondary)' }}
+              >
+                <h2 className="text-base font-semibold text-[color:var(--color-text-primary)]">
                   Recipe details
                 </h2>
                 <button
                   type="button"
                   onClick={() => setIsDetailOpen(false)}
-                  className="rounded-full border border-white/20 p-2 text-white/70 transition hover:border-white/40 hover:text-white"
+                  className="rounded-full p-2 transition"
+                  style={{
+                    color: 'var(--color-text-secondary)',
+                    borderColor: 'var(--color-border-secondary)',
+                    borderWidth: 1,
+                  }}
                 >
                   <span className="sr-only">Close</span>
                   <X className="h-5 w-5" />
@@ -939,7 +979,11 @@ export default function DevelopmentRecipesPage() {
                         onClick={() =>
                           detailView && handleShareCombination(detailView)
                         }
-                        className="w-full rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+                        className="w-full rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-105"
+                        style={{
+                          backgroundColor: 'var(--color-text-primary)',
+                          color: 'var(--color-background)',
+                        }}
                       >
                         Share recipe
                       </button>
@@ -948,7 +992,13 @@ export default function DevelopmentRecipesPage() {
                         onClick={() =>
                           detailView && handleCopyCombination(detailView)
                         }
-                        className="w-full rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/40 hover:text-white"
+                        className="w-full rounded-full px-4 py-2 text-sm font-medium transition"
+                        style={{
+                          color:
+                            'color-mix(in oklab, var(--color-text-primary) 80%, transparent)',
+                          borderColor: 'var(--color-border-secondary)',
+                          borderWidth: 1,
+                        }}
                       >
                         Copy link
                       </button>
@@ -978,7 +1028,11 @@ export default function DevelopmentRecipesPage() {
                   onClick={() =>
                     detailView && handleShareCombination(detailView)
                   }
-                  className="flex-1 rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+                  className="flex-1 rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-105"
+                  style={{
+                    backgroundColor: 'var(--color-text-primary)',
+                    color: 'var(--color-background)',
+                  }}
                 >
                   Share recipe
                 </button>
@@ -987,7 +1041,13 @@ export default function DevelopmentRecipesPage() {
                   onClick={() =>
                     detailView && handleCopyCombination(detailView)
                   }
-                  className="flex-1 rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/40 hover:text-white"
+                  className="flex-1 rounded-full px-4 py-2 text-sm font-medium transition"
+                  style={{
+                    color:
+                      'color-mix(in oklab, var(--color-text-primary) 80%, transparent)',
+                    borderColor: 'var(--color-border-secondary)',
+                    borderWidth: 1,
+                  }}
                 >
                   Copy link
                 </button>
@@ -1006,9 +1066,12 @@ export default function DevelopmentRecipesPage() {
             size="lg"
             anchor="bottom"
           >
-            <DrawerContent className="h-full max-h-[90vh] bg-zinc-900">
-              <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-                <h2 className="text-base font-semibold text-white">
+            <DrawerContent className="h-full max-h-[90vh] bg-[color:var(--color-surface)]">
+              <div
+                className="flex items-center justify-between border-b px-4 py-3"
+                style={{ borderColor: 'var(--color-border-secondary)' }}
+              >
+                <h2 className="text-base font-semibold text-[color:var(--color-text-primary)]">
                   {editingRecipe ? 'Edit custom recipe' : 'Add custom recipe'}
                 </h2>
                 <button
@@ -1017,7 +1080,12 @@ export default function DevelopmentRecipesPage() {
                     setIsCustomModalOpen(false);
                     setEditingRecipe(null);
                   }}
-                  className="rounded-full border border-white/20 p-2 text-white/70 transition hover:border-white/40 hover:text-white"
+                  className="rounded-full p-2 transition"
+                  style={{
+                    color: 'var(--color-text-secondary)',
+                    borderColor: 'var(--color-border-secondary)',
+                    borderWidth: 1,
+                  }}
                 >
                   <span className="sr-only">Close</span>
                   <X className="h-5 w-5" />
@@ -1077,15 +1145,23 @@ export default function DevelopmentRecipesPage() {
             size="md"
             anchor="bottom"
           >
-            <DrawerContent className="h-full max-h-[70vh] bg-zinc-900">
-              <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-                <h2 className="text-base font-semibold text-white">
+            <DrawerContent className="h-full max-h-[70vh] bg-[color:var(--color-surface)]">
+              <div
+                className="flex items-center justify-between border-b px-4 py-3"
+                style={{ borderColor: 'var(--color-border-secondary)' }}
+              >
+                <h2 className="text-base font-semibold text-[color:var(--color-text-primary)]">
                   Import shared recipe
                 </h2>
                 <button
                   type="button"
                   onClick={() => setIsImportModalOpen(false)}
-                  className="rounded-full border border-white/20 p-2 text-white/70 transition hover:border-white/40 hover:text-white"
+                  className="rounded-full p-2 transition"
+                  style={{
+                    color: 'var(--color-text-secondary)',
+                    borderColor: 'var(--color-border-secondary)',
+                    borderWidth: 1,
+                  }}
                 >
                   <span className="sr-only">Close</span>
                   <X className="h-5 w-5" />
@@ -1128,7 +1204,15 @@ export default function DevelopmentRecipesPage() {
         />
 
         {(isLoadingSharedRecipe || sharedRecipeError) && (
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
+          <div
+            className="rounded-2xl px-4 py-3 text-sm"
+            style={{
+              borderWidth: 1,
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
+              color: 'var(--color-text-secondary)',
+            }}
+          >
             {isLoadingSharedRecipe && 'Loading shared recipe…'}
             {sharedRecipeError && <span>{sharedRecipeError}</span>}
           </div>

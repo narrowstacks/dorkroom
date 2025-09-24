@@ -19,22 +19,36 @@ export function CalculatorPageHeader({
   return (
     <div
       className={cn(
-        'flex flex-col gap-4 rounded-3xl border border-white/10 bg-surface/80 px-6 py-6 shadow-subtle card-ring sm:px-10',
+        'flex flex-col gap-4 rounded-3xl border px-6 py-6 shadow-subtle card-ring sm:px-10',
         align === 'center'
           ? 'items-center text-center'
           : 'items-start text-left'
       )}
+      style={{
+        borderColor: 'var(--color-border-secondary)',
+        backgroundColor:
+          'color-mix(in srgb, var(--color-surface) 80%, transparent)',
+      }}
     >
       <div className="flex max-w-2xl flex-col gap-3">
         {eyebrow && (
-          <span className="text-xs font-semibold uppercase tracking-[0.35em] text-white/60">
+          <span
+            className="text-xs font-semibold uppercase tracking-[0.35em]"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
             {eyebrow}
           </span>
         )}
-        <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+        <h1
+          className="text-3xl font-semibold tracking-tight sm:text-4xl"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
           {title}
         </h1>
-        <div className="text-base leading-relaxed text-zinc-300">
+        <div
+          className="text-base leading-relaxed"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
           {description}
         </div>
       </div>

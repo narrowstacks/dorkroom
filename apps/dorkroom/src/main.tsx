@@ -4,6 +4,7 @@ import * as ReactDOM from 'react-dom/client';
 import '@fontsource-variable/inter/index.css';
 import './styles.css';
 import App from './app/app';
+import { ThemeProvider } from './app/contexts/theme-context';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -11,8 +12,10 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </ThemeProvider>
   </StrictMode>
 );

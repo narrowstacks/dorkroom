@@ -74,7 +74,11 @@ export function ShareModal({
       <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:items-center sm:p-0">
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 backdrop-blur-sm transition-opacity"
+          style={{
+            backgroundColor:
+              'color-mix(in srgb, var(--color-background) 60%, transparent)',
+          }}
           onClick={onClose}
         />
 

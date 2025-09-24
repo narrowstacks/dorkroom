@@ -98,7 +98,7 @@ export function DevelopmentResultsTable({
         className={cn(
           'flex w-full items-center gap-1 text-xs uppercase tracking-wide transition',
           align === 'right' ? 'justify-end' : 'justify-start',
-          isActive ? 'text-white' : 'text-white/60 hover:text-white/80'
+          isActive ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)'
         )}
       >
         {label}
@@ -108,9 +108,30 @@ export function DevelopmentResultsTable({
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-subtle">
-      <table className="min-w-full divide-y divide-white/10 text-sm text-white/80">
-        <thead className="bg-white/10 text-xs uppercase tracking-wide text-white/60">
+    <div
+      className="overflow-hidden rounded-2xl border shadow-subtle"
+      style={{
+        borderColor: 'var(--color-border-secondary)',
+        backgroundColor: 'var(--color-border-muted)',
+      }}
+    >
+      <table
+        className="min-w-full divide-y text-sm"
+        style={
+          {
+            '--tw-divide-opacity': '1',
+            divideColor: 'var(--color-border-secondary)',
+            color: 'var(--color-text-secondary)',
+          } as React.CSSProperties
+        }
+      >
+        <thead
+          className="text-xs uppercase tracking-wide"
+          style={{
+            backgroundColor: 'var(--color-border-secondary)',
+            color: 'var(--color-text-tertiary)',
+          }}
+        >
           <tr>
             <th className="px-4 py-3 text-left">
               {renderHeaderButton('Film', 'filmName')}
@@ -140,10 +161,8 @@ export function DevelopmentResultsTable({
                 key={combination.uuid || combination.id}
                 onClick={() => onSelectCombination?.(row)}
                 className={cn(
-                  'cursor-pointer transition-all duration-200 hover:bg-white/10',
+                  'cursor-pointer transition-all duration-200',
                   'animate-slide-fade-bottom',
-                  row.source === 'custom' &&
-                    'bg-purple-950/40 hover:bg-purple-900/40',
                   index === 0 && 'animate-delay-100',
                   index === 1 && 'animate-delay-200',
                   index === 2 && 'animate-delay-300',
@@ -152,12 +171,36 @@ export function DevelopmentResultsTable({
                   index === 5 && 'animate-delay-600',
                   index >= 6 && 'animate-delay-700'
                 )}
+                style={{
+                  backgroundColor:
+                    row.source === 'custom'
+                      ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+                      : undefined,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    row.source === 'custom'
+                      ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
+                      : 'var(--color-border-muted)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    row.source === 'custom'
+                      ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+                      : 'transparent';
+                }}
               >
                 <td className="px-4 py-4 align-top">
-                  <div className="font-medium text-white">
+                  <div
+                    className="font-medium"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
                     {film ? `${film.brand} ${film.name}` : 'Unknown film'}
                   </div>
-                  <div className="text-xs text-white/50">
+                  <div
+                    className="text-xs"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
                     {combination.pushPull === 0
                       ? 'Box Speed'
                       : combination.pushPull > 0
@@ -173,21 +216,38 @@ export function DevelopmentResultsTable({
                   )}
                 </td>
                 <td className="px-4 py-4 align-top">
-                  <div className="font-medium text-white">
+                  <div
+                    className="font-medium"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
                     {developer
                       ? `${developer.manufacturer} ${developer.name}`
                       : 'Unknown developer'}
                   </div>
                   {row.source === 'custom' && (
-                    <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2 py-0.5 text-[10px] font-medium text-purple-200">
+                    <div
+                      className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                      style={{
+                        backgroundColor:
+                          'color-mix(in srgb, var(--color-accent) 10%, transparent)',
+                        color:
+                          'color-mix(in srgb, var(--color-accent) 80%, var(--color-text-primary))',
+                      }}
+                    >
                       <Beaker className="h-3 w-3" /> Custom
                     </div>
                   )}
                 </td>
-                <td className="px-3 py-4 align-top text-white">
+                <td
+                  className="px-3 py-4 align-top"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   {combination.shootingIso}
                 </td>
-                <td className="px-3 py-4 align-top text-white">
+                <td
+                  className="px-3 py-4 align-top"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   {formatTime(combination.timeMinutes)}
                 </td>
                 <td className="px-3 py-4 align-top">
@@ -199,31 +259,48 @@ export function DevelopmentResultsTable({
                     );
                     return (
                       <span
-                        className={cn(
-                          'text-white',
-                          temp.isNonStandard && 'text-amber-300 font-medium'
-                        )}
+                        className={cn(temp.isNonStandard && 'font-medium')}
+                        style={{
+                          color: temp.isNonStandard
+                            ? 'var(--color-semantic-warning)'
+                            : 'var(--color-text-primary)',
+                        }}
                       >
                         {temp.text}
                       </span>
                     );
                   })()}
                 </td>
-                <td className="px-3 py-4 align-top text-white">
+                <td
+                  className="px-3 py-4 align-top"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   {formatDilution(combination, developer)}
                 </td>
-                <td className="px-3 py-4 align-top text-white/70">
+                <td
+                  className="px-3 py-4 align-top"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
                   {combination.notes ? (
                     <span className="line-clamp-2">{combination.notes}</span>
                   ) : (
-                    <span className="text-white/30">—</span>
+                    <span style={{ color: 'var(--color-text-muted)' }}>—</span>
                   )}
                   {combination.infoSource && (
                     <a
                       href={combination.infoSource}
                       target="_blank"
                       rel="noreferrer"
-                      className="mt-2 inline-flex items-center gap-1 text-xs text-white/60 underline-offset-4 hover:text-white hover:underline"
+                      className="mt-2 inline-flex items-center gap-1 text-xs underline-offset-4 hover:underline"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color =
+                          'var(--color-text-primary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color =
+                          'var(--color-text-tertiary)';
+                      }}
                     >
                       <ExternalLink className="h-3 w-3" /> Source
                     </a>
@@ -239,7 +316,23 @@ export function DevelopmentResultsTable({
                             e.stopPropagation();
                             onEditCustomRecipe?.(row);
                           }}
-                          className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-1 text-xs text-white/70 transition hover:bg-white/10 hover:text-white"
+                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition"
+                          style={{
+                            backgroundColor: 'var(--color-border-muted)',
+                            color: 'var(--color-text-secondary)',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'var(--color-border-secondary)';
+                            e.currentTarget.style.color =
+                              'var(--color-text-primary)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'var(--color-border-muted)';
+                            e.currentTarget.style.color =
+                              'var(--color-text-secondary)';
+                          }}
                           title="Edit custom recipe"
                         >
                           <Edit2 className="h-3 w-3" />
@@ -251,7 +344,25 @@ export function DevelopmentResultsTable({
                             e.stopPropagation();
                             onDeleteCustomRecipe?.(row);
                           }}
-                          className="inline-flex items-center gap-1 rounded-md bg-red-500/10 px-2 py-1 text-xs text-red-300 transition hover:bg-red-500/20 hover:text-red-200"
+                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition"
+                          style={{
+                            backgroundColor:
+                              'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)',
+                            color:
+                              'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'color-mix(in srgb, var(--color-semantic-error) 20%, transparent)';
+                            e.currentTarget.style.color =
+                              'color-mix(in srgb, var(--color-semantic-error) 90%, var(--color-text-primary))';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)';
+                            e.currentTarget.style.color =
+                              'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))';
+                          }}
                           title="Delete custom recipe"
                         >
                           <Trash2 className="h-3 w-3" />
@@ -281,7 +392,8 @@ export function DevelopmentResultsTable({
             <tr>
               <td
                 colSpan={8}
-                className="px-6 py-12 text-center text-sm text-white/50"
+                className="px-6 py-12 text-center text-sm"
+                style={{ color: 'var(--color-text-muted)' }}
               >
                 No recipes match your current filters. Try adjusting your
                 search.

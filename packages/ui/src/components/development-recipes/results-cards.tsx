@@ -64,10 +64,8 @@ export function DevelopmentResultsCards({
             key={combination.uuid || combination.id}
             onClick={() => onSelectCombination?.(row)}
             className={cn(
-              'cursor-pointer rounded-2xl border border-white/10 bg-white/5 p-4 shadow-subtle transition-all duration-200 hover:border-white/20 hover:bg-white/10 hover:scale-[1.02]',
+              'cursor-pointer rounded-2xl border p-4 shadow-subtle transition-all duration-200 hover:scale-[1.02]',
               'animate-slide-fade-bottom',
-              row.source === 'custom' &&
-                'bg-purple-950/20 hover:bg-purple-900/30',
               index === 0 && 'animate-delay-100',
               index === 1 && 'animate-delay-200',
               index === 2 && 'animate-delay-300',
@@ -77,19 +75,63 @@ export function DevelopmentResultsCards({
               index === 6 && 'animate-delay-700',
               index >= 7 && 'animate-delay-800'
             )}
+            style={{
+              borderColor:
+                row.source === 'custom'
+                  ? 'color-mix(in srgb, var(--color-accent) 30%, transparent)'
+                  : 'var(--color-border-secondary)',
+              backgroundColor:
+                row.source === 'custom'
+                  ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+                  : 'var(--color-border-muted)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor =
+                row.source === 'custom'
+                  ? 'color-mix(in srgb, var(--color-accent) 40%, transparent)'
+                  : 'var(--color-border-primary)';
+              e.currentTarget.style.backgroundColor =
+                row.source === 'custom'
+                  ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
+                  : 'var(--color-border-secondary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor =
+                row.source === 'custom'
+                  ? 'color-mix(in srgb, var(--color-accent) 30%, transparent)'
+                  : 'var(--color-border-secondary)';
+              e.currentTarget.style.backgroundColor =
+                row.source === 'custom'
+                  ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+                  : 'var(--color-border-muted)';
+            }}
           >
             <div>
               <div>
-                <div className="text-sm font-semibold text-white">
+                <div
+                  className="text-sm font-semibold"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   {film ? `${film.brand} ${film.name}` : 'Unknown film'}
                 </div>
-                <div className="text-xs text-white/60">
+                <div
+                  className="text-xs"
+                  style={{ color: 'var(--color-text-tertiary)' }}
+                >
                   {developer
                     ? `${developer.manufacturer} ${developer.name}`
                     : 'Unknown developer'}
                 </div>
                 {row.source === 'custom' && (
-                  <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2 py-0.5 text-[10px] font-medium text-purple-200">
+                  <span
+                    className="mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                    style={{
+                      backgroundColor:
+                        'color-mix(in srgb, var(--color-accent) 10%, transparent)',
+                      color:
+                        'color-mix(in srgb, var(--color-accent) 80%, var(--color-text-primary))',
+                    }}
+                  >
                     <Beaker className="h-3 w-3" /> Custom recipe
                   </span>
                 )}
@@ -103,21 +145,32 @@ export function DevelopmentResultsCards({
               </div>
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-white/70">
+            <div
+              className="mt-4 grid grid-cols-2 gap-3 text-xs"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
               <div>
-                <div className="text-white/40">ISO</div>
-                <div className="text-sm text-white">
+                <div style={{ color: 'var(--color-text-muted)' }}>ISO</div>
+                <div
+                  className="text-sm"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   {combination.shootingIso}
                 </div>
               </div>
               <div>
-                <div className="text-white/40">Time</div>
-                <div className="text-sm text-white">
+                <div style={{ color: 'var(--color-text-muted)' }}>Time</div>
+                <div
+                  className="text-sm"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   {formatTime(combination.timeMinutes)}
                 </div>
               </div>
               <div>
-                <div className="text-white/40">Temperature</div>
+                <div style={{ color: 'var(--color-text-muted)' }}>
+                  Temperature
+                </div>
                 {(() => {
                   const temp = formatTemperatureWithUnit(
                     row.combination.temperatureF,
@@ -127,9 +180,14 @@ export function DevelopmentResultsCards({
                   return (
                     <div
                       className={cn(
-                        'text-sm text-white',
-                        temp.isNonStandard && 'text-amber-300 font-medium'
+                        'text-sm',
+                        temp.isNonStandard && 'font-medium'
                       )}
+                      style={{
+                        color: temp.isNonStandard
+                          ? 'var(--color-semantic-warning)'
+                          : 'var(--color-text-primary)',
+                      }}
                     >
                       {temp.text}
                     </div>
@@ -137,15 +195,26 @@ export function DevelopmentResultsCards({
                 })()}
               </div>
               <div>
-                <div className="text-white/40">Dilution</div>
-                <div className="text-sm text-white">{formatDilution(row)}</div>
+                <div style={{ color: 'var(--color-text-muted)' }}>Dilution</div>
+                <div
+                  className="text-sm"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  {formatDilution(row)}
+                </div>
               </div>
             </div>
 
             {(combination.notes || combination.infoSource) && (
               <div className="mt-4 space-y-2">
                 {combination.notes && (
-                  <div className="rounded-xl bg-white/10 p-3 text-xs text-white/80">
+                  <div
+                    className="rounded-xl p-3 text-xs"
+                    style={{
+                      backgroundColor: 'var(--color-border-secondary)',
+                      color: 'var(--color-text-secondary)',
+                    }}
+                  >
                     {combination.notes}
                   </div>
                 )}
@@ -154,7 +223,15 @@ export function DevelopmentResultsCards({
                     href={combination.infoSource}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-white/60 underline-offset-4 hover:text-white hover:underline"
+                    className="inline-flex items-center gap-1 text-xs underline-offset-4 hover:underline"
+                    style={{ color: 'var(--color-text-tertiary)' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = 'var(--color-text-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color =
+                        'var(--color-text-tertiary)';
+                    }}
                   >
                     <ExternalLink className="h-3 w-3" /> Source
                   </a>
@@ -171,7 +248,22 @@ export function DevelopmentResultsCards({
                       e.stopPropagation();
                       onEditCustomRecipe?.(row);
                     }}
-                    className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-1 text-xs text-white/70 transition hover:bg-white/10 hover:text-white"
+                    className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition"
+                    style={{
+                      backgroundColor: 'var(--color-border-muted)',
+                      color: 'var(--color-text-secondary)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor =
+                        'var(--color-border-secondary)';
+                      e.currentTarget.style.color = 'var(--color-text-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor =
+                        'var(--color-border-muted)';
+                      e.currentTarget.style.color =
+                        'var(--color-text-secondary)';
+                    }}
                     title="Edit custom recipe"
                   >
                     <Edit2 className="h-3 w-3" />
@@ -183,7 +275,25 @@ export function DevelopmentResultsCards({
                       e.stopPropagation();
                       onDeleteCustomRecipe?.(row);
                     }}
-                    className="inline-flex items-center gap-1 rounded-md bg-red-500/10 px-2 py-1 text-xs text-red-300 transition hover:bg-red-500/20 hover:text-red-200"
+                    className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition"
+                    style={{
+                      backgroundColor:
+                        'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)',
+                      color:
+                        'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor =
+                        'color-mix(in srgb, var(--color-semantic-error) 20%, transparent)';
+                      e.currentTarget.style.color =
+                        'color-mix(in srgb, var(--color-semantic-error) 90%, var(--color-text-primary))';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor =
+                        'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)';
+                      e.currentTarget.style.color =
+                        'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))';
+                    }}
                     title="Delete custom recipe"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -198,7 +308,22 @@ export function DevelopmentResultsCards({
                       e.stopPropagation();
                       onShareCombination?.(row);
                     }}
-                    className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-1 text-xs text-white/70 transition hover:bg-white/10 hover:text-white"
+                    className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition"
+                    style={{
+                      backgroundColor: 'var(--color-border-muted)',
+                      color: 'var(--color-text-secondary)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor =
+                        'var(--color-border-secondary)';
+                      e.currentTarget.style.color = 'var(--color-text-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor =
+                        'var(--color-border-muted)';
+                      e.currentTarget.style.color =
+                        'var(--color-text-secondary)';
+                    }}
                     title="Share recipe"
                   >
                     <Share2 className="h-3 w-3" />
@@ -212,7 +337,14 @@ export function DevelopmentResultsCards({
       })}
 
       {rows.length === 0 && (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-sm text-white/60">
+        <div
+          className="rounded-2xl border p-6 text-center text-sm"
+          style={{
+            borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'var(--color-border-muted)',
+            color: 'var(--color-text-tertiary)',
+          }}
+        >
           No recipes match your current filters. Try adjusting your search.
         </div>
       )}

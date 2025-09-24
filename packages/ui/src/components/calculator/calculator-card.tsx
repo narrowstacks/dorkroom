@@ -13,12 +13,29 @@ interface CalculatorCardProps {
   padding?: 'normal' | 'compact';
 }
 
-const accentBackgrounds: Record<Exclude<AccentTone, 'none'>, string> = {
-  emerald:
-    'bg-gradient-to-br from-emerald-400/25 via-emerald-500/10 to-transparent',
-  sky: 'bg-gradient-to-br from-sky-400/25 via-sky-500/10 to-transparent',
-  violet:
-    'bg-gradient-to-br from-violet-400/25 via-fuchsia-500/10 to-transparent',
+// Legacy - replaced with getAccentStyle function
+
+// Theme-aware accent styles
+const getAccentStyle = (
+  accent: Exclude<AccentTone, 'none'>
+): React.CSSProperties => {
+  switch (accent) {
+    case 'emerald':
+      return {
+        background:
+          'linear-gradient(to bottom right, color-mix(in srgb, var(--color-semantic-success) 25%, transparent), color-mix(in srgb, var(--color-semantic-success) 10%, transparent), transparent)',
+      };
+    case 'sky':
+      return {
+        background:
+          'linear-gradient(to bottom right, color-mix(in srgb, var(--color-semantic-info) 25%, transparent), color-mix(in srgb, var(--color-semantic-info) 10%, transparent), transparent)',
+      };
+    case 'violet':
+      return {
+        background:
+          'linear-gradient(to bottom right, color-mix(in srgb, var(--color-accent) 25%, transparent), color-mix(in srgb, var(--color-accent) 10%, transparent), transparent)',
+      };
+  }
 };
 
 export function CalculatorCard({
@@ -33,17 +50,20 @@ export function CalculatorCard({
   return (
     <section
       className={cn(
-        'relative overflow-hidden rounded-3xl border border-white/12 bg-surface/80 shadow-subtle card-ring',
+        'relative overflow-hidden rounded-3xl border shadow-subtle card-ring',
         padding === 'compact' ? 'p-5 sm:p-6' : 'p-6 sm:p-8',
         className
       )}
+      style={{
+        borderColor: 'var(--color-border-secondary)',
+        backgroundColor:
+          'color-mix(in srgb, var(--color-surface) 80%, transparent)',
+      }}
     >
       {accent !== 'none' && (
         <div
-          className={cn(
-            'pointer-events-none absolute inset-0 opacity-90',
-            accentBackgrounds[accent]
-          )}
+          className="pointer-events-none absolute inset-0 opacity-90"
+          style={getAccentStyle(accent)}
         />
       )}
       <div className="relative z-10 flex flex-col gap-6">
@@ -51,12 +71,18 @@ export function CalculatorCard({
           <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-1">
               {title && (
-                <h2 className="text-lg font-semibold tracking-tight text-white sm:text-xl">
+                <h2
+                  className="text-lg font-semibold tracking-tight sm:text-xl"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   {title}
                 </h2>
               )}
               {description && (
-                <div className="text-sm leading-relaxed text-white/70">
+                <div
+                  className="text-sm leading-relaxed"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
                   {description}
                 </div>
               )}

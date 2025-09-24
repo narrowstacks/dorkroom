@@ -1,4 +1,3 @@
-import React from 'react';
 import { Modal } from '../modal';
 import { Drawer, DrawerBody, DrawerContent } from '../drawer';
 import { DevelopmentRecipeDetail } from './recipe-detail';
@@ -45,7 +44,19 @@ export function SharedRecipeModal({
         type="button"
         onClick={onClose}
         disabled={isProcessing}
-        className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/70 transition hover:border-white/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+        className="rounded-full border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
+        style={{
+          borderColor: 'var(--color-border-primary)',
+          color: 'var(--color-text-secondary)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
+          e.currentTarget.style.color = 'var(--color-text-primary)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+          e.currentTarget.style.color = 'var(--color-text-secondary)';
+        }}
       >
         Not now
       </button>
@@ -54,9 +65,20 @@ export function SharedRecipeModal({
         onClick={onAddToCollection}
         disabled={isProcessing}
         className={cn(
-          'rounded-full bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90',
+          'rounded-full px-5 py-2 text-sm font-semibold transition',
           isProcessing && 'cursor-wait opacity-70'
         )}
+        style={{
+          backgroundColor: 'var(--color-text-primary)',
+          color: 'var(--color-background)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor =
+            'color-mix(in srgb, var(--color-text-primary) 90%, transparent)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
+        }}
       >
         {isProcessing
           ? 'Adding...'
@@ -69,20 +91,34 @@ export function SharedRecipeModal({
 
   const body = (
     <div className="space-y-4">
-      <div className="text-sm text-white/70">{description}</div>
+      <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+        {description}
+      </div>
 
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-        <div className="mb-2 text-xs uppercase tracking-wide text-white/50">
+      <div
+        className="rounded-xl border p-4"
+        style={{
+          borderColor: 'var(--color-border-secondary)',
+          backgroundColor: 'var(--color-border-muted)',
+        }}
+      >
+        <div
+          className="mb-2 text-xs uppercase tracking-wide"
+          style={{ color: 'var(--color-text-muted)' }}
+        >
           Recipe
         </div>
-        <div className="mb-3 text-lg font-semibold text-white">
+        <div
+          className="mb-3 text-lg font-semibold"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
           {recipeName}
         </div>
 
         <DevelopmentRecipeDetail view={recipe} />
       </div>
 
-      <div className="text-sm text-white/60">
+      <div className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
         Would you like to add this recipe to your collection?
       </div>
     </div>
@@ -91,22 +127,45 @@ export function SharedRecipeModal({
   if (variant === 'drawer') {
     return (
       <Drawer isOpen={isOpen} onClose={onClose} size="lg" anchor="bottom">
-        <DrawerContent className="h-full max-h-[85vh] bg-zinc-900">
-          <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-            <div className="text-base font-semibold text-white">
+        <DrawerContent className="h-full max-h-[85vh]">
+          <div
+            className="flex items-center justify-between border-b px-4 py-3"
+            style={{ borderColor: 'var(--color-border-secondary)' }}
+          >
+            <div
+              className="text-base font-semibold"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
               {modalTitle}
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full border border-white/20 p-2 text-white/70 transition hover:border-white/40 hover:text-white"
+              className="rounded-full border p-2 transition"
+              style={{
+                borderColor: 'var(--color-border-primary)',
+                color: 'var(--color-text-secondary)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor =
+                  'var(--color-border-secondary)';
+                e.currentTarget.style.color = 'var(--color-text-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor =
+                  'var(--color-border-primary)';
+                e.currentTarget.style.color = 'var(--color-text-secondary)';
+              }}
             >
               <span className="sr-only">Close</span>
               <X className="h-5 w-5" />
             </button>
           </div>
           <DrawerBody className="px-4 pb-6 pt-4">{body}</DrawerBody>
-          <div className="border-t border-white/10 px-4 pb-4 pt-3">
+          <div
+            className="border-t px-4 pb-4 pt-3"
+            style={{ borderColor: 'var(--color-border-secondary)' }}
+          >
             {actions}
           </div>
         </DrawerContent>
