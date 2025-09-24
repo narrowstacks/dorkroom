@@ -364,12 +364,7 @@ export default function BorderCalculatorPage() {
         <div className="space-y-6">
           {calculation && (
             <>
-              <CalculatorCard
-                title="Preview & orientation"
-                description="Visualize the paper, borders, and blade setup before you walk to the enlarger."
-                accent="violet"
-                padding="compact"
-              >
+              <CalculatorCard accent="violet" padding="compact">
                 <div className="flex justify-center">
                   <div className="relative">
                     <AnimatedPreview
@@ -403,44 +398,15 @@ export default function BorderCalculatorPage() {
                   <RotateCcw className="h-4 w-4" />
                   Reset to defaults
                 </button>
-              </CalculatorCard>
 
-              <CalculatorCard
-                title="Blade readings"
-                description="Dial these values on your easel for a centered print."
-                accent="emerald"
-                padding="compact"
-              >
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <CalculatorStat
-                    label="Left blade"
-                    value={`${calculation.leftBladeReading.toFixed(2)} in`}
-                    className="p-4"
-                  />
-                  <CalculatorStat
-                    label="Right blade"
-                    value={`${calculation.rightBladeReading.toFixed(2)} in`}
-                    className="p-4"
-                  />
-                  <CalculatorStat
-                    label="Top blade"
-                    value={`${calculation.topBladeReading.toFixed(2)} in`}
-                    className="p-4"
-                  />
-                  <CalculatorStat
-                    label="Bottom blade"
-                    value={`${calculation.bottomBladeReading.toFixed(2)} in`}
-                    className="p-4"
-                  />
-                  <CalculatorStat
-                    label="Image size"
-                    value={`${calculation.printWidth.toFixed(
-                      2
-                    )} × ${calculation.printHeight.toFixed(2)} in`}
-                    helperText="Final image area within the borders."
-                    className="sm:col-span-2 p-4"
-                  />
-                </div>
+                {!isLandscape && (
+                  <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-center text-sm text-amber-100">
+                    <strong className="font-semibold">Rotate your easel</strong>
+                    <br />
+                    Paper is in vertical orientation. Rotate your easel 90° to
+                    match the blade readings above.
+                  </div>
+                )}
 
                 {calculation.isNonStandardPaperSize && (
                   <div className="mt-4 rounded-2xl border border-blue-400/30 bg-blue-500/10 px-4 py-3 text-center text-sm text-blue-100">
@@ -452,6 +418,60 @@ export default function BorderCalculatorPage() {
                     the way to the left.
                   </div>
                 )}
+              </CalculatorCard>
+
+              <CalculatorCard
+                title="Blade readings"
+                description="Dial these values on your easel for a centered print."
+                accent="emerald"
+                padding="compact"
+              >
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <CalculatorStat
+                    label="Left blade"
+                    value={`${
+                      !isLandscape
+                        ? calculation.topBladeReading.toFixed(2)
+                        : calculation.leftBladeReading.toFixed(2)
+                    } in`}
+                    className="p-4"
+                  />
+                  <CalculatorStat
+                    label="Right blade"
+                    value={`${
+                      !isLandscape
+                        ? calculation.bottomBladeReading.toFixed(2)
+                        : calculation.rightBladeReading.toFixed(2)
+                    } in`}
+                    className="p-4"
+                  />
+                  <CalculatorStat
+                    label="Top blade"
+                    value={`${
+                      !isLandscape
+                        ? calculation.leftBladeReading.toFixed(2)
+                        : calculation.topBladeReading.toFixed(2)
+                    } in`}
+                    className="p-4"
+                  />
+                  <CalculatorStat
+                    label="Bottom blade"
+                    value={`${
+                      !isLandscape
+                        ? calculation.rightBladeReading.toFixed(2)
+                        : calculation.bottomBladeReading.toFixed(2)
+                    } in`}
+                    className="p-4"
+                  />
+                  <CalculatorStat
+                    label="Image size"
+                    value={`${calculation.printWidth.toFixed(
+                      2
+                    )} × ${calculation.printHeight.toFixed(2)} in`}
+                    helperText="Final image area within the borders."
+                    className="sm:col-span-2 p-4"
+                  />
+                </div>
 
                 {bladeWarning && (
                   <div className="mt-4">
