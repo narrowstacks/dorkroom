@@ -3,6 +3,7 @@ export * from './types/border-calculator';
 export * from './types/reciprocity';
 export * from './types/custom-recipes';
 export * from './types/development-recipes-url';
+export * from './types/exposure-calculator';
 
 // Constants exports
 export * from './constants/border-calculator';
@@ -18,6 +19,7 @@ export * from './utils/preset-sharing';
 export * from './utils/url-helpers';
 export * from './utils/recipe-sharing';
 export * from './utils/custom-recipe-helpers';
+export * from './utils/exposure-calculations';
 export { debugLog, debugWarn, debugError } from './utils/debug-logger';
 
 // Hook exports
@@ -32,6 +34,10 @@ export {
   formatReciprocityTime,
   parseReciprocityTime,
 } from './hooks/use-reciprocity-calculator';
+export {
+  useExposureCalculator,
+  type UseExposureCalculatorReturn,
+} from './hooks/use-exposure-calculator';
 export { useFeatureFlags } from './hooks/use-feature-flags';
 export { useDebounce, useDebouncedCallback } from './hooks/use-debounce';
 export { usePagination } from './hooks/use-pagination';
