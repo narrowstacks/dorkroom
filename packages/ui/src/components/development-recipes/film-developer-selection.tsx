@@ -35,18 +35,6 @@ export function FilmDeveloperSelection({
         className
       )}
     >
-      <div className="flex items-center justify-between gap-4">
-        {hasSelections && (
-          <button
-            type="button"
-            onClick={clearSelections}
-            className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/70 transition hover:border-white/40 hover:text-white"
-          >
-            Clear selections
-          </button>
-        )}
-      </div>
-
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <SearchableSelect
           label="Film"
@@ -62,6 +50,17 @@ export function FilmDeveloperSelection({
           onValueChange={onDeveloperChange}
           items={developerOptions}
         />
+      </div>
+      <div className="flex items-center justify-between gap-4 pt-4">
+        {hasSelections && (
+          <button
+            type="button"
+            onClick={clearSelections}
+            className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/70 transition hover:border-white/40 hover:text-white"
+          >
+            Clear selections
+          </button>
+        )}
       </div>
     </div>
   );

@@ -25,6 +25,12 @@ export interface Dilution {
   dilution: string;
 }
 
+export interface RawDilution {
+  id: number;
+  name: string;
+  dilution: string;
+}
+
 export interface Developer {
   id: number;
   uuid: string;
@@ -112,7 +118,7 @@ export interface RawDeveloper {
   type: string;
   description: string;
   film_or_paper: boolean;
-  dilutions: Dilution[];
+  dilutions: RawDilution[];
   mixing_instructions: string | null;
   storage_requirements: string | null;
   safety_notes: string | null;
@@ -127,7 +133,7 @@ export interface RawCombination {
   film_stock: string;
   developer: string;
   shooting_iso: number;
-  dilution_id: string | null;
+  dilution_id: number | null;
   temperature_celsius: number;
   time_minutes: number;
   agitation_method: string;

@@ -25,8 +25,8 @@ export function ImportRecipeForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4 text-sm text-white/80">
       <TextInput
-        label="Shared recipe code or URL"
-        placeholder="Paste a shared recipe link or encoded recipe data"
+        label="Recipe import"
+        placeholder="Paste a filmdev.org URL, recipe ID (e.g., 5001), or shared recipe code"
         value={encoded}
         onValueChange={setEncoded}
       />

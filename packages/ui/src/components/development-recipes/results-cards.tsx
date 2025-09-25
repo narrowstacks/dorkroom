@@ -145,15 +145,14 @@ export function DevelopmentResultsCards({
                   </span>
                 )}
               </div>
-              {combination.tags && combination.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 justify-end ml-2">
-                  {combination.tags.map((tag) => (
-                    <Tag key={tag}>{tag}</Tag>
-                  ))}
-                </div>
-              )}
             </div>
-
+            {combination.tags && combination.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 justify-start pt-2">
+                {combination.tags.map((tag) => (
+                  <Tag key={tag}>{tag}</Tag>
+                ))}
+              </div>
+            )}
             <div
               className="mt-3 grid grid-cols-2 gap-1 text-xs"
               style={{ color: 'var(--color-text-secondary)' }}

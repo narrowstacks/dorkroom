@@ -11,9 +11,14 @@ import {
   getCustomRecipeFilm,
   getCustomRecipeDeveloper,
   type CustomRecipeFormData,
+  isFilmdevInput,
+  extractRecipeId,
+  fetchFilmdevRecipe,
+  mapFilmdevRecipe,
+  FilmdevApiError,
+  type FilmdevMappingResult,
 } from '@dorkroom/logic';
 import {
-  CalculatorPageHeader,
   FilmDeveloperSelection,
   CollapsibleFilters,
   DevelopmentResultsTable,
@@ -23,6 +28,7 @@ import {
   CustomRecipeForm,
   ImportRecipeForm,
   SharedRecipeModal,
+  FilmdevPreviewModal,
   Modal,
   Drawer,
   DrawerContent,
@@ -170,6 +176,11 @@ export default function DevelopmentRecipesPage() {
   const [isSubmittingRecipe, setIsSubmittingRecipe] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [isFilmdevPreviewOpen, setIsFilmdevPreviewOpen] = useState(false);
+  const [filmdevPreviewData, setFilmdevPreviewData] =
+    useState<FilmdevMappingResult | null>(null);
+  const [filmdevPreviewRecipe, setFilmdevPreviewRecipe] =
+    useState<DevelopmentCombinationView | null>(null);
   const [isSharedRecipeModalOpen, setIsSharedRecipeModalOpen] = useState(false);
   const [sharedRecipeView, setSharedRecipeView] =
     useState<DevelopmentCombinationView | null>(null);
@@ -622,78 +633,257 @@ export default function DevelopmentRecipesPage() {
     setSharedRecipeView(null);
   }, []);
 
+  const handleCloseFilmdevPreview = useCallback(() => {
+    setIsFilmdevPreviewOpen(false);
+    setFilmdevPreviewData(null);
+    setFilmdevPreviewRecipe(null);
+    setIsImporting(false);
+    setImportError(null);
+  }, []);
+
+  const handleConfirmFilmdevImport = useCallback(async () => {
+    if (!filmdevPreviewData) return;
+
+    setIsImporting(true);
+    try {
+      await addCustomRecipe(filmdevPreviewData.formData);
+      await refreshCustomRecipes();
+      setIsImportModalOpen(false);
+      handleCloseFilmdevPreview();
+    } catch (err) {
+      setImportError(
+        err instanceof Error ? err.message : 'Failed to import recipe'
+      );
+    } finally {
+      setIsImporting(false);
+    }
+  }, [
+    filmdevPreviewData,
+    addCustomRecipe,
+    refreshCustomRecipes,
+    handleCloseFilmdevPreview,
+  ]);
+
   const handleImportRecipe = useCallback(
-    async (encoded: string) => {
+    async (input: string) => {
       setImportError(null);
       setIsImporting(true);
 
       try {
-        const imported = decodeSharedCustomRecipe(encoded);
-        if (!imported || !imported.isValid) {
-          setImportError(
-            'Unable to decode this recipe. Please check the link.'
+        let formData: CustomRecipeFormData;
+
+        // Check if input is a filmdev.org URL/ID
+        if (isFilmdevInput(input)) {
+          const recipeId = extractRecipeId(input);
+          if (!recipeId) {
+            setImportError(
+              'Unable to extract recipe ID from filmdev.org URL. Please check the URL format.'
+            );
+            return;
+          }
+
+          // Fetch recipe from filmdev.org
+          const filmdevRecipe = await fetchFilmdevRecipe(recipeId);
+
+          // Map filmdev recipe to form data with film/developer matching
+          const mappingResult = mapFilmdevRecipe(
+            filmdevRecipe,
+            allFilms || [],
+            allDevelopers || []
           );
-          return;
+
+          // Add information about matches in notes
+          let matchInfo = '';
+          if (mappingResult.isFilmCustom && mappingResult.isDeveloperCustom) {
+            matchInfo =
+              '\n\nNote: Both film and developer were added as custom entries since no matches were found in our database.';
+          } else if (mappingResult.isFilmCustom) {
+            matchInfo =
+              '\n\nNote: Film was added as a custom entry since no match was found in our database.';
+          } else if (mappingResult.isDeveloperCustom) {
+            matchInfo =
+              '\n\nNote: Developer was added as a custom entry since no match was found in our database.';
+          } else {
+            matchInfo =
+              '\n\nNote: Film and developer were matched to existing entries in our database.';
+          }
+
+          mappingResult.formData.notes =
+            (mappingResult.formData.notes || '') + matchInfo;
+
+          // Create a preview recipe view for the modal
+          const previewRecipe: DevelopmentCombinationView = {
+            combination: {
+              id: 0, // Temporary ID for preview
+              uuid: 'preview',
+              name: mappingResult.formData.name,
+              filmStockId:
+                mappingResult.formData.selectedFilmId || 'custom_film_temp',
+              filmSlug: 'preview',
+              developerId:
+                mappingResult.formData.selectedDeveloperId || 'custom_dev_temp',
+              developerSlug: 'preview',
+              shootingIso: mappingResult.formData.shootingIso,
+              dilutionId: null,
+              customDilution: mappingResult.formData.customDilution,
+              temperatureC: Math.round(
+                ((mappingResult.formData.temperatureF - 32) * 5) / 9
+              ),
+              temperatureF: mappingResult.formData.temperatureF,
+              timeMinutes: mappingResult.formData.timeMinutes,
+              agitationMethod: 'Standard',
+              agitationSchedule: mappingResult.formData.agitationSchedule,
+              pushPull: mappingResult.formData.pushPull,
+              tags: mappingResult.formData.tags || null,
+              notes: mappingResult.formData.notes,
+              infoSource: 'filmdev.org',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            film:
+              mappingResult.matchedFilm ??
+              (mappingResult.formData.customFilm
+                ? {
+                    id: 0,
+                    uuid: 'custom_film_temp',
+                    slug: 'custom-film',
+                    brand: mappingResult.formData.customFilm.brand,
+                    name: mappingResult.formData.customFilm.name,
+                    colorType: mappingResult.formData.customFilm.colorType,
+                    isoSpeed: mappingResult.formData.customFilm.isoSpeed,
+                    grainStructure:
+                      mappingResult.formData.customFilm.grainStructure || null,
+                    description:
+                      mappingResult.formData.customFilm.description || '',
+                    manufacturerNotes: null,
+                    reciprocityFailure: null,
+                    discontinued: false,
+                    staticImageUrl: null,
+                    dateAdded: new Date().toISOString(),
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  }
+                : undefined),
+            developer:
+              mappingResult.matchedDeveloper ??
+              (mappingResult.formData.customDeveloper
+                ? {
+                    id: 0,
+                    uuid: 'custom_dev_temp',
+                    slug: 'custom-developer',
+                    name: mappingResult.formData.customDeveloper.name,
+                    manufacturer:
+                      mappingResult.formData.customDeveloper.manufacturer,
+                    type: mappingResult.formData.customDeveloper.type,
+                    description: '',
+                    filmOrPaper:
+                      mappingResult.formData.customDeveloper.filmOrPaper ===
+                        'film' ||
+                      mappingResult.formData.customDeveloper.filmOrPaper ===
+                        'both',
+                    dilutions:
+                      mappingResult.formData.customDeveloper.dilutions.map(
+                        (d, index) => ({
+                          id: String(index),
+                          name: d.name,
+                          dilution: d.dilution,
+                        })
+                      ),
+                    mixingInstructions:
+                      mappingResult.formData.customDeveloper
+                        .mixingInstructions || null,
+                    storageRequirements: null,
+                    safetyNotes:
+                      mappingResult.formData.customDeveloper.safetyNotes ||
+                      null,
+                    notes: mappingResult.formData.customDeveloper.notes || null,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  }
+                : undefined),
+          };
+
+          // Set preview data and open the preview modal
+          setFilmdevPreviewData(mappingResult);
+          setFilmdevPreviewRecipe(previewRecipe);
+          setIsFilmdevPreviewOpen(true);
+          setIsImporting(false);
+          return; // Don't continue with the regular import flow
+        } else {
+          // Try to decode as shared recipe
+          const imported = decodeSharedCustomRecipe(input);
+          if (!imported || !imported.isValid) {
+            setImportError(
+              'Unable to decode this recipe. Please check if you have a valid filmdev.org URL (e.g., filmdev.org/recipe/123) or shared recipe code.'
+            );
+            return;
+          }
+
+          const importedRecipe = imported.recipe;
+
+          formData = {
+            ...CUSTOM_RECIPE_FORM_DEFAULT,
+            name: importedRecipe.name,
+            temperatureF: importedRecipe.temperatureF,
+            timeMinutes: importedRecipe.timeMinutes,
+            shootingIso: importedRecipe.shootingIso,
+            pushPull: importedRecipe.pushPull,
+            agitationSchedule: importedRecipe.agitationSchedule || '',
+            notes: importedRecipe.notes || '',
+            customDilution: importedRecipe.customDilution || '',
+            isPublic: importedRecipe.isPublic ?? false,
+            useExistingFilm: !!getFilmById(importedRecipe.filmId),
+            selectedFilmId: getFilmById(importedRecipe.filmId)?.uuid || '',
+            customFilm: importedRecipe.isCustomFilm
+              ? {
+                  brand: importedRecipe.customFilm?.brand || '',
+                  name: importedRecipe.customFilm?.name || '',
+                  isoSpeed: importedRecipe.customFilm?.isoSpeed || 400,
+                  colorType: importedRecipe.customFilm?.colorType || 'bw',
+                  description: importedRecipe.customFilm?.description,
+                  grainStructure: importedRecipe.customFilm?.grainStructure,
+                }
+              : undefined,
+            useExistingDeveloper: !!getDeveloperById(
+              importedRecipe.developerId
+            ),
+            selectedDeveloperId:
+              getDeveloperById(importedRecipe.developerId)?.uuid || '',
+            customDeveloper: importedRecipe.isCustomDeveloper
+              ? {
+                  manufacturer:
+                    importedRecipe.customDeveloper?.manufacturer || '',
+                  name: importedRecipe.customDeveloper?.name || '',
+                  type: importedRecipe.customDeveloper?.type || 'powder',
+                  filmOrPaper:
+                    importedRecipe.customDeveloper?.filmOrPaper || 'film',
+                  workingLifeHours:
+                    importedRecipe.customDeveloper?.workingLifeHours,
+                  stockLifeMonths:
+                    importedRecipe.customDeveloper?.stockLifeMonths,
+                  notes: importedRecipe.customDeveloper?.notes,
+                  mixingInstructions:
+                    importedRecipe.customDeveloper?.mixingInstructions,
+                  safetyNotes: importedRecipe.customDeveloper?.safetyNotes,
+                  dilutions: importedRecipe.customDeveloper?.dilutions || [
+                    { name: 'Stock', dilution: 'Stock' },
+                  ],
+                }
+              : undefined,
+          };
         }
-
-        const importedRecipe = imported.recipe;
-
-        const formData: CustomRecipeFormData = {
-          ...CUSTOM_RECIPE_FORM_DEFAULT,
-          name: importedRecipe.name,
-          temperatureF: importedRecipe.temperatureF,
-          timeMinutes: importedRecipe.timeMinutes,
-          shootingIso: importedRecipe.shootingIso,
-          pushPull: importedRecipe.pushPull,
-          agitationSchedule: importedRecipe.agitationSchedule || '',
-          notes: importedRecipe.notes || '',
-          customDilution: importedRecipe.customDilution || '',
-          isPublic: importedRecipe.isPublic ?? false,
-          useExistingFilm: !!getFilmById(importedRecipe.filmId),
-          selectedFilmId: getFilmById(importedRecipe.filmId)?.uuid || '',
-          customFilm: importedRecipe.isCustomFilm
-            ? {
-                brand: importedRecipe.customFilm?.brand || '',
-                name: importedRecipe.customFilm?.name || '',
-                isoSpeed: importedRecipe.customFilm?.isoSpeed || 400,
-                colorType: importedRecipe.customFilm?.colorType || 'bw',
-                description: importedRecipe.customFilm?.description,
-                grainStructure: importedRecipe.customFilm?.grainStructure,
-              }
-            : undefined,
-          useExistingDeveloper: !!getDeveloperById(importedRecipe.developerId),
-          selectedDeveloperId:
-            getDeveloperById(importedRecipe.developerId)?.uuid || '',
-          customDeveloper: importedRecipe.isCustomDeveloper
-            ? {
-                manufacturer:
-                  importedRecipe.customDeveloper?.manufacturer || '',
-                name: importedRecipe.customDeveloper?.name || '',
-                type: importedRecipe.customDeveloper?.type || 'powder',
-                filmOrPaper:
-                  importedRecipe.customDeveloper?.filmOrPaper || 'film',
-                workingLifeHours:
-                  importedRecipe.customDeveloper?.workingLifeHours,
-                stockLifeMonths:
-                  importedRecipe.customDeveloper?.stockLifeMonths,
-                notes: importedRecipe.customDeveloper?.notes,
-                mixingInstructions:
-                  importedRecipe.customDeveloper?.mixingInstructions,
-                safetyNotes: importedRecipe.customDeveloper?.safetyNotes,
-                dilutions: importedRecipe.customDeveloper?.dilutions || [
-                  { name: 'Stock', dilution: 'Stock' },
-                ],
-              }
-            : undefined,
-        };
 
         await addCustomRecipe(formData);
         await refreshCustomRecipes();
         setIsImportModalOpen(false);
       } catch (err) {
-        setImportError(
-          err instanceof Error ? err.message : 'Failed to import recipe'
-        );
+        if (err instanceof FilmdevApiError) {
+          setImportError(err.message);
+        } else {
+          setImportError(
+            err instanceof Error ? err.message : 'Failed to import recipe'
+          );
+        }
       } finally {
         setIsImporting(false);
       }
@@ -704,6 +894,8 @@ export default function DevelopmentRecipesPage() {
       decodeSharedCustomRecipe,
       getDeveloperById,
       getFilmById,
+      allFilms,
+      allDevelopers,
     ]
   );
 
@@ -737,12 +929,7 @@ export default function DevelopmentRecipesPage() {
 
   return (
     <TemperatureProvider>
-      <div className="mx-auto max-w-7xl space-y-6 px-4 pb-12 sm:px-6 lg:px-8">
-        <CalculatorPageHeader
-          title="Development Recipes"
-          description="Browse proven film and developer combinations with timing, temperature, and agitation guidance. Bring your own recipes into the mix, and share favorites with friends."
-        ></CalculatorPageHeader>
-
+      <div className="mx-auto max-w-7xl space-y-6 py-6 px-4 pb-12 sm:px-6 lg:px-8">
         {error && (
           <div
             className="rounded-2xl px-4 py-3 text-sm"
@@ -815,6 +1002,7 @@ export default function DevelopmentRecipesPage() {
           tagOptions={getAvailableTags()}
           onClearFilters={clearFilters}
           showDeveloperTypeFilter={!selectedDeveloper}
+          showDilutionFilter={!!selectedDeveloper}
           defaultCollapsed={true}
         />
 
@@ -956,6 +1144,7 @@ export default function DevelopmentRecipesPage() {
             onClose={() => setIsDetailOpen(false)}
             size="lg"
             anchor="bottom"
+            enableBackgroundBlur={true}
           >
             <DrawerContent className="h-full max-h-[85vh] bg-[color:var(--color-surface)]">
               <div
@@ -1081,6 +1270,7 @@ export default function DevelopmentRecipesPage() {
             }}
             size="lg"
             anchor="bottom"
+            enableBackgroundBlur={true}
           >
             <DrawerContent className="h-full max-h-[90vh] bg-[color:var(--color-surface)]">
               <div
@@ -1160,6 +1350,7 @@ export default function DevelopmentRecipesPage() {
             onClose={() => setIsImportModalOpen(false)}
             size="md"
             anchor="bottom"
+            enableBackgroundBlur={true}
           >
             <DrawerContent className="h-full max-h-[70vh] bg-[color:var(--color-surface)]">
               <div
@@ -1216,6 +1407,16 @@ export default function DevelopmentRecipesPage() {
           onAddToCollection={handleAcceptSharedRecipe}
           isProcessing={isAddingSharedRecipe}
           recipeSource={sharedRecipeSource}
+          variant={isMobile ? 'drawer' : 'modal'}
+        />
+
+        <FilmdevPreviewModal
+          isOpen={isFilmdevPreviewOpen}
+          onClose={handleCloseFilmdevPreview}
+          onConfirm={handleConfirmFilmdevImport}
+          mappingResult={filmdevPreviewData}
+          previewRecipe={filmdevPreviewRecipe}
+          isProcessing={isImporting}
           variant={isMobile ? 'drawer' : 'modal'}
         />
 

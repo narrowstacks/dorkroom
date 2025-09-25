@@ -32,7 +32,7 @@ export function DevelopmentActionsBar({
           Development Recipes
         </h2>
         <p className="text-sm text-white/60">
-          {totalResults.toLocaleString()} tested film and developer pairings.
+          {totalResults.toLocaleString()} film and developer pairings.
         </p>
       </div>
 
