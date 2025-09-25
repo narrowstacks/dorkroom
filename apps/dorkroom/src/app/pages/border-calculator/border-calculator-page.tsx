@@ -422,7 +422,7 @@ export default function BorderCalculatorPage() {
                     <strong className="font-semibold">Rotate your easel</strong>
                     <br />
                     Paper is in vertical orientation. Rotate your easel 90° to
-                    match the blade readings above.
+                    match the blade readings.
                   </div>
                 )}
 
