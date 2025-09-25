@@ -1,39 +1,15 @@
 import { ExternalLink, Edit2, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import type { DevelopmentCombinationView } from './results-table';
+import { formatTemperature } from '@dorkroom/logic';
 import { Tag } from '../ui/tag';
+import { CollapsibleSection } from '../ui/collapsible-section';
 
 interface DevelopmentRecipeDetailProps {
   view: DevelopmentCombinationView;
   onEditCustomRecipe?: (view: DevelopmentCombinationView) => void;
   onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;
 }
-
-const formatTemperature = (
-  combination: DevelopmentCombinationView['combination']
-) => {
-  const fahrenheit = Number.isFinite(combination.temperatureF)
-    ? combination.temperatureF
-    : null;
-  const celsius = Number.isFinite(combination.temperatureC ?? NaN)
-    ? combination.temperatureC ?? null
-    : fahrenheit !== null
-    ? ((fahrenheit - 32) * 5) / 9
-    : null;
-
-  if (fahrenheit !== null && celsius !== null) {
-    return `${fahrenheit.toFixed(1)}°F (${celsius.toFixed(1)}°C)`;
-  }
-
-  if (fahrenheit !== null) {
-    return `${fahrenheit.toFixed(1)}°F`;
-  }
-
-  if (celsius !== null) {
-    return `${celsius.toFixed(1)}°C`;
-  }
-
-  return '—';
-};
 
 const DetailRow = ({
   label,
@@ -56,69 +32,11 @@ export function DevelopmentRecipeDetail({
   onDeleteCustomRecipe,
 }: DevelopmentRecipeDetailProps) {
   const { combination, film, developer } = view;
+  const [isFilmExpanded, setIsFilmExpanded] = useState(false);
+  const [isDeveloperExpanded, setIsDeveloperExpanded] = useState(false);
 
   return (
     <div className="space-y-5 text-sm">
-      <div
-        className="rounded-xl border p-4"
-        style={{
-          borderColor: 'var(--color-border-secondary)',
-          backgroundColor: 'var(--color-border-muted)',
-        }}
-      >
-        <div
-          className="text-xs uppercase tracking-wide"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
-          Film
-        </div>
-        <div
-          className="mt-1 text-base font-semibold"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
-          {film ? `${film.brand} ${film.name}` : 'Unknown film'}
-        </div>
-        {film?.description && (
-          <p
-            className="mt-2 text-sm"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            {film.description}
-          </p>
-        )}
-      </div>
-
-      <div
-        className="rounded-xl border p-4"
-        style={{
-          borderColor: 'var(--color-border-secondary)',
-          backgroundColor: 'var(--color-border-muted)',
-        }}
-      >
-        <div
-          className="text-xs uppercase tracking-wide"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
-          Developer
-        </div>
-        <div
-          className="mt-1 text-base font-semibold"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
-          {developer
-            ? `${developer.manufacturer} ${developer.name}`
-            : 'Unknown developer'}
-        </div>
-        {(developer?.description || developer?.notes) && (
-          <p
-            className="mt-2 text-sm"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            {developer?.description || developer?.notes}
-          </p>
-        )}
-      </div>
-
       <div
         className="space-y-3 rounded-xl border p-4"
         style={{
@@ -255,6 +173,41 @@ export function DevelopmentRecipeDetail({
             )}
           </div>
         )}
+      <CollapsibleSection
+        title="Film"
+        subtitle={film ? `${film.brand} ${film.name}` : 'Unknown film'}
+        isExpanded={isFilmExpanded}
+        onToggle={() => setIsFilmExpanded(!isFilmExpanded)}
+      >
+        {film?.description && (
+          <p
+            className="text-sm"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            {film.description}
+          </p>
+        )}
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Developer"
+        subtitle={
+          developer
+            ? `${developer.manufacturer} ${developer.name}`
+            : 'Unknown developer'
+        }
+        isExpanded={isDeveloperExpanded}
+        onToggle={() => setIsDeveloperExpanded(!isDeveloperExpanded)}
+      >
+        {(developer?.description || developer?.notes) && (
+          <p
+            className="text-sm"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            {developer?.description || developer?.notes}
+          </p>
+        )}
+      </CollapsibleSection>
     </div>
   );
 }

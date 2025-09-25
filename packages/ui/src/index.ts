@@ -19,6 +19,7 @@ export { ResultRow } from './components/result-row';
 export { SettingsButton } from './components/settings-button';
 export { Drawer, DrawerContent, DrawerBody } from './components/drawer';
 export { Tag } from './components/ui/tag';
+export { CollapsibleSection } from './components/ui/collapsible-section';
 export {
   Skeleton,
   SkeletonCard,
@@ -41,6 +42,7 @@ export { CustomRecipeForm } from './components/development-recipes/custom-recipe
 export { DevelopmentActionsBar } from './components/development-recipes/actions-bar';
 export { ImportRecipeForm } from './components/development-recipes/import-recipe-form';
 export { SharedRecipeModal } from './components/development-recipes/shared-recipe-modal';
+export { FilmdevPreviewModal } from './components/development-recipes/filmdev-preview-modal';
 export { TemperatureUnitToggle } from './components/development-recipes/temperature-unit-toggle';
 
 // Calculator Components

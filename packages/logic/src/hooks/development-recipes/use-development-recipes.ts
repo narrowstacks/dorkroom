@@ -268,21 +268,42 @@ export const useDevelopmentRecipes = (
         combo.developerSlug === selectedDeveloper.slug
     );
 
-    combinations.forEach((combo) => {
-      // Use custom dilution if available, otherwise look up dilution from developer
+    combinations.forEach((combo, index) => {
+      // Handle null/undefined dilutionId by using null-safe lookup
+      const foundDilution = combo.dilutionId
+        ? selectedDeveloper.dilutions?.find((d) => d.id === combo.dilutionId)
+        : null;
+
+      // Priority: customDilution > developer dilution lookup > fallback to 'Stock'
       const dilutionInfo =
-        combo.customDilution ||
-        selectedDeveloper.dilutions.find((d) => d.id === combo.dilutionId)
-          ?.dilution ||
+        combo.customDilution?.trim() ||
+        foundDilution?.dilution?.trim() ||
         'Stock';
-      dilutionSet.add(dilutionInfo);
+
+      if (dilutionInfo) {
+        dilutionSet.add(dilutionInfo);
+      }
     });
 
-    Array.from(dilutionSet)
-      .sort()
-      .forEach((dilution) => {
-        dilutions.push({ label: dilution, value: dilution });
-      });
+    const sortedDilutions = Array.from(dilutionSet).sort();
+
+    // Summary log for easy debugging
+    if (sortedDilutions.length > 1) {
+      // More than just "Stock"
+      console.log(
+        `✅ Successfully found ${sortedDilutions.length} dilutions for ${
+          selectedDeveloper.name
+        }: ${sortedDilutions.join(', ')}`
+      );
+    } else {
+      console.warn(
+        `⚠️ Only found ${sortedDilutions.length} dilution(s) for ${selectedDeveloper.name}. Check if developer has dilution data or combinations.`
+      );
+    }
+
+    sortedDilutions.forEach((dilution) => {
+      dilutions.push({ label: dilution, value: dilution });
+    });
 
     return dilutions;
   }, [selectedDeveloper, allCombinations]);
@@ -406,13 +427,30 @@ export const useDevelopmentRecipes = (
     // Filter by dilution
     if (dilutionFilter && selectedDeveloper) {
       combinations = combinations.filter((combo) => {
+        // Handle null/undefined dilutionId by using null-safe lookup
+        const foundDilution = combo.dilutionId
+          ? selectedDeveloper.dilutions?.find((d) => d.id === combo.dilutionId)
+          : null;
+
+        // Priority: customDilution > developer dilution lookup > fallback to 'Stock'
         const dilutionInfo =
-          combo.customDilution ||
-          selectedDeveloper.dilutions.find((d) => d.id === combo.dilutionId)
-            ?.dilution ||
+          combo.customDilution?.trim() ||
+          foundDilution?.dilution?.trim() ||
           'Stock';
+
         return dilutionInfo.toLowerCase() === dilutionFilter.toLowerCase();
       });
+
+      // Summary log for filtering results
+      if (combinations.length > 0) {
+        console.log(
+          `✅ Successfully filtered to ${combinations.length} combinations for dilution "${dilutionFilter}"`
+        );
+      } else {
+        console.warn(
+          `⚠️ No combinations found for dilution "${dilutionFilter}" with developer ${selectedDeveloper.name}. Check dilution name or availability.`
+        );
+      }
     }
 
     // Filter by ISO

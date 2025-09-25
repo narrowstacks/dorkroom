@@ -22,6 +22,7 @@ interface CollapsibleFiltersProps {
   tagOptions: SelectItem[];
   onClearFilters: () => void;
   showDeveloperTypeFilter?: boolean;
+  showDilutionFilter?: boolean;
   defaultCollapsed?: boolean;
 }
 
@@ -43,6 +44,7 @@ export function CollapsibleFilters({
   tagOptions,
   onClearFilters,
   showDeveloperTypeFilter = true,
+  showDilutionFilter = true,
   defaultCollapsed = true,
 }: CollapsibleFiltersProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
@@ -131,12 +133,14 @@ export function CollapsibleFilters({
                 items={developerTypeOptions}
               />
             )}
-            <Select
-              label="Dilution"
-              selectedValue={dilutionFilter}
-              onValueChange={onDilutionFilterChange}
-              items={dilutionOptions}
-            />
+            {showDilutionFilter && (
+              <Select
+                label="Dilution"
+                selectedValue={dilutionFilter}
+                onValueChange={onDilutionFilterChange}
+                items={dilutionOptions}
+              />
+            )}
             <Select
               label="ISO"
               selectedValue={isoFilter}

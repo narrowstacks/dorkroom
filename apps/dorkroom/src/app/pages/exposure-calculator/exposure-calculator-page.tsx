@@ -139,14 +139,16 @@ export default function ExposureCalculatorPage() {
                 {/* All adjustment buttons and input on same line */}
                 <div className="flex flex-wrap items-center gap-3 justify-center">
                   {/* Negative adjustment buttons */}
-                  {EXPOSURE_PRESETS.filter(preset => preset.stops < 0).map((preset) => (
-                    <StopButton
-                      key={preset.label}
-                      preset={preset}
-                      onPress={adjustStops}
-                      theme={theme}
-                    />
-                  ))}
+                  {EXPOSURE_PRESETS.filter((preset) => preset.stops < 0).map(
+                    (preset) => (
+                      <StopButton
+                        key={preset.label}
+                        preset={preset}
+                        onPress={adjustStops}
+                        theme={theme}
+                      />
+                    )
+                  )}
 
                   {/* Custom stop value input */}
                   <div className="mx-2">
@@ -166,14 +168,16 @@ export default function ExposureCalculatorPage() {
                   </div>
 
                   {/* Positive adjustment buttons */}
-                  {EXPOSURE_PRESETS.filter(preset => preset.stops > 0).map((preset) => (
-                    <StopButton
-                      key={preset.label}
-                      preset={preset}
-                      onPress={adjustStops}
-                      theme={theme}
-                    />
-                  ))}
+                  {EXPOSURE_PRESETS.filter((preset) => preset.stops > 0).map(
+                    (preset) => (
+                      <StopButton
+                        key={preset.label}
+                        preset={preset}
+                        onPress={adjustStops}
+                        theme={theme}
+                      />
+                    )
+                  )}
                 </div>
 
                 <p className="text-xs text-center text-[color:var(--color-text-tertiary)]">
