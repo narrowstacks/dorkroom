@@ -6,6 +6,7 @@ interface TextInputProps {
   placeholder?: string;
   label?: string;
   className?: string;
+  description?: string;
 }
 
 export function TextInput({
@@ -14,6 +15,7 @@ export function TextInput({
   placeholder,
   label,
   className,
+  description,
 }: TextInputProps) {
   return (
     <div className={cn('space-y-2', className)}>
@@ -25,6 +27,7 @@ export function TextInput({
           {label}
         </label>
       )}
+      {description && <p className="text-sm text-gray-500">{description}</p>}
       <input
         type="text"
         value={value}
