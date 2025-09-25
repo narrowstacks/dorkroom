@@ -15,6 +15,77 @@
   --border-radius-hero: 36px;
 }
 
+/* Darkroom theme. All red or black. Mostly black. */
+[data-theme='darkroom'] {
+  --color-background: #000000;
+  --color-background-rgb: 0, 0, 0;
+  --color-surface: #000000;
+  --color-surface-muted: #000000;
+  --color-primary: #ff0000;
+  --color-secondary: #ff0000;
+  --color-accent: #ff0000;
+  --color-highlight: #ff0000;
+  --color-text-primary: #ff0000;
+  --color-text-secondary: #a90000;
+  --color-text-tertiary: #920000;
+  --color-text-muted: #820000;
+  --color-border-primary: #ff0000;
+  --color-border-secondary: #a90000;
+  --color-border-muted: #920000;
+  --color-semantic-success: #ff0000;
+  --color-semantic-warning: #a90000;
+  --color-semantic-error: #920000;
+  --color-semantic-info: #820000;
+  --color-visualization-preview: #ff0000;
+  --color-visualization-border: #a90000;
+  --color-visualization-overlay: rgba(0, 0, 0, 0.5);
+  --gradient-card-primary: linear-gradient(
+    135deg,
+    rgba(255, 0, 0, 0.45),
+    rgba(82, 0, 8, 0.33)
+  );
+  --gradient-card-secondary: linear-gradient(
+    135deg,
+    rgba(255, 0, 0, 0.42),
+    rgba(82, 0, 8, 0.35)
+  );
+  --gradient-card-accent: linear-gradient(
+    135deg,
+    rgba(255, 0, 0, 0.46),
+    rgba(82, 0, 8, 0.33)
+  );
+  --gradient-card-highlight: linear-gradient(
+    135deg,
+    rgba(255, 0, 0, 0.48),
+    rgba(82, 0, 8, 0.36)
+  );
+  --gradient-card-neutral: linear-gradient(
+    135deg,
+    rgba(255, 0, 0, 0.56),
+    rgba(82, 0, 8, 0.44)
+  );
+  --gradient-card-info: linear-gradient(
+    135deg,
+    rgba(255, 0, 0, 0.62),
+    rgba(82, 0, 8, 0.46)
+  );
+  --gradient-card-warning: linear-gradient(
+    135deg,
+    rgba(255, 0, 0, 0.64),
+    rgba(82, 0, 8, 0.47)
+  );
+  --gradient-card-error: linear-gradient(
+    135deg,
+    rgba(255, 0, 0, 0.64),
+    rgba(82, 0, 8, 0.47)
+  );
+  --color-tag-official-ilford: #ff0000;
+  --color-tag-official-kodak: #ff0000;
+  --color-tag-official-fuji: #ff0000;
+  --color-tag-community: #ff0000;
+  --color-tag-default: #a1a1aa;
+}
+
 /* Dark theme (default) */
 [data-theme='dark'] {
   --color-background: #09090b;
@@ -229,6 +300,10 @@
 
 [data-theme='light'] {
   color-scheme: light;
+}
+
+[data-theme='darkroom'] {
+  color-scheme: darkroom;
 }
 
 :root:not([data-theme]) {
