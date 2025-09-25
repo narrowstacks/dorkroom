@@ -218,17 +218,6 @@ export function DevelopmentResultsCards({
               (row.source !== 'custom' &&
                 (onShareCombination || onCopyCombination))) && (
               <div className="mt-3 space-y-1.5">
-                {combination.notes && (
-                  <div
-                    className="rounded-lg p-2 text-xs"
-                    style={{
-                      backgroundColor: 'var(--color-border-secondary)',
-                      color: 'var(--color-text-secondary)',
-                    }}
-                  >
-                    {combination.notes}
-                  </div>
-                )}
                 {(combination.infoSource ||
                   (row.source !== 'custom' &&
                     (onShareCombination || onCopyCombination))) && (

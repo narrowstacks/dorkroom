@@ -704,8 +704,7 @@ export default function DevelopmentRecipesPage() {
             matchInfo =
               '\n\nNote: Developer was added as a custom entry since no match was found in our database.';
           } else {
-            matchInfo =
-              '\n\nNote: Film and developer were matched to existing entries in our database.';
+            matchInfo = '. Imported from FilmDev.org.';
           }
 
           mappingResult.formData.notes =
