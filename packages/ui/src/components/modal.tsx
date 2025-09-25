@@ -48,9 +48,13 @@ export function Modal({
   return createPortal(
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center px-4 backdrop-blur"
-      style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
+      style={{
+        backgroundColor: 'var(--color-visualization-overlay)',
+        height: '100dvh',
+      }}
       role="dialog"
       aria-modal="true"
+      onClick={onClose}
     >
       <div
         className={cn(
@@ -62,6 +66,7 @@ export function Modal({
           backgroundColor: 'var(--color-surface)',
           color: 'var(--color-text-primary)',
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {!hideCloseButton && (
           <button

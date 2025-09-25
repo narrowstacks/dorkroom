@@ -448,6 +448,8 @@ export function MobileBorderCalculator({
           onClose={closeDrawer}
           size="md"
           anchor="bottom"
+          enableBackgroundBlur={false}
+          enableBackgroundOverlay={false}
         >
           <DrawerContent>
             <DrawerBody>

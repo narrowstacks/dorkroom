@@ -25,9 +25,9 @@ export function useViewPreference() {
 
   const setViewMode = (mode: ViewMode) => {
     setViewModeState(mode);
-    
+
     if (!isBrowser()) return;
-    
+
     try {
       localStorage.setItem(STORAGE_KEY, mode);
     } catch (error) {

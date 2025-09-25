@@ -7,6 +7,8 @@ interface DrawerProps {
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg';
   anchor?: 'bottom' | 'top' | 'left' | 'right';
+  enableBackgroundBlur?: boolean;
+  enableBackgroundOverlay?: boolean;
 }
 
 export function Drawer({
@@ -15,6 +17,8 @@ export function Drawer({
   children,
   size = 'md',
   anchor = 'bottom',
+  enableBackgroundBlur = false,
+  enableBackgroundOverlay = true,
 }: DrawerProps) {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -36,9 +40,9 @@ export function Drawer({
   if (!isVisible) return null;
 
   const sizeClasses = {
-    sm: 'max-h-[40vh]',
-    md: 'max-h-[60vh]',
-    lg: 'max-h-[80vh]',
+    sm: 'max-h-[40dvh]',
+    md: 'max-h-[60dvh]',
+    lg: 'max-h-[80dvh]',
   };
 
   const transformClasses = {
@@ -56,13 +60,16 @@ export function Drawer({
   };
 
   return (
-    <div className="fixed inset-0 z-50">
+    <div className="fixed inset-0 z-50" style={{ height: '100dvh' }}>
       {/* Backdrop */}
       <div
         className={cn(
-          'absolute inset-0 bg-black/50 transition-opacity duration-300',
+          'absolute inset-0 transition-opacity duration-300 h-full',
+          enableBackgroundBlur && 'backdrop-blur-sm',
+          enableBackgroundOverlay && 'bg-black/50',
           isOpen ? 'opacity-100' : 'opacity-0'
         )}
+        style={{ height: '100dvh' }}
         onClick={onClose}
       />
 

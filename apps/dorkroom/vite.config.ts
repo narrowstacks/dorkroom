@@ -8,6 +8,14 @@ export default defineConfig(() => ({
   server: {
     port: 4200,
     host: 'localhost',
+    proxy: {
+      '/api/filmdev': {
+        target: 'https://filmdev.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/filmdev/, '/api'),
+        secure: true,
+      },
+    },
   },
   preview: {
     port: 4300,

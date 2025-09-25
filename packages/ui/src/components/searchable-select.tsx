@@ -117,6 +117,21 @@ export function SearchableSelect({
     }
   };
 
+  // Auto-focus selected item when dropdown opens
+  useEffect(() => {
+    if (isOpen && selectedValue) {
+      const selectedIndex = filteredItems.findIndex(
+        (item) => item.value === selectedValue
+      );
+      if (selectedIndex >= 0) {
+        setFocusedIndex(selectedIndex);
+      } else {
+        // Selected item not in filtered results, reset focus
+        setFocusedIndex(-1);
+      }
+    }
+  }, [isOpen, filteredItems, selectedValue]);
+
   // Scroll focused item into view
   useEffect(() => {
     if (focusedIndex >= 0 && listRef.current) {
@@ -124,7 +139,7 @@ export function SearchableSelect({
         focusedIndex
       ] as HTMLElement;
       if (focusedElement) {
-        focusedElement.scrollIntoView({ block: 'nearest' });
+        focusedElement.scrollIntoView({ block: 'start' });
       }
     }
   }, [focusedIndex]);

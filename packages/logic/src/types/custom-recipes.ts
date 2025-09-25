@@ -18,6 +18,7 @@ export interface CustomRecipe {
   dateCreated: string;
   dateModified: string;
   isPublic: boolean;
+  tags?: string[];
 }
 
 export interface CustomFilmData {
@@ -61,6 +62,7 @@ export interface CustomRecipeFormData {
   notes: string;
   customDilution: string;
   isPublic: boolean;
+  tags?: string[];
 }
 
 export interface GitHubIssueData {

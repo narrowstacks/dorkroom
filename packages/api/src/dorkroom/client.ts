@@ -147,6 +147,7 @@ export class DorkroomClient {
       data: RawDeveloper[];
       count: number;
     }>('/developers');
+
     return response.data.map(this.transformDeveloper.bind(this));
   }
 
@@ -198,11 +199,12 @@ export class DorkroomClient {
       type: raw.type,
       description: raw.description,
       filmOrPaper: raw.film_or_paper,
-      dilutions: raw.dilutions.map((d) => ({
-        id: d.id,
-        name: d.dilution, // Use dilution as name if no separate name field
-        dilution: d.dilution,
-      })),
+      dilutions:
+        raw.dilutions?.map((d) => ({
+          id: String(d.id), // Convert number ID to string
+          name: d.name || d.dilution, // Use name if available, fallback to dilution
+          dilution: d.dilution,
+        })) || [],
       mixingInstructions: raw.mixing_instructions,
       storageRequirements: raw.storage_requirements,
       safetyNotes: raw.safety_notes,
@@ -241,7 +243,7 @@ export class DorkroomClient {
       developerId: raw.developer,
       developerSlug: raw.developer, // API returns slug in developer field
       shootingIso: raw.shooting_iso,
-      dilutionId: raw.dilution_id,
+      dilutionId: raw.dilution_id ? String(raw.dilution_id) : null,
       customDilution: null, // Not provided by current API
       temperatureC: raw.temperature_celsius,
       temperatureF,
