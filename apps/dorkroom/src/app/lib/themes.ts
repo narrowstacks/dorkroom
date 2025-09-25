@@ -1,4 +1,4 @@
-export type Theme = 'light' | 'dark' | 'system';
+export type Theme = 'light' | 'dark' | 'darkroom' | 'system';
 
 export interface ThemeColors {
   background: string;
@@ -163,9 +163,67 @@ export const lightTheme: ThemeColors = {
   },
 };
 
+export const darkroomTheme: ThemeColors = {
+  background: '#000000',
+  surface: '#000000',
+  surfaceMuted: '#000000',
+  primary: '#ff0000',
+  secondary: '#ff0000',
+  accent: '#ff0000',
+  highlight: '#ff0000',
+  text: {
+    primary: '#ff0000',
+    secondary: '#a90000',
+    tertiary: '#920000',
+    muted: '#820000',
+  },
+  border: {
+    primary: '#ff0000',
+    secondary: '#a90000',
+    muted: '#920000',
+  },
+  semantic: {
+    success: '#ff0000',
+    warning: '#a90000',
+    error: '#920000',
+    info: '#820000',
+  },
+  visualization: {
+    preview: '#ff0000',
+    border: '#a90000',
+    overlay: 'rgba(0, 0, 0, 0.5)',
+  },
+  gradients: {
+    cardPrimary:
+      'linear-gradient(135deg, rgba(255, 0, 0, 0.45), rgba(82, 0, 8, 0.33))',
+    cardSecondary:
+      'linear-gradient(135deg, rgba(255, 0, 0, 0.42), rgba(82, 0, 8, 0.35))',
+    cardAccent:
+      'linear-gradient(135deg, rgba(255, 0, 0, 0.46), rgba(82, 0, 8, 0.33))',
+    cardHighlight:
+      'linear-gradient(135deg, rgba(255, 0, 0, 0.48), rgba(82, 0, 8, 0.36))',
+    cardNeutral:
+      'linear-gradient(135deg, rgba(255, 0, 0, 0.56), rgba(82, 0, 8, 0.44))',
+    cardInfo:
+      'linear-gradient(135deg, rgba(255, 0, 0, 0.62), rgba(82, 0, 8, 0.46))',
+    cardWarning:
+      'linear-gradient(135deg, rgba(255, 0, 0, 0.64), rgba(82, 0, 8, 0.47))',
+    cardError:
+      'linear-gradient(135deg, rgba(255, 0, 0, 0.64), rgba(82, 0, 8, 0.47))',
+  },
+  tags: {
+    officialIlford: '#ff0000',
+    officialKodak: '#ff0000',
+    officialFuji: '#ff0000',
+    community: '#ff0000',
+    default: '#a1a1aa',
+  },
+};
+
 export const themes = {
   dark: darkTheme,
   light: lightTheme,
+  darkroom: darkroomTheme,
 } as const;
 
 export function getSystemTheme(): 'light' | 'dark' {
@@ -178,7 +236,7 @@ export function getSystemTheme(): 'light' | 'dark' {
     : 'light';
 }
 
-export function resolveTheme(theme: Theme): 'light' | 'dark' {
+export function resolveTheme(theme: Theme): 'light' | 'dark' | 'darkroom' {
   if (theme === 'system') {
     return getSystemTheme();
   }
