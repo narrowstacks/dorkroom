@@ -102,7 +102,7 @@ export function HomePage() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-16 px-6 pb-24 pt-12 sm:px-10">
       <section
-        className="relative overflow-hidden rounded-lg border px-6 py-12 shadow-glow sm:px-12"
+        className="relative overflow-hidden rounded-4xl border px-6 py-12 shadow-glow sm:px-12"
         style={{
           borderColor: 'var(--color-border-secondary)',
           backgroundColor:
@@ -185,7 +185,7 @@ export function HomePage() {
               backgroundColor: 'rgba(var(--color-background-rgb), 0.6)',
             }}
           >
-            <div className="space-y-2">
+            <div className="space-y-4">
               <p
                 className="text-3xl font-semibold"
                 style={{ color: 'var(--color-text-primary)' }}
@@ -200,9 +200,11 @@ export function HomePage() {
               {highlights.map((item) => (
                 <li
                   key={item.label}
-                  className="flex items-center gap-3 rounded-2xl px-4 py-3 shadow-subtle"
+                  className="flex items-center gap-3 rounded-2xl px-4 py-3 shadow-subtle border"
                   style={{
                     backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
+                    borderColor: 'var(--color-border-secondary)',
+                    borderWidth: 1.5,
                   }}
                 >
                   <item.icon className="h-4 w-4" />
