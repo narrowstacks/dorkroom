@@ -41,7 +41,7 @@ export class FilmdevApiError extends Error {
 /**
  * Extracts recipe ID from various filmdev.org URL formats
  * Supports:
- * - https://filmdev.org/recipe/123 (user-facing URL)
+ * - https://filmdev.org/recipe/show/123 (user-facing URL)
  * - https://filmdev.org/api/recipe/123 (API URL)
  * - filmdev.org/recipe/123
  * - filmdev.org/api/recipe/123
@@ -57,7 +57,7 @@ export function extractRecipeId(input: string): string | null {
 
   // URL patterns - support both regular and API URLs
   const urlPattern =
-    /(?:https?:\/\/)?(?:www\.)?filmdev\.org\/(?:api\/)?recipe\/(\d+)/i;
+    /(?:https?:\/\/)?(?:www\.)?filmdev\.org\/(?:api\/)?recipe\/show\/(\d+)/i;
   const match = trimmed.match(urlPattern);
 
   return match ? match[1] : null;
