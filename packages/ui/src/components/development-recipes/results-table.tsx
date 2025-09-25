@@ -281,11 +281,6 @@ export function DevelopmentResultsTable({
                   className="px-3 py-4 align-top"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
-                  {combination.notes ? (
-                    <span className="line-clamp-2">{combination.notes}</span>
-                  ) : (
-                    <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-                  )}
                   {combination.infoSource && (
                     <a
                       href={combination.infoSource}
