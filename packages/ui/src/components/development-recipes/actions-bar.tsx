@@ -26,26 +26,61 @@ export function DevelopmentActionsBar({
   isMobile = false,
 }: DevelopmentActionsBarProps) {
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-subtle md:flex-row md:items-center md:justify-between">
+    <div
+      className="flex flex-col gap-4 rounded-2xl border p-6 shadow-subtle md:flex-row md:items-center md:justify-between"
+      style={{
+        borderColor: 'var(--color-border-secondary)',
+        backgroundColor: '--color-background',
+      }}
+    >
       <div>
-        <h2 className="text-lg font-semibold text-white">
+        <h2
+          className="text-lg font-semibold"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
           Development Recipes
         </h2>
-        <p className="text-sm text-white/60">
+        <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
           {totalResults.toLocaleString()} film and developer pairings.
         </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
         {!isMobile && (
-          <div className="flex overflow-hidden rounded-full border border-white/10 text-sm">
+          <div
+            className="flex overflow-hidden rounded-full border text-sm"
+            style={{ borderColor: 'var(--color-border-secondary)' }}
+          >
             <button
               type="button"
               onClick={() => onViewModeChange('table')}
               className={cn(
-                'flex items-center gap-2 px-3 py-2 text-white/60 transition hover:bg-white/10 hover:text-white',
-                viewMode === 'table' && 'bg-white text-black'
+                'flex items-center gap-2 px-3 py-2 transition',
+                viewMode === 'table' ? '' : ''
               )}
+              style={
+                viewMode === 'table'
+                  ? {
+                      backgroundColor: 'var(--color-text-primary)',
+                      color: 'var(--color-background)',
+                    }
+                  : {
+                      color: 'var(--color-text-tertiary)',
+                    }
+              }
+              onMouseEnter={(e) => {
+                if (viewMode !== 'table') {
+                  e.currentTarget.style.backgroundColor =
+                    'var(--color-border-muted)';
+                  e.currentTarget.style.color = 'var(--color-text-primary)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (viewMode !== 'table') {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                }
+              }}
             >
               <Rows className="h-4 w-4" />
               Table
@@ -54,9 +89,32 @@ export function DevelopmentActionsBar({
               type="button"
               onClick={() => onViewModeChange('grid')}
               className={cn(
-                'flex items-center gap-2 px-3 py-2 text-white/60 transition hover:bg-white/10 hover:text-white',
-                viewMode === 'grid' && 'bg-white text-black'
+                'flex items-center gap-2 px-3 py-2 transition',
+                viewMode === 'grid' ? '' : ''
               )}
+              style={
+                viewMode === 'grid'
+                  ? {
+                      backgroundColor: 'var(--color-text-primary)',
+                      color: 'var(--color-background)',
+                    }
+                  : {
+                      color: 'var(--color-text-tertiary)',
+                    }
+              }
+              onMouseEnter={(e) => {
+                if (viewMode !== 'grid') {
+                  e.currentTarget.style.backgroundColor =
+                    'var(--color-border-muted)';
+                  e.currentTarget.style.color = 'var(--color-text-primary)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (viewMode !== 'grid') {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                }
+              }}
             >
               <Grid className="h-4 w-4" />
               Cards
@@ -71,9 +129,25 @@ export function DevelopmentActionsBar({
           onClick={onRefresh}
           disabled={isRefreshing}
           className={cn(
-            'flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/40 hover:text-white',
+            'flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition',
             isRefreshing && 'cursor-wait opacity-70'
           )}
+          style={{
+            borderColor: 'var(--color-border-primary)',
+            color: 'var(--color-text-secondary)',
+          }}
+          onMouseEnter={(e) => {
+            if (!isRefreshing) {
+              e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+              e.currentTarget.style.color = 'var(--color-text-primary)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isRefreshing) {
+              e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+            }
+          }}
         >
           Refresh
         </button>
@@ -82,7 +156,19 @@ export function DevelopmentActionsBar({
           <button
             type="button"
             onClick={onOpenImportModal}
-            className="flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/40 hover:text-white"
+            className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition"
+            style={{
+              borderColor: 'var(--color-border-primary)',
+              color: 'var(--color-text-secondary)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+              e.currentTarget.style.color = 'var(--color-text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+            }}
           >
             <Upload className="h-4 w-4" />
             Import recipe
@@ -91,7 +177,17 @@ export function DevelopmentActionsBar({
         <button
           type="button"
           onClick={onOpenCustomRecipeModal}
-          className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+          className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition"
+          style={{
+            backgroundColor: 'var(--color-text-primary)',
+            color: 'var(--color-background)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = '0.9';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = '1';
+          }}
         >
           <Plus className="h-4 w-4" />
           Add custom recipe

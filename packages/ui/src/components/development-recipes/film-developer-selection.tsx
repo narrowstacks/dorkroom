@@ -31,9 +31,13 @@ export function FilmDeveloperSelection({
   return (
     <div
       className={cn(
-        'relative z-10 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-subtle backdrop-blur',
+        'relative z-10 rounded-2xl border p-6 shadow-subtle backdrop-blur',
         className
       )}
+      style={{
+        borderColor: 'var(--color-border-secondary)',
+        backgroundColor: 'var(--color-surface-muted)',
+      }}
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <SearchableSelect
@@ -56,7 +60,20 @@ export function FilmDeveloperSelection({
           <button
             type="button"
             onClick={clearSelections}
-            className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/70 transition hover:border-white/40 hover:text-white"
+            className="rounded-full border px-4 py-2 text-sm font-medium transition"
+            style={{
+              borderColor: 'var(--color-border-secondary)',
+              color: 'var(--color-text-secondary)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+              e.currentTarget.style.color = 'var(--color-text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor =
+                'var(--color-border-secondary)';
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+            }}
           >
             Clear selections
           </button>

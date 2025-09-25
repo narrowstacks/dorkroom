@@ -92,7 +92,7 @@ export function DevelopmentResultsCards({
               backgroundColor:
                 row.source === 'custom'
                   ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
-                  : 'var(--color-border-muted)',
+                  : 'var(--color-surface-muted)',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor =
@@ -112,7 +112,7 @@ export function DevelopmentResultsCards({
               e.currentTarget.style.backgroundColor =
                 row.source === 'custom'
                   ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
-                  : 'var(--color-border-muted)';
+                  : 'var(--color-surface-muted)';
             }}
           >
             <div className="flex justify-between items-start">
@@ -131,28 +131,34 @@ export function DevelopmentResultsCards({
                     ? `${developer.manufacturer} ${developer.name}`
                     : 'Unknown developer'}
                 </div>
-                {row.source === 'custom' && (
-                  <span
-                    className="mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
-                    style={{
-                      backgroundColor:
-                        'color-mix(in srgb, var(--color-accent) 10%, transparent)',
-                      color:
-                        'color-mix(in srgb, var(--color-accent) 80%, var(--color-text-primary))',
-                    }}
-                  >
-                    <Beaker className="h-3 w-3" /> Custom recipe
-                  </span>
+                {(row.source === 'custom' ||
+                  (combination.tags && combination.tags.length > 0)) && (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {row.source === 'custom' && (
+                      <span
+                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                        style={{
+                          backgroundColor:
+                            'color-mix(in srgb, var(--color-accent) 10%, transparent)',
+                          color:
+                            'color-mix(in srgb, var(--color-accent) 80%, var(--color-text-primary))',
+                        }}
+                      >
+                        <Beaker className="h-3 w-3" /> Custom Recipe
+                      </span>
+                    )}
+                    {combination.tags && combination.tags.length > 0 && (
+                      <>
+                        {combination.tags.map((tag) => (
+                          <Tag key={tag}>{tag}</Tag>
+                        ))}
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
-            {combination.tags && combination.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 justify-start pt-2">
-                {combination.tags.map((tag) => (
-                  <Tag key={tag}>{tag}</Tag>
-                ))}
-              </div>
-            )}
+
             <div
               className="mt-3 grid grid-cols-2 gap-1 text-xs"
               style={{ color: 'var(--color-text-secondary)' }}

@@ -133,9 +133,14 @@ function PlaceholderPage({
         >
           {title}
         </h1>
+        <p className="text-base text-zinc-300">{summary}</p>
+        <div></div>
         <p className="text-base text-zinc-300">
-          {summary} We&apos;re still putting the finishing touches on this
-          calculator. Check back shortly or head to another tool.
+          We&apos;re still working on this page.
+        </p>
+        <div></div>
+        <p className="text-base text-zinc-300">
+          Check back shortly or head to another tool.
         </p>
       </div>
       <div className="flex justify-center">

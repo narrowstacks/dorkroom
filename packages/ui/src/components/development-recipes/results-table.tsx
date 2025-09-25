@@ -97,9 +97,13 @@ export function DevelopmentResultsTable({
         onClick={() => onSort?.(key)}
         className={cn(
           'flex w-full items-center gap-1 text-xs uppercase tracking-wide transition',
-          align === 'right' ? 'justify-end' : 'justify-start',
-          isActive ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)'
+          align === 'right' ? 'justify-end' : 'justify-start'
         )}
+        style={{
+          color: isActive
+            ? 'var(--color-text-primary)'
+            : 'var(--color-text-tertiary)',
+        }}
       >
         {label}
         {isActive && <span>{sortDirection === 'asc' ? '▲' : '▼'}</span>}
@@ -112,7 +116,7 @@ export function DevelopmentResultsTable({
       className="overflow-hidden rounded-2xl border shadow-subtle"
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor: 'var(--color-border-muted)',
+        backgroundColor: 'var(--color-surface-muted)',
       }}
     >
       <table
@@ -153,7 +157,15 @@ export function DevelopmentResultsTable({
             <th className="px-3 py-3 text-left">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">
+        <tbody
+          className="divide-y"
+          style={
+            {
+              '--tw-divide-opacity': '1',
+              divideColor: 'var(--color-border-secondary)',
+            } as React.CSSProperties
+          }
+        >
           {rows.map((row, index) => {
             const { combination, film, developer } = row;
             return (
@@ -181,7 +193,7 @@ export function DevelopmentResultsTable({
                   e.currentTarget.style.backgroundColor =
                     row.source === 'custom'
                       ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
-                      : 'var(--color-border-muted)';
+                      : 'var(--color-surface-muted)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor =
@@ -313,7 +325,7 @@ export function DevelopmentResultsTable({
                           }}
                           className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition"
                           style={{
-                            backgroundColor: 'var(--color-border-muted)',
+                            backgroundColor: 'var(--color-surface-muted)',
                             color: 'var(--color-text-secondary)',
                           }}
                           onMouseEnter={(e) => {
@@ -324,7 +336,7 @@ export function DevelopmentResultsTable({
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor =
-                              'var(--color-border-muted)';
+                              'var(--color-surface-muted)';
                             e.currentTarget.style.color =
                               'var(--color-text-secondary)';
                           }}
@@ -371,7 +383,23 @@ export function DevelopmentResultsTable({
                           e.stopPropagation();
                           onShareCombination?.(row);
                         }}
-                        className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-1 text-xs text-white/70 transition hover:bg-white/10 hover:text-white"
+                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition"
+                        style={{
+                          backgroundColor: 'var(--color-surface-muted)',
+                          color: 'var(--color-text-secondary)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor =
+                            'var(--color-border-secondary)';
+                          e.currentTarget.style.color =
+                            'var(--color-text-primary)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor =
+                            'var(--color-surface-muted)';
+                          e.currentTarget.style.color =
+                            'var(--color-text-secondary)';
+                        }}
                         title="Share recipe"
                       >
                         <Share2 className="h-3 w-3" />
