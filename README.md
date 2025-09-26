@@ -1,77 +1,170 @@
 # Dorkroom
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+> Skip the math. Make prints.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+**Dorkroom** is a collection of specialized calculators and tools designed for analog photographers and darkroom enthusiasts. Built to keep complex exposure math, border calculations, and chemistry planning out of your way so you can focus on making beautiful prints.
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/tutorials/react-monorepo-tutorial?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+![Darkroom Theme](https://img.shields.io/badge/theme-darkroom-8B5CF6) ![React 19](https://img.shields.io/badge/React-19-61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.13-06B6D4)
 
-## Run tasks
+## 🎯 What is Dorkroom?
 
-To run the dev server for your app, use:
+Dorkroom provides essential calculators for film photography and darkroom work:
 
-```sh
-npx nx serve dorkroom
+### 🖼️ **Printing Tools**
+- **Border Calculator** - Calculate precise print borders with trim-safe guides
+- **Resize Calculator** - Scale prints without endless test strips
+- **Stops Calculator** - Translate exposure stops into seconds
+
+### 📸 **Shooting Tools**
+- **Exposure Calculator** - Balance aperture, shutter, and ISO on location
+- **Reciprocity Calculator** - Correct for long exposure failure
+- **Development Recipes** - Film + chemistry pairings with proven results
+
+Built for darkroom obsessives who want fast, reliable calculations without the complexity.
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Development
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/dorkroom-nx.git
+cd dorkroom-nx
+
+# Install dependencies
+npm install
+
+# Start development server
+npx nx dev dorkroom -- --host=0.0.0.0
+
+# Open http://localhost:4200
 ```
 
-To create a production bundle:
+### Building
 
-```sh
+```bash
+# Build for production
 npx nx build dorkroom
+
+# Build all packages
+npx nx build
 ```
 
-To see all available targets to run for a project, run:
+### Testing
 
-```sh
-npx nx show project dorkroom
+```bash
+# Run tests
+npx nx test
+
+# Run tests with UI
+npx nx test --ui
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+## 🛠️ Technology Stack
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- **Frontend**: React 19 with TypeScript
+- **Styling**: Tailwind CSS 4.1.13 with custom darkroom theme
+- **Build Tool**: Vite with Nx workspace
+- **Testing**: Vitest with Testing Library
+- **Monorepo**: Nx with shared packages
 
-## Add new projects
+## 📁 Architecture
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
-
-```sh
-npx nx g @nx/react:app demo
+```
+apps/
+  dorkroom/           # Main React application
+packages/
+  ui/                 # Shared UI components (@dorkroom/ui)
+  logic/              # Business logic (@dorkroom/logic)
+  api/                # API utilities (@dorkroom/api)
 ```
 
-To generate a new library, use:
+## 🎨 Features
 
-```sh
-npx nx g @nx/react:lib mylib
+- **Responsive Design** - Works on desktop, tablet, and mobile
+- **Dark Theme** - Custom darkroom-inspired UI optimized for low light
+- **Fast Calculations** - Instant results without page reloads
+- **Offline Ready** - Works without internet connection
+- **Open Source** - Community-driven development
+
+## 🤝 Contributing
+
+We welcome contributions from the analog photography community!
+
+- **GitHub**: [https://github.com/dorkroom](https://github.com/dorkroom)
+- **Issues**: Report bugs or request features
+- **Pull Requests**: Submit improvements and new calculators
+
+### Development Workflow
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/new-calculator`
+3. Make your changes and test thoroughly
+4. Run linting and type checking:
+   ```bash
+   npx nx lint
+   npx nx typecheck
+   npx prettier --write .
+   ```
+5. Submit a pull request
+
+## 📝 Code Quality
+
+This project maintains high code quality standards:
+
+```bash
+# Lint code
+npx nx lint
+
+# Type checking
+npx nx typecheck
+
+# Format code
+npx prettier --write .
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+## 🔍 Project Commands
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+| Command | Description |
+|---------|-------------|
+| `npx nx dev dorkroom -- --host=0.0.0.0` | Start development server |
+| `npx nx build dorkroom` | Build production bundle |
+| `npx nx test` | Run tests |
+| `npx nx lint` | Run ESLint |
+| `npx nx typecheck` | TypeScript checking |
+| `npx nx graph` | Visualize project dependencies |
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 📄 License
 
-## Install Nx Console
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+This means you can:
+- ✅ Use the software for any purpose
+- ✅ Study and modify the source code
+- ✅ Distribute copies and modifications
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+**However**, if you distribute or provide this software as a service, you must:
+- 📖 Make your source code available under AGPL-3.0
+- 🔄 Share any modifications you make
 
-## Useful links
+For commercial licensing options that don't require open sourcing your modifications, please contact us.
 
-Learn more:
+See the [LICENSE](LICENSE) file for full details.
 
-- [Learn more about this workspace setup](https://nx.dev/getting-started/tutorials/react-monorepo-tutorial?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 🙏 Support
 
-And join the Nx community:
+If you find Dorkroom useful for your darkroom work:
 
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- ⭐ Star the project on GitHub
+- 🐛 Report bugs and suggest features
+- 🔗 Share with fellow analog photographers
+- ☕ Support development on Ko-fi
+
+---
+
+**Made with ❤️ for the analog photography community**
