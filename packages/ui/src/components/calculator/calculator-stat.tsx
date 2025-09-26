@@ -13,7 +13,7 @@ interface CalculatorStatProps {
 
 // Legacy - replaced with getToneStyle function
 
-// Theme-aware tone styles
+// Theme-aware tone styles using predefined gradients
 const getToneStyle = (
   tone: Exclude<StatTone, 'default'>
 ): React.CSSProperties => {
@@ -22,8 +22,7 @@ const getToneStyle = (
       return {
         borderColor:
           'color-mix(in srgb, var(--color-semantic-success) 30%, transparent)',
-        background:
-          'linear-gradient(to bottom right, color-mix(in srgb, var(--color-semantic-success) 15%, transparent), color-mix(in srgb, var(--color-semantic-success) 10%, transparent), transparent)',
+        background: 'var(--gradient-card-primary)',
         color:
           'color-mix(in srgb, var(--color-semantic-success) 90%, var(--color-text-primary))',
       };
@@ -31,8 +30,7 @@ const getToneStyle = (
       return {
         borderColor:
           'color-mix(in srgb, var(--color-semantic-info) 30%, transparent)',
-        background:
-          'linear-gradient(to bottom right, color-mix(in srgb, var(--color-semantic-info) 15%, transparent), color-mix(in srgb, var(--color-semantic-info) 10%, transparent), transparent)',
+        background: 'var(--gradient-card-info)',
         color:
           'color-mix(in srgb, var(--color-semantic-info) 90%, var(--color-text-primary))',
       };

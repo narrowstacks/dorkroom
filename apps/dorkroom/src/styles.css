@@ -461,6 +461,25 @@
       #ffffff;
   }
 
+  [data-theme='darkroom'] .backdrop-gradient {
+    background: radial-gradient(
+        circle at 20% 20%,
+        rgba(255, 0, 0, 0.12),
+        transparent 60%
+      ),
+      radial-gradient(
+        circle at 80% 20%,
+        rgba(255, 0, 0, 0.08),
+        transparent 55%
+      ),
+      radial-gradient(
+        circle at 40% 80%,
+        rgba(255, 0, 0, 0.06),
+        transparent 60%
+      ),
+      #000000;
+  }
+
   .card-ring {
     position: relative;
   }
@@ -619,5 +638,31 @@
   }
   [data-theme='light'] .text-emerald-300 {
     color: var(--color-primary) !important;
+  }
+
+  /* Gradient utility classes for easier component usage */
+  .bg-gradient-card-primary {
+    background: var(--gradient-card-primary);
+  }
+  .bg-gradient-card-secondary {
+    background: var(--gradient-card-secondary);
+  }
+  .bg-gradient-card-accent {
+    background: var(--gradient-card-accent);
+  }
+  .bg-gradient-card-highlight {
+    background: var(--gradient-card-highlight);
+  }
+  .bg-gradient-card-neutral {
+    background: var(--gradient-card-neutral);
+  }
+  .bg-gradient-card-info {
+    background: var(--gradient-card-info);
+  }
+  .bg-gradient-card-warning {
+    background: var(--gradient-card-warning);
+  }
+  .bg-gradient-card-error {
+    background: var(--gradient-card-error);
   }
 }
