@@ -1,5 +1,7 @@
 {
   "nxConsole.generateAiAgentRules": true,
   "cSpell.words": ["isos"],
-  "nxConsole.nxWorkspacePath": ""
+  "nxConsole.nxWorkspacePath": "",
+  "npm.autoDetect": "off",
+  "npm.packageManager": "bun"
 }
