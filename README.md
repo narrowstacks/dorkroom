@@ -141,7 +141,7 @@ npx prettier --write .
 
 ## License
 
-MIT License - see the [LICENSE](LICENSE) file for details.
+AGPL 3.0 License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
