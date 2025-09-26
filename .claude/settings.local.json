@@ -12,7 +12,9 @@
       "mcp__serena__search_for_pattern",
       "Bash(curl:*)",
       "WebFetch(domain:filmdev.org)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:www.gnu.org)"
     ],
     "deny": [],
     "ask": []
