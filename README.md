@@ -6,7 +6,7 @@
 
 ![Darkroom Theme](https://img.shields.io/badge/theme-darkroom-8B5CF6) ![React 19](https://img.shields.io/badge/React-19-61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.13-06B6D4)
 
-## 🎯 What is Dorkroom?
+## What is Dorkroom?
 
 Dorkroom provides essential calculators for film photography and darkroom work:
 
@@ -22,12 +22,12 @@ Dorkroom provides essential calculators for film photography and darkroom work:
 
 Built for darkroom obsessives who want fast, reliable calculations without the complexity.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
 - Node.js 18+
-- npm or yarn
+- npm, bun, or yarn
 
 ### Development
 
@@ -65,7 +65,7 @@ npx nx test
 npx nx test --ui
 ```
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Frontend**: React 19 with TypeScript
 - **Styling**: Tailwind CSS 4.1.13 with custom darkroom theme
@@ -73,7 +73,7 @@ npx nx test --ui
 - **Testing**: Vitest with Testing Library
 - **Monorepo**: Nx with shared packages
 
-## 📁 Architecture
+## Architecture
 
 ```
 apps/
@@ -84,7 +84,7 @@ packages/
   api/                # API utilities (@dorkroom/api)
 ```
 
-## 🎨 Features
+## Features
 
 - **Responsive Design** - Works on desktop, tablet, and mobile
 - **Dark Theme** - Custom darkroom-inspired UI optimized for low light
@@ -92,7 +92,7 @@ packages/
 - **Offline Ready** - Works without internet connection
 - **Open Source** - Community-driven development
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions from the analog photography community!
 
@@ -113,7 +113,7 @@ We welcome contributions from the analog photography community!
    ```
 5. Submit a pull request
 
-## 📝 Code Quality
+## Code Quality
 
 This project maintains high code quality standards:
 
@@ -128,7 +128,7 @@ npx nx typecheck
 npx prettier --write .
 ```
 
-## 🔍 Project Commands
+## Project Commands
 
 | Command | Description |
 |---------|-------------|
@@ -139,24 +139,11 @@ npx prettier --write .
 | `npx nx typecheck` | TypeScript checking |
 | `npx nx graph` | Visualize project dependencies |
 
-## 📄 License
+## License
 
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+MIT License - see the [LICENSE](LICENSE) file for details.
 
-This means you can:
-- ✅ Use the software for any purpose
-- ✅ Study and modify the source code
-- ✅ Distribute copies and modifications
-
-**However**, if you distribute or provide this software as a service, you must:
-- 📖 Make your source code available under AGPL-3.0
-- 🔄 Share any modifications you make
-
-For commercial licensing options that don't require open sourcing your modifications, please contact us.
-
-See the [LICENSE](LICENSE) file for full details.
-
-## 🙏 Support
+## Support
 
 If you find Dorkroom useful for your darkroom work:
 
