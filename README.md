@@ -96,7 +96,7 @@ packages/
 
 We welcome contributions from the analog photography community!
 
-- **GitHub**: [https://github.com/dorkroom](https://github.com/dorkroom)
+- **GitHub**: [https://github.com/dorkroom](https://github.com/narrowstacks/dorkroom-nx)
 - **Issues**: Report bugs or request features
 - **Pull Requests**: Submit improvements and new calculators
 
