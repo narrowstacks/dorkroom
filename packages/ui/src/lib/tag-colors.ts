@@ -1,3 +1,5 @@
+import { colorMixOr } from './color';
+
 interface TagColorConfig {
   bg: string;
   text: string;
@@ -49,48 +51,108 @@ export function getTagThemeStyle(tag: string): TagThemeStyle {
   switch (tag) {
     case 'official-ilford':
       return {
-        backgroundColor:
-          'color-mix(in srgb, var(--color-tag-official-ilford) 20%, transparent)',
-        color:
-          'color-mix(in srgb, var(--color-tag-official-ilford) 80%, var(--color-text-primary))',
-        borderColor:
-          'color-mix(in srgb, var(--color-tag-official-ilford) 30%, transparent)',
+        backgroundColor: colorMixOr(
+          'var(--color-tag-official-ilford)',
+          20,
+          'transparent',
+          'var(--color-border-muted)'
+        ),
+        color: colorMixOr(
+          'var(--color-tag-official-ilford)',
+          80,
+          'var(--color-text-primary)',
+          'var(--color-text-primary)'
+        ),
+        borderColor: colorMixOr(
+          'var(--color-tag-official-ilford)',
+          30,
+          'transparent',
+          'var(--color-border-secondary)'
+        ),
       };
     case 'official-kodak':
       return {
-        backgroundColor:
-          'color-mix(in srgb, var(--color-tag-official-kodak) 20%, transparent)',
-        color:
-          'color-mix(in srgb, var(--color-tag-official-kodak) 80%, var(--color-text-primary))',
-        borderColor:
-          'color-mix(in srgb, var(--color-tag-official-kodak) 30%, transparent)',
+        backgroundColor: colorMixOr(
+          'var(--color-tag-official-kodak)',
+          20,
+          'transparent',
+          'var(--color-border-muted)'
+        ),
+        color: colorMixOr(
+          'var(--color-tag-official-kodak)',
+          80,
+          'var(--color-text-primary)',
+          'var(--color-text-primary)'
+        ),
+        borderColor: colorMixOr(
+          'var(--color-tag-official-kodak)',
+          30,
+          'transparent',
+          'var(--color-border-secondary)'
+        ),
       };
     case 'official-fuji':
       return {
-        backgroundColor:
-          'color-mix(in srgb, var(--color-tag-official-fuji) 20%, transparent)',
-        color:
-          'color-mix(in srgb, var(--color-tag-official-fuji) 80%, var(--color-text-primary))',
-        borderColor:
-          'color-mix(in srgb, var(--color-tag-official-fuji) 30%, transparent)',
+        backgroundColor: colorMixOr(
+          'var(--color-tag-official-fuji)',
+          20,
+          'transparent',
+          'var(--color-border-muted)'
+        ),
+        color: colorMixOr(
+          'var(--color-tag-official-fuji)',
+          80,
+          'var(--color-text-primary)',
+          'var(--color-text-primary)'
+        ),
+        borderColor: colorMixOr(
+          'var(--color-tag-official-fuji)',
+          30,
+          'transparent',
+          'var(--color-border-secondary)'
+        ),
       };
     case 'community':
       return {
-        backgroundColor:
-          'color-mix(in srgb, var(--color-tag-community) 20%, transparent)',
-        color:
-          'color-mix(in srgb, var(--color-tag-community) 80%, var(--color-text-primary))',
-        borderColor:
-          'color-mix(in srgb, var(--color-tag-community) 30%, transparent)',
+        backgroundColor: colorMixOr(
+          'var(--color-tag-community)',
+          20,
+          'transparent',
+          'var(--color-border-muted)'
+        ),
+        color: colorMixOr(
+          'var(--color-tag-community)',
+          80,
+          'var(--color-text-primary)',
+          'var(--color-text-primary)'
+        ),
+        borderColor: colorMixOr(
+          'var(--color-tag-community)',
+          30,
+          'transparent',
+          'var(--color-border-secondary)'
+        ),
       };
     default:
       return {
-        backgroundColor:
-          'color-mix(in srgb, var(--color-tag-default) 20%, transparent)',
-        color:
-          'color-mix(in srgb, var(--color-tag-default) 80%, var(--color-text-primary))',
-        borderColor:
-          'color-mix(in srgb, var(--color-tag-default) 30%, transparent)',
+        backgroundColor: colorMixOr(
+          'var(--color-tag-default)',
+          20,
+          'transparent',
+          'var(--color-border-muted)'
+        ),
+        color: colorMixOr(
+          'var(--color-tag-default)',
+          80,
+          'var(--color-text-primary)',
+          'var(--color-text-primary)'
+        ),
+        borderColor: colorMixOr(
+          'var(--color-tag-default)',
+          30,
+          'transparent',
+          'var(--color-border-secondary)'
+        ),
       };
   }
 }

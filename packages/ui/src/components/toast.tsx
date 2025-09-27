@@ -85,6 +85,8 @@ export function Toast({
           ? 'translate-x-0 opacity-100'
           : 'translate-x-full opacity-0'
       )}
+      role="status"
+      aria-live="polite"
       style={getStyles()}
     >
       {getIcon()}
@@ -102,6 +104,9 @@ export interface ToastContextValue {
 }
 
 const ToastContext = React.createContext<ToastContextValue | null>(null);
+export function useOptionalToast(): ToastContextValue | null {
+  return React.useContext(ToastContext);
+}
 
 export function ToastProvider({ children }: ToastProviderProps) {
   const [toast, setToast] = useState<{

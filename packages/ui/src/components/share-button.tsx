@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '../lib/cn';
+import { colorMixOr } from '../lib/color';
 import { shouldUseWebShare } from '@dorkroom/logic';
+import { useOptionalToast } from './toast';
 
 export interface ShareButtonProps {
   onClick: () => void | Promise<unknown>;
@@ -24,6 +26,7 @@ export function ShareButton({
   const [showToast, setShowToast] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toast = useOptionalToast();
 
   // Cleanup timeout on component unmount
   useEffect(() => {
@@ -80,8 +83,12 @@ export function ShareButton({
     
     switch (variant) {
       case 'primary':
-        e.currentTarget.style.backgroundColor =
-          'color-mix(in srgb, var(--color-semantic-info) 85%, transparent)';
+        e.currentTarget.style.backgroundColor = colorMixOr(
+          'var(--color-semantic-info)',
+          85,
+          'transparent',
+          'var(--color-semantic-info)'
+        );
         // In darkroom mode, change text color to black for better contrast against red background
         if (isDarkroomMode) {
           e.currentTarget.style.color = '#000000';
@@ -127,11 +134,15 @@ export function ShareButton({
     }
 
     if (shouldShowToast) {
-      if (toastTimeoutRef.current) {
-        clearTimeout(toastTimeoutRef.current);
+      if (toast) {
+        toast.showToast('Copied to clipboard!', 'success');
+      } else {
+        if (toastTimeoutRef.current) {
+          clearTimeout(toastTimeoutRef.current);
+        }
+        setShowToast(true);
+        toastTimeoutRef.current = setTimeout(() => setShowToast(false), 3000);
       }
-      setShowToast(true);
-      toastTimeoutRef.current = setTimeout(() => setShowToast(false), 3000);
     }
   };
 
@@ -146,6 +157,12 @@ export function ShareButton({
         style={getVariantStyle()}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onFocus={(e) => {
+          e.currentTarget.style.boxShadow = '0 0 0 2px var(--color-border-primary)';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.boxShadow = '';
+        }}
       >
       {isLoading && (
         <svg
@@ -191,7 +208,7 @@ export function ShareButton({
       </button>
 
       {/* Local toast notification that appears below the button */}
-      {showToast && (
+      {!toast && showToast && (
         <div
           className={cn(
             'absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-[9999]',

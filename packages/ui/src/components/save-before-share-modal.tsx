@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { cn } from '../lib/cn';
+import { colorMixOr } from '../lib/color';
 
 export interface SaveBeforeShareModalProps {
   isOpen: boolean;
@@ -87,8 +88,12 @@ export function SaveBeforeShareModal({
                 <div
                   className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10"
                   style={{
-                    backgroundColor:
-                      'color-mix(in srgb, var(--color-semantic-info) 20%, transparent)',
+                    backgroundColor: colorMixOr(
+                      'var(--color-semantic-info)',
+                      20,
+                      'transparent',
+                      'var(--color-border-muted)'
+                    ),
                   }}
                 >
                   <svg

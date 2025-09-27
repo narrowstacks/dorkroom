@@ -1,6 +1,7 @@
 import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
 import type { Combination, Film, Developer } from '@dorkroom/api';
 import { cn } from '../../lib/cn';
+import { colorMixOr } from '../../lib/color';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { Tag } from '../ui/tag';
@@ -395,22 +396,46 @@ export function DevelopmentResultsTable({
                           }}
                           className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition"
                           style={{
-                            backgroundColor:
-                              'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)',
-                            color:
-                              'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))',
+                            backgroundColor: colorMixOr(
+                              'var(--color-semantic-error)',
+                              10,
+                              'transparent',
+                              'var(--color-border-muted)'
+                            ),
+                            color: colorMixOr(
+                              'var(--color-semantic-error)',
+                              80,
+                              'var(--color-text-primary)',
+                              'var(--color-semantic-error)'
+                            ),
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'color-mix(in srgb, var(--color-semantic-error) 20%, transparent)';
-                            e.currentTarget.style.color =
-                              'color-mix(in srgb, var(--color-semantic-error) 90%, var(--color-text-primary))';
+                            e.currentTarget.style.backgroundColor = colorMixOr(
+                              'var(--color-semantic-error)',
+                              20,
+                              'transparent',
+                              'var(--color-border-secondary)'
+                            );
+                            e.currentTarget.style.color = colorMixOr(
+                              'var(--color-semantic-error)',
+                              90,
+                              'var(--color-text-primary)',
+                              'var(--color-semantic-error)'
+                            );
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)';
-                            e.currentTarget.style.color =
-                              'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))';
+                            e.currentTarget.style.backgroundColor = colorMixOr(
+                              'var(--color-semantic-error)',
+                              10,
+                              'transparent',
+                              'var(--color-border-muted)'
+                            );
+                            e.currentTarget.style.color = colorMixOr(
+                              'var(--color-semantic-error)',
+                              80,
+                              'var(--color-text-primary)',
+                              'var(--color-semantic-error)'
+                            );
                           }}
                           title="Delete custom recipe"
                         >
