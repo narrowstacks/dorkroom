@@ -8,11 +8,9 @@ import {
   CalculatorNumberField,
   ResultRow,
 } from '@dorkroom/ui';
-import { colorMixOr } from '@dorkroom/ui';
 import {
   useReciprocityCalculator,
   formatReciprocityTime,
-  type ReciprocityCalculation,
   type SelectItem,
 } from '@dorkroom/logic';
 
@@ -57,82 +55,6 @@ const RECIPROCITY_INSIGHTS = [
   },
 ];
 
-interface TimeComparisonProps {
-  calculation: ReciprocityCalculation;
-}
-
-function TimeComparison({ calculation }: TimeComparisonProps) {
-  const maxWidth = Math.max(
-    calculation.timeBarWidth,
-    calculation.adjustedTimeBarWidth,
-    1
-  );
-
-  const originalWidth = Math.max(
-    (calculation.timeBarWidth / maxWidth) * 100,
-    4
-  );
-  const adjustedWidth = Math.max(
-    (calculation.adjustedTimeBarWidth / maxWidth) * 100,
-    4
-  );
-
-  return (
-    <div className="space-y-3">
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[color:var(--color-text-tertiary)]">
-          Exposure comparison
-        </p>
-        <p className="text-sm text-[color:var(--color-text-secondary)]">
-          Visualise the relative jump between your metered and corrected
-          exposure times.
-        </p>
-      </div>
-      <div className="space-y-3">
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-xs text-[color:var(--color-text-tertiary)]">
-            <span>Metered</span>
-            <span>{formatReciprocityTime(calculation.originalTime)}</span>
-          </div>
-          <div
-            className="h-2 rounded-full"
-            style={{
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.1)',
-            }}
-          >
-            <div
-              className="h-full rounded-full"
-              style={{
-                backgroundColor: 'var(--color-text-secondary)',
-                width: `${originalWidth}%`,
-              }}
-            />
-          </div>
-        </div>
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-xs text-[color:var(--color-text-tertiary)]">
-            <span>Adjusted</span>
-            <span>{formatReciprocityTime(calculation.adjustedTime)}</span>
-          </div>
-          <div
-            className="h-2 rounded-full"
-            style={{
-              backgroundColor: colorMixOr('var(--color-primary)', 20, 'transparent', 'var(--color-border-muted)'),
-            }}
-          >
-            <div
-              className="h-full rounded-full"
-              style={{
-                backgroundColor: 'var(--color-primary)',
-                width: `${adjustedWidth}%`,
-              }}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function ReciprocityCalculatorPage() {
   const {

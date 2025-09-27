@@ -228,13 +228,6 @@ export default function ResizeCalculatorPage() {
   } = useResizeCalculator();
 
   const stopsNumber = parseFloat(stopsDifference);
-  const stopsTone: 'default' | 'emerald' | 'sky' = Number.isFinite(stopsNumber)
-    ? stopsNumber > 0
-      ? 'emerald'
-      : stopsNumber < 0
-      ? 'sky'
-      : 'default'
-    : 'default';
   const stopsHelper = Number.isFinite(stopsNumber)
     ? stopsNumber > 0
       ? 'The new print is larger, add exposure.'

@@ -67,7 +67,7 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
   const shareNatively = useCallback(
     async (
       url: string,
-      title: string = 'Border Calculator Preset'
+      title = 'Border Calculator Preset'
     ): Promise<boolean> => {
       if (!isWebShareSupported()) {
         return false;
@@ -95,7 +95,7 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
   const sharePreset = useCallback(
     async (
       preset: PresetToShare,
-      preferClipboard: boolean = false
+      preferClipboard = false
     ): Promise<ShareResult> => {
       setIsSharing(true);
 
