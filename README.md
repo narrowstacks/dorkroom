@@ -10,13 +10,13 @@
 
 Dorkroom provides essential calculators for film photography and darkroom work:
 
-### 🖼️ **Printing Tools**
+### **Printing Tools**
 
 - **Border Calculator** - Calculate precise print borders with trim-safe guides
 - **Resize Calculator** - Scale prints without endless test strips
 - **Stops Calculator** - Translate exposure stops into seconds
 
-### 📸 **Shooting Tools**
+### **Shooting Tools**
 
 - **Exposure Calculator** - Balance aperture, shutter, and ISO on location
 - **Reciprocity Calculator** - Correct for long exposure failure
@@ -29,7 +29,7 @@ Built for darkroom obsessives who want fast, reliable calculations without the c
 ### Prerequisites
 
 - Node.js 18+
-- npm, bun, or yarn
+- bun, npm, or yarn (bun preferred)
 
 ### Development
 
@@ -39,7 +39,7 @@ git clone https://github.com/narrowstacks/dorkroom-nx.git
 cd dorkroom-nx
 
 # Install dependencies
-npm install
+bun install
 
 # Start development server
 bunx nx dev dorkroom -- --host=0.0.0.0
@@ -91,7 +91,6 @@ packages/
 - **Responsive Design** - Works on desktop, tablet, and mobile
 - **Dark Theme** - Custom darkroom-inspired UI optimized for low light
 - **Fast Calculations** - Instant results without page reloads
-- **Offline Ready** - Works without internet connection
 - **Open Source** - Community-driven development
 
 ## Contributing
@@ -106,28 +105,64 @@ We welcome contributions from the analog photography community!
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/new-calculator`
-3. Make your changes and test thoroughly
-4. Run linting and type checking:
+3. Make your changes following our code organization guidelines:
+   - **Business Logic**: Add calculations, utilities, types, and hooks to `packages/logic/`
+   - **UI Components**: Add reusable components and contexts to `packages/ui/`
+   - **Application Code**: Add pages and app-specific components to `apps/dorkroom/`
+4. Test your changes thoroughly:
    ```bash
-   bunx nx lint
-   bunx nx typecheck
+   # Test specific packages
+   bunx nx test logic
+   bunx nx test ui
+   bunx nx test dorkroom
+   ```
+5. Run quality checks on affected packages:
+   ```bash
+   # Lint specific packages
+   bunx nx lint logic
+   bunx nx lint ui
+   bunx nx lint dorkroom
+   
+   # Type check specific packages
+   bunx nx typecheck logic
+   bunx nx typecheck ui
+   bunx nx typecheck dorkroom
+   
+   # Format code
    bunx prettier --write .
    ```
-5. Submit a pull request
+6. Submit a pull request
 
 ## Code Quality
 
-This project maintains high code quality standards:
+This project maintains high code quality standards with package-specific tooling:
+
+### Package Organization
+
+- **`packages/logic/`** - Pure TypeScript business logic (calculations, utilities, types, hooks)
+- **`packages/ui/`** - Reusable React components and contexts  
+- **`packages/api/`** - API utilities and client code
+- **`apps/dorkroom/`** - Main application with pages and app-specific components
+
+### Quality Tools by Package
 
 ```bash
-# Lint code
-bunx nx lint
+# Run quality checks on specific packages
+bunx nx test logic        # Test business logic
+bunx nx test ui          # Test UI components  
+bunx nx test dorkroom    # Test main application
 
-# Type checking
-bunx nx typecheck
+bunx nx lint logic       # Lint business logic
+bunx nx lint ui         # Lint UI components
+bunx nx lint dorkroom   # Lint main application
 
-# Format code
-bunx prettier --write .
+bunx nx typecheck logic     # Type check business logic
+bunx nx typecheck ui       # Type check UI components
+bunx nx typecheck dorkroom # Type check main application
+
+# Run across all projects
+bunx nx run-many --targets=lint,typecheck,test,build
+bunx prettier --write . # Format all code
 ```
 
 ## Project Commands
@@ -137,8 +172,8 @@ bunx prettier --write .
 | `bunx nx dev dorkroom -- --host=0.0.0.0` | Start development server       |
 | `bunx nx build dorkroom`                 | Build production bundle        |
 | `bunx nx test`                           | Run tests                      |
-| `bunx nx lint`                           | Run ESLint                     |
-| `bunx nx typecheck`                      | TypeScript checking            |
+| `bunx nx lint dorkrooom`                 | Run ESLint                     |
+| `bunx nx typecheck dorkrooom`            | TypeScript checking            |
 | `bunx nx graph`                          | Visualize project dependencies |
 
 ## License

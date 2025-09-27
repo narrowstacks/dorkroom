@@ -11,7 +11,21 @@ import {
 } from '../../utils/url-helpers';
 
 // Mock window object for testing
-const mockWindow = {
+interface MockLocation {
+  hostname: string;
+  port?: string;
+  protocol: string;
+  pathname: string;
+  search: string;
+  hash: string;
+}
+
+interface MockWindow {
+  location: MockLocation;
+  history: { replaceState: (data: unknown, unused: string, url?: string) => void };
+}
+
+const mockWindow: MockWindow = {
   location: {
     hostname: 'localhost',
     port: '4200',
@@ -26,16 +40,21 @@ const mockWindow = {
 };
 
 describe('url helpers', () => {
-  const originalWindow = (global as any).window;
-  const originalNavigator = (global as any).navigator;
+  type MutableGlobal = typeof globalThis & {
+    window?: unknown;
+    navigator?: unknown;
+  };
+  const g = globalThis as MutableGlobal;
+  const originalWindow = g.window;
+  const originalNavigator = g.navigator;
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   afterEach(() => {
-    (global as any).window = originalWindow;
-    (global as any).navigator = originalNavigator;
+    g.window = originalWindow;
+    g.navigator = originalNavigator;
   });
 
   describe('getDynamicShareUrl', () => {
@@ -60,14 +79,14 @@ describe('url helpers', () => {
     it('should handle production hostname', () => {
       mockWindow.location.hostname = 'beta.dorkroom.art';
       mockWindow.location.protocol = 'https:';
-      delete (mockWindow.location as any).port;
+      delete mockWindow.location.port;
 
       const url = getDynamicShareUrl();
       expect(url).toBe('https://beta.dorkroom.art/border');
     });
 
     it('should handle SSR (no window)', () => {
-      delete (global as any).window;
+      delete g.window;
       const url = getDynamicShareUrl();
       expect(url).toBe('https://beta.dorkroom.art/border');
     });
@@ -136,7 +155,7 @@ describe('url helpers', () => {
     });
 
     it('should return null in SSR environment', () => {
-      delete (global as any).window;
+      delete g.window;
       const preset = getPresetFromUrl();
       expect(preset).toBeNull();
     });
@@ -168,7 +187,7 @@ describe('url helpers', () => {
     });
 
     it('should handle SSR environment gracefully', () => {
-      delete (global as any).window;
+      delete g.window;
       expect(() => updateUrlWithPreset('preset')).not.toThrow();
     });
   });
@@ -193,7 +212,8 @@ describe('url helpers', () => {
     });
 
     it('should handle SSR environment gracefully', () => {
-      delete (global as any).window;
+      const g = globalThis as { window?: unknown };
+      delete g.window;
       expect(() => clearPresetFromUrl()).not.toThrow();
     });
   });

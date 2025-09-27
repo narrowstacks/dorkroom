@@ -44,7 +44,7 @@ export function findBestFilmMatch(
   if (bestMatch) return bestMatch;
 
   // Try word-based matching (e.g., "Tri-X" matches "TRI-X 400")
-  const filmWords = filmString.split(/[\s\-]+/).filter((w) => w.length > 1);
+  const filmWords = filmString.split(/[\s-]+/).filter((w) => w.length > 1);
   bestMatch = availableFilms.find((film) => {
     const filmText = `${film.brand} ${film.name}`.toLowerCase();
     return filmWords.some((word) => filmText.includes(word));
@@ -106,7 +106,7 @@ export function findBestDeveloperMatch(
   if (bestMatch) return bestMatch;
 
   // Try word-based matching (e.g., "D-76" matches "Kodak D-76")
-  const devWords = devString.split(/[\s\-]+/).filter((w) => w.length > 1);
+  const devWords = devString.split(/[\s-]+/).filter((w) => w.length > 1);
   bestMatch = availableDevelopers.find((dev) => {
     const devText = `${dev.manufacturer} ${dev.name}`.toLowerCase();
     return devWords.some((word) => devText.includes(word));

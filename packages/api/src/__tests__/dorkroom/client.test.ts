@@ -1,7 +1,6 @@
 import { DorkroomClient } from '../../dorkroom/client';
 import { HttpTransport } from '../../dorkroom/transport';
 import { DorkroomApiError } from '../../dorkroom/types';
-import type { MockedFunction } from 'vitest';
 
 // Mock the HttpTransport
 vi.mock('../../dorkroom/transport');
@@ -94,7 +93,8 @@ describe('DorkroomClient', () => {
       get: vi.fn(),
     };
 
-    (HttpTransport as unknown as MockedFunction<typeof HttpTransport>).mockImplementation(() => mockTransport);
+    // Treat HttpTransport as a mocked constructor and stub it to return our mock transport
+    (HttpTransport as any).mockImplementation(() => mockTransport);
 
     client = new DorkroomClient();
   });
@@ -148,8 +148,13 @@ describe('DorkroomClient', () => {
     it('should handle API errors', async () => {
       mockTransport.get.mockRejectedValueOnce(new Error('API Error'));
 
-      await expect(client.loadAll()).rejects.toThrow(DorkroomApiError);
-      await expect(client.loadAll()).rejects.toThrow('Failed to load data: API Error');
+      try {
+        await client.loadAll();
+        throw new Error('Expected loadAll to throw');
+      } catch (err) {
+        expect(err).toBeInstanceOf(DorkroomApiError);
+        expect((err as Error).message).toContain('Failed to load data: API Error');
+      }
     });
   });
 

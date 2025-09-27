@@ -1,0 +1,171 @@
+name: 🧮 New Calculator Request
+description: Request a new specialized calculator for darkroom work
+title: "[Calculator]: "
+labels: ["enhancement", "calculator", "needs-triage"]
+projects: ["narrowstacks/1"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new calculator! Please provide detailed information about the calculations and use cases.
+
+  - type: input
+    id: calculator-name
+    attributes:
+      label: Calculator Name
+      description: What would you call this calculator?
+      placeholder: e.g., "Split-Grade Calculator", "Dodging Timer", "Chemistry Dilution Calculator"
+    validations:
+      required: true
+
+  - type: textarea
+    id: calculator-purpose
+    attributes:
+      label: Purpose & Use Case
+      description: What problem would this calculator solve? When would photographers use it?
+      placeholder: |
+        Describe the specific darkroom or photography scenario where this calculator would be used:
+        - What task does it help with?
+        - What calculations are currently done manually?
+        - How would it fit into a typical workflow?
+    validations:
+      required: true
+
+  - type: textarea
+    id: inputs-outputs
+    attributes:
+      label: Inputs & Outputs
+      description: What information would users input, and what would the calculator output?
+      placeholder: |
+        Inputs:
+        - Input 1: [description, units, typical range]
+        - Input 2: [description, units, typical range]
+        - etc.
+        
+        Outputs:
+        - Output 1: [description, units, format]
+        - Output 2: [description, units, format]
+        - etc.
+    validations:
+      required: true
+
+  - type: textarea
+    id: mathematical-formula
+    attributes:
+      label: Mathematical Formula or Logic
+      description: Describe the calculations involved (formulas, lookup tables, algorithms)
+      placeholder: |
+        Provide the mathematical relationship between inputs and outputs:
+        - Formulas: [mathematical expressions]
+        - Constants: [any fixed values used]
+        - Lookup tables: [if applicable]
+        - Special cases or conditions: [edge cases to handle]
+    validations:
+      required: true
+
+  - type: textarea
+    id: example-calculation
+    attributes:
+      label: Example Calculation
+      description: Provide a concrete example with specific numbers
+      placeholder: |
+        Example:
+        Given:
+        - Input A: 5.6 (f-stop)
+        - Input B: 8 seconds (base exposure)
+        - Input C: 2 stops (adjustment)
+        
+        Expected result:
+        - New exposure time: 32 seconds
+        - Explanation: [how the calculation works]
+    validations:
+      required: true
+
+  - type: dropdown
+    id: photography-area
+    attributes:
+      label: Photography Area
+      description: Which area of analog photography does this relate to?
+      multiple: true
+      options:
+        - Enlarging/Printing
+        - Film Development
+        - Exposure Calculation
+        - Chemistry/Mixing
+        - Paper/Material Selection
+        - Color Printing
+        - Alternative Processes
+        - Large Format
+        - Contact Printing
+        - Timing/Sequencing
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: existing-tools
+    attributes:
+      label: Existing Tools or References
+      description: Are there existing tools, apps, or references for this calculation?
+      placeholder: |
+        - Physical tools: [enlarging meters, calculators, charts]
+        - Software tools: [apps, websites, calculators]
+        - References: [books, articles, formulas]
+        - How is this currently done manually?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Complexity Level
+      description: How complex is this calculator?
+      options:
+        - Simple - Basic arithmetic with 2-3 inputs
+        - Moderate - Multiple inputs with conditional logic
+        - Complex - Advanced formulas or lookup tables
+        - Very Complex - Multiple calculation modes or extensive logic
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-interface-ideas
+    attributes:
+      label: User Interface Ideas
+      description: How do you envision the calculator interface?
+      placeholder: |
+        - Layout suggestions: [sliders, dropdowns, number inputs]
+        - Display format: [tables, graphs, simple results]
+        - Interactive elements: [real-time updates, presets]
+        - Special considerations: [units, precision, warnings]
+    validations:
+      required: false
+
+  - type: textarea
+    id: validation-data
+    attributes:
+      label: Validation & Testing Data
+      description: Do you have test cases or reference data to validate the calculator?
+      placeholder: |
+        - Known correct input/output pairs
+        - Reference sources for validation
+        - Edge cases to test
+        - Typical ranges and expected precision
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      description: Please confirm the following
+      options:
+        - label: I have searched existing calculators and issues to ensure this doesn't already exist
+          required: true
+        - label: I have provided accurate mathematical formulas or logic
+          required: true
+        - label: This calculator would benefit the analog photography community
+          required: true
+        - label: I can provide additional clarification or testing if needed
+          required: true

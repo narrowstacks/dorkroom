@@ -1,0 +1,146 @@
+name: 🐛 Bug Report
+description: Report a bug or unexpected behavior in Dorkroom calculators
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+projects: ["narrowstacks/1"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please provide as much detail as possible to help us reproduce and fix the issue.
+
+  - type: dropdown
+    id: affected-area
+    attributes:
+      label: Affected Area
+      description: Which part of Dorkroom is affected?
+      options:
+        - Border Calculator
+        - Resize Calculator  
+        - Exposure Calculator
+        - Reciprocity Calculator
+        - Development Recipes
+        - Settings/Preferences
+        - User Interface
+        - Performance
+        - Mobile/Responsive
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: Describe what happened vs what you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this bug?
+      placeholder: |
+        1. Go to '...'
+        2. Enter values '...'
+        3. Click on '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What should have happened instead?
+      placeholder: Describe the expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Describe what actually happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: calculation-details
+    attributes:
+      label: Calculation Details (if applicable)
+      description: If this is a calculation error, please provide the input values and expected vs actual results
+      placeholder: |
+        Input values:
+        - Paper size: 8x10"
+        - Border width: 0.25"
+        - etc.
+        
+        Expected result: 
+        Actual result:
+    validations:
+      required: false
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      description: Which browser are you using?
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - Mobile Safari (iOS)
+        - Chrome Mobile (Android)
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device-type
+    attributes:
+      label: Device Type
+      description: What type of device are you using?
+      options:
+        - Desktop
+        - Tablet
+        - Mobile Phone
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Details
+      description: Additional environment information
+      placeholder: |
+        - OS: [e.g. macOS, Windows, iOS, Android]
+        - Browser version: [e.g. Chrome 120.0]
+        - Screen size/resolution: [if relevant]
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here
+      placeholder: Screenshots, console errors, or any other relevant information
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this bug hasn't been reported before
+          required: true
+        - label: I have provided all the requested information above
+          required: true

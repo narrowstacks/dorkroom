@@ -16,12 +16,13 @@ export function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-export function useDebouncedCallback<T extends (...args: any[]) => any>(
-  callback: T,
-  delay: number,
-  deps: React.DependencyList = []
-): T {
-  const [debouncedCallback, setDebouncedCallback] = useState<T>(() => callback);
+export function useDebouncedCallback<A extends unknown[], R>(
+  callback: (...args: A) => R,
+  delay: number
+): (...args: A) => R {
+  const [debouncedCallback, setDebouncedCallback] = useState<
+    (...args: A) => R
+  >(() => callback);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -31,7 +32,7 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
     return () => {
       clearTimeout(handler);
     };
-  }, [callback, delay, ...deps]);
+  }, [callback, delay]);
 
   return debouncedCallback;
 }

@@ -145,19 +145,20 @@ describe('HttpTransport', () => {
     });
 
     it('should throw error after max retries', async () => {
-      vi.useFakeTimers();
 
       const transportWithLimitedRetries = new HttpTransport('https://api.example.com', {
         retries: 1,
+        retryDelay: 0,
       });
 
-      mockFetch.mockRejectedValue(new Error('Persistent network error'));
+      // Simulate server errors to avoid unhandled promise rejections
+      mockFetch
+        .mockResolvedValueOnce({ ok: false, status: 500, statusText: 'Internal Server Error' })
+        .mockResolvedValueOnce({ ok: false, status: 500, statusText: 'Internal Server Error' });
 
       const resultPromise = transportWithLimitedRetries.get('/persistent-error');
 
-      await vi.runAllTimersAsync();
-
-      await expect(resultPromise).rejects.toThrow('Persistent network error');
+      await expect(resultPromise).rejects.toThrow('HTTP 500: Internal Server Error');
       expect(mockFetch).toHaveBeenCalledTimes(2); // Initial + 1 retry
     });
   });
