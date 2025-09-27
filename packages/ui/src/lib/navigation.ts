@@ -1,6 +1,6 @@
 import {
   Aperture,
-  Beaker,
+  FlaskConical,
   BookOpen,
   Crop,
   Gauge,
@@ -66,7 +66,7 @@ export const navItems = [
   {
     label: 'Development',
     to: '/development',
-    icon: asFunctionComponent(Beaker),
+    icon: asFunctionComponent(FlaskConical),
     summary: 'Film chemistry pairings with proven results.',
   },
 ];
