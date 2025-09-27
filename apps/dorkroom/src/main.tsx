@@ -4,6 +4,7 @@ import * as ReactDOM from 'react-dom/client';
 import '@fontsource-variable/inter/index.css';
 import './styles.css';
 import App from './app/app';
+import { ToastProvider } from '@dorkroom/ui';
 import { ThemeProvider } from './app/contexts/theme-context';
 
 const root = ReactDOM.createRoot(
@@ -13,9 +14,11 @@ const root = ReactDOM.createRoot(
 root.render(
   <StrictMode>
     <ThemeProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <ToastProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ToastProvider>
     </ThemeProvider>
   </StrictMode>
 );
