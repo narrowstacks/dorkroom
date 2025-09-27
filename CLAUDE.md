@@ -10,26 +10,26 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 
 ### Development
 
-- `npx nx dev dorkroom -- --host=0.0.0.0` - Start development server. **Check if dev server is running on port 4200 before doing this!**
-- `npx nx build dorkroom` - Build production bundle
-- `npx nx serve dorkroom` - Alternative dev server (no hotloading of @dorkroom packages!)
+- `bunx nx dev dorkroom -- --host=0.0.0.0` - Start development server. **Check if dev server is running on port 4200 before doing this!**
+- `bunx nx build dorkroom` - Build production bundle
+- `bunx nx serve dorkroom` - Alternative dev server (no hotloading of @dorkroom packages!)
 
 ### Code Quality (run these after completing tasks)
 
-- `npx nx lint` - Run ESLint
-- `npx nx typecheck` - TypeScript type checking
-- `npx prettier --write .` - Format code
+- `bunx nx lint` - Run ESLint
+- `bunx nx typecheck` - TypeScript type checking
+- `bunx prettier --write .` - Format code
 
 ### Testing
 
-- `npx nx test` - Run Vitest tests
-- `npx nx test --ui` - Run tests with UI
+- `bunx nx test` - Run Vitest tests
+- `bunx nx test --ui` - Run tests with UI
 
 ### Nx Workspace
 
-- `npx nx graph` - Visualize dependencies
-- `npx nx show project dorkroom` - Show available targets
-- `npx nx build` - Build all packages
+- `bunx nx graph` - Visualize dependencies
+- `bunx nx show project dorkroom` - Show available targets
+- `bunx nx build` - Build all packages
 
 ## Architecture
 
