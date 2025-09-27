@@ -12,8 +12,7 @@ import {
 
 // The master API key that has high rate limits
 const SUPABASE_MASTER_API_KEY = process.env.SUPABASE_MASTER_API_KEY;
-const SUPABASE_ENDPOINT =
-  "process.env.SUPABASE_FILMS_ENDPOINT";
+const SUPABASE_ENDPOINT = process.env.SUPABASE_FILMS_ENDPOINT;
 
 // Request timeout in milliseconds (30 seconds)
 const TIMEOUT_MS = 30000;
@@ -94,9 +93,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Validate that we have the API key
+    // Validate that we have the API key and endpoint
     if (!SUPABASE_MASTER_API_KEY) {
       serverlessError("SUPABASE_MASTER_API_KEY environment variable is not set", {
+        requestId,
+      });
+      return res.status(500).json({
+        error: "API configuration error",
+        message: "Missing required environment configuration",
+        requestId,
+      });
+    }
+
+    if (!SUPABASE_ENDPOINT) {
+      serverlessError("SUPABASE_FILMS_ENDPOINT environment variable is not set", {
         requestId,
       });
       return res.status(500).json({
