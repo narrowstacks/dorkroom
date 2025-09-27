@@ -310,7 +310,8 @@
 }
 
 [data-theme='darkroom'] {
-  color-scheme: darkroom;
+  /* 'darkroom' is a custom theme; use dark color-scheme for UA defaults */
+  color-scheme: dark;
 }
 
 :root:not([data-theme]) {

@@ -120,8 +120,7 @@ function PlaceholderPage({
         style={{
           borderColor: 'var(--color-border-secondary)',
           backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
-          color:
-            'color-mix(in oklab, var(--color-text-primary) 80%, transparent)',
+          color: 'var(--color-text-secondary)',
         }}
       >
         Soon
