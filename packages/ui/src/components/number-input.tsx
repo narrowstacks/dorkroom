@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { cn } from '../lib/cn';
+import { colorMixOr } from '../lib/color';
 
 interface NumberInputProps {
   value: string;
@@ -36,7 +37,12 @@ export function NumberInput({
         borderColor: isFocused 
           ? 'var(--color-border-primary)' 
           : 'var(--color-border-secondary)',
-        backgroundColor: 'color-mix(in srgb, var(--color-surface) 20%, transparent)',
+        backgroundColor: colorMixOr(
+          'var(--color-surface)',
+          20,
+          'transparent',
+          'var(--color-surface)'
+        ),
         color: 'var(--color-text-primary)',
         boxShadow: isFocused 
           ? '0 0 0 2px var(--color-border-muted)' 
