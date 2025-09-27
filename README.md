@@ -42,7 +42,7 @@ cd dorkroom-nx
 npm install
 
 # Start development server
-npx nx dev dorkroom -- --host=0.0.0.0
+bunx nx dev dorkroom -- --host=0.0.0.0
 
 # Open http://localhost:4200
 ```
@@ -51,20 +51,20 @@ npx nx dev dorkroom -- --host=0.0.0.0
 
 ```bash
 # Build for production
-npx nx build dorkroom
+bunx nx build dorkroom
 
 # Build all packages
-npx nx build
+bunx nx build
 ```
 
 ### Testing
 
 ```bash
 # Run tests
-npx nx test
+bunx nx test
 
 # Run tests with UI
-npx nx test --ui
+bunx nx test --ui
 ```
 
 ## Technology Stack
@@ -109,9 +109,9 @@ We welcome contributions from the analog photography community!
 3. Make your changes and test thoroughly
 4. Run linting and type checking:
    ```bash
-   npx nx lint
-   npx nx typecheck
-   npx prettier --write .
+   bunx nx lint
+   bunx nx typecheck
+   bunx prettier --write .
    ```
 5. Submit a pull request
 
@@ -121,25 +121,25 @@ This project maintains high code quality standards:
 
 ```bash
 # Lint code
-npx nx lint
+bunx nx lint
 
 # Type checking
-npx nx typecheck
+bunx nx typecheck
 
 # Format code
-npx prettier --write .
+bunx prettier --write .
 ```
 
 ## Project Commands
 
 | Command                                 | Description                    |
 | --------------------------------------- | ------------------------------ |
-| `npx nx dev dorkroom -- --host=0.0.0.0` | Start development server       |
-| `npx nx build dorkroom`                 | Build production bundle        |
-| `npx nx test`                           | Run tests                      |
-| `npx nx lint`                           | Run ESLint                     |
-| `npx nx typecheck`                      | TypeScript checking            |
-| `npx nx graph`                          | Visualize project dependencies |
+| `bunx nx dev dorkroom -- --host=0.0.0.0` | Start development server       |
+| `bunx nx build dorkroom`                 | Build production bundle        |
+| `bunx nx test`                           | Run tests                      |
+| `bunx nx lint`                           | Run ESLint                     |
+| `bunx nx typecheck`                      | TypeScript checking            |
+| `bunx nx graph`                          | Visualize project dependencies |
 
 ## License
 
