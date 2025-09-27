@@ -39,8 +39,9 @@ export const useWarningSystem = (
 
   // Debounced warning updates to prevent flashing
   useEffect(() => {
+    const currentTimeouts = timeouts.current;
     // Clear existing timeouts
-    Object.values(timeouts.current).forEach((timeout) => {
+    Object.values(currentTimeouts).forEach((timeout) => {
       if (timeout) clearTimeout(timeout);
     });
 
@@ -91,7 +92,7 @@ export const useWarningSystem = (
 
     // Cleanup function
     return () => {
-      Object.values(timeouts.current).forEach((timeout) => {
+      Object.values(currentTimeouts).forEach((timeout) => {
         if (timeout) clearTimeout(timeout);
       });
     };
@@ -111,8 +112,9 @@ export const useWarningSystem = (
 
   // Cleanup on unmount
   useEffect(() => {
+    const currentTimeouts = timeouts.current;
     return () => {
-      Object.values(timeouts.current).forEach((timeout) => {
+      Object.values(currentTimeouts).forEach((timeout) => {
         if (timeout) clearTimeout(timeout);
       });
     };

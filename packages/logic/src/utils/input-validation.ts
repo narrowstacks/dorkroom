@@ -25,13 +25,13 @@ export const tryNumber = (v: string): number | null => {
 };
 
 // Debounce utility for input processing
-export const debounce = <T extends (...args: any[]) => any>(
-  func: T,
+export const debounce = <A extends unknown[], R>(
+  func: (...args: A) => R,
   wait: number
-): ((...args: Parameters<T>) => void) => {
+): ((...args: A) => void) => {
   let timeout: ReturnType<typeof setTimeout> | null = null;
 
-  return (...args: Parameters<T>) => {
+  return (...args: A) => {
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
   };

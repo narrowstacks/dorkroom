@@ -6,7 +6,9 @@ export interface FeatureFlags {
 
 const isDevelopment =
   (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') ||
-  (typeof window !== 'undefined' && (window as any).__DORKROOM_DEV__ === true);
+  (typeof window !== 'undefined' &&
+    (window as unknown as { __DORKROOM_DEV__?: boolean }).__DORKROOM_DEV__ ===
+      true);
 
 const DEVELOPMENT_FLAGS: FeatureFlags = {
   CUSTOM_RECIPE_SHARING: true,

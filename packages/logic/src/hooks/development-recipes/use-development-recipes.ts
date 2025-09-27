@@ -268,7 +268,7 @@ export const useDevelopmentRecipes = (
         combo.developerSlug === selectedDeveloper.slug
     );
 
-    combinations.forEach((combo, index) => {
+    combinations.forEach((combo) => {
       // Handle null/undefined dilutionId by using null-safe lookup
       const foundDilution = combo.dilutionId
         ? selectedDeveloper.dilutions?.find((d) => d.id === combo.dilutionId)

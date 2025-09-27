@@ -6,46 +6,66 @@ import {
 } from '../../utils/device-detection';
 
 // Mock window and navigator objects
-const createMockWindow = (overrides: any = {}) => {
+type MockNavigator = {
+  userAgent?: string;
+  maxTouchPoints?: number;
+  share?: unknown;
+};
+
+type MockWindow = {
+  navigator: MockNavigator;
+  innerWidth: number;
+  innerHeight: number;
+  ontouchstart?: unknown;
+} & Record<string, unknown>;
+
+const createMockWindow = (overrides: Partial<MockWindow> = {}): MockWindow => {
   return {
     navigator: {
       userAgent: '',
       maxTouchPoints: 0,
-      ...overrides.navigator
+      ...(overrides.navigator as MockNavigator | undefined),
     },
     innerWidth: 1920,
     innerHeight: 1080,
     ontouchstart: undefined,
-    ...overrides
+    ...overrides,
   };
 };
 
-const createMockNavigator = (overrides: any = {}) => {
+const createMockNavigator = (
+  overrides: Partial<MockNavigator> = {}
+): MockNavigator => {
   return {
     userAgent: '',
     maxTouchPoints: 0,
     share: undefined,
-    ...overrides
+    ...overrides,
   };
 };
 
 describe('device detection', () => {
-  const originalWindow = (global as any).window;
-  const originalNavigator = (global as any).navigator;
+  type MutableGlobal = typeof globalThis & {
+    window?: unknown;
+    navigator?: unknown;
+  };
+  const g = globalThis as MutableGlobal;
+  const originalWindow = g.window;
+  const originalNavigator = g.navigator;
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   afterEach(() => {
-    (global as any).window = originalWindow;
-    (global as any).navigator = originalNavigator;
+    g.window = originalWindow;
+    g.navigator = originalNavigator;
   });
 
   describe('isMobileDevice', () => {
     it('should return false in SSR environment', () => {
       // Properly simulate SSR by unsetting window
-      delete (global as any).window;
+      delete g.window;
       expect(isMobileDevice()).toBe(false);
     });
 

@@ -1,0 +1,163 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement for Dorkroom
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+projects: ["narrowstacks/1"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please provide as much detail as possible to help us understand your request.
+
+  - type: dropdown
+    id: feature-category
+    attributes:
+      label: Feature Category
+      description: What type of feature is this?
+      options:
+        - New Calculator
+        - Calculator Enhancement
+        - User Interface Improvement
+        - Performance Enhancement
+        - Accessibility Improvement
+        - Mobile/Responsive Enhancement
+        - Settings/Preferences
+        - Import/Export Functionality
+        - Documentation
+        - Developer Experience
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature-summary
+    attributes:
+      label: Feature Summary
+      description: A clear and concise description of the feature you'd like to see
+      placeholder: Briefly describe the feature
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem-statement
+    attributes:
+      label: Problem Statement
+      description: What problem would this feature solve? What workflow would it improve?
+      placeholder: |
+        As a [type of user], I want [goal] so that [benefit].
+        
+        Currently, when I [current workflow], I have to [current limitation/problem].
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your proposed solution in detail
+      placeholder: |
+        Describe how you envision this feature working:
+        - What would the user interface look like?
+        - How would users interact with it?
+        - What inputs/outputs would be involved?
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-cases
+    attributes:
+      label: Use Cases
+      description: Provide specific examples of when and how this feature would be used
+      placeholder: |
+        Example scenarios:
+        1. When printing [specific situation]...
+        2. When working with [specific equipment/materials]...
+        3. For photographers who [specific workflow]...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: photography-discipline
+    attributes:
+      label: Photography Discipline
+      description: Which area of analog photography does this feature relate to?
+      multiple: true
+      options:
+        - Black & White Printing
+        - Color Printing
+        - Large Format Photography
+        - Medium Format Photography
+        - 35mm Photography
+        - Alternative Processes
+        - Film Development
+        - Contact Printing
+        - Enlarging
+        - Digital Negative Making
+        - Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives-considered
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions or workarounds?
+      placeholder: |
+        - Alternative approach 1: [description]
+        - Alternative approach 2: [description]
+        - Current workaround: [how you currently handle this]
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to your workflow?
+      options:
+        - Low - Nice to have
+        - Medium - Would improve my workflow
+        - High - Essential for my workflow
+        - Critical - Blocking my use of Dorkroom
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-considerations
+    attributes:
+      label: Technical Considerations
+      description: Any technical aspects or constraints to consider?
+      placeholder: |
+        - Performance considerations
+        - Compatibility requirements
+        - Integration with existing calculators
+        - Mathematical formulas involved
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other context, mockups, references, or examples
+      placeholder: |
+        - Links to similar tools or references
+        - Mockups or sketches
+        - Mathematical formulas or calculations
+        - Screenshots or examples
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this feature hasn't been requested before
+          required: true
+        - label: This feature would benefit the broader analog photography community
+          required: true
+        - label: I have provided clear use cases and examples above
+          required: true

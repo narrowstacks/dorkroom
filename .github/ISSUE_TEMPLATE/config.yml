@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/narrowstacks/dorkroom-nx/discussions
+    about: Ask questions, share tips, or discuss analog photography techniques with the community
+  - name: 🌐 Live Demo
+    url: https://dorkroom.app
+    about: Try Dorkroom calculators online before reporting issues
+  - name: 📖 Documentation
+    url: https://github.com/narrowstacks/dorkroom-nx#readme
+    about: Read the project documentation and setup instructions
