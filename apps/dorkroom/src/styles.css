@@ -39,51 +39,29 @@
   --color-visualization-preview: #ff0000;
   --color-visualization-border: #a90000;
   --color-visualization-overlay: rgba(0, 0, 0, 0.5);
-  --gradient-card-primary: linear-gradient(
-    135deg,
-    rgba(255, 0, 0, 0.45),
-    rgba(82, 0, 8, 0.33)
-  );
-  --gradient-card-secondary: linear-gradient(
-    135deg,
-    rgba(255, 0, 0, 0.42),
-    rgba(82, 0, 8, 0.35)
-  );
-  --gradient-card-accent: linear-gradient(
-    135deg,
-    rgba(255, 0, 0, 0.46),
-    rgba(82, 0, 8, 0.33)
-  );
-  --gradient-card-highlight: linear-gradient(
-    135deg,
-    rgba(255, 0, 0, 0.48),
-    rgba(82, 0, 8, 0.36)
-  );
-  --gradient-card-neutral: linear-gradient(
-    135deg,
-    rgba(255, 0, 0, 0.56),
-    rgba(82, 0, 8, 0.44)
-  );
-  --gradient-card-info: linear-gradient(
-    135deg,
-    rgba(255, 0, 0, 0.62),
-    rgba(82, 0, 8, 0.46)
-  );
-  --gradient-card-warning: linear-gradient(
-    135deg,
-    rgba(255, 0, 0, 0.64),
-    rgba(82, 0, 8, 0.47)
-  );
-  --gradient-card-error: linear-gradient(
-    135deg,
-    rgba(255, 0, 0, 0.64),
-    rgba(82, 0, 8, 0.47)
-  );
+  --color-paper-background: #000000;
+  --color-paper-border: #ff0000;
+  --color-print-background: #000000;
+  --color-print-border: #ff0000;
+  --print-border-style: 2px dashed;
+  --blade-background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8"><path d="M0 0L8 8M0 8L8 0" stroke="%23ff0000" stroke-width="1" fill="none"/></svg>');
+  --blade-border: 1px solid #ff0000;
+  --blade-shadow: none;
+  --gradient-card-primary: #000000;
+  --gradient-card-secondary: #000000;
+  --gradient-card-accent: #000000;
+  --gradient-card-highlight: #000000;
+  --gradient-card-neutral: #000000;
+  --gradient-card-info: #000000;
+  --gradient-card-warning: #000000;
+  --gradient-card-error: #000000;
   --color-tag-official-ilford: #ff0000;
   --color-tag-official-kodak: #ff0000;
   --color-tag-official-fuji: #ff0000;
   --color-tag-community: #ff0000;
   --color-tag-default: #a1a1aa;
+  --toggle-pill-border: 1px solid #ff0000;
+  --toggle-circle-border: 1px solid #ff0000;
 }
 
 /* Dark theme (default) */
@@ -110,6 +88,14 @@
   --color-visualization-preview: #666666;
   --color-visualization-border: #353535;
   --color-visualization-overlay: rgba(0, 0, 0, 0.5);
+  --color-paper-background: #ffffff;
+  --color-paper-border: rgba(255, 255, 255, 0.2);
+  --color-print-background: #666666;
+  --color-print-border: transparent;
+  --print-border-style: none;
+  --blade-background: #353535;
+  --blade-border: none;
+  --blade-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   --gradient-card-primary: linear-gradient(
     135deg,
     rgba(110, 243, 164, 0.45),
@@ -181,6 +167,14 @@
   --color-visualization-preview: #d4d4d8;
   --color-visualization-border: #a1a1aa;
   --color-visualization-overlay: rgba(255, 255, 255, 0.5);
+  --color-paper-background: #ffffff;
+  --color-paper-border: rgba(9, 9, 11, 0.18);
+  --color-print-background: #d4d4d8;
+  --color-print-border: transparent;
+  --print-border-style: none;
+  --blade-background: #a1a1aa;
+  --blade-border: none;
+  --blade-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   --gradient-card-primary: linear-gradient(
     135deg,
     rgba(45, 122, 74, 0.15),
@@ -252,6 +246,14 @@
   --color-visualization-preview: #666666;
   --color-visualization-border: #353535;
   --color-visualization-overlay: rgba(0, 0, 0, 0.5);
+  --color-paper-background: #ffffff;
+  --color-paper-border: rgba(255, 255, 255, 0.2);
+  --color-print-background: #666666;
+  --color-print-border: transparent;
+  --print-border-style: none;
+  --blade-background: #353535;
+  --blade-border: none;
+  --blade-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   --gradient-card-primary: linear-gradient(
     135deg,
     rgba(110, 243, 164, 0.45),
@@ -462,22 +464,7 @@
   }
 
   [data-theme='darkroom'] .backdrop-gradient {
-    background: radial-gradient(
-        circle at 20% 20%,
-        rgba(255, 0, 0, 0.12),
-        transparent 60%
-      ),
-      radial-gradient(
-        circle at 80% 20%,
-        rgba(255, 0, 0, 0.08),
-        transparent 55%
-      ),
-      radial-gradient(
-        circle at 40% 80%,
-        rgba(255, 0, 0, 0.06),
-        transparent 60%
-      ),
-      #000000;
+    background: #000000;
   }
 
   .card-ring {
@@ -664,5 +651,99 @@
   }
   .bg-gradient-card-error {
     background: var(--gradient-card-error);
+  }
+
+  /* Slider styling with theme support */
+  .slider-track {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: var(--color-border-secondary);
+    border-radius: 4px;
+  }
+
+  .slider-track::-webkit-slider-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 4px;
+    border: none;
+  }
+
+  .slider-track::-moz-range-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 4px;
+    border: none;
+  }
+
+  .slider-track::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--color-text-primary);
+    cursor: pointer;
+    border: none;
+  }
+
+  .slider-track::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--color-text-primary);
+    cursor: pointer;
+    border: none;
+  }
+
+  /* Darkroom theme: dashed red line for slider track */
+  [data-theme='darkroom'] .slider-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 0;
+    position: relative;
+  }
+
+  [data-theme='darkroom'] .slider-track::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    transform: translateY(-50%);
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--color-primary) 0px,
+      var(--color-primary) 8px,
+      transparent 8px,
+      transparent 16px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  [data-theme='darkroom'] .slider-track::-webkit-slider-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 0;
+  }
+
+  [data-theme='darkroom'] .slider-track::-moz-range-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 0;
+  }
+
+  [data-theme='darkroom'] .slider-track::-webkit-slider-thumb {
+    background: var(--color-primary);
+    position: relative;
+    z-index: 2;
+  }
+
+  [data-theme='darkroom'] .slider-track::-moz-range-thumb {
+    background: var(--color-primary);
+    position: relative;
+    z-index: 2;
   }
 }

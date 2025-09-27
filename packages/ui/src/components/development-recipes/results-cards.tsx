@@ -92,7 +92,7 @@ export function DevelopmentResultsCards({
               backgroundColor:
                 row.source === 'custom'
                   ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
-                  : 'var(--color-surface-muted)',
+                  : 'rgba(var(--color-background-rgb), 0.25)',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor =
@@ -102,7 +102,7 @@ export function DevelopmentResultsCards({
               e.currentTarget.style.backgroundColor =
                 row.source === 'custom'
                   ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
-                  : 'var(--color-border-secondary)';
+                  : 'rgba(var(--color-background-rgb), 0.3)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor =
@@ -112,7 +112,7 @@ export function DevelopmentResultsCards({
               e.currentTarget.style.backgroundColor =
                 row.source === 'custom'
                   ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
-                  : 'var(--color-surface-muted)';
+                  : 'rgba(var(--color-background-rgb), 0.15)';
             }}
           >
             <div className="flex justify-between items-start">
@@ -355,7 +355,7 @@ export function DevelopmentResultsCards({
           className="rounded-2xl border p-4 text-center text-sm"
           style={{
             borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'var(--color-border-muted)',
+            backgroundColor: 'rgba(var(--color-background-rgb), 0.15)',
             color: 'var(--color-text-tertiary)',
           }}
         >
