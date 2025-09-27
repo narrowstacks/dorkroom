@@ -7,6 +7,7 @@ import {
   isValidCustomRecipeEncoding,
 } from '../../utils/recipe-sharing';
 import { debugLog } from '../../utils/debug-logger';
+import { shouldUseWebShare } from '../../utils/device-detection';
 
 export interface CustomRecipeShareOptions {
   recipe: CustomRecipe;
@@ -19,6 +20,7 @@ export interface CustomRecipeShareResult {
   error?: string;
   method?: 'webShare' | 'clipboard';
   url?: string;
+  showToast?: boolean;
 }
 
 export interface ImportedCustomRecipe {
@@ -104,10 +106,8 @@ export const useCustomRecipeSharing = () => {
           return { success: false, error: 'Failed to generate share URL' };
         }
 
-        if (
-          typeof navigator !== 'undefined' &&
-          typeof navigator.share === 'function'
-        ) {
+        // Use Web Share API only on mobile devices
+        if (shouldUseWebShare()) {
           try {
             await navigator.share({
               title: `Custom Development Recipe: ${options.recipe.name}`,
@@ -124,7 +124,7 @@ export const useCustomRecipeSharing = () => {
         }
 
         await copyToClipboard(shareUrl);
-        return { success: true, method: 'clipboard', url: shareUrl };
+        return { success: true, method: 'clipboard', url: shareUrl, showToast: true };
       } catch (error) {
         const errorMessage =
           error instanceof Error
@@ -147,7 +147,7 @@ export const useCustomRecipeSharing = () => {
         }
 
         await copyToClipboard(shareUrl);
-        return { success: true, method: 'clipboard', url: shareUrl };
+        return { success: true, method: 'clipboard', url: shareUrl, showToast: true };
       } catch (error) {
         const errorMessage =
           error instanceof Error
@@ -193,10 +193,7 @@ export const useCustomRecipeSharing = () => {
   }, []);
 
   const getSharingMethodDescription = useCallback(async (): Promise<string> => {
-    if (
-      typeof navigator !== 'undefined' &&
-      typeof navigator.share === 'function'
-    ) {
+    if (shouldUseWebShare()) {
       return 'Share recipe';
     }
 
@@ -204,9 +201,8 @@ export const useCustomRecipeSharing = () => {
   }, []);
 
   const isSharingAvailable = useCallback(async (): Promise<boolean> => {
-    return (
-      typeof navigator !== 'undefined' && typeof navigator.share === 'function'
-    );
+    // Sharing is always available - either via Web Share API or clipboard
+    return true;
   }, []);
 
   return {

@@ -1,5 +1,6 @@
 import { AlertTriangle, AlertCircle } from 'lucide-react';
 import { cn } from '../lib/cn';
+import { colorMixOr } from '../lib/color';
 
 interface WarningAlertProps {
   message: string;
@@ -17,22 +18,23 @@ export function WarningAlert({
   return (
     <div
       className={cn('flex items-center gap-3 rounded-lg border p-3', className)}
+      role={action === 'error' ? 'alert' : 'status'}
       style={{
         borderColor:
           action === 'error'
-            ? 'color-mix(in srgb, var(--color-semantic-error) 50%, transparent)'
-            : 'color-mix(in srgb, var(--color-semantic-warning) 50%, transparent)',
+            ? colorMixOr('var(--color-semantic-error)', 50, 'transparent', 'var(--color-border-secondary)')
+            : colorMixOr('var(--color-semantic-warning)', 50, 'transparent', 'var(--color-border-secondary)'),
         backgroundColor:
           action === 'error'
-            ? 'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)'
-            : 'color-mix(in srgb, var(--color-semantic-warning) 10%, transparent)',
+            ? colorMixOr('var(--color-semantic-error)', 10, 'transparent', 'var(--color-border-muted)')
+            : colorMixOr('var(--color-semantic-warning)', 10, 'transparent', 'var(--color-border-muted)'),
         color:
           action === 'error'
-            ? 'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))'
-            : 'color-mix(in srgb, var(--color-semantic-warning) 80%, var(--color-text-primary))',
+            ? colorMixOr('var(--color-semantic-error)', 80, 'var(--color-text-primary)', 'var(--color-semantic-error)')
+            : colorMixOr('var(--color-semantic-warning)', 80, 'var(--color-text-primary)', 'var(--color-semantic-warning)'),
       }}
     >
-      <Icon className="h-4 w-4 flex-shrink-0" />
+      <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
       <span className="text-sm">{message}</span>
     </div>
   );

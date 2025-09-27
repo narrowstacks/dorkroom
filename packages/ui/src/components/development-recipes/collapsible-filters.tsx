@@ -24,6 +24,8 @@ interface CollapsibleFiltersProps {
   showDeveloperTypeFilter?: boolean;
   showDilutionFilter?: boolean;
   defaultCollapsed?: boolean;
+  favoritesOnly?: boolean;
+  onFavoritesOnlyChange?: (value: boolean) => void;
 }
 
 export function CollapsibleFilters({
@@ -46,6 +48,8 @@ export function CollapsibleFilters({
   showDeveloperTypeFilter = true,
   showDilutionFilter = true,
   defaultCollapsed = true,
+  favoritesOnly = false,
+  onFavoritesOnlyChange,
 }: CollapsibleFiltersProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
@@ -61,7 +65,8 @@ export function CollapsibleFilters({
     dilutionFilter ||
     isoFilter ||
     customRecipeFilter !== 'all' ||
-    tagFilter;
+    tagFilter ||
+    favoritesOnly;
 
   const activeFilterCount = [
     developerTypeFilter,
@@ -69,55 +74,97 @@ export function CollapsibleFilters({
     isoFilter,
     customRecipeFilter !== 'all' ? customRecipeFilter : '',
     tagFilter,
+    favoritesOnly ? 'favorites' : '',
   ].filter(Boolean).length;
 
   return (
     <div
       className={cn(
-        'relative z-0 rounded-2xl border border-white/10 bg-white/5 shadow-subtle backdrop-blur',
+        'relative z-0 rounded-2xl border shadow-subtle backdrop-blur',
         className
       )}
+      style={{
+        borderColor: 'var(--color-border-secondary)',
+        backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',
+      }}
     >
       <button
         type="button"
         onClick={() => setIsCollapsed(!isCollapsed)}
         className={cn(
-          'flex w-full items-center justify-between p-4 text-left transition hover:bg-white/5',
+          'flex w-full items-center justify-between p-4 text-left transition',
           isCollapsed ? 'rounded-2xl' : 'rounded-t-2xl'
         )}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor =
+            'rgba(var(--color-background-rgb), 0.3)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'var(--collapsible-filters-bg-hover-leave, transparent)';
+        }}
       >
         <div>
           <div className="flex items-center gap-3">
-            <h3 className="text-base font-semibold text-white">
+            <h3
+              className="text-base font-semibold"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
               Advanced Filters
             </h3>
             {hasActiveFilters && (
-              <div className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium text-white">
+              <div
+                className="rounded-full px-2 py-0.5 text-xs font-medium"
+                style={{
+                  backgroundColor: 'rgba(var(--color-background-rgb), 0.2)',
+                  color: 'var(--color-text-primary)',
+                }}
+              >
                 {activeFilterCount} active
               </div>
             )}
           </div>
-          <p className="text-sm text-white/60">
+          <p
+            className="text-sm"
+            style={{ color: 'var(--color-text-tertiary)' }}
+          >
             Refine results by developer type, dilution, ISO, recipe type, and
             tags.
           </p>
         </div>
         <ChevronDown
           className={cn(
-            'h-5 w-5 text-white/60 transition-transform',
+            'h-5 w-5 transition-transform',
             !isCollapsed && 'rotate-180'
           )}
+          style={{ color: 'var(--color-text-tertiary)' }}
         />
       </button>
 
       {!isCollapsed && (
-        <div className="border-t border-white/10 p-6">
+        <div
+          className="border-t p-6"
+          style={{ borderColor: 'var(--color-border-secondary)' }}
+        >
           <div className="mb-2 flex items-center justify-between">
             {hasActiveFilters && (
               <button
                 type="button"
                 onClick={onClearFilters}
-                className="rounded-full border border-white/20 px-3 py-1.5 text-sm font-medium text-white/70 transition hover:border-white/40 hover:text-white"
+                className="rounded-full border px-3 py-1.5 text-sm font-medium transition"
+                style={{
+                  borderColor: 'var(--color-border-secondary)',
+                  color: 'var(--color-text-secondary)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor =
+                    'var(--color-border-primary)';
+                  e.currentTarget.style.color = 'var(--color-text-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor =
+                    'var(--color-border-secondary)';
+                  e.currentTarget.style.color = 'var(--color-text-secondary)';
+                }}
               >
                 Clear all filters
               </button>
@@ -161,6 +208,21 @@ export function CollapsibleFilters({
               onValueChange={onTagFilterChange}
               items={tagOptions}
             />
+            {onFavoritesOnlyChange && (
+              <div className="flex items-end">
+                <label
+                  className="flex items-center gap-2 text-xs"
+                  style={{ color: 'var(--color-text-tertiary)' }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={favoritesOnly}
+                    onChange={(e) => onFavoritesOnlyChange(e.target.checked)}
+                  />
+                  Favorites only
+                </label>
+              </div>
+            )}
           </div>
         </div>
       )}

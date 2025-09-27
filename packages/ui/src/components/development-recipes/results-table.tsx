@@ -1,9 +1,11 @@
-import { Beaker, ExternalLink, Share2, Edit2, Trash2 } from 'lucide-react';
+import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
 import type { Combination, Film, Developer } from '@dorkroom/api';
 import { cn } from '../../lib/cn';
+import { colorMixOr } from '../../lib/color';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { Tag } from '../ui/tag';
+import { ShareButton } from '../share-button';
 
 export interface DevelopmentCombinationView {
   combination: Combination;
@@ -17,10 +19,12 @@ export interface DevelopmentCombinationView {
 interface DevelopmentResultsTableProps {
   rows: DevelopmentCombinationView[];
   onSelectCombination?: (view: DevelopmentCombinationView) => void;
-  onShareCombination?: (view: DevelopmentCombinationView) => void;
+  onShareCombination?: (view: DevelopmentCombinationView) => void | Promise<unknown>;
   onCopyCombination?: (view: DevelopmentCombinationView) => void;
   onEditCustomRecipe?: (view: DevelopmentCombinationView) => void;
   onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;
+  isFavorite?: (view: DevelopmentCombinationView) => boolean;
+  onToggleFavorite?: (view: DevelopmentCombinationView) => void;
   sortBy?: string;
   sortDirection?: 'asc' | 'desc';
   onSort?: (
@@ -75,6 +79,8 @@ export function DevelopmentResultsTable({
   onCopyCombination,
   onEditCustomRecipe,
   onDeleteCustomRecipe,
+  isFavorite,
+  onToggleFavorite,
   sortBy = 'filmName',
   sortDirection = 'asc',
   onSort,
@@ -97,9 +103,13 @@ export function DevelopmentResultsTable({
         onClick={() => onSort?.(key)}
         className={cn(
           'flex w-full items-center gap-1 text-xs uppercase tracking-wide transition',
-          align === 'right' ? 'justify-end' : 'justify-start',
-          isActive ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)'
+          align === 'right' ? 'justify-end' : 'justify-start'
         )}
+        style={{
+          color: isActive
+            ? 'var(--color-text-primary)'
+            : 'var(--color-text-tertiary)',
+        }}
       >
         {label}
         {isActive && <span>{sortDirection === 'asc' ? '▲' : '▼'}</span>}
@@ -109,26 +119,27 @@ export function DevelopmentResultsTable({
 
   return (
     <div
-      className="overflow-hidden rounded-2xl border shadow-subtle"
+      className="overflow-visible rounded-2xl border shadow-subtle"
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor: 'var(--color-border-muted)',
+        backgroundColor: 'rgba(var(--color-surface-muted-rgb), 0.2)',
       }}
     >
-      <table
-        className="min-w-full divide-y text-sm"
-        style={
-          {
-            '--tw-divide-opacity': '1',
-            divideColor: 'var(--color-border-secondary)',
-            color: 'var(--color-text-secondary)',
-          } as React.CSSProperties
-        }
-      >
+      <div className="overflow-hidden rounded-2xl">
+        <table
+          className="min-w-full divide-y text-sm"
+          style={
+            {
+              '--tw-divide-opacity': '0.15',
+              divideColor: 'var(--color-border-secondary)',
+              color: 'var(--color-border-secondary)',
+            } as React.CSSProperties
+          }
+        >
         <thead
           className="text-xs uppercase tracking-wide"
           style={{
-            backgroundColor: 'var(--color-border-secondary)',
+            backgroundColor: 'rgba(var(--color-surface-muted-rgb), 0.15)',
             color: 'var(--color-text-tertiary)',
           }}
         >
@@ -153,7 +164,15 @@ export function DevelopmentResultsTable({
             <th className="px-3 py-3 text-left">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">
+        <tbody
+          className="divide-y"
+          style={
+            {
+              '--tw-divide-opacity': '0.15',
+              divideColor: 'var(--color-text-secondary)',
+            } as React.CSSProperties
+          }
+        >
           {rows.map((row, index) => {
             const { combination, film, developer } = row;
             return (
@@ -174,20 +193,20 @@ export function DevelopmentResultsTable({
                 style={{
                   backgroundColor:
                     row.source === 'custom'
-                      ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
-                      : undefined,
+                      ? colorMixOr('var(--color-accent)', 15, 'transparent', 'var(--color-border-muted)')
+                      : 'rgba(var(--color-background-rgb), 0.25)',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor =
                     row.source === 'custom'
-                      ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
-                      : 'var(--color-border-muted)';
+                      ? colorMixOr('var(--color-accent)', 25, 'transparent', 'var(--color-border-secondary)')
+                      : 'rgba(var(--color-background-rgb), 0.35)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor =
                     row.source === 'custom'
-                      ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
-                      : 'transparent';
+                      ? colorMixOr('var(--color-accent)', 15, 'transparent', 'var(--color-border-muted)')
+                      : 'rgba(var(--color-background-rgb), 0.25)';
                 }}
               >
                 <td className="px-4 py-4 align-top">
@@ -228,10 +247,18 @@ export function DevelopmentResultsTable({
                     <div
                       className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
                       style={{
-                        backgroundColor:
-                          'color-mix(in srgb, var(--color-accent) 10%, transparent)',
-                        color:
-                          'color-mix(in srgb, var(--color-accent) 80%, var(--color-text-primary))',
+                        backgroundColor: colorMixOr(
+                          'var(--color-accent)',
+                          10,
+                          'transparent',
+                          'var(--color-border-muted)'
+                        ),
+                        color: colorMixOr(
+                          'var(--color-accent)',
+                          80,
+                          'var(--color-text-primary)',
+                          'var(--color-text-primary)'
+                        ),
                       }}
                     >
                       <Beaker className="h-3 w-3" /> Custom
@@ -297,12 +324,49 @@ export function DevelopmentResultsTable({
                           'var(--color-text-tertiary)';
                       }}
                     >
-                      <ExternalLink className="h-3 w-3" /> Source
+                      <ExternalLink className="h-3 w-3" aria-hidden="true" /> Source
                     </a>
                   )}
                 </td>
                 <td className="px-3 py-4 align-top">
                   <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      title={isFavorite?.(row) ? 'Remove from favorites' : 'Add to favorites'}
+                      aria-pressed={Boolean(isFavorite?.(row))}
+                      aria-label={
+                        isFavorite?.(row)
+                          ? 'Remove from favorites'
+                          : 'Add to favorites'
+                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleFavorite?.(row);
+                      }}
+                      className="inline-flex items-center justify-center rounded-md p-1.5 transition"
+                      style={{
+                        backgroundColor: 'var(--color-surface-muted)',
+                        color: isFavorite?.(row)
+                          ? 'var(--color-semantic-warning)'
+                          : 'var(--color-text-tertiary)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-border-secondary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-surface-muted)';
+                      }}
+                    >
+                      <Star
+                        className="h-4 w-4"
+                        aria-hidden="true"
+                        style={{
+                          fill: isFavorite?.(row)
+                            ? 'var(--color-semantic-warning)'
+                            : 'transparent',
+                        }}
+                      />
+                    </button>
                     {row.source === 'custom' ? (
                       <>
                         <button
@@ -311,9 +375,10 @@ export function DevelopmentResultsTable({
                             e.stopPropagation();
                             onEditCustomRecipe?.(row);
                           }}
-                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition"
+                          aria-label="Edit custom recipe"
+                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
                           style={{
-                            backgroundColor: 'var(--color-border-muted)',
+                            backgroundColor: 'var(--color-surface-muted)',
                             color: 'var(--color-text-secondary)',
                           }}
                           onMouseEnter={(e) => {
@@ -324,7 +389,7 @@ export function DevelopmentResultsTable({
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor =
-                              'var(--color-border-muted)';
+                              'var(--color-surface-muted)';
                             e.currentTarget.style.color =
                               'var(--color-text-secondary)';
                           }}
@@ -339,24 +404,49 @@ export function DevelopmentResultsTable({
                             e.stopPropagation();
                             onDeleteCustomRecipe?.(row);
                           }}
-                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition"
+                          aria-label="Delete custom recipe"
+                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
                           style={{
-                            backgroundColor:
-                              'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)',
-                            color:
-                              'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))',
+                            backgroundColor: colorMixOr(
+                              'var(--color-semantic-error)',
+                              10,
+                              'transparent',
+                              'var(--color-border-muted)'
+                            ),
+                            color: colorMixOr(
+                              'var(--color-semantic-error)',
+                              80,
+                              'var(--color-text-primary)',
+                              'var(--color-semantic-error)'
+                            ),
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'color-mix(in srgb, var(--color-semantic-error) 20%, transparent)';
-                            e.currentTarget.style.color =
-                              'color-mix(in srgb, var(--color-semantic-error) 90%, var(--color-text-primary))';
+                            e.currentTarget.style.backgroundColor = colorMixOr(
+                              'var(--color-semantic-error)',
+                              20,
+                              'transparent',
+                              'var(--color-border-secondary)'
+                            );
+                            e.currentTarget.style.color = colorMixOr(
+                              'var(--color-semantic-error)',
+                              90,
+                              'var(--color-text-primary)',
+                              'var(--color-semantic-error)'
+                            );
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)';
-                            e.currentTarget.style.color =
-                              'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))';
+                            e.currentTarget.style.backgroundColor = colorMixOr(
+                              'var(--color-semantic-error)',
+                              10,
+                              'transparent',
+                              'var(--color-border-muted)'
+                            );
+                            e.currentTarget.style.color = colorMixOr(
+                              'var(--color-semantic-error)',
+                              80,
+                              'var(--color-text-primary)',
+                              'var(--color-semantic-error)'
+                            );
                           }}
                           title="Delete custom recipe"
                         >
@@ -365,18 +455,14 @@ export function DevelopmentResultsTable({
                         </button>
                       </>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onShareCombination?.(row);
-                        }}
-                        className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-1 text-xs text-white/70 transition hover:bg-white/10 hover:text-white"
-                        title="Share recipe"
-                      >
-                        <Share2 className="h-3 w-3" />
-                        Share
-                      </button>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <ShareButton
+                          onClick={() => onShareCombination?.(row)}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs"
+                        />
+                      </div>
                     )}
                   </div>
                 </td>
@@ -396,7 +482,8 @@ export function DevelopmentResultsTable({
             </tr>
           )}
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
   );
 }

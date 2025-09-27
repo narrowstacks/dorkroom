@@ -85,7 +85,7 @@ export function Modal({
               e.currentTarget.style.color = 'var(--color-text-primary)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.backgroundColor = 'var(--modal-close-bg-hover-leave, transparent)';
               e.currentTarget.style.color = 'var(--color-text-muted)';
             }}
             aria-label="Close"

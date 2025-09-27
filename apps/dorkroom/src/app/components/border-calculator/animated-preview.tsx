@@ -27,7 +27,6 @@ interface BladeProps {
   position: 'left' | 'right' | 'top' | 'bottom';
   positionPercent: number;
   thickness: number;
-  borderColor: string;
   opacity: number;
 }
 
@@ -36,15 +35,15 @@ const AnimatedBlade = ({
   position,
   positionPercent,
   thickness,
-  borderColor,
   opacity,
 }: BladeProps) => {
   const baseStyle = {
     position: 'absolute' as const,
-    backgroundColor: borderColor,
+    background: 'var(--blade-background)',
+    border: 'var(--blade-border)',
     opacity,
     transition: 'all 0.15s ease-in-out',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)', // Consistent dark shadow
+    boxShadow: 'var(--blade-shadow)',
     zIndex: 10,
   };
 
@@ -78,11 +77,8 @@ export function AnimatedPreview({
   calculation,
   showBlades = true,
   showBladeReadings = false,
-  borderColor = 'var(--color-visualization-border)',
   className,
 }: AnimatedPreviewProps) {
-  // Blades should always be dark grey to represent real-life blade color
-  const bladeColor = '#353535';
   const [animatedValues, setAnimatedValues] = useState({
     printScale: { x: 0, y: 0 },
     printTranslate: { x: 0, y: 0 },
@@ -184,7 +180,8 @@ export function AnimatedPreview({
 
   const printStyle = {
     position: 'absolute' as const,
-    backgroundColor: 'var(--color-visualization-preview)',
+    backgroundColor: 'var(--color-print-background)',
+    border: 'var(--print-border-style) var(--color-print-border)',
     left: 0,
     top: 0,
     width: staticDimensions.width,
@@ -198,14 +195,15 @@ export function AnimatedPreview({
 
   return (
     <div
-      className={`relative bg-white overflow-hidden mx-auto ${className}`}
+      className={`relative overflow-hidden mx-auto ${className}`}
       style={staticDimensions}
     >
       {/* Paper background */}
       <div
-        className="absolute inset-0 bg-white"
+        className="absolute inset-0"
         style={{
-          borderColor: borderColor,
+          backgroundColor: 'var(--color-paper-background)',
+          border: '1px solid var(--color-paper-border)',
         }}
       />
 
@@ -220,7 +218,6 @@ export function AnimatedPreview({
             position="left"
             positionPercent={transformValues.leftBorderPercent}
             thickness={bladeThickness}
-            borderColor={bladeColor}
             opacity={animatedValues.bladeOpacity}
           />
           <AnimatedBlade
@@ -228,7 +225,6 @@ export function AnimatedPreview({
             position="right"
             positionPercent={transformValues.rightBorderPercent}
             thickness={bladeThickness}
-            borderColor={bladeColor}
             opacity={animatedValues.bladeOpacity}
           />
           <AnimatedBlade
@@ -236,7 +232,6 @@ export function AnimatedPreview({
             position="top"
             positionPercent={transformValues.topBorderPercent}
             thickness={bladeThickness}
-            borderColor={bladeColor}
             opacity={animatedValues.bladeOpacity}
           />
           <AnimatedBlade
@@ -244,7 +239,6 @@ export function AnimatedPreview({
             position="bottom"
             positionPercent={transformValues.bottomBorderPercent}
             thickness={bladeThickness}
-            borderColor={bladeColor}
             opacity={animatedValues.bladeOpacity}
           />
         </>

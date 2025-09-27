@@ -9,7 +9,7 @@ interface ResultRowProps {
 export function ResultRow({ label, value, className }: ResultRowProps) {
   return (
     <div className={cn('flex justify-between items-center py-1', className)}>
-      <span className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+      <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
         {label}
       </span>
       <span

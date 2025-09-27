@@ -261,8 +261,7 @@ export function MobileBorderCalculator({
     <div
       className="min-h-dvh px-4 pb-24 pt-10"
       style={{
-        background:
-          'linear-gradient(to bottom right, var(--color-surface-muted), var(--color-background), var(--color-background))',
+        background: 'var(--color-background)',
         color: 'var(--color-text-primary)',
       }}
     >
@@ -271,8 +270,7 @@ export function MobileBorderCalculator({
         <div
           className="rounded-3xl p-[1px] shadow-[0_30px_90px_-40px_var(--color-visualization-overlay)] backdrop-blur-sm"
           style={{
-            background:
-              'linear-gradient(to bottom right, var(--color-border-primary), var(--color-border-muted), transparent)',
+            background: 'var(--color-border-primary)',
           }}
         >
           <div
@@ -295,7 +293,7 @@ export function MobileBorderCalculator({
           className="rounded-3xl border p-6 shadow-[0_35px_110px_-50px_var(--color-visualization-overlay)] backdrop-blur-lg"
           style={{
             borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'var(--color-border-muted)',
+            backgroundColor: 'var(--color-background)',
           }}
         >
           <AnimatedPreview
@@ -338,9 +336,7 @@ export function MobileBorderCalculator({
           className="rounded-3xl border p-6 backdrop-blur-lg space-y-5"
           style={{
             borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'var(--color-surface-muted)',
-            background:
-              'linear-gradient(to bottom right, var(--color-surface-muted), var(--color-surface), var(--color-background))',
+            background: 'var(--color-surface)',
             boxShadow: '0 40px 120px -60px var(--color-visualization-overlay)',
           }}
         >

@@ -395,11 +395,9 @@ export default function BorderCalculatorPage() {
                   className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 hover:brightness-110"
                   style={{
                     color: 'var(--color-accent)',
-                    borderColor:
-                      'color-mix(in oklab, var(--color-accent) 40%, transparent)',
+                    borderColor: 'var(--color-accent)',
                     borderWidth: 1,
-                    backgroundColor:
-                      'color-mix(in oklab, var(--color-accent) 12%, transparent)',
+                    backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
                   }}
                 >
                   <RotateCcw className="h-4 w-4" />
@@ -411,12 +409,9 @@ export default function BorderCalculatorPage() {
                     className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
                     style={{
                       borderWidth: 1,
-                      borderColor:
-                        'color-mix(in oklab, var(--color-highlight) 30%, transparent)',
-                      backgroundColor:
-                        'color-mix(in oklab, var(--color-highlight) 10%, transparent)',
-                      color:
-                        'color-mix(in oklab, var(--color-highlight) 85%, var(--color-text-primary))',
+                      borderColor: 'var(--color-border-secondary)',
+                      backgroundColor: 'var(--color-border-muted)',
+                      color: 'var(--color-text-primary)',
                     }}
                   >
                     <strong className="font-semibold">Rotate your easel</strong>
@@ -431,12 +426,9 @@ export default function BorderCalculatorPage() {
                     className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
                     style={{
                       borderWidth: 1,
-                      borderColor:
-                        'color-mix(in oklab, var(--color-secondary) 30%, transparent)',
-                      backgroundColor:
-                        'color-mix(in oklab, var(--color-secondary) 10%, transparent)',
-                      color:
-                        'color-mix(in oklab, var(--color-secondary) 85%, var(--color-text-primary))',
+                      borderColor: 'var(--color-border-secondary)',
+                      backgroundColor: 'var(--color-border-muted)',
+                      color: 'var(--color-text-primary)',
                     }}
                   >
                     <strong className="font-semibold">
@@ -743,11 +735,9 @@ export default function BorderCalculatorPage() {
                     className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 hover:brightness-110"
                     style={{
                       color: 'var(--color-primary)',
-                      borderColor:
-                        'color-mix(in oklab, var(--color-primary) 40%, transparent)',
+                      borderColor: 'var(--color-primary)',
                       borderWidth: 1,
-                      backgroundColor:
-                        'color-mix(in oklab, var(--color-primary) 12%, transparent)',
+                      backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
                     }}
                   >
                     <Save className="h-4 w-4" />
@@ -759,11 +749,9 @@ export default function BorderCalculatorPage() {
                     className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
                     style={{
                       color: 'var(--color-secondary)',
-                      borderColor:
-                        'color-mix(in oklab, var(--color-secondary) 40%, transparent)',
+                      borderColor: 'var(--color-secondary)',
                       borderWidth: 1,
-                      backgroundColor:
-                        'color-mix(in oklab, var(--color-secondary) 12%, transparent)',
+                      backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
                     }}
                   >
                     <Save className="h-4 w-4" />
@@ -775,11 +763,9 @@ export default function BorderCalculatorPage() {
                     className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
                     style={{
                       color: 'var(--color-accent)',
-                      borderColor:
-                        'color-mix(in oklab, var(--color-accent) 40%, transparent)',
+                      borderColor: 'var(--color-accent)',
                       borderWidth: 1,
-                      backgroundColor:
-                        'color-mix(in oklab, var(--color-accent) 12%, transparent)',
+                      backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
                     }}
                   >
                     <Trash2 className="h-4 w-4" />

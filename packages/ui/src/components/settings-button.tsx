@@ -34,7 +34,9 @@ export function SettingsButton({
         backgroundColor: isSelected
           ? 'rgba(var(--color-background-rgb), 0.2)'
           : 'rgba(var(--color-background-rgb), 0.1)',
-        outline: isSelected ? '2px solid var(--color-border-primary)' : 'none',
+        outline: isSelected
+          ? '2px solid var(--color-border-primary)'
+          : 'var(--settings-button-outline-inactive, none)',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.backgroundColor =
@@ -53,7 +55,7 @@ export function SettingsButton({
       }}
       onBlur={(e) => {
         if (!isSelected) {
-          e.currentTarget.style.outline = 'none';
+          e.currentTarget.style.outline = 'var(--settings-button-outline-inactive, none)';
         }
       }}
     >

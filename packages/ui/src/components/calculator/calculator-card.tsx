@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { cn } from '../../lib/cn';
+import { colorMixOr } from '../../lib/color';
 
 type AccentTone = 'emerald' | 'sky' | 'violet' | 'none';
 
@@ -15,25 +16,22 @@ interface CalculatorCardProps {
 
 // Legacy - replaced with getAccentStyle function
 
-// Theme-aware accent styles
+// Theme-aware accent styles using predefined gradients
 const getAccentStyle = (
   accent: Exclude<AccentTone, 'none'>
 ): React.CSSProperties => {
   switch (accent) {
     case 'emerald':
       return {
-        background:
-          'linear-gradient(to bottom right, color-mix(in srgb, var(--color-semantic-success) 25%, transparent), color-mix(in srgb, var(--color-semantic-success) 10%, transparent), transparent)',
+        background: 'var(--gradient-card-primary)',
       };
     case 'sky':
       return {
-        background:
-          'linear-gradient(to bottom right, color-mix(in srgb, var(--color-semantic-info) 25%, transparent), color-mix(in srgb, var(--color-semantic-info) 10%, transparent), transparent)',
+        background: 'var(--gradient-card-info)',
       };
     case 'violet':
       return {
-        background:
-          'linear-gradient(to bottom right, color-mix(in srgb, var(--color-accent) 25%, transparent), color-mix(in srgb, var(--color-accent) 10%, transparent), transparent)',
+        background: 'var(--gradient-card-accent)',
       };
   }
 };
@@ -56,8 +54,7 @@ export function CalculatorCard({
       )}
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor:
-          'color-mix(in srgb, var(--color-surface) 80%, transparent)',
+        backgroundColor: colorMixOr('var(--color-surface)', 80, 'transparent', 'var(--color-border-muted)'),
       }}
     >
       {accent !== 'none' && (

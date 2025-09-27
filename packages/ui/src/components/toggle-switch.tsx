@@ -24,17 +24,26 @@ export function ToggleSwitch({
         )}
         style={{
           backgroundColor: value
-            ? '#7dd6ff' // Nice deep blue that works with both themes
+            ? 'var(--color-secondary)'
             : 'var(--color-border-primary)',
+          border: value
+            ? 'var(--toggle-pill-border-active, none)'
+            : 'var(--toggle-pill-border, none)',
         }}
       >
         <span
           className={cn(
             'inline-block h-4 w-4 transform rounded-full transition-transform',
-            value
-              ? 'translate-x-6 bg-white dark:bg-black'
-              : 'translate-x-1 bg-black/70 dark:bg-white'
+            value ? 'translate-x-6' : 'translate-x-1'
           )}
+          style={{
+            backgroundColor: value 
+              ? 'var(--color-background)' 
+              : 'var(--color-text-primary)',
+            border: value
+              ? 'var(--toggle-circle-border-active, none)'
+              : 'var(--toggle-circle-border, none)',
+          }}
         />
       </button>
       <label

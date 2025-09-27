@@ -10,7 +10,7 @@ import { resolveTheme } from '../lib/themes';
 
 interface ThemeContextValue {
   theme: Theme;
-  resolvedTheme: 'light' | 'dark';
+  resolvedTheme: 'light' | 'dark' | 'darkroom';
   setTheme: (theme: Theme) => void;
 }
 
@@ -24,12 +24,19 @@ const STORAGE_KEY = 'dorkroom-theme';
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>('system');
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
+  const [resolvedTheme, setResolvedTheme] = useState<
+    'light' | 'dark' | 'darkroom'
+  >('dark');
 
   // Initialize theme from localStorage or default to system
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === 'light' || saved === 'dark' || saved === 'system') {
+    if (
+      saved === 'light' ||
+      saved === 'dark' ||
+      saved === 'darkroom' ||
+      saved === 'system'
+    ) {
       setThemeState(saved);
     } else {
       // First time visitor - default to system preference and save it
