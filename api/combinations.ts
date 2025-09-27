@@ -135,7 +135,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.error(`[${requestId}] Supabase API error`, {
         status: response.status,
         statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
+        headers: response.headers ? JSON.parse(JSON.stringify(response.headers)) : {},
         responseTime,
       });
 
