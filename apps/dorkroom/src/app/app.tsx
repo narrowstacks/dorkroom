@@ -7,7 +7,7 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom';
-import { Camera, Menu, Printer, Settings, X } from 'lucide-react';
+import { Beaker, Camera, Menu, Printer, Settings, X } from 'lucide-react';
 import { cn } from './lib/cn';
 import {
   NavigationDropdown,
@@ -99,12 +99,12 @@ export function App() {
               style={{ color: 'var(--color-text-primary)' }}
             >
               <span
-                className="flex h-9 w-9 items-center justify-center rounded-2xl text-lg font-semibold"
+                className="flex h-9 w-9 items-center justify-center rounded-2xl"
                 style={{
                   backgroundColor: 'rgba(var(--color-background-rgb), 0.1)',
                 }}
               >
-                D
+                <Beaker className="h-10 w-10" />
               </span>
               <span className="hidden text-lg font-semibold tracking-tight sm:block">
                 Dorkroom
