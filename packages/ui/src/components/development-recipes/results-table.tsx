@@ -116,23 +116,23 @@ export function DevelopmentResultsTable({
       className="overflow-hidden rounded-2xl border shadow-subtle"
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor: 'var(--color-surface-muted)',
+        backgroundColor: 'rgba(var(--color-surface-muted-rgb), 0.2)',
       }}
     >
       <table
         className="min-w-full divide-y text-sm"
         style={
           {
-            '--tw-divide-opacity': '1',
+            '--tw-divide-opacity': '0.15',
             divideColor: 'var(--color-border-secondary)',
-            color: 'var(--color-text-secondary)',
+            color: 'var(--color-border-secondary)',
           } as React.CSSProperties
         }
       >
         <thead
           className="text-xs uppercase tracking-wide"
           style={{
-            backgroundColor: 'var(--color-border-secondary)',
+            backgroundColor: 'rgba(var(--color-surface-muted-rgb), 0.15)',
             color: 'var(--color-text-tertiary)',
           }}
         >
@@ -161,8 +161,8 @@ export function DevelopmentResultsTable({
           className="divide-y"
           style={
             {
-              '--tw-divide-opacity': '1',
-              divideColor: 'var(--color-border-secondary)',
+              '--tw-divide-opacity': '0.15',
+              divideColor: 'var(--color-text-secondary)',
             } as React.CSSProperties
           }
         >
@@ -193,7 +193,7 @@ export function DevelopmentResultsTable({
                   e.currentTarget.style.backgroundColor =
                     row.source === 'custom'
                       ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
-                      : 'var(--color-surface-muted)';
+                      : 'rgba(var(--color-surface-muted-rgb), 0.25)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor =

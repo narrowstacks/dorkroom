@@ -24,8 +24,9 @@ export function ToggleSwitch({
         )}
         style={{
           backgroundColor: value
-            ? '#7dd6ff' // Nice deep blue that works with both themes
+            ? 'var(--color-secondary)'
             : 'var(--color-border-primary)',
+          border: !value ? 'var(--toggle-pill-border, none)' : 'none',
         }}
       >
         <span
@@ -35,6 +36,10 @@ export function ToggleSwitch({
               ? 'translate-x-6 bg-white dark:bg-black'
               : 'translate-x-1 bg-black/70 dark:bg-white'
           )}
+          style={{
+            backgroundColor: value ? undefined : 'var(--color-background)',
+            border: !value ? 'var(--toggle-circle-border, none)' : 'none',
+          }}
         />
       </button>
       <label

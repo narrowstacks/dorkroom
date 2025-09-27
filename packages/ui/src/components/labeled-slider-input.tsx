@@ -43,7 +43,7 @@ export function LabeledSliderInput({
   return (
     <div className={cn('space-y-3', className)}>
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-white/90">{label}</label>
+        <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>{label}</label>
         <input
           type="number"
           value={value}
@@ -52,9 +52,27 @@ export function LabeledSliderInput({
           max={max}
           step={step}
           className={cn(
-            'w-20 rounded border border-white/20 bg-white/5 px-2 py-1 text-sm text-white focus:border-white/40 focus:outline-none',
-            warning && 'border-yellow-500/50 bg-yellow-500/10'
+            'w-20 rounded px-2 py-1 text-sm focus:outline-none',
+            warning ? 'border-yellow-500/50 bg-yellow-500/10' : ''
           )}
+          style={{
+            borderColor: warning ? undefined : 'var(--color-border-primary)',
+            backgroundColor: warning ? undefined : 'var(--color-surface)',
+            color: 'var(--color-text-primary)',
+            ...(warning ? {} : {
+              '--tw-ring-color': 'var(--color-border-secondary)',
+            }),
+          }}
+          onFocus={(e) => {
+            if (!warning) {
+              e.target.style.borderColor = 'var(--color-border-secondary)';
+            }
+          }}
+          onBlur={(e) => {
+            if (!warning) {
+              e.target.style.borderColor = 'var(--color-border-primary)';
+            }
+          }}
         />
       </div>
 
@@ -67,14 +85,13 @@ export function LabeledSliderInput({
           value={value}
           onChange={handleSliderChange}
           className={cn(
-            'w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer',
-            'slider-thumb:appearance-none slider-thumb:h-4 slider-thumb:w-4 slider-thumb:rounded-full slider-thumb:bg-white slider-thumb:cursor-pointer',
+            'w-full h-2 rounded-lg appearance-none cursor-pointer slider-track',
             warning && 'bg-yellow-500/20'
           )}
         />
 
         {labels.length > 0 && (
-          <div className="flex justify-between text-xs text-white/50">
+          <div className="flex justify-between text-xs" style={{ color: 'var(--color-text-muted)' }}>
             {labels.map((label, index) => (
               <span key={index}>{label}</span>
             ))}

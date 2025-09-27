@@ -194,22 +194,14 @@ export const darkroomTheme: ThemeColors = {
     overlay: 'rgba(0, 0, 0, 0.5)',
   },
   gradients: {
-    cardPrimary:
-      'linear-gradient(135deg, rgba(255, 0, 0, 0.45), rgba(82, 0, 8, 0.33))',
-    cardSecondary:
-      'linear-gradient(135deg, rgba(255, 0, 0, 0.42), rgba(82, 0, 8, 0.35))',
-    cardAccent:
-      'linear-gradient(135deg, rgba(255, 0, 0, 0.46), rgba(82, 0, 8, 0.33))',
-    cardHighlight:
-      'linear-gradient(135deg, rgba(255, 0, 0, 0.48), rgba(82, 0, 8, 0.36))',
-    cardNeutral:
-      'linear-gradient(135deg, rgba(255, 0, 0, 0.56), rgba(82, 0, 8, 0.44))',
-    cardInfo:
-      'linear-gradient(135deg, rgba(255, 0, 0, 0.62), rgba(82, 0, 8, 0.46))',
-    cardWarning:
-      'linear-gradient(135deg, rgba(255, 0, 0, 0.64), rgba(82, 0, 8, 0.47))',
-    cardError:
-      'linear-gradient(135deg, rgba(255, 0, 0, 0.64), rgba(82, 0, 8, 0.47))',
+    cardPrimary: '#ff0000',
+    cardSecondary: '#000000',
+    cardAccent: '#ff0000',
+    cardHighlight: '#ff0000',
+    cardNeutral: '#000000',
+    cardInfo: '#000000',
+    cardWarning: '#000000',
+    cardError: '#000000',
   },
   tags: {
     officialIlford: '#ff0000',

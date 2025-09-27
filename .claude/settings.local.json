@@ -14,7 +14,9 @@
       "WebFetch(domain:filmdev.org)",
       "Bash(node:*)",
       "Bash(find:*)",
-      "WebFetch(domain:www.gnu.org)"
+      "WebFetch(domain:www.gnu.org)",
+      "Bash(bun x playwright screenshot:*)",
+      "Bash(bun x playwright:*)"
     ],
     "deny": [],
     "ask": []

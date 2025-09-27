@@ -30,7 +30,7 @@ export function DevelopmentActionsBar({
       className="flex flex-col gap-4 rounded-2xl border p-6 shadow-subtle md:flex-row md:items-center md:justify-between"
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor: '--color-background',
+        backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',
       }}
     >
       <div>
@@ -71,7 +71,7 @@ export function DevelopmentActionsBar({
               onMouseEnter={(e) => {
                 if (viewMode !== 'table') {
                   e.currentTarget.style.backgroundColor =
-                    'var(--color-border-muted)';
+                    'rgba(var(--color-background-rgb), 0.15)';
                   e.currentTarget.style.color = 'var(--color-text-primary)';
                 }
               }}
@@ -105,7 +105,7 @@ export function DevelopmentActionsBar({
               onMouseEnter={(e) => {
                 if (viewMode !== 'grid') {
                   e.currentTarget.style.backgroundColor =
-                    'var(--color-border-muted)';
+                    'rgba(var(--color-background-rgb), 0.15)';
                   e.currentTarget.style.color = 'var(--color-text-primary)';
                 }
               }}

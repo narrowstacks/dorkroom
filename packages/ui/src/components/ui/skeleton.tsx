@@ -19,7 +19,7 @@ export function SkeletonCard() {
       className="cursor-default rounded-2xl border p-4 shadow-subtle"
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor: 'var(--color-surface-muted)',
+        backgroundColor: 'rgba(var(--color-background-rgb), 0.15)',
       }}
     >
       <div>
