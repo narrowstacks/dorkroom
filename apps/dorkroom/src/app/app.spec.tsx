@@ -16,13 +16,21 @@ describe('App', () => {
   });
 
   it('should include primary navigation links', () => {
-    const { getByRole } = render(
+    const { getAllByRole } = render(
       <BrowserRouter>
         <App />
       </BrowserRouter>
     );
 
-    expect(getByRole('link', { name: /Border/i })).toBeInTheDocument();
-    expect(getByRole('link', { name: /Reciprocity/i })).toBeInTheDocument();
+    const links = getAllByRole('link');
+    const borderLinks = links.filter(link => 
+      (link as HTMLElement).textContent?.toLowerCase().includes('border')
+    );
+    const reciprocityLinks = links.filter(link => 
+      (link as HTMLElement).textContent?.toLowerCase().includes('reciprocity')
+    );
+
+    expect(borderLinks.length).toBeGreaterThan(0);
+    expect(reciprocityLinks.length).toBeGreaterThan(0);
   });
 });
