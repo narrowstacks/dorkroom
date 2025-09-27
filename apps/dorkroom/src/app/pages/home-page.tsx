@@ -312,16 +312,15 @@ export function HomePage() {
                 href={link.href}
                 target="_blank"
                 rel="noreferrer"
-                className={cn(
-                  'flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition',
-                  link.label.includes('Ko-fi') &&
-                    'bg-gradient-to-r from-rose-500/10 to-orange-400/10'
-                )}
+                className="flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition"
                 style={{
                   color: 'var(--color-text-primary)',
                   borderColor: 'var(--color-border-secondary)',
                   borderWidth: 1,
                   backgroundColor: 'transparent',
+                  ...(link.label.includes('Ko-fi') && {
+                    backgroundImage: 'var(--gradient-card-warning)',
+                  }),
                 }}
               >
                 {/* render icon component explicitly to satisfy JSX typing */}
