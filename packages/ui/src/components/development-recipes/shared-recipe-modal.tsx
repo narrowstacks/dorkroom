@@ -3,6 +3,7 @@ import { Drawer, DrawerBody, DrawerContent } from '../drawer';
 import { DevelopmentRecipeDetail } from './recipe-detail';
 import type { DevelopmentCombinationView } from './results-table';
 import { cn } from '../../lib/cn';
+import { colorMixOr } from '../../lib/color';
 import { X } from 'lucide-react';
 
 interface SharedRecipeModalProps {
@@ -69,8 +70,12 @@ export function SharedRecipeModal({
         }
         onMouseEnter={(e) => {
           if (hideAddToCollection) {
-            e.currentTarget.style.backgroundColor =
-              'color-mix(in srgb, var(--color-text-primary) 90%, transparent)';
+            e.currentTarget.style.backgroundColor = colorMixOr(
+              'var(--color-text-primary)',
+              90,
+              'transparent',
+              'var(--color-text-primary)'
+            );
           } else {
             e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
             e.currentTarget.style.color = 'var(--color-text-primary)';
@@ -100,8 +105,12 @@ export function SharedRecipeModal({
             color: 'var(--color-background)',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor =
-              'color-mix(in srgb, var(--color-text-primary) 90%, transparent)';
+            e.currentTarget.style.backgroundColor = colorMixOr(
+              'var(--color-text-primary)',
+              90,
+              'transparent',
+              'var(--color-text-primary)'
+            );
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
@@ -124,8 +133,12 @@ export function SharedRecipeModal({
             color: 'var(--color-background)',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor =
-              'color-mix(in srgb, var(--color-text-primary) 90%, transparent)';
+            e.currentTarget.style.backgroundColor = colorMixOr(
+              'var(--color-text-primary)',
+              90,
+              'transparent',
+              'var(--color-text-primary)'
+            );
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';

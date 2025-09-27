@@ -689,17 +689,25 @@
   .text-error {
     color: var(--color-semantic-error);
   }
-  .bg-error\/10 {
-    background-color: color-mix(in srgb, var(--color-semantic-error) 10%, transparent);
-  }
-  .bg-error\/20 {
-    background-color: color-mix(in srgb, var(--color-semantic-error) 20%, transparent);
-  }
-  .text-error\/80 {
-    color: color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary));
-  }
-  .text-error\/90 {
-    color: color-mix(in srgb, var(--color-semantic-error) 90%, var(--color-text-primary));
+  /* Provide fallbacks, then enhance with color-mix when supported */
+  .bg-error\/10 { background-color: var(--color-border-muted); }
+  .bg-error\/20 { background-color: var(--color-border-secondary); }
+  .text-error\/80 { color: var(--color-semantic-error); }
+  .text-error\/90 { color: var(--color-semantic-error); }
+
+  @supports (color: color-mix(in srgb, red 50%, white)) {
+    .bg-error\/10 {
+      background-color: color-mix(in srgb, var(--color-semantic-error) 10%, transparent);
+    }
+    .bg-error\/20 {
+      background-color: color-mix(in srgb, var(--color-semantic-error) 20%, transparent);
+    }
+    .text-error\/80 {
+      color: color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary));
+    }
+    .text-error\/90 {
+      color: color-mix(in srgb, var(--color-semantic-error) 90%, var(--color-text-primary));
+    }
   }
 
   /* Slider styling with theme support */
@@ -743,6 +751,12 @@
     background: var(--color-text-primary);
     cursor: pointer;
     border: none;
+  }
+
+  /* Accessible focus styles for range inputs */
+  .slider-track:focus-visible {
+    outline: 2px solid var(--color-border-primary);
+    outline-offset: 2px;
   }
 
   /* Darkroom theme: dashed red line for slider track */
@@ -794,6 +808,11 @@
     background: var(--color-primary);
     position: relative;
     z-index: 2;
+  }
+
+  [data-theme='darkroom'] .slider-track:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
   }
 
   /* Calculator buttons with red borders in darkroom theme - only on home page */
