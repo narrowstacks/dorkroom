@@ -1,8 +1,8 @@
 {
-  "buildCommand": "npx nx build dorkroom",
+  "buildCommand": "bunx nx build dorkroom",
   "outputDirectory": "apps/dorkroom/dist",
-  "devCommand": "npx nx serve dorkroom",
-  "installCommand": "npm install",
+  "devCommand": "bunx nx serve dorkroom",
+  "installCommand": "bun install",
   "framework": null,
   "routes": [{ "handle": "filesystem" }, { "src": "/(.*)", "dest": "/" }]
 }
