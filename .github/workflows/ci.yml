@@ -5,6 +5,8 @@ on:
     branches:
       - main
   pull_request:
+    branches:
+      - main
 
 permissions:
   actions: read
@@ -14,10 +16,17 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          filter: tree:0
           fetch-depth: 0
+
+      - name: Debug GitHub context
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "SHA: ${{ github.sha }}"
+          echo "Repository: ${{ github.repository }}"
 
       # This enables task distribution via Nx Cloud
       # Run this command as early as possible, before dependencies are installed
