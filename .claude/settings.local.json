@@ -20,7 +20,11 @@
       "Bash(npx tsc:*)",
       "Bash(bunx nx:*)",
       "Bash(bunx prettier:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(bun add:*)"
     ],
     "deny": [],
     "ask": []
