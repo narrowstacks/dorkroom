@@ -24,7 +24,8 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:api.github.com)",
-      "Bash(bun add:*)"
+      "Bash(bun add:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

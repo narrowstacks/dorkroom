@@ -1,4 +1,14 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import {
+  logApiRequest,
+  logApiResponse,
+  logApiError,
+  logExternalApiCall,
+  logExternalApiResponse,
+  serverlessLog,
+  serverlessWarn,
+  serverlessError,
+} from "../utils/serverlessLogger";
 
 // The master API key that has high rate limits
 const SUPABASE_MASTER_API_KEY = process.env.SUPABASE_MASTER_API_KEY;
@@ -60,12 +70,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const startTime = Date.now();
   const requestId = Math.random().toString(36).substring(7);
 
-  console.log(`[${requestId}] Combinations API request started`, {
-    method: req.method,
-    url: req.url,
-    userAgent: req.headers["user-agent"],
-    timestamp: new Date().toISOString(),
-  });
+  logApiRequest(
+    requestId,
+    req.method || "GET",
+    req.url || "/api/combinations",
+    req.headers["user-agent"]
+  );
 
   // Set enhanced CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -78,13 +88,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Handle preflight requests
   if (req.method === "OPTIONS") {
-    console.log(`[${requestId}] CORS preflight request handled`);
+    serverlessLog("CORS preflight request handled", { requestId });
     return res.status(200).end();
   }
 
   // Only allow GET requests
   if (req.method !== "GET") {
-    console.warn(`[${requestId}] Method not allowed: ${req.method}`);
+    serverlessWarn("Method not allowed", { requestId, method: req.method });
     return res.status(405).json({
       error: "Method not allowed",
       allowed: ["GET", "OPTIONS"],
@@ -95,9 +105,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     // Validate that we have the API key
     if (!SUPABASE_MASTER_API_KEY) {
-      console.error(
-        `[${requestId}] SUPABASE_MASTER_API_KEY environment variable is not set`,
-      );
+      serverlessError("SUPABASE_MASTER_API_KEY environment variable is not set", {
+        requestId,
+      });
       return res.status(500).json({
         error: "API configuration error",
         message: "Missing required environment configuration",
@@ -112,10 +122,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? `${SUPABASE_ENDPOINT}?${queryString}`
       : SUPABASE_ENDPOINT;
 
-    console.log(`[${requestId}] Making request to Supabase`, {
-      targetUrl,
-      queryParams: Object.fromEntries(queryParams.entries()),
-    });
+    logExternalApiCall(requestId, targetUrl, "GET");
 
     // Make the request to Supabase with the master API key and timeout
     const response = await fetch(targetUrl, {
@@ -132,12 +139,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const responseTime = Date.now() - startTime;
 
     if (!response.ok) {
-      console.error(`[${requestId}] Supabase API error`, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers ? JSON.parse(JSON.stringify(response.headers)) : {},
+      logExternalApiResponse(
+        requestId,
+        targetUrl,
+        response.status,
         responseTime,
-      });
+        false
+      );
 
       // Try to get error response body for more details
       let errorDetails = null;
@@ -145,7 +153,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const errorText = await response.text();
         errorDetails = errorText ? JSON.parse(errorText) : null;
       } catch {
-        console.warn(`[${requestId}] Could not parse error response`);
+        serverlessWarn("Could not parse error response", { requestId });
       }
 
       return res.status(response.status).json({
@@ -160,9 +168,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Validate response content type
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
-      console.error(
-        `[${requestId}] Invalid response content type: ${contentType}`,
-      );
+      serverlessError("Invalid response content type", {
+        requestId,
+        contentType,
+      });
       return res.status(502).json({
         error: "Invalid response format",
         message: "Expected JSON response from upstream API",
@@ -176,7 +185,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       data = await response.json();
     } catch (_parseError) {
-      console.error(`[${requestId}] JSON parse error`, _parseError);
+      serverlessError("JSON parse error", {
+        requestId,
+        error: _parseError instanceof Error ? _parseError.message : String(_parseError),
+      });
       return res.status(502).json({
         error: "Response parse error",
         message: "Could not parse JSON response from upstream API",
@@ -184,8 +196,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    console.log(`[${requestId}] Request completed successfully`, {
-      responseTime,
+    logExternalApiResponse(requestId, targetUrl, response.status, responseTime, true);
+    logApiResponse(requestId, 200, responseTime, {
       dataLength: Array.isArray(data?.data) ? data.data.length : "N/A",
     });
 
@@ -197,11 +209,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(data);
   } catch (error) {
     const responseTime = Date.now() - startTime;
-    console.error(`[${requestId}] API function error`, {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      responseTime,
-    });
+    logApiError(requestId, error, 500, { responseTime });
 
     // Handle specific error types
     if (error instanceof Error && error.name === "AbortError") {
