@@ -324,7 +324,7 @@ export function DevelopmentResultsTable({
                           'var(--color-text-tertiary)';
                       }}
                     >
-                      <ExternalLink className="h-3 w-3" /> Source
+                      <ExternalLink className="h-3 w-3" aria-hidden="true" /> Source
                     </a>
                   )}
                 </td>
@@ -359,6 +359,7 @@ export function DevelopmentResultsTable({
                     >
                       <Star
                         className="h-4 w-4"
+                        aria-hidden="true"
                         style={{
                           fill: isFavorite?.(row)
                             ? 'var(--color-semantic-warning)'
@@ -374,7 +375,8 @@ export function DevelopmentResultsTable({
                             e.stopPropagation();
                             onEditCustomRecipe?.(row);
                           }}
-                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition"
+                          aria-label="Edit custom recipe"
+                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
                           style={{
                             backgroundColor: 'var(--color-surface-muted)',
                             color: 'var(--color-text-secondary)',
@@ -402,7 +404,8 @@ export function DevelopmentResultsTable({
                             e.stopPropagation();
                             onDeleteCustomRecipe?.(row);
                           }}
-                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition"
+                          aria-label="Delete custom recipe"
+                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
                           style={{
                             backgroundColor: colorMixOr(
                               'var(--color-semantic-error)',

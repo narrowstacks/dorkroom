@@ -158,7 +158,7 @@ export function DevelopmentResultsCards({
                           ),
                         }}
                       >
-                        <Beaker className="h-3 w-3" /> Custom Recipe
+                        <Beaker className="h-3 w-3" aria-hidden="true" /> Custom Recipe
                       </span>
                     )}
                     {combination.tags && combination.tags.length > 0 && (
@@ -174,6 +174,10 @@ export function DevelopmentResultsCards({
               <button
                 type="button"
                 title={isFavorite?.(row) ? 'Remove from favorites' : 'Add to favorites'}
+                aria-pressed={Boolean(isFavorite?.(row))}
+                aria-label={
+                  isFavorite?.(row) ? 'Remove from favorites' : 'Add to favorites'
+                }
                 onClick={(e) => {
                   e.stopPropagation();
                   onToggleFavorite?.(row);
@@ -194,6 +198,7 @@ export function DevelopmentResultsCards({
               >
                 <Star
                   className="h-4 w-4"
+                  aria-hidden="true"
                   style={{
                     fill: isFavorite?.(row)
                       ? 'var(--color-semantic-warning)'
@@ -291,7 +296,7 @@ export function DevelopmentResultsCards({
                             'var(--color-text-tertiary)';
                         }}
                       >
-                        <ExternalLink className="h-3 w-3" /> Source
+                        <ExternalLink className="h-3 w-3" aria-hidden="true" /> Source
                       </a>
                     )}
                     {row.source !== 'custom' &&
@@ -318,7 +323,8 @@ export function DevelopmentResultsCards({
                     e.stopPropagation();
                     onEditCustomRecipe?.(row);
                   }}
-                  className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition"
+                  aria-label="Edit custom recipe"
+                  className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
                   style={{
                     backgroundColor: 'var(--color-border-muted)',
                     color: 'var(--color-text-secondary)',
@@ -344,7 +350,8 @@ export function DevelopmentResultsCards({
                     e.stopPropagation();
                     onDeleteCustomRecipe?.(row);
                   }}
-                  className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition"
+                  aria-label="Delete custom recipe"
+                  className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
                   style={{
                     backgroundColor: colorMixOr(
                       'var(--color-semantic-error)',
