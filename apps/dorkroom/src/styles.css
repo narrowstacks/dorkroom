@@ -452,17 +452,17 @@
 
   [data-theme='light'] .backdrop-gradient {
     background: radial-gradient(
-        1200px 800px at 15% 15%,
+        ellipse 1200px 800px at 15% 15%,
         rgba(196, 82, 74, 0.1),
         transparent 60%
       ),
       radial-gradient(
-        1000px 700px at 85% 20%,
+        ellipse 1000px 700px at 85% 20%,
         rgba(30, 96, 145, 0.09),
         transparent 55%
       ),
       radial-gradient(
-        900px 700px at 40% 85%,
+        ellipse 900px 700px at 40% 85%,
         rgba(122, 140, 31, 0.08),
         transparent 60%
       ),
@@ -523,7 +523,7 @@
 
     /* Layer 1: soft white fill; Layer 2: SVG noise tiled */
     background-image: radial-gradient(
-        100% 100% at 50% 50%,
+        ellipse 100% 100% at 50% 50%,
         rgba(255, 255, 255, 0.96) 0%,
         rgba(255, 255, 255, 0.92) 40%,
         rgba(255, 255, 255, 0.88) 100%
@@ -565,7 +565,7 @@
     -webkit-background-clip: text;
     background-clip: text;
     background-image: radial-gradient(
-        100% 100% at 50% 50%,
+        ellipse 100% 100% at 50% 50%,
         rgba(255, 62, 62, 0.95),
         rgba(255, 62, 62, 0.5)
       ),

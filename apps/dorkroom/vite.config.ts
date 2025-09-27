@@ -33,6 +33,21 @@ export default defineConfig(() => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separate vendor chunk for React and React Router
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // Separate chunk for Lucide icons
+          'lucide-icons': ['lucide-react'],
+          // Separate chunk for internal UI components
+          'ui-components': ['@dorkroom/ui'],
+          // Separate chunk for logic/hooks
+          'logic-hooks': ['@dorkroom/logic'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600, // Increase slightly to reduce noise while we optimize
   },
   test: {
     name: '@dorkroom/dorkroom',
