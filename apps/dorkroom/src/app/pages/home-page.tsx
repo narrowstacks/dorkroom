@@ -6,7 +6,7 @@ import {
   Crop,
   Gauge,
   GitBranch,
-  Mic,
+  HandCoins,
   Ruler,
   Timer,
 } from 'lucide-react';
@@ -93,7 +93,7 @@ const communityLinks = [
   {
     label: 'Support on Ko-fi',
     href: 'https://ko-fi.com/',
-    icon: Mic,
+    icon: HandCoins,
   },
 ];
 
@@ -318,7 +318,7 @@ export function HomePage() {
                   borderWidth: 1,
                   backgroundColor: 'transparent',
                   ...(link.label.includes('Ko-fi') && {
-                    backgroundImage: 'var(--gradient-card-warning)',
+                    backgroundImage: 'var(--gradient-card-ko-fi)',
                   }),
                 }}
               >
@@ -327,7 +327,7 @@ export function HomePage() {
                   const IconComp = link.icon as React.ComponentType<{
                     className?: string;
                   }>;
-                  return <IconComp className="h-4 w-4" />;
+                  return <IconComp className="h-10 w-10" />;
                 })()}
                 {link.label}
               </a>
