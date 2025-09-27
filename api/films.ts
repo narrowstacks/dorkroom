@@ -200,7 +200,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(data);
   } catch (error) {
     const responseTime = Date.now() - startTime;
-    logApiError(requestId, error, 500, { responseTime });
+    logApiError(requestId, error instanceof Error ? error : String(error), 500, { responseTime });
 
     // Handle specific error types
     if (error instanceof Error && error.name === "AbortError") {
