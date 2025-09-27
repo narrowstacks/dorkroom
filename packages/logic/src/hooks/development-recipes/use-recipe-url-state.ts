@@ -284,6 +284,8 @@ export const useRecipeUrlState = (
           if (importedRecipe && importedRecipe.isValid) {
             setSharedCustomRecipe(importedRecipe.recipe);
             setSharedRecipe(null);
+            // Remove recipe param from URL after successful load
+            updateUrl({ recipe: '' });
           } else {
             setSharedRecipeError('Invalid custom recipe data');
             setSharedRecipe(null);
@@ -303,6 +305,8 @@ export const useRecipeUrlState = (
         if (recipesByUuid.has(recipeId)) {
           setSharedRecipe(recipesByUuid.get(recipeId) ?? null);
           setSharedCustomRecipe(null);
+          // Remove recipe param from URL after successful load
+          updateUrl({ recipe: '' });
         } else {
           setSharedRecipeError(
             `Recipe with ID ${recipeId.substring(0, 20)}... not found`
@@ -371,18 +375,30 @@ export const useRecipeUrlState = (
 
     if (currentState.selectedFilm) {
       urlParams.film = filmToSlug(currentState.selectedFilm);
+    } else {
+      // Explicitly clear film from URL when unselected
+      urlParams.film = '';
     }
 
     if (currentState.selectedDeveloper) {
       urlParams.developer = developerToSlug(currentState.selectedDeveloper);
+    } else {
+      // Explicitly clear developer from URL when unselected
+      urlParams.developer = '';
     }
 
     if (currentState.dilutionFilter) {
       urlParams.dilution = currentState.dilutionFilter;
+    } else {
+      // Explicitly clear dilution from URL when cleared
+      urlParams.dilution = '';
     }
 
     if (currentState.isoFilter) {
       urlParams.iso = currentState.isoFilter;
+    } else {
+      // Explicitly clear iso from URL when cleared
+      urlParams.iso = '';
     }
 
     updateUrl(urlParams);

@@ -53,6 +53,12 @@ export function Drawer({
     right: 'right-0 top-0 bottom-0',
   };
 
+  // Do not render the overlay container at all when closed
+  // and not animating, to avoid blocking interactions behind it.
+  if (!isOpen && !showContent) {
+    return null;
+  }
+
   return (
     <div className="fixed inset-0 z-50" style={{ height: '100dvh' }}>
       {/* Backdrop */}
