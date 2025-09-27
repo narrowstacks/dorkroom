@@ -2,7 +2,6 @@ import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
 import type { Combination, Film, Developer } from '@dorkroom/api';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
-import { colorMixOr } from '../../lib/color';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { Tag } from '../ui/tag';
