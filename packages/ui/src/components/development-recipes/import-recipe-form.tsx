@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { TextInput } from '../text-input';
 import { cn } from '../../lib/cn';
+import { colorMixOr } from '../../lib/color';
 
 interface ImportRecipeFormProps {
   onImport: (encoded: string) => void;
@@ -35,12 +36,9 @@ export function ImportRecipeForm({
         <div
           className="rounded-xl border px-3 py-2 text-sm"
           style={{
-            borderColor:
-              'color-mix(in srgb, var(--color-semantic-error) 20%, transparent)',
-            backgroundColor:
-              'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)',
-            color:
-              'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))',
+            borderColor: colorMixOr('var(--color-semantic-error)', 20, 'transparent', 'var(--color-border-secondary)'),
+            backgroundColor: colorMixOr('var(--color-semantic-error)', 10, 'transparent', 'var(--color-border-muted)'),
+            color: colorMixOr('var(--color-semantic-error)', 80, 'var(--color-text-primary)', 'var(--color-semantic-error)'),
           }}
         >
           {error}

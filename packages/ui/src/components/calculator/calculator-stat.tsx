@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { cn } from '../../lib/cn';
+import { colorMixOr } from '../../lib/color';
 
 type StatTone = 'default' | 'emerald' | 'sky';
 
@@ -20,19 +21,15 @@ const getToneStyle = (
   switch (tone) {
     case 'emerald':
       return {
-        borderColor:
-          'color-mix(in srgb, var(--color-semantic-success) 30%, transparent)',
+        borderColor: colorMixOr('var(--color-semantic-success)', 30, 'transparent', 'var(--color-border-secondary)'),
         background: 'var(--gradient-card-primary)',
-        color:
-          'color-mix(in srgb, var(--color-semantic-success) 90%, var(--color-text-primary))',
+        color: colorMixOr('var(--color-semantic-success)', 90, 'var(--color-text-primary)', 'var(--color-text-primary)'),
       };
     case 'sky':
       return {
-        borderColor:
-          'color-mix(in srgb, var(--color-semantic-info) 30%, transparent)',
+        borderColor: colorMixOr('var(--color-semantic-info)', 30, 'transparent', 'var(--color-border-secondary)'),
         background: 'var(--gradient-card-info)',
-        color:
-          'color-mix(in srgb, var(--color-semantic-info) 90%, var(--color-text-primary))',
+        color: colorMixOr('var(--color-semantic-info)', 90, 'var(--color-text-primary)', 'var(--color-text-primary)'),
       };
   }
 };

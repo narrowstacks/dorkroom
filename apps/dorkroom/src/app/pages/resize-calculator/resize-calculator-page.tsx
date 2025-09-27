@@ -5,6 +5,7 @@ import {
   CalculatorNumberField,
   CalculatorPageHeader,
   CalculatorStat,
+  colorMixOr,
 } from '@dorkroom/ui';
 import {
   useResizeCalculator,
@@ -31,7 +32,7 @@ function ModeToggle({
       className="rounded-2xl border p-5 shadow-subtle backdrop-blur"
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor: 'color-mix(in srgb, var(--color-surface) 80%, transparent)',
+        backgroundColor: colorMixOr('var(--color-surface)', 80, 'transparent', 'var(--color-border-muted)'),
       }}
     >
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
@@ -53,7 +54,7 @@ function ModeToggle({
           className="flex items-center gap-3 rounded-full px-4 py-2"
           style={{
             borderColor: 'var(--color-border-muted)',
-            backgroundColor: 'color-mix(in srgb, var(--color-surface) 20%, transparent)',
+            backgroundColor: colorMixOr('var(--color-surface)', 20, 'transparent', 'var(--color-surface)'),
             border: '1px solid',
           }}
         >
@@ -144,7 +145,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
                 className="rounded-2xl border px-4 py-2"
                 style={{
                   borderColor: 'var(--color-border-muted)',
-                  backgroundColor: 'color-mix(in srgb, var(--color-surface) 20%, transparent)',
+                  backgroundColor: colorMixOr('var(--color-surface)', 20, 'transparent', 'var(--color-surface)'),
                   color: 'var(--color-text-secondary)',
                 }}
               >
@@ -165,7 +166,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
             className="rounded-2xl border p-4 font-mono text-xs"
             style={{
               borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'color-mix(in srgb, var(--color-surface) 80%, transparent)',
+              backgroundColor: colorMixOr('var(--color-surface)', 80, 'transparent', 'var(--color-border-muted)'),
               color: 'var(--color-text-primary)',
             }}
           >
@@ -189,7 +190,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
                 className="rounded-2xl border px-4 py-2"
                 style={{
                   borderColor: 'var(--color-border-muted)',
-                  backgroundColor: 'color-mix(in srgb, var(--color-surface) 20%, transparent)',
+                  backgroundColor: colorMixOr('var(--color-surface)', 20, 'transparent', 'var(--color-surface)'),
                   color: 'var(--color-text-secondary)',
                 }}
               >

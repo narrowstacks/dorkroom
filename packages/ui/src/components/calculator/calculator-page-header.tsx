@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { cn } from '../../lib/cn';
+import { colorMixOr } from '../../lib/color';
 
 interface CalculatorPageHeaderProps {
   title: string;
@@ -26,8 +27,7 @@ export function CalculatorPageHeader({
       )}
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor:
-          'color-mix(in srgb, var(--color-surface) 80%, transparent)',
+        backgroundColor: colorMixOr('var(--color-surface)', 80, 'transparent', 'var(--color-border-muted)'),
       }}
     >
       <div className="flex max-w-2xl flex-col gap-3">

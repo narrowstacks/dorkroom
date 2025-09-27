@@ -743,6 +743,7 @@
     background: var(--color-text-primary);
     cursor: pointer;
     border: none;
+    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
   }
 
   .slider-track::-moz-range-thumb {
@@ -752,6 +753,19 @@
     background: var(--color-text-primary);
     cursor: pointer;
     border: none;
+    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+  }
+
+  /* Hover/active states for better affordance */
+  .slider-track::-webkit-slider-thumb:hover,
+  .slider-track:active::-webkit-slider-thumb {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 3px var(--color-border-muted);
+  }
+  .slider-track::-moz-range-thumb:hover,
+  .slider-track:active::-moz-range-thumb {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 3px var(--color-border-muted);
   }
 
   /* Accessible focus styles for range inputs */
@@ -809,6 +823,16 @@
     background: var(--color-primary);
     position: relative;
     z-index: 2;
+  }
+
+  /* Stronger affordance in darkroom theme */
+  [data-theme='darkroom'] .slider-track::-webkit-slider-thumb:hover,
+  [data-theme='darkroom'] .slider-track:active::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  }
+  [data-theme='darkroom'] .slider-track::-moz-range-thumb:hover,
+  [data-theme='darkroom'] .slider-track:active::-moz-range-thumb {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 35%, transparent);
   }
 
   [data-theme='darkroom'] .slider-track:focus-visible {

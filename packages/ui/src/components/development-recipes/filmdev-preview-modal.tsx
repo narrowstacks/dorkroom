@@ -4,6 +4,7 @@ import { DevelopmentRecipeDetail } from './recipe-detail';
 import type { DevelopmentCombinationView } from './results-table';
 import type { FilmdevMappingResult } from '@dorkroom/logic';
 import { cn } from '../../lib/cn';
+import { colorMixOr } from '../../lib/color';
 import { X, ExternalLink } from 'lucide-react';
 
 interface FilmdevPreviewModalProps {
@@ -90,10 +91,14 @@ export function FilmdevPreviewModal({
           backgroundColor: 'var(--color-text-primary)',
           color: 'var(--color-background)',
         }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor =
-            'color-mix(in srgb, var(--color-text-primary) 90%, transparent)';
-        }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = colorMixOr(
+                'var(--color-text-primary)',
+                90,
+                'transparent',
+                'var(--color-text-primary)'
+              );
+            }}
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
         }}

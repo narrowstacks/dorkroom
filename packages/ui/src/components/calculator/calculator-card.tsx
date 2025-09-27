@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { cn } from '../../lib/cn';
+import { colorMixOr } from '../../lib/color';
 
 type AccentTone = 'emerald' | 'sky' | 'violet' | 'none';
 
@@ -53,8 +54,7 @@ export function CalculatorCard({
       )}
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor:
-          'color-mix(in srgb, var(--color-surface) 80%, transparent)',
+        backgroundColor: colorMixOr('var(--color-surface)', 80, 'transparent', 'var(--color-border-muted)'),
       }}
     >
       {accent !== 'none' && (
