@@ -33,12 +33,10 @@ const writeFavoritesToStorage = (ids: string[]): void => {
   const storage = getStorage();
   if (!storage) return;
   try {
-   try {
-     storage.setItem(STORAGE_KEY, JSON.stringify(ids));
-   } catch (error) {
-     debugError('[useFavorites] Failed to persist favorites:', error);
-     // Swallow so the UI can keep working even if persistence fails
-   }
+    storage.setItem(STORAGE_KEY, JSON.stringify(ids));
+  } catch (error) {
+    debugError('[useFavorites] Failed to persist favorites:', error);
+    // Swallow so the UI can keep working even if persistence fails
   }
 };
 
