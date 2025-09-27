@@ -11,7 +11,6 @@ import {
   Timer,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { cn } from '../lib/cn';
 
 const quickActions = [
   {
