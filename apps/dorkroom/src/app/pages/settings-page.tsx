@@ -57,7 +57,7 @@ export default function SettingsPage() {
             />
             <SettingsButton
               label="High Contrast"
-              value="Black on white, no gradients, no motion"
+              value="Ideal for e-ink devices. Black on white, no gradients, no motion"
               onPress={() => setTheme('high-contrast')}
               icon={Contrast}
               showChevron={false}

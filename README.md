@@ -4,7 +4,7 @@
 
 **Dorkroom** is a collection of specialized calculators and tools designed for analog photographers and darkroom enthusiasts. Built to keep complex exposure math, border calculations, and chemistry planning out of your way so you can focus on making beautiful prints.
 
-![Darkroom Theme](https://img.shields.io/badge/theme-darkroom-8B5CF6) ![React 19](https://img.shields.io/badge/React-19-61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.13-06B6D4)
+![React 19](https://img.shields.io/badge/React-19-61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.13-06B6D4)
 
 ## What is Dorkroom?
 
@@ -61,7 +61,7 @@ bunx nx build
 
 ```bash
 # Run tests
-bunx nx test
+bunx nx test dorkroom
 
 # Run tests with UI
 bunx nx test --ui

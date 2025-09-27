@@ -67,16 +67,18 @@ export function SaveBeforeShareModal({
       <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:items-center sm:p-0">
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 backdrop-blur-sm transition-opacity"
+          style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
           onClick={handleClose}
         />
 
         {/* Modal */}
         <div
-          className="relative z-10 inline-block transform overflow-hidden rounded-lg text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle"
+          className="relative z-10 inline-block transform overflow-hidden rounded-2xl text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle border"
           style={{
             backgroundColor: 'var(--color-surface)',
             color: 'var(--color-text-primary)',
+            borderColor: 'var(--color-border-secondary)',
           }}
         >
           <form onSubmit={handleSubmit}>
@@ -132,7 +134,8 @@ export function SaveBeforeShareModal({
                       <div>
                         <label
                           htmlFor="preset-name"
-                          className="block text-sm font-medium text-gray-700"
+                          className="block text-sm font-medium"
+                          style={{ color: 'var(--color-text-primary)' }}
                         >
                           Preset Name
                         </label>
@@ -144,22 +147,44 @@ export function SaveBeforeShareModal({
                           disabled={isLoading}
                           placeholder='e.g., Portrait 5x7 with 0.5" border'
                           className={cn(
-                            'mt-1 block w-full rounded-md border px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500',
-                            'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                            'disabled:bg-gray-100 disabled:cursor-not-allowed',
-                            displayError
-                              ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                              : 'border-gray-300'
+                            'mt-1 block w-full rounded-md border px-3 py-2 text-sm placeholder:opacity-70',
+                            'focus:outline-none focus:ring-2',
+                            'disabled:cursor-not-allowed'
                           )}
+                          style={
+                            displayError
+                              ? ({
+                                  borderColor: 'var(--color-semantic-error)',
+                                  '--tw-ring-color':
+                                    'var(--color-semantic-error)',
+                                  backgroundColor:
+                                    'var(--color-surface-muted)',
+                                  color: 'var(--color-text-primary)',
+                                } as React.CSSProperties)
+                              : ({
+                                  borderColor: 'var(--color-border-secondary)',
+                                  '--tw-ring-color':
+                                    'var(--color-border-primary)',
+                                  backgroundColor:
+                                    'var(--color-surface-muted)',
+                                  color: 'var(--color-text-primary)',
+                                } as React.CSSProperties)
+                          }
                           autoFocus
                           maxLength={50}
                         />
                         {displayError && (
-                          <p className="mt-1 text-sm text-red-600">
+                          <p
+                            className="mt-1 text-sm"
+                            style={{ color: 'var(--color-semantic-error)' }}
+                          >
                             {displayError}
                           </p>
                         )}
-                        <p className="mt-1 text-xs text-gray-500">
+                        <p
+                          className="mt-1 text-xs"
+                          style={{ color: 'var(--color-text-tertiary)' }}
+                        >
                           {presetName.length}/50 characters
                         </p>
                       </div>
@@ -168,19 +193,32 @@ export function SaveBeforeShareModal({
                 </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+            <div
+              className="px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6"
+              style={{ backgroundColor: 'var(--color-surface)' }}
+            >
               <button
                 type="submit"
                 disabled={isLoading || !presetName.trim()}
                 className={cn(
                   'inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm',
                   'sm:ml-3 sm:w-auto sm:text-sm',
-                  'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
-                  'disabled:opacity-50 disabled:cursor-not-allowed',
-                  isLoading || !presetName.trim()
-                    ? 'bg-gray-300 text-gray-500'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                  'focus:outline-none focus:ring-2',
+                  'disabled:opacity-50 disabled:cursor-not-allowed'
                 )}
+                style={
+                  isLoading || !presetName.trim()
+                    ? ({
+                        backgroundColor: 'rgba(var(--color-background-rgb), 0.2)',
+                        color: 'var(--color-text-secondary)',
+                        '--tw-ring-color': 'var(--color-border-primary)',
+                      } as React.CSSProperties)
+                    : ({
+                        backgroundColor: 'var(--color-text-primary)',
+                        color: 'var(--color-background)',
+                        '--tw-ring-color': 'var(--color-border-primary)',
+                      } as React.CSSProperties)
+                }
               >
                 {isLoading ? (
                   <>
@@ -213,7 +251,14 @@ export function SaveBeforeShareModal({
                 type="button"
                 onClick={handleClose}
                 disabled={isLoading}
-                className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-3 inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm focus:outline-none focus:ring-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  borderWidth: 1,
+                  borderColor: 'var(--color-border-secondary)',
+                  backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
+                  color: 'var(--color-text-primary)',
+                  '--tw-ring-color': 'var(--color-border-primary)',
+                }}
               >
                 Cancel
               </button>

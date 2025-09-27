@@ -15,7 +15,14 @@ import {
 import { BladeResultsDisplay } from './blade-results-display';
 import { AnimatedPreview } from './animated-preview';
 import { SettingsButton } from '@dorkroom/ui';
-import { WarningAlert, Drawer, DrawerContent, DrawerBody } from '@dorkroom/ui';
+import {
+  WarningAlert,
+  Drawer,
+  DrawerContent,
+  DrawerBody,
+  ShareModal,
+  SaveBeforeShareModal,
+} from '@dorkroom/ui';
 
 // Sections
 import {
@@ -29,6 +36,7 @@ import {
 import {
   useModularBorderCalculator as useBorderCalculator,
   useBorderPresets,
+  usePresetSharing,
   type BorderPreset,
   type BorderSettings,
 } from '@dorkroom/logic';
@@ -52,6 +60,7 @@ export function MobileBorderCalculator({
 }: MobileBorderCalculatorProps) {
   // Theme
   const { resolvedTheme } = useTheme();
+  const isHighContrast = resolvedTheme === 'high-contrast';
 
   // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -104,6 +113,36 @@ export function MobileBorderCalculator({
   } = useBorderCalculator();
 
   const { presets, addPreset, updatePreset, removePreset } = useBorderPresets();
+
+  // Sharing state
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isSaveBeforeShareOpen, setIsSaveBeforeShareOpen] = useState(false);
+  const [shareUrls, setShareUrls] = useState<{
+    webUrl: string;
+    nativeUrl: string;
+  } | null>(null);
+  const [isGeneratingShareUrl, setIsGeneratingShareUrl] = useState(false);
+
+  // Sharing hooks
+  const {
+    sharePreset,
+    getSharingUrls,
+    canShareNatively,
+    canCopyToClipboard,
+    isSharing,
+  } = usePresetSharing({
+    onShareSuccess: (result) => {
+      if (result.method === 'clipboard') {
+        // Success toast hook could be placed here
+        console.log('Preset link copied to clipboard!');
+      } else if (result.method === 'native') {
+        setIsShareModalOpen(false);
+      }
+    },
+    onShareError: (error) => {
+      console.error('Sharing failed:', error);
+    },
+  });
 
   useEffect(() => {
     if (!loadedPresetFromUrl) return;
@@ -192,10 +231,114 @@ export function MobileBorderCalculator({
     ]
   );
 
-  // Action handlers
-  const handleShare = useCallback(() => {
-    alert('Share functionality would be implemented here');
+  // Sharing handlers
+  const handleShare = useCallback(async () => {
+    setIsGeneratingShareUrl(true);
+
+    try {
+      // Check if current settings match a saved preset
+      const matchedPreset = presets.find(
+        (p) => JSON.stringify(p.settings) === JSON.stringify(currentSettings)
+      );
+
+      if (matchedPreset) {
+        const urls = getSharingUrls({
+          name: matchedPreset.name,
+          settings: currentSettings,
+        });
+        if (urls) {
+          setShareUrls(urls);
+          setIsShareModalOpen(true);
+        } else {
+          console.error('Failed to generate sharing URLs for saved preset');
+          setShareUrls(null);
+          setIsShareModalOpen(true);
+        }
+      } else if (currentPreset?.name?.trim()) {
+        // If there's a current named preset (unsaved or loaded), use that name
+        const urls = getSharingUrls({
+          name: currentPreset.name.trim(),
+          settings: currentSettings,
+        });
+        if (urls) {
+          setShareUrls(urls);
+          setIsShareModalOpen(true);
+        } else {
+          console.error('Failed to generate sharing URLs for named settings');
+          setShareUrls(null);
+          setIsShareModalOpen(true);
+        }
+      } else {
+        // No matching saved preset and no current name: prompt to save before share
+        setIsSaveBeforeShareOpen(true);
+      }
+    } catch (error) {
+      console.error('Error during share URL generation:', error);
+      setShareUrls(null);
+      setIsShareModalOpen(true);
+    } finally {
+      setIsGeneratingShareUrl(false);
+    }
+  }, [presets, currentSettings, currentPreset, getSharingUrls]);
+
+  const handleSaveAndShare = useCallback(
+    async (name: string) => {
+      setIsGeneratingShareUrl(true);
+      try {
+        const newPreset: BorderPreset = {
+          id: 'user-' + Date.now(),
+          name,
+          settings: currentSettings,
+        };
+        addPreset(newPreset);
+        setCurrentPreset(newPreset);
+
+        const urls = getSharingUrls({ name, settings: currentSettings });
+        setIsSaveBeforeShareOpen(false);
+
+        if (urls) {
+          setShareUrls(urls);
+          setIsShareModalOpen(true);
+        } else {
+          console.error('Failed to generate sharing URLs after saving preset');
+          setShareUrls(null);
+          setIsShareModalOpen(true);
+        }
+      } catch (error) {
+        console.error('Error during save and share:', error);
+        setIsSaveBeforeShareOpen(false);
+        setShareUrls(null);
+        setIsShareModalOpen(true);
+      } finally {
+        setIsGeneratingShareUrl(false);
+      }
+    },
+    [addPreset, currentSettings, getSharingUrls]
+  );
+
+  const handleCopyToClipboard = useCallback(async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      throw error;
+    }
   }, []);
+
+  const handleNativeShare = useCallback(async () => {
+    try {
+      await sharePreset(
+        {
+          name: currentPreset?.name || 'Border Calculator Settings',
+          settings: currentSettings,
+        },
+        false
+      );
+    } catch (error) {
+      console.error('Native share failed:', error);
+      throw error;
+    }
+  }, [sharePreset, currentPreset, currentSettings]);
 
   // Open drawer handlers
   const openDrawerSection = useCallback((section: ActiveSection) => {
@@ -268,7 +411,7 @@ export function MobileBorderCalculator({
       <div className="mx-auto max-w-md space-y-4">
         {/* Hero Section - Blade Results */}
         <div
-          className="rounded-3xl p-[1px] shadow-[0_30px_90px_-40px_var(--color-visualization-overlay)] backdrop-blur-sm"
+          className={`rounded-3xl p-[1px] ${!isHighContrast ? 'shadow-[0_30px_90px_-40px_var(--color-visualization-overlay)]' : ''} backdrop-blur-sm`}
           style={{
             background: 'var(--color-border-primary)',
           }}
@@ -290,7 +433,7 @@ export function MobileBorderCalculator({
 
         {/* Animated Preview */}
         <div
-          className="rounded-3xl border p-6 shadow-[0_35px_110px_-50px_var(--color-visualization-overlay)] backdrop-blur-lg"
+          className={`rounded-3xl border p-6 ${!isHighContrast ? 'shadow-[0_35px_110px_-50px_var(--color-visualization-overlay)]' : ''} backdrop-blur-lg`}
           style={{
             borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-background)',
@@ -300,7 +443,7 @@ export function MobileBorderCalculator({
             calculation={calculation}
             showBlades={showBlades}
             showBladeReadings={showBladeReadings}
-            className="shadow-2xl"
+            className={!isHighContrast ? 'shadow-2xl' : undefined}
             borderColor="var(--color-border-primary)"
           />
         </div>
@@ -313,7 +456,9 @@ export function MobileBorderCalculator({
               borderColor: 'var(--color-border-secondary)',
               backgroundColor: 'var(--color-surface-muted)',
               background: 'var(--gradient-card-warning)',
-              boxShadow: '0 25px 80px -45px var(--color-visualization-overlay)',
+              boxShadow: isHighContrast
+                ? 'none'
+                : '0 25px 80px -45px var(--color-visualization-overlay)',
             }}
           >
             {bladeWarning && (
@@ -337,7 +482,9 @@ export function MobileBorderCalculator({
           style={{
             borderColor: 'var(--color-border-secondary)',
             background: 'var(--color-surface)',
-            boxShadow: '0 40px 120px -60px var(--color-visualization-overlay)',
+            boxShadow: isHighContrast
+              ? 'none'
+              : '0 40px 120px -60px var(--color-visualization-overlay)',
           }}
         >
           <div className="space-y-3">
@@ -346,7 +493,7 @@ export function MobileBorderCalculator({
               value={`${aspectRatioDisplayValue} on ${paperSizeDisplayValue}`}
               onPress={() => openDrawerSection('paperSize')}
               icon={Image}
-              className="backdrop-blur-sm shadow-lg"
+              className={isHighContrast ? 'backdrop-blur-sm' : 'backdrop-blur-sm shadow-lg'}
             />
 
             <SettingsButton
@@ -354,7 +501,7 @@ export function MobileBorderCalculator({
               value={borderSizeDisplayValue}
               onPress={() => openDrawerSection('borderSize')}
               icon={Ruler}
-              className="backdrop-blur-sm shadow-lg"
+              className={isHighContrast ? 'backdrop-blur-sm' : 'backdrop-blur-sm shadow-lg'}
             />
 
             <SettingsButton
@@ -362,7 +509,7 @@ export function MobileBorderCalculator({
               value={positionDisplayValue}
               onPress={() => openDrawerSection('positionOffsets')}
               icon={Move}
-              className="backdrop-blur-sm shadow-lg"
+              className={isHighContrast ? 'backdrop-blur-sm' : 'backdrop-blur-sm shadow-lg'}
             />
           </div>
 
@@ -373,7 +520,7 @@ export function MobileBorderCalculator({
               icon={showBlades ? EyeOff : Crop}
               showChevron={false}
               centerLabel={true}
-              className="backdrop-blur-sm shadow-lg"
+              className={isHighContrast ? 'backdrop-blur-sm' : 'backdrop-blur-sm shadow-lg'}
             />
 
             <SettingsButton
@@ -382,7 +529,7 @@ export function MobileBorderCalculator({
               icon={showBladeReadings ? EyeOff : Target}
               showChevron={false}
               centerLabel={true}
-              className="backdrop-blur-sm shadow-lg"
+              className={isHighContrast ? 'backdrop-blur-sm' : 'backdrop-blur-sm shadow-lg'}
             />
           </div>
 
@@ -392,17 +539,17 @@ export function MobileBorderCalculator({
                 value={presetsDisplayValue}
                 onPress={() => openDrawerSection('presets')}
                 icon={BookOpen}
-                className="backdrop-blur-sm shadow-lg"
+                className={isHighContrast ? 'backdrop-blur-sm' : 'backdrop-blur-sm shadow-lg'}
               />
             </div>
 
             <button
               onClick={handleShare}
-              className="rounded-full p-4 font-semibold shadow-lg transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2"
+              className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${!isHighContrast ? 'shadow-lg' : ''}`}
               style={
                 {
                   background: 'var(--gradient-card-primary)',
-                  color: 'var(--color-background)',
+                  color: 'var(--color-text-primary)',
                   '--tw-ring-color': 'var(--color-semantic-success)',
                 } as React.CSSProperties
               }
@@ -416,7 +563,7 @@ export function MobileBorderCalculator({
         {/* Reset Button */}
         <button
           onClick={resetToDefaults}
-          className="flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold shadow-lg transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2"
+          className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${!isHighContrast ? 'shadow-lg' : ''}`}
           style={
             {
               borderColor: 'var(--color-border-secondary)',
@@ -513,6 +660,26 @@ export function MobileBorderCalculator({
             </DrawerBody>
           </DrawerContent>
         </Drawer>
+
+        {/* Sharing Modals */}
+        <ShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          presetName={currentPreset?.name || 'Border Calculator Settings'}
+          webUrl={shareUrls?.webUrl || ''}
+          nativeUrl={shareUrls?.nativeUrl}
+          onCopyToClipboard={handleCopyToClipboard}
+          onNativeShare={canShareNatively ? handleNativeShare : undefined}
+          canShareNatively={canShareNatively}
+          canCopyToClipboard={canCopyToClipboard}
+        />
+
+        <SaveBeforeShareModal
+          isOpen={isSaveBeforeShareOpen}
+          onClose={() => setIsSaveBeforeShareOpen(false)}
+          onSaveAndShare={handleSaveAndShare}
+          isLoading={isSharing || isGeneratingShareUrl}
+        />
       </div>
     </div>
   );

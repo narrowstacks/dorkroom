@@ -76,27 +76,41 @@ export function ShareModal({
         {/* Backdrop */}
         <div
           className="fixed inset-0 backdrop-blur-sm transition-opacity"
-          style={{
-            backgroundColor: colorMixOr(
-              'var(--color-background)',
-              60,
-              'transparent',
-              'var(--color-surface-muted)'
-            ),
-          }}
+          style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
           onClick={onClose}
         />
 
         {/* Modal */}
-        <div className="relative z-10 inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+        <div
+          className="relative z-10 inline-block transform overflow-hidden rounded-2xl text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle border"
+          style={{
+            borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'var(--color-surface)',
+            color: 'var(--color-text-primary)',
+          }}
+        >
           {!hasValidUrl ? (
             // Error state when no valid URL
             <>
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div
+                className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4"
+                style={{ backgroundColor: 'var(--color-surface)' }}
+              >
                 <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <div
+                    className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10"
+                    style={{
+                      backgroundColor: colorMixOr(
+                        'var(--color-semantic-error)',
+                        15,
+                        'transparent',
+                        'var(--color-border-muted)'
+                      ),
+                    }}
+                  >
                     <svg
-                      className="h-6 w-6 text-red-600"
+                      className="h-6 w-6"
+                      style={{ color: 'var(--color-semantic-error)' }}
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -111,11 +125,17 @@ export function ShareModal({
                     </svg>
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900">
+                    <h3
+                      className="text-lg font-medium leading-6"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
                       Unable to Share
                     </h3>
                     <div className="mt-2">
-                      <p className="text-sm text-gray-500">
+                      <p
+                        className="text-sm"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                      >
                         We couldn't generate a share link for your settings.
                         Please try again.
                       </p>
@@ -123,11 +143,23 @@ export function ShareModal({
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+              <div
+                className="px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6"
+                style={{ backgroundColor: 'var(--color-surface)' }}
+              >
                 <button
                   type="button"
                   onClick={onClose}
-                  className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 sm:ml-3 sm:w-auto sm:text-sm"
+                  className="inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm sm:ml-3 sm:w-auto sm:text-sm transition focus-visible:outline-none focus-visible:ring-2"
+                  style={
+                    {
+                      backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
+                      color: 'var(--color-text-primary)',
+                      borderWidth: 1,
+                      borderColor: 'var(--color-border-secondary)',
+                      '--tw-ring-color': 'var(--color-border-primary)',
+                    } as React.CSSProperties
+                  }
                 >
                   Close
                 </button>
@@ -136,11 +168,25 @@ export function ShareModal({
           ) : (
             // Normal sharing content
             <>
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div
+                className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4"
+                style={{ backgroundColor: 'var(--color-surface)' }}
+              >
                 <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <div
+                    className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10"
+                    style={{
+                      backgroundColor: colorMixOr(
+                        'var(--color-semantic-info)',
+                        15,
+                        'transparent',
+                        'var(--color-border-muted)'
+                      ),
+                    }}
+                  >
                     <svg
-                      className="h-6 w-6 text-blue-600"
+                      className="h-6 w-6"
+                      style={{ color: 'var(--color-semantic-info)' }}
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -155,7 +201,10 @@ export function ShareModal({
                     </svg>
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900">
+                    <h3
+                      className="text-lg font-medium leading-6"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
                       Share "{presetName}"
                     </h3>
                     <div className="mt-4 space-y-4">
@@ -166,11 +215,25 @@ export function ShareModal({
                             onClick={handleNativeShare}
                             disabled={isSharing}
                             className={cn(
-                              'w-full flex items-center justify-center px-4 py-2 rounded-md',
-                              'bg-blue-600 text-white hover:bg-blue-700',
-                              'transition-colors duration-200',
-                              'disabled:opacity-50 disabled:cursor-not-allowed'
+                              'w-full flex items-center justify-center px-4 py-2 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2'
                             )}
+                            style={
+                              isSharing
+                                ? {
+                                    backgroundColor:
+                                      'rgba(var(--color-background-rgb), 0.2)',
+                                    color: 'var(--color-text-secondary)',
+                                    '--tw-ring-color':
+                                      'var(--color-border-primary)',
+                                  }
+                                : {
+                                    backgroundColor:
+                                      'var(--color-text-primary)',
+                                    color: 'var(--color-background)',
+                                    '--tw-ring-color':
+                                      'var(--color-border-primary)',
+                                  }
+                            }
                           >
                             {isSharing ? (
                               <>
@@ -219,10 +282,16 @@ export function ShareModal({
 
                       {/* Web URL Section */}
                       <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label
+                          className="block text-sm font-medium"
+                          style={{ color: 'var(--color-text-primary)' }}
+                        >
                           Web Link
                         </label>
-                        <p className="text-xs text-gray-500">
+                        <p
+                          className="text-xs"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
                           Works on any device with a web browser
                         </p>
                         <div className="flex space-x-2">
@@ -230,17 +299,37 @@ export function ShareModal({
                             type="text"
                             value={displayUrl}
                             readOnly
-                            className="flex-1 block w-full rounded-md border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500"
+                            className="flex-1 block w-full rounded-md px-3 py-2 text-sm placeholder:opacity-70"
+                            style={{
+                              borderWidth: 1,
+                              borderColor: 'var(--color-border-secondary)',
+                              backgroundColor: 'var(--color-surface-muted)',
+                              color: 'var(--color-text-primary)',
+                            }}
                           />
                           {canCopyToClipboard && (
                             <button
                               onClick={handleCopyWeb}
                               className={cn(
-                                'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200',
-                                copySuccess
-                                  ? 'bg-green-600 text-white'
-                                  : 'bg-gray-600 text-white hover:bg-gray-700'
+                                'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2'
                               )}
+                              style={
+                                copySuccess
+                                  ? {
+                                      backgroundColor:
+                                        'var(--color-semantic-success)',
+                                      color: 'var(--color-background)',
+                                      '--tw-ring-color':
+                                        'var(--color-border-primary)',
+                                    }
+                                  : {
+                                      backgroundColor:
+                                        'rgba(var(--color-background-rgb), 0.2)',
+                                      color: 'var(--color-text-primary)',
+                                      '--tw-ring-color':
+                                        'var(--color-border-primary)',
+                                    }
+                              }
                             >
                               {copySuccess ? (
                                 <svg
@@ -279,10 +368,16 @@ export function ShareModal({
                       {/* Native URL Section */}
                       {nativeUrl && (
                         <div className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label
+                            className="block text-sm font-medium"
+                            style={{ color: 'var(--color-text-primary)' }}
+                          >
                             App Link
                           </label>
-                          <p className="text-xs text-gray-500">
+                          <p
+                            className="text-xs"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                          >
                             Opens directly in the Dorkroom app
                           </p>
                           <div className="flex space-x-2">
@@ -290,15 +385,27 @@ export function ShareModal({
                               type="text"
                               value={nativeUrl}
                               readOnly
-                              className="flex-1 block w-full rounded-md border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500"
+                              className="flex-1 block w-full rounded-md px-3 py-2 text-sm placeholder:opacity-70"
+                              style={{
+                                borderWidth: 1,
+                                borderColor: 'var(--color-border-secondary)',
+                                backgroundColor: 'var(--color-surface-muted)',
+                                color: 'var(--color-text-primary)',
+                              }}
                             />
                             {canCopyToClipboard && (
                               <button
                                 onClick={handleCopyNative}
                                 className={cn(
-                                  'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200',
-                                  'bg-gray-600 text-white hover:bg-gray-700'
+                                  'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2'
                                 )}
+                                style={{
+                                  backgroundColor:
+                                    'rgba(var(--color-background-rgb), 0.2)',
+                                  color: 'var(--color-text-primary)',
+                                  '--tw-ring-color':
+                                    'var(--color-border-primary)',
+                                }}
                               >
                                 <svg
                                   className="h-4 w-4"
@@ -322,11 +429,23 @@ export function ShareModal({
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+              <div
+                className="px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6"
+                style={{ backgroundColor: 'var(--color-surface)' }}
+              >
                 <button
                   type="button"
                   onClick={onClose}
-                  className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  className="mt-3 inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition focus-visible:outline-none focus-visible:ring-2"
+                  style={
+                    {
+                      backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
+                      color: 'var(--color-text-primary)',
+                      borderWidth: 1,
+                      borderColor: 'var(--color-border-secondary)',
+                      '--tw-ring-color': 'var(--color-border-primary)',
+                    } as React.CSSProperties
+                  }
                 >
                   Close
                 </button>
