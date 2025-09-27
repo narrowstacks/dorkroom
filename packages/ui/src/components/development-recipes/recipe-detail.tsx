@@ -1,7 +1,8 @@
 import { ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
 import { useState } from 'react';
 import type { DevelopmentCombinationView } from './results-table';
-import { formatTemperature } from '@dorkroom/logic';
+import { formatTemperatureWithUnit } from '../../lib/temperature';
+import { useTemperature } from '../../contexts/temperature-context';
 import { Tag } from '../ui/tag';
 import { CollapsibleSection } from '../ui/collapsible-section';
 
@@ -34,6 +35,7 @@ export function DevelopmentRecipeDetail({
   onToggleFavorite,
 }: DevelopmentRecipeDetailProps) {
   const { combination, film, developer } = view;
+  const { unit } = useTemperature();
   const [isFilmExpanded, setIsFilmExpanded] = useState(false);
   const [isDeveloperExpanded, setIsDeveloperExpanded] = useState(false);
 
@@ -43,7 +45,9 @@ export function DevelopmentRecipeDetail({
         {onToggleFavorite && (
           <button
             type="button"
-            title={isFavorite?.(view) ? 'Remove from favorites' : 'Add to favorites'}
+            title={
+              isFavorite?.(view) ? 'Remove from favorites' : 'Add to favorites'
+            }
             onClick={() => onToggleFavorite(view)}
             className="inline-flex items-center gap-2 rounded-full bg-border-muted px-3 py-1 text-xs font-medium text-secondary transition hover:bg-border-secondary hover:text-primary"
           >
@@ -68,7 +72,14 @@ export function DevelopmentRecipeDetail({
           label="Development time"
           value={`${combination.timeMinutes.toFixed(2)} minutes`}
         />
-        <DetailRow label="Temperature" value={formatTemperature(combination)} />
+        <DetailRow
+          label="Temperature"
+          value={formatTemperatureWithUnit(
+            combination.temperatureF,
+            combination.temperatureC,
+            unit
+          ).text}
+        />
         <DetailRow
           label="Dilution"
           value={
@@ -147,9 +158,7 @@ export function DevelopmentRecipeDetail({
         onToggle={() => setIsFilmExpanded(!isFilmExpanded)}
       >
         {film?.description && (
-          <p className="text-sm text-secondary">
-            {film.description}
-          </p>
+          <p className="text-sm text-secondary">{film.description}</p>
         )}
       </CollapsibleSection>
 

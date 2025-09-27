@@ -10,7 +10,9 @@ import { ShareButton } from '../share-button';
 interface DevelopmentResultsCardsProps {
   rows: DevelopmentCombinationView[];
   onSelectCombination?: (view: DevelopmentCombinationView) => void;
-  onShareCombination?: (view: DevelopmentCombinationView) => void | Promise<unknown>;
+  onShareCombination?: (
+    view: DevelopmentCombinationView
+  ) => void | Promise<unknown>;
   onCopyCombination?: (view: DevelopmentCombinationView) => void;
   onEditCustomRecipe?: (view: DevelopmentCombinationView) => void;
   onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;
@@ -93,31 +95,61 @@ export function DevelopmentResultsCards({
             style={{
               borderColor:
                 row.source === 'custom'
-                  ? colorMixOr('var(--color-accent)', 30, 'transparent', 'var(--color-border-secondary)')
+                  ? colorMixOr(
+                      'var(--color-accent)',
+                      30,
+                      'transparent',
+                      'var(--color-border-secondary)'
+                    )
                   : 'var(--color-border-secondary)',
               backgroundColor:
                 row.source === 'custom'
-                  ? colorMixOr('var(--color-accent)', 15, 'transparent', 'var(--color-border-muted)')
+                  ? colorMixOr(
+                      'var(--color-accent)',
+                      15,
+                      'transparent',
+                      'var(--color-border-muted)'
+                    )
                   : 'rgba(var(--color-background-rgb), 0.25)',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor =
                 row.source === 'custom'
-                  ? colorMixOr('var(--color-accent)', 40, 'transparent', 'var(--color-border-primary)')
+                  ? colorMixOr(
+                      'var(--color-accent)',
+                      40,
+                      'transparent',
+                      'var(--color-border-primary)'
+                    )
                   : 'var(--color-border-primary)';
               e.currentTarget.style.backgroundColor =
                 row.source === 'custom'
-                  ? colorMixOr('var(--color-accent)', 20, 'transparent', 'var(--color-border-secondary)')
+                  ? colorMixOr(
+                      'var(--color-accent)',
+                      20,
+                      'transparent',
+                      'var(--color-border-secondary)'
+                    )
                   : 'rgba(var(--color-background-rgb), 0.3)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor =
                 row.source === 'custom'
-                  ? colorMixOr('var(--color-accent)', 30, 'transparent', 'var(--color-border-secondary)')
+                  ? colorMixOr(
+                      'var(--color-accent)',
+                      30,
+                      'transparent',
+                      'var(--color-border-secondary)'
+                    )
                   : 'var(--color-border-secondary)';
               e.currentTarget.style.backgroundColor =
                 row.source === 'custom'
-                  ? colorMixOr('var(--color-accent)', 15, 'transparent', 'var(--color-border-muted)')
+                  ? colorMixOr(
+                      'var(--color-accent)',
+                      15,
+                      'transparent',
+                      'var(--color-border-muted)'
+                    )
                   : 'rgba(var(--color-background-rgb), 0.25)';
             }}
           >
@@ -158,7 +190,8 @@ export function DevelopmentResultsCards({
                           ),
                         }}
                       >
-                        <Beaker className="h-3 w-3" aria-hidden="true" /> Custom Recipe
+                        <Beaker className="h-3 w-3" aria-hidden="true" /> Custom
+                        Recipe
                       </span>
                     )}
                     {combination.tags && combination.tags.length > 0 && (
@@ -173,10 +206,16 @@ export function DevelopmentResultsCards({
               </div>
               <button
                 type="button"
-                title={isFavorite?.(row) ? 'Remove from favorites' : 'Add to favorites'}
+                title={
+                  isFavorite?.(row)
+                    ? 'Remove from favorites'
+                    : 'Add to favorites'
+                }
                 aria-pressed={Boolean(isFavorite?.(row))}
                 aria-label={
-                  isFavorite?.(row) ? 'Remove from favorites' : 'Add to favorites'
+                  isFavorite?.(row)
+                    ? 'Remove from favorites'
+                    : 'Add to favorites'
                 }
                 onClick={(e) => {
                   e.stopPropagation();
@@ -190,10 +229,12 @@ export function DevelopmentResultsCards({
                     : 'var(--color-text-tertiary)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-border-secondary)';
+                  e.currentTarget.style.backgroundColor =
+                    'var(--color-border-secondary)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-surface-muted)';
+                  e.currentTarget.style.backgroundColor =
+                    'var(--color-surface-muted)';
                 }}
               >
                 <Star
@@ -296,7 +337,8 @@ export function DevelopmentResultsCards({
                             'var(--color-text-tertiary)';
                         }}
                       >
-                        <ExternalLink className="h-3 w-3" aria-hidden="true" /> Source
+                        <ExternalLink className="h-3 w-3" aria-hidden="true" />{' '}
+                        Source
                       </a>
                     )}
                     {row.source !== 'custom' &&

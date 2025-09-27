@@ -40,7 +40,8 @@ export const debounce = <T extends (...args: any[]) => any>(
 // Validate if a string represents a valid in-progress number
 export const isValidNumberInProgress = (v: string): boolean => {
   // Allow empty string, optional minus, digits, optional decimal point
-  return /^-?\d*\.?$/.test(v);
+  // But don't allow minus immediately followed by decimal point without digits
+  return /^-?\d*\.?$/.test(v) && !/^-\.$/.test(v);
 };
 
 // Check if input is a complete numeric value or valid in-progress typing

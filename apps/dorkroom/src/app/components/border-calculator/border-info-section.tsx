@@ -1,4 +1,4 @@
-import { CalculatorCard } from '@dorkroom/ui';
+import { CalculatorCard, colorMixOr } from '@dorkroom/ui';
 
 const INFO_HOW_TO_USE = [
   'Select your desired aspect ratio (the ratio of your negative or image)',
@@ -24,7 +24,10 @@ export function BorderInfoSection() {
         padding="normal"
         className="bg-surface-muted/80"
       >
-        <div className="space-y-5 text-sm text-white/75">
+        <div
+          className="space-y-5 text-sm"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
           <p>
             The border calculator helps you determine the optimal placement of
             your enlarger easel blades when printing photos, ensuring consistent
@@ -32,14 +35,27 @@ export function BorderInfoSection() {
           </p>
 
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold uppercase tracking-[0.25em] text-white/60">
+            <h4
+              className="text-sm font-semibold uppercase tracking-[0.25em]"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               How to use
             </h4>
             <ul className="space-y-2">
               {INFO_HOW_TO_USE.map((item, index) => (
                 <li
                   key={index}
-                  className="rounded-2xl border border-white/5 bg-white/5 px-4 py-2 text-white/75"
+                  className="rounded-2xl border px-4 py-2"
+                  style={{
+                    borderColor: 'var(--color-border-muted)',
+                    backgroundColor: colorMixOr(
+                      'var(--color-surface)',
+                      20,
+                      'transparent',
+                      'var(--color-surface)'
+                    ),
+                    color: 'var(--color-text-secondary)',
+                  }}
                 >
                   {item}
                 </li>
@@ -48,10 +64,25 @@ export function BorderInfoSection() {
           </div>
 
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold uppercase tracking-[0.25em] text-white/60">
+            <h4
+              className="text-sm font-semibold uppercase tracking-[0.25em]"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Blade measurements
             </h4>
-            <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-xs text-white/90">
+            <div
+              className="rounded-2xl border p-4 text-xs"
+              style={{
+                borderColor: 'var(--color-border-secondary)',
+                backgroundColor: colorMixOr(
+                  'var(--color-surface)',
+                  80,
+                  'transparent',
+                  'var(--color-border-muted)'
+                ),
+                color: 'var(--color-text-primary)',
+              }}
+            >
               The measurements shown are distances from the edge of your
               enlarger baseboard to where each blade should be positioned. For
               non-standard paper sizes (sizes that don't have a standard easel
@@ -61,14 +92,27 @@ export function BorderInfoSection() {
           </div>
 
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold uppercase tracking-[0.25em] text-white/60">
+            <h4
+              className="text-sm font-semibold uppercase tracking-[0.25em]"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Tips
             </h4>
             <ul className="space-y-2">
               {INFO_TIPS.map((tip, index) => (
                 <li
                   key={index}
-                  className="rounded-2xl border border-white/5 bg-white/5 px-4 py-2 text-white/75"
+                  className="rounded-2xl border px-4 py-2"
+                  style={{
+                    borderColor: 'var(--color-border-muted)',
+                    backgroundColor: colorMixOr(
+                      'var(--color-surface)',
+                      20,
+                      'transparent',
+                      'var(--color-surface)'
+                    ),
+                    color: 'var(--color-text-secondary)',
+                  }}
                 >
                   {tip}
                 </li>

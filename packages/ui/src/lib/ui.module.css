@@ -1,7 +1,39 @@
 /*
- * Replace this with your own classes
- *
- * e.g.
- * .container {
- * }
-*/
+ * Navigation dropdown text hover states
+ */
+
+/* Active navigation item title text */
+.nav-title-active {
+  color: var(--color-background);
+}
+
+.group:hover .nav-title-active {
+  color: var(--nav-active-hover-text);
+}
+
+/* Inactive navigation item title text */
+.nav-title-inactive {
+  color: var(--color-text-secondary);
+}
+
+.group:hover .nav-title-inactive {
+  color: var(--nav-hover-text);
+}
+
+/* Active navigation item summary text */
+.nav-summary-active {
+  color: var(--color-background);
+}
+
+.group:hover .nav-summary-active {
+  color: var(--nav-active-hover-text);
+}
+
+/* Inactive navigation item summary text */
+.nav-summary-inactive {
+  color: var(--color-text-tertiary);
+}
+
+.group:hover .nav-summary-inactive {
+  color: var(--nav-hover-text);
+}

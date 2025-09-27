@@ -21,15 +21,35 @@ const getToneStyle = (
   switch (tone) {
     case 'emerald':
       return {
-        borderColor: colorMixOr('var(--color-semantic-success)', 30, 'transparent', 'var(--color-border-secondary)'),
+        borderColor: colorMixOr(
+          'var(--color-semantic-success)',
+          30,
+          'transparent',
+          'var(--color-border-secondary)'
+        ),
         background: 'var(--gradient-card-primary)',
-        color: colorMixOr('var(--color-semantic-success)', 90, 'var(--color-text-primary)', 'var(--color-text-primary)'),
+        color: colorMixOr(
+          'var(--color-semantic-success)',
+          90,
+          'var(--color-text-primary)',
+          'var(--color-text-primary)'
+        ),
       };
     case 'sky':
       return {
-        borderColor: colorMixOr('var(--color-semantic-info)', 30, 'transparent', 'var(--color-border-secondary)'),
+        borderColor: colorMixOr(
+          'var(--color-semantic-info)',
+          30,
+          'transparent',
+          'var(--color-border-secondary)'
+        ),
         background: 'var(--gradient-card-info)',
-        color: colorMixOr('var(--color-semantic-info)', 90, 'var(--color-text-primary)', 'var(--color-text-primary)'),
+        color: colorMixOr(
+          'var(--color-semantic-info)',
+          90,
+          'var(--color-text-primary)',
+          'var(--color-text-primary)'
+        ),
       };
   }
 };

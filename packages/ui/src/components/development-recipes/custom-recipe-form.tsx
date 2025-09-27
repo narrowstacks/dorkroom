@@ -89,14 +89,29 @@ export function CustomRecipeForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-      <div className="rounded-xl border p-4" style={{ 
-        borderColor: 'var(--color-border-secondary)', 
-        backgroundColor: 'var(--color-surface-muted)' 
-      }}>
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-6 text-sm"
+      style={{ color: 'var(--color-text-secondary)' }}
+    >
+      <div
+        className="rounded-xl border p-4"
+        style={{
+          borderColor: 'var(--color-border-secondary)',
+          backgroundColor: 'var(--color-surface-muted)',
+        }}
+      >
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>Film</h3>
-          <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+          <h3
+            className="text-sm font-semibold"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            Film
+          </h3>
+          <label
+            className="flex items-center gap-2 text-xs"
+            style={{ color: 'var(--color-text-tertiary)' }}
+          >
             <input
               type="checkbox"
               checked={!formData.useExistingFilm}
@@ -172,13 +187,24 @@ export function CustomRecipeForm({
         )}
       </div>
 
-      <div className="rounded-xl border p-4" style={{ 
-        borderColor: 'var(--color-border-secondary)', 
-        backgroundColor: 'var(--color-surface-muted)' 
-      }}>
+      <div
+        className="rounded-xl border p-4"
+        style={{
+          borderColor: 'var(--color-border-secondary)',
+          backgroundColor: 'var(--color-surface-muted)',
+        }}
+      >
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>Developer</h3>
-          <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+          <h3
+            className="text-sm font-semibold"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            Developer
+          </h3>
+          <label
+            className="flex items-center gap-2 text-xs"
+            style={{ color: 'var(--color-text-tertiary)' }}
+          >
             <input
               type="checkbox"
               checked={!formData.useExistingDeveloper}
@@ -355,7 +381,10 @@ export function CustomRecipeForm({
         placeholder="Optional notes about this recipe"
       />
 
-      <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+      <label
+        className="flex items-center gap-2 text-xs"
+        style={{ color: 'var(--color-text-tertiary)' }}
+      >
         <input
           type="checkbox"
           checked={formData.isPublic}
@@ -364,7 +393,10 @@ export function CustomRecipeForm({
         Suggest submitting to the public recipe database
       </label>
 
-      <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+      <label
+        className="flex items-center gap-2 text-xs"
+        style={{ color: 'var(--color-text-tertiary)' }}
+      >
         <input
           type="checkbox"
           checked={!!formData.isFavorite}
@@ -381,7 +413,7 @@ export function CustomRecipeForm({
             className="rounded-full border px-4 py-2 text-sm font-medium transition"
             style={{
               borderColor: 'var(--color-border-primary)',
-              color: 'var(--color-text-tertiary)'
+              color: 'var(--color-text-tertiary)',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = 'var(--color-border-primary)';
@@ -404,16 +436,18 @@ export function CustomRecipeForm({
           )}
           style={{
             backgroundColor: 'var(--color-text-primary)',
-            color: 'var(--color-background)'
+            color: 'var(--color-background)',
           }}
           onMouseEnter={(e) => {
             if (!isSubmitting) {
-              e.currentTarget.style.backgroundColor = 'var(--color-text-secondary)';
+              e.currentTarget.style.backgroundColor =
+                'var(--color-text-secondary)';
             }
           }}
           onMouseLeave={(e) => {
             if (!isSubmitting) {
-              e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
+              e.currentTarget.style.backgroundColor =
+                'var(--color-text-primary)';
             }
           }}
         >

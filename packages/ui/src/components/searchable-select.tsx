@@ -175,7 +175,9 @@ export function SearchableSelect({
           className="w-full rounded-lg border px-3 py-2 pr-16 focus:outline-none focus:ring-2"
           style={
             {
-              borderColor: focused ? 'var(--color-border-primary)' : 'var(--color-border-secondary)',
+              borderColor: focused
+                ? 'var(--color-border-primary)'
+                : 'var(--color-border-secondary)',
               backgroundColor: 'var(--color-surface-muted)',
               color: 'var(--color-text-primary)',
               '--tw-ring-color': 'var(--color-border-primary)',

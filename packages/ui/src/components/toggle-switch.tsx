@@ -24,8 +24,8 @@ export function ToggleSwitch({
         )}
         style={{
           backgroundColor: value
-            ? 'var(--color-secondary)'
-            : 'var(--color-border-primary)',
+            ? 'var(--toggle-pill-bg-active, var(--color-secondary))'
+            : 'var(--toggle-pill-bg, var(--color-border-primary))',
           border: value
             ? 'var(--toggle-pill-border-active, none)'
             : 'var(--toggle-pill-border, none)',
@@ -37,9 +37,9 @@ export function ToggleSwitch({
             value ? 'translate-x-6' : 'translate-x-1'
           )}
           style={{
-            backgroundColor: value 
-              ? 'var(--color-background)' 
-              : 'var(--color-text-primary)',
+            backgroundColor: value
+              ? 'var(--toggle-circle-bg-active, var(--color-background))'
+              : 'var(--toggle-circle-bg, var(--color-text-primary))',
             border: value
               ? 'var(--toggle-circle-border-active, none)'
               : 'var(--toggle-circle-border, none)',

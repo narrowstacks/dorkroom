@@ -91,14 +91,14 @@ export function FilmdevPreviewModal({
           backgroundColor: 'var(--color-text-primary)',
           color: 'var(--color-background)',
         }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = colorMixOr(
-                'var(--color-text-primary)',
-                90,
-                'transparent',
-                'var(--color-text-primary)'
-              );
-            }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = colorMixOr(
+            'var(--color-text-primary)',
+            90,
+            'transparent',
+            'var(--color-text-primary)'
+          );
+        }}
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
         }}

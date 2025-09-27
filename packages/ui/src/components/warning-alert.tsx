@@ -22,16 +22,46 @@ export function WarningAlert({
       style={{
         borderColor:
           action === 'error'
-            ? colorMixOr('var(--color-semantic-error)', 50, 'transparent', 'var(--color-border-secondary)')
-            : colorMixOr('var(--color-semantic-warning)', 50, 'transparent', 'var(--color-border-secondary)'),
+            ? colorMixOr(
+                'var(--color-semantic-error)',
+                50,
+                'transparent',
+                'var(--color-border-secondary)'
+              )
+            : colorMixOr(
+                'var(--color-semantic-warning)',
+                50,
+                'transparent',
+                'var(--color-border-secondary)'
+              ),
         backgroundColor:
           action === 'error'
-            ? colorMixOr('var(--color-semantic-error)', 10, 'transparent', 'var(--color-border-muted)')
-            : colorMixOr('var(--color-semantic-warning)', 10, 'transparent', 'var(--color-border-muted)'),
+            ? colorMixOr(
+                'var(--color-semantic-error)',
+                10,
+                'transparent',
+                'var(--color-border-muted)'
+              )
+            : colorMixOr(
+                'var(--color-semantic-warning)',
+                10,
+                'transparent',
+                'var(--color-border-muted)'
+              ),
         color:
           action === 'error'
-            ? colorMixOr('var(--color-semantic-error)', 80, 'var(--color-text-primary)', 'var(--color-semantic-error)')
-            : colorMixOr('var(--color-semantic-warning)', 80, 'var(--color-text-primary)', 'var(--color-semantic-warning)'),
+            ? colorMixOr(
+                'var(--color-semantic-error)',
+                80,
+                'var(--color-text-primary)',
+                'var(--color-semantic-error)'
+              )
+            : colorMixOr(
+                'var(--color-semantic-warning)',
+                80,
+                'var(--color-text-primary)',
+                'var(--color-semantic-warning)'
+              ),
       }}
     >
       <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />

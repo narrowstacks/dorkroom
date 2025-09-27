@@ -47,6 +47,7 @@ export function CalculatorCard({
 }: CalculatorCardProps) {
   return (
     <section
+      role="region"
       className={cn(
         'relative overflow-hidden rounded-3xl border shadow-subtle card-ring',
         padding === 'compact' ? 'p-5 sm:p-6' : 'p-6 sm:p-8',
@@ -54,7 +55,12 @@ export function CalculatorCard({
       )}
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor: colorMixOr('var(--color-surface)', 80, 'transparent', 'var(--color-border-muted)'),
+        backgroundColor: colorMixOr(
+          'var(--color-surface)',
+          80,
+          'transparent',
+          'var(--color-border-muted)'
+        ),
       }}
     >
       {accent !== 'none' && (

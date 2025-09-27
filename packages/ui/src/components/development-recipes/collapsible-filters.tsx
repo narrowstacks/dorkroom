@@ -100,7 +100,8 @@ export function CollapsibleFilters({
             'rgba(var(--color-background-rgb), 0.3)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'var(--collapsible-filters-bg-hover-leave, transparent)';
+          e.currentTarget.style.backgroundColor =
+            'var(--collapsible-filters-bg-hover-leave, transparent)';
         }}
       >
         <div>

@@ -17,7 +17,9 @@
       "WebFetch(domain:www.gnu.org)",
       "Bash(bun x playwright screenshot:*)",
       "Bash(bun x playwright:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(bunx nx:*)",
+      "Bash(bunx prettier:*)"
     ],
     "deny": [],
     "ask": []

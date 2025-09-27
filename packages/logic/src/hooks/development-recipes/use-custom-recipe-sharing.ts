@@ -124,7 +124,12 @@ export const useCustomRecipeSharing = () => {
         }
 
         await copyToClipboard(shareUrl);
-        return { success: true, method: 'clipboard', url: shareUrl, showToast: true };
+        return {
+          success: true,
+          method: 'clipboard',
+          url: shareUrl,
+          showToast: true,
+        };
       } catch (error) {
         const errorMessage =
           error instanceof Error
@@ -147,7 +152,12 @@ export const useCustomRecipeSharing = () => {
         }
 
         await copyToClipboard(shareUrl);
-        return { success: true, method: 'clipboard', url: shareUrl, showToast: true };
+        return {
+          success: true,
+          method: 'clipboard',
+          url: shareUrl,
+          showToast: true,
+        };
       } catch (error) {
         const errorMessage =
           error instanceof Error

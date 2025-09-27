@@ -55,7 +55,8 @@ export function SettingsButton({
       }}
       onBlur={(e) => {
         if (!isSelected) {
-          e.currentTarget.style.outline = 'var(--settings-button-outline-inactive, none)';
+          e.currentTarget.style.outline =
+            'var(--settings-button-outline-inactive, none)';
         }
       }}
     >
