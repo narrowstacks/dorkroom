@@ -156,7 +156,7 @@ export function App() {
             </nav>
             <div className="hidden items-center gap-3 sm:flex">
               <a
-                href="https://github.com/dorkroom"
+                href="https://github.com/narrowstacks/dorkroom"
                 target="_blank"
                 rel="noreferrer"
                 className="rounded-full px-4 py-2 text-sm font-medium transition"
