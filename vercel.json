@@ -6,7 +6,7 @@
   "framework": null,
   "functions": {
     "api/**/*.ts": {
-      "runtime": "nodejs20.x"
+      "runtime": "@vercel/node@5.3.0"
     }
   },
   "routes": [
