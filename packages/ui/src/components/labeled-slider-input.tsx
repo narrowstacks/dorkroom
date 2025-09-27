@@ -46,8 +46,8 @@ export function LabeledSliderInput({
   };
 
   return (
-    <div className={cn('space-y-3', className)}>
-      <div className="flex items-center justify-between">
+    <div className={cn('space-y-3')}>
+      <div className={cn('flex items-center justify-between', className)}>
         <label
           htmlFor={inputId}
           id={`${inputId}-label`}
@@ -67,8 +67,8 @@ export function LabeledSliderInput({
           className={cn(
             'w-20 rounded px-2 py-1 text-sm border transition-colors',
             'focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2',
-            warning 
-              ? 'border-yellow-500/50 bg-yellow-500/10 focus-visible:outline-yellow-500' 
+            warning
+              ? 'border-yellow-500/50 bg-yellow-500/10 focus-visible:outline-yellow-500'
               : cn(
                   'border-[var(--color-border-primary)] bg-[var(--color-surface)]',
                   isFocused && 'border-[var(--color-border-secondary)]',
@@ -100,7 +100,10 @@ export function LabeledSliderInput({
         />
 
         {labels.length > 0 && (
-          <div className="flex justify-between text-xs" style={{ color: 'var(--color-text-muted)' }}>
+          <div
+            className="flex justify-between text-xs"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
             {labels.map((label, index) => (
               <span key={index}>{label}</span>
             ))}

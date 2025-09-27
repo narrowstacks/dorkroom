@@ -248,7 +248,8 @@ export const useRecipeUrlState = (
       state.recipeId = validation.sanitized.recipe;
 
       // Check if this is a shared API recipe (has film/developer params and source=share)
-      const hasFilmDeveloper = validation.sanitized.film && validation.sanitized.developer;
+      const hasFilmDeveloper =
+        validation.sanitized.film && validation.sanitized.developer;
       const isFromShare = validation.sanitized.source === 'share';
       if (hasFilmDeveloper && isFromShare) {
         state.isSharedApiRecipe = true;

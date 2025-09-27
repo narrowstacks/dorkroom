@@ -7,160 +7,36 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom';
-import {
-  Aperture,
-  Beaker,
-  BookOpen,
-  Camera,
-  Crop,
-  Gauge,
-  Home,
-  Menu,
-  Printer,
-  Ruler,
-  Settings,
-  Timer,
-  X,
-} from 'lucide-react';
+import { Camera, Menu, Printer, Settings, X } from 'lucide-react';
 import { cn } from './lib/cn';
-import { NavigationDropdown, NavigationItem } from '@dorkroom/ui';
+import {
+  NavigationDropdown,
+  PlaceholderPage,
+  printingItems,
+  shootingItems,
+  navItems,
+  allNavItems,
+  ROUTE_TITLES,
+} from '@dorkroom/ui';
 
 // Lazy load page components for better code splitting
 const HomePage = lazy(() => import('./pages/home-page'));
-const BorderCalculatorPage = lazy(() => import('./pages/border-calculator/border-calculator-page'));
-const ResizeCalculatorPage = lazy(() => import('./pages/resize-calculator/resize-calculator-page'));
-const ReciprocityCalculatorPage = lazy(() => import('./pages/reciprocity-calculator/reciprocity-calculator-page'));
-const ExposureCalculatorPage = lazy(() => import('./pages/exposure-calculator/exposure-calculator-page'));
-const DevelopmentRecipesPage = lazy(() => import('./pages/development-recipes/development-recipes-page'));
+const BorderCalculatorPage = lazy(
+  () => import('./pages/border-calculator/border-calculator-page')
+);
+const ResizeCalculatorPage = lazy(
+  () => import('./pages/resize-calculator/resize-calculator-page')
+);
+const ReciprocityCalculatorPage = lazy(
+  () => import('./pages/reciprocity-calculator/reciprocity-calculator-page')
+);
+const ExposureCalculatorPage = lazy(
+  () => import('./pages/exposure-calculator/exposure-calculator-page')
+);
+const DevelopmentRecipesPage = lazy(
+  () => import('./pages/development-recipes/development-recipes-page')
+);
 const SettingsPage = lazy(() => import('./pages/settings-page'));
-
-// Individual navigation items for dropdown groups
-const printingItems: NavigationItem[] = [
-  {
-    label: 'Border',
-    to: '/border',
-    icon: Crop,
-    summary: 'Trim-safe borders with print guides.',
-  },
-  {
-    label: 'Resize',
-    to: '/resize',
-    icon: Ruler,
-    summary: 'Scale prints without endless test strips.',
-  },
-  {
-    label: 'Stops',
-    to: '/stops',
-    icon: Gauge,
-    summary: 'Translate exposure stops into seconds.',
-  },
-];
-
-const shootingItems: NavigationItem[] = [
-  {
-    label: 'Exposure',
-    to: '/exposure',
-    icon: Aperture,
-    summary: 'Balance aperture, shutter, and ISO on set.',
-  },
-  {
-    label: 'Reciprocity',
-    to: '/reciprocity',
-    icon: Timer,
-    summary: 'Correct for long exposure failure.',
-  },
-  {
-    label: 'Infobase',
-    to: '/infobase',
-    icon: BookOpen,
-    summary: 'Reference tables, notes, and recipes.',
-  },
-];
-
-// Navigation structure for rendering
-const navItems = [
-  {
-    label: 'Home',
-    to: '/',
-    icon: Home,
-    summary: 'Skip the math. Make prints.',
-  },
-  {
-    label: 'Development',
-    to: '/development',
-    icon: Beaker,
-    summary: 'Film chemistry pairings with proven results.',
-  },
-];
-
-// All navigation items combined for backward compatibility
-const allNavItems = [...navItems, ...printingItems, ...shootingItems];
-
-const ROUTE_TITLES: Record<string, string> = {
-  '/': 'Home',
-  '/border': 'Border Calculator',
-  '/resize': 'Print Resize Calculator',
-  '/reciprocity': 'Reciprocity Failure Calculator',
-  '/stops': 'Stops Calculator',
-  '/exposure': 'Exposure Calculator',
-  '/development': 'Development Recipes',
-  '/infobase': 'Infobase',
-  '/settings': 'Settings',
-};
-
-function PlaceholderPage({
-  title,
-  summary,
-}: {
-  title: string;
-  summary: string;
-}) {
-  return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6 px-6 py-24 text-center sm:px-10">
-      <div
-        className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-dashed text-lg font-semibold"
-        style={{
-          borderColor: 'var(--color-border-secondary)',
-          backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
-          color: 'var(--color-text-secondary)',
-        }}
-      >
-        Soon
-      </div>
-      <div className="space-y-3">
-        <h1
-          className="text-3xl font-semibold tracking-tight sm:text-4xl"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
-          {title}
-        </h1>
-        <p className="text-base text-zinc-300">{summary}</p>
-        <div></div>
-        <p className="text-base text-zinc-300">
-          We&apos;re still working on this page.
-        </p>
-        <div></div>
-        <p className="text-base text-zinc-300">
-          Check back shortly or head to another tool.
-        </p>
-      </div>
-      <div className="flex justify-center">
-        <Link
-          to="/"
-          className="rounded-full px-5 py-2 text-sm font-medium transition"
-          style={{
-            color: 'var(--color-text-primary)',
-            borderColor: 'var(--color-border-secondary)',
-            borderWidth: 1,
-            backgroundColor: 'transparent',
-          }}
-        >
-          Back to home
-        </Link>
-      </div>
-    </div>
-  );
-}
 
 export function App() {
   const location = useLocation();
@@ -252,9 +128,9 @@ export function App() {
                         'flex min-w-fit items-center gap-2 rounded-full px-4 py-2 font-medium transition focus-visible:outline-none',
                         'focus-visible:ring-2',
                         'focus-visible:ring-[color:var(--color-border-primary)]',
-                        'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-secondary)]',
+                        'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--nav-hover-text)]',
                         isActive &&
-                          'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--color-background)]'
+                          'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
                       )
                     }
                   >
@@ -366,9 +242,9 @@ export function App() {
                         className={({ isActive }) =>
                           cn(
                             'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
-                            'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
+                            'text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]',
                             isActive &&
-                              'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
+                              'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
                           )
                         }
                         onClick={() => setIsMobileMenuOpen(false)}
@@ -405,9 +281,9 @@ export function App() {
                         className={({ isActive }) =>
                           cn(
                             'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
-                            'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
+                            'text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]',
                             isActive &&
-                              'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
+                              'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
                           )
                         }
                         onClick={() => setIsMobileMenuOpen(false)}
@@ -444,7 +320,7 @@ export function App() {
                         className={({ isActive }) =>
                           cn(
                             'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
-                            'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
+                            'text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--color-text-primary)]',
                             isActive &&
                               'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
                           )
@@ -470,9 +346,9 @@ export function App() {
                       className={({ isActive }) =>
                         cn(
                           'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
-                          'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
+                          'text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]',
                           isActive &&
-                            'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
+                            'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
                         )
                       }
                       onClick={() => setIsMobileMenuOpen(false)}
@@ -496,7 +372,7 @@ export function App() {
         )}
 
         <main>
-          <Suspense 
+          <Suspense
             fallback={
               <div className="flex items-center justify-center min-h-[50vh]">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

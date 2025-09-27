@@ -1,4 +1,12 @@
-import { Moon, Sun, Monitor, Ruler, Globe, Camera } from 'lucide-react';
+import {
+  Moon,
+  Sun,
+  Monitor,
+  Ruler,
+  Globe,
+  Camera,
+  Contrast,
+} from 'lucide-react';
 import { SettingsButton } from '@dorkroom/ui';
 import { useTheme } from '../contexts/theme-context';
 
@@ -46,6 +54,14 @@ export default function SettingsPage() {
               icon={Sun}
               showChevron={false}
               isSelected={theme === 'light'}
+            />
+            <SettingsButton
+              label="High Contrast"
+              value="Black on white, no gradients, no motion"
+              onPress={() => setTheme('high-contrast')}
+              icon={Contrast}
+              showChevron={false}
+              isSelected={theme === 'high-contrast'}
             />
             <SettingsButton
               label="Darkroom"

@@ -1150,10 +1150,14 @@ export default function DevelopmentRecipesPage() {
                   onDeleteCustomRecipe={handleDeleteCustomRecipe}
                   isMobile={isMobile}
                   isFavorite={(view) =>
-                    isFavorite(String(view.combination.uuid || view.combination.id))
+                    isFavorite(
+                      String(view.combination.uuid || view.combination.id)
+                    )
                   }
                   onToggleFavorite={(view) =>
-                    toggleFavorite(String(view.combination.uuid || view.combination.id))
+                    toggleFavorite(
+                      String(view.combination.uuid || view.combination.id)
+                    )
                   }
                 />
               ) : (
@@ -1165,10 +1169,14 @@ export default function DevelopmentRecipesPage() {
                   onEditCustomRecipe={handleEditCustomRecipe}
                   onDeleteCustomRecipe={handleDeleteCustomRecipe}
                   isFavorite={(view) =>
-                    isFavorite(String(view.combination.uuid || view.combination.id))
+                    isFavorite(
+                      String(view.combination.uuid || view.combination.id)
+                    )
                   }
                   onToggleFavorite={(view) =>
-                    toggleFavorite(String(view.combination.uuid || view.combination.id))
+                    toggleFavorite(
+                      String(view.combination.uuid || view.combination.id)
+                    )
                   }
                   sortBy={sortBy}
                   sortDirection={sortDirection}
@@ -1248,39 +1256,41 @@ export default function DevelopmentRecipesPage() {
                     >
                       {isFavorite(
                         String(
-                          detailView.combination.uuid || detailView.combination.id
+                          detailView.combination.uuid ||
+                            detailView.combination.id
                         )
                       )
                         ? 'Remove from favorites'
                         : 'Add to favorites'}
                     </button>
-                    {detailView.source === 'custom' && flags.CUSTOM_RECIPE_SHARING && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => handleShareCombination(detailView)}
-                          className="w-full rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-105"
-                          style={{
-                            backgroundColor: 'var(--color-text-primary)',
-                            color: 'var(--color-background)',
-                          }}
-                        >
-                          Share recipe
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyCombination(detailView)}
-                          className="w-full rounded-full px-4 py-2 text-sm font-medium transition"
-                          style={{
-                            color: 'var(--color-text-secondary)',
-                            borderColor: 'var(--color-border-secondary)',
-                            borderWidth: 1,
-                          }}
-                        >
-                          Copy link
-                        </button>
-                      </>
-                    )}
+                    {detailView.source === 'custom' &&
+                      flags.CUSTOM_RECIPE_SHARING && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleShareCombination(detailView)}
+                            className="w-full rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-105"
+                            style={{
+                              backgroundColor: 'var(--color-text-primary)',
+                              color: 'var(--color-background)',
+                            }}
+                          >
+                            Share recipe
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyCombination(detailView)}
+                            className="w-full rounded-full px-4 py-2 text-sm font-medium transition"
+                            style={{
+                              color: 'var(--color-text-secondary)',
+                              borderColor: 'var(--color-border-secondary)',
+                              borderWidth: 1,
+                            }}
+                          >
+                            Copy link
+                          </button>
+                        </>
+                      )}
                   </div>
                 )}
               </DrawerBody>
@@ -1325,33 +1335,34 @@ export default function DevelopmentRecipesPage() {
                     ? 'Remove from favorites'
                     : 'Add to favorites'}
                 </button>
-                {detailView.source === 'custom' && flags.CUSTOM_RECIPE_SHARING && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => handleShareCombination(detailView)}
-                      className="flex-1 rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-105"
-                      style={{
-                        backgroundColor: 'var(--color-text-primary)',
-                        color: 'var(--color-background)',
-                      }}
-                    >
-                      Share recipe
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleCopyCombination(detailView)}
-                      className="flex-1 rounded-full px-4 py-2 text-sm font-medium transition"
-                      style={{
-                        color: 'var(--color-text-secondary)',
-                        borderColor: 'var(--color-border-secondary)',
-                        borderWidth: 1,
-                      }}
-                    >
-                      Copy link
-                    </button>
-                  </>
-                )}
+                {detailView.source === 'custom' &&
+                  flags.CUSTOM_RECIPE_SHARING && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => handleShareCombination(detailView)}
+                        className="flex-1 rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-105"
+                        style={{
+                          backgroundColor: 'var(--color-text-primary)',
+                          color: 'var(--color-background)',
+                        }}
+                      >
+                        Share recipe
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyCombination(detailView)}
+                        className="flex-1 rounded-full px-4 py-2 text-sm font-medium transition"
+                        style={{
+                          color: 'var(--color-text-secondary)',
+                          borderColor: 'var(--color-border-secondary)',
+                          borderWidth: 1,
+                        }}
+                      >
+                        Copy link
+                      </button>
+                    </>
+                  )}
               </div>
             )}
           </Modal>

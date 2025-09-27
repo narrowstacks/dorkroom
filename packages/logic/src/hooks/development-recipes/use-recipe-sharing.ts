@@ -114,7 +114,12 @@ export function useRecipeSharing() {
         }
 
         await copyToClipboard(shareUrl);
-        return { success: true, method: 'clipboard', url: shareUrl, showToast: true };
+        return {
+          success: true,
+          method: 'clipboard',
+          url: shareUrl,
+          showToast: true,
+        };
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : 'Failed to share recipe';
@@ -133,7 +138,12 @@ export function useRecipeSharing() {
         }
 
         await copyToClipboard(shareUrl);
-        return { success: true, method: 'clipboard', url: shareUrl, showToast: true };
+        return {
+          success: true,
+          method: 'clipboard',
+          url: shareUrl,
+          showToast: true,
+        };
       } catch (error) {
         const errorMessage =
           error instanceof Error

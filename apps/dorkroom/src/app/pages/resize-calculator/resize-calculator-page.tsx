@@ -28,37 +28,47 @@ function ModeToggle({
   setIsEnlargerHeightMode,
 }: ModeToggleProps) {
   return (
-    <div 
+    <div
       className="rounded-2xl border p-5 shadow-subtle backdrop-blur"
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor: colorMixOr('var(--color-surface)', 80, 'transparent', 'var(--color-border-muted)'),
+        backgroundColor: colorMixOr(
+          'var(--color-surface)',
+          80,
+          'transparent',
+          'var(--color-border-muted)'
+        ),
       }}
     >
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <p 
+          <p
             className="text-sm font-semibold uppercase tracking-[0.3em]"
             style={{ color: 'var(--color-text-muted)' }}
           >
             Calculation Method
           </p>
-          <p 
+          <p
             className="text-sm"
             style={{ color: 'var(--color-text-secondary)' }}
           >
             Switch between sizing by print dimensions or by enlarger height.
           </p>
         </div>
-        <div 
+        <div
           className="flex items-center gap-3 rounded-full px-4 py-2"
           style={{
             borderColor: 'var(--color-border-muted)',
-            backgroundColor: colorMixOr('var(--color-surface)', 20, 'transparent', 'var(--color-surface)'),
+            backgroundColor: colorMixOr(
+              'var(--color-surface)',
+              20,
+              'transparent',
+              'var(--color-surface)'
+            ),
             border: '1px solid',
           }}
         >
-          <span 
+          <span
             className="text-xs font-medium uppercase tracking-[0.3em]"
             style={{ color: 'var(--color-text-tertiary)' }}
           >
@@ -69,7 +79,7 @@ function ModeToggle({
             value={isEnlargerHeightMode}
             onValueChange={setIsEnlargerHeightMode}
           />
-          <span 
+          <span
             className="text-xs font-medium uppercase tracking-[0.3em]"
             style={{ color: 'var(--color-text-tertiary)' }}
           >
@@ -118,7 +128,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
       padding="normal"
       className="bg-surface-muted/80"
     >
-      <div 
+      <div
         className="space-y-5 text-sm"
         style={{ color: 'var(--color-text-secondary)' }}
       >
@@ -129,7 +139,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
         </p>
 
         <div className="space-y-3">
-          <h4 
+          <h4
             className="text-sm font-semibold uppercase tracking-[0.25em]"
             style={{ color: 'var(--color-text-muted)' }}
           >
@@ -145,7 +155,12 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
                 className="rounded-2xl border px-4 py-2"
                 style={{
                   borderColor: 'var(--color-border-muted)',
-                  backgroundColor: colorMixOr('var(--color-surface)', 20, 'transparent', 'var(--color-surface)'),
+                  backgroundColor: colorMixOr(
+                    'var(--color-surface)',
+                    20,
+                    'transparent',
+                    'var(--color-surface)'
+                  ),
                   color: 'var(--color-text-secondary)',
                 }}
               >
@@ -156,17 +171,22 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
         </div>
 
         <div className="space-y-3">
-          <h4 
+          <h4
             className="text-sm font-semibold uppercase tracking-[0.25em]"
             style={{ color: 'var(--color-text-muted)' }}
           >
             Formula
           </h4>
-          <div 
+          <div
             className="rounded-2xl border p-4 font-mono text-xs"
             style={{
               borderColor: 'var(--color-border-secondary)',
-              backgroundColor: colorMixOr('var(--color-surface)', 80, 'transparent', 'var(--color-border-muted)'),
+              backgroundColor: colorMixOr(
+                'var(--color-surface)',
+                80,
+                'transparent',
+                'var(--color-border-muted)'
+              ),
               color: 'var(--color-text-primary)',
             }}
           >
@@ -177,7 +197,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
         </div>
 
         <div className="space-y-3">
-          <h4 
+          <h4
             className="text-sm font-semibold uppercase tracking-[0.25em]"
             style={{ color: 'var(--color-text-muted)' }}
           >
@@ -190,7 +210,12 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
                 className="rounded-2xl border px-4 py-2"
                 style={{
                   borderColor: 'var(--color-border-muted)',
-                  backgroundColor: colorMixOr('var(--color-surface)', 20, 'transparent', 'var(--color-surface)'),
+                  backgroundColor: colorMixOr(
+                    'var(--color-surface)',
+                    20,
+                    'transparent',
+                    'var(--color-surface)'
+                  ),
                   color: 'var(--color-text-secondary)',
                 }}
               >
@@ -258,7 +283,7 @@ export default function ResizeCalculatorPage() {
             {!isEnlargerHeightMode ? (
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <h3 
+                  <h3
                     className="text-sm font-semibold uppercase tracking-[0.25em]"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
@@ -285,7 +310,7 @@ export default function ResizeCalculatorPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <h3 
+                  <h3
                     className="text-sm font-semibold uppercase tracking-[0.25em]"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
@@ -313,7 +338,7 @@ export default function ResizeCalculatorPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                <h3 
+                <h3
                   className="text-sm font-semibold uppercase tracking-[0.25em]"
                   style={{ color: 'var(--color-text-muted)' }}
                 >
@@ -348,7 +373,7 @@ export default function ResizeCalculatorPage() {
             )}
 
             <div className="space-y-3">
-              <h3 
+              <h3
                 className="text-sm font-semibold uppercase tracking-[0.25em]"
                 style={{ color: 'var(--color-text-muted)' }}
               >

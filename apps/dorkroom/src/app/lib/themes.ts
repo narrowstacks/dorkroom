@@ -1,4 +1,4 @@
-export type Theme = 'light' | 'dark' | 'darkroom' | 'system';
+export type Theme = 'light' | 'dark' | 'darkroom' | 'high-contrast' | 'system';
 
 export interface ThemeColors {
   background: string;
@@ -216,6 +216,54 @@ export const themes = {
   dark: darkTheme,
   light: lightTheme,
   darkroom: darkroomTheme,
+  'high-contrast': {
+    background: '#ffffff',
+    surface: '#ffffff',
+    surfaceMuted: '#ffffff',
+    primary: '#000000',
+    secondary: '#000000',
+    accent: '#000000',
+    highlight: '#000000',
+    text: {
+      primary: '#000000',
+      secondary: '#000000',
+      tertiary: '#000000',
+      muted: '#000000',
+    },
+    border: {
+      primary: '#000000',
+      secondary: '#000000',
+      muted: '#000000',
+    },
+    semantic: {
+      success: '#000000',
+      warning: '#000000',
+      error: '#000000',
+      info: '#000000',
+    },
+    visualization: {
+      preview: '#000000',
+      border: '#000000',
+      overlay: 'rgba(255, 255, 255, 0.5)',
+    },
+    gradients: {
+      cardPrimary: '#ffffff',
+      cardSecondary: '#ffffff',
+      cardAccent: '#ffffff',
+      cardHighlight: '#ffffff',
+      cardNeutral: '#ffffff',
+      cardInfo: '#ffffff',
+      cardWarning: '#ffffff',
+      cardError: '#ffffff',
+    },
+    tags: {
+      officialIlford: '#000000',
+      officialKodak: '#000000',
+      officialFuji: '#000000',
+      community: '#000000',
+      default: '#000000',
+    },
+  },
 } as const;
 
 export function getSystemTheme(): 'light' | 'dark' {
@@ -228,7 +276,9 @@ export function getSystemTheme(): 'light' | 'dark' {
     : 'light';
 }
 
-export function resolveTheme(theme: Theme): 'light' | 'dark' | 'darkroom' {
+export function resolveTheme(
+  theme: Theme
+): 'light' | 'dark' | 'darkroom' | 'high-contrast' {
   if (theme === 'system') {
     return getSystemTheme();
   }

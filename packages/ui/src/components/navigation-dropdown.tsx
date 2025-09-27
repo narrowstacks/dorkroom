@@ -1,17 +1,18 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, LucideIcon } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '../lib/cn';
+import '../lib/ui.module.css';
 
 export interface NavigationItem {
   label: string;
   to: string;
-  icon: LucideIcon;
+  icon: React.ComponentType<{ className?: string }>;
   summary: string;
 }
 
 export interface NavigationDropdownProps {
   label: string;
-  icon: LucideIcon;
+  icon: React.ComponentType<{ className?: string }>;
   items: NavigationItem[];
   currentPath: string;
   onNavigate: (path: string) => void;
@@ -88,7 +89,7 @@ export function NavigationDropdown({
           'flex min-w-fit items-center gap-2 rounded-full px-4 py-2 font-medium transition focus-visible:outline-none',
           'focus-visible:ring-2',
           'focus-visible:ring-[color:var(--color-border-primary)]',
-          'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-secondary)]',
+          'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-primary]',
           isActive &&
             'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--color-background)]'
         )}
@@ -103,10 +104,11 @@ export function NavigationDropdown({
       </button>
 
       {isOpen && (
+        // dropdown
         <div
           className="absolute left-0 top-full z-50 mt-2 min-w-56 rounded-2xl border p-2 shadow-xl backdrop-blur-md"
           style={{
-            borderColor: 'var(--color-border-secondary)',
+            borderColor: 'var(--color-border-primary)',
             backgroundColor: 'rgba(var(--color-background-rgb), 0.95)',
             boxShadow:
               '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
@@ -118,12 +120,13 @@ export function NavigationDropdown({
             const isItemActive = item.to === currentPath;
 
             return (
+              // dropdown item
               <button
                 key={item.to}
                 type="button"
                 onClick={() => handleItemClick(item.to)}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none',
+                  'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none',
                   'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
                   isItemActive &&
                     'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
@@ -140,15 +143,24 @@ export function NavigationDropdown({
                 >
                   <ItemIcon className="h-4 w-4" />
                 </span>
+                {/* label */}
                 <div className="flex-1">
-                  <div className="font-medium">{item.label}</div>
                   <div
-                    className="text-xs opacity-75"
-                    style={{
-                      color: isItemActive
-                        ? 'var(--color-background)'
-                        : 'var(--color-text-tertiary)',
-                    }}
+                    className={cn(
+                      'font-medium transition-colors',
+                      isItemActive ? 'nav-title-active' : 'nav-title-inactive'
+                    )}
+                  >
+                    {item.label}
+                  </div>
+                  {/* summary */}
+                  <div
+                    className={cn(
+                      'text-xs transition-colors',
+                      isItemActive
+                        ? 'nav-summary-active'
+                        : 'nav-summary-inactive'
+                    )}
                   >
                     {item.summary}
                   </div>

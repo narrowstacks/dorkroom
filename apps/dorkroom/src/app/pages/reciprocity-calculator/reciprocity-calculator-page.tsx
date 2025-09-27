@@ -55,7 +55,6 @@ const RECIPROCITY_INSIGHTS = [
   },
 ];
 
-
 export default function ReciprocityCalculatorPage() {
   const {
     filmType,

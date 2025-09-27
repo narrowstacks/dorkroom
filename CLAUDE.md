@@ -16,8 +16,8 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 
 ### Code Quality (run these after completing tasks)
 
-- `bunx nx lint` - Run ESLint
-- `bunx nx typecheck` - TypeScript type checking
+- `bunx nx lint dorkroom` - Run ESLint
+- `bunx nx typecheck dorkroom` - TypeScript type checking
 - `bunx prettier --write .` - Format code
 
 ### Testing

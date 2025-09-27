@@ -27,7 +27,12 @@ export function CalculatorPageHeader({
       )}
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor: colorMixOr('var(--color-surface)', 80, 'transparent', 'var(--color-border-muted)'),
+        backgroundColor: colorMixOr(
+          'var(--color-surface)',
+          80,
+          'transparent',
+          'var(--color-border-muted)'
+        ),
       }}
     >
       <div className="flex max-w-2xl flex-col gap-3">

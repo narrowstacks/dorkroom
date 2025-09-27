@@ -10,7 +10,7 @@ import { resolveTheme } from '../lib/themes';
 
 interface ThemeContextValue {
   theme: Theme;
-  resolvedTheme: 'light' | 'dark' | 'darkroom';
+  resolvedTheme: 'light' | 'dark' | 'darkroom' | 'high-contrast';
   setTheme: (theme: Theme) => void;
 }
 
@@ -25,7 +25,7 @@ const STORAGE_KEY = 'dorkroom-theme';
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>('system');
   const [resolvedTheme, setResolvedTheme] = useState<
-    'light' | 'dark' | 'darkroom'
+    'light' | 'dark' | 'darkroom' | 'high-contrast'
   >('dark');
 
   // Initialize theme from localStorage or default to system
@@ -35,6 +35,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       saved === 'light' ||
       saved === 'dark' ||
       saved === 'darkroom' ||
+      saved === 'high-contrast' ||
       saved === 'system'
     ) {
       setThemeState(saved);

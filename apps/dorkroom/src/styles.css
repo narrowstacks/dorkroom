@@ -67,6 +67,12 @@
   --color-tag-default: #800000;
   --toggle-pill-border: 1px solid #ff0000;
   --toggle-circle-border: 1px solid #ff0000;
+  /* Ensure toggle knob is black in both states */
+  --toggle-circle-bg: #000000;
+  --toggle-circle-bg-active: #000000;
+  /* Navigation hover text colors for darkroom */
+  --nav-hover-text: #ff0000;
+  --nav-active-hover-text: #ff0000;
 }
 
 /* Dark theme (default) */
@@ -146,6 +152,9 @@
   --color-tag-official-fuji: #7dd6ff;
   --color-tag-community: #f99f96;
   --color-tag-default: #a1a1aa;
+  /* Navigation hover text colors */
+  --nav-hover-text: #ffffff;
+  --nav-active-hover-text: #000000;
 }
 
 /* Light theme */
@@ -225,6 +234,73 @@
   --color-tag-official-fuji: #1e6091;
   --color-tag-community: #c4524a;
   --color-tag-default: #52525b;
+  /* Navigation hover text colors */
+  --nav-hover-text: var(--color-text-primary);
+  --nav-active-hover-text: #ffffff; /* active pill is black; keep text white on hover */
+}
+
+/* High-contrast theme: black on white, no gradients, no animations */
+[data-theme='high-contrast'] {
+  --color-background: #ffffff;
+  --color-background-rgb: 255, 255, 255;
+  --color-surface: #ffffff;
+  --color-surface-muted: #ffffff;
+  --color-primary: #000000;
+  --color-secondary: #000000;
+  --color-accent: #000000;
+  --color-highlight: #000000;
+  --color-text-primary: #000000;
+  --color-text-secondary: #000000;
+  --color-text-tertiary: #000000;
+  --color-text-muted: #000000;
+  --color-text-warning: #000000;
+  --color-text-link: #000000;
+  --color-background-muted: #ffffff;
+  --color-background-tag: #ffffff;
+  --color-text-tag: #000000;
+  --color-border-primary: #000000;
+  --color-border-secondary: #000000;
+  --color-border-muted: #000000;
+  --color-semantic-success: #000000;
+  --color-semantic-warning: #000000;
+  --color-semantic-error: #000000;
+  --color-semantic-info: #000000;
+  --color-visualization-preview: #000000;
+  --color-visualization-border: #000000;
+  --color-visualization-overlay: rgba(255, 255, 255, 0.5);
+  --color-paper-background: #ffffff;
+  --color-paper-border: #000000;
+  --color-print-background: #ffffff;
+  --color-print-border: #000000;
+  --print-border-style: 2px dashed;
+  --blade-background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8"><path d="M0 0L8 8M0 8L8 0" stroke="%23000000" stroke-width="1" fill="none"/></svg>');
+  --blade-border: 1px solid #000000;
+  --blade-shadow: none;
+  /* No gradients in high-contrast theme; keep solid colors */
+  --gradient-card-primary: #ffffff;
+  --gradient-card-secondary: #ffffff;
+  --gradient-card-accent: #ffffff;
+  --gradient-card-highlight: #ffffff;
+  --gradient-card-neutral: #ffffff;
+  --gradient-card-info: #ffffff;
+  --gradient-card-warning: #ffffff;
+  --gradient-card-error: #ffffff;
+  --color-tag-official-ilford: #000000;
+  --color-tag-official-kodak: #000000;
+  --color-tag-official-fuji: #000000;
+  --color-tag-community: #000000;
+  --color-tag-default: #000000;
+  --toggle-pill-border: 1px solid #000000;
+  --toggle-pill-border-active: 1px solid #000000;
+  --toggle-circle-border: 1px solid #000000;
+  --toggle-circle-border-active: 1px solid #000000;
+  --toggle-pill-bg: #ffffff;
+  --toggle-pill-bg-active: #ffffff;
+  --toggle-circle-bg: #ffffff;
+  --toggle-circle-bg-active: #000000;
+  /* Navigation hover text colors */
+  --nav-hover-text: #000000; /* white text on hover for better contrast */
+  --nav-active-hover-text: #ffffff; /* active pill is black; keep text white on hover */
 }
 
 /* Default to dark theme if no data-theme attribute */
@@ -312,6 +388,10 @@
 [data-theme='darkroom'] {
   /* 'darkroom' is a custom theme; use dark color-scheme for UA defaults */
   color-scheme: dark;
+}
+
+[data-theme='high-contrast'] {
+  color-scheme: light;
 }
 
 :root:not([data-theme]) {
@@ -473,6 +553,10 @@
     background: #000000;
   }
 
+  [data-theme='high-contrast'] .backdrop-gradient {
+    background: #ffffff;
+  }
+
   .card-ring {
     position: relative;
   }
@@ -494,6 +578,21 @@
     mask-composite: exclude;
   }
 
+  /* Hover tint utility that adapts to theme colors */
+  .hover-surface-tint:hover {
+    background-color: color-mix(
+      in srgb,
+      var(--color-text-primary) 12%,
+      transparent
+    );
+  }
+
+  /* Ensure high-contrast keeps strong clarity: lighter hover tint only */
+  [data-theme='high-contrast'] .hover-surface-tint:hover {
+    background-color: color-mix(in srgb, #000000 8%, #ffffff);
+    color: var(--color-text-primary);
+  }
+
   /* Tweak subtle ring for light theme to use dark ink instead of white */
   [data-theme='light'] .card-ring::before {
     background: linear-gradient(
@@ -501,6 +600,11 @@
       rgba(9, 9, 11, 0.09),
       rgba(9, 9, 11, 0)
     );
+  }
+
+  /* Remove gradient ring entirely in high-contrast */
+  [data-theme='high-contrast'] .card-ring::before {
+    background: none !important;
   }
 
   /* Animated grain clipped to text with a subtle red glow */
@@ -691,23 +795,47 @@
     color: var(--color-semantic-error);
   }
   /* Provide fallbacks, then enhance with color-mix when supported */
-  .bg-error\/10 { background-color: var(--color-border-muted); }
-  .bg-error\/20 { background-color: var(--color-border-secondary); }
-  .text-error\/80 { color: var(--color-semantic-error); }
-  .text-error\/90 { color: var(--color-semantic-error); }
+  .bg-error\/10 {
+    background-color: var(--color-border-muted);
+  }
+  .bg-error\/20 {
+    background-color: var(--color-border-secondary);
+  }
+  .text-error\/80 {
+    color: var(--color-semantic-error);
+  }
+  .text-error\/90 {
+    color: var(--color-semantic-error);
+  }
 
   @supports (color: color-mix(in srgb, red 50%, white)) {
     .bg-error\/10 {
-      background-color: color-mix(in srgb, var(--color-semantic-error) 10%, transparent);
+      background-color: color-mix(
+        in srgb,
+        var(--color-semantic-error) 10%,
+        transparent
+      );
     }
     .bg-error\/20 {
-      background-color: color-mix(in srgb, var(--color-semantic-error) 20%, transparent);
+      background-color: color-mix(
+        in srgb,
+        var(--color-semantic-error) 20%,
+        transparent
+      );
     }
     .text-error\/80 {
-      color: color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary));
+      color: color-mix(
+        in srgb,
+        var(--color-semantic-error) 80%,
+        var(--color-text-primary)
+      );
     }
     .text-error\/90 {
-      color: color-mix(in srgb, var(--color-semantic-error) 90%, var(--color-text-primary));
+      color: color-mix(
+        in srgb,
+        var(--color-semantic-error) 90%,
+        var(--color-text-primary)
+      );
     }
   }
 
@@ -756,7 +884,8 @@
     background: var(--color-text-primary);
     cursor: pointer;
     border: none;
-    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+    transition: transform 120ms ease, box-shadow 120ms ease,
+      background-color 120ms ease;
   }
 
   .slider-track::-moz-range-thumb {
@@ -766,7 +895,8 @@
     background: var(--color-text-primary);
     cursor: pointer;
     border: none;
-    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+    transition: transform 120ms ease, box-shadow 120ms ease,
+      background-color 120ms ease;
   }
 
   /* Larger touch targets on touch devices */
@@ -877,11 +1007,13 @@
   @supports (color: color-mix(in srgb, red 50%, white)) {
     [data-theme='darkroom'] .slider-track::-webkit-slider-thumb:hover,
     [data-theme='darkroom'] .slider-track:active::-webkit-slider-thumb {
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 35%, transparent);
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--color-primary) 35%, transparent);
     }
     [data-theme='darkroom'] .slider-track::-moz-range-thumb:hover,
     [data-theme='darkroom'] .slider-track:active::-moz-range-thumb {
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 35%, transparent);
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--color-primary) 35%, transparent);
     }
   }
 
@@ -890,13 +1022,113 @@
     outline-offset: 2px;
   }
 
+  /* High-contrast theme: dashed black line for slider track */
+  [data-theme='high-contrast'] .slider-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 0;
+    position: relative;
+    accent-color: var(--color-primary);
+  }
+
+  [data-theme='high-contrast'] .slider-track::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    transform: translateY(-50%);
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--color-primary) 0px,
+      var(--color-primary) 8px,
+      transparent 8px,
+      transparent 16px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  [data-theme='high-contrast'] .slider-track::-webkit-slider-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 0;
+  }
+
+  [data-theme='high-contrast'] .slider-track::-moz-range-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 0;
+  }
+
+  [data-theme='high-contrast'] .slider-track::-webkit-slider-thumb {
+    background: var(--color-primary);
+    position: relative;
+    z-index: 2;
+  }
+
+  [data-theme='high-contrast'] .slider-track::-moz-range-thumb {
+    background: var(--color-primary);
+    position: relative;
+    z-index: 2;
+  }
+
+  [data-theme='high-contrast'] .slider-track::-webkit-slider-thumb:hover,
+  [data-theme='high-contrast'] .slider-track:active::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px var(--color-primary);
+  }
+  [data-theme='high-contrast'] .slider-track::-moz-range-thumb:hover,
+  [data-theme='high-contrast'] .slider-track:active::-moz-range-thumb {
+    box-shadow: 0 0 0 3px var(--color-primary);
+  }
+
+  [data-theme='high-contrast'] .slider-track:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* Disable all animations and transitions in high-contrast theme */
+  [data-theme='high-contrast'] *,
+  [data-theme='high-contrast'] *::before,
+  [data-theme='high-contrast'] *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  [data-theme='high-contrast'] .animate-slide-in-from-top,
+  [data-theme='high-contrast'] .animate-slide-in-from-bottom,
+  [data-theme='high-contrast'] .animate-fade-in,
+  [data-theme='high-contrast'] .animate-slide-fade-top,
+  [data-theme='high-contrast'] .animate-slide-fade-bottom {
+    animation: none !important;
+  }
+
+  /* Remove decorative gradients/noise in high-contrast */
+  [data-theme='high-contrast'] .grainy-text-glow {
+    background-image: none !important;
+    -webkit-text-fill-color: currentColor;
+    text-shadow: none !important;
+    color: var(--color-text-primary);
+  }
+
+  /* Home-page calculator buttons: use black borders in high-contrast */
+  [data-theme='high-contrast'] main a[href*='/border'],
+  [data-theme='high-contrast'] main a[href*='/stops'],
+  [data-theme='high-contrast'] main a[href*='/resize'],
+  [data-theme='high-contrast'] main a[href*='/exposure'],
+  [data-theme='high-contrast'] main a[href*='/reciprocity'],
+  [data-theme='high-contrast'] main a[href*='/development'] {
+    border: 2px solid var(--color-primary) !important;
+  }
+
   /* Calculator buttons with red borders in darkroom theme - only on home page */
-  [data-theme='darkroom'] main a[href*="/border"],
-  [data-theme='darkroom'] main a[href*="/stops"],
-  [data-theme='darkroom'] main a[href*="/resize"],
-  [data-theme='darkroom'] main a[href*="/exposure"],
-  [data-theme='darkroom'] main a[href*="/reciprocity"],
-  [data-theme='darkroom'] main a[href*="/development"] {
+  [data-theme='darkroom'] main a[href*='/border'],
+  [data-theme='darkroom'] main a[href*='/stops'],
+  [data-theme='darkroom'] main a[href*='/resize'],
+  [data-theme='darkroom'] main a[href*='/exposure'],
+  [data-theme='darkroom'] main a[href*='/reciprocity'],
+  [data-theme='darkroom'] main a[href*='/development'] {
     border: 2px solid var(--color-primary) !important;
   }
 }

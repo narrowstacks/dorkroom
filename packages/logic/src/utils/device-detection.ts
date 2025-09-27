@@ -7,7 +7,10 @@
  * Uses a combination of user agent detection, touch capability, and screen size
  */
 export const isMobileDevice = (): boolean => {
-  if (typeof window === 'undefined' || typeof window.navigator === 'undefined') {
+  if (
+    typeof window === 'undefined' ||
+    typeof window.navigator === 'undefined'
+  ) {
     return false;
   }
 
@@ -19,7 +22,10 @@ export const isMobileDevice = (): boolean => {
 
   // Check user agent for mobile patterns
   const userAgent = navigator.userAgent ?? '';
-  const mobileUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  const mobileUserAgent =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      userAgent
+    );
 
   // Check screen size (mobile-like dimensions)
   const smallScreen = window.innerWidth <= 768 || window.innerHeight <= 768;
@@ -32,7 +38,10 @@ export const isMobileDevice = (): boolean => {
  * Detects if the device is specifically an iOS device
  */
 export const isIOS = (): boolean => {
-  if (typeof window === 'undefined' || typeof window.navigator === 'undefined') {
+  if (
+    typeof window === 'undefined' ||
+    typeof window.navigator === 'undefined'
+  ) {
     return false;
   }
 
@@ -44,7 +53,10 @@ export const isIOS = (): boolean => {
  * Detects if the device is specifically an Android device
  */
 export const isAndroid = (): boolean => {
-  if (typeof window === 'undefined' || typeof window.navigator === 'undefined') {
+  if (
+    typeof window === 'undefined' ||
+    typeof window.navigator === 'undefined'
+  ) {
     return false;
   }
 
@@ -57,7 +69,10 @@ export const isAndroid = (): boolean => {
  * Returns true for mobile devices with Web Share API support
  */
 export const shouldUseWebShare = (): boolean => {
-  if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') {
+  if (
+    typeof navigator === 'undefined' ||
+    typeof navigator.share !== 'function'
+  ) {
     return false;
   }
 

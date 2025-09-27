@@ -20,24 +20,18 @@ export function Drawer({
   enableBackgroundBlur = false,
   enableBackgroundOverlay = true,
 }: DrawerProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setIsVisible(true);
+      setShowContent(true);
       document.body.style.overflow = 'hidden';
-    } else {
-      const timer = setTimeout(() => setIsVisible(false), 300);
-      document.body.style.overflow = 'unset';
-      return () => clearTimeout(timer);
+      return;
     }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    const timer = setTimeout(() => setShowContent(false), 300);
+    document.body.style.overflow = 'unset';
+    return () => clearTimeout(timer);
   }, [isOpen]);
-
-  if (!isVisible) return null;
 
   const sizeClasses = {
     sm: 'max-h-[40dvh]',
@@ -88,7 +82,7 @@ export function Drawer({
           borderColor: 'var(--color-border-secondary)',
         }}
       >
-        {children}
+        {showContent ? children : null}
       </div>
     </div>
   );

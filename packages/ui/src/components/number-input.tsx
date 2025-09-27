@@ -33,21 +33,21 @@ export function NumberInput({
         'w-20 rounded-lg border px-3 py-2 focus:outline-none focus:ring-2',
         className
       )}
-      style={{
-        borderColor: isFocused 
-          ? 'var(--color-border-primary)' 
-          : 'var(--color-border-secondary)',
-        backgroundColor: colorMixOr(
-          'var(--color-surface)',
-          20,
-          'transparent',
-          'var(--color-surface)'
-        ),
-        color: 'var(--color-text-primary)',
-        boxShadow: isFocused 
-          ? '0 0 0 2px var(--color-border-muted)' 
-          : 'none',
-      } as React.CSSProperties}
+      style={
+        {
+          borderColor: isFocused
+            ? 'var(--color-border-primary)'
+            : 'var(--color-border-secondary)',
+          backgroundColor: colorMixOr(
+            'var(--color-surface)',
+            20,
+            'transparent',
+            'var(--color-surface)'
+          ),
+          color: 'var(--color-text-primary)',
+          boxShadow: isFocused ? '0 0 0 2px var(--color-border-muted)' : 'none',
+        } as React.CSSProperties
+      }
       onFocus={() => setIsFocused(true)}
       onBlur={() => setIsFocused(false)}
     />

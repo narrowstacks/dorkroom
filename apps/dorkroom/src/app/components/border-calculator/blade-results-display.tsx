@@ -13,7 +13,6 @@ export function BladeResultsDisplay({
   paperSize,
   aspectRatio,
 }: BladeResultsDisplayProps) {
-
   if (!calculation) {
     return (
       <div
@@ -151,14 +150,29 @@ export function BladeResultsDisplay({
         <div
           className="rounded-lg border p-3"
           style={{
-            borderColor: colorMixOr('var(--color-semantic-info)', 50, 'transparent', 'var(--color-border-secondary)'),
-            backgroundColor: colorMixOr('var(--color-semantic-info)', 10, 'transparent', 'var(--color-border-muted)'),
+            borderColor: colorMixOr(
+              'var(--color-semantic-info)',
+              50,
+              'transparent',
+              'var(--color-border-secondary)'
+            ),
+            backgroundColor: colorMixOr(
+              'var(--color-semantic-info)',
+              10,
+              'transparent',
+              'var(--color-border-muted)'
+            ),
           }}
         >
           <p
             className="text-center text-sm"
             style={{
-              color: colorMixOr('var(--color-semantic-info)', 80, 'var(--color-text-primary)', 'var(--color-text-primary)'),
+              color: colorMixOr(
+                'var(--color-semantic-info)',
+                80,
+                'var(--color-text-primary)',
+                'var(--color-text-primary)'
+              ),
             }}
           >
             <strong>Non-Standard Paper Size</strong>

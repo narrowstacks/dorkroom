@@ -16,14 +16,14 @@ export const formatTemperature = (temperatureData: TemperatureData): string => {
     : null;
   const celsius = Number.isFinite(temperatureData.temperatureC ?? NaN)
     ? temperatureData.temperatureC ?? null
-    : fahrenheit !== null
-    ? ((fahrenheit - 32) * 5) / 9
     : null;
 
+  // Only show both units if both were explicitly provided
   if (fahrenheit !== null && celsius !== null) {
     return `${fahrenheit.toFixed(1)}°F (${celsius.toFixed(1)}°C)`;
   }
 
+  // Show only the unit that was provided
   if (fahrenheit !== null) {
     return `${fahrenheit.toFixed(1)}°F`;
   }

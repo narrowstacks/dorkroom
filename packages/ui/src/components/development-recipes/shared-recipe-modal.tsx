@@ -53,9 +53,7 @@ export function SharedRecipeModal({
         disabled={isProcessing}
         className={cn(
           'rounded-full px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50',
-          hideAddToCollection
-            ? 'border-0 font-semibold'
-            : 'border'
+          hideAddToCollection ? 'border-0 font-semibold' : 'border'
         )}
         style={
           hideAddToCollection
@@ -184,7 +182,10 @@ export function SharedRecipeModal({
       </div>
 
       {!hideAddToCollection && (
-        <div className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+        <div
+          className="text-sm"
+          style={{ color: 'var(--color-text-tertiary)' }}
+        >
           Would you like to add this recipe to your collection?
         </div>
       )}

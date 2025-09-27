@@ -77,7 +77,8 @@ export function DevelopmentActionsBar({
               }}
               onMouseLeave={(e) => {
                 if (viewMode !== 'table') {
-                  e.currentTarget.style.backgroundColor = 'var(--actions-bar-table-bg-hover-leave, transparent)';
+                  e.currentTarget.style.backgroundColor =
+                    'var(--actions-bar-table-bg-hover-leave, transparent)';
                   e.currentTarget.style.color = 'var(--color-text-tertiary)';
                 }
               }}
@@ -111,7 +112,8 @@ export function DevelopmentActionsBar({
               }}
               onMouseLeave={(e) => {
                 if (viewMode !== 'grid') {
-                  e.currentTarget.style.backgroundColor = 'var(--actions-bar-grid-bg-hover-leave, transparent)';
+                  e.currentTarget.style.backgroundColor =
+                    'var(--actions-bar-grid-bg-hover-leave, transparent)';
                   e.currentTarget.style.color = 'var(--color-text-tertiary)';
                 }
               }}

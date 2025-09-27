@@ -18,6 +18,13 @@
         }
       ],
       "outputs": ["{projectRoot}/dist"]
+    },
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{projectRoot}/test-output/vitest"],
+      "options": {
+        "passWithNoTests": true
+      }
     }
   }
 }

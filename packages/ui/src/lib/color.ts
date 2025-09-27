@@ -1,9 +1,12 @@
 // Runtime detection for CSS color-mix support
 export const supportsColorMix: boolean =
   typeof CSS !== 'undefined' &&
-  typeof (CSS as unknown as { supports?: (...args: unknown[]) => boolean }).supports === 'function' &&
+  typeof (CSS as unknown as { supports?: (...args: unknown[]) => boolean })
+    .supports === 'function' &&
   // Use a plain example to ensure broad engine parsing in supports()
-  (CSS as unknown as { supports: (property: string, value: string) => boolean }).supports('color', 'color-mix(in srgb, red 50%, white)');
+  (
+    CSS as unknown as { supports: (property: string, value: string) => boolean }
+  ).supports('color', 'color-mix(in srgb, red 50%, white)');
 
 /**
  * Returns a color-mix() string if supported, otherwise a reasonable fallback.
@@ -23,4 +26,3 @@ export function colorMixOr(
   }
   return fallback ?? baseVar;
 }
-

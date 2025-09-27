@@ -11,5 +11,11 @@
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.4",
+    "@types/node": "^20.0.0",
+    "jsdom": "^23.0.1",
+    "vitest": "^1.6.0"
   }
 }

@@ -132,8 +132,8 @@ bunx prettier --write .
 
 ## Project Commands
 
-| Command                                 | Description                    |
-| --------------------------------------- | ------------------------------ |
+| Command                                  | Description                    |
+| ---------------------------------------- | ------------------------------ |
 | `bunx nx dev dorkroom -- --host=0.0.0.0` | Start development server       |
 | `bunx nx build dorkroom`                 | Build production bundle        |
 | `bunx nx test`                           | Run tests                      |

@@ -36,9 +36,24 @@ export function ImportRecipeForm({
         <div
           className="rounded-xl border px-3 py-2 text-sm"
           style={{
-            borderColor: colorMixOr('var(--color-semantic-error)', 20, 'transparent', 'var(--color-border-secondary)'),
-            backgroundColor: colorMixOr('var(--color-semantic-error)', 10, 'transparent', 'var(--color-border-muted)'),
-            color: colorMixOr('var(--color-semantic-error)', 80, 'var(--color-text-primary)', 'var(--color-semantic-error)'),
+            borderColor: colorMixOr(
+              'var(--color-semantic-error)',
+              20,
+              'transparent',
+              'var(--color-border-secondary)'
+            ),
+            backgroundColor: colorMixOr(
+              'var(--color-semantic-error)',
+              10,
+              'transparent',
+              'var(--color-border-muted)'
+            ),
+            color: colorMixOr(
+              'var(--color-semantic-error)',
+              80,
+              'var(--color-text-primary)',
+              'var(--color-semantic-error)'
+            ),
           }}
         >
           {error}
