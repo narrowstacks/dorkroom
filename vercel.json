@@ -4,5 +4,14 @@
   "devCommand": "bunx nx serve dorkroom",
   "installCommand": "bun install",
   "framework": null,
-  "routes": [{ "handle": "filesystem" }, { "src": "/(.*)", "dest": "/" }]
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "@vercel/node"
+    }
+  },
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/" }
+  ]
 }

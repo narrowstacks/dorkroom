@@ -82,13 +82,13 @@ describe('url helpers', () => {
       delete mockWindow.location.port;
 
       const url = getDynamicShareUrl();
-      expect(url).toBe('https://beta.dorkroom.art/border');
+      expect(url).toBe('https://dorkroom.art/border');
     });
 
     it('should handle SSR (no window)', () => {
       delete g.window;
       const url = getDynamicShareUrl();
-      expect(url).toBe('https://beta.dorkroom.art/border');
+      expect(url).toBe('https://dorkroom.art/border');
     });
   });
 
@@ -283,7 +283,7 @@ describe('url helpers', () => {
 
   describe('getDisplayUrl', () => {
     it('should remove protocol from valid URLs', () => {
-      const url = 'https://beta.dorkroom.art/border?test=1#preset';
+      const url = 'https://dorkroom.art/border?test=1#preset';
       const display = getDisplayUrl(url);
       expect(display).toBe('beta.dorkroom.art/border?test=1#preset');
     });

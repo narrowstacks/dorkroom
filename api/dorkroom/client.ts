@@ -38,6 +38,7 @@ import {
   enhanceFilmResults,
   enhanceDeveloperResults,
   DEFAULT_TOKENIZED_CONFIG,
+  ScoredResult,
 } from "../../utils/tokenizedSearch";
 
 /**
@@ -167,7 +168,7 @@ export class DorkroomClient {
     this.logger = config.logger || new ConsoleLogger();
 
     // Log the platform configuration for debugging
-    if (config.logger || __DEV__) {
+    if (config.logger || process.env.NODE_ENV === 'development') {
       const envConfig = getEnvironmentConfig();
       this.logger.debug(
         `Dorkroom client initialized for ${envConfig.platform} platform ` +
@@ -1114,7 +1115,7 @@ export class DorkroomClient {
     );
 
     // Extract just the film items from the scored results
-    const processedResults = enhancedResults.map((result) => result.item);
+    const processedResults = enhancedResults.map((result: ScoredResult<Film>) => result.item);
 
     // Apply original limit if specified, since tokenization filtering might change count
     if (options.limit && processedResults.length > options.limit) {
@@ -1158,7 +1159,7 @@ export class DorkroomClient {
     );
 
     // Extract just the developer items from the scored results
-    const processedResults = enhancedResults.map((result) => result.item);
+    const processedResults = enhancedResults.map((result: ScoredResult<Developer>) => result.item);
 
     // Apply original limit if specified, since tokenization filtering might change count
     if (options.limit && processedResults.length > options.limit) {

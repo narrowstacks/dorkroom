@@ -103,7 +103,7 @@ describe('DorkroomClient', () => {
     it('should use default options', () => {
       const defaultClient = new DorkroomClient();
       expect(defaultClient['options']).toEqual({
-        baseUrl: 'https://beta.dorkroom.art/api',
+        baseUrl: 'https://dorkroom.art/api',
         timeout: 10000,
         retries: 3,
         cacheExpiryMs: 300000, // 5 minutes

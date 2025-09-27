@@ -17,7 +17,7 @@ export interface DorkroomClientOptions {
 }
 
 const DEFAULT_OPTIONS: Required<DorkroomClientOptions> = {
-  baseUrl: 'https://beta.dorkroom.art/api',
+  baseUrl: 'https://dorkroom.art/api',
   timeout: 10000,
   retries: 3,
   cacheExpiryMs: 5 * 60 * 1000, // 5 minutes

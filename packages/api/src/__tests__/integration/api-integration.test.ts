@@ -212,7 +212,7 @@ describe('API Integration Tests', () => {
   describe('API endpoint structure validation', () => {
     it('should have correct endpoint URLs', () => {
       const client = new DorkroomClient();
-      expect(client['options'].baseUrl).toBe('https://beta.dorkroom.art/api');
+      expect(client['options'].baseUrl).toBe('https://dorkroom.art/api');
     });
 
     it('should accept custom base URL', () => {
