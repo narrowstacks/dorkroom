@@ -12,6 +12,18 @@ interface FilmDeveloperSelectionProps {
   developerOptions: SelectItem[];
 }
 
+/**
+ * Render a pair of searchable selects for choosing a film and a developer, plus a button to clear both selections when any is chosen.
+ *
+ * @param className - Optional additional class names to apply to the container.
+ * @param selectedFilm - Currently selected film identifier or empty string when none is selected.
+ * @param onFilmChange - Callback invoked with the new film identifier when the film selection changes.
+ * @param filmOptions - Available film options to populate the film select.
+ * @param selectedDeveloper - Currently selected developer identifier or empty string when none is selected.
+ * @param onDeveloperChange - Callback invoked with the new developer identifier when the developer selection changes.
+ * @param developerOptions - Available developer options to populate the developer select.
+ * @returns A React element containing the two searchable selects and a conditional "Clear selections" button that resets both selections.
+ */
 export function FilmDeveloperSelection({
   className,
   selectedFilm,

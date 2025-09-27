@@ -61,6 +61,19 @@ interface TimeComparisonProps {
   calculation: ReciprocityCalculation;
 }
 
+/**
+ * Render a compact visual comparison of metered and adjusted exposure times.
+ *
+ * Displays formatted original and adjusted times alongside two horizontal bars
+ * whose widths represent the relative durations.
+ *
+ * @param calculation - Object containing exposure values and bar widths:
+ *   - originalTime: the metered exposure time in seconds
+ *   - adjustedTime: the corrected exposure time in seconds
+ *   - timeBarWidth: numeric width used to scale the original time bar
+ *   - adjustedTimeBarWidth: numeric width used to scale the adjusted time bar
+ * @returns A JSX element containing labeled time values and two proportional horizontal bars.
+ */
 function TimeComparison({ calculation }: TimeComparisonProps) {
   const maxWidth = Math.max(
     calculation.timeBarWidth,
@@ -134,6 +147,13 @@ function TimeComparison({ calculation }: TimeComparisonProps) {
   );
 }
 
+/**
+ * Render the Reciprocity Failure Calculator page.
+ *
+ * Provides controls to select a film stock or custom reciprocity factor, enter a metered exposure time (including presets and parsing feedback), and view calculated reciprocity-adjusted exposure results alongside explanatory guidance and usage steps.
+ *
+ * @returns A React element representing the complete reciprocity calculator page.
+ */
 export default function ReciprocityCalculatorPage() {
   const {
     filmType,

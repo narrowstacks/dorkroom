@@ -26,6 +26,16 @@ const DetailRow = ({
   </div>
 );
 
+/**
+ * Render a detailed, collapsible view of a development recipe with optional favorite, edit, and delete actions.
+ *
+ * @param view - The recipe view to display, including combination, film, and developer data
+ * @param onEditCustomRecipe - Optional callback invoked with `view` when the user clicks "Edit recipe"
+ * @param onDeleteCustomRecipe - Optional callback invoked with `view` when the user clicks "Delete recipe"
+ * @param isFavorite - Optional predicate that returns `true` when `view` is marked as a favorite
+ * @param onToggleFavorite - Optional callback invoked with `view` when the user toggles the favorite button
+ * @returns A JSX element containing the recipe detail UI
+ */
 export function DevelopmentRecipeDetail({
   view,
   onEditCustomRecipe,

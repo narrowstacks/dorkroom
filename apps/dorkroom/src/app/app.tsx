@@ -106,6 +106,13 @@ const ROUTE_TITLES: Record<string, string> = {
   '/settings': 'Settings',
 };
 
+/**
+ * Renders a centered "Soon" placeholder page for unfinished routes.
+ *
+ * @param title - Page title displayed as the main heading.
+ * @param summary - Short descriptive text shown below the title.
+ * @returns The rendered placeholder page element.
+ */
 function PlaceholderPage({
   title,
   summary,

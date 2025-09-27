@@ -79,6 +79,15 @@ function StopButton({ preset, onPress, theme }: StopButtonProps) {
   );
 }
 
+/**
+ * Render the Exposure Stop Calculator page UI.
+ *
+ * Displays inputs for original exposure time and stop adjustments (preset buttons and a custom input),
+ * shows calculated new exposure time with change details when available, and presents guidance and
+ * explanatory content about exposure stops.
+ *
+ * @returns The React element for the exposure stop calculator page.
+ */
 export default function ExposureCalculatorPage() {
   const theme = useTheme();
   const currentTheme = themes[theme.resolvedTheme];

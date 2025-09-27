@@ -117,6 +117,13 @@ const convertRecipeToFormData = (
   };
 };
 
+/**
+ * Page component for browsing, filtering, importing, sharing, and managing development recipes (API and custom).
+ *
+ * Renders film/developer selection, filter controls, results (grid or table) with pagination, recipe detail view, custom-recipe add/edit modal, import flows (including FilmDev.org preview), and shared-recipe handling. Integrates custom recipe CRUD, favorites management, and sharing/copying utilities.
+ *
+ * @returns The rendered React element for the Development Recipes page.
+ */
 export default function DevelopmentRecipesPage() {
   const {
     developerTypeFilter,

@@ -2,6 +2,16 @@ import { Moon, Sun, Monitor, Ruler, Globe, Camera } from 'lucide-react';
 import { SettingsButton } from '@dorkroom/ui';
 import { useTheme } from '../contexts/theme-context';
 
+/**
+ * Render the Settings page that lets users view and change theme and unit preferences.
+ *
+ * The component reads the current theme from theme context and updates it when a theme
+ * option is selected. Unit selection buttons are present as placeholders and currently
+ * only log messages rather than persisting a choice. Also includes a placeholder section
+ * for future additional settings.
+ *
+ * @returns A JSX element containing the settings UI
+ */
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   return (

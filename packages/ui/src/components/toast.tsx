@@ -10,6 +10,16 @@ export interface ToastProps {
   isVisible?: boolean;
 }
 
+/**
+ * Render a dismissible toast notification with type-based styling and auto-dismiss behavior.
+ *
+ * @param message - Text content displayed inside the toast
+ * @param type - Visual intent of the toast; one of `"success"`, `"error"`, or `"info"`
+ * @param duration - Time in milliseconds before the toast begins its exit animation
+ * @param onClose - Optional callback invoked after the toast has finished its exit animation
+ * @param isVisible - Controls whether the toast is rendered and animated
+ * @returns The toast element when visible, otherwise `null`
+ */
 export function Toast({
   message,
   type = 'success',
@@ -104,10 +114,22 @@ export interface ToastContextValue {
 }
 
 const ToastContext = React.createContext<ToastContextValue | null>(null);
+/**
+ * Returns the Toast context value when available, or `null` if no provider is present.
+ *
+ * @returns The current `ToastContextValue`, or `null` if the hook is used outside a `ToastProvider`.
+ */
 export function useOptionalToast(): ToastContextValue | null {
   return React.useContext(ToastContext);
 }
 
+/**
+ * Provides a Toast context and renders a single toast notification when triggered.
+ *
+ * The provider supplies a `showToast(message, type?)` function via context to descendants so they can display a toast with a message and optional type (`'success' | 'error' | 'info'`).
+ *
+ * @param children - React nodes that will receive the toast context
+ */
 export function ToastProvider({ children }: ToastProviderProps) {
   const [toast, setToast] = useState<{
     message: string;
@@ -140,6 +162,12 @@ export function ToastProvider({ children }: ToastProviderProps) {
   );
 }
 
+/**
+ * Retrieve the toast API from the nearest ToastProvider.
+ *
+ * @returns The ToastContextValue exposing `showToast` to trigger toasts.
+ * @throws Error if called outside of a ToastProvider.
+ */
 export function useToast(): ToastContextValue {
   const context = React.useContext(ToastContext);
   if (!context) {

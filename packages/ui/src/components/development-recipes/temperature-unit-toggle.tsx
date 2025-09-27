@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 
+/**
+ * Renders a button that toggles the temperature unit between Fahrenheit and Celsius.
+ *
+ * The button visually highlights the active unit, updates its text color on hover,
+ * and exposes an `aria-label` that announces the unit it will switch to.
+ *
+ * @returns The button element used to switch between Fahrenheit and Celsius.
+ */
 export function TemperatureUnitToggle() {
   const { unit, toggleUnit } = useTemperature();
   const [isHovered, setIsHovered] = useState(false);

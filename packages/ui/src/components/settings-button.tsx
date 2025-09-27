@@ -12,6 +12,21 @@ interface SettingsButtonProps {
   isSelected?: boolean;
 }
 
+/**
+ * Renders a configurable settings button row with optional icon, label, value, and chevron.
+ *
+ * The button reflects interaction and selection states (hover, focus, selected) and can center its content.
+ *
+ * @param label - Optional heading text shown above the value.
+ * @param value - Optional secondary text displayed beneath or beside the label.
+ * @param onPress - Click handler invoked when the button is activated.
+ * @param icon - Optional icon component to display at the start of the row.
+ * @param showChevron - If true, displays a right chevron unless `centerLabel` is true.
+ * @param centerLabel - If true, centers the label/value and hides the chevron.
+ * @param className - Additional class names applied to the button element.
+ * @param isSelected - If true, applies selected styling and a prominent outline.
+ * @returns The rendered settings-style button element.
+ */
 export function SettingsButton({
   label,
   value,

@@ -8,6 +8,16 @@ interface WarningAlertProps {
   className?: string;
 }
 
+/**
+ * Displays a compact warning or error alert with an icon and message.
+ *
+ * Renders a bordered, colored container whose semantics and colors depend on the `action` prop.
+ *
+ * @param message - The text message shown inside the alert
+ * @param action - Visual and semantic type of the alert; either `'warning'` or `'error'`. Defaults to `'warning'`
+ * @param className - Additional CSS class names to apply to the root element
+ * @returns A JSX element representing the alert
+ */
 export function WarningAlert({
   message,
   action = 'warning',

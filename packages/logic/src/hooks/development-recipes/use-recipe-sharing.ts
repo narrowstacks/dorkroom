@@ -40,6 +40,21 @@ const copyToClipboard = async (text: string): Promise<void> => {
   }
 };
 
+/**
+ * Provides utilities for generating and sharing recipe URLs (regular and custom) and related state.
+ *
+ * Exposes methods to generate a share URL for a regular recipe, share that URL via Web Share API or clipboard, copy it to the clipboard directly, and delegate similar operations for custom recipes. Also provides helpers describing the preferred sharing method, whether sharing is available, and shared-state flags.
+ *
+ * @returns An object with:
+ *  - `generateRegularRecipeShareUrl(options)` - Generates a share URL for a regular recipe; returns the URL string or `null` on failure.
+ *  - `shareRegularRecipe(options)` - Shares a regular recipe URL using Web Share on appropriate devices or falls back to the clipboard; returns a `RecipeShareResult` indicating success, method (`'webShare' | 'clipboard'`), `url`, optional `showToast`, and optional `error`.
+ *  - `copyRegularRecipeToClipboard(options)` - Copies a regular recipe URL to the clipboard; returns a `RecipeShareResult` similar to `shareRegularRecipe`.
+ *  - `generateCustomRecipeShareUrl`, `shareCustomRecipe`, `copyCustomRecipeToClipboard`, `decodeSharedCustomRecipe`, `isCustomRecipeUrl` - Delegated custom-recipe sharing functions from `useCustomRecipeSharing`.
+ *  - `getSharingMethodDescription()` - Returns a short label for the preferred sharing action (e.g., `"Share recipe"` or `"Copy link"`).
+ *  - `isSharingAvailable()` - Resolves to `true` when sharing is available (Web Share or clipboard).
+ *  - `isGenerating` - `true` when a share URL is being generated either for regular or custom recipes.
+ *  - `lastSharedUrl` - The most recently generated shared URL from regular or custom recipe flows, or `null` if none.
+ */
 export function useRecipeSharing() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastSharedUrl, setLastSharedUrl] = useState<string | null>(null);

@@ -51,6 +51,20 @@ const formatDilution = (view: DevelopmentCombinationView): string => {
   return 'Stock';
 };
 
+/**
+ * Render a responsive grid of development recipe cards for the provided combination rows.
+ *
+ * @param rows - The list of development combination views to render as cards.
+ * @param onSelectCombination - Called with a row when its card is clicked.
+ * @param onShareCombination - Called with a row to initiate sharing (if provided).
+ * @param onCopyCombination - Called with a row to copy/share its link or data (if provided).
+ * @param onEditCustomRecipe - Called with a custom-row when the edit action is triggered.
+ * @param onDeleteCustomRecipe - Called with a custom-row when the delete action is triggered.
+ * @param isMobile - When true, uses a compact two-column mobile layout; otherwise uses responsive desktop columns.
+ * @param isFavorite - Predicate that returns `true` when a row is marked as a favorite.
+ * @param onToggleFavorite - Called with a row to toggle its favorite state.
+ * @returns The rendered JSX element containing the cards grid.
+ */
 export function DevelopmentResultsCards({
   rows,
   onSelectCombination,

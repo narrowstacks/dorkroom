@@ -22,6 +22,13 @@ interface ThemeProviderProps {
 
 const STORAGE_KEY = 'dorkroom-theme';
 
+/**
+ * Provides theme state and updater to descendants, persisting the user's selection to localStorage and applying the active theme to the document.
+ *
+ * The provider initializes the theme from localStorage (accepting 'light', 'dark', 'darkroom', or 'system'), resolves the effective theme (including honoring system preference when `system` is selected), sets the document `data-theme` attribute, and listens for system color-scheme changes while in `system` mode.
+ *
+ * @returns The React provider element that supplies `theme`, `resolvedTheme`, and `setTheme` to its children.
+ */
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>('system');
   const [resolvedTheme, setResolvedTheme] = useState<

@@ -40,6 +40,17 @@ const defaultCustomDeveloper = (): CustomDeveloperData => ({
   dilutions: [{ name: 'Stock', dilution: 'Stock' }],
 });
 
+/**
+ * Render a controlled form for creating or editing a custom film/developer recipe.
+ *
+ * @param initialValue - Initial form state used to populate inputs.
+ * @param onSubmit - Callback invoked with the current form data when the form is submitted.
+ * @param onCancel - Optional callback invoked when the Cancel button is clicked.
+ * @param filmOptions - Select items used to choose an existing film when not using custom film data.
+ * @param developerOptions - Select items used to choose an existing developer when not using custom developer data.
+ * @param isSubmitting - When true, disables the submit button and updates its label to indicate saving.
+ * @returns The rendered form element for editing and submitting a custom recipe.
+ */
 export function CustomRecipeForm({
   initialValue,
   onSubmit,

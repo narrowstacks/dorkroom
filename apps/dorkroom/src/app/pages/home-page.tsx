@@ -98,6 +98,13 @@ const communityLinks = [
   },
 ];
 
+/**
+ * Render the application's homepage containing key navigation and tools.
+ *
+ * Renders a hero section with quick actions and highlights, a responsive grid of calculator cards, and a community/stay-in-loop section with external links.
+ *
+ * @returns The React element for the homepage layout including hero, calculators, and community sections.
+ */
 export function HomePage() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-16 px-6 pb-24 pt-12 sm:px-10">

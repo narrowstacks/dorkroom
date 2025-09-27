@@ -34,6 +34,16 @@ const getToneStyle = (
   }
 };
 
+/**
+ * Render a compact statistic card with optional helper text and theme-aware tone styling.
+ *
+ * @param label - Short uppercase label displayed above the value
+ * @param value - Primary content shown prominently (number, element, or string)
+ * @param helperText - Optional explanatory text shown beneath the value
+ * @param tone - Visual tone to apply; 'default' uses neutral styling, 'emerald' and 'sky' apply themed colors and gradients
+ * @param className - Additional CSS class names applied to the outer container
+ * @returns A JSX element representing the styled statistic card
+ */
 export function CalculatorStat({
   label,
   value,

@@ -36,6 +36,18 @@ const getAccentStyle = (
   }
 };
 
+/**
+ * Render a stylized card with optional title, description, header actions, and an accent gradient.
+ *
+ * @param title - Optional header title text shown in the card's header.
+ * @param description - Optional header description shown below the title.
+ * @param actions - Optional React node(s) displayed in the header aligned to the end (e.g., buttons or controls).
+ * @param children - Card content rendered below the optional header.
+ * @param className - Optional additional CSS classes applied to the outer section.
+ * @param accent - Accent tone that applies a full-area gradient overlay; one of `'emerald'`, `'sky'`, `'violet'`, or `'none'`.
+ * @param padding - Internal spacing variant, either `'normal'` or `'compact'`.
+ * @returns The rendered card element as a React element.
+ */
 export function CalculatorCard({
   title,
   description,

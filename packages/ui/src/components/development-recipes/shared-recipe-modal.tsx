@@ -19,6 +19,21 @@ interface SharedRecipeModalProps {
   onToggleFavorite?: (view: DevelopmentCombinationView) => void;
 }
 
+/**
+ * Render a modal or drawer presenting a shared development recipe and controls to close, save to the user's collection, or toggle favorite state.
+ *
+ * @param isOpen - Whether the modal/drawer is visible
+ * @param onClose - Callback invoked to close the modal/drawer
+ * @param recipe - The development recipe view to display; when `null` nothing is rendered
+ * @param onAddToCollection - Callback invoked when the user chooses to add/save the recipe
+ * @param isProcessing - When true, disables actions and shows in-progress state
+ * @param recipeSource - Source of the recipe; `'custom'` changes title and button labels
+ * @param variant - Display variant, either `'modal'` (default) or `'drawer'`
+ * @param hideAddToCollection - When true, hides the add/save action and adjusts primary action labeling to "Close"
+ * @param isFavorite - Optional predicate that returns whether the provided recipe is a favorite
+ * @param onToggleFavorite - Optional callback invoked with the recipe to toggle its favorite state
+ * @returns The rendered modal or drawer element, or `null` when `recipe` is `null`
+ */
 export function SharedRecipeModal({
   isOpen,
   onClose,

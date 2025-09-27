@@ -20,6 +20,19 @@ const SIZE_CLASSES: Record<NonNullable<ModalProps['size']>, string> = {
   xl: 'max-w-5xl',
 };
 
+/**
+ * Renders a centered modal dialog portal with optional title, footer, and close control.
+ *
+ * Prevents background scrolling while open by setting `document.body.style.overflow` to `"hidden"` and restores the original overflow value when the modal closes or the component unmounts. The rendered dialog uses `role="dialog"` and `aria-modal="true"`.
+ *
+ * @param isOpen - Whether the modal is visible.
+ * @param onClose - Callback invoked when the backdrop or close button is clicked.
+ * @param title - Optional heading text displayed at the top of the modal.
+ * @param size - Modal size key controlling max-width; one of `'sm' | 'md' | 'lg' | 'xl'`. Defaults to `'md'`.
+ * @param footer - Optional footer content rendered below the modal body.
+ * @param hideCloseButton - If true, the close button is not rendered.
+ * @returns The modal element rendered into `document.body` when running in a DOM environment and `isOpen` is true; otherwise `null`.
+ */
 export function Modal({
   isOpen,
   onClose,

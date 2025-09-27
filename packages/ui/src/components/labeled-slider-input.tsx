@@ -16,6 +16,25 @@ interface LabeledSliderInputProps {
   continuousUpdate?: boolean;
 }
 
+/**
+ * Render a labeled numeric input paired with a synchronized range slider.
+ *
+ * The numeric input and slider share the same value; typing in the number input
+ * invokes `onChange`, while moving the slider invokes `onSliderChange` when provided.
+ *
+ * @param label - Text label displayed alongside the numeric input
+ * @param value - Current numeric value shown by both the input and slider
+ * @param onChange - Called with the new numeric value when the number input changes
+ * @param onSliderChange - Optional handler called with the numeric value when the slider moves
+ * @param min - Minimum allowed value for both input and slider
+ * @param max - Maximum allowed value for both input and slider
+ * @param step - Increment step for both input and slider
+ * @param labels - Optional array of evenly spaced labels displayed under the slider
+ * @param className - Optional additional container class names
+ * @param warning - When true, apply warning visual styles to the inputs
+ * @param continuousUpdate - Reserved flag for continuous update behavior (unused by this component)
+ * @returns The JSX element for the labeled slider input
+ */
 export function LabeledSliderInput({
   label,
   value,

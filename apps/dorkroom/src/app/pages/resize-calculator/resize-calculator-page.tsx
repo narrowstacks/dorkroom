@@ -23,6 +23,13 @@ interface ModeToggleProps {
   setIsEnlargerHeightMode: (value: boolean) => void;
 }
 
+/**
+ * Render a segmented control that toggles between Print Size and Enlarger Height calculation modes.
+ *
+ * @param isEnlargerHeightMode - Whether enlarger-height mode is currently active.
+ * @param setIsEnlargerHeightMode - Callback invoked with the new boolean value when the toggle changes.
+ * @returns A JSX element containing the mode toggle control and its descriptive labels.
+ */
 function ModeToggle({
   isEnlargerHeightMode,
   setIsEnlargerHeightMode,
@@ -110,6 +117,12 @@ interface InfoSectionProps {
   isEnlargerHeightMode: boolean;
 }
 
+/**
+ * Render the informational card that explains how the resize calculator works, including usage steps, the applicable formula, and tips.
+ *
+ * @param isEnlargerHeightMode - When `true`, the card shows instructions and the formula for enlarger-height-based calculations; when `false`, it shows print-size (area)-based instructions and formula.
+ * @returns The JSX for the info card containing usage steps, the active formula, and tips.
+ */
 function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
   return (
     <CalculatorCard
@@ -204,6 +217,16 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
   );
 }
 
+/**
+ * Render the Print Resize Calculator page for computing exposure adjustments when scaling prints.
+ *
+ * Renders a responsive UI that accepts either print dimensions or enlarger heights, the original exposure,
+ * and displays the calculated new exposure and stops difference. The page includes a mode toggle between
+ * "Print Size" and "Enlarger Height", validation for mismatched aspect ratios, usage instructions, formula
+ * guidance, and contextual helper text for the computed results.
+ *
+ * @returns A React element containing the resize calculator UI, inputs, informational sidebar, and computed results.
+ */
 export default function ResizeCalculatorPage() {
   const {
     isEnlargerHeightMode,

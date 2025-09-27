@@ -6,11 +6,13 @@ export const supportsColorMix: boolean =
   (CSS as any).supports('color', 'color-mix(in srgb, red 50%, white)');
 
 /**
- * Returns a color-mix() string if supported, otherwise a reasonable fallback.
- * - baseVar: a CSS color or variable e.g. 'var(--color-semantic-info)'
- * - percentage: number 0..100 indicating the first color weight
- * - other: second color (defaults to 'transparent')
- * - fallback: color to use when color-mix isn't supported (defaults to baseVar)
+ * Produce a `color-mix()` CSS expression when supported, otherwise return a fallback color.
+ *
+ * @param baseVar - A CSS color or variable reference (e.g. `'var(--color-semantic-info)'`)
+ * @param percentage - Weight for `baseVar` from 0 to 100
+ * @param other - The second color to mix (defaults to `'transparent'`)
+ * @param fallback - Optional color to use when `color-mix()` is not supported; if omitted `baseVar` is returned
+ * @returns The `color-mix(in srgb, ...)` expression when supported, otherwise the chosen fallback color
  */
 export function colorMixOr(
   baseVar: string,

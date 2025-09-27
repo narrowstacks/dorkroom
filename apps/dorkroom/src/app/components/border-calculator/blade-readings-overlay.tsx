@@ -160,6 +160,12 @@ interface BladeReadingIndicatorProps {
   reading: BladeReading;
 }
 
+/**
+ * Render a positioned blade reading badge with a directional arrow indicating side and placement.
+ *
+ * @param reading - Blade reading data: `position` (x/y display coordinates), `side` ('left'|'right'|'top'|'bottom'), `value` (formatted text), and `isInside` (whether the badge is placed inside the print area) which together determine placement, transform, arrow direction, and layout.
+ * @returns The JSX element for the positioned reading indicator.
+ */
 function BladeReadingIndicator({ reading }: BladeReadingIndicatorProps) {
   const { position, side, value, isInside } = reading;
 

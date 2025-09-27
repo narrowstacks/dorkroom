@@ -28,6 +28,20 @@ interface CollapsibleFiltersProps {
   onFavoritesOnlyChange?: (value: boolean) => void;
 }
 
+/**
+ * Renders an expandable "Advanced Filters" panel for selecting developer type, dilution, ISO, recipe type, tags, and an optional "favorites only" toggle.
+ *
+ * The header shows a count badge when any filter is active and toggles the expanded panel. When expanded, individual Select controls are rendered for each filter and a "Clear all filters" button appears if any filter is active.
+ *
+ * @param className - Optional additional class names to apply to the container.
+ * @param showDeveloperTypeFilter - When false, hides the Developer type filter. Defaults to `true`.
+ * @param showDilutionFilter - When false, hides the Dilution filter. Defaults to `true`.
+ * @param defaultCollapsed - Initial collapsed state of the panel. Defaults to `true`.
+ * @param favoritesOnly - Current state of the "Favorites only" toggle. Defaults to `false`.
+ * @param onFavoritesOnlyChange - Optional callback invoked with the new boolean value when the "Favorites only" checkbox is toggled.
+ * @param onClearFilters - Callback invoked when the "Clear all filters" button is clicked.
+ * @returns The collapsible filters React element.
+ */
 export function CollapsibleFilters({
   className,
   developerTypeFilter,

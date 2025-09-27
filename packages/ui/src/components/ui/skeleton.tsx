@@ -13,6 +13,11 @@ export function Skeleton({ className }: SkeletonProps) {
   );
 }
 
+/**
+ * Renders a card-shaped skeleton placeholder with header and two-column content lines.
+ *
+ * @returns A JSX element representing a bordered, rounded card skeleton with multiple placeholder lines and a subtle background.
+ */
 export function SkeletonCard() {
   return (
     <div

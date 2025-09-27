@@ -11,6 +11,17 @@ interface NumberInputProps {
   className?: string;
 }
 
+/**
+ * Renders a styled numeric input whose value is controlled as a string.
+ *
+ * @param value - The current input value represented as a string.
+ * @param onChangeText - Callback invoked with the new input string when the value changes.
+ * @param placeholder - Placeholder text shown when the input is empty.
+ * @param inputTitle - Title attribute for the input element.
+ * @param step - The numeric step increment for the input (defaults to 1).
+ * @param className - Additional CSS class names to apply to the input.
+ * @returns The rendered number input element.
+ */
 export function NumberInput({
   value,
   onChangeText,

@@ -46,6 +46,18 @@ interface MobileBorderCalculatorProps {
   clearLoadedPreset?: () => void;
 }
 
+/**
+ * Render the mobile-optimized border calculator UI.
+ *
+ * The component displays blade results, an animated preview, warnings, and controls
+ * for paper size, border size, position/offsets, presets, and sharing. If a preset
+ * is provided via `loadedPresetFromUrl`, the preset's settings are applied and
+ * `clearLoadedPreset` is called if provided.
+ *
+ * @param loadedPresetFromUrl - Optional preset object (name and settings) loaded from a URL; pass `null` if none.
+ * @param clearLoadedPreset - Optional callback invoked after a loaded preset has been applied to clear the external source.
+ * @returns A React element containing the mobile border calculator interface.
+ */
 export function MobileBorderCalculator({
   loadedPresetFromUrl,
   clearLoadedPreset,

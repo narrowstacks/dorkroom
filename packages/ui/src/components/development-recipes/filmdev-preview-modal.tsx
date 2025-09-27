@@ -17,6 +17,23 @@ interface FilmdevPreviewModalProps {
   variant?: 'modal' | 'drawer';
 }
 
+/**
+ * Render a preview UI for importing a filmdev.org recipe and actions to add it to the user's recipes.
+ *
+ * Shows source information, matching status between film and developer, a detailed recipe preview,
+ * original notes (when present), and action buttons to cancel or add the recipe. Supports rendering
+ * either as a centered modal or a bottom drawer.
+ *
+ * @param isOpen - Controls visibility of the modal or drawer
+ * @param onClose - Callback invoked when the user cancels or closes the preview
+ * @param onConfirm - Callback invoked when the user confirms adding the recipe
+ * @param mappingResult - Result of mapping the external recipe; when `null` the component renders `null`
+ * @param previewRecipe - Prepared recipe view used by the detail renderer; when `null` the component renders `null`
+ * @param isProcessing - When `true`, disables interactions and updates action button label to reflect processing state
+ * @param variant - Determines rendering medium: `'modal'` (default) or `'drawer'`
+ *
+ * @returns A React element containing the preview modal or drawer, or `null` when required data is missing.
+ */
 export function FilmdevPreviewModal({
   isOpen,
   onClose,

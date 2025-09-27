@@ -7,6 +7,15 @@ interface ToggleSwitchProps {
   className?: string;
 }
 
+/**
+ * Renders a labeled toggle switch that visually represents and updates a boolean state.
+ *
+ * @param label - Visible text label displayed next to the switch
+ * @param value - Current on/off state of the switch
+ * @param onValueChange - Callback invoked with the new boolean state when the switch or label is clicked
+ * @param className - Optional additional CSS classes applied to the container
+ * @returns The rendered toggle switch element
+ */
 export function ToggleSwitch({
   label,
   value,

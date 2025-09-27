@@ -14,6 +14,25 @@ export interface ShareModalProps {
   canCopyToClipboard?: boolean;
 }
 
+/**
+ * Modal UI for sharing a preset via a web link, an optional app link, or the system share sheet.
+ *
+ * Renders nothing when `isOpen` is false. Shows an error state if `webUrl` is empty. When a valid
+ * web URL is present the modal displays the web link (with protocol stripped for display), an
+ * optional native app link, a copy-to-clipboard action for each URL, and an optional system
+ * share button.
+ *
+ * @param isOpen - Controls whether the modal is visible.
+ * @param onClose - Callback invoked to close the modal (also called when backdrop is clicked).
+ * @param presetName - Human-readable name shown in the modal title (e.g., `Share "{presetName}"`).
+ * @param webUrl - Web URL used for sharing; if empty the modal shows an error state.
+ * @param nativeUrl - Optional app-specific URL shown as "App Link".
+ * @param onCopyToClipboard - Function called with a URL to copy it to the clipboard.
+ * @param onNativeShare - Optional function invoked to trigger the platform-native share flow.
+ * @param canShareNatively - When true and `onNativeShare` is provided, shows a "Share via system" button.
+ * @param canCopyToClipboard - When true, shows copy buttons for available URLs.
+ * @returns The modal element when open, or `null` when closed.
+ */
 export function ShareModal({
   isOpen,
   onClose,

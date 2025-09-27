@@ -14,6 +14,20 @@ interface DevelopmentActionsBarProps {
   isMobile?: boolean;
 }
 
+/**
+ * Render an actions bar for development recipes with view toggles, action buttons, and a temperature unit toggle.
+ *
+ * @param totalResults - Number of recipe results to display in the subtitle
+ * @param viewMode - Current view mode; either `'table'` or `'grid'`
+ * @param onViewModeChange - Callback invoked with the new view mode when the user toggles between table and grid
+ * @param onOpenImportModal - Callback invoked when the "Import recipe" button is clicked
+ * @param onOpenCustomRecipeModal - Callback invoked when the "Add custom recipe" button is clicked
+ * @param onRefresh - Callback invoked when the "Refresh" button is clicked
+ * @param isRefreshing - When `true`, the Refresh button is disabled and shown in a loading state
+ * @param showImportButton - When `false`, the "Import recipe" button is hidden
+ * @param isMobile - When `true`, the view mode toggle is omitted to simplify the UI for small screens
+ * @returns The rendered actions bar element
+ */
 export function DevelopmentActionsBar({
   totalResults,
   viewMode,

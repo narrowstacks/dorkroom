@@ -13,6 +13,18 @@ interface SearchableSelectProps {
   allowClear?: boolean;
 }
 
+/**
+ * Render a searchable dropdown select with optional label, keyboard navigation, and an optional clear action.
+ *
+ * @param label - Optional label text displayed above the control
+ * @param selectedValue - Currently selected item value; an empty string indicates no selection
+ * @param onValueChange - Callback invoked with the new value when selection changes (or `''` when cleared)
+ * @param items - Array of selectable items, each with a `value` and `label`
+ * @param placeholder - Placeholder text shown when there is no selection (defaults to "Search...")
+ * @param className - Optional additional CSS classes applied to the outer container
+ * @param allowClear - When true, shows a button to clear the current selection (defaults to true)
+ * @returns The rendered JSX element for the searchable select control
+ */
 export function SearchableSelect({
   label,
   selectedValue,

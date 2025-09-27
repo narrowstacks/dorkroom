@@ -73,6 +73,17 @@ const AnimatedBlade = ({
   return <div style={{ ...baseStyle, ...orientationStyle }} />;
 };
 
+/**
+ * Render an animated preview of a printable area with optional blade markers and measurement overlays.
+ *
+ * Renders a centered preview surface sized responsively or from `calculation` preview dimensions, applies animated scale and translation derived from the provided `calculation`, and optionally displays four animated blades and a blade readings overlay.
+ *
+ * @param calculation - Border calculation data used to compute print scale, translation, and blade positions. If `null`, a minimal placeholder preview is shown.
+ * @param showBlades - Whether to render the four animated blade markers (default `true`).
+ * @param showBladeReadings - Whether to show the BladeReadingsOverlay with measurement readouts (default `false`).
+ * @param className - Additional CSS classes applied to the outer container.
+ * @returns The React element containing the animated preview, blades, and optional readings overlay.
+ */
 export function AnimatedPreview({
   calculation,
   showBlades = true,

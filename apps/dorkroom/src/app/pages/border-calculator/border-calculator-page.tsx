@@ -48,6 +48,13 @@ import {
   DEFAULT_BORDER_PRESETS,
 } from '@dorkroom/logic';
 
+/**
+ * Page component that renders the border/paper calculator UI with presets, sharing, and responsive layouts.
+ *
+ * Renders a desktop two-column calculator and presets panel or a mobile-optimized calculator when viewport is narrow. Manages calculator state (aspect ratio, paper size, borders, offsets, blades), preset CRUD and selection, share URL generation and native/clipboard sharing, and loading of presets from URLs. Displays preview, blade readings, warnings, and modals for sharing and saving-before-share.
+ *
+ * @returns The rendered BorderCalculatorPage React element.
+ */
 export default function BorderCalculatorPage() {
   const { width } = useWindowDimensions();
   const isDesktop = width > DESKTOP_BREAKPOINT;

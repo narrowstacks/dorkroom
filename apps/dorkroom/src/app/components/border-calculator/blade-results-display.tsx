@@ -8,6 +8,13 @@ interface BladeResultsDisplayProps {
   aspectRatio: string;
 }
 
+/**
+ * Render a panel showing blade position readings and paper details.
+ *
+ * @param calculation - The BorderCalculation used to populate blade readings; when `null`, a disabled placeholder is rendered.
+ * @param paperSize - Human-readable paper size label displayed alongside the image dimensions.
+ * @returns A React element displaying blade readings for the provided calculation or a disabled placeholder when no calculation is provided.
+ */
 export function BladeResultsDisplay({
   calculation,
   paperSize,

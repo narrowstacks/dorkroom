@@ -218,6 +218,11 @@ export const themes = {
   darkroom: darkroomTheme,
 } as const;
 
+/**
+ * Detects the user's system color scheme preference.
+ *
+ * @returns `dark` if the system prefers dark mode or if running outside a browser, `light` otherwise.
+ */
 export function getSystemTheme(): 'light' | 'dark' {
   if (typeof window === 'undefined') {
     return 'dark';
@@ -228,6 +233,12 @@ export function getSystemTheme(): 'light' | 'dark' {
     : 'light';
 }
 
+/**
+ * Resolve a Theme value to a concrete theme name, mapping the special 'system' value to the current OS color-scheme preference.
+ *
+ * @param theme - The selected theme; if `'system'`, the function returns the system-preferred theme.
+ * @returns `'light'`, `'dark'`, or `'darkroom'` representing the resolved theme.
+ */
 export function resolveTheme(theme: Theme): 'light' | 'dark' | 'darkroom' {
   if (theme === 'system') {
     return getSystemTheme();

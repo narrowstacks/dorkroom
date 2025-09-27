@@ -46,7 +46,14 @@ export function getTagColors(tag: string): TagColorConfig {
   return TAG_COLORS[tag] || DEFAULT_TAG_COLORS;
 }
 
-// Theme-aware tag styles using CSS custom properties
+/**
+ * Produce a theme-aware style object for a tag using CSS custom properties.
+ *
+ * Returns an object with `backgroundColor`, `color`, and `borderColor` suitable for use as inline CSS values; each value is derived from tag-specific CSS variables with sensible fallbacks when the variable is not defined.
+ *
+ * @param tag - Tag identifier. Recognized values: `'official-ilford'`, `'official-kodak'`, `'official-fuji'`, and `'community'`. Any other value yields the default tag style.
+ * @returns The computed TagThemeStyle containing `backgroundColor`, `color`, and `borderColor` CSS values.
+ */
 export function getTagThemeStyle(tag: string): TagThemeStyle {
   switch (tag) {
     case 'official-ilford':

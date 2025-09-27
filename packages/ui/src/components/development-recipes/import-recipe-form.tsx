@@ -10,6 +10,18 @@ interface ImportRecipeFormProps {
   error?: string | null;
 }
 
+/**
+ * Renders a form that accepts a filmdev.org URL, recipe ID, or shared recipe code and submits it for import.
+ *
+ * The form validates that the input is non-empty (after trimming) before allowing submission, shows an optional
+ * error message with semantic styling, and exposes cancel and processing states.
+ *
+ * @param onImport - Called with the trimmed encoded string when the form is submitted
+ * @param onCancel - Optional callback invoked when the Cancel button is clicked
+ * @param isProcessing - Optional flag that disables the submit button and changes its label to "Importing…" while true
+ * @param error - Optional error message to display above the action buttons
+ * @returns The import form as a JSX element
+ */
 export function ImportRecipeForm({
   onImport,
   onCancel,

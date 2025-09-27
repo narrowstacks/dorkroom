@@ -10,6 +10,16 @@ interface CalculatorPageHeaderProps {
   children?: ReactNode;
 }
 
+/**
+ * Renders a styled page header for calculator pages.
+ *
+ * Displays a required title and description, optionally showing an eyebrow label and action/content area.
+ *
+ * @param eyebrow - Optional small uppercase label rendered above the title when provided.
+ * @param align - Layout alignment for header content: `'center'` centers content, `'start'` left-aligns it.
+ * @param children - Optional elements (e.g., actions or controls) rendered in the header's action area.
+ * @returns A header container element containing the title, description, optional eyebrow, and optional children.
+ */
 export function CalculatorPageHeader({
   title,
   description,

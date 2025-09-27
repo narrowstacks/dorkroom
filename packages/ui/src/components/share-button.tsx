@@ -14,6 +14,20 @@ export interface ShareButtonProps {
   children?: React.ReactNode;
 }
 
+/**
+ * A configurable share/copy button that invokes `onClick` and shows either a global or local "Copied to clipboard!" toast when appropriate.
+ *
+ * The button supports loading and disabled states, visual variants ('primary' | 'secondary' | 'outline'), and three sizes ('sm' | 'md' | 'lg'). If a global toast provider is available the component uses it; otherwise it displays a local transient toast. When `onClick` returns an object containing `showToast: true` or `method: 'clipboard'`, a toast will be shown even if the Web Share API is available.
+ *
+ * @param onClick - Handler invoked when the button is activated. May return a promise; if the resolved value is an object with `showToast: true` or `method: 'clipboard'`, the component will show a toast. Errors thrown by this handler are not handled by the component.
+ * @param isLoading - When true, shows a loading spinner and prevents interaction.
+ * @param disabled - When true, disables the button.
+ * @param variant - Visual variant of the button.
+ * @param size - Size of the button.
+ * @param className - Optional additional class names applied to the button.
+ * @param children - Optional custom button content; when omitted the label is 'Sharing...' (loading), 'Share' (Web Share supported), or 'Copy link' (default).
+ * @returns The rendered ShareButton React element.
+ */
 export function ShareButton({
   onClick,
   isLoading = false,

@@ -72,6 +72,16 @@ const formatDilution = (
   return 'Stock';
 };
 
+/**
+ * Render a responsive table of development recipe results with sorting, actions, and per-row controls.
+ *
+ * Renders each row with film/developer metadata, ISO, time, temperature, dilution, notes, and contextual actions
+ * (favorite toggle, edit/delete for custom recipes, or share for API recipes). Rows are selectable and support
+ * keyboard/mouse interaction affordances and visual sorting state.
+ *
+ * @param rows - List of development combination views to display in the table
+ * @returns A JSX element containing the styled results table
+ */
 export function DevelopmentResultsTable({
   rows,
   onSelectCombination,
