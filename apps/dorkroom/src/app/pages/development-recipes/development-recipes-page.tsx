@@ -8,6 +8,7 @@ import {
   usePagination,
   useFeatureFlags,
   useViewPreference,
+  useFavorites,
   getCustomRecipeFilm,
   getCustomRecipeDeveloper,
   type CustomRecipeFormData,
@@ -57,6 +58,7 @@ const CUSTOM_RECIPE_FORM_DEFAULT: CustomRecipeFormData = {
   notes: '',
   customDilution: '',
   isPublic: false,
+  isFavorite: false,
 };
 
 const convertRecipeToFormData = (
@@ -111,6 +113,7 @@ const convertRecipeToFormData = (
     notes: combination.notes || '',
     customDilution: combination.customDilution || '',
     isPublic: false, // Default to false for editing
+    isFavorite: false,
   };
 };
 
@@ -166,6 +169,7 @@ export default function DevelopmentRecipesPage() {
   } = useRecipeSharing();
 
   const { flags } = useFeatureFlags();
+  const { isFavorite, toggleFavorite, addFavorite } = useFavorites();
   const isMobile = useIsMobile();
   const { viewMode, setViewMode } = useViewPreference();
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -190,6 +194,7 @@ export default function DevelopmentRecipesPage() {
   const [isAddingSharedRecipe, setIsAddingSharedRecipe] = useState(false);
   const [editingRecipe, setEditingRecipe] =
     useState<DevelopmentCombinationView | null>(null);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
 
   const recipesByUuid = useMemo(() => {
     const map = new Map<string, Combination>();
@@ -270,9 +275,16 @@ export default function DevelopmentRecipesPage() {
           canShare: true,
         };
 
-        setSharedRecipeView(recipeView);
-        setSharedRecipeSource('shared');
-        setIsSharedRecipeModalOpen(true);
+        // If this is a shared API recipe (has film/developer URL params), open detail directly
+        if (initialUrlState.isSharedApiRecipe) {
+          setDetailView(recipeView);
+          setIsDetailOpen(true);
+        } else {
+          // Otherwise, show the shared recipe modal for potential import
+          setSharedRecipeView(recipeView);
+          setSharedRecipeSource('shared');
+          setIsSharedRecipeModalOpen(true);
+        }
       }
     }
 
@@ -416,7 +428,15 @@ export default function DevelopmentRecipesPage() {
       });
     }
 
-    return rows.sort((a, b) => {
+    // Apply favorites-only filter if enabled
+    if (favoritesOnly) {
+      rows = rows.filter((row) => {
+        const id = String(row.combination.uuid || row.combination.id);
+        return isFavorite(id);
+      });
+    }
+
+    const sorted = rows.sort((a, b) => {
       if (sortBy === 'timeMinutes') {
         return sortDirection === 'asc'
           ? a.combination.timeMinutes - b.combination.timeMinutes
@@ -449,6 +469,18 @@ export default function DevelopmentRecipesPage() {
         ? nameA.localeCompare(nameB)
         : nameB.localeCompare(nameA);
     });
+    // Stable partition: favorites first, then others, keeping relative order
+    const fav: DevelopmentCombinationView[] = [];
+    const nonFav: DevelopmentCombinationView[] = [];
+    for (const r of sorted) {
+      const id = String(r.combination.uuid || r.combination.id);
+      if (isFavorite(id)) {
+        fav.push(r);
+      } else {
+        nonFav.push(r);
+      }
+    }
+    return [...fav, ...nonFav];
   }, [
     apiCombinationViews,
     filteredCustomViews,
@@ -456,6 +488,8 @@ export default function DevelopmentRecipesPage() {
     sortDirection,
     customRecipeFilter,
     tagFilter,
+    favoritesOnly,
+    isFavorite,
   ]);
 
   const pagination = usePagination(combinedRows, 24);
@@ -483,6 +517,8 @@ export default function DevelopmentRecipesPage() {
         await shareRegularRecipe({
           recipeId: combinationId,
           recipeName: view.combination.name,
+          filmSlug: view.film?.slug,
+          developerSlug: view.developer?.slug,
         });
       }
     },
@@ -506,6 +542,8 @@ export default function DevelopmentRecipesPage() {
         await copyRegularRecipeToClipboard({
           recipeId: combinationId,
           recipeName: view.combination.name,
+          filmSlug: view.film?.slug,
+          developerSlug: view.developer?.slug,
         });
       }
     },
@@ -526,7 +564,10 @@ export default function DevelopmentRecipesPage() {
           }
         } else {
           // Add new recipe
-          await addCustomRecipe(data);
+          const newId = await addCustomRecipe(data);
+          if (data.isFavorite) {
+            addFavorite(newId);
+          }
         }
         await refreshCustomRecipes();
         setIsCustomModalOpen(false);
@@ -541,6 +582,7 @@ export default function DevelopmentRecipesPage() {
       refreshCustomRecipes,
       editingRecipe,
       customRecipes,
+      addFavorite,
     ]
   );
 
@@ -1003,6 +1045,8 @@ export default function DevelopmentRecipesPage() {
           showDeveloperTypeFilter={!selectedDeveloper}
           showDilutionFilter={!!selectedDeveloper}
           defaultCollapsed={true}
+          favoritesOnly={favoritesOnly}
+          onFavoritesOnlyChange={setFavoritesOnly}
         />
 
         <div className="transition-all duration-500 ease-in-out">
@@ -1108,6 +1152,12 @@ export default function DevelopmentRecipesPage() {
                   onEditCustomRecipe={handleEditCustomRecipe}
                   onDeleteCustomRecipe={handleDeleteCustomRecipe}
                   isMobile={isMobile}
+                  isFavorite={(view) =>
+                    isFavorite(String(view.combination.uuid || view.combination.id))
+                  }
+                  onToggleFavorite={(view) =>
+                    toggleFavorite(String(view.combination.uuid || view.combination.id))
+                  }
                 />
               ) : (
                 <DevelopmentResultsTable
@@ -1117,6 +1167,12 @@ export default function DevelopmentRecipesPage() {
                   onCopyCombination={handleCopyCombination}
                   onEditCustomRecipe={handleEditCustomRecipe}
                   onDeleteCustomRecipe={handleDeleteCustomRecipe}
+                  isFavorite={(view) =>
+                    isFavorite(String(view.combination.uuid || view.combination.id))
+                  }
+                  onToggleFavorite={(view) =>
+                    toggleFavorite(String(view.combination.uuid || view.combination.id))
+                  }
                   sortBy={sortBy}
                   sortDirection={sortDirection}
                   onSort={handleSort}
@@ -1175,39 +1231,62 @@ export default function DevelopmentRecipesPage() {
                     onDeleteCustomRecipe={handleDeleteCustomRecipe}
                   />
                 )}
-                {detailView?.source === 'custom' &&
-                  flags.CUSTOM_RECIPE_SHARING && (
-                    <div className="flex flex-col gap-2 pt-2 sm:flex-row">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          detailView && handleShareCombination(detailView)
-                        }
-                        className="w-full rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-105"
-                        style={{
-                          backgroundColor: 'var(--color-text-primary)',
-                          color: 'var(--color-background)',
-                        }}
-                      >
-                        Share recipe
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          detailView && handleCopyCombination(detailView)
-                        }
-                        className="w-full rounded-full px-4 py-2 text-sm font-medium transition"
-                        style={{
-                          color:
-                            'color-mix(in oklab, var(--color-text-primary) 80%, transparent)',
-                          borderColor: 'var(--color-border-secondary)',
-                          borderWidth: 1,
-                        }}
-                      >
-                        Copy link
-                      </button>
-                    </div>
-                  )}
+                {detailView && (
+                  <div className="flex flex-col gap-2 pt-2 sm:flex-row">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        toggleFavorite(
+                          String(
+                            detailView.combination.uuid ||
+                              detailView.combination.id
+                          )
+                        )
+                      }
+                      className="w-full rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-105"
+                      style={{
+                        backgroundColor: 'var(--color-text-primary)',
+                        color: 'var(--color-background)',
+                      }}
+                    >
+                      {isFavorite(
+                        String(
+                          detailView.combination.uuid || detailView.combination.id
+                        )
+                      )
+                        ? 'Remove from favorites'
+                        : 'Add to favorites'}
+                    </button>
+                    {detailView.source === 'custom' && flags.CUSTOM_RECIPE_SHARING && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleShareCombination(detailView)}
+                          className="w-full rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-105"
+                          style={{
+                            backgroundColor: 'var(--color-text-primary)',
+                            color: 'var(--color-background)',
+                          }}
+                        >
+                          Share recipe
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyCombination(detailView)}
+                          className="w-full rounded-full px-4 py-2 text-sm font-medium transition"
+                          style={{
+                            color:
+                              'color-mix(in oklab, var(--color-text-primary) 80%, transparent)',
+                            borderColor: 'var(--color-border-secondary)',
+                            borderWidth: 1,
+                          }}
+                        >
+                          Copy link
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
               </DrawerBody>
             </DrawerContent>
           </Drawer>
@@ -1225,12 +1304,16 @@ export default function DevelopmentRecipesPage() {
                 onDeleteCustomRecipe={handleDeleteCustomRecipe}
               />
             )}
-            {detailView?.source === 'custom' && flags.CUSTOM_RECIPE_SHARING && (
+            {detailView && (
               <div className="flex gap-2 pt-4">
                 <button
                   type="button"
                   onClick={() =>
-                    detailView && handleShareCombination(detailView)
+                    toggleFavorite(
+                      String(
+                        detailView.combination.uuid || detailView.combination.id
+                      )
+                    )
                   }
                   className="flex-1 rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-105"
                   style={{
@@ -1238,23 +1321,42 @@ export default function DevelopmentRecipesPage() {
                     color: 'var(--color-background)',
                   }}
                 >
-                  Share recipe
+                  {isFavorite(
+                    String(
+                      detailView.combination.uuid || detailView.combination.id
+                    )
+                  )
+                    ? 'Remove from favorites'
+                    : 'Add to favorites'}
                 </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    detailView && handleCopyCombination(detailView)
-                  }
-                  className="flex-1 rounded-full px-4 py-2 text-sm font-medium transition"
-                  style={{
-                    color:
-                      'color-mix(in oklab, var(--color-text-primary) 80%, transparent)',
-                    borderColor: 'var(--color-border-secondary)',
-                    borderWidth: 1,
-                  }}
-                >
-                  Copy link
-                </button>
+                {detailView.source === 'custom' && flags.CUSTOM_RECIPE_SHARING && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleShareCombination(detailView)}
+                      className="flex-1 rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-105"
+                      style={{
+                        backgroundColor: 'var(--color-text-primary)',
+                        color: 'var(--color-background)',
+                      }}
+                    >
+                      Share recipe
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyCombination(detailView)}
+                      className="flex-1 rounded-full px-4 py-2 text-sm font-medium transition"
+                      style={{
+                        color:
+                          'color-mix(in oklab, var(--color-text-primary) 80%, transparent)',
+                        borderColor: 'var(--color-border-secondary)',
+                        borderWidth: 1,
+                      }}
+                    >
+                      Copy link
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </Modal>
@@ -1407,6 +1509,13 @@ export default function DevelopmentRecipesPage() {
           isProcessing={isAddingSharedRecipe}
           recipeSource={sharedRecipeSource}
           variant={isMobile ? 'drawer' : 'modal'}
+          hideAddToCollection={false}
+          isFavorite={(view) =>
+            isFavorite(String(view.combination.uuid || view.combination.id))
+          }
+          onToggleFavorite={(view) =>
+            toggleFavorite(String(view.combination.uuid || view.combination.id))
+          }
         />
 
         <FilmdevPreviewModal

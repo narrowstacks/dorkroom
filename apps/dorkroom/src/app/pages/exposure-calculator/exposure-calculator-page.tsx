@@ -201,7 +201,7 @@ export default function ExposureCalculatorPage() {
                   helperText={`${calculation.stopsValue > 0 ? '+' : ''}${
                     calculation.stopsValue
                   } stops`}
-                  tone="emerald"
+                  tone="default"
                 />
                 <CalculatorStat
                   label={`${exposureChange} exposure`}

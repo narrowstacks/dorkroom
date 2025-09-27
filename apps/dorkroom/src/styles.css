@@ -29,9 +29,14 @@
   --color-text-secondary: #a90000;
   --color-text-tertiary: #920000;
   --color-text-muted: #820000;
+  --color-text-warning: #a90000;
+  --color-text-link: #ff0000;
+  --color-background-muted: #000000;
+  --color-background-tag: #000000;
+  --color-text-tag: #ff0000;
   --color-border-primary: #ff0000;
-  --color-border-secondary: #a90000;
-  --color-border-muted: #920000;
+  --color-border-secondary: #ff0000;
+  --color-border-muted: #000000;
   --color-semantic-success: #ff0000;
   --color-semantic-warning: #a90000;
   --color-semantic-error: #920000;
@@ -56,10 +61,10 @@
   --gradient-card-warning: #000000;
   --gradient-card-error: #000000;
   --color-tag-official-ilford: #ff0000;
-  --color-tag-official-kodak: #ff0000;
-  --color-tag-official-fuji: #ff0000;
-  --color-tag-community: #ff0000;
-  --color-tag-default: #a1a1aa;
+  --color-tag-official-kodak: #e00000;
+  --color-tag-official-fuji: #c00000;
+  --color-tag-community: #a00000;
+  --color-tag-default: #800000;
   --toggle-pill-border: 1px solid #ff0000;
   --toggle-circle-border: 1px solid #ff0000;
 }
@@ -653,6 +658,50 @@
     background: var(--gradient-card-error);
   }
 
+  /* Custom text color utilities */
+  .text-primary {
+    color: var(--color-text-primary);
+  }
+  .text-secondary {
+    color: var(--color-text-secondary);
+  }
+  .text-tertiary {
+    color: var(--color-text-tertiary);
+  }
+  .text-muted {
+    color: var(--color-text-muted);
+  }
+
+  /* Custom background utilities */
+  .bg-border-muted {
+    background-color: var(--color-border-muted);
+  }
+  .bg-border-secondary {
+    background-color: var(--color-border-secondary);
+  }
+
+  /* Custom border utilities */
+  .border-secondary {
+    border-color: var(--color-border-secondary);
+  }
+
+  /* Custom error color utilities */
+  .text-error {
+    color: var(--color-semantic-error);
+  }
+  .bg-error\/10 {
+    background-color: color-mix(in srgb, var(--color-semantic-error) 10%, transparent);
+  }
+  .bg-error\/20 {
+    background-color: color-mix(in srgb, var(--color-semantic-error) 20%, transparent);
+  }
+  .text-error\/80 {
+    color: color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary));
+  }
+  .text-error\/90 {
+    color: color-mix(in srgb, var(--color-semantic-error) 90%, var(--color-text-primary));
+  }
+
   /* Slider styling with theme support */
   .slider-track {
     -webkit-appearance: none;
@@ -745,5 +794,15 @@
     background: var(--color-primary);
     position: relative;
     z-index: 2;
+  }
+
+  /* Calculator buttons with red borders in darkroom theme - only on home page */
+  [data-theme='darkroom'] main a[href*="/border"],
+  [data-theme='darkroom'] main a[href*="/stops"],
+  [data-theme='darkroom'] main a[href*="/resize"],
+  [data-theme='darkroom'] main a[href*="/exposure"],
+  [data-theme='darkroom'] main a[href*="/reciprocity"],
+  [data-theme='darkroom'] main a[href*="/development"] {
+    border: 2px solid var(--color-primary) !important;
   }
 }

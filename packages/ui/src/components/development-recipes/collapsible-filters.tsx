@@ -24,6 +24,8 @@ interface CollapsibleFiltersProps {
   showDeveloperTypeFilter?: boolean;
   showDilutionFilter?: boolean;
   defaultCollapsed?: boolean;
+  favoritesOnly?: boolean;
+  onFavoritesOnlyChange?: (value: boolean) => void;
 }
 
 export function CollapsibleFilters({
@@ -46,6 +48,8 @@ export function CollapsibleFilters({
   showDeveloperTypeFilter = true,
   showDilutionFilter = true,
   defaultCollapsed = true,
+  favoritesOnly = false,
+  onFavoritesOnlyChange,
 }: CollapsibleFiltersProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
@@ -61,7 +65,8 @@ export function CollapsibleFilters({
     dilutionFilter ||
     isoFilter ||
     customRecipeFilter !== 'all' ||
-    tagFilter;
+    tagFilter ||
+    favoritesOnly;
 
   const activeFilterCount = [
     developerTypeFilter,
@@ -69,6 +74,7 @@ export function CollapsibleFilters({
     isoFilter,
     customRecipeFilter !== 'all' ? customRecipeFilter : '',
     tagFilter,
+    favoritesOnly ? 'favorites' : '',
   ].filter(Boolean).length;
 
   return (
@@ -202,6 +208,16 @@ export function CollapsibleFilters({
               onValueChange={onTagFilterChange}
               items={tagOptions}
             />
+            <div className="flex items-end">
+              <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                <input
+                  type="checkbox"
+                  checked={favoritesOnly}
+                  onChange={(e) => onFavoritesOnlyChange?.(e.target.checked)}
+                />
+                Favorites only
+              </label>
+            </div>
           </div>
         </div>
       )}
