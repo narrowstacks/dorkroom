@@ -4,12 +4,7 @@
       "Bash(npx nx:*)",
       "Bash(npx prettier:*)",
       "Bash(lsof:*)",
-      "mcp__serena__get_symbols_overview",
-      "mcp__serena__activate_project",
-      "mcp__serena__find_symbol",
-      "mcp__serena__find_file",
-      "mcp__serena__replace_symbol_body",
-      "mcp__serena__search_for_pattern",
+      "mcp__serena__*",
       "Bash(curl:*)",
       "WebFetch(domain:filmdev.org)",
       "Bash(node:*)",
@@ -25,11 +20,7 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:api.github.com)",
       "Bash(bun add:*)",
-      "Bash(git checkout:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git log:*)",
-      "Bash(git remote add:*)"
+      "Bash(git *:*)"
     ],
     "deny": [],
     "ask": []
