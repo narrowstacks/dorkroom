@@ -11,11 +11,13 @@
 Dorkroom provides essential calculators for film photography and darkroom work:
 
 ### 🖼️ **Printing Tools**
+
 - **Border Calculator** - Calculate precise print borders with trim-safe guides
 - **Resize Calculator** - Scale prints without endless test strips
 - **Stops Calculator** - Translate exposure stops into seconds
 
 ### 📸 **Shooting Tools**
+
 - **Exposure Calculator** - Balance aperture, shutter, and ISO on location
 - **Reciprocity Calculator** - Correct for long exposure failure
 - **Development Recipes** - Film + chemistry pairings with proven results
@@ -130,14 +132,14 @@ npx prettier --write .
 
 ## Project Commands
 
-| Command | Description |
-|---------|-------------|
-| `npx nx dev dorkroom -- --host=0.0.0.0` | Start development server |
-| `npx nx build dorkroom` | Build production bundle |
-| `npx nx test` | Run tests |
-| `npx nx lint` | Run ESLint |
-| `npx nx typecheck` | TypeScript checking |
-| `npx nx graph` | Visualize project dependencies |
+| Command                                 | Description                    |
+| --------------------------------------- | ------------------------------ |
+| `npx nx dev dorkroom -- --host=0.0.0.0` | Start development server       |
+| `npx nx build dorkroom`                 | Build production bundle        |
+| `npx nx test`                           | Run tests                      |
+| `npx nx lint`                           | Run ESLint                     |
+| `npx nx typecheck`                      | TypeScript checking            |
+| `npx nx graph`                          | Visualize project dependencies |
 
 ## License
 

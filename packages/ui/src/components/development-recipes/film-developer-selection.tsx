@@ -36,7 +36,7 @@ export function FilmDeveloperSelection({
       )}
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor: 'var(--color-surface-muted)',
+        backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',
       }}
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

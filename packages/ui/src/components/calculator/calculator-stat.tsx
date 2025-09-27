@@ -55,14 +55,14 @@ export function CalculatorStat({
           ? getToneStyle(tone)
           : {
               borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-border-muted)',
+              backgroundColor: 'rgba(var(--color-background-rgb), 0.15)',
             }
       }
     >
       <span
         className="text-xs font-semibold uppercase tracking-[0.35em]"
         style={{
-          color: tone !== 'default' ? 'inherit' : 'var(--color-text-muted)',
+          color: tone !== 'default' ? 'inherit' : 'var(--color-text-primary)',
         }}
       >
         {label}

@@ -79,7 +79,7 @@ export function CollapsibleFilters({
       )}
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor: 'var(--color-surface-muted)',
+        backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',
       }}
     >
       <button
@@ -90,7 +90,8 @@ export function CollapsibleFilters({
           isCollapsed ? 'rounded-2xl' : 'rounded-t-2xl'
         )}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'var(--color-border-muted)';
+          e.currentTarget.style.backgroundColor =
+            'rgba(var(--color-background-rgb), 0.3)';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = 'transparent';
@@ -108,7 +109,7 @@ export function CollapsibleFilters({
               <div
                 className="rounded-full px-2 py-0.5 text-xs font-medium"
                 style={{
-                  backgroundColor: 'var(--color-border-secondary)',
+                  backgroundColor: 'rgba(var(--color-background-rgb), 0.2)',
                   color: 'var(--color-text-primary)',
                 }}
               >
