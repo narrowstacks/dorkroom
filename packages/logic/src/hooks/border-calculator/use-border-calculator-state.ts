@@ -108,6 +108,30 @@ function reducer(
   }
 }
 
+/**
+ * Core state management hook for the border calculator.
+ * Handles state persistence, restoration, and provides the reducer dispatch function.
+ * Automatically saves state to localStorage with debouncing to prevent excessive writes.
+ *
+ * @returns Object containing current state and dispatch function for state updates
+ *
+ * @example
+ * ```typescript
+ * const { state, dispatch } = useBorderCalculatorState();
+ *
+ * // Update a field directly
+ * dispatch({ type: 'SET_FIELD', key: 'minBorder', value: 0.75 });
+ *
+ * // Reset to defaults
+ * dispatch({ type: 'RESET' });
+ *
+ * // Batch update multiple fields
+ * dispatch({
+ *   type: 'BATCH_UPDATE',
+ *   payload: { aspectRatio: '4:3', paperSize: '11x14' }
+ * });
+ * ```
+ */
 export const useBorderCalculatorState = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const persistTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);

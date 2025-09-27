@@ -11,6 +11,19 @@ import type {
 const MAX_BAR_WIDTH = 300;
 const DEFAULT_METERED_TIME = '30s';
 
+/**
+ * Formats reciprocity time in seconds to human-readable string.
+ * Automatically chooses appropriate units (seconds, minutes, hours) based on duration.
+ *
+ * @param seconds - Time duration in seconds
+ * @returns Formatted time string with appropriate units
+ * @example
+ * ```typescript
+ * const short = formatReciprocityTime(15.5); // '15.5s'
+ * const medium = formatReciprocityTime(125); // '2m 5s'
+ * const long = formatReciprocityTime(3600); // '1h'
+ * ```
+ */
 export const formatReciprocityTime = (seconds: number): string => {
   if (seconds < 60) {
     return `${Math.round(seconds * 10) / 10}s`;
@@ -29,6 +42,21 @@ export const formatReciprocityTime = (seconds: number): string => {
   return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
 };
 
+/**
+ * Parses reciprocity time input from various string formats.
+ * Supports formats like '30s', '2m 30s', '1h 30m', or plain numbers.
+ *
+ * @param input - Time string to parse
+ * @returns Parsed time in seconds, or null if parsing fails
+ * @example
+ * ```typescript
+ * const seconds = parseReciprocityTime('30s'); // 30
+ * const minutes = parseReciprocityTime('2m 30s'); // 150
+ * const hours = parseReciprocityTime('1h 30m'); // 5400
+ * const plain = parseReciprocityTime('45'); // 45
+ * const invalid = parseReciprocityTime('abc'); // null
+ * ```
+ */
 export const parseReciprocityTime = (input: string): number | null => {
   const cleaned = input.toLowerCase().trim();
 
@@ -64,6 +92,35 @@ export const parseReciprocityTime = (input: string): number | null => {
   return valid ? seconds : null;
 };
 
+/**
+ * Reciprocity calculator hook for long exposure photography.
+ * Handles reciprocity failure calculations for various film types,
+ * providing corrected exposure times for long exposures.
+ *
+ * @returns Object containing calculator state, calculation results, and control functions
+ * @example
+ * ```typescript
+ * const {
+ *   filmType,
+ *   setFilmType,
+ *   meteredTime,
+ *   handleTimeChange,
+ *   calculation,
+ *   formattedTime,
+ *   timeFormatError
+ * } = useReciprocityCalculator();
+ *
+ * // Set film type and metered time
+ * setFilmType('tri-x');
+ * handleTimeChange('30s');
+ *
+ * // Get corrected exposure time
+ * if (calculation) {
+ *   console.log('Corrected time:', calculation.correctedTime);
+ *   console.log('Factor applied:', calculation.factor);
+ * }
+ * ```
+ */
 export function useReciprocityCalculator(): ReciprocityCalculatorState & {
   exposurePresets: number[];
   filmTypes: typeof RECIPROCITY_FILM_TYPES;

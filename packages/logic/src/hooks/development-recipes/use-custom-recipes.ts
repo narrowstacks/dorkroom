@@ -59,6 +59,37 @@ const writeRecipesToStorage = (recipes: CustomRecipe[]): void => {
   }
 };
 
+/**
+ * Hook for managing custom film development recipes stored in localStorage.
+ * Provides CRUD operations for user-created custom recipes including
+ * custom films and developers.
+ *
+ * @returns Object containing custom recipes state and management functions
+ *
+ * @example
+ * ```typescript
+ * const {
+ *   customRecipes,
+ *   isLoading,
+ *   addCustomRecipe,
+ *   updateCustomRecipe,
+ *   deleteCustomRecipe,
+ *   clearAllCustomRecipes
+ * } = useCustomRecipes();
+ *
+ * // Add a new custom recipe
+ * const recipeId = await addCustomRecipe({
+ *   name: 'My Custom Recipe',
+ *   useExistingFilm: false,
+ *   customFilm: { brand: 'Custom', name: 'Test Film' },
+ *   temperatureF: 68,
+ *   timeMinutes: 12
+ * });
+ *
+ * // Delete a recipe
+ * await deleteCustomRecipe(recipeId);
+ * ```
+ */
 export const useCustomRecipes = () => {
   const [customRecipes, setCustomRecipes] = useState<CustomRecipe[]>([]);
   const [isLoading, setIsLoading] = useState(false);

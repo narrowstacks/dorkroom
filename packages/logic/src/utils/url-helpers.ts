@@ -14,7 +14,16 @@ const URL_CONFIG = {
 };
 
 /**
- * Get the base URL for the current environment
+ * Gets the base URL for the current environment.
+ * Automatically detects development vs production and constructs appropriate URL.
+ *
+ * @returns Base URL string for the current environment
+ * @example
+ * ```typescript
+ * const baseUrl = getBaseUrl();
+ * // Development: 'http://localhost:4200'
+ * // Production: 'https://beta.dorkroom.art'
+ * ```
  */
 function getBaseUrl(): string {
   if (typeof window === 'undefined') {
@@ -34,7 +43,19 @@ function getBaseUrl(): string {
 }
 
 /**
- * Generate a dynamic share URL for the border calculator
+ * Generates a dynamic share URL for the border calculator.
+ * Uses current environment's base URL for context-appropriate sharing.
+ *
+ * @param path - Path to append to base URL, defaults to border calculator path
+ * @returns Complete shareable URL for the specified path
+ * @example
+ * ```typescript
+ * const url = getDynamicShareUrl();
+ * console.log(url); // 'https://beta.dorkroom.art/border'
+ *
+ * const customUrl = getDynamicShareUrl('/custom-path');
+ * console.log(customUrl); // 'https://beta.dorkroom.art/custom-path'
+ * ```
  */
 export function getDynamicShareUrl(
   path: string = URL_CONFIG.BORDER_CALCULATOR_PATH
@@ -44,14 +65,33 @@ export function getDynamicShareUrl(
 }
 
 /**
- * Generate a native app URL for deep linking
+ * Generates a native app URL for deep linking to presets.
+ * Creates URL using custom scheme for opening in native mobile app.
+ *
+ * @param encoded - Encoded preset string
+ * @returns Native app deep link URL
+ * @example
+ * ```typescript
+ * const nativeUrl = getNativeUrl('preset123abc');
+ * console.log(nativeUrl); // 'dorkroom://preset/preset123abc'
+ * ```
  */
 export function getNativeUrl(encoded: string): string {
   return `${URL_CONFIG.NATIVE_SCHEME}://preset/${encoded}`;
 }
 
 /**
- * Generate both web and native sharing URLs for a preset
+ * Generates both web and native sharing URLs for a preset.
+ * Provides complete sharing solution for cross-platform compatibility.
+ *
+ * @param encoded - Encoded preset string
+ * @returns Object containing both web and native URLs
+ * @example
+ * ```typescript
+ * const urls = generateSharingUrls('preset123abc');
+ * console.log(urls.webUrl); // 'https://beta.dorkroom.art/border#preset123abc'
+ * console.log(urls.nativeUrl); // 'dorkroom://preset/preset123abc'
+ * ```
  */
 export function generateSharingUrls(encoded: string): {
   webUrl: string;
@@ -67,7 +107,20 @@ export function generateSharingUrls(encoded: string): {
 }
 
 /**
- * Extract encoded preset from current URL hash
+ * Extracts encoded preset from current URL hash.
+ * Safely handles SSR environments and invalid hash formats.
+ *
+ * @returns Encoded preset string from URL hash, or null if not found
+ * @example
+ * ```typescript
+ * // URL: https://example.com/border#preset123abc
+ * const preset = getPresetFromUrl();
+ * console.log(preset); // 'preset123abc'
+ *
+ * // URL: https://example.com/border
+ * const noPreset = getPresetFromUrl();
+ * console.log(noPreset); // null
+ * ```
  */
 export function getPresetFromUrl(): string | null {
   if (typeof window === 'undefined') {
@@ -83,7 +136,15 @@ export function getPresetFromUrl(): string | null {
 }
 
 /**
- * Update the URL hash with an encoded preset (without page reload)
+ * Updates the URL hash with an encoded preset without triggering page reload.
+ * Uses history.replaceState to maintain browser navigation without refresh.
+ *
+ * @param encoded - Encoded preset string to add to URL hash
+ * @example
+ * ```typescript
+ * updateUrlWithPreset('preset123abc');
+ * // URL changes to: https://example.com/border#preset123abc
+ * ```
  */
 export function updateUrlWithPreset(encoded: string): void {
   if (typeof window === 'undefined') {
@@ -95,7 +156,15 @@ export function updateUrlWithPreset(encoded: string): void {
 }
 
 /**
- * Clear the preset from the URL hash
+ * Clears the preset from the URL hash without page reload.
+ * Removes hash portion while preserving path and query parameters.
+ *
+ * @example
+ * ```typescript
+ * // URL: https://example.com/border?param=1#preset123abc
+ * clearPresetFromUrl();
+ * // URL becomes: https://example.com/border?param=1
+ * ```
  */
 export function clearPresetFromUrl(): void {
   if (typeof window === 'undefined') {
@@ -107,14 +176,36 @@ export function clearPresetFromUrl(): void {
 }
 
 /**
- * Check if the current environment supports the Web Share API
+ * Checks if the current environment supports the Web Share API.
+ * Used to determine if native sharing UI is available.
+ *
+ * @returns True if Web Share API is supported, false otherwise
+ * @example
+ * ```typescript
+ * if (isWebShareSupported()) {
+ *   navigator.share({ title: 'My Preset', url: shareUrl });
+ * } else {
+ *   // Fall back to copy to clipboard
+ * }
+ * ```
  */
 export function isWebShareSupported(): boolean {
   return typeof navigator !== 'undefined' && 'share' in navigator;
 }
 
 /**
- * Check if the current environment supports clipboard API
+ * Checks if the current environment supports the Clipboard API.
+ * Used to determine if copy-to-clipboard functionality is available.
+ *
+ * @returns True if Clipboard API is supported, false otherwise
+ * @example
+ * ```typescript
+ * if (isClipboardSupported()) {
+ *   navigator.clipboard.writeText(shareUrl);
+ * } else {
+ *   // Show manual copy instructions
+ * }
+ * ```
  */
 export function isClipboardSupported(): boolean {
   return (
@@ -125,7 +216,19 @@ export function isClipboardSupported(): boolean {
 }
 
 /**
- * Get a user-friendly URL for display purposes (removes protocol)
+ * Gets a user-friendly URL for display purposes by removing the protocol.
+ * Creates cleaner URLs for UI display while preserving path and hash.
+ *
+ * @param url - Full URL to make display-friendly
+ * @returns URL without protocol, or original string if parsing fails
+ * @example
+ * ```typescript
+ * const displayUrl = getDisplayUrl('https://beta.dorkroom.art/border#preset123');
+ * console.log(displayUrl); // 'beta.dorkroom.art/border#preset123'
+ *
+ * const invalid = getDisplayUrl('not-a-url');
+ * console.log(invalid); // 'not-a-url'
+ * ```
  */
 export function getDisplayUrl(url: string): string {
   try {

@@ -12,7 +12,11 @@ export interface SharedPreset {
 }
 
 /**
- * Find index of a value in an array of options
+ * Finds the index of a value in an array of options by matching the value property.
+ *
+ * @param options - Array of objects with value properties
+ * @param value - Value to search for
+ * @returns Index of the matching option, or -1 if not found
  */
 function findIndexByValue<T extends { value: string }>(
   options: T[],
@@ -22,7 +26,20 @@ function findIndexByValue<T extends { value: string }>(
 }
 
 /**
- * Convert boolean settings to a bitmask for compact encoding
+ * Converts boolean settings to a bitmask for compact URL encoding.
+ * Each boolean setting is represented by a specific bit position.
+ *
+ * @param settings - Border preset settings containing boolean flags
+ * @returns Numeric bitmask representing all boolean settings
+ * @example
+ * ```typescript
+ * const mask = getBooleanBitmask({
+ *   enableOffset: true,    // bit 0 = 1
+ *   ignoreMinBorder: false, // bit 1 = 0
+ *   showBlades: true       // bit 2 = 4
+ * });
+ * console.log(mask); // 5 (binary: 101)
+ * ```
  */
 function getBooleanBitmask(settings: BorderPresetSettings): number {
   let mask = 0;
@@ -36,7 +53,17 @@ function getBooleanBitmask(settings: BorderPresetSettings): number {
 }
 
 /**
- * Convert bitmask back to boolean settings
+ * Converts a numeric bitmask back to boolean settings object.
+ * Reverses the operation performed by getBooleanBitmask.
+ *
+ * @param mask - Numeric bitmask containing boolean flags
+ * @returns Partial settings object with boolean properties
+ * @example
+ * ```typescript
+ * const settings = fromBooleanBitmask(5); // binary: 101
+ * console.log(settings);
+ * // { enableOffset: true, ignoreMinBorder: false, showBlades: true, ... }
+ * ```
  */
 function fromBooleanBitmask(mask: number): Partial<BorderPresetSettings> {
   return {
@@ -50,7 +77,20 @@ function fromBooleanBitmask(mask: number): Partial<BorderPresetSettings> {
 }
 
 /**
- * Encode a preset into a URL-safe string
+ * Encodes a border calculator preset into a URL-safe string for sharing.
+ * Uses base64 encoding with URL-safe character substitutions and compact data representation.
+ *
+ * @param preset - Preset object containing name and settings
+ * @returns URL-safe encoded string, or empty string if encoding fails
+ * @example
+ * ```typescript
+ * const preset = {
+ *   name: 'My Preset',
+ *   settings: { aspectRatio: '2:3', paperSize: '8x10', minBorder: 0.5, ... }
+ * };
+ * const encoded = encodePreset(preset);
+ * console.log(encoded); // 'TXklMjBQcmVzZXQtMC0xLTUwLTAtMTAwMDAtNA'
+ * ```
  */
 export function encodePreset(preset: PresetToShare): string {
   try {
@@ -105,7 +145,18 @@ export function encodePreset(preset: PresetToShare): string {
 }
 
 /**
- * Decode a preset from a URL-safe string
+ * Decodes a border calculator preset from a URL-safe encoded string.
+ * Reverses the encoding process and reconstructs the complete preset object.
+ *
+ * @param encoded - URL-safe encoded preset string
+ * @returns Decoded preset object with name and settings, or null if decoding fails
+ * @example
+ * ```typescript
+ * const encoded = 'TXklMjBQcmVzZXQtMC0xLTUwLTAtMTAwMDAtNA';
+ * const preset = decodePreset(encoded);
+ * console.log(preset);
+ * // { name: 'My Preset', settings: { aspectRatio: '2:3', ... } }
+ * ```
  */
 export function decodePreset(encoded: string): SharedPreset | null {
   try {
@@ -174,7 +225,19 @@ export function decodePreset(encoded: string): SharedPreset | null {
 }
 
 /**
- * Validate if a string appears to be a valid encoded preset
+ * Validates if a string appears to be a valid encoded preset by checking format and attempting decode.
+ * Performs both format validation and actual decoding test.
+ *
+ * @param encoded - String to validate as encoded preset
+ * @returns True if the string is a valid encoded preset, false otherwise
+ * @example
+ * ```typescript
+ * const valid = isValidEncodedPreset('TXklMjBQcmVzZXQtMC0xLTUwLTAtMTAwMDAtNA');
+ * console.log(valid); // true
+ *
+ * const invalid = isValidEncodedPreset('invalid-string');
+ * console.log(invalid); // false
+ * ```
  */
 export function isValidEncodedPreset(encoded: string): boolean {
   if (!encoded || typeof encoded !== 'string') {

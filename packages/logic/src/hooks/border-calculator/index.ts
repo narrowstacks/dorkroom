@@ -15,6 +15,34 @@ import { useWarningSystem } from './use-warning-system';
 import { useImageHandling } from './use-image-handling';
 import { useInputHandlers } from './use-input-handlers';
 
+/**
+ * Main border calculator hook that orchestrates all border calculation functionality.
+ * This is the primary interface for darkroom border calculations, composing multiple
+ * specialized sub-hooks to provide a comprehensive calculation system.
+ *
+ * @returns Complete border calculator state and control functions
+ *
+ * @example
+ * ```typescript
+ * const {
+ *   aspectRatio,
+ *   paperSize,
+ *   minBorder,
+ *   calculation,
+ *   setAspectRatio,
+ *   setPaperSize,
+ *   setMinBorder
+ * } = useBorderCalculator();
+ *
+ * // Set up calculation parameters
+ * setAspectRatio('3:2');
+ * setPaperSize('8x10');
+ * setMinBorder(0.5);
+ *
+ * // Use the calculated results
+ * console.log(`Print size: ${calculation.printWidth}" x ${calculation.printHeight}"`);
+ * ```
+ */
 export const useBorderCalculator = () => {
   // Core state management
   const { state, dispatch } = useBorderCalculatorState();

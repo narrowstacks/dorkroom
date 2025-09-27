@@ -40,6 +40,31 @@ const writeFavoritesToStorage = (ids: string[]): void => {
   }
 };
 
+/**
+ * Hook for managing favorite recipe IDs stored in localStorage.
+ * Provides functionality to mark recipes as favorites and check favorite status.
+ *
+ * @returns Object containing favorite state and management functions
+ *
+ * @example
+ * ```typescript
+ * const {
+ *   favoriteIds,
+ *   isFavorite,
+ *   addFavorite,
+ *   removeFavorite,
+ *   toggleFavorite
+ * } = useFavorites();
+ *
+ * // Check if a recipe is favorited
+ * if (isFavorite(recipeId)) {
+ *   console.log('This recipe is a favorite!');
+ * }
+ *
+ * // Toggle favorite status
+ * toggleFavorite(recipeId);
+ * ```
+ */
 export const useFavorites = () => {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 

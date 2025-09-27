@@ -10,6 +10,34 @@ import type {
   BorderCalculatorAction,
 } from '../../types/border-calculator';
 
+/**
+ * Hook for managing image-related state in the border calculator.
+ * Provides functions for handling image selection, dimensions, cropping state,
+ * and image layout information for preview purposes.
+ *
+ * @param state - Current border calculator state
+ * @param dispatch - State update dispatch function
+ * @returns Object containing image state values and setter functions
+ *
+ * @example
+ * ```typescript
+ * const {
+ *   selectedImageUri,
+ *   imageDimensions,
+ *   isCropping,
+ *   setSelectedImageUri,
+ *   setImageDimensions,
+ *   setIsCropping
+ * } = useImageHandling(state, dispatch);
+ *
+ * // Load an image
+ * setSelectedImageUri('path/to/image.jpg');
+ * setImageDimensions({ width: 4000, height: 3000 });
+ *
+ * // Enable cropping mode
+ * setIsCropping(true);
+ * ```
+ */
 export const useImageHandling = (
   state: BorderCalculatorState,
   dispatch: (action: BorderCalculatorAction) => void

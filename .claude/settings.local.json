@@ -1,26 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx nx:*)",
-      "Bash(npx prettier:*)",
-      "Bash(lsof:*)",
-      "mcp__serena__*",
-      "Bash(curl:*)",
-      "WebFetch(domain:filmdev.org)",
-      "Bash(node:*)",
-      "Bash(find:*)",
-      "WebFetch(domain:www.gnu.org)",
-      "Bash(bun x playwright screenshot:*)",
-      "Bash(bun x playwright:*)",
-      "Bash(npx tsc:*)",
-      "Bash(bunx nx:*)",
-      "Bash(bunx prettier:*)",
-      "Bash(git push:*)",
-      "WebFetch(domain:github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)",
-      "WebFetch(domain:api.github.com)",
-      "Bash(bun add:*)",
-      "Bash(git *:*)"
+      "Bash(bunx nx lint:*)",
+      "Bash(bunx nx typecheck:*)"
     ],
     "deny": [],
     "ask": []

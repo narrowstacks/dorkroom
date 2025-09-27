@@ -24,6 +24,35 @@ export interface UsePaginationReturn<T>
   paginatedItems: T[];
 }
 
+/**
+ * Hook for managing pagination state and operations for a list of items.
+ * Provides pagination logic with automatic page bounds checking and navigation functions.
+ *
+ * @param items - Array of items to paginate
+ * @param pageSize - Number of items per page (default: 50)
+ * @returns Object containing pagination state, paginated items, and navigation functions
+ *
+ * @example
+ * ```typescript
+ * const {
+ *   paginatedItems,
+ *   currentPage,
+ *   totalPages,
+ *   hasNext,
+ *   hasPrevious,
+ *   goToPage,
+ *   goToNext,
+ *   goToPrevious
+ * } = usePagination(allItems, 25);
+ *
+ * // Display current page of items
+ * paginatedItems.map(item => <ItemComponent key={item.id} item={item} />)
+ *
+ * // Navigation
+ * <button disabled={!hasPrevious} onClick={goToPrevious}>Previous</button>
+ * <button disabled={!hasNext} onClick={goToNext}>Next</button>
+ * ```
+ */
 export const usePagination = <T>(
   items: T[],
   pageSize = 50

@@ -5,6 +5,31 @@ import {
   type FeatureFlags,
 } from '../constants/feature-flags';
 
+/**
+ * Hook for accessing feature flags and checking if specific features are enabled.
+ * Provides convenient access to application feature toggles and individual flag checks.
+ *
+ * @returns Object containing feature flags and helper functions
+ *
+ * @example
+ * ```typescript
+ * const {
+ *   isEnabled,
+ *   isCustomRecipeSharingEnabled,
+ *   isRecipeImportEnabled
+ * } = useFeatureFlags();
+ *
+ * // Check individual features
+ * if (isEnabled('CUSTOM_RECIPE_SHARING')) {
+ *   // Show custom recipe sharing UI
+ * }
+ *
+ * // Use convenience properties
+ * if (isCustomRecipeSharingEnabled) {
+ *   // Show sharing button
+ * }
+ * ```
+ */
 export const useFeatureFlags = () => {
   const flags = useMemo(() => FEATURE_FLAGS, []);
 

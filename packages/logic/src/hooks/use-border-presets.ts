@@ -7,6 +7,36 @@ import type {
 const STORAGE_KEY = 'borderPresets';
 const isBrowser = () => typeof window !== 'undefined';
 
+/**
+ * Hook for managing border calculator presets stored in localStorage.
+ * Provides CRUD operations for saving and loading user-defined presets.
+ *
+ * @returns Object containing presets array and management functions
+ *
+ * @example
+ * ```typescript
+ * const {
+ *   presets,
+ *   addPreset,
+ *   updatePreset,
+ *   removePreset
+ * } = useBorderPresets();
+ *
+ * // Add a new preset
+ * addPreset({
+ *   id: 'my-preset-1',
+ *   name: 'Portrait Setup',
+ *   settings: {
+ *     aspectRatio: '3:2',
+ *     paperSize: '8x10',
+ *     minBorder: 0.5
+ *   }
+ * });
+ *
+ * // Update existing preset
+ * updatePreset('my-preset-1', { name: 'Updated Portrait Setup' });
+ * ```
+ */
 export function useBorderPresets() {
   const [presets, setPresets] = useState<BorderPreset[]>([]);
 
