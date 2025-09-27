@@ -35,8 +35,8 @@ Built for darkroom obsessives who want fast, reliable calculations without the c
 
 ```bash
 # Clone the repository
-git clone https://github.com/narrowstacks/dorkroom-nx.git
-cd dorkroom-nx
+git clone https://github.com/narrowstacks/dorkroom.git
+cd dorkroom
 
 # Install dependencies
 bun install
@@ -148,7 +148,7 @@ SUPABASE_MASTER_API_KEY=your_supabase_service_role_key
 
 We welcome contributions from the analog photography community!
 
-- **GitHub**: [https://github.com/narrowstacks/dorkroom-nx](https://github.com/narrowstacks/dorkroom-nx)
+- **GitHub**: [https://github.com/narrowstacks/dorkroom](https://github.com/narrowstacks/dorkroom)
 - **Issues**: Report bugs or request features
 - **Pull Requests**: Submit improvements and new calculators
 
