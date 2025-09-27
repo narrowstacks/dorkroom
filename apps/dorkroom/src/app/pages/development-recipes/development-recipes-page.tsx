@@ -976,12 +976,9 @@ export default function DevelopmentRecipesPage() {
             className="rounded-2xl px-4 py-3 text-sm"
             style={{
               borderWidth: 1,
-              borderColor:
-                'color-mix(in oklab, var(--color-accent) 30%, transparent)',
-              backgroundColor:
-                'color-mix(in oklab, var(--color-accent) 10%, transparent)',
-              color:
-                'color-mix(in oklab, var(--color-accent) 85%, var(--color-text-primary))',
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'var(--color-border-muted)',
+              color: 'var(--color-text-primary)',
             }}
           >
             {error}
@@ -1275,8 +1272,7 @@ export default function DevelopmentRecipesPage() {
                           onClick={() => handleCopyCombination(detailView)}
                           className="w-full rounded-full px-4 py-2 text-sm font-medium transition"
                           style={{
-                            color:
-                              'color-mix(in oklab, var(--color-text-primary) 80%, transparent)',
+                            color: 'var(--color-text-secondary)',
                             borderColor: 'var(--color-border-secondary)',
                             borderWidth: 1,
                           }}
@@ -1347,8 +1343,7 @@ export default function DevelopmentRecipesPage() {
                       onClick={() => handleCopyCombination(detailView)}
                       className="flex-1 rounded-full px-4 py-2 text-sm font-medium transition"
                       style={{
-                        color:
-                          'color-mix(in oklab, var(--color-text-primary) 80%, transparent)',
+                        color: 'var(--color-text-secondary)',
                         borderColor: 'var(--color-border-secondary)',
                         borderWidth: 1,
                       }}

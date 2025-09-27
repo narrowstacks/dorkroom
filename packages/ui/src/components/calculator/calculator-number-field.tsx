@@ -1,5 +1,6 @@
 import { NumberInput } from '../number-input';
 import { cn } from '../../lib/cn';
+import { colorMixOr } from '../../lib/color';
 
 interface CalculatorNumberFieldProps {
   label: string;
@@ -36,7 +37,7 @@ export function CalculatorNumberField({
             className="flex items-center justify-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase"
             style={{
               borderColor: 'var(--color-border-muted)',
-              backgroundColor: 'color-mix(in srgb, var(--color-surface) 20%, transparent)',
+              backgroundColor: colorMixOr('var(--color-surface)', 20, 'transparent', 'var(--color-surface)'),
               color: 'var(--color-text-tertiary)',
             }}
           >

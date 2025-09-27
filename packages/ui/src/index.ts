@@ -57,6 +57,7 @@ export {
 
 // Utilities
 export { cn } from './lib/cn';
+export { colorMixOr, supportsColorMix } from './lib/color';
 
 // Temperature
 export {

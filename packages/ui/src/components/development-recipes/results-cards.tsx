@@ -3,6 +3,7 @@ import type { DevelopmentCombinationView } from './results-table';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { cn } from '../../lib/cn';
+import { colorMixOr } from '../../lib/color';
 import { Tag } from '../ui/tag';
 import { ShareButton } from '../share-button';
 
@@ -92,31 +93,31 @@ export function DevelopmentResultsCards({
             style={{
               borderColor:
                 row.source === 'custom'
-                  ? 'color-mix(in srgb, var(--color-accent) 30%, transparent)'
+                  ? colorMixOr('var(--color-accent)', 30, 'transparent', 'var(--color-border-secondary)')
                   : 'var(--color-border-secondary)',
               backgroundColor:
                 row.source === 'custom'
-                  ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+                  ? colorMixOr('var(--color-accent)', 15, 'transparent', 'var(--color-border-muted)')
                   : 'rgba(var(--color-background-rgb), 0.25)',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor =
                 row.source === 'custom'
-                  ? 'color-mix(in srgb, var(--color-accent) 40%, transparent)'
+                  ? colorMixOr('var(--color-accent)', 40, 'transparent', 'var(--color-border-primary)')
                   : 'var(--color-border-primary)';
               e.currentTarget.style.backgroundColor =
                 row.source === 'custom'
-                  ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
+                  ? colorMixOr('var(--color-accent)', 20, 'transparent', 'var(--color-border-secondary)')
                   : 'rgba(var(--color-background-rgb), 0.3)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor =
                 row.source === 'custom'
-                  ? 'color-mix(in srgb, var(--color-accent) 30%, transparent)'
+                  ? colorMixOr('var(--color-accent)', 30, 'transparent', 'var(--color-border-secondary)')
                   : 'var(--color-border-secondary)';
               e.currentTarget.style.backgroundColor =
                 row.source === 'custom'
-                  ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+                  ? colorMixOr('var(--color-accent)', 15, 'transparent', 'var(--color-border-muted)')
                   : 'rgba(var(--color-background-rgb), 0.25)';
             }}
           >
@@ -143,10 +144,18 @@ export function DevelopmentResultsCards({
                       <span
                         className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
                         style={{
-                          backgroundColor:
-                            'color-mix(in srgb, var(--color-accent) 10%, transparent)',
-                          color:
-                            'color-mix(in srgb, var(--color-accent) 80%, var(--color-text-primary))',
+                          backgroundColor: colorMixOr(
+                            'var(--color-accent)',
+                            10,
+                            'transparent',
+                            'var(--color-border-muted)'
+                          ),
+                          color: colorMixOr(
+                            'var(--color-accent)',
+                            80,
+                            'var(--color-text-primary)',
+                            'var(--color-text-primary)'
+                          ),
                         }}
                       >
                         <Beaker className="h-3 w-3" /> Custom Recipe
@@ -337,22 +346,46 @@ export function DevelopmentResultsCards({
                   }}
                   className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition"
                   style={{
-                    backgroundColor:
-                      'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)',
-                    color:
-                      'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))',
+                    backgroundColor: colorMixOr(
+                      'var(--color-semantic-error)',
+                      10,
+                      'transparent',
+                      'var(--color-border-muted)'
+                    ),
+                    color: colorMixOr(
+                      'var(--color-semantic-error)',
+                      80,
+                      'var(--color-text-primary)',
+                      'var(--color-semantic-error)'
+                    ),
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      'color-mix(in srgb, var(--color-semantic-error) 20%, transparent)';
-                    e.currentTarget.style.color =
-                      'color-mix(in srgb, var(--color-semantic-error) 90%, var(--color-text-primary))';
+                    e.currentTarget.style.backgroundColor = colorMixOr(
+                      'var(--color-semantic-error)',
+                      20,
+                      'transparent',
+                      'var(--color-border-secondary)'
+                    );
+                    e.currentTarget.style.color = colorMixOr(
+                      'var(--color-semantic-error)',
+                      90,
+                      'var(--color-text-primary)',
+                      'var(--color-semantic-error)'
+                    );
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)';
-                    e.currentTarget.style.color =
-                      'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))';
+                    e.currentTarget.style.backgroundColor = colorMixOr(
+                      'var(--color-semantic-error)',
+                      10,
+                      'transparent',
+                      'var(--color-border-muted)'
+                    );
+                    e.currentTarget.style.color = colorMixOr(
+                      'var(--color-semantic-error)',
+                      80,
+                      'var(--color-text-primary)',
+                      'var(--color-semantic-error)'
+                    );
                   }}
                   title="Delete custom recipe"
                 >
