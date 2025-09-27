@@ -26,7 +26,9 @@ export function ToggleSwitch({
           backgroundColor: value
             ? 'var(--color-secondary)'
             : 'var(--color-border-primary)',
-          border: !value ? 'var(--toggle-pill-border, none)' : 'none',
+          border: value
+            ? 'var(--toggle-pill-border-active, none)'
+            : 'var(--toggle-pill-border, none)',
         }}
       >
         <span
@@ -38,7 +40,9 @@ export function ToggleSwitch({
           )}
           style={{
             backgroundColor: value ? undefined : 'var(--color-background)',
-            border: !value ? 'var(--toggle-circle-border, none)' : 'none',
+            border: value
+              ? 'var(--toggle-circle-border-active, none)'
+              : 'var(--toggle-circle-border, none)',
           }}
         />
       </button>

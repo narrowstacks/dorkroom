@@ -60,20 +60,13 @@ export function FilmDeveloperSelection({
           <button
             type="button"
             onClick={clearSelections}
-            className="rounded-full border px-4 py-2 text-sm font-medium transition"
-            style={{
-              borderColor: 'var(--color-border-secondary)',
-              color: 'var(--color-text-secondary)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-              e.currentTarget.style.color = 'var(--color-text-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor =
-                'var(--color-border-secondary)';
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
-            }}
+            className={cn(
+              'rounded-full border px-4 py-2 text-sm font-medium transition',
+              'border-[var(--color-border-secondary)] text-[var(--color-text-secondary)]',
+              'hover:border-[var(--color-border-primary)] hover:text-[var(--color-text-primary)]',
+              'focus-visible:border-[var(--color-border-primary)] focus-visible:text-[var(--color-text-primary)]',
+              'active:border-[var(--color-border-primary)] active:text-[var(--color-text-primary)]'
+            )}
           >
             Clear selections
           </button>

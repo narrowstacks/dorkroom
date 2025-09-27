@@ -77,7 +77,6 @@ export function AnimatedPreview({
   calculation,
   showBlades = true,
   showBladeReadings = false,
-  borderColor = 'var(--color-visualization-border)',
   className,
 }: AnimatedPreviewProps) {
   const [animatedValues, setAnimatedValues] = useState({

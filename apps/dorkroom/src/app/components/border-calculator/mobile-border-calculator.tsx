@@ -336,7 +336,6 @@ export function MobileBorderCalculator({
           className="rounded-3xl border p-6 backdrop-blur-lg space-y-5"
           style={{
             borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'var(--color-surface-muted)',
             background: 'var(--color-surface)',
             boxShadow: '0 40px 120px -60px var(--color-visualization-overlay)',
           }}
