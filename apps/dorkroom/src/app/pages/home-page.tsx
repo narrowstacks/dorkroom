@@ -88,7 +88,7 @@ const calculators = [
 const communityLinks = [
   {
     label: 'Contribute on GitHub',
-    href: 'https://github.com/dorkroom',
+    href: 'https://github.com/narrowstacks/dorkroom-nx',
     icon: GitBranch,
   },
   {
@@ -302,7 +302,7 @@ export function HomePage() {
               style={{ color: 'var(--color-text-primary)' }}
             >
               Support the project, download the code, or share feedback with
-              other darkroom techs.
+              other Dorkroom users.
             </h3>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">

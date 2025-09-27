@@ -3,6 +3,14 @@
     "nrwl.angular-console",
     "esbenp.prettier-vscode",
     "dbaeumer.vscode-eslint",
-    "oven.bun-vscode"
+    "oven.bun-vscode",
+    "Etsi0.class-collapse",
+    "anseki.vscode-color",
+    "oderwat.indent-rainbow",
+    "DavidAnson.vscode-markdownlint",
+    "unifiedjs.vscode-mdx",
+    "christian-kohler.npm-intellisense",
+    "bradlc.vscode-tailwindcss",
+    "ms-vscode.js-debug"
   ]
 }
