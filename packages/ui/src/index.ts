@@ -31,6 +31,8 @@ export { ShareButton } from './components/share-button';
 export { ShareModal } from './components/share-modal';
 export { SaveBeforeShareModal } from './components/save-before-share-modal';
 export { Modal } from './components/modal';
+export { Toast, ToastProvider, useToast } from './components/toast';
+export type { ToastProps } from './components/toast';
 export { DevelopmentFiltersPanel } from './components/development-recipes/filters-panel';
 export { FilmDeveloperSelection } from './components/development-recipes/film-developer-selection';
 export { CollapsibleFilters } from './components/development-recipes/collapsible-filters';
@@ -55,6 +57,7 @@ export {
 
 // Utilities
 export { cn } from './lib/cn';
+export { colorMixOr, supportsColorMix } from './lib/color';
 
 // Temperature
 export {

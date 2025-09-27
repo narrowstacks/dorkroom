@@ -1,4 +1,5 @@
 import type { ChangeEvent } from 'react';
+import { useId, useState } from 'react';
 import { cn } from '../lib/cn';
 
 interface LabeledSliderInputProps {
@@ -28,6 +29,10 @@ export function LabeledSliderInput({
   warning = false,
   continuousUpdate = false,
 }: LabeledSliderInputProps) {
+  const [isFocused, setIsFocused] = useState(false);
+  const inputId = useId();
+  const rangeId = `${inputId}-range`;
+
   const handleSliderChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = parseFloat((e.target as HTMLInputElement).value);
     // For slider interactions, prefer the dedicated slider change handler
@@ -43,38 +48,59 @@ export function LabeledSliderInput({
   return (
     <div className={cn('space-y-3', className)}>
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-white/90">{label}</label>
+        <label
+          htmlFor={inputId}
+          id={`${inputId}-label`}
+          className="text-sm font-medium"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
+          {label}
+        </label>
         <input
           type="number"
+          id={inputId}
           value={value}
           onChange={handleInputChange}
           min={min}
           max={max}
           step={step}
           className={cn(
-            'w-20 rounded border border-white/20 bg-white/5 px-2 py-1 text-sm text-white focus:border-white/40 focus:outline-none',
-            warning && 'border-yellow-500/50 bg-yellow-500/10'
+            'w-20 rounded px-2 py-1 text-sm border transition-colors',
+            'focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2',
+            warning 
+              ? 'border-yellow-500/50 bg-yellow-500/10 focus-visible:outline-yellow-500' 
+              : cn(
+                  'border-[var(--color-border-primary)] bg-[var(--color-surface)]',
+                  isFocused && 'border-[var(--color-border-secondary)]',
+                  'focus-visible:outline-[var(--color-border-secondary)]'
+                )
           )}
+          style={{
+            color: 'var(--color-text-primary)',
+          }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
         />
       </div>
 
       <div className="space-y-2">
         <input
           type="range"
+          id={rangeId}
           min={min}
           max={max}
           step={step}
           value={value}
           onChange={handleSliderChange}
+          aria-labelledby={`${inputId}-label`}
           className={cn(
-            'w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer',
-            'slider-thumb:appearance-none slider-thumb:h-4 slider-thumb:w-4 slider-thumb:rounded-full slider-thumb:bg-white slider-thumb:cursor-pointer',
+            'w-full h-2 rounded-lg appearance-none cursor-pointer slider-track',
             warning && 'bg-yellow-500/20'
           )}
         />
 
         {labels.length > 0 && (
-          <div className="flex justify-between text-xs text-white/50">
+          <div className="flex justify-between text-xs" style={{ color: 'var(--color-text-muted)' }}>
             {labels.map((label, index) => (
               <span key={index}>{label}</span>
             ))}

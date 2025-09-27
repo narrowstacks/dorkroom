@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { cn } from '../../lib/cn';
+import { colorMixOr } from '../../lib/color';
 
 type StatTone = 'default' | 'emerald' | 'sky';
 
@@ -13,28 +14,22 @@ interface CalculatorStatProps {
 
 // Legacy - replaced with getToneStyle function
 
-// Theme-aware tone styles
+// Theme-aware tone styles using predefined gradients
 const getToneStyle = (
   tone: Exclude<StatTone, 'default'>
 ): React.CSSProperties => {
   switch (tone) {
     case 'emerald':
       return {
-        borderColor:
-          'color-mix(in srgb, var(--color-semantic-success) 30%, transparent)',
-        background:
-          'linear-gradient(to bottom right, color-mix(in srgb, var(--color-semantic-success) 15%, transparent), color-mix(in srgb, var(--color-semantic-success) 10%, transparent), transparent)',
-        color:
-          'color-mix(in srgb, var(--color-semantic-success) 90%, var(--color-text-primary))',
+        borderColor: colorMixOr('var(--color-semantic-success)', 30, 'transparent', 'var(--color-border-secondary)'),
+        background: 'var(--gradient-card-primary)',
+        color: colorMixOr('var(--color-semantic-success)', 90, 'var(--color-text-primary)', 'var(--color-text-primary)'),
       };
     case 'sky':
       return {
-        borderColor:
-          'color-mix(in srgb, var(--color-semantic-info) 30%, transparent)',
-        background:
-          'linear-gradient(to bottom right, color-mix(in srgb, var(--color-semantic-info) 15%, transparent), color-mix(in srgb, var(--color-semantic-info) 10%, transparent), transparent)',
-        color:
-          'color-mix(in srgb, var(--color-semantic-info) 90%, var(--color-text-primary))',
+        borderColor: colorMixOr('var(--color-semantic-info)', 30, 'transparent', 'var(--color-border-secondary)'),
+        background: 'var(--gradient-card-info)',
+        color: colorMixOr('var(--color-semantic-info)', 90, 'var(--color-text-primary)', 'var(--color-text-primary)'),
       };
   }
 };
@@ -57,14 +52,14 @@ export function CalculatorStat({
           ? getToneStyle(tone)
           : {
               borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-border-muted)',
+              backgroundColor: 'rgb(var(--color-background-rgb) / 0.15)',
             }
       }
     >
       <span
         className="text-xs font-semibold uppercase tracking-[0.35em]"
         style={{
-          color: tone !== 'default' ? 'inherit' : 'var(--color-text-muted)',
+          color: tone !== 'default' ? 'inherit' : 'var(--color-text-primary)',
         }}
       >
         {label}

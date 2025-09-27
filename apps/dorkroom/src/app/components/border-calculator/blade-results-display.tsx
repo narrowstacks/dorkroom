@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
 import type { BorderCalculation } from '@dorkroom/logic';
-import { useTheme } from '../../contexts/theme-context';
+import { colorMixOr } from '@dorkroom/ui';
 
 interface BladeResultsDisplayProps {
   calculation: BorderCalculation | null;
@@ -13,7 +13,6 @@ export function BladeResultsDisplay({
   paperSize,
   aspectRatio,
 }: BladeResultsDisplayProps) {
-  const { resolvedTheme } = useTheme();
 
   if (!calculation) {
     return (
@@ -41,11 +40,8 @@ export function BladeResultsDisplay({
     <div
       className="rounded-xl border p-6"
       style={{
-        borderColor:
-          resolvedTheme === 'light'
-            ? 'var(--color-border-secondary)'
-            : 'rgba(255, 255, 255, 0.1)',
-        backgroundColor: 'transparent', // Let parent handle background
+        borderColor: 'var(--color-border-secondary)',
+        backgroundColor: 'var(--color-surface)',
       }}
     >
       <div className="text-center mb-6">
@@ -155,17 +151,14 @@ export function BladeResultsDisplay({
         <div
           className="rounded-lg border p-3"
           style={{
-            borderColor:
-              'color-mix(in srgb, var(--color-semantic-info) 50%, transparent)',
-            backgroundColor:
-              'color-mix(in srgb, var(--color-semantic-info) 10%, transparent)',
+            borderColor: colorMixOr('var(--color-semantic-info)', 50, 'transparent', 'var(--color-border-secondary)'),
+            backgroundColor: colorMixOr('var(--color-semantic-info)', 10, 'transparent', 'var(--color-border-muted)'),
           }}
         >
           <p
             className="text-center text-sm"
             style={{
-              color:
-                'color-mix(in srgb, var(--color-semantic-info) 80%, var(--color-text-primary))',
+              color: colorMixOr('var(--color-semantic-info)', 80, 'var(--color-text-primary)', 'var(--color-text-primary)'),
             }}
           >
             <strong>Non-Standard Paper Size</strong>

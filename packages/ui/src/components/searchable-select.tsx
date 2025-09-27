@@ -25,6 +25,7 @@ export function SearchableSelect({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
@@ -147,7 +148,10 @@ export function SearchableSelect({
   return (
     <div className={cn('relative space-y-2', className)}>
       {label && (
-        <label className="block text-sm font-medium text-white/90">
+        <label
+          className="block text-sm font-medium"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
           {label}
         </label>
       )}
@@ -158,11 +162,25 @@ export function SearchableSelect({
           type="text"
           value={isOpen ? searchTerm : displayValue}
           onChange={(e) => handleInputChange(e.target.value)}
-          onFocus={handleInputFocus}
-          onBlur={handleInputBlur}
+          onFocus={(e) => {
+            setFocused(true);
+            handleInputFocus();
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            handleInputBlur();
+          }}
           onKeyDown={handleKeyDown}
           placeholder={selectedValue ? displayValue : placeholder}
-          className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 pr-16 text-white placeholder:text-white/50 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/20"
+          className="w-full rounded-lg border px-3 py-2 pr-16 focus:outline-none focus:ring-2"
+          style={
+            {
+              borderColor: focused ? 'var(--color-border-primary)' : 'var(--color-border-secondary)',
+              backgroundColor: 'var(--color-surface-muted)',
+              color: 'var(--color-text-primary)',
+              '--tw-ring-color': 'var(--color-border-primary)',
+            } as React.CSSProperties
+          }
         />
 
         <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
@@ -170,26 +188,43 @@ export function SearchableSelect({
             <button
               type="button"
               onClick={handleClear}
-              className="flex h-4 w-4 items-center justify-center text-white/50 hover:text-white/80"
+              className="flex h-4 w-4 items-center justify-center transition"
+              style={{
+                color: 'var(--color-text-muted)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--color-text-secondary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--color-text-muted)';
+              }}
             >
               <X className="h-3 w-3" />
             </button>
           )}
           <ChevronDown
             className={cn(
-              'h-4 w-4 text-white/50 transition-transform',
+              'h-4 w-4 transition-transform',
               isOpen && 'rotate-180'
             )}
+            style={{ color: 'var(--color-text-muted)' }}
           />
         </div>
 
         {isOpen && (
           <ul
             ref={listRef}
-            className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg border border-white/20 bg-black/90 backdrop-blur-sm"
+            className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg border backdrop-blur-sm"
+            style={{
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'var(--color-surface)',
+            }}
           >
             {filteredItems.length === 0 ? (
-              <li className="px-3 py-2 text-sm text-white/50">
+              <li
+                className="px-3 py-2 text-sm"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
                 No results found
               </li>
             ) : (
@@ -197,12 +232,28 @@ export function SearchableSelect({
                 <li
                   key={item.value}
                   onClick={() => handleSelectItem(item)}
-                  className={cn(
-                    'cursor-pointer px-3 py-2 text-sm text-white transition-colors hover:bg-white/10',
-                    index === focusedIndex && 'bg-white/10',
-                    item.value === selectedValue &&
-                      'bg-white/20 text-white font-medium'
-                  )}
+                  className="cursor-pointer px-3 py-2 text-sm transition-colors"
+                  style={{
+                    color:
+                      item.value === selectedValue
+                        ? 'var(--color-text-primary)'
+                        : 'var(--color-text-secondary)',
+                    backgroundColor:
+                      index === focusedIndex || item.value === selectedValue
+                        ? 'var(--color-border-muted)'
+                        : 'transparent',
+                    fontWeight: item.value === selectedValue ? '500' : 'normal',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      'var(--color-border-muted)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      item.value === selectedValue
+                        ? 'var(--color-border-muted)'
+                        : 'transparent';
+                  }}
                 >
                   {item.label}
                 </li>

@@ -11,7 +11,6 @@ import {
 import {
   useReciprocityCalculator,
   formatReciprocityTime,
-  type ReciprocityCalculation,
   type SelectItem,
 } from '@dorkroom/logic';
 
@@ -56,84 +55,6 @@ const RECIPROCITY_INSIGHTS = [
   },
 ];
 
-interface TimeComparisonProps {
-  calculation: ReciprocityCalculation;
-}
-
-function TimeComparison({ calculation }: TimeComparisonProps) {
-  const maxWidth = Math.max(
-    calculation.timeBarWidth,
-    calculation.adjustedTimeBarWidth,
-    1
-  );
-
-  const originalWidth = Math.max(
-    (calculation.timeBarWidth / maxWidth) * 100,
-    4
-  );
-  const adjustedWidth = Math.max(
-    (calculation.adjustedTimeBarWidth / maxWidth) * 100,
-    4
-  );
-
-  return (
-    <div className="space-y-3">
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[color:var(--color-text-tertiary)]">
-          Exposure comparison
-        </p>
-        <p className="text-sm text-[color:var(--color-text-secondary)]">
-          Visualise the relative jump between your metered and corrected
-          exposure times.
-        </p>
-      </div>
-      <div className="space-y-3">
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-xs text-[color:var(--color-text-tertiary)]">
-            <span>Metered</span>
-            <span>{formatReciprocityTime(calculation.originalTime)}</span>
-          </div>
-          <div
-            className="h-2 rounded-full"
-            style={{
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.1)',
-            }}
-          >
-            <div
-              className="h-full rounded-full"
-              style={{
-                backgroundColor:
-                  'color-mix(in oklab, var(--color-text-primary) 60%, transparent)',
-                width: `${originalWidth}%`,
-              }}
-            />
-          </div>
-        </div>
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-xs text-[color:var(--color-text-tertiary)]">
-            <span>Adjusted</span>
-            <span>{formatReciprocityTime(calculation.adjustedTime)}</span>
-          </div>
-          <div
-            className="h-2 rounded-full"
-            style={{
-              backgroundColor:
-                'color-mix(in oklab, var(--color-primary) 20%, transparent)',
-            }}
-          >
-            <div
-              className="h-full rounded-full"
-              style={{
-                backgroundColor: 'var(--color-primary)',
-                width: `${adjustedWidth}%`,
-              }}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function ReciprocityCalculatorPage() {
   const {
@@ -269,16 +190,14 @@ export default function ReciprocityCalculatorPage() {
                   borderWidth: 1,
                   borderColor: 'var(--color-border-secondary)',
                   backgroundColor: 'rgba(var(--color-background-rgb), 0.18)',
-                  color:
-                    'color-mix(in oklab, var(--color-text-primary) 80%, transparent)',
+                  color: 'var(--color-text-primary)',
                 }}
               >
                 {`${formatReciprocityTime(calculation.originalTime)} `}
                 <span
                   className="align-super text-xs font-semibold"
                   style={{
-                    color:
-                      'color-mix(in oklab, var(--color-primary) 80%, white)',
+                    color: 'var(--color-primary)',
                   }}
                 >
                   {calculation.factor.toFixed(2)}
@@ -353,8 +272,7 @@ export default function ReciprocityCalculatorPage() {
                   <p
                     className="mt-2 text-sm"
                     style={{
-                      color:
-                        'color-mix(in oklab, var(--color-text-primary) 75%, transparent)',
+                      color: 'var(--color-text-secondary)',
                     }}
                   >
                     {item.description}

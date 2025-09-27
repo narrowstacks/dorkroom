@@ -218,6 +218,7 @@ function BladeReadingIndicator({ reading }: BladeReadingIndicatorProps) {
   const containerStyle = {
     backgroundColor: 'var(--color-visualization-overlay)',
     color: 'var(--color-text-primary)',
+    border: '1px solid var(--color-border-secondary)',
   };
   const flexClasses = flexDirection === 'column' ? 'flex-col' : 'flex-row';
 

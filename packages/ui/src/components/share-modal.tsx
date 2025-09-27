@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { cn } from '../lib/cn';
+import { colorMixOr } from '../lib/color';
 
 export interface ShareModalProps {
   isOpen: boolean;
@@ -76,8 +77,12 @@ export function ShareModal({
         <div
           className="fixed inset-0 backdrop-blur-sm transition-opacity"
           style={{
-            backgroundColor:
-              'color-mix(in srgb, var(--color-background) 60%, transparent)',
+            backgroundColor: colorMixOr(
+              'var(--color-background)',
+              60,
+              'transparent',
+              'var(--color-surface-muted)'
+            ),
           }}
           onClick={onClose}
         />

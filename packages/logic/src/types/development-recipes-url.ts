@@ -14,6 +14,7 @@ export interface InitialUrlState {
   isoFilter?: string;
   recipeId?: string;
   fromUrl?: boolean;
+  isSharedApiRecipe?: boolean;
 }
 
 export interface UrlValidationConfig {

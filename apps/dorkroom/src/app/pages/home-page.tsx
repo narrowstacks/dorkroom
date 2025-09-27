@@ -105,8 +105,7 @@ export function HomePage() {
         className="relative overflow-hidden rounded-4xl border px-6 py-12 shadow-glow sm:px-12"
         style={{
           borderColor: 'var(--color-border-secondary)',
-          backgroundColor:
-            'color-mix(in oklab, var(--color-surface) 100%, transparent)',
+          backgroundColor: 'var(--color-surface)',
         }}
       >
         <div className="pointer-events-none absolute inset-0 bg-hero-glow opacity-90" />
@@ -244,8 +243,7 @@ export function HomePage() {
                 <div
                   className="flex items-center justify-between text-xs font-medium uppercase tracking-[0.2em]"
                   style={{
-                    color:
-                      'color-mix(in oklab, var(--color-text-primary) 70%, transparent)',
+                    color: 'var(--color-text-secondary)',
                   }}
                 >
                   <span>{tool.category}</span>

@@ -1,4 +1,4 @@
-import { Moon, Sun, Monitor, Ruler, Globe } from 'lucide-react';
+import { Moon, Sun, Monitor, Ruler, Globe, Camera } from 'lucide-react';
 import { SettingsButton } from '@dorkroom/ui';
 import { useTheme } from '../contexts/theme-context';
 
@@ -46,6 +46,14 @@ export default function SettingsPage() {
               icon={Sun}
               showChevron={false}
               isSelected={theme === 'light'}
+            />
+            <SettingsButton
+              label="Darkroom"
+              value="Pure black with red accents - the authentic darkroom experience"
+              onPress={() => setTheme('darkroom')}
+              icon={Camera}
+              showChevron={false}
+              isSelected={theme === 'darkroom'}
             />
             <SettingsButton
               label="System"

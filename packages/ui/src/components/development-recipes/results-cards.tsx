@@ -1,18 +1,22 @@
-import { Beaker, ExternalLink, Share2, Edit2, Trash2 } from 'lucide-react';
+import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
 import type { DevelopmentCombinationView } from './results-table';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { cn } from '../../lib/cn';
+import { colorMixOr } from '../../lib/color';
 import { Tag } from '../ui/tag';
+import { ShareButton } from '../share-button';
 
 interface DevelopmentResultsCardsProps {
   rows: DevelopmentCombinationView[];
   onSelectCombination?: (view: DevelopmentCombinationView) => void;
-  onShareCombination?: (view: DevelopmentCombinationView) => void;
+  onShareCombination?: (view: DevelopmentCombinationView) => void | Promise<unknown>;
   onCopyCombination?: (view: DevelopmentCombinationView) => void;
   onEditCustomRecipe?: (view: DevelopmentCombinationView) => void;
   onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;
   isMobile?: boolean;
+  isFavorite?: (view: DevelopmentCombinationView) => boolean;
+  onToggleFavorite?: (view: DevelopmentCombinationView) => void;
 }
 
 const formatTime = (minutes: number) => {
@@ -55,6 +59,8 @@ export function DevelopmentResultsCards({
   onEditCustomRecipe,
   onDeleteCustomRecipe,
   isMobile = false,
+  isFavorite,
+  onToggleFavorite,
 }: DevelopmentResultsCardsProps) {
   const { unit } = useTemperature();
   return (
@@ -87,32 +93,32 @@ export function DevelopmentResultsCards({
             style={{
               borderColor:
                 row.source === 'custom'
-                  ? 'color-mix(in srgb, var(--color-accent) 30%, transparent)'
+                  ? colorMixOr('var(--color-accent)', 30, 'transparent', 'var(--color-border-secondary)')
                   : 'var(--color-border-secondary)',
               backgroundColor:
                 row.source === 'custom'
-                  ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
-                  : 'var(--color-border-muted)',
+                  ? colorMixOr('var(--color-accent)', 15, 'transparent', 'var(--color-border-muted)')
+                  : 'rgba(var(--color-background-rgb), 0.25)',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor =
                 row.source === 'custom'
-                  ? 'color-mix(in srgb, var(--color-accent) 40%, transparent)'
+                  ? colorMixOr('var(--color-accent)', 40, 'transparent', 'var(--color-border-primary)')
                   : 'var(--color-border-primary)';
               e.currentTarget.style.backgroundColor =
                 row.source === 'custom'
-                  ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
-                  : 'var(--color-border-secondary)';
+                  ? colorMixOr('var(--color-accent)', 20, 'transparent', 'var(--color-border-secondary)')
+                  : 'rgba(var(--color-background-rgb), 0.3)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor =
                 row.source === 'custom'
-                  ? 'color-mix(in srgb, var(--color-accent) 30%, transparent)'
+                  ? colorMixOr('var(--color-accent)', 30, 'transparent', 'var(--color-border-secondary)')
                   : 'var(--color-border-secondary)';
               e.currentTarget.style.backgroundColor =
                 row.source === 'custom'
-                  ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
-                  : 'var(--color-border-muted)';
+                  ? colorMixOr('var(--color-accent)', 15, 'transparent', 'var(--color-border-muted)')
+                  : 'rgba(var(--color-background-rgb), 0.25)';
             }}
           >
             <div className="flex justify-between items-start">
@@ -131,28 +137,77 @@ export function DevelopmentResultsCards({
                     ? `${developer.manufacturer} ${developer.name}`
                     : 'Unknown developer'}
                 </div>
-                {row.source === 'custom' && (
-                  <span
-                    className="mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
-                    style={{
-                      backgroundColor:
-                        'color-mix(in srgb, var(--color-accent) 10%, transparent)',
-                      color:
-                        'color-mix(in srgb, var(--color-accent) 80%, var(--color-text-primary))',
-                    }}
-                  >
-                    <Beaker className="h-3 w-3" /> Custom recipe
-                  </span>
+                {(row.source === 'custom' ||
+                  (combination.tags && combination.tags.length > 0)) && (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {row.source === 'custom' && (
+                      <span
+                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                        style={{
+                          backgroundColor: colorMixOr(
+                            'var(--color-accent)',
+                            10,
+                            'transparent',
+                            'var(--color-border-muted)'
+                          ),
+                          color: colorMixOr(
+                            'var(--color-accent)',
+                            80,
+                            'var(--color-text-primary)',
+                            'var(--color-text-primary)'
+                          ),
+                        }}
+                      >
+                        <Beaker className="h-3 w-3" aria-hidden="true" /> Custom Recipe
+                      </span>
+                    )}
+                    {combination.tags && combination.tags.length > 0 && (
+                      <>
+                        {combination.tags.map((tag) => (
+                          <Tag key={tag}>{tag}</Tag>
+                        ))}
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
+              <button
+                type="button"
+                title={isFavorite?.(row) ? 'Remove from favorites' : 'Add to favorites'}
+                aria-pressed={Boolean(isFavorite?.(row))}
+                aria-label={
+                  isFavorite?.(row) ? 'Remove from favorites' : 'Add to favorites'
+                }
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite?.(row);
+                }}
+                className="ml-2 inline-flex items-center justify-center rounded-md p-1.5 transition"
+                style={{
+                  backgroundColor: 'var(--color-surface-muted)',
+                  color: isFavorite?.(row)
+                    ? 'var(--color-semantic-warning)'
+                    : 'var(--color-text-tertiary)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-border-secondary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-surface-muted)';
+                }}
+              >
+                <Star
+                  className="h-4 w-4"
+                  aria-hidden="true"
+                  style={{
+                    fill: isFavorite?.(row)
+                      ? 'var(--color-semantic-warning)'
+                      : 'transparent',
+                  }}
+                />
+              </button>
             </div>
-            {combination.tags && combination.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 justify-start pt-2">
-                {combination.tags.map((tag) => (
-                  <Tag key={tag}>{tag}</Tag>
-                ))}
-              </div>
-            )}
+
             <div
               className="mt-3 grid grid-cols-2 gap-1 text-xs"
               style={{ color: 'var(--color-text-secondary)' }}
@@ -241,39 +296,19 @@ export function DevelopmentResultsCards({
                             'var(--color-text-tertiary)';
                         }}
                       >
-                        <ExternalLink className="h-3 w-3" /> Source
+                        <ExternalLink className="h-3 w-3" aria-hidden="true" /> Source
                       </a>
                     )}
                     {row.source !== 'custom' &&
                       (onShareCombination || onCopyCombination) && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onShareCombination?.(row);
-                          }}
-                          className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition"
-                          style={{
-                            backgroundColor: 'var(--color-border-muted)',
-                            color: 'var(--color-text-secondary)',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'var(--color-border-secondary)';
-                            e.currentTarget.style.color =
-                              'var(--color-text-primary)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'var(--color-border-muted)';
-                            e.currentTarget.style.color =
-                              'var(--color-text-secondary)';
-                          }}
-                          title="Share recipe"
-                        >
-                          <Share2 className="h-3 w-3" />
-                          Share
-                        </button>
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <ShareButton
+                            onClick={() => onShareCombination?.(row)}
+                            variant="outline"
+                            size="sm"
+                            className="text-xs"
+                          />
+                        </div>
                       )}
                   </div>
                 )}
@@ -288,7 +323,8 @@ export function DevelopmentResultsCards({
                     e.stopPropagation();
                     onEditCustomRecipe?.(row);
                   }}
-                  className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition"
+                  aria-label="Edit custom recipe"
+                  className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
                   style={{
                     backgroundColor: 'var(--color-border-muted)',
                     color: 'var(--color-text-secondary)',
@@ -314,24 +350,49 @@ export function DevelopmentResultsCards({
                     e.stopPropagation();
                     onDeleteCustomRecipe?.(row);
                   }}
-                  className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition"
+                  aria-label="Delete custom recipe"
+                  className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
                   style={{
-                    backgroundColor:
-                      'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)',
-                    color:
-                      'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))',
+                    backgroundColor: colorMixOr(
+                      'var(--color-semantic-error)',
+                      10,
+                      'transparent',
+                      'var(--color-border-muted)'
+                    ),
+                    color: colorMixOr(
+                      'var(--color-semantic-error)',
+                      80,
+                      'var(--color-text-primary)',
+                      'var(--color-semantic-error)'
+                    ),
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      'color-mix(in srgb, var(--color-semantic-error) 20%, transparent)';
-                    e.currentTarget.style.color =
-                      'color-mix(in srgb, var(--color-semantic-error) 90%, var(--color-text-primary))';
+                    e.currentTarget.style.backgroundColor = colorMixOr(
+                      'var(--color-semantic-error)',
+                      20,
+                      'transparent',
+                      'var(--color-border-secondary)'
+                    );
+                    e.currentTarget.style.color = colorMixOr(
+                      'var(--color-semantic-error)',
+                      90,
+                      'var(--color-text-primary)',
+                      'var(--color-semantic-error)'
+                    );
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      'color-mix(in srgb, var(--color-semantic-error) 10%, transparent)';
-                    e.currentTarget.style.color =
-                      'color-mix(in srgb, var(--color-semantic-error) 80%, var(--color-text-primary))';
+                    e.currentTarget.style.backgroundColor = colorMixOr(
+                      'var(--color-semantic-error)',
+                      10,
+                      'transparent',
+                      'var(--color-border-muted)'
+                    );
+                    e.currentTarget.style.color = colorMixOr(
+                      'var(--color-semantic-error)',
+                      80,
+                      'var(--color-text-primary)',
+                      'var(--color-semantic-error)'
+                    );
                   }}
                   title="Delete custom recipe"
                 >
@@ -349,7 +410,7 @@ export function DevelopmentResultsCards({
           className="rounded-2xl border p-4 text-center text-sm"
           style={{
             borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'var(--color-border-muted)',
+            backgroundColor: 'rgba(var(--color-background-rgb), 0.15)',
             color: 'var(--color-text-tertiary)',
           }}
         >
