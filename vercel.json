@@ -2,7 +2,7 @@
   "buildCommand": "bunx nx build dorkroom",
   "outputDirectory": "apps/dorkroom/dist",
   "devCommand": "bunx nx serve dorkroom",
-  "installCommand": "bun install",
+  "installCommand": "bun install -y hostname",
   "framework": null,
   "routes": [{ "handle": "filesystem" }, { "src": "/(.*)", "dest": "/" }]
 }
