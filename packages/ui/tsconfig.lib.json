@@ -15,6 +15,7 @@
   "exclude": [
     "out-tsc",
     "dist",
+    "src/__tests__/**",
     "**/*.spec.ts",
     "**/*.test.ts",
     "**/*.spec.tsx",
