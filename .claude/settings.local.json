@@ -19,7 +19,8 @@
       "Bash(bun x playwright:*)",
       "Bash(npx tsc:*)",
       "Bash(bunx nx:*)",
-      "Bash(bunx prettier:*)"
+      "Bash(bunx prettier:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
