@@ -117,7 +117,7 @@ export function DevelopmentResultsCards({
               e.currentTarget.style.backgroundColor =
                 row.source === 'custom'
                   ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
-                  : 'rgba(var(--color-background-rgb), 0.15)';
+                  : 'rgba(var(--color-background-rgb), 0.25)';
             }}
           >
             <div className="flex justify-between items-start">

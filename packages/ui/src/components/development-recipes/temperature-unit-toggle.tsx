@@ -1,25 +1,21 @@
+import { useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 
 export function TemperatureUnitToggle() {
   const { unit, toggleUnit } = useTemperature();
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <button
       type="button"
       onClick={toggleUnit}
-      className="rounded-full border px-3 py-1.5 text-sm font-medium transition flex items-center gap-1"
+      className="rounded-full border px-3 py-1.5 text-sm font-medium transition flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       style={{
         borderColor: 'var(--color-border-primary)',
-        color: 'var(--color-text-secondary)',
+        color: isHovered ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-        e.currentTarget.style.color = 'var(--color-text-primary)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-        e.currentTarget.style.color = 'var(--color-text-secondary)';
-      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       aria-label={`Switch to ${
         unit === 'fahrenheit' ? 'Celsius' : 'Fahrenheit'
       }`}

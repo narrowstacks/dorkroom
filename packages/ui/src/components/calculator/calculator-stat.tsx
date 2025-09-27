@@ -55,7 +55,7 @@ export function CalculatorStat({
           ? getToneStyle(tone)
           : {
               borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.15)',
+              backgroundColor: 'rgb(var(--color-background-rgb) / 0.15)',
             }
       }
     >

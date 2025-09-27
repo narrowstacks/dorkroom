@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '../lib/cn';
 import { shouldUseWebShare } from '@dorkroom/logic';
 
@@ -23,6 +23,17 @@ export function ShareButton({
 }: ShareButtonProps) {
   const [showToast, setShowToast] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const baseClasses = cn(
     'inline-flex items-center justify-center font-medium transition-all duration-200',
     'focus:outline-none focus:ring-2 focus:ring-offset-2',
@@ -102,8 +113,13 @@ export function ShareButton({
 
     // Show toast for copy feedback on desktop (when not using web share)
     if (!isWebShare) {
+      // Clear any existing timeout before creating a new one
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+      
       setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
+      toastTimeoutRef.current = setTimeout(() => setShowToast(false), 3000);
     }
   };
 
