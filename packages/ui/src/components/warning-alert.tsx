@@ -18,6 +18,7 @@ export function WarningAlert({
   return (
     <div
       className={cn('flex items-center gap-3 rounded-lg border p-3', className)}
+      role={action === 'error' ? 'alert' : 'status'}
       style={{
         borderColor:
           action === 'error'
@@ -33,7 +34,7 @@ export function WarningAlert({
             : colorMixOr('var(--color-semantic-warning)', 80, 'var(--color-text-primary)', 'var(--color-semantic-warning)'),
       }}
     >
-      <Icon className="h-4 w-4 flex-shrink-0" />
+      <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
       <span className="text-sm">{message}</span>
     </div>
   );
