@@ -8,6 +8,7 @@ import {
   CalculatorNumberField,
   ResultRow,
 } from '@dorkroom/ui';
+import { colorMixOr } from '@dorkroom/ui';
 import {
   useReciprocityCalculator,
   formatReciprocityTime,
@@ -102,8 +103,7 @@ function TimeComparison({ calculation }: TimeComparisonProps) {
             <div
               className="h-full rounded-full"
               style={{
-                backgroundColor:
-                  'color-mix(in oklab, var(--color-text-primary) 60%, transparent)',
+                backgroundColor: 'var(--color-text-secondary)',
                 width: `${originalWidth}%`,
               }}
             />
@@ -117,8 +117,7 @@ function TimeComparison({ calculation }: TimeComparisonProps) {
           <div
             className="h-2 rounded-full"
             style={{
-              backgroundColor:
-                'color-mix(in oklab, var(--color-primary) 20%, transparent)',
+              backgroundColor: colorMixOr('var(--color-primary)', 20, 'transparent', 'var(--color-border-muted)'),
             }}
           >
             <div
@@ -269,16 +268,14 @@ export default function ReciprocityCalculatorPage() {
                   borderWidth: 1,
                   borderColor: 'var(--color-border-secondary)',
                   backgroundColor: 'rgba(var(--color-background-rgb), 0.18)',
-                  color:
-                    'color-mix(in oklab, var(--color-text-primary) 80%, transparent)',
+                  color: 'var(--color-text-primary)',
                 }}
               >
                 {`${formatReciprocityTime(calculation.originalTime)} `}
                 <span
                   className="align-super text-xs font-semibold"
                   style={{
-                    color:
-                      'color-mix(in oklab, var(--color-primary) 80%, white)',
+                    color: 'var(--color-primary)',
                   }}
                 >
                   {calculation.factor.toFixed(2)}
@@ -353,8 +350,7 @@ export default function ReciprocityCalculatorPage() {
                   <p
                     className="mt-2 text-sm"
                     style={{
-                      color:
-                        'color-mix(in oklab, var(--color-text-primary) 75%, transparent)',
+                      color: 'var(--color-text-secondary)',
                     }}
                   >
                     {item.description}

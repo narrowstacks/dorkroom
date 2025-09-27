@@ -2,6 +2,7 @@ import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
 import type { Combination, Film, Developer } from '@dorkroom/api';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
+import { colorMixOr } from '../../lib/color';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { Tag } from '../ui/tag';
@@ -193,19 +194,19 @@ export function DevelopmentResultsTable({
                 style={{
                   backgroundColor:
                     row.source === 'custom'
-                      ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+                      ? colorMixOr('var(--color-accent)', 15, 'transparent', 'var(--color-border-muted)')
                       : 'rgba(var(--color-background-rgb), 0.25)',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor =
                     row.source === 'custom'
-                      ? 'color-mix(in srgb, var(--color-accent) 25%, transparent)'
+                      ? colorMixOr('var(--color-accent)', 25, 'transparent', 'var(--color-border-secondary)')
                       : 'rgba(var(--color-background-rgb), 0.35)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor =
                     row.source === 'custom'
-                      ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+                      ? colorMixOr('var(--color-accent)', 15, 'transparent', 'var(--color-border-muted)')
                       : 'rgba(var(--color-background-rgb), 0.25)';
                 }}
               >
@@ -247,10 +248,18 @@ export function DevelopmentResultsTable({
                     <div
                       className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
                       style={{
-                        backgroundColor:
-                          'color-mix(in srgb, var(--color-accent) 10%, transparent)',
-                        color:
-                          'color-mix(in srgb, var(--color-accent) 80%, var(--color-text-primary))',
+                        backgroundColor: colorMixOr(
+                          'var(--color-accent)',
+                          10,
+                          'transparent',
+                          'var(--color-border-muted)'
+                        ),
+                        color: colorMixOr(
+                          'var(--color-accent)',
+                          80,
+                          'var(--color-text-primary)',
+                          'var(--color-text-primary)'
+                        ),
                       }}
                     >
                       <Beaker className="h-3 w-3" /> Custom
