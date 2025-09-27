@@ -9,7 +9,7 @@ import { ShareButton } from '../share-button';
 interface DevelopmentResultsCardsProps {
   rows: DevelopmentCombinationView[];
   onSelectCombination?: (view: DevelopmentCombinationView) => void;
-  onShareCombination?: (view: DevelopmentCombinationView) => void;
+  onShareCombination?: (view: DevelopmentCombinationView) => void | Promise<unknown>;
   onCopyCombination?: (view: DevelopmentCombinationView) => void;
   onEditCustomRecipe?: (view: DevelopmentCombinationView) => void;
   onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;
