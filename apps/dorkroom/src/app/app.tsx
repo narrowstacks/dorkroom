@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import {
   Link,
   NavLink,
@@ -24,13 +24,15 @@ import {
 } from 'lucide-react';
 import { cn } from './lib/cn';
 import { NavigationDropdown, NavigationItem } from '@dorkroom/ui';
-import HomePage from './pages/home-page';
-import BorderCalculatorPage from './pages/border-calculator/border-calculator-page';
-import ResizeCalculatorPage from './pages/resize-calculator/resize-calculator-page';
-import ReciprocityCalculatorPage from './pages/reciprocity-calculator/reciprocity-calculator-page';
-import ExposureCalculatorPage from './pages/exposure-calculator/exposure-calculator-page';
-import DevelopmentRecipesPage from './pages/development-recipes/development-recipes-page';
-import SettingsPage from './pages/settings-page';
+
+// Lazy load page components for better code splitting
+const HomePage = lazy(() => import('./pages/home-page'));
+const BorderCalculatorPage = lazy(() => import('./pages/border-calculator/border-calculator-page'));
+const ResizeCalculatorPage = lazy(() => import('./pages/resize-calculator/resize-calculator-page'));
+const ReciprocityCalculatorPage = lazy(() => import('./pages/reciprocity-calculator/reciprocity-calculator-page'));
+const ExposureCalculatorPage = lazy(() => import('./pages/exposure-calculator/exposure-calculator-page'));
+const DevelopmentRecipesPage = lazy(() => import('./pages/development-recipes/development-recipes-page'));
+const SettingsPage = lazy(() => import('./pages/settings-page'));
 
 // Individual navigation items for dropdown groups
 const printingItems: NavigationItem[] = [
@@ -494,42 +496,50 @@ export function App() {
         )}
 
         <main>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/border" element={<BorderCalculatorPage />} />
-            <Route path="/resize" element={<ResizeCalculatorPage />} />
-            <Route path="/stops" element={<ExposureCalculatorPage />} />
-            <Route
-              path="/reciprocity"
-              element={<ReciprocityCalculatorPage />}
-            />
-            <Route path="/development" element={<DevelopmentRecipesPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            {allNavItems
-              .filter(
-                (item) =>
-                  ![
-                    '/',
-                    '/border',
-                    '/resize',
-                    '/stops',
-                    '/reciprocity',
-                    '/development',
-                  ].includes(item.to)
-              )
-              .map((item) => (
-                <Route
-                  key={item.to}
-                  path={item.to}
-                  element={
-                    <PlaceholderPage
-                      title={item.label}
-                      summary={item.summary}
-                    />
-                  }
-                />
-              ))}
-          </Routes>
+          <Suspense 
+            fallback={
+              <div className="flex items-center justify-center min-h-[50vh]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            }
+          >
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/border" element={<BorderCalculatorPage />} />
+              <Route path="/resize" element={<ResizeCalculatorPage />} />
+              <Route path="/stops" element={<ExposureCalculatorPage />} />
+              <Route
+                path="/reciprocity"
+                element={<ReciprocityCalculatorPage />}
+              />
+              <Route path="/development" element={<DevelopmentRecipesPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              {allNavItems
+                .filter(
+                  (item) =>
+                    ![
+                      '/',
+                      '/border',
+                      '/resize',
+                      '/stops',
+                      '/reciprocity',
+                      '/development',
+                    ].includes(item.to)
+                )
+                .map((item) => (
+                  <Route
+                    key={item.to}
+                    path={item.to}
+                    element={
+                      <PlaceholderPage
+                        title={item.label}
+                        summary={item.summary}
+                      />
+                    }
+                  />
+                ))}
+            </Routes>
+          </Suspense>
         </main>
       </div>
     </div>
