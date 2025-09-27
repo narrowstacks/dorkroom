@@ -35,7 +35,7 @@ Built for darkroom obsessives who want fast, reliable calculations without the c
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/dorkroom-nx.git
+git clone https://github.com/narrowstacks/dorkroom-nx.git
 cd dorkroom-nx
 
 # Install dependencies
@@ -98,7 +98,7 @@ packages/
 
 We welcome contributions from the analog photography community!
 
-- **GitHub**: [https://github.com/dorkroom](https://github.com/narrowstacks/dorkroom-nx)
+- **GitHub**: [https://github.com/narrowstacks/dorkroom-nx](https://github.com/narrowstacks/dorkroom-nx)
 - **Issues**: Report bugs or request features
 - **Pull Requests**: Submit improvements and new calculators
 
