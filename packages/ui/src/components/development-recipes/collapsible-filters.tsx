@@ -208,16 +208,21 @@ export function CollapsibleFilters({
               onValueChange={onTagFilterChange}
               items={tagOptions}
             />
-            <div className="flex items-end">
-              <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-                <input
-                  type="checkbox"
-                  checked={favoritesOnly}
-                  onChange={(e) => onFavoritesOnlyChange?.(e.target.checked)}
-                />
-                Favorites only
-              </label>
-            </div>
+            {onFavoritesOnlyChange && (
+              <div className="flex items-end">
+                <label
+                  className="flex items-center gap-2 text-xs"
+                  style={{ color: 'var(--color-text-tertiary)' }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={favoritesOnly}
+                    onChange={(e) => onFavoritesOnlyChange(e.target.checked)}
+                  />
+                  Favorites only
+                </label>
+              </div>
+            )}
           </div>
         </div>
       )}

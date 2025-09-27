@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { cn } from '../lib/cn';
 
 interface NumberInputProps {
@@ -17,6 +18,8 @@ export function NumberInput({
   step = 1,
   className,
 }: NumberInputProps) {
+  const [isFocused, setIsFocused] = useState(false);
+
   return (
     <input
       type="number"
@@ -30,18 +33,17 @@ export function NumberInput({
         className
       )}
       style={{
-        borderColor: 'var(--color-border-secondary)',
+        borderColor: isFocused 
+          ? 'var(--color-border-primary)' 
+          : 'var(--color-border-secondary)',
         backgroundColor: 'color-mix(in srgb, var(--color-surface) 20%, transparent)',
         color: 'var(--color-text-primary)',
+        boxShadow: isFocused 
+          ? '0 0 0 2px var(--color-border-muted)' 
+          : 'none',
       } as React.CSSProperties}
-      onFocus={(e) => {
-        e.target.style.borderColor = 'var(--color-border-primary)';
-        e.target.style.boxShadow = '0 0 0 2px var(--color-border-muted)';
-      }}
-      onBlur={(e) => {
-        e.target.style.borderColor = 'var(--color-border-secondary)';
-        e.target.style.boxShadow = 'none';
-      }}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
     />
   );
 }

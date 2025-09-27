@@ -94,6 +94,7 @@ export function SharedRecipeModal({
           className={cn(
             'rounded-full px-5 py-2 text-sm font-semibold transition'
           )}
+          aria-pressed={isFavorite?.(recipe) ?? false}
           style={{
             backgroundColor: 'var(--color-text-primary)',
             color: 'var(--color-background)',

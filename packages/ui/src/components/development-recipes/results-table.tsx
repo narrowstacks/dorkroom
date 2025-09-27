@@ -324,6 +324,12 @@ export function DevelopmentResultsTable({
                     <button
                       type="button"
                       title={isFavorite?.(row) ? 'Remove from favorites' : 'Add to favorites'}
+                      aria-pressed={Boolean(isFavorite?.(row))}
+                      aria-label={
+                        isFavorite?.(row)
+                          ? 'Remove from favorites'
+                          : 'Add to favorites'
+                      }
                       onClick={(e) => {
                         e.stopPropagation();
                         onToggleFavorite?.(row);
