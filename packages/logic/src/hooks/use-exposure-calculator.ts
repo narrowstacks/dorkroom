@@ -16,6 +16,35 @@ import { EXPOSURE_PRESETS } from '../types/exposure-calculator';
 const DEFAULT_ORIGINAL_TIME = '10';
 const DEFAULT_STOPS = '1';
 
+/**
+ * Exposure calculator hook for photography stop calculations.
+ * Calculates new exposure times based on stop adjustments,
+ * providing tools for exposure compensation and timing calculations.
+ *
+ * @returns Object containing calculator state, calculation results, and control functions
+ * @example
+ * ```typescript
+ * const {
+ *   originalTime,
+ *   setOriginalTime,
+ *   stops,
+ *   setStops,
+ *   calculation,
+ *   resetToDefaults,
+ *   presets
+ * } = useExposureCalculator();
+ *
+ * // Set original exposure time and stop adjustment
+ * setOriginalTime('10');
+ * setStops('2'); // +2 stops
+ *
+ * // Get calculated results
+ * if (calculation) {
+ *   console.log('New time:', calculation.newTime); // 40 seconds
+ *   console.log('Percentage increase:', calculation.percentageIncrease); // 300%
+ * }
+ * ```
+ */
 export const useExposureCalculator = () => {
   const [state, setState] = useState<ExposureCalculatorState>({
     originalTime: DEFAULT_ORIGINAL_TIME,

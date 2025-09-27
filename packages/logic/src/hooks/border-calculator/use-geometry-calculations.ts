@@ -31,6 +31,34 @@ import type {
   BladeData,
 } from '../../types/border-calculator';
 
+/**
+ * Hook for performing all geometry-related calculations including print size,
+ * borders, blade readings, preview scaling, and warning generation.
+ * This is the computational core of the border calculator.
+ *
+ * @param state - Current border calculator state
+ * @param orientedDimensions - Paper and aspect ratio dimensions with orientation applied
+ * @param minBorderData - Validated minimum border data
+ * @param paperEntry - Paper size information
+ * @param paperSizeWarning - Any warning about paper size compatibility
+ * @returns Object containing complete calculation results and preview scale
+ *
+ * @example
+ * ```typescript
+ * const { calculation, previewScale } = useGeometryCalculations(
+ *   state,
+ *   orientedDimensions,
+ *   minBorderData,
+ *   paperEntry,
+ *   paperSizeWarning
+ * );
+ *
+ * // Use calculation results
+ * console.log(`Print: ${calculation.printWidth}" x ${calculation.printHeight}"`);
+ * console.log(`Borders: L${calculation.leftBorder}" R${calculation.rightBorder}"`);
+ * console.log(`Blade readings: L${calculation.leftBladeReading}"`);
+ * ```
+ */
 export const useGeometryCalculations = (
   state: BorderCalculatorState,
   orientedDimensions: OrientedDimensions,

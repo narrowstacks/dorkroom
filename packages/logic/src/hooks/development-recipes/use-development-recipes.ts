@@ -53,6 +53,34 @@ export interface DevelopmentRecipesActions {
 
 const client = new DorkroomClient();
 
+/**
+ * Main hook for managing film development recipes data and state.
+ * Provides comprehensive functionality for loading, filtering, sorting, and
+ * managing film development combinations from the Dorkroom API.
+ *
+ * @param initialUrlState - Optional initial state from URL parameters
+ * @returns Complete development recipes state and action functions
+ *
+ * @example
+ * ```typescript
+ * const {
+ *   isLoading,
+ *   allFilms,
+ *   allDevelopers,
+ *   filteredCombinations,
+ *   setSelectedFilm,
+ *   setSelectedDeveloper,
+ *   setDilutionFilter,
+ *   clearFilters
+ * } = useDevelopmentRecipes();
+ *
+ * // Select a film to see its development options
+ * setSelectedFilm(films[0]);
+ *
+ * // Filter by dilution
+ * setDilutionFilter('1+1');
+ * ```
+ */
 export const useDevelopmentRecipes = (
   initialUrlState?: InitialUrlState
 ): DevelopmentRecipesState & DevelopmentRecipesActions => {

@@ -14,6 +14,39 @@ import type {
   BorderCalculatorAction,
 } from '../../types/border-calculator';
 
+/**
+ * Input handling hook for the border calculator that provides optimized setter functions
+ * for different types of inputs (text, sliders, dropdowns, toggles).
+ * Includes debouncing for text inputs and direct updates for sliders to ensure smooth UX.
+ *
+ * @param state - Current border calculator state
+ * @param dispatch - State update dispatch function
+ * @returns Object containing all input setter functions and utility actions
+ *
+ * @example
+ * ```typescript
+ * const { state, dispatch } = useBorderCalculatorState();
+ * const {
+ *   setMinBorder,
+ *   setMinBorderSlider,
+ *   setAspectRatio,
+ *   setEnableOffset,
+ *   resetToDefaults
+ * } = useInputHandlers(state, dispatch);
+ *
+ * // For text inputs (debounced)
+ * setMinBorder('0.75');
+ *
+ * // For sliders (immediate updates)
+ * setMinBorderSlider(0.75);
+ *
+ * // For dropdowns
+ * setAspectRatio('4:3');
+ *
+ * // For toggles
+ * setEnableOffset(true);
+ * ```
+ */
 export const useInputHandlers = (
   state: BorderCalculatorState,
   dispatch: (action: BorderCalculatorAction) => void

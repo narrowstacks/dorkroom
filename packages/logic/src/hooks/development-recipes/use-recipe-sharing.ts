@@ -40,6 +40,33 @@ const copyToClipboard = async (text: string): Promise<void> => {
   }
 };
 
+/**
+ * Hook for sharing development recipes via URLs, supporting both regular recipes
+ * and custom recipes. Provides platform-appropriate sharing methods (Web Share API
+ * on mobile, clipboard fallback on desktop).
+ *
+ * @returns Object containing recipe sharing functions for both regular and custom recipes
+ *
+ * @example
+ * ```typescript
+ * const {
+ *   shareRegularRecipe,
+ *   copyRegularRecipeToClipboard,
+ *   shareCustomRecipe,
+ *   getSharingMethodDescription
+ * } = useRecipeSharing();
+ *
+ * // Share a regular recipe
+ * const result = await shareRegularRecipe({
+ *   recipeId: 'recipe-123',
+ *   filmSlug: 'kodak-tmax-400',
+ *   developerSlug: 'kodak-d76'
+ * });
+ *
+ * // Get appropriate sharing method description
+ * const method = await getSharingMethodDescription(); // "Share recipe" or "Copy link"
+ * ```
+ */
 export function useRecipeSharing() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastSharedUrl, setLastSharedUrl] = useState<string | null>(null);

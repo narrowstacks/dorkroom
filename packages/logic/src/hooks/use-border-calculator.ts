@@ -4,6 +4,38 @@ import type {
   BorderSettings,
 } from '../types/border-calculator';
 
+/**
+ * Border calculator hook for darkroom printing calculations.
+ * Provides state management and calculations for determining optimal print borders,
+ * blade positions, and paper layout for darkroom enlarger setups.
+ *
+ * @returns Object containing all calculator state, calculations, and control functions
+ * @example
+ * ```typescript
+ * const {
+ *   aspectRatio,
+ *   setAspectRatio,
+ *   paperSize,
+ *   setPaperSize,
+ *   calculation,
+ *   resetToDefaults,
+ *   applyPreset
+ * } = useBorderCalculator();
+ *
+ * // Set up a 2:3 ratio on 8x10 paper
+ * setAspectRatio('2:3');
+ * setPaperSize('8x10');
+ *
+ * // Get calculated borders and blade positions
+ * if (calculation) {
+ *   console.log('Left border:', calculation.leftBorder);
+ *   console.log('Blade positions:', {
+ *     left: calculation.leftBladeReading,
+ *     right: calculation.rightBladeReading
+ *   });
+ * }
+ * ```
+ */
 export function useBorderCalculator() {
   const [aspectRatio, setAspectRatio] = useState('2:3');
   const [paperSize, setPaperSize] = useState('8x10');

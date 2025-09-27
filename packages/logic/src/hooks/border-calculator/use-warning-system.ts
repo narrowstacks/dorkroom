@@ -25,6 +25,26 @@ interface WarningUpdateData {
 
 const WARNING_DELAY = CALCULATION_CONSTANTS.DEBOUNCE_WARNING_DELAY;
 
+/**
+ * Hook for managing warning state with debounced updates to prevent UI flashing.
+ * Handles offset warnings, blade warnings, minimum border warnings, and paper size warnings.
+ * Uses timeouts to debounce warning updates for a smoother user experience.
+ *
+ * @param state - Current border calculator state
+ * @param dispatch - State update dispatch function
+ * @param warningData - Warning data computed from calculations
+ *
+ * @example
+ * ```typescript
+ * useWarningSystem(state, dispatch, {
+ *   offsetWarning: calculation.offsetWarning,
+ *   bladeWarning: calculation.bladeWarning,
+ *   minBorderWarning: calculation.minBorderWarning,
+ *   paperSizeWarning: calculation.paperSizeWarning,
+ *   lastValidMinBorder: calculation.lastValidMinBorder,
+ * });
+ * ```
+ */
 export const useWarningSystem = (
   state: BorderCalculatorState,
   dispatch: (action: BorderCalculatorAction) => void,

@@ -26,6 +26,32 @@ const MAX_EASEL_DIMENSION = Math.max(
   ...EASEL_SIZES.flatMap((e) => [e.width, e.height])
 );
 
+/**
+ * Hook for calculating paper size, aspect ratio, and orientation-related dimensions.
+ * Handles custom and standard paper sizes, aspect ratios, orientation flipping,
+ * and validation of minimum border constraints.
+ *
+ * @param state - Current border calculator state
+ * @returns Object containing paper entry, warnings, ratio entry, oriented dimensions, and border data
+ *
+ * @example
+ * ```typescript
+ * const {
+ *   paperEntry,
+ *   paperSizeWarning,
+ *   orientedDimensions,
+ *   minBorderData
+ * } = useDimensionCalculations(state);
+ *
+ * // Use paper dimensions
+ * console.log(`Paper: ${paperEntry.w}" x ${paperEntry.h}"`);
+ *
+ * // Check for warnings
+ * if (paperSizeWarning) {
+ *   console.warn(paperSizeWarning);
+ * }
+ * ```
+ */
 export const useDimensionCalculations = (state: BorderCalculatorState) => {
   // Optimized paper size calculations with better caching
   const paperEntry = useMemo((): PaperEntry => {

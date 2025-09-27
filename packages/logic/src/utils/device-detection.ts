@@ -3,8 +3,22 @@
  */
 
 /**
- * Detects if the current device is likely a mobile device
+ * Detects if the current device is likely a mobile device.
  * Uses a combination of user agent detection, touch capability, and screen size
+ * to provide reliable mobile detection across different devices and browsers.
+ *
+ * @returns True if the device appears to be mobile, false otherwise
+ *
+ * @example
+ * ```typescript
+ * if (isMobileDevice()) {
+ *   // Show mobile-optimized UI
+ *   showMobileInterface();
+ * } else {
+ *   // Show desktop interface
+ *   showDesktopInterface();
+ * }
+ * ```
  */
 export const isMobileDevice = (): boolean => {
   if (
@@ -35,7 +49,17 @@ export const isMobileDevice = (): boolean => {
 };
 
 /**
- * Detects if the device is specifically an iOS device
+ * Detects if the device is specifically an iOS device (iPhone, iPad, or iPod).
+ *
+ * @returns True if the device is running iOS, false otherwise
+ *
+ * @example
+ * ```typescript
+ * if (isIOS()) {
+ *   // Apply iOS-specific styling or behavior
+ *   document.body.classList.add('ios-device');
+ * }
+ * ```
  */
 export const isIOS = (): boolean => {
   if (
@@ -50,7 +74,17 @@ export const isIOS = (): boolean => {
 };
 
 /**
- * Detects if the device is specifically an Android device
+ * Detects if the device is specifically an Android device.
+ *
+ * @returns True if the device is running Android, false otherwise
+ *
+ * @example
+ * ```typescript
+ * if (isAndroid()) {
+ *   // Apply Android-specific behavior
+ *   setupAndroidSpecificFeatures();
+ * }
+ * ```
  */
 export const isAndroid = (): boolean => {
   if (
@@ -65,8 +99,22 @@ export const isAndroid = (): boolean => {
 };
 
 /**
- * Determines if the Web Share API is available and should be used
- * Returns true for mobile devices with Web Share API support
+ * Determines if the Web Share API is available and should be used.
+ * Returns true for mobile devices with Web Share API support, combining
+ * API availability with mobile device detection for optimal UX.
+ *
+ * @returns True if Web Share API should be used, false otherwise
+ *
+ * @example
+ * ```typescript
+ * if (shouldUseWebShare()) {
+ *   // Use native sharing
+ *   navigator.share({ title: 'Check this out!', url: shareUrl });
+ * } else {
+ *   // Show custom share menu
+ *   showCustomShareMenu();
+ * }
+ * ```
  */
 export const shouldUseWebShare = (): boolean => {
   if (

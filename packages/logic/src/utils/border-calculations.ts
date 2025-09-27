@@ -95,6 +95,21 @@ function computeFit(paperW: number, paperH: number, landscape: boolean) {
   } as const;
 }
 
+/**
+ * Finds the optimal easel size and centering offsets for a given paper size.
+ * Determines if the paper is a standard size or requires a custom easel.
+ *
+ * @param paperW - Paper width in inches
+ * @param paperH - Paper height in inches
+ * @param landscape - Whether the paper is oriented in landscape mode
+ * @returns Object containing easel size, effective slot dimensions, and standard size flag
+ * @example
+ * ```typescript
+ * const result = findCenteringOffsets(8, 10, false);
+ * console.log(result.easelSize); // { width: 8, height: 10 }
+ * console.log(result.isNonStandardPaperSize); // false
+ * ```
+ */
 export const findCenteringOffsets = (
   paperW: number,
   paperH: number,
@@ -119,6 +134,19 @@ export const findCenteringOffsets = (
    Blade thickness
  * ------------------------------------------------------------------ */
 
+/**
+ * Calculates the blade thickness based on paper dimensions.
+ * Scales blade thickness relative to paper area to maintain proportional appearance.
+ *
+ * @param paperW - Paper width in inches
+ * @param paperH - Paper height in inches
+ * @returns Calculated blade thickness, defaults to standard thickness for invalid dimensions
+ * @example
+ * ```typescript
+ * const thickness = calculateBladeThickness(8, 10);
+ * console.log(thickness); // Returns scaled blade thickness
+ * ```
+ */
 export const calculateBladeThickness = (paperW: number, paperH: number) => {
   if (paperW <= 0 || paperH <= 0) return BLADE_THICKNESS;
 
@@ -158,6 +186,22 @@ const computeBorders = (
   return [borderW, borderW, borderH, borderH] as const;
 };
 
+/**
+ * Calculates the optimal minimum border size to snap borders to convenient measurements.
+ * Uses an optimization algorithm to find border values that align with common fractions.
+ *
+ * @param paperW - Paper width in inches
+ * @param paperH - Paper height in inches
+ * @param ratioW - Aspect ratio width component
+ * @param ratioH - Aspect ratio height component
+ * @param start - Starting minimum border value for optimization
+ * @returns Optimized minimum border value that produces clean border measurements
+ * @example
+ * ```typescript
+ * const optimal = calculateOptimalMinBorder(8, 10, 2, 3, 0.5);
+ * console.log(optimal); // Returns border value that snaps to clean fractions
+ * ```
+ */
 export const calculateOptimalMinBorder = (
   paperW: number,
   paperH: number,
@@ -203,6 +247,22 @@ export const calculateOptimalMinBorder = (
    Geometry helpers consumed by hooks
  * ------------------------------------------------------------------ */
 
+/**
+ * Computes the maximum print size that fits within the paper boundaries
+ * while maintaining the specified aspect ratio and minimum border.
+ *
+ * @param paperW - Paper width in inches
+ * @param paperH - Paper height in inches
+ * @param ratioW - Desired aspect ratio width component
+ * @param ratioH - Desired aspect ratio height component
+ * @param minBorder - Minimum border width on all sides
+ * @returns Object containing calculated print width and height
+ * @example
+ * ```typescript
+ * const size = computePrintSize(8, 10, 2, 3, 0.5);
+ * console.log(size); // { printW: 7.0, printH: 4.67 }
+ * ```
+ */
 export const computePrintSize = (
   paperW: number,
   paperH: number,
@@ -233,6 +293,26 @@ export const computePrintSize = (
   return { printW, printH: printW / targetRatio };
 };
 
+/**
+ * Clamps horizontal and vertical offsets to ensure the print stays within paper bounds.
+ * Respects minimum border requirements unless explicitly ignored.
+ *
+ * @param paperW - Paper width in inches
+ * @param paperH - Paper height in inches
+ * @param printW - Print width in inches
+ * @param printH - Print height in inches
+ * @param minBorder - Minimum required border width
+ * @param horizontalOffset - Desired horizontal offset from center
+ * @param verticalOffset - Desired vertical offset from center
+ * @param ignoreMinBorder - Whether to ignore minimum border constraints
+ * @returns Object with clamped offsets, half dimensions, and warning messages
+ * @example
+ * ```typescript
+ * const result = clampOffsets(8, 10, 6, 8, 0.5, 1, 0.5, false);
+ * console.log(result.h, result.v); // Clamped horizontal and vertical offsets
+ * console.log(result.warning); // Warning message if offsets were adjusted
+ * ```
+ */
 export const clampOffsets = (
   paperW: number,
   paperH: number,
@@ -261,6 +341,21 @@ export const clampOffsets = (
   return { halfW, halfH, h: clampedH, v: clampedV, warning };
 };
 
+/**
+ * Calculates border widths from gap dimensions and offsets.
+ * Converts centered positioning data into individual border measurements.
+ *
+ * @param halfW - Half of the horizontal gap between print and paper edges
+ * @param halfH - Half of the vertical gap between print and paper edges
+ * @param offsetH - Horizontal offset from center position
+ * @param offsetV - Vertical offset from center position
+ * @returns Object containing left, right, top, and bottom border widths
+ * @example
+ * ```typescript
+ * const borders = bordersFromGaps(1.0, 1.5, 0.25, -0.1);
+ * console.log(borders); // { left: 1.25, right: 0.75, top: 1.4, bottom: 1.6 }
+ * ```
+ */
 export const bordersFromGaps = (
   halfW: number,
   halfH: number,
@@ -273,6 +368,21 @@ export const bordersFromGaps = (
   top: halfH + offsetV,
 });
 
+/**
+ * Calculates blade position readings for trimming setup.
+ * Converts print dimensions and shifts into blade positioning measurements.
+ *
+ * @param printW - Print width in inches
+ * @param printH - Print height in inches
+ * @param shiftX - Horizontal shift from center in inches
+ * @param shiftY - Vertical shift from center in inches
+ * @returns Object containing blade readings for left, right, top, and bottom positions
+ * @example
+ * ```typescript
+ * const readings = bladeReadings(6, 8, 0.1, -0.05);
+ * console.log(readings); // { left: 5.8, right: 6.2, top: 8.1, bottom: 7.9 }
+ * ```
+ */
 export const bladeReadings = (
   printW: number,
   printH: number,
@@ -285,6 +395,23 @@ export const bladeReadings = (
   bottom: printH + 2 * shiftY,
 });
 
+/**
+ * Validates that a print with given dimensions and offsets fits within the paper boundaries.
+ * Checks that all borders are non-negative after applying offsets.
+ *
+ * @param paperW - Paper width in inches
+ * @param paperH - Paper height in inches
+ * @param printW - Print width in inches
+ * @param printH - Print height in inches
+ * @param offsetH - Horizontal offset from center position
+ * @param offsetV - Vertical offset from center position
+ * @returns True if the print fits within paper bounds, false otherwise
+ * @example
+ * ```typescript
+ * const fits = validatePrintFits(8, 10, 6, 8, 0.5, 0);
+ * console.log(fits); // true if print fits, false if it extends beyond paper
+ * ```
+ */
 export const validatePrintFits = (
   paperW: number,
   paperH: number,

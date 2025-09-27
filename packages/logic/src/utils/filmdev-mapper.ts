@@ -129,7 +129,16 @@ export function findBestDeveloperMatch(
 }
 
 /**
- * Creates a custom film entry from filmdev.org data when no match is found
+ * Creates a custom film entry from filmdev.org data when no match is found.
+ * Attempts to parse brand and name from the input string.
+ *
+ * @param filmString - Film name string from filmdev.org
+ * @returns Custom film data object with parsed brand, name, and defaults
+ * @example
+ * ```typescript
+ * const film = createCustomFilmFromFilmdev('Kodak Tri-X 400');
+ * console.log(film); // { brand: 'Kodak', name: 'Tri-X 400', isoSpeed: 400, ... }
+ * ```
  */
 export function createCustomFilmFromFilmdev(
   filmString: string
@@ -163,7 +172,16 @@ export function createCustomFilmFromFilmdev(
 }
 
 /**
- * Creates a custom developer entry from filmdev.org data when no match is found
+ * Creates a custom developer entry from filmdev.org data when no match is found.
+ * Attempts to parse manufacturer and name from the input string.
+ *
+ * @param developerString - Developer name string from filmdev.org
+ * @returns Custom developer data object with parsed manufacturer, name, and defaults
+ * @example
+ * ```typescript
+ * const dev = createCustomDeveloperFromFilmdev('Kodak D-76');
+ * console.log(dev); // { manufacturer: 'Kodak', name: 'D-76', type: 'liquid', ... }
+ * ```
  */
 export function createCustomDeveloperFromFilmdev(
   developerString: string
@@ -197,14 +215,35 @@ export function createCustomDeveloperFromFilmdev(
 }
 
 /**
- * Converts temperature from Celsius to Fahrenheit
+ * Converts temperature from Celsius to Fahrenheit with rounding to one decimal place.
+ *
+ * @param celsius - Temperature in Celsius
+ * @returns Temperature in Fahrenheit, rounded to one decimal place
+ * @example
+ * ```typescript
+ * const fahrenheit = celsiusToFahrenheit(20);
+ * console.log(fahrenheit); // 68.0
+ * ```
  */
 export function celsiusToFahrenheit(celsius: number): number {
   return Math.round(((celsius * 9) / 5 + 32) * 10) / 10;
 }
 
 /**
- * Parses temperature from filmdev.org string format
+ * Parses temperature from filmdev.org string format, preferring Fahrenheit.
+ * Falls back to Celsius conversion if Fahrenheit is not available.
+ *
+ * @param celsiusString - Temperature string in Celsius from filmdev.org
+ * @param fahrenheitString - Temperature string in Fahrenheit from filmdev.org
+ * @returns Parsed temperature in Fahrenheit, defaults to 68°F if parsing fails
+ * @example
+ * ```typescript
+ * const temp = parseTemperature('20', '68');
+ * console.log(temp); // 68 (prefers Fahrenheit)
+ *
+ * const temp2 = parseTemperature('20', '');
+ * console.log(temp2); // 68.0 (converted from Celsius)
+ * ```
  */
 export function parseTemperature(
   celsiusString: string,
@@ -227,7 +266,26 @@ export function parseTemperature(
 }
 
 /**
- * Maps a filmdev.org recipe to your CustomRecipeFormData format
+ * Maps a filmdev.org recipe to CustomRecipeFormData format for form integration.
+ * Handles temperature conversion, time calculation, and custom film/developer creation.
+ *
+ * @param recipe - Raw recipe data from filmdev.org API
+ * @param matchedFilm - Matched film from local database, if any
+ * @param matchedDeveloper - Matched developer from local database, if any
+ * @param filmId - Optional film UUID for existing film selection
+ * @param developerId - Optional developer UUID for existing developer selection
+ * @returns Form data object ready for recipe creation
+ * @example
+ * ```typescript
+ * const formData = mapFilmdevRecipeToFormData(
+ *   filmdevRecipe,
+ *   matchedFilm,
+ *   null, // no developer match
+ *   'film-uuid'
+ * );
+ * console.log(formData.useExistingFilm); // true
+ * console.log(formData.useExistingDeveloper); // false
+ * ```
  */
 export function mapFilmdevRecipeToFormData(
   recipe: FilmdevRecipe,
@@ -301,7 +359,20 @@ export interface FilmdevMappingResult {
 }
 
 /**
- * Complete mapping function that handles film/developer matching
+ * Complete mapping function that handles film/developer matching and form data creation.
+ * Orchestrates the entire process of converting a filmdev.org recipe to local format.
+ *
+ * @param recipe - Raw recipe data from filmdev.org API
+ * @param availableFilms - Array of available films in local database
+ * @param availableDevelopers - Array of available developers in local database
+ * @returns Complete mapping result with form data, matches, and metadata
+ * @example
+ * ```typescript
+ * const result = mapFilmdevRecipe(filmdevRecipe, films, developers);
+ * console.log(result.formData); // Ready-to-use form data
+ * console.log(result.isFilmCustom); // true if no film match found
+ * console.log(result.matchedDeveloper); // Matched developer or null
+ * ```
  */
 export function mapFilmdevRecipe(
   recipe: FilmdevRecipe,

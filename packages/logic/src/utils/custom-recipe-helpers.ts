@@ -1,6 +1,27 @@
 import type { Film, Developer } from '@dorkroom/api';
 import type { CustomRecipe } from '../types/custom-recipes';
 
+/**
+ * Retrieves the film associated with a custom recipe, handling both custom films
+ * and references to existing films in the database.
+ *
+ * @param recipeId - The unique identifier of the custom recipe
+ * @param customRecipes - Array of all available custom recipes
+ * @param getFilmById - Function to retrieve film data by ID from the main database
+ * @returns Film object if found, undefined if recipe doesn't exist or has no film
+ *
+ * @example
+ * ```typescript
+ * const film = getCustomRecipeFilm(
+ *   'recipe-123',
+ *   customRecipes,
+ *   (id) => filmDatabase.find(f => f.id === id)
+ * );
+ * if (film) {
+ *   console.log(`Using film: ${film.brand} ${film.name}`);
+ * }
+ * ```
+ */
 export const getCustomRecipeFilm = (
   recipeId: string,
   customRecipes: CustomRecipe[],
@@ -34,6 +55,27 @@ export const getCustomRecipeFilm = (
   return getFilmById(recipe.filmId);
 };
 
+/**
+ * Retrieves the developer associated with a custom recipe, handling both custom developers
+ * and references to existing developers in the database.
+ *
+ * @param recipeId - The unique identifier of the custom recipe
+ * @param customRecipes - Array of all available custom recipes
+ * @param getDeveloperById - Function to retrieve developer data by ID from the main database
+ * @returns Developer object if found, undefined if recipe doesn't exist or has no developer
+ *
+ * @example
+ * ```typescript
+ * const developer = getCustomRecipeDeveloper(
+ *   'recipe-456',
+ *   customRecipes,
+ *   (id) => developerDatabase.find(d => d.id === id)
+ * );
+ * if (developer) {
+ *   console.log(`Using developer: ${developer.manufacturer} ${developer.name}`);
+ * }
+ * ```
+ */
 export const getCustomRecipeDeveloper = (
   recipeId: string,
   customRecipes: CustomRecipe[],
