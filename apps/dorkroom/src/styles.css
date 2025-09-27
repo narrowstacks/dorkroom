@@ -60,6 +60,8 @@
   --gradient-card-info: #000000;
   --gradient-card-warning: #000000;
   --gradient-card-error: #000000;
+  --gradient-card-ko-fi: #000000;
+  --gradient-card-ko-fi: #000000;
   --color-tag-official-ilford: #ff0000;
   --color-tag-official-kodak: #e00000;
   --color-tag-official-fuji: #c00000;
@@ -147,6 +149,11 @@
     rgba(169, 38, 86, 0.64),
     rgba(73, 19, 43, 0.47)
   );
+  --gradient-card-ko-fi: linear-gradient(
+    135deg,
+    rgba(121, 11, 11, 0.64),
+    rgba(44, 4, 4, 0.47)
+  );
   --color-tag-official-ilford: #6ef3a4;
   --color-tag-official-kodak: #e5ff7d;
   --color-tag-official-fuji: #7dd6ff;
@@ -229,6 +236,11 @@
     rgba(169, 38, 86, 0.18),
     rgba(127, 29, 65, 0.1)
   );
+  --gradient-card-ko-fi: linear-gradient(
+    135deg,
+    rgba(214, 19, 19, 0.3),
+    rgba(114, 93, 93, 0.2)
+  );
   --color-tag-official-ilford: #2d7a4a;
   --color-tag-official-kodak: #8b9c2e;
   --color-tag-official-fuji: #1e6091;
@@ -285,6 +297,7 @@
   --gradient-card-info: #ffffff;
   --gradient-card-warning: #ffffff;
   --gradient-card-error: #ffffff;
+  --gradient-card-ko-fi: #ffffff;
   --color-tag-official-ilford: #000000;
   --color-tag-official-kodak: #000000;
   --color-tag-official-fuji: #000000;

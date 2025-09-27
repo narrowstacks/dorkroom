@@ -41,6 +41,10 @@ cd dorkroom
 # Install dependencies
 bun install
 
+# Set up environment variables (for API testing)
+cp .env.example .env
+# Edit .env with your Supabase credentials
+
 # Start development server
 bunx nx dev dorkroom -- --host=0.0.0.0
 
