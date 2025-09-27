@@ -1,4 +1,5 @@
 import type { ChangeEvent } from 'react';
+import { useState } from 'react';
 import { cn } from '../lib/cn';
 
 interface LabeledSliderInputProps {
@@ -28,6 +29,8 @@ export function LabeledSliderInput({
   warning = false,
   continuousUpdate = false,
 }: LabeledSliderInputProps) {
+  const [isFocused, setIsFocused] = useState(false);
+
   const handleSliderChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = parseFloat((e.target as HTMLInputElement).value);
     // For slider interactions, prefer the dedicated slider change handler
@@ -52,27 +55,21 @@ export function LabeledSliderInput({
           max={max}
           step={step}
           className={cn(
-            'w-20 rounded px-2 py-1 text-sm focus:outline-none',
-            warning ? 'border-yellow-500/50 bg-yellow-500/10' : ''
+            'w-20 rounded px-2 py-1 text-sm border transition-colors',
+            'focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2',
+            warning 
+              ? 'border-yellow-500/50 bg-yellow-500/10 focus-visible:outline-yellow-500' 
+              : cn(
+                  'border-[var(--color-border-primary)] bg-[var(--color-surface)]',
+                  isFocused && 'border-[var(--color-border-secondary)]',
+                  'focus-visible:outline-[var(--color-border-secondary)]'
+                )
           )}
           style={{
-            borderColor: warning ? undefined : 'var(--color-border-primary)',
-            backgroundColor: warning ? undefined : 'var(--color-surface)',
             color: 'var(--color-text-primary)',
-            ...(warning ? {} : {
-              '--tw-ring-color': 'var(--color-border-secondary)',
-            }),
           }}
-          onFocus={(e) => {
-            if (!warning) {
-              e.target.style.borderColor = 'var(--color-border-secondary)';
-            }
-          }}
-          onBlur={(e) => {
-            if (!warning) {
-              e.target.style.borderColor = 'var(--color-border-primary)';
-            }
-          }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
         />
       </div>
 
