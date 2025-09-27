@@ -34,12 +34,12 @@ export function ToggleSwitch({
         <span
           className={cn(
             'inline-block h-4 w-4 transform rounded-full transition-transform',
-            value
-              ? 'translate-x-6 bg-white dark:bg-black'
-              : 'translate-x-1 bg-black/70 dark:bg-white'
+            value ? 'translate-x-6' : 'translate-x-1'
           )}
           style={{
-            backgroundColor: value ? undefined : 'var(--color-background)',
+            backgroundColor: value 
+              ? 'var(--color-background)' 
+              : 'var(--color-text-primary)',
             border: value
               ? 'var(--toggle-circle-border-active, none)'
               : 'var(--toggle-circle-border, none)',

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { cn } from '../lib/cn';
+import { shouldUseWebShare } from '@dorkroom/logic';
 
 export interface ShareButtonProps {
   onClick: () => void;
@@ -20,6 +21,8 @@ export function ShareButton({
   className,
   children,
 }: ShareButtonProps) {
+  const [showToast, setShowToast] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const baseClasses = cn(
     'inline-flex items-center justify-center font-medium transition-all duration-200',
     'focus:outline-none focus:ring-2 focus:ring-offset-2',
@@ -62,13 +65,22 @@ export function ShareButton({
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (disabled || isLoading) return;
+    const isDarkroomMode = document.documentElement.getAttribute('data-theme') === 'darkroom';
+    
     switch (variant) {
       case 'primary':
         e.currentTarget.style.backgroundColor =
           'color-mix(in srgb, var(--color-semantic-info) 85%, transparent)';
+        // In darkroom mode, change text color to black for better contrast against red background
+        if (isDarkroomMode) {
+          e.currentTarget.style.color = '#000000';
+        }
         break;
       case 'secondary':
         e.currentTarget.style.backgroundColor = 'var(--color-text-secondary)';
+        if (isDarkroomMode) {
+          e.currentTarget.style.color = '#000000';
+        }
         break;
       case 'outline':
         e.currentTarget.style.backgroundColor = 'var(--color-surface-muted)';
@@ -80,18 +92,33 @@ export function ShareButton({
     if (disabled || isLoading) return;
     const style = getVariantStyle();
     e.currentTarget.style.backgroundColor = style.backgroundColor || '';
+    e.currentTarget.style.color = style.color || '';
+  };
+
+  const handleClick = () => {
+    const isWebShare = shouldUseWebShare();
+
+    onClick();
+
+    // Show toast for copy feedback on desktop (when not using web share)
+    if (!isWebShare) {
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
   };
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled || isLoading}
-      className={baseClasses}
-      style={getVariantStyle()}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div className="relative">
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={handleClick}
+        disabled={disabled || isLoading}
+        className={baseClasses}
+        style={getVariantStyle()}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
       {isLoading && (
         <svg
           className="mr-2 h-4 w-4 animate-spin"
@@ -132,7 +159,41 @@ export function ShareButton({
         </svg>
       )}
 
-      {children || (isLoading ? 'Sharing...' : 'Share')}
-    </button>
+        {children || (isLoading ? 'Sharing...' : shouldUseWebShare() ? 'Share' : 'Copy link')}
+      </button>
+
+      {/* Local toast notification that appears below the button */}
+      {showToast && (
+        <div
+          className={cn(
+            'absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-[9999]',
+            'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium shadow-lg',
+            'border border-solid transition-all duration-500 ease-in-out pointer-events-none',
+            showToast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+          )}
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            borderColor: 'var(--color-semantic-success)',
+            color: 'var(--color-text-primary)',
+          }}
+        >
+          <svg
+            className="h-4 w-4"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+          <span>Copied to clipboard!</span>
+        </div>
+      )}
+    </div>
   );
 }

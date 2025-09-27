@@ -63,6 +63,8 @@ export interface CustomRecipeFormData {
   customDilution: string;
   isPublic: boolean;
   tags?: string[];
+  // UI-only helper flag for saving flow
+  isFavorite?: boolean;
 }
 
 export interface GitHubIssueData {

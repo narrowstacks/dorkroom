@@ -23,6 +23,7 @@ export * from './utils/custom-recipe-helpers';
 export * from './utils/exposure-calculations';
 export * from './utils/temperature-formatting';
 export * from './utils/filmdev-mapper';
+export * from './utils/device-detection';
 export { debugLog, debugWarn, debugError } from './utils/debug-logger';
 
 // Services exports
@@ -51,6 +52,7 @@ export { useCustomRecipes } from './hooks/development-recipes/use-custom-recipes
 export { useCustomRecipeSharing } from './hooks/development-recipes/use-custom-recipe-sharing';
 export { useRecipeSharing } from './hooks/development-recipes/use-recipe-sharing';
 export { useRecipeUrlState } from './hooks/development-recipes/use-recipe-url-state';
+export { useFavorites } from './hooks/development-recipes/use-favorites';
 export {
   useDevelopmentRecipes,
   type CustomRecipeFilter,

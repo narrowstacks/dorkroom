@@ -13,6 +13,9 @@ interface SharedRecipeModalProps {
   isProcessing?: boolean;
   recipeSource?: 'shared' | 'custom';
   variant?: 'modal' | 'drawer';
+  hideAddToCollection?: boolean;
+  isFavorite?: (view: DevelopmentCombinationView) => boolean;
+  onToggleFavorite?: (view: DevelopmentCombinationView) => void;
 }
 
 export function SharedRecipeModal({
@@ -23,6 +26,9 @@ export function SharedRecipeModal({
   isProcessing = false,
   recipeSource = 'shared',
   variant = 'modal',
+  hideAddToCollection = false,
+  isFavorite,
+  onToggleFavorite,
 }: SharedRecipeModalProps) {
   if (!recipe) {
     return null;
@@ -44,48 +50,93 @@ export function SharedRecipeModal({
         type="button"
         onClick={onClose}
         disabled={isProcessing}
-        className="rounded-full border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
-        style={{
-          borderColor: 'var(--color-border-primary)',
-          color: 'var(--color-text-secondary)',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
-          e.currentTarget.style.color = 'var(--color-text-primary)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-          e.currentTarget.style.color = 'var(--color-text-secondary)';
-        }}
-      >
-        Not now
-      </button>
-      <button
-        type="button"
-        onClick={onAddToCollection}
-        disabled={isProcessing}
         className={cn(
-          'rounded-full px-5 py-2 text-sm font-semibold transition',
-          isProcessing && 'cursor-wait opacity-70'
+          'rounded-full px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50',
+          hideAddToCollection
+            ? 'border-0 font-semibold'
+            : 'border'
         )}
-        style={{
-          backgroundColor: 'var(--color-text-primary)',
-          color: 'var(--color-background)',
-        }}
+        style={
+          hideAddToCollection
+            ? {
+                backgroundColor: 'var(--color-text-primary)',
+                color: 'var(--color-background)',
+              }
+            : {
+                borderColor: 'var(--color-border-primary)',
+                color: 'var(--color-text-secondary)',
+              }
+        }
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor =
-            'color-mix(in srgb, var(--color-text-primary) 90%, transparent)';
+          if (hideAddToCollection) {
+            e.currentTarget.style.backgroundColor =
+              'color-mix(in srgb, var(--color-text-primary) 90%, transparent)';
+          } else {
+            e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
+            e.currentTarget.style.color = 'var(--color-text-primary)';
+          }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
+          if (hideAddToCollection) {
+            e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
+          } else {
+            e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+            e.currentTarget.style.color = 'var(--color-text-secondary)';
+          }
         }}
       >
-        {isProcessing
-          ? 'Adding...'
-          : isCustomRecipe
-          ? 'Add to My Recipes'
-          : 'Save Recipe'}
+        {hideAddToCollection ? 'Close' : 'Not now'}
       </button>
+      {onToggleFavorite && recipe && (
+        <button
+          type="button"
+          onClick={() => onToggleFavorite?.(recipe)}
+          className={cn(
+            'rounded-full px-5 py-2 text-sm font-semibold transition'
+          )}
+          style={{
+            backgroundColor: 'var(--color-text-primary)',
+            color: 'var(--color-background)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor =
+              'color-mix(in srgb, var(--color-text-primary) 90%, transparent)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
+          }}
+        >
+          {isFavorite?.(recipe) ? 'Remove from favorites' : 'Add to favorites'}
+        </button>
+      )}
+      {!hideAddToCollection && (
+        <button
+          type="button"
+          onClick={onAddToCollection}
+          disabled={isProcessing}
+          className={cn(
+            'rounded-full px-5 py-2 text-sm font-semibold transition',
+            isProcessing && 'cursor-wait opacity-70'
+          )}
+          style={{
+            backgroundColor: 'var(--color-text-primary)',
+            color: 'var(--color-background)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor =
+              'color-mix(in srgb, var(--color-text-primary) 90%, transparent)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
+          }}
+        >
+          {isProcessing
+            ? 'Adding...'
+            : isCustomRecipe
+            ? 'Add to My Recipes'
+            : 'Save Recipe'}
+        </button>
+      )}
     </div>
   );
 
@@ -118,9 +169,11 @@ export function SharedRecipeModal({
         <DevelopmentRecipeDetail view={recipe} />
       </div>
 
-      <div className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
-        Would you like to add this recipe to your collection?
-      </div>
+      {!hideAddToCollection && (
+        <div className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+          Would you like to add this recipe to your collection?
+        </div>
+      )}
     </div>
   );
 

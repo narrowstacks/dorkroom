@@ -89,11 +89,14 @@ export function CustomRecipeForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 text-sm text-white/80">
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+    <form onSubmit={handleSubmit} className="space-y-6 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+      <div className="rounded-xl border p-4" style={{ 
+        borderColor: 'var(--color-border-secondary)', 
+        backgroundColor: 'var(--color-surface-muted)' 
+      }}>
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-white">Film</h3>
-          <label className="flex items-center gap-2 text-xs text-white/70">
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>Film</h3>
+          <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
             <input
               type="checkbox"
               checked={!formData.useExistingFilm}
@@ -169,10 +172,13 @@ export function CustomRecipeForm({
         )}
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <div className="rounded-xl border p-4" style={{ 
+        borderColor: 'var(--color-border-secondary)', 
+        backgroundColor: 'var(--color-surface-muted)' 
+      }}>
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-white">Developer</h3>
-          <label className="flex items-center gap-2 text-xs text-white/70">
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>Developer</h3>
+          <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
             <input
               type="checkbox"
               checked={!formData.useExistingDeveloper}
@@ -349,7 +355,7 @@ export function CustomRecipeForm({
         placeholder="Optional notes about this recipe"
       />
 
-      <label className="flex items-center gap-2 text-xs text-white/70">
+      <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
         <input
           type="checkbox"
           checked={formData.isPublic}
@@ -358,12 +364,33 @@ export function CustomRecipeForm({
         Suggest submitting to the public recipe database
       </label>
 
+      <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+        <input
+          type="checkbox"
+          checked={!!formData.isFavorite}
+          onChange={(event) => handleChange('isFavorite', event.target.checked)}
+        />
+        Add to favorites after saving
+      </label>
+
       <div className="flex flex-col gap-3 pt-2 md:flex-row md:justify-end">
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/70 transition hover:border-white/40 hover:text-white"
+            className="rounded-full border px-4 py-2 text-sm font-medium transition"
+            style={{
+              borderColor: 'var(--color-border-primary)',
+              color: 'var(--color-text-tertiary)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+              e.currentTarget.style.color = 'var(--color-text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+              e.currentTarget.style.color = 'var(--color-text-tertiary)';
+            }}
           >
             Cancel
           </button>
@@ -372,9 +399,23 @@ export function CustomRecipeForm({
           type="submit"
           disabled={isSubmitting}
           className={cn(
-            'rounded-full bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90',
+            'rounded-full px-5 py-2 text-sm font-semibold transition',
             isSubmitting && 'cursor-wait opacity-70'
           )}
+          style={{
+            backgroundColor: 'var(--color-text-primary)',
+            color: 'var(--color-background)'
+          }}
+          onMouseEnter={(e) => {
+            if (!isSubmitting) {
+              e.currentTarget.style.backgroundColor = 'var(--color-text-secondary)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isSubmitting) {
+              e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
+            }
+          }}
         >
           {isSubmitting ? 'Saving…' : 'Save recipe'}
         </button>

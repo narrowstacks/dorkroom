@@ -1,9 +1,10 @@
-import { Beaker, ExternalLink, Share2, Edit2, Trash2 } from 'lucide-react';
+import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
 import type { Combination, Film, Developer } from '@dorkroom/api';
 import { cn } from '../../lib/cn';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { Tag } from '../ui/tag';
+import { ShareButton } from '../share-button';
 
 export interface DevelopmentCombinationView {
   combination: Combination;
@@ -21,6 +22,8 @@ interface DevelopmentResultsTableProps {
   onCopyCombination?: (view: DevelopmentCombinationView) => void;
   onEditCustomRecipe?: (view: DevelopmentCombinationView) => void;
   onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;
+  isFavorite?: (view: DevelopmentCombinationView) => boolean;
+  onToggleFavorite?: (view: DevelopmentCombinationView) => void;
   sortBy?: string;
   sortDirection?: 'asc' | 'desc';
   onSort?: (
@@ -75,6 +78,8 @@ export function DevelopmentResultsTable({
   onCopyCombination,
   onEditCustomRecipe,
   onDeleteCustomRecipe,
+  isFavorite,
+  onToggleFavorite,
   sortBy = 'filmName',
   sortDirection = 'asc',
   onSort,
@@ -113,22 +118,23 @@ export function DevelopmentResultsTable({
 
   return (
     <div
-      className="overflow-hidden rounded-2xl border shadow-subtle"
+      className="overflow-visible rounded-2xl border shadow-subtle"
       style={{
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: 'rgba(var(--color-surface-muted-rgb), 0.2)',
       }}
     >
-      <table
-        className="min-w-full divide-y text-sm"
-        style={
-          {
-            '--tw-divide-opacity': '0.15',
-            divideColor: 'var(--color-border-secondary)',
-            color: 'var(--color-border-secondary)',
-          } as React.CSSProperties
-        }
-      >
+      <div className="overflow-hidden rounded-2xl">
+        <table
+          className="min-w-full divide-y text-sm"
+          style={
+            {
+              '--tw-divide-opacity': '0.15',
+              divideColor: 'var(--color-border-secondary)',
+              color: 'var(--color-border-secondary)',
+            } as React.CSSProperties
+          }
+        >
         <thead
           className="text-xs uppercase tracking-wide"
           style={{
@@ -187,19 +193,19 @@ export function DevelopmentResultsTable({
                   backgroundColor:
                     row.source === 'custom'
                       ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
-                      : undefined,
+                      : 'rgba(var(--color-background-rgb), 0.25)',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor =
                     row.source === 'custom'
-                      ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
-                      : 'rgba(var(--color-surface-muted-rgb), 0.25)';
+                      ? 'color-mix(in srgb, var(--color-accent) 25%, transparent)'
+                      : 'rgba(var(--color-background-rgb), 0.35)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor =
                     row.source === 'custom'
                       ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
-                      : 'transparent';
+                      : 'rgba(var(--color-background-rgb), 0.25)';
                 }}
               >
                 <td className="px-4 py-4 align-top">
@@ -315,6 +321,36 @@ export function DevelopmentResultsTable({
                 </td>
                 <td className="px-3 py-4 align-top">
                   <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      title={isFavorite?.(row) ? 'Remove from favorites' : 'Add to favorites'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleFavorite?.(row);
+                      }}
+                      className="inline-flex items-center justify-center rounded-md p-1.5 transition"
+                      style={{
+                        backgroundColor: 'var(--color-surface-muted)',
+                        color: isFavorite?.(row)
+                          ? 'var(--color-semantic-warning)'
+                          : 'var(--color-text-tertiary)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-border-secondary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-surface-muted)';
+                      }}
+                    >
+                      <Star
+                        className="h-4 w-4"
+                        style={{
+                          fill: isFavorite?.(row)
+                            ? 'var(--color-semantic-warning)'
+                            : 'transparent',
+                        }}
+                      />
+                    </button>
                     {row.source === 'custom' ? (
                       <>
                         <button
@@ -377,34 +413,14 @@ export function DevelopmentResultsTable({
                         </button>
                       </>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onShareCombination?.(row);
-                        }}
-                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition"
-                        style={{
-                          backgroundColor: 'var(--color-surface-muted)',
-                          color: 'var(--color-text-secondary)',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor =
-                            'var(--color-border-secondary)';
-                          e.currentTarget.style.color =
-                            'var(--color-text-primary)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor =
-                            'var(--color-surface-muted)';
-                          e.currentTarget.style.color =
-                            'var(--color-text-secondary)';
-                        }}
-                        title="Share recipe"
-                      >
-                        <Share2 className="h-3 w-3" />
-                        Share
-                      </button>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <ShareButton
+                          onClick={() => onShareCombination?.(row)}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs"
+                        />
+                      </div>
                     )}
                   </div>
                 </td>
@@ -424,7 +440,8 @@ export function DevelopmentResultsTable({
             </tr>
           )}
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
   );
 }
