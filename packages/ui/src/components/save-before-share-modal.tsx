@@ -257,8 +257,7 @@ export function SaveBeforeShareModal({
                   borderColor: 'var(--color-border-secondary)',
                   backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
                   color: 'var(--color-text-primary)',
-                  '--tw-ring-color': 'var(--color-border-primary)',
-                }}
+                } as React.CSSProperties & { '--tw-ring-color': string }}
               >
                 Cancel
               </button>
