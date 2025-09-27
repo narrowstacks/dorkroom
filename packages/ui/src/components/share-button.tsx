@@ -3,7 +3,7 @@ import { cn } from '../lib/cn';
 import { shouldUseWebShare } from '@dorkroom/logic';
 
 export interface ShareButtonProps {
-  onClick: () => void;
+  onClick: () => void | Promise<unknown>;
   isLoading?: boolean;
   disabled?: boolean;
   variant?: 'primary' | 'secondary' | 'outline';
@@ -23,7 +23,7 @@ export function ShareButton({
 }: ShareButtonProps) {
   const [showToast, setShowToast] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Cleanup timeout on component unmount
   useEffect(() => {
@@ -106,18 +106,30 @@ export function ShareButton({
     e.currentTarget.style.color = style.color || '';
   };
 
-  const handleClick = () => {
+  const handleClick = async () => {
     const isWebShare = shouldUseWebShare();
 
-    onClick();
+    let shouldShowToast = !isWebShare;
 
-    // Show toast for copy feedback on desktop (when not using web share)
-    if (!isWebShare) {
-      // Clear any existing timeout before creating a new one
+    try {
+      const result = onClick();
+      const resolved = result instanceof Promise ? await result : result;
+
+      // If the caller indicates a clipboard path or explicit toast, show it
+      if (!shouldShowToast && resolved && typeof resolved === 'object') {
+        const maybe: any = resolved;
+        if (maybe.showToast === true || maybe.method === 'clipboard') {
+          shouldShowToast = true;
+        }
+      }
+    } catch (e) {
+      // On errors from caller, do not show toast here; leave it to caller to handle
+    }
+
+    if (shouldShowToast) {
       if (toastTimeoutRef.current) {
         clearTimeout(toastTimeoutRef.current);
       }
-      
       setShowToast(true);
       toastTimeoutRef.current = setTimeout(() => setShowToast(false), 3000);
     }
