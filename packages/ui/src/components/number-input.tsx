@@ -26,9 +26,22 @@ export function NumberInput({
       title={inputTitle}
       step={step}
       className={cn(
-        'w-20 rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-white/50 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/20',
+        'w-20 rounded-lg border px-3 py-2 focus:outline-none focus:ring-2',
         className
       )}
+      style={{
+        borderColor: 'var(--color-border-secondary)',
+        backgroundColor: 'color-mix(in srgb, var(--color-surface) 20%, transparent)',
+        color: 'var(--color-text-primary)',
+      } as React.CSSProperties}
+      onFocus={(e) => {
+        e.target.style.borderColor = 'var(--color-border-primary)';
+        e.target.style.boxShadow = '0 0 0 2px var(--color-border-muted)';
+      }}
+      onBlur={(e) => {
+        e.target.style.borderColor = 'var(--color-border-secondary)';
+        e.target.style.boxShadow = 'none';
+      }}
     />
   );
 }

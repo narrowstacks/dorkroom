@@ -26,10 +26,20 @@ export function CalculatorNumberField({
 }: CalculatorNumberFieldProps) {
   return (
     <div className={cn('space-y-2', className)}>
-      <div className="flex items-center justify-between text-sm text-white/90">
+      <div 
+        className="flex items-center justify-between text-sm"
+        style={{ color: 'var(--color-text-primary)' }}
+      >
         <span className="font-medium">{label}</span>
         {unit && (
-          <span className="flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold uppercase text-white/70">
+          <span 
+            className="flex items-center justify-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase"
+            style={{
+              borderColor: 'var(--color-border-muted)',
+              backgroundColor: 'color-mix(in srgb, var(--color-surface) 20%, transparent)',
+              color: 'var(--color-text-tertiary)',
+            }}
+          >
             {unit}
           </span>
         )}
@@ -42,7 +52,14 @@ export function CalculatorNumberField({
         inputTitle={inputTitle ?? `Enter ${label}`}
         className="w-full"
       />
-      {helperText && <p className="text-xs text-white/60">{helperText}</p>}
+      {helperText && (
+        <p 
+          className="text-xs"
+          style={{ color: 'var(--color-text-tertiary)' }}
+        >
+          {helperText}
+        </p>
+      )}
     </div>
   );
 }

@@ -1,9 +1,10 @@
-import { Beaker, ExternalLink, Share2, Edit2, Trash2 } from 'lucide-react';
+import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
 import type { DevelopmentCombinationView } from './results-table';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { cn } from '../../lib/cn';
 import { Tag } from '../ui/tag';
+import { ShareButton } from '../share-button';
 
 interface DevelopmentResultsCardsProps {
   rows: DevelopmentCombinationView[];
@@ -13,6 +14,8 @@ interface DevelopmentResultsCardsProps {
   onEditCustomRecipe?: (view: DevelopmentCombinationView) => void;
   onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;
   isMobile?: boolean;
+  isFavorite?: (view: DevelopmentCombinationView) => boolean;
+  onToggleFavorite?: (view: DevelopmentCombinationView) => void;
 }
 
 const formatTime = (minutes: number) => {
@@ -55,6 +58,8 @@ export function DevelopmentResultsCards({
   onEditCustomRecipe,
   onDeleteCustomRecipe,
   isMobile = false,
+  isFavorite,
+  onToggleFavorite,
 }: DevelopmentResultsCardsProps) {
   const { unit } = useTemperature();
   return (
@@ -157,6 +162,36 @@ export function DevelopmentResultsCards({
                   </div>
                 )}
               </div>
+              <button
+                type="button"
+                title={isFavorite?.(row) ? 'Remove from favorites' : 'Add to favorites'}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite?.(row);
+                }}
+                className="ml-2 inline-flex items-center justify-center rounded-md p-1.5 transition"
+                style={{
+                  backgroundColor: 'var(--color-surface-muted)',
+                  color: isFavorite?.(row)
+                    ? 'var(--color-semantic-warning)'
+                    : 'var(--color-text-tertiary)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-border-secondary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-surface-muted)';
+                }}
+              >
+                <Star
+                  className="h-4 w-4"
+                  style={{
+                    fill: isFavorite?.(row)
+                      ? 'var(--color-semantic-warning)'
+                      : 'transparent',
+                  }}
+                />
+              </button>
             </div>
 
             <div
@@ -252,34 +287,14 @@ export function DevelopmentResultsCards({
                     )}
                     {row.source !== 'custom' &&
                       (onShareCombination || onCopyCombination) && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onShareCombination?.(row);
-                          }}
-                          className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition"
-                          style={{
-                            backgroundColor: 'var(--color-border-muted)',
-                            color: 'var(--color-text-secondary)',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'var(--color-border-secondary)';
-                            e.currentTarget.style.color =
-                              'var(--color-text-primary)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'var(--color-border-muted)';
-                            e.currentTarget.style.color =
-                              'var(--color-text-secondary)';
-                          }}
-                          title="Share recipe"
-                        >
-                          <Share2 className="h-3 w-3" />
-                          Share
-                        </button>
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <ShareButton
+                            onClick={() => onShareCombination?.(row)}
+                            variant="outline"
+                            size="sm"
+                            className="text-xs"
+                          />
+                        </div>
                       )}
                   </div>
                 )}

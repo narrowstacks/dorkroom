@@ -1,9 +1,12 @@
 import { useCallback, useState } from 'react';
 import { useCustomRecipeSharing } from './use-custom-recipe-sharing';
+import { shouldUseWebShare } from '../../utils/device-detection';
 
 interface RegularRecipeShareOptions {
   recipeId: string;
   recipeName?: string;
+  filmSlug?: string;
+  developerSlug?: string;
   baseUrl?: string;
   includeSource?: boolean;
 }
@@ -13,6 +16,7 @@ interface RecipeShareResult {
   method?: 'webShare' | 'clipboard';
   url?: string;
   error?: string;
+  showToast?: boolean;
 }
 
 const getBaseUrl = (): string => {
@@ -45,6 +49,8 @@ export function useRecipeSharing() {
   const generateRegularRecipeShareUrl = useCallback(
     ({
       recipeId,
+      filmSlug,
+      developerSlug,
       baseUrl,
       includeSource = true,
     }: RegularRecipeShareOptions): string | null => {
@@ -53,6 +59,15 @@ export function useRecipeSharing() {
 
         const base = baseUrl || getBaseUrl();
         const params = new URLSearchParams();
+
+        // Add film and developer slugs if provided
+        if (filmSlug) {
+          params.set('film', filmSlug);
+        }
+        if (developerSlug) {
+          params.set('developer', developerSlug);
+        }
+
         params.set('recipe', recipeId);
         if (includeSource) {
           params.set('source', 'share');
@@ -79,10 +94,8 @@ export function useRecipeSharing() {
           return { success: false, error: 'Failed to generate share URL' };
         }
 
-        if (
-          typeof navigator !== 'undefined' &&
-          typeof navigator.share === 'function'
-        ) {
+        // Use Web Share API only on mobile devices
+        if (shouldUseWebShare()) {
           try {
             await navigator.share({
               title: `Development Recipe${
@@ -101,7 +114,7 @@ export function useRecipeSharing() {
         }
 
         await copyToClipboard(shareUrl);
-        return { success: true, method: 'clipboard', url: shareUrl };
+        return { success: true, method: 'clipboard', url: shareUrl, showToast: true };
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : 'Failed to share recipe';
@@ -120,7 +133,7 @@ export function useRecipeSharing() {
         }
 
         await copyToClipboard(shareUrl);
-        return { success: true, method: 'clipboard', url: shareUrl };
+        return { success: true, method: 'clipboard', url: shareUrl, showToast: true };
       } catch (error) {
         const errorMessage =
           error instanceof Error
@@ -133,10 +146,7 @@ export function useRecipeSharing() {
   );
 
   const getSharingMethodDescription = useCallback(async (): Promise<string> => {
-    if (
-      typeof navigator !== 'undefined' &&
-      typeof navigator.share === 'function'
-    ) {
+    if (shouldUseWebShare()) {
       return 'Share recipe';
     }
 
@@ -144,9 +154,8 @@ export function useRecipeSharing() {
   }, []);
 
   const isSharingAvailable = useCallback(async (): Promise<boolean> => {
-    return (
-      typeof navigator !== 'undefined' && typeof navigator.share === 'function'
-    );
+    // Sharing is always available - either via Web Share API or clipboard
+    return true;
   }, []);
 
   return {
