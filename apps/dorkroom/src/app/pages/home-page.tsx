@@ -1,7 +1,7 @@
 import {
   Aperture,
   ArrowUpRight,
-  Beaker,
+  FlaskConical,
   Camera,
   Crop,
   Gauge,
@@ -79,7 +79,7 @@ const calculators = [
     title: 'Development Recipes',
     description: 'Film & chemistry pairings that just work',
     href: '/development',
-    icon: Beaker,
+    icon: FlaskConical,
     gradient: 'var(--gradient-card-error)',
   },
 ];
