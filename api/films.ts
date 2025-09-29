@@ -25,7 +25,14 @@ function createTimeoutSignal(timeoutMs: number): AbortSignal {
   return controller.signal;
 }
 
-// Helper function to validate query parameters
+/**
+ * Produce a URLSearchParams containing only allowed query keys while trimming values.
+ *
+ * Filters the incoming request query to the allowed keys ("query", "fuzzy", "limit", "colorType", "brand"), trims string values, and for array values uses the first non-empty string.
+ *
+ * @param query - The incoming request's query object to sanitize
+ * @returns A URLSearchParams with filtered, trimmed parameters; array parameters are represented by their first non-empty string value
+ */
 function validateAndSanitizeQuery(
   query: VercelRequest['query']
 ): URLSearchParams {
@@ -57,6 +64,14 @@ function validateAndSanitizeQuery(
   return params;
 }
 
+/**
+ * HTTP handler that proxies validated GET requests to the Supabase films function and returns its JSON response.
+ *
+ * Handles CORS preflight (OPTIONS), allows only GET, validates required environment configuration, sanitizes allowed query parameters,
+ * forwards the request to the configured Supabase function using the master API key with a timeout, and returns the upstream JSON payload.
+ * Responses include a generated `requestId` for tracing; upstream and internal errors are mapped to appropriate HTTP status codes and JSON error objects.
+ * Also sets Cache-Control headers for client caching and logs request/response lifecycle events and external API interactions.
+ */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const startTime = Date.now();
   const requestId = Math.random().toString(36).substring(7);

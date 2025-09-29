@@ -54,6 +54,17 @@ interface MobileBorderCalculatorProps {
   clearLoadedPreset?: () => void;
 }
 
+/**
+ * Render the mobile UI for configuring border/calculation settings, managing presets, and sharing results.
+ *
+ * Renders the calculator's hero results, animated preview, warnings, settings controls, presets management, and sharing flows
+ * inside a bottom drawer and modals. Applies a preset loaded from URL when provided and exposes handlers for saving,
+ * updating, deleting, and sharing presets.
+ *
+ * @param loadedPresetFromUrl - Optional preset object loaded from a URL (contains `name` and `settings`); when provided the preset is applied and set as the current preset.
+ * @param clearLoadedPreset - Optional callback invoked after a loaded preset from URL has been applied to clear the source.
+ * @returns The React element tree for the mobile border calculator UI.
+ */
 export function MobileBorderCalculator({
   loadedPresetFromUrl,
   clearLoadedPreset,

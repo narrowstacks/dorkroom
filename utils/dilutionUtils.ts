@@ -79,9 +79,10 @@ export function formatDilution(dilution: string): string {
 }
 
 /**
- * Validates if a dilution string is in a recognized format
+ * Check whether a dilution string matches a recognized format.
+ *
  * @param dilution - The dilution string to validate
- * @returns True if the dilution is valid, false otherwise
+ * @returns `true` if the string is "Stock", a ratio like `1:9` or `1+9`, or a percentage like `10%`, `false` otherwise
  */
 export function isValidDilution(dilution: string): boolean {
   if (!dilution) {
@@ -99,9 +100,13 @@ export function isValidDilution(dilution: string): boolean {
 }
 
 /**
- * Extracts the developer and water parts from a dilution string
+ * Parse a dilution string into numeric developer and water parts.
+ *
+ * Accepts formats with two integers separated by `:`, `+`, or whitespace (e.g., "1:9", "1+9", "1 9").
+ * Treats falsy values or "stock" (any case) as `{ developerParts: 1, waterParts: 0 }`.
+ *
  * @param dilution - The dilution string to parse
- * @returns Object with developerParts and waterParts, or null if invalid
+ * @returns An object with `developerParts` and `waterParts` when a two-part ratio is parsed; `null` for percentage formats or unrecognized input
  */
 export function getDilutionParts(
   dilution: string

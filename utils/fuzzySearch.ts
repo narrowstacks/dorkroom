@@ -64,10 +64,12 @@ export function fuzzySearchFilms(films: Film[], query: string): Film[] {
 }
 
 /**
- * Performs fuzzy search on an array of developers
- * @param developers - Array of developers to search through
- * @param query - Search query string
- * @returns Array of developers sorted by relevance score
+ * Finds developers that match the given query using fuzzy matching and orders results by relevance.
+ *
+ * If `query` is empty or contains only whitespace, the original `developers` array is returned.
+ *
+ * @param query - The search query string used for fuzzy matching
+ * @returns An array of matching `Developer` objects ordered by relevance (most relevant first)
  */
 export function fuzzySearchDevelopers(
   developers: Developer[],
@@ -94,9 +96,10 @@ export function createFilmSearchIndex(films: Film[]): Fuse<Film> {
 }
 
 /**
- * Creates a Fuse instance for developers that can be reused
- * @param developers - Array of developers to index
- * @returns Fuse instance configured for developer search
+ * Create a reusable Fuse search index for Developer objects.
+ *
+ * @param developers - Developer objects to index for fuzzy searching
+ * @returns A Fuse instance configured for searching `Developer` objects
  */
 export function createDeveloperSearchIndex(
   developers: Developer[]

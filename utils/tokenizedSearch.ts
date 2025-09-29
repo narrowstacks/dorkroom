@@ -42,7 +42,13 @@ export interface ScoredResult<T> {
 }
 
 /**
- * Extract meaningful tokens from a string
+ * Convert an input string into meaningful lowercase tokens for search.
+ *
+ * Splits on whitespace, hyphens, and common punctuation; removes empty tokens,
+ * very short tokens, and common stop words (e.g., "the", "and", "of").
+ *
+ * @param text - The input string to tokenize; if falsy, an empty array is returned
+ * @returns An array of lowercase tokens; returns an empty array if `text` is falsy or yields no tokens
  */
 export function extractTokens(text: string): string[] {
   if (!text) return [];
@@ -77,7 +83,16 @@ export function extractTokens(text: string): string[] {
 }
 
 /**
- * Calculate token match score for a search result
+ * Compute a normalized, field-weighted token similarity score between query tokens and a target text.
+ *
+ * The returned score accounts for exact matches, partial/token substring matches, start-position bonuses,
+ * and order-preservation bonuses as configured. Tokens that matched are listed in `matchedTokens`.
+ *
+ * @param queryTokens - Query tokens extracted from the user's input
+ * @param targetText - The text to match against
+ * @param fieldWeight - Multiplier applied to the normalized token score for the field (default: 1.0)
+ * @param config - Tokenized search configuration controlling weights and thresholds
+ * @returns An object with `score` (the normalized, field-weighted token score) and `matchedTokens` (query tokens that matched)
  */
 export function calculateTokenScore(
   queryTokens: string[],
@@ -169,7 +184,15 @@ export function calculateTokenScore(
 }
 
 /**
- * Calculate combined token score for a film
+ * Compute a combined token similarity score for a Film using weighted field contributions.
+ *
+ * The function evaluates `queryTokens` against the film's `name`, `brand`, and `description`,
+ * applies per-field weights, and aggregates matched query tokens across fields.
+ *
+ * @param queryTokens - Tokens extracted from the search query to match against film fields
+ * @param film - Film entity whose `name`, `brand`, and `description` are scored
+ * @param config - Optional tokenized search configuration (thresholds and weights) to override defaults
+ * @returns An object with `score` equal to the sum of weighted field scores and `matchedTokens` containing unique query tokens that matched any field
  */
 export function calculateFilmTokenScore(
   queryTokens: string[],
@@ -201,7 +224,13 @@ export function calculateFilmTokenScore(
 }
 
 /**
- * Calculate combined token score for a developer
+ * Compute a combined token-based relevance score for a developer by evaluating
+ * the developer's name, manufacturer, and notes with predetermined field weights.
+ *
+ * @param queryTokens - Tokens extracted from the search query
+ * @param developer - Developer entity whose fields will be scored
+ * @param config - Tokenized search configuration to control thresholds and bonuses; defaults to DEFAULT_TOKENIZED_CONFIG
+ * @returns The combined (un-capped) weighted token score and the list of unique query tokens that matched any evaluated field
  */
 export function calculateDeveloperTokenScore(
   queryTokens: string[],
@@ -244,8 +273,16 @@ export function calculateDeveloperTokenScore(
 }
 
 /**
- * Post-process fuzzy search results with tokenization scoring
- */
+ * Refines fuzzy film search outputs by scoring results against tokenized query terms and returning ranked matches.
+ *
+ * Extracts tokens from `query`, computes a token-based score for each film, applies stricter matching when the
+ * query consists of two very short tokens, filters out results that fail the configured minimum token score or
+ * token coverage, and returns results sorted by descending combined score.
+ *
+ * @param query - The raw search query string
+ * @param fuzzyResults - Candidate films from an initial fuzzy search pass
+ * @param config - Tokenized search configuration (thresholds and weights); defaults to DEFAULT_TOKENIZED_CONFIG
+ * @returns An array of scored film results including `tokenScore`, `combinedScore`, and `matchedTokens`, sorted by `combinedScore` descending.
 export function enhanceFilmResults(
   query: string,
   fuzzyResults: Film[],
@@ -310,8 +347,14 @@ export function enhanceFilmResults(
 }
 
 /**
- * Post-process fuzzy search results with tokenization scoring for developers
- */
+ * Enhances fuzzy developer search results by computing token-based relevance scores, filtering out low-scoring entries, and ranking the remainder.
+ *
+ * If the query yields no tokens, each developer is returned with `tokenScore` 0 and `combinedScore` 0.5.
+ *
+ * @param query - The raw search string provided by the user
+ * @param fuzzyResults - Candidate developers produced by a prior fuzzy search pass
+ * @param config - Tokenized search configuration (defaults to DEFAULT_TOKENIZED_CONFIG)
+ * @returns A list of `ScoredResult<Developer>` objects sorted in descending order by `combinedScore`; entries with `tokenScore` below `config.minTokenScore` or token coverage below `config.minTokenCoverage` are excluded.
 export function enhanceDeveloperResults(
   query: string,
   fuzzyResults: Developer[],

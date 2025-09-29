@@ -52,6 +52,20 @@ const isExactMatchOptimized = (paperW: number, paperH: number): boolean => {
   return exactMatchLookup.has(`${paperW}x${paperH}`);
 };
 
+/**
+ * Determine the best easel slot for a given paper size and orientation.
+ *
+ * Searches for an exact easel match first; if none exists, selects the smallest easel
+ * (by area) that can contain the paper in either orientation, minimizing wasted area.
+ *
+ * @param paperW - Paper width in the current unit system
+ * @param paperH - Paper height in the current unit system
+ * @param landscape - If true, treat the paper as rotated (swap width and height) before fitting
+ * @returns An object containing:
+ *  - `easelSize`: the physical dimensions of the chosen easel,
+ *  - `effectiveSlot`: the slot dimensions used to place the paper (may be rotated),
+ *  - `isNonStandardPaperSize`: `false` when an exact easel match was used, `true` otherwise
+ */
 function computeFit(paperW: number, paperH: number, landscape: boolean) {
   const paper = orient(paperW, paperH, landscape);
   const isNonStandard = !isExactMatchOptimized(paperW, paperH);

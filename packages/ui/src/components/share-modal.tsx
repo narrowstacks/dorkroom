@@ -14,6 +14,25 @@ export interface ShareModalProps {
   canCopyToClipboard?: boolean;
 }
 
+/**
+ * Renders a modal that lets the user copy or natively share a preset's web and app URLs.
+ *
+ * Displays an error state when no valid web URL is available. When open, the modal shows:
+ * - an optional native share action (if enabled and provided),
+ * - a web link (with protocol stripped for display) and copy control,
+ * - an optional native/app link and copy control.
+ *
+ * @param isOpen - Whether the modal is visible.
+ * @param onClose - Callback invoked to close the modal.
+ * @param presetName - Human-readable name shown in the modal title.
+ * @param webUrl - The web URL used for sharing and copying; must be non-empty to enable sharing UI.
+ * @param nativeUrl - Optional app/native URL shown and copyable when present.
+ * @param onCopyToClipboard - Handler invoked to copy a given URL to the clipboard.
+ * @param onNativeShare - Optional handler invoked to perform a system/native share action.
+ * @param canShareNatively - When true and `onNativeShare` is provided, shows the native share action.
+ * @param canCopyToClipboard - When true, shows copy-to-clipboard controls for available URLs.
+ * @returns The modal's React element when `isOpen` is true, or `null` when closed.
+ */
 export function ShareModal({
   isOpen,
   onClose,
