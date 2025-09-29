@@ -17,11 +17,23 @@ export interface UseUrlPresetLoaderOptions {
 }
 
 /**
- * Hook that loads and decodes border presets from URL hashes or provided strings.
- * Handles validation, optional auto-application, and exposes manual loading helpers.
+ * Manage loading and decoding of border presets from URL hashes or encoded strings.
  *
- * @param options - Configuration for preset loading behaviour and callbacks
- * @returns Loaded preset state along with helper actions for managing presets
+ * Loads a preset found in the URL (optionally automatically on mount and on hashchange), provides a manual loader for encoded preset strings, and exposes loading state, any load error, and helpers to apply or clear presets.
+ *
+ * @param options - Configuration for preset loading behavior.
+ *   - onPresetLoaded: called with the LoadedPreset after a successful load.
+ *   - onLoadError: called with an error message when loading fails.
+ *   - autoApply: when true (default), the hook attempts to load a preset from the URL on mount and on hash changes.
+ *   - clearUrlAfterLoad: when true (default), removes the preset from the URL after successfully loading it.
+ * @returns An object containing:
+ *   - loadedPreset: the currently loaded preset or `null`.
+ *   - isLoading: `true` while a load is in progress.
+ *   - loadError: an error message when a load fails, or `null`.
+ *   - checkAndLoadFromUrl: checks the current URL for an encoded preset and loads it.
+ *   - loadPreset: manually load a preset from an encoded string.
+ *   - clearLoadedPreset: clears the currently loaded preset and any load error.
+ *   - loadPresetFromEncoded: utility that validates and decodes an encoded preset string, returning `LoadedPreset` or `null`.
  */
 export function useUrlPresetLoader(options: UseUrlPresetLoaderOptions = {}) {
   const [loadedPreset, setLoadedPreset] = useState<LoadedPreset | null>(null);

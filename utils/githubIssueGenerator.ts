@@ -9,8 +9,13 @@ import type { Film, Developer } from '@/api/dorkroom/types';
 const REPO_URL = 'https://github.com/narrowstacks/dorkroom-static-api';
 
 /**
- * Creates GitHub issue data for a custom recipe
- */
+ * Builds a prefilled GitHub issue payload for submitting a custom development recipe combination.
+ *
+ * @param recipe - CustomRecipe containing fields such as `name`, `temperatureF`, `timeMinutes`, `shootingIso`, `pushPull`, `agitationSchedule`, `notes`, `dateCreated`, and `customDilution`.
+ * @param film - Film or CustomFilmData (or `undefined`) used to populate film brand and name; defaults to "Unknown" when absent.
+ * @param developer - Developer or CustomDeveloperData (or `undefined`) used to populate developer manufacturer and name; defaults to "Unknown" when absent.
+ * @param sources - Optional sources or references to include in the issue body
+ * @returns An object with `title`, a Markdown `body` string prefilled with form sections for the recipe, and `labels` for the issue.
 export function createRecipeIssue(
   recipe: CustomRecipe,
   film: Film | CustomFilmData | undefined,
@@ -103,7 +108,13 @@ export function createRecipeIssue(
 }
 
 /**
- * Creates GitHub issue data for a custom film
+ * Builds a GitHub issue payload to add a custom film.
+ *
+ * Populates a GitHub issue body with film metadata (brand, name, ISO, type, grain, description, etc.) and includes submission guidelines and sources.
+ *
+ * @param filmData - CustomFilmData used to populate the issue fields (brand, name, isoSpeed, colorType, grainStructure, description, etc.)
+ * @param sources - Optional citation or source text to include in the issue's Sources section
+ * @returns An object containing `title`, `body`, and `labels` suitable for pre-filling a GitHub new-issue form
  */
 export function createFilmIssue(
   filmData: CustomFilmData,
@@ -183,7 +194,14 @@ export function createFilmIssue(
 }
 
 /**
- * Creates GitHub issue data for a custom developer
+ * Build a GitHub issue payload to request adding a custom developer entry.
+ *
+ * Constructs an issue title and form-like body containing developer metadata,
+ * dilutions, notes, mixing and safety instructions, sources, and submission checklist.
+ *
+ * @param developerData - Custom developer data including name, manufacturer, type, intended use, working/stock life, notes, mixing instructions, safety notes, and dilutions
+ * @param sources - Optional source citations or URLs to include in the issue body
+ * @returns An object with `title`, `body`, and `labels` suitable for pre-filling a GitHub new-issue form
  */
 export function createDeveloperIssue(
   developerData: CustomDeveloperData,
@@ -277,7 +295,9 @@ export function createDeveloperIssue(
 }
 
 /**
- * Creates a GitHub issue URL with pre-filled data
+ * Generate a URL that opens a new GitHub issue prefilled with the provided title, body, and labels.
+ *
+ * @returns The full GitHub "new issue" URL that will prefill the issue's title, body, and labels
  */
 export function createIssueUrl(issueData: GitHubIssueData): string {
   const baseUrl = `${REPO_URL}/issues/new`;

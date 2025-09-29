@@ -11,6 +11,17 @@ export function isNonStandardTemperature(temperatureF: number): boolean {
   );
 }
 
+/**
+ * Formats a temperature value for display in the requested unit and indicates if it differs from the standard temperature.
+ *
+ * If only one of `temperatureF` or `temperatureC` is provided, the function computes the missing value using standard conversion formulas. The `isNonStandard` flag is determined from the Fahrenheit temperature when available.
+ *
+ * @param temperatureF - Temperature in degrees Fahrenheit, or `null` if not provided
+ * @param temperatureC - Temperature in degrees Celsius, or `null` if not provided
+ * @param unit - The unit to format the output in (`'fahrenheit'` or `'celsius'`)
+ * @param highlight - Unused; accepted for API compatibility
+ * @returns An object with `text` containing the formatted temperature (e.g., `"68.0°F"` or `"20.0°C"`) or `"—"` when no value is available, and `isNonStandard` indicating whether the temperature differs from the standard temperature for the computed Fahrenheit value
+ */
 export function formatTemperatureWithUnit(
   temperatureF: number | null,
   temperatureC: number | null,

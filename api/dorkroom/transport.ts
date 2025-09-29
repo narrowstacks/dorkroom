@@ -357,9 +357,18 @@ export class FetchHTTPTransport implements HTTPTransport {
 }
 
 /**
- * Create a URL by joining base URL and path.
- * Similar to Python's urljoin but simplified for our use case.
- * Updated to support platform-aware API endpoints.
+ * Compose a URL from a base URL and path segments, with platform-aware handling for known API endpoints.
+ *
+ * This function joins the provided base URL and segments into a normalized path:
+ * - If the combined parts reference one of the platform API endpoints (`developers`, `films`, `combinations`),
+ *   the platform-specific URL from `getApiUrl` is returned.
+ * - Leading and trailing slashes on segments are removed before joining.
+ * - An empty `baseUrl` with a single empty segment returns `'/'`.
+ * - A first empty segment after a non-empty base adds a trailing slash to the base.
+ *
+ * @param baseUrl - The base URL to start from (may be empty)
+ * @param segments - Additional path segments to append to the base URL
+ * @returns The composed URL string
  */
 export function joinURL(baseUrl: string, ...segments: string[]): string {
   // Check if this is a request for any of the Supabase API endpoints
