@@ -1,4 +1,4 @@
-/**
+/*
  * URL configuration for different environments
  */
 const URL_CONFIG = {
@@ -140,6 +140,7 @@ export function getPresetFromUrl(): string | null {
  * Uses history.replaceState to maintain browser navigation without refresh.
  *
  * @param encoded - Encoded preset string to add to URL hash
+ * @returns void
  * @example
  * ```typescript
  * updateUrlWithPreset('preset123abc');
@@ -159,6 +160,7 @@ export function updateUrlWithPreset(encoded: string): void {
  * Clears the preset from the URL hash without page reload.
  * Removes hash portion while preserving path and query parameters.
  *
+ * @returns void
  * @example
  * ```typescript
  * // URL: https://example.com/border?param=1#preset123abc

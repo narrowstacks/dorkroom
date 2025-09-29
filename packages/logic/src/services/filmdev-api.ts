@@ -1,6 +1,7 @@
 /**
- * Client for interacting with the filmdev.org API
- * API Documentation: https://filmdev.org/about/api
+ * Client for interacting with the filmdev.org API.
+ *
+ * @see https://filmdev.org/about/api
  */
 
 export interface FilmdevRecipe {
@@ -39,13 +40,16 @@ export class FilmdevApiError extends Error {
 }
 
 /**
- * Extracts recipe ID from various filmdev.org URL formats
+ * Extract recipe IDs from various filmdev.org URL formats.
  * Supports:
  * - https://filmdev.org/recipe/show/123 (user-facing URL)
  * - https://filmdev.org/api/recipe/123 (API URL)
  * - filmdev.org/recipe/123
  * - filmdev.org/api/recipe/123
  * - Direct ID: 123
+ *
+ * @param input - Raw URL or identifier provided by the user
+ * @returns Resolved recipe ID string, or null when the value cannot be parsed
  */
 export function extractRecipeId(input: string): string | null {
   const trimmed = input.trim();
@@ -64,7 +68,11 @@ export function extractRecipeId(input: string): string | null {
 }
 
 /**
- * Fetches a recipe from filmdev.org by ID
+ * Fetch a recipe from filmdev.org by ID.
+ *
+ * @param recipeId - Numeric identifier extracted from a filmdev.org URL
+ * @returns Promise resolving to the recipe payload from filmdev.org
+ * @throws FilmdevApiError when validation fails or the network request is unsuccessful
  */
 export async function fetchFilmdevRecipe(
   recipeId: string
@@ -136,7 +144,10 @@ export async function fetchFilmdevRecipe(
 }
 
 /**
- * Validates if input looks like a filmdev.org URL or recipe ID
+ * Validate whether input resembles a filmdev.org URL or recipe ID.
+ *
+ * @param input - Raw URL or identifier to check
+ * @returns True when the value can be converted into a recipe ID
  */
 export function isFilmdevInput(input: string): boolean {
   const trimmed = input.trim();
