@@ -30,7 +30,7 @@ export interface TimingContext extends LogContext {
 // Base logging functions with structured output
 export function serverlessLog(message: string, context: LogContext = {}) {
   const logData = {
-    level: "INFO",
+    level: 'INFO',
     message,
     timestamp: new Date().toISOString(),
     ...context,
@@ -40,7 +40,7 @@ export function serverlessLog(message: string, context: LogContext = {}) {
 
 export function serverlessWarn(message: string, context: LogContext = {}) {
   const logData = {
-    level: "WARN",
+    level: 'WARN',
     message,
     timestamp: new Date().toISOString(),
     ...context,
@@ -50,7 +50,7 @@ export function serverlessWarn(message: string, context: LogContext = {}) {
 
 export function serverlessError(message: string, context: LogContext = {}) {
   const logData = {
-    level: "ERROR",
+    level: 'ERROR',
     message,
     timestamp: new Date().toISOString(),
     ...context,
@@ -62,7 +62,7 @@ export function serverlessError(message: string, context: LogContext = {}) {
 export function logTiming(
   message: string,
   startTime: number,
-  context: LogContext = {},
+  context: LogContext = {}
 ) {
   const responseTime = Date.now() - startTime;
   const timingContext: TimingContext = {
@@ -80,9 +80,9 @@ export function logApiRequest(
   requestId: string,
   method: string,
   url: string,
-  userAgent?: string,
+  userAgent?: string
 ) {
-  serverlessLog("API request started", {
+  serverlessLog('API request started', {
     requestId,
     method,
     url,
@@ -94,9 +94,9 @@ export function logApiResponse(
   requestId: string,
   statusCode: number,
   responseTime: number,
-  additionalContext: LogContext = {},
+  additionalContext: LogContext = {}
 ) {
-  serverlessLog("API request completed", {
+  serverlessLog('API request completed', {
     requestId,
     statusCode,
     responseTime,
@@ -108,12 +108,12 @@ export function logApiError(
   requestId: string,
   error: Error | string,
   statusCode?: number,
-  additionalContext: LogContext = {},
+  additionalContext: LogContext = {}
 ) {
   const errorMessage = error instanceof Error ? error.message : error;
   const errorStack = error instanceof Error ? error.stack : undefined;
 
-  serverlessError("API request failed", {
+  serverlessError('API request failed', {
     requestId,
     error: errorMessage,
     stack: errorStack,
@@ -126,13 +126,13 @@ export function logApiError(
 export function logExternalApiCall(
   requestId: string,
   targetUrl: string,
-  method: string = "GET",
+  method: string = 'GET'
 ) {
-  serverlessLog("External API call initiated", {
+  serverlessLog('External API call initiated', {
     requestId,
     targetUrl,
     method,
-    operation: "external_api_call",
+    operation: 'external_api_call',
   });
 }
 
@@ -141,12 +141,12 @@ export function logExternalApiResponse(
   targetUrl: string,
   status: number,
   responseTime: number,
-  success: boolean,
+  success: boolean
 ) {
   const logFunction = success ? serverlessLog : serverlessError;
   const level = success
-    ? "External API call successful"
-    : "External API call failed";
+    ? 'External API call successful'
+    : 'External API call failed';
 
   logFunction(level, {
     requestId,
@@ -154,6 +154,6 @@ export function logExternalApiResponse(
     status,
     responseTime,
     success,
-    operation: "external_api_call",
+    operation: 'external_api_call',
   });
 }

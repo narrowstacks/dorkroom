@@ -23,8 +23,12 @@ describe('DorkroomClient', () => {
         color_type: 'bw',
         iso_speed: 200,
         grain_structure: null,
-        description: 'A traditional panchromatic film optimized for use in a range of shooting conditions.',
-        manufacturer_notes: ['panchromatic b&w negative film', 'fine grain and sharpness'],
+        description:
+          'A traditional panchromatic film optimized for use in a range of shooting conditions.',
+        manufacturer_notes: [
+          'panchromatic b&w negative film',
+          'fine grain and sharpness',
+        ],
         reciprocity_failure: null,
         discontinued: false,
         static_image_url: 'https://example.com/image.jpg',
@@ -45,7 +49,8 @@ describe('DorkroomClient', () => {
         name: 'DD-X',
         manufacturer: 'Ilford',
         type: 'concentrate',
-        description: 'Ilford ILFOTEC DD-X is a fine grain developer which gives full film speed.',
+        description:
+          'Ilford ILFOTEC DD-X is a fine grain developer which gives full film speed.',
         mixing_instructions: null,
         storage_requirements: null,
         safety_notes: null,
@@ -70,7 +75,8 @@ describe('DorkroomClient', () => {
         custom_dilution: null,
         temperature_celsius: 20,
         time_minutes: 9,
-        agitation_method: 'Invert 4x in first 10 sec, then 4x in first 10 sec of each minute',
+        agitation_method:
+          'Invert 4x in first 10 sec, then 4x in first 10 sec of each minute',
         notes: null,
         created_at: '2025-06-30T09:01:30.795313',
         updated_at: '2025-07-01T00:42:13.049681',
@@ -153,7 +159,9 @@ describe('DorkroomClient', () => {
         throw new Error('Expected loadAll to throw');
       } catch (err) {
         expect(err).toBeInstanceOf(DorkroomApiError);
-        expect((err as Error).message).toContain('Failed to load data: API Error');
+        expect((err as Error).message).toContain(
+          'Failed to load data: API Error'
+        );
       }
     });
   });
@@ -182,8 +190,12 @@ describe('DorkroomClient', () => {
           colorType: 'bw',
           isoSpeed: 200,
           grainStructure: null,
-          description: 'A traditional panchromatic film optimized for use in a range of shooting conditions.',
-          manufacturerNotes: ['panchromatic b&w negative film', 'fine grain and sharpness'],
+          description:
+            'A traditional panchromatic film optimized for use in a range of shooting conditions.',
+          manufacturerNotes: [
+            'panchromatic b&w negative film',
+            'fine grain and sharpness',
+          ],
           reciprocityFailure: null,
           discontinued: false,
           staticImageUrl: 'https://example.com/image.jpg',
@@ -206,7 +218,8 @@ describe('DorkroomClient', () => {
           name: 'DD-X',
           manufacturer: 'Ilford',
           type: 'concentrate',
-          description: 'Ilford ILFOTEC DD-X is a fine grain developer which gives full film speed.',
+          description:
+            'Ilford ILFOTEC DD-X is a fine grain developer which gives full film speed.',
           filmOrPaper: true,
           dilutions: [
             { id: '1', name: '1+4', dilution: '1+4' },
@@ -257,7 +270,8 @@ describe('DorkroomClient', () => {
           temperatureC: 20,
           temperatureF: 68, // Converted from 20°C
           timeMinutes: 9,
-          agitationMethod: 'Invert 4x in first 10 sec, then 4x in first 10 sec of each minute',
+          agitationMethod:
+            'Invert 4x in first 10 sec, then 4x in first 10 sec of each minute',
           agitationSchedule: null,
           pushPull: 0.68,
           tags: ['official-ilford'],
@@ -326,13 +340,19 @@ describe('DorkroomClient', () => {
   describe('cache management', () => {
     it('should throw error when accessing data before loading', () => {
       expect(() => client.getAllFilms()).toThrow(DorkroomApiError);
-      expect(() => client.getAllFilms()).toThrow('Films data not loaded. Call loadAll() first.');
+      expect(() => client.getAllFilms()).toThrow(
+        'Films data not loaded. Call loadAll() first.'
+      );
 
       expect(() => client.getAllDevelopers()).toThrow(DorkroomApiError);
-      expect(() => client.getAllDevelopers()).toThrow('Developers data not loaded. Call loadAll() first.');
+      expect(() => client.getAllDevelopers()).toThrow(
+        'Developers data not loaded. Call loadAll() first.'
+      );
 
       expect(() => client.getAllCombinations()).toThrow(DorkroomApiError);
-      expect(() => client.getAllCombinations()).toThrow('Combinations data not loaded. Call loadAll() first.');
+      expect(() => client.getAllCombinations()).toThrow(
+        'Combinations data not loaded. Call loadAll() first.'
+      );
     });
 
     it('should return defensive copies of cached data', async () => {

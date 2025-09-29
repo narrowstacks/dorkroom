@@ -17,7 +17,9 @@ export function formatTemperatureWithUnit(
   unit: TemperatureUnit,
   highlight = false
 ): { text: string; isNonStandard: boolean } {
-  let fahrenheit = Number.isFinite(temperatureF) ? (temperatureF as number) : null;
+  let fahrenheit = Number.isFinite(temperatureF)
+    ? (temperatureF as number)
+    : null;
   let celsius = Number.isFinite(temperatureC ?? NaN)
     ? (temperatureC as number)
     : null;
@@ -29,7 +31,8 @@ export function formatTemperatureWithUnit(
     celsius = ((fahrenheit - 32) * 5) / 9;
   }
 
-  const isNonStandard = fahrenheit !== null ? isNonStandardTemperature(fahrenheit) : false;
+  const isNonStandard =
+    fahrenheit !== null ? isNonStandardTemperature(fahrenheit) : false;
 
   if (unit === 'celsius') {
     if (celsius !== null) {

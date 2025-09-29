@@ -12,7 +12,8 @@ import { createElement } from 'react';
 import type { NavigationItem } from '../components/navigation-dropdown';
 
 // Wrap Lucide icons so typeof component is 'function' in tests
-const asFunctionComponent = (Icon: any) => (props: any) => createElement(Icon, props);
+const asFunctionComponent = (Icon: any) => (props: any) =>
+  createElement(Icon, props);
 
 export const printingItems: NavigationItem[] = [
   {

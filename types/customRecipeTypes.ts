@@ -24,7 +24,7 @@ export interface CustomFilmData {
   brand: string;
   name: string;
   isoSpeed: number;
-  colorType: "bw" | "color" | "slide";
+  colorType: 'bw' | 'color' | 'slide';
   grainStructure?: string;
   description?: string;
 }
@@ -33,7 +33,7 @@ export interface CustomDeveloperData {
   manufacturer: string;
   name: string;
   type: string;
-  filmOrPaper: "film" | "paper" | "both";
+  filmOrPaper: 'film' | 'paper' | 'both';
   workingLifeHours?: number;
   stockLifeMonths?: number;
   notes?: string;

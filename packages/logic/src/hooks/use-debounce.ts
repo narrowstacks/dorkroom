@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
  * Hook that debounces a value, delaying updates until after the specified delay period.
  * Useful for preventing excessive API calls or expensive calculations during rapid input changes.
  *
+ * @public
  * @param value - The value to debounce
  * @param delay - Delay in milliseconds before updating the debounced value
  * @returns The debounced value
@@ -41,6 +42,7 @@ export function useDebounce<T>(value: T, delay: number): T {
  * Hook that debounces a callback function, delaying execution until after the specified delay period.
  * Useful for preventing excessive function calls during rapid user interactions.
  *
+ * @public
  * @param callback - The function to debounce
  * @param delay - Delay in milliseconds before executing the callback
  * @returns The debounced callback function
@@ -62,9 +64,9 @@ export function useDebouncedCallback<A extends unknown[], R>(
   callback: (...args: A) => R,
   delay: number
 ): (...args: A) => R {
-  const [debouncedCallback, setDebouncedCallback] = useState<
-    (...args: A) => R
-  >(() => callback);
+  const [debouncedCallback, setDebouncedCallback] = useState<(...args: A) => R>(
+    () => callback
+  );
 
   useEffect(() => {
     const handler = setTimeout(() => {

@@ -6,7 +6,7 @@ import {
   clampOffsets,
   bordersFromGaps,
   bladeReadings,
-  validatePrintFits
+  validatePrintFits,
 } from '../../utils/border-calculations';
 
 // Mock the constants to avoid importing complex dependencies
@@ -129,7 +129,9 @@ describe('border calculations', () => {
     });
 
     it('should handle edge cases', () => {
-      expect(calculateOptimalMinBorder(1, 1, 1, 1, 0.5)).toBeGreaterThanOrEqual(0.01);
+      expect(calculateOptimalMinBorder(1, 1, 1, 1, 0.5)).toBeGreaterThanOrEqual(
+        0.01
+      );
     });
   });
 
@@ -138,14 +140,26 @@ describe('border calculations', () => {
       const result = computePrintSize(10, 8, 3, 2, 0.5);
       expect(result.printW).toBeLessThanOrEqual(9); // 10 - 2*0.5
       expect(result.printH).toBeLessThanOrEqual(7); // 8 - 2*0.5
-      expect(result.printW / result.printH).toBeCloseTo(3/2, 2);
+      expect(result.printW / result.printH).toBeCloseTo(3 / 2, 2);
     });
 
     it('should return zero for invalid inputs', () => {
-      expect(computePrintSize(0, 8, 3, 2, 0.5)).toEqual({ printW: 0, printH: 0 });
-      expect(computePrintSize(10, 0, 3, 2, 0.5)).toEqual({ printW: 0, printH: 0 });
-      expect(computePrintSize(10, 8, 3, 0, 0.5)).toEqual({ printW: 0, printH: 0 });
-      expect(computePrintSize(10, 8, 3, 2, -1)).toEqual({ printW: 0, printH: 0 });
+      expect(computePrintSize(0, 8, 3, 2, 0.5)).toEqual({
+        printW: 0,
+        printH: 0,
+      });
+      expect(computePrintSize(10, 0, 3, 2, 0.5)).toEqual({
+        printW: 0,
+        printH: 0,
+      });
+      expect(computePrintSize(10, 8, 3, 0, 0.5)).toEqual({
+        printW: 0,
+        printH: 0,
+      });
+      expect(computePrintSize(10, 8, 3, 2, -1)).toEqual({
+        printW: 0,
+        printH: 0,
+      });
     });
 
     it('should return zero when border is too large', () => {

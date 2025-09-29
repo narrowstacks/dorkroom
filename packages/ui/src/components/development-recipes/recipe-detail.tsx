@@ -74,11 +74,13 @@ export function DevelopmentRecipeDetail({
         />
         <DetailRow
           label="Temperature"
-          value={formatTemperatureWithUnit(
-            combination.temperatureF,
-            combination.temperatureC,
-            unit
-          ).text}
+          value={
+            formatTemperatureWithUnit(
+              combination.temperatureF,
+              combination.temperatureC,
+              unit
+            ).text
+          }
         />
         <DetailRow
           label="Dilution"
