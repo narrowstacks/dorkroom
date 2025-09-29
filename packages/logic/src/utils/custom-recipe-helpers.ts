@@ -5,6 +5,7 @@ import type { CustomRecipe } from '../types/custom-recipes';
  * Retrieves the film associated with a custom recipe, handling both custom films
  * and references to existing films in the database.
  *
+ * @public
  * @param recipeId - The unique identifier of the custom recipe
  * @param customRecipes - Array of all available custom recipes
  * @param getFilmById - Function to retrieve film data by ID from the main database
@@ -59,6 +60,7 @@ export const getCustomRecipeFilm = (
  * Retrieves the developer associated with a custom recipe, handling both custom developers
  * and references to existing developers in the database.
  *
+ * @public
  * @param recipeId - The unique identifier of the custom recipe
  * @param customRecipes - Array of all available custom recipes
  * @param getDeveloperById - Function to retrieve developer data by ID from the main database

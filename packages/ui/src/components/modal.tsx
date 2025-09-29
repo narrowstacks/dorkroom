@@ -3,13 +3,26 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '../lib/cn';
 
+/**
+ * Props for the Modal component.
+ * Configures modal behavior, content, and appearance.
+ *
+ * @public
+ */
 interface ModalProps {
+  /** Whether the modal is currently visible */
   isOpen: boolean;
+  /** Callback function called when the modal should be closed */
   onClose: () => void;
+  /** Optional title text displayed in the modal header */
   title?: string;
+  /** Modal content to be rendered inside the modal body */
   children: React.ReactNode;
+  /** Size variant for the modal width (defaults to 'md') */
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  /** Optional footer content displayed at the bottom of the modal */
   footer?: React.ReactNode;
+  /** Whether to hide the X close button in the header */
   hideCloseButton?: boolean;
 }
 
@@ -20,6 +33,22 @@ const SIZE_CLASSES: Record<NonNullable<ModalProps['size']>, string> = {
   xl: 'max-w-5xl',
 };
 
+/**
+ * Render a modal dialog into a portal with a backdrop and automatic body-scroll locking when open.
+ *
+ * Renders nothing during server-side rendering or when `isOpen` is false.
+ *
+ * @param isOpen - Whether the modal is visible
+ * @param onClose - Callback invoked to request closing the modal (e.g., backdrop or close button)
+ * @param title - Optional header text displayed at the top of the modal
+ * @param children - Modal body content
+ * @param size - Width variant; one of `"sm" | "md" | "lg" | "xl"` (defaults to `"md"`)
+ * @param footer - Optional footer content rendered below the body
+ * @param hideCloseButton - If `true`, the top-right close button is not rendered
+ * @returns The modal element appended to `document.body`, or `null` when closed or in SSR
+ *
+ * @public
+ */
 export function Modal({
   isOpen,
   onClose,

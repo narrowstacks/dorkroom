@@ -12,7 +12,8 @@ describe('API Integration Tests', () => {
   describe('Real API calls', () => {
     const isOnline = () => {
       if (typeof globalThis === 'undefined') return false;
-      const nav = (globalThis as { navigator?: { onLine?: boolean } }).navigator;
+      const nav = (globalThis as { navigator?: { onLine?: boolean } })
+        .navigator;
       return nav && nav.onLine !== false;
     };
     const skipIfOffline = () => {
@@ -66,7 +67,10 @@ describe('API Integration Tests', () => {
         expect(combination).toHaveProperty('temperatureF');
         expect(combination).toHaveProperty('timeMinutes');
       } catch (error) {
-        console.warn('Integration test failed - API may be unavailable:', error);
+        console.warn(
+          'Integration test failed - API may be unavailable:',
+          error
+        );
         // Don't fail the test if API is unavailable
         expect(error).toBeDefined();
       }
@@ -84,17 +88,22 @@ describe('API Integration Tests', () => {
         const results = await Promise.allSettled(promises);
 
         // At least some should succeed
-        const successes = results.filter(r => r.status === 'fulfilled');
+        const successes = results.filter((r) => r.status === 'fulfilled');
         expect(successes.length).toBeGreaterThan(0);
 
         // If any failed, they should be due to network/rate limiting, not client bugs
-        const failures = results.filter(r => r.status === 'rejected') as PromiseRejectedResult[];
-        failures.forEach(failure => {
+        const failures = results.filter(
+          (r) => r.status === 'rejected'
+        ) as PromiseRejectedResult[];
+        failures.forEach((failure) => {
           expect(failure.reason).toBeDefined();
           // Should be network-related, not client logic errors
         });
       } catch (error) {
-        console.warn('Rate limiting test failed - API may be unavailable:', error);
+        console.warn(
+          'Rate limiting test failed - API may be unavailable:',
+          error
+        );
         expect(error).toBeDefined();
       }
     }, 30000);
@@ -106,7 +115,7 @@ describe('API Integration Tests', () => {
         await client.loadAll();
         const films = client.getAllFilms();
 
-        films.forEach(film => {
+        films.forEach((film) => {
           // Required fields should be present
           expect(typeof film.id).toBe('number');
           expect(typeof film.uuid).toBe('string');
@@ -118,7 +127,9 @@ describe('API Integration Tests', () => {
           expect(typeof film.discontinued).toBe('boolean');
 
           // UUID should be valid format
-          expect(film.uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+          expect(film.uuid).toMatch(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+          );
 
           // ISO speed should be positive
           expect(film.isoSpeed).toBeGreaterThan(0);
@@ -127,7 +138,10 @@ describe('API Integration Tests', () => {
           expect(['bw', 'color', 'c41', 'e6']).toContain(film.colorType);
         });
       } catch (error) {
-        console.warn('Film data integrity test failed - API may be unavailable:', error);
+        console.warn(
+          'Film data integrity test failed - API may be unavailable:',
+          error
+        );
         expect(error).toBeDefined();
       }
     }, 30000);
@@ -139,7 +153,7 @@ describe('API Integration Tests', () => {
         await client.loadAll();
         const developers = client.getAllDevelopers();
 
-        developers.forEach(developer => {
+        developers.forEach((developer) => {
           // Required fields should be present
           expect(typeof developer.id).toBe('number');
           expect(typeof developer.uuid).toBe('string');
@@ -150,17 +164,22 @@ describe('API Integration Tests', () => {
           expect(Array.isArray(developer.dilutions)).toBe(true);
 
           // UUID should be valid format
-          expect(developer.uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+          expect(developer.uuid).toMatch(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+          );
 
           // Check dilutions structure
-          developer.dilutions.forEach(dilution => {
+          developer.dilutions.forEach((dilution) => {
             expect(typeof dilution.id).toBe('string');
             expect(typeof dilution.name).toBe('string');
             expect(typeof dilution.dilution).toBe('string');
           });
         });
       } catch (error) {
-        console.warn('Developer data integrity test failed - API may be unavailable:', error);
+        console.warn(
+          'Developer data integrity test failed - API may be unavailable:',
+          error
+        );
         expect(error).toBeDefined();
       }
     }, 30000);
@@ -172,7 +191,7 @@ describe('API Integration Tests', () => {
         await client.loadAll();
         const combinations = client.getAllCombinations();
 
-        combinations.forEach(combination => {
+        combinations.forEach((combination) => {
           // Required fields should be present
           expect(typeof combination.id).toBe('number');
           expect(typeof combination.uuid).toBe('string');
@@ -185,7 +204,9 @@ describe('API Integration Tests', () => {
           expect(typeof combination.pushPull).toBe('number');
 
           // UUID should be valid format
-          expect(combination.uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+          expect(combination.uuid).toMatch(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+          );
 
           // Temperature conversion should be correct
           const expectedF = Math.round((combination.temperatureC * 9) / 5 + 32);
@@ -203,7 +224,10 @@ describe('API Integration Tests', () => {
           }
         });
       } catch (error) {
-        console.warn('Combination data integrity test failed - API may be unavailable:', error);
+        console.warn(
+          'Combination data integrity test failed - API may be unavailable:',
+          error
+        );
         expect(error).toBeDefined();
       }
     }, 30000);
@@ -219,7 +243,9 @@ describe('API Integration Tests', () => {
       const customClient = new DorkroomClient({
         baseUrl: 'https://custom.dorkroom.art/api',
       });
-      expect(customClient['options'].baseUrl).toBe('https://custom.dorkroom.art/api');
+      expect(customClient['options'].baseUrl).toBe(
+        'https://custom.dorkroom.art/api'
+      );
     });
   });
 });

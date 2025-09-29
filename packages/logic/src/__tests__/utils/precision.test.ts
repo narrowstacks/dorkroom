@@ -1,7 +1,7 @@
 import {
   roundToPrecision,
   roundToStandardPrecision,
-  createMemoKey
+  createMemoKey,
 } from '../../utils/precision';
 
 describe('precision utilities', () => {

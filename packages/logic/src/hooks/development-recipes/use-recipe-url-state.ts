@@ -24,6 +24,12 @@ const MANAGED_QUERY_KEYS: Array<keyof RecipeUrlParams> = [
   'source',
 ];
 
+/**
+ * Convert managed URL search parameters into a recipe parameter object.
+ *
+ * @param searchParams - Source URLSearchParams instance to inspect
+ * @returns Object containing managed query keys and their values
+ */
 const parseSearchParams = (searchParams: URLSearchParams): RecipeUrlParams => {
   const result: RecipeUrlParams = {};
 
@@ -37,6 +43,11 @@ const parseSearchParams = (searchParams: URLSearchParams): RecipeUrlParams => {
   return result;
 };
 
+/**
+ * Read the current browser URL and extract managed query parameters.
+ *
+ * @returns Current recipe URL parameters or an empty object during SSR
+ */
 const getCurrentParams = (): RecipeUrlParams => {
   if (typeof window === 'undefined') {
     return {};
@@ -45,13 +56,33 @@ const getCurrentParams = (): RecipeUrlParams => {
   return parseSearchParams(new URLSearchParams(window.location.search));
 };
 
+/**
+ * Find a film entity by slug helper.
+ *
+ * @param slug - Film slug from the URL
+ * @param films - Available film collection to search
+ * @returns Matching film or null when not found
+ */
 export const slugToFilm = (slug: string, films: Film[]): Film | null => {
   if (!slug || !films.length) return null;
   return films.find((film) => film.slug === slug) || null;
 };
 
+/**
+ * Convert a film entity to its slug string.
+ *
+ * @param film - Film entity to convert
+ * @returns Slug string or empty string when no film is provided
+ */
 export const filmToSlug = (film: Film | null): string => film?.slug || '';
 
+/**
+ * Find a developer entity by slug helper.
+ *
+ * @param slug - Developer slug from the URL
+ * @param developers - Available developer collection to search
+ * @returns Matching developer or null when not found
+ */
 export const slugToDeveloper = (
   slug: string,
   developers: Developer[]
@@ -60,9 +91,21 @@ export const slugToDeveloper = (
   return developers.find((developer) => developer.slug === slug) || null;
 };
 
+/**
+ * Convert a developer entity to its slug string.
+ *
+ * @param developer - Developer entity to convert
+ * @returns Slug string or empty string when no developer is provided
+ */
 export const developerToSlug = (developer: Developer | null): string =>
   developer?.slug || '';
 
+/**
+ * Validate and sanitize recipe URL parameters against expected formats.
+ *
+ * @param params - Raw parameters extracted from the URL
+ * @returns Validation result with sanitized values and error details
+ */
 export const validateUrlParams = (
   params: RecipeUrlParams
 ): UrlValidationResult => {
@@ -156,6 +199,16 @@ export interface UseRecipeUrlStateReturn {
   hasSharedCustomRecipe: boolean;
 }
 
+/**
+ * Hook that keeps development recipe state synchronized with URL parameters.
+ * Validates parameters, resolves shared recipes, and exposes helpers for updates.
+ *
+ * @param films - Available film list used to resolve slug selections
+ * @param developers - Available developer list used to resolve slug selections
+ * @param currentState - Current selection/filter state from the UI
+ * @param recipesByUuid - Optional map of recipes for lookup when sharing
+ * @returns URL-driven state values, helpers, and metadata about shared recipes
+ */
 export const useRecipeUrlState = (
   films: Film[],
   developers: Developer[],

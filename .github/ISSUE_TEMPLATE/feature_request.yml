@@ -1,8 +1,8 @@
 name: ✨ Feature Request
 description: Suggest a new feature or enhancement for Dorkroom
-title: "[Feature]: "
-labels: ["enhancement", "needs-triage"]
-projects: ["narrowstacks/1"]
+title: '[Feature]: '
+labels: ['enhancement', 'needs-triage']
+projects: ['narrowstacks/1']
 assignees: []
 body:
   - type: markdown
@@ -46,7 +46,7 @@ body:
       description: What problem would this feature solve? What workflow would it improve?
       placeholder: |
         As a [type of user], I want [goal] so that [benefit].
-        
+
         Currently, when I [current workflow], I have to [current limitation/problem].
     validations:
       required: true

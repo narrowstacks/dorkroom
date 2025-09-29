@@ -9,7 +9,7 @@
  * @returns The dilution ratio as a decimal (developer parts / total parts)
  */
 export function parseDilutionRatio(dilution: string): number {
-  if (!dilution || dilution.toLowerCase() === "stock") {
+  if (!dilution || dilution.toLowerCase() === 'stock') {
     return 1; // Stock solution = 100% developer
   }
 
@@ -39,13 +39,13 @@ export function parseDilutionRatio(dilution: string): number {
  */
 export function normalizeDilution(dilution: string): string {
   if (!dilution || !dilution.trim()) {
-    return "Stock";
+    return 'Stock';
   }
 
   const trimmed = dilution.trim();
 
   // Return as-is for stock and percentage formats
-  if (trimmed.toLowerCase() === "stock" || trimmed.includes("%")) {
+  if (trimmed.toLowerCase() === 'stock' || trimmed.includes('%')) {
     return trimmed;
   }
 
@@ -71,17 +71,18 @@ export function formatDilution(dilution: string): string {
 
   // For display purposes, replace any remaining colons with pluses in ratio-like strings.
   // This handles more complex cases like "1:1:100" that normalizeDilution may not cover.
-  if (normalized.includes(":") && /\d/.test(normalized)) {
-    return normalized.replace(/:/g, "+");
+  if (normalized.includes(':') && /\d/.test(normalized)) {
+    return normalized.replace(/:/g, '+');
   }
 
   return normalized;
 }
 
 /**
- * Validates if a dilution string is in a recognized format
+ * Check whether a dilution string matches a recognized format.
+ *
  * @param dilution - The dilution string to validate
- * @returns True if the dilution is valid, false otherwise
+ * @returns `true` if the string is "Stock", a ratio like `1:9` or `1+9`, or a percentage like `10%`, `false` otherwise
  */
 export function isValidDilution(dilution: string): boolean {
   if (!dilution) {
@@ -92,26 +93,30 @@ export function isValidDilution(dilution: string): boolean {
 
   // Valid formats: "Stock", "1:9", "1+9", "10%"
   return (
-    trimmed.toLowerCase() === "stock" ||
+    trimmed.toLowerCase() === 'stock' ||
     /^\d+[\s:+]\d+$/.test(trimmed) ||
     /^\d+%$/.test(trimmed)
   );
 }
 
 /**
- * Extracts the developer and water parts from a dilution string
+ * Parse a dilution string into numeric developer and water parts.
+ *
+ * Accepts formats with two integers separated by `:`, `+`, or whitespace (e.g., "1:9", "1+9", "1 9").
+ * Treats falsy values or "stock" (any case) as `{ developerParts: 1, waterParts: 0 }`.
+ *
  * @param dilution - The dilution string to parse
- * @returns Object with developerParts and waterParts, or null if invalid
+ * @returns An object with `developerParts` and `waterParts` when a two-part ratio is parsed; `null` for percentage formats or unrecognized input
  */
 export function getDilutionParts(
-  dilution: string,
+  dilution: string
 ): { developerParts: number; waterParts: number } | null {
-  if (!dilution || dilution.toLowerCase() === "stock") {
+  if (!dilution || dilution.toLowerCase() === 'stock') {
     return { developerParts: 1, waterParts: 0 };
   }
 
   // Don't handle percentage format here - return null for those
-  if (dilution.includes("%")) {
+  if (dilution.includes('%')) {
     return null;
   }
 
@@ -132,8 +137,8 @@ export function getDilutionParts(
  * @returns A descriptive string explaining the dilution
  */
 export function describeDilution(dilution: string): string {
-  if (!dilution || dilution.toLowerCase() === "stock") {
-    return "Stock solution (undiluted)";
+  if (!dilution || dilution.toLowerCase() === 'stock') {
+    return 'Stock solution (undiluted)';
   }
 
   // Handle percentage format first
@@ -146,9 +151,11 @@ export function describeDilution(dilution: string): string {
   if (parts) {
     const { developerParts, waterParts } = parts;
     if (waterParts === 0) {
-      return "Stock solution (undiluted)";
+      return 'Stock solution (undiluted)';
     }
-    return `${developerParts} part${developerParts !== 1 ? "s" : ""} developer + ${waterParts} part${waterParts !== 1 ? "s" : ""} water`;
+    return `${developerParts} part${
+      developerParts !== 1 ? 's' : ''
+    } developer + ${waterParts} part${waterParts !== 1 ? 's' : ''} water`;
   }
 
   return dilution;

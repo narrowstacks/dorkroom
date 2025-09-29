@@ -1,8 +1,8 @@
 name: 🐛 Bug Report
 description: Report a bug or unexpected behavior in Dorkroom calculators
-title: "[Bug]: "
-labels: ["bug", "needs-triage"]
-projects: ["narrowstacks/1"]
+title: '[Bug]: '
+labels: ['bug', 'needs-triage']
+projects: ['narrowstacks/1']
 assignees: []
 body:
   - type: markdown
@@ -17,7 +17,7 @@ body:
       description: Which part of Dorkroom is affected?
       options:
         - Border Calculator
-        - Resize Calculator  
+        - Resize Calculator
         - Exposure Calculator
         - Reciprocity Calculator
         - Development Recipes
@@ -79,7 +79,7 @@ body:
         - Paper size: 8x10"
         - Border width: 0.25"
         - etc.
-        
+
         Expected result: 
         Actual result:
     validations:

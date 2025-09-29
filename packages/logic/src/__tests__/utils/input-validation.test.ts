@@ -2,7 +2,7 @@ import {
   tryNumber,
   debounce,
   isValidNumberInProgress,
-  isValidNumericInput
+  isValidNumericInput,
 } from '../../utils/input-validation';
 
 describe('input validation utilities', () => {
@@ -155,7 +155,7 @@ describe('input validation utilities', () => {
     it('should be consistent with tryNumber and isValidNumberInProgress', () => {
       const testInputs = ['123', '123.', '123.45', 'abc', '', '-', '12.34.56'];
 
-      testInputs.forEach(input => {
+      testInputs.forEach((input) => {
         const isValid = isValidNumericInput(input);
         const hasNumber = tryNumber(input) !== null;
         const isInProgress = isValidNumberInProgress(input);

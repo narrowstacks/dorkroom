@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
  * Hook that tracks the current window dimensions and updates on resize.
  * Provides SSR-safe default dimensions for server-side rendering.
  *
+ * @public
  * @returns Object containing current window width and height
  *
  * @example

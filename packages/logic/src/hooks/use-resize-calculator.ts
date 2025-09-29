@@ -31,6 +31,12 @@ export interface UseResizeCalculatorReturn {
   setNewHeight: (value: string) => void;
 }
 
+/**
+ * Hook that calculates darkroom exposure adjustments when resizing prints.
+ * Tracks dimension inputs, supports enlarger height mode, and returns derived times.
+ *
+ * @returns State values, setters, and derived exposure information for resizing
+ */
 export const useResizeCalculator = (): UseResizeCalculatorReturn => {
   const [isEnlargerHeightMode, setIsEnlargerHeightMode] = useState(false);
   const [originalWidth, setOriginalWidth] = useState(DEFAULT_ORIGINAL_WIDTH);

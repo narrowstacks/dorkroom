@@ -1,5 +1,5 @@
-import Fuse, { type IFuseOptions } from "fuse.js";
-import type { Film, Developer } from "@/api/dorkroom/types";
+import Fuse, { type IFuseOptions } from 'fuse.js';
+import type { Film, Developer } from '@/api/dorkroom/types';
 
 /**
  * Configuration for fuzzy searching films
@@ -7,9 +7,9 @@ import type { Film, Developer } from "@/api/dorkroom/types";
 export const filmFuseOptions: IFuseOptions<Film> = {
   // Fields to search with weights (higher = more important)
   keys: [
-    { name: "name", weight: 0.7 },
-    { name: "brand", weight: 0.5 },
-    { name: "description", weight: 0.3 },
+    { name: 'name', weight: 0.7 },
+    { name: 'brand', weight: 0.5 },
+    { name: 'description', weight: 0.3 },
   ],
   // Lower threshold = more fuzzy, higher = more exact
   threshold: 0.5,
@@ -32,9 +32,9 @@ export const filmFuseOptions: IFuseOptions<Film> = {
  */
 export const developerFuseOptions: IFuseOptions<Developer> = {
   keys: [
-    { name: "name", weight: 0.7 },
-    { name: "manufacturer", weight: 0.5 },
-    { name: "notes", weight: 0.3 },
+    { name: 'name', weight: 0.7 },
+    { name: 'manufacturer', weight: 0.5 },
+    { name: 'notes', weight: 0.3 },
   ],
   threshold: 0.5,
   includeScore: true,
@@ -64,14 +64,16 @@ export function fuzzySearchFilms(films: Film[], query: string): Film[] {
 }
 
 /**
- * Performs fuzzy search on an array of developers
- * @param developers - Array of developers to search through
- * @param query - Search query string
- * @returns Array of developers sorted by relevance score
+ * Finds developers that match the given query using fuzzy matching and orders results by relevance.
+ *
+ * If `query` is empty or contains only whitespace, the original `developers` array is returned.
+ *
+ * @param query - The search query string used for fuzzy matching
+ * @returns An array of matching `Developer` objects ordered by relevance (most relevant first)
  */
 export function fuzzySearchDevelopers(
   developers: Developer[],
-  query: string,
+  query: string
 ): Developer[] {
   if (!query.trim()) {
     return developers;
@@ -94,12 +96,13 @@ export function createFilmSearchIndex(films: Film[]): Fuse<Film> {
 }
 
 /**
- * Creates a Fuse instance for developers that can be reused
- * @param developers - Array of developers to index
- * @returns Fuse instance configured for developer search
+ * Create a reusable Fuse search index for Developer objects.
+ *
+ * @param developers - Developer objects to index for fuzzy searching
+ * @returns A Fuse instance configured for searching `Developer` objects
  */
 export function createDeveloperSearchIndex(
-  developers: Developer[],
+  developers: Developer[]
 ): Fuse<Developer> {
   return new Fuse(developers, developerFuseOptions);
 }

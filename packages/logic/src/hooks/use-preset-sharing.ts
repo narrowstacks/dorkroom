@@ -19,6 +19,13 @@ export interface UsePresetSharingOptions {
   onShareError?: (error: string) => void;
 }
 
+/**
+ * Hook that generates shareable URLs for border presets and triggers sharing flows.
+ * Tries native sharing first, falls back to clipboard/manual methods, and reports results.
+ *
+ * @param options - Optional callbacks invoked on successful share or error
+ * @returns Sharing helpers, current state, and utilities for preset URLs
+ */
 export function usePresetSharing(options: UsePresetSharingOptions = {}) {
   const [isSharing, setIsSharing] = useState(false);
   const [lastSharedUrl, setLastSharedUrl] = useState<string | null>(null);
@@ -26,7 +33,10 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
   const { onShareSuccess, onShareError } = options;
 
   /**
-   * Generate a shareable URL for the given preset
+   * Generate a shareable URL for the given preset.
+   *
+   * @param preset - Preset values to encode into the URL
+   * @returns Shareable web URL string or null when encoding fails
    */
   const generateShareUrl = useCallback(
     (preset: PresetToShare): string | null => {
@@ -42,7 +52,10 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
   );
 
   /**
-   * Copy text to clipboard
+   * Copy text to the clipboard.
+   *
+   * @param text - String to write to the clipboard
+   * @returns Promise resolving to true when the copy succeeded
    */
   const copyToClipboard = useCallback(
     async (text: string): Promise<boolean> => {
@@ -62,7 +75,11 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
   );
 
   /**
-   * Share using the Web Share API
+   * Share using the Web Share API.
+   *
+   * @param url - Fully formed preset URL to share
+   * @param title - Title passed to the native share sheet
+   * @returns Promise resolving to true when sharing completes successfully
    */
   const shareNatively = useCallback(
     async (
@@ -90,7 +107,11 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
   );
 
   /**
-   * Main share function - tries different methods in order of preference
+   * Main share function - tries different methods in order of preference.
+   *
+   * @param preset - Preset configuration to share
+   * @param preferClipboard - Whether clipboard copy should be attempted before native share
+   * @returns ShareResult describing the attempted sharing method and outcome
    */
   const sharePreset = useCallback(
     async (
@@ -172,7 +193,10 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
   );
 
   /**
-   * Update the current page URL with the preset (for bookmarking)
+   * Update the current page URL with the preset (for bookmarking).
+   *
+   * @param preset - Preset data to encode into the URL
+   * @returns True when the preset was encoded and applied to the URL
    */
   const updateCurrentUrl = useCallback((preset: PresetToShare): boolean => {
     const encoded = encodePreset(preset);
@@ -185,7 +209,10 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
   }, []);
 
   /**
-   * Get sharing URLs without actually sharing
+   * Get sharing URLs without performing a share action.
+   *
+   * @param preset - Preset data to encode
+   * @returns Object containing URL variants or null when encoding fails
    */
   const getSharingUrls = useCallback((preset: PresetToShare) => {
     const encoded = encodePreset(preset);

@@ -16,6 +16,25 @@ export interface UseUrlPresetLoaderOptions {
   clearUrlAfterLoad?: boolean;
 }
 
+/**
+ * Manage loading and decoding of border presets from URL hashes or encoded strings.
+ *
+ * Loads a preset found in the URL (optionally automatically on mount and on hashchange), provides a manual loader for encoded preset strings, and exposes loading state, any load error, and helpers to apply or clear presets.
+ *
+ * @param options - Configuration for preset loading behavior.
+ *   - onPresetLoaded: called with the LoadedPreset after a successful load.
+ *   - onLoadError: called with an error message when loading fails.
+ *   - autoApply: when true (default), the hook attempts to load a preset from the URL on mount and on hash changes.
+ *   - clearUrlAfterLoad: when true (default), removes the preset from the URL after successfully loading it.
+ * @returns An object containing:
+ *   - loadedPreset: the currently loaded preset or `null`.
+ *   - isLoading: `true` while a load is in progress.
+ *   - loadError: an error message when a load fails, or `null`.
+ *   - checkAndLoadFromUrl: checks the current URL for an encoded preset and loads it.
+ *   - loadPreset: manually load a preset from an encoded string.
+ *   - clearLoadedPreset: clears the currently loaded preset and any load error.
+ *   - loadPresetFromEncoded: utility that validates and decodes an encoded preset string, returning `LoadedPreset` or `null`.
+ */
 export function useUrlPresetLoader(options: UseUrlPresetLoaderOptions = {}) {
   const [loadedPreset, setLoadedPreset] = useState<LoadedPreset | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,7 +48,10 @@ export function useUrlPresetLoader(options: UseUrlPresetLoaderOptions = {}) {
   } = options;
 
   /**
-   * Load a preset from an encoded string
+   * Load a preset from an encoded string.
+   *
+   * @param encoded - Base64 encoded preset payload
+   * @returns Loaded preset metadata when decoding succeeds, otherwise null
    */
   const loadPresetFromEncoded = useCallback(
     (encoded: string): LoadedPreset | null => {
@@ -52,7 +74,9 @@ export function useUrlPresetLoader(options: UseUrlPresetLoaderOptions = {}) {
   );
 
   /**
-   * Check URL for preset and load it
+   * Check the current URL for an encoded preset and load it.
+   *
+   * @returns Loaded preset data or null when nothing valid is found
    */
   const checkAndLoadFromUrl = useCallback(() => {
     setIsLoading(true);
@@ -98,7 +122,10 @@ export function useUrlPresetLoader(options: UseUrlPresetLoaderOptions = {}) {
   }, [loadPresetFromEncoded, onPresetLoaded, onLoadError, clearUrlAfterLoad]);
 
   /**
-   * Manually load a preset from encoded string
+   * Manually load a preset from an encoded string.
+   *
+   * @param encoded - Base64 encoded preset payload to decode
+   * @returns Loaded preset data or null when decoding fails
    */
   const loadPreset = useCallback(
     (encoded: string): LoadedPreset | null => {
@@ -138,7 +165,9 @@ export function useUrlPresetLoader(options: UseUrlPresetLoaderOptions = {}) {
   );
 
   /**
-   * Clear the currently loaded preset
+   * Clear the currently loaded preset.
+   *
+   * @returns void
    */
   const clearLoadedPreset = useCallback(() => {
     setLoadedPreset(null);

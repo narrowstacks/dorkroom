@@ -12,11 +12,23 @@ export const DEVELOPER_TYPES = [
 export const TEMP_CELSIUS_BASE = 20;
 export const TEMP_FAHRENHEIT_BASE = 68;
 
+/**
+ * Format a Fahrenheit temperature with a Celsius conversion for display.
+ *
+ * @param tempF - Temperature value in degrees Fahrenheit
+ * @returns Combined Fahrenheit and Celsius temperature string
+ */
 export function convertToDisplay(tempF: number): string {
   const celsius = ((tempF - 32) * 5) / 9;
   return `${tempF}°F (${celsius.toFixed(1)}°C)`;
 }
 
+/**
+ * Convert a duration in minutes into a human-readable string.
+ *
+ * @param minutes - Duration in minutes
+ * @returns `Xs` for durations less than one minute (seconds rounded), `Hh Mm` for durations of one hour or more, `N min` for other minute values
+ */
 export function formatTime(minutes: number): string {
   if (minutes < 1) {
     return `${Math.round(minutes * 60)}s`;

@@ -111,7 +111,9 @@ describe('HttpTransport', () => {
     });
 
     it('should create AbortController for timeout', () => {
-      const transport = new HttpTransport('https://api.example.com', { timeout: 5000 });
+      const transport = new HttpTransport('https://api.example.com', {
+        timeout: 5000,
+      });
       expect(transport['defaultOptions'].timeout).toBe(5000);
     });
 
@@ -145,20 +147,33 @@ describe('HttpTransport', () => {
     });
 
     it('should throw error after max retries', async () => {
-
-      const transportWithLimitedRetries = new HttpTransport('https://api.example.com', {
-        retries: 1,
-        retryDelay: 0,
-      });
+      const transportWithLimitedRetries = new HttpTransport(
+        'https://api.example.com',
+        {
+          retries: 1,
+          retryDelay: 0,
+        }
+      );
 
       // Simulate server errors to avoid unhandled promise rejections
       mockFetch
-        .mockResolvedValueOnce({ ok: false, status: 500, statusText: 'Internal Server Error' })
-        .mockResolvedValueOnce({ ok: false, status: 500, statusText: 'Internal Server Error' });
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 500,
+          statusText: 'Internal Server Error',
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 500,
+          statusText: 'Internal Server Error',
+        });
 
-      const resultPromise = transportWithLimitedRetries.get('/persistent-error');
+      const resultPromise =
+        transportWithLimitedRetries.get('/persistent-error');
 
-      await expect(resultPromise).rejects.toThrow('HTTP 500: Internal Server Error');
+      await expect(resultPromise).rejects.toThrow(
+        'HTTP 500: Internal Server Error'
+      );
       expect(mockFetch).toHaveBeenCalledTimes(2); // Initial + 1 retry
     });
   });

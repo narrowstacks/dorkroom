@@ -7,8 +7,11 @@ import type {
 } from '../types/custom-recipes';
 
 /**
- * Attempts to find the best matching film from your database
- * using the film string from filmdev.org
+ * Finds the best matching local film for a filmdev.org film string.
+ *
+ * @param filmdevFilmString - Film name provided by filmdev.org
+ * @param availableFilms - Collection of locally known films to search
+ * @returns The matching `Film` if a reasonable match is found, `null` otherwise
  */
 export function findBestFilmMatch(
   filmdevFilmString: string,
@@ -68,8 +71,11 @@ export function findBestFilmMatch(
 }
 
 /**
- * Attempts to find the best matching developer from your database
- * using the developer string from filmdev.org
+ * Attempt to find the best matching developer from the local database using a filmdev.org string.
+ *
+ * @param filmdevDeveloperString - Developer name provided by filmdev.org
+ * @param availableDevelopers - Collection of locally known developers to search
+ * @returns Matching developer entity or null when no reasonable match is detected
  */
 export function findBestDeveloperMatch(
   filmdevDeveloperString: string,
