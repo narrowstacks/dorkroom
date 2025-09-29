@@ -16,6 +16,13 @@ export interface UseUrlPresetLoaderOptions {
   clearUrlAfterLoad?: boolean;
 }
 
+/**
+ * Hook that loads and decodes border presets from URL hashes or provided strings.
+ * Handles validation, optional auto-application, and exposes manual loading helpers.
+ *
+ * @param options - Configuration for preset loading behaviour and callbacks
+ * @returns Loaded preset state along with helper actions for managing presets
+ */
 export function useUrlPresetLoader(options: UseUrlPresetLoaderOptions = {}) {
   const [loadedPreset, setLoadedPreset] = useState<LoadedPreset | null>(null);
   const [isLoading, setIsLoading] = useState(false);

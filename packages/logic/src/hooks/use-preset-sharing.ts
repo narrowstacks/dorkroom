@@ -19,6 +19,13 @@ export interface UsePresetSharingOptions {
   onShareError?: (error: string) => void;
 }
 
+/**
+ * Hook that generates shareable URLs for border presets and triggers sharing flows.
+ * Tries native sharing first, falls back to clipboard/manual methods, and reports results.
+ *
+ * @param options - Optional callbacks invoked on successful share or error
+ * @returns Sharing helpers, current state, and utilities for preset URLs
+ */
 export function usePresetSharing(options: UsePresetSharingOptions = {}) {
   const [isSharing, setIsSharing] = useState(false);
   const [lastSharedUrl, setLastSharedUrl] = useState<string | null>(null);
