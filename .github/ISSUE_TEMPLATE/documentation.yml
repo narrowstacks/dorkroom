@@ -1,8 +1,8 @@
 name: 📚 Documentation
 description: Report missing, unclear, or incorrect documentation
-title: "[Docs]: "
-labels: ["documentation", "needs-triage"]
-projects: ["narrowstacks/1"]
+title: '[Docs]: '
+labels: ['documentation', 'needs-triage']
+projects: ['narrowstacks/1']
 assignees: []
 body:
   - type: markdown

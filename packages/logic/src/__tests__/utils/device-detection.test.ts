@@ -2,7 +2,7 @@ import {
   isMobileDevice,
   isIOS,
   isAndroid,
-  shouldUseWebShare
+  shouldUseWebShare,
 } from '../../utils/device-detection';
 
 // Mock window and navigator objects
@@ -72,11 +72,13 @@ describe('device detection', () => {
     it('should return false for desktop without touch', () => {
       Object.defineProperty(global, 'window', {
         value: createMockWindow({
-          navigator: { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0' },
+          navigator: {
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0',
+          },
           innerWidth: 1920,
-          innerHeight: 1080
+          innerHeight: 1080,
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isMobileDevice()).toBe(false);
@@ -87,13 +89,13 @@ describe('device detection', () => {
         value: createMockWindow({
           navigator: {
             userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X)',
-            maxTouchPoints: 5
+            maxTouchPoints: 5,
           },
           ontouchstart: true,
           innerWidth: 375,
-          innerHeight: 667
+          innerHeight: 667,
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isMobileDevice()).toBe(true);
@@ -104,13 +106,13 @@ describe('device detection', () => {
         value: createMockWindow({
           navigator: {
             userAgent: 'Mozilla/5.0 (Linux; Android 11; SM-G975F)',
-            maxTouchPoints: 5
+            maxTouchPoints: 5,
           },
           ontouchstart: true,
           innerWidth: 360,
-          innerHeight: 640
+          innerHeight: 640,
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isMobileDevice()).toBe(true);
@@ -121,13 +123,13 @@ describe('device detection', () => {
         value: createMockWindow({
           navigator: {
             userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0',
-            maxTouchPoints: 1
+            maxTouchPoints: 1,
           },
           ontouchstart: true,
           innerWidth: 600,
-          innerHeight: 800
+          innerHeight: 800,
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isMobileDevice()).toBe(true);
@@ -138,13 +140,13 @@ describe('device detection', () => {
         value: createMockWindow({
           navigator: {
             userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0',
-            maxTouchPoints: 1
+            maxTouchPoints: 1,
           },
           ontouchstart: true,
           innerWidth: 1920,
-          innerHeight: 1080
+          innerHeight: 1080,
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isMobileDevice()).toBe(false);
@@ -155,13 +157,13 @@ describe('device detection', () => {
         value: createMockWindow({
           navigator: {
             userAgent: 'Mozilla/5.0 (iPad; CPU OS 14_6 like Mac OS X)',
-            maxTouchPoints: 5
+            maxTouchPoints: 5,
           },
           ontouchstart: true,
           innerWidth: 768,
-          innerHeight: 1024
+          innerHeight: 1024,
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isMobileDevice()).toBe(true);
@@ -170,9 +172,9 @@ describe('device detection', () => {
     it('should handle missing navigator properties gracefully', () => {
       Object.defineProperty(global, 'window', {
         value: createMockWindow({
-          navigator: {}
+          navigator: {},
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isMobileDevice()).toBe(false);
@@ -187,9 +189,11 @@ describe('device detection', () => {
     it('should return true for iPhone', () => {
       Object.defineProperty(global, 'window', {
         value: createMockWindow({
-          navigator: { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X)' }
+          navigator: {
+            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X)',
+          },
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isIOS()).toBe(true);
@@ -198,9 +202,11 @@ describe('device detection', () => {
     it('should return true for iPad', () => {
       Object.defineProperty(global, 'window', {
         value: createMockWindow({
-          navigator: { userAgent: 'Mozilla/5.0 (iPad; CPU OS 14_6 like Mac OS X)' }
+          navigator: {
+            userAgent: 'Mozilla/5.0 (iPad; CPU OS 14_6 like Mac OS X)',
+          },
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isIOS()).toBe(true);
@@ -209,9 +215,12 @@ describe('device detection', () => {
     it('should return true for iPod', () => {
       Object.defineProperty(global, 'window', {
         value: createMockWindow({
-          navigator: { userAgent: 'Mozilla/5.0 (iPod touch; CPU iPhone OS 14_6 like Mac OS X)' }
+          navigator: {
+            userAgent:
+              'Mozilla/5.0 (iPod touch; CPU iPhone OS 14_6 like Mac OS X)',
+          },
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isIOS()).toBe(true);
@@ -220,9 +229,9 @@ describe('device detection', () => {
     it('should return false for Android', () => {
       Object.defineProperty(global, 'window', {
         value: createMockWindow({
-          navigator: { userAgent: 'Mozilla/5.0 (Linux; Android 11; SM-G975F)' }
+          navigator: { userAgent: 'Mozilla/5.0 (Linux; Android 11; SM-G975F)' },
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isIOS()).toBe(false);
@@ -231,9 +240,11 @@ describe('device detection', () => {
     it('should return false for desktop', () => {
       Object.defineProperty(global, 'window', {
         value: createMockWindow({
-          navigator: { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0' }
+          navigator: {
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0',
+          },
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isIOS()).toBe(false);
@@ -242,9 +253,9 @@ describe('device detection', () => {
     it('should handle missing navigator gracefully', () => {
       Object.defineProperty(global, 'window', {
         value: createMockWindow({
-          navigator: {}
+          navigator: {},
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isIOS()).toBe(false);
@@ -259,9 +270,9 @@ describe('device detection', () => {
     it('should return true for Android devices', () => {
       Object.defineProperty(global, 'window', {
         value: createMockWindow({
-          navigator: { userAgent: 'Mozilla/5.0 (Linux; Android 11; SM-G975F)' }
+          navigator: { userAgent: 'Mozilla/5.0 (Linux; Android 11; SM-G975F)' },
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isAndroid()).toBe(true);
@@ -270,9 +281,11 @@ describe('device detection', () => {
     it('should return false for iOS devices', () => {
       Object.defineProperty(global, 'window', {
         value: createMockWindow({
-          navigator: { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X)' }
+          navigator: {
+            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X)',
+          },
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isAndroid()).toBe(false);
@@ -281,9 +294,11 @@ describe('device detection', () => {
     it('should return false for desktop', () => {
       Object.defineProperty(global, 'window', {
         value: createMockWindow({
-          navigator: { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0' }
+          navigator: {
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0',
+          },
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isAndroid()).toBe(false);
@@ -292,9 +307,9 @@ describe('device detection', () => {
     it('should handle missing navigator gracefully', () => {
       Object.defineProperty(global, 'window', {
         value: createMockWindow({
-          navigator: {}
+          navigator: {},
         }),
-        writable: true
+        writable: true,
       });
 
       expect(isAndroid()).toBe(false);
@@ -309,7 +324,7 @@ describe('device detection', () => {
     it('should return false when navigator.share is not a function', () => {
       Object.defineProperty(global, 'navigator', {
         value: createMockNavigator(),
-        writable: true
+        writable: true,
       });
 
       expect(shouldUseWebShare()).toBe(false);
@@ -318,20 +333,20 @@ describe('device detection', () => {
     it('should return false on desktop even with Web Share API', () => {
       Object.defineProperty(global, 'navigator', {
         value: createMockNavigator({
-          share: vi.fn()
+          share: vi.fn(),
         }),
-        writable: true
+        writable: true,
       });
 
       Object.defineProperty(global, 'window', {
         value: createMockWindow({
           navigator: createMockNavigator({
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0'
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0',
           }),
           innerWidth: 1920,
-          innerHeight: 1080
+          innerHeight: 1080,
         }),
-        writable: true
+        writable: true,
       });
 
       expect(shouldUseWebShare()).toBe(false);
@@ -340,9 +355,9 @@ describe('device detection', () => {
     it('should return true on mobile with Web Share API', () => {
       Object.defineProperty(global, 'navigator', {
         value: createMockNavigator({
-          share: vi.fn()
+          share: vi.fn(),
         }),
-        writable: true
+        writable: true,
       });
 
       Object.defineProperty(global, 'window', {
@@ -350,13 +365,13 @@ describe('device detection', () => {
           navigator: createMockNavigator({
             userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X)',
             maxTouchPoints: 5,
-            share: vi.fn()
+            share: vi.fn(),
           }),
           ontouchstart: true,
           innerWidth: 375,
-          innerHeight: 667
+          innerHeight: 667,
         }),
-        writable: true
+        writable: true,
       });
 
       expect(shouldUseWebShare()).toBe(true);
@@ -365,20 +380,20 @@ describe('device detection', () => {
     it('should return false on mobile without Web Share API', () => {
       Object.defineProperty(global, 'navigator', {
         value: createMockNavigator(),
-        writable: true
+        writable: true,
       });
 
       Object.defineProperty(global, 'window', {
         value: createMockWindow({
           navigator: createMockNavigator({
             userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X)',
-            maxTouchPoints: 5
+            maxTouchPoints: 5,
           }),
           ontouchstart: true,
           innerWidth: 375,
-          innerHeight: 667
+          innerHeight: 667,
         }),
-        writable: true
+        writable: true,
       });
 
       expect(shouldUseWebShare()).toBe(false);

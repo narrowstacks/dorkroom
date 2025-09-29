@@ -3,17 +3,17 @@
    -------------------------------------------------------------
    Performance tests for optimized border calculations
 \* ------------------------------------------------------------------ */
-import { debugLog } from "@/utils/debugLogger";
+import { debugLog } from '@/utils/debugLogger';
 
-import { performance } from "perf_hooks";
+import { performance } from 'perf_hooks';
 import {
   findCenteringOffsets,
   calculateOptimalMinBorder,
   computePrintSize,
   clampOffsets,
-} from "../borderCalculations";
+} from '../borderCalculations';
 
-describe("Border Calculations Performance", () => {
+describe('Border Calculations Performance', () => {
   // Test data for performance benchmarks
   const testCases = [
     { paperW: 8, paperH: 10, ratioW: 3, ratioH: 2 },
@@ -23,7 +23,7 @@ describe("Border Calculations Performance", () => {
     { paperW: 13.5, paperH: 10.25, ratioW: 3.2, ratioH: 2.1 }, // Non-standard sizes
   ];
 
-  it("should handle repeated findCenteringOffsets calls efficiently", () => {
+  it('should handle repeated findCenteringOffsets calls efficiently', () => {
     const iterations = 1000;
     const start = performance.now();
 
@@ -38,14 +38,14 @@ describe("Border Calculations Performance", () => {
     const timePerCall = (end - start) / (iterations * 2);
 
     debugLog(
-      `Average time per findCenteringOffsets call: ${timePerCall.toFixed(3)}ms`,
+      `Average time per findCenteringOffsets call: ${timePerCall.toFixed(3)}ms`
     );
 
     // Should be very fast due to memoization (less than 0.1ms per call)
     expect(timePerCall).toBeLessThan(0.1);
   });
 
-  it("should optimize calculateOptimalMinBorder with reasonable performance", () => {
+  it('should optimize calculateOptimalMinBorder with reasonable performance', () => {
     const iterations = 100; // Fewer iterations as this is more computationally intensive
     const start = performance.now();
 
@@ -56,7 +56,7 @@ describe("Border Calculations Performance", () => {
         testCase.paperH,
         testCase.ratioW,
         testCase.ratioH,
-        0.5,
+        0.5
       );
     }
 
@@ -64,14 +64,16 @@ describe("Border Calculations Performance", () => {
     const timePerCall = (end - start) / iterations;
 
     debugLog(
-      `Average time per calculateOptimalMinBorder call: ${timePerCall.toFixed(3)}ms`,
+      `Average time per calculateOptimalMinBorder call: ${timePerCall.toFixed(
+        3
+      )}ms`
     );
 
     // Should complete within reasonable time (less than 5ms per call)
     expect(timePerCall).toBeLessThan(5);
   });
 
-  it("should demonstrate memoization cache effectiveness", () => {
+  it('should demonstrate memoization cache effectiveness', () => {
     // Clear any existing cache state by using unique values first
     const uniqueTests = [
       { paperW: 7.123, paperH: 9.456, landscape: true },
@@ -81,7 +83,7 @@ describe("Border Calculations Performance", () => {
     // First calls - should be slower (cache miss)
     const start1 = performance.now();
     uniqueTests.forEach((test) =>
-      findCenteringOffsets(test.paperW, test.paperH, test.landscape),
+      findCenteringOffsets(test.paperW, test.paperH, test.landscape)
     );
     const end1 = performance.now();
     const firstCallTime = end1 - start1;
@@ -89,7 +91,7 @@ describe("Border Calculations Performance", () => {
     // Second calls - should be faster (cache hit)
     const start2 = performance.now();
     uniqueTests.forEach((test) =>
-      findCenteringOffsets(test.paperW, test.paperH, test.landscape),
+      findCenteringOffsets(test.paperW, test.paperH, test.landscape)
     );
     const end2 = performance.now();
     const secondCallTime = end2 - start2;
@@ -97,14 +99,17 @@ describe("Border Calculations Performance", () => {
     debugLog(`First call time: ${firstCallTime.toFixed(3)}ms`);
     debugLog(`Second call time (cached): ${secondCallTime.toFixed(3)}ms`);
     debugLog(
-      `Performance improvement: ${(((firstCallTime - secondCallTime) / firstCallTime) * 100).toFixed(1)}%`,
+      `Performance improvement: ${(
+        ((firstCallTime - secondCallTime) / firstCallTime) *
+        100
+      ).toFixed(1)}%`
     );
 
     // Cached calls should be significantly faster
     expect(secondCallTime).toBeLessThan(firstCallTime);
   });
 
-  it("should handle batch operations efficiently", () => {
+  it('should handle batch operations efficiently', () => {
     const batchSize = 50;
     const start = performance.now();
 
@@ -117,7 +122,7 @@ describe("Border Calculations Performance", () => {
         testCase.paperH,
         testCase.ratioW,
         testCase.ratioH,
-        0.5,
+        0.5
       );
 
       const offsets = clampOffsets(
@@ -128,7 +133,7 @@ describe("Border Calculations Performance", () => {
         0.5,
         0, // no offset
         0, // no offset
-        false,
+        false
       );
 
       results.push({ printSize, offsets });
@@ -139,7 +144,9 @@ describe("Border Calculations Performance", () => {
     const timePerBatch = totalTime / batchSize;
 
     debugLog(
-      `Batch processing time: ${totalTime.toFixed(3)}ms for ${batchSize} operations`,
+      `Batch processing time: ${totalTime.toFixed(
+        3
+      )}ms for ${batchSize} operations`
     );
     debugLog(`Average time per operation: ${timePerBatch.toFixed(3)}ms`);
 
@@ -149,7 +156,7 @@ describe("Border Calculations Performance", () => {
     expect(results).toHaveLength(batchSize);
   });
 
-  it("should demonstrate memory efficiency with cache limits", () => {
+  it('should demonstrate memory efficiency with cache limits', () => {
     // Test that the cache doesn't grow indefinitely
     const uniqueInputCount = 150; // More than MAX_MEMO_SIZE (100)
 

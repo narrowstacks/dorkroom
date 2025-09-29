@@ -14,6 +14,25 @@ export interface ShareModalProps {
   canCopyToClipboard?: boolean;
 }
 
+/**
+ * Renders a modal that lets the user copy or natively share a preset's web and app URLs.
+ *
+ * Displays an error state when no valid web URL is available. When open, the modal shows:
+ * - an optional native share action (if enabled and provided),
+ * - a web link (with protocol stripped for display) and copy control,
+ * - an optional native/app link and copy control.
+ *
+ * @param isOpen - Whether the modal is visible.
+ * @param onClose - Callback invoked to close the modal.
+ * @param presetName - Human-readable name shown in the modal title.
+ * @param webUrl - The web URL used for sharing and copying; must be non-empty to enable sharing UI.
+ * @param nativeUrl - Optional app/native URL shown and copyable when present.
+ * @param onCopyToClipboard - Handler invoked to copy a given URL to the clipboard.
+ * @param onNativeShare - Optional handler invoked to perform a system/native share action.
+ * @param canShareNatively - When true and `onNativeShare` is provided, shows the native share action.
+ * @param canCopyToClipboard - When true, shows copy-to-clipboard controls for available URLs.
+ * @returns The modal's React element when `isOpen` is true, or `null` when closed.
+ */
 export function ShareModal({
   isOpen,
   onClose,
@@ -153,7 +172,8 @@ export function ShareModal({
                   className="inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm sm:ml-3 sm:w-auto sm:text-sm transition focus-visible:outline-none focus-visible:ring-2"
                   style={
                     {
-                      backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
+                      backgroundColor:
+                        'rgba(var(--color-background-rgb), 0.06)',
                       color: 'var(--color-text-primary)',
                       borderWidth: 1,
                       borderColor: 'var(--color-border-secondary)',
@@ -232,7 +252,9 @@ export function ShareModal({
                                     color: 'var(--color-background)',
                                     '--tw-ring-color':
                                       'var(--color-border-primary)',
-                                  }) as React.CSSProperties & { '--tw-ring-color': string }
+                                  }) as React.CSSProperties & {
+                                '--tw-ring-color': string;
+                              }
                             }
                           >
                             {isSharing ? (
@@ -328,37 +350,39 @@ export function ShareModal({
                                       color: 'var(--color-text-primary)',
                                       '--tw-ring-color':
                                         'var(--color-border-primary)',
-                                    }) as React.CSSProperties & { '--tw-ring-color': string }
+                                    }) as React.CSSProperties & {
+                                  '--tw-ring-color': string;
+                                }
                               }
                             >
                               {copySuccess ? (
                                 <svg
-                                    className="h-4 w-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M5 13l4 4L19 7"
-                                    />
-                                  </svg>
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
                               ) : (
                                 <svg
-                                    className="h-4 w-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                    />
-                                  </svg>
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                  />
+                                </svg>
                               )}
                             </button>
                           )}
@@ -399,13 +423,17 @@ export function ShareModal({
                                 className={cn(
                                   'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2'
                                 )}
-                                style={{
-                                  backgroundColor:
-                                    'rgba(var(--color-background-rgb), 0.2)',
-                                  color: 'var(--color-text-primary)',
-                                  '--tw-ring-color':
-                                    'var(--color-border-primary)',
-                                } as React.CSSProperties & { '--tw-ring-color': string }}
+                                style={
+                                  {
+                                    backgroundColor:
+                                      'rgba(var(--color-background-rgb), 0.2)',
+                                    color: 'var(--color-text-primary)',
+                                    '--tw-ring-color':
+                                      'var(--color-border-primary)',
+                                  } as React.CSSProperties & {
+                                    '--tw-ring-color': string;
+                                  }
+                                }
                               >
                                 <svg
                                   className="h-4 w-4"
@@ -439,7 +467,8 @@ export function ShareModal({
                   className="mt-3 inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition focus-visible:outline-none focus-visible:ring-2"
                   style={
                     {
-                      backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
+                      backgroundColor:
+                        'rgba(var(--color-background-rgb), 0.06)',
                       color: 'var(--color-text-primary)',
                       borderWidth: 1,
                       borderColor: 'var(--color-border-secondary)',

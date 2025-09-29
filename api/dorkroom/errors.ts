@@ -9,12 +9,9 @@
  * Base exception for Dorkroom API errors.
  */
 export class DorkroomAPIError extends Error {
-  constructor(
-    message: string,
-    public readonly cause?: Error,
-  ) {
+  constructor(message: string, public readonly cause?: Error) {
     super(message);
-    this.name = "DorkroomAPIError";
+    this.name = 'DorkroomAPIError';
 
     // Maintain proper stack trace for where our error was thrown (Node.js)
     if (Error.captureStackTrace) {
@@ -31,10 +28,10 @@ export class DataFetchError extends DorkroomAPIError {
     message: string,
     cause?: Error,
     public readonly statusCode?: number,
-    public readonly isRetryable: boolean = false,
+    public readonly isRetryable: boolean = false
   ) {
     super(message, cause);
-    this.name = "DataFetchError";
+    this.name = 'DataFetchError';
   }
 }
 
@@ -44,7 +41,7 @@ export class DataFetchError extends DorkroomAPIError {
 export class DataParseError extends DorkroomAPIError {
   constructor(message: string, cause?: Error) {
     super(message, cause);
-    this.name = "DataParseError";
+    this.name = 'DataParseError';
   }
 }
 
@@ -52,9 +49,9 @@ export class DataParseError extends DorkroomAPIError {
  * Raised when data operations are attempted before loading.
  */
 export class DataNotLoadedError extends DorkroomAPIError {
-  constructor(message: string = "Call loadAll() before using the client.") {
+  constructor(message: string = 'Call loadAll() before using the client.') {
     super(message);
-    this.name = "DataNotLoadedError";
+    this.name = 'DataNotLoadedError';
   }
 }
 
@@ -64,7 +61,7 @@ export class DataNotLoadedError extends DorkroomAPIError {
 export class NetworkError extends DorkroomAPIError {
   constructor(message: string, cause?: Error) {
     super(message, cause);
-    this.name = "NetworkError";
+    this.name = 'NetworkError';
   }
 }
 
@@ -72,12 +69,9 @@ export class NetworkError extends DorkroomAPIError {
  * Raised when request times out.
  */
 export class TimeoutError extends DorkroomAPIError {
-  constructor(
-    message: string,
-    public readonly timeoutMs: number,
-  ) {
+  constructor(message: string, public readonly timeoutMs: number) {
     super(message);
-    this.name = "TimeoutError";
+    this.name = 'TimeoutError';
   }
 }
 
@@ -88,10 +82,10 @@ export class RateLimitError extends DorkroomAPIError {
   constructor(
     message: string,
     public readonly retryAfterMs?: number,
-    public readonly resetTime?: Date,
+    public readonly resetTime?: Date
   ) {
     super(message);
-    this.name = "RateLimitError";
+    this.name = 'RateLimitError';
   }
 }
 
@@ -100,11 +94,11 @@ export class RateLimitError extends DorkroomAPIError {
  */
 export class CircuitBreakerError extends DorkroomAPIError {
   constructor(
-    message: string = "Circuit breaker is open - too many recent failures",
-    public readonly nextAttemptTime?: Date,
+    message: string = 'Circuit breaker is open - too many recent failures',
+    public readonly nextAttemptTime?: Date
   ) {
     super(message);
-    this.name = "CircuitBreakerError";
+    this.name = 'CircuitBreakerError';
   }
 }
 
@@ -115,10 +109,10 @@ export class ServerError extends DorkroomAPIError {
   constructor(
     message: string,
     public readonly statusCode: number,
-    public readonly isRetryable: boolean = true,
+    public readonly isRetryable: boolean = true
   ) {
     super(message);
-    this.name = "ServerError";
+    this.name = 'ServerError';
   }
 }
 
@@ -126,11 +120,8 @@ export class ServerError extends DorkroomAPIError {
  * Raised when client sends invalid request (4xx errors, excluding 429).
  */
 export class ClientError extends DorkroomAPIError {
-  constructor(
-    message: string,
-    public readonly statusCode: number,
-  ) {
+  constructor(message: string, public readonly statusCode: number) {
     super(message);
-    this.name = "ClientError";
+    this.name = 'ClientError';
   }
 }

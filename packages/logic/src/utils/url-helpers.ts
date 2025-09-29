@@ -1,4 +1,4 @@
-/**
+/*
  * URL configuration for different environments
  */
 const URL_CONFIG = {
@@ -17,6 +17,7 @@ const URL_CONFIG = {
  * Gets the base URL for the current environment.
  * Automatically detects development vs production and constructs appropriate URL.
  *
+ * @internal
  * @returns Base URL string for the current environment
  * @example
  * ```typescript
@@ -46,6 +47,7 @@ function getBaseUrl(): string {
  * Generates a dynamic share URL for the border calculator.
  * Uses current environment's base URL for context-appropriate sharing.
  *
+ * @public
  * @param path - Path to append to base URL, defaults to border calculator path
  * @returns Complete shareable URL for the specified path
  * @example
@@ -68,6 +70,7 @@ export function getDynamicShareUrl(
  * Generates a native app URL for deep linking to presets.
  * Creates URL using custom scheme for opening in native mobile app.
  *
+ * @public
  * @param encoded - Encoded preset string
  * @returns Native app deep link URL
  * @example
@@ -84,6 +87,7 @@ export function getNativeUrl(encoded: string): string {
  * Generates both web and native sharing URLs for a preset.
  * Provides complete sharing solution for cross-platform compatibility.
  *
+ * @public
  * @param encoded - Encoded preset string
  * @returns Object containing both web and native URLs
  * @example
@@ -110,6 +114,7 @@ export function generateSharingUrls(encoded: string): {
  * Extracts encoded preset from current URL hash.
  * Safely handles SSR environments and invalid hash formats.
  *
+ * @public
  * @returns Encoded preset string from URL hash, or null if not found
  * @example
  * ```typescript
@@ -139,7 +144,9 @@ export function getPresetFromUrl(): string | null {
  * Updates the URL hash with an encoded preset without triggering page reload.
  * Uses history.replaceState to maintain browser navigation without refresh.
  *
+ * @public
  * @param encoded - Encoded preset string to add to URL hash
+ * @returns void
  * @example
  * ```typescript
  * updateUrlWithPreset('preset123abc');
@@ -159,6 +166,8 @@ export function updateUrlWithPreset(encoded: string): void {
  * Clears the preset from the URL hash without page reload.
  * Removes hash portion while preserving path and query parameters.
  *
+ * @public
+ * @returns void
  * @example
  * ```typescript
  * // URL: https://example.com/border?param=1#preset123abc
@@ -179,6 +188,7 @@ export function clearPresetFromUrl(): void {
  * Checks if the current environment supports the Web Share API.
  * Used to determine if native sharing UI is available.
  *
+ * @public
  * @returns True if Web Share API is supported, false otherwise
  * @example
  * ```typescript
@@ -197,6 +207,7 @@ export function isWebShareSupported(): boolean {
  * Checks if the current environment supports the Clipboard API.
  * Used to determine if copy-to-clipboard functionality is available.
  *
+ * @public
  * @returns True if Clipboard API is supported, false otherwise
  * @example
  * ```typescript
@@ -219,6 +230,7 @@ export function isClipboardSupported(): boolean {
  * Gets a user-friendly URL for display purposes by removing the protocol.
  * Creates cleaner URLs for UI display while preserving path and hash.
  *
+ * @public
  * @param url - Full URL to make display-friendly
  * @returns URL without protocol, or original string if parsing fails
  * @example

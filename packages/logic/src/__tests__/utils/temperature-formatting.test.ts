@@ -1,4 +1,7 @@
-import { formatTemperature, TemperatureData } from '../../utils/temperature-formatting';
+import {
+  formatTemperature,
+  TemperatureData,
+} from '../../utils/temperature-formatting';
 
 describe('temperature formatting', () => {
   describe('formatTemperature', () => {
@@ -45,7 +48,10 @@ describe('temperature formatting', () => {
       const boiling: TemperatureData = { temperatureF: 212, temperatureC: 100 };
       expect(formatTemperature(boiling)).toBe('212.0°F (100.0°C)');
 
-      const bodyTemp: TemperatureData = { temperatureF: 98.6, temperatureC: 37 };
+      const bodyTemp: TemperatureData = {
+        temperatureF: 98.6,
+        temperatureC: 37,
+      };
       expect(formatTemperature(bodyTemp)).toBe('98.6°F (37.0°C)');
     });
 
@@ -53,7 +59,9 @@ describe('temperature formatting', () => {
       expect(formatTemperature({})).toBe('—');
       expect(formatTemperature({ temperatureF: null })).toBe('—');
       expect(formatTemperature({ temperatureC: null })).toBe('—');
-      expect(formatTemperature({ temperatureF: null, temperatureC: null })).toBe('—');
+      expect(
+        formatTemperature({ temperatureF: null, temperatureC: null })
+      ).toBe('—');
     });
 
     it('should handle invalid numeric values', () => {
@@ -66,7 +74,9 @@ describe('temperature formatting', () => {
     it('should handle undefined values', () => {
       expect(formatTemperature({ temperatureF: undefined })).toBe('—');
       expect(formatTemperature({ temperatureC: undefined })).toBe('—');
-      expect(formatTemperature({ temperatureF: undefined, temperatureC: undefined })).toBe('—');
+      expect(
+        formatTemperature({ temperatureF: undefined, temperatureC: undefined })
+      ).toBe('—');
     });
 
     it('should prioritize provided Celsius over conversion when both F and C are given', () => {
@@ -78,19 +88,25 @@ describe('temperature formatting', () => {
     it('should handle zero temperatures', () => {
       expect(formatTemperature({ temperatureF: 0 })).toBe('0.0°F');
       expect(formatTemperature({ temperatureC: 0 })).toBe('0.0°C');
-      expect(formatTemperature({ temperatureF: 0, temperatureC: 0 })).toBe('0.0°F (0.0°C)');
+      expect(formatTemperature({ temperatureF: 0, temperatureC: 0 })).toBe(
+        '0.0°F (0.0°C)'
+      );
     });
 
     it('should handle negative temperatures', () => {
       expect(formatTemperature({ temperatureF: -40 })).toBe('-40.0°F');
       expect(formatTemperature({ temperatureC: -10 })).toBe('-10.0°C');
-      expect(formatTemperature({ temperatureF: 14, temperatureC: -10 })).toBe('14.0°F (-10.0°C)');
+      expect(formatTemperature({ temperatureF: 14, temperatureC: -10 })).toBe(
+        '14.0°F (-10.0°C)'
+      );
     });
 
     it('should format decimal places consistently', () => {
       expect(formatTemperature({ temperatureF: 68.123 })).toBe('68.1°F');
       expect(formatTemperature({ temperatureC: 20.987 })).toBe('21.0°C');
-      expect(formatTemperature({ temperatureF: 70.0, temperatureC: 21.1 })).toBe('70.0°F (21.1°C)');
+      expect(
+        formatTemperature({ temperatureF: 70.0, temperatureC: 21.1 })
+      ).toBe('70.0°F (21.1°C)');
     });
   });
 });

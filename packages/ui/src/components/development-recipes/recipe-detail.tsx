@@ -27,6 +27,16 @@ const DetailRow = ({
   </div>
 );
 
+/**
+ * Render detailed information for a development recipe, including combination, film, developer, notes, tags, and applicable action buttons.
+ *
+ * @param view - The combined view model containing `combination`, `film`, and `developer` data to display.
+ * @param onEditCustomRecipe - Optional callback invoked with `view` when the "Edit recipe" action is triggered.
+ * @param onDeleteCustomRecipe - Optional callback invoked with `view` when the "Delete recipe" action is triggered.
+ * @param isFavorite - Optional predicate that returns whether `view` is marked as favorite.
+ * @param onToggleFavorite - Optional callback invoked with `view` to toggle its favorite state.
+ * @returns The rendered recipe detail UI as a React element.
+ */
 export function DevelopmentRecipeDetail({
   view,
   onEditCustomRecipe,
@@ -74,11 +84,13 @@ export function DevelopmentRecipeDetail({
         />
         <DetailRow
           label="Temperature"
-          value={formatTemperatureWithUnit(
-            combination.temperatureF,
-            combination.temperatureC,
-            unit
-          ).text}
+          value={
+            formatTemperatureWithUnit(
+              combination.temperatureF,
+              combination.temperatureC,
+              unit
+            ).text
+          }
         />
         <DetailRow
           label="Dilution"

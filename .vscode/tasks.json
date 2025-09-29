@@ -1,81 +1,81 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "nx:dorkroom:dev",
-            "type": "shell",
-            "command": "bunx",
-            "args": ["nx", "dev", "dorkroom", "--", "--host=0.0.0.0"],
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false
-            },
-            "isBackground": true,
-            "problemMatcher": {
-                "background": {
-                    "activeOnStart": true,
-                    "beginsPattern": "^.*NX.*",
-                    "endsPattern": "^.*Local:.*$"
-                }
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            }
-        },
-        {
-            "label": "nx:dorkroom:build",
-            "type": "shell",
-            "command": "bunx",
-            "args": ["nx", "build", "dorkroom"],
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            }
-        },
-        {
-            "label": "nx:dorkroom:test",
-            "type": "shell",
-            "command": "bunx",
-            "args": ["nx", "test", "dorkroom"],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            }
-        },
-        {
-            "label": "nx:dorkroom:lint",
-            "type": "shell",
-            "command": "bunx",
-            "args": ["nx", "lint", "dorkroom"],
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            }
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "nx:dorkroom:dev",
+      "type": "shell",
+      "command": "bunx",
+      "args": ["nx", "dev", "dorkroom", "--", "--host=0.0.0.0"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*NX.*",
+          "endsPattern": "^.*Local:.*$"
         }
-    ]
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "nx:dorkroom:build",
+      "type": "shell",
+      "command": "bunx",
+      "args": ["nx", "build", "dorkroom"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "nx:dorkroom:test",
+      "type": "shell",
+      "command": "bunx",
+      "args": ["nx", "test", "dorkroom"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "nx:dorkroom:lint",
+      "type": "shell",
+      "command": "bunx",
+      "args": ["nx", "lint", "dorkroom"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    }
+  ]
 }

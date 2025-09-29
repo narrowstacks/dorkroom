@@ -2,20 +2,66 @@ import type { ChangeEvent } from 'react';
 import { useId, useState } from 'react';
 import { cn } from '../lib/cn';
 
+/**
+ * Props for the LabeledSliderInput component.
+ * Provides configuration for a dual-input component with both slider and number input.
+ *
+ * @public
+ */
 interface LabeledSliderInputProps {
+  /** Display label for the input group */
   label: string;
+  /** Current numeric value */
   value: number;
+  /** Callback for value changes from the number input */
   onChange: (value: number) => void;
+  /** Optional callback for slider-specific changes (for continuous updates) */
   onSliderChange?: (value: number) => void;
+  /** Minimum allowed value */
   min: number;
+  /** Maximum allowed value */
   max: number;
+  /** Step increment for the slider */
   step: number;
+  /** Optional labels to display below the slider for reference points */
   labels?: string[];
+  /** Optional CSS class name for styling customization */
   className?: string;
+  /** Whether to display warning styling (yellow border/background) */
   warning?: boolean;
+  /** Whether to enable continuous updates during slider drag */
   continuousUpdate?: boolean;
 }
 
+/**
+ * A dual-input component combining a range slider with a number input field.
+ * Provides both precise numeric input and intuitive slider-based value selection.
+ *
+ * Features:
+ * - Synchronized slider and number input
+ * - Optional continuous update mode for real-time feedback
+ * - Warning state styling for validation errors
+ * - Optional reference labels below the slider
+ * - Accessible with proper ARIA labeling
+ *
+ * @public
+ * @param props - Configuration props for the component
+ * @returns JSX element containing the labeled slider input interface
+ *
+ * @example
+ * ```tsx
+ * <LabeledSliderInput
+ *   label="Border Size"
+ *   value={borderSize}
+ *   onChange={setBorderSize}
+ *   min={0}
+ *   max={2}
+ *   step={0.1}
+ *   labels={['0"', '1"', '2"']}
+ *   warning={borderSize < 0.25}
+ * />
+ * ```
+ */
 export function LabeledSliderInput({
   label,
   value,

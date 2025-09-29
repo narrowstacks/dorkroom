@@ -42,7 +42,10 @@ export class DorkroomClient {
   }
 
   /**
-   * Load all data from the API endpoints
+   * Load all data from the API endpoints.
+   *
+   * @returns Promise that resolves after films, developers, and combinations are cached
+   * @throws DorkroomApiError when any dataset fails to load
    */
   async loadAll(): Promise<void> {
     try {
@@ -67,7 +70,9 @@ export class DorkroomClient {
   }
 
   /**
-   * Force reload all data, ignoring cache
+   * Force reload all data, ignoring cache.
+   *
+   * @returns Promise that resolves after cached data has been refreshed
    */
   async forceReload(): Promise<void> {
     this.clearCache();
@@ -75,7 +80,9 @@ export class DorkroomClient {
   }
 
   /**
-   * Check if cached data has expired
+   * Check if cached data has expired.
+   *
+   * @returns True when the cached data is unavailable or past the configured expiry
    */
   isDataExpired(): boolean {
     if (!this.lastLoadTime) return true;
@@ -83,7 +90,10 @@ export class DorkroomClient {
   }
 
   /**
-   * Get all films (returns cached data if available)
+   * Get all films (returns cached data if available).
+   *
+   * @returns Cached film list
+   * @throws DorkroomApiError when films have not been loaded via {@link loadAll}
    */
   getAllFilms(): Film[] {
     if (!this.filmsCache) {
@@ -95,7 +105,10 @@ export class DorkroomClient {
   }
 
   /**
-   * Get all developers (returns cached data if available)
+   * Get all developers (returns cached data if available).
+   *
+   * @returns Cached developer list
+   * @throws DorkroomApiError when developers have not been loaded via {@link loadAll}
    */
   getAllDevelopers(): Developer[] {
     if (!this.developersCache) {
@@ -107,7 +120,10 @@ export class DorkroomClient {
   }
 
   /**
-   * Get all combinations (returns cached data if available)
+   * Get all combinations (returns cached data if available).
+   *
+   * @returns Cached combination list
+   * @throws DorkroomApiError when combinations have not been loaded via {@link loadAll}
    */
   getAllCombinations(): Combination[] {
     if (!this.combinationsCache) {
@@ -119,7 +135,9 @@ export class DorkroomClient {
   }
 
   /**
-   * Clear all cached data
+   * Clear all cached data.
+   *
+   * @returns void
    */
   private clearCache(): void {
     this.filmsCache = null;
@@ -129,7 +147,9 @@ export class DorkroomClient {
   }
 
   /**
-   * Fetch films from the API
+   * Fetch films from the API.
+   *
+   * @returns Promise resolving to normalized film entities
    */
   private async fetchFilms(): Promise<Film[]> {
     const response = await this.transport.get<{
@@ -140,7 +160,9 @@ export class DorkroomClient {
   }
 
   /**
-   * Fetch developers from the API
+   * Fetch developers from the API.
+   *
+   * @returns Promise resolving to normalized developer entities
    */
   private async fetchDevelopers(): Promise<Developer[]> {
     const response = await this.transport.get<{
@@ -152,7 +174,9 @@ export class DorkroomClient {
   }
 
   /**
-   * Fetch combinations from the API
+   * Fetch combinations from the API.
+   *
+   * @returns Promise resolving to normalized combination entities
    */
   private async fetchCombinations(): Promise<Combination[]> {
     const response = await this.transport.get<{
@@ -163,7 +187,10 @@ export class DorkroomClient {
   }
 
   /**
-   * Transform raw film data to camelCase format
+   * Transform raw film data to camelCase format.
+   *
+   * @param raw - Film payload returned by the API
+   * @returns Film entity with camelCase properties
    */
   private transformFilm(raw: RawFilm): Film {
     return {
@@ -187,7 +214,10 @@ export class DorkroomClient {
   }
 
   /**
-   * Transform raw developer data to camelCase format
+   * Transform raw developer data to camelCase format.
+   *
+   * @param raw - Developer payload returned by the API
+   * @returns Developer entity with camelCase properties
    */
   private transformDeveloper(raw: RawDeveloper): Developer {
     return {
@@ -215,7 +245,10 @@ export class DorkroomClient {
   }
 
   /**
-   * Transform raw combination data to camelCase format
+   * Transform raw combination data to camelCase format.
+   *
+   * @param raw - Combination payload returned by the API
+   * @returns Combination entity with camelCase properties
    */
   private transformCombination(raw: RawCombination): Combination {
     // Convert temperature from Celsius to Fahrenheit

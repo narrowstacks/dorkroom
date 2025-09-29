@@ -3,7 +3,7 @@ import {
   roundStopsToThirds,
   formatExposureTime,
   parseExposureTime,
-  calculatePercentageIncrease
+  calculatePercentageIncrease,
 } from '../../utils/exposure-calculations';
 
 describe('exposure calculations', () => {
@@ -22,7 +22,7 @@ describe('exposure calculations', () => {
 
     it('should handle fractional stops', () => {
       expect(calculateNewExposureTime(10, 0.5)).toBeCloseTo(14.14, 2); // +0.5 stop = √2 times
-      expect(calculateNewExposureTime(10, 1/3)).toBeCloseTo(12.60, 2); // +1/3 stop
+      expect(calculateNewExposureTime(10, 1 / 3)).toBeCloseTo(12.6, 2); // +1/3 stop
       expect(calculateNewExposureTime(20, -0.5)).toBeCloseTo(14.14, 2); // -0.5 stop
     });
 

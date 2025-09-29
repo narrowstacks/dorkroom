@@ -1,4 +1,4 @@
-/**
+/*
  * Determines if debug logging is enabled based on environment variables and global flags.
  * Debug logging is enabled in development environments or when explicitly enabled via
  * the global `__DORKROOM_DEBUG__` flag.
@@ -13,7 +13,9 @@ const DEBUG_ENABLED =
  * Debug logging function that outputs to console.log in development environments.
  * In production, this function becomes a no-op to avoid performance overhead.
  *
+ * @public
  * @param args - Arguments to pass to console.log
+ * @returns void
  *
  * @example
  * ```typescript
@@ -32,7 +34,9 @@ export const debugLog: (...args: unknown[]) => void = DEBUG_ENABLED
  * Debug warning function that outputs to console.warn in development environments.
  * In production, this function becomes a no-op to avoid performance overhead.
  *
+ * @public
  * @param args - Arguments to pass to console.warn
+ * @returns void
  *
  * @example
  * ```typescript
@@ -51,7 +55,9 @@ export const debugWarn: (...args: unknown[]) => void = DEBUG_ENABLED
  * Debug error function that outputs to console.error in development environments.
  * In production, this function becomes a no-op to avoid performance overhead.
  *
+ * @public
  * @param args - Arguments to pass to console.error
+ * @returns void
  *
  * @example
  * ```typescript

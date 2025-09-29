@@ -22,7 +22,7 @@ export interface RecipeUrlParams {
   recipe?: string;
 
   /** Indicates this is a shared link */
-  source?: "share";
+  source?: 'share';
 }
 
 /**

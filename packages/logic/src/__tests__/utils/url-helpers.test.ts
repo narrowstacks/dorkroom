@@ -7,7 +7,7 @@ import {
   clearPresetFromUrl,
   isWebShareSupported,
   isClipboardSupported,
-  getDisplayUrl
+  getDisplayUrl,
 } from '../../utils/url-helpers';
 
 // Mock window object for testing
@@ -22,7 +22,9 @@ interface MockLocation {
 
 interface MockWindow {
   location: MockLocation;
-  history: { replaceState: (data: unknown, unused: string, url?: string) => void };
+  history: {
+    replaceState: (data: unknown, unused: string, url?: string) => void;
+  };
 }
 
 const mockWindow: MockWindow = {
@@ -32,11 +34,11 @@ const mockWindow: MockWindow = {
     protocol: 'http:',
     pathname: '/border',
     search: '?test=1',
-    hash: '#encoded-preset'
+    hash: '#encoded-preset',
   },
   history: {
-    replaceState: vi.fn()
-  }
+    replaceState: vi.fn(),
+  },
 };
 
 describe('url helpers', () => {
@@ -61,10 +63,9 @@ describe('url helpers', () => {
     beforeEach(() => {
       Object.defineProperty(global, 'window', {
         value: mockWindow,
-        writable: true
+        writable: true,
       });
     });
-
 
     it('should generate localhost URL in development', () => {
       const url = getDynamicShareUrl();
@@ -114,10 +115,9 @@ describe('url helpers', () => {
 
       Object.defineProperty(global, 'window', {
         value: mockWindow,
-        writable: true
+        writable: true,
       });
     });
-
 
     it('should generate both web and native URLs', () => {
       const encoded = 'abc123';
@@ -132,10 +132,9 @@ describe('url helpers', () => {
     beforeEach(() => {
       Object.defineProperty(global, 'window', {
         value: mockWindow,
-        writable: true
+        writable: true,
       });
     });
-
 
     it('should extract preset from URL hash', () => {
       const preset = getPresetFromUrl();
@@ -171,10 +170,9 @@ describe('url helpers', () => {
     beforeEach(() => {
       Object.defineProperty(global, 'window', {
         value: mockWindow,
-        writable: true
+        writable: true,
       });
     });
-
 
     it('should update URL with encoded preset', () => {
       updateUrlWithPreset('new-preset');
@@ -196,10 +194,9 @@ describe('url helpers', () => {
     beforeEach(() => {
       Object.defineProperty(global, 'window', {
         value: mockWindow,
-        writable: true
+        writable: true,
       });
     });
-
 
     it('should clear preset from URL', () => {
       clearPresetFromUrl();
@@ -222,7 +219,7 @@ describe('url helpers', () => {
     it('should return true when navigator.share exists', () => {
       Object.defineProperty(global, 'navigator', {
         value: { share: vi.fn() },
-        writable: true
+        writable: true,
       });
 
       expect(isWebShareSupported()).toBe(true);
@@ -235,7 +232,7 @@ describe('url helpers', () => {
     it('should return false when navigator.share does not exist', () => {
       Object.defineProperty(global, 'navigator', {
         value: {},
-        writable: true
+        writable: true,
       });
 
       expect(isWebShareSupported()).toBe(false);
@@ -247,10 +244,10 @@ describe('url helpers', () => {
       Object.defineProperty(global, 'navigator', {
         value: {
           clipboard: {
-            writeText: vi.fn()
-          }
+            writeText: vi.fn(),
+          },
         },
-        writable: true
+        writable: true,
       });
 
       expect(isClipboardSupported()).toBe(true);
@@ -263,7 +260,7 @@ describe('url helpers', () => {
     it('should return false when clipboard does not exist', () => {
       Object.defineProperty(global, 'navigator', {
         value: {},
-        writable: true
+        writable: true,
       });
 
       expect(isClipboardSupported()).toBe(false);
@@ -272,9 +269,9 @@ describe('url helpers', () => {
     it('should return false when writeText does not exist', () => {
       Object.defineProperty(global, 'navigator', {
         value: {
-          clipboard: {}
+          clipboard: {},
         },
-        writable: true
+        writable: true,
       });
 
       expect(isClipboardSupported()).toBe(false);
@@ -307,9 +304,12 @@ describe('url helpers', () => {
     });
 
     it('should handle complex URLs', () => {
-      const url = 'https://subdomain.example.com:8080/path/to/resource?query=value&other=param#fragment';
+      const url =
+        'https://subdomain.example.com:8080/path/to/resource?query=value&other=param#fragment';
       const display = getDisplayUrl(url);
-      expect(display).toBe('subdomain.example.com:8080/path/to/resource?query=value&other=param#fragment');
+      expect(display).toBe(
+        'subdomain.example.com:8080/path/to/resource?query=value&other=param#fragment'
+      );
     });
   });
 });
