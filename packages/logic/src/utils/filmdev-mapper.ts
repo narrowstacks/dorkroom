@@ -7,11 +7,11 @@ import type {
 } from '../types/custom-recipes';
 
 /**
- * Attempt to find the best matching film from the local database using a filmdev.org string.
+ * Finds the best matching local film for a filmdev.org film string.
  *
  * @param filmdevFilmString - Film name provided by filmdev.org
  * @param availableFilms - Collection of locally known films to search
- * @returns Matching film entity or null when no reasonable match is detected
+ * @returns The matching `Film` if a reasonable match is found, `null` otherwise
  */
 export function findBestFilmMatch(
   filmdevFilmString: string,

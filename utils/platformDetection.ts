@@ -16,28 +16,36 @@ export interface ApiEndpointConfig {
 }
 
 /**
- * Get the current platform type
+ * Determines the current platform category.
+ *
+ * @returns `'web'` if `Platform.OS` equals `'web'`, `'native'` otherwise.
  */
 export function getPlatformType(): PlatformType {
   return Platform.OS === 'web' ? 'web' : 'native';
 }
 
 /**
- * Check if the app is running on web platform
+ * Determine whether the current platform is web.
+ *
+ * @returns `true` if the platform is 'web', `false` otherwise.
  */
 export function isWebPlatform(): boolean {
   return Platform.OS === 'web';
 }
 
 /**
- * Check if the app is running on native platform
+ * Determine whether the current runtime is a native platform.
+ *
+ * @returns `true` if running on a native platform, `false` otherwise.
  */
 export function isNativePlatform(): boolean {
   return Platform.OS !== 'web';
 }
 
 /**
- * Get the appropriate API endpoint configuration based on the platform
+ * Determine the API endpoint configuration appropriate for the current platform and environment.
+ *
+ * @returns An ApiEndpointConfig describing `baseUrl`, `platform` ('web' | 'native'), and `requiresAuth` chosen according to the runtime platform and `NODE_ENV`.
  */
 export function getApiEndpointConfig(): ApiEndpointConfig {
   if (isWebPlatform()) {
@@ -81,7 +89,10 @@ export function getApiEndpointConfig(): ApiEndpointConfig {
 }
 
 /**
- * Get the full API URL for a specific endpoint
+ * Constructs the absolute API URL for a given endpoint, normalizing leading and trailing slashes.
+ *
+ * @param endpoint - Endpoint path which may include a leading slash (e.g., "/users")
+ * @returns The full API URL formed by joining the configured base URL and the normalized endpoint
  */
 export function getApiUrl(endpoint: string): string {
   const config = getApiEndpointConfig();

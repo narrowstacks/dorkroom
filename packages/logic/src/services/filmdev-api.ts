@@ -40,16 +40,12 @@ export class FilmdevApiError extends Error {
 }
 
 /**
- * Extract recipe IDs from various filmdev.org URL formats.
- * Supports:
- * - https://filmdev.org/recipe/show/123 (user-facing URL)
- * - https://filmdev.org/api/recipe/123 (API URL)
- * - filmdev.org/recipe/123
- * - filmdev.org/api/recipe/123
- * - Direct ID: 123
+ * Extracts a numeric Filmdev recipe ID from a raw input string.
+ *
+ * Accepts a plain numeric ID or a filmdev.org URL that contains `/recipe/show/{id}`; the URL may be prefixed with `api/`, `www.`, and `http(s)://`.
  *
  * @param input - Raw URL or identifier provided by the user
- * @returns Resolved recipe ID string, or null when the value cannot be parsed
+ * @returns The numeric recipe ID as a string, or `null` if no ID could be extracted
  */
 export function extractRecipeId(input: string): string | null {
   const trimmed = input.trim();
@@ -68,11 +64,11 @@ export function extractRecipeId(input: string): string | null {
 }
 
 /**
- * Fetch a recipe from filmdev.org by ID.
+ * Retrieve a filmdev.org recipe by its numeric ID.
  *
- * @param recipeId - Numeric identifier extracted from a filmdev.org URL
- * @returns Promise resolving to the recipe payload from filmdev.org
- * @throws FilmdevApiError when validation fails or the network request is unsuccessful
+ * @param recipeId - Recipe identifier consisting of digits only
+ * @returns The recipe object returned by filmdev.org
+ * @throws FilmdevApiError when `recipeId` is invalid, the recipe is not found, or a network/response error occurs
  */
 export async function fetchFilmdevRecipe(
   recipeId: string
@@ -144,10 +140,10 @@ export async function fetchFilmdevRecipe(
 }
 
 /**
- * Validate whether input resembles a filmdev.org URL or recipe ID.
+ * Determine whether a string represents a filmdev.org recipe URL or numeric recipe ID.
  *
  * @param input - Raw URL or identifier to check
- * @returns True when the value can be converted into a recipe ID
+ * @returns `true` if the value can be converted to a recipe ID, `false` otherwise
  */
 export function isFilmdevInput(input: string): boolean {
   const trimmed = input.trim();

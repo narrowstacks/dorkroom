@@ -10,6 +10,20 @@ export interface SaveBeforeShareModalProps {
   error?: string | null;
 }
 
+/**
+ * Render a modal prompting the user to name and save a preset before sharing.
+ *
+ * The modal validates the preset name (trimmed) to be between 2 and 50 characters,
+ * displays either internal validation errors or an external `error` prop, and
+ * invokes `onSaveAndShare` with the trimmed name when validation succeeds.
+ *
+ * @param isOpen - Whether the modal is visible
+ * @param onClose - Callback invoked when the modal is dismissed (backdrop, Cancel)
+ * @param onSaveAndShare - Callback invoked with the trimmed preset name after successful validation
+ * @param isLoading - When true, disables inputs and shows a saving state
+ * @param error - External error message to display alongside validation errors
+ * @returns The modal element when open, or `null` when closed.
+ */
 export function SaveBeforeShareModal({
   isOpen,
   onClose,

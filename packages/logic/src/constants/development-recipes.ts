@@ -24,10 +24,10 @@ export function convertToDisplay(tempF: number): string {
 }
 
 /**
- * Format a development time value into a readable string.
+ * Convert a duration in minutes into a human-readable string.
  *
- * @param minutes - Development time expressed in minutes
- * @returns Human-readable time string using seconds, minutes, or hours
+ * @param minutes - Duration in minutes
+ * @returns `Xs` for durations less than one minute (seconds rounded), `Hh Mm` for durations of one hour or more, `N min` for other minute values
  */
 export function formatTime(minutes: number): string {
   if (minutes < 1) {
