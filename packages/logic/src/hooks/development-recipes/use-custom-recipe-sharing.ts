@@ -29,6 +29,12 @@ export interface ImportedCustomRecipe {
   isValid: boolean;
 }
 
+/**
+ * Copy text to the clipboard with fallbacks for older browsers.
+ *
+ * @param text - String content to copy to the clipboard
+ * @returns Promise that resolves when the copy attempt completes
+ */
 const copyToClipboard = async (text: string) => {
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(text);
@@ -47,6 +53,11 @@ const copyToClipboard = async (text: string) => {
   }
 };
 
+/**
+ * Determine the base URL used when constructing share links.
+ *
+ * @returns Base URL string appropriate for the current environment
+ */
 const getBaseUrl = (): string => {
   if (typeof window !== 'undefined' && window.location) {
     return `${window.location.protocol}//${window.location.host}`;
@@ -59,6 +70,12 @@ const getBaseUrl = (): string => {
   return 'https://darkroom-recipes.app';
 };
 
+/**
+ * Hook that creates and shares custom development recipes via encoded URLs.
+ * Provides Web Share support, clipboard fallbacks, and decoding helpers.
+ *
+ * @returns Sharing helpers, state flags, and utilities for custom recipes
+ */
 export const useCustomRecipeSharing = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastSharedUrl, setLastSharedUrl] = useState<string | null>(null);
