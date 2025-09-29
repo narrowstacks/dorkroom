@@ -34,38 +34,20 @@ const SIZE_CLASSES: Record<NonNullable<ModalProps['size']>, string> = {
 };
 
 /**
- * A reusable modal dialog component with backdrop and portal rendering.
- * Provides consistent modal behavior across the application with flexible content.
+ * Render a modal dialog into a portal with a backdrop and automatic body-scroll locking when open.
  *
- * Features:
- * - Portal-based rendering for proper z-index layering
- * - Automatic body scroll prevention when open
- * - Multiple size variants
- * - Optional header, footer, and close button
- * - Backdrop click and ESC key handling
- * - SSR-safe with document availability check
+ * Renders nothing during server-side rendering or when `isOpen` is false.
+ *
+ * @param isOpen - Whether the modal is visible
+ * @param onClose - Callback invoked to request closing the modal (e.g., backdrop or close button)
+ * @param title - Optional header text displayed at the top of the modal
+ * @param children - Modal body content
+ * @param size - Width variant; one of `"sm" | "md" | "lg" | "xl"` (defaults to `"md"`)
+ * @param footer - Optional footer content rendered below the body
+ * @param hideCloseButton - If `true`, the top-right close button is not rendered
+ * @returns The modal element appended to `document.body`, or `null` when closed or in SSR
  *
  * @public
- * @param props - Configuration props for the modal
- * @returns Portal-rendered modal dialog or null if closed/SSR
- *
- * @example
- * ```tsx
- * <Modal
- *   isOpen={showModal}
- *   onClose={() => setShowModal(false)}
- *   title="Confirm Action"
- *   size="md"
- *   footer={
- *     <div className="flex gap-2">
- *       <button onClick={handleCancel}>Cancel</button>
- *       <button onClick={handleConfirm}>Confirm</button>
- *     </div>
- *   }
- * >
- *   <p>Are you sure you want to continue?</p>
- * </Modal>
- * ```
  */
 export function Modal({
   isOpen,
