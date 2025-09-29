@@ -75,12 +75,20 @@ function validateAndSanitizeQuery(
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const startTime = Date.now();
   const requestId = Math.random().toString(36).substring(7);
+  // Normalize user-agent header to a single string
+  const userAgent = (() => {
+    const ua = req.headers['user-agent'];
+    if (Array.isArray(ua)) {
+      return ua[0] || '';
+    }
+    return typeof ua === 'string' ? ua : '';
+  })() || 'DorkroomReact-API';
 
   logApiRequest(
     requestId,
     req.method || 'GET',
     req.url || '/api/films',
-    req.headers['user-agent']
+    userAgent
   );
 
   // Set enhanced CORS headers
@@ -150,7 +158,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       headers: {
         Authorization: `Bearer ${SUPABASE_MASTER_API_KEY}`,
         'Content-Type': 'application/json',
-        'User-Agent': req.headers['user-agent'] || 'DorkroomReact-API',
+        'User-Agent': userAgent,
         Accept: 'application/json',
       },
       signal: createTimeoutSignal(TIMEOUT_MS),

@@ -57,7 +57,7 @@ export function extractRecipeId(input: string): string | null {
 
   // URL patterns - support both regular and API URLs
   const urlPattern =
-    /(?:https?:\/\/)?(?:www\.)?filmdev\.org\/(?:api\/)?recipe\/show\/(\d+)/i;
+    /^(?:https?:\/\/)?(?:www\.)?filmdev\.org\/(?:api\/)?recipe(?:\/show)?\/(\d+)(?:[/?#].*)?$/i;
   const match = trimmed.match(urlPattern);
 
   return match ? match[1] : null;

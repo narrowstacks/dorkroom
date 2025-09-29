@@ -67,7 +67,7 @@ const getBaseUrl = (): string => {
     return process.env.PUBLIC_URL;
   }
 
-  return 'https://darkroom-recipes.app';
+  return 'https://dorkroom.art';
 };
 
 /**

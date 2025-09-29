@@ -33,7 +33,12 @@ export class HttpTransport {
    * @param endpoint - API endpoint path to request
    * @param options - Optional per-request fetch configuration overrides
    * @returns Parsed JSON response typed to the provided generic parameter
-   * @throws DorkroomApiError when the response is not successful after retries
+   * @throws DorkroomApiError when the response is not successful after retries.
+   *
+   * Retry behavior:
+   * - 4xx responses are not retried.
+   * - Other failures (5xx responses, network errors, abort/timeout) are retried
+   *   with linear backoff based on `retryDelay`.
    */
   async get<T>(endpoint: string, options?: FetchOptions): Promise<T> {
     const opts = { ...this.defaultOptions, ...options };
@@ -77,13 +82,22 @@ export class HttpTransport {
             error.statusCode >= 400 &&
             error.statusCode < 500
           ) {
-            throw error;
+            // Wrap to ensure consistent thrown type
+            throw new DorkroomApiError(error.message, error.statusCode, endpoint);
           }
         }
 
-        // If this was the last attempt, throw the error
+        // If this was the last attempt, wrap any non-success error
         if (attempt === opts.retries) {
-          throw lastError;
+          if (lastError instanceof DorkroomApiError) {
+            throw lastError;
+          }
+          // Network/Abort or unknown: wrap into DorkroomApiError to keep the thrown type consistent
+          throw new DorkroomApiError(
+            lastError.message || 'Request failed',
+            undefined,
+            endpoint
+          );
         }
 
         // Wait before retrying
@@ -91,7 +105,15 @@ export class HttpTransport {
       }
     }
 
-    throw lastError || new DorkroomApiError('Unknown error occurred');
+    // Defensive fallback (loop should have returned or thrown earlier)
+    if (lastError instanceof DorkroomApiError) {
+      throw lastError;
+    }
+    throw new DorkroomApiError(
+      lastError?.message || 'Unknown error occurred',
+      undefined,
+      endpoint
+    );
   }
 
   /**
