@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(bunx nx lint:*)",
-      "Bash(bunx nx typecheck:*)"
+      "Bash(bunx nx typecheck:*)",
+      "mcp__serena__list_dir",
+      "mcp__serena__activate_project",
+      "Bash(bunx prettier:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,10 +1,10 @@
 // Mock Platform for web environment
-const Platform = { OS: "web" };
+const Platform = { OS: 'web' };
 
 /**
  * Platform types supported by the app
  */
-export type PlatformType = "web" | "native";
+export type PlatformType = 'web' | 'native';
 
 /**
  * API endpoint configuration
@@ -19,21 +19,21 @@ export interface ApiEndpointConfig {
  * Get the current platform type
  */
 export function getPlatformType(): PlatformType {
-  return Platform.OS === "web" ? "web" : "native";
+  return Platform.OS === 'web' ? 'web' : 'native';
 }
 
 /**
  * Check if the app is running on web platform
  */
 export function isWebPlatform(): boolean {
-  return Platform.OS === "web";
+  return Platform.OS === 'web';
 }
 
 /**
  * Check if the app is running on native platform
  */
 export function isNativePlatform(): boolean {
-  return Platform.OS !== "web";
+  return Platform.OS !== 'web';
 }
 
 /**
@@ -45,15 +45,15 @@ export function getApiEndpointConfig(): ApiEndpointConfig {
     if (process.env.NODE_ENV === 'development') {
       // In development, use beta.dorkroom.art/api directly
       return {
-        baseUrl: "https://beta.dorkroom.art/api",
-        platform: "web",
+        baseUrl: 'https://beta.dorkroom.art/api',
+        platform: 'web',
         requiresAuth: false,
       };
     } else {
       // In production web, use the local API route which proxies to Supabase
       return {
-        baseUrl: "/api",
-        platform: "web",
+        baseUrl: '/api',
+        platform: 'web',
         requiresAuth: false, // No auth required since the proxy handles the API key
       };
     }
@@ -63,18 +63,18 @@ export function getApiEndpointConfig(): ApiEndpointConfig {
 
     if (process.env.NODE_ENV === 'development') {
       // In development, use beta.dorkroom.art/api
-      deployedUrl = "https://beta.dorkroom.art";
+      deployedUrl = 'https://beta.dorkroom.art';
     } else {
       // In production, use the deployed Vercel function
       deployedUrl =
         process.env.EXPO_PUBLIC_VERCEL_URL ||
         process.env.EXPO_PUBLIC_API_URL ||
-        "https://your-app.vercel.app";
+        'https://your-app.vercel.app';
     }
 
     return {
       baseUrl: `${deployedUrl}/api`,
-      platform: "native",
+      platform: 'native',
       requiresAuth: false, // No auth required since the proxy handles the API key
     };
   }
@@ -85,8 +85,8 @@ export function getApiEndpointConfig(): ApiEndpointConfig {
  */
 export function getApiUrl(endpoint: string): string {
   const config = getApiEndpointConfig();
-  const cleanEndpoint = endpoint.startsWith("/") ? endpoint.slice(1) : endpoint;
-  const cleanBaseUrl = config.baseUrl.endsWith("/")
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  const cleanBaseUrl = config.baseUrl.endsWith('/')
     ? config.baseUrl.slice(0, -1)
     : config.baseUrl;
 

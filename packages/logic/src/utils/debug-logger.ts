@@ -13,6 +13,7 @@ const DEBUG_ENABLED =
  * Debug logging function that outputs to console.log in development environments.
  * In production, this function becomes a no-op to avoid performance overhead.
  *
+ * @public
  * @param args - Arguments to pass to console.log
  * @returns void
  *
@@ -33,6 +34,7 @@ export const debugLog: (...args: unknown[]) => void = DEBUG_ENABLED
  * Debug warning function that outputs to console.warn in development environments.
  * In production, this function becomes a no-op to avoid performance overhead.
  *
+ * @public
  * @param args - Arguments to pass to console.warn
  * @returns void
  *
@@ -53,6 +55,7 @@ export const debugWarn: (...args: unknown[]) => void = DEBUG_ENABLED
  * Debug error function that outputs to console.error in development environments.
  * In production, this function becomes a no-op to avoid performance overhead.
  *
+ * @public
  * @param args - Arguments to pass to console.error
  * @returns void
  *

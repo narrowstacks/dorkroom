@@ -157,16 +157,14 @@ export function SaveBeforeShareModal({
                                   borderColor: 'var(--color-semantic-error)',
                                   '--tw-ring-color':
                                     'var(--color-semantic-error)',
-                                  backgroundColor:
-                                    'var(--color-surface-muted)',
+                                  backgroundColor: 'var(--color-surface-muted)',
                                   color: 'var(--color-text-primary)',
                                 } as React.CSSProperties)
                               : ({
                                   borderColor: 'var(--color-border-secondary)',
                                   '--tw-ring-color':
                                     'var(--color-border-primary)',
-                                  backgroundColor:
-                                    'var(--color-surface-muted)',
+                                  backgroundColor: 'var(--color-surface-muted)',
                                   color: 'var(--color-text-primary)',
                                 } as React.CSSProperties)
                           }
@@ -209,7 +207,8 @@ export function SaveBeforeShareModal({
                 style={
                   isLoading || !presetName.trim()
                     ? ({
-                        backgroundColor: 'rgba(var(--color-background-rgb), 0.2)',
+                        backgroundColor:
+                          'rgba(var(--color-background-rgb), 0.2)',
                         color: 'var(--color-text-secondary)',
                         '--tw-ring-color': 'var(--color-border-primary)',
                       } as React.CSSProperties)
@@ -252,12 +251,14 @@ export function SaveBeforeShareModal({
                 onClick={handleClose}
                 disabled={isLoading}
                 className="mt-3 inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm focus:outline-none focus:ring-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  borderWidth: 1,
-                  borderColor: 'var(--color-border-secondary)',
-                  backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
-                  color: 'var(--color-text-primary)',
-                } as React.CSSProperties & { '--tw-ring-color': string }}
+                style={
+                  {
+                    borderWidth: 1,
+                    borderColor: 'var(--color-border-secondary)',
+                    backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
+                    color: 'var(--color-text-primary)',
+                  } as React.CSSProperties & { '--tw-ring-color': string }
+                }
               >
                 Cancel
               </button>

@@ -111,8 +111,8 @@ import { DorkroomClient } from '@dorkroom/api';
 
 const client = new DorkroomClient({
   baseUrl: 'https://dorkroom.art/api', // Optional, defaults to production API
-  timeout: 10000,                     // Optional, defaults to 10 seconds
-  cacheExpiryMs: 300000              // Optional, defaults to 5 minutes
+  timeout: 10000, // Optional, defaults to 10 seconds
+  cacheExpiryMs: 300000, // Optional, defaults to 5 minutes
 });
 
 // Load all data
@@ -172,20 +172,22 @@ We welcome contributions from the analog photography community!
    bunx nx test dorkroom
    ```
 5. Run quality checks on affected packages:
+
    ```bash
    # Lint specific packages
    bunx nx lint logic
    bunx nx lint ui
    bunx nx lint dorkroom
-   
+
    # Type check specific packages
    bunx nx typecheck logic
    bunx nx typecheck ui
    bunx nx typecheck dorkroom
-   
+
    # Format code
    bunx prettier --write .
    ```
+
 6. Submit a pull request
 
 ## Code Quality
@@ -195,7 +197,7 @@ This project maintains high code quality standards with package-specific tooling
 ### Package Organization
 
 - **`packages/logic/`** - Pure TypeScript business logic (calculations, utilities, types, hooks)
-- **`packages/ui/`** - Reusable React components and contexts  
+- **`packages/ui/`** - Reusable React components and contexts
 - **`packages/api/`** - API utilities and client code
 - **`apps/dorkroom/`** - Main application with pages and app-specific components
 
@@ -204,7 +206,7 @@ This project maintains high code quality standards with package-specific tooling
 ```bash
 # Run quality checks on specific packages
 bunx nx test logic        # Test business logic
-bunx nx test ui          # Test UI components  
+bunx nx test ui          # Test UI components
 bunx nx test dorkroom    # Test main application
 
 bunx nx lint logic       # Lint business logic

@@ -1,7 +1,7 @@
 export const throttle = <T extends (...args: any[]) => any>(
   func: T,
   delay: number,
-  options: { leading?: boolean; trailing?: boolean } = {},
+  options: { leading?: boolean; trailing?: boolean } = {}
 ): T & { cancel: () => void } => {
   const { leading = true, trailing = true } = options;
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -21,15 +21,12 @@ export const throttle = <T extends (...args: any[]) => any>(
       execute();
     } else if (trailing) {
       if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(
-        () => {
-          if (lastArgs) {
-            func(...lastArgs);
-            lastCallTime = Date.now();
-          }
-        },
-        delay - (now - lastCallTime),
-      );
+      timeoutId = setTimeout(() => {
+        if (lastArgs) {
+          func(...lastArgs);
+          lastCallTime = Date.now();
+        }
+      }, delay - (now - lastCallTime));
     }
   };
 

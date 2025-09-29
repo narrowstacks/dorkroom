@@ -1,5 +1,5 @@
-import Fuse, { type IFuseOptions } from "fuse.js";
-import type { Film, Developer } from "@/api/dorkroom/types";
+import Fuse, { type IFuseOptions } from 'fuse.js';
+import type { Film, Developer } from '@/api/dorkroom/types';
 
 /**
  * Configuration for fuzzy searching films
@@ -7,9 +7,9 @@ import type { Film, Developer } from "@/api/dorkroom/types";
 export const filmFuseOptions: IFuseOptions<Film> = {
   // Fields to search with weights (higher = more important)
   keys: [
-    { name: "name", weight: 0.7 },
-    { name: "brand", weight: 0.5 },
-    { name: "description", weight: 0.3 },
+    { name: 'name', weight: 0.7 },
+    { name: 'brand', weight: 0.5 },
+    { name: 'description', weight: 0.3 },
   ],
   // Lower threshold = more fuzzy, higher = more exact
   threshold: 0.5,
@@ -32,9 +32,9 @@ export const filmFuseOptions: IFuseOptions<Film> = {
  */
 export const developerFuseOptions: IFuseOptions<Developer> = {
   keys: [
-    { name: "name", weight: 0.7 },
-    { name: "manufacturer", weight: 0.5 },
-    { name: "notes", weight: 0.3 },
+    { name: 'name', weight: 0.7 },
+    { name: 'manufacturer', weight: 0.5 },
+    { name: 'notes', weight: 0.3 },
   ],
   threshold: 0.5,
   includeScore: true,
@@ -71,7 +71,7 @@ export function fuzzySearchFilms(films: Film[], query: string): Film[] {
  */
 export function fuzzySearchDevelopers(
   developers: Developer[],
-  query: string,
+  query: string
 ): Developer[] {
   if (!query.trim()) {
     return developers;
@@ -99,7 +99,7 @@ export function createFilmSearchIndex(films: Film[]): Fuse<Film> {
  * @returns Fuse instance configured for developer search
  */
 export function createDeveloperSearchIndex(
-  developers: Developer[],
+  developers: Developer[]
 ): Fuse<Developer> {
   return new Fuse(developers, developerFuseOptions);
 }

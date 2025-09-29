@@ -9,6 +9,7 @@ import {
  * Hook for accessing feature flags and checking if specific features are enabled.
  * Provides convenient access to application feature toggles and individual flag checks.
  *
+ * @public
  * @returns Object containing feature flags and helper functions
  *
  * @example

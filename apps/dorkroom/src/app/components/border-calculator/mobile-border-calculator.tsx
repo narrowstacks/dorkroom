@@ -411,7 +411,11 @@ export function MobileBorderCalculator({
       <div className="mx-auto max-w-md space-y-4">
         {/* Hero Section - Blade Results */}
         <div
-          className={`rounded-3xl p-[1px] ${!isHighContrast ? 'shadow-[0_30px_90px_-40px_var(--color-visualization-overlay)]' : ''} backdrop-blur-sm`}
+          className={`rounded-3xl p-[1px] ${
+            !isHighContrast
+              ? 'shadow-[0_30px_90px_-40px_var(--color-visualization-overlay)]'
+              : ''
+          } backdrop-blur-sm`}
           style={{
             background: 'var(--color-border-primary)',
           }}
@@ -433,7 +437,11 @@ export function MobileBorderCalculator({
 
         {/* Animated Preview */}
         <div
-          className={`rounded-3xl border p-6 ${!isHighContrast ? 'shadow-[0_35px_110px_-50px_var(--color-visualization-overlay)]' : ''} backdrop-blur-lg`}
+          className={`rounded-3xl border p-6 ${
+            !isHighContrast
+              ? 'shadow-[0_35px_110px_-50px_var(--color-visualization-overlay)]'
+              : ''
+          } backdrop-blur-lg`}
           style={{
             borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-background)',
@@ -493,7 +501,11 @@ export function MobileBorderCalculator({
               value={`${aspectRatioDisplayValue} on ${paperSizeDisplayValue}`}
               onPress={() => openDrawerSection('paperSize')}
               icon={Image}
-              className={isHighContrast ? 'backdrop-blur-sm' : 'backdrop-blur-sm shadow-lg'}
+              className={
+                isHighContrast
+                  ? 'backdrop-blur-sm'
+                  : 'backdrop-blur-sm shadow-lg'
+              }
             />
 
             <SettingsButton
@@ -501,7 +513,11 @@ export function MobileBorderCalculator({
               value={borderSizeDisplayValue}
               onPress={() => openDrawerSection('borderSize')}
               icon={Ruler}
-              className={isHighContrast ? 'backdrop-blur-sm' : 'backdrop-blur-sm shadow-lg'}
+              className={
+                isHighContrast
+                  ? 'backdrop-blur-sm'
+                  : 'backdrop-blur-sm shadow-lg'
+              }
             />
 
             <SettingsButton
@@ -509,7 +525,11 @@ export function MobileBorderCalculator({
               value={positionDisplayValue}
               onPress={() => openDrawerSection('positionOffsets')}
               icon={Move}
-              className={isHighContrast ? 'backdrop-blur-sm' : 'backdrop-blur-sm shadow-lg'}
+              className={
+                isHighContrast
+                  ? 'backdrop-blur-sm'
+                  : 'backdrop-blur-sm shadow-lg'
+              }
             />
           </div>
 
@@ -520,7 +540,11 @@ export function MobileBorderCalculator({
               icon={showBlades ? EyeOff : Crop}
               showChevron={false}
               centerLabel={true}
-              className={isHighContrast ? 'backdrop-blur-sm' : 'backdrop-blur-sm shadow-lg'}
+              className={
+                isHighContrast
+                  ? 'backdrop-blur-sm'
+                  : 'backdrop-blur-sm shadow-lg'
+              }
             />
 
             <SettingsButton
@@ -529,7 +553,11 @@ export function MobileBorderCalculator({
               icon={showBladeReadings ? EyeOff : Target}
               showChevron={false}
               centerLabel={true}
-              className={isHighContrast ? 'backdrop-blur-sm' : 'backdrop-blur-sm shadow-lg'}
+              className={
+                isHighContrast
+                  ? 'backdrop-blur-sm'
+                  : 'backdrop-blur-sm shadow-lg'
+              }
             />
           </div>
 
@@ -539,13 +567,19 @@ export function MobileBorderCalculator({
                 value={presetsDisplayValue}
                 onPress={() => openDrawerSection('presets')}
                 icon={BookOpen}
-                className={isHighContrast ? 'backdrop-blur-sm' : 'backdrop-blur-sm shadow-lg'}
+                className={
+                  isHighContrast
+                    ? 'backdrop-blur-sm'
+                    : 'backdrop-blur-sm shadow-lg'
+                }
               />
             </div>
 
             <button
               onClick={handleShare}
-              className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${!isHighContrast ? 'shadow-lg' : ''}`}
+              className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
+                !isHighContrast ? 'shadow-lg' : ''
+              }`}
               style={
                 {
                   background: 'var(--gradient-card-primary)',
@@ -563,7 +597,9 @@ export function MobileBorderCalculator({
         {/* Reset Button */}
         <button
           onClick={resetToDefaults}
-          className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${!isHighContrast ? 'shadow-lg' : ''}`}
+          className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
+            !isHighContrast ? 'shadow-lg' : ''
+          }`}
           style={
             {
               borderColor: 'var(--color-border-secondary)',

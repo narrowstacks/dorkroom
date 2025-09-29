@@ -1,11 +1,11 @@
-import { encodePreset, decodePreset } from "../presetSharing";
-import type { BorderPresetSettings } from "@/types/borderPresetTypes";
+import { encodePreset, decodePreset } from '../presetSharing';
+import type { BorderPresetSettings } from '@/types/borderPresetTypes';
 
-describe("presetSharing", () => {
+describe('presetSharing', () => {
   // Test data with standard aspect ratio and paper size
   const standardPresetSettings: BorderPresetSettings = {
-    aspectRatio: "3/2",
-    paperSize: "8x10",
+    aspectRatio: '3/2',
+    paperSize: '8x10',
     customAspectWidth: 0,
     customAspectHeight: 0,
     customPaperWidth: 0,
@@ -22,8 +22,8 @@ describe("presetSharing", () => {
 
   // Test data with custom aspect ratio and paper size
   const customPresetSettings: BorderPresetSettings = {
-    aspectRatio: "custom",
-    paperSize: "custom",
+    aspectRatio: 'custom',
+    paperSize: 'custom',
     customAspectWidth: 2.5,
     customAspectHeight: 3.5,
     customPaperWidth: 12,
@@ -40,8 +40,8 @@ describe("presetSharing", () => {
 
   // Test data with all boolean flags set
   const allFlagsPresetSettings: BorderPresetSettings = {
-    aspectRatio: "16/9",
-    paperSize: "11x14",
+    aspectRatio: '16/9',
+    paperSize: '11x14',
     customAspectWidth: 0,
     customAspectHeight: 0,
     customPaperWidth: 0,
@@ -56,122 +56,122 @@ describe("presetSharing", () => {
     isRatioFlipped: true,
   };
 
-  describe("encodePreset", () => {
-    it("should encode a standard preset correctly", () => {
+  describe('encodePreset', () => {
+    it('should encode a standard preset correctly', () => {
       const preset = {
-        name: "Standard Test",
+        name: 'Standard Test',
         settings: standardPresetSettings,
       };
       const encoded = encodePreset(preset);
 
-      expect(typeof encoded).toBe("string");
+      expect(typeof encoded).toBe('string');
       expect(encoded.length).toBeGreaterThan(0);
       // Verify base64 URL-safe encoding (no +, /, = characters)
       expect(encoded).not.toMatch(/[+/=]/);
     });
 
-    it("should encode a custom preset correctly", () => {
-      const preset = { name: "Custom Test", settings: customPresetSettings };
+    it('should encode a custom preset correctly', () => {
+      const preset = { name: 'Custom Test', settings: customPresetSettings };
       const encoded = encodePreset(preset);
 
-      expect(typeof encoded).toBe("string");
+      expect(typeof encoded).toBe('string');
       expect(encoded.length).toBeGreaterThan(0);
       expect(encoded).not.toMatch(/[+/=]/);
     });
 
-    it("should encode preset with all boolean flags set", () => {
-      const preset = { name: "All Flags", settings: allFlagsPresetSettings };
+    it('should encode preset with all boolean flags set', () => {
+      const preset = { name: 'All Flags', settings: allFlagsPresetSettings };
       const encoded = encodePreset(preset);
 
-      expect(typeof encoded).toBe("string");
+      expect(typeof encoded).toBe('string');
       expect(encoded.length).toBeGreaterThan(0);
       expect(encoded).not.toMatch(/[+/=]/);
     });
 
-    it("should handle preset names with special characters", () => {
+    it('should handle preset names with special characters', () => {
       const preset = {
-        name: "Test & Special Characters: 35mm/120",
+        name: 'Test & Special Characters: 35mm/120',
         settings: standardPresetSettings,
       };
       const encoded = encodePreset(preset);
 
-      expect(typeof encoded).toBe("string");
+      expect(typeof encoded).toBe('string');
       expect(encoded.length).toBeGreaterThan(0);
     });
 
-    it("should handle empty preset name", () => {
-      const preset = { name: "", settings: standardPresetSettings };
+    it('should handle empty preset name', () => {
+      const preset = { name: '', settings: standardPresetSettings };
       const encoded = encodePreset(preset);
 
-      expect(typeof encoded).toBe("string");
+      expect(typeof encoded).toBe('string');
       expect(encoded.length).toBeGreaterThan(0);
     });
 
-    it("should return empty string for invalid aspect ratio", () => {
+    it('should return empty string for invalid aspect ratio', () => {
       const invalidSettings = {
         ...standardPresetSettings,
-        aspectRatio: "invalid-ratio",
+        aspectRatio: 'invalid-ratio',
       };
-      const preset = { name: "Invalid", settings: invalidSettings };
+      const preset = { name: 'Invalid', settings: invalidSettings };
 
       let encoded;
       try {
         encoded = encodePreset(preset);
       } catch (error) {
-        encoded = "";
+        encoded = '';
       }
 
-      expect(encoded).toBe("");
+      expect(encoded).toBe('');
     });
 
-    it("should return empty string for invalid paper size", () => {
+    it('should return empty string for invalid paper size', () => {
       const invalidSettings = {
         ...standardPresetSettings,
-        paperSize: "invalid-size",
+        paperSize: 'invalid-size',
       };
-      const preset = { name: "Invalid", settings: invalidSettings };
+      const preset = { name: 'Invalid', settings: invalidSettings };
 
       let encoded;
       try {
         encoded = encodePreset(preset);
       } catch (error) {
-        encoded = "";
+        encoded = '';
       }
 
-      expect(encoded).toBe("");
+      expect(encoded).toBe('');
     });
   });
 
-  describe("decodePreset", () => {
-    it("should decode a standard preset correctly", () => {
+  describe('decodePreset', () => {
+    it('should decode a standard preset correctly', () => {
       const originalPreset = {
-        name: "Standard Test",
+        name: 'Standard Test',
         settings: standardPresetSettings,
       };
       const encoded = encodePreset(originalPreset);
       const decoded = decodePreset(encoded);
 
       expect(decoded).not.toBeNull();
-      expect(decoded!.name).toBe("Standard Test");
-      expect(decoded!.settings.aspectRatio).toBe("3/2");
-      expect(decoded!.settings.paperSize).toBe("8x10");
+      expect(decoded!.name).toBe('Standard Test');
+      expect(decoded!.settings.aspectRatio).toBe('3/2');
+      expect(decoded!.settings.paperSize).toBe('8x10');
       expect(decoded!.settings.minBorder).toBeCloseTo(0.75);
       expect(decoded!.settings.showBlades).toBe(true);
       expect(decoded!.settings.isLandscape).toBe(false);
     });
 
-    it("should decode a custom preset correctly", () => {
+    it('should decode a custom preset correctly', () => {
       const originalPreset = {
-        name: "Custom Test",
+        name: 'Custom Test',
         settings: customPresetSettings,
       };
       const encoded = encodePreset(originalPreset);
       const decoded = decodePreset(encoded);
 
       expect(decoded).not.toBeNull();
-      expect(decoded!.name).toBe("Custom Test");
-      expect(decoded!.settings.aspectRatio).toBe("custom");
-      expect(decoded!.settings.paperSize).toBe("custom");
+      expect(decoded!.name).toBe('Custom Test');
+      expect(decoded!.settings.aspectRatio).toBe('custom');
+      expect(decoded!.settings.paperSize).toBe('custom');
       expect(decoded!.settings.customAspectWidth).toBeCloseTo(2.5);
       expect(decoded!.settings.customAspectHeight).toBeCloseTo(3.5);
       expect(decoded!.settings.customPaperWidth).toBeCloseTo(12);
@@ -182,38 +182,38 @@ describe("presetSharing", () => {
       expect(decoded!.settings.isRatioFlipped).toBe(true);
     });
 
-    it("should return null for invalid base64", () => {
-      const result = decodePreset("invalid-base64-string");
+    it('should return null for invalid base64', () => {
+      const result = decodePreset('invalid-base64-string');
       expect(result).toBeNull();
     });
 
-    it("should return null for malformed data", () => {
-      const result = decodePreset("YWJjZGVm"); // Valid base64 but invalid data
+    it('should return null for malformed data', () => {
+      const result = decodePreset('YWJjZGVm'); // Valid base64 but invalid data
       expect(result).toBeNull();
     });
 
-    it("should return null for empty string", () => {
-      const result = decodePreset("");
+    it('should return null for empty string', () => {
+      const result = decodePreset('');
       expect(result).toBeNull();
     });
 
-    it("should handle base64 strings that need padding", () => {
-      const originalPreset = { name: "Test", settings: standardPresetSettings };
+    it('should handle base64 strings that need padding', () => {
+      const originalPreset = { name: 'Test', settings: standardPresetSettings };
       const encoded = encodePreset(originalPreset);
       // Remove padding if it exists and test with various padding scenarios
-      const withoutPadding = encoded.replace(/=/g, "");
+      const withoutPadding = encoded.replace(/=/g, '');
       const decoded = decodePreset(withoutPadding);
 
       expect(decoded).not.toBeNull();
-      expect(decoded!.name).toBe("Test");
+      expect(decoded!.name).toBe('Test');
     });
   });
 
-  describe("encode/decode symmetry", () => {
+  describe('encode/decode symmetry', () => {
     const testCases = [
-      { name: "Standard Settings", settings: standardPresetSettings },
-      { name: "Custom Settings", settings: customPresetSettings },
-      { name: "All Flags", settings: allFlagsPresetSettings },
+      { name: 'Standard Settings', settings: standardPresetSettings },
+      { name: 'Custom Settings', settings: customPresetSettings },
+      { name: 'All Flags', settings: allFlagsPresetSettings },
     ];
 
     testCases.forEach(({ name, settings }) => {
@@ -230,40 +230,40 @@ describe("presetSharing", () => {
         expect(decoded!.settings.paperSize).toBe(settings.paperSize);
         expect(decoded!.settings.minBorder).toBeCloseTo(settings.minBorder);
         expect(decoded!.settings.horizontalOffset).toBeCloseTo(
-          settings.horizontalOffset,
+          settings.horizontalOffset
         );
         expect(decoded!.settings.verticalOffset).toBeCloseTo(
-          settings.verticalOffset,
+          settings.verticalOffset
         );
         expect(decoded!.settings.enableOffset).toBe(settings.enableOffset);
         expect(decoded!.settings.ignoreMinBorder).toBe(
-          settings.ignoreMinBorder,
+          settings.ignoreMinBorder
         );
         expect(decoded!.settings.showBlades).toBe(settings.showBlades);
         expect(decoded!.settings.isLandscape).toBe(settings.isLandscape);
         expect(decoded!.settings.isRatioFlipped).toBe(settings.isRatioFlipped);
 
-        if (settings.aspectRatio === "custom") {
+        if (settings.aspectRatio === 'custom') {
           expect(decoded!.settings.customAspectWidth).toBeCloseTo(
-            settings.customAspectWidth,
+            settings.customAspectWidth
           );
           expect(decoded!.settings.customAspectHeight).toBeCloseTo(
-            settings.customAspectHeight,
+            settings.customAspectHeight
           );
         }
 
-        if (settings.paperSize === "custom") {
+        if (settings.paperSize === 'custom') {
           expect(decoded!.settings.customPaperWidth).toBeCloseTo(
-            settings.customPaperWidth,
+            settings.customPaperWidth
           );
           expect(decoded!.settings.customPaperHeight).toBeCloseTo(
-            settings.customPaperHeight,
+            settings.customPaperHeight
           );
         }
       });
     });
 
-    it("should handle extreme decimal values", () => {
+    it('should handle extreme decimal values', () => {
       const extremeSettings: BorderPresetSettings = {
         ...standardPresetSettings,
         minBorder: 0.001,
@@ -271,7 +271,7 @@ describe("presetSharing", () => {
         verticalOffset: -50.555,
       };
       const originalPreset = {
-        name: "Extreme Values",
+        name: 'Extreme Values',
         settings: extremeSettings,
       };
       const encoded = encodePreset(originalPreset);
@@ -284,7 +284,7 @@ describe("presetSharing", () => {
       expect(decoded!.settings.verticalOffset).toBeCloseTo(-50.55, 2);
     });
 
-    it("should handle zero values", () => {
+    it('should handle zero values', () => {
       const zeroSettings: BorderPresetSettings = {
         ...standardPresetSettings,
         minBorder: 0,
@@ -295,7 +295,7 @@ describe("presetSharing", () => {
         customPaperWidth: 0,
         customPaperHeight: 0,
       };
-      const originalPreset = { name: "Zero Values", settings: zeroSettings };
+      const originalPreset = { name: 'Zero Values', settings: zeroSettings };
       const encoded = encodePreset(originalPreset);
       const decoded = decodePreset(encoded);
 
@@ -306,8 +306,8 @@ describe("presetSharing", () => {
     });
   });
 
-  describe("boolean bitmask functionality", () => {
-    it("should encode and decode all boolean combinations correctly", () => {
+  describe('boolean bitmask functionality', () => {
+    it('should encode and decode all boolean combinations correctly', () => {
       const booleanCombinations = [
         [false, false, false, false, false],
         [true, false, false, false, false],
@@ -346,8 +346,8 @@ describe("presetSharing", () => {
     });
   });
 
-  describe("precision and rounding", () => {
-    it("should round values to centimeters consistently", () => {
+  describe('precision and rounding', () => {
+    it('should round values to centimeters consistently', () => {
       const preciseSettings: BorderPresetSettings = {
         ...standardPresetSettings,
         minBorder: 1.234567,
@@ -355,7 +355,7 @@ describe("presetSharing", () => {
         verticalOffset: -1.555555,
       };
       const originalPreset = {
-        name: "Precision Test",
+        name: 'Precision Test',
         settings: preciseSettings,
       };
       const encoded = encodePreset(originalPreset);
@@ -368,7 +368,7 @@ describe("presetSharing", () => {
       expect(decoded!.settings.verticalOffset).toBeCloseTo(-1.56, 2);
     });
 
-    it("should handle custom dimensions precision", () => {
+    it('should handle custom dimensions precision', () => {
       const customPreciseSettings: BorderPresetSettings = {
         ...customPresetSettings,
         customAspectWidth: 3.14159,
@@ -377,7 +377,7 @@ describe("presetSharing", () => {
         customPaperHeight: 16.1234,
       };
       const originalPreset = {
-        name: "Custom Precision",
+        name: 'Custom Precision',
         settings: customPreciseSettings,
       };
       const encoded = encodePreset(originalPreset);
@@ -391,12 +391,12 @@ describe("presetSharing", () => {
     });
   });
 
-  describe("URL safety", () => {
-    it("should produce URL-safe base64 strings", () => {
+  describe('URL safety', () => {
+    it('should produce URL-safe base64 strings', () => {
       const presets = [
-        { name: "Test 1", settings: standardPresetSettings },
-        { name: "Test 2", settings: customPresetSettings },
-        { name: "Test 3", settings: allFlagsPresetSettings },
+        { name: 'Test 1', settings: standardPresetSettings },
+        { name: 'Test 2', settings: customPresetSettings },
+        { name: 'Test 3', settings: allFlagsPresetSettings },
       ];
 
       presets.forEach((preset) => {
@@ -413,27 +413,27 @@ describe("presetSharing", () => {
     });
   });
 
-  describe("error handling", () => {
-    it("should handle encoding errors gracefully", () => {
+  describe('error handling', () => {
+    it('should handle encoding errors gracefully', () => {
       // Test with object that might cause encoding issues
       const problematicPreset = {
-        name: "Test",
+        name: 'Test',
         settings: {
           ...standardPresetSettings,
-          aspectRatio: "invalid-aspect-ratio",
+          aspectRatio: 'invalid-aspect-ratio',
         },
       };
 
       const result = encodePreset(problematicPreset);
-      expect(result).toBe("");
+      expect(result).toBe('');
     });
 
-    it("should handle decoding errors gracefully", () => {
+    it('should handle decoding errors gracefully', () => {
       const invalidInputs = [
-        "not-base64",
-        "12345",
-        "invalid!@#$%",
-        "SGVsbG8gV29ybGQ", // Valid base64 but invalid preset data
+        'not-base64',
+        '12345',
+        'invalid!@#$%',
+        'SGVsbG8gV29ybGQ', // Valid base64 but invalid preset data
       ];
 
       invalidInputs.forEach((input) => {
