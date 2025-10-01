@@ -36,6 +36,7 @@ const ExposureCalculatorPage = lazy(
 const DevelopmentRecipesPage = lazy(
   () => import('./pages/development-recipes/development-recipes-page')
 );
+const InfobasePage = lazy(() => import('./pages/infobase/infobase-page'));
 const SettingsPage = lazy(() => import('./pages/settings-page'));
 
 export function App() {
@@ -389,6 +390,7 @@ export function App() {
                 element={<ReciprocityCalculatorPage />}
               />
               <Route path="/development" element={<DevelopmentRecipesPage />} />
+              <Route path="/infobase/*" element={<InfobasePage />} />
               <Route path="/settings" element={<SettingsPage />} />
               {allNavItems
                 .filter(
@@ -400,6 +402,7 @@ export function App() {
                       '/stops',
                       '/reciprocity',
                       '/development',
+                      '/infobase',
                     ].includes(item.to)
                 )
                 .map((item) => (
