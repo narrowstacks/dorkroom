@@ -20,13 +20,15 @@ export function FilmCardWrapper({ filmSlug }: FilmCardWrapperProps) {
 }
 
 interface DeveloperCardWrapperProps {
-  devSlug: string;
+  developerSlug: string;
 }
 
-export function DeveloperCardWrapper({ devSlug }: DeveloperCardWrapperProps) {
+export function DeveloperCardWrapper({
+  developerSlug,
+}: DeveloperCardWrapperProps) {
   const { developers } = useInfobaseData();
   const developer = developers.find(
-    (d) => d.slug === devSlug || d.uuid === devSlug
+    (d) => d.slug === developerSlug || d.uuid === developerSlug
   );
 
   return <DeveloperCard developer={developer} />;

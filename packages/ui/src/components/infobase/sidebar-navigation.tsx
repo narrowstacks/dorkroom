@@ -82,6 +82,7 @@ function TreeNode({ node, level }: TreeNodeProps) {
           'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)]'
       )}
       style={{ paddingLeft: `${0.75 + level * 0.75}rem` }}
+      aria-current={isActive ? 'page' : undefined}
     >
       <FileText className="h-4 w-4 flex-shrink-0" />
       <span className="flex-1 truncate">{node.name}</span>

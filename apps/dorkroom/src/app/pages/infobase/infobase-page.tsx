@@ -83,6 +83,7 @@ function InfobaseContent() {
   const contentTree = useMemo(() => buildContentTree(mdxPages), []);
 
   // Get current page
+  // mdxPages is a stable module-level constant - no need in deps
   const currentPage = useMemo(() => {
     // Try exact match first
     let page = mdxPages.find((p) => p.slug === slug);

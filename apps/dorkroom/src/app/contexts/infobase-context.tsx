@@ -3,13 +3,8 @@
  * Provides API data (films, developers, combinations) to MDX components
  */
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from 'react';
+import type { ReactNode, ReactElement } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { DorkroomClient, Film, Developer, Combination } from '@dorkroom/api';
 
 interface InfobaseContextValue {
@@ -36,7 +31,9 @@ interface InfobaseProviderProps {
   children: ReactNode;
 }
 
-export function InfobaseProvider({ children }: InfobaseProviderProps) {
+export function InfobaseProvider({
+  children,
+}: InfobaseProviderProps): ReactElement {
   const [films, setFilms] = useState<Film[]>([]);
   const [developers, setDevelopers] = useState<Developer[]>([]);
   const [combinations, setCombinations] = useState<Combination[]>([]);
