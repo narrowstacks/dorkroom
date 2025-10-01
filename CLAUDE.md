@@ -6,7 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Dorkroom is an Nx workspace containing a React 19 application with TypeScript, Tailwind CSS, and supporting libraries. The monorepo includes a main app and shared packages for UI components and business logic.
 
-## Essential Commands
+## Required Tool Uses
+
+- Use the Serena MCP tools. Activate project `dorkroom-nx` before starting work to get overview of project, symbols, etc.
+- Use Playwright MCP tools to test pages being worked on and get console output.
+- Use Context7 when using libraries or packages to ensure up to date knowledge.
+- Use clear-thought when working through complex problems, debugging issues, etc.
 
 ### Development
 

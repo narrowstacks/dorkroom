@@ -36,6 +36,7 @@ export function SearchBar({
         value={query}
         onChange={(e) => handleChange(e.target.value)}
         placeholder={placeholder}
+        aria-label={placeholder}
         className={cn(
           'w-full rounded-lg py-2 pl-10 pr-10 text-sm transition',
           'focus:outline-none focus:ring-2',
