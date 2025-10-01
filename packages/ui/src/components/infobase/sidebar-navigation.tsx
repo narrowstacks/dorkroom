@@ -37,6 +37,33 @@ function TreeNode({ node, level }: TreeNodeProps) {
   const isActive =
     normalizePath(location.pathname) === normalizePath(node.path);
 
+  // Database nodes are rendered as links (like files)
+  if (node.type === 'database') {
+    return (
+      <Link
+        to={node.path}
+        className={cn(
+          'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition',
+          'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-surface)]',
+          'hover:text-[color:var(--color-text-primary)]',
+          isActive &&
+            'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)]'
+        )}
+        style={{ paddingLeft: `${0.75 + level * 0.75}rem` }}
+        aria-current={isActive ? 'page' : undefined}
+      >
+        {node.icon ? (
+          <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center text-base leading-none">
+            {node.icon}
+          </span>
+        ) : (
+          <FileText className="h-4 w-4 flex-shrink-0" />
+        )}
+        <span className="flex-1 truncate">{node.name}</span>
+      </Link>
+    );
+  }
+
   if (node.type === 'folder') {
     return (
       <div>
@@ -55,7 +82,13 @@ function TreeNode({ node, level }: TreeNodeProps) {
           ) : (
             <ChevronRight className="h-4 w-4 flex-shrink-0" />
           )}
-          <Folder className="h-4 w-4 flex-shrink-0" />
+          {node.icon ? (
+            <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center text-base leading-none">
+              {node.icon}
+            </span>
+          ) : (
+            <Folder className="h-4 w-4 flex-shrink-0" />
+          )}
           <span className="flex-1 truncate text-left">{node.name}</span>
         </button>
         {isExpanded && node.children && (
@@ -82,7 +115,13 @@ function TreeNode({ node, level }: TreeNodeProps) {
       style={{ paddingLeft: `${0.75 + level * 0.75}rem` }}
       aria-current={isActive ? 'page' : undefined}
     >
-      <FileText className="h-4 w-4 flex-shrink-0" />
+      {node.icon ? (
+        <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center text-base leading-none">
+          {node.icon}
+        </span>
+      ) : (
+        <FileText className="h-4 w-4 flex-shrink-0" />
+      )}
       <span className="flex-1 truncate">{node.name}</span>
     </Link>
   );

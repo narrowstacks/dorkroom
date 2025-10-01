@@ -49,7 +49,16 @@ export function InfobaseProvider({
         setIsLoading(true);
         setError(null);
 
-        await client.loadAll();
+        // Add 10-second timeout to prevent hanging
+        const loadPromise = client.loadAll();
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error('API request timed out after 10 seconds')),
+            10000
+          )
+        );
+
+        await Promise.race([loadPromise, timeoutPromise]);
 
         if (!cancelled) {
           setFilms(client.getAllFilms());
@@ -58,9 +67,10 @@ export function InfobaseProvider({
         }
       } catch (err) {
         if (!cancelled) {
-          setError(
-            err instanceof Error ? err.message : 'Failed to load data from API'
-          );
+          const errorMessage =
+            err instanceof Error ? err.message : 'Failed to load data from API';
+          setError(errorMessage);
+          console.error('[InfobaseProvider] Error loading data:', err);
         }
       } finally {
         if (!cancelled) {

@@ -11,6 +11,7 @@ import {
   buildContentTree,
   getBreadcrumbs,
   searchPages,
+  ContentNode,
 } from '../../lib/mdx-loader';
 import { InfobaseProvider } from '../../contexts/infobase-context';
 import { mdxComponents } from '../../components/mdx-components';
@@ -24,6 +25,10 @@ import GuidesIndex from '../../../content/guides/index.mdx';
 // Import example content
 import KodakTriX from '../../../content/films/kodak-tri-x-400.mdx';
 import KodakD76 from '../../../content/developers/kodak-d76.mdx';
+
+// Import database pages
+import { FilmDataPage } from './film-data-page';
+import { DeveloperDataPage } from './developer-data-page';
 
 // MDX pages registry
 const mdxPages = [
@@ -79,8 +84,32 @@ function InfobaseContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Build content tree for navigation
-  const contentTree = useMemo(() => buildContentTree(mdxPages), []);
+  // Build content tree for navigation with database nodes
+  const contentTree = useMemo(() => {
+    const mdxTree = buildContentTree(mdxPages);
+
+    // Add database nodes at root level
+    const databaseNodes: ContentNode[] = [
+      {
+        type: 'database',
+        name: 'Film Data',
+        path: '/infobase/film-data',
+        slug: 'film-data',
+        icon: '🎞️',
+        databaseType: 'films',
+      },
+      {
+        type: 'database',
+        name: 'Developer Data',
+        path: '/infobase/developer-data',
+        slug: 'developer-data',
+        icon: '🧪',
+        databaseType: 'developers',
+      },
+    ];
+
+    return [...databaseNodes, ...mdxTree];
+  }, []);
 
   // Get current page
   // Note: mdxPages is a stable module-level constant
@@ -112,7 +141,70 @@ function InfobaseContent() {
     return buildContentTree(filtered);
   }, [contentTree, searchQuery]);
 
-  // Redirect to default page if no match
+  // Handle database pages
+  if (slug === 'film-data') {
+    return (
+      <div className="mx-auto flex min-h-screen max-w-7xl">
+        <aside
+          className="sticky top-16 hidden w-64 flex-shrink-0 self-start overflow-y-auto border-r py-6 pl-6 pr-4 lg:block"
+          style={{
+            borderColor: 'var(--color-border-secondary)',
+            maxHeight: 'calc(100vh - 4rem)',
+          }}
+        >
+          <div className="space-y-4">
+            <h2
+              className="text-lg font-semibold"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              Infobase
+            </h2>
+            <SearchBar
+              onSearch={setSearchQuery}
+              placeholder="Search pages..."
+            />
+            <SidebarNavigation tree={filteredTree} />
+          </div>
+        </aside>
+        <main className="flex-1 px-6 py-6 lg:px-10">
+          <FilmDataPage />
+        </main>
+      </div>
+    );
+  }
+
+  if (slug === 'developer-data') {
+    return (
+      <div className="mx-auto flex min-h-screen max-w-7xl">
+        <aside
+          className="sticky top-16 hidden w-64 flex-shrink-0 self-start overflow-y-auto border-r py-6 pl-6 pr-4 lg:block"
+          style={{
+            borderColor: 'var(--color-border-secondary)',
+            maxHeight: 'calc(100vh - 4rem)',
+          }}
+        >
+          <div className="space-y-4">
+            <h2
+              className="text-lg font-semibold"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              Infobase
+            </h2>
+            <SearchBar
+              onSearch={setSearchQuery}
+              placeholder="Search pages..."
+            />
+            <SidebarNavigation tree={filteredTree} />
+          </div>
+        </aside>
+        <main className="flex-1 px-6 py-6 lg:px-10">
+          <DeveloperDataPage />
+        </main>
+      </div>
+    );
+  }
+
+  // Redirect to default page if no MDX match
   if (!currentPage) {
     return <Navigate to="/infobase/films" replace />;
   }
@@ -123,8 +215,11 @@ function InfobaseContent() {
     <div className="mx-auto flex min-h-screen max-w-7xl">
       {/* Sidebar - Desktop */}
       <aside
-        className="sticky top-0 hidden h-screen w-64 flex-shrink-0 overflow-y-auto border-r py-6 pl-6 pr-4 lg:block"
-        style={{ borderColor: 'var(--color-border-secondary)' }}
+        className="sticky top-16 hidden w-64 flex-shrink-0 self-start overflow-y-auto border-r py-6 pl-6 pr-4 lg:block"
+        style={{
+          borderColor: 'var(--color-border-secondary)',
+          maxHeight: 'calc(100vh - 4rem)',
+        }}
       >
         <div className="space-y-4">
           <h2

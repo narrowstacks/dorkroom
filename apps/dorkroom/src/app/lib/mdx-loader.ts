@@ -2,7 +2,11 @@
  * MDX content loader and metadata utilities
  */
 
-import type { ContentNode, MDXFrontmatter, BreadcrumbItem } from '@dorkroom/logic';
+import type {
+  ContentNode,
+  MDXFrontmatter,
+  BreadcrumbItem,
+} from '@dorkroom/logic';
 
 export interface MDXPage {
   slug: string;
@@ -50,6 +54,7 @@ export function buildContentTree(pages: MDXPage[]): ContentNode[] {
       name: page.frontmatter.title || parts[parts.length - 1],
       path: `/infobase/${page.slug}`,
       slug: page.slug,
+      icon: page.frontmatter.icon, // Pass icon from frontmatter
       frontmatter: page.frontmatter,
     };
 
@@ -91,13 +96,16 @@ export function getBreadcrumbs(
   ];
 
   let currentPath = '';
-  parts.forEach((part, index) => {
+  parts.forEach((part) => {
     currentPath += `/${part}`;
     const page = pages.find((p) => p.slug === currentPath.slice(1));
 
     if (page) {
+      // Ensure frontmatter exists and has a title, fallback to capitalized slug part
+      const title =
+        page.frontmatter?.title ?? part.charAt(0).toUpperCase() + part.slice(1);
       breadcrumbs.push({
-        label: page.frontmatter.title || part,
+        label: title,
         path: `/infobase${currentPath}`,
       });
     } else {

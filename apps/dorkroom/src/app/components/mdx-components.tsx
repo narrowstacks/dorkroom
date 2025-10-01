@@ -13,8 +13,60 @@ interface FilmCardWrapperProps {
 }
 
 export function FilmCardWrapper({ filmSlug }: FilmCardWrapperProps) {
-  const { films } = useInfobaseData();
+  const { films, isLoading, error } = useInfobaseData();
+
+  if (isLoading) {
+    return (
+      <div
+        className="rounded-lg p-6 text-center"
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderWidth: 1,
+          borderColor: 'var(--color-border-secondary)',
+        }}
+      >
+        <p style={{ color: 'var(--color-text-secondary)' }}>
+          Loading film data...
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className="rounded-lg p-6 text-center"
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderWidth: 1,
+          borderColor: 'var(--color-border-secondary)',
+        }}
+      >
+        <p style={{ color: 'var(--color-text-tertiary)' }}>
+          Error loading film data: {error}
+        </p>
+      </div>
+    );
+  }
+
   const film = films.find((f) => f.slug === filmSlug || f.uuid === filmSlug);
+
+  if (!film) {
+    return (
+      <div
+        className="rounded-lg p-6 text-center"
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderWidth: 1,
+          borderColor: 'var(--color-border-secondary)',
+        }}
+      >
+        <p style={{ color: 'var(--color-text-tertiary)' }}>
+          Film not found: {filmSlug}
+        </p>
+      </div>
+    );
+  }
 
   return <FilmCard film={film} />;
 }
@@ -26,10 +78,62 @@ interface DeveloperCardWrapperProps {
 export function DeveloperCardWrapper({
   developerSlug,
 }: DeveloperCardWrapperProps) {
-  const { developers } = useInfobaseData();
+  const { developers, isLoading, error } = useInfobaseData();
+
+  if (isLoading) {
+    return (
+      <div
+        className="rounded-lg p-6 text-center"
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderWidth: 1,
+          borderColor: 'var(--color-border-secondary)',
+        }}
+      >
+        <p style={{ color: 'var(--color-text-secondary)' }}>
+          Loading developer data...
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className="rounded-lg p-6 text-center"
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderWidth: 1,
+          borderColor: 'var(--color-border-secondary)',
+        }}
+      >
+        <p style={{ color: 'var(--color-text-tertiary)' }}>
+          Error loading developer data: {error}
+        </p>
+      </div>
+    );
+  }
+
   const developer = developers.find(
     (d) => d.slug === developerSlug || d.uuid === developerSlug
   );
+
+  if (!developer) {
+    return (
+      <div
+        className="rounded-lg p-6 text-center"
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderWidth: 1,
+          borderColor: 'var(--color-border-secondary)',
+        }}
+      >
+        <p style={{ color: 'var(--color-text-tertiary)' }}>
+          Developer not found: {developerSlug}
+        </p>
+      </div>
+    );
+  }
 
   return <DeveloperCard developer={developer} />;
 }
@@ -45,7 +149,42 @@ export function RecipeTableWrapper({
   developer,
   maxRows,
 }: RecipeTableWrapperProps) {
-  const { combinations, films, developers } = useInfobaseData();
+  const { combinations, films, developers, isLoading, error } =
+    useInfobaseData();
+
+  if (isLoading) {
+    return (
+      <div
+        className="rounded-lg p-6 text-center"
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderWidth: 1,
+          borderColor: 'var(--color-border-secondary)',
+        }}
+      >
+        <p style={{ color: 'var(--color-text-secondary)' }}>
+          Loading recipe data...
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className="rounded-lg p-6 text-center"
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderWidth: 1,
+          borderColor: 'var(--color-border-secondary)',
+        }}
+      >
+        <p style={{ color: 'var(--color-text-tertiary)' }}>
+          Error loading recipe data: {error}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <RecipeTable
@@ -66,7 +205,9 @@ interface LinkButtonProps {
 
 export function LinkButton({ to, children }: LinkButtonProps) {
   const isExternal =
-    to.startsWith('http://') || to.startsWith('https://') || to.startsWith('//');
+    to.startsWith('http://') ||
+    to.startsWith('https://') ||
+    to.startsWith('//');
 
   if (isExternal) {
     return (
