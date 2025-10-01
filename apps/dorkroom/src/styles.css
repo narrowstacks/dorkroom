@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-@source "../../../**/*.{js,ts,jsx,tsx}";
+@source "../../../**/*.{js,ts,jsx,tsx,mdx}";
 
 @theme {
   --font-family-sans: 'Inter Variable', Inter, ui-sans-serif, system-ui;
@@ -60,7 +60,6 @@
   --gradient-card-info: #000000;
   --gradient-card-warning: #000000;
   --gradient-card-error: #000000;
-  --gradient-card-ko-fi: #000000;
   --gradient-card-ko-fi: #000000;
   --color-tag-official-ilford: #ff0000;
   --color-tag-official-kodak: #e00000;

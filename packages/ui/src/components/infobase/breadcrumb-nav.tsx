@@ -1,11 +1,10 @@
 import { ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import type { BreadcrumbItem } from '@dorkroom/logic';
+
 import { cn } from '../../lib/cn';
 
-export interface BreadcrumbItem {
-  label: string;
-  path: string;
-}
+export type { BreadcrumbItem };
 
 interface BreadcrumbNavProps {
   items: BreadcrumbItem[];
