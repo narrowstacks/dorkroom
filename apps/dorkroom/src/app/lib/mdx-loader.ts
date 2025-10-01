@@ -115,7 +115,7 @@ export function getBreadcrumbs(
         path: `/infobase${currentPath}`,
       });
     } else {
-      // For folders without index pages
+      // For folders/categories without index pages - create capitalized breadcrumb
       breadcrumbs.push({
         label: part.charAt(0).toUpperCase() + part.slice(1),
         path: `/infobase${currentPath}`,

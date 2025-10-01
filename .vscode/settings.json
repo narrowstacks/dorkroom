@@ -3,5 +3,8 @@
   "cSpell.words": ["isos"],
   "nxConsole.nxWorkspacePath": "",
   "npm.autoDetect": "off",
-  "npm.packageManager": "bun"
+  "npm.packageManager": "bun",
+  "files.associations": {
+    "*.yaml": "home-assistant"
+  }
 }

@@ -102,23 +102,24 @@ export function FilmCard({ film, className }: FilmCardProps) {
         )}
       </div>
 
-      {film.manufacturerNotes && film.manufacturerNotes.length > 0 && (
-        <div>
-          <div
-            className="mb-2 text-xs font-medium uppercase tracking-wide"
-            style={{ color: 'var(--color-text-tertiary)' }}
-          >
-            Manufacturer Notes
+      {Array.isArray(film.manufacturerNotes) &&
+        film.manufacturerNotes.length > 0 && (
+          <div>
+            <div
+              className="mb-2 text-xs font-medium uppercase tracking-wide"
+              style={{ color: 'var(--color-text-tertiary)' }}
+            >
+              Manufacturer Notes
+            </div>
+            <ul className="space-y-1 text-sm">
+              {film.manufacturerNotes.map((note, index) => (
+                <li key={index} style={{ color: 'var(--color-text-secondary)' }}>
+                  • {note}
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul className="space-y-1 text-sm">
-            {film.manufacturerNotes.map((note, index) => (
-              <li key={index} style={{ color: 'var(--color-text-secondary)' }}>
-                • {note}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+        )}
 
       {film.reciprocityFailure && (
         <div>
@@ -142,6 +143,7 @@ export function FilmCard({ film, className }: FilmCardProps) {
           <img
             src={film.staticImageUrl}
             alt={`${film.brand} ${film.name}`}
+            loading="lazy"
             className="w-full rounded-lg"
             style={{
               borderWidth: 1,

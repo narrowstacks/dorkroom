@@ -1144,4 +1144,170 @@
   [data-theme='darkroom'] main a[href*='/development'] {
     border: 2px solid var(--color-primary) !important;
   }
+
+  /* Prose styling for MDX content */
+  .prose {
+    max-width: 65ch;
+    color: var(--color-text-primary);
+  }
+
+  .prose h1 {
+    font-size: 2.25em;
+    font-weight: 800;
+    line-height: 1.1111111;
+    margin-top: 0;
+    margin-bottom: 0.8888889em;
+    color: var(--color-text-primary);
+  }
+
+  .prose h2 {
+    font-size: 1.5em;
+    font-weight: 700;
+    line-height: 1.3333333;
+    margin-top: 2em;
+    margin-bottom: 1em;
+    color: var(--color-text-primary);
+  }
+
+  .prose h3 {
+    font-size: 1.25em;
+    font-weight: 600;
+    line-height: 1.6;
+    margin-top: 1.6em;
+    margin-bottom: 0.6em;
+    color: var(--color-text-primary);
+  }
+
+  .prose h4 {
+    font-size: 1em;
+    font-weight: 600;
+    line-height: 1.5;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    color: var(--color-text-primary);
+  }
+
+  .prose p {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    line-height: 1.75;
+  }
+
+  .prose a {
+    color: var(--color-secondary);
+    text-decoration: underline;
+    font-weight: 500;
+  }
+
+  .prose a:hover {
+    color: var(--color-primary);
+  }
+
+  .prose strong {
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  .prose em {
+    font-style: italic;
+  }
+
+  .prose code {
+    font-size: 0.875em;
+    font-weight: 600;
+    color: var(--color-primary);
+    background-color: var(--color-surface);
+    padding: 0.2em 0.4em;
+    border-radius: 0.25rem;
+  }
+
+  .prose pre {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border-secondary);
+    border-radius: 0.5rem;
+    padding: 1em;
+    overflow-x: auto;
+    margin-top: 1.7142857em;
+    margin-bottom: 1.7142857em;
+  }
+
+  .prose pre code {
+    background-color: transparent;
+    padding: 0;
+    font-weight: 400;
+    color: var(--color-text-primary);
+  }
+
+  .prose ul,
+  .prose ol {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    padding-left: 1.625em;
+  }
+
+  .prose ul {
+    list-style-type: disc;
+  }
+
+  .prose ol {
+    list-style-type: decimal;
+  }
+
+  .prose li {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+
+  .prose ul ul,
+  .prose ul ol,
+  .prose ol ul,
+  .prose ol ol {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
+  }
+
+  .prose blockquote {
+    font-style: italic;
+    border-left: 4px solid var(--color-border-primary);
+    padding-left: 1em;
+    margin-top: 1.6em;
+    margin-bottom: 1.6em;
+    color: var(--color-text-secondary);
+  }
+
+  .prose img {
+    margin-top: 2em;
+    margin-bottom: 2em;
+    border-radius: 0.5rem;
+  }
+
+  .prose hr {
+    margin-top: 3em;
+    margin-bottom: 3em;
+    border-color: var(--color-border-secondary);
+  }
+
+  .prose table {
+    width: 100%;
+    margin-top: 2em;
+    margin-bottom: 2em;
+    border-collapse: collapse;
+  }
+
+  .prose th {
+    font-weight: 600;
+    text-align: left;
+    padding: 0.5714286em;
+    border-bottom: 2px solid var(--color-border-primary);
+  }
+
+  .prose td {
+    padding: 0.5714286em;
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
+
+  /* Invert prose for dark backgrounds - already handled by theme vars */
+  .prose-invert {
+    /* Theme CSS variables already handle dark mode */
+  }
 }
