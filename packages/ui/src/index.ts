@@ -77,3 +77,14 @@ export {
 } from './contexts/temperature-context';
 export type { TemperatureUnit } from './lib/temperature';
 export { formatTemperatureWithUnit } from './lib/temperature';
+
+// Infobase Components
+export {
+  SidebarNavigation,
+  BreadcrumbNav,
+  SearchBar,
+  FilmCard,
+  DeveloperCard,
+  RecipeTable,
+} from './components/infobase';
+export type { ContentNode, BreadcrumbItem } from './components/infobase';
