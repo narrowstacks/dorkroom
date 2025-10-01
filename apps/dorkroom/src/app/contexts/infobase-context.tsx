@@ -42,6 +42,7 @@ export function InfobaseProvider({
 
   useEffect(() => {
     const client = new DorkroomClient();
+    let cancelled = false;
 
     async function loadData() {
       try {
@@ -50,19 +51,29 @@ export function InfobaseProvider({
 
         await client.loadAll();
 
-        setFilms(client.getAllFilms());
-        setDevelopers(client.getAllDevelopers());
-        setCombinations(client.getAllCombinations());
+        if (!cancelled) {
+          setFilms(client.getAllFilms());
+          setDevelopers(client.getAllDevelopers());
+          setCombinations(client.getAllCombinations());
+        }
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Failed to load data from API'
-        );
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : 'Failed to load data from API'
+          );
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     }
 
     loadData();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (

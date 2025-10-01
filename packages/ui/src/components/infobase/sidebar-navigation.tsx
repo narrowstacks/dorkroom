@@ -37,7 +37,9 @@ interface TreeNodeProps {
 function TreeNode({ node, level }: TreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const location = useLocation();
-  const isActive = location.pathname === node.path;
+  const normalizePath = (path: string) => path.replace(/\/index$/, '');
+  const isActive =
+    normalizePath(location.pathname) === normalizePath(node.path);
 
   if (node.type === 'folder') {
     return (
