@@ -83,6 +83,7 @@ function InfobaseContent() {
   const contentTree = useMemo(() => buildContentTree(mdxPages), []);
 
   // Get current page
+  // Note: mdxPages is a stable module-level constant
   const currentPage = useMemo(() => {
     // Try exact match first
     let page = mdxPages.find((p) => p.slug === slug);
@@ -96,12 +97,14 @@ function InfobaseContent() {
   }, [slug]);
 
   // Get breadcrumbs
+  // Note: mdxPages is a stable module-level constant
   const breadcrumbs = useMemo(
     () => (currentPage ? getBreadcrumbs(currentPage.slug, mdxPages) : []),
     [currentPage]
   );
 
   // Filter pages by search query
+  // Note: mdxPages is a stable module-level constant
   const filteredTree = useMemo(() => {
     if (!searchQuery) return contentTree;
 
