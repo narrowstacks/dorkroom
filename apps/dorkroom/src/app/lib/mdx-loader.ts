@@ -2,15 +2,7 @@
  * MDX content loader and metadata utilities
  */
 
-export interface MDXFrontmatter {
-  title: string;
-  description?: string;
-  category?: string;
-  filmSlug?: string;
-  developerSlug?: string;
-  tags?: string[];
-  [key: string]: unknown;
-}
+import type { ContentNode, MDXFrontmatter, BreadcrumbItem } from '@dorkroom/logic';
 
 export interface MDXPage {
   slug: string;
@@ -19,14 +11,8 @@ export interface MDXPage {
   Component: React.ComponentType;
 }
 
-export interface ContentNode {
-  type: 'folder' | 'file';
-  name: string;
-  path: string;
-  slug: string;
-  children?: ContentNode[];
-  frontmatter?: MDXFrontmatter;
-}
+// Re-export types for convenience
+export type { ContentNode, MDXFrontmatter, BreadcrumbItem };
 
 /**
  * Build a tree structure from flat MDX page list
@@ -98,9 +84,9 @@ export function buildContentTree(pages: MDXPage[]): ContentNode[] {
 export function getBreadcrumbs(
   slug: string,
   pages: MDXPage[]
-): Array<{ label: string; path: string }> {
+): BreadcrumbItem[] {
   const parts = slug.split('/').filter(Boolean);
-  const breadcrumbs: Array<{ label: string; path: string }> = [
+  const breadcrumbs: BreadcrumbItem[] = [
     { label: 'Infobase', path: '/infobase' },
   ];
 

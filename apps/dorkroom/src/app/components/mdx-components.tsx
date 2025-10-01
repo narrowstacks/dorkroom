@@ -65,6 +65,26 @@ interface LinkButtonProps {
 }
 
 export function LinkButton({ to, children }: LinkButtonProps) {
+  const isExternal =
+    to.startsWith('http://') || to.startsWith('https://') || to.startsWith('//');
+
+  if (isExternal) {
+    return (
+      <a
+        href={to}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition hover:brightness-105"
+        style={{
+          backgroundColor: 'var(--color-text-primary)',
+          color: 'var(--color-background)',
+        }}
+      >
+        {children}
+      </a>
+    );
+  }
+
   return (
     <Link
       to={to}

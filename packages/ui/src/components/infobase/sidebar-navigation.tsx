@@ -1,15 +1,11 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronRight, FileText, Folder } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import type { ContentNode } from '@dorkroom/logic';
+
 import { cn } from '../../lib/cn';
 
-export interface ContentNode {
-  type: 'folder' | 'file';
-  name: string;
-  path: string;
-  slug: string;
-  children?: ContentNode[];
-}
+export type { ContentNode };
 
 interface SidebarNavigationProps {
   tree: ContentNode[];
