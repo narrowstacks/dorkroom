@@ -35,6 +35,20 @@ export function FilmCard({ film, className }: FilmCardProps) {
       }}
     >
       <div className="space-y-2">
+        {film.staticImageUrl && (
+          <div>
+            <img
+              src={film.staticImageUrl}
+              alt={`${film.brand} ${film.name}`}
+              loading="lazy"
+              className="size-40 rounded-lg"
+              style={{
+                borderWidth: 1,
+                borderColor: 'var(--color-border-secondary)',
+              }}
+            />
+          </div>
+        )}
         <h3
           className="text-lg font-semibold"
           style={{ color: 'var(--color-text-primary)' }}
@@ -77,7 +91,7 @@ export function FilmCard({ film, className }: FilmCardProps) {
             Type
           </div>
           <div
-            className="text-base font-semibold capitalize"
+            className="text-base font-semibold uppercase"
             style={{ color: 'var(--color-text-primary)' }}
           >
             {film.colorType}
@@ -113,7 +127,10 @@ export function FilmCard({ film, className }: FilmCardProps) {
             </div>
             <ul className="space-y-1 text-sm">
               {film.manufacturerNotes.map((note, index) => (
-                <li key={index} style={{ color: 'var(--color-text-secondary)' }}>
+                <li
+                  key={index}
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
                   • {note}
                 </li>
               ))}
@@ -135,21 +152,6 @@ export function FilmCard({ film, className }: FilmCardProps) {
           >
             {film.reciprocityFailure}
           </p>
-        </div>
-      )}
-
-      {film.staticImageUrl && (
-        <div>
-          <img
-            src={film.staticImageUrl}
-            alt={`${film.brand} ${film.name}`}
-            loading="lazy"
-            className="w-full rounded-lg"
-            style={{
-              borderWidth: 1,
-              borderColor: 'var(--color-border-secondary)',
-            }}
-          />
         </div>
       )}
 

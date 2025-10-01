@@ -6,7 +6,7 @@
   "npm.packageManager": "bun",
   "mdx.server.enable": true,
   "mdx.server.javascript.enabled": true,
-  "mdx.server.tsconfig": "./apps/dorkroom/mdx-minimal.tsconfig.json",
+  "mdx.server.tsconfig": "./mdx-minimal.tsconfig.json",
   "mdx.validate": true,
   "mdx.languageServer.enable": true,
   "mdx.server.workspaceRoot": "./apps/dorkroom"

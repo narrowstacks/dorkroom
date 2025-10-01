@@ -86,5 +86,13 @@ export {
   FilmCard,
   DeveloperCard,
   RecipeTable,
+  DatabaseViewer,
+  DatabaseList,
+  DatabaseDetail,
 } from './components/infobase';
-export type { ContentNode, BreadcrumbItem } from './components/infobase';
+export type {
+  ContentNode,
+  BreadcrumbItem,
+  DatabaseItem,
+  DetailField,
+} from './components/infobase';
