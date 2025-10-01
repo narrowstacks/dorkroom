@@ -96,7 +96,23 @@ api/                  # Serverless API endpoints (Vercel functions)
 - **Responsive Design** - Works on desktop, tablet, and mobile
 - **Dark Theme** - Custom darkroom-inspired UI optimized for low light
 - **Fast Calculations** - Instant results without page reloads
+- **Feature Flags** - Control feature availability via environment variables
 - **Open Source** - Community-driven development
+
+### Feature Flags
+
+Dorkroom uses feature flags to control access to certain features. Configure them using environment variables in a `.env.local` file:
+
+```bash
+# Enable/disable the Infobase feature (default: enabled in dev, disabled in production)
+VITE_FEATURE_INFOBASE=true
+```
+
+Available feature flags:
+
+- `VITE_FEATURE_INFOBASE` - Controls access to the MDX-based wiki/infobase
+
+For complete feature flag documentation, see [docs/FEATURE_FLAGS.md](docs/FEATURE_FLAGS.md).
 
 ## API
 

@@ -56,12 +56,18 @@ export const useFeatureFlags = () => {
     [flags.ADVANCED_CHEMISTRY_CALCULATOR]
   );
 
+  const isInfobaseEnabled = useMemo(
+    () => flags.INFOBASE,
+    [flags.INFOBASE]
+  );
+
   return {
     flags,
     isEnabled,
     isCustomRecipeSharingEnabled,
     isRecipeImportEnabled,
     isAdvancedChemistryCalculatorEnabled,
+    isInfobaseEnabled,
   };
 };
 

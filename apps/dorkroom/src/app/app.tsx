@@ -8,6 +8,7 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { Beaker, Camera, Menu, Printer, Settings, X } from 'lucide-react';
+import { useFeatureFlags } from '@dorkroom/logic';
 import { cn } from './lib/cn';
 import {
   NavigationDropdown,
@@ -37,12 +38,16 @@ const DevelopmentRecipesPage = lazy(
   () => import('./pages/development-recipes/development-recipes-page')
 );
 const InfobasePage = lazy(() => import('./pages/infobase/infobase-page'));
+const InfobaseComingSoonPage = lazy(
+  () => import('./pages/infobase/infobase-coming-soon-page')
+);
 const SettingsPage = lazy(() => import('./pages/settings-page'));
 
 export function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isInfobaseEnabled } = useFeatureFlags();
 
   useEffect(() => {
     if (typeof document === 'undefined') {
@@ -390,7 +395,16 @@ export function App() {
                 element={<ReciprocityCalculatorPage />}
               />
               <Route path="/development" element={<DevelopmentRecipesPage />} />
-              <Route path="/infobase/*" element={<InfobasePage />} />
+              <Route
+                path="/infobase/*"
+                element={
+                  isInfobaseEnabled ? (
+                    <InfobasePage />
+                  ) : (
+                    <InfobaseComingSoonPage />
+                  )
+                }
+              />
               <Route path="/settings" element={<SettingsPage />} />
               {allNavItems
                 .filter(
