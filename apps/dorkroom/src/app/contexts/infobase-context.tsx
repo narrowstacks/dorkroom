@@ -41,7 +41,13 @@ export function InfobaseProvider({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const client = new DorkroomClient();
+    // Use local API in development, production API otherwise
+    const baseUrl =
+      process.env.NODE_ENV === 'development'
+        ? 'http://localhost:4200/api'
+        : 'https://dorkroom.art/api';
+
+    const client = new DorkroomClient({ baseUrl });
     let cancelled = false;
 
     async function loadData() {

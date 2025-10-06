@@ -41,7 +41,9 @@
       "Bash(xargs kill:*)",
       "Bash(bun remove:*)",
       "Bash(bunx nx build:*)",
-      "Read(//Users/aaron/Library/Caches/ms-playwright/**)"
+      "Read(//Users/aaron/Library/Caches/ms-playwright/**)",
+      "Bash(tsc:*)",
+      "Bash(bunx tsc:*)"
     ],
     "deny": [],
     "ask": []

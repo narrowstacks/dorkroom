@@ -2,7 +2,10 @@
   "name": "@dorkroom/source",
   "version": "0.0.0",
   "license": "AGPL-3.0-only",
-  "scripts": {},
+  "scripts": {
+    "dev:api": "vercel dev",
+    "dev:app": "bunx nx dev dorkroom -- --host=0.0.0.0"
+  },
   "private": true,
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
