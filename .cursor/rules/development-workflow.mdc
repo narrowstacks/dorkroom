@@ -1,0 +1,170 @@
+---
+description: Development commands and workflow guidelines
+---
+
+# Development Workflow
+
+## Development Server
+
+### Starting the Dev Server
+
+```bash
+# Primary development command (with hot reload for @dorkroom packages)
+bunx nx dev dorkroom -- --host=0.0.0.0
+
+# ⚠️ ALWAYS check if dev server is already running on port 4200 before starting!
+```
+
+### Alternative Serve Command
+
+```bash
+# Alternative dev server (⚠️ no hot-loading of @dorkroom packages!)
+bunx nx serve dorkroom
+```
+
+### Production Build
+
+```bash
+# Build production bundle
+bunx nx build dorkroom
+```
+
+### Preview Production Build
+
+```bash
+# Preview production build locally
+bunx nx preview dorkroom
+```
+
+## Code Quality Checks
+
+**Run these after completing tasks:**
+
+### Linting
+
+```bash
+# Run ESLint on main app
+bunx nx lint dorkroom
+
+# Run ESLint on specific package
+bunx nx lint @dorkroom/ui
+bunx nx lint @dorkroom/logic
+bunx nx lint @dorkroom/api
+```
+
+### Type Checking
+
+```bash
+# TypeScript type checking for main app
+bunx nx typecheck dorkroom
+
+# Type checking for specific package
+bunx nx typecheck @dorkroom/ui
+bunx nx typecheck @dorkroom/logic
+bunx nx typecheck @dorkroom/api
+```
+
+### Code Formatting
+
+```bash
+# Format all code with Prettier
+bunx prettier --write .
+
+# Check formatting without writing
+bunx prettier --check .
+```
+
+## Testing
+
+### Running Tests
+
+```bash
+# Run all tests for main app
+bunx nx test dorkroom
+
+# Run tests for specific package
+bunx nx test @dorkroom/ui
+bunx nx test @dorkroom/logic
+bunx nx test @dorkroom/api
+
+# Run tests with coverage
+bunx nx test dorkroom --coverage
+
+# Run tests in watch mode
+bunx nx test dorkroom --watch
+
+# Run tests with UI
+bunx nx test dorkroom --ui
+```
+
+## Nx Workspace Commands
+
+### Dependency Visualization
+
+```bash
+# Visualize project dependencies
+bunx nx graph
+
+# Show specific project graph
+bunx nx graph --focus=dorkroom
+```
+
+### Project Information
+
+```bash
+# Show available targets for a project
+bunx nx show project dorkroom
+
+# Show all projects
+bunx nx show projects
+```
+
+### Build All Packages
+
+```bash
+# Build all workspace packages
+bunx nx build dorkroom
+```
+
+## Quality Check Workflow
+
+### Standard Post-Task Checklist
+
+After completing any development task:
+
+1. **Type Check**: `bunx nx typecheck dorkroom`
+2. **Lint**: `bunx nx lint dorkroom`
+3. **Format**: `bunx prettier --write .`
+4. **Test**: `bunx nx test dorkroom` (if tests affected)
+
+### Pre-commit Hook
+
+Quality check hook is configured in [.claude/hooks/react-app/](mdc:.claude/hooks/react-app/):
+
+- ✅ TypeScript type checking (auto-run)
+- ✅ ESLint with autofix
+- ✅ Prettier formatting with autofix
+- ✅ Custom rules for console statements, `as any`, debuggers, TODOs
+
+## Development Best Practices
+
+### Port Management
+
+- **Default dev server port**: 4200
+- Always verify port availability before starting dev server
+- Check for running processes if port conflicts occur
+
+### Package Development
+
+When working on workspace packages ([packages/ui/](mdc:packages/ui/), [packages/logic/](mdc:packages/logic/), [packages/api/](mdc:packages/api/)):
+
+1. Use `bunx nx dev dorkroom` for hot-reload
+2. Build packages explicitly if needed: `bunx nx build @dorkroom/ui`
+3. Test packages in isolation: `bunx nx test @dorkroom/ui`
+
+### Debugging
+
+- Use browser DevTools for frontend debugging
+- Check console output with Playwright MCP
+- Use Vitest UI for test debugging: `bunx nx test dorkroom --ui`
+- Enable source maps in development (configured by default)

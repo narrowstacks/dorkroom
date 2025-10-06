@@ -65,7 +65,7 @@ Use agents proactively when tasks match their expertise areas.
 - `apps/dorkroom/` - Main React application
 - `packages/ui/` - Shared UI components (@dorkroom/ui)
 - `packages/logic/` - Business logic (@dorkroom/logic)
-- `packages/api/` - Client side implementation of API provided by Vercel serverless functions (as defined in `[project root]/api/`) (@dorkroom/api)
+- `packages/api/` - API client library for calling Vercel serverless functions (as defined in `[project root]/api/`) (@dorkroom/api)
 
 ### Key Technologies
 
