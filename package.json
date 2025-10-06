@@ -1,8 +1,17 @@
 {
   "name": "@dorkroom/source",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "AGPL-3.0-only",
-  "scripts": {},
+  "scripts": {
+    "supabase:login": "bunx supabase login",
+    "supabase:link": "bunx supabase link",
+    "supabase:status": "bunx supabase status",
+    "supabase:deploy": "bunx supabase functions deploy films --no-verify-jwt && bunx supabase functions deploy developers --no-verify-jwt && bunx supabase functions deploy combinations --no-verify-jwt",
+    "supabase:deploy:films": "bunx supabase functions deploy films --no-verify-jwt",
+    "supabase:deploy:developers": "bunx supabase functions deploy developers --no-verify-jwt",
+    "supabase:deploy:combinations": "bunx supabase functions deploy combinations --no-verify-jwt",
+    "supabase:serve": "bunx supabase functions serve"
+  },
   "private": true,
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
@@ -53,6 +62,7 @@
     "nx": "21.4.0",
     "postcss": "^8.5.6",
     "prettier": "^2.6.2",
+    "supabase": "^2.48.3",
     "tailwindcss": "^4.1.13",
     "tslib": "^2.3.0",
     "typescript": "~5.8.2",

@@ -5,7 +5,8 @@
       "Bash(bunx nx typecheck:*)",
       "mcp__serena__list_dir",
       "mcp__serena__activate_project",
-      "Bash(bunx prettier:*)"
+      "Bash(bunx prettier:*)",
+      "Bash(command -v:*)"
     ],
     "deny": [],
     "ask": []
