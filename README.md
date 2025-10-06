@@ -30,8 +30,11 @@ Built for darkroom obsessives who want fast, reliable calculations without the c
 
 - Node.js 18+
 - bun, npm, or yarn (bun preferred)
+- Docker (optional, for containerized development)
 
 ### Development
+
+#### Local Development
 
 ```bash
 # Clone the repository
@@ -49,6 +52,24 @@ cp .env.example .env
 bunx nx dev dorkroom -- --host=0.0.0.0
 
 # Open http://localhost:4200
+```
+
+#### Docker Development
+
+```bash
+# Clone the repository
+git clone https://github.com/narrowstacks/dorkroom.git
+cd dorkroom
+
+# Start development server with Docker
+docker compose up
+
+# Open http://localhost:4200
+
+# Run commands inside container
+docker compose exec dorkroom bunx nx lint dorkroom
+docker compose exec dorkroom bunx nx test dorkroom
+docker compose exec dorkroom bunx prettier --write .
 ```
 
 ### Building

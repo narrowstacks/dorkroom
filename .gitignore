@@ -52,3 +52,4 @@ vite.config.*.timestamp*
 vitest.config.*.timestamp*
 .playwright-mcp
 PR_BODY_THEMING.md
+.vercel

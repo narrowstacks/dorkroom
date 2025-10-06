@@ -20,6 +20,10 @@ export default defineConfig(() => ({
         rewrite: (path) => path.replace(/^\/api\/filmdev/, '/api'),
         secure: true,
       },
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
     },
   },
   preview: {

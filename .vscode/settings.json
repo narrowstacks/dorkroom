@@ -9,5 +9,6 @@
   "mdx.server.tsconfig": "./mdx-minimal.tsconfig.json",
   "mdx.validate": true,
   "mdx.languageServer.enable": true,
-  "mdx.server.workspaceRoot": "./apps/dorkroom"
+  "mdx.server.workspaceRoot": "./apps/dorkroom",
+  "typescript.experimental.useTsgo": true
 }
