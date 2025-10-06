@@ -39,6 +39,11 @@ testem.log
 .env.local
 .env.*.local
 
+# Supabase
+.supabase
+supabase/.branches
+supabase/.temp
+
 # System Files
 .DS_Store
 Thumbs.db
