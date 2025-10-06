@@ -12,7 +12,39 @@ description: React component development standards and patterns
 - TypeScript with JSX support
 - Entry point: [main.tsx](mdc:apps/dorkroom/src/main.tsx)
 
+### React 19 Breaking Changes
+
+**⚠️ NEVER use `forwardRef` - pass refs as regular props in React 19**
+
+```typescript
+// ❌ DON'T: Use forwardRef (React 18 pattern)
+import { forwardRef } from 'react';
+const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
+  return <input ref={ref} {...props} />;
+});
+
+// ✅ DO: Pass ref as regular prop (React 19)
+interface InputProps {
+  ref?: React.Ref<HTMLInputElement>;
+  // other props...
+}
+const Input: FC<InputProps> = ({ ref, ...props }) => {
+  return <input ref={ref} {...props} />;
+};
+```
+
 ## Component Architecture
+
+### Component Development Philosophy
+
+**Always use `@dorkroom/ui` for UI components** - import from [packages/ui/](mdc:packages/ui/).
+
+- ✅ Check existing components before creating new ones
+- ✅ Keep components simple and focused - one main export per file
+- ✅ Avoid premature optimization or unnecessary abstractions
+- ✅ Reference [apps/dorkroom/src/app/components/](mdc:apps/dorkroom/src/app/components/) for usage patterns
+- ✅ Minimize `useEffect` usage - prefer event handlers and derived state
+- ✅ Document any `useEffect` usage with clear comments explaining why it's necessary
 
 ### Component Types
 

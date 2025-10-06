@@ -1,0 +1,254 @@
+---
+description: Environment variables and feature flag configuration
+---
+
+# Environment Configuration
+
+## Environment Variables
+
+### Setup
+
+Copy [.env.example](mdc:.env.example) to `.env` and configure:
+
+```bash
+# Copy example file
+cp .env.example .env
+
+# Edit with your configuration
+```
+
+### Required Variables
+
+#### Supabase Configuration
+
+```bash
+# Supabase project URL
+SUPABASE_ENDPOINT=https://your-project.supabase.co
+
+# Supabase service role key (server-side only!)
+SUPABASE_MASTER_API_KEY=your-service-role-key
+
+# ⚠️ NEVER commit .env file to version control
+# ⚠️ Service role key should only be used server-side
+```
+
+#### Node Environment
+
+```bash
+# Environment flag
+NODE_ENV=development  # or production, test
+```
+
+### Client-Side Variables
+
+#### Feature Flags
+
+All client-side environment variables must use the `VITE_` prefix:
+
+```bash
+# Enable/disable Infobase feature
+VITE_FEATURE_INFOBASE=true  # Enabled by default in development
+```
+
+## Feature Flags
+
+Feature flags control optional functionality. See [docs/FEATURE_FLAGS.md](mdc:docs/FEATURE_FLAGS.md) for comprehensive documentation.
+
+### Available Feature Flags
+
+#### `VITE_FEATURE_INFOBASE`
+
+**MDX-based wiki system for photography information.**
+
+```bash
+# .env configuration
+VITE_FEATURE_INFOBASE=true   # Enable (default in dev)
+VITE_FEATURE_INFOBASE=false  # Disable
+```
+
+**Affects:**
+
+- `/developers/*` routes
+- `/films/*` routes
+- `/guides/*` routes
+- `/recipes/*` routes
+- Infobase navigation menu items
+- MDX content rendering
+
+**Dependencies:**
+
+- MDX files in [apps/dorkroom/src/content/](mdc:apps/dorkroom/src/content/)
+- `gray-matter` for frontmatter parsing
+- `rehype-highlight` for syntax highlighting
+- `remark-gfm` for GitHub Flavored Markdown
+
+### Using Feature Flags in Code
+
+#### React Components
+
+```typescript
+// ✅ Access feature flags via environment variables
+const isInfobaseEnabled = import.meta.env.VITE_FEATURE_INFOBASE === 'true';
+
+// ✅ Conditional rendering based on feature flag
+export const Navigation = () => {
+  const showInfobase = import.meta.env.VITE_FEATURE_INFOBASE === 'true';
+
+  return (
+    <nav>
+      <Link to="/">Home</Link>
+      <Link to="/calculators">Calculators</Link>
+      {showInfobase && (
+        <>
+          <Link to="/developers">Developers</Link>
+          <Link to="/films">Films</Link>
+          <Link to="/guides">Guides</Link>
+        </>
+      )}
+    </nav>
+  );
+};
+```
+
+#### Route Configuration
+
+```typescript
+// ✅ Conditionally include routes
+import { createBrowserRouter } from 'react-router-dom';
+
+const routes = [
+  { path: '/', element: <HomePage /> },
+  { path: '/calculators', element: <CalculatorsPage /> },
+];
+
+// Add Infobase routes if enabled
+if (import.meta.env.VITE_FEATURE_INFOBASE === 'true') {
+  routes.push(
+    { path: '/developers/:slug', element: <DeveloperPage /> },
+    { path: '/films/:slug', element: <FilmPage /> },
+    { path: '/guides/:slug', element: <GuidePage /> }
+  );
+}
+
+export const router = createBrowserRouter(routes);
+```
+
+#### TypeScript Type Safety
+
+```typescript
+// ✅ Extend Vite environment types
+/// <reference types="vite/client" />
+
+interface ImportMetaEnv {
+  readonly VITE_FEATURE_INFOBASE: string;
+  // Add other env variables here
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+## Environment-Specific Configuration
+
+### Development
+
+```bash
+NODE_ENV=development
+VITE_FEATURE_INFOBASE=true    # Enable all features for testing
+```
+
+**Characteristics:**
+
+- Hot module replacement enabled
+- Source maps enabled
+- Verbose logging
+- All features enabled by default
+
+### Production
+
+```bash
+NODE_ENV=production
+VITE_FEATURE_INFOBASE=true    # Enable based on launch readiness
+```
+
+**Characteristics:**
+
+- Minified bundles
+- Optimized assets
+- Error tracking enabled
+- Feature flags control public features
+
+### Testing
+
+```bash
+NODE_ENV=test
+VITE_FEATURE_INFOBASE=true    # Test feature flag variations
+```
+
+**Characteristics:**
+
+- Fast test execution
+- Mocked external services
+- Test-specific configurations
+
+## Security Best Practices
+
+### Server-Side vs Client-Side
+
+```typescript
+// ✅ Server-side only (API routes)
+const apiKey = process.env.SUPABASE_MASTER_API_KEY;
+
+// ✅ Client-side safe (VITE_ prefix)
+const featureEnabled = import.meta.env.VITE_FEATURE_INFOBASE;
+
+// ❌ NEVER expose secrets in client code
+const secret = import.meta.env.VITE_SECRET_KEY; // Wrong!
+```
+
+### Environment File Management
+
+```bash
+# ✅ Version control
+.env.example    # Template with example values
+
+# ❌ Never commit
+.env            # Contains actual secrets
+.env.local      # Local overrides
+.env.production # Production secrets
+```
+
+### Validation
+
+```typescript
+// ✅ Validate required environment variables at startup
+function validateEnv() {
+  const required = ['SUPABASE_ENDPOINT'];
+
+  for (const key of required) {
+    if (!process.env[key]) {
+      throw new Error(`Missing required environment variable: ${key}`);
+    }
+  }
+}
+
+// Call during app initialization
+validateEnv();
+```
+
+## Troubleshooting
+
+### Environment Variables Not Loading
+
+1. Ensure `.env` file exists in project root
+2. Verify variables have `VITE_` prefix for client-side
+3. Restart dev server after changing `.env`
+4. Check for syntax errors in `.env` file
+
+### Feature Flag Not Working
+
+1. Verify environment variable is set: `echo $VITE_FEATURE_INFOBASE`
+2. Check variable name spelling and case
+3. Ensure dev server was restarted
+4. Verify conditional logic: `import.meta.env.VITE_FEATURE_INFOBASE === 'true'`

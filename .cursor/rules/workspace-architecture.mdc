@@ -26,6 +26,10 @@ This is an Nx 21.4.0 monorepo with npm package management for a photography deve
   - React components with TypeScript
   - Depends on `@dorkroom/logic`
   - Main export: [index.ts](mdc:packages/ui/src/index.ts)
+- **`packages/api/`** - API client library (public)
+  - Client for calling Vercel serverless functions
+  - Server functions defined in [api/](mdc:api/)
+  - Main export: [index.ts](mdc:packages/api/src/index.ts)
 
 ## Migration Context
 
@@ -84,6 +88,7 @@ Use TypeScript path mapping for clean imports:
 
 - `@dorkroom/logic` - Business logic package
 - `@dorkroom/ui` - UI components package
+- `@dorkroom/api` - API client package
 
 ## Development Guidelines
 
