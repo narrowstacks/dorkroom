@@ -100,53 +100,16 @@ api/                  # Serverless API endpoints (Vercel functions)
 
 ## API
 
-Dorkroom includes both a client-side API package (`@dorkroom/api`) for data access and serverless API endpoints for external integrations.
+Dorkroom provides a comprehensive API for accessing film development data, available both as a TypeScript client package and as REST endpoints for external integrations.
 
-### Client API Package
+**For detailed API documentation, see [API.md](API.md)**
 
-The `@dorkroom/api` package provides a TypeScript client for accessing film development data:
+### Quick Overview
 
-```typescript
-import { DorkroomClient } from '@dorkroom/api';
-
-const client = new DorkroomClient({
-  baseUrl: 'https://dorkroom.art/api', // Optional, defaults to production API
-  timeout: 10000, // Optional, defaults to 10 seconds
-  cacheExpiryMs: 300000, // Optional, defaults to 5 minutes
-});
-
-// Load all data
-await client.loadAll();
-
-// Get films, developers, and development combinations
-const films = client.getAllFilms();
-const developers = client.getAllDevelopers();
-const combinations = client.getAllCombinations();
-```
-
-### Serverless API Endpoints
-
-Vercel serverless functions provide external API access to film development data:
-
-- `GET /api/films` - Film stock information
-- `GET /api/developers` - Developer chemistry information
-- `GET /api/combinations` - Film + developer combinations with development recipes
-
-#### Environment Variables
-
-The API endpoints require the following environment variables:
-
-```bash
-SUPABASE_ENDPOINT=your_supabase_project_url
-SUPABASE_MASTER_API_KEY=your_supabase_service_role_key
-```
-
-#### Database Access
-
-- **Public Access**: Read-only access to film, developer, and combination data
-- **Admin Access**: Full database access is restricted to administrators only
-- **Authentication**: Uses Supabase service role key for secure database operations
-- **Rate Limiting**: Master API key provides high rate limits for production use
+- **TypeScript Client**: `@dorkroom/api` package with fuzzy search and caching
+- **REST Endpoints**: `/api/films`, `/api/developers`, `/api/combinations`
+- **Features**: Query parameters, fuzzy search, request validation, CORS support
+- **Authentication**: Supabase service role key (server-side only)
 
 ## Contributing
 
