@@ -1,74 +1,88 @@
 /**
- * Infobase Page - MDX-based wiki system
+ * Infobase Page - MDX-based wiki system with automated content loading
  */
 
 import { useState, useMemo, Suspense } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { MDXProvider } from '@mdx-js/react';
-import { Menu, X, Loader2 } from 'lucide-react';
-import { SidebarNavigation, BreadcrumbNav, SearchBar } from '@dorkroom/ui';
+import { Loader2 } from 'lucide-react';
+import { InfobaseLayout } from '@dorkroom/ui';
 import {
   buildContentTree,
   getBreadcrumbs,
   searchPages,
   ContentNode,
 } from '../../lib/mdx-loader';
+import { loadMDXPages } from '../../lib/mdx-auto-loader';
 import { InfobaseProvider } from '../../contexts/infobase-context';
 import { mdxComponents } from '../../components/mdx-components';
-
-// Import index pages
-import FilmsIndex from '../../../content/films/index.mdx';
-import DevelopersIndex from '../../../content/developers/index.mdx';
-import RecipesIndex from '../../../content/recipes/index.mdx';
-import GuidesIndex from '../../../content/guides/index.mdx';
-
-// Import example content
-import KodakTriX from '../../../content/films/kodak-tri-x-400.mdx';
-import KodakD76 from '../../../content/developers/kodak-d76.mdx';
 
 // Import database pages
 import { FilmDataPage } from './film-data-page';
 import { DeveloperDataPage } from './developer-data-page';
 
-// MDX pages registry
-const mdxPages = [
+// Page registry types
+type MDXPageEntry = {
+  type: 'mdx';
+  slug: string;
+  path: string;
+  Component: React.ComponentType;
+  frontmatter: {
+    title?: string;
+    category?: string;
+    [key: string]: unknown;
+  };
+};
+
+type DatabasePageEntry = {
+  type: 'database';
+  slug: string;
+  path: string;
+  Component: React.ComponentType;
+  name: string;
+  icon?: string;
+  databaseType: string;
+};
+
+type PageEntry = MDXPageEntry | DatabasePageEntry;
+
+// Load MDX pages automatically
+const mdxPages = loadMDXPages();
+
+// Database page definitions
+const databasePages: DatabasePageEntry[] = [
   {
-    slug: 'films/index',
-    path: '/infobase/films',
-    Component: FilmsIndex,
-    frontmatter: { title: 'Films', category: 'films' },
+    type: 'database',
+    slug: 'film-data',
+    path: '/infobase/film-data',
+    Component: FilmDataPage,
+    name: 'Film Data',
+    icon: '🎞️',
+    databaseType: 'films',
   },
   {
-    slug: 'films/kodak-tri-x-400',
-    path: '/infobase/films/kodak-tri-x-400',
-    Component: KodakTriX,
-    frontmatter: { title: 'Kodak Tri-X 400', category: 'films' },
-  },
-  {
-    slug: 'developers/index',
-    path: '/infobase/developers',
-    Component: DevelopersIndex,
-    frontmatter: { title: 'Developers', category: 'developers' },
-  },
-  {
-    slug: 'developers/kodak-d76',
-    path: '/infobase/developers/kodak-d76',
-    Component: KodakD76,
-    frontmatter: { title: 'Kodak D-76', category: 'developers' },
-  },
-  {
-    slug: 'recipes/index',
-    path: '/infobase/recipes',
-    Component: RecipesIndex,
-    frontmatter: { title: 'Recipes', category: 'recipes' },
-  },
-  {
-    slug: 'guides/index',
-    path: '/infobase/guides',
-    Component: GuidesIndex,
-    frontmatter: { title: 'Guides', category: 'guides' },
+    type: 'database',
+    slug: 'developer-data',
+    path: '/infobase/developer-data',
+    Component: DeveloperDataPage,
+    name: 'Developer Data',
+    icon: '🧪',
+    databaseType: 'developers',
   },
 ];
+
+// Unified page registry
+const pageRegistry: Record<string, PageEntry> = {};
+
+// Add MDX pages to registry
+mdxPages.forEach((page) => {
+  pageRegistry[page.slug] = { type: 'mdx', ...page };
+});
+
+// Add database pages to registry
+databasePages.forEach((page) => {
+  pageRegistry[page.slug] = page;
+});
 
 export default function InfobasePage() {
   return (
@@ -82,58 +96,46 @@ function InfobaseContent() {
   const { '*': slugParam } = useParams();
   const slug = slugParam || 'films/index';
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Build content tree for navigation with database nodes
   const contentTree = useMemo(() => {
     const mdxTree = buildContentTree(mdxPages);
 
     // Add database nodes at root level
-    const databaseNodes: ContentNode[] = [
-      {
-        type: 'database',
-        name: 'Film Data',
-        path: '/infobase/film-data',
-        slug: 'film-data',
-        icon: '🎞️',
-        databaseType: 'films',
-      },
-      {
-        type: 'database',
-        name: 'Developer Data',
-        path: '/infobase/developer-data',
-        slug: 'developer-data',
-        icon: '🧪',
-        databaseType: 'developers',
-      },
-    ];
+    const databaseNodes: ContentNode[] = databasePages.map((page) => ({
+      type: 'database' as const,
+      name: page.name,
+      path: page.path,
+      slug: page.slug,
+      icon: page.icon,
+      databaseType: page.databaseType as 'films' | 'developers',
+    }));
 
     return [...databaseNodes, ...mdxTree];
   }, []);
 
-  // Get current page
-  // Note: mdxPages is a stable module-level constant
+  // Get current page from unified registry
   const currentPage = useMemo(() => {
     // Try exact match first
-    let page = mdxPages.find((p) => p.slug === slug);
+    let page = pageRegistry[slug];
 
-    // Try with /index appended
+    // Try with /index appended for folder navigation
     if (!page) {
-      page = mdxPages.find((p) => p.slug === `${slug}/index`);
+      page = pageRegistry[`${slug}/index`];
     }
 
     return page;
   }, [slug]);
 
-  // Get breadcrumbs
-  // Note: mdxPages is a stable module-level constant
-  const breadcrumbs = useMemo(
-    () => (currentPage ? getBreadcrumbs(currentPage.slug, mdxPages) : []),
-    [currentPage]
-  );
+  // Get breadcrumbs for MDX pages
+  const breadcrumbs = useMemo(() => {
+    if (currentPage?.type === 'mdx') {
+      return getBreadcrumbs(currentPage.slug, mdxPages);
+    }
+    return [];
+  }, [currentPage]);
 
   // Filter pages by search query
-  // Note: mdxPages is a stable module-level constant
   const filteredTree = useMemo(() => {
     if (!searchQuery) return contentTree;
 
@@ -141,184 +143,56 @@ function InfobaseContent() {
     return buildContentTree(filtered);
   }, [contentTree, searchQuery]);
 
-  // Handle database pages
-  if (slug === 'film-data') {
-    return (
-      <div className="mx-auto flex min-h-screen max-w-7xl">
-        <aside
-          className="sticky top-16 hidden w-64 flex-shrink-0 self-start overflow-y-auto border-r py-6 pl-6 pr-4 lg:block"
-          style={{
-            borderColor: 'var(--color-border-secondary)',
-            maxHeight: 'calc(100vh - 4rem)',
-          }}
-        >
-          <div className="space-y-4">
-            <h2
-              className="text-lg font-semibold"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              Infobase
-            </h2>
-            <SearchBar
-              onSearch={setSearchQuery}
-              placeholder="Search pages..."
-            />
-            <SidebarNavigation tree={filteredTree} />
-          </div>
-        </aside>
-        <main className="flex-1 px-6 py-6 lg:px-10">
-          <FilmDataPage />
-        </main>
-      </div>
-    );
-  }
-
-  if (slug === 'developer-data') {
-    return (
-      <div className="mx-auto flex min-h-screen max-w-7xl">
-        <aside
-          className="sticky top-16 hidden w-64 flex-shrink-0 self-start overflow-y-auto border-r py-6 pl-6 pr-4 lg:block"
-          style={{
-            borderColor: 'var(--color-border-secondary)',
-            maxHeight: 'calc(100vh - 4rem)',
-          }}
-        >
-          <div className="space-y-4">
-            <h2
-              className="text-lg font-semibold"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              Infobase
-            </h2>
-            <SearchBar
-              onSearch={setSearchQuery}
-              placeholder="Search pages..."
-            />
-            <SidebarNavigation tree={filteredTree} />
-          </div>
-        </aside>
-        <main className="flex-1 px-6 py-6 lg:px-10">
-          <DeveloperDataPage />
-        </main>
-      </div>
-    );
-  }
-
-  // Redirect to default page if no MDX match
+  // Redirect to default page if no match
   if (!currentPage) {
     return <Navigate to="/infobase/films" replace />;
   }
 
-  const PageComponent = currentPage.Component;
+  // Render database pages
+  if (currentPage.type === 'database') {
+    const { Component } = currentPage;
+    return (
+      <InfobaseLayout
+        tree={filteredTree}
+        onSearch={setSearchQuery}
+        breadcrumbs={undefined}
+      >
+        <Component />
+      </InfobaseLayout>
+    );
+  }
+
+  // Render MDX pages
+  const { Component: PageComponent } = currentPage;
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-7xl">
-      {/* Sidebar - Desktop */}
-      <aside
-        className="sticky top-16 hidden w-64 flex-shrink-0 self-start overflow-y-auto border-r py-6 pl-6 pr-4 lg:block"
-        style={{
-          borderColor: 'var(--color-border-secondary)',
-          maxHeight: 'calc(100vh - 4rem)',
-        }}
-      >
-        <div className="space-y-4">
-          <h2
-            className="text-lg font-semibold"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            Infobase
-          </h2>
-          <SearchBar onSearch={setSearchQuery} placeholder="Search pages..." />
-          <SidebarNavigation tree={filteredTree} />
-        </div>
-      </aside>
-
-      {/* Mobile Sidebar Toggle */}
-      <button
-        type="button"
-        onClick={() => setIsSidebarOpen(true)}
-        className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full shadow-lg lg:hidden"
-        style={{
-          backgroundColor: 'var(--color-text-primary)',
-          color: 'var(--color-background)',
-        }}
-        aria-label="Open navigation"
-      >
-        <Menu className="h-5 w-5" />
-      </button>
-
-      {/* Mobile Sidebar */}
-      {isSidebarOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-50 bg-black/50 lg:hidden"
-            onClick={() => setIsSidebarOpen(false)}
-            aria-hidden="true"
-          />
-          <aside
-            className="fixed inset-y-0 left-0 z-50 w-64 overflow-y-auto p-6 lg:hidden"
-            style={{
-              backgroundColor: 'var(--color-background)',
-              borderRightWidth: 1,
-              borderColor: 'var(--color-border-secondary)',
-            }}
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <h2
-                className="text-lg font-semibold"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                Infobase
-              </h2>
-              <button
-                type="button"
-                onClick={() => setIsSidebarOpen(false)}
-                className="rounded-full p-2"
-                style={{ color: 'var(--color-text-secondary)' }}
-                aria-label="Close navigation"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="space-y-4">
-              <SearchBar
-                onSearch={setSearchQuery}
-                placeholder="Search pages..."
-              />
-              <SidebarNavigation tree={filteredTree} />
-            </div>
-          </aside>
-        </>
-      )}
-
-      {/* Main Content */}
-      <main className="flex-1 px-6 py-6 lg:px-10">
-        <div className="mx-auto max-w-3xl space-y-6">
-          {/* Breadcrumbs */}
-          {breadcrumbs.length > 0 && <BreadcrumbNav items={breadcrumbs} />}
-
-          {/* MDX Content */}
-          <article
-            className="prose prose-invert max-w-none"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            <MDXProvider components={mdxComponents}>
-              <Suspense
-                fallback={
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2
-                      className="h-8 w-8 animate-spin"
-                      style={{ color: 'var(--color-text-secondary)' }}
-                    />
-                  </div>
-                }
-              >
-                <PageComponent />
-              </Suspense>
-            </MDXProvider>
-          </article>
-        </div>
-      </main>
-    </div>
+    <InfobaseLayout
+      tree={filteredTree}
+      onSearch={setSearchQuery}
+      breadcrumbs={breadcrumbs}
+    >
+      <div className="mx-auto max-w-3xl space-y-6">
+        {/* MDX Content */}
+        <article
+          className="prose prose-invert max-w-none"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
+          <MDXProvider components={mdxComponents}>
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center py-12">
+                  <Loader2
+                    className="h-8 w-8 animate-spin"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  />
+                </div>
+              }
+            >
+              <PageComponent />
+            </Suspense>
+          </MDXProvider>
+        </article>
+      </div>
+    </InfobaseLayout>
   );
 }

@@ -10,7 +10,10 @@
       "Bash(bunx prettier:*)",
       "mcp__serena",
       "mcp__chrome-devtools",
-      "mcp__context7"    
+      "mcp__context7",
+      "mcp__playwright",
+      "mcp__zen",
+      "WebSearch"    
     ],
     "deny": [],
     "ask": [

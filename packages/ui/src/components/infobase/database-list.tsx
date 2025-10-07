@@ -27,7 +27,7 @@ export function DatabaseList<T extends DatabaseItem>({
   className,
 }: DatabaseListProps<T>) {
   return (
-    <div className={cn('flex flex-col', className)}>
+    <div className={cn('flex h-full flex-col', className)}>
       <div className="mb-4">
         <SearchBar onSearch={onSearchChange} placeholder="Search..." />
       </div>
@@ -51,15 +51,18 @@ export function DatabaseList<T extends DatabaseItem>({
                 onClick={() => onSelect(item)}
                 className={cn(
                   'w-full rounded-lg px-3 py-2.5 text-left text-sm transition',
-                  'hover:bg-[color:var(--color-surface)]',
-                  isSelected &&
-                    'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)]'
+                  isSelected
+                    ? 'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)]'
+                    : 'hover:bg-[color:var(--color-surface)]'
                 )}
-                style={
-                  !isSelected
-                    ? { color: 'var(--color-text-primary)' }
-                    : undefined
-                }
+                style={{
+                  color: isSelected
+                    ? 'var(--color-background)'
+                    : 'var(--color-text-primary)',
+                  backgroundColor: isSelected
+                    ? 'var(--color-text-primary)'
+                    : undefined,
+                }}
               >
                 {renderItem ? (
                   renderItem(item)
