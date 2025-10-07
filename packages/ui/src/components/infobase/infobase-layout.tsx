@@ -112,14 +112,7 @@ export function InfobaseLayout({
       )}
 
       {/* Main Content */}
-      <main className="flex-1 px-6 py-6 lg:px-10">
-        {breadcrumbs && breadcrumbs.length > 0 && (
-          <div className="mx-auto max-w-3xl">
-            <BreadcrumbNav items={breadcrumbs} />
-          </div>
-        )}
-        {children}
-      </main>
+      <main className="flex-1 px-6 py-6 lg:px-10">{children}</main>
     </div>
   );
 }

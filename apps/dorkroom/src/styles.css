@@ -1144,6 +1144,30 @@
     border: 2px solid var(--color-primary) !important;
   }
 
+  /* MDX content container with theme-specific styling */
+  .mdx-content-container {
+    border-radius: 1rem;
+    padding: 1.5rem;
+  }
+
+  [data-theme='dark'] .mdx-content-container {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+
+  [data-theme='light'] .mdx-content-container {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+
+  [data-theme='darkroom'] .mdx-content-container {
+    background-color: #000000;
+    border: 2px solid var(--color-primary);
+  }
+
+  [data-theme='high-contrast'] .mdx-content-container {
+    background-color: #ffffff;
+    border: 2px solid #000000;
+  }
+
   /* Prose styling for MDX content */
   .prose {
     max-width: 65ch;

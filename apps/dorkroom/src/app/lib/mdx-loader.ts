@@ -80,6 +80,20 @@ export function buildContentTree(pages: MDXPage[]): ContentNode[] {
     }
   });
 
+  // Sort root level items: index first, then folders, then other files
+  tree.sort((a, b) => {
+    // Index page always first
+    if (a.slug === 'index') return -1;
+    if (b.slug === 'index') return 1;
+
+    // Then folders
+    if (a.type === 'folder' && b.type !== 'folder') return -1;
+    if (a.type !== 'folder' && b.type === 'folder') return 1;
+
+    // Then alphabetically
+    return a.name.localeCompare(b.name);
+  });
+
   return tree;
 }
 
