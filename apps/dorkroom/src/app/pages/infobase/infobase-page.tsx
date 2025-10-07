@@ -2,7 +2,7 @@
  * Infobase Page - MDX-based wiki system with automated content loading
  */
 
-import { useState, useMemo, Suspense } from 'react';
+import { useState, useMemo, Suspense, useEffect, useRef } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { MDXProvider } from '@mdx-js/react';
 import { Loader2 } from 'lucide-react';
@@ -16,6 +16,8 @@ import {
 import { loadMDXPages } from '../../lib/mdx-auto-loader';
 import { InfobaseProvider } from '../../contexts/infobase-context';
 import { mdxComponents } from '../../components/mdx-components';
+import { useDebounce } from '../../hooks/use-debounce';
+import { MDXErrorBoundary } from '../../components/mdx-error-boundary';
 
 // Import database pages
 import { FilmDataPage } from './film-data-page';
@@ -96,6 +98,24 @@ function InfobaseContent() {
   const { '*': slugParam } = useParams();
   const slug = slugParam || 'films/index';
   const [searchQuery, setSearchQuery] = useState('');
+  const articleRef = useRef<HTMLElement>(null);
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+
+  // Debounce search query to prevent UI lag during typing
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  // Toggle node expansion state
+  const handleToggleNode = (nodeSlug: string) => {
+    setExpandedNodes((prev) => {
+      const next = new Set(prev);
+      if (next.has(nodeSlug)) {
+        next.delete(nodeSlug);
+      } else {
+        next.add(nodeSlug);
+      }
+      return next;
+    });
+  };
 
   // Build content tree for navigation with database nodes
   const contentTree = useMemo(() => {
@@ -115,6 +135,7 @@ function InfobaseContent() {
   }, []);
 
   // Get current page from unified registry
+  // Note: pageRegistry is a stable module-level object, mdxPages is loaded once at module init
   const currentPage = useMemo(() => {
     // Try exact match first
     let page = pageRegistry[slug];
@@ -128,6 +149,7 @@ function InfobaseContent() {
   }, [slug]);
 
   // Get breadcrumbs for MDX pages
+  // Note: mdxPages is a stable module-level constant loaded once at module initialization
   const breadcrumbs = useMemo(() => {
     if (currentPage?.type === 'mdx') {
       return getBreadcrumbs(currentPage.slug, mdxPages);
@@ -135,13 +157,31 @@ function InfobaseContent() {
     return [];
   }, [currentPage]);
 
-  // Filter pages by search query
+  // Filter pages by search query (using debounced value)
   const filteredTree = useMemo(() => {
-    if (!searchQuery) return contentTree;
+    if (!debouncedSearchQuery) return contentTree;
 
-    const filtered = searchPages(mdxPages, searchQuery);
+    const filtered = searchPages(mdxPages, debouncedSearchQuery);
     return buildContentTree(filtered);
-  }, [contentTree, searchQuery]);
+  }, [contentTree, debouncedSearchQuery]);
+
+  // Focus management: Move focus to article on page navigation
+  // This is necessary because we use useEffect here to handle async page loads
+  useEffect(() => {
+    if (currentPage && articleRef.current) {
+      // Small delay to ensure content is rendered
+      const timeoutId = setTimeout(() => {
+        // Set tabIndex to allow focus, then focus the element
+        if (articleRef.current) {
+          articleRef.current.tabIndex = -1;
+          articleRef.current.focus();
+        }
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+    return undefined;
+  }, [currentPage]);
 
   // Redirect to default page if no match
   if (!currentPage) {
@@ -156,6 +196,8 @@ function InfobaseContent() {
         tree={filteredTree}
         onSearch={setSearchQuery}
         breadcrumbs={undefined}
+        expandedNodes={expandedNodes}
+        onToggleNode={handleToggleNode}
       >
         <Component />
       </InfobaseLayout>
@@ -170,26 +212,35 @@ function InfobaseContent() {
       tree={filteredTree}
       onSearch={setSearchQuery}
       breadcrumbs={breadcrumbs}
+      expandedNodes={expandedNodes}
+      onToggleNode={handleToggleNode}
     >
       <div className="mx-auto max-w-3xl space-y-6">
         {/* MDX Content */}
         <article
+          ref={articleRef}
           className="prose prose-invert max-w-none"
           style={{ color: 'var(--color-text-primary)' }}
         >
           <MDXProvider components={mdxComponents}>
-            <Suspense
-              fallback={
-                <div className="flex items-center justify-center py-12">
-                  <Loader2
-                    className="h-8 w-8 animate-spin"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                  />
-                </div>
-              }
-            >
-              <PageComponent />
-            </Suspense>
+            <MDXErrorBoundary>
+              <Suspense
+                fallback={
+                  <div
+                    role="status"
+                    className="flex items-center justify-center py-12"
+                  >
+                    <Loader2
+                      className="h-8 w-8 animate-spin"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                    />
+                    <span className="sr-only">Loading content...</span>
+                  </div>
+                }
+              >
+                <PageComponent />
+              </Suspense>
+            </MDXErrorBoundary>
           </MDXProvider>
         </article>
       </div>

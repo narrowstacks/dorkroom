@@ -8,7 +8,6 @@ export { RecipeTable } from './recipe-table';
 export { DatabaseViewer } from './database-viewer';
 export { DatabaseList } from './database-list';
 export { DatabaseDetail } from './database-detail';
-export type { ContentNode } from './sidebar-navigation';
-export type { BreadcrumbItem } from './breadcrumb-nav';
+export type { ContentNode, BreadcrumbItem } from '@dorkroom/logic';
 export type { DatabaseItem } from './database-list';
 export type { DetailField } from './database-viewer';
