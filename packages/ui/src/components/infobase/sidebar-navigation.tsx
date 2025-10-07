@@ -5,21 +5,32 @@ import type { ContentNode } from '@dorkroom/logic';
 
 import { cn } from '../../lib/cn';
 
-export type { ContentNode };
-
 interface SidebarNavigationProps {
   tree: ContentNode[];
   className?: string;
+  expandedNodes?: Set<string>;
+  onToggleNode?: (slug: string) => void;
 }
 
-export function SidebarNavigation({ tree, className }: SidebarNavigationProps) {
+export function SidebarNavigation({
+  tree,
+  className,
+  expandedNodes,
+  onToggleNode,
+}: SidebarNavigationProps) {
   return (
     <nav
       className={cn('space-y-1', className)}
       aria-label="Infobase navigation"
     >
       {tree.map((node) => (
-        <TreeNode key={node.slug} node={node} level={0} />
+        <TreeNode
+          key={node.slug}
+          node={node}
+          level={0}
+          expandedNodes={expandedNodes}
+          onToggleNode={onToggleNode}
+        />
       ))}
     </nav>
   );
@@ -28,10 +39,23 @@ export function SidebarNavigation({ tree, className }: SidebarNavigationProps) {
 interface TreeNodeProps {
   node: ContentNode;
   level: number;
+  expandedNodes?: Set<string>;
+  onToggleNode?: (slug: string) => void;
 }
 
-function TreeNode({ node, level }: TreeNodeProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+function TreeNode({ node, level, expandedNodes, onToggleNode }: TreeNodeProps) {
+  // Use local state if expandedNodes not provided, otherwise use external state
+  const [localExpanded, setLocalExpanded] = useState(true);
+  const isExpanded =
+    expandedNodes !== undefined ? expandedNodes.has(node.slug) : localExpanded;
+
+  const handleToggle = () => {
+    if (onToggleNode) {
+      onToggleNode(node.slug);
+    } else {
+      setLocalExpanded(!localExpanded);
+    }
+  };
   const location = useLocation();
   const normalizePath = (path: string) => path.replace(/\/index$/, '');
   const isActive =
@@ -69,7 +93,7 @@ function TreeNode({ node, level }: TreeNodeProps) {
       <div>
         <button
           type="button"
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={handleToggle}
           className={cn(
             'flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition',
             'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-surface)]',
@@ -94,7 +118,13 @@ function TreeNode({ node, level }: TreeNodeProps) {
         {isExpanded && node.children && (
           <div className="mt-1">
             {node.children.map((child) => (
-              <TreeNode key={child.slug} node={child} level={level + 1} />
+              <TreeNode
+                key={child.slug}
+                node={child}
+                level={level + 1}
+                expandedNodes={expandedNodes}
+                onToggleNode={onToggleNode}
+              />
             ))}
           </div>
         )}

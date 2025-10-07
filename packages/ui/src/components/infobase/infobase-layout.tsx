@@ -12,6 +12,8 @@ interface InfobaseLayoutProps {
   onSearch: (query: string) => void;
   children: ReactNode;
   breadcrumbs?: BreadcrumbItem[];
+  expandedNodes?: Set<string>;
+  onToggleNode?: (slug: string) => void;
 }
 
 export function InfobaseLayout({
@@ -19,6 +21,8 @@ export function InfobaseLayout({
   onSearch,
   children,
   breadcrumbs,
+  expandedNodes,
+  onToggleNode,
 }: InfobaseLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -40,7 +44,11 @@ export function InfobaseLayout({
             Infobase
           </h2>
           <SearchBar onSearch={onSearch} placeholder="Search pages..." />
-          <SidebarNavigation tree={tree} />
+          <SidebarNavigation
+            tree={tree}
+            expandedNodes={expandedNodes}
+            onToggleNode={onToggleNode}
+          />
         </div>
       </aside>
 
@@ -93,7 +101,11 @@ export function InfobaseLayout({
             </div>
             <div className="space-y-4">
               <SearchBar onSearch={onSearch} placeholder="Search pages..." />
-              <SidebarNavigation tree={tree} />
+              <SidebarNavigation
+                tree={tree}
+                expandedNodes={expandedNodes}
+                onToggleNode={onToggleNode}
+              />
             </div>
           </aside>
         </>
