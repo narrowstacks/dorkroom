@@ -6,7 +6,7 @@ import { useState, useMemo, Suspense, useEffect, useRef } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { MDXProvider } from '@mdx-js/react';
 import { Loader2 } from 'lucide-react';
-import { InfobaseLayout } from '@dorkroom/ui';
+import { InfobaseLayout, BreadcrumbNav } from '@dorkroom/ui';
 import {
   buildContentTree,
   getBreadcrumbs,
@@ -96,7 +96,7 @@ export default function InfobasePage() {
 
 function InfobaseContent() {
   const { '*': slugParam } = useParams();
-  const slug = slugParam || 'films/index';
+  const slug = slugParam || 'index';
   const [searchQuery, setSearchQuery] = useState('');
   const articleRef = useRef<HTMLElement>(null);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
@@ -185,7 +185,7 @@ function InfobaseContent() {
 
   // Redirect to default page if no match
   if (!currentPage) {
-    return <Navigate to="/infobase/films" replace />;
+    return <Navigate to="/infobase/index" replace />;
   }
 
   // Render database pages
@@ -217,32 +217,41 @@ function InfobaseContent() {
     >
       <div className="mx-auto max-w-3xl space-y-6">
         {/* MDX Content */}
-        <article
-          ref={articleRef}
-          className="prose prose-invert max-w-none"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
-          <MDXProvider components={mdxComponents}>
-            <MDXErrorBoundary>
-              <Suspense
-                fallback={
-                  <div
-                    role="status"
-                    className="flex items-center justify-center py-12"
-                  >
-                    <Loader2
-                      className="h-8 w-8 animate-spin"
-                      style={{ color: 'var(--color-text-secondary)' }}
-                    />
-                    <span className="sr-only">Loading content...</span>
-                  </div>
-                }
-              >
-                <PageComponent />
-              </Suspense>
-            </MDXErrorBoundary>
-          </MDXProvider>
-        </article>
+        <div className="mdx-content-container">
+          {/* Breadcrumbs */}
+          {breadcrumbs && breadcrumbs.length > 0 && (
+            <div className="mb-6">
+              <BreadcrumbNav items={breadcrumbs} />
+            </div>
+          )}
+
+          <article
+            ref={articleRef}
+            className="prose prose-invert max-w-none"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            <MDXProvider components={mdxComponents}>
+              <MDXErrorBoundary>
+                <Suspense
+                  fallback={
+                    <div
+                      role="status"
+                      className="flex items-center justify-center py-12"
+                    >
+                      <Loader2
+                        className="h-8 w-8 animate-spin"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                      />
+                      <span className="sr-only">Loading content...</span>
+                    </div>
+                  }
+                >
+                  <PageComponent />
+                </Suspense>
+              </MDXErrorBoundary>
+            </MDXProvider>
+          </article>
+        </div>
       </div>
     </InfobaseLayout>
   );

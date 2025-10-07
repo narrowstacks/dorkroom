@@ -56,10 +56,7 @@ export const useFeatureFlags = () => {
     [flags.ADVANCED_CHEMISTRY_CALCULATOR]
   );
 
-  const isInfobaseEnabled = useMemo(
-    () => flags.INFOBASE,
-    [flags.INFOBASE]
-  );
+  const isInfobaseEnabled = useMemo(() => flags.INFOBASE, [flags.INFOBASE]);
 
   return {
     flags,

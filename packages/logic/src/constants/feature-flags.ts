@@ -16,7 +16,10 @@ const isDevelopment =
  * @param value - Environment variable value
  * @param defaultValue - Default value if not set
  */
-const getEnvFlag = (value: string | undefined, defaultValue: boolean): boolean => {
+const getEnvFlag = (
+  value: string | undefined,
+  defaultValue: boolean
+): boolean => {
   if (value === undefined) return defaultValue;
   return value === 'true' || value === '1';
 };

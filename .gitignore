@@ -54,3 +54,4 @@ vitest.config.*.timestamp*
 PR_BODY_THEMING.md
 .vercel
 .claude/settings.local.json
+test-screenshots
