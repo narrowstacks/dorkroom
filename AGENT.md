@@ -18,8 +18,9 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 ### MCP Servers
 
 - **Serena**: ALWAYS activate project `dorkroom-nx` before starting work. Use for code exploration, symbol search, and semantic editing.
-- **Chrome DevTools**: Test pages after UI changes. Capture screenshots, analyze performance, get console output, and verify functionality in a live browser.
+- **Chrome DevTools**: Capture screenshots, analyze performance, get console output, and verify functionality in a live browser. Usually for testing before/during/after UI changes.
 - **Context7**: Fetch up-to-date library documentation when working with external packages.
+- **Zen**: Allows use of other coding AI coding agent CLIs with larger context limits such as Gemini CLI and Codex CLI.
 
 ### Claude Code Agents
 
@@ -30,6 +31,7 @@ Custom agents are available in `.claude/agents/`:
 - **backend-typescript-architect**: Backend/API development with Bun runtime
 - **ui-ux-chrome-devtools-tester**: Live browser testing of UI changes using Chrome DevTools MCP
 - **ts-coder**: TypeScript code writing with strict type safety
+- **gemini-code-reviewer**: Get a code review from the Gemini CLI for large codebase changes auditing.
 
 Use agents proactively when tasks match their expertise areas.
 
