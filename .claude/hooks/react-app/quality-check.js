@@ -172,7 +172,10 @@ class TypeScriptConfigCache {
   saveCache() {
     try {
       // Save cache directly in hook directory (directory already exists)
-      require('fs').writeFileSync(this.cacheFile, JSON.stringify(this.cache, null, 2));
+      require('fs').writeFileSync(
+        this.cacheFile,
+        JSON.stringify(this.cache, null, 2)
+      );
     } catch (e) {
       // Ignore cache save errors
     }
@@ -193,16 +196,19 @@ class TypeScriptConfigCache {
 
     // Check cached mappings first - these are from actual tsconfig includes
     // Sort patterns by specificity to match most specific first
-    const sortedMappings = Object.entries(this.cache.mappings).sort(([a], [b]) => {
-      // More specific patterns first
-      const aSpecificity = a.split('/').length + (a.includes('**') ? 0 : 10);
-      const bSpecificity = b.split('/').length + (b.includes('**') ? 0 : 10);
-      return bSpecificity - aSpecificity;
-    });
+    const sortedMappings = Object.entries(this.cache.mappings).sort(
+      ([a], [b]) => {
+        // More specific patterns first
+        const aSpecificity = a.split('/').length + (a.includes('**') ? 0 : 10);
+        const bSpecificity = b.split('/').length + (b.includes('**') ? 0 : 10);
+        return bSpecificity - aSpecificity;
+      }
+    );
 
     for (const [pattern, mapping] of sortedMappings) {
       // Handle both old format (string) and new format (object with excludes)
-      const configPath = typeof mapping === 'string' ? mapping : mapping.configPath;
+      const configPath =
+        typeof mapping === 'string' ? mapping : mapping.configPath;
       const excludes = typeof mapping === 'string' ? [] : mapping.excludes;
 
       if (this.matchesPattern(relativePath, pattern)) {
@@ -223,7 +229,10 @@ class TypeScriptConfigCache {
 
     // Fast heuristics for common cases not in cache
     // Webview files
-    if (relativePath.includes('src/webview/') || relativePath.includes('/webview/')) {
+    if (
+      relativePath.includes('src/webview/') ||
+      relativePath.includes('/webview/')
+    ) {
       const webviewConfig = path.join(projectRoot, 'tsconfig.webview.json');
       if (require('fs').existsSync(webviewConfig)) {
         return webviewConfig;
@@ -313,45 +322,45 @@ function loadConfig() {
     typescriptEnabled:
       process.env.CLAUDE_HOOKS_TYPESCRIPT_ENABLED !== undefined
         ? process.env.CLAUDE_HOOKS_TYPESCRIPT_ENABLED !== 'false'
-        : (fileConfig.typescript?.enabled ?? true),
+        : fileConfig.typescript?.enabled ?? true,
 
     showDependencyErrors:
       process.env.CLAUDE_HOOKS_SHOW_DEPENDENCY_ERRORS !== undefined
         ? process.env.CLAUDE_HOOKS_SHOW_DEPENDENCY_ERRORS === 'true'
-        : (fileConfig.typescript?.showDependencyErrors ?? false),
+        : fileConfig.typescript?.showDependencyErrors ?? false,
 
     // ESLint settings
     eslintEnabled:
       process.env.CLAUDE_HOOKS_ESLINT_ENABLED !== undefined
         ? process.env.CLAUDE_HOOKS_ESLINT_ENABLED !== 'false'
-        : (fileConfig.eslint?.enabled ?? true),
+        : fileConfig.eslint?.enabled ?? true,
 
     eslintAutofix:
       process.env.CLAUDE_HOOKS_ESLINT_AUTOFIX !== undefined
         ? process.env.CLAUDE_HOOKS_ESLINT_AUTOFIX === 'true'
-        : (fileConfig.eslint?.autofix ?? false),
+        : fileConfig.eslint?.autofix ?? false,
 
     // Prettier settings
     prettierEnabled:
       process.env.CLAUDE_HOOKS_PRETTIER_ENABLED !== undefined
         ? process.env.CLAUDE_HOOKS_PRETTIER_ENABLED !== 'false'
-        : (fileConfig.prettier?.enabled ?? true),
+        : fileConfig.prettier?.enabled ?? true,
 
     prettierAutofix:
       process.env.CLAUDE_HOOKS_PRETTIER_AUTOFIX !== undefined
         ? process.env.CLAUDE_HOOKS_PRETTIER_AUTOFIX === 'true'
-        : (fileConfig.prettier?.autofix ?? false),
+        : fileConfig.prettier?.autofix ?? false,
 
     // General settings
     autofixSilent:
       process.env.CLAUDE_HOOKS_AUTOFIX_SILENT !== undefined
         ? process.env.CLAUDE_HOOKS_AUTOFIX_SILENT === 'true'
-        : (fileConfig.general?.autofixSilent ?? false),
+        : fileConfig.general?.autofixSilent ?? false,
 
     debug:
       process.env.CLAUDE_HOOKS_DEBUG !== undefined
         ? process.env.CLAUDE_HOOKS_DEBUG === 'true'
-        : (fileConfig.general?.debug ?? false),
+        : fileConfig.general?.debug ?? false,
 
     // Ignore patterns
     ignorePatterns: fileConfig.ignore?.patterns || [],
@@ -376,7 +385,8 @@ const log = {
   info: (msg) => console.error(`${colors.blue}[INFO]${colors.reset} ${msg}`),
   error: (msg) => console.error(`${colors.red}[ERROR]${colors.reset} ${msg}`),
   success: (msg) => console.error(`${colors.green}[OK]${colors.reset} ${msg}`),
-  warning: (msg) => console.error(`${colors.yellow}[WARN]${colors.reset} ${msg}`),
+  warning: (msg) =>
+    console.error(`${colors.yellow}[WARN]${colors.reset} ${msg}`),
   debug: (msg) => {
     if (config.debug) {
       console.error(`${colors.cyan}[DEBUG]${colors.reset} ${msg}`);
@@ -559,7 +569,10 @@ class QualityChecker {
     }
 
     // Skip TypeScript checking for JavaScript files in hook directories
-    if (this.filePath.endsWith('.js') && this.filePath.includes('.claude/hooks/')) {
+    if (
+      this.filePath.endsWith('.js') &&
+      this.filePath.includes('.claude/hooks/')
+    ) {
       log.debug('Skipping TypeScript check for JavaScript hook file');
       return;
     }
@@ -576,7 +589,9 @@ class QualityChecker {
       }
 
       log.debug(
-        `Using TypeScript config: ${path.basename(configPath)} for ${path.relative(projectRoot, this.filePath)}`
+        `Using TypeScript config: ${path.basename(
+          configPath
+        )} for ${path.relative(projectRoot, this.filePath)}`
       );
 
       const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
@@ -609,14 +624,22 @@ class QualityChecker {
       // Report edited file first
       const editedFileDiagnostics = diagnosticsByFile.get(this.filePath) || [];
       if (editedFileDiagnostics.length > 0) {
-        this.errors.push(`TypeScript errors in edited file (using ${path.basename(configPath)})`);
+        this.errors.push(
+          `TypeScript errors in edited file (using ${path.basename(
+            configPath
+          )})`
+        );
         editedFileDiagnostics.forEach((diagnostic) => {
-          const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-          const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(
-            diagnostic.start
+          const message = ts.flattenDiagnosticMessageText(
+            diagnostic.messageText,
+            '\n'
           );
+          const { line, character } =
+            diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
           console.error(
-            `  ❌ ${diagnostic.file.fileName}:${line + 1}:${character + 1} - ${message}`
+            `  ❌ ${diagnostic.file.fileName}:${line + 1}:${
+              character + 1
+            } - ${message}`
           );
         });
       }
@@ -627,16 +650,22 @@ class QualityChecker {
         diagnosticsByFile.forEach((diags, fileName) => {
           if (fileName !== this.filePath) {
             if (!hasDepErrors) {
-              console.error('\n[DEPENDENCY ERRORS] Files imported by your edited file:');
+              console.error(
+                '\n[DEPENDENCY ERRORS] Files imported by your edited file:'
+              );
               hasDepErrors = true;
             }
             console.error(`  ⚠️ ${fileName}:`);
             diags.forEach((diagnostic) => {
-              const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-              const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(
-                diagnostic.start
+              const message = ts.flattenDiagnosticMessageText(
+                diagnostic.messageText,
+                '\n'
               );
-              console.error(`     Line ${line + 1}:${character + 1} - ${message}`);
+              const { line, character } =
+                diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+              console.error(
+                `     Line ${line + 1}:${character + 1} - ${message}`
+              );
             });
           }
         });
@@ -682,12 +711,19 @@ class QualityChecker {
             const resultsAfterFix = await eslint.lintFiles([this.filePath]);
             const resultAfterFix = resultsAfterFix[0];
 
-            if (resultAfterFix.errorCount === 0 && resultAfterFix.warningCount === 0) {
+            if (
+              resultAfterFix.errorCount === 0 &&
+              resultAfterFix.warningCount === 0
+            ) {
               log.success('ESLint auto-fixed all issues!');
               if (config.autofixSilent) {
-                this.autofixes.push('ESLint auto-fixed formatting/style issues');
+                this.autofixes.push(
+                  'ESLint auto-fixed formatting/style issues'
+                );
               } else {
-                this.errors.push('ESLint issues were auto-fixed - verify the changes');
+                this.errors.push(
+                  'ESLint issues were auto-fixed - verify the changes'
+                );
               }
             } else {
               this.errors.push(
@@ -752,7 +788,9 @@ class QualityChecker {
           if (config.autofixSilent) {
             this.autofixes.push('Prettier auto-formatted the file');
           } else {
-            this.errors.push('Prettier formatting was auto-fixed - verify the changes');
+            this.errors.push(
+              'Prettier formatting was auto-fixed - verify the changes'
+            );
           }
         } else {
           this.errors.push(`Prettier formatting issues in ${this.filePath}`);
@@ -788,10 +826,13 @@ class QualityChecker {
           if (line.includes('as any')) {
             const severity = asAnyRule.severity || 'error';
             const message =
-              asAnyRule.message || 'Prefer proper types or "as unknown" for type assertions';
+              asAnyRule.message ||
+              'Prefer proper types or "as unknown" for type assertions';
 
             if (severity === 'error') {
-              this.errors.push(`Found 'as any' usage in ${this.filePath} - ${message}`);
+              this.errors.push(
+                `Found 'as any' usage in ${this.filePath} - ${message}`
+              );
               console.error(`  Line ${index + 1}: ${line.trim()}`);
               foundIssues = true;
             } else {
@@ -840,10 +881,13 @@ class QualityChecker {
         lines.forEach((line, index) => {
           if (/console\./.test(line)) {
             const severity = consoleRule.severity || 'info';
-            const message = consoleRule.message || 'Consider using a logging library';
+            const message =
+              consoleRule.message || 'Consider using a logging library';
 
             if (severity === 'error') {
-              this.errors.push(`Found console statements in ${this.filePath} - ${message}`);
+              this.errors.push(
+                `Found console statements in ${this.filePath} - ${message}`
+              );
               console.error(`  Line ${index + 1}: ${line.trim()}`);
               foundIssues = true;
             } else {
@@ -903,9 +947,13 @@ class QualityChecker {
 
       for (const ext of testExtensions) {
         try {
-          await fs.access(path.join(dir, '__tests__', `${baseFileName}.${ext}`));
+          await fs.access(
+            path.join(dir, '__tests__', `${baseFileName}.${ext}`)
+          );
           hasTests = true;
-          log.warning(`💡 Related test found: __tests__/${baseFileName}.${ext}`);
+          log.warning(
+            `💡 Related test found: __tests__/${baseFileName}.${ext}`
+          );
           log.warning('   Consider running the tests to ensure nothing broke');
           break;
         } catch {
@@ -943,11 +991,15 @@ async function parseJsonInput() {
   }
 
   if (!inputData.trim()) {
-    log.warning('No JSON input provided. This hook expects JSON input from Claude Code.');
+    log.warning(
+      'No JSON input provided. This hook expects JSON input from Claude Code.'
+    );
     log.info(
       'For testing, provide JSON like: echo \'{"tool_name":"Edit","tool_input":{"file_path":"/path/to/file.ts"}}\' | node hook.js'
     );
-    console.error(`\n${colors.yellow}👉 Hook executed but no input to process.${colors.reset}`);
+    console.error(
+      `\n${colors.yellow}👉 Hook executed but no input to process.${colors.reset}`
+    );
     process.exit(0);
   }
 
@@ -971,7 +1023,9 @@ function extractFilePath(input) {
     return null;
   }
 
-  return tool_input.file_path || tool_input.path || tool_input.notebook_path || null;
+  return (
+    tool_input.file_path || tool_input.path || tool_input.notebook_path || null
+  );
 }
 
 /**
@@ -1016,7 +1070,9 @@ function printSummary(errors, autofixes) {
 
   // Show errors if any
   if (errors.length > 0) {
-    console.error(`\n${colors.blue}═══ Quality Check Summary ═══${colors.reset}`);
+    console.error(
+      `\n${colors.blue}═══ Quality Check Summary ═══${colors.reset}`
+    );
     errors.forEach((error) => {
       console.error(`${colors.red}❌${colors.reset} ${error}`);
     });
@@ -1024,10 +1080,16 @@ function printSummary(errors, autofixes) {
     console.error(
       `\n${colors.red}Found ${errors.length} issue(s) that MUST be fixed!${colors.reset}`
     );
-    console.error(`${colors.red}════════════════════════════════════════════${colors.reset}`);
+    console.error(
+      `${colors.red}════════════════════════════════════════════${colors.reset}`
+    );
     console.error(`${colors.red}❌ ALL ISSUES ARE BLOCKING ❌${colors.reset}`);
-    console.error(`${colors.red}════════════════════════════════════════════${colors.reset}`);
-    console.error(`${colors.red}Fix EVERYTHING above until all checks are ✅ GREEN${colors.reset}`);
+    console.error(
+      `${colors.red}════════════════════════════════════════════${colors.reset}`
+    );
+    console.error(
+      `${colors.red}Fix EVERYTHING above until all checks are ✅ GREEN${colors.reset}`
+    );
   }
 }
 
@@ -1050,7 +1112,9 @@ async function main() {
   const filePath = extractFilePath(input);
 
   if (!filePath) {
-    log.warning('No file path found in JSON input. Tool might not be file-related.');
+    log.warning(
+      'No file path found in JSON input. Tool might not be file-related.'
+    );
     log.debug(`JSON input was: ${JSON.stringify(input)}`);
     console.error(
       `\n${colors.yellow}👉 No file to check - tool may not be file-related.${colors.reset}`
@@ -1061,16 +1125,22 @@ async function main() {
   // Check if file exists
   if (!(await fileExists(filePath))) {
     log.info(`File does not exist: ${filePath} (may have been deleted)`);
-    console.error(`\n${colors.yellow}👉 File skipped - doesn't exist.${colors.reset}`);
+    console.error(
+      `\n${colors.yellow}👉 File skipped - doesn't exist.${colors.reset}`
+    );
     process.exit(0);
   }
 
   // For non-source files, exit successfully without checks (matching shell behavior)
   if (!isSourceFile(filePath)) {
     log.info(`Skipping non-source file: ${filePath}`);
-    console.error(`\n${colors.yellow}👉 File skipped - not a source file.${colors.reset}`);
     console.error(
-      `\n${colors.green}✅ No checks needed for ${path.basename(filePath)}${colors.reset}`
+      `\n${colors.yellow}👉 File skipped - not a source file.${colors.reset}`
+    );
+    console.error(
+      `\n${colors.green}✅ No checks needed for ${path.basename(filePath)}${
+        colors.reset
+      }`
     );
     process.exit(0);
   }
@@ -1099,32 +1169,46 @@ async function main() {
       e.includes('were auto-fixed')
   );
 
-  const dependencyWarnings = errors.filter((e) => !editedFileErrors.includes(e));
+  const dependencyWarnings = errors.filter(
+    (e) => !editedFileErrors.includes(e)
+  );
 
   // Exit with appropriate code
   if (editedFileErrors.length > 0) {
     // Critical - blocks immediately
-    console.error(`\n${colors.red}🛑 FAILED - Fix issues in your edited file! 🛑${colors.reset}`);
+    console.error(
+      `\n${colors.red}🛑 FAILED - Fix issues in your edited file! 🛑${colors.reset}`
+    );
     console.error(`${colors.cyan}💡 CLAUDE.md CHECK:${colors.reset}`);
     console.error(
       `${colors.cyan}  → What CLAUDE.md pattern would have prevented this?${colors.reset}`
     );
-    console.error(`${colors.cyan}  → Are you following JSDoc batching strategy?${colors.reset}`);
+    console.error(
+      `${colors.cyan}  → Are you following JSDoc batching strategy?${colors.reset}`
+    );
     console.error(`${colors.yellow}📋 NEXT STEPS:${colors.reset}`);
-    console.error(`${colors.yellow}  1. Fix the issues listed above${colors.reset}`);
-    console.error(`${colors.yellow}  2. The hook will run again automatically${colors.reset}`);
+    console.error(
+      `${colors.yellow}  1. Fix the issues listed above${colors.reset}`
+    );
+    console.error(
+      `${colors.yellow}  2. The hook will run again automatically${colors.reset}`
+    );
     console.error(
       `${colors.yellow}  3. Continue with your original task once all checks pass${colors.reset}`
     );
     process.exit(2);
   } else if (dependencyWarnings.length > 0) {
     // Warning - shows but doesn't block
-    console.error(`\n${colors.yellow}⚠️ WARNING - Dependency issues found${colors.reset}`);
+    console.error(
+      `\n${colors.yellow}⚠️ WARNING - Dependency issues found${colors.reset}`
+    );
     console.error(
       `${colors.yellow}These won't block your progress but should be addressed${colors.reset}`
     );
     console.error(
-      `\n${colors.green}✅ Quality check passed for ${path.basename(filePath)}${colors.reset}`
+      `\n${colors.green}✅ Quality check passed for ${path.basename(filePath)}${
+        colors.reset
+      }`
     );
 
     if (autofixes.length > 0 && config.autofixSilent) {
@@ -1139,7 +1223,9 @@ async function main() {
     process.exit(0); // Don't block on dependency issues
   } else {
     console.error(
-      `\n${colors.green}✅ Quality check passed for ${path.basename(filePath)}${colors.reset}`
+      `\n${colors.green}✅ Quality check passed for ${path.basename(filePath)}${
+        colors.reset
+      }`
     );
 
     if (autofixes.length > 0 && config.autofixSilent) {
