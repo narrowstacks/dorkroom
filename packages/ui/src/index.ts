@@ -83,6 +83,7 @@ export {
   SidebarNavigation,
   BreadcrumbNav,
   SearchBar,
+  InfobaseLayout,
   FilmCard,
   DeveloperCard,
   RecipeTable,

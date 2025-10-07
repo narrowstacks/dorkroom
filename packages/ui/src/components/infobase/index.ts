@@ -1,6 +1,7 @@
 export { SidebarNavigation } from './sidebar-navigation';
 export { BreadcrumbNav } from './breadcrumb-nav';
 export { SearchBar } from './search-bar';
+export { InfobaseLayout } from './infobase-layout';
 export { FilmCard } from './film-card';
 export { DeveloperCard } from './developer-card';
 export { RecipeTable } from './recipe-table';

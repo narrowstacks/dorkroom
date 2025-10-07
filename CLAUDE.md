@@ -18,10 +18,8 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 ### MCP Servers
 
 - **Serena**: ALWAYS activate project `dorkroom-nx` before starting work. Use for code exploration, symbol search, and semantic editing.
-- **Playwright**: Test pages after UI changes. Get console output and verify functionality.
+- **Chrome DevTools**: Test pages after UI changes. Capture screenshots, analyze performance, get console output, and verify functionality in a live browser.
 - **Context7**: Fetch up-to-date library documentation when working with external packages.
-- **Clear-thought**: Use for complex problem-solving, debugging, and architectural decisions.
-- **IDE**: Access diagnostics and execute code in Jupyter notebooks.
 
 ### Claude Code Agents
 
@@ -30,7 +28,7 @@ Custom agents are available in `.claude/agents/`:
 - **react-coder**: Creating/modifying React components with simplicity-first philosophy
 - **ui-engineer**: Frontend code review and modern best practices
 - **backend-typescript-architect**: Backend/API development with Bun runtime
-- **ui-ux-playwright-tester**: Live browser testing of UI changes
+- **ui-ux-chrome-devtools-tester**: Live browser testing of UI changes using Chrome DevTools MCP
 - **ts-coder**: TypeScript code writing with strict type safety
 
 Use agents proactively when tasks match their expertise areas.
@@ -65,7 +63,8 @@ Use agents proactively when tasks match their expertise areas.
 - `apps/dorkroom/` - Main React application
 - `packages/ui/` - Shared UI components (@dorkroom/ui)
 - `packages/logic/` - Business logic (@dorkroom/logic)
-- `packages/api/` - API client library for calling Vercel serverless functions (as defined in `[project root]/api/`) (@dorkroom/api)
+- `packages/api/` - API client library for calling Vercel serverless functions (@dorkroom/api)
+- `api/` - Vercel serverless functions for abstracting the Supabase edge functions API
 
 ### Key Technologies
 
