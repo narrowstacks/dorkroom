@@ -3,7 +3,6 @@ import { Menu, X } from 'lucide-react';
 import type { ContentNode, BreadcrumbItem } from '@dorkroom/logic';
 import { SidebarNavigation } from './sidebar-navigation';
 import { SearchBar } from './search-bar';
-import { BreadcrumbNav } from './breadcrumb-nav';
 
 export type { ContentNode, BreadcrumbItem };
 
