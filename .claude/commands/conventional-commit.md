@@ -10,6 +10,12 @@ Create a git commit that follows the Conventional Commits specification.
 First, check if there are staged changes using:
 !git diff --staged --stat
 
+If no changes are staged, ask user if they want to stage all of their changes, and if they do, run:
+!git add .
+
+If user denies, **end command.**
+If user approves, run diff command again.
+
 Then analyze the staged changes and draft an appropriate conventional commit message:
 
 - Type: feat, fix, chore, docs, style, refactor, test, build, ci, perf, or revert
