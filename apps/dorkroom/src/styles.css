@@ -457,6 +457,17 @@
     }
   }
 
+  @keyframes slideInFromLeft {
+    0% {
+      opacity: 0;
+      transform: translateX(-100%);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
   /* Animation Utility Classes */
   .animate-slide-in-from-top {
     animation: slideInFromTop 500ms ease-out both;
@@ -476,6 +487,14 @@
 
   .animate-slide-fade-bottom {
     animation: slideInFromBottom 500ms ease-out both, fadeIn 500ms ease-out both;
+  }
+
+  .animate-slide-in-from-left {
+    animation: slideInFromLeft 300ms ease-out both;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 200ms ease-out both;
   }
 
   /* Stagger delay utilities */
@@ -1113,6 +1132,22 @@
   [data-theme='high-contrast'] .animate-fade-in,
   [data-theme='high-contrast'] .animate-slide-fade-top,
   [data-theme='high-contrast'] .animate-slide-fade-bottom {
+    animation: none !important;
+  }
+
+  /* Disable all animations and transitions in darkroom theme */
+  [data-theme='darkroom'] *,
+  [data-theme='darkroom'] *::before,
+  [data-theme='darkroom'] *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  [data-theme='darkroom'] .animate-slide-in-from-top,
+  [data-theme='darkroom'] .animate-slide-in-from-bottom,
+  [data-theme='darkroom'] .animate-fade-in,
+  [data-theme='darkroom'] .animate-slide-fade-top,
+  [data-theme='darkroom'] .animate-slide-fade-bottom {
     animation: none !important;
   }
 
