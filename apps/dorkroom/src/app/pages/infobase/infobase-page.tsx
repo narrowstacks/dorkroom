@@ -135,7 +135,7 @@ function InfobaseContent() {
   }, []);
 
   // Get current page from unified registry
-  // Note: pageRegistry is a stable module-level object, mdxPages is loaded once at module init
+  // Note: pageRegistry is a stable module-level object
   const currentPage = useMemo(() => {
     // Try exact match first
     let page = pageRegistry[slug];
