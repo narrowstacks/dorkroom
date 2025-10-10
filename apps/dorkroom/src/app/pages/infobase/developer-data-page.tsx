@@ -1,10 +1,52 @@
-import { useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { DatabaseViewer, DetailField } from '@dorkroom/ui';
-import { useInfobaseData } from '../../contexts/infobase-context';
+import { useInfobaseClient } from '../../contexts/infobase-context';
 import { Loader2 } from 'lucide-react';
+import { Developer } from '@dorkroom/api';
 
 export function DeveloperDataPage() {
-  const { developers, isLoading, error } = useInfobaseData();
+  const client = useInfobaseClient();
+  const [developers, setDevelopers] = useState<Developer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch developers on mount
+  // DatabaseViewer will handle search filtering locally
+  // This useEffect is necessary to trigger initial data loading
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchDevelopers() {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Fetch all developers (no limit) for local filtering
+        const response = await client.fetchDevelopersOnDemand();
+
+        if (!cancelled) {
+          setDevelopers(response.data);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const errorMessage =
+            err instanceof Error ? err.message : 'Failed to load developers';
+          setError(errorMessage);
+          console.error('[DeveloperDataPage] Error fetching developers:', err);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    fetchDevelopers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [client]);
 
   // Create a lookup map for O(1) access instead of O(n) find() calls
   const developerMap = useMemo(
