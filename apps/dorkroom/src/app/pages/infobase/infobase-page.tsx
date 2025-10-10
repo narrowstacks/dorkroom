@@ -16,7 +16,7 @@ import {
 import { loadMDXPages } from '../../lib/mdx-auto-loader';
 import { InfobaseProvider } from '../../contexts/infobase-context';
 import { mdxComponents } from '../../components/mdx-components';
-import { useDebounce } from '../../hooks/use-debounce';
+import { useDebounce } from '@dorkroom/logic';
 import { MDXErrorBoundary } from '../../components/mdx-error-boundary';
 
 // Import database pages

@@ -60,3 +60,5 @@ PR_BODY_THEMING.md
 .vercel
 .claude/settings.local.json
 test-screenshots
+.codanna
+.fastembed_cache
