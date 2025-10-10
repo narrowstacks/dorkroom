@@ -2,7 +2,14 @@
  * Infobase Page - MDX-based wiki system with automated content loading
  */
 
-import { useState, useMemo, Suspense, useEffect, useRef } from 'react';
+import {
+  useState,
+  useMemo,
+  Suspense,
+  useEffect,
+  useRef,
+  type ReactElement,
+} from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { MDXProvider } from '@mdx-js/react';
 import { Loader2 } from 'lucide-react';
@@ -86,7 +93,7 @@ databasePages.forEach((page) => {
   pageRegistry[page.slug] = page;
 });
 
-export default function InfobasePage() {
+export default function InfobasePage(): ReactElement {
   return (
     <InfobaseProvider>
       <InfobaseContent />
@@ -94,7 +101,7 @@ export default function InfobasePage() {
   );
 }
 
-function InfobaseContent() {
+function InfobaseContent(): ReactElement {
   const { '*': slugParam } = useParams();
   const slug = slugParam || 'index';
   const [searchQuery, setSearchQuery] = useState('');
