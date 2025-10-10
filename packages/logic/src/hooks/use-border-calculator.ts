@@ -5,6 +5,51 @@ import type {
 } from '../types/border-calculator';
 
 /**
+ * Return type for the useBorderCalculator hook.
+ * Provides complete type information for all state values, setters, calculations, and utilities.
+ */
+export interface UseBorderCalculatorReturn {
+  aspectRatio: string;
+  setAspectRatio: (value: string) => void;
+  paperSize: string;
+  setPaperSize: (value: string) => void;
+  customAspectWidth: number;
+  setCustomAspectWidth: (value: number) => void;
+  customAspectHeight: number;
+  setCustomAspectHeight: (value: number) => void;
+  customPaperWidth: number;
+  setCustomPaperWidth: (value: number) => void;
+  customPaperHeight: number;
+  setCustomPaperHeight: (value: number) => void;
+  minBorder: number;
+  setMinBorder: (value: number) => void;
+  setMinBorderSlider: (value: number) => void;
+  enableOffset: boolean;
+  setEnableOffset: (value: boolean) => void;
+  ignoreMinBorder: boolean;
+  setIgnoreMinBorder: (value: boolean) => void;
+  horizontalOffset: number;
+  setHorizontalOffset: (value: number) => void;
+  setHorizontalOffsetSlider: (value: number) => void;
+  verticalOffset: number;
+  setVerticalOffset: (value: number) => void;
+  setVerticalOffsetSlider: (value: number) => void;
+  showBlades: boolean;
+  setShowBlades: (value: boolean) => void;
+  isLandscape: boolean;
+  setIsLandscape: (value: boolean) => void;
+  isRatioFlipped: boolean;
+  setIsRatioFlipped: (value: boolean) => void;
+  offsetWarning: string | null;
+  bladeWarning: string | null;
+  calculation: BorderCalculation | null;
+  minBorderWarning: string | null;
+  paperSizeWarning: string | null;
+  resetToDefaults: () => void;
+  applyPreset: (settings: BorderSettings) => void;
+}
+
+/**
  * Border calculator hook for darkroom printing calculations.
  * Provides state management and calculations for determining optimal print borders,
  * blade positions, and paper layout for darkroom enlarger setups.
@@ -36,7 +81,7 @@ import type {
  * }
  * ```
  */
-export function useBorderCalculator() {
+export function useBorderCalculator(): UseBorderCalculatorReturn {
   const [aspectRatio, setAspectRatio] = useState('2:3');
   const [paperSize, setPaperSize] = useState('8x10');
   const [customAspectWidth, setCustomAspectWidth] = useState(2);
@@ -246,7 +291,7 @@ export function useBorderCalculator() {
     return null;
   }, [paperSize, customPaperWidth, customPaperHeight]);
 
-  const resetToDefaults = () => {
+  const resetToDefaults = useCallback(() => {
     setAspectRatio('2:3');
     setPaperSize('8x10');
     setCustomAspectWidth(2);
@@ -261,7 +306,7 @@ export function useBorderCalculator() {
     setShowBlades(true);
     setIsLandscape(false);
     setIsRatioFlipped(false);
-  };
+  }, []);
 
   const applyPreset = useCallback((settings: BorderSettings) => {
     setAspectRatio(settings.aspectRatio);
