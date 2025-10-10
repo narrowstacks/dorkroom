@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import type {
   BorderCalculation,
   BorderSettings,
@@ -122,25 +122,6 @@ export function useBorderCalculator() {
     const rightBladeReading = rightBorder;
     const topBladeReading = topBorder;
     const bottomBladeReading = bottomBorder;
-
-    // Debug: Log the actual values
-    console.log('Blade calculation debug:', {
-      paperW,
-      paperH,
-      printWidth,
-      printHeight,
-      leftBorder,
-      rightBorder,
-      topBorder,
-      bottomBorder,
-      leftBladeReading,
-      rightBladeReading,
-      topBladeReading,
-      bottomBladeReading,
-      horizontalOffset,
-      verticalOffset,
-      enableOffset,
-    });
 
     return {
       // Border values
@@ -282,7 +263,7 @@ export function useBorderCalculator() {
     setIsRatioFlipped(false);
   };
 
-  const applyPreset = (settings: BorderSettings) => {
+  const applyPreset = useCallback((settings: BorderSettings) => {
     setAspectRatio(settings.aspectRatio);
     setPaperSize(settings.paperSize);
     setCustomAspectWidth(settings.customAspectWidth);
@@ -297,7 +278,7 @@ export function useBorderCalculator() {
     setShowBlades(settings.showBlades);
     setIsLandscape(settings.isLandscape);
     setIsRatioFlipped(settings.isRatioFlipped);
-  };
+  }, []);
 
   return {
     aspectRatio,
