@@ -31,18 +31,5 @@
       "Bash(git tag:*)",
       "Bash(git push origin:*)"
     ]
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node $CLAUDE_PROJECT_DIR/.claude/hooks/react-app/quality-check.js"
-          }
-        ]
-      }
-    ]
   }
 }

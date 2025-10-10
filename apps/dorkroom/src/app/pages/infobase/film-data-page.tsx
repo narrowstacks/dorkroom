@@ -113,7 +113,10 @@ export function FilmDataPage() {
           },
           {
             label: 'Date Added',
-            value: new Date(film.dateAdded).toLocaleDateString(),
+            value: (() => {
+              const d = new Date(film.dateAdded);
+              return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
+            })(),
           },
           { label: 'Description', value: film.description, fullWidth: true },
           {

@@ -5,16 +5,27 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import { InfobaseProvider } from '../infobase-context';
 
-// Mock the DorkroomClient
+// Mock the DorkroomClient and store mock functions for assertions
+const mockFetchFilmsOnDemand = vi.fn().mockResolvedValue({ data: [], count: 0 });
+const mockFetchDevelopersOnDemand = vi
+  .fn()
+  .mockResolvedValue({ data: [], count: 0 });
+const mockFetchCombinationsOnDemand = vi
+  .fn()
+  .mockResolvedValue({ data: [], count: 0 });
+const mockFetchFilmBySlug = vi.fn().mockResolvedValue(null);
+const mockFetchDeveloperBySlug = vi.fn().mockResolvedValue(null);
+
 vi.mock('@dorkroom/api', () => ({
   DorkroomClient: vi.fn().mockImplementation(() => ({
-    fetchFilmsOnDemand: vi.fn().mockResolvedValue({ data: [], count: 0 }),
-    fetchDevelopersOnDemand: vi.fn().mockResolvedValue({ data: [], count: 0 }),
-    fetchCombinationsOnDemand: vi.fn().mockResolvedValue({ data: [], count: 0 }),
-    fetchFilmBySlug: vi.fn().mockResolvedValue(null),
-    fetchDeveloperBySlug: vi.fn().mockResolvedValue(null),
+    fetchFilmsOnDemand: mockFetchFilmsOnDemand,
+    fetchDevelopersOnDemand: mockFetchDevelopersOnDemand,
+    fetchCombinationsOnDemand: mockFetchCombinationsOnDemand,
+    fetchFilmBySlug: mockFetchFilmBySlug,
+    fetchDeveloperBySlug: mockFetchDeveloperBySlug,
   })),
 }));
 
@@ -29,21 +40,19 @@ describe('InfobaseProvider Performance', () => {
     vi.clearAllMocks();
   });
 
-  it('should render provider instantly without waiting for data', () => {
-    const startTime = performance.now();
-
+  it('should render provider without triggering data fetch on mount', () => {
     const { getByTestId } = render(
       <InfobaseProvider>
         <TestComponent />
       </InfobaseProvider>
     );
 
-    const endTime = performance.now();
-    const renderTime = endTime - startTime;
-
-    // Provider should render in less than 100ms (no data loading on mount)
-    expect(renderTime).toBeLessThan(100);
     expect(getByTestId('test-component')).toHaveTextContent('Provider loaded');
+    expect(mockFetchFilmsOnDemand).not.toHaveBeenCalled();
+    expect(mockFetchDevelopersOnDemand).not.toHaveBeenCalled();
+    expect(mockFetchCombinationsOnDemand).not.toHaveBeenCalled();
+    expect(mockFetchFilmBySlug).not.toHaveBeenCalled();
+    expect(mockFetchDeveloperBySlug).not.toHaveBeenCalled();
   });
 
   it('should provide client instance without calling loadAll()', async () => {

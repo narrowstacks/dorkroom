@@ -45,7 +45,7 @@ Create a structured changelog in markdown format with these sections:
 # Changelog for PR #{number}: {title}
 
 **Author**: {author}
-**Branch**: {headRefName} ’ {baseRefName}
+**Branch**: {headRefName} ï¿½ {baseRefName}
 **Status**: {state}
 **Created**: {createdAt}
 **Updated/Merged**: {updatedAt or mergedAt}
@@ -57,18 +57,23 @@ Create a structured changelog in markdown format with these sections:
 ## Changes
 
 ### Features
+
 - {List new features from commits/diff}
 
 ### Fixes
+
 - {List bug fixes}
 
 ### Improvements
+
 - {List refactoring, performance improvements, etc.}
 
 ### Documentation
+
 - {List documentation changes}
 
 ### Other Changes
+
 - {List other modifications}
 
 ## Modified Files
@@ -97,6 +102,7 @@ Create a structured changelog in markdown format with these sections:
 ## Step 5: Present Changelog
 
 Present the generated changelog to the user in a code block and ask if they want to:
+
 1. Copy it to clipboard
 2. Save it to a file
 3. Post it as a comment on the PR
