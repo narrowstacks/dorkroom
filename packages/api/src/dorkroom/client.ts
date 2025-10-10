@@ -169,7 +169,7 @@ export class DorkroomClient {
       if (options?.limit) params.append('limit', String(options.limit));
       if (options?.query) params.append('query', options.query);
       if (options?.fuzzy) params.append('fuzzy', 'true');
-      if (options?.colorType) params.append('colorType', options.colorType);
+      if (options?.colorType) params.append('color_type', options.colorType);
       if (options?.brand) params.append('brand', options.brand);
 
       const queryString = params.toString();
@@ -226,7 +226,7 @@ export class DorkroomClient {
       if (options?.fuzzy) params.append('fuzzy', 'true');
       if (options?.type) params.append('type', options.type);
       if (options?.manufacturer)
-        params.append('manufacturer', options.manufacturer);
+        params.append('manufacturer_name', options.manufacturer);
 
       const queryString = params.toString();
       const endpoint = `/developers${queryString ? `?${queryString}` : ''}`;
@@ -283,11 +283,11 @@ export class DorkroomClient {
       if (options?.limit) params.append('limit', String(options.limit));
       if (options?.query) params.append('query', options.query);
       if (options?.fuzzy) params.append('fuzzy', 'true');
-      if (options?.film) params.append('film', options.film);
+      if (options?.film) params.append('film_stock', options.film);
       if (options?.developer) params.append('developer', options.developer);
       if (options?.count) params.append('count', String(options.count));
       if (options?.page) params.append('page', String(options.page));
-      if (options?.id) params.append('id', options.id);
+      if (options?.id) params.append('id', String(options.id));
 
       const queryString = params.toString();
       const endpoint = `/combinations${queryString ? `?${queryString}` : ''}`;

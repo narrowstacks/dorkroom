@@ -114,7 +114,7 @@ export interface FetchCombinationsOptions {
   developer?: string;
   count?: number;
   page?: number;
-  id?: string;
+  id?: number;
 }
 
 // API raw response types (snake_case from server)
