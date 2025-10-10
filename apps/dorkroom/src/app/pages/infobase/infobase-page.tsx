@@ -168,8 +168,23 @@ function InfobaseContent(): ReactElement {
   const filteredTree = useMemo(() => {
     if (!debouncedSearchQuery) return contentTree;
 
-    const filtered = searchPages(mdxPages, debouncedSearchQuery);
-    return buildContentTree(filtered);
+    // Filter MDX pages and build tree
+    const filteredMDXPages = searchPages(mdxPages, debouncedSearchQuery);
+    const filteredMDXTree = buildContentTree(filteredMDXPages);
+
+    // Extract database nodes from original contentTree
+    const databaseNodes = contentTree.filter(
+      (node) => node.type === 'database'
+    );
+
+    // Optionally filter database nodes by name matching search query
+    const normalizedQuery = debouncedSearchQuery.toLowerCase().trim();
+    const filteredDatabaseNodes = databaseNodes.filter((node) =>
+      node.name.toLowerCase().includes(normalizedQuery)
+    );
+
+    // Merge database nodes with filtered MDX tree
+    return [...filteredDatabaseNodes, ...filteredMDXTree];
   }, [contentTree, debouncedSearchQuery]);
 
   // Focus management: Move focus to article on page navigation
