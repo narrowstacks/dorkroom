@@ -7,6 +7,12 @@ import {
   RawDeveloper,
   RawCombination,
   DorkroomApiError,
+  FilmsApiResponse,
+  DevelopersApiResponse,
+  CombinationsApiResponse,
+  FetchFilmsOptions,
+  FetchDevelopersOptions,
+  FetchCombinationsOptions,
 } from './types';
 
 export interface DorkroomClientOptions {
@@ -144,6 +150,164 @@ export class DorkroomClient {
     this.developersCache = null;
     this.combinationsCache = null;
     this.lastLoadTime = null;
+  }
+
+  /**
+   * Fetch films with optional filtering and pagination.
+   * This method does not require calling loadAll() first.
+   *
+   * @param options - Optional filtering and pagination parameters
+   * @returns Promise resolving to films API response with data and count
+   * @throws DorkroomApiError when the request fails
+   */
+  async fetchFilmsOnDemand(
+    options?: FetchFilmsOptions
+  ): Promise<FilmsApiResponse> {
+    try {
+      const params = new URLSearchParams();
+
+      if (options?.limit) params.append('limit', String(options.limit));
+      if (options?.query) params.append('query', options.query);
+      if (options?.fuzzy) params.append('fuzzy', 'true');
+      if (options?.colorType) params.append('colorType', options.colorType);
+      if (options?.brand) params.append('brand', options.brand);
+
+      const queryString = params.toString();
+      const endpoint = `/films${queryString ? `?${queryString}` : ''}`;
+
+      const response = await this.transport.get<{
+        data: RawFilm[];
+        count: number;
+      }>(endpoint);
+
+      return {
+        data: response.data.map(this.transformFilm.bind(this)),
+        count: response.count,
+      };
+    } catch (error) {
+      throw new DorkroomApiError(
+        `Failed to fetch films: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
+    }
+  }
+
+  /**
+   * Fetch a single film by slug.
+   * This method does not require calling loadAll() first.
+   *
+   * @param slug - Film slug (e.g., "kodak-tri-x-400")
+   * @returns Promise resolving to Film or null if not found
+   * @throws DorkroomApiError when the request fails
+   */
+  async fetchFilmBySlug(slug: string): Promise<Film | null> {
+    const response = await this.fetchFilmsOnDemand({ query: slug, limit: 1 });
+    const film = response.data.find((f) => f.slug === slug);
+    return film || null;
+  }
+
+  /**
+   * Fetch developers with optional filtering and pagination.
+   * This method does not require calling loadAll() first.
+   *
+   * @param options - Optional filtering and pagination parameters
+   * @returns Promise resolving to developers API response with data and count
+   * @throws DorkroomApiError when the request fails
+   */
+  async fetchDevelopersOnDemand(
+    options?: FetchDevelopersOptions
+  ): Promise<DevelopersApiResponse> {
+    try {
+      const params = new URLSearchParams();
+
+      if (options?.limit) params.append('limit', String(options.limit));
+      if (options?.query) params.append('query', options.query);
+      if (options?.fuzzy) params.append('fuzzy', 'true');
+      if (options?.type) params.append('type', options.type);
+      if (options?.manufacturer)
+        params.append('manufacturer', options.manufacturer);
+
+      const queryString = params.toString();
+      const endpoint = `/developers${queryString ? `?${queryString}` : ''}`;
+
+      const response = await this.transport.get<{
+        data: RawDeveloper[];
+        count: number;
+      }>(endpoint);
+
+      return {
+        data: response.data.map(this.transformDeveloper.bind(this)),
+        count: response.count,
+      };
+    } catch (error) {
+      throw new DorkroomApiError(
+        `Failed to fetch developers: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
+    }
+  }
+
+  /**
+   * Fetch a single developer by slug.
+   * This method does not require calling loadAll() first.
+   *
+   * @param slug - Developer slug (e.g., "kodak-d76")
+   * @returns Promise resolving to Developer or null if not found
+   * @throws DorkroomApiError when the request fails
+   */
+  async fetchDeveloperBySlug(slug: string): Promise<Developer | null> {
+    const response = await this.fetchDevelopersOnDemand({
+      query: slug,
+      limit: 1,
+    });
+    const developer = response.data.find((d) => d.slug === slug);
+    return developer || null;
+  }
+
+  /**
+   * Fetch combinations with optional filtering and pagination.
+   * This method does not require calling loadAll() first.
+   *
+   * @param options - Optional filtering and pagination parameters
+   * @returns Promise resolving to combinations API response with data and count
+   * @throws DorkroomApiError when the request fails
+   */
+  async fetchCombinationsOnDemand(
+    options?: FetchCombinationsOptions
+  ): Promise<CombinationsApiResponse> {
+    try {
+      const params = new URLSearchParams();
+
+      if (options?.limit) params.append('limit', String(options.limit));
+      if (options?.query) params.append('query', options.query);
+      if (options?.fuzzy) params.append('fuzzy', 'true');
+      if (options?.film) params.append('film', options.film);
+      if (options?.developer) params.append('developer', options.developer);
+      if (options?.count) params.append('count', String(options.count));
+      if (options?.page) params.append('page', String(options.page));
+      if (options?.id) params.append('id', options.id);
+
+      const queryString = params.toString();
+      const endpoint = `/combinations${queryString ? `?${queryString}` : ''}`;
+
+      const response = await this.transport.get<{
+        data: RawCombination[];
+        count: number;
+      }>(endpoint);
+
+      return {
+        data: response.data.map(this.transformCombination.bind(this)),
+        count: response.count,
+      };
+    } catch (error) {
+      throw new DorkroomApiError(
+        `Failed to fetch combinations: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
+    }
   }
 
   /**

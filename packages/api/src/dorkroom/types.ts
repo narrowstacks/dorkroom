@@ -89,6 +89,34 @@ export interface CombinationsApiResponse {
   count: number;
 }
 
+// Fetch options for on-demand API calls
+export interface FetchFilmsOptions {
+  limit?: number;
+  query?: string;
+  fuzzy?: boolean;
+  colorType?: string;
+  brand?: string;
+}
+
+export interface FetchDevelopersOptions {
+  limit?: number;
+  query?: string;
+  fuzzy?: boolean;
+  type?: string;
+  manufacturer?: string;
+}
+
+export interface FetchCombinationsOptions {
+  limit?: number;
+  query?: string;
+  fuzzy?: boolean;
+  film?: string;
+  developer?: string;
+  count?: number;
+  page?: number;
+  id?: string;
+}
+
 // API raw response types (snake_case from server)
 export interface RawFilm {
   id: number;
