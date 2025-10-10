@@ -15,6 +15,7 @@ interface DatabaseListProps<T extends DatabaseItem> {
   renderItem?: (item: T) => React.ReactNode;
   emptyMessage?: string;
   className?: string;
+  searchPlaceholder?: string;
 }
 
 export function DatabaseList<T extends DatabaseItem>({
@@ -25,11 +26,15 @@ export function DatabaseList<T extends DatabaseItem>({
   renderItem,
   emptyMessage = 'No items found',
   className,
+  searchPlaceholder = 'Search...',
 }: DatabaseListProps<T>) {
   return (
     <div className={cn('flex h-full flex-col', className)}>
       <div className="mb-4">
-        <SearchBar onSearch={onSearchChange} placeholder="Search..." />
+        <SearchBar
+          onSearch={onSearchChange}
+          placeholder={searchPlaceholder}
+        />
       </div>
 
       <div className="flex-1 space-y-1 overflow-y-auto">

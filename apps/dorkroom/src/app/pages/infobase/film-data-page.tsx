@@ -152,7 +152,9 @@ export function FilmDataPage() {
         );
       }}
       emptyMessage="No films found"
-      emptyDetailMessage="Select a film to view details"
+      emptyDetailMessage="Search for a film to view details"
+      searchPlaceholder="Search films..."
+      mobileSearchPrompt="Start typing to search films"
     />
   );
 }

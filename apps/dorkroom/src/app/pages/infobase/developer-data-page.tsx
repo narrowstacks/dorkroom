@@ -156,7 +156,9 @@ export function DeveloperDataPage() {
         );
       }}
       emptyMessage="No developers found"
-      emptyDetailMessage="Select a developer to view details"
+      emptyDetailMessage="Search for a developer to view details"
+      searchPlaceholder="Search developers..."
+      mobileSearchPrompt="Start typing to search developers"
     />
   );
 }
