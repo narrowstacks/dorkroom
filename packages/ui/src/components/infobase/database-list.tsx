@@ -31,10 +31,7 @@ export function DatabaseList<T extends DatabaseItem>({
   return (
     <div className={cn('flex h-full flex-col', className)}>
       <div className="mb-4">
-        <SearchBar
-          onSearch={onSearchChange}
-          placeholder={searchPlaceholder}
-        />
+        <SearchBar onSearch={onSearchChange} placeholder={searchPlaceholder} />
       </div>
 
       <div className="flex-1 space-y-1 overflow-y-auto">

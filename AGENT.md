@@ -17,10 +17,9 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 
 ### MCP Servers
 
-- **Serena**: ALWAYS activate project `dorkroom-nx` before starting work. Use for code exploration, symbol search, and semantic editing.
+- **Serena**: ALWAYS ACTIVATE PROJECT `dorkroom-nx` BEFORE STARTING **ANY** WORK! Use for code exploration, symbol search, and semantic editing.
 - **Chrome DevTools**: Capture screenshots, analyze performance, get console output, and verify functionality in a live browser. Usually for testing before/during/after UI changes.
 - **Context7**: Fetch up-to-date library documentation when working with external packages.
-- **Zen**: Allows use of other coding AI coding agent CLIs with larger context limits such as Gemini CLI and Codex CLI.
 
 ### Claude Code Agents
 

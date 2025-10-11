@@ -143,7 +143,10 @@ export function DeveloperCardWrapper({
           const errorMessage =
             err instanceof Error ? err.message : 'Failed to load developer';
           setError(errorMessage);
-          console.error('[DeveloperCardWrapper] Error fetching developer:', err);
+          console.error(
+            '[DeveloperCardWrapper] Error fetching developer:',
+            err
+          );
         }
       } finally {
         if (!cancelled) {

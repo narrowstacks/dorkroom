@@ -81,8 +81,7 @@ export function DatabaseViewer<T extends DatabaseItem>({
   // This useEffect synchronizes the selected item state with filtered results
   useEffect(() => {
     const selectedExists =
-      selectedItem &&
-      filteredItems.some((item) => item.id === selectedItem.id);
+      selectedItem && filteredItems.some((item) => item.id === selectedItem.id);
 
     if (selectedItem && !selectedExists) {
       setSelectedItem(
@@ -184,10 +183,7 @@ export function DatabaseViewer<T extends DatabaseItem>({
             </div>
           </div>
 
-          <div
-            className="flex-1 overflow-y-auto"
-            style={{ minHeight: '60vh' }}
-          >
+          <div className="flex-1 overflow-y-auto" style={{ minHeight: '60vh' }}>
             {selectedItem ? (
               <div className="pb-12">
                 <DatabaseDetail

@@ -9,7 +9,9 @@ import '@testing-library/jest-dom/vitest';
 import { InfobaseProvider } from '../infobase-context';
 
 // Mock the DorkroomClient and store mock functions for assertions
-const mockFetchFilmsOnDemand = vi.fn().mockResolvedValue({ data: [], count: 0 });
+const mockFetchFilmsOnDemand = vi
+  .fn()
+  .mockResolvedValue({ data: [], count: 0 });
 const mockFetchDevelopersOnDemand = vi
   .fn()
   .mockResolvedValue({ data: [], count: 0 });
@@ -63,7 +65,9 @@ describe('InfobaseProvider Performance', () => {
     );
 
     await waitFor(() => {
-      expect(getByTestId('test-component')).toHaveTextContent('Provider loaded');
+      expect(getByTestId('test-component')).toHaveTextContent(
+        'Provider loaded'
+      );
     });
 
     // The provider should be available immediately
