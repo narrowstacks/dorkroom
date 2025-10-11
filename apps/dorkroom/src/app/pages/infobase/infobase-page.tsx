@@ -32,12 +32,11 @@ import { DeveloperDataPage } from './developer-data-page';
 
 // Page registry types
 type MDXPageEntry = {
-  type: 'mdx';
   slug: string;
   path: string;
   Component: React.ComponentType;
   frontmatter: {
-    title?: string;
+    title: string;
     category?: string;
     [key: string]: unknown;
   };
@@ -53,10 +52,12 @@ type DatabasePageEntry = {
   databaseType: string;
 };
 
-type PageEntry = MDXPageEntry | DatabasePageEntry;
+type PageEntry =
+  | ({ type: 'mdx' } & MDXPageEntry)
+  | DatabasePageEntry;
 
 // Load MDX pages automatically
-const mdxPages = loadMDXPages();
+const mdxPages: MDXPageEntry[] = loadMDXPages() as MDXPageEntry[];
 
 // Database page definitions
 const databasePages: DatabasePageEntry[] = [
@@ -112,7 +113,7 @@ function InfobaseContent(): ReactElement {
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   // Toggle node expansion state
-  const handleToggleNode = (nodeSlug: string) => {
+  const handleToggleNode = (nodeSlug: string): void => {
     setExpandedNodes((prev) => {
       const next = new Set(prev);
       if (next.has(nodeSlug)) {
@@ -122,6 +123,12 @@ function InfobaseContent(): ReactElement {
       }
       return next;
     });
+  };
+
+  // Handle navigation - used to close mobile sidebar when user navigates
+  const handleNavigate = (): void => {
+    // Mobile sidebar will be closed by InfobaseLayout
+    // This callback is for any additional navigation-related actions
   };
 
   // Build content tree for navigation with database nodes
@@ -220,6 +227,7 @@ function InfobaseContent(): ReactElement {
         breadcrumbs={undefined}
         expandedNodes={expandedNodes}
         onToggleNode={handleToggleNode}
+        onNavigate={handleNavigate}
       >
         <Component />
       </InfobaseLayout>
@@ -236,6 +244,7 @@ function InfobaseContent(): ReactElement {
       breadcrumbs={breadcrumbs}
       expandedNodes={expandedNodes}
       onToggleNode={handleToggleNode}
+      onNavigate={handleNavigate}
     >
       <div className="mx-auto max-w-3xl space-y-6">
         {/* MDX Content */}

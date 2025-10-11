@@ -1,4 +1,5 @@
-import { Film } from '@dorkroom/api';
+import type { ReactElement } from 'react';
+import type { Film } from '@dorkroom/api';
 import { Camera, Gauge } from 'lucide-react';
 import { cn } from '../../lib/cn';
 
@@ -7,7 +8,7 @@ interface FilmCardProps {
   className?: string;
 }
 
-export function FilmCard({ film, className }: FilmCardProps) {
+export function FilmCard({ film, className }: FilmCardProps): ReactElement {
   if (!film) {
     return (
       <div
@@ -71,7 +72,7 @@ export function FilmCard({ film, className }: FilmCardProps) {
             className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide"
             style={{ color: 'var(--color-text-tertiary)' }}
           >
-            <Gauge className="h-3.5 w-3.5" />
+            <Gauge className="h-3.5 w-3.5" aria-hidden="true" />
             ISO Speed
           </div>
           <div
@@ -87,7 +88,7 @@ export function FilmCard({ film, className }: FilmCardProps) {
             className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide"
             style={{ color: 'var(--color-text-tertiary)' }}
           >
-            <Camera className="h-3.5 w-3.5" />
+            <Camera className="h-3.5 w-3.5" aria-hidden="true" />
             Type
           </div>
           <div
@@ -126,9 +127,9 @@ export function FilmCard({ film, className }: FilmCardProps) {
               Manufacturer Notes
             </div>
             <ul className="space-y-1 text-sm">
-              {film.manufacturerNotes.map((note, index) => (
+              {film.manufacturerNotes.map((note) => (
                 <li
-                  key={index}
+                  key={note}
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
                   • {note}

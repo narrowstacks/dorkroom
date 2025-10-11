@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { ChevronDown, ChevronRight, FileText, Folder } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
@@ -17,7 +18,7 @@ export function SidebarNavigation({
   className,
   expandedNodes,
   onToggleNode,
-}: SidebarNavigationProps) {
+}: SidebarNavigationProps): ReactElement {
   return (
     <nav
       className={cn('space-y-1', className)}
@@ -43,7 +44,12 @@ interface TreeNodeProps {
   onToggleNode?: (slug: string) => void;
 }
 
-function TreeNode({ node, level, expandedNodes, onToggleNode }: TreeNodeProps) {
+function TreeNode({
+  node,
+  level,
+  expandedNodes,
+  onToggleNode,
+}: TreeNodeProps): ReactElement {
   // Use local state if expandedNodes not provided, otherwise use external state
   const [localExpanded, setLocalExpanded] = useState(true);
   const isExpanded =
@@ -77,11 +83,14 @@ function TreeNode({ node, level, expandedNodes, onToggleNode }: TreeNodeProps) {
         aria-current={isActive ? 'page' : undefined}
       >
         {node.icon ? (
-          <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center text-base leading-none">
+          <span
+            className="flex h-4 w-4 flex-shrink-0 items-center justify-center text-base leading-none"
+            aria-hidden="true"
+          >
             {node.icon}
           </span>
         ) : (
-          <FileText className="h-4 w-4 flex-shrink-0" />
+          <FileText className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
         )}
         <span className="flex-1 truncate">{node.name}</span>
       </Link>
@@ -89,6 +98,7 @@ function TreeNode({ node, level, expandedNodes, onToggleNode }: TreeNodeProps) {
   }
 
   if (node.type === 'folder') {
+    const childrenId = `folder-${node.slug}-children`;
     return (
       <div>
         <button
@@ -100,23 +110,31 @@ function TreeNode({ node, level, expandedNodes, onToggleNode }: TreeNodeProps) {
             'hover:text-[color:var(--color-text-primary)]'
           )}
           style={{ paddingLeft: `${0.75 + level * 0.75}rem` }}
+          aria-expanded={isExpanded}
+          aria-controls={childrenId}
         >
           {isExpanded ? (
-            <ChevronDown className="h-4 w-4 flex-shrink-0" />
+            <ChevronDown className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
           ) : (
-            <ChevronRight className="h-4 w-4 flex-shrink-0" />
+            <ChevronRight
+              className="h-4 w-4 flex-shrink-0"
+              aria-hidden="true"
+            />
           )}
           {node.icon ? (
-            <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center text-base leading-none">
+            <span
+              className="flex h-4 w-4 flex-shrink-0 items-center justify-center text-base leading-none"
+              aria-hidden="true"
+            >
               {node.icon}
             </span>
           ) : (
-            <Folder className="h-4 w-4 flex-shrink-0" />
+            <Folder className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
           )}
           <span className="flex-1 truncate text-left">{node.name}</span>
         </button>
         {isExpanded && node.children && (
-          <div className="mt-1">
+          <div id={childrenId} className="mt-1">
             {node.children.map((child) => (
               <TreeNode
                 key={child.slug}
@@ -146,11 +164,14 @@ function TreeNode({ node, level, expandedNodes, onToggleNode }: TreeNodeProps) {
       aria-current={isActive ? 'page' : undefined}
     >
       {node.icon ? (
-        <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center text-base leading-none">
+        <span
+          className="flex h-4 w-4 flex-shrink-0 items-center justify-center text-base leading-none"
+          aria-hidden="true"
+        >
           {node.icon}
         </span>
       ) : (
-        <FileText className="h-4 w-4 flex-shrink-0" />
+        <FileText className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
       )}
       <span className="flex-1 truncate">{node.name}</span>
     </Link>

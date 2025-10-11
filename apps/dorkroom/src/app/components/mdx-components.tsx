@@ -3,17 +3,20 @@
  * These components can be used directly in MDX content
  */
 
-import { ReactNode, useState, useEffect } from 'react';
+import type { ReactElement, ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import { FilmCard, DeveloperCard, RecipeTable } from '@dorkroom/ui';
 import { useInfobaseClient } from '../contexts/infobase-context';
 import { Link } from 'react-router-dom';
-import { Film, Developer, Combination } from '@dorkroom/api';
+import type { Film, Developer, Combination } from '@dorkroom/api';
 
 interface FilmCardWrapperProps {
   filmSlug: string;
 }
 
-export function FilmCardWrapper({ filmSlug }: FilmCardWrapperProps) {
+export function FilmCardWrapper({
+  filmSlug,
+}: FilmCardWrapperProps): ReactElement {
   const client = useInfobaseClient();
   const [film, setFilm] = useState<Film | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,7 +118,7 @@ interface DeveloperCardWrapperProps {
 
 export function DeveloperCardWrapper({
   developerSlug,
-}: DeveloperCardWrapperProps) {
+}: DeveloperCardWrapperProps): ReactElement {
   const client = useInfobaseClient();
   const [developer, setDeveloper] = useState<Developer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -226,7 +229,7 @@ export function RecipeTableWrapper({
   film,
   developer,
   maxRows,
-}: RecipeTableWrapperProps) {
+}: RecipeTableWrapperProps): ReactElement {
   const client = useInfobaseClient();
   const [combinations, setCombinations] = useState<Combination[]>([]);
   const [films, setFilms] = useState<Film[]>([]);
@@ -332,7 +335,7 @@ interface LinkButtonProps {
   children: ReactNode;
 }
 
-export function LinkButton({ to, children }: LinkButtonProps) {
+export function LinkButton({ to, children }: LinkButtonProps): ReactElement {
   const isExternal =
     to.startsWith('http://') ||
     to.startsWith('https://') ||
@@ -373,7 +376,7 @@ interface ImageGalleryProps {
   filmSlug?: string;
 }
 
-export function ImageGallery({ filmSlug }: ImageGalleryProps) {
+export function ImageGallery({ filmSlug }: ImageGalleryProps): ReactElement {
   const client = useInfobaseClient();
   const [film, setFilm] = useState<Film | null>(null);
   const [isLoading, setIsLoading] = useState(true);

@@ -1,4 +1,5 @@
-import { useState, useEffect, ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import type { ContentNode, BreadcrumbItem } from '@dorkroom/logic';
 import { SidebarNavigation } from './sidebar-navigation';
@@ -13,6 +14,7 @@ interface InfobaseLayoutProps {
   breadcrumbs?: BreadcrumbItem[];
   expandedNodes?: Set<string>;
   onToggleNode?: (slug: string) => void;
+  onNavigate?: () => void;
 }
 
 export function InfobaseLayout({
@@ -23,9 +25,17 @@ export function InfobaseLayout({
   breadcrumbs,
   expandedNodes,
   onToggleNode,
-}: InfobaseLayoutProps) {
+  onNavigate,
+}: InfobaseLayoutProps): ReactElement {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [shouldAnimate, setShouldAnimate] = useState(false);
+
+  const handleCloseSidebar = (): void => {
+    setIsSidebarOpen(false);
+    if (onNavigate) {
+      onNavigate();
+    }
+  };
 
   // Detect theme and determine if animations should be enabled
   useEffect(() => {
@@ -84,10 +94,12 @@ export function InfobaseLayout({
             className={`fixed inset-0 z-50 bg-black/50 lg:hidden ${
               shouldAnimate ? 'animate-fade-in' : ''
             }`}
-            onClick={() => setIsSidebarOpen(false)}
+            onClick={handleCloseSidebar}
             aria-hidden="true"
           />
           <aside
+            role="dialog"
+            aria-label="Navigation menu"
             className={`fixed inset-y-0 left-0 z-50 w-64 overflow-y-auto p-6 lg:hidden ${
               shouldAnimate ? 'animate-slide-in-from-left' : ''
             }`}
@@ -106,12 +118,12 @@ export function InfobaseLayout({
               </h2>
               <button
                 type="button"
-                onClick={() => setIsSidebarOpen(false)}
+                onClick={handleCloseSidebar}
                 className="rounded-full p-2"
                 style={{ color: 'var(--color-text-secondary)' }}
                 aria-label="Close navigation"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
             <div className="space-y-4">
@@ -141,7 +153,7 @@ export function InfobaseLayout({
           }}
           aria-label="Open navigation"
         >
-          <Menu className="h-4 w-4" />
+          <Menu className="h-4 w-4" aria-hidden="true" />
           <span>Navigation</span>
         </button>
         {children}
