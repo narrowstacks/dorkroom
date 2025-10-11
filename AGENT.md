@@ -30,7 +30,6 @@ Custom agents are available in `.claude/agents/`:
 - **backend-typescript-architect**: Backend/API development with Bun runtime
 - **ui-ux-chrome-devtools-tester**: Live browser testing of UI changes using Chrome DevTools MCP
 - **ts-coder**: TypeScript code writing with strict type safety
-- **gemini-code-reviewer**: Get a code review from the Gemini CLI for large codebase changes auditing.
 
 Use agents proactively when tasks match their expertise areas.
 
