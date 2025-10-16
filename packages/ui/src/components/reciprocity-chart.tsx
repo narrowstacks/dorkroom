@@ -22,6 +22,12 @@ interface ReciprocityChartProps {
    * Optional class name for styling
    */
   className?: string;
+  /**
+   * Whether to scroll the chart into view when layout mode changes
+   * (inline to wide or vice versa). Ignores generic window resizes.
+   * @default false
+   */
+  autoScrollOnResize?: boolean;
 }
 
 interface Point {
@@ -63,6 +69,7 @@ const CHART_CONFIG = {
     radius: 20, // hover detection area - ensures line hover stays active
     markerRadius: 8,
     currentPointRadius: 6,
+    maxPoints: 50, // maximum number of hover points to prevent performance issues
   },
   tooltip: {
     minWidth: 80,
@@ -110,6 +117,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
   factor,
   filmName,
   className = '',
+  autoScrollOnResize = false,
 }) => {
   const chartData = useMemo(() => {
     // Chart dimensions
@@ -190,7 +198,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
       });
     }
 
-    // Generate hover points along the curve
+    // Generate hover points along the curve with dynamic interval to limit total points
     const hoverPoints: Array<{
       meteredTime: number;
       adjustedTime: number;
@@ -199,11 +207,20 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
       annotation: string;
     }> = [];
 
-    for (
-      let t = CHART_CONFIG.hover.interval;
-      t <= maxMetered;
-      t += CHART_CONFIG.hover.interval
-    ) {
+    const interval = CHART_CONFIG.hover.interval;
+    const maxPoints = CHART_CONFIG.hover.maxPoints;
+
+    // Calculate total points that would be generated at the default interval
+    const totalPoints = Math.ceil(maxMetered / interval);
+
+    // Compute effective interval to limit points if necessary
+    let effectiveInterval = interval;
+    if (totalPoints > maxPoints) {
+      const multiplier = Math.ceil(totalPoints / maxPoints);
+      effectiveInterval = interval * multiplier;
+    }
+
+    for (let t = effectiveInterval; t <= maxMetered; t += effectiveInterval) {
       const adjustedT = Math.pow(t, factor);
       hoverPoints.push({
         meteredTime: t,
@@ -211,6 +228,21 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
         x: scaleX(t),
         y: scaleY(adjustedT),
         annotation: `${formatSeconds(t)} → ${formatSeconds(adjustedT)}`,
+      });
+    }
+
+    // Always include the final maxMetered point if it's not already included
+    const lastHoverPoint = hoverPoints[hoverPoints.length - 1];
+    if (!lastHoverPoint || lastHoverPoint.meteredTime < maxMetered) {
+      const adjustedMaxMetered = Math.pow(maxMetered, factor);
+      hoverPoints.push({
+        meteredTime: maxMetered,
+        adjustedTime: adjustedMaxMetered,
+        x: scaleX(maxMetered),
+        y: scaleY(adjustedMaxMetered),
+        annotation: `${formatSeconds(maxMetered)} → ${formatSeconds(
+          adjustedMaxMetered
+        )}`,
       });
     }
 
@@ -260,6 +292,9 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(
     null
   );
+  const [focusedPointIndex, setFocusedPointIndex] = useState<number | null>(
+    null
+  );
 
   const hoveredPoint =
     hoveredPointIndex !== null
@@ -267,16 +302,70 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
       : null;
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
+  const previousDimensionsRef = useRef<{
+    width: number;
+    height: number;
+    isWideMode: boolean;
+  } | null>(null);
 
-  // Scroll chart into view when it expands/collapses (size changes)
+  // Flag to skip the initial resize observer callback (on mount)
+  const isInitialMountRef = useRef(true);
+
+  // Helper to determine if container is in "wide" mode (used for layout mode detection)
+  const isWideModeLayout = (width: number): boolean => {
+    return width > 768; // Typical md breakpoint for Tailwind
+  };
+
+  // Scroll chart into view only on intentional layout mode changes (not on initial render or generic window resizes)
   useEffect(() => {
-    if (!chartContainerRef.current) return;
+    if (!chartContainerRef.current || !autoScrollOnResize) return;
 
-    const resizeObserver = new ResizeObserver(() => {
-      chartContainerRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
+    const resizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+
+      const { width, height } = entry.contentRect;
+
+      // Skip the initial callback after mount
+      if (isInitialMountRef.current) {
+        isInitialMountRef.current = false;
+        previousDimensionsRef.current = {
+          width,
+          height,
+          isWideMode: isWideModeLayout(width),
+        };
+        return;
+      }
+
+      // Check if previous dimensions exist
+      if (!previousDimensionsRef.current) {
+        previousDimensionsRef.current = {
+          width,
+          height,
+          isWideMode: isWideModeLayout(width),
+        };
+        return;
+      }
+
+      const previousDims = previousDimensionsRef.current;
+      const currentIsWideMode = isWideModeLayout(width);
+
+      // Only trigger scroll if layout mode changed (inline ↔ wide)
+      const layoutModeChanged = previousDims.isWideMode !== currentIsWideMode;
+
+      if (layoutModeChanged) {
+        chartContainerRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }
+
+      // Update previous dimensions for next comparison
+      previousDimensionsRef.current = {
+        width,
+        height,
+        isWideMode: currentIsWideMode,
+      };
     });
 
     resizeObserver.observe(chartContainerRef.current);
@@ -284,7 +373,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
     return () => {
       resizeObserver.disconnect();
     };
-  }, []);
+  }, [autoScrollOnResize]);
 
   return (
     <div className={className} ref={chartContainerRef}>
@@ -467,8 +556,14 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
               tabIndex={0}
               role="button"
               aria-label={point.annotation}
-              onFocus={() => setHoveredPointIndex(i)}
-              onBlur={() => setHoveredPointIndex(null)}
+              onFocus={() => {
+                setHoveredPointIndex(i);
+                setFocusedPointIndex(i);
+              }}
+              onBlur={() => {
+                setHoveredPointIndex(null);
+                setFocusedPointIndex(null);
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
@@ -501,6 +596,18 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
                 />
               </g>
             )}
+            {/* Visual focus indicator ring for keyboard navigation */}
+            {focusedPointIndex === i && (
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r={CHART_CONFIG.hover.markerRadius + 3}
+                fill="none"
+                stroke="var(--color-primary)"
+                strokeWidth="2"
+                style={{ pointerEvents: 'none' }}
+              />
+            )}
           </g>
         ))}
 
@@ -512,6 +619,22 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
               hoveredPoint.x + CHART_CONFIG.tooltip.offset + tooltipWidth <
               chartData.width;
 
+            // Calculate vertical position with bounds checking
+            const tooltipHeight = CHART_CONFIG.tooltip.height;
+            let tooltipY = hoveredPoint.y - 30;
+            // Ensure tooltip doesn't overflow top
+            if (tooltipY < chartData.padding.top) {
+              tooltipY = chartData.padding.top;
+            }
+            // Ensure tooltip doesn't overflow bottom
+            else if (
+              tooltipY + tooltipHeight >
+              chartData.height - chartData.padding.bottom
+            ) {
+              tooltipY =
+                chartData.height - chartData.padding.bottom - tooltipHeight;
+            }
+
             return (
               <g style={{ pointerEvents: 'none' }}>
                 {showRight ? (
@@ -519,7 +642,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
                   <>
                     <rect
                       x={hoveredPoint.x + CHART_CONFIG.tooltip.offset}
-                      y={hoveredPoint.y - 30}
+                      y={tooltipY}
                       width={tooltipWidth}
                       height={CHART_CONFIG.tooltip.height}
                       rx={CHART_CONFIG.tooltip.radius}
@@ -533,7 +656,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
                         CHART_CONFIG.tooltip.offset +
                         tooltipWidth / 2
                       }
-                      y={hoveredPoint.y + 5}
+                      y={tooltipY + 35}
                       textAnchor="middle"
                       fontSize={CHART_CONFIG.labels.fontSize.tooltip}
                       fontWeight="600"
@@ -552,7 +675,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
                         CHART_CONFIG.tooltip.offset -
                         tooltipWidth
                       }
-                      y={hoveredPoint.y - 30}
+                      y={tooltipY}
                       width={tooltipWidth}
                       height={CHART_CONFIG.tooltip.height}
                       rx={CHART_CONFIG.tooltip.radius}
@@ -566,7 +689,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
                         CHART_CONFIG.tooltip.offset -
                         tooltipWidth / 2
                       }
-                      y={hoveredPoint.y + 5}
+                      y={tooltipY + 35}
                       textAnchor="middle"
                       fontSize={CHART_CONFIG.labels.fontSize.tooltip}
                       fontWeight="600"
