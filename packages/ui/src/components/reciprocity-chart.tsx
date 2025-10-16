@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
+import { formatSeconds } from '@dorkroom/logic';
 
 interface ReciprocityChartProps {
   /**
@@ -79,21 +80,6 @@ const CHART_CONFIG = {
     tooltipText: 'var(--color-tooltip-text)',
   },
 } as const;
-
-/**
- * Format time value to human-readable string (seconds, minutes, hours)
- */
-function formatTime(seconds: number): string {
-  if (seconds < 60) return `${Math.round(seconds * 10) / 10}s`;
-  if (seconds < 3600) {
-    const min = Math.floor(seconds / 60);
-    const sec = Math.round((seconds % 60) * 10) / 10;
-    return sec === 0 ? `${min}m` : `${min}m ${sec}s`;
-  }
-  const hrs = Math.floor(seconds / 3600);
-  const min = Math.floor((seconds % 3600) / 60);
-  return min === 0 ? `${hrs}h` : `${hrs}h ${min}m`;
-}
 
 /**
  * Calculate tooltip width based on annotation text length
@@ -210,14 +196,18 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
       annotation: string;
     }> = [];
 
-    for (let t = CHART_CONFIG.hover.interval; t <= maxMetered; t += CHART_CONFIG.hover.interval) {
+    for (
+      let t = CHART_CONFIG.hover.interval;
+      t <= maxMetered;
+      t += CHART_CONFIG.hover.interval
+    ) {
       const adjustedT = Math.pow(t, factor);
       hoverPoints.push({
         meteredTime: t,
         adjustedTime: adjustedT,
         x: scaleX(t),
         y: scaleY(adjustedT),
-        annotation: `${formatTime(t)} → ${formatTime(adjustedT)}`,
+        annotation: `${formatSeconds(t)} → ${formatSeconds(adjustedT)}`,
       });
     }
 
@@ -229,7 +219,9 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
         adjustedTime: adjustedTime,
         x: scaleX(originalTime),
         y: scaleY(adjustedTime),
-        annotation: `${formatTime(originalTime)} → ${formatTime(adjustedTime)}`,
+        annotation: `${formatSeconds(originalTime)} → ${formatSeconds(
+          adjustedTime
+        )}`,
       });
       // Sort by metered time to maintain order
       hoverPoints.sort((a, b) => a.meteredTime - b.meteredTime);
@@ -306,8 +298,8 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
         <desc>
           A curve showing how metered exposure times map to adjusted exposure
           times due to reciprocity failure. Current calculation:{' '}
-          {formatTime(originalTime)} metered becomes {formatTime(adjustedTime)}{' '}
-          adjusted.
+          {formatSeconds(originalTime)} metered becomes{' '}
+          {formatSeconds(adjustedTime)} adjusted.
         </desc>
         {/* Grid lines */}
         <g opacity="0.15">
@@ -396,7 +388,10 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
           {chartData.yLabels.map((label, i) => (
             <text
               key={`y-label-${i}`}
-              x={chartData.padding.left - CHART_CONFIG.labels.offsets.yLabelOffset}
+              x={
+                chartData.padding.left -
+                CHART_CONFIG.labels.offsets.yLabelOffset
+              }
               y={label.y + 6}
               textAnchor="end"
               fontSize={CHART_CONFIG.labels.fontSize.label}
@@ -506,73 +501,82 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
         ))}
 
         {/* Annotation callout - only show on hover */}
-        {hoveredPoint && (() => {
-          const tooltipWidth = calculateTooltipWidth(hoveredPoint.annotation);
-          const showRight =
-            hoveredPoint.x + CHART_CONFIG.tooltip.offset + tooltipWidth <
-            chartData.width;
+        {hoveredPoint &&
+          (() => {
+            const tooltipWidth = calculateTooltipWidth(hoveredPoint.annotation);
+            const showRight =
+              hoveredPoint.x + CHART_CONFIG.tooltip.offset + tooltipWidth <
+              chartData.width;
 
-          return (
-            <g style={{ pointerEvents: 'none' }}>
-              {showRight ? (
-                // Show callout to the right if there's space
-                <>
-                  <rect
-                    x={hoveredPoint.x + CHART_CONFIG.tooltip.offset}
-                    y={hoveredPoint.y - 30}
-                    width={tooltipWidth}
-                    height={CHART_CONFIG.tooltip.height}
-                    rx={CHART_CONFIG.tooltip.radius}
-                    fill={CHART_CONFIG.colors.tooltipBg}
-                    stroke={CHART_CONFIG.colors.tooltipBorder}
-                    strokeWidth="1"
-                  />
-                  <text
-                    x={hoveredPoint.x + CHART_CONFIG.tooltip.offset + tooltipWidth / 2}
-                    y={hoveredPoint.y + 5}
-                    textAnchor="middle"
-                    fontSize={CHART_CONFIG.labels.fontSize.tooltip}
-                    fontWeight="600"
-                    fill={CHART_CONFIG.colors.tooltipText}
-                    fontFamily="system-ui, -apple-system, sans-serif"
-                  >
-                    {hoveredPoint.annotation}
-                  </text>
-                </>
-              ) : (
-                // Show callout to the left if not enough space on right
-                <>
-                  <rect
-                    x={hoveredPoint.x - CHART_CONFIG.tooltip.offset - tooltipWidth}
-                    y={hoveredPoint.y - 30}
-                    width={tooltipWidth}
-                    height={CHART_CONFIG.tooltip.height}
-                    rx={CHART_CONFIG.tooltip.radius}
-                    fill={CHART_CONFIG.colors.tooltipBg}
-                    stroke={CHART_CONFIG.colors.tooltipBorder}
-                    strokeWidth="1"
-                  />
-                  <text
-                    x={
-                      hoveredPoint.x -
-                      CHART_CONFIG.tooltip.offset -
-                      tooltipWidth / 2
-                    }
-                    y={hoveredPoint.y + 5}
-                    textAnchor="middle"
-                    fontSize={CHART_CONFIG.labels.fontSize.tooltip}
-                    fontWeight="600"
-                    fill={CHART_CONFIG.colors.tooltipText}
-                    fontFamily="system-ui, -apple-system, sans-serif"
-                  >
-                    {hoveredPoint.annotation}
-                  </text>
-                </>
-              )}
-            </g>
-          );
-        })()}
+            return (
+              <g style={{ pointerEvents: 'none' }}>
+                {showRight ? (
+                  // Show callout to the right if there's space
+                  <>
+                    <rect
+                      x={hoveredPoint.x + CHART_CONFIG.tooltip.offset}
+                      y={hoveredPoint.y - 30}
+                      width={tooltipWidth}
+                      height={CHART_CONFIG.tooltip.height}
+                      rx={CHART_CONFIG.tooltip.radius}
+                      fill={CHART_CONFIG.colors.tooltipBg}
+                      stroke={CHART_CONFIG.colors.tooltipBorder}
+                      strokeWidth="1"
+                    />
+                    <text
+                      x={
+                        hoveredPoint.x +
+                        CHART_CONFIG.tooltip.offset +
+                        tooltipWidth / 2
+                      }
+                      y={hoveredPoint.y + 5}
+                      textAnchor="middle"
+                      fontSize={CHART_CONFIG.labels.fontSize.tooltip}
+                      fontWeight="600"
+                      fill={CHART_CONFIG.colors.tooltipText}
+                      fontFamily="system-ui, -apple-system, sans-serif"
+                    >
+                      {hoveredPoint.annotation}
+                    </text>
+                  </>
+                ) : (
+                  // Show callout to the left if not enough space on right
+                  <>
+                    <rect
+                      x={
+                        hoveredPoint.x -
+                        CHART_CONFIG.tooltip.offset -
+                        tooltipWidth
+                      }
+                      y={hoveredPoint.y - 30}
+                      width={tooltipWidth}
+                      height={CHART_CONFIG.tooltip.height}
+                      rx={CHART_CONFIG.tooltip.radius}
+                      fill={CHART_CONFIG.colors.tooltipBg}
+                      stroke={CHART_CONFIG.colors.tooltipBorder}
+                      strokeWidth="1"
+                    />
+                    <text
+                      x={
+                        hoveredPoint.x -
+                        CHART_CONFIG.tooltip.offset -
+                        tooltipWidth / 2
+                      }
+                      y={hoveredPoint.y + 5}
+                      textAnchor="middle"
+                      fontSize={CHART_CONFIG.labels.fontSize.tooltip}
+                      fontWeight="600"
+                      fill={CHART_CONFIG.colors.tooltipText}
+                      fontFamily="system-ui, -apple-system, sans-serif"
+                    >
+                      {hoveredPoint.annotation}
+                    </text>
+                  </>
+                )}
+              </g>
+            );
+          })()}
       </svg>
     </div>
   );
-}
+};
