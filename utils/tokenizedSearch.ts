@@ -283,6 +283,7 @@ export function calculateDeveloperTokenScore(
  * @param fuzzyResults - Candidate films from an initial fuzzy search pass
  * @param config - Tokenized search configuration (thresholds and weights); defaults to DEFAULT_TOKENIZED_CONFIG
  * @returns An array of scored film results including `tokenScore`, `combinedScore`, and `matchedTokens`, sorted by `combinedScore` descending.
+ */
 export function enhanceFilmResults(
   query: string,
   fuzzyResults: Film[],
@@ -355,6 +356,7 @@ export function enhanceFilmResults(
  * @param fuzzyResults - Candidate developers produced by a prior fuzzy search pass
  * @param config - Tokenized search configuration (defaults to DEFAULT_TOKENIZED_CONFIG)
  * @returns A list of `ScoredResult<Developer>` objects sorted in descending order by `combinedScore`; entries with `tokenScore` below `config.minTokenScore` or token coverage below `config.minTokenCoverage` are excluded.
+ */
 export function enhanceDeveloperResults(
   query: string,
   fuzzyResults: Developer[],

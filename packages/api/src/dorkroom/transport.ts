@@ -83,7 +83,11 @@ export class HttpTransport {
             error.statusCode < 500
           ) {
             // Wrap to ensure consistent thrown type
-            throw new DorkroomApiError(error.message, error.statusCode, endpoint);
+            throw new DorkroomApiError(
+              error.message,
+              error.statusCode,
+              endpoint
+            );
           }
         }
 

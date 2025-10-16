@@ -8,15 +8,14 @@
 
 ## Testing Commands
 
-- `bunx nx test` - Run tests with Vitest
+- `bunx nx test dorkroom` - Run tests with Vitest
 - `bunx nx test --ui` - Run tests with Vitest UI
 
 ## Code Quality Commands
 
-- `bunx nx lint` - Run ESLint on all projects
-- `bunx nx lint dorkroom` - Lint specific project
-- `bunx nx typecheck` - Run TypeScript type checking
-- `bunx nx typecheck dorkroom` - Type check specific project
+- `bunx nx lint dorkroom` - Lint project and packages
+- `bunx nx typecheck dorkroom` - Run TypeScript type checking
+- `bunx nx typecheck api` - Type check specific project
 
 ## Build and Package Commands
 

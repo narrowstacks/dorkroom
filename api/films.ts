@@ -76,13 +76,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const startTime = Date.now();
   const requestId = Math.random().toString(36).substring(7);
   // Normalize user-agent header to a single string
-  const userAgent = (() => {
-    const ua = req.headers['user-agent'];
-    if (Array.isArray(ua)) {
-      return ua[0] || '';
-    }
-    return typeof ua === 'string' ? ua : '';
-  })() || 'DorkroomReact-API';
+  const userAgent =
+    (() => {
+      const ua = req.headers['user-agent'];
+      if (Array.isArray(ua)) {
+        return ua[0] || '';
+      }
+      return typeof ua === 'string' ? ua : '';
+    })() || 'DorkroomReact-API';
 
   logApiRequest(
     requestId,

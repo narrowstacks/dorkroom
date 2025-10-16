@@ -30,8 +30,11 @@ Built for darkroom obsessives who want fast, reliable calculations without the c
 
 - Node.js 18+
 - bun, npm, or yarn (bun preferred)
+- Docker (optional, for containerized development)
 
 ### Development
+
+#### Local Development
 
 ```bash
 # Clone the repository
@@ -49,6 +52,24 @@ cp .env.example .env
 bunx nx dev dorkroom -- --host=0.0.0.0
 
 # Open http://localhost:4200
+```
+
+#### Docker Development
+
+```bash
+# Clone the repository
+git clone https://github.com/narrowstacks/dorkroom.git
+cd dorkroom
+
+# Start development server with Docker
+docker compose up
+
+# Open http://localhost:4200
+
+# Run commands inside container
+docker compose exec dorkroom bunx nx lint dorkroom
+docker compose exec dorkroom bunx nx test dorkroom
+docker compose exec dorkroom bunx prettier --write .
 ```
 
 ### Building
@@ -96,7 +117,23 @@ api/                  # Serverless API endpoints (Vercel functions)
 - **Responsive Design** - Works on desktop, tablet, and mobile
 - **Dark Theme** - Custom darkroom-inspired UI optimized for low light
 - **Fast Calculations** - Instant results without page reloads
+- **Feature Flags** - Control feature availability via environment variables
 - **Open Source** - Community-driven development
+
+### Feature Flags
+
+Dorkroom uses feature flags to control access to certain features. Configure them using environment variables in a `.env.local` file:
+
+```bash
+# Enable/disable the Infobase feature (default: enabled in dev, disabled in production)
+VITE_FEATURE_INFOBASE=true
+```
+
+Available feature flags:
+
+- `VITE_FEATURE_INFOBASE` - Controls access to the MDX-based wiki/infobase
+
+For complete feature flag documentation, see [docs/FEATURE_FLAGS.md](docs/FEATURE_FLAGS.md).
 
 ## API
 

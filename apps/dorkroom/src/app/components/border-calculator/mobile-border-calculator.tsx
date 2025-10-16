@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
   RotateCcw,
   EyeOff,
@@ -79,6 +79,9 @@ export function MobileBorderCalculator({
     useState<ActiveSection>('paperSize');
   const [currentPreset, setCurrentPreset] = useState<BorderPreset | null>(null);
 
+  // Track if we've already loaded the preset from URL to prevent re-applying
+  const hasLoadedPresetFromUrl = useRef(false);
+
   // Border calculator hooks
   const {
     aspectRatio,
@@ -144,19 +147,21 @@ export function MobileBorderCalculator({
   } = usePresetSharing({
     onShareSuccess: (result) => {
       if (result.method === 'clipboard') {
-        // Success toast hook could be placed here
-        console.log('Preset link copied to clipboard!');
+        // TODO: Add toast notification for successful clipboard copy
       } else if (result.method === 'native') {
         setIsShareModalOpen(false);
       }
     },
-    onShareError: (error) => {
-      console.error('Sharing failed:', error);
+    onShareError: () => {
+      // TODO: Add toast notification for sharing error
     },
   });
 
+  // Load preset from URL only once when it becomes available
   useEffect(() => {
-    if (!loadedPresetFromUrl) return;
+    if (!loadedPresetFromUrl || hasLoadedPresetFromUrl.current) return;
+
+    hasLoadedPresetFromUrl.current = true;
 
     applyPreset(loadedPresetFromUrl.settings);
 
@@ -243,7 +248,7 @@ export function MobileBorderCalculator({
   );
 
   // Sharing handlers
-  const handleShare = useCallback(async () => {
+  const handleShare = useCallback(async (): Promise<void> => {
     setIsGeneratingShareUrl(true);
 
     try {
@@ -261,7 +266,7 @@ export function MobileBorderCalculator({
           setShareUrls(urls);
           setIsShareModalOpen(true);
         } else {
-          console.error('Failed to generate sharing URLs for saved preset');
+          // TODO: Add toast notification for URL generation failure
           setShareUrls(null);
           setIsShareModalOpen(true);
         }
@@ -275,7 +280,7 @@ export function MobileBorderCalculator({
           setShareUrls(urls);
           setIsShareModalOpen(true);
         } else {
-          console.error('Failed to generate sharing URLs for named settings');
+          // TODO: Add toast notification for URL generation failure
           setShareUrls(null);
           setIsShareModalOpen(true);
         }
@@ -283,8 +288,8 @@ export function MobileBorderCalculator({
         // No matching saved preset and no current name: prompt to save before share
         setIsSaveBeforeShareOpen(true);
       }
-    } catch (error) {
-      console.error('Error during share URL generation:', error);
+    } catch {
+      // TODO: Add toast notification for share error
       setShareUrls(null);
       setIsShareModalOpen(true);
     } finally {
@@ -293,7 +298,7 @@ export function MobileBorderCalculator({
   }, [presets, currentSettings, currentPreset, getSharingUrls]);
 
   const handleSaveAndShare = useCallback(
-    async (name: string) => {
+    async (name: string): Promise<void> => {
       setIsGeneratingShareUrl(true);
       try {
         const newPreset: BorderPreset = {
@@ -327,16 +332,19 @@ export function MobileBorderCalculator({
     [addPreset, currentSettings, getSharingUrls]
   );
 
-  const handleCopyToClipboard = useCallback(async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-    } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
-      throw error;
-    }
-  }, []);
+  const handleCopyToClipboard = useCallback(
+    async (url: string): Promise<void> => {
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch (error) {
+        console.error('Failed to copy to clipboard:', error);
+        throw error;
+      }
+    },
+    []
+  );
 
-  const handleNativeShare = useCallback(async () => {
+  const handleNativeShare = useCallback(async (): Promise<void> => {
     try {
       await sharePreset(
         {
@@ -352,13 +360,13 @@ export function MobileBorderCalculator({
   }, [sharePreset, currentPreset, currentSettings]);
 
   // Open drawer handlers
-  const openDrawerSection = useCallback((section: ActiveSection) => {
+  const openDrawerSection = useCallback((section: ActiveSection): void => {
     setActiveSection(section);
     setIsDrawerOpen(true);
   }, []);
 
   // Close drawer handler
-  const closeDrawer = useCallback(() => {
+  const closeDrawer = useCallback((): void => {
     setIsDrawerOpen(false);
   }, []);
 

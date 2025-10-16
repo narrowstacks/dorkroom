@@ -1,0 +1,227 @@
+---
+globs: *.mdx,*.md
+description: MDX content creation and management guidelines
+---
+
+# MDX Content Guidelines
+
+## MDX Configuration
+
+### Supported Features
+
+- **Frontmatter**: YAML metadata using `gray-matter`
+- **Syntax Highlighting**: `rehype-highlight` for code blocks
+- **GitHub Flavored Markdown**: `remark-gfm` support
+
+### Content Structure
+
+MDX content is located in [apps/dorkroom/src/content/](mdc:apps/dorkroom/src/content/).
+
+```
+content/
+  _templates/     # Template files
+  developers/     # Developer chemical information
+  films/          # Film stock information
+  guides/         # How-to guides
+  recipes/        # Development recipes
+```
+
+## Frontmatter Metadata
+
+### Standard Frontmatter Fields
+
+```yaml
+---
+title: 'Document Title'
+description: 'Brief description for SEO and navigation'
+category: 'developers' # or films, guides, recipes
+tags: ['tag1', 'tag2', 'tag3']
+author: 'Author Name'
+publishedAt: '2024-01-15'
+updatedAt: '2024-02-01'
+featured: true
+---
+```
+
+### Developer Frontmatter
+
+```yaml
+---
+title: 'Kodak D-76'
+description: 'Classic fine-grain developer for general purpose use'
+category: 'developers'
+tags: ['black-white', 'general-purpose', 'fine-grain']
+chemistry:
+  type: 'black-white'
+  components:
+    - metol
+    - hydroquinone
+    - sodium-sulfite
+    - borax
+dilutions: ['1:1', '1:3']
+shelfLife: '6 months'
+---
+```
+
+### Film Frontmatter
+
+```yaml
+---
+title: 'Kodak Tri-X 400'
+description: 'Classic high-speed black and white film'
+category: 'films'
+tags: ['black-white', '400-speed', 'kodak']
+specifications:
+  iso: 400
+  format: ['35mm', '120', 'sheet']
+  type: 'black-white'
+  grain: 'medium'
+  latitude: 'high'
+---
+```
+
+## MDX Content Authoring
+
+### Code Blocks with Syntax Highlighting
+
+```typescript
+// ✅ Use language identifiers for proper highlighting
+export const calculateExposure = (
+  baseISO: number,
+  targetISO: number
+): number => {
+  return Math.log2(targetISO / baseISO);
+};
+```
+
+### Tables with GFM
+
+```markdown
+| Developer | Dilution | Time (20°C) |
+| --------- | -------- | ----------- |
+| D-76      | Stock    | 8 min       |
+| D-76      | 1:1      | 11 min      |
+| HC-110    | B        | 6 min       |
+```
+
+### Callouts and Admonitions
+
+```markdown
+> **Note**: This is an important piece of information.
+
+> **Warning**: Be careful with this step.
+
+> **Tip**: Here's a helpful suggestion.
+```
+
+### Internal Links
+
+```markdown
+<!-- Link to other MDX content -->
+
+See [Kodak D-76](/developers/kodak-d76) for developer information.
+
+<!-- Link to calculator pages -->
+
+Try the [Border Calculator](/border-calculator) to determine dimensions.
+```
+
+## Feature Flag Integration
+
+### Infobase Feature Flag
+
+The MDX-based wiki system (Infobase) is controlled by the `VITE_FEATURE_INFOBASE` environment variable:
+
+```bash
+# In .env file
+VITE_FEATURE_INFOBASE=true  # Enable in development
+VITE_FEATURE_INFOBASE=false # Disable feature
+```
+
+See [docs/FEATURE_FLAGS.md](mdc:docs/FEATURE_FLAGS.md) for more information.
+
+## Dynamic Routing
+
+### MDX File Discovery
+
+MDX files are discovered dynamically based on their location in the content directory. The routing structure follows:
+
+```
+/developers/[slug]  → content/developers/[slug].mdx
+/films/[slug]       → content/films/[slug].mdx
+/guides/[slug]      → content/guides/[slug].mdx
+/recipes/[slug]     → content/recipes/[slug].mdx
+```
+
+### Template Files
+
+Template files in `_templates/` are not exposed as routes but serve as starting points for new content:
+
+```markdown
+## <!-- content/_templates/developer-template.mdx -->
+
+title: "Developer Name"
+description: "Brief description"
+category: "developers"
+tags: []
+
+---
+
+## Overview
+
+Brief overview of the developer.
+
+## Specifications
+
+Key specifications and properties.
+
+## Usage
+
+How to use this developer.
+```
+
+## Content Best Practices
+
+### Writing Style
+
+- **Clear and Concise**: Use simple, direct language
+- **Technical Accuracy**: Ensure all technical information is accurate
+- **Consistent Terminology**: Use consistent terms throughout content
+- **Practical Examples**: Include real-world examples and use cases
+
+### SEO Optimization
+
+- **Descriptive Titles**: Use clear, descriptive titles (60 characters max)
+- **Meta Descriptions**: Write compelling descriptions (155 characters max)
+- **Keyword Usage**: Use relevant keywords naturally in content
+- **Internal Linking**: Link to related content within the site
+
+### Accessibility
+
+- **Alt Text**: Provide descriptive alt text for images
+- **Heading Hierarchy**: Use proper heading levels (h1 → h2 → h3)
+- **Link Context**: Ensure link text is descriptive
+- **Tables**: Include proper table headers and captions
+
+## Content Validation
+
+### Frontmatter Validation
+
+Ensure frontmatter includes required fields:
+
+- ✅ `title` (required)
+- ✅ `description` (required)
+- ✅ `category` (required)
+- ⚠️ `tags` (recommended)
+
+### Link Validation
+
+- Verify internal links point to valid routes
+- Ensure external links are up-to-date
+- Check for broken anchor links
+
+### Code Block Validation
+
+- Test code examples for correctness
+- Ensure syntax highlighting works
+- Verify code is properly formatted
