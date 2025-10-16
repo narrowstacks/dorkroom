@@ -258,7 +258,7 @@ export default function ReciprocityCalculatorPage() {
                 <div className="mt-6">
                   <div className="mb-4 flex items-center justify-between">
                     <h3 className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                      Reciprocity curve
+                      {`Reciprocity curve for ${calculation.filmName}`}
                     </h3>
                     <button
                       type="button"
@@ -349,7 +349,7 @@ export default function ReciprocityCalculatorPage() {
       {showChart && isWideChart && calculation && (
         <div className="mt-8">
           <CalculatorCard
-            title="Reciprocity curve"
+            title={`Reciprocity curve for ${calculation.filmName}`}
             description="Hover over the curve to explore reciprocity calculations for different exposure times."
             accent="emerald"
             padding="normal"

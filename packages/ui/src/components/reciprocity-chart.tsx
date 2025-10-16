@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 
 interface ReciprocityChartProps {
   /**
@@ -28,6 +28,86 @@ interface Point {
   y: number;
 }
 
+// Chart configuration constants for maintainability and theming
+const CHART_CONFIG = {
+  dimensions: {
+    width: 800,
+    height: 500,
+    padding: { top: 40, right: 40, bottom: 60, left: 80 },
+  },
+  grid: {
+    maxGridLines: 20,
+    xStepThreshold: 200,
+    xStepLarge: 60,
+    xStepSmall: 30,
+  },
+  labels: {
+    maxLabels: 10,
+    yLabelStepDefault: 400,
+    xLabelStep: 60,
+    fontSize: {
+      label: 20,
+      title: 22,
+      tooltip: 18,
+    },
+    offsets: {
+      xLabelOffset: 25,
+      yLabelOffset: 15,
+      xTitleOffset: 12,
+      yTitleScale: 2.2,
+    },
+  },
+  hover: {
+    interval: 15, // seconds
+    radius: 20, // hover detection area - ensures line hover stays active
+    markerRadius: 8,
+    currentPointRadius: 6,
+  },
+  tooltip: {
+    minWidth: 80,
+    maxWidth: 280,
+    height: 60,
+    offset: 15,
+    radius: 8,
+    charWidth: 11, // approximate width per character at fontSize 18
+    padding: 20, // horizontal padding inside tooltip
+  },
+  colors: {
+    curve: 'var(--color-chart-primary)',
+    tooltipBg: 'var(--color-tooltip-bg)',
+    tooltipBorder: 'var(--color-tooltip-border)',
+    tooltipText: 'var(--color-tooltip-text)',
+  },
+} as const;
+
+/**
+ * Format time value to human-readable string (seconds, minutes, hours)
+ */
+function formatTime(seconds: number): string {
+  if (seconds < 60) return `${Math.round(seconds * 10) / 10}s`;
+  if (seconds < 3600) {
+    const min = Math.floor(seconds / 60);
+    const sec = Math.round((seconds % 60) * 10) / 10;
+    return sec === 0 ? `${min}m` : `${min}m ${sec}s`;
+  }
+  const hrs = Math.floor(seconds / 3600);
+  const min = Math.floor((seconds % 3600) / 60);
+  return min === 0 ? `${hrs}h` : `${hrs}h ${min}m`;
+}
+
+/**
+ * Calculate tooltip width based on annotation text length
+ */
+function calculateTooltipWidth(annotation: string): number {
+  const estimatedWidth =
+    annotation.length * CHART_CONFIG.tooltip.charWidth +
+    CHART_CONFIG.tooltip.padding;
+  return Math.max(
+    CHART_CONFIG.tooltip.minWidth,
+    Math.min(estimatedWidth, CHART_CONFIG.tooltip.maxWidth)
+  );
+}
+
 /**
  * ReciprocityChart displays a visual representation of reciprocity failure
  * showing how metered exposure times map to adjusted exposure times.
@@ -35,18 +115,18 @@ interface Point {
  * The chart plots the reciprocity curve (y = x^factor) and highlights
  * the current calculation point with an annotation.
  */
-export function ReciprocityChart({
+export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
   originalTime,
   adjustedTime,
   factor,
   filmName,
   className = '',
-}: ReciprocityChartProps) {
+}) => {
   const chartData = useMemo(() => {
     // Chart dimensions
-    const width = 800;
-    const height = 500;
-    const padding = { top: 40, right: 40, bottom: 60, left: 80 };
+    const width = CHART_CONFIG.dimensions.width;
+    const height = CHART_CONFIG.dimensions.height;
+    const padding = CHART_CONFIG.dimensions.padding;
     const plotWidth = width - padding.left - padding.right;
     const plotHeight = height - padding.top - padding.bottom;
 
@@ -79,17 +159,18 @@ export function ReciprocityChart({
 
     // Grid lines
     const xGridLines: number[] = [];
-    const xStep = maxMetered > 200 ? 60 : 30;
+    const xStep =
+      maxMetered > CHART_CONFIG.grid.xStepThreshold
+        ? CHART_CONFIG.grid.xStepLarge
+        : CHART_CONFIG.grid.xStepSmall;
     for (let i = xStep; i < maxMetered; i += xStep) {
       xGridLines.push(scaleX(i));
     }
 
     const yGridLines: number[] = [];
-    // Cap the number of grid lines to prevent performance issues with large ranges
-    const maxGridLines = 20;
     let yStep = maxAdjusted > 800 ? 200 : 100;
     // Dynamically increase yStep if it would create too many lines
-    while (maxAdjusted / yStep > maxGridLines) {
+    while (maxAdjusted / yStep > CHART_CONFIG.grid.maxGridLines) {
       yStep *= 2;
     }
     for (let i = yStep; i < maxAdjusted; i += yStep) {
@@ -97,9 +178,9 @@ export function ReciprocityChart({
     }
 
     // Axis labels
-    // Generate X-axis labels dynamically in 60 second increments
+    // Generate X-axis labels dynamically
     const xLabels = [];
-    for (let x = 0; x <= maxMetered; x += 60) {
+    for (let x = 0; x <= maxMetered; x += CHART_CONFIG.labels.xLabelStep) {
       xLabels.push({
         x: scaleX(x),
         label: `${x}`,
@@ -108,10 +189,9 @@ export function ReciprocityChart({
 
     // Generate Y-axis labels dynamically, capped to prevent performance issues
     const yLabels = [];
-    const maxLabels = 10;
-    let yLabelStep = 400;
+    let yLabelStep = CHART_CONFIG.labels.yLabelStepDefault;
     // Dynamically increase label step if it would create too many labels
-    while (maxAdjusted / yLabelStep > maxLabels) {
+    while (maxAdjusted / yLabelStep > CHART_CONFIG.labels.maxLabels) {
       yLabelStep *= 2;
     }
     for (let y = 0; y <= maxAdjusted; y += yLabelStep) {
@@ -121,20 +201,7 @@ export function ReciprocityChart({
       });
     }
 
-    // Format time for annotation
-    const formatTime = (seconds: number): string => {
-      if (seconds < 60) return `${Math.round(seconds * 10) / 10}s`;
-      if (seconds < 3600) {
-        const min = Math.floor(seconds / 60);
-        const sec = Math.round((seconds % 60) * 10) / 10;
-        return sec === 0 ? `${min}m` : `${min}m ${sec}s`;
-      }
-      const hrs = Math.floor(seconds / 3600);
-      const min = Math.floor((seconds % 3600) / 60);
-      return min === 0 ? `${hrs}h` : `${hrs}h ${min}m`;
-    };
-
-    // Generate hover points every 15 seconds along the curve (skip 0s as it's not useful)
+    // Generate hover points along the curve
     const hoverPoints: Array<{
       meteredTime: number;
       adjustedTime: number;
@@ -143,7 +210,7 @@ export function ReciprocityChart({
       annotation: string;
     }> = [];
 
-    for (let t = 15; t <= maxMetered; t += 15) {
+    for (let t = CHART_CONFIG.hover.interval; t <= maxMetered; t += CHART_CONFIG.hover.interval) {
       const adjustedT = Math.pow(t, factor);
       hoverPoints.push({
         meteredTime: t,
@@ -204,15 +271,44 @@ export function ReciprocityChart({
       ? chartData.hoverPoints[hoveredPointIndex]
       : null;
 
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll chart into view when it expands/collapses (size changes)
+  useEffect(() => {
+    if (!chartContainerRef.current) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      chartContainerRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    });
+
+    resizeObserver.observe(chartContainerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   return (
-    <div className={className}>
+    <div className={className} ref={chartContainerRef}>
       <svg
         viewBox={`0 0 ${chartData.width} ${chartData.height}`}
         className="w-full"
         style={{
           maxHeight: '500px',
         }}
+        role="img"
+        aria-label={`Reciprocity curve for ${filmName}`}
       >
+        <title>Reciprocity failure chart for {filmName}</title>
+        <desc>
+          A curve showing how metered exposure times map to adjusted exposure
+          times due to reciprocity failure. Current calculation:{' '}
+          {formatTime(originalTime)} metered becomes {formatTime(adjustedTime)}{' '}
+          adjusted.
+        </desc>
         {/* Grid lines */}
         <g opacity="0.15">
           {chartData.xGridLines.map((x, i) => (
@@ -270,9 +366,13 @@ export function ReciprocityChart({
             <text
               key={`x-label-${i}`}
               x={label.x}
-              y={chartData.height - chartData.padding.bottom + 25}
+              y={
+                chartData.height -
+                chartData.padding.bottom +
+                CHART_CONFIG.labels.offsets.xLabelOffset
+              }
               textAnchor="middle"
-              fontSize="20"
+              fontSize={CHART_CONFIG.labels.fontSize.label}
               fill="var(--color-text-secondary)"
               fontFamily="system-ui, -apple-system, sans-serif"
             >
@@ -282,9 +382,9 @@ export function ReciprocityChart({
           {/* X-axis title */}
           <text
             x={chartData.width / 2}
-            y={chartData.height - 10}
+            y={chartData.height - CHART_CONFIG.labels.offsets.xTitleOffset}
             textAnchor="middle"
-            fontSize="22"
+            fontSize={CHART_CONFIG.labels.fontSize.title}
             fill="var(--color-text-primary)"
             fontWeight="500"
             fontFamily="system-ui, -apple-system, sans-serif"
@@ -296,10 +396,10 @@ export function ReciprocityChart({
           {chartData.yLabels.map((label, i) => (
             <text
               key={`y-label-${i}`}
-              x={chartData.padding.left - 15}
+              x={chartData.padding.left - CHART_CONFIG.labels.offsets.yLabelOffset}
               y={label.y + 6}
               textAnchor="end"
-              fontSize="20"
+              fontSize={CHART_CONFIG.labels.fontSize.label}
               fill="var(--color-text-secondary)"
               fontFamily="system-ui, -apple-system, sans-serif"
             >
@@ -308,10 +408,10 @@ export function ReciprocityChart({
           ))}
           {/* Y-axis title */}
           <text
-            x={12}
-            y={chartData.height / 2}
+            x={16}
+            y={chartData.height / CHART_CONFIG.labels.offsets.yTitleScale}
             textAnchor="middle"
-            fontSize="22"
+            fontSize={CHART_CONFIG.labels.fontSize.title}
             fill="var(--color-text-primary)"
             fontWeight="500"
             fontFamily="system-ui, -apple-system, sans-serif"
@@ -325,7 +425,7 @@ export function ReciprocityChart({
         <path
           d={curvePath}
           fill="none"
-          stroke="rgb(220, 38, 38)"
+          stroke={CHART_CONFIG.colors.curve}
           strokeWidth="5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -346,9 +446,9 @@ export function ReciprocityChart({
           <circle
             cx={chartData.currentPoint.x}
             cy={chartData.currentPoint.y}
-            r="6"
-            fill="rgb(220, 38, 38)"
-            stroke="white"
+            r={CHART_CONFIG.hover.currentPointRadius}
+            fill={CHART_CONFIG.colors.curve}
+            stroke="var(--color-background)"
             strokeWidth="2"
             opacity="0.6"
           />
@@ -361,14 +461,13 @@ export function ReciprocityChart({
             <circle
               cx={point.x}
               cy={point.y}
-              r="15"
+              r={CHART_CONFIG.hover.radius}
               fill="transparent"
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredPointIndex(i)}
               onMouseLeave={() => setHoveredPointIndex(null)}
               tabIndex={0}
               role="button"
-              aria-label={`Reciprocity point: ${point.annotation}`}
               onFocus={() => setHoveredPointIndex(i)}
               onBlur={() => setHoveredPointIndex(null)}
               onKeyDown={(e) => {
@@ -380,7 +479,7 @@ export function ReciprocityChart({
             />
             {/* Visible point marker - only show on hover */}
             {hoveredPointIndex === i && (
-              <>
+              <g style={{ pointerEvents: 'none' }}>
                 {/* Vertical line from point to x-axis */}
                 <line
                   x1={point.x}
@@ -396,73 +495,83 @@ export function ReciprocityChart({
                 <circle
                   cx={point.x}
                   cy={point.y}
-                  r="8"
-                  fill="rgb(220, 38, 38)"
-                  stroke="white"
+                  r={CHART_CONFIG.hover.markerRadius}
+                  fill={CHART_CONFIG.colors.curve}
+                  stroke="var(--color-background)"
                   strokeWidth="3"
-                  style={{ pointerEvents: 'none' }}
                 />
-              </>
+              </g>
             )}
           </g>
         ))}
 
         {/* Annotation callout - only show on hover */}
-        {hoveredPoint && (
-          <g style={{ pointerEvents: 'none' }}>
-            {hoveredPoint.x < chartData.width - 200 ? (
-              // Show callout to the right if there's space
-              <>
-                <rect
-                  x={hoveredPoint.x + 15}
-                  y={hoveredPoint.y - 30}
-                  width="180"
-                  height="60"
-                  rx="8"
-                  fill="rgba(245, 245, 244, 0.98)"
-                  stroke="rgba(0, 0, 0, 0.2)"
-                  strokeWidth="1"
-                />
-                <text
-                  x={hoveredPoint.x + 105}
-                  y={hoveredPoint.y + 5}
-                  textAnchor="middle"
-                  fontSize="18"
-                  fontWeight="600"
-                  fill="#1a1a1a"
-                  fontFamily="system-ui, -apple-system, sans-serif"
-                >
-                  {hoveredPoint.annotation}
-                </text>
-              </>
-            ) : (
-              // Show callout to the left if not enough space on right
-              <>
-                <rect
-                  x={hoveredPoint.x - 195}
-                  y={hoveredPoint.y - 30}
-                  width="180"
-                  height="60"
-                  rx="8"
-                  fill="rgba(245, 245, 244, 0.98)"
-                  stroke="rgba(0, 0, 0, 0.2)"
-                  strokeWidth="1"
-                />
-                <text
-                  x={hoveredPoint.x - 105}
-                  y={hoveredPoint.y + 5}
-                  textAnchor="middle"
-                  fontSize="18"
-                  fontWeight="600"
-                  fill="#1a1a1a"
-                  fontFamily="system-ui, -apple-system, sans-serif"
-                >
-                  {hoveredPoint.annotation}
-                </text>
-              </>
-            )}
-          </g>
-        )}
+        {hoveredPoint && (() => {
+          const tooltipWidth = calculateTooltipWidth(hoveredPoint.annotation);
+          const showRight =
+            hoveredPoint.x + CHART_CONFIG.tooltip.offset + tooltipWidth <
+            chartData.width;
+
+          return (
+            <g style={{ pointerEvents: 'none' }}>
+              {showRight ? (
+                // Show callout to the right if there's space
+                <>
+                  <rect
+                    x={hoveredPoint.x + CHART_CONFIG.tooltip.offset}
+                    y={hoveredPoint.y - 30}
+                    width={tooltipWidth}
+                    height={CHART_CONFIG.tooltip.height}
+                    rx={CHART_CONFIG.tooltip.radius}
+                    fill={CHART_CONFIG.colors.tooltipBg}
+                    stroke={CHART_CONFIG.colors.tooltipBorder}
+                    strokeWidth="1"
+                  />
+                  <text
+                    x={hoveredPoint.x + CHART_CONFIG.tooltip.offset + tooltipWidth / 2}
+                    y={hoveredPoint.y + 5}
+                    textAnchor="middle"
+                    fontSize={CHART_CONFIG.labels.fontSize.tooltip}
+                    fontWeight="600"
+                    fill={CHART_CONFIG.colors.tooltipText}
+                    fontFamily="system-ui, -apple-system, sans-serif"
+                  >
+                    {hoveredPoint.annotation}
+                  </text>
+                </>
+              ) : (
+                // Show callout to the left if not enough space on right
+                <>
+                  <rect
+                    x={hoveredPoint.x - CHART_CONFIG.tooltip.offset - tooltipWidth}
+                    y={hoveredPoint.y - 30}
+                    width={tooltipWidth}
+                    height={CHART_CONFIG.tooltip.height}
+                    rx={CHART_CONFIG.tooltip.radius}
+                    fill={CHART_CONFIG.colors.tooltipBg}
+                    stroke={CHART_CONFIG.colors.tooltipBorder}
+                    strokeWidth="1"
+                  />
+                  <text
+                    x={
+                      hoveredPoint.x -
+                      CHART_CONFIG.tooltip.offset -
+                      tooltipWidth / 2
+                    }
+                    y={hoveredPoint.y + 5}
+                    textAnchor="middle"
+                    fontSize={CHART_CONFIG.labels.fontSize.tooltip}
+                    fontWeight="600"
+                    fill={CHART_CONFIG.colors.tooltipText}
+                    fontFamily="system-ui, -apple-system, sans-serif"
+                  >
+                    {hoveredPoint.annotation}
+                  </text>
+                </>
+              )}
+            </g>
+          );
+        })()}
       </svg>
     </div>
   );
