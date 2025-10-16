@@ -4,19 +4,19 @@ When completing development tasks in this project, run these commands:
 
 ## Code Quality Checks
 
-1. **Lint**: `bunx nx lint` - Check for ESLint violations
-2. **Type Check**: `bunx nx typecheck` - Verify TypeScript types
+1. **Lint**: `bunx nx lint dorkroom` - Check for ESLint violations
+2. **Type Check**: `bunx nx typecheck dorkroom` - Verify TypeScript types
 3. **Format**: `bunx prettier --write .` - Format code with Prettier
 
 ## Testing
 
-- **Run Tests**: `bunx nx test` - Execute Vitest test suite
+- **Run Tests**: `bunx nx test dorkroom` - Execute Vitest test suite
 - **Test Coverage**: Check test coverage as part of validation
 
 ## Build Verification
 
-- **Build**: `bunx nx build` - Ensure all packages build successfully
-- **Build Main App**: `bunx nx build dorkroom` - Verify main application builds
+- **Build**: `bunx nx build {package_name}` - Ensure package build successfully
+- **Build Main App**: `bunx nx build dorkroom` - Verify main application and packages builds
 
 ## Nx-Specific Considerations
 

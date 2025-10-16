@@ -56,6 +56,7 @@ export {
   CalculatorNumberField,
   CalculatorStat,
 } from './components/calculator';
+export { ReciprocityChart } from './components/reciprocity-chart';
 
 // Navigation
 export {

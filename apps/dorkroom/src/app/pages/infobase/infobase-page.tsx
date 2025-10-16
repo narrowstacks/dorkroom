@@ -52,9 +52,7 @@ type DatabasePageEntry = {
   databaseType: string;
 };
 
-type PageEntry =
-  | ({ type: 'mdx' } & MDXPageEntry)
-  | DatabasePageEntry;
+type PageEntry = ({ type: 'mdx' } & MDXPageEntry) | DatabasePageEntry;
 
 // Load MDX pages automatically
 const mdxPages: MDXPageEntry[] = loadMDXPages() as MDXPageEntry[];

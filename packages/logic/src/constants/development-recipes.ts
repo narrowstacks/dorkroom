@@ -1,3 +1,5 @@
+import { formatMinutes } from '../utils/time-formatting';
+
 export const FILM_COLOR_TYPES = [
   { label: 'All Films', value: '' },
   { label: 'Black & White', value: 'bw' },
@@ -29,19 +31,7 @@ export function convertToDisplay(tempF: number): string {
  * @param minutes - Duration in minutes
  * @returns `Xs` for durations less than one minute (seconds rounded), `Hh Mm` for durations of one hour or more, `N min` for other minute values
  */
-export function formatTime(minutes: number): string {
-  if (minutes < 1) {
-    return `${Math.round(minutes * 60)}s`;
-  }
-
-  if (minutes >= 60) {
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = Math.round(minutes % 60);
-    return `${hours}h ${remainingMinutes}m`;
-  }
-
-  return `${minutes} min`;
-}
+export const formatTime = formatMinutes;
 
 export const SORT_OPTIONS = [
   { label: 'Development Time', value: 'timeMinutes' },

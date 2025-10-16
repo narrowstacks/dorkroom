@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   CalculatorCard,
   CalculatorPageHeader,
@@ -7,12 +7,14 @@ import {
   TextInput,
   CalculatorNumberField,
   ResultRow,
+  ReciprocityChart,
 } from '@dorkroom/ui';
 import {
   useReciprocityCalculator,
   formatReciprocityTime,
   type SelectItem,
 } from '@dorkroom/logic';
+import { ChartLine, Maximize2, Minimize2 } from 'lucide-react';
 
 const HOW_TO_USE = [
   {
@@ -55,6 +57,15 @@ const RECIPROCITY_INSIGHTS = [
   },
 ];
 
+/**
+ * Render the Reciprocity Failure Calculator page with inputs, results, and an interactive reciprocity curve.
+ *
+ * The component provides controls to select or define a film profile, enter a metered exposure time (including presets),
+ * and view calculated adjusted exposure and added exposure. It also includes controls to show an inline reciprocity curve
+ * and expand it to a full-width view.
+ *
+ * @returns The JSX element representing the reciprocity calculator UI.
+ */
 export default function ReciprocityCalculatorPage() {
   const {
     filmType,
@@ -72,6 +83,9 @@ export default function ReciprocityCalculatorPage() {
     exposurePresets,
   } = useReciprocityCalculator();
 
+  const [showChart, setShowChart] = useState(false);
+  const [isWideChart, setIsWideChart] = useState(false);
+
   const filmOptions = useMemo<SelectItem[]>(
     () => filmTypes.map(({ label, value }) => ({ label, value })),
     [filmTypes]
@@ -87,6 +101,10 @@ export default function ReciprocityCalculatorPage() {
         Math.max(calculation.adjustedTime - calculation.originalTime, 0)
       )
     : '--';
+
+  const addedExposurePercentage = calculation
+    ? `${Math.round(calculation.percentageIncrease)}% more time needed`
+    : '% more time needed';
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
@@ -168,6 +186,34 @@ export default function ReciprocityCalculatorPage() {
               description="Apply this corrected exposure to balance reciprocity failure on your next frame."
               accent="emerald"
               padding="compact"
+              actions={
+                <button
+                  type="button"
+                  onClick={() => setShowChart(!showChart)}
+                  className="flex items-center gap-2 rounded-full px-3 py-2 transition-colors hover:bg-white/10"
+                  aria-label={showChart ? 'Hide chart' : 'Show chart'}
+                  title={showChart ? 'Hide chart' : 'Show chart'}
+                >
+                  <ChartLine
+                    className="h-5 w-5"
+                    style={{
+                      color: showChart
+                        ? 'var(--color-primary)'
+                        : 'var(--color-text-secondary)',
+                    }}
+                  />
+                  <span
+                    className="text-sm font-medium"
+                    style={{
+                      color: showChart
+                        ? 'var(--color-primary)'
+                        : 'var(--color-text-secondary)',
+                    }}
+                  >
+                    {showChart ? 'Hide chart' : 'View chart'}
+                  </span>
+                </button>
+              }
             >
               <div className="grid gap-4 sm:grid-cols-2">
                 <CalculatorStat
@@ -179,7 +225,7 @@ export default function ReciprocityCalculatorPage() {
                 <CalculatorStat
                   label="Added exposure"
                   value={addedExposure}
-                  helperText="% more time needed"
+                  helperText={addedExposurePercentage}
                 />
               </div>
 
@@ -221,6 +267,36 @@ export default function ReciprocityCalculatorPage() {
                   value={calculation.factor.toFixed(2)}
                 />
               </div>
+
+              {showChart && !isWideChart && (
+                <div className="mt-6">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-[color:var(--color-text-primary)]">
+                      {`Reciprocity curve for ${calculation.filmName}`}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setIsWideChart(true)}
+                      className="rounded-full p-2 transition-colors hover:bg-white/10"
+                      aria-label="Expand chart"
+                      title="Expand chart to full width"
+                    >
+                      <Maximize2
+                        className="h-4 w-4"
+                        style={{
+                          color: 'var(--color-text-secondary)',
+                        }}
+                      />
+                    </button>
+                  </div>
+                  <ReciprocityChart
+                    originalTime={calculation.originalTime}
+                    adjustedTime={calculation.adjustedTime}
+                    factor={calculation.factor}
+                    filmName={calculation.filmName}
+                  />
+                </div>
+              )}
             </CalculatorCard>
           )}
         </div>
@@ -282,6 +358,41 @@ export default function ReciprocityCalculatorPage() {
           </CalculatorCard>
         </div>
       </div>
+
+      {/* Wide chart view - spans full width below the columns */}
+      {showChart && isWideChart && calculation && (
+        <div className="mt-8">
+          <CalculatorCard
+            title={`Reciprocity curve for ${calculation.filmName}`}
+            description="Hover over the curve to explore reciprocity calculations for different exposure times."
+            accent="emerald"
+            padding="normal"
+            actions={
+              <button
+                type="button"
+                onClick={() => setIsWideChart(false)}
+                className="rounded-full p-2 transition-colors hover:bg-white/10"
+                aria-label="Collapse chart"
+                title="Collapse chart to inline view"
+              >
+                <Minimize2
+                  className="h-5 w-5"
+                  style={{
+                    color: 'var(--color-primary)',
+                  }}
+                />
+              </button>
+            }
+          >
+            <ReciprocityChart
+              originalTime={calculation.originalTime}
+              adjustedTime={calculation.adjustedTime}
+              factor={calculation.factor}
+              filmName={calculation.filmName}
+            />
+          </CalculatorCard>
+        </div>
+      )}
     </div>
   );
 }

@@ -128,10 +128,7 @@ export function FilmCard({ film, className }: FilmCardProps): ReactElement {
             </div>
             <ul className="space-y-1 text-sm">
               {film.manufacturerNotes.map((note) => (
-                <li
-                  key={note}
-                  style={{ color: 'var(--color-text-secondary)' }}
-                >
+                <li key={note} style={{ color: 'var(--color-text-secondary)' }}>
                   • {note}
                 </li>
               ))}
