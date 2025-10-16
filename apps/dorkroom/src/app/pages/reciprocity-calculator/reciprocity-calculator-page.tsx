@@ -57,6 +57,15 @@ const RECIPROCITY_INSIGHTS = [
   },
 ];
 
+/**
+ * Render the Reciprocity Failure Calculator page with inputs, results, and an interactive reciprocity curve.
+ *
+ * The component provides controls to select or define a film profile, enter a metered exposure time (including presets),
+ * and view calculated adjusted exposure and added exposure. It also includes controls to show an inline reciprocity curve
+ * and expand it to a full-width view.
+ *
+ * @returns The JSX element representing the reciprocity calculator UI.
+ */
 export default function ReciprocityCalculatorPage() {
   const {
     filmType,
