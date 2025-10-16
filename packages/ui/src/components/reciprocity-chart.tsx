@@ -85,6 +85,9 @@ const CHART_CONFIG = {
  * Calculate tooltip width based on annotation text length
  */
 function calculateTooltipWidth(annotation: string): number {
+  // Note: Character width estimate of 11px is an approximation based on proportional fonts.
+  // For more precision, consider using canvas.measureText() for font-aware measurement,
+  // though the current approach provides good accuracy for typical UI text rendering.
   const estimatedWidth =
     annotation.length * CHART_CONFIG.tooltip.charWidth +
     CHART_CONFIG.tooltip.padding;
@@ -463,6 +466,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
               onMouseLeave={() => setHoveredPointIndex(null)}
               tabIndex={0}
               role="button"
+              aria-label={point.annotation}
               onFocus={() => setHoveredPointIndex(i)}
               onBlur={() => setHoveredPointIndex(null)}
               onKeyDown={(e) => {
