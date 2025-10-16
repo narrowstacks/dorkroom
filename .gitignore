@@ -57,3 +57,4 @@ vite.config.*.timestamp*
 vitest.config.*.timestamp*
 .playwright-mcp
 PR_BODY_THEMING.md
+.claude/settings.local.json
