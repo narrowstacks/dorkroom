@@ -102,6 +102,10 @@ export default function ReciprocityCalculatorPage() {
       )
     : '--';
 
+  const addedExposurePercentage = calculation
+    ? `${Math.round(calculation.percentageIncrease)}% more time needed`
+    : '% more time needed';
+
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
       <CalculatorPageHeader
@@ -186,7 +190,7 @@ export default function ReciprocityCalculatorPage() {
                 <button
                   type="button"
                   onClick={() => setShowChart(!showChart)}
-                  className="rounded-full p-2 transition-colors hover:bg-white/10"
+                  className="flex items-center gap-2 rounded-full px-3 py-2 transition-colors hover:bg-white/10"
                   aria-label={showChart ? 'Hide chart' : 'Show chart'}
                   title={showChart ? 'Hide chart' : 'Show chart'}
                 >
@@ -198,6 +202,16 @@ export default function ReciprocityCalculatorPage() {
                         : 'var(--color-text-secondary)',
                     }}
                   />
+                  <span
+                    className="text-sm font-medium"
+                    style={{
+                      color: showChart
+                        ? 'var(--color-primary)'
+                        : 'var(--color-text-secondary)',
+                    }}
+                  >
+                    {showChart ? 'Hide chart' : 'View chart'}
+                  </span>
                 </button>
               }
             >
@@ -211,7 +225,7 @@ export default function ReciprocityCalculatorPage() {
                 <CalculatorStat
                   label="Added exposure"
                   value={addedExposure}
-                  helperText="% more time needed"
+                  helperText={addedExposurePercentage}
                 />
               </div>
 
