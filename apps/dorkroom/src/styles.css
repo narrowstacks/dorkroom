@@ -75,6 +75,11 @@
   /* Navigation hover text colors for darkroom */
   --nav-hover-text: #ff0000;
   --nav-active-hover-text: #ff0000;
+  /* Chart colors for darkroom theme */
+  --color-chart-primary: #ff0000;
+  --color-tooltip-bg: #000000;
+  --color-tooltip-border: #ff0000;
+  --color-tooltip-text: #ff0000;
 }
 
 /* Dark theme (default) */
@@ -162,6 +167,11 @@
   /* Navigation hover text colors */
   --nav-hover-text: #ffffff;
   --nav-active-hover-text: #000000;
+  /* Chart colors for dark theme */
+  --color-chart-primary: rgb(220, 38, 38);
+  --color-tooltip-bg: rgba(245, 245, 244, 0.98);
+  --color-tooltip-border: rgba(0, 0, 0, 0.2);
+  --color-tooltip-text: #1a1a1a;
 }
 
 /* Light theme */
@@ -249,6 +259,11 @@
   /* Navigation hover text colors */
   --nav-hover-text: var(--color-text-primary);
   --nav-active-hover-text: #ffffff; /* active pill is black; keep text white on hover */
+  /* Chart colors for light theme */
+  --color-chart-primary: #2d7a4a;
+  --color-tooltip-bg: rgba(245, 245, 244, 0.98);
+  --color-tooltip-border: rgba(9, 9, 11, 0.2);
+  --color-tooltip-text: #09090b;
 }
 
 /* High-contrast theme: black on white, no gradients, no animations */
@@ -314,6 +329,11 @@
   /* Navigation hover text colors */
   --nav-hover-text: #000000; /* white text on hover for better contrast */
   --nav-active-hover-text: #ffffff; /* active pill is black; keep text white on hover */
+  /* Chart colors for high-contrast theme */
+  --color-chart-primary: #000000;
+  --color-tooltip-bg: #ffffff;
+  --color-tooltip-border: #000000;
+  --color-tooltip-text: #000000;
 }
 
 /* Default to dark theme if no data-theme attribute */
