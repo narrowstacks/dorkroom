@@ -52,7 +52,10 @@ export function ReciprocityChart({
 
     // Dynamic range based on current calculation with some headroom
     const maxMetered = Math.max(300, originalTime * 1.5);
-    const maxAdjusted = Math.max(adjustedTime * 1.3, Math.pow(maxMetered, factor));
+    const maxAdjusted = Math.max(
+      adjustedTime * 1.3,
+      Math.pow(maxMetered, factor)
+    );
 
     // Scale functions
     const scaleX = (x: number) => (x / maxMetered) * plotWidth + padding.left;
@@ -82,22 +85,35 @@ export function ReciprocityChart({
     }
 
     const yGridLines: number[] = [];
-    const yStep = maxAdjusted > 800 ? 200 : 100;
+    // Cap the number of grid lines to prevent performance issues with large ranges
+    const maxGridLines = 20;
+    let yStep = maxAdjusted > 800 ? 200 : 100;
+    // Dynamically increase yStep if it would create too many lines
+    while (maxAdjusted / yStep > maxGridLines) {
+      yStep *= 2;
+    }
     for (let i = yStep; i < maxAdjusted; i += yStep) {
       yGridLines.push(scaleY(i));
     }
 
     // Axis labels
-    const xLabels = [0, 60, 120, 180, 240, 300]
-      .filter((x) => x <= maxMetered)
-      .map((x) => ({
+    // Generate X-axis labels dynamically in 60 second increments
+    const xLabels = [];
+    for (let x = 0; x <= maxMetered; x += 60) {
+      xLabels.push({
         x: scaleX(x),
         label: `${x}`,
-      }));
+      });
+    }
 
-    // Generate Y-axis labels dynamically (every 400 to show every other value)
+    // Generate Y-axis labels dynamically, capped to prevent performance issues
     const yLabels = [];
-    const yLabelStep = 400;
+    const maxLabels = 10;
+    let yLabelStep = 400;
+    // Dynamically increase label step if it would create too many labels
+    while (maxAdjusted / yLabelStep > maxLabels) {
+      yLabelStep *= 2;
+    }
     for (let y = 0; y <= maxAdjusted; y += yLabelStep) {
       yLabels.push({
         y: scaleY(y),
@@ -118,7 +134,7 @@ export function ReciprocityChart({
       return min === 0 ? `${hrs}h` : `${hrs}h ${min}m`;
     };
 
-    // Generate hover points every 15 seconds along the curve
+    // Generate hover points every 15 seconds along the curve (skip 0s as it's not useful)
     const hoverPoints: Array<{
       meteredTime: number;
       adjustedTime: number;
@@ -127,7 +143,7 @@ export function ReciprocityChart({
       annotation: string;
     }> = [];
 
-    for (let t = 0; t <= maxMetered; t += 15) {
+    for (let t = 15; t <= maxMetered; t += 15) {
       const adjustedT = Math.pow(t, factor);
       hoverPoints.push({
         meteredTime: t,
@@ -136,6 +152,20 @@ export function ReciprocityChart({
         y: scaleY(adjustedT),
         annotation: `${formatTime(t)} → ${formatTime(adjustedT)}`,
       });
+    }
+
+    // Always include the current calculated point as a hover point so users can see their values
+    // Check if it's not already included (i.e., not a multiple of 15)
+    if (originalTime % 15 !== 0) {
+      hoverPoints.push({
+        meteredTime: originalTime,
+        adjustedTime: adjustedTime,
+        x: scaleX(originalTime),
+        y: scaleY(adjustedTime),
+        annotation: `${formatTime(originalTime)} → ${formatTime(adjustedTime)}`,
+      });
+      // Sort by metered time to maintain order
+      hoverPoints.sort((a, b) => a.meteredTime - b.meteredTime);
     }
 
     return {
@@ -336,6 +366,17 @@ export function ReciprocityChart({
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredPointIndex(i)}
               onMouseLeave={() => setHoveredPointIndex(null)}
+              tabIndex={0}
+              role="button"
+              aria-label={`Reciprocity point: ${point.annotation}`}
+              onFocus={() => setHoveredPointIndex(i)}
+              onBlur={() => setHoveredPointIndex(null)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setHoveredPointIndex(hoveredPointIndex === i ? null : i);
+                }
+              }}
             />
             {/* Visible point marker - only show on hover */}
             {hoveredPointIndex === i && (
