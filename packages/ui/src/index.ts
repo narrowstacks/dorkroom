@@ -52,7 +52,6 @@ export { TemperatureUnitToggle } from './components/development-recipes/temperat
 // Calculator Components
 export {
   CalculatorCard,
-  CalculatorPageHeader,
   CalculatorNumberField,
   CalculatorStat,
 } from './components/calculator';

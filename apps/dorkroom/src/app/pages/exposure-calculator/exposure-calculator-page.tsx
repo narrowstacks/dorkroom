@@ -1,6 +1,5 @@
 import {
   CalculatorCard,
-  CalculatorPageHeader,
   CalculatorStat,
   CalculatorNumberField,
   ResultRow,
@@ -109,13 +108,7 @@ export default function ExposureCalculatorPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
-      <CalculatorPageHeader
-        eyebrow="F-Stop Mathematics"
-        title="Exposure Stop Calculator"
-        description="Calculate exposure adjustments by stops for darkroom printing and photography. Perfect for f-stop printing where you need to compensate exposure when changing apertures."
-      />
-
-      <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <div className="space-y-6">
           <CalculatorCard
             title="Exposure inputs"

@@ -3,7 +3,6 @@ import {
   WarningAlert,
   CalculatorCard,
   CalculatorNumberField,
-  CalculatorPageHeader,
   CalculatorStat,
   colorMixOr,
 } from '@dorkroom/ui';
@@ -263,13 +262,7 @@ export default function ResizeCalculatorPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
-      <CalculatorPageHeader
-        eyebrow="Exposure Math"
-        title="Print Resize Calculator"
-        description="Scale a print up or down and get a solid starting exposure without burning through paper."
-      />
-
-      <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <div className="space-y-6">
           <CalculatorCard
             title="Resize inputs"
