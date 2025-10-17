@@ -7,7 +7,6 @@ import {
   CalculatorNumberField,
   ResultRow,
   ReciprocityChart,
-  colorMixOr,
 } from '@dorkroom/ui';
 import {
   useReciprocityCalculator,
@@ -108,43 +107,7 @@ export default function ReciprocityCalculatorPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
-      <div
-        className="flex flex-col items-center gap-4 rounded-3xl border px-6 py-6 text-center shadow-subtle card-ring sm:px-10"
-        style={{
-          borderColor: 'var(--color-border-secondary)',
-          backgroundColor: colorMixOr(
-            'var(--color-surface)',
-            80,
-            'transparent',
-            'var(--color-border-muted)'
-          ),
-        }}
-      >
-        <div className="flex max-w-2xl flex-col gap-3">
-          <span
-            className="text-xs font-semibold uppercase tracking-[0.35em]"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            Long Exposure Maths
-          </span>
-          <h1
-            className="text-3xl font-semibold tracking-tight sm:text-4xl"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            Reciprocity Failure Calculator
-          </h1>
-          <p
-            className="text-base leading-relaxed"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            Compensate for long exposure reciprocity the moment your meter starts to
-            drift. Choose a film stock, enter the metered time, and we will do the
-            power-curve maths for you.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <div className="space-y-6">
           <CalculatorCard
             title="Reciprocity inputs"
