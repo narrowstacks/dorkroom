@@ -1,9 +1,9 @@
 import {
   CalculatorCard,
-  CalculatorPageHeader,
   CalculatorStat,
   CalculatorNumberField,
   ResultRow,
+  colorMixOr,
 } from '@dorkroom/ui';
 import {
   useExposureCalculator,
@@ -109,11 +109,41 @@ export default function ExposureCalculatorPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
-      <CalculatorPageHeader
-        eyebrow="F-Stop Mathematics"
-        title="Exposure Stop Calculator"
-        description="Calculate exposure adjustments by stops for darkroom printing and photography. Perfect for f-stop printing where you need to compensate exposure when changing apertures."
-      />
+      <div
+        className="flex flex-col items-center gap-4 rounded-3xl border px-6 py-6 text-center shadow-subtle card-ring sm:px-10"
+        style={{
+          borderColor: 'var(--color-border-secondary)',
+          backgroundColor: colorMixOr(
+            'var(--color-surface)',
+            80,
+            'transparent',
+            'var(--color-border-muted)'
+          ),
+        }}
+      >
+        <div className="flex max-w-2xl flex-col gap-3">
+          <span
+            className="text-xs font-semibold uppercase tracking-[0.35em]"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            F-Stop Mathematics
+          </span>
+          <h1
+            className="text-3xl font-semibold tracking-tight sm:text-4xl"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            Exposure Stop Calculator
+          </h1>
+          <p
+            className="text-base leading-relaxed"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            Calculate exposure adjustments by stops for darkroom printing and
+            photography. Perfect for f-stop printing where you need to compensate
+            exposure when changing apertures.
+          </p>
+        </div>
+      </div>
 
       <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <div className="space-y-6">
