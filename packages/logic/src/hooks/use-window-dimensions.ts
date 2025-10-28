@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react';
 
+// Default dimensions for SSR environment
+const DEFAULT_WIDTH = 1024;
+const DEFAULT_HEIGHT = 768;
+
+// Debounce delay in milliseconds - standard value for good UX/performance balance
+const RESIZE_DEBOUNCE_MS = 150;
+
 /**
  * Hook that tracks the current window dimensions and updates on resize.
  * Provides SSR-safe default dimensions for server-side rendering.
@@ -19,8 +26,8 @@ import { useState, useEffect } from 'react';
  */
 export function useWindowDimensions() {
   const [windowDimensions, setWindowDimensions] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
-    height: typeof window !== 'undefined' ? window.innerHeight : 768,
+    width: typeof window !== 'undefined' ? window.innerWidth : DEFAULT_WIDTH,
+    height: typeof window !== 'undefined' ? window.innerHeight : DEFAULT_HEIGHT,
   });
 
   useEffect(() => {
@@ -28,7 +35,7 @@ export function useWindowDimensions() {
 
     function handleResize() {
       // Debounce resize events to avoid excessive re-renders
-      // Standard 150ms delay provides good balance between responsiveness and performance
+      // Standard delay provides good balance between responsiveness and performance
       if (timeoutId !== null) {
         clearTimeout(timeoutId);
       }
@@ -38,7 +45,7 @@ export function useWindowDimensions() {
           width: window.innerWidth,
           height: window.innerHeight,
         });
-      }, 150);
+      }, RESIZE_DEBOUNCE_MS);
     }
 
     window.addEventListener('resize', handleResize);

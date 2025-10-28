@@ -1,6 +1,19 @@
 import { shallowEqual } from '../../utils/object-comparison';
 
+/**
+ * Test suite for shallowEqual utility function.
+ * Verifies correct shallow equality comparison for objects with various edge cases
+ * including primitives, undefined, null, nested objects, and special numeric values.
+ */
 describe('shallowEqual', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('should return true for identical object references', () => {
     const obj = { a: 1, b: 2 };
     expect(shallowEqual(obj, obj)).toBe(true);
