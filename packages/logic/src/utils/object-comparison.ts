@@ -36,11 +36,9 @@ export function shallowEqual(
 
   // Check if all keys and values match
   for (const key of keys1) {
-    if (obj1[key] !== obj2[key]) {
-      return false;
-    }
-    // Also check if the key exists in obj2 to handle undefined values correctly
-    if (!Object.prototype.hasOwnProperty.call(obj2, key)) {
+    // Check both that key exists in obj2 and values match
+    // Using hasOwnProperty first to handle edge cases with undefined values
+    if (!Object.prototype.hasOwnProperty.call(obj2, key) || obj1[key] !== obj2[key]) {
       return false;
     }
   }
