@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 /**
  * Hook that tracks the current window dimensions and updates on resize.
  * Provides SSR-safe default dimensions for server-side rendering.
+ * Resize events are debounced with a 150ms delay to prevent excessive re-renders.
  *
  * @public
  * @returns Object containing current window width and height
@@ -23,15 +24,30 @@ export function useWindowDimensions() {
   });
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
     function handleResize() {
-      setWindowDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
+      // Debounce resize events to avoid excessive re-renders
+      // Standard 150ms delay provides good balance between responsiveness and performance
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+
+      timeoutId = setTimeout(() => {
+        setWindowDimensions({
+          width: window.innerWidth,
+          height: window.innerHeight,
+        });
+      }, 150);
     }
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   return windowDimensions;
