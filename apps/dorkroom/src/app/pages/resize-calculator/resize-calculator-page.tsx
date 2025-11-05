@@ -290,37 +290,43 @@ export default function ResizeCalculatorPage() {
   // Sync local state when parent state or unit changes (but not while editing)
   useEffect(() => {
     if (!isEditingOriginalWidth) {
-      setOriginalWidthInput(String(toDisplay(Number(originalWidth))));
+      const displayValue = toDisplay(Number(originalWidth));
+      setOriginalWidthInput(String(Math.round(displayValue * 1000) / 1000));
     }
   }, [originalWidth, toDisplay, isEditingOriginalWidth]);
 
   useEffect(() => {
     if (!isEditingOriginalLength) {
-      setOriginalLengthInput(String(toDisplay(Number(originalLength))));
+      const displayValue = toDisplay(Number(originalLength));
+      setOriginalLengthInput(String(Math.round(displayValue * 1000) / 1000));
     }
   }, [originalLength, toDisplay, isEditingOriginalLength]);
 
   useEffect(() => {
     if (!isEditingNewWidth) {
-      setNewWidthInput(String(toDisplay(Number(newWidth))));
+      const displayValue = toDisplay(Number(newWidth));
+      setNewWidthInput(String(Math.round(displayValue * 1000) / 1000));
     }
   }, [newWidth, toDisplay, isEditingNewWidth]);
 
   useEffect(() => {
     if (!isEditingNewLength) {
-      setNewLengthInput(String(toDisplay(Number(newLength))));
+      const displayValue = toDisplay(Number(newLength));
+      setNewLengthInput(String(Math.round(displayValue * 1000) / 1000));
     }
   }, [newLength, toDisplay, isEditingNewLength]);
 
   useEffect(() => {
     if (!isEditingOriginalHeight) {
-      setOriginalHeightInput(String(toDisplay(Number(originalHeight))));
+      const displayValue = toDisplay(Number(originalHeight));
+      setOriginalHeightInput(String(Math.round(displayValue * 1000) / 1000));
     }
   }, [originalHeight, toDisplay, isEditingOriginalHeight]);
 
   useEffect(() => {
     if (!isEditingNewHeight) {
-      setNewHeightInput(String(toDisplay(Number(newHeight))));
+      const displayValue = toDisplay(Number(newHeight));
+      setNewHeightInput(String(Math.round(displayValue * 1000) / 1000));
     }
   }, [newHeight, toDisplay, isEditingNewHeight]);
 
