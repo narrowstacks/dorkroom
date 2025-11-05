@@ -58,15 +58,21 @@ export function PaperSizeSection({
   const [paperHeightInput, setPaperHeightInput] = useState(
     String(toDisplay(customPaperHeight))
   );
+  const [isEditingWidth, setIsEditingWidth] = useState(false);
+  const [isEditingHeight, setIsEditingHeight] = useState(false);
 
-  // Sync local state when parent state or unit changes
+  // Sync local state when parent state or unit changes (but not while editing)
   useEffect(() => {
-    setPaperWidthInput(String(toDisplay(customPaperWidth)));
-  }, [customPaperWidth, toDisplay]);
+    if (!isEditingWidth) {
+      setPaperWidthInput(String(toDisplay(customPaperWidth)));
+    }
+  }, [customPaperWidth, toDisplay, isEditingWidth]);
 
   useEffect(() => {
-    setPaperHeightInput(String(toDisplay(customPaperHeight)));
-  }, [customPaperHeight, toDisplay]);
+    if (!isEditingHeight) {
+      setPaperHeightInput(String(toDisplay(customPaperHeight)));
+    }
+  }, [customPaperHeight, toDisplay, isEditingHeight]);
 
   // Helper to validate and convert input to inches
   const validateAndConvert = (value: string): number | null => {
@@ -85,11 +91,13 @@ export function PaperSizeSection({
 
   // Handle width input change
   const handleWidthChange = (value: string) => {
+    setIsEditingWidth(true);
     setPaperWidthInput(value);
   };
 
   // Handle width blur - convert to inches when stable
   const handleWidthBlur = () => {
+    setIsEditingWidth(false);
     const inches = validateAndConvert(paperWidthInput);
     if (inches !== null) {
       setCustomPaperWidth(inches);
@@ -101,11 +109,13 @@ export function PaperSizeSection({
 
   // Handle height input change
   const handleHeightChange = (value: string) => {
+    setIsEditingHeight(true);
     setPaperHeightInput(value);
   };
 
   // Handle height blur - convert to inches when stable
   const handleHeightBlur = () => {
+    setIsEditingHeight(false);
     const inches = validateAndConvert(paperHeightInput);
     if (inches !== null) {
       setCustomPaperHeight(inches);

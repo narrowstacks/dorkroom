@@ -279,30 +279,50 @@ export default function ResizeCalculatorPage() {
     String(toDisplay(Number(newHeight)))
   );
 
-  // Sync local state when parent state or unit changes
+  // Editing flags to prevent sync while user is typing
+  const [isEditingOriginalWidth, setIsEditingOriginalWidth] = useState(false);
+  const [isEditingOriginalLength, setIsEditingOriginalLength] = useState(false);
+  const [isEditingNewWidth, setIsEditingNewWidth] = useState(false);
+  const [isEditingNewLength, setIsEditingNewLength] = useState(false);
+  const [isEditingOriginalHeight, setIsEditingOriginalHeight] = useState(false);
+  const [isEditingNewHeight, setIsEditingNewHeight] = useState(false);
+
+  // Sync local state when parent state or unit changes (but not while editing)
   useEffect(() => {
-    setOriginalWidthInput(String(toDisplay(Number(originalWidth))));
-  }, [originalWidth, toDisplay]);
+    if (!isEditingOriginalWidth) {
+      setOriginalWidthInput(String(toDisplay(Number(originalWidth))));
+    }
+  }, [originalWidth, toDisplay, isEditingOriginalWidth]);
 
   useEffect(() => {
-    setOriginalLengthInput(String(toDisplay(Number(originalLength))));
-  }, [originalLength, toDisplay]);
+    if (!isEditingOriginalLength) {
+      setOriginalLengthInput(String(toDisplay(Number(originalLength))));
+    }
+  }, [originalLength, toDisplay, isEditingOriginalLength]);
 
   useEffect(() => {
-    setNewWidthInput(String(toDisplay(Number(newWidth))));
-  }, [newWidth, toDisplay]);
+    if (!isEditingNewWidth) {
+      setNewWidthInput(String(toDisplay(Number(newWidth))));
+    }
+  }, [newWidth, toDisplay, isEditingNewWidth]);
 
   useEffect(() => {
-    setNewLengthInput(String(toDisplay(Number(newLength))));
-  }, [newLength, toDisplay]);
+    if (!isEditingNewLength) {
+      setNewLengthInput(String(toDisplay(Number(newLength))));
+    }
+  }, [newLength, toDisplay, isEditingNewLength]);
 
   useEffect(() => {
-    setOriginalHeightInput(String(toDisplay(Number(originalHeight))));
-  }, [originalHeight, toDisplay]);
+    if (!isEditingOriginalHeight) {
+      setOriginalHeightInput(String(toDisplay(Number(originalHeight))));
+    }
+  }, [originalHeight, toDisplay, isEditingOriginalHeight]);
 
   useEffect(() => {
-    setNewHeightInput(String(toDisplay(Number(newHeight))));
-  }, [newHeight, toDisplay]);
+    if (!isEditingNewHeight) {
+      setNewHeightInput(String(toDisplay(Number(newHeight))));
+    }
+  }, [newHeight, toDisplay, isEditingNewHeight]);
 
   // Helper to validate and convert input to inches
   const validateAndConvert = (value: string): string | null => {
@@ -321,10 +341,12 @@ export default function ResizeCalculatorPage() {
 
   // Create handlers for each input
   const handleOriginalWidthChange = (value: string) => {
+    setIsEditingOriginalWidth(true);
     setOriginalWidthInput(value);
   };
 
   const handleOriginalWidthBlur = () => {
+    setIsEditingOriginalWidth(false);
     const inches = validateAndConvert(originalWidthInput);
     if (inches !== null) {
       setOriginalWidthInches(inches);
@@ -334,10 +356,12 @@ export default function ResizeCalculatorPage() {
   };
 
   const handleOriginalLengthChange = (value: string) => {
+    setIsEditingOriginalLength(true);
     setOriginalLengthInput(value);
   };
 
   const handleOriginalLengthBlur = () => {
+    setIsEditingOriginalLength(false);
     const inches = validateAndConvert(originalLengthInput);
     if (inches !== null) {
       setOriginalLengthInches(inches);
@@ -350,10 +374,12 @@ export default function ResizeCalculatorPage() {
   };
 
   const handleNewWidthChange = (value: string) => {
+    setIsEditingNewWidth(true);
     setNewWidthInput(value);
   };
 
   const handleNewWidthBlur = () => {
+    setIsEditingNewWidth(false);
     const inches = validateAndConvert(newWidthInput);
     if (inches !== null) {
       setNewWidthInches(inches);
@@ -363,10 +389,12 @@ export default function ResizeCalculatorPage() {
   };
 
   const handleNewLengthChange = (value: string) => {
+    setIsEditingNewLength(true);
     setNewLengthInput(value);
   };
 
   const handleNewLengthBlur = () => {
+    setIsEditingNewLength(false);
     const inches = validateAndConvert(newLengthInput);
     if (inches !== null) {
       setNewLengthInches(inches);
@@ -376,10 +404,12 @@ export default function ResizeCalculatorPage() {
   };
 
   const handleOriginalHeightChange = (value: string) => {
+    setIsEditingOriginalHeight(true);
     setOriginalHeightInput(value);
   };
 
   const handleOriginalHeightBlur = () => {
+    setIsEditingOriginalHeight(false);
     const inches = validateAndConvert(originalHeightInput);
     if (inches !== null) {
       setOriginalHeightInches(inches);
@@ -392,10 +422,12 @@ export default function ResizeCalculatorPage() {
   };
 
   const handleNewHeightChange = (value: string) => {
+    setIsEditingNewHeight(true);
     setNewHeightInput(value);
   };
 
   const handleNewHeightBlur = () => {
+    setIsEditingNewHeight(false);
     const inches = validateAndConvert(newHeightInput);
     if (inches !== null) {
       setNewHeightInches(inches);

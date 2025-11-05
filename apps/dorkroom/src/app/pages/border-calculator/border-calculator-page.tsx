@@ -108,15 +108,21 @@ export default function BorderCalculatorPage() {
   const [paperHeightInput, setPaperHeightInput] = useState(
     String(toDisplay(customPaperHeight))
   );
+  const [isEditingPaperWidth, setIsEditingPaperWidth] = useState(false);
+  const [isEditingPaperHeight, setIsEditingPaperHeight] = useState(false);
 
-  // Sync local state when parent state or unit changes
+  // Sync local state when parent state or unit changes (but not while editing)
   useEffect(() => {
-    setPaperWidthInput(String(toDisplay(customPaperWidth)));
-  }, [customPaperWidth, toDisplay]);
+    if (!isEditingPaperWidth) {
+      setPaperWidthInput(String(toDisplay(customPaperWidth)));
+    }
+  }, [customPaperWidth, toDisplay, isEditingPaperWidth]);
 
   useEffect(() => {
-    setPaperHeightInput(String(toDisplay(customPaperHeight)));
-  }, [customPaperHeight, toDisplay]);
+    if (!isEditingPaperHeight) {
+      setPaperHeightInput(String(toDisplay(customPaperHeight)));
+    }
+  }, [customPaperHeight, toDisplay, isEditingPaperHeight]);
 
   // Helper to validate and convert input to inches
   const validateAndConvert = (value: string): number | null => {
@@ -135,11 +141,13 @@ export default function BorderCalculatorPage() {
 
   // Handle width input change
   const handlePaperWidthChange = (value: string) => {
+    setIsEditingPaperWidth(true);
     setPaperWidthInput(value);
   };
 
   // Handle width blur - convert to inches when stable
   const handlePaperWidthBlur = () => {
+    setIsEditingPaperWidth(false);
     const inches = validateAndConvert(paperWidthInput);
     if (inches !== null) {
       setCustomPaperWidth(inches);
@@ -151,11 +159,13 @@ export default function BorderCalculatorPage() {
 
   // Handle height input change
   const handlePaperHeightChange = (value: string) => {
+    setIsEditingPaperHeight(true);
     setPaperHeightInput(value);
   };
 
   // Handle height blur - convert to inches when stable
   const handlePaperHeightBlur = () => {
+    setIsEditingPaperHeight(false);
     const inches = validateAndConvert(paperHeightInput);
     if (inches !== null) {
       setCustomPaperHeight(inches);
