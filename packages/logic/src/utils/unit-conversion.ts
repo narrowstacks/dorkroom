@@ -40,6 +40,15 @@ export function cmToInches(cm: number): number {
 }
 
 /**
+ * Round a number to a maximum of 3 decimal places to avoid floating point precision errors
+ * @param value - The number to round
+ * @returns The rounded number
+ */
+function roundToThreeDecimals(value: number): number {
+  return Math.round(value * 1000) / 1000;
+}
+
+/**
  * Convert millimeters to inches
  */
 export function mmToInches(mm: number): number {
@@ -106,12 +115,16 @@ export function convertInchesToDisplay(
 /**
  * Convert a display value back to inches for calculations
  * Use this when user inputs a measurement in their preferred unit
+ * Applies rounding to avoid floating point precision errors
  */
 export function convertDisplayToInches(
   value: number,
   unit: MeasurementUnit
 ): number {
-  return unit === 'imperial' ? value : cmToInches(value);
+  const inches = unit === 'imperial' ? value : cmToInches(value);
+  // Round to 3 decimal places to avoid floating point precision errors
+  // (e.g., 5.5cm -> 2.165354... becomes 2.165)
+  return roundToThreeDecimals(inches);
 }
 
 /**
