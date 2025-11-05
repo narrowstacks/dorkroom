@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { X, RotateCw, Square } from 'lucide-react';
 import {
   Select,
@@ -50,6 +50,70 @@ export function PaperSizeSection({
 }: PaperSizeSectionProps) {
   const { unit } = useMeasurement();
   const { toInches, toDisplay } = useMeasurementConverter();
+
+  // Local string state for custom paper dimensions (in display units)
+  const [paperWidthInput, setPaperWidthInput] = useState(
+    String(toDisplay(customPaperWidth))
+  );
+  const [paperHeightInput, setPaperHeightInput] = useState(
+    String(toDisplay(customPaperHeight))
+  );
+
+  // Sync local state when parent state or unit changes
+  useEffect(() => {
+    setPaperWidthInput(String(toDisplay(customPaperWidth)));
+  }, [customPaperWidth, toDisplay]);
+
+  useEffect(() => {
+    setPaperHeightInput(String(toDisplay(customPaperHeight)));
+  }, [customPaperHeight, toDisplay]);
+
+  // Helper to validate and convert input to inches
+  const validateAndConvert = (value: string): number | null => {
+    // Allow empty, whitespace, or trailing decimal point
+    if (value === '' || /^\s*$/.test(value) || /^\d*\.$/.test(value)) {
+      return null;
+    }
+
+    const parsed = parseFloat(value);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return toInches(parsed);
+    }
+
+    return null;
+  };
+
+  // Handle width input change
+  const handleWidthChange = (value: string) => {
+    setPaperWidthInput(value);
+  };
+
+  // Handle width blur - convert to inches when stable
+  const handleWidthBlur = () => {
+    const inches = validateAndConvert(paperWidthInput);
+    if (inches !== null) {
+      setCustomPaperWidth(inches);
+    } else if (paperWidthInput === '' || /^\s*$/.test(paperWidthInput)) {
+      // Reset to current value if empty
+      setPaperWidthInput(String(toDisplay(customPaperWidth)));
+    }
+  };
+
+  // Handle height input change
+  const handleHeightChange = (value: string) => {
+    setPaperHeightInput(value);
+  };
+
+  // Handle height blur - convert to inches when stable
+  const handleHeightBlur = () => {
+    const inches = validateAndConvert(paperHeightInput);
+    if (inches !== null) {
+      setCustomPaperHeight(inches);
+    } else if (paperHeightInput === '' || /^\s*$/.test(paperHeightInput)) {
+      // Reset to current value if empty
+      setPaperHeightInput(String(toDisplay(customPaperHeight)));
+    }
+  };
 
   // Transform paper sizes to show metric with imperial reference when in metric mode
   const displayPaperSizes = useMemo(() => {
@@ -120,14 +184,12 @@ export function PaperSizeSection({
 
         {paperSize === 'custom' && (
           <DimensionInputGroup
-            widthValue={String(toDisplay(customPaperWidth))}
-            onWidthChange={(value) =>
-              setCustomPaperWidth(toInches(Number(value) || 0))
-            }
-            heightValue={String(toDisplay(customPaperHeight))}
-            onHeightChange={(value) =>
-              setCustomPaperHeight(toInches(Number(value) || 0))
-            }
+            widthValue={paperWidthInput}
+            onWidthChange={handleWidthChange}
+            onWidthBlur={handleWidthBlur}
+            heightValue={paperHeightInput}
+            onHeightChange={handleHeightChange}
+            onHeightBlur={handleHeightBlur}
             widthLabel="Width"
             heightLabel="Height"
             widthPlaceholder="Width"

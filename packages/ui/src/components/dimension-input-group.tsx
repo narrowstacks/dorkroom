@@ -15,6 +15,8 @@ interface DimensionInputGroupProps {
   heightDefault?: string;
   className?: string;
   showUnits?: boolean; // Whether to show unit labels
+  onWidthBlur?: () => void;
+  onHeightBlur?: () => void;
 }
 
 export function DimensionInputGroup({
@@ -28,6 +30,8 @@ export function DimensionInputGroup({
   heightPlaceholder,
   className,
   showUnits = true,
+  onWidthBlur,
+  onHeightBlur,
 }: DimensionInputGroupProps) {
   const { unit } = useMeasurement();
   const unitLabel = getUnitLabel(unit);
@@ -61,9 +65,10 @@ export function DimensionInputGroup({
           onFocus={(e) =>
             (e.target.style.borderColor = 'var(--color-border-primary)')
           }
-          onBlur={(e) =>
-            (e.target.style.borderColor = 'var(--color-border-secondary)')
-          }
+          onBlur={(e) => {
+            e.target.style.borderColor = 'var(--color-border-secondary)';
+            onWidthBlur?.();
+          }}
         />
       </div>
       <div className="space-y-2">
@@ -93,9 +98,10 @@ export function DimensionInputGroup({
           onFocus={(e) =>
             (e.target.style.borderColor = 'var(--color-border-primary)')
           }
-          onBlur={(e) =>
-            (e.target.style.borderColor = 'var(--color-border-secondary)')
-          }
+          onBlur={(e) => {
+            e.target.style.borderColor = 'var(--color-border-secondary)';
+            onHeightBlur?.();
+          }}
         />
       </div>
     </div>

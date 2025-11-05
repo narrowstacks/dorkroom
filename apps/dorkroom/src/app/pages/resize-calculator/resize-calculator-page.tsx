@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   ToggleSwitch,
   WarningAlert,
@@ -258,19 +259,150 @@ export default function ResizeCalculatorPage() {
     setNewHeight: setNewHeightInches,
   } = useResizeCalculator();
 
-  // Wrap setters to convert from display units to inches
-  const setOriginalWidth = (value: string) =>
-    setOriginalWidthInches(String(toInches(Number(value) || 0)));
-  const setOriginalLength = (value: string) =>
-    setOriginalLengthInches(String(toInches(Number(value) || 0)));
-  const setNewWidth = (value: string) =>
-    setNewWidthInches(String(toInches(Number(value) || 0)));
-  const setNewLength = (value: string) =>
-    setNewLengthInches(String(toInches(Number(value) || 0)));
-  const setOriginalHeight = (value: string) =>
-    setOriginalHeightInches(String(toInches(Number(value) || 0)));
-  const setNewHeight = (value: string) =>
-    setNewHeightInches(String(toInches(Number(value) || 0)));
+  // Local string state for dimension inputs (in display units)
+  const [originalWidthInput, setOriginalWidthInput] = useState(
+    String(toDisplay(Number(originalWidth)))
+  );
+  const [originalLengthInput, setOriginalLengthInput] = useState(
+    String(toDisplay(Number(originalLength)))
+  );
+  const [newWidthInput, setNewWidthInput] = useState(
+    String(toDisplay(Number(newWidth)))
+  );
+  const [newLengthInput, setNewLengthInput] = useState(
+    String(toDisplay(Number(newLength)))
+  );
+  const [originalHeightInput, setOriginalHeightInput] = useState(
+    String(toDisplay(Number(originalHeight)))
+  );
+  const [newHeightInput, setNewHeightInput] = useState(
+    String(toDisplay(Number(newHeight)))
+  );
+
+  // Sync local state when parent state or unit changes
+  useEffect(() => {
+    setOriginalWidthInput(String(toDisplay(Number(originalWidth))));
+  }, [originalWidth, toDisplay]);
+
+  useEffect(() => {
+    setOriginalLengthInput(String(toDisplay(Number(originalLength))));
+  }, [originalLength, toDisplay]);
+
+  useEffect(() => {
+    setNewWidthInput(String(toDisplay(Number(newWidth))));
+  }, [newWidth, toDisplay]);
+
+  useEffect(() => {
+    setNewLengthInput(String(toDisplay(Number(newLength))));
+  }, [newLength, toDisplay]);
+
+  useEffect(() => {
+    setOriginalHeightInput(String(toDisplay(Number(originalHeight))));
+  }, [originalHeight, toDisplay]);
+
+  useEffect(() => {
+    setNewHeightInput(String(toDisplay(Number(newHeight))));
+  }, [newHeight, toDisplay]);
+
+  // Helper to validate and convert input to inches
+  const validateAndConvert = (value: string): string | null => {
+    // Allow empty, whitespace, or trailing decimal point
+    if (value === '' || /^\s*$/.test(value) || /^\d*\.$/.test(value)) {
+      return null;
+    }
+
+    const parsed = parseFloat(value);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return String(toInches(parsed));
+    }
+
+    return null;
+  };
+
+  // Create handlers for each input
+  const handleOriginalWidthChange = (value: string) => {
+    setOriginalWidthInput(value);
+  };
+
+  const handleOriginalWidthBlur = () => {
+    const inches = validateAndConvert(originalWidthInput);
+    if (inches !== null) {
+      setOriginalWidthInches(inches);
+    } else if (originalWidthInput === '' || /^\s*$/.test(originalWidthInput)) {
+      setOriginalWidthInput(String(toDisplay(Number(originalWidth))));
+    }
+  };
+
+  const handleOriginalLengthChange = (value: string) => {
+    setOriginalLengthInput(value);
+  };
+
+  const handleOriginalLengthBlur = () => {
+    const inches = validateAndConvert(originalLengthInput);
+    if (inches !== null) {
+      setOriginalLengthInches(inches);
+    } else if (
+      originalLengthInput === '' ||
+      /^\s*$/.test(originalLengthInput)
+    ) {
+      setOriginalLengthInput(String(toDisplay(Number(originalLength))));
+    }
+  };
+
+  const handleNewWidthChange = (value: string) => {
+    setNewWidthInput(value);
+  };
+
+  const handleNewWidthBlur = () => {
+    const inches = validateAndConvert(newWidthInput);
+    if (inches !== null) {
+      setNewWidthInches(inches);
+    } else if (newWidthInput === '' || /^\s*$/.test(newWidthInput)) {
+      setNewWidthInput(String(toDisplay(Number(newWidth))));
+    }
+  };
+
+  const handleNewLengthChange = (value: string) => {
+    setNewLengthInput(value);
+  };
+
+  const handleNewLengthBlur = () => {
+    const inches = validateAndConvert(newLengthInput);
+    if (inches !== null) {
+      setNewLengthInches(inches);
+    } else if (newLengthInput === '' || /^\s*$/.test(newLengthInput)) {
+      setNewLengthInput(String(toDisplay(Number(newLength))));
+    }
+  };
+
+  const handleOriginalHeightChange = (value: string) => {
+    setOriginalHeightInput(value);
+  };
+
+  const handleOriginalHeightBlur = () => {
+    const inches = validateAndConvert(originalHeightInput);
+    if (inches !== null) {
+      setOriginalHeightInches(inches);
+    } else if (
+      originalHeightInput === '' ||
+      /^\s*$/.test(originalHeightInput)
+    ) {
+      setOriginalHeightInput(String(toDisplay(Number(originalHeight))));
+    }
+  };
+
+  const handleNewHeightChange = (value: string) => {
+    setNewHeightInput(value);
+  };
+
+  const handleNewHeightBlur = () => {
+    const inches = validateAndConvert(newHeightInput);
+    if (inches !== null) {
+      setNewHeightInches(inches);
+    } else if (newHeightInput === '' || /^\s*$/.test(newHeightInput)) {
+      setNewHeightInput(String(toDisplay(Number(newHeight))));
+    }
+  };
 
   const stopsNumber = parseFloat(stopsDifference);
   const stopsHelper = Number.isFinite(stopsNumber)
@@ -312,8 +444,9 @@ export default function ResizeCalculatorPage() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <CalculatorNumberField
                       label="Width"
-                      value={String(toDisplay(Number(originalWidth)))}
-                      onChange={setOriginalWidth}
+                      value={originalWidthInput}
+                      onChange={handleOriginalWidthChange}
+                      onBlur={handleOriginalWidthBlur}
                       placeholder={String(
                         toDisplay(Number(DEFAULT_ORIGINAL_WIDTH))
                       )}
@@ -322,8 +455,9 @@ export default function ResizeCalculatorPage() {
                     />
                     <CalculatorNumberField
                       label="Height"
-                      value={String(toDisplay(Number(originalLength)))}
-                      onChange={setOriginalLength}
+                      value={originalLengthInput}
+                      onChange={handleOriginalLengthChange}
+                      onBlur={handleOriginalLengthBlur}
                       placeholder={String(
                         toDisplay(Number(DEFAULT_ORIGINAL_LENGTH))
                       )}
@@ -343,16 +477,18 @@ export default function ResizeCalculatorPage() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <CalculatorNumberField
                       label="Width"
-                      value={String(toDisplay(Number(newWidth)))}
-                      onChange={setNewWidth}
+                      value={newWidthInput}
+                      onChange={handleNewWidthChange}
+                      onBlur={handleNewWidthBlur}
                       placeholder={String(toDisplay(Number(DEFAULT_NEW_WIDTH)))}
                       step={0.1}
                       unit={unitLabel}
                     />
                     <CalculatorNumberField
                       label="Height"
-                      value={String(toDisplay(Number(newLength)))}
-                      onChange={setNewLength}
+                      value={newLengthInput}
+                      onChange={handleNewLengthChange}
+                      onBlur={handleNewLengthBlur}
                       placeholder={String(
                         toDisplay(Number(DEFAULT_NEW_LENGTH))
                       )}
@@ -373,8 +509,9 @@ export default function ResizeCalculatorPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <CalculatorNumberField
                     label="Original height"
-                    value={String(toDisplay(Number(originalHeight)))}
-                    onChange={setOriginalHeight}
+                    value={originalHeightInput}
+                    onChange={handleOriginalHeightChange}
+                    onBlur={handleOriginalHeightBlur}
                     placeholder={String(
                       toDisplay(Number(DEFAULT_ORIGINAL_HEIGHT))
                     )}
@@ -383,8 +520,9 @@ export default function ResizeCalculatorPage() {
                   />
                   <CalculatorNumberField
                     label="New height"
-                    value={String(toDisplay(Number(newHeight)))}
-                    onChange={setNewHeight}
+                    value={newHeightInput}
+                    onChange={handleNewHeightChange}
+                    onBlur={handleNewHeightBlur}
                     placeholder={String(toDisplay(Number(DEFAULT_NEW_HEIGHT)))}
                     step={1}
                     unit={unitLabel}
