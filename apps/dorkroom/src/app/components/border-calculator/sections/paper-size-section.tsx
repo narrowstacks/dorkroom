@@ -97,6 +97,12 @@ export function PaperSizeSection({
   const handleWidthChange = (value: string) => {
     setIsEditingWidth(true);
     setPaperWidthInput(value);
+
+    // Push valid changes to parent state immediately for live recomputation
+    const inches = validateAndConvert(value);
+    if (inches !== null) {
+      setCustomPaperWidth(inches);
+    }
   };
 
   // Handle width blur - convert to inches when stable
@@ -111,6 +117,9 @@ export function PaperSizeSection({
     } else if (paperWidthInput === '' || /^\s*$/.test(paperWidthInput)) {
       // Reset to current value if empty
       setPaperWidthInput(String(toDisplay(customPaperWidth)));
+    } else {
+      // Reset to current value if invalid
+      setPaperWidthInput(String(toDisplay(customPaperWidth)));
     }
   };
 
@@ -118,6 +127,12 @@ export function PaperSizeSection({
   const handleHeightChange = (value: string) => {
     setIsEditingHeight(true);
     setPaperHeightInput(value);
+
+    // Push valid changes to parent state immediately for live recomputation
+    const inches = validateAndConvert(value);
+    if (inches !== null) {
+      setCustomPaperHeight(inches);
+    }
   };
 
   // Handle height blur - convert to inches when stable
@@ -131,6 +146,9 @@ export function PaperSizeSection({
       setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
     } else if (paperHeightInput === '' || /^\s*$/.test(paperHeightInput)) {
       // Reset to current value if empty
+      setPaperHeightInput(String(toDisplay(customPaperHeight)));
+    } else {
+      // Reset to current value if invalid
       setPaperHeightInput(String(toDisplay(customPaperHeight)));
     }
   };
