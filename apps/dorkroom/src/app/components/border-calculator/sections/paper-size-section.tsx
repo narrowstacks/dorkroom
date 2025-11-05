@@ -101,6 +101,9 @@ export function PaperSizeSection({
     const inches = validateAndConvert(paperWidthInput);
     if (inches !== null) {
       setCustomPaperWidth(inches);
+      // Format the display value to avoid floating point precision artifacts
+      const displayValue = toDisplay(inches);
+      setPaperWidthInput(String(Math.round(displayValue * 1000) / 1000));
     } else if (paperWidthInput === '' || /^\s*$/.test(paperWidthInput)) {
       // Reset to current value if empty
       setPaperWidthInput(String(toDisplay(customPaperWidth)));
@@ -119,6 +122,9 @@ export function PaperSizeSection({
     const inches = validateAndConvert(paperHeightInput);
     if (inches !== null) {
       setCustomPaperHeight(inches);
+      // Format the display value to avoid floating point precision artifacts
+      const displayValue = toDisplay(inches);
+      setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
     } else if (paperHeightInput === '' || /^\s*$/.test(paperHeightInput)) {
       // Reset to current value if empty
       setPaperHeightInput(String(toDisplay(customPaperHeight)));

@@ -5,10 +5,12 @@ Your Supabase edge functions are now properly configured and ready for deploymen
 ## 📦 What Was Set Up
 
 ### 1. Supabase CLI Installed
+
 - ✅ Added `supabase` as dev dependency
 - ✅ Accessible via `bunx supabase`
 
 ### 2. Project Structure Created
+
 ```
 supabase/
 ├── README.md              # Quick reference
@@ -22,6 +24,7 @@ supabase/
 ```
 
 ### 3. NPM Scripts Added
+
 ```json
 "supabase:login"              // Login to Supabase
 "supabase:link"               // Link to project
@@ -37,7 +40,9 @@ supabase/
 ```
 
 ### 4. Functions Updated
+
 All three edge functions now support:
+
 - ✅ Search with `query` parameter
 - ✅ Fuzzy matching with `fuzzy=true`
 - ✅ Result limiting with `limit`
@@ -47,19 +52,24 @@ All three edge functions now support:
 ## 🚀 Deploy Now (3 Steps)
 
 ### Step 1: Login to Supabase
+
 ```bash
 npm run supabase:login
 ```
+
 This opens a browser for authentication.
 
 ### Step 2: Link to Your Project
+
 ```bash
 npm run supabase:link
 ```
+
 Enter your database password when prompted.
 (Project ref `ukpdbjhbudgsjqsxlays` is already configured)
 
 ### Step 3: Deploy Functions
+
 ```bash
 npm run supabase:deploy
 ```
@@ -83,10 +93,10 @@ curl "https://dorkroom.art/api/combinations?limit=5"
 
 ## 📚 Documentation
 
-| File | Purpose |
-|------|---------|
+| File                                     | Purpose                      |
+| ---------------------------------------- | ---------------------------- |
 | [supabase/README.md](supabase/README.md) | Quick reference and commands |
-| [supabase/SETUP.md](supabase/SETUP.md) | Detailed initial setup guide |
+| [supabase/SETUP.md](supabase/SETUP.md)   | Detailed initial setup guide |
 | [supabase/DEPLOY.md](supabase/DEPLOY.md) | Complete deployment workflow |
 
 ## ✨ What This Fixes
@@ -101,14 +111,17 @@ Once deployed, this will resolve:
 ## 🔄 Development Workflow
 
 ### Making Changes
+
 1. Edit function in `supabase/functions/<name>/index.ts`
 2. Deploy: `npm run supabase:deploy:<name>`
 3. Monitor: `npm run supabase:logs:<name>`
 4. Test: `curl "https://dorkroom.art/api/<name>?..."`
 
 ### Keeping in Sync
+
 The `supabase-functions/` directory contains reference copies.
 After editing `supabase/functions/`, copy changes back:
+
 ```bash
 cp supabase/functions/films/index.ts supabase-functions/films/
 cp supabase/functions/developers/index.ts supabase-functions/developers/
@@ -133,21 +146,25 @@ cp supabase/functions/combinations/index.ts supabase-functions/combinations/
 ## 🆘 Need Help?
 
 **Not logged in?**
+
 ```bash
 npm run supabase:login
 ```
 
 **Project not linked?**
+
 ```bash
 npm run supabase:link
 ```
 
 **Deployment failed?**
+
 ```bash
 npm run supabase:logs:<function-name>
 ```
 
 **Check status:**
+
 ```bash
 npm run supabase:status
 ```

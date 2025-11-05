@@ -42,32 +42,36 @@ Retrieve film stock information with optional filtering and search.
 
 #### Query Parameters
 
-| Parameter | Type | Description | Example |
-|-----------|------|-------------|---------|
-| `query` | string | Search term for film name or brand | `tri-x` |
-| `fuzzy` | boolean | Enable fuzzy search | `true` \| `false` |
-| `limit` | number | Maximum number of results | `5` |
-| `colorType` | string | Filter by color type | `bw` \| `color` \| `slide` |
-| `brand` | string | Filter by brand/manufacturer | `Kodak` |
+| Parameter   | Type    | Description                        | Example                    |
+| ----------- | ------- | ---------------------------------- | -------------------------- |
+| `query`     | string  | Search term for film name or brand | `tri-x`                    |
+| `fuzzy`     | boolean | Enable fuzzy search                | `true` \| `false`          |
+| `limit`     | number  | Maximum number of results          | `5`                        |
+| `colorType` | string  | Filter by color type               | `bw` \| `color` \| `slide` |
+| `brand`     | string  | Filter by brand/manufacturer       | `Kodak`                    |
 
 #### Example Requests
 
 **Get all films (first 2):**
+
 ```bash
 curl "https://dorkroom.art/api/films?limit=2"
 ```
 
 **Search for Kodak Tri-X:**
+
 ```bash
 curl "https://dorkroom.art/api/films?query=tri-x&brand=Kodak"
 ```
 
 **Get color films only:**
+
 ```bash
 curl "https://dorkroom.art/api/films?colorType=color&limit=2"
 ```
 
 **Fuzzy search (typo-tolerant):**
+
 ```bash
 curl "https://dorkroom.art/api/films?query=velvi&fuzzy=true"
 ```
@@ -119,32 +123,36 @@ Retrieve developer chemistry information.
 
 #### Query Parameters
 
-| Parameter | Type | Description | Example |
-|-----------|------|-------------|---------|
-| `query` | string | Search term for developer name | `D-76` |
-| `fuzzy` | boolean | Enable fuzzy search | `true` \| `false` |
-| `limit` | number | Maximum number of results | `5` |
-| `type` | string | Filter by developer type | `concentrate` \| `powder` |
-| `manufacturer` | string | Filter by manufacturer | `Kodak` |
+| Parameter      | Type    | Description                    | Example                   |
+| -------------- | ------- | ------------------------------ | ------------------------- |
+| `query`        | string  | Search term for developer name | `D-76`                    |
+| `fuzzy`        | boolean | Enable fuzzy search            | `true` \| `false`         |
+| `limit`        | number  | Maximum number of results      | `5`                       |
+| `type`         | string  | Filter by developer type       | `concentrate` \| `powder` |
+| `manufacturer` | string  | Filter by manufacturer         | `Kodak`                   |
 
 #### Example Requests
 
 **Get all developers (first 2):**
+
 ```bash
 curl "https://dorkroom.art/api/developers?limit=2"
 ```
 
 **Search for Kodak D-76:**
+
 ```bash
 curl "https://dorkroom.art/api/developers?query=D-76&manufacturer=Kodak"
 ```
 
 **Get Ilford developers:**
+
 ```bash
 curl "https://dorkroom.art/api/developers?manufacturer=Ilford&limit=3"
 ```
 
 **Get liquid concentrates:**
+
 ```bash
 curl "https://dorkroom.art/api/developers?type=concentrate"
 ```
@@ -221,40 +229,45 @@ Retrieve film + developer combinations with development recipes.
 
 #### Query Parameters
 
-| Parameter | Type | Description | Example |
-|-----------|------|-------------|---------|
-| `film` | string | Filter by film stock slug | `ilford-hp5-plus` |
-| `developer` | string | Filter by developer slug | `kodak-d76` |
-| `query` | string | Search combinations | `tri-x` |
-| `fuzzy` | boolean | Enable fuzzy search | `true` \| `false` |
-| `limit` | number | Maximum number of results | `5` |
-| `count` | number | Limit results per page | `20` |
-| `page` | number | Page number for pagination | `2` |
-| `id` | string | Get specific combination by ID | `179` |
+| Parameter   | Type    | Description                    | Example           |
+| ----------- | ------- | ------------------------------ | ----------------- |
+| `film`      | string  | Filter by film stock slug      | `ilford-hp5-plus` |
+| `developer` | string  | Filter by developer slug       | `kodak-d76`       |
+| `query`     | string  | Search combinations            | `tri-x`           |
+| `fuzzy`     | boolean | Enable fuzzy search            | `true` \| `false` |
+| `limit`     | number  | Maximum number of results      | `5`               |
+| `count`     | number  | Limit results per page         | `20`              |
+| `page`      | number  | Page number for pagination     | `2`               |
+| `id`        | string  | Get specific combination by ID | `179`             |
 
 #### Example Requests
 
 **Get all combinations (first 2):**
+
 ```bash
 curl "https://dorkroom.art/api/combinations?limit=2"
 ```
 
 **Get combinations for Ilford HP5 Plus:**
+
 ```bash
 curl "https://dorkroom.art/api/combinations?film=ilford-hp5-plus&limit=5"
 ```
 
 **Get combinations for Kodak HC-110:**
+
 ```bash
 curl "https://dorkroom.art/api/combinations?developer=kodak-hc-110&limit=3"
 ```
 
 **Get specific combination:**
+
 ```bash
 curl "https://dorkroom.art/api/combinations?id=179"
 ```
 
 **Paginated results:**
+
 ```bash
 curl "https://dorkroom.art/api/combinations?count=20&page=2"
 ```
@@ -308,6 +321,7 @@ curl "https://dorkroom.art/api/combinations?count=20&page=2"
 All endpoints return JSON with consistent structure:
 
 **Success Response:**
+
 ```json
 {
   "data": [...],
@@ -316,6 +330,7 @@ All endpoints return JSON with consistent structure:
 ```
 
 **Error Response:**
+
 ```json
 {
   "error": "Error type",
@@ -387,10 +402,10 @@ async function example() {
 
 ```typescript
 interface DorkroomClientConfig {
-  baseUrl?: string;        // API base URL (default: production API)
-  timeout?: number;        // Request timeout in ms (default: 10000)
-  maxRetries?: number;     // Max retry attempts (default: 3)
-  logger?: Logger;         // Custom logger instance
+  baseUrl?: string; // API base URL (default: production API)
+  timeout?: number; // Request timeout in ms (default: 10000)
+  maxRetries?: number; // Max retry attempts (default: 3)
+  logger?: Logger; // Custom logger instance
 }
 
 const client = new DorkroomClient({
@@ -403,24 +418,31 @@ const client = new DorkroomClient({
 ### Client Methods
 
 #### `loadAll(): Promise<void>`
+
 Loads all data from the API. **Must be called before using other methods.**
 
 #### `getFilm(filmId: string): Film | undefined`
+
 Get a specific film by its ID.
 
 #### `getDeveloper(developerId: string): Developer | undefined`
+
 Get a specific developer by its ID.
 
 #### `getAllFilms(): Film[]`
+
 Get all films.
 
 #### `getAllDevelopers(): Developer[]`
+
 Get all developers.
 
 #### `getAllCombinations(): Combination[]`
+
 Get all development combinations.
 
 #### `searchFilms(query: string, colorType?: string): Film[]`
+
 Search films by name or brand with optional color type filter.
 
 ```typescript
@@ -429,19 +451,22 @@ const colorFilms = client.searchFilms('portra', 'color');
 ```
 
 #### `fuzzySearchFilms(query: string, options?: FuzzySearchOptions): Film[]`
+
 Intelligent fuzzy search for films using Fuse.js.
 
 ```typescript
 const films = client.fuzzySearchFilms('trix', {
   limit: 10,
-  threshold: 0.6,  // 0.0 = perfect match, 1.0 = match anything
+  threshold: 0.6, // 0.0 = perfect match, 1.0 = match anything
 });
 ```
 
 #### `getCombinationsForFilm(filmId: string): Combination[]`
+
 Get all development combinations for a specific film.
 
 #### `getCombinationsForDeveloper(developerId: string): Combination[]`
+
 Get all development combinations for a specific developer.
 
 ### Features
@@ -461,22 +486,22 @@ Get all development combinations for a specific developer.
 
 ```typescript
 interface Film {
-  id: number;                      // Unique identifier
-  uuid: string;                    // UUID
-  slug: string;                    // URL-friendly identifier (e.g., "kodak-tri-x-400")
-  brand: string;                   // Manufacturer/brand
-  name: string;                    // Film name
-  color_type: string;              // "bw" | "color" | "slide"
-  iso_speed: number;               // ISO/ASA speed rating
-  description?: string;            // Film description
-  manufacturer_notes?: string;     // JSON string of notes from manufacturer
-  grain_structure?: string;        // Grain characteristics
-  reciprocity_failure?: string;    // Reciprocity failure information
-  discontinued: boolean;           // Availability status
-  static_image_url?: string;       // Product image URL
-  date_added: string;              // ISO date string
-  created_at: string;              // ISO date string
-  updated_at: string;              // ISO date string
+  id: number; // Unique identifier
+  uuid: string; // UUID
+  slug: string; // URL-friendly identifier (e.g., "kodak-tri-x-400")
+  brand: string; // Manufacturer/brand
+  name: string; // Film name
+  color_type: string; // "bw" | "color" | "slide"
+  iso_speed: number; // ISO/ASA speed rating
+  description?: string; // Film description
+  manufacturer_notes?: string; // JSON string of notes from manufacturer
+  grain_structure?: string; // Grain characteristics
+  reciprocity_failure?: string; // Reciprocity failure information
+  discontinued: boolean; // Availability status
+  static_image_url?: string; // Product image URL
+  date_added: string; // ISO date string
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
 }
 ```
 
@@ -484,26 +509,26 @@ interface Film {
 
 ```typescript
 interface Developer {
-  id: number;                      // Unique identifier
-  uuid: string;                    // UUID
-  slug: string;                    // URL-friendly identifier (e.g., "kodak-d76")
-  name: string;                    // Developer name
-  manufacturer: string;            // Manufacturer/brand
-  type: string;                    // "concentrate" | "powder"
-  description?: string;            // Developer description
-  mixing_instructions?: string;    // How to mix the developer
-  storage_requirements?: string;   // Storage information
-  safety_notes?: string;           // Safety information
-  dilutions: Dilution[];           // Available dilution ratios
-  created_at: string;              // ISO date string
-  updated_at: string;              // ISO date string
-  film_or_paper: boolean;          // true = film, false = paper
+  id: number; // Unique identifier
+  uuid: string; // UUID
+  slug: string; // URL-friendly identifier (e.g., "kodak-d76")
+  name: string; // Developer name
+  manufacturer: string; // Manufacturer/brand
+  type: string; // "concentrate" | "powder"
+  description?: string; // Developer description
+  mixing_instructions?: string; // How to mix the developer
+  storage_requirements?: string; // Storage information
+  safety_notes?: string; // Safety information
+  dilutions: Dilution[]; // Available dilution ratios
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+  film_or_paper: boolean; // true = film, false = paper
 }
 
 interface Dilution {
   id: number;
-  name: string;                    // e.g., "1+4", "Stock"
-  dilution: string;                // Dilution ratio
+  name: string; // e.g., "1+4", "Stock"
+  dilution: string; // Dilution ratio
 }
 ```
 
@@ -511,23 +536,23 @@ interface Dilution {
 
 ```typescript
 interface Combination {
-  id: number;                      // Unique identifier
-  uuid: string;                    // UUID
-  film_stock: string;              // Film slug (foreign key)
-  developer: string;               // Developer slug (foreign key)
-  dilution_id: string;             // Reference to Dilution.id
-  custom_dilution?: string;        // Custom dilution if not standard
-  temperature_celsius: number;     // Development temperature in Celsius
-  time_minutes: number;            // Development time in minutes
-  shooting_iso: number;            // ISO the film was shot at
-  name: string;                    // Combination name
-  push_pull: number;               // Stops pushed (+) or pulled (-)
-  agitation_method?: string;       // Agitation instructions
-  notes?: string;                  // Development notes
-  tags?: string[];                 // Tags like ["official-ilford"]
-  info_source?: string;            // Source URL
-  created_at: string;              // ISO date string
-  updated_at: string;              // ISO date string
+  id: number; // Unique identifier
+  uuid: string; // UUID
+  film_stock: string; // Film slug (foreign key)
+  developer: string; // Developer slug (foreign key)
+  dilution_id: string; // Reference to Dilution.id
+  custom_dilution?: string; // Custom dilution if not standard
+  temperature_celsius: number; // Development temperature in Celsius
+  time_minutes: number; // Development time in minutes
+  shooting_iso: number; // ISO the film was shot at
+  name: string; // Combination name
+  push_pull: number; // Stops pushed (+) or pulled (-)
+  agitation_method?: string; // Agitation instructions
+  notes?: string; // Development notes
+  tags?: string[]; // Tags like ["official-ilford"]
+  info_source?: string; // Source URL
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
 }
 ```
 
@@ -541,10 +566,10 @@ The client provides specific error types for different failure scenarios:
 
 ```typescript
 import {
-  DorkroomAPIError,      // Base error class
-  DataFetchError,        // Network/fetch errors
-  DataParseError,        // JSON parsing errors
-  DataNotLoadedError     // Attempted to use data before loadAll()
+  DorkroomAPIError, // Base error class
+  DataFetchError, // Network/fetch errors
+  DataParseError, // JSON parsing errors
+  DataNotLoadedError, // Attempted to use data before loadAll()
 } from '@dorkroom/api';
 
 try {
@@ -562,13 +587,13 @@ try {
 
 ### REST API Error Codes
 
-| Status Code | Error Type | Description |
-|------------|------------|-------------|
-| `200` | Success | Request completed successfully |
-| `405` | Method Not Allowed | Only GET and OPTIONS are allowed |
-| `500` | Internal Server Error | Server configuration or internal error |
-| `502` | Bad Gateway | Invalid response from upstream API |
-| `504` | Gateway Timeout | Request timed out (30s timeout) |
+| Status Code | Error Type            | Description                            |
+| ----------- | --------------------- | -------------------------------------- |
+| `200`       | Success               | Request completed successfully         |
+| `405`       | Method Not Allowed    | Only GET and OPTIONS are allowed       |
+| `500`       | Internal Server Error | Server configuration or internal error |
+| `502`       | Bad Gateway           | Invalid response from upstream API     |
+| `504`       | Gateway Timeout       | Request timed out (30s timeout)        |
 
 ### Error Response Format
 
@@ -578,13 +603,14 @@ try {
   "message": "Human-readable error message",
   "requestId": "abc123",
   "status": 500,
-  "details": {}  // Optional additional error details
+  "details": {} // Optional additional error details
 }
 ```
 
 ### Common Error Scenarios
 
 **Missing Environment Variables:**
+
 ```json
 {
   "error": "API configuration error",
@@ -594,6 +620,7 @@ try {
 ```
 
 **Request Timeout:**
+
 ```json
 {
   "error": "Request timeout",
@@ -603,6 +630,7 @@ try {
 ```
 
 **Network Error:**
+
 ```json
 {
   "error": "Network error",
@@ -675,9 +703,7 @@ SUPABASE_MASTER_API_KEY=your_service_role_key
 async function getFilmRecipes(filmName) {
   try {
     // Search for film
-    const filmsResponse = await fetch(
-      `https://dorkroom.art/api/films?query=${encodeURIComponent(filmName)}&limit=1`
-    );
+    const filmsResponse = await fetch(`https://dorkroom.art/api/films?query=${encodeURIComponent(filmName)}&limit=1`);
     const filmsData = await filmsResponse.json();
 
     if (filmsData.data.length === 0) {
@@ -689,9 +715,7 @@ async function getFilmRecipes(filmName) {
     console.log(`Found: ${film.brand} ${film.name}`);
 
     // Get development combinations using the slug
-    const combosResponse = await fetch(
-      `https://dorkroom.art/api/combinations?film=${film.slug}&limit=5`
-    );
+    const combosResponse = await fetch(`https://dorkroom.art/api/combinations?film=${film.slug}&limit=5`);
     const combosData = await combosResponse.json();
 
     console.log(`\nDevelopment options: ${combosData.data.length}`);
@@ -739,7 +763,7 @@ async function findDevelopmentRecipe() {
     console.log(`\nDevelopment options: ${combinations.length}`);
 
     // Show first 5 recipes
-    combinations.slice(0, 5).forEach(recipe => {
+    combinations.slice(0, 5).forEach((recipe) => {
       const developer = client.getDeveloper(recipe.developer);
 
       console.log(`\nRecipe: ${recipe.name}`);

@@ -350,6 +350,8 @@ export default function ResizeCalculatorPage() {
     const inches = validateAndConvert(originalWidthInput);
     if (inches !== null) {
       setOriginalWidthInches(inches);
+      const displayValue = toDisplay(Number(inches));
+      setOriginalWidthInput(String(Math.round(displayValue * 1000) / 1000));
     } else if (originalWidthInput === '' || /^\s*$/.test(originalWidthInput)) {
       setOriginalWidthInput(String(toDisplay(Number(originalWidth))));
     }
@@ -365,6 +367,8 @@ export default function ResizeCalculatorPage() {
     const inches = validateAndConvert(originalLengthInput);
     if (inches !== null) {
       setOriginalLengthInches(inches);
+      const displayValue = toDisplay(Number(inches));
+      setOriginalLengthInput(String(Math.round(displayValue * 1000) / 1000));
     } else if (
       originalLengthInput === '' ||
       /^\s*$/.test(originalLengthInput)
@@ -383,6 +387,8 @@ export default function ResizeCalculatorPage() {
     const inches = validateAndConvert(newWidthInput);
     if (inches !== null) {
       setNewWidthInches(inches);
+      const displayValue = toDisplay(Number(inches));
+      setNewWidthInput(String(Math.round(displayValue * 1000) / 1000));
     } else if (newWidthInput === '' || /^\s*$/.test(newWidthInput)) {
       setNewWidthInput(String(toDisplay(Number(newWidth))));
     }
@@ -398,6 +404,8 @@ export default function ResizeCalculatorPage() {
     const inches = validateAndConvert(newLengthInput);
     if (inches !== null) {
       setNewLengthInches(inches);
+      const displayValue = toDisplay(Number(inches));
+      setNewLengthInput(String(Math.round(displayValue * 1000) / 1000));
     } else if (newLengthInput === '' || /^\s*$/.test(newLengthInput)) {
       setNewLengthInput(String(toDisplay(Number(newLength))));
     }
@@ -413,6 +421,8 @@ export default function ResizeCalculatorPage() {
     const inches = validateAndConvert(originalHeightInput);
     if (inches !== null) {
       setOriginalHeightInches(inches);
+      const displayValue = toDisplay(Number(inches));
+      setOriginalHeightInput(String(Math.round(displayValue * 1000) / 1000));
     } else if (
       originalHeightInput === '' ||
       /^\s*$/.test(originalHeightInput)
@@ -431,6 +441,8 @@ export default function ResizeCalculatorPage() {
     const inches = validateAndConvert(newHeightInput);
     if (inches !== null) {
       setNewHeightInches(inches);
+      const displayValue = toDisplay(Number(inches));
+      setNewHeightInput(String(Math.round(displayValue * 1000) / 1000));
     } else if (newHeightInput === '' || /^\s*$/.test(newHeightInput)) {
       setNewHeightInput(String(toDisplay(Number(newHeight))));
     }
