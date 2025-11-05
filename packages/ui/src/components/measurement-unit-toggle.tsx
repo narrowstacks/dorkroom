@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useMeasurement } from '../contexts/measurement-context';
 
-export function MeasurementUnitToggle() {
+export function MeasurementUnitToggle(): React.JSX.Element {
   const { unit, toggleUnit } = useMeasurement();
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={unit === 'metric'}
+      aria-label="Measurement unit"
       onClick={toggleUnit}
       className="rounded-full border px-3 py-1.5 text-sm font-medium transition flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       style={{
@@ -18,9 +21,6 @@ export function MeasurementUnitToggle() {
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      aria-label={`Switch to ${
-        unit === 'imperial' ? 'Metric' : 'Imperial'
-      }`}
     >
       <span
         style={{

@@ -106,10 +106,7 @@ export function getUnitSymbol(unit: MeasurementUnit): string {
  * @param unit - Display unit preference
  * @returns Converted number
  */
-export function toDisplayValue(
-  inches: number,
-  unit: MeasurementUnit
-): number {
+export function toDisplayValue(inches: number, unit: MeasurementUnit): number {
   return convertInchesToDisplay(inches, unit);
 }
 
@@ -120,10 +117,7 @@ export function toDisplayValue(
  * @param unit - Current unit preference
  * @returns Value in inches
  */
-export function toInternalValue(
-  value: number,
-  unit: MeasurementUnit
-): number {
+export function toInternalValue(value: number, unit: MeasurementUnit): number {
   return convertDisplayToInches(value, unit);
 }
 

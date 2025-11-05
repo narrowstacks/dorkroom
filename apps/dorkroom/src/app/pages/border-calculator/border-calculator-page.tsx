@@ -20,6 +20,7 @@ import {
   ShareModal,
   SaveBeforeShareModal,
   useMeasurementFormatter,
+  useMeasurementConverter,
 } from '@dorkroom/ui';
 import {
   AnimatedPreview,
@@ -53,6 +54,7 @@ export default function BorderCalculatorPage() {
   const { width } = useWindowDimensions();
   const isDesktop = width > DESKTOP_BREAKPOINT;
   const { formatWithUnit, formatDimensions, unit } = useMeasurementFormatter();
+  const { toInches, toDisplay } = useMeasurementConverter();
 
   const {
     aspectRatio,
@@ -581,16 +583,16 @@ export default function BorderCalculatorPage() {
 
               {paperSize === 'custom' && (
                 <DimensionInputGroup
-                  widthValue={String(customPaperWidth)}
+                  widthValue={String(toDisplay(customPaperWidth))}
                   onWidthChange={(value) =>
-                    setCustomPaperWidth(Number(value) || 0)
+                    setCustomPaperWidth(toInches(Number(value) || 0))
                   }
-                  heightValue={String(customPaperHeight)}
+                  heightValue={String(toDisplay(customPaperHeight))}
                   onHeightChange={(value) =>
-                    setCustomPaperHeight(Number(value) || 0)
+                    setCustomPaperHeight(toInches(Number(value) || 0))
                   }
-                  widthLabel="Width (inches)"
-                  heightLabel="Height (inches)"
+                  widthLabel="Width"
+                  heightLabel="Height"
                   widthPlaceholder="Width"
                   heightPlaceholder="Height"
                 />

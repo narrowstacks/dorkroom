@@ -5,6 +5,7 @@ import {
   DimensionInputGroup,
   useMeasurement,
   formatDimensions,
+  useMeasurementConverter,
 } from '@dorkroom/ui';
 import { ASPECT_RATIOS, PAPER_SIZES, type SelectItem } from '@dorkroom/logic';
 
@@ -48,6 +49,7 @@ export function PaperSizeSection({
   setIsRatioFlipped,
 }: PaperSizeSectionProps) {
   const { unit } = useMeasurement();
+  const { toInches, toDisplay } = useMeasurementConverter();
 
   // Transform paper sizes to show metric with imperial reference when in metric mode
   const displayPaperSizes = useMemo(() => {
@@ -118,10 +120,14 @@ export function PaperSizeSection({
 
         {paperSize === 'custom' && (
           <DimensionInputGroup
-            widthValue={String(customPaperWidth)}
-            onWidthChange={(value) => setCustomPaperWidth(Number(value) || 0)}
-            heightValue={String(customPaperHeight)}
-            onHeightChange={(value) => setCustomPaperHeight(Number(value) || 0)}
+            widthValue={String(toDisplay(customPaperWidth))}
+            onWidthChange={(value) =>
+              setCustomPaperWidth(toInches(Number(value) || 0))
+            }
+            heightValue={String(toDisplay(customPaperHeight))}
+            onHeightChange={(value) =>
+              setCustomPaperHeight(toInches(Number(value) || 0))
+            }
             widthLabel="Width"
             heightLabel="Height"
             widthPlaceholder="Width"

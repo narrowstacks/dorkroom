@@ -7,6 +7,7 @@ import {
   CalculatorStat,
   colorMixOr,
   useMeasurement,
+  useMeasurementConverter,
 } from '@dorkroom/ui';
 import {
   useResizeCalculator,
@@ -233,28 +234,43 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
 export default function ResizeCalculatorPage() {
   const { unit } = useMeasurement();
   const unitLabel = unit === 'imperial' ? 'in' : 'cm';
+  const { toInches, toDisplay } = useMeasurementConverter();
 
   const {
     isEnlargerHeightMode,
     setIsEnlargerHeightMode,
     originalWidth,
-    setOriginalWidth,
+    setOriginalWidth: setOriginalWidthInches,
     originalLength,
-    setOriginalLength,
+    setOriginalLength: setOriginalLengthInches,
     newWidth,
-    setNewWidth,
+    setNewWidth: setNewWidthInches,
     newLength,
-    setNewLength,
+    setNewLength: setNewLengthInches,
     originalTime,
     setOriginalTime,
     newTime,
     stopsDifference,
     isAspectRatioMatched,
     originalHeight,
-    setOriginalHeight,
+    setOriginalHeight: setOriginalHeightInches,
     newHeight,
-    setNewHeight,
+    setNewHeight: setNewHeightInches,
   } = useResizeCalculator();
+
+  // Wrap setters to convert from display units to inches
+  const setOriginalWidth = (value: string) =>
+    setOriginalWidthInches(String(toInches(Number(value) || 0)));
+  const setOriginalLength = (value: string) =>
+    setOriginalLengthInches(String(toInches(Number(value) || 0)));
+  const setNewWidth = (value: string) =>
+    setNewWidthInches(String(toInches(Number(value) || 0)));
+  const setNewLength = (value: string) =>
+    setNewLengthInches(String(toInches(Number(value) || 0)));
+  const setOriginalHeight = (value: string) =>
+    setOriginalHeightInches(String(toInches(Number(value) || 0)));
+  const setNewHeight = (value: string) =>
+    setNewHeightInches(String(toInches(Number(value) || 0)));
 
   const stopsNumber = parseFloat(stopsDifference);
   const stopsHelper = Number.isFinite(stopsNumber)
@@ -296,17 +312,21 @@ export default function ResizeCalculatorPage() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <CalculatorNumberField
                       label="Width"
-                      value={originalWidth}
+                      value={String(toDisplay(Number(originalWidth)))}
                       onChange={setOriginalWidth}
-                      placeholder={DEFAULT_ORIGINAL_WIDTH}
+                      placeholder={String(
+                        toDisplay(Number(DEFAULT_ORIGINAL_WIDTH))
+                      )}
                       step={0.1}
                       unit={unitLabel}
                     />
                     <CalculatorNumberField
                       label="Height"
-                      value={originalLength}
+                      value={String(toDisplay(Number(originalLength)))}
                       onChange={setOriginalLength}
-                      placeholder={DEFAULT_ORIGINAL_LENGTH}
+                      placeholder={String(
+                        toDisplay(Number(DEFAULT_ORIGINAL_LENGTH))
+                      )}
                       step={0.1}
                       unit={unitLabel}
                     />
@@ -323,17 +343,19 @@ export default function ResizeCalculatorPage() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <CalculatorNumberField
                       label="Width"
-                      value={newWidth}
+                      value={String(toDisplay(Number(newWidth)))}
                       onChange={setNewWidth}
-                      placeholder={DEFAULT_NEW_WIDTH}
+                      placeholder={String(toDisplay(Number(DEFAULT_NEW_WIDTH)))}
                       step={0.1}
                       unit={unitLabel}
                     />
                     <CalculatorNumberField
                       label="Height"
-                      value={newLength}
+                      value={String(toDisplay(Number(newLength)))}
                       onChange={setNewLength}
-                      placeholder={DEFAULT_NEW_LENGTH}
+                      placeholder={String(
+                        toDisplay(Number(DEFAULT_NEW_LENGTH))
+                      )}
                       step={0.1}
                       unit={unitLabel}
                     />
@@ -351,17 +373,19 @@ export default function ResizeCalculatorPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <CalculatorNumberField
                     label="Original height"
-                    value={originalHeight}
+                    value={String(toDisplay(Number(originalHeight)))}
                     onChange={setOriginalHeight}
-                    placeholder={DEFAULT_ORIGINAL_HEIGHT}
+                    placeholder={String(
+                      toDisplay(Number(DEFAULT_ORIGINAL_HEIGHT))
+                    )}
                     step={1}
                     unit={unitLabel}
                   />
                   <CalculatorNumberField
                     label="New height"
-                    value={newHeight}
+                    value={String(toDisplay(Number(newHeight)))}
                     onChange={setNewHeight}
-                    placeholder={DEFAULT_NEW_HEIGHT}
+                    placeholder={String(toDisplay(Number(DEFAULT_NEW_HEIGHT)))}
                     step={1}
                     unit={unitLabel}
                   />
