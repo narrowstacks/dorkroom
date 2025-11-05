@@ -114,13 +114,17 @@ export default function BorderCalculatorPage() {
   // Sync local state when parent state or unit changes (but not while editing)
   useEffect(() => {
     if (!isEditingPaperWidth) {
-      setPaperWidthInput(String(toDisplay(customPaperWidth)));
+      const displayValue = toDisplay(customPaperWidth);
+      // Round to 3 decimals to avoid floating point artifacts
+      setPaperWidthInput(String(Math.round(displayValue * 1000) / 1000));
     }
   }, [customPaperWidth, toDisplay, isEditingPaperWidth]);
 
   useEffect(() => {
     if (!isEditingPaperHeight) {
-      setPaperHeightInput(String(toDisplay(customPaperHeight)));
+      const displayValue = toDisplay(customPaperHeight);
+      // Round to 3 decimals to avoid floating point artifacts
+      setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
     }
   }, [customPaperHeight, toDisplay, isEditingPaperHeight]);
 

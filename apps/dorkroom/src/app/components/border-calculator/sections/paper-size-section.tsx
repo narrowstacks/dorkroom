@@ -64,13 +64,17 @@ export function PaperSizeSection({
   // Sync local state when parent state or unit changes (but not while editing)
   useEffect(() => {
     if (!isEditingWidth) {
-      setPaperWidthInput(String(toDisplay(customPaperWidth)));
+      const displayValue = toDisplay(customPaperWidth);
+      // Round to 3 decimals to avoid floating point artifacts
+      setPaperWidthInput(String(Math.round(displayValue * 1000) / 1000));
     }
   }, [customPaperWidth, toDisplay, isEditingWidth]);
 
   useEffect(() => {
     if (!isEditingHeight) {
-      setPaperHeightInput(String(toDisplay(customPaperHeight)));
+      const displayValue = toDisplay(customPaperHeight);
+      // Round to 3 decimals to avoid floating point artifacts
+      setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
     }
   }, [customPaperHeight, toDisplay, isEditingHeight]);
 
