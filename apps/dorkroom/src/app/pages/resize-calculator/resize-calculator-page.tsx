@@ -355,7 +355,7 @@ export default function ResizeCalculatorPage() {
                     onChange={setOriginalHeight}
                     placeholder={DEFAULT_ORIGINAL_HEIGHT}
                     step={1}
-                    unit="in"
+                    unit={unitLabel}
                   />
                   <CalculatorNumberField
                     label="New height"
@@ -363,7 +363,7 @@ export default function ResizeCalculatorPage() {
                     onChange={setNewHeight}
                     placeholder={DEFAULT_NEW_HEIGHT}
                     step={1}
-                    unit="in"
+                    unit={unitLabel}
                   />
                 </div>
               </div>
