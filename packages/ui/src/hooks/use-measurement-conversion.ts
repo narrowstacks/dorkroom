@@ -5,6 +5,7 @@
  * to provide easy-to-use measurement conversion in React components.
  */
 
+import { useMemo, useCallback } from 'react';
 import { useMeasurement } from '../contexts/measurement-context';
 import {
   formatMeasurementWithUnit,
@@ -80,37 +81,52 @@ export function useMeasurementFormatter() {
 export function useMeasurementConverter() {
   const { unit } = useMeasurement();
 
-  return {
-    /**
-     * Convert inches to display value (respects current unit)
-     */
-    toDisplay: (inches: number) => toDisplayValue(inches, unit),
+  // Memoize conversion functions to preserve referential equality
+  const toDisplay = useCallback(
+    (inches: number) => toDisplayValue(inches, unit),
+    [unit]
+  );
 
-    /**
-     * Convert display value to inches for calculations
-     */
-    toInches: (value: number) => toInternalValue(value, unit),
+  const toInches = useCallback(
+    (value: number) => toInternalValue(value, unit),
+    [unit]
+  );
 
-    /**
-     * Get the appropriate step size for inputs
-     */
-    stepSize: getInputStepSize(unit),
+  // Memoize the entire return object to preserve referential equality
+  return useMemo(
+    () => ({
+      /**
+       * Convert inches to display value (respects current unit)
+       */
+      toDisplay,
 
-    /**
-     * Get the current unit label
-     */
-    unitLabel: getUnitLabel(unit),
+      /**
+       * Convert display value to inches for calculations
+       */
+      toInches,
 
-    /**
-     * Get the current display precision
-     */
-    precision: getDisplayPrecision(unit),
+      /**
+       * Get the appropriate step size for inputs
+       */
+      stepSize: getInputStepSize(unit),
 
-    /**
-     * Current unit preference
-     */
-    unit,
-  };
+      /**
+       * Get the current unit label
+       */
+      unitLabel: getUnitLabel(unit),
+
+      /**
+       * Get the current display precision
+       */
+      precision: getDisplayPrecision(unit),
+
+      /**
+       * Current unit preference
+       */
+      unit,
+    }),
+    [unit, toDisplay, toInches]
+  );
 }
 
 /**

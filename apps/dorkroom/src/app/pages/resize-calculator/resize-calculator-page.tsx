@@ -232,6 +232,75 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
   );
 }
 
+/**
+ * Custom hook for managing a convertible dimension input field.
+ * Handles local string state, unit conversion, validation, and sync with parent state.
+ *
+ * @param inchesValue - Current value in inches
+ * @param setInchesValue - Setter for the inches value
+ * @param toDisplay - Function to convert inches to display units
+ * @param toInches - Function to convert display units to inches
+ * @returns Object with value, onChange, and onBlur handlers for the input
+ */
+function useConvertibleDimensionInput(
+  inchesValue: string,
+  setInchesValue: (value: string) => void,
+  toDisplay: (inches: number) => number,
+  toInches: (value: number) => number
+) {
+  const [inputValue, setInputValue] = useState(
+    String(toDisplay(Number(inchesValue)))
+  );
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Sync display value when parent inches value or unit changes (but not while editing)
+  useEffect(() => {
+    if (!isEditing) {
+      const displayValue = toDisplay(Number(inchesValue));
+      setInputValue(String(Math.round(displayValue * 1000) / 1000));
+    }
+  }, [inchesValue, toDisplay, isEditing]);
+
+  // Helper to validate and convert input to inches
+  const validateAndConvert = (value: string): string | null => {
+    // Allow empty, whitespace, or trailing decimal point
+    if (value === '' || /^\s*$/.test(value) || /^\d*\.$/.test(value)) {
+      return null;
+    }
+
+    const parsed = parseFloat(value);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return String(toInches(parsed));
+    }
+
+    return null;
+  };
+
+  const handleChange = (value: string) => {
+    setIsEditing(true);
+    setInputValue(value);
+  };
+
+  const handleBlur = () => {
+    setIsEditing(false);
+    const inches = validateAndConvert(inputValue);
+    if (inches !== null) {
+      setInchesValue(inches);
+      const displayValue = toDisplay(Number(inches));
+      setInputValue(String(Math.round(displayValue * 1000) / 1000));
+    } else {
+      // Reset to current value for empty/whitespace or clear invalid non-empty input
+      setInputValue(String(toDisplay(Number(inchesValue))));
+    }
+  };
+
+  return {
+    value: inputValue,
+    onChange: handleChange,
+    onBlur: handleBlur,
+  };
+}
+
 export default function ResizeCalculatorPage() {
   const { unit } = useMeasurement();
   const unitLabel = unit === 'imperial' ? 'in' : 'cm';
@@ -259,200 +328,48 @@ export default function ResizeCalculatorPage() {
     setNewHeight: setNewHeightInches,
   } = useResizeCalculator();
 
-  // Local string state for dimension inputs (in display units)
-  const [originalWidthInput, setOriginalWidthInput] = useState(
-    String(toDisplay(Number(originalWidth)))
-  );
-  const [originalLengthInput, setOriginalLengthInput] = useState(
-    String(toDisplay(Number(originalLength)))
-  );
-  const [newWidthInput, setNewWidthInput] = useState(
-    String(toDisplay(Number(newWidth)))
-  );
-  const [newLengthInput, setNewLengthInput] = useState(
-    String(toDisplay(Number(newLength)))
-  );
-  const [originalHeightInput, setOriginalHeightInput] = useState(
-    String(toDisplay(Number(originalHeight)))
-  );
-  const [newHeightInput, setNewHeightInput] = useState(
-    String(toDisplay(Number(newHeight)))
+  // Use the reusable hook for each dimension input
+  const originalWidthInput = useConvertibleDimensionInput(
+    originalWidth,
+    setOriginalWidthInches,
+    toDisplay,
+    toInches
   );
 
-  // Editing flags to prevent sync while user is typing
-  const [isEditingOriginalWidth, setIsEditingOriginalWidth] = useState(false);
-  const [isEditingOriginalLength, setIsEditingOriginalLength] = useState(false);
-  const [isEditingNewWidth, setIsEditingNewWidth] = useState(false);
-  const [isEditingNewLength, setIsEditingNewLength] = useState(false);
-  const [isEditingOriginalHeight, setIsEditingOriginalHeight] = useState(false);
-  const [isEditingNewHeight, setIsEditingNewHeight] = useState(false);
+  const originalLengthInput = useConvertibleDimensionInput(
+    originalLength,
+    setOriginalLengthInches,
+    toDisplay,
+    toInches
+  );
 
-  // Sync local state when parent state or unit changes (but not while editing)
-  useEffect(() => {
-    if (!isEditingOriginalWidth) {
-      const displayValue = toDisplay(Number(originalWidth));
-      setOriginalWidthInput(String(Math.round(displayValue * 1000) / 1000));
-    }
-  }, [originalWidth, toDisplay, isEditingOriginalWidth]);
+  const newWidthInput = useConvertibleDimensionInput(
+    newWidth,
+    setNewWidthInches,
+    toDisplay,
+    toInches
+  );
 
-  useEffect(() => {
-    if (!isEditingOriginalLength) {
-      const displayValue = toDisplay(Number(originalLength));
-      setOriginalLengthInput(String(Math.round(displayValue * 1000) / 1000));
-    }
-  }, [originalLength, toDisplay, isEditingOriginalLength]);
+  const newLengthInput = useConvertibleDimensionInput(
+    newLength,
+    setNewLengthInches,
+    toDisplay,
+    toInches
+  );
 
-  useEffect(() => {
-    if (!isEditingNewWidth) {
-      const displayValue = toDisplay(Number(newWidth));
-      setNewWidthInput(String(Math.round(displayValue * 1000) / 1000));
-    }
-  }, [newWidth, toDisplay, isEditingNewWidth]);
+  const originalHeightInput = useConvertibleDimensionInput(
+    originalHeight,
+    setOriginalHeightInches,
+    toDisplay,
+    toInches
+  );
 
-  useEffect(() => {
-    if (!isEditingNewLength) {
-      const displayValue = toDisplay(Number(newLength));
-      setNewLengthInput(String(Math.round(displayValue * 1000) / 1000));
-    }
-  }, [newLength, toDisplay, isEditingNewLength]);
-
-  useEffect(() => {
-    if (!isEditingOriginalHeight) {
-      const displayValue = toDisplay(Number(originalHeight));
-      setOriginalHeightInput(String(Math.round(displayValue * 1000) / 1000));
-    }
-  }, [originalHeight, toDisplay, isEditingOriginalHeight]);
-
-  useEffect(() => {
-    if (!isEditingNewHeight) {
-      const displayValue = toDisplay(Number(newHeight));
-      setNewHeightInput(String(Math.round(displayValue * 1000) / 1000));
-    }
-  }, [newHeight, toDisplay, isEditingNewHeight]);
-
-  // Helper to validate and convert input to inches
-  const validateAndConvert = (value: string): string | null => {
-    // Allow empty, whitespace, or trailing decimal point
-    if (value === '' || /^\s*$/.test(value) || /^\d*\.$/.test(value)) {
-      return null;
-    }
-
-    const parsed = parseFloat(value);
-    if (Number.isFinite(parsed) && parsed >= 0) {
-      return String(toInches(parsed));
-    }
-
-    return null;
-  };
-
-  // Create handlers for each input
-  const handleOriginalWidthChange = (value: string) => {
-    setIsEditingOriginalWidth(true);
-    setOriginalWidthInput(value);
-  };
-
-  const handleOriginalWidthBlur = () => {
-    setIsEditingOriginalWidth(false);
-    const inches = validateAndConvert(originalWidthInput);
-    if (inches !== null) {
-      setOriginalWidthInches(inches);
-      const displayValue = toDisplay(Number(inches));
-      setOriginalWidthInput(String(Math.round(displayValue * 1000) / 1000));
-    } else if (originalWidthInput === '' || /^\s*$/.test(originalWidthInput)) {
-      setOriginalWidthInput(String(toDisplay(Number(originalWidth))));
-    }
-  };
-
-  const handleOriginalLengthChange = (value: string) => {
-    setIsEditingOriginalLength(true);
-    setOriginalLengthInput(value);
-  };
-
-  const handleOriginalLengthBlur = () => {
-    setIsEditingOriginalLength(false);
-    const inches = validateAndConvert(originalLengthInput);
-    if (inches !== null) {
-      setOriginalLengthInches(inches);
-      const displayValue = toDisplay(Number(inches));
-      setOriginalLengthInput(String(Math.round(displayValue * 1000) / 1000));
-    } else if (
-      originalLengthInput === '' ||
-      /^\s*$/.test(originalLengthInput)
-    ) {
-      setOriginalLengthInput(String(toDisplay(Number(originalLength))));
-    }
-  };
-
-  const handleNewWidthChange = (value: string) => {
-    setIsEditingNewWidth(true);
-    setNewWidthInput(value);
-  };
-
-  const handleNewWidthBlur = () => {
-    setIsEditingNewWidth(false);
-    const inches = validateAndConvert(newWidthInput);
-    if (inches !== null) {
-      setNewWidthInches(inches);
-      const displayValue = toDisplay(Number(inches));
-      setNewWidthInput(String(Math.round(displayValue * 1000) / 1000));
-    } else if (newWidthInput === '' || /^\s*$/.test(newWidthInput)) {
-      setNewWidthInput(String(toDisplay(Number(newWidth))));
-    }
-  };
-
-  const handleNewLengthChange = (value: string) => {
-    setIsEditingNewLength(true);
-    setNewLengthInput(value);
-  };
-
-  const handleNewLengthBlur = () => {
-    setIsEditingNewLength(false);
-    const inches = validateAndConvert(newLengthInput);
-    if (inches !== null) {
-      setNewLengthInches(inches);
-      const displayValue = toDisplay(Number(inches));
-      setNewLengthInput(String(Math.round(displayValue * 1000) / 1000));
-    } else if (newLengthInput === '' || /^\s*$/.test(newLengthInput)) {
-      setNewLengthInput(String(toDisplay(Number(newLength))));
-    }
-  };
-
-  const handleOriginalHeightChange = (value: string) => {
-    setIsEditingOriginalHeight(true);
-    setOriginalHeightInput(value);
-  };
-
-  const handleOriginalHeightBlur = () => {
-    setIsEditingOriginalHeight(false);
-    const inches = validateAndConvert(originalHeightInput);
-    if (inches !== null) {
-      setOriginalHeightInches(inches);
-      const displayValue = toDisplay(Number(inches));
-      setOriginalHeightInput(String(Math.round(displayValue * 1000) / 1000));
-    } else if (
-      originalHeightInput === '' ||
-      /^\s*$/.test(originalHeightInput)
-    ) {
-      setOriginalHeightInput(String(toDisplay(Number(originalHeight))));
-    }
-  };
-
-  const handleNewHeightChange = (value: string) => {
-    setIsEditingNewHeight(true);
-    setNewHeightInput(value);
-  };
-
-  const handleNewHeightBlur = () => {
-    setIsEditingNewHeight(false);
-    const inches = validateAndConvert(newHeightInput);
-    if (inches !== null) {
-      setNewHeightInches(inches);
-      const displayValue = toDisplay(Number(inches));
-      setNewHeightInput(String(Math.round(displayValue * 1000) / 1000));
-    } else if (newHeightInput === '' || /^\s*$/.test(newHeightInput)) {
-      setNewHeightInput(String(toDisplay(Number(newHeight))));
-    }
-  };
+  const newHeightInput = useConvertibleDimensionInput(
+    newHeight,
+    setNewHeightInches,
+    toDisplay,
+    toInches
+  );
 
   const stopsNumber = parseFloat(stopsDifference);
   const stopsHelper = Number.isFinite(stopsNumber)
@@ -494,9 +411,9 @@ export default function ResizeCalculatorPage() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <CalculatorNumberField
                       label="Width"
-                      value={originalWidthInput}
-                      onChange={handleOriginalWidthChange}
-                      onBlur={handleOriginalWidthBlur}
+                      value={originalWidthInput.value}
+                      onChange={originalWidthInput.onChange}
+                      onBlur={originalWidthInput.onBlur}
                       placeholder={String(
                         toDisplay(Number(DEFAULT_ORIGINAL_WIDTH))
                       )}
@@ -505,9 +422,9 @@ export default function ResizeCalculatorPage() {
                     />
                     <CalculatorNumberField
                       label="Height"
-                      value={originalLengthInput}
-                      onChange={handleOriginalLengthChange}
-                      onBlur={handleOriginalLengthBlur}
+                      value={originalLengthInput.value}
+                      onChange={originalLengthInput.onChange}
+                      onBlur={originalLengthInput.onBlur}
                       placeholder={String(
                         toDisplay(Number(DEFAULT_ORIGINAL_LENGTH))
                       )}
@@ -527,18 +444,18 @@ export default function ResizeCalculatorPage() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <CalculatorNumberField
                       label="Width"
-                      value={newWidthInput}
-                      onChange={handleNewWidthChange}
-                      onBlur={handleNewWidthBlur}
+                      value={newWidthInput.value}
+                      onChange={newWidthInput.onChange}
+                      onBlur={newWidthInput.onBlur}
                       placeholder={String(toDisplay(Number(DEFAULT_NEW_WIDTH)))}
                       step={0.1}
                       unit={unitLabel}
                     />
                     <CalculatorNumberField
                       label="Height"
-                      value={newLengthInput}
-                      onChange={handleNewLengthChange}
-                      onBlur={handleNewLengthBlur}
+                      value={newLengthInput.value}
+                      onChange={newLengthInput.onChange}
+                      onBlur={newLengthInput.onBlur}
                       placeholder={String(
                         toDisplay(Number(DEFAULT_NEW_LENGTH))
                       )}
@@ -559,9 +476,9 @@ export default function ResizeCalculatorPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <CalculatorNumberField
                     label="Original height"
-                    value={originalHeightInput}
-                    onChange={handleOriginalHeightChange}
-                    onBlur={handleOriginalHeightBlur}
+                    value={originalHeightInput.value}
+                    onChange={originalHeightInput.onChange}
+                    onBlur={originalHeightInput.onBlur}
                     placeholder={String(
                       toDisplay(Number(DEFAULT_ORIGINAL_HEIGHT))
                     )}
@@ -570,9 +487,9 @@ export default function ResizeCalculatorPage() {
                   />
                   <CalculatorNumberField
                     label="New height"
-                    value={newHeightInput}
-                    onChange={handleNewHeightChange}
-                    onBlur={handleNewHeightBlur}
+                    value={newHeightInput.value}
+                    onChange={newHeightInput.onChange}
+                    onBlur={newHeightInput.onBlur}
                     placeholder={String(toDisplay(Number(DEFAULT_NEW_HEIGHT)))}
                     step={1}
                     unit={unitLabel}
