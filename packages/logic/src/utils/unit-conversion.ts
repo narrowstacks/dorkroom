@@ -104,12 +104,18 @@ export function getDisplayUnitSymbol(unit: MeasurementUnit): string {
 /**
  * Convert inches to the appropriate display value based on unit preference
  * This is the main conversion function for displaying measurements
+ * Applies rounding to avoid floating point precision errors
  */
 export function convertInchesToDisplay(
   inches: number,
   unit: MeasurementUnit
 ): number {
-  return unit === 'imperial' ? inches : inchesToCm(inches);
+  if (unit === 'imperial') {
+    return inches;
+  }
+  // For metric, round to 3 decimal places to avoid floating point precision errors
+  // (e.g., 2.165 inches -> 5.5001... becomes 5.5)
+  return roundToThreeDecimals(inchesToCm(inches));
 }
 
 /**
