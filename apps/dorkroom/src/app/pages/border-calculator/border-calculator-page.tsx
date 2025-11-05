@@ -19,6 +19,7 @@ import {
   CalculatorStat,
   ShareModal,
   SaveBeforeShareModal,
+  useMeasurementFormatter,
 } from '@dorkroom/ui';
 import {
   AnimatedPreview,
@@ -51,6 +52,7 @@ import {
 export default function BorderCalculatorPage() {
   const { width } = useWindowDimensions();
   const isDesktop = width > DESKTOP_BREAKPOINT;
+  const { formatWithUnit, formatDimensions, unit } = useMeasurementFormatter();
 
   const {
     aspectRatio,
@@ -96,6 +98,29 @@ export default function BorderCalculatorPage() {
   } = useBorderCalculator();
 
   const { presets, addPreset, updatePreset, removePreset } = useBorderPresets();
+
+  // Transform paper sizes to show metric with imperial reference when in metric mode
+  const displayPaperSizes = useMemo(() => {
+    return PAPER_SIZES.map((size) => {
+      if (size.value === 'custom') {
+        return size; // Keep "Custom Paper Size" as is
+      }
+
+      if (unit === 'metric') {
+        // Show metric dimensions with imperial reference
+        // e.g., "20×25cm (8×10in)"
+        const metricLabel = formatDimensions(size.width, size.height);
+        const imperialLabel = `${size.width}×${size.height}in`;
+        return {
+          ...size,
+          label: `${metricLabel} (${imperialLabel})`,
+        };
+      }
+
+      // In imperial mode, keep original labels
+      return size;
+    });
+  }, [unit, formatDimensions]);
 
   const [selectedPresetId, setSelectedPresetId] = useState('');
   const [presetName, setPresetName] = useState('');
@@ -450,45 +475,46 @@ export default function BorderCalculatorPage() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   <CalculatorStat
                     label="Left blade"
-                    value={`${
+                    value={formatWithUnit(
                       !isLandscape
-                        ? calculation.topBladeReading.toFixed(2)
-                        : calculation.leftBladeReading.toFixed(2)
-                    } in`}
+                        ? calculation.topBladeReading
+                        : calculation.leftBladeReading
+                    )}
                     className="p-4"
                   />
                   <CalculatorStat
                     label="Right blade"
-                    value={`${
+                    value={formatWithUnit(
                       !isLandscape
-                        ? calculation.bottomBladeReading.toFixed(2)
-                        : calculation.rightBladeReading.toFixed(2)
-                    } in`}
+                        ? calculation.bottomBladeReading
+                        : calculation.rightBladeReading
+                    )}
                     className="p-4"
                   />
                   <CalculatorStat
                     label="Top blade"
-                    value={`${
+                    value={formatWithUnit(
                       !isLandscape
-                        ? calculation.leftBladeReading.toFixed(2)
-                        : calculation.topBladeReading.toFixed(2)
-                    } in`}
+                        ? calculation.leftBladeReading
+                        : calculation.topBladeReading
+                    )}
                     className="p-4"
                   />
                   <CalculatorStat
                     label="Bottom blade"
-                    value={`${
+                    value={formatWithUnit(
                       !isLandscape
-                        ? calculation.rightBladeReading.toFixed(2)
-                        : calculation.bottomBladeReading.toFixed(2)
-                    } in`}
+                        ? calculation.rightBladeReading
+                        : calculation.bottomBladeReading
+                    )}
                     className="p-4"
                   />
                   <CalculatorStat
                     label="Image size"
-                    value={`${calculation.printWidth.toFixed(
-                      2
-                    )} × ${calculation.printHeight.toFixed(2)} in`}
+                    value={formatDimensions(
+                      calculation.printWidth,
+                      calculation.printHeight
+                    )}
                     helperText="Final image area within the borders."
                     className="sm:col-span-2 p-4"
                   />
@@ -549,7 +575,7 @@ export default function BorderCalculatorPage() {
                 label="Paper size"
                 selectedValue={paperSize}
                 onValueChange={setPaperSize}
-                items={PAPER_SIZES as SelectItem[]}
+                items={displayPaperSizes as SelectItem[]}
                 placeholder="Select"
               />
 

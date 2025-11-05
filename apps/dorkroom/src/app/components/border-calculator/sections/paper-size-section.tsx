@@ -1,5 +1,11 @@
+import { useMemo } from 'react';
 import { X, RotateCw, Square } from 'lucide-react';
-import { Select, DimensionInputGroup } from '@dorkroom/ui';
+import {
+  Select,
+  DimensionInputGroup,
+  useMeasurement,
+  formatDimensions,
+} from '@dorkroom/ui';
 import { ASPECT_RATIOS, PAPER_SIZES, type SelectItem } from '@dorkroom/logic';
 
 interface PaperSizeSectionProps {
@@ -41,6 +47,31 @@ export function PaperSizeSection({
   isRatioFlipped,
   setIsRatioFlipped,
 }: PaperSizeSectionProps) {
+  const { unit } = useMeasurement();
+
+  // Transform paper sizes to show metric with imperial reference when in metric mode
+  const displayPaperSizes = useMemo(() => {
+    return PAPER_SIZES.map((size) => {
+      if (size.value === 'custom') {
+        return size; // Keep "Custom Paper Size" as is
+      }
+
+      if (unit === 'metric') {
+        // Show metric dimensions with imperial reference
+        // e.g., "20.3×25.4cm (8×10in)"
+        const metricLabel = formatDimensions(size.width, size.height, unit);
+        const imperialLabel = `${size.width}×${size.height}in`;
+        return {
+          ...size,
+          label: `${metricLabel} (${imperialLabel})`,
+        };
+      }
+
+      // In imperial mode, keep original labels
+      return size;
+    });
+  }, [unit]);
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -81,7 +112,7 @@ export function PaperSizeSection({
           label="Paper Size:"
           selectedValue={paperSize}
           onValueChange={setPaperSize}
-          items={PAPER_SIZES as SelectItem[]}
+          items={displayPaperSizes as SelectItem[]}
           placeholder="Select Paper Size"
         />
 
@@ -91,8 +122,8 @@ export function PaperSizeSection({
             onWidthChange={(value) => setCustomPaperWidth(Number(value) || 0)}
             heightValue={String(customPaperHeight)}
             onHeightChange={(value) => setCustomPaperHeight(Number(value) || 0)}
-            widthLabel="Width (inches):"
-            heightLabel="Height (inches):"
+            widthLabel="Width"
+            heightLabel="Height"
             widthPlaceholder="Width"
             heightPlaceholder="Height"
           />

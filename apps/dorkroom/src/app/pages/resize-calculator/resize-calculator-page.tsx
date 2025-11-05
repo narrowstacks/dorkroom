@@ -6,6 +6,7 @@ import {
   CalculatorPageHeader,
   CalculatorStat,
   colorMixOr,
+  useMeasurement,
 } from '@dorkroom/ui';
 import {
   useResizeCalculator,
@@ -230,6 +231,9 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
 }
 
 export default function ResizeCalculatorPage() {
+  const { unit } = useMeasurement();
+  const unitLabel = unit === 'imperial' ? 'in' : 'cm';
+
   const {
     isEnlargerHeightMode,
     setIsEnlargerHeightMode,
@@ -296,7 +300,7 @@ export default function ResizeCalculatorPage() {
                       onChange={setOriginalWidth}
                       placeholder={DEFAULT_ORIGINAL_WIDTH}
                       step={0.1}
-                      unit="in"
+                      unit={unitLabel}
                     />
                     <CalculatorNumberField
                       label="Height"
@@ -304,7 +308,7 @@ export default function ResizeCalculatorPage() {
                       onChange={setOriginalLength}
                       placeholder={DEFAULT_ORIGINAL_LENGTH}
                       step={0.1}
-                      unit="in"
+                      unit={unitLabel}
                     />
                   </div>
                 </div>
@@ -323,7 +327,7 @@ export default function ResizeCalculatorPage() {
                       onChange={setNewWidth}
                       placeholder={DEFAULT_NEW_WIDTH}
                       step={0.1}
-                      unit="in"
+                      unit={unitLabel}
                     />
                     <CalculatorNumberField
                       label="Height"
@@ -331,7 +335,7 @@ export default function ResizeCalculatorPage() {
                       onChange={setNewLength}
                       placeholder={DEFAULT_NEW_LENGTH}
                       step={0.1}
-                      unit="in"
+                      unit={unitLabel}
                     />
                   </div>
                 </div>

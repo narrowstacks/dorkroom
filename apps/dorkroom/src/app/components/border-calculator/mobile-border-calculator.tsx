@@ -22,6 +22,8 @@ import {
   DrawerBody,
   ShareModal,
   SaveBeforeShareModal,
+  useMeasurement,
+  formatDimensions,
 } from '@dorkroom/ui';
 
 // Sections
@@ -39,6 +41,7 @@ import {
   usePresetSharing,
   type BorderPreset,
   type BorderSettings,
+  PAPER_SIZES,
 } from '@dorkroom/logic';
 import { useTheme } from '../../contexts/theme-context';
 
@@ -72,6 +75,9 @@ export function MobileBorderCalculator({
   // Theme
   const { resolvedTheme } = useTheme();
   const isHighContrast = resolvedTheme === 'high-contrast';
+
+  // Measurement unit
+  const { unit } = useMeasurement();
 
   // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -173,10 +179,24 @@ export function MobileBorderCalculator({
 
   // Display values
   const paperSizeDisplayValue = useMemo(() => {
-    return paperSize === 'custom'
-      ? `${customPaperWidth}" × ${customPaperHeight}"`
-      : paperSize;
-  }, [paperSize, customPaperWidth, customPaperHeight]);
+    if (paperSize === 'custom') {
+      return `${customPaperWidth}" × ${customPaperHeight}"`;
+    }
+
+    // Find the paper size in PAPER_SIZES to get dimensions
+    const size = PAPER_SIZES.find((s) => s.value === paperSize);
+    if (!size) return paperSize;
+
+    // If metric, show metric with imperial reference
+    if (unit === 'metric') {
+      const metricLabel = formatDimensions(size.width, size.height, unit);
+      const imperialLabel = `${size.width}×${size.height}in`;
+      return `${metricLabel} (${imperialLabel})`;
+    }
+
+    // In imperial, use the original label
+    return size.label;
+  }, [paperSize, customPaperWidth, customPaperHeight, unit]);
 
   const aspectRatioDisplayValue = useMemo(() => {
     return aspectRatio === 'custom'

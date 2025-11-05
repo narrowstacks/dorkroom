@@ -1,4 +1,6 @@
 import { cn } from '../lib/cn';
+import { useMeasurement } from '../contexts/measurement-context';
+import { getUnitLabel } from '../lib/measurement';
 
 interface DimensionInputGroupProps {
   widthValue: string;
@@ -12,6 +14,7 @@ interface DimensionInputGroupProps {
   widthDefault?: string;
   heightDefault?: string;
   className?: string;
+  showUnits?: boolean; // Whether to show unit labels
 }
 
 export function DimensionInputGroup({
@@ -24,7 +27,11 @@ export function DimensionInputGroup({
   widthPlaceholder,
   heightPlaceholder,
   className,
+  showUnits = true,
 }: DimensionInputGroupProps) {
+  const { unit } = useMeasurement();
+  const unitLabel = getUnitLabel(unit);
+
   return (
     <div className={cn('grid grid-cols-2 gap-4', className)}>
       <div className="space-y-2">
@@ -33,6 +40,7 @@ export function DimensionInputGroup({
           style={{ color: 'var(--color-text-secondary)' }}
         >
           {widthLabel}
+          {showUnits && ` (${unitLabel})`}
         </label>
         <input
           type="number"
@@ -64,6 +72,7 @@ export function DimensionInputGroup({
           style={{ color: 'var(--color-text-secondary)' }}
         >
           {heightLabel}
+          {showUnits && ` (${unitLabel})`}
         </label>
         <input
           type="number"
