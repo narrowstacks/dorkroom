@@ -45,6 +45,7 @@ import {
   PAPER_SIZES,
 } from '@dorkroom/logic';
 import { useTheme } from '../../contexts/theme-context';
+import { useMeasurementFormatter } from '@dorkroom/ui';
 
 // Active section type
 type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
@@ -79,6 +80,7 @@ export function MobileBorderCalculator({
 
   // Measurement unit
   const { unit } = useMeasurement();
+  const { formatWithUnit } = useMeasurementFormatter();
 
   // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -181,7 +183,7 @@ export function MobileBorderCalculator({
   // Display values
   const paperSizeDisplayValue = useMemo(() => {
     if (paperSize === 'custom') {
-      return `${customPaperWidth}" × ${customPaperHeight}"`;
+      return formatDimensions(customPaperWidth, customPaperHeight, unit);
     }
 
     // Find the paper size in PAPER_SIZES to get dimensions
@@ -206,8 +208,8 @@ export function MobileBorderCalculator({
   }, [aspectRatio, customAspectWidth, customAspectHeight]);
 
   const borderSizeDisplayValue = useMemo(() => {
-    return `${minBorder.toFixed(2)}"`;
-  }, [minBorder]);
+    return formatWithUnit(minBorder);
+  }, [minBorder, formatWithUnit]);
 
   const positionDisplayValue = useMemo(() => {
     if (!enableOffset) return 'Centered';
