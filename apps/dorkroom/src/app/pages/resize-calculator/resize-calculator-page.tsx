@@ -235,6 +235,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
 /**
  * Custom hook for managing a convertible dimension input field.
  * Handles local string state, unit conversion, validation, and sync with parent state.
+ * Updates parent state on every change to enable live recomputation.
  *
  * @param inchesValue - Current value in inches
  * @param setInchesValue - Setter for the inches value
@@ -279,6 +280,12 @@ function useConvertibleDimensionInput(
   const handleChange = (value: string) => {
     setIsEditing(true);
     setInputValue(value);
+
+    // Push valid changes to parent state immediately for live recomputation
+    const inches = validateAndConvert(value);
+    if (inches !== null) {
+      setInchesValue(inches);
+    }
   };
 
   const handleBlur = () => {

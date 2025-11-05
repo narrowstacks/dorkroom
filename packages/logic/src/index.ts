@@ -26,6 +26,7 @@ export * from './utils/time-formatting';
 export * from './utils/filmdev-mapper';
 export * from './utils/device-detection';
 export * from './utils/unit-conversion';
+export * from './utils/object-comparison';
 export { debugLog, debugWarn, debugError } from './utils/debug-logger';
 
 // Services exports

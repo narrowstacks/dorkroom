@@ -35,6 +35,7 @@ import {
   useWindowDimensions,
   usePresetSharing,
   useUrlPresetLoader,
+  shallowEqual,
   type SelectItem,
   DESKTOP_BREAKPOINT,
   SLIDER_MIN_BORDER,
@@ -364,8 +365,8 @@ export default function BorderCalculatorPage() {
 
     try {
       // Check if current settings match a saved preset
-      const matchedPreset = presets.find(
-        (p) => JSON.stringify(p.settings) === JSON.stringify(currentSettings)
+      const matchedPreset = presets.find((p) =>
+        shallowEqual(p.settings, currentSettings)
       );
 
       if (matchedPreset) {

@@ -39,6 +39,7 @@ import {
   useModularBorderCalculator as useBorderCalculator,
   useBorderPresets,
   usePresetSharing,
+  shallowEqual,
   type BorderPreset,
   type BorderSettings,
   PAPER_SIZES,
@@ -268,8 +269,8 @@ export function MobileBorderCalculator({
 
     try {
       // Check if current settings match a saved preset
-      const matchedPreset = presets.find(
-        (p) => JSON.stringify(p.settings) === JSON.stringify(currentSettings)
+      const matchedPreset = presets.find((p) =>
+        shallowEqual(p.settings, currentSettings)
       );
 
       if (matchedPreset) {
