@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   RotateCw,
   RotateCcw,
@@ -19,6 +19,8 @@ import {
   CalculatorStat,
   ShareModal,
   SaveBeforeShareModal,
+  useMeasurementFormatter,
+  useMeasurementConverter,
 } from '@dorkroom/ui';
 import {
   AnimatedPreview,
@@ -52,6 +54,8 @@ import {
 export default function BorderCalculatorPage() {
   const { width } = useWindowDimensions();
   const isDesktop = width > DESKTOP_BREAKPOINT;
+  const { formatWithUnit, formatDimensions, unit } = useMeasurementFormatter();
+  const { toInches, toDisplay } = useMeasurementConverter();
 
   const {
     aspectRatio,
@@ -97,6 +101,131 @@ export default function BorderCalculatorPage() {
   } = useBorderCalculator();
 
   const { presets, addPreset, updatePreset, removePreset } = useBorderPresets();
+
+  // Local string state for custom paper dimensions (in display units)
+  const [paperWidthInput, setPaperWidthInput] = useState(
+    String(toDisplay(customPaperWidth))
+  );
+  const [paperHeightInput, setPaperHeightInput] = useState(
+    String(toDisplay(customPaperHeight))
+  );
+  const [isEditingPaperWidth, setIsEditingPaperWidth] = useState(false);
+  const [isEditingPaperHeight, setIsEditingPaperHeight] = useState(false);
+
+  // Sync local state when parent state or unit changes (but not while editing)
+  useEffect(() => {
+    if (!isEditingPaperWidth) {
+      const displayValue = toDisplay(customPaperWidth);
+      // Round to 3 decimals to avoid floating point artifacts
+      setPaperWidthInput(String(Math.round(displayValue * 1000) / 1000));
+    }
+  }, [customPaperWidth, toDisplay, isEditingPaperWidth]);
+
+  useEffect(() => {
+    if (!isEditingPaperHeight) {
+      const displayValue = toDisplay(customPaperHeight);
+      // Round to 3 decimals to avoid floating point artifacts
+      setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
+    }
+  }, [customPaperHeight, toDisplay, isEditingPaperHeight]);
+
+  // Helper to validate and convert input to inches
+  const validateAndConvert = (value: string): number | null => {
+    // Allow empty, whitespace, or trailing decimal point
+    if (value === '' || /^\s*$/.test(value) || /^\d*\.$/.test(value)) {
+      return null;
+    }
+
+    const parsed = parseFloat(value);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return toInches(parsed);
+    }
+
+    return null;
+  };
+
+  // Handle width input change
+  const handlePaperWidthChange = (value: string) => {
+    setIsEditingPaperWidth(true);
+    setPaperWidthInput(value);
+
+    // Push valid changes to parent state immediately for live recomputation
+    const inches = validateAndConvert(value);
+    if (inches !== null) {
+      setCustomPaperWidth(inches);
+    }
+  };
+
+  // Handle width blur - convert to inches when stable
+  const handlePaperWidthBlur = () => {
+    setIsEditingPaperWidth(false);
+    const inches = validateAndConvert(paperWidthInput);
+    if (inches !== null) {
+      setCustomPaperWidth(inches);
+      // Format the display value to avoid floating point precision artifacts
+      const displayValue = toDisplay(inches);
+      setPaperWidthInput(String(Math.round(displayValue * 1000) / 1000));
+    } else if (paperWidthInput === '' || /^\s*$/.test(paperWidthInput)) {
+      // Reset to current value if empty
+      setPaperWidthInput(String(toDisplay(customPaperWidth)));
+    } else {
+      // Reset to current value if invalid
+      setPaperWidthInput(String(toDisplay(customPaperWidth)));
+    }
+  };
+
+  // Handle height input change
+  const handlePaperHeightChange = (value: string) => {
+    setIsEditingPaperHeight(true);
+    setPaperHeightInput(value);
+
+    // Push valid changes to parent state immediately for live recomputation
+    const inches = validateAndConvert(value);
+    if (inches !== null) {
+      setCustomPaperHeight(inches);
+    }
+  };
+
+  // Handle height blur - convert to inches when stable
+  const handlePaperHeightBlur = () => {
+    setIsEditingPaperHeight(false);
+    const inches = validateAndConvert(paperHeightInput);
+    if (inches !== null) {
+      setCustomPaperHeight(inches);
+      // Format the display value to avoid floating point precision artifacts
+      const displayValue = toDisplay(inches);
+      setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
+    } else if (paperHeightInput === '' || /^\s*$/.test(paperHeightInput)) {
+      // Reset to current value if empty
+      setPaperHeightInput(String(toDisplay(customPaperHeight)));
+    } else {
+      // Reset to current value if invalid
+      setPaperHeightInput(String(toDisplay(customPaperHeight)));
+    }
+  };
+
+  // Transform paper sizes to show metric with imperial reference when in metric mode
+  const displayPaperSizes = useMemo(() => {
+    return PAPER_SIZES.map((size) => {
+      if (size.value === 'custom') {
+        return size; // Keep "Custom Paper Size" as is
+      }
+
+      if (unit === 'metric') {
+        // Show metric dimensions with imperial reference
+        // e.g., "20×25cm (8×10in)"
+        const metricLabel = formatDimensions(size.width, size.height);
+        const imperialLabel = `${size.width}×${size.height}in`;
+        return {
+          ...size,
+          label: `${metricLabel} (${imperialLabel})`,
+        };
+      }
+
+      // In imperial mode, keep original labels
+      return size;
+    });
+  }, [unit, formatDimensions]);
 
   const [selectedPresetId, setSelectedPresetId] = useState('');
   const [presetName, setPresetName] = useState('');
@@ -451,45 +580,46 @@ export default function BorderCalculatorPage() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   <CalculatorStat
                     label="Left blade"
-                    value={`${
+                    value={formatWithUnit(
                       !isLandscape
-                        ? calculation.topBladeReading.toFixed(2)
-                        : calculation.leftBladeReading.toFixed(2)
-                    } in`}
+                        ? calculation.topBladeReading
+                        : calculation.leftBladeReading
+                    )}
                     className="p-4"
                   />
                   <CalculatorStat
                     label="Right blade"
-                    value={`${
+                    value={formatWithUnit(
                       !isLandscape
-                        ? calculation.bottomBladeReading.toFixed(2)
-                        : calculation.rightBladeReading.toFixed(2)
-                    } in`}
+                        ? calculation.bottomBladeReading
+                        : calculation.rightBladeReading
+                    )}
                     className="p-4"
                   />
                   <CalculatorStat
                     label="Top blade"
-                    value={`${
+                    value={formatWithUnit(
                       !isLandscape
-                        ? calculation.leftBladeReading.toFixed(2)
-                        : calculation.topBladeReading.toFixed(2)
-                    } in`}
+                        ? calculation.leftBladeReading
+                        : calculation.topBladeReading
+                    )}
                     className="p-4"
                   />
                   <CalculatorStat
                     label="Bottom blade"
-                    value={`${
+                    value={formatWithUnit(
                       !isLandscape
-                        ? calculation.rightBladeReading.toFixed(2)
-                        : calculation.bottomBladeReading.toFixed(2)
-                    } in`}
+                        ? calculation.rightBladeReading
+                        : calculation.bottomBladeReading
+                    )}
                     className="p-4"
                   />
                   <CalculatorStat
                     label="Image size"
-                    value={`${calculation.printWidth.toFixed(
-                      2
-                    )} × ${calculation.printHeight.toFixed(2)} in`}
+                    value={formatDimensions(
+                      calculation.printWidth,
+                      calculation.printHeight
+                    )}
                     helperText="Final image area within the borders."
                     className="sm:col-span-2 p-4"
                   />
@@ -550,22 +680,20 @@ export default function BorderCalculatorPage() {
                 label="Paper size"
                 selectedValue={paperSize}
                 onValueChange={setPaperSize}
-                items={PAPER_SIZES as SelectItem[]}
+                items={displayPaperSizes as SelectItem[]}
                 placeholder="Select"
               />
 
               {paperSize === 'custom' && (
                 <DimensionInputGroup
-                  widthValue={String(customPaperWidth)}
-                  onWidthChange={(value) =>
-                    setCustomPaperWidth(Number(value) || 0)
-                  }
-                  heightValue={String(customPaperHeight)}
-                  onHeightChange={(value) =>
-                    setCustomPaperHeight(Number(value) || 0)
-                  }
-                  widthLabel="Width (inches)"
-                  heightLabel="Height (inches)"
+                  widthValue={paperWidthInput}
+                  onWidthChange={handlePaperWidthChange}
+                  onWidthBlur={handlePaperWidthBlur}
+                  heightValue={paperHeightInput}
+                  onHeightChange={handlePaperHeightChange}
+                  onHeightBlur={handlePaperHeightBlur}
+                  widthLabel="Width"
+                  heightLabel="Height"
                   widthPlaceholder="Width"
                   heightPlaceholder="Height"
                 />

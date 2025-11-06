@@ -14,6 +14,7 @@
 
 import { useMemo } from 'react';
 import type { BorderCalculation } from '@dorkroom/logic';
+import { useMeasurementFormatter } from '@dorkroom/ui';
 
 interface BladeReadingsOverlayProps {
   calculation: BorderCalculation;
@@ -41,6 +42,8 @@ export function BladeReadingsOverlay({
   showReadings,
   className = '',
 }: BladeReadingsOverlayProps) {
+  const { formatWithUnit } = useMeasurementFormatter();
+
   const readings = useMemo((): BladeReading[] => {
     if (!calculation) return [];
 
@@ -80,7 +83,7 @@ export function BladeReadingsOverlay({
     const leftShouldBeInside = leftCanFitInside || !leftHasSpaceOutside;
     readings.push({
       label: 'Left',
-      value: `${calculation.leftBladeReading.toFixed(2)}"`,
+      value: formatWithUnit(calculation.leftBladeReading),
       position: {
         x: leftShouldBeInside ? printLeftPx + padding : printLeftPx - padding,
         y: (printTopPx + printBottomPx) / 2,
@@ -93,7 +96,7 @@ export function BladeReadingsOverlay({
     const rightShouldBeInside = rightCanFitInside || !rightHasSpaceOutside;
     readings.push({
       label: 'Right',
-      value: `${calculation.rightBladeReading.toFixed(2)}"`,
+      value: formatWithUnit(calculation.rightBladeReading),
       position: {
         x: rightShouldBeInside
           ? printRightPx - padding
@@ -108,7 +111,7 @@ export function BladeReadingsOverlay({
     const topShouldBeInside = topCanFitInside || !topHasSpaceOutside;
     readings.push({
       label: 'Top',
-      value: `${calculation.topBladeReading.toFixed(2)}"`,
+      value: formatWithUnit(calculation.topBladeReading),
       position: {
         x: (printLeftPx + printRightPx) / 2,
         y: topShouldBeInside ? printTopPx + padding : printTopPx - padding,
@@ -121,7 +124,7 @@ export function BladeReadingsOverlay({
     const bottomShouldBeInside = bottomCanFitInside || !bottomHasSpaceOutside;
     readings.push({
       label: 'Bottom',
-      value: `${calculation.bottomBladeReading.toFixed(2)}"`,
+      value: formatWithUnit(calculation.bottomBladeReading),
       position: {
         x: (printLeftPx + printRightPx) / 2,
         y: bottomShouldBeInside
@@ -133,7 +136,7 @@ export function BladeReadingsOverlay({
     });
 
     return readings;
-  }, [calculation, containerWidth, containerHeight]);
+  }, [calculation, containerWidth, containerHeight, formatWithUnit]);
 
   if (!showReadings || !calculation) {
     return null;
