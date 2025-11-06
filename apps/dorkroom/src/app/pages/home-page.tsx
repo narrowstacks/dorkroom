@@ -92,7 +92,7 @@ const communityLinks = [
   },
   {
     label: 'Support on Ko-fi',
-    href: 'https://ko-fi.com/',
+    href: 'https://ko-fi.com/affords',
     icon: HandCoins,
   },
 ];
