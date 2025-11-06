@@ -59,3 +59,4 @@ vitest.config.*.timestamp*
 PR_BODY_THEMING.md
 .claude/settings.local.json
 .vercel
+.letta
