@@ -13,6 +13,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@dorkroom/api": "workspace:*",
     "@dorkroom/logic": "*",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.3.1"

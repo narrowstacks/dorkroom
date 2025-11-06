@@ -4,6 +4,7 @@ import {
   type Film,
   type Developer,
   type Combination,
+  type Dilution,
 } from '@dorkroom/api';
 import { debugError } from '../../utils/debug-logger';
 import type { InitialUrlState } from '../../types/development-recipes-url';
@@ -299,7 +300,7 @@ export const useDevelopmentRecipes = (
     combinations.forEach((combo) => {
       // Handle null/undefined dilutionId by using null-safe lookup
       const foundDilution = combo.dilutionId
-        ? selectedDeveloper.dilutions?.find((d) => d.id === combo.dilutionId)
+        ? selectedDeveloper.dilutions?.find((d: Dilution) => d.id === combo.dilutionId)
         : null;
 
       // Priority: customDilution > developer dilution lookup > fallback to 'Stock'
@@ -374,7 +375,7 @@ export const useDevelopmentRecipes = (
     // Collect tags from all combinations
     allCombinations.forEach((combo) => {
       if (combo.tags && combo.tags.length > 0) {
-        combo.tags.forEach((tag) => {
+        combo.tags.forEach((tag: string) => {
           tagSet.add(tag);
         });
       }
@@ -457,7 +458,7 @@ export const useDevelopmentRecipes = (
       combinations = combinations.filter((combo) => {
         // Handle null/undefined dilutionId by using null-safe lookup
         const foundDilution = combo.dilutionId
-          ? selectedDeveloper.dilutions?.find((d) => d.id === combo.dilutionId)
+          ? selectedDeveloper.dilutions?.find((d: Dilution) => d.id === combo.dilutionId)
           : null;
 
         // Priority: customDilution > developer dilution lookup > fallback to 'Stock'

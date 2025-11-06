@@ -1,6 +1,8 @@
 /// <reference types='vitest' />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import { resolve } from 'path';
 
 export default defineConfig(() => ({
   root: __dirname,
@@ -21,11 +23,14 @@ export default defineConfig(() => ({
     port: 4300,
     host: 'localhost',
   },
-  plugins: [react()],
-  // Uncomment this if you are using workers.
-  // worker: {
-  //  plugins: [ nxViteTsPaths() ],
-  // },
+  plugins: [react(), nxViteTsPaths()],
+  resolve: {
+    alias: {
+      '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src/index.ts'),
+      '@dorkroom/logic': resolve(__dirname, '../../packages/logic/dist/index.js'),
+      '@dorkroom/api': resolve(__dirname, '../../packages/api/dist/index.js'),
+    },
+  },
   build: {
     outDir: './dist',
     emptyOutDir: true,
