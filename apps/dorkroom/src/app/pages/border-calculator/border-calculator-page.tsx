@@ -534,7 +534,7 @@ export default function BorderCalculatorPage() {
                   Reset to defaults
                 </button>
 
-                {!isLandscape && (
+                {calculation.paperHeight > calculation.paperWidth && (
                   <div
                     className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
                     style={{
@@ -580,38 +580,22 @@ export default function BorderCalculatorPage() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   <CalculatorStat
                     label="Left blade"
-                    value={formatWithUnit(
-                      !isLandscape
-                        ? calculation.topBladeReading
-                        : calculation.leftBladeReading
-                    )}
+                    value={formatWithUnit(calculation.leftBladeReading)}
                     className="p-4"
                   />
                   <CalculatorStat
                     label="Right blade"
-                    value={formatWithUnit(
-                      !isLandscape
-                        ? calculation.bottomBladeReading
-                        : calculation.rightBladeReading
-                    )}
+                    value={formatWithUnit(calculation.rightBladeReading)}
                     className="p-4"
                   />
                   <CalculatorStat
                     label="Top blade"
-                    value={formatWithUnit(
-                      !isLandscape
-                        ? calculation.leftBladeReading
-                        : calculation.topBladeReading
-                    )}
+                    value={formatWithUnit(calculation.topBladeReading)}
                     className="p-4"
                   />
                   <CalculatorStat
                     label="Bottom blade"
-                    value={formatWithUnit(
-                      !isLandscape
-                        ? calculation.rightBladeReading
-                        : calculation.bottomBladeReading
-                    )}
+                    value={formatWithUnit(calculation.bottomBladeReading)}
                     className="p-4"
                   />
                   <CalculatorStat
