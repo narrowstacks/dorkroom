@@ -53,7 +53,6 @@ export { MeasurementUnitToggle } from './components/measurement-unit-toggle';
 // Calculator Components
 export {
   CalculatorCard,
-  CalculatorPageHeader,
   CalculatorNumberField,
   CalculatorStat,
 } from './components/calculator';
