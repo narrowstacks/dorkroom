@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import { useId, useState } from 'react';
+import { useId, useState, memo } from 'react';
 import { cn } from '../lib/cn';
 
 /**
@@ -62,7 +62,7 @@ interface LabeledSliderInputProps {
  * />
  * ```
  */
-export function LabeledSliderInput({
+export const LabeledSliderInput = memo(function LabeledSliderInput({
   label,
   value,
   onChange,
@@ -158,4 +158,4 @@ export function LabeledSliderInput({
       </div>
     </div>
   );
-}
+});

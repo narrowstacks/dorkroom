@@ -10,8 +10,9 @@
    - Blade visualization with smooth transitions
 \* ------------------------------------------------------------------ */
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, memo } from 'react';
 import type { BorderCalculation } from '@dorkroom/logic';
+import { useWindowDimensions } from '@dorkroom/logic';
 import { BladeReadingsOverlay } from './blade-readings-overlay';
 
 interface AnimatedPreviewProps {
@@ -30,7 +31,7 @@ interface BladeProps {
   opacity: number;
 }
 
-const AnimatedBlade = ({
+const AnimatedBlade = memo(({
   orientation,
   position,
   positionPercent,
@@ -71,7 +72,7 @@ const AnimatedBlade = ({
         };
 
   return <div style={{ ...baseStyle, ...orientationStyle }} />;
-};
+});
 
 export function AnimatedPreview({
   calculation,
@@ -79,6 +80,7 @@ export function AnimatedPreview({
   showBladeReadings = false,
   className,
 }: AnimatedPreviewProps) {
+  const { width: windowWidth } = useWindowDimensions();
   const [animatedValues, setAnimatedValues] = useState({
     printScale: { x: 0, y: 0 },
     printTranslate: { x: 0, y: 0 },
@@ -89,20 +91,20 @@ export function AnimatedPreview({
   const staticDimensions = useMemo(() => {
     if (!calculation) {
       // Use responsive dimensions that fit mobile screens better
-      const isMobile = window.innerWidth < 768;
+      const isMobile = windowWidth < 768;
       return {
-        width: isMobile ? Math.min(320, window.innerWidth - 80) : 400,
-        height: isMobile ? Math.min(240, (window.innerWidth - 80) * 0.75) : 300,
+        width: isMobile ? Math.min(320, windowWidth - 80) : 400,
+        height: isMobile ? Math.min(240, (windowWidth - 80) * 0.75) : 300,
       };
     }
 
     // Ensure preview dimensions are mobile-friendly
     const baseWidth = calculation.previewWidth || 400;
     const baseHeight = calculation.previewHeight || 300;
-    const isMobile = window.innerWidth < 768;
+    const isMobile = windowWidth < 768;
 
     if (isMobile) {
-      const maxWidth = Math.min(320, window.innerWidth - 80);
+      const maxWidth = Math.min(320, windowWidth - 80);
       const aspectRatio = baseHeight / baseWidth;
       const width = Math.min(baseWidth, maxWidth);
       const height = Math.min(baseHeight, width * aspectRatio);
@@ -113,7 +115,7 @@ export function AnimatedPreview({
       width: baseWidth,
       height: baseHeight,
     };
-  }, [calculation]);
+  }, [calculation, windowWidth]);
 
   // Calculate transform values
   const transformValues = useMemo(() => {
