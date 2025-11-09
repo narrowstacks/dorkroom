@@ -1,4 +1,5 @@
 import { AlertTriangle, AlertCircle } from 'lucide-react';
+import { memo } from 'react';
 import { cn } from '../lib/cn';
 import { colorMixOr } from '../lib/color';
 
@@ -8,7 +9,7 @@ interface WarningAlertProps {
   className?: string;
 }
 
-export function WarningAlert({
+export const WarningAlert = memo(function WarningAlert({
   message,
   action = 'warning',
   className,
@@ -68,4 +69,4 @@ export function WarningAlert({
       <span className="text-sm">{message}</span>
     </div>
   );
-}
+});

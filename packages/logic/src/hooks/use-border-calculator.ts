@@ -123,25 +123,6 @@ export function useBorderCalculator() {
     const topBladeReading = topBorder;
     const bottomBladeReading = bottomBorder;
 
-    // Debug: Log the actual values
-    console.log('Blade calculation debug:', {
-      paperW,
-      paperH,
-      printWidth,
-      printHeight,
-      leftBorder,
-      rightBorder,
-      topBorder,
-      bottomBorder,
-      leftBladeReading,
-      rightBladeReading,
-      topBladeReading,
-      bottomBladeReading,
-      horizontalOffset,
-      verticalOffset,
-      enableOffset,
-    });
-
     return {
       // Border values
       leftBorder,

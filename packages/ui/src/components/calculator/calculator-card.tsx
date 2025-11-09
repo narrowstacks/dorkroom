@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, memo } from 'react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 
@@ -36,7 +36,7 @@ const getAccentStyle = (
   }
 };
 
-export function CalculatorCard({
+export const CalculatorCard = memo(function CalculatorCard({
   title,
   description,
   actions,
@@ -99,4 +99,4 @@ export function CalculatorCard({
       </div>
     </section>
   );
-}
+});
