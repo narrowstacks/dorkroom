@@ -6,6 +6,8 @@ import remarkGfm from 'remark-gfm';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 import rehypeHighlight from 'rehype-highlight';
+import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import { resolve } from 'path';
 
 export default defineConfig(() => ({
   root: __dirname,
@@ -37,11 +39,15 @@ export default defineConfig(() => ({
       providerImportSource: '@mdx-js/react',
     }),
     react(),
+    nxViteTsPaths(),
   ],
-  // Uncomment this if you are using workers.
-  // worker: {
-  //  plugins: [ nxViteTsPaths() ],
-  // },
+  resolve: {
+    alias: {
+      '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src/index.ts'),
+      '@dorkroom/logic': resolve(__dirname, '../../packages/logic/dist/index.js'),
+      '@dorkroom/api': resolve(__dirname, '../../packages/api/dist/index.js'),
+    },
+  },
   build: {
     outDir: './dist',
     emptyOutDir: true,

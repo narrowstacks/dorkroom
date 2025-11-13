@@ -1,4 +1,6 @@
 import { cn } from '../lib/cn';
+import { useMeasurement } from '../contexts/measurement-context';
+import { getUnitLabel } from '../lib/measurement';
 
 interface DimensionInputGroupProps {
   widthValue: string;
@@ -12,6 +14,9 @@ interface DimensionInputGroupProps {
   widthDefault?: string;
   heightDefault?: string;
   className?: string;
+  showUnits?: boolean; // Whether to show unit labels
+  onWidthBlur?: () => void;
+  onHeightBlur?: () => void;
 }
 
 export function DimensionInputGroup({
@@ -24,7 +29,13 @@ export function DimensionInputGroup({
   widthPlaceholder,
   heightPlaceholder,
   className,
+  showUnits = true,
+  onWidthBlur,
+  onHeightBlur,
 }: DimensionInputGroupProps) {
+  const { unit } = useMeasurement();
+  const unitLabel = getUnitLabel(unit);
+
   return (
     <div className={cn('grid grid-cols-2 gap-4', className)}>
       <div className="space-y-2">
@@ -33,6 +44,7 @@ export function DimensionInputGroup({
           style={{ color: 'var(--color-text-secondary)' }}
         >
           {widthLabel}
+          {showUnits && ` (${unitLabel})`}
         </label>
         <input
           type="number"
@@ -53,9 +65,10 @@ export function DimensionInputGroup({
           onFocus={(e) =>
             (e.target.style.borderColor = 'var(--color-border-primary)')
           }
-          onBlur={(e) =>
-            (e.target.style.borderColor = 'var(--color-border-secondary)')
-          }
+          onBlur={(e) => {
+            e.target.style.borderColor = 'var(--color-border-secondary)';
+            onWidthBlur?.();
+          }}
         />
       </div>
       <div className="space-y-2">
@@ -64,6 +77,7 @@ export function DimensionInputGroup({
           style={{ color: 'var(--color-text-secondary)' }}
         >
           {heightLabel}
+          {showUnits && ` (${unitLabel})`}
         </label>
         <input
           type="number"
@@ -84,9 +98,10 @@ export function DimensionInputGroup({
           onFocus={(e) =>
             (e.target.style.borderColor = 'var(--color-border-primary)')
           }
-          onBlur={(e) =>
-            (e.target.style.borderColor = 'var(--color-border-secondary)')
-          }
+          onBlur={(e) => {
+            e.target.style.borderColor = 'var(--color-border-secondary)';
+            onHeightBlur?.();
+          }}
         />
       </div>
     </div>

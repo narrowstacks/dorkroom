@@ -7,11 +7,12 @@ import {
   Camera,
   Contrast,
 } from 'lucide-react';
-import { SettingsButton } from '@dorkroom/ui';
+import { SettingsButton, useMeasurement } from '@dorkroom/ui';
 import { useTheme } from '../contexts/theme-context';
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const { unit, setUnit } = useMeasurement();
   return (
     <div className="mx-auto max-w-2xl px-6 py-12 sm:px-10 sm:py-16">
       <div className="mb-8">
@@ -93,17 +94,19 @@ export default function SettingsPage() {
           <div className="space-y-3">
             <SettingsButton
               label="Imperial 🇺🇸"
-              value="Inches, feet (current)"
-              onPress={() => console.log('Imperial units not implemented yet')}
+              value="Inches, feet"
+              onPress={() => setUnit('imperial')}
               icon={Ruler}
               showChevron={false}
+              isSelected={unit === 'imperial'}
             />
             <SettingsButton
               label="Metric 🌍"
               value="Millimeters, centimeters"
-              onPress={() => console.log('Metric units not implemented yet')}
+              onPress={() => setUnit('metric')}
               icon={Globe}
               showChevron={false}
+              isSelected={unit === 'metric'}
             />
           </div>
         </section>

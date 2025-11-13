@@ -1,5 +1,6 @@
 import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
 import type { DevelopmentCombinationView } from './results-table';
+import type { Dilution } from '@dorkroom/api';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { cn } from '../../lib/cn';
@@ -43,7 +44,8 @@ const formatDilution = (view: DevelopmentCombinationView): string => {
 
   if (developer && combination.dilutionId) {
     const match = developer.dilutions.find(
-      (dilution) => String(dilution.id) === String(combination.dilutionId)
+      (dilution: Dilution) =>
+        String(dilution.id) === String(combination.dilutionId)
     );
     if (match) {
       return match.dilution || match.name;
@@ -196,7 +198,7 @@ export function DevelopmentResultsCards({
                     )}
                     {combination.tags && combination.tags.length > 0 && (
                       <>
-                        {combination.tags.map((tag) => (
+                        {combination.tags.map((tag: string) => (
                           <Tag key={tag}>{tag}</Tag>
                         ))}
                       </>

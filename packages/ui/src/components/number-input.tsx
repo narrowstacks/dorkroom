@@ -9,6 +9,7 @@ interface NumberInputProps {
   inputTitle?: string;
   step?: number;
   className?: string;
+  onBlur?: () => void;
 }
 
 export function NumberInput({
@@ -18,6 +19,7 @@ export function NumberInput({
   inputTitle,
   step = 1,
   className,
+  onBlur,
 }: NumberInputProps) {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -49,7 +51,10 @@ export function NumberInput({
         } as React.CSSProperties
       }
       onFocus={() => setIsFocused(true)}
-      onBlur={() => setIsFocused(false)}
+      onBlur={() => {
+        setIsFocused(false);
+        onBlur?.();
+      }}
     />
   );
 }

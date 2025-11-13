@@ -1,5 +1,5 @@
 import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
-import type { Combination, Film, Developer } from '@dorkroom/api';
+import type { Combination, Film, Developer, Dilution } from '@dorkroom/api';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import { useTemperature } from '../../contexts/temperature-context';
@@ -62,7 +62,7 @@ const formatDilution = (
 
   if (developer && combination.dilutionId) {
     const dilution = developer.dilutions.find(
-      (dilutionOption) =>
+      (dilutionOption: Dilution) =>
         String(dilutionOption.id) === String(combination.dilutionId)
     );
 
@@ -245,7 +245,7 @@ export function DevelopmentResultsTable({
                     </div>
                     {combination.tags && combination.tags.length > 0 && (
                       <div className="mt-1 flex flex-wrap gap-1">
-                        {combination.tags.map((tag) => (
+                        {combination.tags.map((tag: string) => (
                           <Tag key={tag}>{tag}</Tag>
                         ))}
                       </div>

@@ -22,6 +22,8 @@ import {
   DrawerBody,
   ShareModal,
   SaveBeforeShareModal,
+  useMeasurement,
+  formatDimensions,
 } from '@dorkroom/ui';
 
 // Sections
@@ -37,10 +39,13 @@ import {
   useModularBorderCalculator as useBorderCalculator,
   useBorderPresets,
   usePresetSharing,
+  shallowEqual,
   type BorderPreset,
   type BorderSettings,
+  PAPER_SIZES,
 } from '@dorkroom/logic';
 import { useTheme } from '../../contexts/theme-context';
+import { useMeasurementFormatter } from '@dorkroom/ui';
 
 // Active section type
 type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
@@ -72,6 +77,10 @@ export function MobileBorderCalculator({
   // Theme
   const { resolvedTheme } = useTheme();
   const isHighContrast = resolvedTheme === 'high-contrast';
+
+  // Measurement unit
+  const { unit } = useMeasurement();
+  const { formatWithUnit } = useMeasurementFormatter();
 
   // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -178,10 +187,24 @@ export function MobileBorderCalculator({
 
   // Display values
   const paperSizeDisplayValue = useMemo(() => {
-    return paperSize === 'custom'
-      ? `${customPaperWidth}" × ${customPaperHeight}"`
-      : paperSize;
-  }, [paperSize, customPaperWidth, customPaperHeight]);
+    if (paperSize === 'custom') {
+      return formatDimensions(customPaperWidth, customPaperHeight, unit);
+    }
+
+    // Find the paper size in PAPER_SIZES to get dimensions
+    const size = PAPER_SIZES.find((s) => s.value === paperSize);
+    if (!size) return paperSize;
+
+    // If metric, show metric with imperial reference
+    if (unit === 'metric') {
+      const metricLabel = formatDimensions(size.width, size.height, unit);
+      const imperialLabel = `${size.width}×${size.height}in`;
+      return `${metricLabel} (${imperialLabel})`;
+    }
+
+    // In imperial, use the original label
+    return size.label;
+  }, [paperSize, customPaperWidth, customPaperHeight, unit]);
 
   const aspectRatioDisplayValue = useMemo(() => {
     return aspectRatio === 'custom'
@@ -190,8 +213,8 @@ export function MobileBorderCalculator({
   }, [aspectRatio, customAspectWidth, customAspectHeight]);
 
   const borderSizeDisplayValue = useMemo(() => {
-    return `${minBorder.toFixed(2)}"`;
-  }, [minBorder]);
+    return formatWithUnit(minBorder);
+  }, [minBorder, formatWithUnit]);
 
   const positionDisplayValue = useMemo(() => {
     if (!enableOffset) return 'Centered';
@@ -253,8 +276,8 @@ export function MobileBorderCalculator({
 
     try {
       // Check if current settings match a saved preset
-      const matchedPreset = presets.find(
-        (p) => JSON.stringify(p.settings) === JSON.stringify(currentSettings)
+      const matchedPreset = presets.find((p) =>
+        shallowEqual(p.settings, currentSettings)
       );
 
       if (matchedPreset) {

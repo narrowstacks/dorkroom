@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   ToggleSwitch,
   WarningAlert,
@@ -6,6 +7,8 @@ import {
   CalculatorPageHeader,
   CalculatorStat,
   colorMixOr,
+  useMeasurement,
+  useMeasurementConverter,
 } from '@dorkroom/ui';
 import {
   useResizeCalculator,
@@ -229,28 +232,151 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
   );
 }
 
+/**
+ * Custom hook for managing a convertible dimension input field.
+ * Handles local string state, unit conversion, validation, and sync with parent state.
+ * Updates parent state on every change to enable live recomputation.
+ *
+ * @param inchesValue - Current value in inches
+ * @param setInchesValue - Setter for the inches value
+ * @param toDisplay - Function to convert inches to display units
+ * @param toInches - Function to convert display units to inches
+ * @returns Object with value, onChange, and onBlur handlers for the input
+ */
+function useConvertibleDimensionInput(
+  inchesValue: string,
+  setInchesValue: (value: string) => void,
+  toDisplay: (inches: number) => number,
+  toInches: (value: number) => number
+) {
+  const [inputValue, setInputValue] = useState(
+    String(toDisplay(Number(inchesValue)))
+  );
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Sync display value when parent inches value or unit changes (but not while editing)
+  useEffect(() => {
+    if (!isEditing) {
+      const displayValue = toDisplay(Number(inchesValue));
+      setInputValue(String(Math.round(displayValue * 1000) / 1000));
+    }
+  }, [inchesValue, toDisplay, isEditing]);
+
+  // Helper to validate and convert input to inches
+  const validateAndConvert = (value: string): string | null => {
+    // Allow empty, whitespace, or trailing decimal point
+    if (value === '' || /^\s*$/.test(value) || /^\d*\.$/.test(value)) {
+      return null;
+    }
+
+    const parsed = parseFloat(value);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return String(toInches(parsed));
+    }
+
+    return null;
+  };
+
+  const handleChange = (value: string) => {
+    setIsEditing(true);
+    setInputValue(value);
+
+    // Push valid changes to parent state immediately for live recomputation
+    const inches = validateAndConvert(value);
+    if (inches !== null) {
+      setInchesValue(inches);
+    }
+  };
+
+  const handleBlur = () => {
+    setIsEditing(false);
+    const inches = validateAndConvert(inputValue);
+    if (inches !== null) {
+      setInchesValue(inches);
+      const displayValue = toDisplay(Number(inches));
+      setInputValue(String(Math.round(displayValue * 1000) / 1000));
+    } else {
+      // Reset to current value for empty/whitespace or clear invalid non-empty input
+      setInputValue(String(toDisplay(Number(inchesValue))));
+    }
+  };
+
+  return {
+    value: inputValue,
+    onChange: handleChange,
+    onBlur: handleBlur,
+  };
+}
+
 export default function ResizeCalculatorPage() {
+  const { unit } = useMeasurement();
+  const unitLabel = unit === 'imperial' ? 'in' : 'cm';
+  const { toInches, toDisplay } = useMeasurementConverter();
+
   const {
     isEnlargerHeightMode,
     setIsEnlargerHeightMode,
     originalWidth,
-    setOriginalWidth,
+    setOriginalWidth: setOriginalWidthInches,
     originalLength,
-    setOriginalLength,
+    setOriginalLength: setOriginalLengthInches,
     newWidth,
-    setNewWidth,
+    setNewWidth: setNewWidthInches,
     newLength,
-    setNewLength,
+    setNewLength: setNewLengthInches,
     originalTime,
     setOriginalTime,
     newTime,
     stopsDifference,
     isAspectRatioMatched,
     originalHeight,
-    setOriginalHeight,
+    setOriginalHeight: setOriginalHeightInches,
     newHeight,
-    setNewHeight,
+    setNewHeight: setNewHeightInches,
   } = useResizeCalculator();
+
+  // Use the reusable hook for each dimension input
+  const originalWidthInput = useConvertibleDimensionInput(
+    originalWidth,
+    setOriginalWidthInches,
+    toDisplay,
+    toInches
+  );
+
+  const originalLengthInput = useConvertibleDimensionInput(
+    originalLength,
+    setOriginalLengthInches,
+    toDisplay,
+    toInches
+  );
+
+  const newWidthInput = useConvertibleDimensionInput(
+    newWidth,
+    setNewWidthInches,
+    toDisplay,
+    toInches
+  );
+
+  const newLengthInput = useConvertibleDimensionInput(
+    newLength,
+    setNewLengthInches,
+    toDisplay,
+    toInches
+  );
+
+  const originalHeightInput = useConvertibleDimensionInput(
+    originalHeight,
+    setOriginalHeightInches,
+    toDisplay,
+    toInches
+  );
+
+  const newHeightInput = useConvertibleDimensionInput(
+    newHeight,
+    setNewHeightInches,
+    toDisplay,
+    toInches
+  );
 
   const stopsNumber = parseFloat(stopsDifference);
   const stopsHelper = Number.isFinite(stopsNumber)
@@ -292,19 +418,25 @@ export default function ResizeCalculatorPage() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <CalculatorNumberField
                       label="Width"
-                      value={originalWidth}
-                      onChange={setOriginalWidth}
-                      placeholder={DEFAULT_ORIGINAL_WIDTH}
+                      value={originalWidthInput.value}
+                      onChange={originalWidthInput.onChange}
+                      onBlur={originalWidthInput.onBlur}
+                      placeholder={String(
+                        toDisplay(Number(DEFAULT_ORIGINAL_WIDTH))
+                      )}
                       step={0.1}
-                      unit="in"
+                      unit={unitLabel}
                     />
                     <CalculatorNumberField
                       label="Height"
-                      value={originalLength}
-                      onChange={setOriginalLength}
-                      placeholder={DEFAULT_ORIGINAL_LENGTH}
+                      value={originalLengthInput.value}
+                      onChange={originalLengthInput.onChange}
+                      onBlur={originalLengthInput.onBlur}
+                      placeholder={String(
+                        toDisplay(Number(DEFAULT_ORIGINAL_LENGTH))
+                      )}
                       step={0.1}
-                      unit="in"
+                      unit={unitLabel}
                     />
                   </div>
                 </div>
@@ -319,19 +451,23 @@ export default function ResizeCalculatorPage() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <CalculatorNumberField
                       label="Width"
-                      value={newWidth}
-                      onChange={setNewWidth}
-                      placeholder={DEFAULT_NEW_WIDTH}
+                      value={newWidthInput.value}
+                      onChange={newWidthInput.onChange}
+                      onBlur={newWidthInput.onBlur}
+                      placeholder={String(toDisplay(Number(DEFAULT_NEW_WIDTH)))}
                       step={0.1}
-                      unit="in"
+                      unit={unitLabel}
                     />
                     <CalculatorNumberField
                       label="Height"
-                      value={newLength}
-                      onChange={setNewLength}
-                      placeholder={DEFAULT_NEW_LENGTH}
+                      value={newLengthInput.value}
+                      onChange={newLengthInput.onChange}
+                      onBlur={newLengthInput.onBlur}
+                      placeholder={String(
+                        toDisplay(Number(DEFAULT_NEW_LENGTH))
+                      )}
                       step={0.1}
-                      unit="in"
+                      unit={unitLabel}
                     />
                   </div>
                 </div>
@@ -347,19 +483,23 @@ export default function ResizeCalculatorPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <CalculatorNumberField
                     label="Original height"
-                    value={originalHeight}
-                    onChange={setOriginalHeight}
-                    placeholder={DEFAULT_ORIGINAL_HEIGHT}
+                    value={originalHeightInput.value}
+                    onChange={originalHeightInput.onChange}
+                    onBlur={originalHeightInput.onBlur}
+                    placeholder={String(
+                      toDisplay(Number(DEFAULT_ORIGINAL_HEIGHT))
+                    )}
                     step={1}
-                    unit="in"
+                    unit={unitLabel}
                   />
                   <CalculatorNumberField
                     label="New height"
-                    value={newHeight}
-                    onChange={setNewHeight}
-                    placeholder={DEFAULT_NEW_HEIGHT}
+                    value={newHeightInput.value}
+                    onChange={newHeightInput.onChange}
+                    onBlur={newHeightInput.onBlur}
+                    placeholder={String(toDisplay(Number(DEFAULT_NEW_HEIGHT)))}
                     step={1}
-                    unit="in"
+                    unit={unitLabel}
                   />
                 </div>
               </div>

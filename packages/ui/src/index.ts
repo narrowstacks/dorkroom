@@ -48,6 +48,7 @@ export { ImportRecipeForm } from './components/development-recipes/import-recipe
 export { SharedRecipeModal } from './components/development-recipes/shared-recipe-modal';
 export { FilmdevPreviewModal } from './components/development-recipes/filmdev-preview-modal';
 export { TemperatureUnitToggle } from './components/development-recipes/temperature-unit-toggle';
+export { MeasurementUnitToggle } from './components/measurement-unit-toggle';
 
 // Calculator Components
 export {
@@ -78,6 +79,18 @@ export {
 } from './contexts/temperature-context';
 export type { TemperatureUnit } from './lib/temperature';
 export { formatTemperatureWithUnit } from './lib/temperature';
+
+// Measurement
+export {
+  MeasurementProvider,
+  useMeasurement,
+} from './contexts/measurement-context';
+export * from './lib/measurement';
+export {
+  useMeasurementFormatter,
+  useMeasurementConverter,
+  useMeasurementUtils,
+} from './hooks/use-measurement-conversion';
 
 // Infobase Components
 export {

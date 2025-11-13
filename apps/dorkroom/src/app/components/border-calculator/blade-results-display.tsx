@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
 import type { BorderCalculation } from '@dorkroom/logic';
-import { colorMixOr } from '@dorkroom/ui';
+import { colorMixOr, useMeasurementFormatter } from '@dorkroom/ui';
 
 interface BladeResultsDisplayProps {
   calculation: BorderCalculation | null;
@@ -13,6 +13,8 @@ export function BladeResultsDisplay({
   paperSize,
   aspectRatio,
 }: BladeResultsDisplayProps) {
+  const { formatWithUnit, formatDimensions } = useMeasurementFormatter();
+
   if (!calculation) {
     return (
       <div
@@ -51,8 +53,8 @@ export function BladeResultsDisplay({
           Blade Positions
         </h2>
         <p style={{ color: 'var(--color-text-secondary)' }}>
-          {calculation.printWidth.toFixed(2)}" ×{' '}
-          {calculation.printHeight.toFixed(2)}" image on {paperSize}
+          {formatDimensions(calculation.printWidth, calculation.printHeight)}{' '}
+          image on {paperSize}
         </p>
       </div>
 
@@ -75,7 +77,7 @@ export function BladeResultsDisplay({
             className="text-lg font-bold"
             style={{ color: 'var(--color-text-primary)' }}
           >
-            {calculation.leftBladeReading.toFixed(2)}"
+            {formatWithUnit(calculation.leftBladeReading)}
           </div>
         </div>
 
@@ -97,7 +99,7 @@ export function BladeResultsDisplay({
             className="text-lg font-bold"
             style={{ color: 'var(--color-text-primary)' }}
           >
-            {calculation.topBladeReading.toFixed(2)}"
+            {formatWithUnit(calculation.topBladeReading)}
           </div>
         </div>
 
@@ -119,7 +121,7 @@ export function BladeResultsDisplay({
             className="text-lg font-bold"
             style={{ color: 'var(--color-text-primary)' }}
           >
-            {calculation.bottomBladeReading.toFixed(2)}"
+            {formatWithUnit(calculation.bottomBladeReading)}
           </div>
         </div>
 
@@ -141,7 +143,7 @@ export function BladeResultsDisplay({
             className="text-lg font-bold"
             style={{ color: 'var(--color-text-primary)' }}
           >
-            {calculation.rightBladeReading.toFixed(2)}"
+            {formatWithUnit(calculation.rightBladeReading)}
           </div>
         </div>
       </div>

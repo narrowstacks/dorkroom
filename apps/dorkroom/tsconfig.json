@@ -6,10 +6,10 @@
       "path": "../../packages/api"
     },
     {
-      "path": "../../packages/ui"
+      "path": "../../packages/logic"
     },
     {
-      "path": "../../packages/logic"
+      "path": "../../packages/ui"
     },
     {
       "path": "./tsconfig.app.json"

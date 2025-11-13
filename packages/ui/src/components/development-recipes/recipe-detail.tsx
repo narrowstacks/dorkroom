@@ -1,6 +1,7 @@
 import { ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
 import { useState } from 'react';
 import type { DevelopmentCombinationView } from './results-table';
+import type { Dilution } from '@dorkroom/api';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { useTemperature } from '../../contexts/temperature-context';
 import { Tag } from '../ui/tag';
@@ -98,7 +99,8 @@ export function DevelopmentRecipeDetail({
             combination.customDilution ||
             (developer && combination.dilutionId
               ? developer.dilutions.find(
-                  (d) => String(d.id) === String(combination.dilutionId)
+                  (d: Dilution) =>
+                    String(d.id) === String(combination.dilutionId)
                 )?.dilution
               : undefined) ||
             'Stock'
@@ -111,7 +113,7 @@ export function DevelopmentRecipeDetail({
         <DetailRow label="Push/Pull" value={combination.pushPull} />
         {combination.tags && combination.tags.length > 0 && (
           <div className="flex flex-wrap justify-end gap-2 text-xs text-tertiary">
-            {combination.tags.map((tag) => (
+            {combination.tags.map((tag: string) => (
               <Tag key={tag}>{tag}</Tag>
             ))}
           </div>

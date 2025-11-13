@@ -12,6 +12,7 @@ interface CalculatorNumberFieldProps {
   inputTitle?: string;
   helperText?: string;
   className?: string;
+  onBlur?: () => void;
 }
 
 export function CalculatorNumberField({
@@ -24,6 +25,7 @@ export function CalculatorNumberField({
   inputTitle,
   helperText,
   className,
+  onBlur,
 }: CalculatorNumberFieldProps) {
   return (
     <div className={cn('space-y-2', className)}>
@@ -57,6 +59,7 @@ export function CalculatorNumberField({
         step={step}
         inputTitle={inputTitle ?? `Enter ${label}`}
         className="w-full"
+        onBlur={onBlur}
       />
       {helperText && (
         <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
