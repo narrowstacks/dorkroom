@@ -1,6 +1,11 @@
 /// <reference types='vitest' />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import mdx from '@mdx-js/rollup';
+import remarkGfm from 'remark-gfm';
+import remarkFrontmatter from 'remark-frontmatter';
+import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
+import rehypeHighlight from 'rehype-highlight';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { resolve } from 'path';
 
@@ -17,13 +22,25 @@ export default defineConfig(() => ({
         rewrite: (path) => path.replace(/^\/api\/filmdev/, '/api'),
         secure: true,
       },
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
     },
   },
   preview: {
     port: 4300,
     host: 'localhost',
   },
-  plugins: [react(), nxViteTsPaths()],
+  plugins: [
+    mdx({
+      remarkPlugins: [remarkGfm, remarkFrontmatter, remarkMdxFrontmatter],
+      rehypePlugins: [rehypeHighlight],
+      providerImportSource: '@mdx-js/react',
+    }),
+    react(),
+    nxViteTsPaths(),
+  ],
   resolve: {
     alias: {
       '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src/index.ts'),

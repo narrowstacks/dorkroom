@@ -1,0 +1,343 @@
+---
+globs: *.ts,*.tsx,*.js,*.jsx
+description: Code style and naming conventions
+---
+
+# Code Style Guide
+
+## Naming Conventions
+
+### Files and Directories
+
+```typescript
+// ✅ Components: PascalCase
+LabeledSliderInput.tsx;
+BorderCalculatorPage.tsx;
+CalculatorCard.tsx;
+
+// ✅ Hooks: camelCase starting with 'use'
+useBorderCalculator.ts;
+useCalculationState.ts;
+usePresetSharing.ts;
+
+// ✅ Utilities: kebab-case
+border - calculations.ts;
+input - validation.ts;
+preset - sharing.ts;
+
+// ✅ Types: kebab-case or camelCase
+borderTypes.ts;
+calculation - types.ts;
+reciprocityTypes.ts;
+
+// ✅ Constants: kebab-case or SCREAMING_SNAKE_CASE
+paper - sizes.ts;
+BORDER_PRESETS.ts;
+```
+
+### Code Identifiers
+
+```typescript
+// ✅ Interfaces: PascalCase with descriptive suffix
+interface LabeledSliderInputProps {}
+interface BorderCalculationOptions {}
+interface CalculatorState {}
+
+// ✅ Types: PascalCase
+type CalculationMode = 'automatic' | 'manual' | 'preset';
+type BorderResult = {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
+// ✅ Components: PascalCase
+export const LabeledSliderInput: FC<Props> = () => {};
+export const BorderCalculator: FC = () => {};
+
+// ✅ Variables and functions: camelCase
+const borderWidth = 10;
+const calculateDimensions = () => {};
+const isCalculationValid = true;
+
+// ✅ Constants: SCREAMING_SNAKE_CASE
+const MAX_BORDER_SIZE = 100;
+const DEFAULT_PAPER_SIZE = { width: 210, height: 297 };
+```
+
+## Code Organization
+
+### Import Order
+
+See [import-organization.mdc](mdc:.cursor/rules/import-organization.mdc) for detailed guidelines.
+
+```typescript
+// 1. Node modules (React, third-party libraries)
+import { type FC, useState } from 'react';
+import { clsx } from 'clsx';
+
+// 2. Internal packages (workspace libraries)
+import type { BorderCalculationOptions } from '@dorkroom/logic';
+import { useBorderCalculator } from '@dorkroom/logic';
+import { CalculatorCard } from '@dorkroom/ui';
+
+// 3. Relative imports (same project)
+import type { ComponentProps } from './types';
+import { BorderPreview } from './components/border-preview';
+
+// 4. CSS imports (last)
+import './component.css';
+```
+
+### Export Patterns
+
+```typescript
+// ✅ Named exports from index files
+// packages/ui/src/index.ts
+export { LabeledSliderInput } from './components/labeled-slider-input';
+export { TextInput } from './components/text-input';
+export { cn } from './lib/cn';
+
+// ✅ Named exports preferred for utilities
+export const calculateBorderSize = (width: number, height: number) => {};
+export const validateDimensions = (dimensions: Dimensions) => {};
+
+// ✅ Default exports acceptable for components
+export default BorderCalculator;
+```
+
+## Code Quality Standards
+
+### Prettier Configuration
+
+**Single quotes are configured via Prettier.**
+
+```typescript
+// ✅ Use single quotes (auto-formatted)
+const message = 'Hello, world!';
+const className = 'calculator-card';
+
+// ❌ Don't use double quotes (will be auto-fixed)
+const wrong = 'This will be changed';
+```
+
+### ESLint Rules
+
+```typescript
+// ❌ Avoid console statements (will be caught by linter)
+console.log('Debug message'); // Remove before commit
+
+// ❌ Never use 'as any' (will be caught by linter)
+const value = something as any; // Fix the type instead
+
+// ❌ Remove debugger statements (will be caught by linter)
+debugger; // Remove before commit
+
+// ❌ Resolve TODO comments (will be caught by linter)
+// TODO: fix this later // Create issue or fix it
+```
+
+### TypeScript Strict Mode
+
+See [typescript-standards.mdc](mdc:.cursor/rules/typescript-standards.mdc) for detailed guidelines.
+
+```typescript
+// ✅ Explicit return types
+export function calculateBorderSize(
+  width: number,
+  height: number
+): BorderDimensions {
+  return { width: width * 0.1, height: height * 0.1 };
+}
+
+// ✅ No implicit any
+const processCalculation = (input: CalculationInput): CalculationResult => {
+  // Implementation
+};
+
+// ✅ Handle all code paths
+function validateInput(value: number): boolean {
+  if (value < 0) return false;
+  if (value > 100) return false;
+  return true; // Explicit return
+}
+```
+
+## React Patterns
+
+### Functional Components
+
+```typescript
+// ✅ Use FC type with props destructuring
+import type { FC } from 'react';
+
+interface CalculatorCardProps {
+  title: string;
+  onReset?: () => void;
+}
+
+export const CalculatorCard: FC<CalculatorCardProps> = ({ title, onReset }) => {
+  return (
+    <div className="calculator-card">
+      <h2>{title}</h2>
+      {onReset && <button onClick={onReset}>Reset</button>}
+    </div>
+  );
+};
+```
+
+### Controlled Components
+
+```typescript
+// ✅ Prefer controlled components
+interface NumberInputProps {
+  value: number;
+  onChange: (value: number) => void;
+}
+
+export const NumberInput: FC<NumberInputProps> = ({ value, onChange }) => {
+  return (
+    <input
+      type="number"
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+    />
+  );
+};
+```
+
+### Conditional Classes with cn()
+
+```typescript
+import { cn } from '@dorkroom/ui';
+
+// ✅ Use cn() utility for conditional Tailwind classes
+const buttonClasses = cn(
+  'px-4 py-2 rounded-lg font-medium transition-colors',
+  {
+    'bg-blue-600 text-white': variant === 'primary',
+    'bg-gray-200 text-gray-900': variant === 'secondary',
+    'opacity-50 cursor-not-allowed': disabled,
+  },
+  className
+);
+```
+
+## Documentation
+
+### Code Comments
+
+```typescript
+// ✅ Use JSDoc for public APIs
+/**
+ * Calculates border dimensions for a given paper and image size.
+ * @param paperWidth - Width of the paper in millimeters
+ * @param paperHeight - Height of the paper in millimeters
+ * @param imageWidth - Width of the image in millimeters
+ * @param imageHeight - Height of the image in millimeters
+ * @returns Border dimensions for top, bottom, left, and right
+ */
+export function calculateBorderSize(
+  paperWidth: number,
+  paperHeight: number,
+  imageWidth: number,
+  imageHeight: number
+): BorderDimensions {
+  // Implementation
+}
+
+// ✅ Explain complex logic
+// Calculate aspect ratio to determine if image will be constrained
+// by width or height when fitting within paper bounds
+const aspectRatio = imageWidth / imageHeight;
+const paperAspectRatio = paperWidth / paperHeight;
+```
+
+### README Files
+
+Each package should have a [README.md](mdc:packages/ui/README.md) explaining:
+
+- Purpose and scope
+- Installation and usage
+- API documentation
+- Examples
+
+## Anti-Patterns to Avoid
+
+### React Anti-Patterns
+
+```typescript
+// ❌ DON'T: Use forwardRef in React 19
+import { forwardRef } from 'react';
+const Input = forwardRef<HTMLInputElement, Props>((props, ref) => {});
+
+// ✅ DO: Pass ref as regular prop
+interface Props {
+  ref?: React.Ref<HTMLInputElement>;
+}
+const Input: FC<Props> = ({ ref, ...props }) => {};
+
+// ❌ DON'T: Overuse useEffect
+useEffect(() => {
+  setCalculated(calculate(width, height));
+}, [width, height]);
+
+// ✅ DO: Use derived state
+const calculated = useMemo(() => calculate(width, height), [width, height]);
+```
+
+### TypeScript Anti-Patterns
+
+```typescript
+// ❌ DON'T: Use any type
+const processData = (data: any) => {};
+
+// ✅ DO: Use proper types
+const processData = (data: CalculationData) => {};
+
+// ❌ DON'T: Use type assertions unnecessarily
+const value = getValue() as string;
+
+// ✅ DO: Use type guards
+const value = getValue();
+if (typeof value === 'string') {
+  // Use value as string
+}
+```
+
+### General Anti-Patterns
+
+```typescript
+// ❌ DON'T: Premature optimization
+const memoizedEverything = useMemo(() => simpleValue, []);
+
+// ✅ DO: Optimize when needed
+const expensiveCalculation = useMemo(
+  () => performExpensiveOperation(data),
+  [data]
+);
+
+// ❌ DON'T: Over-abstract simple logic
+const addNumbers = (a: number, b: number) => performAddition(a, b);
+const performAddition = (x: number, y: number) => x + y;
+
+// ✅ DO: Keep it simple
+const addNumbers = (a: number, b: number) => a + b;
+```
+
+## Quality Checklist
+
+Before committing code, verify:
+
+- ✅ TypeScript type checking passes: `bunx nx typecheck dorkroom`
+- ✅ ESLint checks pass: `bunx nx lint dorkroom`
+- ✅ Prettier formatting applied: `bunx prettier --write .`
+- ✅ Tests pass: `bunx nx test dorkroom`
+- ✅ No console statements in production code
+- ✅ No `as any` type assertions
+- ✅ No debugger statements
+- ✅ TODO comments resolved or tracked
+- ✅ Meaningful variable and function names
+- ✅ Proper error handling
+- ✅ Documentation for complex logic

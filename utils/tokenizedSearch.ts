@@ -283,6 +283,7 @@ export function calculateDeveloperTokenScore(
  * @param fuzzyResults - Candidate films from an initial fuzzy search pass
  * @param config - Tokenized search configuration (thresholds and weights); defaults to DEFAULT_TOKENIZED_CONFIG
  * @returns An array of scored film results including `tokenScore`, `combinedScore`, and `matchedTokens`, sorted by `combinedScore` descending.
+ */
 export function enhanceFilmResults(
   query: string,
   fuzzyResults: Film[],
