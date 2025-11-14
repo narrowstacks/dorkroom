@@ -3,45 +3,21 @@ import { defineConfig as defineViteConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { resolve } from 'path';
-import module from 'module';
 import { fileURLToPath } from 'url';
+import mdx from '@mdx-js/rollup';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
+import remarkFrontmatter from 'remark-frontmatter';
+import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
-const NodeModule = (module as unknown as { Module: typeof module.Module }).Module;
-if (NodeModule?.prototype?.require) {
-  const originalRequire = NodeModule.prototype.require;
-  NodeModule.prototype.require = function (request: string, ...args: unknown[]) {
-    if (request === 'fumadocs-core/mdx-plugins') {
-      return originalRequire.call(
-        this,
-        resolve(__dirname, '../../node_modules/fumadocs-core/dist/mdx-plugins/index.js'),
-        ...args
-      );
-    }
-    return originalRequire.call(this, request, ...args);
-  };
-}
+const mdxPlugin = mdx({
+  remarkPlugins: [remarkFrontmatter, remarkMdxFrontmatter, remarkGfm],
+  rehypePlugins: [rehypeHighlight],
+});
 
-export default defineViteConfig(async () => {
-  const [{ default: mdx }, { defineDocs }] = await Promise.all([
-    import('fumadocs-mdx/vite'),
-    import('fumadocs-mdx/config'),
-  ]);
-  const docsCollection = defineDocs({
-    name: 'docs',
-    dir: 'content/docs',
-  });
-  const fumadocs = mdx(
-    {
-      docs: docsCollection,
-    },
-    {
-      generateIndexFile: false,
-    }
-  );
-
-  return {
+export default defineViteConfig({
     root: __dirname,
     cacheDir: '../../node_modules/.vite/apps/dorkroom',
   server: {
@@ -64,10 +40,7 @@ export default defineViteConfig(async () => {
     port: 4300,
     host: 'localhost',
   },
-    plugins: [fumadocs, react(), nxViteTsPaths()],
-  optimizeDeps: {
-    exclude: ['fumadocs-core', 'fumadocs-ui'],
-  },
+    plugins: [mdxPlugin, react(), nxViteTsPaths()],
   resolve: {
     alias: {
       '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src/index.ts'),
@@ -76,10 +49,6 @@ export default defineViteConfig(async () => {
         '../../packages/logic/dist/index.js'
       ),
       '@dorkroom/api': resolve(__dirname, '../../packages/api/dist/index.js'),
-      'fumadocs-core/mdx-plugins': resolve(
-        __dirname,
-        '../../node_modules/fumadocs-core/dist/mdx-plugins/index.js'
-      ),
     },
   },
   build: {
@@ -116,6 +85,5 @@ export default defineViteConfig(async () => {
       reportsDirectory: './test-output/vitest/coverage',
       provider: 'v8' as const,
     },
-  },
+    },
   };
-});

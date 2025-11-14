@@ -21,20 +21,12 @@ export interface DocEntry {
 }
 
 const docModules = import.meta.glob<DocModule>(
-  '../../../../../../content/docs/**/*.mdx',
-  {
-    query: {
-      collection: 'docs',
-    },
-  }
+  '../../../../../../content/docs/**/*.mdx'
 ) as Record<string, () => Promise<DocModule>>;
 
 const docFrontmatters = import.meta.glob<DocModule>(
   '../../../../../../content/docs/**/*.mdx',
   {
-    query: {
-      collection: 'docs',
-    },
     eager: true,
   }
 ) as Record<string, DocModule>;
