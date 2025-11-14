@@ -91,23 +91,3 @@ export {
   useMeasurementConverter,
   useMeasurementUtils,
 } from './hooks/use-measurement-conversion';
-
-// Infobase Components
-export {
-  SidebarNavigation,
-  BreadcrumbNav,
-  SearchBar,
-  InfobaseLayout,
-  FilmCard,
-  DeveloperCard,
-  RecipeTable,
-  DatabaseViewer,
-  DatabaseList,
-  DatabaseDetail,
-} from './components/infobase';
-export type {
-  ContentNode,
-  BreadcrumbItem,
-  DatabaseItem,
-  DetailField,
-} from './components/infobase';

@@ -1,12 +1,12 @@
 import {
   Aperture,
   FlaskConical,
-  BookOpen,
   Crop,
   Gauge,
   Home,
   Ruler,
   Timer,
+  BookOpen,
 } from 'lucide-react';
 import { createElement } from 'react';
 import type { NavigationItem } from '../components/navigation-dropdown';
@@ -50,10 +50,10 @@ export const shootingItems: NavigationItem[] = [
     summary: 'Correct for long exposure failure.',
   },
   {
-    label: 'Infobase',
-    to: '/infobase',
+    label: 'Docs',
+    to: '/docs',
     icon: asFunctionComponent(BookOpen),
-    summary: 'Reference tables, notes, and recipes.',
+    summary: 'Documentation and reference materials.',
   },
 ];
 
@@ -82,6 +82,6 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/stops': 'Stops Calculator',
   '/exposure': 'Exposure Calculator',
   '/development': 'Development Recipes',
-  '/infobase': 'Infobase',
+  '/docs': 'Docs',
   '/settings': 'Settings',
 };

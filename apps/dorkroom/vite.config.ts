@@ -1,17 +1,25 @@
 /// <reference types='vitest' />
-import { defineConfig } from 'vite';
+import { defineConfig as defineViteConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import mdx from '@mdx-js/rollup';
-import remarkGfm from 'remark-gfm';
-import remarkFrontmatter from 'remark-frontmatter';
-import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
-import rehypeHighlight from 'rehype-highlight';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { resolve } from 'path';
+import { fileURLToPath } from 'url';
+import mdx from '@mdx-js/rollup';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
+import remarkFrontmatter from 'remark-frontmatter';
+import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 
-export default defineConfig(() => ({
-  root: __dirname,
-  cacheDir: '../../node_modules/.vite/apps/dorkroom',
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+
+const mdxPlugin = mdx({
+  remarkPlugins: [remarkFrontmatter, remarkMdxFrontmatter, remarkGfm],
+  rehypePlugins: [rehypeHighlight],
+});
+
+export default defineViteConfig({
+    root: __dirname,
+    cacheDir: '../../node_modules/.vite/apps/dorkroom',
   server: {
     port: 4200,
     host: 'localhost',
@@ -32,19 +40,14 @@ export default defineConfig(() => ({
     port: 4300,
     host: 'localhost',
   },
-  plugins: [
-    mdx({
-      remarkPlugins: [remarkGfm, remarkFrontmatter, remarkMdxFrontmatter],
-      rehypePlugins: [rehypeHighlight],
-      providerImportSource: '@mdx-js/react',
-    }),
-    react(),
-    nxViteTsPaths(),
-  ],
+    plugins: [mdxPlugin, react(), nxViteTsPaths()],
   resolve: {
     alias: {
       '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src/index.ts'),
-      '@dorkroom/logic': resolve(__dirname, '../../packages/logic/dist/index.js'),
+      '@dorkroom/logic': resolve(
+        __dirname,
+        '../../packages/logic/dist/index.js'
+      ),
       '@dorkroom/api': resolve(__dirname, '../../packages/api/dist/index.js'),
     },
   },
@@ -82,5 +85,5 @@ export default defineConfig(() => ({
       reportsDirectory: './test-output/vitest/coverage',
       provider: 'v8' as const,
     },
-  },
-}));
+    },
+  });

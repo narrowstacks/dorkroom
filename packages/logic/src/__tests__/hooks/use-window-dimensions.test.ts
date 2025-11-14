@@ -75,7 +75,7 @@ describe('useWindowDimensions', () => {
   it('should cleanup event listener on unmount', () => {
     // Spy must be created before renderHook to observe the cleanup call
     const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
-    
+
     const { unmount } = renderHook(() => useWindowDimensions());
 
     unmount();
