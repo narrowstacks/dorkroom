@@ -86,4 +86,4 @@ export default defineViteConfig({
       provider: 'v8' as const,
     },
     },
-  };
+  });
