@@ -4,7 +4,6 @@ export * from './types/reciprocity';
 export * from './types/custom-recipes';
 export * from './types/development-recipes-url';
 export * from './types/exposure-calculator';
-export * from './types/infobase';
 
 // Constants exports
 export * from './constants/border-calculator';

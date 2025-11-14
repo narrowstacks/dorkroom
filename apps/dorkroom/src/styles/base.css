@@ -1,0 +1,14 @@
+@layer base {
+  html,
+  body {
+    @apply font-sans antialiased h-dvh;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+  }
+
+  ::selection {
+    @apply bg-primary/40;
+    color: var(--color-text-primary);
+  }
+}
+

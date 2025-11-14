@@ -1,0 +1,359 @@
+@layer utilities {
+  /* Theme-aware background accents */
+  [data-theme='dark'] .backdrop-gradient {
+    background: radial-gradient(
+        circle at 20% 20%,
+        rgba(243 110 110 / 0.2),
+        transparent 60%
+      ),
+      radial-gradient(
+        circle at 80% 20%,
+        rgba(125, 214, 255, 0.16),
+        transparent 55%
+      ),
+      radial-gradient(
+        circle at 40% 80%,
+        rgba(246 249 150 / 0.14),
+        transparent 60%
+      ),
+      #09090b;
+  }
+
+  [data-theme='light'] .backdrop-gradient {
+    background: radial-gradient(
+        ellipse 1200px 800px at 15% 15%,
+        rgba(196, 82, 74, 0.1),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 1000px 700px at 85% 20%,
+        rgba(30, 96, 145, 0.09),
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse 900px 700px at 40% 85%,
+        rgba(122, 140, 31, 0.08),
+        transparent 60%
+      ),
+      #ffffff;
+  }
+
+  [data-theme='darkroom'] .backdrop-gradient {
+    background: #000000;
+  }
+
+  [data-theme='high-contrast'] .backdrop-gradient {
+    background: #ffffff;
+  }
+
+  .card-ring {
+    position: relative;
+  }
+
+  .card-ring::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.18),
+      rgba(255, 255, 255, 0)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* Hover tint utility that adapts to theme colors */
+  .hover-surface-tint:hover {
+    background-color: color-mix(
+      in srgb,
+      var(--color-text-primary) 12%,
+      transparent
+    );
+  }
+
+  /* Ensure high-contrast keeps strong clarity: lighter hover tint only */
+  [data-theme='high-contrast'] .hover-surface-tint:hover {
+    background-color: color-mix(in srgb, #000000 8%, #ffffff);
+    color: var(--color-text-primary);
+  }
+
+  /* Tweak subtle ring for light theme to use dark ink instead of white */
+  [data-theme='light'] .card-ring::before {
+    background: linear-gradient(
+      135deg,
+      rgba(9, 9, 11, 0.09),
+      rgba(9, 9, 11, 0)
+    );
+  }
+
+  /* Remove gradient ring entirely in high-contrast */
+  [data-theme='high-contrast'] .card-ring::before {
+    background: none !important;
+  }
+
+  /* Animated grain clipped to text with a subtle red glow */
+  @keyframes noiseShift {
+    0% {
+      background-position: 0 0, 0 0;
+    }
+    100% {
+      background-position: 0 0, 120px 80px;
+    }
+  }
+
+  .grainy-text-glow {
+    position: relative;
+    /* Make background visible only where text is */
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: #ffffff; /* fallback if background-clip not supported */
+
+    /* Layer 1: soft white fill; Layer 2: SVG noise tiled */
+    background-image: radial-gradient(
+        ellipse 100% 100% at 50% 50%,
+        rgba(255, 255, 255, 0.96) 0%,
+        rgba(255, 255, 255, 0.92) 40%,
+        rgba(255, 255, 255, 0.88) 100%
+      ),
+      url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http://www.w3.org/2000/svg%22%20viewBox%3D%220%200%2060%2060%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23n)%22%20opacity%3D%220.22%22/%3E%3C/svg%3E');
+    background-repeat: no-repeat, repeat;
+    background-size: auto, 120px 120px;
+    animation: noiseShift 14s linear infinite;
+    will-change: background-position;
+
+    /* Subtle red glow, contained to text outline */
+    text-shadow: 0 0 2px rgba(255, 48, 48, 0.25),
+      0 0 10px rgba(255, 32, 32, 0.22), 0 0 22px rgba(255, 24, 24, 0.18);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .grainy-text-glow {
+      animation: none;
+    }
+  }
+
+  /* Grainy, textured red glow around text using a blurred noise-filled duplicate */
+  .grainy-red-glow {
+    position: relative;
+    display: inline-block;
+    isolation: isolate;
+  }
+
+  .grainy-red-glow::before {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+
+    /* Fill duplicate text with red + noise, then blur to create outer glow */
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    background-image: radial-gradient(
+        ellipse 100% 100% at 50% 50%,
+        rgba(255, 62, 62, 0.95),
+        rgba(255, 62, 62, 0.5)
+      ),
+      url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http://www.w3.org/2000/svg%22%20viewBox%3D%220%200%2060%2060%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23n)%22%20opacity%3D%220.22%22/%3E%3C/svg%3E');
+    background-repeat: no-repeat, repeat;
+    background-size: 100% 100%, 120px 120px;
+
+    filter: blur(12px) contrast(150%) brightness(125%) saturate(160%);
+    mix-blend-mode: screen;
+    opacity: 0.9;
+    animation: noiseShift 16s linear infinite;
+    will-change: filter, background-position;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .grainy-red-glow::before {
+      animation: none;
+    }
+  }
+
+  /* Light theme contrast overrides for legacy utility classes inside components */
+  [data-theme='light'] .text-white\/60 {
+    color: var(--color-text-tertiary) !important;
+  }
+  [data-theme='light'] .text-white\/70 {
+    color: var(--color-text-secondary) !important;
+  }
+  [data-theme='light'] .text-white\/75 {
+    color: var(--color-text-secondary) !important;
+  }
+  [data-theme='light'] .text-white\/80 {
+    color: var(--color-text-secondary) !important;
+  }
+  [data-theme='light'] .text-white\/90 {
+    color: var(--color-text-primary) !important;
+  }
+  [data-theme='light'] .text-white {
+    color: var(--color-text-primary) !important;
+  }
+
+  [data-theme='light'] .border-white\/10,
+  [data-theme='light'] .border-white\/12,
+  [data-theme='light'] .border-white\/20 {
+    border-color: var(--color-border-secondary) !important;
+  }
+  [data-theme='light'] .hover\:border-white\/30:hover {
+    border-color: var(--color-border-primary) !important;
+  }
+  [data-theme='light'] .hover\:border-white\/40:hover {
+    border-color: var(--color-border-primary) !important;
+  }
+
+  [data-theme='light'] .bg-white\/5 {
+    background-color: rgba(var(--color-background-rgb), 0.05) !important;
+  }
+  [data-theme='light'] .hover\:bg-white\/10:hover {
+    background-color: rgba(var(--color-background-rgb), 0.1) !important;
+  }
+
+  /* Dark-surfaces used in components should become light, subtle ink in light theme */
+  [data-theme='light'] .bg-black\/30 {
+    background-color: rgba(var(--color-background-rgb), 0.18) !important;
+  }
+  [data-theme='light'] .text-emerald-300 {
+    color: var(--color-primary) !important;
+  }
+
+  /* Gradient utility classes for easier component usage */
+  .bg-gradient-card-primary {
+    background: var(--gradient-card-primary);
+  }
+  .bg-gradient-card-secondary {
+    background: var(--gradient-card-secondary);
+  }
+  .bg-gradient-card-accent {
+    background: var(--gradient-card-accent);
+  }
+  .bg-gradient-card-highlight {
+    background: var(--gradient-card-highlight);
+  }
+  .bg-gradient-card-neutral {
+    background: var(--gradient-card-neutral);
+  }
+  .bg-gradient-card-info {
+    background: var(--gradient-card-info);
+  }
+  .bg-gradient-card-warning {
+    background: var(--gradient-card-warning);
+  }
+  .bg-gradient-card-error {
+    background: var(--gradient-card-error);
+  }
+
+  /* Custom text color utilities */
+  .text-primary {
+    color: var(--color-text-primary);
+  }
+  .text-secondary {
+    color: var(--color-text-secondary);
+  }
+  .text-tertiary {
+    color: var(--color-text-tertiary);
+  }
+  .text-muted {
+    color: var(--color-text-muted);
+  }
+
+  /* Custom background utilities */
+  .bg-border-muted {
+    background-color: var(--color-border-muted);
+  }
+  .bg-border-secondary {
+    background-color: var(--color-border-secondary);
+  }
+
+  /* Custom border utilities */
+  .border-secondary {
+    border-color: var(--color-border-secondary);
+  }
+
+  /* Custom error color utilities */
+  .text-error {
+    color: var(--color-semantic-error);
+  }
+  /* Provide fallbacks, then enhance with color-mix when supported */
+  .bg-error\/10 {
+    background-color: var(--color-border-muted);
+  }
+  .bg-error\/20 {
+    background-color: var(--color-border-secondary);
+  }
+  .text-error\/80 {
+    color: var(--color-semantic-error);
+  }
+  .text-error\/90 {
+    color: var(--color-semantic-error);
+  }
+
+  @supports (color: color-mix(in srgb, red 50%, white)) {
+    .bg-error\/10 {
+      background-color: color-mix(
+        in srgb,
+        var(--color-semantic-error) 10%,
+        transparent
+      );
+    }
+    .bg-error\/20 {
+      background-color: color-mix(
+        in srgb,
+        var(--color-semantic-error) 20%,
+        transparent
+      );
+    }
+    .text-error\/80 {
+      color: color-mix(
+        in srgb,
+        var(--color-semantic-error) 80%,
+        var(--color-text-primary)
+      );
+    }
+    .text-error\/90 {
+      color: color-mix(
+        in srgb,
+        var(--color-semantic-error) 90%,
+        var(--color-text-primary)
+      );
+    }
+  }
+
+  /* Remove decorative gradients/noise in high-contrast */
+  [data-theme='high-contrast'] .grainy-text-glow {
+    background-image: none !important;
+    -webkit-text-fill-color: currentColor;
+    text-shadow: none !important;
+    color: var(--color-text-primary);
+  }
+
+  /* Home-page calculator buttons: use black borders in high-contrast */
+  [data-theme='high-contrast'] main a[href*='/border'],
+  [data-theme='high-contrast'] main a[href*='/stops'],
+  [data-theme='high-contrast'] main a[href*='/resize'],
+  [data-theme='high-contrast'] main a[href*='/exposure'],
+  [data-theme='high-contrast'] main a[href*='/reciprocity'],
+  [data-theme='high-contrast'] main a[href*='/development'] {
+    border: 2px solid var(--color-primary) !important;
+  }
+
+  /* Calculator buttons with red borders in darkroom theme - only on home page */
+  [data-theme='darkroom'] main a[href*='/border'],
+  [data-theme='darkroom'] main a[href*='/stops'],
+  [data-theme='darkroom'] main a[href*='/resize'],
+  [data-theme='darkroom'] main a[href*='/exposure'],
+  [data-theme='darkroom'] main a[href*='/reciprocity'],
+  [data-theme='darkroom'] main a[href*='/development'] {
+    border: 2px solid var(--color-primary) !important;
+  }
+}
+

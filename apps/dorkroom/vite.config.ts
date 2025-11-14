@@ -1,17 +1,49 @@
 /// <reference types='vitest' />
-import { defineConfig } from 'vite';
+import { defineConfig as defineViteConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import mdx from '@mdx-js/rollup';
-import remarkGfm from 'remark-gfm';
-import remarkFrontmatter from 'remark-frontmatter';
-import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
-import rehypeHighlight from 'rehype-highlight';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { resolve } from 'path';
+import module from 'module';
+import { fileURLToPath } from 'url';
 
-export default defineConfig(() => ({
-  root: __dirname,
-  cacheDir: '../../node_modules/.vite/apps/dorkroom',
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+
+const NodeModule = (module as unknown as { Module: typeof module.Module }).Module;
+if (NodeModule?.prototype?.require) {
+  const originalRequire = NodeModule.prototype.require;
+  NodeModule.prototype.require = function (request: string, ...args: unknown[]) {
+    if (request === 'fumadocs-core/mdx-plugins') {
+      return originalRequire.call(
+        this,
+        resolve(__dirname, '../../node_modules/fumadocs-core/dist/mdx-plugins/index.js'),
+        ...args
+      );
+    }
+    return originalRequire.call(this, request, ...args);
+  };
+}
+
+export default defineViteConfig(async () => {
+  const [{ default: mdx }, { defineDocs }] = await Promise.all([
+    import('fumadocs-mdx/vite'),
+    import('fumadocs-mdx/config'),
+  ]);
+  const docsCollection = defineDocs({
+    name: 'docs',
+    dir: 'content/docs',
+  });
+  const fumadocs = mdx(
+    {
+      docs: docsCollection,
+    },
+    {
+      generateIndexFile: false,
+    }
+  );
+
+  return {
+    root: __dirname,
+    cacheDir: '../../node_modules/.vite/apps/dorkroom',
   server: {
     port: 4200,
     host: 'localhost',
@@ -32,20 +64,22 @@ export default defineConfig(() => ({
     port: 4300,
     host: 'localhost',
   },
-  plugins: [
-    mdx({
-      remarkPlugins: [remarkGfm, remarkFrontmatter, remarkMdxFrontmatter],
-      rehypePlugins: [rehypeHighlight],
-      providerImportSource: '@mdx-js/react',
-    }),
-    react(),
-    nxViteTsPaths(),
-  ],
+    plugins: [fumadocs, react(), nxViteTsPaths()],
+  optimizeDeps: {
+    exclude: ['fumadocs-core', 'fumadocs-ui'],
+  },
   resolve: {
     alias: {
       '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src/index.ts'),
-      '@dorkroom/logic': resolve(__dirname, '../../packages/logic/dist/index.js'),
+      '@dorkroom/logic': resolve(
+        __dirname,
+        '../../packages/logic/dist/index.js'
+      ),
       '@dorkroom/api': resolve(__dirname, '../../packages/api/dist/index.js'),
+      'fumadocs-core/mdx-plugins': resolve(
+        __dirname,
+        '../../node_modules/fumadocs-core/dist/mdx-plugins/index.js'
+      ),
     },
   },
   build: {
@@ -83,4 +117,5 @@ export default defineConfig(() => ({
       provider: 'v8' as const,
     },
   },
-}));
+  };
+});

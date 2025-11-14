@@ -300,7 +300,9 @@ export const useDevelopmentRecipes = (
     combinations.forEach((combo) => {
       // Handle null/undefined dilutionId by using null-safe lookup
       const foundDilution = combo.dilutionId
-        ? selectedDeveloper.dilutions?.find((d: Dilution) => d.id === combo.dilutionId)
+        ? selectedDeveloper.dilutions?.find(
+            (d: Dilution) => d.id === combo.dilutionId
+          )
         : null;
 
       // Priority: customDilution > developer dilution lookup > fallback to 'Stock'
@@ -458,7 +460,9 @@ export const useDevelopmentRecipes = (
       combinations = combinations.filter((combo) => {
         // Handle null/undefined dilutionId by using null-safe lookup
         const foundDilution = combo.dilutionId
-          ? selectedDeveloper.dilutions?.find((d: Dilution) => d.id === combo.dilutionId)
+          ? selectedDeveloper.dilutions?.find(
+              (d: Dilution) => d.id === combo.dilutionId
+            )
           : null;
 
         // Priority: customDilution > developer dilution lookup > fallback to 'Stock'
