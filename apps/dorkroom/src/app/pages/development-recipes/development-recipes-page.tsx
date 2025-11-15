@@ -142,7 +142,6 @@ export default function DevelopmentRecipesPage() {
     setSelectedFilm,
     setSelectedDeveloper,
     handleSort,
-    loadData,
     forceRefresh,
     clearFilters,
     getFilmById,
@@ -940,9 +939,8 @@ export default function DevelopmentRecipesPage() {
     ]
   );
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  // Data loading is handled automatically by TanStack Query hooks
+  // No manual loadData() call needed - it fetches on component mount
 
   const handleRefreshAll = useCallback(async () => {
     await Promise.all([forceRefresh(), refreshCustomRecipes()]);
