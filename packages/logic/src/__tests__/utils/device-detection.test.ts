@@ -45,11 +45,12 @@ const createMockNavigator = (
 };
 
 describe('device detection', () => {
-  type MutableGlobal = typeof globalThis & {
+  type MutableGlobal = {
     window?: unknown;
     navigator?: unknown;
+    [key: string]: unknown;
   };
-  const g = globalThis as MutableGlobal;
+  const g = globalThis as unknown as MutableGlobal;
   const originalWindow = g.window;
   const originalNavigator = g.navigator;
 
