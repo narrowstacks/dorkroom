@@ -50,7 +50,7 @@ export {
 } from './hooks/use-exposure-calculator';
 export { useFeatureFlags } from './hooks/use-feature-flags';
 export { useDebounce, useDebouncedCallback } from './hooks/use-debounce';
-export { usePagination } from './hooks/use-pagination';
+export { useDevelopmentTable } from './hooks/development-recipes/use-development-table';
 export { useCustomRecipes } from './hooks/development-recipes/use-custom-recipes';
 export { useCustomRecipeSharing } from './hooks/development-recipes/use-custom-recipe-sharing';
 export { useRecipeSharing } from './hooks/development-recipes/use-recipe-sharing';

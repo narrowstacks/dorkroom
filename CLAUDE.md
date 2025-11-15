@@ -75,3 +75,4 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 - UI package uses clsx and tailwind-merge
 - Logic package has React peer dependencies
 - All packages build to TypeScript declarations
+- Keep commit messages short. Use conventional commit standards.

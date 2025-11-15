@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
+import { SortingState } from '@tanstack/react-table';
 import {
   useCustomRecipes,
   useDevelopmentRecipes,
   useRecipeSharing,
   useRecipeUrlState,
-  usePagination,
+  useDevelopmentTable,
   useFeatureFlags,
   useViewPreference,
   useFavorites,
@@ -37,6 +38,8 @@ import {
   TemperatureProvider,
   SkeletonCard,
   SkeletonTableRow,
+  createTableColumns,
+  PaginationControls,
   type DevelopmentCombinationView,
   cn,
 } from '@dorkroom/ui';
@@ -194,6 +197,24 @@ export default function DevelopmentRecipesPage() {
   const [editingRecipe, setEditingRecipe] =
     useState<DevelopmentCombinationView | null>(null);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [pageIndex, setPageIndex] = useState(0);
+  const resultsContainerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to top of results when page changes, accounting for floating navbar
+  useEffect(() => {
+    if (resultsContainerRef.current) {
+      const element = resultsContainerRef.current;
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      const navbarHeight = 80; // Approximate navbar height + extra buffer
+      const targetPosition = elementPosition - navbarHeight;
+
+      window.scrollTo({
+        top: targetPosition,
+        behavior: 'smooth',
+      });
+    }
+  }, [pageIndex]);
 
   const recipesByUuid = useMemo(() => {
     const map = new Map<string, Combination>();
@@ -491,9 +512,6 @@ export default function DevelopmentRecipesPage() {
     isFavorite,
   ]);
 
-  const pagination = usePagination(combinedRows, 24);
-  const paginatedRows = pagination.paginatedItems;
-
   const handleOpenDetail = useCallback((view: DevelopmentCombinationView) => {
     setDetailView(view);
     setIsDetailOpen(true);
@@ -625,6 +643,55 @@ export default function DevelopmentRecipesPage() {
     },
     [deleteCustomRecipe, refreshCustomRecipes, detailView]
   );
+
+  // Memoize favorite callbacks to prevent column recreation on every render
+  const handleCheckFavorite = useCallback(
+    (view: DevelopmentCombinationView) =>
+      isFavorite(String(view.combination.uuid || view.combination.id)),
+    [isFavorite]
+  );
+
+  const handleToggleFavorite = useCallback(
+    (view: DevelopmentCombinationView) =>
+      toggleFavorite(String(view.combination.uuid || view.combination.id)),
+    [toggleFavorite]
+  );
+
+  // Memoize the isFavorite function for use in table sorting
+  const memoizedIsFavorite = useCallback(
+    (id: string) => isFavorite(id),
+    [isFavorite]
+  );
+
+  // Create table columns with context handlers
+  const columns = useMemo(
+    () =>
+      createTableColumns({
+        isFavorite: handleCheckFavorite,
+        onToggleFavorite: handleToggleFavorite,
+        onEditCustomRecipe: handleEditCustomRecipe,
+        onDeleteCustomRecipe: handleDeleteCustomRecipe,
+        onShareCombination: handleShareCombination,
+      }),
+    [
+      handleCheckFavorite,
+      handleToggleFavorite,
+      handleEditCustomRecipe,
+      handleDeleteCustomRecipe,
+      handleShareCombination,
+    ]
+  );
+
+  // Create TanStack table instance
+  const table = useDevelopmentTable({
+    rows: combinedRows,
+    columns,
+    sorting,
+    onSortingChange: setSorting,
+    pageIndex,
+    onPageIndexChange: setPageIndex,
+    isFavorite: memoizedIsFavorite,
+  });
 
   const handleAcceptSharedRecipe = useCallback(async () => {
     if (!sharedRecipeView) return;
@@ -1135,50 +1202,20 @@ export default function DevelopmentRecipesPage() {
 
           {!isLoading && (
             <div
+              ref={resultsContainerRef}
               key={`results-${isLoaded}-${combinedRows.length}`}
               className="animate-slide-fade-top"
             >
               {isMobile || viewMode === 'grid' ? (
                 <DevelopmentResultsCards
-                  rows={paginatedRows}
+                  table={table}
                   onSelectCombination={handleOpenDetail}
-                  onShareCombination={handleShareCombination}
-                  onCopyCombination={handleCopyCombination}
-                  onEditCustomRecipe={handleEditCustomRecipe}
-                  onDeleteCustomRecipe={handleDeleteCustomRecipe}
                   isMobile={isMobile}
-                  isFavorite={(view) =>
-                    isFavorite(
-                      String(view.combination.uuid || view.combination.id)
-                    )
-                  }
-                  onToggleFavorite={(view) =>
-                    toggleFavorite(
-                      String(view.combination.uuid || view.combination.id)
-                    )
-                  }
                 />
               ) : (
                 <DevelopmentResultsTable
-                  rows={paginatedRows}
+                  table={table}
                   onSelectCombination={handleOpenDetail}
-                  onShareCombination={handleShareCombination}
-                  onCopyCombination={handleCopyCombination}
-                  onEditCustomRecipe={handleEditCustomRecipe}
-                  onDeleteCustomRecipe={handleDeleteCustomRecipe}
-                  isFavorite={(view) =>
-                    isFavorite(
-                      String(view.combination.uuid || view.combination.id)
-                    )
-                  }
-                  onToggleFavorite={(view) =>
-                    toggleFavorite(
-                      String(view.combination.uuid || view.combination.id)
-                    )
-                  }
-                  sortBy={sortBy}
-                  sortDirection={sortDirection}
-                  onSort={handleSort}
                 />
               )}
             </div>
@@ -1187,12 +1224,7 @@ export default function DevelopmentRecipesPage() {
 
         {!isLoading && (
           <div className="animate-slide-fade-top animate-delay-300">
-            <PaginationControls
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              onNext={pagination.goToNext}
-              onPrevious={pagination.goToPrevious}
-            />
+            <PaginationControls table={table} />
           </div>
         )}
 
@@ -1548,52 +1580,6 @@ export default function DevelopmentRecipesPage() {
         )}
       </div>
     </TemperatureProvider>
-  );
-}
-
-function PaginationControls({
-  currentPage,
-  totalPages,
-  onNext,
-  onPrevious,
-}: {
-  currentPage: number;
-  totalPages: number;
-  onNext: () => void;
-  onPrevious: () => void;
-}) {
-  if (totalPages <= 1) {
-    return null;
-  }
-
-  return (
-    <div className="flex items-center justify-end gap-2 text-sm text-white/70">
-      <button
-        type="button"
-        onClick={onPrevious}
-        disabled={currentPage === 1}
-        className={cn(
-          'rounded-full border border-white/20 px-3 py-1.5 transition hover:border-white/40 hover:text-white',
-          currentPage === 1 && 'cursor-not-allowed opacity-50'
-        )}
-      >
-        Previous
-      </button>
-      <span>
-        Page {currentPage} of {totalPages}
-      </span>
-      <button
-        type="button"
-        onClick={onNext}
-        disabled={currentPage === totalPages}
-        className={cn(
-          'rounded-full border border-white/20 px-3 py-1.5 transition hover:border-white/40 hover:text-white',
-          currentPage === totalPages && 'cursor-not-allowed opacity-50'
-        )}
-      >
-        Next
-      </button>
-    </div>
   );
 }
 

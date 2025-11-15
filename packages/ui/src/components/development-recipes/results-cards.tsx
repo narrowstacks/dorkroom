@@ -1,4 +1,5 @@
 import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
+import type { Table, Row } from '@tanstack/react-table';
 import type { DevelopmentCombinationView } from './results-table';
 import type { Dilution } from '@dorkroom/api';
 import { useTemperature } from '../../contexts/temperature-context';
@@ -9,7 +10,7 @@ import { Tag } from '../ui/tag';
 import { ShareButton } from '../share-button';
 
 interface DevelopmentResultsCardsProps {
-  rows: DevelopmentCombinationView[];
+  table: Table<DevelopmentCombinationView>;
   onSelectCombination?: (view: DevelopmentCombinationView) => void;
   onShareCombination?: (
     view: DevelopmentCombinationView
@@ -56,7 +57,7 @@ const formatDilution = (view: DevelopmentCombinationView): string => {
 };
 
 export function DevelopmentResultsCards({
-  rows,
+  table,
   onSelectCombination,
   onShareCombination,
   onCopyCombination,
@@ -67,6 +68,7 @@ export function DevelopmentResultsCards({
   onToggleFavorite,
 }: DevelopmentResultsCardsProps) {
   const { unit } = useTemperature();
+  const rows = table.getRowModel().rows;
   return (
     <div
       className={cn(
@@ -76,12 +78,13 @@ export function DevelopmentResultsCards({
           : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
       )}
     >
-      {rows.map((row, index) => {
-        const { combination, film, developer } = row;
+      {rows.map((row: Row<DevelopmentCombinationView>, index: number) => {
+        const rowData = row.original;
+        const { combination, film, developer } = rowData;
         return (
           <div
             key={combination.uuid || combination.id}
-            onClick={() => onSelectCombination?.(row)}
+            onClick={() => onSelectCombination?.(rowData)}
             className={cn(
               'cursor-pointer rounded-2xl border p-3 shadow-subtle transition-all duration-200 hover:scale-[1.02]',
               'animate-slide-fade-bottom',
@@ -96,7 +99,7 @@ export function DevelopmentResultsCards({
             )}
             style={{
               borderColor:
-                row.source === 'custom'
+                rowData.source === 'custom'
                   ? colorMixOr(
                       'var(--color-accent)',
                       30,
@@ -105,7 +108,7 @@ export function DevelopmentResultsCards({
                     )
                   : 'var(--color-border-secondary)',
               backgroundColor:
-                row.source === 'custom'
+                rowData.source === 'custom'
                   ? colorMixOr(
                       'var(--color-accent)',
                       15,
@@ -116,7 +119,7 @@ export function DevelopmentResultsCards({
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor =
-                row.source === 'custom'
+                rowData.source === 'custom'
                   ? colorMixOr(
                       'var(--color-accent)',
                       40,
@@ -125,7 +128,7 @@ export function DevelopmentResultsCards({
                     )
                   : 'var(--color-border-primary)';
               e.currentTarget.style.backgroundColor =
-                row.source === 'custom'
+                rowData.source === 'custom'
                   ? colorMixOr(
                       'var(--color-accent)',
                       20,
@@ -136,7 +139,7 @@ export function DevelopmentResultsCards({
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor =
-                row.source === 'custom'
+                rowData.source === 'custom'
                   ? colorMixOr(
                       'var(--color-accent)',
                       30,
@@ -145,7 +148,7 @@ export function DevelopmentResultsCards({
                     )
                   : 'var(--color-border-secondary)';
               e.currentTarget.style.backgroundColor =
-                row.source === 'custom'
+                rowData.source === 'custom'
                   ? colorMixOr(
                       'var(--color-accent)',
                       15,
@@ -171,10 +174,10 @@ export function DevelopmentResultsCards({
                     ? `${developer.manufacturer} ${developer.name}`
                     : 'Unknown developer'}
                 </div>
-                {(row.source === 'custom' ||
+                {(rowData.source === 'custom' ||
                   (combination.tags && combination.tags.length > 0)) && (
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    {row.source === 'custom' && (
+                    {rowData.source === 'custom' && (
                       <span
                         className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
                         style={{
@@ -209,24 +212,24 @@ export function DevelopmentResultsCards({
               <button
                 type="button"
                 title={
-                  isFavorite?.(row)
+                  isFavorite?.(rowData)
                     ? 'Remove from favorites'
                     : 'Add to favorites'
                 }
-                aria-pressed={Boolean(isFavorite?.(row))}
+                aria-pressed={Boolean(isFavorite?.(rowData))}
                 aria-label={
-                  isFavorite?.(row)
+                  isFavorite?.(rowData)
                     ? 'Remove from favorites'
                     : 'Add to favorites'
                 }
                 onClick={(e) => {
                   e.stopPropagation();
-                  onToggleFavorite?.(row);
+                  onToggleFavorite?.(rowData);
                 }}
                 className="ml-2 inline-flex items-center justify-center rounded-md p-1.5 transition"
                 style={{
                   backgroundColor: 'var(--color-surface-muted)',
-                  color: isFavorite?.(row)
+                  color: isFavorite?.(rowData)
                     ? 'var(--color-semantic-warning)'
                     : 'var(--color-text-tertiary)',
                 }}
@@ -243,7 +246,7 @@ export function DevelopmentResultsCards({
                   className="h-4 w-4"
                   aria-hidden="true"
                   style={{
-                    fill: isFavorite?.(row)
+                    fill: isFavorite?.(rowData)
                       ? 'var(--color-semantic-warning)'
                       : 'transparent',
                   }}
@@ -279,8 +282,8 @@ export function DevelopmentResultsCards({
                 </div>
                 {(() => {
                   const temp = formatTemperatureWithUnit(
-                    row.combination.temperatureF,
-                    row.combination.temperatureC,
+                    row.original.combination.temperatureF,
+                    row.original.combination.temperatureC,
                     unit
                   );
                   return (
@@ -306,18 +309,18 @@ export function DevelopmentResultsCards({
                   className="text-sm"
                   style={{ color: 'var(--color-text-primary)' }}
                 >
-                  {formatDilution(row)}
+                  {formatDilution(rowData)}
                 </div>
               </div>
             </div>
 
             {(combination.notes ||
               combination.infoSource ||
-              (row.source !== 'custom' &&
+              (rowData.source !== 'custom' &&
                 (onShareCombination || onCopyCombination))) && (
               <div className="mt-3 space-y-1.5">
                 {(combination.infoSource ||
-                  (row.source !== 'custom' &&
+                  (rowData.source !== 'custom' &&
                     (onShareCombination || onCopyCombination))) && (
                   <div className="flex justify-between items-center">
                     {combination.infoSource && (
@@ -343,11 +346,11 @@ export function DevelopmentResultsCards({
                         Source
                       </a>
                     )}
-                    {row.source !== 'custom' &&
+                    {rowData.source !== 'custom' &&
                       (onShareCombination || onCopyCombination) && (
                         <div onClick={(e) => e.stopPropagation()}>
                           <ShareButton
-                            onClick={() => onShareCombination?.(row)}
+                            onClick={() => onShareCombination?.(rowData)}
                             variant="outline"
                             size="sm"
                             className="text-xs"
@@ -359,13 +362,13 @@ export function DevelopmentResultsCards({
               </div>
             )}
 
-            {row.source === 'custom' && (
+            {rowData.source === 'custom' && (
               <div className="mt-3 flex justify-end gap-1.5">
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEditCustomRecipe?.(row);
+                    onEditCustomRecipe?.(rowData);
                   }}
                   aria-label="Edit custom recipe"
                   className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
@@ -392,7 +395,7 @@ export function DevelopmentResultsCards({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDeleteCustomRecipe?.(row);
+                    onDeleteCustomRecipe?.(rowData);
                   }}
                   aria-label="Delete custom recipe"
                   className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
