@@ -142,7 +142,9 @@ export function useDevelopmentTable({
     [pageIndex]
   );
 
-  const handlePaginationChange = (updaterOrValue: any) => {
+  const handlePaginationChange = (
+    updaterOrValue: PaginationState | ((old: PaginationState) => PaginationState)
+  ) => {
     const newPagination =
       typeof updaterOrValue === 'function'
         ? updaterOrValue(pagination)
