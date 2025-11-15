@@ -6,11 +6,12 @@ import {
   type ColumnDef,
   PaginationState,
 } from '@tanstack/react-table';
+import type { Combination, Film, Developer } from '@dorkroom/api';
 
 interface DevelopmentCombinationView {
-  combination: any;
-  film?: any;
-  developer?: any;
+  combination: Combination;
+  film?: Film;
+  developer?: Developer;
   source?: 'api' | 'custom';
   canShare?: boolean;
   canViewDetails?: boolean;
