@@ -1,11 +1,14 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
-  DorkroomClient,
   type Film,
   type Developer,
   type Combination,
   type Dilution,
 } from '@dorkroom/api';
+import { useFilms } from '../api/use-films';
+import { useDevelopers } from '../api/use-developers';
+import { useCombinations } from '../api/use-combinations';
 import { debugError } from '../../utils/debug-logger';
 import type { InitialUrlState } from '../../types/development-recipes-url';
 
@@ -40,7 +43,6 @@ export interface DevelopmentRecipesActions {
   handleSort: (sortKey: string) => void;
   setSelectedFilm: (film: Film | null) => void;
   setSelectedDeveloper: (developer: Developer | null) => void;
-  loadData: () => Promise<void>;
   forceRefresh: () => Promise<void>;
   clearFilters: () => void;
   getFilmById: (id: string) => Film | undefined;
@@ -52,12 +54,10 @@ export interface DevelopmentRecipesActions {
   getAvailableTags: () => { label: string; value: string }[];
 }
 
-const client = new DorkroomClient();
-
 /**
  * Main hook for managing film development recipes data and state.
- * Provides comprehensive functionality for loading, filtering, sorting, and
- * managing film development combinations from the Dorkroom API.
+ * Uses TanStack Query for API data management and provides comprehensive
+ * functionality for filtering, sorting, and managing film development combinations.
  *
  * @param initialUrlState - Optional initial state from URL parameters
  * @returns Complete development recipes state and action functions
@@ -85,6 +85,49 @@ const client = new DorkroomClient();
 export const useDevelopmentRecipes = (
   initialUrlState?: InitialUrlState
 ): DevelopmentRecipesState & DevelopmentRecipesActions => {
+  // Fetch API data using TanStack Query
+  const filmsQuery = useFilms();
+  const developersQuery = useDevelopers();
+  const combinationsQuery = useCombinations();
+  const queryClient = useQueryClient();
+
+  // Filter and sort API data
+  const allFilms = useMemo(() => {
+    if (!filmsQuery.data) return [];
+
+    // Filter for black & white films only
+    const films = filmsQuery.data.filter((film: Film) => {
+      if (!film.colorType) return false;
+      const ct = film.colorType.toLowerCase();
+      return ct === 'bw' || ct === 'b&w' || ct === 'b & w';
+    });
+
+    // Sort by brand and name
+    return films.slice().sort(
+      (a: Film, b: Film) =>
+        a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name)
+    );
+  }, [filmsQuery.data]);
+
+  const allDevelopers = useMemo(() => {
+    if (!developersQuery.data) return [];
+
+    // Filter for film developers only (filmOrPaper: true = film, false = paper)
+    const developers = developersQuery.data.filter(
+      (developer: Developer) => developer.filmOrPaper === true
+    );
+
+    // Sort by manufacturer and name
+    return developers.slice().sort(
+      (a: Developer, b: Developer) =>
+        a.manufacturer.localeCompare(b.manufacturer) ||
+        a.name.localeCompare(b.name)
+    );
+  }, [developersQuery.data]);
+
+  const allCombinations = combinationsQuery.data || [];
+
+  // UI state
   const [developerTypeFilter, setDeveloperTypeFilter] = useState('');
   const [dilutionFilter, setDilutionFilter] = useState(
     initialUrlState?.dilutionFilter || ''
@@ -114,129 +157,36 @@ export const useDevelopmentRecipes = (
     setDilutionFilter('');
   }, []);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Combined loading and error states
+  const isLoading = filmsQuery.isPending ||
+    developersQuery.isPending ||
+    combinationsQuery.isPending;
+  const isLoaded = filmsQuery.isSuccess &&
+    developersQuery.isSuccess &&
+    combinationsQuery.isSuccess;
+  const error = filmsQuery.error?.message ||
+    developersQuery.error?.message ||
+    combinationsQuery.error?.message ||
+    null;
 
-  const [allFilms, setAllFilms] = useState<Film[]>([]);
-  const [allDevelopers, setAllDevelopers] = useState<Developer[]>([]);
-  const [allCombinations, setAllCombinations] = useState<Combination[]>([]);
-
-  const loadData = useCallback(async () => {
-    if (isLoading) return;
-    if (isLoaded && !client.isDataExpired()) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await client.loadAll();
-
-      const allFilmsData = client.getAllFilms();
-      const allDevelopersData = client.getAllDevelopers();
-      const combinations = client.getAllCombinations();
-
-      // Filter for black & white films only
-      const films = allFilmsData.filter((film: Film) => {
-        if (!film.colorType) {
-          return false;
-        }
-        const ct = film.colorType.toLowerCase();
-        return ct === 'bw' || ct === 'b&w' || ct === 'b & w';
-      });
-
-      // Filter for film developers only (filmOrPaper: true = film, false = paper)
-      const developers = allDevelopersData.filter((developer: Developer) => {
-        return developer.filmOrPaper === true;
-      });
-
-      const sortedFilms = films
-        .slice()
-        .sort(
-          (a: Film, b: Film) =>
-            a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name)
-        );
-
-      const sortedDevelopers = developers
-        .slice()
-        .sort(
-          (a: Developer, b: Developer) =>
-            a.manufacturer.localeCompare(b.manufacturer) ||
-            a.name.localeCompare(b.name)
-        );
-
-      setAllFilms(sortedFilms);
-      setAllDevelopers(sortedDevelopers);
-      setAllCombinations(combinations);
-      setIsLoaded(true);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Failed to load development data';
-      setError(errorMessage);
-      debugError('Failed to load development recipes data:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isLoaded, isLoading]);
-
+  // Force refresh via TanStack Query invalidation
   const forceRefresh = useCallback(async () => {
-    if (isLoading) return;
-
-    setIsLoading(true);
-    setError(null);
-
     try {
+      // Invalidate all queries to trigger refetch
       await Promise.all([
-        new Promise((resolve) => setTimeout(resolve, 500)),
-        client.forceReload(),
+        queryClient.invalidateQueries({ queryKey: ['films'] }),
+        queryClient.invalidateQueries({ queryKey: ['developers'] }),
+        queryClient.invalidateQueries({ queryKey: ['combinations'] }),
       ]);
-
-      const allFilmsData = client.getAllFilms();
-      const allDevelopersData = client.getAllDevelopers();
-      const combinations = client.getAllCombinations();
-
-      const films = allFilmsData
-        .filter((film: Film) => {
-          if (!film.colorType) {
-            return false;
-          }
-          const ct = film.colorType.toLowerCase();
-          return ct === 'bw' || ct === 'b&w' || ct === 'b & w';
-        })
-        .sort(
-          (a: Film, b: Film) =>
-            a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name)
-        );
-
-      const developers = allDevelopersData
-        .filter((developer: Developer) => {
-          return developer.filmOrPaper === true;
-        })
-        .sort(
-          (a: Developer, b: Developer) =>
-            a.manufacturer.localeCompare(b.manufacturer) ||
-            a.name.localeCompare(b.name)
-        );
-
-      setAllFilms(films);
-      setAllDevelopers(developers);
-      setAllCombinations(combinations);
-      setIsLoaded(true);
     } catch (err) {
       const errorMessage =
         err instanceof Error
           ? err.message
           : 'Failed to refresh development data';
-      setError(errorMessage);
       debugError('Failed to refresh development recipes data:', err);
-    } finally {
-      setIsLoading(false);
+      throw errorMessage;
     }
-  }, [isLoading]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  }, [queryClient]);
 
   const getFilmById = useCallback(
     (id?: string | null): Film | undefined => {
@@ -567,7 +517,6 @@ export const useDevelopmentRecipes = (
     handleSort,
     setSelectedFilm,
     setSelectedDeveloper,
-    loadData,
     forceRefresh,
     clearFilters,
     getFilmById,

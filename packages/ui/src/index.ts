@@ -41,6 +41,9 @@ export { CollapsibleFilters } from './components/development-recipes/collapsible
 export { DevelopmentResultsTable } from './components/development-recipes/results-table';
 export type { DevelopmentCombinationView } from './components/development-recipes/results-table';
 export { DevelopmentResultsCards } from './components/development-recipes/results-cards';
+export { PaginationControls } from './components/development-recipes/pagination-controls';
+export { createTableColumns } from './components/development-recipes/table-columns';
+export type { TableColumnContext } from './components/development-recipes/table-columns';
 export { DevelopmentRecipeDetail } from './components/development-recipes/recipe-detail';
 export { CustomRecipeForm } from './components/development-recipes/custom-recipe-form';
 export { DevelopmentActionsBar } from './components/development-recipes/actions-bar';
