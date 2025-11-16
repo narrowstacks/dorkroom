@@ -240,6 +240,7 @@ export default function BorderCalculatorPage() {
   }, [customPaperHeight, toDisplay, isEditingPaperHeight]);
 
   // Update orientation when custom paper is selected or dimensions change
+  // Also ensures manual flips don't override the dimension-based calculation
   useEffect(() => {
     const currentPaperSize = form.getFieldValue('paperSize');
 
@@ -251,7 +252,7 @@ export default function BorderCalculatorPage() {
         form.setFieldValue('isLandscape', shouldBeLandscape);
       }
     }
-  }, [paperSize, customPaperWidth, customPaperHeight, form]);
+  }, [paperSize, customPaperWidth, customPaperHeight, isLandscape, form]);
 
   // Helper to validate and convert input to inches
   const validateAndConvert = (value: string): number | null => {
