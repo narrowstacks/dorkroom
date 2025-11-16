@@ -127,44 +127,6 @@ export default function BorderCalculatorPage() {
     },
   });
 
-  // Update form defaults when hook state changes
-  useEffect(() => {
-    form.setValues({
-      aspectRatio,
-      customAspectWidth,
-      customAspectHeight,
-      paperSize,
-      customPaperWidth,
-      customPaperHeight,
-      minBorder,
-      enableOffset,
-      ignoreMinBorder,
-      horizontalOffset,
-      verticalOffset,
-      showBlades,
-      showBladeReadings,
-      isLandscape,
-      isRatioFlipped,
-    });
-  }, [
-    aspectRatio,
-    customAspectWidth,
-    customAspectHeight,
-    paperSize,
-    customPaperWidth,
-    customPaperHeight,
-    minBorder,
-    enableOffset,
-    ignoreMinBorder,
-    horizontalOffset,
-    verticalOffset,
-    showBlades,
-    showBladeReadings,
-    isLandscape,
-    isRatioFlipped,
-    form,
-  ]);
-
   const { presets, addPreset, updatePreset, removePreset } = useBorderPresets();
 
   // Local string state for custom paper dimensions (in display units)
