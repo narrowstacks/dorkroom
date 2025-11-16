@@ -26,7 +26,7 @@ export default defineConfig(() => ({
   plugins: [react(), nxViteTsPaths()],
   resolve: {
     alias: {
-      '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src/index.ts'),
+      '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src'),
       '@dorkroom/logic': resolve(__dirname, '../../packages/logic/dist/index.js'),
       '@dorkroom/api': resolve(__dirname, '../../packages/api/dist/index.js'),
     },

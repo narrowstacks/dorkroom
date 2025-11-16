@@ -94,3 +94,6 @@ export {
   useMeasurementConverter,
   useMeasurementUtils,
 } from './hooks/use-measurement-conversion';
+
+// Forms (TanStack Form integration)
+export * from './forms';
