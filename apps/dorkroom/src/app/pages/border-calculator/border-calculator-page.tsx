@@ -234,6 +234,13 @@ export default function BorderCalculatorPage() {
     }
   }, [customPaperHeight, toDisplay, isEditingPaperHeight]);
 
+  // Update orientation when custom paper dimensions change
+  useEffect(() => {
+    if (form.getFieldValue('paperSize') === 'custom') {
+      form.setFieldValue('isLandscape', customPaperWidth >= customPaperHeight);
+    }
+  }, [customPaperWidth, customPaperHeight, form]);
+
   // Helper to validate and convert input to inches
   const validateAndConvert = (value: string): number | null => {
     // Allow empty, whitespace, or trailing decimal point
