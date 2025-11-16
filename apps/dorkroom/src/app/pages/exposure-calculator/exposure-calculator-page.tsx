@@ -16,7 +16,6 @@ import {
   roundStopsToThirds,
   roundToStandardPrecision,
   calculateNewExposureTime,
-  parseExposureTime,
   formatExposureTime,
   calculatePercentageIncrease,
 } from '@dorkroom/logic';
@@ -186,7 +185,7 @@ export default function ExposureCalculatorPage() {
               {(field) => (
                 <CalculatorNumberField
                   label="Original exposure time (seconds)"
-                  value={field.state.value}
+                  value={String(field.state.value)}
                   onChange={(value: string) =>
                     field.handleChange(parseFloat(value))
                   }

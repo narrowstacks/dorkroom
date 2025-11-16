@@ -15,7 +15,6 @@ import {
   useReciprocityCalculator,
   formatReciprocityTime,
   parseReciprocityTime,
-  RECIPROCITY_FILM_TYPES,
   RECIPROCITY_EXPOSURE_PRESETS,
   RECIPROCITY_STORAGE_KEY,
   type SelectItem,
@@ -206,7 +205,7 @@ export default function ReciprocityCalculatorPage() {
                 {(field) => (
                   <CalculatorNumberField
                     label="Reciprocity factor"
-                    value={field.state.value}
+                    value={String(field.state.value)}
                     onChange={(value: string) =>
                       field.handleChange(parseFloat(value))
                     }

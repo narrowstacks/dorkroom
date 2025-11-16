@@ -144,7 +144,6 @@ export default function DevelopmentRecipesPage() {
     setTagFilter,
     setSelectedFilm,
     setSelectedDeveloper,
-    handleSort,
     forceRefresh,
     clearFilters,
     getFilmById,

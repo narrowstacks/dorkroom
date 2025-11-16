@@ -12,6 +12,7 @@
         "@tanstack/react-form": "^1.25.0",
         "@tanstack/react-query": "^5.90.9",
         "@tanstack/react-store": "^0.8.0",
+        "@tanstack/react-table": "^8.21.3",
         "@tanstack/zod-adapter": "^1.136.5",
         "@vercel/node": "^5.3.24",
         "clsx": "^2.1.1",
