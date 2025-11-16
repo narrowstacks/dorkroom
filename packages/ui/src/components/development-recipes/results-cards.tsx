@@ -8,13 +8,14 @@ import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import { Tag } from '../ui/tag';
 import { ShareButton } from '../share-button';
+import type { ShareResult } from '../share-button';
 
 interface DevelopmentResultsCardsProps {
   table: Table<DevelopmentCombinationView>;
   onSelectCombination?: (view: DevelopmentCombinationView) => void;
   onShareCombination?: (
     view: DevelopmentCombinationView
-  ) => void | Promise<unknown>;
+  ) => void | ShareResult | Promise<void | ShareResult>;
   onCopyCombination?: (view: DevelopmentCombinationView) => void;
   onEditCustomRecipe?: (view: DevelopmentCombinationView) => void;
   onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;

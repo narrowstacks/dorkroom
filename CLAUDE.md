@@ -12,7 +12,7 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 
 - `bunx nx dev dorkroom -- --host=0.0.0.0` - Start development server. **Check if dev server is running on port 4200 before doing this!**
 - `bunx nx build dorkroom` - Build production bundle
-- `bunx nx serve dorkroom` - Alternative dev server (no hotloading of @dorkroom packages!)
+- `bunx nx serve dorkroom` - Alternative dev server (no hotloading of @dorkroom packages! Always rebuild dorkroom before serving.)
 
 ### Code Quality (run these after completing tasks)
 
@@ -38,7 +38,6 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 - `apps/dorkroom/` - Main React application
 - `packages/ui/` - Shared UI components (@dorkroom/ui)
 - `packages/logic/` - Business logic (@dorkroom/logic)
-- `original-*/` - Legacy code being migrated
 
 ### Key Technologies
 
@@ -88,4 +87,7 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 - UI package uses clsx and tailwind-merge
 - Logic package has React peer dependencies
 - All packages build to TypeScript declarations
+
+## Git rules
+
 - Keep commit messages short. Use conventional commit standards.

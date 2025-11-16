@@ -7,6 +7,7 @@ import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { useTemperature } from '../../contexts/temperature-context';
 import { Tag } from '../ui/tag';
 import { ShareButton } from '../share-button';
+import type { ShareResult } from '../share-button';
 
 /**
  * Formatting utilities (extracted from results-table.tsx)
@@ -32,8 +33,9 @@ const formatDilution = (row: DevelopmentCombinationView): string => {
   }
 
   if (developer && combination.dilutionId) {
-    const dilution = developer.dilutions.find((dilutionOption) =>
-      String(dilutionOption.id) === String(combination.dilutionId)
+    const dilution = developer.dilutions.find(
+      (dilutionOption) =>
+        String(dilutionOption.id) === String(combination.dilutionId)
     );
 
     if (dilution) {
@@ -78,13 +80,17 @@ export interface TableColumnContext {
   onToggleFavorite?: (view: DevelopmentCombinationView) => void;
   onEditCustomRecipe?: (view: DevelopmentCombinationView) => void;
   onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;
-  onShareCombination?: (view: DevelopmentCombinationView) => void | Promise<unknown>;
+  onShareCombination?: (
+    view: DevelopmentCombinationView
+  ) => void | ShareResult | Promise<void | ShareResult>;
 }
 
 /**
  * Create table columns with context-aware handlers
  */
-export const createTableColumns = (context: TableColumnContext): ColumnDef<DevelopmentCombinationView>[] => [
+export const createTableColumns = (
+  context: TableColumnContext
+): ColumnDef<DevelopmentCombinationView>[] => [
   {
     accessorKey: 'film',
     header: 'Film',
@@ -92,18 +98,18 @@ export const createTableColumns = (context: TableColumnContext): ColumnDef<Devel
       const { combination, film } = context.row.original;
       return (
         <div>
-          <div style={{ color: 'var(--color-text-primary)' }} className="font-medium">
+          <div
+            style={{ color: 'var(--color-text-primary)' }}
+            className="font-medium"
+          >
             {film ? `${film.brand} ${film.name}` : 'Unknown film'}
           </div>
-          <div
-            className="text-xs"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
+          <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
             {combination.pushPull === 0
               ? 'Box Speed'
               : combination.pushPull > 0
-                ? `Push +${combination.pushPull}`
-                : `Pull ${combination.pushPull}`}
+              ? `Push +${combination.pushPull}`
+              : `Pull ${combination.pushPull}`}
           </div>
           {combination.tags && combination.tags.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
@@ -125,7 +131,10 @@ export const createTableColumns = (context: TableColumnContext): ColumnDef<Devel
       const isCustom = context.row.original.source === 'custom';
       return (
         <div>
-          <div style={{ color: 'var(--color-text-primary)' }} className="font-medium">
+          <div
+            style={{ color: 'var(--color-text-primary)' }}
+            className="font-medium"
+          >
             {developer
               ? `${developer.manufacturer} ${developer.name}`
               : 'Unknown developer'}
@@ -268,9 +277,7 @@ export const createTableColumns = (context: TableColumnContext): ColumnDef<Devel
               className="h-4 w-4"
               aria-hidden="true"
               style={{
-                fill: isFav
-                  ? 'var(--color-semantic-warning)'
-                  : 'transparent',
+                fill: isFav ? 'var(--color-semantic-warning)' : 'transparent',
               }}
             />
           </button>
