@@ -865,7 +865,15 @@ export default function BorderCalculatorPage() {
                     onValueChange={(value) => {
                       field.handleChange(value);
                       const isCustom = value === 'custom';
-                      form.setFieldValue('isLandscape', !isCustom);
+                      if (isCustom) {
+                        // For custom paper, calculate landscape based on actual dimensions
+                        const paperWidth = form.getFieldValue('customPaperWidth');
+                        const paperHeight = form.getFieldValue('customPaperHeight');
+                        form.setFieldValue('isLandscape', paperWidth >= paperHeight);
+                      } else {
+                        // For standard paper sizes, default to landscape
+                        form.setFieldValue('isLandscape', true);
+                      }
                       form.setFieldValue('isRatioFlipped', false);
                     }}
                     items={displayPaperSizes as SelectItem[]}
