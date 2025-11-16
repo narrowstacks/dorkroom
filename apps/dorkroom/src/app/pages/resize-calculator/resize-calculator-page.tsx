@@ -408,7 +408,8 @@ export default function ResizeCalculatorPage() {
 
             <form.Subscribe
               selector={(state) => state.values.isEnlargerHeightMode as boolean}
-              children={(isEnlargerHeightMode) =>
+            >
+              {(isEnlargerHeightMode) =>
                 !isEnlargerHeightMode ? (
                   <div className="space-y-6">
                     <div className="space-y-3">
@@ -562,7 +563,7 @@ export default function ResizeCalculatorPage() {
                   </div>
                 )
               }
-            />
+            </form.Subscribe>
 
             <form.Subscribe
               selector={(state) => {
@@ -578,7 +579,8 @@ export default function ResizeCalculatorPage() {
                   isMatched,
                 };
               }}
-              children={({ isEnlargerMode, isMatched }) =>
+            >
+              {({ isEnlargerMode, isMatched }) =>
                 !isEnlargerMode && !isMatched ? (
                   <WarningAlert
                     message="The aspect ratios of the original and target prints do not match. Try to match the aspect ratio of the original print to the target print as close as possible."
@@ -586,7 +588,7 @@ export default function ResizeCalculatorPage() {
                   />
                 ) : null
               }
-            />
+            </form.Subscribe>
 
             <div className="space-y-3">
               <h3
@@ -650,7 +652,8 @@ export default function ResizeCalculatorPage() {
 
               return { newTime, stopsDifference, stopsHelper };
             }}
-            children={({ newTime, stopsDifference, stopsHelper }) =>
+          >
+            {({ newTime, stopsDifference, stopsHelper }) =>
               newTime ? (
                 <CalculatorCard
                   title="Exposure result"
@@ -675,7 +678,7 @@ export default function ResizeCalculatorPage() {
                 </CalculatorCard>
               ) : null
             }
-          />
+          </form.Subscribe>
         </div>
 
         <div className="space-y-6">

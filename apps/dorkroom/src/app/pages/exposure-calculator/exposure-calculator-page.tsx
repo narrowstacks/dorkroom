@@ -20,7 +20,10 @@ import {
   formatExposureTime,
   calculatePercentageIncrease,
 } from '@dorkroom/logic';
-import { exposureCalculatorSchema, createZodFormValidator } from '@dorkroom/ui/forms';
+import {
+  exposureCalculatorSchema,
+  createZodFormValidator,
+} from '@dorkroom/ui/forms';
 import { useTheme } from '../../contexts/theme-context';
 import { themes } from '../../lib/themes';
 
@@ -184,7 +187,9 @@ export default function ExposureCalculatorPage() {
                 <CalculatorNumberField
                   label="Original exposure time (seconds)"
                   value={field.state.value}
-                  onChange={(value: string) => field.handleChange(parseFloat(value))}
+                  onChange={(value: string) =>
+                    field.handleChange(parseFloat(value))
+                  }
                   placeholder="10"
                   step={0.1}
                   helperText="Base exposure time you want to adjust"
@@ -259,7 +264,10 @@ export default function ExposureCalculatorPage() {
             selector={(state) => {
               const originalTime = state.values.originalTime;
               const stops = state.values.stops;
-              const newTimeValue = calculateNewExposureTime(originalTime, stops);
+              const newTimeValue = calculateNewExposureTime(
+                originalTime,
+                stops
+              );
               const addedTime = newTimeValue - originalTime;
               const percentageIncrease = calculatePercentageIncrease(
                 originalTime,
@@ -273,7 +281,8 @@ export default function ExposureCalculatorPage() {
                 percentageIncrease,
               };
             }}
-            children={(calculation) => (
+          >
+            {(calculation) => (
               <CalculatorCard
                 title="Exposure results"
                 description="Apply this adjusted exposure time to maintain consistent density at your new settings."
@@ -290,9 +299,13 @@ export default function ExposureCalculatorPage() {
                     tone="default"
                   />
                   <CalculatorStat
-                    label={`${calculation.addedTime >= 0 ? 'Add' : 'Remove'} exposure`}
+                    label={`${
+                      calculation.addedTime >= 0 ? 'Add' : 'Remove'
+                    } exposure`}
                     value={formatExposureTime(Math.abs(calculation.addedTime))}
-                    helperText={`${Math.abs(calculation.percentageIncrease).toFixed(1)}% change`}
+                    helperText={`${Math.abs(
+                      calculation.percentageIncrease
+                    ).toFixed(1)}% change`}
                   />
                 </div>
 
@@ -338,7 +351,7 @@ export default function ExposureCalculatorPage() {
                 </div>
               </CalculatorCard>
             )}
-          />
+          </form.Subscribe>
         </div>
 
         <div className="space-y-6">
