@@ -132,9 +132,8 @@ export default function BorderCalculatorPage() {
       });
 
       // Recalculate orientation for custom paper after loading from storage
-      // isLandscape=true means landscape/horizontal (width > height)
       if (parsed.paperSize === 'custom' && parsed.customPaperWidth !== undefined && parsed.customPaperHeight !== undefined) {
-        form.setFieldValue('isLandscape', parsed.customPaperWidth > parsed.customPaperHeight);
+        form.setFieldValue('isLandscape', parsed.customPaperWidth < parsed.customPaperHeight);
       }
     } catch (error) {
       console.warn('Failed to load calculator state', error);
@@ -242,13 +241,11 @@ export default function BorderCalculatorPage() {
 
   // Update orientation only when custom paper dimensions change
   // (but don't override manual flips)
-  // isLandscape=true means landscape/horizontal (width > height)
-  // isLandscape=false means portrait/vertical (width <= height)
   useEffect(() => {
     const currentPaperSize = form.getFieldValue('paperSize');
 
     if (currentPaperSize === 'custom' && customPaperWidth > 0 && customPaperHeight > 0) {
-      const shouldBeLandscape = customPaperWidth > customPaperHeight;
+      const shouldBeLandscape = customPaperWidth < customPaperHeight;
       const currentIsLandscape = form.getFieldValue('isLandscape');
 
       if (currentIsLandscape !== shouldBeLandscape) {
@@ -890,8 +887,7 @@ export default function BorderCalculatorPage() {
                       const isCustom = value === 'custom';
                       if (isCustom) {
                         // For custom paper, calculate orientation based on actual dimensions
-                        // isLandscape=true means landscape/horizontal (width > height)
-                        const shouldBeLandscape = customPaperWidth > customPaperHeight;
+                        const shouldBeLandscape = customPaperWidth < customPaperHeight;
                         form.setFieldValue('isLandscape', shouldBeLandscape);
                       } else {
                         // For standard paper sizes, default to landscape
