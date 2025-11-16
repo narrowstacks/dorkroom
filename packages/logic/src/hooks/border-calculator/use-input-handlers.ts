@@ -12,6 +12,8 @@ import { tryNumber, debounce } from '../../utils/input-validation';
 import type {
   BorderCalculatorState,
   BorderCalculatorAction,
+  AspectRatioValue,
+  PaperSizeValue,
 } from '../../types/border-calculator';
 
 /**
@@ -118,14 +120,14 @@ export const useInputHandlers = (
   // Basic field setters
   const setAspectRatio = useCallback(
     (v: string) => {
-      dispatch({ type: 'SET_ASPECT_RATIO', value: v });
+      dispatch({ type: 'SET_ASPECT_RATIO', value: v as AspectRatioValue });
     },
     [dispatch]
   );
 
   const setPaperSize = useCallback(
     (v: string) => {
-      dispatch({ type: 'SET_PAPER_SIZE', value: v });
+      dispatch({ type: 'SET_PAPER_SIZE', value: v as PaperSizeValue });
     },
     [dispatch]
   );

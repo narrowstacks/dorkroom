@@ -10,6 +10,8 @@ import type {
   BorderCalculatorState,
   BorderCalculatorAction,
   BorderPresetSettings,
+  AspectRatioValue,
+  PaperSizeValue,
 } from '../../types/border-calculator';
 import {
   DEFAULT_MIN_BORDER,
@@ -23,8 +25,8 @@ import {
 const isBrowser = () => typeof window !== 'undefined';
 
 const createInitialState = (): BorderCalculatorState => ({
-  aspectRatio: ASPECT_RATIOS[0].value,
-  paperSize: PAPER_SIZES[2].value,
+  aspectRatio: (ASPECT_RATIOS[0].value as any) as AspectRatioValue,
+  paperSize: (PAPER_SIZES[2].value as any) as PaperSizeValue,
 
   customAspectWidth: DEFAULT_CUSTOM_ASPECT_WIDTH,
   customAspectHeight: DEFAULT_CUSTOM_ASPECT_HEIGHT,

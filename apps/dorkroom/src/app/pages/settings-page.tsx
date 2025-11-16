@@ -7,11 +7,12 @@ import {
   Camera,
   Contrast,
 } from 'lucide-react';
-import { SettingsButton, useMeasurement } from '@dorkroom/ui';
+import { SettingsButton, ToggleSwitch, useMeasurement } from '@dorkroom/ui';
 import { useTheme } from '../contexts/theme-context';
 
 export default function SettingsPage() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, animationsEnabled, setAnimationsEnabled } =
+    useTheme();
   const { unit, setUnit } = useMeasurement();
   return (
     <div className="mx-auto max-w-2xl px-6 py-12 sm:px-10 sm:py-16">
@@ -82,6 +83,31 @@ export default function SettingsPage() {
             />
           </div>
         </section>
+
+        {/* Animations Settings */}
+        {theme !== 'high-contrast' && theme !== 'darkroom' && (
+          <section>
+            <h2
+              className="mb-4 text-lg font-semibold"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              Animations
+            </h2>
+            <div
+              className="rounded-lg border p-4"
+              style={{
+                borderColor: 'var(--color-border-secondary)',
+                backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
+              }}
+            >
+              <ToggleSwitch
+                label="Enable Animations"
+                value={animationsEnabled}
+                onValueChange={setAnimationsEnabled}
+              />
+            </div>
+          </section>
+        )}
 
         {/* Units Settings */}
         <section>

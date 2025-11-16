@@ -106,7 +106,7 @@ export const DEFAULT_BORDER_PRESETS: BorderPreset[] = [
     id: 'default-8x10',
     name: '35mm on 8x10, 6x9in',
     settings: {
-      aspectRatio: '3/2',
+      aspectRatio: '3:2',
       paperSize: '8x10',
       customAspectWidth: 0,
       customAspectHeight: 0,

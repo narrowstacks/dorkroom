@@ -17,8 +17,8 @@
  * ```
  */
 export function shallowEqual(
-  obj1: Record<string, unknown>,
-  obj2: Record<string, unknown>
+  obj1: Record<string, any>,
+  obj2: Record<string, any>
 ): boolean {
   // Fast path: reference equality
   if (obj1 === obj2) {

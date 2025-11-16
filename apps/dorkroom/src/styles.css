@@ -1121,20 +1121,47 @@
     outline-offset: 2px;
   }
 
-  /* Disable all animations and transitions in high-contrast theme */
-  [data-theme='high-contrast'] *,
-  [data-theme='high-contrast'] *::before,
-  [data-theme='high-contrast'] *::after {
-    animation: none !important;
-    transition: none !important;
+  /* Shared animation-disabling rules */
+  @layer utilities {
+    @define-mixin disable-animations {
+      * {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      *::before {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      .animate-slide-in-from-top,
+      .animate-slide-in-from-bottom,
+      .animate-fade-in,
+      .animate-slide-fade-top,
+      .animate-slide-fade-bottom {
+        animation: none !important;
+      }
+    }
   }
 
-  [data-theme='high-contrast'] .animate-slide-in-from-top,
-  [data-theme='high-contrast'] .animate-slide-in-from-bottom,
-  [data-theme='high-contrast'] .animate-fade-in,
-  [data-theme='high-contrast'] .animate-slide-fade-top,
-  [data-theme='high-contrast'] .animate-slide-fade-bottom {
-    animation: none !important;
+  /* Disable all animations and transitions in high-contrast theme */
+  [data-theme='high-contrast'] {
+    @mixin disable-animations;
+  }
+
+  /* Disable all animations and transitions in darkroom theme */
+  [data-theme='darkroom'] {
+    @mixin disable-animations;
+  }
+
+  /* Disable animations when user preference is set */
+  [data-animations-disabled='true'] {
+    @mixin disable-animations;
   }
 
   /* Remove decorative gradients/noise in high-contrast */

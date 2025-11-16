@@ -1,4 +1,4 @@
-import type { BorderPresetSettings } from '../types/border-calculator';
+import type { BorderPresetSettings, AspectRatioValue, PaperSizeValue } from '../types/border-calculator';
 import { ASPECT_RATIOS, PAPER_SIZES } from '../constants/border-calculator';
 
 export interface PresetToShare {
@@ -181,17 +181,17 @@ export function decodePreset(encoded: string): SharedPreset | null {
     const verticalOffset = (parts[partIndex++] - 10000) / 100;
     const boolMask = parts[partIndex++];
 
-    const aspectRatio = ASPECT_RATIOS[aspectRatioIndex]?.value;
-    const paperSize = PAPER_SIZES[paperSizeIndex]?.value;
+    const aspectRatioValue = ASPECT_RATIOS[aspectRatioIndex]?.value;
+    const paperSizeValue = PAPER_SIZES[paperSizeIndex]?.value;
 
-    if (!aspectRatio || !paperSize) {
+    if (!aspectRatioValue || !paperSizeValue) {
       throw new Error('Invalid aspect ratio or paper size index');
     }
 
     const booleanSettings = fromBooleanBitmask(boolMask);
     const settings: BorderPresetSettings = {
-      aspectRatio,
-      paperSize,
+      aspectRatio: aspectRatioValue as AspectRatioValue,
+      paperSize: paperSizeValue as PaperSizeValue,
       minBorder,
       horizontalOffset,
       verticalOffset,

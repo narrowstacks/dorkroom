@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useCallback } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 
@@ -63,7 +63,7 @@ export default function BorderCalculatorPage() {
 
   const hydrationRef = useRef(false);
 
-  const form = useForm<BorderCalculatorState>({
+  const form = useForm({
     defaultValues: borderCalculatorInitialState,
     validators: {
       onChange: validateBorderCalculator,
@@ -276,7 +276,7 @@ export default function BorderCalculatorPage() {
 
   // Transform paper sizes to show metric with imperial reference when in metric mode
   const displayPaperSizes = useMemo(() => {
-    return PAPER_SIZES.map((size: SelectItem) => {
+    return PAPER_SIZES.map((size) => {
       if (size.value === 'custom') {
         return size; // Keep "Custom Paper Size" as is
       }
@@ -342,7 +342,7 @@ export default function BorderCalculatorPage() {
     canCopyToClipboard,
     isSharing,
   } = usePresetSharing({
-    onShareSuccess: (result: { method: 'clipboard' | 'native' }) => {
+    onShareSuccess: (result) => {
       if (result.method === 'clipboard') {
         // Show success toast for clipboard copy
         console.log('Preset link copied to clipboard!');
@@ -350,7 +350,7 @@ export default function BorderCalculatorPage() {
         setIsShareModalOpen(false);
       }
     },
-    onShareError: (error: Error) => {
+    onShareError: (error: string) => {
       console.error('Sharing failed:', error);
     },
   });
@@ -362,7 +362,7 @@ export default function BorderCalculatorPage() {
       setPresetName(preset.name);
       console.log(`Preset "${preset.name}" loaded from URL!`);
     },
-    onLoadError: (error: Error) => {
+    onLoadError: (error: string) => {
       console.error('Failed to load preset from URL:', error);
     },
   });
@@ -389,6 +389,14 @@ export default function BorderCalculatorPage() {
     onApplySettings: applyPresetSettings,
   });
 
+  // Wrapper for sharePreset to match useCalculatorSharing's expected signature
+  const sharePresetWrapper = useCallback(
+    async (preset: { name: string; settings: BorderPresetSettings }, preferNative: boolean): Promise<void> => {
+      await sharePreset(preset, preferNative);
+    },
+    [sharePreset]
+  );
+
   // Calculator sharing hook
   const {
     isShareModalOpen,
@@ -406,7 +414,7 @@ export default function BorderCalculatorPage() {
     currentSettings,
     presetName,
     getSharingUrls,
-    sharePreset,
+    sharePreset: sharePresetWrapper,
     canShareNatively,
     canCopyToClipboard,
     onAddPreset: addPreset,

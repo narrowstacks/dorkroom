@@ -12,6 +12,8 @@ interface ThemeContextValue {
   theme: Theme;
   resolvedTheme: 'light' | 'dark' | 'darkroom' | 'high-contrast';
   setTheme: (theme: Theme) => void;
+  animationsEnabled: boolean;
+  setAnimationsEnabled: (enabled: boolean) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -21,12 +23,14 @@ interface ThemeProviderProps {
 }
 
 const STORAGE_KEY = 'dorkroom-theme';
+const ANIMATIONS_STORAGE_KEY = 'dorkroom-animations-enabled';
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>('system');
   const [resolvedTheme, setResolvedTheme] = useState<
     'light' | 'dark' | 'darkroom' | 'high-contrast'
   >('dark');
+  const [animationsEnabled, setAnimationsEnabledState] = useState(true);
 
   // Initialize theme from localStorage or default to system
   useEffect(() => {
@@ -44,6 +48,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       setThemeState('system');
       localStorage.setItem(STORAGE_KEY, 'system');
     }
+
+    // Initialize animations preference from localStorage or default to true
+    const savedAnimations = localStorage.getItem(ANIMATIONS_STORAGE_KEY);
+    if (savedAnimations === 'true' || savedAnimations === 'false') {
+      setAnimationsEnabledState(savedAnimations === 'true');
+    } else {
+      localStorage.setItem(ANIMATIONS_STORAGE_KEY, 'true');
+    }
   }, []);
 
   // Update resolved theme when theme changes or system preference changes
@@ -55,6 +67,15 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       // Apply theme to document
       if (typeof document !== 'undefined') {
         document.documentElement.setAttribute('data-theme', resolved);
+        // Always disable animations for darkroom and high-contrast themes
+        const shouldDisableAnimations =
+          resolved === 'darkroom' ||
+          resolved === 'high-contrast' ||
+          !animationsEnabled;
+        document.documentElement.setAttribute(
+          'data-animations-disabled',
+          shouldDisableAnimations ? 'true' : 'false'
+        );
       }
     };
 
@@ -70,15 +91,28 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     }
 
     return undefined;
-  }, [theme]);
+  }, [theme, animationsEnabled]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem(STORAGE_KEY, newTheme);
   };
 
+  const setAnimationsEnabled = (enabled: boolean) => {
+    setAnimationsEnabledState(enabled);
+    localStorage.setItem(ANIMATIONS_STORAGE_KEY, String(enabled));
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
+    <ThemeContext.Provider
+      value={{
+        theme,
+        resolvedTheme,
+        setTheme,
+        animationsEnabled,
+        setAnimationsEnabled,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );
