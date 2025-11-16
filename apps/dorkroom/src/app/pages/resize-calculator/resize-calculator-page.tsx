@@ -1,4 +1,3 @@
-import { useState, useMemo } from 'react';
 import { useForm } from '@tanstack/react-form';
 import {
   ToggleSwitch,
@@ -20,7 +19,7 @@ import {
   DEFAULT_ORIGINAL_HEIGHT,
   DEFAULT_NEW_HEIGHT,
 } from '@dorkroom/logic';
-import { resizeCalculatorSchema } from '../../../../../../packages/ui/src/forms/schemas/resize-calculator.schema';
+import { resizeCalculatorSchema } from '@dorkroom/ui/forms';
 
 interface ModeToggleProps {
   isEnlargerHeightMode: boolean;
@@ -254,41 +253,36 @@ export default function ResizeCalculatorPage() {
     },
   });
 
-  // Calculate aspect ratio match
-  const isAspectRatioMatched = useMemo(() => {
-    const isEnlargerMode = form.getFieldValue(
-      'isEnlargerHeightMode' as never
-    ) as boolean;
+  // Helper function to calculate aspect ratio
+  const calculateAspectRatioMatch = (
+    isEnlargerMode: boolean,
+    origWidth: number,
+    origLength: number,
+    newW: number,
+    newL: number
+  ) => {
     if (isEnlargerMode) return true;
-
-    const origWidth = form.getFieldValue('originalWidth' as never) as number;
-    const origLength = form.getFieldValue('originalLength' as never) as number;
-    const newW = form.getFieldValue('newWidth' as never) as number;
-    const newL = form.getFieldValue('newLength' as never) as number;
-
-    if (origWidth <= 0 || origLength <= 0 || newW <= 0 || newL <= 0) {
-      return true;
-    }
-
+    if (origWidth <= 0 || origLength <= 0 || newW <= 0 || newL <= 0) return true;
     const originalRatio = (origWidth / origLength).toFixed(3);
     const newRatio = (newW / newL).toFixed(3);
     return originalRatio === newRatio;
-  }, [form]);
+  };
 
-  // Calculate exposure changes
-  const { newTime, stopsDifference } = useMemo(() => {
-    const isEnlargerMode = form.getFieldValue(
-      'isEnlargerHeightMode' as never
-    ) as boolean;
-    const origTime = form.getFieldValue('originalTime' as never) as number;
-
+  // Helper function to calculate exposure changes
+  const calculateExposureChanges = (
+    isEnlargerMode: boolean,
+    origTime: number,
+    origWidth: number,
+    origLength: number,
+    newW: number,
+    newL: number,
+    origHeight: number,
+    newH: number
+  ) => {
     let calculatedNewTime = '';
     let calculatedStopsDifference = '';
 
     if (isEnlargerMode) {
-      const origHeight = form.getFieldValue('originalHeight' as never) as number;
-      const newH = form.getFieldValue('newHeight' as never) as number;
-
       if (origHeight > 0 && newH > 0 && origTime > 0) {
         const ratio = Math.pow(newH, 2) / Math.pow(origHeight, 2);
         const newTimeValue = origTime * ratio;
@@ -298,11 +292,6 @@ export default function ResizeCalculatorPage() {
         calculatedStopsDifference = stops.toFixed(2);
       }
     } else {
-      const origWidth = form.getFieldValue('originalWidth' as never) as number;
-      const origLength = form.getFieldValue('originalLength' as never) as number;
-      const newW = form.getFieldValue('newWidth' as never) as number;
-      const newL = form.getFieldValue('newLength' as never) as number;
-
       if (origWidth > 0 && origLength > 0 && newW > 0 && newL > 0 && origTime > 0) {
         const originalArea = origWidth * origLength;
         const newArea = newW * newL;
@@ -318,24 +307,8 @@ export default function ResizeCalculatorPage() {
       }
     }
 
-    return {
-      newTime: calculatedNewTime,
-      stopsDifference: calculatedStopsDifference,
-    };
-  }, [form]);
-
-  const stopsNumber = parseFloat(stopsDifference);
-  const stopsHelper = Number.isFinite(stopsNumber)
-    ? stopsNumber > 0
-      ? 'The new print is larger, add exposure.'
-      : stopsNumber < 0
-      ? 'The new print is smaller, remove exposure.'
-      : 'Same size print — keep your original exposure.'
-    : undefined;
-
-  const isEnlargerHeightMode = form.getFieldValue(
-    'isEnlargerHeightMode' as never
-  ) as boolean;
+    return { newTime: calculatedNewTime, stopsDifference: calculatedStopsDifference };
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
@@ -360,7 +333,7 @@ export default function ResizeCalculatorPage() {
               )}
             </form.Field>
 
-            {!isEnlargerHeightMode ? (
+            {!form.getFieldValue('isEnlargerHeightMode' as never) ? (
               <div className="space-y-6">
                 <div className="space-y-3">
                   <h3
@@ -513,12 +486,29 @@ export default function ResizeCalculatorPage() {
               </div>
             )}
 
-            {!isEnlargerHeightMode && !isAspectRatioMatched && (
-              <WarningAlert
-                message="The aspect ratios of the original and target prints do not match. Try to match the aspect ratio of the original print to the target print as close as possible."
-                action="warning"
-              />
-            )}
+            <form.Subscribe
+              selector={(state) => {
+                const isEnlargerMode = state.values.isEnlargerHeightMode as boolean;
+                const origWidth = state.values.originalWidth as number;
+                const origLength = state.values.originalLength as number;
+                const newW = state.values.newWidth as number;
+                const newL = state.values.newLength as number;
+
+                const isMatched = calculateAspectRatioMatch(isEnlargerMode, origWidth, origLength, newW, newL);
+                return {
+                  isEnlargerMode,
+                  isMatched,
+                };
+              }}
+              children={({ isEnlargerMode, isMatched }) =>
+                !isEnlargerMode && !isMatched ? (
+                  <WarningAlert
+                    message="The aspect ratios of the original and target prints do not match. Try to match the aspect ratio of the original print to the target print as close as possible."
+                    action="warning"
+                  />
+                ) : null
+              }
+            />
 
             <div className="space-y-3">
               <h3
@@ -549,33 +539,69 @@ export default function ResizeCalculatorPage() {
             </div>
           </CalculatorCard>
 
-          {newTime && (
-            <CalculatorCard
-              title="Exposure result"
-              description="Dial these in on your timer and make a quick test strip to confirm."
-              accent="emerald"
-              padding="compact"
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <CalculatorStat
-                  label="New time"
-                  value={`${newTime} seconds`}
-                  tone="default"
-                  helperText="Based on your original exposure and target size."
-                />
-                <CalculatorStat
-                  label="Stops difference"
-                  value={`${stopsDifference || '0.00'} stops`}
-                  tone="default"
-                  helperText={stopsHelper}
-                />
-              </div>
-            </CalculatorCard>
-          )}
+          <form.Subscribe
+            selector={(state) => {
+              const isEnlargerMode = state.values.isEnlargerHeightMode as boolean;
+              const origTime = state.values.originalTime as number;
+              const origWidth = state.values.originalWidth as number;
+              const origLength = state.values.originalLength as number;
+              const newW = state.values.newWidth as number;
+              const newL = state.values.newLength as number;
+              const origHeight = state.values.originalHeight as number;
+              const newH = state.values.newHeight as number;
+
+              const { newTime, stopsDifference } = calculateExposureChanges(
+                isEnlargerMode,
+                origTime,
+                origWidth,
+                origLength,
+                newW,
+                newL,
+                origHeight,
+                newH
+              );
+
+              const stopsNumber = parseFloat(stopsDifference);
+              const stopsHelper = Number.isFinite(stopsNumber)
+                ? stopsNumber > 0
+                  ? 'The new print is larger, add exposure.'
+                  : stopsNumber < 0
+                  ? 'The new print is smaller, remove exposure.'
+                  : 'Same size print — keep your original exposure.'
+                : undefined;
+
+              return { newTime, stopsDifference, stopsHelper };
+            }}
+            children={({ newTime, stopsDifference, stopsHelper }) =>
+              newTime ? (
+                <CalculatorCard
+                  title="Exposure result"
+                  description="Dial these in on your timer and make a quick test strip to confirm."
+                  accent="emerald"
+                  padding="compact"
+                >
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <CalculatorStat
+                      label="New time"
+                      value={`${newTime} seconds`}
+                      tone="default"
+                      helperText="Based on your original exposure and target size."
+                    />
+                    <CalculatorStat
+                      label="Stops difference"
+                      value={`${stopsDifference || '0.00'} stops`}
+                      tone="default"
+                      helperText={stopsHelper}
+                    />
+                  </div>
+                </CalculatorCard>
+              ) : null
+            }
+          />
         </div>
 
         <div className="space-y-6">
-          <InfoSection isEnlargerHeightMode={isEnlargerHeightMode} />
+          <InfoSection isEnlargerHeightMode={form.getFieldValue('isEnlargerHeightMode' as never) as boolean} />
         </div>
       </div>
     </div>
