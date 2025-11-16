@@ -57,6 +57,19 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 - kebab-case for files (`labeled-slider-input.tsx`)
 - Interface naming: `ComponentNameProps`
 
+### TypeScript Typing
+
+- **Never use `any` type** - always use specific types or `unknown` where the type cannot be determined
+- Use `unknown` instead of `any` for values whose type is truly unknown at compile time
+- Define proper interfaces for API responses, especially raw/transformed data structures
+- Use discriminated unions instead of generic object types where possible
+- Leverage TypeScript's type narrowing (type guards, `instanceof`, `typeof` checks)
+- For generic utilities (like throttle/debounce), use generic constraints: `<T extends (...args: any[]) => any>` is acceptable only for variadic function types where the specific signature cannot be known at definition time
+- When handling API data with both camelCase and snake_case fields, create dedicated `Raw*` types that enumerate all possible field variations
+- Use `null` or `undefined` explicitly in types rather than leaving fields untyped
+- Avoid casting with `as any` - use specific types or type guards instead
+- For Chrome/browser APIs with incomplete type definitions, create local interface definitions (e.g., `PerformanceWithMemory`)
+
 ### React Patterns
 
 - Functional components with TypeScript
