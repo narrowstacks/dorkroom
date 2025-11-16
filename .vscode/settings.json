@@ -1,6 +1,13 @@
 {
   "nxConsole.generateAiAgentRules": true,
-  "cSpell.words": ["isos"],
+  "cSpell.words": [
+    "behaviour",
+    "bunx",
+    "hotloading",
+    "isos",
+    "persistable",
+    "refetches"
+  ],
   "nxConsole.nxWorkspacePath": "",
   "npm.autoDetect": "off",
   "npm.packageManager": "bun"

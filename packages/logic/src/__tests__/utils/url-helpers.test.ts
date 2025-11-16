@@ -18,6 +18,7 @@ interface MockLocation {
   pathname: string;
   search: string;
   hash: string;
+  [key: string]: unknown;
 }
 
 interface MockWindow {
@@ -43,8 +44,8 @@ const mockWindow: MockWindow = {
 
 describe('url helpers', () => {
   type MutableGlobal = typeof globalThis & {
-    window?: unknown;
-    navigator?: unknown;
+    window?: Window & typeof globalThis;
+    navigator?: Navigator;
   };
   const g = globalThis as MutableGlobal;
   const originalWindow = g.window;
@@ -87,7 +88,7 @@ describe('url helpers', () => {
     });
 
     it('should handle SSR (no window)', () => {
-      delete g.window;
+      g.window = undefined as unknown as Window & typeof globalThis;
       const url = getDynamicShareUrl();
       expect(url).toBe('https://dorkroom.art/border');
     });
@@ -154,7 +155,7 @@ describe('url helpers', () => {
     });
 
     it('should return null in SSR environment', () => {
-      delete g.window;
+      g.window = undefined as unknown as Window & typeof globalThis;
       const preset = getPresetFromUrl();
       expect(preset).toBeNull();
     });
@@ -185,7 +186,7 @@ describe('url helpers', () => {
     });
 
     it('should handle SSR environment gracefully', () => {
-      delete g.window;
+      g.window = undefined as unknown as Window & typeof globalThis;
       expect(() => updateUrlWithPreset('preset')).not.toThrow();
     });
   });
@@ -210,7 +211,7 @@ describe('url helpers', () => {
 
     it('should handle SSR environment gracefully', () => {
       const g = globalThis as { window?: unknown };
-      delete g.window;
+      g.window = undefined;
       expect(() => clearPresetFromUrl()).not.toThrow();
     });
   });

@@ -1,4 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useWindowDimensions } from '../../hooks/use-window-dimensions';
 
 // Test constants

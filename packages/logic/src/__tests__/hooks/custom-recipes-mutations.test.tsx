@@ -11,7 +11,7 @@ import type {
   CustomRecipe,
   CustomRecipeFormData,
 } from '../../types/custom-recipes';
-import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeAll } from 'vitest';
 import { queryKeys } from '../../queries/query-keys';
 import { JSDOM } from 'jsdom';
 
@@ -60,17 +60,10 @@ const createStoredRecipe = (overrides: Partial<CustomRecipe> = {}): CustomRecipe
   tags: overrides.tags ?? ['bw'],
 });
 
-const testLogger = {
-  log: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-};
-
 const getQueryKey = () => queryKeys.customRecipes.list();
 
 const createTestHarness = () => {
   const queryClient = new QueryClient({
-    logger: testLogger,
     defaultOptions: {
       queries: { retry: false },
       mutations: { retry: false },
@@ -94,7 +87,7 @@ beforeAll(() => {
       document: Document;
       navigator: Navigator;
     };
-    globalWithDom.window = dom.window as Window & typeof globalThis;
+    globalWithDom.window = dom.window as unknown as Window & typeof globalThis;
     globalWithDom.document = dom.window.document;
     globalWithDom.navigator = dom.window.navigator;
   }
