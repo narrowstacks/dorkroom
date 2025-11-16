@@ -11,7 +11,7 @@ import {
 } from '@tanstack/react-table';
 import type { Combination, Film, Developer } from '@dorkroom/api';
 
-interface DevelopmentCombinationView {
+export interface DevelopmentCombinationView {
   combination: Combination;
   film?: Film;
   developer?: Developer;
