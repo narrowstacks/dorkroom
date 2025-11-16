@@ -151,6 +151,8 @@ export function useCalculatorSharing({
   };
 
   const handleCopyToClipboard = async (url: string) => {
+    if (!canCopyToClipboard) return;
+
     try {
       await navigator.clipboard.writeText(url);
     } catch (error) {
@@ -160,6 +162,7 @@ export function useCalculatorSharing({
   };
 
   const handleNativeShare = async () => {
+    if (!canShareNatively) return;
     if (!shareUrls) return;
 
     try {
@@ -168,7 +171,7 @@ export function useCalculatorSharing({
           name: presetName || 'Border Calculator Settings',
           settings: currentSettings,
         },
-        false // prefer native share
+        true // prefer native share
       );
     } catch (error) {
       console.error('Native share failed:', error);

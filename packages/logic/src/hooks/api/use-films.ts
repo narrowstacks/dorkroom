@@ -10,7 +10,9 @@ import { queryKeys } from '../../queries/query-keys';
  * - window regains focus
  * - component mounts after being unmounted
  */
-export function useFilms() {
+import type { UseQueryResult } from '@tanstack/react-query';
+
+export function useFilms(): UseQueryResult<Film[]> {
   return useQuery<Film[]>({
     queryKey: queryKeys.films.list(),
     queryFn: fetchFilms,
