@@ -21,6 +21,26 @@ export interface CheckboxFieldProps {
   disabled?: boolean;
 }
 
+const normalizeErrors = (errors: unknown[]): string => {
+  if (!Array.isArray(errors)) {
+    return '';
+  }
+
+  const errorStrings = errors
+    .filter((e) => e !== null && e !== undefined)
+    .map((error) => {
+      if (typeof error === 'string') {
+        return error;
+      }
+      if (error instanceof Error) {
+        return error.message;
+      }
+      return String(error);
+    });
+
+  return errorStrings.join(', ');
+};
+
 export const CheckboxField: React.FC<CheckboxFieldProps> = ({
   field,
   label,
@@ -50,11 +70,13 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
             className
           )}
         />
-        {label && <span className="text-sm font-medium text-gray-700">{label}</span>}
+        {label && (
+          <span className="text-sm font-medium text-gray-700">{label}</span>
+        )}
       </label>
       {showErrors && (
         <p className="text-sm text-red-600">
-          {field.state.meta.errors.join(', ')}
+          {normalizeErrors(field.state.meta.errors)}
         </p>
       )}
     </div>
