@@ -25,7 +25,7 @@ export const createZodFormValidator = <TSchema extends z.ZodTypeAny>(
     }
 
     const fieldErrors: Record<string, string[]> = {};
-    const formMessages = [...(parsed.error.formErrors?.formErrors ?? [])];
+    const formMessages: string[] = [];
 
     for (const issue of parsed.error.issues) {
       const path = issue.path?.join?.('.') ?? '';
