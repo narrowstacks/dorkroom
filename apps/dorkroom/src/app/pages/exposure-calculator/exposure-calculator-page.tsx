@@ -1,3 +1,4 @@
+import { useForm } from '@tanstack/react-form';
 import {
   CalculatorCard,
   CalculatorPageHeader,
@@ -6,10 +7,16 @@ import {
   ResultRow,
 } from '@dorkroom/ui';
 import {
-  useExposureCalculator,
   EXPOSURE_PRESETS,
   type ExposurePreset,
+  roundStopsToThirds,
+  roundToStandardPrecision,
+  calculateNewExposureTime,
+  parseExposureTime,
+  formatExposureTime,
+  calculatePercentageIncrease,
 } from '@dorkroom/logic';
+import { exposureCalculatorSchema } from '@dorkroom/ui/forms';
 import { useTheme } from '../../contexts/theme-context';
 import { themes } from '../../lib/themes';
 
@@ -83,29 +90,47 @@ export default function ExposureCalculatorPage() {
   const theme = useTheme();
   const currentTheme = themes[theme.resolvedTheme];
 
-  const {
-    originalTime,
-    stops,
-    setOriginalTime,
-    setStops,
-    adjustStops,
-    calculation,
-    formatTime,
-  } = useExposureCalculator();
+  const form = useForm({
+    defaultValues: {
+      originalTime: 10,
+      stops: 1,
+    },
+    validators: {
+      onChange: exposureCalculatorSchema,
+    },
+  });
 
-  const addedExposure = calculation
-    ? formatTime(Math.abs(calculation.addedTime))
-    : '--';
+  const originalTime = form.getFieldValue('originalTime');
+  const stops = form.getFieldValue('stops');
 
-  const exposureChange = calculation
-    ? calculation.addedTime >= 0
-      ? 'Add'
-      : 'Remove'
-    : '--';
+  // Calculate derived values
+  const calculation = (() => {
+    const newTimeValue = calculateNewExposureTime(originalTime, stops);
+    const addedTime = newTimeValue - originalTime;
+    const percentageIncrease = calculatePercentageIncrease(
+      originalTime,
+      newTimeValue
+    );
 
-  const percentageDisplay = calculation
-    ? `${Math.abs(calculation.percentageIncrease).toFixed(1)}%`
-    : '--';
+    return {
+      originalTimeValue: originalTime,
+      stopsValue: stops,
+      newTimeValue,
+      addedTime,
+      percentageIncrease,
+    };
+  })();
+
+  const addedExposure = formatExposureTime(Math.abs(calculation.addedTime));
+  const exposureChange = calculation.addedTime >= 0 ? 'Add' : 'Remove';
+  const percentageDisplay = `${Math.abs(calculation.percentageIncrease).toFixed(1)}%`;
+
+  const handleAdjustStops = (increment: number) => {
+    const currentStops = stops;
+    const newStopsValue = roundStopsToThirds(currentStops + increment);
+    const truncatedStops = roundToStandardPrecision(newStopsValue);
+    form.setFieldValue('stops', truncatedStops);
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
@@ -121,14 +146,18 @@ export default function ExposureCalculatorPage() {
             title="Exposure inputs"
             description="Enter your base exposure time and adjust by stops using the controls below."
           >
-            <CalculatorNumberField
-              label="Original exposure time (seconds)"
-              value={originalTime}
-              onChange={setOriginalTime}
-              placeholder="10"
-              step={0.1}
-              helperText="Base exposure time you want to adjust"
-            />
+            <form.Field name="originalTime">
+              {(field) => (
+                <CalculatorNumberField
+                  label="Original exposure time (seconds)"
+                  value={field.state.value}
+                  onChange={(value) => field.handleChange(parseFloat(value))}
+                  placeholder="10"
+                  step={0.1}
+                  helperText="Base exposure time you want to adjust"
+                />
+              )}
+            </form.Field>
 
             <div className="space-y-3">
               <label className="text-sm font-medium text-[color:var(--color-text-primary)]">
@@ -144,28 +173,34 @@ export default function ExposureCalculatorPage() {
                       <StopButton
                         key={preset.label}
                         preset={preset}
-                        onPress={adjustStops}
+                        onPress={handleAdjustStops}
                         theme={theme}
                       />
                     )
                   )}
 
                   {/* Custom stop value input */}
-                  <div className="mx-2">
-                    <input
-                      type="number"
-                      value={stops}
-                      onChange={(e) => setStops(e.target.value)}
-                      placeholder="1"
-                      step={0.1}
-                      className="w-20 rounded-lg border px-3 py-2 text-center text-sm"
-                      style={{
-                        backgroundColor: currentTheme.surface,
-                        borderColor: currentTheme.border.primary,
-                        color: currentTheme.text.primary,
-                      }}
-                    />
-                  </div>
+                  <form.Field name="stops">
+                    {(field) => (
+                      <div className="mx-2">
+                        <input
+                          type="number"
+                          value={field.state.value}
+                          onChange={(e) =>
+                            field.handleChange(parseFloat(e.target.value))
+                          }
+                          placeholder="1"
+                          step={0.1}
+                          className="w-20 rounded-lg border px-3 py-2 text-center text-sm"
+                          style={{
+                            backgroundColor: currentTheme.surface,
+                            borderColor: currentTheme.border.primary,
+                            color: currentTheme.text.primary,
+                          }}
+                        />
+                      </div>
+                    )}
+                  </form.Field>
 
                   {/* Positive adjustment buttons */}
                   {EXPOSURE_PRESETS.filter((preset) => preset.stops > 0).map(
@@ -173,7 +208,7 @@ export default function ExposureCalculatorPage() {
                       <StopButton
                         key={preset.label}
                         preset={preset}
-                        onPress={adjustStops}
+                        onPress={handleAdjustStops}
                         theme={theme}
                       />
                     )
@@ -187,71 +222,69 @@ export default function ExposureCalculatorPage() {
             </div>
           </CalculatorCard>
 
-          {calculation && (
-            <CalculatorCard
-              title="Exposure results"
-              description="Apply this adjusted exposure time to maintain consistent density at your new settings."
-              accent="emerald"
-              padding="compact"
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <CalculatorStat
-                  label="New exposure time"
-                  value={formatTime(calculation.newTimeValue)}
-                  helperText={`${calculation.stopsValue > 0 ? '+' : ''}${
-                    calculation.stopsValue
-                  } stops`}
-                  tone="default"
-                />
-                <CalculatorStat
-                  label={`${exposureChange} exposure`}
-                  value={addedExposure}
-                  helperText={`${percentageDisplay} change`}
-                />
-              </div>
+          <CalculatorCard
+            title="Exposure results"
+            description="Apply this adjusted exposure time to maintain consistent density at your new settings."
+            accent="emerald"
+            padding="compact"
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <CalculatorStat
+                label="New exposure time"
+                value={formatExposureTime(calculation.newTimeValue)}
+                helperText={`${calculation.stopsValue > 0 ? '+' : ''}${
+                  calculation.stopsValue
+                } stops`}
+                tone="default"
+              />
+              <CalculatorStat
+                label={`${exposureChange} exposure`}
+                value={addedExposure}
+                helperText={`${percentageDisplay} change`}
+              />
+            </div>
 
-              <div
-                className="rounded-2xl p-4 font-mono text-sm"
+            <div
+              className="rounded-2xl p-4 font-mono text-sm"
+              style={{
+                borderWidth: 1,
+                borderColor: currentTheme.border.secondary,
+                backgroundColor: `${currentTheme.background}20`,
+                color: currentTheme.text.primary,
+              }}
+            >
+              {`${formatExposureTime(calculation.originalTimeValue)} `}
+              <span
+                className="align-super text-xs font-semibold"
                 style={{
-                  borderWidth: 1,
-                  borderColor: currentTheme.border.secondary,
-                  backgroundColor: `${currentTheme.background}20`,
-                  color: currentTheme.text.primary,
+                  color: currentTheme.primary,
                 }}
               >
-                {`${formatTime(calculation.originalTimeValue)} `}
-                <span
-                  className="align-super text-xs font-semibold"
-                  style={{
-                    color: currentTheme.primary,
-                  }}
-                >
-                  ×2^{calculation.stopsValue}
-                </span>
-                <span>{' = '}</span>
-                <span className="font-semibold">
-                  {formatTime(calculation.newTimeValue)}
-                </span>
-              </div>
+                ×2^{calculation.stopsValue}
+              </span>
+              <span>{' = '}</span>
+              <span className="font-semibold">
+                {formatExposureTime(calculation.newTimeValue)}
+              </span>
+            </div>
 
-              <div className="space-y-2">
-                <ResultRow
-                  label="Original time"
-                  value={formatTime(calculation.originalTimeValue)}
-                />
-                <ResultRow
-                  label="Stop adjustment"
-                  value={`${calculation.stopsValue > 0 ? '+' : ''}${
-                    calculation.stopsValue
-                  } stops`}
-                />
-                <ResultRow
-                  label="Multiplier"
-                  value={`×${Math.pow(2, calculation.stopsValue).toFixed(3)}`}
-                />
-              </div>
-            </CalculatorCard>
-          )}
+            <div className="space-y-2">
+              <ResultRow
+                label="Original time"
+                value={formatExposureTime(calculation.originalTimeValue)}
+              />
+              <ResultRow
+                label="Stop adjustment"
+                value={`${calculation.stopsValue > 0 ? '+' : ''}${
+                  calculation.stopsValue
+                } stops`}
+              />
+              <ResultRow
+                label="Multiplier"
+                value={`×${Math.pow(2, calculation.stopsValue).toFixed(3)}`}
+              />
+            </div>
+          </CalculatorCard>
         </div>
 
         <div className="space-y-6">
