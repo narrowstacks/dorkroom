@@ -333,158 +333,163 @@ export default function ResizeCalculatorPage() {
               )}
             </form.Field>
 
-            {!form.getFieldValue('isEnlargerHeightMode' as never) ? (
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3
-                    className="text-sm font-semibold uppercase tracking-[0.25em]"
-                    style={{ color: 'var(--color-text-muted)' }}
-                  >
-                    Original print
-                  </h3>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <form.Field name="originalWidth">
-                      {(field) => (
-                        <CalculatorNumberField
-                          label="Width"
-                          value={String(toDisplay(field.state.value))}
-                          onChange={(value) => {
-                            const parsed = parseFloat(value);
-                            if (Number.isFinite(parsed) && parsed >= 0) {
-                              field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
-                            }
-                          }}
-                          onBlur={field.handleBlur}
-                          placeholder={String(
-                            toDisplay(Number(DEFAULT_ORIGINAL_WIDTH))
+            <form.Subscribe
+              selector={(state) => state.values.isEnlargerHeightMode as boolean}
+              children={(isEnlargerHeightMode) =>
+                !isEnlargerHeightMode ? (
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <h3
+                        className="text-sm font-semibold uppercase tracking-[0.25em]"
+                        style={{ color: 'var(--color-text-muted)' }}
+                      >
+                        Original print
+                      </h3>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <form.Field name="originalWidth">
+                          {(field) => (
+                            <CalculatorNumberField
+                              label="Width"
+                              value={String(toDisplay(field.state.value))}
+                              onChange={(value) => {
+                                const parsed = parseFloat(value);
+                                if (Number.isFinite(parsed) && parsed >= 0) {
+                                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                                }
+                              }}
+                              onBlur={field.handleBlur}
+                              placeholder={String(
+                                toDisplay(Number(DEFAULT_ORIGINAL_WIDTH))
+                              )}
+                              step={0.1}
+                              unit={unitLabel}
+                            />
                           )}
-                          step={0.1}
-                          unit={unitLabel}
-                        />
-                      )}
-                    </form.Field>
-                    <form.Field name="originalLength">
-                      {(field) => (
-                        <CalculatorNumberField
-                          label="Height"
-                          value={String(toDisplay(field.state.value))}
-                          onChange={(value) => {
-                            const parsed = parseFloat(value);
-                            if (Number.isFinite(parsed) && parsed >= 0) {
-                              field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
-                            }
-                          }}
-                          onBlur={field.handleBlur}
-                          placeholder={String(
-                            toDisplay(Number(DEFAULT_ORIGINAL_LENGTH))
+                        </form.Field>
+                        <form.Field name="originalLength">
+                          {(field) => (
+                            <CalculatorNumberField
+                              label="Height"
+                              value={String(toDisplay(field.state.value))}
+                              onChange={(value) => {
+                                const parsed = parseFloat(value);
+                                if (Number.isFinite(parsed) && parsed >= 0) {
+                                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                                }
+                              }}
+                              onBlur={field.handleBlur}
+                              placeholder={String(
+                                toDisplay(Number(DEFAULT_ORIGINAL_LENGTH))
+                              )}
+                              step={0.1}
+                              unit={unitLabel}
+                            />
                           )}
-                          step={0.1}
-                          unit={unitLabel}
-                        />
-                      )}
-                    </form.Field>
-                  </div>
-                </div>
+                        </form.Field>
+                      </div>
+                    </div>
 
-                <div className="space-y-3">
-                  <h3
-                    className="text-sm font-semibold uppercase tracking-[0.25em]"
-                    style={{ color: 'var(--color-text-muted)' }}
-                  >
-                    Target print
-                  </h3>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <form.Field name="newWidth">
-                      {(field) => (
-                        <CalculatorNumberField
-                          label="Width"
-                          value={String(toDisplay(field.state.value))}
-                          onChange={(value) => {
-                            const parsed = parseFloat(value);
-                            if (Number.isFinite(parsed) && parsed >= 0) {
-                              field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
-                            }
-                          }}
-                          onBlur={field.handleBlur}
-                          placeholder={String(toDisplay(Number(DEFAULT_NEW_WIDTH)))}
-                          step={0.1}
-                          unit={unitLabel}
-                        />
-                      )}
-                    </form.Field>
-                    <form.Field name="newLength">
-                      {(field) => (
-                        <CalculatorNumberField
-                          label="Height"
-                          value={String(toDisplay(field.state.value))}
-                          onChange={(value) => {
-                            const parsed = parseFloat(value);
-                            if (Number.isFinite(parsed) && parsed >= 0) {
-                              field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
-                            }
-                          }}
-                          onBlur={field.handleBlur}
-                          placeholder={String(
-                            toDisplay(Number(DEFAULT_NEW_LENGTH))
+                    <div className="space-y-3">
+                      <h3
+                        className="text-sm font-semibold uppercase tracking-[0.25em]"
+                        style={{ color: 'var(--color-text-muted)' }}
+                      >
+                        Target print
+                      </h3>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <form.Field name="newWidth">
+                          {(field) => (
+                            <CalculatorNumberField
+                              label="Width"
+                              value={String(toDisplay(field.state.value))}
+                              onChange={(value) => {
+                                const parsed = parseFloat(value);
+                                if (Number.isFinite(parsed) && parsed >= 0) {
+                                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                                }
+                              }}
+                              onBlur={field.handleBlur}
+                              placeholder={String(toDisplay(Number(DEFAULT_NEW_WIDTH)))}
+                              step={0.1}
+                              unit={unitLabel}
+                            />
                           )}
-                          step={0.1}
-                          unit={unitLabel}
-                        />
-                      )}
-                    </form.Field>
+                        </form.Field>
+                        <form.Field name="newLength">
+                          {(field) => (
+                            <CalculatorNumberField
+                              label="Height"
+                              value={String(toDisplay(field.state.value))}
+                              onChange={(value) => {
+                                const parsed = parseFloat(value);
+                                if (Number.isFinite(parsed) && parsed >= 0) {
+                                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                                }
+                              }}
+                              onBlur={field.handleBlur}
+                              placeholder={String(
+                                toDisplay(Number(DEFAULT_NEW_LENGTH))
+                              )}
+                              step={0.1}
+                              unit={unitLabel}
+                            />
+                          )}
+                        </form.Field>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <h3
-                  className="text-sm font-semibold uppercase tracking-[0.25em]"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
-                  Enlarger heights
-                </h3>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <form.Field name="originalHeight">
-                    {(field) => (
-                      <CalculatorNumberField
-                        label="Original height"
-                        value={String(toDisplay(field.state.value))}
-                        onChange={(value) => {
-                          const parsed = parseFloat(value);
-                          if (Number.isFinite(parsed) && parsed >= 0) {
-                            field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
-                          }
-                        }}
-                        onBlur={field.handleBlur}
-                        placeholder={String(
-                          toDisplay(Number(DEFAULT_ORIGINAL_HEIGHT))
+                ) : (
+                  <div className="space-y-3">
+                    <h3
+                      className="text-sm font-semibold uppercase tracking-[0.25em]"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
+                      Enlarger heights
+                    </h3>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <form.Field name="originalHeight">
+                        {(field) => (
+                          <CalculatorNumberField
+                            label="Original height"
+                            value={String(toDisplay(field.state.value))}
+                            onChange={(value) => {
+                              const parsed = parseFloat(value);
+                              if (Number.isFinite(parsed) && parsed >= 0) {
+                                field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                              }
+                            }}
+                            onBlur={field.handleBlur}
+                            placeholder={String(
+                              toDisplay(Number(DEFAULT_ORIGINAL_HEIGHT))
+                            )}
+                            step={1}
+                            unit={unitLabel}
+                          />
                         )}
-                        step={1}
-                        unit={unitLabel}
-                      />
-                    )}
-                  </form.Field>
-                  <form.Field name="newHeight">
-                    {(field) => (
-                      <CalculatorNumberField
-                        label="New height"
-                        value={String(toDisplay(field.state.value))}
-                        onChange={(value) => {
-                          const parsed = parseFloat(value);
-                          if (Number.isFinite(parsed) && parsed >= 0) {
-                            field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
-                          }
-                        }}
-                        onBlur={field.handleBlur}
-                        placeholder={String(toDisplay(Number(DEFAULT_NEW_HEIGHT)))}
-                        step={1}
-                        unit={unitLabel}
-                      />
-                    )}
-                  </form.Field>
-                </div>
-              </div>
-            )}
+                      </form.Field>
+                      <form.Field name="newHeight">
+                        {(field) => (
+                          <CalculatorNumberField
+                            label="New height"
+                            value={String(toDisplay(field.state.value))}
+                            onChange={(value) => {
+                              const parsed = parseFloat(value);
+                              if (Number.isFinite(parsed) && parsed >= 0) {
+                                field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                              }
+                            }}
+                            onBlur={field.handleBlur}
+                            placeholder={String(toDisplay(Number(DEFAULT_NEW_HEIGHT)))}
+                            step={1}
+                            unit={unitLabel}
+                          />
+                        )}
+                      </form.Field>
+                    </div>
+                  </div>
+                )
+              }
+            />
 
             <form.Subscribe
               selector={(state) => {
