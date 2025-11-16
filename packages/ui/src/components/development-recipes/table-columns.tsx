@@ -122,6 +122,7 @@ export const createTableColumns = (
       );
     },
     enableSorting: true,
+    sortingFn: 'favoriteAware',
   },
   {
     accessorKey: 'developer',
@@ -164,6 +165,7 @@ export const createTableColumns = (
       );
     },
     enableSorting: true,
+    sortingFn: 'favoriteAware',
   },
   {
     accessorKey: 'combination.shootingIso',
@@ -176,6 +178,7 @@ export const createTableColumns = (
       );
     },
     enableSorting: true,
+    sortingFn: 'favoriteAware',
   },
   {
     accessorKey: 'combination.timeMinutes',
@@ -188,6 +191,7 @@ export const createTableColumns = (
       );
     },
     enableSorting: true,
+    sortingFn: 'favoriteAware',
   },
   {
     accessorKey: 'combination.temperatureF',
@@ -196,6 +200,7 @@ export const createTableColumns = (
       <TemperatureCellRenderer cellContext={cellContext} />
     ),
     enableSorting: true,
+    sortingFn: 'favoriteAware',
   },
   {
     accessorKey: 'combination.dilutionId',

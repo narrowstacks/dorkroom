@@ -198,7 +198,9 @@ export default function DevelopmentRecipesPage() {
   const [editingRecipe, setEditingRecipe] =
     useState<DevelopmentCombinationView | null>(null);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'film', desc: false },
+  ]);
   const [pageIndex, setPageIndex] = useState(0);
   const resultsContainerRef = useRef<HTMLDivElement>(null);
 
