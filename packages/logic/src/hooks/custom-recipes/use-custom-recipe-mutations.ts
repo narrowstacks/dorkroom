@@ -7,6 +7,7 @@ import { queryKeys } from '../../queries/query-keys';
 import { debugError } from '../../utils/debug-logger';
 
 const STORAGE_KEY = 'dorkroom_custom_recipes';
+const CUSTOM_RECIPES_QUERY_KEY = queryKeys.customRecipes.list();
 
 const getStorage = (): Storage | null => {
   if (typeof window === 'undefined') {
@@ -47,58 +48,87 @@ const writeRecipesToStorage = (recipes: CustomRecipe[]): void => {
   }
 };
 
+const createRecipeFromFormData = (
+  formData: CustomRecipeFormData,
+  base?: CustomRecipe
+): CustomRecipe => {
+  const timestamp = Date.now();
+  const nowIso = new Date(timestamp).toISOString();
+
+  const filmId = formData.useExistingFilm
+    ? formData.selectedFilmId || base?.filmId || `fallback_film_${timestamp}`
+    : base?.filmId ?? `custom_film_${timestamp}`;
+
+  const developerId = formData.useExistingDeveloper
+    ? formData.selectedDeveloperId || base?.developerId || `fallback_dev_${timestamp}`
+    : base?.developerId ?? `custom_dev_${timestamp}`;
+
+  return {
+    ...base,
+    id:
+      base?.id ??
+      `custom_${timestamp}_${Math.random().toString(36).slice(2, 11)}`,
+    name: formData.name,
+    filmId,
+    developerId,
+    temperatureF: formData.temperatureF,
+    timeMinutes: formData.timeMinutes,
+    shootingIso: formData.shootingIso,
+    pushPull: formData.pushPull,
+    agitationSchedule: formData.agitationSchedule,
+    notes: formData.notes,
+    customDilution: formData.customDilution,
+    isCustomFilm: !formData.useExistingFilm,
+    isCustomDeveloper: !formData.useExistingDeveloper,
+    customFilm: formData.customFilm,
+    customDeveloper: formData.customDeveloper,
+    dilutionId: base?.dilutionId ?? undefined,
+    dateCreated: base?.dateCreated ?? nowIso,
+    dateModified: nowIso,
+    isPublic: formData.isPublic,
+    tags: formData.tags,
+  } satisfies CustomRecipe;
+};
+
 /**
  * Hook for adding a custom recipe
  * Optimistically updates cache, writes to localStorage
  */
 export function useAddCustomRecipe() {
   const queryClient = useQueryClient();
+  const queryKey = CUSTOM_RECIPES_QUERY_KEY;
 
-  return useMutation({
-    mutationFn: async (formData: CustomRecipeFormData): Promise<string> => {
+  return useMutation<
+    CustomRecipe,
+    Error,
+    CustomRecipeFormData,
+    { previousRecipes: CustomRecipe[] }
+  >({
+    mutationFn: async (formData: CustomRecipeFormData): Promise<CustomRecipe> => {
+      const newRecipe = createRecipeFromFormData(formData);
       const currentRecipes = readRecipesFromStorage();
-
-      const filmId = formData.useExistingFilm
-        ? formData.selectedFilmId || `fallback_film_${Date.now()}`
-        : `custom_film_${Date.now()}`;
-
-      const developerId = formData.useExistingDeveloper
-        ? formData.selectedDeveloperId || `fallback_dev_${Date.now()}`
-        : `custom_dev_${Date.now()}`;
-
-      const newRecipe: CustomRecipe = {
-        id: `custom_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
-        name: formData.name,
-        filmId,
-        developerId,
-        temperatureF: formData.temperatureF,
-        timeMinutes: formData.timeMinutes,
-        shootingIso: formData.shootingIso,
-        pushPull: formData.pushPull,
-        agitationSchedule: formData.agitationSchedule,
-        notes: formData.notes,
-        customDilution: formData.customDilution,
-        isCustomFilm: !formData.useExistingFilm,
-        isCustomDeveloper: !formData.useExistingDeveloper,
-        customFilm: formData.customFilm,
-        customDeveloper: formData.customDeveloper,
-        dilutionId: undefined,
-        dateCreated: new Date().toISOString(),
-        dateModified: new Date().toISOString(),
-        isPublic: formData.isPublic,
-        tags: formData.tags,
-      };
-
-      const updatedRecipes = [...currentRecipes, newRecipe];
-      writeRecipesToStorage(updatedRecipes);
-
-      return newRecipe.id;
+      writeRecipesToStorage([...currentRecipes, newRecipe]);
+      return newRecipe;
     },
-    onSuccess: () => {
-      // Invalidate and refetch custom recipes
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.customRecipes.list(),
-      });
+    onMutate: async (formData: CustomRecipeFormData) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousRecipes =
+        queryClient.getQueryData<CustomRecipe[]>(queryKey) ?? [];
+      const optimisticRecipe = createRecipeFromFormData(formData);
+      queryClient.setQueryData<CustomRecipe[]>(queryKey, [
+        ...previousRecipes,
+        optimisticRecipe,
+      ]);
+
+      return { previousRecipes };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousRecipes) {
+        queryClient.setQueryData(queryKey, context.previousRecipes);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }
@@ -109,15 +139,21 @@ export function useAddCustomRecipe() {
  */
 export function useUpdateCustomRecipe() {
   const queryClient = useQueryClient();
+  const queryKey = CUSTOM_RECIPES_QUERY_KEY;
 
-  return useMutation({
+  return useMutation<
+    CustomRecipe,
+    Error,
+    { id: string; formData: CustomRecipeFormData },
+    { previousRecipes: CustomRecipe[] }
+  >({
     mutationFn: async ({
       id,
       formData,
     }: {
       id: string;
       formData: CustomRecipeFormData;
-    }): Promise<void> => {
+    }): Promise<CustomRecipe> => {
       const currentRecipes = readRecipesFromStorage();
       const recipeIndex = currentRecipes.findIndex(
         (recipe) => recipe.id === id
@@ -128,45 +164,42 @@ export function useUpdateCustomRecipe() {
       }
 
       const existingRecipe = currentRecipes[recipeIndex];
-
-      const filmId = formData.useExistingFilm
-        ? formData.selectedFilmId || existingRecipe.filmId
-        : existingRecipe.filmId;
-
-      const developerId = formData.useExistingDeveloper
-        ? formData.selectedDeveloperId || existingRecipe.developerId
-        : existingRecipe.developerId;
-
-      const updatedRecipe: CustomRecipe = {
-        ...existingRecipe,
-        name: formData.name,
-        filmId,
-        developerId,
-        temperatureF: formData.temperatureF,
-        timeMinutes: formData.timeMinutes,
-        shootingIso: formData.shootingIso,
-        pushPull: formData.pushPull,
-        agitationSchedule: formData.agitationSchedule,
-        notes: formData.notes,
-        customDilution: formData.customDilution,
-        isCustomFilm: !formData.useExistingFilm,
-        isCustomDeveloper: !formData.useExistingDeveloper,
-        customFilm: formData.customFilm,
-        customDeveloper: formData.customDeveloper,
-        dateModified: new Date().toISOString(),
-        tags: formData.tags,
-      };
+      const updatedRecipe = createRecipeFromFormData(formData, existingRecipe);
 
       const updatedRecipes = [...currentRecipes];
       updatedRecipes[recipeIndex] = updatedRecipe;
 
       writeRecipesToStorage(updatedRecipes);
+      return updatedRecipe;
     },
-    onSuccess: () => {
-      // Invalidate and refetch custom recipes
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.customRecipes.list(),
-      });
+    onMutate: async ({ id, formData }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousRecipes =
+        queryClient.getQueryData<CustomRecipe[]>(queryKey) ?? [];
+      const targetIndex = previousRecipes.findIndex(
+        (recipe) => recipe.id === id
+      );
+
+      if (targetIndex === -1) {
+        return { previousRecipes };
+      }
+
+      const nextRecipes = [...previousRecipes];
+      nextRecipes[targetIndex] = createRecipeFromFormData(
+        formData,
+        previousRecipes[targetIndex]
+      );
+      queryClient.setQueryData(queryKey, nextRecipes);
+
+      return { previousRecipes };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousRecipes) {
+        queryClient.setQueryData(queryKey, context.previousRecipes);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }
@@ -177,8 +210,14 @@ export function useUpdateCustomRecipe() {
  */
 export function useDeleteCustomRecipe() {
   const queryClient = useQueryClient();
+  const queryKey = CUSTOM_RECIPES_QUERY_KEY;
 
-  return useMutation({
+  return useMutation<
+    void,
+    Error,
+    string,
+    { previousRecipes: CustomRecipe[] }
+  >({
     mutationFn: async (id: string): Promise<void> => {
       const currentRecipes = readRecipesFromStorage();
       const updatedRecipes = currentRecipes.filter(
@@ -186,11 +225,24 @@ export function useDeleteCustomRecipe() {
       );
       writeRecipesToStorage(updatedRecipes);
     },
-    onSuccess: () => {
-      // Invalidate and refetch custom recipes
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.customRecipes.list(),
-      });
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousRecipes =
+        queryClient.getQueryData<CustomRecipe[]>(queryKey) ?? [];
+      queryClient.setQueryData(
+        queryKey,
+        previousRecipes.filter((recipe) => recipe.id !== id)
+      );
+
+      return { previousRecipes };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousRecipes) {
+        queryClient.setQueryData(queryKey, context.previousRecipes);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }
@@ -200,16 +252,31 @@ export function useDeleteCustomRecipe() {
  */
 export function useClearCustomRecipes() {
   const queryClient = useQueryClient();
+  const queryKey = CUSTOM_RECIPES_QUERY_KEY;
 
-  return useMutation({
+  return useMutation<
+    void,
+    Error,
+    void,
+    { previousRecipes: CustomRecipe[] }
+  >({
     mutationFn: async (): Promise<void> => {
       writeRecipesToStorage([]);
     },
-    onSuccess: () => {
-      // Invalidate and refetch custom recipes
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.customRecipes.list(),
-      });
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousRecipes =
+        queryClient.getQueryData<CustomRecipe[]>(queryKey) ?? [];
+      queryClient.setQueryData(queryKey, []);
+      return { previousRecipes };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousRecipes) {
+        queryClient.setQueryData(queryKey, context.previousRecipes);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }

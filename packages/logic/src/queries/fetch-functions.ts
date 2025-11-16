@@ -6,14 +6,19 @@ import {
   RawDeveloper,
   RawCombination,
 } from '@dorkroom/api';
+import type { QueryFunctionContext } from '@tanstack/react-query';
 
 const BASE_URL = 'https://dorkroom.art/api';
 
 /**
  * Fetch films from the API
  */
-export async function fetchFilms(): Promise<Film[]> {
-  const response = await fetch(`${BASE_URL}/films`);
+export async function fetchFilms(
+  context?: QueryFunctionContext
+): Promise<Film[]> {
+  const response = await fetch(`${BASE_URL}/films`, {
+    signal: context?.signal,
+  });
   if (!response.ok) {
     throw new Error(`Failed to fetch films: ${response.statusText}`);
   }
@@ -24,8 +29,12 @@ export async function fetchFilms(): Promise<Film[]> {
 /**
  * Fetch developers from the API
  */
-export async function fetchDevelopers(): Promise<Developer[]> {
-  const response = await fetch(`${BASE_URL}/developers`);
+export async function fetchDevelopers(
+  context?: QueryFunctionContext
+): Promise<Developer[]> {
+  const response = await fetch(`${BASE_URL}/developers`, {
+    signal: context?.signal,
+  });
   if (!response.ok) {
     throw new Error(`Failed to fetch developers: ${response.statusText}`);
   }
@@ -36,8 +45,12 @@ export async function fetchDevelopers(): Promise<Developer[]> {
 /**
  * Fetch combinations from the API
  */
-export async function fetchCombinations(): Promise<Combination[]> {
-  const response = await fetch(`${BASE_URL}/combinations`);
+export async function fetchCombinations(
+  context?: QueryFunctionContext
+): Promise<Combination[]> {
+  const response = await fetch(`${BASE_URL}/combinations`, {
+    signal: context?.signal,
+  });
   if (!response.ok) {
     throw new Error(`Failed to fetch combinations: ${response.statusText}`);
   }
