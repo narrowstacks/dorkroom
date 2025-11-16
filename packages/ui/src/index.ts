@@ -60,6 +60,14 @@ export {
   CalculatorNumberField,
   CalculatorStat,
 } from './components/calculator';
+export {
+  PaperSetupSection,
+  BordersOffsetsSection,
+  BladeReadingsSection,
+  PreviewAndControlsSection,
+  BladeVisualizationSection,
+  PresetsSection,
+} from './components/border-calculator';
 export { ReciprocityChart } from './components/reciprocity-chart';
 
 // Navigation

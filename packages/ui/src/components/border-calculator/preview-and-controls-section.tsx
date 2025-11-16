@@ -1,0 +1,120 @@
+import { RotateCw, RotateCcw, Square } from 'lucide-react';
+import { CalculatorCard } from '../calculator/calculator-card';
+import type { BorderCalculation } from '@dorkroom/logic';
+import type { FormInstance } from '@dorkroom/ui';
+
+interface PreviewAndControlsSectionProps {
+  form: FormInstance;
+  calculation: BorderCalculation;
+  AnimatedPreview: React.ComponentType<{
+    calculation: BorderCalculation;
+    showBlades: boolean;
+    showBladeReadings: boolean;
+    className?: string;
+  }>;
+  isLandscape: boolean;
+  isCustomPaper: boolean;
+  onResetToDefaults: () => void;
+}
+
+/**
+ * Section for displaying the print preview and control buttons
+ * Shows the animated preview with blade visualization and flip controls
+ */
+export function PreviewAndControlsSection({
+  form,
+  calculation,
+  AnimatedPreview,
+  isLandscape,
+  isCustomPaper,
+  onResetToDefaults,
+}: PreviewAndControlsSectionProps) {
+  return (
+    <CalculatorCard accent="violet" padding="compact">
+      <div className="flex justify-center">
+        <div className="relative">
+          <AnimatedPreview
+            calculation={calculation}
+            showBlades={form.getFieldValue('showBlades')}
+            showBladeReadings={form.getFieldValue('showBladeReadings')}
+            className="max-w-full"
+          />
+        </div>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <button
+          onClick={() => {
+            const newValue = !form.getFieldValue('isLandscape');
+            form.setFieldValue('isLandscape', newValue);
+          }}
+          className="flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
+        >
+          <RotateCw className="h-4 w-4" />
+          Flip Paper
+        </button>
+        <button
+          onClick={() => {
+            const newValue = !form.getFieldValue('isRatioFlipped');
+            form.setFieldValue('isRatioFlipped', newValue);
+          }}
+          className="flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
+        >
+          <Square className="h-4 w-4" />
+          Flip Ratio
+        </button>
+      </div>
+      <button
+        onClick={onResetToDefaults}
+        className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 hover:brightness-110"
+        style={{
+          color: 'var(--color-accent)',
+          borderColor: 'var(--color-accent)',
+          borderWidth: 1,
+          backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
+        }}
+      >
+        <RotateCcw className="h-4 w-4" />
+        Reset to defaults
+      </button>
+
+      {(() => {
+        const shouldShow = isCustomPaper ? isLandscape : !isLandscape;
+        return shouldShow && (
+          <div
+            className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
+            style={{
+              borderWidth: 1,
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'var(--color-border-muted)',
+              color: 'var(--color-text-primary)',
+            }}
+          >
+            <strong className="font-semibold">Rotate your easel</strong>
+            <br />
+            Paper is in vertical orientation. Rotate your easel 90° to
+            match the blade readings.
+          </div>
+        );
+      })()}
+
+      {calculation.isNonStandardPaperSize && (
+        <div
+          className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
+          style={{
+            borderWidth: 1,
+            borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'var(--color-border-muted)',
+            color: 'var(--color-text-primary)',
+          }}
+        >
+          <strong className="font-semibold">
+            Non-standard paper
+          </strong>
+          <br />
+          Position paper in the {calculation.easelSizeLabel} slot all
+          the way to the left.
+        </div>
+      )}
+    </CalculatorCard>
+  );
+}

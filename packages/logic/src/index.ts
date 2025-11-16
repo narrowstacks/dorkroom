@@ -76,4 +76,7 @@ export {
   useWarningSystem,
   useImageHandling,
   useInputHandlers,
+  usePaperDimensionInput,
+  usePresetManagement,
+  useCalculatorSharing,
 } from './hooks/border-calculator';
