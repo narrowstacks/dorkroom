@@ -133,7 +133,7 @@ export default function BorderCalculatorPage() {
 
       // Recalculate orientation for custom paper after loading from storage
       if (parsed.paperSize === 'custom' && parsed.customPaperWidth !== undefined && parsed.customPaperHeight !== undefined) {
-        form.setFieldValue('isLandscape', parsed.customPaperWidth >= parsed.customPaperHeight);
+        form.setFieldValue('isLandscape', parsed.customPaperWidth > parsed.customPaperHeight);
       }
     } catch (error) {
       console.warn('Failed to load calculator state', error);
@@ -244,7 +244,7 @@ export default function BorderCalculatorPage() {
     const currentPaperSize = form.getFieldValue('paperSize');
 
     if (currentPaperSize === 'custom' && customPaperWidth > 0 && customPaperHeight > 0) {
-      const shouldBeLandscape = customPaperWidth >= customPaperHeight;
+      const shouldBeLandscape = customPaperWidth > customPaperHeight;
       const currentIsLandscape = form.getFieldValue('isLandscape');
 
       if (currentIsLandscape !== shouldBeLandscape) {
@@ -886,7 +886,7 @@ export default function BorderCalculatorPage() {
                       const isCustom = value === 'custom';
                       if (isCustom) {
                         // For custom paper, calculate landscape based on actual dimensions
-                        const shouldBeLandscape = customPaperWidth >= customPaperHeight;
+                        const shouldBeLandscape = customPaperWidth > customPaperHeight;
                         form.setFieldValue('isLandscape', shouldBeLandscape);
                       } else {
                         // For standard paper sizes, default to landscape
