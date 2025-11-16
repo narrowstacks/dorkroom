@@ -38,7 +38,10 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={field.name} className="text-sm font-medium text-gray-700">
+        <label
+          htmlFor={field.name}
+          className="text-sm font-medium text-gray-700"
+        >
           {label}
         </label>
       )}
@@ -71,7 +74,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
       </select>
       {showErrors && (
         <p className="text-sm text-red-600">
-          {field.state.meta.errors.join(', ')}
+          {field.state.meta.errors.map(String).join(', ')}
         </p>
       )}
     </div>
