@@ -165,13 +165,12 @@ export default function ReciprocityCalculatorPage() {
         : null;
 
     return {
-      parsedSeconds,
       parsedDisplay,
     };
   })();
 
   const filmOptions = useMemo<SelectItem[]>(
-    () => filmTypes.map(({ label, value }) => ({ label, value })),
+    () => filmTypes.map(({ label, value }: SelectItem) => ({ label, value })),
     [filmTypes]
   );
 
@@ -231,7 +230,7 @@ export default function ReciprocityCalculatorPage() {
                     placeholder="Try 30s, 1m30s, or 2h"
                   />
                   <div className="flex flex-wrap gap-2">
-                    {exposurePresets.map((seconds) => (
+                    {exposurePresets.map((seconds: number) => (
                       <button
                         key={seconds}
                         type="button"

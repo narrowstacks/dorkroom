@@ -11,7 +11,7 @@ import type {
   CustomRecipe,
   CustomRecipeFormData,
 } from '../../types/custom-recipes';
-import { describe, it, expect, afterEach, beforeAll } from 'vitest';
+import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest';
 import { queryKeys } from '../../queries/query-keys';
 import { JSDOM } from 'jsdom';
 
@@ -61,9 +61,9 @@ const createStoredRecipe = (overrides: Partial<CustomRecipe> = {}): CustomRecipe
 });
 
 const testLogger = {
-  log: () => {},
-  warn: () => {},
-  error: () => {},
+  log: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
 };
 
 const getQueryKey = () => queryKeys.customRecipes.list();
