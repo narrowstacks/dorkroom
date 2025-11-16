@@ -183,6 +183,7 @@ export default function DevelopmentRecipesPage() {
   const [importError, setImportError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [isFilmdevPreviewOpen, setIsFilmdevPreviewOpen] = useState(false);
+  const [isRefreshingData, setIsRefreshingData] = useState(false);
   const [filmdevPreviewData, setFilmdevPreviewData] =
     useState<FilmdevMappingResult | null>(null);
   const [filmdevPreviewRecipe, setFilmdevPreviewRecipe] =
@@ -1010,7 +1011,17 @@ export default function DevelopmentRecipesPage() {
   // No manual loadData() call needed - it fetches on component mount
 
   const handleRefreshAll = useCallback(async () => {
-    await Promise.all([forceRefresh(), refreshCustomRecipes()]);
+    console.log('🎯 handleRefreshAll() triggered from Refresh button');
+    setIsRefreshingData(true);
+    try {
+      console.log('Calling forceRefresh() and refreshCustomRecipes()...');
+      await Promise.all([forceRefresh(), refreshCustomRecipes()]);
+      console.log('✅ All refreshes completed');
+    } catch (error) {
+      console.error('❌ handleRefreshAll error:', error);
+    } finally {
+      setIsRefreshingData(false);
+    }
   }, [forceRefresh, refreshCustomRecipes]);
 
   const filmOptions = useMemo(() => {
@@ -1064,7 +1075,7 @@ export default function DevelopmentRecipesPage() {
             setIsCustomModalOpen(true);
           }}
           onRefresh={handleRefreshAll}
-          isRefreshing={isLoading}
+          isRefreshing={isRefreshingData}
           showImportButton={flags.RECIPE_IMPORT}
           isMobile={isMobile}
         />
@@ -1112,7 +1123,7 @@ export default function DevelopmentRecipesPage() {
         />
 
         <div className="transition-all duration-500 ease-in-out">
-          {isLoading && (
+          {(isLoading || isRefreshingData) && (
             <div className="space-y-4 animate-slide-fade-top">
               <div
                 className="flex items-center justify-center gap-3 rounded-2xl px-6 py-4 text-sm"
@@ -1200,7 +1211,7 @@ export default function DevelopmentRecipesPage() {
             </div>
           )}
 
-          {!isLoading && (
+          {!isLoading && !isRefreshingData && (
             <div
               ref={resultsContainerRef}
               key={`results-${isLoaded}-${combinedRows.length}`}
@@ -1222,7 +1233,7 @@ export default function DevelopmentRecipesPage() {
           )}
         </div>
 
-        {!isLoading && (
+        {!isLoading && !isRefreshingData && (
           <div className="animate-slide-fade-top animate-delay-300">
             <PaginationControls table={table} />
           </div>
