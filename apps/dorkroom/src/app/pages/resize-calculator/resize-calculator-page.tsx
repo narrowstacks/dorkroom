@@ -23,7 +23,10 @@ import {
   RESIZE_STORAGE_KEY,
   type ResizeCalculatorState,
 } from '@dorkroom/logic';
-import { resizeCalculatorSchema, createZodFormValidator } from '@dorkroom/ui/forms';
+import {
+  resizeCalculatorSchema,
+  createZodFormValidator,
+} from '@dorkroom/ui/forms';
 
 const validateResizeForm = createZodFormValidator(resizeCalculatorSchema);
 
@@ -32,10 +35,7 @@ interface ModeToggleProps {
   onModeChange: (value: boolean) => void;
 }
 
-function ModeToggle({
-  isEnlargerHeightMode,
-  onModeChange,
-}: ModeToggleProps) {
+function ModeToggle({ isEnlargerHeightMode, onModeChange }: ModeToggleProps) {
   return (
     <div
       className="rounded-2xl border p-5 shadow-subtle backdrop-blur"
@@ -300,13 +300,24 @@ export default function ResizeCalculatorPage() {
       if (!raw) return;
 
       const parsed = JSON.parse(raw) as Partial<ResizeCalculatorState>;
-      Object.entries(parsed).forEach(([key, value]: [string, unknown]) => {
-        if (value === undefined) return;
-        form.setFieldValue(
-          key as keyof ResizeCalculatorState,
-          value as ResizeCalculatorState[keyof ResizeCalculatorState]
-        );
-      });
+
+      const fieldKeys = [
+        'isEnlargerHeightMode',
+        'originalWidth',
+        'originalLength',
+        'newWidth',
+        'newLength',
+        'originalTime',
+        'originalHeight',
+        'newHeight',
+      ] as const satisfies Array<keyof ResizeCalculatorState>;
+
+      for (const key of fieldKeys) {
+        const value = parsed[key];
+        if (value === undefined) continue;
+
+        form.setFieldValue(key, value as ResizeCalculatorState[typeof key]);
+      }
     } catch (error) {
       console.warn('Failed to load calculator state', error);
     }
@@ -335,7 +346,8 @@ export default function ResizeCalculatorPage() {
     newL: number
   ) => {
     if (isEnlargerMode) return true;
-    if (origWidth <= 0 || origLength <= 0 || newW <= 0 || newL <= 0) return true;
+    if (origWidth <= 0 || origLength <= 0 || newW <= 0 || newL <= 0)
+      return true;
     const originalRatio = (origWidth / origLength).toFixed(3);
     const newRatio = (newW / newL).toFixed(3);
     return originalRatio === newRatio;
@@ -365,7 +377,13 @@ export default function ResizeCalculatorPage() {
         calculatedStopsDifference = stops.toFixed(2);
       }
     } else {
-      if (origWidth > 0 && origLength > 0 && newW > 0 && newL > 0 && origTime > 0) {
+      if (
+        origWidth > 0 &&
+        origLength > 0 &&
+        newW > 0 &&
+        newL > 0 &&
+        origTime > 0
+      ) {
         const originalArea = origWidth * origLength;
         const newArea = newW * newL;
 
@@ -380,7 +398,10 @@ export default function ResizeCalculatorPage() {
       }
     }
 
-    return { newTime: calculatedNewTime, stopsDifference: calculatedStopsDifference };
+    return {
+      newTime: calculatedNewTime,
+      stopsDifference: calculatedStopsDifference,
+    };
   };
 
   return (
@@ -428,7 +449,9 @@ export default function ResizeCalculatorPage() {
                               onChange={(value: string) => {
                                 const parsed = parseFloat(value);
                                 if (Number.isFinite(parsed) && parsed >= 0) {
-                                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                                  field.handleChange(
+                                    parseFloat(toInches(parsed).toFixed(3))
+                                  );
                                 }
                               }}
                               onBlur={field.handleBlur}
@@ -448,7 +471,9 @@ export default function ResizeCalculatorPage() {
                               onChange={(value) => {
                                 const parsed = parseFloat(value);
                                 if (Number.isFinite(parsed) && parsed >= 0) {
-                                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                                  field.handleChange(
+                                    parseFloat(toInches(parsed).toFixed(3))
+                                  );
                                 }
                               }}
                               onBlur={field.handleBlur}
@@ -479,11 +504,15 @@ export default function ResizeCalculatorPage() {
                               onChange={(value) => {
                                 const parsed = parseFloat(value);
                                 if (Number.isFinite(parsed) && parsed >= 0) {
-                                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                                  field.handleChange(
+                                    parseFloat(toInches(parsed).toFixed(3))
+                                  );
                                 }
                               }}
                               onBlur={field.handleBlur}
-                              placeholder={String(toDisplay(Number(DEFAULT_NEW_WIDTH)))}
+                              placeholder={String(
+                                toDisplay(Number(DEFAULT_NEW_WIDTH))
+                              )}
                               step={0.1}
                               unit={unitLabel}
                             />
@@ -497,7 +526,9 @@ export default function ResizeCalculatorPage() {
                               onChange={(value) => {
                                 const parsed = parseFloat(value);
                                 if (Number.isFinite(parsed) && parsed >= 0) {
-                                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                                  field.handleChange(
+                                    parseFloat(toInches(parsed).toFixed(3))
+                                  );
                                 }
                               }}
                               onBlur={field.handleBlur}
@@ -529,7 +560,9 @@ export default function ResizeCalculatorPage() {
                             onChange={(value) => {
                               const parsed = parseFloat(value);
                               if (Number.isFinite(parsed) && parsed >= 0) {
-                                field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                                field.handleChange(
+                                  parseFloat(toInches(parsed).toFixed(3))
+                                );
                               }
                             }}
                             onBlur={field.handleBlur}
@@ -549,11 +582,15 @@ export default function ResizeCalculatorPage() {
                             onChange={(value) => {
                               const parsed = parseFloat(value);
                               if (Number.isFinite(parsed) && parsed >= 0) {
-                                field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                                field.handleChange(
+                                  parseFloat(toInches(parsed).toFixed(3))
+                                );
                               }
                             }}
                             onBlur={field.handleBlur}
-                            placeholder={String(toDisplay(Number(DEFAULT_NEW_HEIGHT)))}
+                            placeholder={String(
+                              toDisplay(Number(DEFAULT_NEW_HEIGHT))
+                            )}
                             step={1}
                             unit={unitLabel}
                           />
@@ -567,13 +604,20 @@ export default function ResizeCalculatorPage() {
 
             <form.Subscribe
               selector={(state) => {
-                const isEnlargerMode = state.values.isEnlargerHeightMode as boolean;
+                const isEnlargerMode = state.values
+                  .isEnlargerHeightMode as boolean;
                 const origWidth = state.values.originalWidth as number;
                 const origLength = state.values.originalLength as number;
                 const newW = state.values.newWidth as number;
                 const newL = state.values.newLength as number;
 
-                const isMatched = calculateAspectRatioMatch(isEnlargerMode, origWidth, origLength, newW, newL);
+                const isMatched = calculateAspectRatioMatch(
+                  isEnlargerMode,
+                  origWidth,
+                  origLength,
+                  newW,
+                  newL
+                );
                 return {
                   isEnlargerMode,
                   isMatched,
@@ -621,7 +665,8 @@ export default function ResizeCalculatorPage() {
 
           <form.Subscribe
             selector={(state) => {
-              const isEnlargerMode = state.values.isEnlargerHeightMode as boolean;
+              const isEnlargerMode = state.values
+                .isEnlargerHeightMode as boolean;
               const origTime = state.values.originalTime as number;
               const origWidth = state.values.originalWidth as number;
               const origLength = state.values.originalLength as number;
@@ -682,7 +727,11 @@ export default function ResizeCalculatorPage() {
         </div>
 
         <div className="space-y-6">
-          <InfoSection isEnlargerHeightMode={form.getFieldValue('isEnlargerHeightMode' as never) as boolean} />
+          <InfoSection
+            isEnlargerHeightMode={
+              form.getFieldValue('isEnlargerHeightMode' as never) as boolean
+            }
+          />
         </div>
       </div>
     </div>
