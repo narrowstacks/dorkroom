@@ -1,3 +1,4 @@
+import { useForm } from '@tanstack/react-form';
 import { useMemo, useState } from 'react';
 import {
   CalculatorCard,
@@ -12,8 +13,12 @@ import {
 import {
   useReciprocityCalculator,
   formatReciprocityTime,
+  parseReciprocityTime,
+  RECIPROCITY_FILM_TYPES,
+  RECIPROCITY_EXPOSURE_PRESETS,
   type SelectItem,
 } from '@dorkroom/logic';
+import { reciprocityCalculatorSchema } from '@dorkroom/ui/forms';
 import { ChartLine, Maximize2, Minimize2 } from 'lucide-react';
 
 const HOW_TO_USE = [
@@ -67,44 +72,76 @@ const RECIPROCITY_INSIGHTS = [
  * @returns The JSX element representing the reciprocity calculator UI.
  */
 export default function ReciprocityCalculatorPage() {
+  // Keep calculation logic from hook but manage form state with TanStack Form
   const {
-    filmType,
-    setFilmType,
-    meteredTime,
-    setMeteredTime,
-    setMeteredTimeDirectly,
-    customFactor,
-    setCustomFactor,
-    formattedTime,
-    timeFormatError,
-    calculation,
+    calculation: hookCalculation,
     formatTime,
     filmTypes,
-    exposurePresets,
   } = useReciprocityCalculator();
 
   const [showChart, setShowChart] = useState(false);
   const [isWideChart, setIsWideChart] = useState(false);
+
+  // TanStack Form for input state
+  const form = useForm({
+    defaultValues: {
+      filmType: 'portra_400',
+      meteredTime: '30s',
+      customFactor: 1.3,
+    },
+    validators: {
+      onChange: reciprocityCalculatorSchema,
+    },
+  });
+
+  const filmType = form.getFieldValue('filmType');
+  const meteredTime = form.getFieldValue('meteredTime');
+  const customFactor = form.getFieldValue('customFactor');
+
+  // Parse metered time for display
+  const parsedSeconds = parseReciprocityTime(meteredTime);
+  const formattedTime =
+    parsedSeconds !== null ? formatReciprocityTime(parsedSeconds) : null;
+  const timeFormatError = parsedSeconds === null ? 'Invalid time format' : null;
+  const parsedDisplay =
+    formattedTime && formattedTime !== meteredTime
+      ? `Parsed as: ${formattedTime}`
+      : null;
+
+  // Recalculate based on form inputs
+  const calculation = useMemo(() => {
+    if (!parsedSeconds) return null;
+
+    const selectedFilm = filmTypes.find((f) => f.value === filmType);
+    const factor = filmType === 'custom' ? customFactor : (selectedFilm?.factor ?? 1.3);
+
+    // Use existing calculation logic from constants/types
+    const adjustedTime = parsedSeconds * Math.pow(parsedSeconds, Math.log(factor) / Math.log(2));
+    const percentageIncrease = ((adjustedTime - parsedSeconds) / parsedSeconds) * 100;
+
+    return {
+      originalTime: parsedSeconds,
+      adjustedTime,
+      factor,
+      percentageIncrease,
+      filmName: selectedFilm?.label ?? 'Custom profile',
+    };
+  }, [parsedSeconds, filmType, customFactor, filmTypes]);
+
+  const addedExposure = calculation
+    ? formatTime(Math.max(calculation.adjustedTime - calculation.originalTime, 0))
+    : '--';
+
+  const addedExposurePercentage = calculation
+    ? `${Math.round(calculation.percentageIncrease)}% more time needed`
+    : '% more time needed';
 
   const filmOptions = useMemo<SelectItem[]>(
     () => filmTypes.map(({ label, value }) => ({ label, value })),
     [filmTypes]
   );
 
-  const parsedDisplay =
-    formattedTime && formattedTime !== meteredTime
-      ? `Parsed as: ${formattedTime}`
-      : null;
-
-  const addedExposure = calculation
-    ? formatTime(
-        Math.max(calculation.adjustedTime - calculation.originalTime, 0)
-      )
-    : '--';
-
-  const addedExposurePercentage = calculation
-    ? `${Math.round(calculation.percentageIncrease)}% more time needed`
-    : '% more time needed';
+  const exposurePresets = RECIPROCITY_EXPOSURE_PRESETS;
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
@@ -120,64 +157,76 @@ export default function ReciprocityCalculatorPage() {
             title="Reciprocity inputs"
             description="Select an emulsion, confirm or tweak its reciprocity factor, and log the reading from your meter."
           >
-            <Select
-              label="Film stock"
-              selectedValue={filmType}
-              onValueChange={setFilmType}
-              items={filmOptions}
-            />
+            <form.Field name="filmType">
+              {(field) => (
+                <Select
+                  label="Film stock"
+                  selectedValue={field.state.value}
+                  onValueChange={(value) => field.handleChange(value)}
+                  items={filmOptions}
+                />
+              )}
+            </form.Field>
 
             {filmType === 'custom' && (
-              <CalculatorNumberField
-                label="Reciprocity factor"
-                value={customFactor}
-                onChange={setCustomFactor}
-                placeholder="1.3"
-                step={0.1}
-                helperText="Higher factors demand more compensation at longer exposures."
-              />
+              <form.Field name="customFactor">
+                {(field) => (
+                  <CalculatorNumberField
+                    label="Reciprocity factor"
+                    value={field.state.value}
+                    onChange={(value) => field.handleChange(parseFloat(value))}
+                    placeholder="1.3"
+                    step={0.1}
+                    helperText="Higher factors demand more compensation at longer exposures."
+                  />
+                )}
+              </form.Field>
             )}
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm text-[color:var(--color-text-primary)]">
-                <span className="font-medium">Metered exposure time</span>
-              </div>
-              <TextInput
-                value={meteredTime}
-                onValueChange={setMeteredTime}
-                placeholder="Try 30s, 1m30s, or 2h"
-              />
-              <div className="flex flex-wrap gap-2">
-                {exposurePresets.map((seconds) => (
-                  <button
-                    key={seconds}
-                    type="button"
-                    onClick={() => setMeteredTimeDirectly(`${seconds}s`)}
-                    className="rounded-full px-3 py-1 text-xs font-medium transition"
-                    style={{
-                      color: 'var(--color-text-secondary)',
-                      borderColor: 'var(--color-border-secondary)',
-                      borderWidth: 1,
-                    }}
-                  >
-                    {formatReciprocityTime(seconds)}
-                  </button>
-                ))}
-              </div>
-              {timeFormatError && (
-                <p
-                  className="text-xs font-medium"
-                  style={{ color: 'var(--color-accent)' }}
-                >
-                  {timeFormatError}
-                </p>
+            <form.Field name="meteredTime">
+              {(field) => (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm text-[color:var(--color-text-primary)]">
+                    <span className="font-medium">Metered exposure time</span>
+                  </div>
+                  <TextInput
+                    value={field.state.value}
+                    onValueChange={(value) => field.handleChange(value)}
+                    placeholder="Try 30s, 1m30s, or 2h"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    {exposurePresets.map((seconds) => (
+                      <button
+                        key={seconds}
+                        type="button"
+                        onClick={() => field.handleChange(`${seconds}s`)}
+                        className="rounded-full px-3 py-1 text-xs font-medium transition"
+                        style={{
+                          color: 'var(--color-text-secondary)',
+                          borderColor: 'var(--color-border-secondary)',
+                          borderWidth: 1,
+                        }}
+                      >
+                        {formatReciprocityTime(seconds)}
+                      </button>
+                    ))}
+                  </div>
+                  {field.state.meta.errors.length > 0 && (
+                    <p
+                      className="text-xs font-medium"
+                      style={{ color: 'var(--color-accent)' }}
+                    >
+                      {field.state.meta.errors.join(', ')}
+                    </p>
+                  )}
+                  {field.state.meta.errors.length === 0 && parsedDisplay && (
+                    <p className="text-xs italic text-[color:var(--color-text-tertiary)]">
+                      {parsedDisplay}
+                    </p>
+                  )}
+                </div>
               )}
-              {!timeFormatError && parsedDisplay && (
-                <p className="text-xs italic text-[color:var(--color-text-tertiary)]">
-                  {parsedDisplay}
-                </p>
-              )}
-            </div>
+            </form.Field>
           </CalculatorCard>
 
           {calculation && (
