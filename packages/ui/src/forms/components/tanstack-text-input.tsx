@@ -37,6 +37,20 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
     (meta.errors as Array<string | unknown>).length > 0 &&
     (meta.isTouched || meta.isDirty);
 
+  // Compute border colors based on current hasErrors value (every render)
+  const borderColorError = colorMixOr(
+    'var(--color-semantic-error)',
+    50,
+    'var(--color-border-primary)',
+    'var(--color-border-secondary)'
+  );
+  const ringColorError = colorMixOr(
+    'var(--color-semantic-error)',
+    30,
+    'var(--color-border-primary)',
+    'var(--color-border-secondary)'
+  );
+
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
@@ -57,50 +71,22 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
         onChange={(e) => field.handleChange(e.target.value)}
         onBlur={field.handleBlur}
         placeholder={placeholder}
-        className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2"
+        className="tanstack-text-input w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2"
         style={
           {
-            borderColor: hasErrors
-              ? colorMixOr(
-                  'var(--color-semantic-error)',
-                  50,
-                  'var(--color-border-primary)',
-                  'var(--color-border-secondary)'
-                )
+            '--border-color-unfocused': hasErrors
+              ? borderColorError
               : 'var(--color-border-secondary)',
+            '--border-color-focused': hasErrors
+              ? borderColorError
+              : 'var(--color-border-primary)',
+            borderColor: 'var(--border-color-unfocused)',
             backgroundColor: 'var(--color-surface-muted)',
             color: 'var(--color-text-primary)',
             '--tw-placeholder-color': 'var(--color-text-muted)',
-            '--tw-ring-color': hasErrors
-              ? colorMixOr(
-                  'var(--color-semantic-error)',
-                  30,
-                  'var(--color-border-primary)',
-                  'var(--color-border-secondary)'
-                )
-              : 'var(--color-border-primary)',
+            '--tw-ring-color': hasErrors ? ringColorError : 'var(--color-border-primary)',
           } as React.CSSProperties
         }
-        onFocus={(e) => {
-          e.currentTarget.style.borderColor = hasErrors
-            ? colorMixOr(
-                'var(--color-semantic-error)',
-                50,
-                'var(--color-border-primary)',
-                'var(--color-border-secondary)'
-              )
-            : 'var(--color-border-primary)';
-        }}
-        onBlurCapture={(e) => {
-          e.currentTarget.style.borderColor = hasErrors
-            ? colorMixOr(
-                'var(--color-semantic-error)',
-                50,
-                'var(--color-border-primary)',
-                'var(--color-border-secondary)'
-              )
-            : 'var(--color-border-secondary)';
-        }}
       />
       {hasErrors && (
         <div
@@ -126,9 +112,14 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
             ),
           }}
         >
-          {field.state.meta.errors.join(', ')}
+          {field.state.meta.errors.map((e) => String(e)).join(', ')}
         </div>
       )}
+      <style>{`
+        .tanstack-text-input:focus-visible {
+          border-color: var(--border-color-focused);
+        }
+      `}</style>
     </div>
   );
 };
