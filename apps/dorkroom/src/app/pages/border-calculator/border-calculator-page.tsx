@@ -706,22 +706,27 @@ export default function BorderCalculatorPage() {
                   Reset to defaults
                 </button>
 
-                {!form.getFieldValue('isLandscape') && (
-                  <div
-                    className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
-                    style={{
-                      borderWidth: 1,
-                      borderColor: 'var(--color-border-secondary)',
-                      backgroundColor: 'var(--color-border-muted)',
-                      color: 'var(--color-text-primary)',
-                    }}
-                  >
-                    <strong className="font-semibold">Rotate your easel</strong>
-                    <br />
-                    Paper is in vertical orientation. Rotate your easel 90° to
-                    match the blade readings.
-                  </div>
-                )}
+                {(() => {
+                  const isLandscape = form.getFieldValue('isLandscape');
+                  const isCustomPaper = form.getFieldValue('paperSize') === 'custom';
+                  const shouldShow = isCustomPaper ? isLandscape : !isLandscape;
+                  return shouldShow && (
+                    <div
+                      className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
+                      style={{
+                        borderWidth: 1,
+                        borderColor: 'var(--color-border-secondary)',
+                        backgroundColor: 'var(--color-border-muted)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
+                      <strong className="font-semibold">Rotate your easel</strong>
+                      <br />
+                      Paper is in vertical orientation. Rotate your easel 90° to
+                      match the blade readings.
+                    </div>
+                  );
+                })()}
 
                 {calculation.isNonStandardPaperSize && (
                   <div
@@ -749,69 +754,80 @@ export default function BorderCalculatorPage() {
                 accent="emerald"
                 padding="compact"
               >
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <CalculatorStat
-                    label="Left blade"
-                    value={formatWithUnit(
-                      !form.getFieldValue('isLandscape')
-                        ? calculation.topBladeReading
-                        : calculation.leftBladeReading
-                    )}
-                    className="p-4"
-                  />
-                  <CalculatorStat
-                    label="Right blade"
-                    value={formatWithUnit(
-                      !form.getFieldValue('isLandscape')
-                        ? calculation.bottomBladeReading
-                        : calculation.rightBladeReading
-                    )}
-                    className="p-4"
-                  />
-                  <CalculatorStat
-                    label="Top blade"
-                    value={formatWithUnit(
-                      !form.getFieldValue('isLandscape')
-                        ? calculation.leftBladeReading
-                        : calculation.topBladeReading
-                    )}
-                    className="p-4"
-                  />
-                  <CalculatorStat
-                    label="Bottom blade"
-                    value={formatWithUnit(
-                      !form.getFieldValue('isLandscape')
-                        ? calculation.rightBladeReading
-                        : calculation.bottomBladeReading
-                    )}
-                    className="p-4"
-                  />
-                  <CalculatorStat
-                    label="Image size"
-                    value={formatDimensions(
-                      calculation.printWidth,
-                      calculation.printHeight
-                    )}
-                    helperText="Final image area within the borders."
-                    className="sm:col-span-2 p-4"
-                  />
-                </div>
+                {(() => {
+                  const isLandscape = form.getFieldValue('isLandscape');
+                  const isCustomPaper = form.getFieldValue('paperSize') === 'custom';
+                  // For custom paper, invert the condition
+                  const condition = isCustomPaper ? isLandscape : !isLandscape;
 
-                {bladeWarning && (
-                  <div className="mt-4">
-                    <WarningAlert message={bladeWarning} action="error" />
-                  </div>
-                )}
-                {minBorderWarning && (
-                  <div className="mt-4">
-                    <WarningAlert message={minBorderWarning} action="error" />
-                  </div>
-                )}
-                {paperSizeWarning && (
-                  <div className="mt-4">
-                    <WarningAlert message={paperSizeWarning} action="warning" />
-                  </div>
-                )}
+                  return (
+                    <>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <CalculatorStat
+                          label="Left blade"
+                          value={formatWithUnit(
+                            condition
+                              ? calculation.topBladeReading
+                              : calculation.leftBladeReading
+                          )}
+                          className="p-4"
+                        />
+                        <CalculatorStat
+                          label="Right blade"
+                          value={formatWithUnit(
+                            condition
+                              ? calculation.bottomBladeReading
+                              : calculation.rightBladeReading
+                          )}
+                          className="p-4"
+                        />
+                        <CalculatorStat
+                          label="Top blade"
+                          value={formatWithUnit(
+                            condition
+                              ? calculation.leftBladeReading
+                              : calculation.topBladeReading
+                          )}
+                          className="p-4"
+                        />
+                        <CalculatorStat
+                          label="Bottom blade"
+                          value={formatWithUnit(
+                            condition
+                              ? calculation.rightBladeReading
+                              : calculation.bottomBladeReading
+                          )}
+                          className="p-4"
+                        />
+                        <CalculatorStat
+                          label="Image size"
+                          value={formatDimensions(
+                            calculation.printWidth,
+                            calculation.printHeight
+                          )}
+                          helperText="Final image area within the borders."
+                          className="sm:col-span-2 p-4"
+                        />
+                      </div>
+
+                      {bladeWarning && (
+                        <div className="mt-4">
+                          <WarningAlert message={bladeWarning} action="error" />
+                        </div>
+                      )}
+                      {minBorderWarning && (
+                        <div className="mt-4">
+                          <WarningAlert message={minBorderWarning} action="error" />
+                        </div>
+                      )}
+                      {paperSizeWarning && (
+                        <div className="mt-4">
+                          <WarningAlert message={paperSizeWarning} action="warning" />
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </CalculatorCard>
             </>
           )}
