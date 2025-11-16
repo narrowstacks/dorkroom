@@ -18,8 +18,12 @@ import {
   RECIPROCITY_EXPOSURE_PRESETS,
   type SelectItem,
 } from '@dorkroom/logic';
-import { reciprocityCalculatorSchema } from '@dorkroom/ui/forms';
+import { reciprocityCalculatorSchema, createZodFormValidator } from '@dorkroom/ui/forms';
 import { ChartLine, Maximize2, Minimize2 } from 'lucide-react';
+
+const validateReciprocityForm = createZodFormValidator(
+  reciprocityCalculatorSchema
+);
 
 const HOW_TO_USE = [
   {
@@ -90,7 +94,7 @@ export default function ReciprocityCalculatorPage() {
       customFactor: 1.3,
     },
     validators: {
-      onChange: reciprocityCalculatorSchema,
+      onChange: validateReciprocityForm,
     },
   });
 

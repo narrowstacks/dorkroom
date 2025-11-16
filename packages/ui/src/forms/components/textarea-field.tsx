@@ -8,6 +8,9 @@ export interface TextareaFieldProps {
       value: string;
       meta: {
         errors: unknown[];
+        isTouched?: boolean;
+        isDirty?: boolean;
+        isValidating?: boolean;
       };
     };
     handleChange: (value: string) => void;
@@ -28,6 +31,10 @@ export const TextareaField: React.FC<TextareaFieldProps> = ({
   className,
   disabled = false,
 }) => {
+  const showErrors =
+    field.state.meta.errors.length > 0 &&
+    (field.state.meta.isTouched || field.state.meta.isDirty);
+
   return (
     <div className="flex flex-col gap-1">
       {label && (
@@ -49,11 +56,11 @@ export const TextareaField: React.FC<TextareaFieldProps> = ({
           'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
           'disabled:bg-gray-100 disabled:cursor-not-allowed',
           'resize-none',
-          field.state.meta.errors.length > 0 && 'border-red-500 focus:ring-red-500',
+          showErrors && 'border-red-500 focus:ring-red-500',
           className
         )}
       />
-      {field.state.meta.errors.length > 0 && (
+      {showErrors && (
         <p className="text-sm text-red-600">
           {field.state.meta.errors.join(', ')}
         </p>

@@ -19,7 +19,9 @@ import {
   DEFAULT_ORIGINAL_HEIGHT,
   DEFAULT_NEW_HEIGHT,
 } from '@dorkroom/logic';
-import { resizeCalculatorSchema } from '@dorkroom/ui/forms';
+import { resizeCalculatorSchema, createZodFormValidator } from '@dorkroom/ui/forms';
+
+const validateResizeForm = createZodFormValidator(resizeCalculatorSchema);
 
 interface ModeToggleProps {
   isEnlargerHeightMode: boolean;
@@ -249,7 +251,7 @@ export default function ResizeCalculatorPage() {
       newHeight: Number(DEFAULT_NEW_HEIGHT),
     },
     validators: {
-      onChange: resizeCalculatorSchema,
+      onChange: validateResizeForm,
     },
   });
 

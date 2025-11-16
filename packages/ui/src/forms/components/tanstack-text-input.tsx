@@ -9,6 +9,9 @@ export interface TanStackTextInputProps {
       value: string;
       meta: {
         errors: unknown[];
+        isTouched?: boolean;
+        isDirty?: boolean;
+        isValidating?: boolean;
       };
     };
     handleChange: (value: string) => void;
@@ -29,7 +32,10 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
   className,
   type = 'text',
 }) => {
-  const hasErrors = (field.state.meta.errors as Array<string | unknown>).length > 0;
+  const meta = field.state.meta;
+  const hasErrors =
+    (meta.errors as Array<string | unknown>).length > 0 &&
+    (meta.isTouched || meta.isDirty);
 
   return (
     <div className={cn('space-y-2', className)}>

@@ -70,6 +70,7 @@ export {
 export {
   useBorderCalculator as useModularBorderCalculator,
   useBorderCalculatorState,
+  initialState as borderCalculatorInitialState,
   useDimensionCalculations,
   useGeometryCalculations,
   useWarningSystem,

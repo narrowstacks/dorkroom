@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useForm } from '@tanstack/react-form';
+import { useStore } from '@tanstack/react-store';
 import {
   RotateCw,
   RotateCcw,
@@ -23,7 +24,7 @@ import {
   useMeasurementFormatter,
   useMeasurementConverter,
 } from '@dorkroom/ui';
-import { borderCalculatorSchema } from '@dorkroom/ui/forms';
+import { borderCalculatorSchema, createZodFormValidator } from '@dorkroom/ui/forms';
 import {
   AnimatedPreview,
   BorderInfoSection,
@@ -32,13 +33,16 @@ import {
 
 // Constants and hooks
 import {
-  useModularBorderCalculator as useBorderCalculator,
   useBorderPresets,
   useWindowDimensions,
   usePresetSharing,
   useUrlPresetLoader,
+  useDimensionCalculations,
+  useGeometryCalculations,
   shallowEqual,
   type SelectItem,
+  type BorderCalculatorState,
+  type BorderPresetSettings,
   DESKTOP_BREAKPOINT,
   SLIDER_MIN_BORDER,
   SLIDER_MAX_BORDER,
@@ -51,7 +55,11 @@ import {
   ASPECT_RATIOS,
   PAPER_SIZES,
   DEFAULT_BORDER_PRESETS,
+  CALC_STORAGE_KEY,
+  borderCalculatorInitialState,
 } from '@dorkroom/logic';
+
+const validateBorderCalculator = createZodFormValidator(borderCalculatorSchema);
 
 export default function BorderCalculatorPage() {
   const { width } = useWindowDimensions();
@@ -59,57 +67,80 @@ export default function BorderCalculatorPage() {
   const { formatWithUnit, formatDimensions, unit } = useMeasurementFormatter();
   const { toInches, toDisplay } = useMeasurementConverter();
 
-  // Get calculator state and setters from hook
+  const form = useForm<BorderCalculatorState>({
+    defaultValues: borderCalculatorInitialState,
+    validators: {
+      onChange: validateBorderCalculator,
+    },
+  });
+
+  const formValues = useStore(
+    form.store,
+    (state) => state.values as BorderCalculatorState
+  );
+
   const {
     aspectRatio,
-    setAspectRatio,
     paperSize,
-    setPaperSize,
     customAspectWidth,
-    setCustomAspectWidth,
     customAspectHeight,
-    setCustomAspectHeight,
     customPaperWidth,
-    setCustomPaperWidth,
     customPaperHeight,
-    setCustomPaperHeight,
     minBorder,
-    setMinBorder,
-    setMinBorderSlider,
     enableOffset,
-    setEnableOffset,
     ignoreMinBorder,
-    setIgnoreMinBorder,
     horizontalOffset,
-    setHorizontalOffset,
-    setHorizontalOffsetSlider,
     verticalOffset,
-    setVerticalOffset,
-    setVerticalOffsetSlider,
     showBlades,
-    setShowBlades,
     showBladeReadings,
-    setShowBladeReadings,
     isLandscape,
-    setIsLandscape,
     isRatioFlipped,
-    setIsRatioFlipped,
-    offsetWarning,
-    bladeWarning,
-    calculation,
-    minBorderWarning,
-    paperSizeWarning,
-    resetToDefaults,
-    applyPreset,
-  } = useBorderCalculator();
+    lastValidCustomAspectWidth,
+    lastValidCustomAspectHeight,
+    lastValidCustomPaperWidth,
+    lastValidCustomPaperHeight,
+    lastValidMinBorder,
+  } = formValues;
 
-  // TanStack Form for input state management
-  const form = useForm({
-    defaultValues: {
+  const { presets, addPreset, updatePreset, removePreset } = useBorderPresets();
+
+  // Local string state for custom paper dimensions (in display units)
+  const [paperWidthInput, setPaperWidthInput] = useState(() =>
+    String(Math.round(toDisplay(customPaperWidth) * 1000) / 1000)
+  );
+  const [paperHeightInput, setPaperHeightInput] = useState(() =>
+    String(Math.round(toDisplay(customPaperHeight) * 1000) / 1000)
+  );
+  const [isEditingPaperWidth, setIsEditingPaperWidth] = useState(false);
+  const [isEditingPaperHeight, setIsEditingPaperHeight] = useState(false);
+
+  // Hydrate from persisted state on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const raw = window.localStorage.getItem(CALC_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<BorderCalculatorState>;
+      Object.entries(parsed).forEach(([key, value]) => {
+        if (value === undefined) return;
+        form.setFieldValue(
+          key as keyof BorderCalculatorState,
+          value as BorderCalculatorState[keyof BorderCalculatorState]
+        );
+      });
+    } catch (error) {
+      console.warn('Failed to load calculator state', error);
+    }
+  }, [form]);
+
+  const persistableSnapshot = useMemo(
+    () => ({
       aspectRatio,
+      paperSize,
       customAspectWidth,
       customAspectHeight,
-      paperSize,
       customPaperWidth,
       customPaperHeight,
       minBorder,
@@ -121,23 +152,70 @@ export default function BorderCalculatorPage() {
       showBladeReadings,
       isLandscape,
       isRatioFlipped,
-    },
-    validators: {
-      onChange: borderCalculatorSchema,
-    },
-  });
-
-  const { presets, addPreset, updatePreset, removePreset } = useBorderPresets();
-
-  // Local string state for custom paper dimensions (in display units)
-  const [paperWidthInput, setPaperWidthInput] = useState(
-    String(toDisplay(customPaperWidth))
+      lastValidCustomAspectWidth,
+      lastValidCustomAspectHeight,
+      lastValidCustomPaperWidth,
+      lastValidCustomPaperHeight,
+      lastValidMinBorder,
+    }),
+    [
+      aspectRatio,
+      paperSize,
+      customAspectWidth,
+      customAspectHeight,
+      customPaperWidth,
+      customPaperHeight,
+      minBorder,
+      enableOffset,
+      ignoreMinBorder,
+      horizontalOffset,
+      verticalOffset,
+      showBlades,
+      showBladeReadings,
+      isLandscape,
+      isRatioFlipped,
+      lastValidCustomAspectWidth,
+      lastValidCustomAspectHeight,
+      lastValidCustomPaperWidth,
+      lastValidCustomPaperHeight,
+      lastValidMinBorder,
+    ]
   );
-  const [paperHeightInput, setPaperHeightInput] = useState(
-    String(toDisplay(customPaperHeight))
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem(
+        CALC_STORAGE_KEY,
+        JSON.stringify(persistableSnapshot)
+      );
+    } catch (error) {
+      console.warn('Failed to save calculator state', error);
+    }
+  }, [persistableSnapshot]);
+
+  const dimensionData = useDimensionCalculations(formValues);
+  const { calculation } = useGeometryCalculations(
+    formValues,
+    dimensionData.orientedDimensions,
+    dimensionData.minBorderData,
+    dimensionData.paperEntry,
+    dimensionData.paperSizeWarning
   );
-  const [isEditingPaperWidth, setIsEditingPaperWidth] = useState(false);
-  const [isEditingPaperHeight, setIsEditingPaperHeight] = useState(false);
+
+  useEffect(() => {
+    if (!calculation) return;
+    if (calculation.lastValidMinBorder !== lastValidMinBorder) {
+      form.setFieldValue('lastValidMinBorder', calculation.lastValidMinBorder);
+    }
+  }, [calculation, form, lastValidMinBorder]);
+
+  const offsetWarning = calculation?.offsetWarning ?? null;
+  const bladeWarning = calculation?.bladeWarning ?? null;
+  const minBorderWarning = calculation?.minBorderWarning ?? null;
+  const paperSizeWarning =
+    calculation?.paperSizeWarning ?? dimensionData.paperSizeWarning;
 
   // Sync local state when parent state or unit changes (but not while editing)
   useEffect(() => {
@@ -171,6 +249,35 @@ export default function BorderCalculatorPage() {
     return null;
   };
 
+  const applyPresetSettings = (settings: BorderPresetSettings) => {
+    form.setFieldValue('aspectRatio', settings.aspectRatio);
+    form.setFieldValue('paperSize', settings.paperSize);
+    form.setFieldValue('customAspectWidth', settings.customAspectWidth);
+    form.setFieldValue('customAspectHeight', settings.customAspectHeight);
+    form.setFieldValue('customPaperWidth', settings.customPaperWidth);
+    form.setFieldValue('customPaperHeight', settings.customPaperHeight);
+    form.setFieldValue('minBorder', settings.minBorder);
+    form.setFieldValue('enableOffset', settings.enableOffset);
+    form.setFieldValue('ignoreMinBorder', settings.ignoreMinBorder);
+    form.setFieldValue('horizontalOffset', settings.horizontalOffset);
+    form.setFieldValue('verticalOffset', settings.verticalOffset);
+    form.setFieldValue('showBlades', settings.showBlades);
+    form.setFieldValue('showBladeReadings', settings.showBladeReadings);
+    form.setFieldValue('isLandscape', settings.isLandscape);
+    form.setFieldValue('isRatioFlipped', settings.isRatioFlipped);
+    form.setFieldValue('lastValidCustomAspectWidth', settings.customAspectWidth);
+    form.setFieldValue('lastValidCustomAspectHeight', settings.customAspectHeight);
+    form.setFieldValue('lastValidCustomPaperWidth', settings.customPaperWidth);
+    form.setFieldValue('lastValidCustomPaperHeight', settings.customPaperHeight);
+    form.setFieldValue('lastValidMinBorder', settings.minBorder);
+  };
+
+  const resetToDefaults = () => {
+    form.reset();
+    setIsEditingPaperWidth(false);
+    setIsEditingPaperHeight(false);
+  };
+
   // Handle width input change
   const handlePaperWidthChange = (value: string) => {
     setIsEditingPaperWidth(true);
@@ -179,8 +286,8 @@ export default function BorderCalculatorPage() {
     // Push valid changes to parent state immediately for live recomputation
     const inches = validateAndConvert(value);
     if (inches !== null) {
-      setCustomPaperWidth(inches);
       form.setFieldValue('customPaperWidth', inches);
+      form.setFieldValue('lastValidCustomPaperWidth', inches);
     }
   };
 
@@ -189,17 +296,21 @@ export default function BorderCalculatorPage() {
     setIsEditingPaperWidth(false);
     const inches = validateAndConvert(paperWidthInput);
     if (inches !== null) {
-      setCustomPaperWidth(inches);
       form.setFieldValue('customPaperWidth', inches);
+      form.setFieldValue('lastValidCustomPaperWidth', inches);
       // Format the display value to avoid floating point precision artifacts
       const displayValue = toDisplay(inches);
       setPaperWidthInput(String(Math.round(displayValue * 1000) / 1000));
     } else if (paperWidthInput === '' || /^\s*$/.test(paperWidthInput)) {
       // Reset to current value if empty
-      setPaperWidthInput(String(toDisplay(customPaperWidth)));
+      setPaperWidthInput(
+        String(Math.round(toDisplay(customPaperWidth) * 1000) / 1000)
+      );
     } else {
       // Reset to current value if invalid
-      setPaperWidthInput(String(toDisplay(customPaperWidth)));
+      setPaperWidthInput(
+        String(Math.round(toDisplay(customPaperWidth) * 1000) / 1000)
+      );
     }
   };
 
@@ -211,8 +322,8 @@ export default function BorderCalculatorPage() {
     // Push valid changes to parent state immediately for live recomputation
     const inches = validateAndConvert(value);
     if (inches !== null) {
-      setCustomPaperHeight(inches);
       form.setFieldValue('customPaperHeight', inches);
+      form.setFieldValue('lastValidCustomPaperHeight', inches);
     }
   };
 
@@ -221,17 +332,21 @@ export default function BorderCalculatorPage() {
     setIsEditingPaperHeight(false);
     const inches = validateAndConvert(paperHeightInput);
     if (inches !== null) {
-      setCustomPaperHeight(inches);
       form.setFieldValue('customPaperHeight', inches);
+      form.setFieldValue('lastValidCustomPaperHeight', inches);
       // Format the display value to avoid floating point precision artifacts
       const displayValue = toDisplay(inches);
       setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
     } else if (paperHeightInput === '' || /^\s*$/.test(paperHeightInput)) {
       // Reset to current value if empty
-      setPaperHeightInput(String(toDisplay(customPaperHeight)));
+      setPaperHeightInput(
+        String(Math.round(toDisplay(customPaperHeight) * 1000) / 1000)
+      );
     } else {
       // Reset to current value if invalid
-      setPaperHeightInput(String(toDisplay(customPaperHeight)));
+      setPaperHeightInput(
+        String(Math.round(toDisplay(customPaperHeight) * 1000) / 1000)
+      );
     }
   };
 
@@ -332,7 +447,7 @@ export default function BorderCalculatorPage() {
   // URL preset loader
   const { loadedPreset, clearLoadedPreset } = useUrlPresetLoader({
     onPresetLoaded: (preset) => {
-      applyPreset(preset.settings);
+      applyPresetSettings(preset.settings);
       setPresetName(preset.name);
       console.log(`Preset "${preset.name}" loaded from URL!`);
     },
@@ -357,7 +472,7 @@ export default function BorderCalculatorPage() {
       presets.find((p) => p.id === id) ||
       DEFAULT_BORDER_PRESETS.find((p) => p.id === id);
     if (preset) {
-      applyPreset(preset.settings);
+      applyPresetSettings(preset.settings);
       setPresetName(preset.name);
       setIsEditingPreset(false);
     }
@@ -540,7 +655,6 @@ export default function BorderCalculatorPage() {
                     onClick={() => {
                       const newValue = !form.getFieldValue('isLandscape');
                       form.setFieldValue('isLandscape', newValue);
-                      setIsLandscape(newValue);
                     }}
                     className="flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
                   >
@@ -551,7 +665,6 @@ export default function BorderCalculatorPage() {
                     onClick={() => {
                       const newValue = !form.getFieldValue('isRatioFlipped');
                       form.setFieldValue('isRatioFlipped', newValue);
-                      setIsRatioFlipped(newValue);
                     }}
                     className="flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
                   >
@@ -697,7 +810,7 @@ export default function BorderCalculatorPage() {
                     selectedValue={field.state.value}
                     onValueChange={(value) => {
                       field.handleChange(value);
-                      setAspectRatio(value);
+                      form.setFieldValue('isRatioFlipped', false);
                     }}
                     items={ASPECT_RATIOS as SelectItem[]}
                     placeholder="Select"
@@ -715,13 +828,23 @@ export default function BorderCalculatorPage() {
                           onWidthChange={(value) => {
                             const numValue = Number(value) || 0;
                             widthField.handleChange(numValue);
-                            setCustomAspectWidth(numValue);
+                            if (numValue > 0) {
+                              form.setFieldValue(
+                                'lastValidCustomAspectWidth',
+                                numValue
+                              );
+                            }
                           }}
                           heightValue={String(heightField.state.value)}
                           onHeightChange={(value) => {
                             const numValue = Number(value) || 0;
                             heightField.handleChange(numValue);
-                            setCustomAspectHeight(numValue);
+                            if (numValue > 0) {
+                              form.setFieldValue(
+                                'lastValidCustomAspectHeight',
+                                numValue
+                              );
+                            }
                           }}
                           widthLabel="Width"
                           heightLabel="Height"
@@ -741,7 +864,9 @@ export default function BorderCalculatorPage() {
                     selectedValue={field.state.value}
                     onValueChange={(value) => {
                       field.handleChange(value);
-                      setPaperSize(value);
+                      const isCustom = value === 'custom';
+                      form.setFieldValue('isLandscape', !isCustom);
+                      form.setFieldValue('isRatioFlipped', false);
                     }}
                     items={displayPaperSizes as SelectItem[]}
                     placeholder="Select"
@@ -778,11 +903,11 @@ export default function BorderCalculatorPage() {
                     value={field.state.value}
                     onChange={(value) => {
                       field.handleChange(value);
-                      setMinBorder(value);
+                      form.setFieldValue('lastValidMinBorder', value);
                     }}
                     onSliderChange={(value) => {
                       field.handleChange(value);
-                      setMinBorderSlider(value);
+                      form.setFieldValue('lastValidMinBorder', value);
                     }}
                     min={SLIDER_MIN_BORDER}
                     max={SLIDER_MAX_BORDER}
@@ -800,7 +925,6 @@ export default function BorderCalculatorPage() {
                     value={field.state.value}
                     onValueChange={(value) => {
                       field.handleChange(value);
-                      setEnableOffset(value);
                     }}
                   />
                 )}
@@ -822,7 +946,6 @@ export default function BorderCalculatorPage() {
                           value={field.state.value}
                           onValueChange={(value) => {
                             field.handleChange(value);
-                            setIgnoreMinBorder(value);
                           }}
                         />
                         {field.state.value && (
@@ -843,11 +966,9 @@ export default function BorderCalculatorPage() {
                           value={field.state.value}
                           onChange={(value) => {
                             field.handleChange(value);
-                            setHorizontalOffset(value);
                           }}
                           onSliderChange={(value) => {
                             field.handleChange(value);
-                            setHorizontalOffsetSlider(value);
                           }}
                           min={OFFSET_SLIDER_MIN}
                           max={OFFSET_SLIDER_MAX}
@@ -865,11 +986,9 @@ export default function BorderCalculatorPage() {
                           value={field.state.value}
                           onChange={(value) => {
                             field.handleChange(value);
-                            setVerticalOffset(value);
                           }}
                           onSliderChange={(value) => {
                             field.handleChange(value);
-                            setVerticalOffsetSlider(value);
                           }}
                           min={OFFSET_SLIDER_MIN}
                           max={OFFSET_SLIDER_MAX}
@@ -901,7 +1020,6 @@ export default function BorderCalculatorPage() {
                     value={field.state.value}
                     onValueChange={(value) => {
                       field.handleChange(value);
-                      setShowBlades(value);
                     }}
                   />
                 )}
@@ -913,7 +1031,6 @@ export default function BorderCalculatorPage() {
                     value={field.state.value}
                     onValueChange={(value) => {
                       field.handleChange(value);
-                      setShowBladeReadings(value);
                     }}
                   />
                 )}

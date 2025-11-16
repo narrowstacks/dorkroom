@@ -16,9 +16,11 @@ import {
   formatExposureTime,
   calculatePercentageIncrease,
 } from '@dorkroom/logic';
-import { exposureCalculatorSchema } from '@dorkroom/ui/forms';
+import { exposureCalculatorSchema, createZodFormValidator } from '@dorkroom/ui/forms';
 import { useTheme } from '../../contexts/theme-context';
 import { themes } from '../../lib/themes';
+
+const validateExposureForm = createZodFormValidator(exposureCalculatorSchema);
 
 const HOW_TO_USE = [
   {
@@ -96,7 +98,7 @@ export default function ExposureCalculatorPage() {
       stops: 1,
     },
     validators: {
-      onChange: exposureCalculatorSchema,
+      onChange: validateExposureForm,
     },
   });
 
