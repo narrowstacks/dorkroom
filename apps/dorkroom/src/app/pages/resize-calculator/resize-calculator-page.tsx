@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
+import { useForm } from '@tanstack/react-form';
 import {
   ToggleSwitch,
   WarningAlert,
@@ -11,7 +12,6 @@ import {
   useMeasurementConverter,
 } from '@dorkroom/ui';
 import {
-  useResizeCalculator,
   DEFAULT_ORIGINAL_WIDTH,
   DEFAULT_ORIGINAL_LENGTH,
   DEFAULT_NEW_WIDTH,
@@ -20,15 +20,16 @@ import {
   DEFAULT_ORIGINAL_HEIGHT,
   DEFAULT_NEW_HEIGHT,
 } from '@dorkroom/logic';
+import { resizeCalculatorSchema } from '../../../../../../packages/ui/src/forms/schemas/resize-calculator.schema';
 
 interface ModeToggleProps {
   isEnlargerHeightMode: boolean;
-  setIsEnlargerHeightMode: (value: boolean) => void;
+  onModeChange: (value: boolean) => void;
 }
 
 function ModeToggle({
   isEnlargerHeightMode,
-  setIsEnlargerHeightMode,
+  onModeChange,
 }: ModeToggleProps) {
   return (
     <div
@@ -80,7 +81,7 @@ function ModeToggle({
           <ToggleSwitch
             label=""
             value={isEnlargerHeightMode}
-            onValueChange={setIsEnlargerHeightMode}
+            onValueChange={onModeChange}
           />
           <span
             className="text-xs font-medium uppercase tracking-[0.3em]"
@@ -232,151 +233,96 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
   );
 }
 
-/**
- * Custom hook for managing a convertible dimension input field.
- * Handles local string state, unit conversion, validation, and sync with parent state.
- * Updates parent state on every change to enable live recomputation.
- *
- * @param inchesValue - Current value in inches
- * @param setInchesValue - Setter for the inches value
- * @param toDisplay - Function to convert inches to display units
- * @param toInches - Function to convert display units to inches
- * @returns Object with value, onChange, and onBlur handlers for the input
- */
-function useConvertibleDimensionInput(
-  inchesValue: string,
-  setInchesValue: (value: string) => void,
-  toDisplay: (inches: number) => number,
-  toInches: (value: number) => number
-) {
-  const [inputValue, setInputValue] = useState(
-    String(toDisplay(Number(inchesValue)))
-  );
-  const [isEditing, setIsEditing] = useState(false);
-
-  // Sync display value when parent inches value or unit changes (but not while editing)
-  useEffect(() => {
-    if (!isEditing) {
-      const displayValue = toDisplay(Number(inchesValue));
-      setInputValue(String(Math.round(displayValue * 1000) / 1000));
-    }
-  }, [inchesValue, toDisplay, isEditing]);
-
-  // Helper to validate and convert input to inches
-  const validateAndConvert = (value: string): string | null => {
-    // Allow empty, whitespace, or trailing decimal point
-    if (value === '' || /^\s*$/.test(value) || /^\d*\.$/.test(value)) {
-      return null;
-    }
-
-    const parsed = parseFloat(value);
-    if (Number.isFinite(parsed) && parsed >= 0) {
-      return String(toInches(parsed));
-    }
-
-    return null;
-  };
-
-  const handleChange = (value: string) => {
-    setIsEditing(true);
-    setInputValue(value);
-
-    // Push valid changes to parent state immediately for live recomputation
-    const inches = validateAndConvert(value);
-    if (inches !== null) {
-      setInchesValue(inches);
-    }
-  };
-
-  const handleBlur = () => {
-    setIsEditing(false);
-    const inches = validateAndConvert(inputValue);
-    if (inches !== null) {
-      setInchesValue(inches);
-      const displayValue = toDisplay(Number(inches));
-      setInputValue(String(Math.round(displayValue * 1000) / 1000));
-    } else {
-      // Reset to current value for empty/whitespace or clear invalid non-empty input
-      setInputValue(String(toDisplay(Number(inchesValue))));
-    }
-  };
-
-  return {
-    value: inputValue,
-    onChange: handleChange,
-    onBlur: handleBlur,
-  };
-}
-
 export default function ResizeCalculatorPage() {
   const { unit } = useMeasurement();
   const unitLabel = unit === 'imperial' ? 'in' : 'cm';
   const { toInches, toDisplay } = useMeasurementConverter();
 
-  const {
-    isEnlargerHeightMode,
-    setIsEnlargerHeightMode,
-    originalWidth,
-    setOriginalWidth: setOriginalWidthInches,
-    originalLength,
-    setOriginalLength: setOriginalLengthInches,
-    newWidth,
-    setNewWidth: setNewWidthInches,
-    newLength,
-    setNewLength: setNewLengthInches,
-    originalTime,
-    setOriginalTime,
-    newTime,
-    stopsDifference,
-    isAspectRatioMatched,
-    originalHeight,
-    setOriginalHeight: setOriginalHeightInches,
-    newHeight,
-    setNewHeight: setNewHeightInches,
-  } = useResizeCalculator();
+  const form = useForm({
+    defaultValues: {
+      isEnlargerHeightMode: false,
+      originalWidth: Number(DEFAULT_ORIGINAL_WIDTH),
+      originalLength: Number(DEFAULT_ORIGINAL_LENGTH),
+      newWidth: Number(DEFAULT_NEW_WIDTH),
+      newLength: Number(DEFAULT_NEW_LENGTH),
+      originalTime: Number(DEFAULT_ORIGINAL_TIME),
+      originalHeight: Number(DEFAULT_ORIGINAL_HEIGHT),
+      newHeight: Number(DEFAULT_NEW_HEIGHT),
+    },
+    validators: {
+      onChange: resizeCalculatorSchema,
+    },
+  });
 
-  // Use the reusable hook for each dimension input
-  const originalWidthInput = useConvertibleDimensionInput(
-    originalWidth,
-    setOriginalWidthInches,
-    toDisplay,
-    toInches
-  );
+  // Calculate aspect ratio match
+  const isAspectRatioMatched = useMemo(() => {
+    const isEnlargerMode = form.getFieldValue(
+      'isEnlargerHeightMode' as never
+    ) as boolean;
+    if (isEnlargerMode) return true;
 
-  const originalLengthInput = useConvertibleDimensionInput(
-    originalLength,
-    setOriginalLengthInches,
-    toDisplay,
-    toInches
-  );
+    const origWidth = form.getFieldValue('originalWidth' as never) as number;
+    const origLength = form.getFieldValue('originalLength' as never) as number;
+    const newW = form.getFieldValue('newWidth' as never) as number;
+    const newL = form.getFieldValue('newLength' as never) as number;
 
-  const newWidthInput = useConvertibleDimensionInput(
-    newWidth,
-    setNewWidthInches,
-    toDisplay,
-    toInches
-  );
+    if (origWidth <= 0 || origLength <= 0 || newW <= 0 || newL <= 0) {
+      return true;
+    }
 
-  const newLengthInput = useConvertibleDimensionInput(
-    newLength,
-    setNewLengthInches,
-    toDisplay,
-    toInches
-  );
+    const originalRatio = (origWidth / origLength).toFixed(3);
+    const newRatio = (newW / newL).toFixed(3);
+    return originalRatio === newRatio;
+  }, [form]);
 
-  const originalHeightInput = useConvertibleDimensionInput(
-    originalHeight,
-    setOriginalHeightInches,
-    toDisplay,
-    toInches
-  );
+  // Calculate exposure changes
+  const { newTime, stopsDifference } = useMemo(() => {
+    const isEnlargerMode = form.getFieldValue(
+      'isEnlargerHeightMode' as never
+    ) as boolean;
+    const origTime = form.getFieldValue('originalTime' as never) as number;
 
-  const newHeightInput = useConvertibleDimensionInput(
-    newHeight,
-    setNewHeightInches,
-    toDisplay,
-    toInches
-  );
+    let calculatedNewTime = '';
+    let calculatedStopsDifference = '';
+
+    if (isEnlargerMode) {
+      const origHeight = form.getFieldValue('originalHeight' as never) as number;
+      const newH = form.getFieldValue('newHeight' as never) as number;
+
+      if (origHeight > 0 && newH > 0 && origTime > 0) {
+        const ratio = Math.pow(newH, 2) / Math.pow(origHeight, 2);
+        const newTimeValue = origTime * ratio;
+        const stops = Math.log2(ratio);
+
+        calculatedNewTime = newTimeValue.toFixed(1);
+        calculatedStopsDifference = stops.toFixed(2);
+      }
+    } else {
+      const origWidth = form.getFieldValue('originalWidth' as never) as number;
+      const origLength = form.getFieldValue('originalLength' as never) as number;
+      const newW = form.getFieldValue('newWidth' as never) as number;
+      const newL = form.getFieldValue('newLength' as never) as number;
+
+      if (origWidth > 0 && origLength > 0 && newW > 0 && newL > 0 && origTime > 0) {
+        const originalArea = origWidth * origLength;
+        const newArea = newW * newL;
+
+        if (originalArea > 0) {
+          const ratio = newArea / originalArea;
+          const newTimeValue = origTime * ratio;
+          const stops = Math.log2(ratio);
+
+          calculatedNewTime = newTimeValue.toFixed(1);
+          calculatedStopsDifference = stops.toFixed(2);
+        }
+      }
+    }
+
+    return {
+      newTime: calculatedNewTime,
+      stopsDifference: calculatedStopsDifference,
+    };
+  }, [form]);
 
   const stopsNumber = parseFloat(stopsDifference);
   const stopsHelper = Number.isFinite(stopsNumber)
@@ -386,6 +332,10 @@ export default function ResizeCalculatorPage() {
       ? 'The new print is smaller, remove exposure.'
       : 'Same size print — keep your original exposure.'
     : undefined;
+
+  const isEnlargerHeightMode = form.getFieldValue(
+    'isEnlargerHeightMode' as never
+  ) as boolean;
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
@@ -401,10 +351,14 @@ export default function ResizeCalculatorPage() {
             title="Resize inputs"
             description="Provide either print dimensions or enlarger heights so we can work out the exposure change."
           >
-            <ModeToggle
-              isEnlargerHeightMode={isEnlargerHeightMode}
-              setIsEnlargerHeightMode={setIsEnlargerHeightMode}
-            />
+            <form.Field name="isEnlargerHeightMode">
+              {(field) => (
+                <ModeToggle
+                  isEnlargerHeightMode={field.state.value}
+                  onModeChange={(value) => field.handleChange(value)}
+                />
+              )}
+            </form.Field>
 
             {!isEnlargerHeightMode ? (
               <div className="space-y-6">
@@ -416,28 +370,46 @@ export default function ResizeCalculatorPage() {
                     Original print
                   </h3>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <CalculatorNumberField
-                      label="Width"
-                      value={originalWidthInput.value}
-                      onChange={originalWidthInput.onChange}
-                      onBlur={originalWidthInput.onBlur}
-                      placeholder={String(
-                        toDisplay(Number(DEFAULT_ORIGINAL_WIDTH))
+                    <form.Field name="originalWidth">
+                      {(field) => (
+                        <CalculatorNumberField
+                          label="Width"
+                          value={String(toDisplay(field.state.value))}
+                          onChange={(value) => {
+                            const parsed = parseFloat(value);
+                            if (Number.isFinite(parsed) && parsed >= 0) {
+                              field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                            }
+                          }}
+                          onBlur={field.handleBlur}
+                          placeholder={String(
+                            toDisplay(Number(DEFAULT_ORIGINAL_WIDTH))
+                          )}
+                          step={0.1}
+                          unit={unitLabel}
+                        />
                       )}
-                      step={0.1}
-                      unit={unitLabel}
-                    />
-                    <CalculatorNumberField
-                      label="Height"
-                      value={originalLengthInput.value}
-                      onChange={originalLengthInput.onChange}
-                      onBlur={originalLengthInput.onBlur}
-                      placeholder={String(
-                        toDisplay(Number(DEFAULT_ORIGINAL_LENGTH))
+                    </form.Field>
+                    <form.Field name="originalLength">
+                      {(field) => (
+                        <CalculatorNumberField
+                          label="Height"
+                          value={String(toDisplay(field.state.value))}
+                          onChange={(value) => {
+                            const parsed = parseFloat(value);
+                            if (Number.isFinite(parsed) && parsed >= 0) {
+                              field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                            }
+                          }}
+                          onBlur={field.handleBlur}
+                          placeholder={String(
+                            toDisplay(Number(DEFAULT_ORIGINAL_LENGTH))
+                          )}
+                          step={0.1}
+                          unit={unitLabel}
+                        />
                       )}
-                      step={0.1}
-                      unit={unitLabel}
-                    />
+                    </form.Field>
                   </div>
                 </div>
 
@@ -449,26 +421,44 @@ export default function ResizeCalculatorPage() {
                     Target print
                   </h3>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <CalculatorNumberField
-                      label="Width"
-                      value={newWidthInput.value}
-                      onChange={newWidthInput.onChange}
-                      onBlur={newWidthInput.onBlur}
-                      placeholder={String(toDisplay(Number(DEFAULT_NEW_WIDTH)))}
-                      step={0.1}
-                      unit={unitLabel}
-                    />
-                    <CalculatorNumberField
-                      label="Height"
-                      value={newLengthInput.value}
-                      onChange={newLengthInput.onChange}
-                      onBlur={newLengthInput.onBlur}
-                      placeholder={String(
-                        toDisplay(Number(DEFAULT_NEW_LENGTH))
+                    <form.Field name="newWidth">
+                      {(field) => (
+                        <CalculatorNumberField
+                          label="Width"
+                          value={String(toDisplay(field.state.value))}
+                          onChange={(value) => {
+                            const parsed = parseFloat(value);
+                            if (Number.isFinite(parsed) && parsed >= 0) {
+                              field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                            }
+                          }}
+                          onBlur={field.handleBlur}
+                          placeholder={String(toDisplay(Number(DEFAULT_NEW_WIDTH)))}
+                          step={0.1}
+                          unit={unitLabel}
+                        />
                       )}
-                      step={0.1}
-                      unit={unitLabel}
-                    />
+                    </form.Field>
+                    <form.Field name="newLength">
+                      {(field) => (
+                        <CalculatorNumberField
+                          label="Height"
+                          value={String(toDisplay(field.state.value))}
+                          onChange={(value) => {
+                            const parsed = parseFloat(value);
+                            if (Number.isFinite(parsed) && parsed >= 0) {
+                              field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                            }
+                          }}
+                          onBlur={field.handleBlur}
+                          placeholder={String(
+                            toDisplay(Number(DEFAULT_NEW_LENGTH))
+                          )}
+                          step={0.1}
+                          unit={unitLabel}
+                        />
+                      )}
+                    </form.Field>
                   </div>
                 </div>
               </div>
@@ -481,26 +471,44 @@ export default function ResizeCalculatorPage() {
                   Enlarger heights
                 </h3>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <CalculatorNumberField
-                    label="Original height"
-                    value={originalHeightInput.value}
-                    onChange={originalHeightInput.onChange}
-                    onBlur={originalHeightInput.onBlur}
-                    placeholder={String(
-                      toDisplay(Number(DEFAULT_ORIGINAL_HEIGHT))
+                  <form.Field name="originalHeight">
+                    {(field) => (
+                      <CalculatorNumberField
+                        label="Original height"
+                        value={String(toDisplay(field.state.value))}
+                        onChange={(value) => {
+                          const parsed = parseFloat(value);
+                          if (Number.isFinite(parsed) && parsed >= 0) {
+                            field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                          }
+                        }}
+                        onBlur={field.handleBlur}
+                        placeholder={String(
+                          toDisplay(Number(DEFAULT_ORIGINAL_HEIGHT))
+                        )}
+                        step={1}
+                        unit={unitLabel}
+                      />
                     )}
-                    step={1}
-                    unit={unitLabel}
-                  />
-                  <CalculatorNumberField
-                    label="New height"
-                    value={newHeightInput.value}
-                    onChange={newHeightInput.onChange}
-                    onBlur={newHeightInput.onBlur}
-                    placeholder={String(toDisplay(Number(DEFAULT_NEW_HEIGHT)))}
-                    step={1}
-                    unit={unitLabel}
-                  />
+                  </form.Field>
+                  <form.Field name="newHeight">
+                    {(field) => (
+                      <CalculatorNumberField
+                        label="New height"
+                        value={String(toDisplay(field.state.value))}
+                        onChange={(value) => {
+                          const parsed = parseFloat(value);
+                          if (Number.isFinite(parsed) && parsed >= 0) {
+                            field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
+                          }
+                        }}
+                        onBlur={field.handleBlur}
+                        placeholder={String(toDisplay(Number(DEFAULT_NEW_HEIGHT)))}
+                        step={1}
+                        unit={unitLabel}
+                      />
+                    )}
+                  </form.Field>
                 </div>
               </div>
             )}
@@ -519,15 +527,25 @@ export default function ResizeCalculatorPage() {
               >
                 Original exposure
               </h3>
-              <CalculatorNumberField
-                label="Time"
-                value={originalTime}
-                onChange={setOriginalTime}
-                placeholder={DEFAULT_ORIGINAL_TIME}
-                step={0.5}
-                unit="seconds"
-                helperText="This is the exposure that worked for your original print."
-              />
+              <form.Field name="originalTime">
+                {(field) => (
+                  <CalculatorNumberField
+                    label="Time"
+                    value={String(field.state.value)}
+                    onChange={(value) => {
+                      const parsed = parseFloat(value);
+                      if (Number.isFinite(parsed) && parsed >= 0) {
+                        field.handleChange(parsed);
+                      }
+                    }}
+                    onBlur={field.handleBlur}
+                    placeholder={DEFAULT_ORIGINAL_TIME}
+                    step={0.5}
+                    unit="seconds"
+                    helperText="This is the exposure that worked for your original print."
+                  />
+                )}
+              </form.Field>
             </div>
           </CalculatorCard>
 
