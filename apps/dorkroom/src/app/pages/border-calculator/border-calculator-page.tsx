@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useForm } from '@tanstack/react-form';
 import {
   RotateCw,
   RotateCcw,
@@ -22,6 +23,7 @@ import {
   useMeasurementFormatter,
   useMeasurementConverter,
 } from '@dorkroom/ui';
+import { borderCalculatorSchema } from '@dorkroom/ui/forms';
 import {
   AnimatedPreview,
   BorderInfoSection,
@@ -57,6 +59,7 @@ export default function BorderCalculatorPage() {
   const { formatWithUnit, formatDimensions, unit } = useMeasurementFormatter();
   const { toInches, toDisplay } = useMeasurementConverter();
 
+  // Get calculator state and setters from hook
   const {
     aspectRatio,
     setAspectRatio,
@@ -99,6 +102,68 @@ export default function BorderCalculatorPage() {
     resetToDefaults,
     applyPreset,
   } = useBorderCalculator();
+
+  // TanStack Form for input state management
+  const form = useForm({
+    defaultValues: {
+      aspectRatio,
+      customAspectWidth,
+      customAspectHeight,
+      paperSize,
+      customPaperWidth,
+      customPaperHeight,
+      minBorder,
+      enableOffset,
+      ignoreMinBorder,
+      horizontalOffset,
+      verticalOffset,
+      showBlades,
+      showBladeReadings,
+      isLandscape,
+      isRatioFlipped,
+    },
+    validators: {
+      onChange: borderCalculatorSchema,
+    },
+  });
+
+  // Update form defaults when hook state changes
+  useEffect(() => {
+    form.setValues({
+      aspectRatio,
+      customAspectWidth,
+      customAspectHeight,
+      paperSize,
+      customPaperWidth,
+      customPaperHeight,
+      minBorder,
+      enableOffset,
+      ignoreMinBorder,
+      horizontalOffset,
+      verticalOffset,
+      showBlades,
+      showBladeReadings,
+      isLandscape,
+      isRatioFlipped,
+    });
+  }, [
+    aspectRatio,
+    customAspectWidth,
+    customAspectHeight,
+    paperSize,
+    customPaperWidth,
+    customPaperHeight,
+    minBorder,
+    enableOffset,
+    ignoreMinBorder,
+    horizontalOffset,
+    verticalOffset,
+    showBlades,
+    showBladeReadings,
+    isLandscape,
+    isRatioFlipped,
+    form,
+  ]);
 
   const { presets, addPreset, updatePreset, removePreset } = useBorderPresets();
 
@@ -153,6 +218,7 @@ export default function BorderCalculatorPage() {
     const inches = validateAndConvert(value);
     if (inches !== null) {
       setCustomPaperWidth(inches);
+      form.setFieldValue('customPaperWidth', inches);
     }
   };
 
@@ -162,6 +228,7 @@ export default function BorderCalculatorPage() {
     const inches = validateAndConvert(paperWidthInput);
     if (inches !== null) {
       setCustomPaperWidth(inches);
+      form.setFieldValue('customPaperWidth', inches);
       // Format the display value to avoid floating point precision artifacts
       const displayValue = toDisplay(inches);
       setPaperWidthInput(String(Math.round(displayValue * 1000) / 1000));
@@ -183,6 +250,7 @@ export default function BorderCalculatorPage() {
     const inches = validateAndConvert(value);
     if (inches !== null) {
       setCustomPaperHeight(inches);
+      form.setFieldValue('customPaperHeight', inches);
     }
   };
 
@@ -192,6 +260,7 @@ export default function BorderCalculatorPage() {
     const inches = validateAndConvert(paperHeightInput);
     if (inches !== null) {
       setCustomPaperHeight(inches);
+      form.setFieldValue('customPaperHeight', inches);
       // Format the display value to avoid floating point precision artifacts
       const displayValue = toDisplay(inches);
       setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
@@ -498,22 +567,30 @@ export default function BorderCalculatorPage() {
                   <div className="relative">
                     <AnimatedPreview
                       calculation={calculation}
-                      showBlades={showBlades}
-                      showBladeReadings={showBladeReadings}
+                      showBlades={form.getFieldValue('showBlades')}
+                      showBladeReadings={form.getFieldValue('showBladeReadings')}
                       className="max-w-full"
                     />
                   </div>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <button
-                    onClick={() => setIsLandscape(!isLandscape)}
+                    onClick={() => {
+                      const newValue = !form.getFieldValue('isLandscape');
+                      form.setFieldValue('isLandscape', newValue);
+                      setIsLandscape(newValue);
+                    }}
                     className="flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
                   >
                     <RotateCw className="h-4 w-4" />
                     Flip Paper
                   </button>
                   <button
-                    onClick={() => setIsRatioFlipped(!isRatioFlipped)}
+                    onClick={() => {
+                      const newValue = !form.getFieldValue('isRatioFlipped');
+                      form.setFieldValue('isRatioFlipped', newValue);
+                      setIsRatioFlipped(newValue);
+                    }}
                     className="flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
                   >
                     <Square className="h-4 w-4" />
@@ -534,7 +611,7 @@ export default function BorderCalculatorPage() {
                   Reset to defaults
                 </button>
 
-                {!isLandscape && (
+                {!form.getFieldValue('isLandscape') && (
                   <div
                     className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
                     style={{
@@ -581,7 +658,7 @@ export default function BorderCalculatorPage() {
                   <CalculatorStat
                     label="Left blade"
                     value={formatWithUnit(
-                      !isLandscape
+                      !form.getFieldValue('isLandscape')
                         ? calculation.topBladeReading
                         : calculation.leftBladeReading
                     )}
@@ -590,7 +667,7 @@ export default function BorderCalculatorPage() {
                   <CalculatorStat
                     label="Right blade"
                     value={formatWithUnit(
-                      !isLandscape
+                      !form.getFieldValue('isLandscape')
                         ? calculation.bottomBladeReading
                         : calculation.rightBladeReading
                     )}
@@ -599,7 +676,7 @@ export default function BorderCalculatorPage() {
                   <CalculatorStat
                     label="Top blade"
                     value={formatWithUnit(
-                      !isLandscape
+                      !form.getFieldValue('isLandscape')
                         ? calculation.leftBladeReading
                         : calculation.topBladeReading
                     )}
@@ -608,7 +685,7 @@ export default function BorderCalculatorPage() {
                   <CalculatorStat
                     label="Bottom blade"
                     value={formatWithUnit(
-                      !isLandscape
+                      !form.getFieldValue('isLandscape')
                         ? calculation.rightBladeReading
                         : calculation.bottomBladeReading
                     )}
@@ -651,40 +728,66 @@ export default function BorderCalculatorPage() {
             description="Match the paper size and aspect ratio you're printing on."
           >
             <div className="space-y-5">
-              <Select
-                label="Aspect ratio"
-                selectedValue={aspectRatio}
-                onValueChange={setAspectRatio}
-                items={ASPECT_RATIOS as SelectItem[]}
-                placeholder="Select"
-              />
+              <form.Field name="aspectRatio">
+                {(field) => (
+                  <Select
+                    label="Aspect ratio"
+                    selectedValue={field.state.value}
+                    onValueChange={(value) => {
+                      field.handleChange(value);
+                      setAspectRatio(value);
+                    }}
+                    items={ASPECT_RATIOS as SelectItem[]}
+                    placeholder="Select"
+                  />
+                )}
+              </form.Field>
 
-              {aspectRatio === 'custom' && (
-                <DimensionInputGroup
-                  widthValue={String(customAspectWidth)}
-                  onWidthChange={(value) =>
-                    setCustomAspectWidth(Number(value) || 0)
-                  }
-                  heightValue={String(customAspectHeight)}
-                  onHeightChange={(value) =>
-                    setCustomAspectHeight(Number(value) || 0)
-                  }
-                  widthLabel="Width"
-                  heightLabel="Height"
-                  widthPlaceholder="Width"
-                  heightPlaceholder="Height"
-                />
+              {form.getFieldValue('aspectRatio') === 'custom' && (
+                <form.Field name="customAspectWidth">
+                  {(widthField) => (
+                    <form.Field name="customAspectHeight">
+                      {(heightField) => (
+                        <DimensionInputGroup
+                          widthValue={String(widthField.state.value)}
+                          onWidthChange={(value) => {
+                            const numValue = Number(value) || 0;
+                            widthField.handleChange(numValue);
+                            setCustomAspectWidth(numValue);
+                          }}
+                          heightValue={String(heightField.state.value)}
+                          onHeightChange={(value) => {
+                            const numValue = Number(value) || 0;
+                            heightField.handleChange(numValue);
+                            setCustomAspectHeight(numValue);
+                          }}
+                          widthLabel="Width"
+                          heightLabel="Height"
+                          widthPlaceholder="Width"
+                          heightPlaceholder="Height"
+                        />
+                      )}
+                    </form.Field>
+                  )}
+                </form.Field>
               )}
 
-              <Select
-                label="Paper size"
-                selectedValue={paperSize}
-                onValueChange={setPaperSize}
-                items={displayPaperSizes as SelectItem[]}
-                placeholder="Select"
-              />
+              <form.Field name="paperSize">
+                {(field) => (
+                  <Select
+                    label="Paper size"
+                    selectedValue={field.state.value}
+                    onValueChange={(value) => {
+                      field.handleChange(value);
+                      setPaperSize(value);
+                    }}
+                    items={displayPaperSizes as SelectItem[]}
+                    placeholder="Select"
+                  />
+                )}
+              </form.Field>
 
-              {paperSize === 'custom' && (
+              {form.getFieldValue('paperSize') === 'custom' && (
                 <DimensionInputGroup
                   widthValue={paperWidthInput}
                   onWidthChange={handlePaperWidthChange}
@@ -706,25 +809,42 @@ export default function BorderCalculatorPage() {
             description="Control the border thickness and fine-tune print placement."
           >
             <div className="space-y-5">
-              <LabeledSliderInput
-                label="Minimum border (inches)"
-                value={minBorder}
-                onChange={setMinBorder}
-                onSliderChange={setMinBorderSlider}
-                min={SLIDER_MIN_BORDER}
-                max={SLIDER_MAX_BORDER}
-                step={SLIDER_STEP_BORDER}
-                labels={BORDER_SLIDER_LABELS}
-                continuousUpdate
-              />
+              <form.Field name="minBorder">
+                {(field) => (
+                  <LabeledSliderInput
+                    label="Minimum border (inches)"
+                    value={field.state.value}
+                    onChange={(value) => {
+                      field.handleChange(value);
+                      setMinBorder(value);
+                    }}
+                    onSliderChange={(value) => {
+                      field.handleChange(value);
+                      setMinBorderSlider(value);
+                    }}
+                    min={SLIDER_MIN_BORDER}
+                    max={SLIDER_MAX_BORDER}
+                    step={SLIDER_STEP_BORDER}
+                    labels={BORDER_SLIDER_LABELS}
+                    continuousUpdate
+                  />
+                )}
+              </form.Field>
 
-              <ToggleSwitch
-                label="Enable offsets"
-                value={enableOffset}
-                onValueChange={setEnableOffset}
-              />
+              <form.Field name="enableOffset">
+                {(field) => (
+                  <ToggleSwitch
+                    label="Enable offsets"
+                    value={field.state.value}
+                    onValueChange={(value) => {
+                      field.handleChange(value);
+                      setEnableOffset(value);
+                    }}
+                  />
+                )}
+              </form.Field>
 
-              {enableOffset && (
+              {form.getFieldValue('enableOffset') && (
                 <div
                   className="space-y-4 rounded-2xl p-4 border"
                   style={{
@@ -732,43 +852,72 @@ export default function BorderCalculatorPage() {
                     backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
                   }}
                 >
-                  <ToggleSwitch
-                    label="Ignore min border"
-                    value={ignoreMinBorder}
-                    onValueChange={setIgnoreMinBorder}
-                  />
-                  {ignoreMinBorder && (
-                    <p className="text-sm text-[color:var(--color-text-secondary)]">
-                      Print can be positioned freely but will stay within the
-                      paper edges.
-                    </p>
-                  )}
+                  <form.Field name="ignoreMinBorder">
+                    {(field) => (
+                      <>
+                        <ToggleSwitch
+                          label="Ignore min border"
+                          value={field.state.value}
+                          onValueChange={(value) => {
+                            field.handleChange(value);
+                            setIgnoreMinBorder(value);
+                          }}
+                        />
+                        {field.state.value && (
+                          <p className="text-sm text-[color:var(--color-text-secondary)]">
+                            Print can be positioned freely but will stay within the
+                            paper edges.
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </form.Field>
 
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <LabeledSliderInput
-                      label="Horizontal offset"
-                      value={horizontalOffset}
-                      onChange={setHorizontalOffset}
-                      onSliderChange={setHorizontalOffsetSlider}
-                      min={OFFSET_SLIDER_MIN}
-                      max={OFFSET_SLIDER_MAX}
-                      step={OFFSET_SLIDER_STEP}
-                      labels={OFFSET_SLIDER_LABELS}
-                      warning={!!offsetWarning}
-                      continuousUpdate
-                    />
-                    <LabeledSliderInput
-                      label="Vertical offset"
-                      value={verticalOffset}
-                      onChange={setVerticalOffset}
-                      onSliderChange={setVerticalOffsetSlider}
-                      min={OFFSET_SLIDER_MIN}
-                      max={OFFSET_SLIDER_MAX}
-                      step={OFFSET_SLIDER_STEP}
-                      labels={OFFSET_SLIDER_LABELS}
-                      warning={!!offsetWarning}
-                      continuousUpdate
-                    />
+                    <form.Field name="horizontalOffset">
+                      {(field) => (
+                        <LabeledSliderInput
+                          label="Horizontal offset"
+                          value={field.state.value}
+                          onChange={(value) => {
+                            field.handleChange(value);
+                            setHorizontalOffset(value);
+                          }}
+                          onSliderChange={(value) => {
+                            field.handleChange(value);
+                            setHorizontalOffsetSlider(value);
+                          }}
+                          min={OFFSET_SLIDER_MIN}
+                          max={OFFSET_SLIDER_MAX}
+                          step={OFFSET_SLIDER_STEP}
+                          labels={OFFSET_SLIDER_LABELS}
+                          warning={!!offsetWarning}
+                          continuousUpdate
+                        />
+                      )}
+                    </form.Field>
+                    <form.Field name="verticalOffset">
+                      {(field) => (
+                        <LabeledSliderInput
+                          label="Vertical offset"
+                          value={field.state.value}
+                          onChange={(value) => {
+                            field.handleChange(value);
+                            setVerticalOffset(value);
+                          }}
+                          onSliderChange={(value) => {
+                            field.handleChange(value);
+                            setVerticalOffsetSlider(value);
+                          }}
+                          min={OFFSET_SLIDER_MIN}
+                          max={OFFSET_SLIDER_MAX}
+                          step={OFFSET_SLIDER_STEP}
+                          labels={OFFSET_SLIDER_LABELS}
+                          warning={!!offsetWarning}
+                          continuousUpdate
+                        />
+                      )}
+                    </form.Field>
                   </div>
 
                   {offsetWarning && (
@@ -783,16 +932,30 @@ export default function BorderCalculatorPage() {
             description="Control the display of easel blades and measurements on the preview."
           >
             <div className="grid gap-4 sm:grid-cols-2">
-              <ToggleSwitch
-                label="Show easel blades"
-                value={showBlades}
-                onValueChange={setShowBlades}
-              />
-              <ToggleSwitch
-                label="Show blade readings"
-                value={showBladeReadings}
-                onValueChange={setShowBladeReadings}
-              />
+              <form.Field name="showBlades">
+                {(field) => (
+                  <ToggleSwitch
+                    label="Show easel blades"
+                    value={field.state.value}
+                    onValueChange={(value) => {
+                      field.handleChange(value);
+                      setShowBlades(value);
+                    }}
+                  />
+                )}
+              </form.Field>
+              <form.Field name="showBladeReadings">
+                {(field) => (
+                  <ToggleSwitch
+                    label="Show blade readings"
+                    value={field.state.value}
+                    onValueChange={(value) => {
+                      field.handleChange(value);
+                      setShowBladeReadings(value);
+                    }}
+                  />
+                )}
+              </form.Field>
             </div>
           </CalculatorCard>
           <CalculatorCard
