@@ -21,7 +21,10 @@ import {
   type SelectItem,
   type ReciprocityFormState,
 } from '@dorkroom/logic';
-import { reciprocityCalculatorSchema, createZodFormValidator } from '@dorkroom/ui/forms';
+import {
+  reciprocityCalculatorSchema,
+  createZodFormValidator,
+} from '@dorkroom/ui/forms';
 import { ChartLine, Maximize2, Minimize2 } from 'lucide-react';
 
 const validateReciprocityForm = createZodFormValidator(
@@ -80,11 +83,7 @@ const RECIPROCITY_INSIGHTS = [
  */
 export default function ReciprocityCalculatorPage() {
   // Keep calculation logic from hook but manage form state with TanStack Form
-  const {
-    calculation: hookCalculation,
-    formatTime,
-    filmTypes,
-  } = useReciprocityCalculator();
+  const { formatTime, filmTypes } = useReciprocityCalculator();
 
   const [showChart, setShowChart] = useState(false);
   const [isWideChart, setIsWideChart] = useState(false);
@@ -155,24 +154,22 @@ export default function ReciprocityCalculatorPage() {
   }, [persistableSnapshot]);
 
   // Calculate derived values from form state
-  const { parsedSeconds, formattedTime, timeFormatError, parsedDisplay } = (() => {
-    const meteredTime = form.getFieldValue('meteredTime');
-    const parsedSeconds = parseReciprocityTime(meteredTime);
-    const formattedTime =
-      parsedSeconds !== null ? formatReciprocityTime(parsedSeconds) : null;
-    const timeFormatError = parsedSeconds === null ? 'Invalid time format' : null;
-    const parsedDisplay =
-      formattedTime && formattedTime !== meteredTime
-        ? `Parsed as: ${formattedTime}`
-        : null;
+  const { parsedSeconds, parsedDisplay } =
+    (() => {
+      const meteredTime = form.getFieldValue('meteredTime');
+      const parsedSeconds = parseReciprocityTime(meteredTime);
+      const formattedTime =
+        parsedSeconds !== null ? formatReciprocityTime(parsedSeconds) : null;
+      const parsedDisplay =
+        formattedTime && formattedTime !== meteredTime
+          ? `Parsed as: ${formattedTime}`
+          : null;
 
-    return {
-      parsedSeconds,
-      formattedTime,
-      timeFormatError,
-      parsedDisplay,
-    };
-  })();
+      return {
+        parsedSeconds,
+        parsedDisplay,
+      };
+    })();
 
   const filmOptions = useMemo<SelectItem[]>(
     () => filmTypes.map(({ label, value }) => ({ label, value })),
@@ -212,7 +209,9 @@ export default function ReciprocityCalculatorPage() {
                   <CalculatorNumberField
                     label="Reciprocity factor"
                     value={field.state.value}
-                    onChange={(value: string) => field.handleChange(parseFloat(value))}
+                    onChange={(value: string) =>
+                      field.handleChange(parseFloat(value))
+                    }
                     placeholder="1.3"
                     step={0.1}
                     helperText="Higher factors demand more compensation at longer exposures."
@@ -274,13 +273,20 @@ export default function ReciprocityCalculatorPage() {
               const customFactor = state.values.customFactor;
 
               const parsedSeconds = parseReciprocityTime(meteredTime);
-              if (!parsedSeconds) return null;
+              if (parsedSeconds === null) return null;
 
-              const selectedFilm = filmTypes.find((f: SelectItem) => f.value === filmType);
-              const factor = filmType === 'custom' ? customFactor : (selectedFilm?.factor ?? 1.3);
+              const selectedFilm = filmTypes.find(
+                (f: SelectItem) => f.value === filmType
+              );
+              const factor =
+                filmType === 'custom'
+                  ? customFactor
+                  : selectedFilm?.factor ?? 1.3;
 
-              const adjustedTime = parsedSeconds * Math.pow(parsedSeconds, Math.log(factor) / Math.log(2));
-              const percentageIncrease = ((adjustedTime - parsedSeconds) / parsedSeconds) * 100;
+              const adjustedTime =
+                Math.pow(parsedSeconds, factor);
+              const percentageIncrease =
+                ((adjustedTime - parsedSeconds) / parsedSeconds) * 100;
 
               return {
                 originalTime: parsedSeconds,
@@ -293,121 +299,129 @@ export default function ReciprocityCalculatorPage() {
             children={(calculation) =>
               calculation ? (
                 <CalculatorCard
-              title="Reciprocity results"
-              description="Apply this corrected exposure to balance reciprocity failure on your next frame."
-              accent="emerald"
-              padding="compact"
-              actions={
-                <button
-                  type="button"
-                  onClick={() => setShowChart(!showChart)}
-                  className="flex items-center gap-2 rounded-full px-3 py-2 transition-colors hover:bg-white/10"
-                  aria-label={showChart ? 'Hide chart' : 'Show chart'}
-                  title={showChart ? 'Hide chart' : 'Show chart'}
-                >
-                  <ChartLine
-                    className="h-5 w-5"
-                    style={{
-                      color: showChart
-                        ? 'var(--color-primary)'
-                        : 'var(--color-text-secondary)',
-                    }}
-                  />
-                  <span
-                    className="text-sm font-medium"
-                    style={{
-                      color: showChart
-                        ? 'var(--color-primary)'
-                        : 'var(--color-text-secondary)',
-                    }}
-                  >
-                    {showChart ? 'Hide chart' : 'View chart'}
-                  </span>
-                </button>
-              }
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <CalculatorStat
-                  label="Adjusted exposure"
-                  value={formatTime(calculation.adjustedTime)}
-                  helperText={`Recommended for ${calculation.filmName}`}
-                  tone="emerald"
-                />
-                <CalculatorStat
-                  label="Added exposure"
-                  value={formatTime(Math.max(calculation.adjustedTime - calculation.originalTime, 0))}
-                  helperText={`${Math.round(calculation.percentageIncrease)}% more time needed`}
-                />
-              </div>
-
-              <div
-                className="rounded-2xl p-4 font-mono text-sm"
-                style={{
-                  borderWidth: 1,
-                  borderColor: 'var(--color-border-secondary)',
-                  backgroundColor: 'rgba(var(--color-background-rgb), 0.18)',
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                {`${formatReciprocityTime(calculation.originalTime)} `}
-                <span
-                  className="align-super text-xs font-semibold"
-                  style={{
-                    color: 'var(--color-primary)',
-                  }}
-                >
-                  {calculation.factor.toFixed(2)}
-                </span>
-                <span>{' = '}</span>
-                <span className="font-semibold text-[color:var(--color-text-primary)]">
-                  {formatTime(calculation.adjustedTime)}
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                <ResultRow
-                  label="Film selection"
-                  value={calculation.filmName || 'Custom profile'}
-                />
-                <ResultRow
-                  label="Original time"
-                  value={formatReciprocityTime(calculation.originalTime)}
-                />
-                <ResultRow
-                  label="Adjustment factor"
-                  value={calculation.factor.toFixed(2)}
-                />
-              </div>
-
-              {showChart && !isWideChart && (
-                <div className="mt-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                      {`Reciprocity curve for ${calculation.filmName}`}
-                    </h3>
+                  title="Reciprocity results"
+                  description="Apply this corrected exposure to balance reciprocity failure on your next frame."
+                  accent="emerald"
+                  padding="compact"
+                  actions={
                     <button
                       type="button"
-                      onClick={() => setIsWideChart(true)}
-                      className="rounded-full p-2 transition-colors hover:bg-white/10"
-                      aria-label="Expand chart"
-                      title="Expand chart to full width"
+                      onClick={() => setShowChart(!showChart)}
+                      className="flex items-center gap-2 rounded-full px-3 py-2 transition-colors hover:bg-white/10"
+                      aria-label={showChart ? 'Hide chart' : 'Show chart'}
+                      title={showChart ? 'Hide chart' : 'Show chart'}
                     >
-                      <Maximize2
-                        className="h-4 w-4"
+                      <ChartLine
+                        className="h-5 w-5"
                         style={{
-                          color: 'var(--color-text-secondary)',
+                          color: showChart
+                            ? 'var(--color-primary)'
+                            : 'var(--color-text-secondary)',
                         }}
                       />
+                      <span
+                        className="text-sm font-medium"
+                        style={{
+                          color: showChart
+                            ? 'var(--color-primary)'
+                            : 'var(--color-text-secondary)',
+                        }}
+                      >
+                        {showChart ? 'Hide chart' : 'View chart'}
+                      </span>
                     </button>
+                  }
+                >
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <CalculatorStat
+                      label="Adjusted exposure"
+                      value={formatTime(calculation.adjustedTime)}
+                      helperText={`Recommended for ${calculation.filmName}`}
+                      tone="emerald"
+                    />
+                    <CalculatorStat
+                      label="Added exposure"
+                      value={formatTime(
+                        Math.max(
+                          calculation.adjustedTime - calculation.originalTime,
+                          0
+                        )
+                      )}
+                      helperText={`${Math.round(
+                        calculation.percentageIncrease
+                      )}% more time needed`}
+                    />
                   </div>
-                  <ReciprocityChart
-                    originalTime={calculation.originalTime}
-                    adjustedTime={calculation.adjustedTime}
-                    factor={calculation.factor}
-                    filmName={calculation.filmName}
-                  />
-                </div>
-              )}
+
+                  <div
+                    className="rounded-2xl p-4 font-mono text-sm"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: 'var(--color-border-secondary)',
+                      backgroundColor:
+                        'rgba(var(--color-background-rgb), 0.18)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
+                    {`${formatReciprocityTime(calculation.originalTime)} `}
+                    <span
+                      className="align-super text-xs font-semibold"
+                      style={{
+                        color: 'var(--color-primary)',
+                      }}
+                    >
+                      {calculation.factor.toFixed(2)}
+                    </span>
+                    <span>{' = '}</span>
+                    <span className="font-semibold text-[color:var(--color-text-primary)]">
+                      {formatTime(calculation.adjustedTime)}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <ResultRow
+                      label="Film selection"
+                      value={calculation.filmName || 'Custom profile'}
+                    />
+                    <ResultRow
+                      label="Original time"
+                      value={formatReciprocityTime(calculation.originalTime)}
+                    />
+                    <ResultRow
+                      label="Adjustment factor"
+                      value={calculation.factor.toFixed(2)}
+                    />
+                  </div>
+
+                  {showChart && !isWideChart && (
+                    <div className="mt-6">
+                      <div className="mb-4 flex items-center justify-between">
+                        <h3 className="text-sm font-medium text-[color:var(--color-text-primary)]">
+                          {`Reciprocity curve for ${calculation.filmName}`}
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => setIsWideChart(true)}
+                          className="rounded-full p-2 transition-colors hover:bg-white/10"
+                          aria-label="Expand chart"
+                          title="Expand chart to full width"
+                        >
+                          <Maximize2
+                            className="h-4 w-4"
+                            style={{
+                              color: 'var(--color-text-secondary)',
+                            }}
+                          />
+                        </button>
+                      </div>
+                      <ReciprocityChart
+                        originalTime={calculation.originalTime}
+                        adjustedTime={calculation.adjustedTime}
+                        factor={calculation.factor}
+                        filmName={calculation.filmName}
+                      />
+                    </div>
+                  )}
                 </CalculatorCard>
               ) : null
             }
@@ -481,13 +495,20 @@ export default function ReciprocityCalculatorPage() {
             const customFactor = state.values.customFactor;
 
             const parsedSeconds = parseReciprocityTime(meteredTime);
-            if (!parsedSeconds) return null;
+            if (parsedSeconds === null) return null;
 
-            const selectedFilm = filmTypes.find((f: SelectItem) => f.value === filmType);
-            const factor = filmType === 'custom' ? customFactor : (selectedFilm?.factor ?? 1.3);
+            const selectedFilm = filmTypes.find(
+              (f: SelectItem) => f.value === filmType
+            );
+            const factor =
+              filmType === 'custom'
+                ? customFactor
+                : selectedFilm?.factor ?? 1.3;
 
-            const adjustedTime = parsedSeconds * Math.pow(parsedSeconds, Math.log(factor) / Math.log(2));
-            const percentageIncrease = ((adjustedTime - parsedSeconds) / parsedSeconds) * 100;
+            const adjustedTime =
+              Math.pow(parsedSeconds, factor);
+            const percentageIncrease =
+              ((adjustedTime - parsedSeconds) / parsedSeconds) * 100;
 
             return {
               originalTime: parsedSeconds,
