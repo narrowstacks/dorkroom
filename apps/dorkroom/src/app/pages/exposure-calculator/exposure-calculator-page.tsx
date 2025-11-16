@@ -1,4 +1,6 @@
 import { useForm } from '@tanstack/react-form';
+import { useStore } from '@tanstack/react-store';
+import { useEffect, useRef, useMemo } from 'react';
 import {
   CalculatorCard,
   CalculatorPageHeader,
@@ -8,7 +10,9 @@ import {
 } from '@dorkroom/ui';
 import {
   EXPOSURE_PRESETS,
+  EXPOSURE_STORAGE_KEY,
   type ExposurePreset,
+  type ExposureFormState,
   roundStopsToThirds,
   roundToStandardPrecision,
   calculateNewExposureTime,
@@ -91,6 +95,7 @@ function StopButton({ preset, onPress, theme }: StopButtonProps) {
 export default function ExposureCalculatorPage() {
   const theme = useTheme();
   const currentTheme = themes[theme.resolvedTheme];
+  const hydrationRef = useRef(false);
 
   const form = useForm({
     defaultValues: {
@@ -101,6 +106,57 @@ export default function ExposureCalculatorPage() {
       onChange: validateExposureForm,
     },
   });
+
+  // Subscribe to form values
+  const formValues = useStore(
+    form.store,
+    (state) => state.values as ExposureFormState
+  );
+
+  // Create a memoized snapshot of persistable state
+  const persistableSnapshot = useMemo(
+    () => ({
+      originalTime: formValues.originalTime,
+      stops: formValues.stops,
+    }),
+    [formValues.originalTime, formValues.stops]
+  );
+
+  // Hydrate from persisted state on mount (runs exactly once)
+  useEffect(() => {
+    if (hydrationRef.current || typeof window === 'undefined') return;
+    hydrationRef.current = true;
+
+    try {
+      const raw = window.localStorage.getItem(EXPOSURE_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<ExposureFormState>;
+      Object.entries(parsed).forEach(([key, value]: [string, unknown]) => {
+        if (value === undefined) return;
+        form.setFieldValue(
+          key as keyof ExposureFormState,
+          value as ExposureFormState[keyof ExposureFormState]
+        );
+      });
+    } catch (error) {
+      console.warn('Failed to load calculator state', error);
+    }
+  }, [form]);
+
+  // Persist form state to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem(
+        EXPOSURE_STORAGE_KEY,
+        JSON.stringify(persistableSnapshot)
+      );
+    } catch (error) {
+      console.warn('Failed to save calculator state', error);
+    }
+  }, [persistableSnapshot]);
 
   const handleAdjustStops = (increment: number) => {
     const currentStops = form.getFieldValue('stops');
@@ -128,7 +184,7 @@ export default function ExposureCalculatorPage() {
                 <CalculatorNumberField
                   label="Original exposure time (seconds)"
                   value={field.state.value}
-                  onChange={(value) => field.handleChange(parseFloat(value))}
+                  onChange={(value: string) => field.handleChange(parseFloat(value))}
                   placeholder="10"
                   step={0.1}
                   helperText="Base exposure time you want to adjust"
@@ -163,7 +219,7 @@ export default function ExposureCalculatorPage() {
                         <input
                           type="number"
                           value={field.state.value}
-                          onChange={(e) =>
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                             field.handleChange(parseFloat(e.target.value))
                           }
                           placeholder="1"

@@ -1,5 +1,6 @@
 import { useForm } from '@tanstack/react-form';
-import { useMemo, useState } from 'react';
+import { useStore } from '@tanstack/react-store';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import {
   CalculatorCard,
   CalculatorPageHeader,
@@ -16,7 +17,9 @@ import {
   parseReciprocityTime,
   RECIPROCITY_FILM_TYPES,
   RECIPROCITY_EXPOSURE_PRESETS,
+  RECIPROCITY_STORAGE_KEY,
   type SelectItem,
+  type ReciprocityFormState,
 } from '@dorkroom/logic';
 import { reciprocityCalculatorSchema, createZodFormValidator } from '@dorkroom/ui/forms';
 import { ChartLine, Maximize2, Minimize2 } from 'lucide-react';
@@ -85,6 +88,7 @@ export default function ReciprocityCalculatorPage() {
 
   const [showChart, setShowChart] = useState(false);
   const [isWideChart, setIsWideChart] = useState(false);
+  const hydrationRef = useRef(false);
 
   // TanStack Form for input state
   const form = useForm({
@@ -97,6 +101,58 @@ export default function ReciprocityCalculatorPage() {
       onChange: validateReciprocityForm,
     },
   });
+
+  // Subscribe to form values
+  const formValues = useStore(
+    form.store,
+    (state) => state.values as ReciprocityFormState
+  );
+
+  // Create a memoized snapshot of persistable state
+  const persistableSnapshot = useMemo(
+    () => ({
+      filmType: formValues.filmType,
+      meteredTime: formValues.meteredTime,
+      customFactor: formValues.customFactor,
+    }),
+    [formValues.filmType, formValues.meteredTime, formValues.customFactor]
+  );
+
+  // Hydrate from persisted state on mount (runs exactly once)
+  useEffect(() => {
+    if (hydrationRef.current || typeof window === 'undefined') return;
+    hydrationRef.current = true;
+
+    try {
+      const raw = window.localStorage.getItem(RECIPROCITY_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<ReciprocityFormState>;
+      Object.entries(parsed).forEach(([key, value]: [string, unknown]) => {
+        if (value === undefined) return;
+        form.setFieldValue(
+          key as keyof ReciprocityFormState,
+          value as ReciprocityFormState[keyof ReciprocityFormState]
+        );
+      });
+    } catch (error) {
+      console.warn('Failed to load calculator state', error);
+    }
+  }, [form]);
+
+  // Persist form state to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem(
+        RECIPROCITY_STORAGE_KEY,
+        JSON.stringify(persistableSnapshot)
+      );
+    } catch (error) {
+      console.warn('Failed to save calculator state', error);
+    }
+  }, [persistableSnapshot]);
 
   // Calculate derived values from form state
   const { parsedSeconds, formattedTime, timeFormatError, parsedDisplay } = (() => {
@@ -144,7 +200,7 @@ export default function ReciprocityCalculatorPage() {
                 <Select
                   label="Film stock"
                   selectedValue={field.state.value}
-                  onValueChange={(value) => field.handleChange(value)}
+                  onValueChange={(value: string) => field.handleChange(value)}
                   items={filmOptions}
                 />
               )}
@@ -156,7 +212,7 @@ export default function ReciprocityCalculatorPage() {
                   <CalculatorNumberField
                     label="Reciprocity factor"
                     value={field.state.value}
-                    onChange={(value) => field.handleChange(parseFloat(value))}
+                    onChange={(value: string) => field.handleChange(parseFloat(value))}
                     placeholder="1.3"
                     step={0.1}
                     helperText="Higher factors demand more compensation at longer exposures."
@@ -173,7 +229,7 @@ export default function ReciprocityCalculatorPage() {
                   </div>
                   <TextInput
                     value={field.state.value}
-                    onValueChange={(value) => field.handleChange(value)}
+                    onValueChange={(value: string) => field.handleChange(value)}
                     placeholder="Try 30s, 1m30s, or 2h"
                   />
                   <div className="flex flex-wrap gap-2">

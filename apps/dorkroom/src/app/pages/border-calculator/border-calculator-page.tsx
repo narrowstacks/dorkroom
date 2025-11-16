@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import {
@@ -67,12 +67,41 @@ export default function BorderCalculatorPage() {
   const { formatWithUnit, formatDimensions, unit } = useMeasurementFormatter();
   const { toInches, toDisplay } = useMeasurementConverter();
 
+  const hydrationRef = useRef(false);
+
   const form = useForm<BorderCalculatorState>({
     defaultValues: borderCalculatorInitialState,
     validators: {
       onChange: validateBorderCalculator,
     },
   });
+
+  // Hydrate from persisted state on mount (runs exactly once)
+  useEffect(() => {
+    if (hydrationRef.current || typeof window === 'undefined') return;
+    hydrationRef.current = true;
+
+    try {
+      const raw = window.localStorage.getItem(CALC_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<BorderCalculatorState>;
+      Object.entries(parsed).forEach(([key, value]: [string, unknown]) => {
+        if (value === undefined) return;
+        form.setFieldValue(
+          key as keyof BorderCalculatorState,
+          value as BorderCalculatorState[keyof BorderCalculatorState]
+        );
+      });
+
+      // Recalculate orientation for custom paper after loading from storage
+      if (parsed.paperSize === 'custom' && parsed.customPaperWidth !== undefined && parsed.customPaperHeight !== undefined) {
+        form.setFieldValue('isLandscape', parsed.customPaperWidth < parsed.customPaperHeight);
+      }
+    } catch (error) {
+      console.warn('Failed to load calculator state', error);
+    }
+  }, [form]);
 
   const formValues = useStore(
     form.store,
@@ -113,32 +142,6 @@ export default function BorderCalculatorPage() {
   );
   const [isEditingPaperWidth, setIsEditingPaperWidth] = useState(false);
   const [isEditingPaperHeight, setIsEditingPaperHeight] = useState(false);
-
-  // Hydrate from persisted state on mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      const raw = window.localStorage.getItem(CALC_STORAGE_KEY);
-      if (!raw) return;
-
-      const parsed = JSON.parse(raw) as Partial<BorderCalculatorState>;
-      Object.entries(parsed).forEach(([key, value]) => {
-        if (value === undefined) return;
-        form.setFieldValue(
-          key as keyof BorderCalculatorState,
-          value as BorderCalculatorState[keyof BorderCalculatorState]
-        );
-      });
-
-      // Recalculate orientation for custom paper after loading from storage
-      if (parsed.paperSize === 'custom' && parsed.customPaperWidth !== undefined && parsed.customPaperHeight !== undefined) {
-        form.setFieldValue('isLandscape', parsed.customPaperWidth < parsed.customPaperHeight);
-      }
-    } catch (error) {
-      console.warn('Failed to load calculator state', error);
-    }
-  }, [form]);
 
   const persistableSnapshot = useMemo(
     () => ({
@@ -372,7 +375,7 @@ export default function BorderCalculatorPage() {
 
   // Transform paper sizes to show metric with imperial reference when in metric mode
   const displayPaperSizes = useMemo(() => {
-    return PAPER_SIZES.map((size) => {
+    return PAPER_SIZES.map((size: SelectItem) => {
       if (size.value === 'custom') {
         return size; // Keep "Custom Paper Size" as is
       }
@@ -451,7 +454,7 @@ export default function BorderCalculatorPage() {
     canCopyToClipboard,
     isSharing,
   } = usePresetSharing({
-    onShareSuccess: (result) => {
+    onShareSuccess: (result: { method: 'clipboard' | 'native' }) => {
       if (result.method === 'clipboard') {
         // Show success toast for clipboard copy
         console.log('Preset link copied to clipboard!');
@@ -459,28 +462,28 @@ export default function BorderCalculatorPage() {
         setIsShareModalOpen(false);
       }
     },
-    onShareError: (error) => {
+    onShareError: (error: Error) => {
       console.error('Sharing failed:', error);
     },
   });
 
   // URL preset loader
   const { loadedPreset, clearLoadedPreset } = useUrlPresetLoader({
-    onPresetLoaded: (preset) => {
+    onPresetLoaded: (preset: { name: string; settings: BorderPresetSettings }) => {
       applyPresetSettings(preset.settings);
       setPresetName(preset.name);
       console.log(`Preset "${preset.name}" loaded from URL!`);
     },
-    onLoadError: (error) => {
+    onLoadError: (error: Error) => {
       console.error('Failed to load preset from URL:', error);
     },
   });
 
   const presetItems = useMemo(
     () => [
-      ...presets.map((p) => ({ label: p.name, value: p.id })),
+      ...presets.map((p: { name: string; id: string }) => ({ label: p.name, value: p.id })),
       { label: '────────', value: '__divider__' },
-      ...DEFAULT_BORDER_PRESETS.map((p) => ({ label: p.name, value: p.id })),
+      ...DEFAULT_BORDER_PRESETS.map((p: { name: string; id: string }) => ({ label: p.name, value: p.id })),
     ],
     [presets]
   );
@@ -489,8 +492,8 @@ export default function BorderCalculatorPage() {
     if (id === '__divider__') return;
     setSelectedPresetId(id);
     const preset =
-      presets.find((p) => p.id === id) ||
-      DEFAULT_BORDER_PRESETS.find((p) => p.id === id);
+      presets.find((p: { id: string }) => p.id === id) ||
+      DEFAULT_BORDER_PRESETS.find((p: { id: string }) => p.id === id);
     if (preset) {
       applyPresetSettings(preset.settings);
       setPresetName(preset.name);
@@ -531,7 +534,7 @@ export default function BorderCalculatorPage() {
 
     try {
       // Check if current settings match a saved preset
-      const matchedPreset = presets.find((p) =>
+      const matchedPreset = presets.find((p: { settings: BorderPresetSettings }) =>
         shallowEqual(p.settings, currentSettings)
       );
 
@@ -844,7 +847,7 @@ export default function BorderCalculatorPage() {
                   <Select
                     label="Aspect ratio"
                     selectedValue={field.state.value}
-                    onValueChange={(value) => {
+                    onValueChange={(value: string) => {
                       field.handleChange(value);
                       form.setFieldValue('isRatioFlipped', false);
                     }}
@@ -861,7 +864,7 @@ export default function BorderCalculatorPage() {
                       {(heightField) => (
                         <DimensionInputGroup
                           widthValue={String(widthField.state.value)}
-                          onWidthChange={(value) => {
+                          onWidthChange={(value: string) => {
                             const numValue = Number(value) || 0;
                             widthField.handleChange(numValue);
                             if (numValue > 0) {
@@ -872,7 +875,7 @@ export default function BorderCalculatorPage() {
                             }
                           }}
                           heightValue={String(heightField.state.value)}
-                          onHeightChange={(value) => {
+                          onHeightChange={(value: string) => {
                             const numValue = Number(value) || 0;
                             heightField.handleChange(numValue);
                             if (numValue > 0) {
@@ -898,7 +901,7 @@ export default function BorderCalculatorPage() {
                   <Select
                     label="Paper size"
                     selectedValue={field.state.value}
-                    onValueChange={(value) => {
+                    onValueChange={(value: string) => {
                       field.handleChange(value);
                       const isCustom = value === 'custom';
                       if (isCustom) {
@@ -944,11 +947,11 @@ export default function BorderCalculatorPage() {
                   <LabeledSliderInput
                     label="Minimum border (inches)"
                     value={field.state.value}
-                    onChange={(value) => {
+                    onChange={(value: number) => {
                       field.handleChange(value);
                       form.setFieldValue('lastValidMinBorder', value);
                     }}
-                    onSliderChange={(value) => {
+                    onSliderChange={(value: number) => {
                       field.handleChange(value);
                       form.setFieldValue('lastValidMinBorder', value);
                     }}
@@ -966,7 +969,7 @@ export default function BorderCalculatorPage() {
                   <ToggleSwitch
                     label="Enable offsets"
                     value={field.state.value}
-                    onValueChange={(value) => {
+                    onValueChange={(value: boolean) => {
                       field.handleChange(value);
                     }}
                   />
@@ -987,7 +990,7 @@ export default function BorderCalculatorPage() {
                         <ToggleSwitch
                           label="Ignore min border"
                           value={field.state.value}
-                          onValueChange={(value) => {
+                          onValueChange={(value: boolean) => {
                             field.handleChange(value);
                           }}
                         />
@@ -1007,10 +1010,10 @@ export default function BorderCalculatorPage() {
                         <LabeledSliderInput
                           label="Horizontal offset"
                           value={field.state.value}
-                          onChange={(value) => {
+                          onChange={(value: number) => {
                             field.handleChange(value);
                           }}
-                          onSliderChange={(value) => {
+                          onSliderChange={(value: number) => {
                             field.handleChange(value);
                           }}
                           min={OFFSET_SLIDER_MIN}
@@ -1027,10 +1030,10 @@ export default function BorderCalculatorPage() {
                         <LabeledSliderInput
                           label="Vertical offset"
                           value={field.state.value}
-                          onChange={(value) => {
+                          onChange={(value: number) => {
                             field.handleChange(value);
                           }}
-                          onSliderChange={(value) => {
+                          onSliderChange={(value: number) => {
                             field.handleChange(value);
                           }}
                           min={OFFSET_SLIDER_MIN}
@@ -1061,7 +1064,7 @@ export default function BorderCalculatorPage() {
                   <ToggleSwitch
                     label="Show easel blades"
                     value={field.state.value}
-                    onValueChange={(value) => {
+                    onValueChange={(value: boolean) => {
                       field.handleChange(value);
                     }}
                   />
@@ -1072,7 +1075,7 @@ export default function BorderCalculatorPage() {
                   <ToggleSwitch
                     label="Show blade readings"
                     value={field.state.value}
-                    onValueChange={(value) => {
+                    onValueChange={(value: boolean) => {
                       field.handleChange(value);
                     }}
                   />

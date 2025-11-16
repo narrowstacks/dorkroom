@@ -14,6 +14,12 @@ export interface ReciprocityCalculation {
   adjustedTimeBarWidth: number;
 }
 
+export interface ReciprocityFormState {
+  filmType: string;
+  meteredTime: string;
+  customFactor: number;
+}
+
 export interface ReciprocityCalculatorState {
   filmType: string;
   setFilmType: (value: string) => void;
@@ -27,3 +33,5 @@ export interface ReciprocityCalculatorState {
   calculation: ReciprocityCalculation | null;
   formatTime: (seconds: number) => string;
 }
+
+export const RECIPROCITY_STORAGE_KEY = 'reciprocityCalculatorState_v1';

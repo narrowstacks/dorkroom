@@ -1,4 +1,6 @@
 import { useForm } from '@tanstack/react-form';
+import { useStore } from '@tanstack/react-store';
+import { useEffect, useRef, useMemo } from 'react';
 import {
   ToggleSwitch,
   WarningAlert,
@@ -18,6 +20,8 @@ import {
   DEFAULT_ORIGINAL_TIME,
   DEFAULT_ORIGINAL_HEIGHT,
   DEFAULT_NEW_HEIGHT,
+  RESIZE_STORAGE_KEY,
+  type ResizeCalculatorState,
 } from '@dorkroom/logic';
 import { resizeCalculatorSchema, createZodFormValidator } from '@dorkroom/ui/forms';
 
@@ -238,6 +242,7 @@ export default function ResizeCalculatorPage() {
   const { unit } = useMeasurement();
   const unitLabel = unit === 'imperial' ? 'in' : 'cm';
   const { toInches, toDisplay } = useMeasurementConverter();
+  const hydrationRef = useRef(false);
 
   const form = useForm({
     defaultValues: {
@@ -254,6 +259,72 @@ export default function ResizeCalculatorPage() {
       onChange: validateResizeForm,
     },
   });
+
+  // Subscribe to form values
+  const formValues = useStore(
+    form.store,
+    (state) => state.values as ResizeCalculatorState
+  );
+
+  // Create a memoized snapshot of persistable state
+  const persistableSnapshot = useMemo(
+    () => ({
+      isEnlargerHeightMode: formValues.isEnlargerHeightMode,
+      originalWidth: formValues.originalWidth,
+      originalLength: formValues.originalLength,
+      newWidth: formValues.newWidth,
+      newLength: formValues.newLength,
+      originalTime: formValues.originalTime,
+      originalHeight: formValues.originalHeight,
+      newHeight: formValues.newHeight,
+    }),
+    [
+      formValues.isEnlargerHeightMode,
+      formValues.originalWidth,
+      formValues.originalLength,
+      formValues.newWidth,
+      formValues.newLength,
+      formValues.originalTime,
+      formValues.originalHeight,
+      formValues.newHeight,
+    ]
+  );
+
+  // Hydrate from persisted state on mount (runs exactly once)
+  useEffect(() => {
+    if (hydrationRef.current || typeof window === 'undefined') return;
+    hydrationRef.current = true;
+
+    try {
+      const raw = window.localStorage.getItem(RESIZE_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<ResizeCalculatorState>;
+      Object.entries(parsed).forEach(([key, value]: [string, unknown]) => {
+        if (value === undefined) return;
+        form.setFieldValue(
+          key as keyof ResizeCalculatorState,
+          value as ResizeCalculatorState[keyof ResizeCalculatorState]
+        );
+      });
+    } catch (error) {
+      console.warn('Failed to load calculator state', error);
+    }
+  }, [form]);
+
+  // Persist form state to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem(
+        RESIZE_STORAGE_KEY,
+        JSON.stringify(persistableSnapshot)
+      );
+    } catch (error) {
+      console.warn('Failed to save calculator state', error);
+    }
+  }, [persistableSnapshot]);
 
   // Helper function to calculate aspect ratio
   const calculateAspectRatioMatch = (
@@ -330,7 +401,7 @@ export default function ResizeCalculatorPage() {
               {(field) => (
                 <ModeToggle
                   isEnlargerHeightMode={field.state.value}
-                  onModeChange={(value) => field.handleChange(value)}
+                  onModeChange={(value: boolean) => field.handleChange(value)}
                 />
               )}
             </form.Field>
@@ -353,7 +424,7 @@ export default function ResizeCalculatorPage() {
                             <CalculatorNumberField
                               label="Width"
                               value={String(toDisplay(field.state.value))}
-                              onChange={(value) => {
+                              onChange={(value: string) => {
                                 const parsed = parseFloat(value);
                                 if (Number.isFinite(parsed) && parsed >= 0) {
                                   field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
