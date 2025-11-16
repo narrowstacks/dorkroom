@@ -1,10 +1,18 @@
 import React from 'react';
-import { FieldApi } from '@tanstack/react-form';
-import { cn } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../../lib/cn';
 
-interface NumberFieldProps {
-  field: FieldApi<any, number, any, any>;
+export interface NumberFieldProps {
+  field: {
+    name: string;
+    state: {
+      value: number;
+      meta: {
+        errors: unknown[];
+      };
+    };
+    handleChange: (value: number) => void;
+    handleBlur: () => void;
+  };
   label?: string;
   placeholder?: string;
   min?: number;
@@ -47,13 +55,11 @@ export const NumberField: React.FC<NumberFieldProps> = ({
         max={max}
         step={step}
         disabled={disabled}
-        className={twMerge(
-          cn(
-            'px-3 py-2 border border-gray-300 rounded-md',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-            'disabled:bg-gray-100 disabled:cursor-not-allowed',
-            field.state.meta.errors.length > 0 && 'border-red-500 focus:ring-red-500'
-          ),
+        className={cn(
+          'px-3 py-2 border border-gray-300 rounded-md',
+          'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+          'disabled:bg-gray-100 disabled:cursor-not-allowed',
+          field.state.meta.errors.length > 0 && 'border-red-500 focus:ring-red-500',
           className
         )}
       />

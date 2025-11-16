@@ -1,10 +1,18 @@
 import React from 'react';
-import { FieldApi } from '@tanstack/react-form';
-import { cn } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../../lib/cn';
 
-interface CheckboxFieldProps {
-  field: FieldApi<any, boolean, any, any>;
+export interface CheckboxFieldProps {
+  field: {
+    name: string;
+    state: {
+      value: boolean;
+      meta: {
+        errors: unknown[];
+      };
+    };
+    handleChange: (value: boolean) => void;
+    handleBlur: () => void;
+  };
   label?: string;
   className?: string;
   disabled?: boolean;
@@ -27,13 +35,11 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
           onChange={(e) => field.handleChange(e.target.checked)}
           onBlur={field.handleBlur}
           disabled={disabled}
-          className={twMerge(
-            cn(
-              'w-4 h-4 border border-gray-300 rounded',
-              'focus:outline-none focus:ring-2 focus:ring-blue-500',
-              'disabled:bg-gray-100 disabled:cursor-not-allowed',
-              field.state.meta.errors.length > 0 && 'border-red-500 focus:ring-red-500'
-            ),
+          className={cn(
+            'w-4 h-4 border border-gray-300 rounded',
+            'focus:outline-none focus:ring-2 focus:ring-blue-500',
+            'disabled:bg-gray-100 disabled:cursor-not-allowed',
+            field.state.meta.errors.length > 0 && 'border-red-500 focus:ring-red-500',
             className
           )}
         />

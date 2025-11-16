@@ -1,10 +1,19 @@
 import React from 'react';
-import { FieldApi } from '@tanstack/react-form';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 
 export interface TanStackTextInputProps {
-  field: FieldApi<any, string, any, any>;
+  field: {
+    name: string;
+    state: {
+      value: string;
+      meta: {
+        errors: unknown[];
+      };
+    };
+    handleChange: (value: string) => void;
+    handleBlur: () => void;
+  };
   label?: string;
   description?: string;
   placeholder?: string;
@@ -20,7 +29,7 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
   className,
   type = 'text',
 }) => {
-  const hasErrors = field.state.meta.errors.length > 0;
+  const hasErrors = (field.state.meta.errors as Array<string | unknown>).length > 0;
 
   return (
     <div className={cn('space-y-2', className)}>
@@ -46,24 +55,44 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
         style={
           {
             borderColor: hasErrors
-              ? colorMixOr('var(--color-semantic-error)', 50, 'var(--color-border-primary)', 'var(--color-border-secondary)')
+              ? colorMixOr(
+                  'var(--color-semantic-error)',
+                  50,
+                  'var(--color-border-primary)',
+                  'var(--color-border-secondary)'
+                )
               : 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-surface-muted)',
             color: 'var(--color-text-primary)',
             '--tw-placeholder-color': 'var(--color-text-muted)',
             '--tw-ring-color': hasErrors
-              ? colorMixOr('var(--color-semantic-error)', 30, 'var(--color-border-primary)', 'var(--color-border-secondary)')
+              ? colorMixOr(
+                  'var(--color-semantic-error)',
+                  30,
+                  'var(--color-border-primary)',
+                  'var(--color-border-secondary)'
+                )
               : 'var(--color-border-primary)',
           } as React.CSSProperties
         }
         onFocus={(e) => {
           e.currentTarget.style.borderColor = hasErrors
-            ? colorMixOr('var(--color-semantic-error)', 50, 'var(--color-border-primary)', 'var(--color-border-secondary)')
+            ? colorMixOr(
+                'var(--color-semantic-error)',
+                50,
+                'var(--color-border-primary)',
+                'var(--color-border-secondary)'
+              )
             : 'var(--color-border-primary)';
         }}
         onBlurCapture={(e) => {
           e.currentTarget.style.borderColor = hasErrors
-            ? colorMixOr('var(--color-semantic-error)', 50, 'var(--color-border-primary)', 'var(--color-border-secondary)')
+            ? colorMixOr(
+                'var(--color-semantic-error)',
+                50,
+                'var(--color-border-primary)',
+                'var(--color-border-secondary)'
+              )
             : 'var(--color-border-secondary)';
         }}
       />

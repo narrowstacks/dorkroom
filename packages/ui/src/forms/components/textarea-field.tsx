@@ -1,10 +1,18 @@
 import React from 'react';
-import { FieldApi } from '@tanstack/react-form';
-import { cn } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../../lib/cn';
 
-interface TextareaFieldProps {
-  field: FieldApi<any, string, any, any>;
+export interface TextareaFieldProps {
+  field: {
+    name: string;
+    state: {
+      value: string;
+      meta: {
+        errors: unknown[];
+      };
+    };
+    handleChange: (value: string) => void;
+    handleBlur: () => void;
+  };
   label?: string;
   placeholder?: string;
   rows?: number;
@@ -36,14 +44,12 @@ export const TextareaField: React.FC<TextareaFieldProps> = ({
         placeholder={placeholder}
         rows={rows}
         disabled={disabled}
-        className={twMerge(
-          cn(
-            'px-3 py-2 border border-gray-300 rounded-md',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-            'disabled:bg-gray-100 disabled:cursor-not-allowed',
-            'resize-none',
-            field.state.meta.errors.length > 0 && 'border-red-500 focus:ring-red-500'
-          ),
+        className={cn(
+          'px-3 py-2 border border-gray-300 rounded-md',
+          'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+          'disabled:bg-gray-100 disabled:cursor-not-allowed',
+          'resize-none',
+          field.state.meta.errors.length > 0 && 'border-red-500 focus:ring-red-500',
           className
         )}
       />
