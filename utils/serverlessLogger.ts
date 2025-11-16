@@ -18,7 +18,7 @@ export interface LogContext {
   url?: string;
   userAgent?: string;
   timestamp?: string;
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 export interface TimingContext extends LogContext {

@@ -58,8 +58,8 @@ export const debounce = <T extends (...args: any[]) => any>(
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
   let lastArgs: Parameters<T> | null = null;
   let pendingResolvers: {
-    resolve: (value: any) => void;
-    reject: (error: any) => void;
+    resolve: (value: unknown) => void;
+    reject: (error: unknown) => void;
   }[] = [];
 
   const debounced = (...args: Parameters<T>) => {

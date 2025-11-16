@@ -8,12 +8,14 @@ import {
   Ruler,
   Timer,
 } from 'lucide-react';
-import { createElement } from 'react';
+import { createElement, ComponentType } from 'react';
 import type { NavigationItem } from '../components/navigation-dropdown';
 
 // Wrap Lucide icons so typeof component is 'function' in tests
-const asFunctionComponent = (Icon: any) => (props: any) =>
-  createElement(Icon, props);
+const asFunctionComponent =
+  (Icon: ComponentType<{ className?: string; size?: number | string }>) =>
+  (props: { className?: string; size?: number | string }) =>
+    createElement(Icon, props);
 
 export const printingItems: NavigationItem[] = [
   {

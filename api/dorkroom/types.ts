@@ -222,3 +222,108 @@ export interface CombinationFetchOptions {
   /** Specific combination UUID to fetch */
   id?: string;
 }
+
+/**
+ * Raw film data structure from API response (may include both camelCase and snake_case fields).
+ * Core fields are required; format variations (camelCase/snake_case) and optional fields may vary.
+ */
+export interface RawFilm {
+  id?: string;
+  uuid: string;
+  slug: string;
+  name: string;
+  brand: string;
+  iso_speed: number;
+  isoSpeed?: number;
+  color_type: string;
+  colorType?: string;
+  description?: string;
+  discontinued?: boolean | number;
+  manufacturer_notes?: string | string[];
+  manufacturerNotes?: string[];
+  grain_structure?: string | null;
+  grainStructure?: string | null;
+  reciprocity_failure?: number | null;
+  reciprocityFailure?: number | null;
+  static_image_url?: string;
+  staticImageURL?: string;
+  date_added?: string;
+  dateAdded?: string;
+  created_at?: string;
+}
+
+/**
+ * Raw developer data structure from API response (may include both camelCase and snake_case fields).
+ * Core fields are required; format variations (camelCase/snake_case) and optional fields may vary.
+ */
+export interface RawDeveloper {
+  id?: string;
+  uuid: string;
+  slug: string;
+  name: string;
+  manufacturer: string;
+  type: string;
+  film_or_paper: boolean | string;
+  filmOrPaper?: string;
+  dilutions?: Dilution[];
+  working_life_hours?: number | null;
+  workingLifeHours?: number | null;
+  stock_life_months?: number | null;
+  stockLifeMonths?: number | null;
+  notes?: string;
+  discontinued?: boolean | number;
+  mixing_instructions?: string | null;
+  mixingInstructions?: string | null;
+  safety_notes?: string | null;
+  safetyNotes?: string | null;
+  datasheet_url?: string[];
+  datasheetUrl?: string[];
+  date_added?: string;
+  dateAdded?: string;
+  created_at?: string;
+}
+
+/**
+ * Raw combination data structure from API response (may include both camelCase and snake_case fields).
+ */
+export interface RawCombination {
+  id?: string | number;
+  uuid?: string;
+  slug?: string;
+  name?: string;
+  film_stock?: string;
+  film_stock_id?: string;
+  filmStockId?: string;
+  developer?: string;
+  developer_id?: string;
+  developerId?: string;
+  temperature_f?: number;
+  temperature_celsius?: number;
+  temperatureF?: number;
+  time_minutes?: number;
+  timeMinutes?: number;
+  shooting_iso?: number;
+  shootingIso?: number;
+  push_pull?: number;
+  pushPull?: number;
+  agitation_method?: string;
+  agitationSchedule?: string;
+  notes?: string;
+  dilution_id?: string | number;
+  dilutionId?: number;
+  custom_dilution?: string | null;
+  customDilution?: string | null;
+  created_at?: string;
+  dateAdded?: string;
+}
+
+/**
+ * Chrome-specific Performance Memory API interface.
+ */
+export interface PerformanceMemory {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
+}

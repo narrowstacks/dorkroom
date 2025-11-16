@@ -20,6 +20,9 @@ import {
   ApiResponse,
   PaginatedApiResponse,
   CombinationFetchOptions,
+  RawFilm,
+  RawDeveloper,
+  RawCombination,
 } from './types';
 import { DataFetchError, DataParseError, DataNotLoadedError } from './errors';
 import {
@@ -54,7 +57,7 @@ interface CacheEntry<T> {
  * Request deduplication manager.
  */
 class RequestDeduplicator {
-  private pendingRequests = new Map<string, Promise<any>>();
+  private pendingRequests = new Map<string, Promise<unknown>>();
 
   async deduplicate<T>(key: string, operation: () => Promise<T>): Promise<T> {
     if (this.pendingRequests.has(key)) {
@@ -149,7 +152,7 @@ export class DorkroomClient {
   private combinationIndex = new Map<string, Combination>();
 
   // Caching and deduplication
-  private searchCache = new TTLCache<any>();
+  private searchCache = new TTLCache<unknown>();
   private deduplicator = new RequestDeduplicator();
 
   // Request cancellation
@@ -352,11 +355,7 @@ export class DorkroomClient {
           const apiResponse = (await response.json()) as ApiResponse<T>;
           if (apiResponse && apiResponse.data) {
             // Cache the result
-            this.searchCache.set(
-              cacheKey,
-              apiResponse.data as any,
-              this.cacheTTL
-            );
+            this.searchCache.set(cacheKey, apiResponse.data, this.cacheTTL);
             return apiResponse.data;
           }
           throw new DataParseError(
@@ -503,9 +502,9 @@ export class DorkroomClient {
       // Fetch all data in parallel
       debugLog('[DorkroomClient] Starting parallel data fetch...');
       const [rawFilms, rawDevelopers, rawCombinations] = await Promise.all([
-        this.fetch<Film>('films'),
-        this.fetch<Developer>('developers'),
-        this.fetch<any>('combinations'),
+        this.fetch<RawFilm>('films'),
+        this.fetch<RawDeveloper>('developers'),
+        this.fetch<RawCombination>('combinations'),
       ]);
 
       debugLog('[DorkroomClient] Raw data fetched:', {
@@ -537,14 +536,14 @@ export class DorkroomClient {
 
       // Transform films from API response format to match TypeScript interface
       this.films = rawFilms.map(
-        (rawFilm: any): Film => ({
+        (rawFilm: RawFilm): Film => ({
           id: rawFilm.id || rawFilm.uuid,
           uuid: rawFilm.uuid,
           slug: rawFilm.slug,
           name: rawFilm.name,
           brand: rawFilm.brand,
-          isoSpeed: rawFilm.iso_speed || rawFilm.isoSpeed,
-          colorType: rawFilm.color_type || rawFilm.colorType,
+          isoSpeed: rawFilm.isoSpeed ?? rawFilm.iso_speed,
+          colorType: rawFilm.colorType ?? rawFilm.color_type,
           description: rawFilm.description,
           discontinued: rawFilm.discontinued ? 1 : 0,
           manufacturerNotes:
@@ -555,18 +554,22 @@ export class DorkroomClient {
             this.parseManufacturerNotes(rawFilm.manufacturer_notes) ||
             rawFilm.manufacturerNotes ||
             [],
-          grainStructure: rawFilm.grain_structure || rawFilm.grainStructure,
+          grainStructure:
+            rawFilm.grain_structure ?? rawFilm.grainStructure ?? null,
           reciprocityFailure:
-            rawFilm.reciprocity_failure || rawFilm.reciprocityFailure,
-          staticImageURL: rawFilm.static_image_url || rawFilm.staticImageURL,
+            rawFilm.reciprocity_failure ?? rawFilm.reciprocityFailure ?? null,
+          staticImageURL: rawFilm.static_image_url ?? rawFilm.staticImageURL,
           dateAdded:
-            rawFilm.date_added || rawFilm.dateAdded || rawFilm.created_at,
+            rawFilm.dateAdded ??
+            rawFilm.date_added ??
+            rawFilm.created_at ??
+            new Date().toISOString(),
         })
       );
 
       // Transform developers from API response format to match TypeScript interface
       this.developers = rawDevelopers.map(
-        (rawDev: any): Developer => ({
+        (rawDev: RawDeveloper): Developer => ({
           id: rawDev.id || rawDev.uuid,
           uuid: rawDev.uuid,
           slug: rawDev.slug,
@@ -592,7 +595,11 @@ export class DorkroomClient {
           datasheetUrl: Array.isArray(rawDev.datasheet_url)
             ? rawDev.datasheet_url
             : rawDev.datasheetUrl || [],
-          dateAdded: rawDev.date_added || rawDev.dateAdded || rawDev.created_at,
+          dateAdded:
+            rawDev.dateAdded ??
+            rawDev.date_added ??
+            rawDev.created_at ??
+            new Date().toISOString(),
         })
       );
 
@@ -614,15 +621,19 @@ export class DorkroomClient {
 
       // Normalise combinations coming from the API so they match our
       // internal Combination camel-cased shape & use UUID references.
-      this.combinations = (rawCombinations as any[]).map((c) => {
+      this.combinations = rawCombinations.map((c: RawCombination) => {
         // Map film/developer slugs to UUIDs when available
+        const filmSlug = c.film_stock ?? c.film_stock_id;
         const filmUuid =
-          filmSlugToUuid.get(c.film_stock ?? c.film_stock_id) ??
+          (filmSlug ? filmSlugToUuid.get(filmSlug) : undefined) ??
           c.filmStockId ??
           c.film_stock ??
           c.film_stock_id;
+        const developerSlug = c.developer ?? c.developer_id;
         const developerUuid =
-          developerSlugToUuid.get(c.developer ?? c.developer_id) ??
+          (developerSlug
+            ? developerSlugToUuid.get(developerSlug)
+            : undefined) ??
           c.developerId ??
           c.developer ??
           c.developer_id;
@@ -688,7 +699,9 @@ export class DorkroomClient {
   /**
    * Parse PostgreSQL array format string to JavaScript array
    */
-  private parseManufacturerNotes(notes: any): string[] | null {
+  private parseManufacturerNotes(
+    notes: string | string[] | null | undefined
+  ): string[] | null {
     if (Array.isArray(notes)) {
       debugLog('[DorkroomClient] Manufacturer notes already an array:', notes);
       return notes;
