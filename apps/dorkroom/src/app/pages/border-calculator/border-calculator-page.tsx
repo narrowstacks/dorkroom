@@ -130,6 +130,11 @@ export default function BorderCalculatorPage() {
           value as BorderCalculatorState[keyof BorderCalculatorState]
         );
       });
+
+      // Recalculate orientation for custom paper after loading from storage
+      if (parsed.paperSize === 'custom' && parsed.customPaperWidth !== undefined && parsed.customPaperHeight !== undefined) {
+        form.setFieldValue('isLandscape', parsed.customPaperWidth >= parsed.customPaperHeight);
+      }
     } catch (error) {
       console.warn('Failed to load calculator state', error);
     }
@@ -237,7 +242,14 @@ export default function BorderCalculatorPage() {
   // Update orientation when custom paper dimensions change
   useEffect(() => {
     if (form.getFieldValue('paperSize') === 'custom') {
-      form.setFieldValue('isLandscape', customPaperWidth >= customPaperHeight);
+      const shouldBeLandscape = customPaperWidth >= customPaperHeight;
+      console.log('📐 Border calc orientation sync:', {
+        customPaperWidth,
+        customPaperHeight,
+        shouldBeLandscape,
+        currentIsLandscape: form.getFieldValue('isLandscape'),
+      });
+      form.setFieldValue('isLandscape', shouldBeLandscape);
     }
   }, [customPaperWidth, customPaperHeight, form]);
 
@@ -870,15 +882,24 @@ export default function BorderCalculatorPage() {
                     label="Paper size"
                     selectedValue={field.state.value}
                     onValueChange={(value) => {
+                      console.log('🔄 Paper size changed to:', value, {
+                        customPaperWidth,
+                        customPaperHeight,
+                      });
                       field.handleChange(value);
                       const isCustom = value === 'custom';
                       if (isCustom) {
                         // For custom paper, calculate landscape based on actual dimensions
-                        const paperWidth = form.getFieldValue('customPaperWidth');
-                        const paperHeight = form.getFieldValue('customPaperHeight');
-                        form.setFieldValue('isLandscape', paperWidth >= paperHeight);
+                        const shouldBeLandscape = customPaperWidth >= customPaperHeight;
+                        console.log('📋 Custom paper selected:', {
+                          customPaperWidth,
+                          customPaperHeight,
+                          shouldBeLandscape,
+                        });
+                        form.setFieldValue('isLandscape', shouldBeLandscape);
                       } else {
                         // For standard paper sizes, default to landscape
+                        console.log('📋 Standard paper selected, setting isLandscape to true');
                         form.setFieldValue('isLandscape', true);
                       }
                       form.setFieldValue('isRatioFlipped', false);
