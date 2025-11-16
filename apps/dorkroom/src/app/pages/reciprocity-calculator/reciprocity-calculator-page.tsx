@@ -290,7 +290,10 @@ export default function ReciprocityCalculatorPage() {
                 adjustedTime,
                 factor,
                 percentageIncrease,
-                filmName: selectedFilm?.label ?? 'Custom profile',
+                filmName:
+                  filmType === 'custom'
+                    ? 'Custom profile'
+                    : selectedFilm?.label ?? 'Unknown',
               };
             }}
             children={(calculation) =>
@@ -511,7 +514,10 @@ export default function ReciprocityCalculatorPage() {
               adjustedTime,
               factor,
               percentageIncrease,
-              filmName: selectedFilm?.label ?? 'Custom profile',
+              filmName:
+                filmType === 'custom'
+                  ? 'Custom profile'
+                  : selectedFilm?.label ?? 'Unknown',
             };
           }}
           children={(calculation) =>
