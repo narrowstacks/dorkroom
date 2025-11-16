@@ -154,22 +154,21 @@ export default function ReciprocityCalculatorPage() {
   }, [persistableSnapshot]);
 
   // Calculate derived values from form state
-  const { parsedSeconds, parsedDisplay } =
-    (() => {
-      const meteredTime = form.getFieldValue('meteredTime');
-      const parsedSeconds = parseReciprocityTime(meteredTime);
-      const formattedTime =
-        parsedSeconds !== null ? formatReciprocityTime(parsedSeconds) : null;
-      const parsedDisplay =
-        formattedTime && formattedTime !== meteredTime
-          ? `Parsed as: ${formattedTime}`
-          : null;
+  const { parsedDisplay } = (() => {
+    const meteredTime = form.getFieldValue('meteredTime');
+    const parsedSeconds = parseReciprocityTime(meteredTime);
+    const formattedTime =
+      parsedSeconds !== null ? formatReciprocityTime(parsedSeconds) : null;
+    const parsedDisplay =
+      formattedTime && formattedTime !== meteredTime
+        ? `Parsed as: ${formattedTime}`
+        : null;
 
-      return {
-        parsedSeconds,
-        parsedDisplay,
-      };
-    })();
+    return {
+      parsedSeconds,
+      parsedDisplay,
+    };
+  })();
 
   const filmOptions = useMemo<SelectItem[]>(
     () => filmTypes.map(({ label, value }) => ({ label, value })),
@@ -283,8 +282,7 @@ export default function ReciprocityCalculatorPage() {
                   ? customFactor
                   : selectedFilm?.factor ?? 1.3;
 
-              const adjustedTime =
-                Math.pow(parsedSeconds, factor);
+              const adjustedTime = Math.pow(parsedSeconds, factor);
               const percentageIncrease =
                 ((adjustedTime - parsedSeconds) / parsedSeconds) * 100;
 
@@ -505,8 +503,7 @@ export default function ReciprocityCalculatorPage() {
                 ? customFactor
                 : selectedFilm?.factor ?? 1.3;
 
-            const adjustedTime =
-              Math.pow(parsedSeconds, factor);
+            const adjustedTime = Math.pow(parsedSeconds, factor);
             const percentageIncrease =
               ((adjustedTime - parsedSeconds) / parsedSeconds) * 100;
 
