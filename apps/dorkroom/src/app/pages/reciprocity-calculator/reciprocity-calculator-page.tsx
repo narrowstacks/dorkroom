@@ -92,7 +92,7 @@ export default function ReciprocityCalculatorPage() {
   // TanStack Form for input state
   const form = useForm({
     defaultValues: {
-      filmType: 'portra_400',
+      filmType: 'tri-x',
       meteredTime: '30s',
       customFactor: 1.3,
     },
