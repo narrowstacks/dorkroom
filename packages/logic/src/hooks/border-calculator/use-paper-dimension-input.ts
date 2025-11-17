@@ -1,4 +1,14 @@
 import { useState, useEffect } from 'react';
+import { formatForDisplay } from '../../utils/precision';
+
+/**
+ * NOTE ON ARCHITECTURE: This hook lives in the logic package despite using React hooks
+ * because it encapsulates specialized dimension input handling logic specific to the
+ * border calculator. While ideally business logic should be framework-agnostic, this
+ * hook tightly couples input state management (onChange, onBlur events) with unit
+ * conversion logic, making it more practical to keep together here than split across
+ * packages. The conversion functions (toDisplay, toInches) are pure and framework-free.
+ */
 
 interface UsePaperDimensionInputProps {
   initialWidth: number;
@@ -34,10 +44,10 @@ export function usePaperDimensionInput({
 }: UsePaperDimensionInputProps): UsePaperDimensionInputReturn {
   // Local string state for custom paper dimensions (in display units)
   const [paperWidthInput, setPaperWidthInput] = useState(() =>
-    String(Math.round(toDisplay(initialWidth) * 1000) / 1000)
+    formatForDisplay(toDisplay(initialWidth))
   );
   const [paperHeightInput, setPaperHeightInput] = useState(() =>
-    String(Math.round(toDisplay(initialHeight) * 1000) / 1000)
+    formatForDisplay(toDisplay(initialHeight))
   );
   const [isEditingPaperWidth, setIsEditingPaperWidth] = useState(false);
   const [isEditingPaperHeight, setIsEditingPaperHeight] = useState(false);
@@ -62,7 +72,7 @@ export function usePaperDimensionInput({
     if (!isEditingPaperWidth) {
       const displayValue = toDisplay(initialWidth);
       // Round to 3 decimals to avoid floating point artifacts
-      setPaperWidthInput(String(Math.round(displayValue * 1000) / 1000));
+      setPaperWidthInput(formatForDisplay(displayValue));
     }
   }, [initialWidth, toDisplay, isEditingPaperWidth]);
 
@@ -70,7 +80,7 @@ export function usePaperDimensionInput({
     if (!isEditingPaperHeight) {
       const displayValue = toDisplay(initialHeight);
       // Round to 3 decimals to avoid floating point artifacts
-      setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
+      setPaperHeightInput(formatForDisplay(displayValue));
     }
   }, [initialHeight, toDisplay, isEditingPaperHeight]);
 
@@ -94,20 +104,13 @@ export function usePaperDimensionInput({
       onWidthChange(inches);
       // Format the display value to avoid floating point precision artifacts
       const displayValue = toDisplay(inches);
-      setPaperWidthInput(String(Math.round(displayValue * 1000) / 1000));
-    } else if (
-      paperWidthInput === '' ||
-      /^\s*$/.test(paperWidthInput)
-    ) {
+      setPaperWidthInput(formatForDisplay(displayValue));
+    } else if (paperWidthInput === '' || /^\s*$/.test(paperWidthInput)) {
       // Reset to current value if empty
-      setPaperWidthInput(
-        String(Math.round(toDisplay(initialWidth) * 1000) / 1000)
-      );
+      setPaperWidthInput(formatForDisplay(toDisplay(initialWidth)));
     } else {
       // Reset to current value if invalid
-      setPaperWidthInput(
-        String(Math.round(toDisplay(initialWidth) * 1000) / 1000)
-      );
+      setPaperWidthInput(formatForDisplay(toDisplay(initialWidth)));
     }
   };
 
@@ -131,20 +134,13 @@ export function usePaperDimensionInput({
       onHeightChange(inches);
       // Format the display value to avoid floating point precision artifacts
       const displayValue = toDisplay(inches);
-      setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
-    } else if (
-      paperHeightInput === '' ||
-      /^\s*$/.test(paperHeightInput)
-    ) {
+      setPaperHeightInput(formatForDisplay(displayValue));
+    } else if (paperHeightInput === '' || /^\s*$/.test(paperHeightInput)) {
       // Reset to current value if empty
-      setPaperHeightInput(
-        String(Math.round(toDisplay(initialHeight) * 1000) / 1000)
-      );
+      setPaperHeightInput(formatForDisplay(toDisplay(initialHeight)));
     } else {
       // Reset to current value if invalid
-      setPaperHeightInput(
-        String(Math.round(toDisplay(initialHeight) * 1000) / 1000)
-      );
+      setPaperHeightInput(formatForDisplay(toDisplay(initialHeight)));
     }
   };
 
