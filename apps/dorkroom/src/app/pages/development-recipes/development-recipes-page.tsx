@@ -225,6 +225,22 @@ export default function DevelopmentRecipesPage() {
     }
   }, [pageIndex]);
 
+  // Prevent page index reset during favorite transitions
+  const prevPageIndexRef = useRef(pageIndex);
+  useEffect(() => {
+    const hasActiveTransitions = favoriteTransitions.size > 0;
+    if (
+      hasActiveTransitions &&
+      pageIndex === 0 &&
+      prevPageIndexRef.current > 0
+    ) {
+      // TanStack Table tried to reset to page 0, revert it
+      setPageIndex(prevPageIndexRef.current);
+    } else {
+      prevPageIndexRef.current = pageIndex;
+    }
+  }, [pageIndex, favoriteTransitions]);
+
   const recipesByUuid = useMemo(() => {
     const map = new Map<string, Combination>();
     filteredCombinations.forEach((combo) => {
