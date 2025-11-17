@@ -184,9 +184,12 @@ export default function ExposureCalculatorPage() {
                 <CalculatorNumberField
                   label="Original exposure time (seconds)"
                   value={String(field.state.value)}
-                  onChange={(value: string) =>
-                    field.handleChange(parseFloat(value))
-                  }
+                  onChange={(value: string) => {
+                    const parsed = parseFloat(value);
+                    const finiteValue = Number.isFinite(parsed) ? parsed : 0;
+                    field.handleChange(finiteValue);
+                  }}
+                  onBlur={field.handleBlur}
                   placeholder="10"
                   step={0.1}
                   helperText="Base exposure time you want to adjust"
@@ -221,9 +224,12 @@ export default function ExposureCalculatorPage() {
                         <input
                           type="number"
                           value={field.state.value}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            field.handleChange(parseFloat(e.target.value))
-                          }
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                            const parsed = parseFloat(e.target.value);
+                            const finiteValue = Number.isFinite(parsed) ? parsed : 0;
+                            field.handleChange(finiteValue);
+                          }}
+                          onBlur={field.handleBlur}
                           placeholder="1"
                           step={0.1}
                           className="w-20 rounded-lg border px-3 py-2 text-center text-sm"

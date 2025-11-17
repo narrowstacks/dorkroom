@@ -268,7 +268,7 @@ export default function ReciprocityCalculatorPage() {
               const customFactor = state.values.customFactor;
 
               const parsedSeconds = parseReciprocityTime(meteredTime);
-              if (parsedSeconds === null) return null;
+              if (parsedSeconds === null || parsedSeconds <= 0) return null;
 
               const selectedFilm = filmTypes.find(
                 (f: SelectItem) => f.value === filmType
@@ -304,7 +304,7 @@ export default function ReciprocityCalculatorPage() {
                   actions={
                     <button
                       type="button"
-                      onClick={() => setShowChart(!showChart)}
+                      onClick={() => setShowChart(prev => !prev)}
                       className="flex items-center gap-2 rounded-full px-3 py-2 transition-colors hover:bg-white/10"
                       aria-label={showChart ? 'Hide chart' : 'Show chart'}
                       title={showChart ? 'Hide chart' : 'Show chart'}
@@ -493,7 +493,7 @@ export default function ReciprocityCalculatorPage() {
             const customFactor = state.values.customFactor;
 
             const parsedSeconds = parseReciprocityTime(meteredTime);
-            if (parsedSeconds === null) return null;
+            if (parsedSeconds === null || parsedSeconds <= 0) return null;
 
             const selectedFilm = filmTypes.find(
               (f: SelectItem) => f.value === filmType

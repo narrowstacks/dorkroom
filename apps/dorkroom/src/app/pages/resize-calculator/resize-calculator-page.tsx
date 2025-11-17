@@ -725,11 +725,7 @@ export default function ResizeCalculatorPage() {
         </div>
 
         <div className="space-y-6">
-          <InfoSection
-            isEnlargerHeightMode={
-              form.getFieldValue('isEnlargerHeightMode' as never) as boolean
-            }
-          />
+          <InfoSection isEnlargerHeightMode={formValues.isEnlargerHeightMode} />
         </div>
       </div>
     </div>

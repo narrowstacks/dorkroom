@@ -1,6 +1,7 @@
 import React from 'react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
+import styles from './tanstack-text-input.module.css';
 
 export interface TanStackTextInputProps {
   field: {
@@ -76,7 +77,8 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
         onBlur={field.handleBlur}
         placeholder={placeholder}
         className={cn(
-          'tanstack-text-input w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2',
+          styles.input,
+          'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2',
           {
             'tanstack-text-input--error': hasErrors,
           }
@@ -124,19 +126,6 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
           {field.state.meta.errors.map((e) => String(e)).join(', ')}
         </div>
       )}
-      <style>{`
-        .tanstack-text-input {
-          border-color: var(--border-color);
-        }
-
-        .tanstack-text-input:focus-visible {
-          border-color: var(--border-color-focused);
-        }
-
-        .tanstack-text-input::placeholder {
-          color: var(--color-text-muted);
-        }
-      `}</style>
     </div>
   );
 };
