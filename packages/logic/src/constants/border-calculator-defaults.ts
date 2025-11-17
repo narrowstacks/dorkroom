@@ -3,7 +3,6 @@
  * Extracted to centralize calculator state initialization and make presets easier to manage.
  */
 
-import { CALCULATION_CONSTANTS } from './calculations';
 
 /**
  * Default values for all border calculator settings.
