@@ -31,12 +31,12 @@ export default defineConfig(() => ({
   ],
   resolve: {
     alias: {
-      '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src'),
+      '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src/index.ts'),
       '@dorkroom/logic': resolve(
         __dirname,
-        '../../packages/logic/dist/index.js'
+        '../../packages/logic/src/index.ts'
       ),
-      '@dorkroom/api': resolve(__dirname, '../../packages/api/dist/index.js'),
+      '@dorkroom/api': resolve(__dirname, '../../packages/api/src/index.ts'),
     },
   },
   build: {

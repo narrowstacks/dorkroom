@@ -14,11 +14,9 @@ import {
   PreviewAndControlsSection,
   BladeVisualizationSection,
   PresetsSection,
-} from '@dorkroom/ui';
-import {
   borderCalculatorSchema,
   createZodFormValidator,
-} from '@dorkroom/ui/forms';
+} from '@dorkroom/ui';
 import {
   AnimatedPreview,
   BorderInfoSection,

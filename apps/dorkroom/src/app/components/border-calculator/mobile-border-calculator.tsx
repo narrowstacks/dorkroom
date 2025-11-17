@@ -25,6 +25,9 @@ import {
   ShareModal,
   SaveBeforeShareModal,
   useMeasurement,
+  useMeasurementFormatter,
+  borderCalculatorSchema,
+  createZodFormValidator,
 } from '@dorkroom/ui';
 
 // Sections
@@ -51,12 +54,7 @@ import {
   CALC_STORAGE_KEY,
   borderCalculatorInitialState,
 } from '@dorkroom/logic';
-import {
-  borderCalculatorSchema,
-  createZodFormValidator,
-} from '@dorkroom/ui/forms';
 import { useTheme } from '../../contexts/theme-context';
-import { useMeasurementFormatter } from '@dorkroom/ui';
 
 // Active section type
 type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';

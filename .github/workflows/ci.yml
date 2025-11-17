@@ -46,4 +46,4 @@ jobs:
             #       - run: npx nx run-many -t lint test build typecheck
             #       # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
             - run: npx nx fix-ci
-#         if: always()
+            - run: npx nx run-many -t lint test build typecheck

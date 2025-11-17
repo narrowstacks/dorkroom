@@ -9,7 +9,7 @@
  * These are used to initialize the calculator state and provide a reset baseline.
  */
 export const BORDER_CALCULATOR_DEFAULTS = {
-  aspectRatio: '2:3' as const,
+  aspectRatio: '3:2' as const,
   paperSize: '8x10' as const,
   customAspectWidth: 2,
   customAspectHeight: 3,

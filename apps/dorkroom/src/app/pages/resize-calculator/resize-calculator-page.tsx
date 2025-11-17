@@ -11,6 +11,8 @@ import {
   colorMixOr,
   useMeasurement,
   useMeasurementConverter,
+  resizeCalculatorSchema,
+  createZodFormValidator,
 } from '@dorkroom/ui';
 import {
   DEFAULT_ORIGINAL_WIDTH,
@@ -23,10 +25,6 @@ import {
   RESIZE_STORAGE_KEY,
   type ResizeCalculatorState,
 } from '@dorkroom/logic';
-import {
-  resizeCalculatorSchema,
-  createZodFormValidator,
-} from '@dorkroom/ui/forms';
 
 const validateResizeForm = createZodFormValidator(resizeCalculatorSchema);
 

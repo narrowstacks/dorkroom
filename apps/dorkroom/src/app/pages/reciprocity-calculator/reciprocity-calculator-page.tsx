@@ -10,6 +10,8 @@ import {
   CalculatorNumberField,
   ResultRow,
   ReciprocityChart,
+  reciprocityCalculatorSchema,
+  createZodFormValidator,
 } from '@dorkroom/ui';
 import {
   useReciprocityCalculator,
@@ -20,10 +22,6 @@ import {
   type SelectItem,
   type ReciprocityFormState,
 } from '@dorkroom/logic';
-import {
-  reciprocityCalculatorSchema,
-  createZodFormValidator,
-} from '@dorkroom/ui/forms';
 import { ChartLine, Maximize2, Minimize2 } from 'lucide-react';
 
 const validateReciprocityForm = createZodFormValidator(

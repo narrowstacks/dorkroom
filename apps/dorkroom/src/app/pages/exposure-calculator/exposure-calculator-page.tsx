@@ -7,6 +7,8 @@ import {
   CalculatorStat,
   CalculatorNumberField,
   ResultRow,
+  exposureCalculatorSchema,
+  createZodFormValidator,
 } from '@dorkroom/ui';
 import {
   EXPOSURE_PRESETS,
@@ -19,10 +21,6 @@ import {
   formatExposureTime,
   calculatePercentageIncrease,
 } from '@dorkroom/logic';
-import {
-  exposureCalculatorSchema,
-  createZodFormValidator,
-} from '@dorkroom/ui/forms';
 import { useTheme } from '../../contexts/theme-context';
 import { themes } from '../../lib/themes';
 
