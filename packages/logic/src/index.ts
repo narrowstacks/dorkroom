@@ -55,7 +55,13 @@ export {
   useDevelopmentTable,
   type DevelopmentCombinationView,
 } from './hooks/development-recipes/use-development-table';
-export { useCustomRecipes } from './hooks/development-recipes/use-custom-recipes';
+export { useCustomRecipes } from './hooks/custom-recipes/use-custom-recipes-unified';
+export {
+  useAddCustomRecipe,
+  useUpdateCustomRecipe,
+  useDeleteCustomRecipe,
+  useClearCustomRecipes,
+} from './hooks/custom-recipes/use-custom-recipe-mutations';
 export { useCustomRecipeSharing } from './hooks/development-recipes/use-custom-recipe-sharing';
 export { useRecipeSharing } from './hooks/development-recipes/use-recipe-sharing';
 export { useRecipeUrlState } from './hooks/development-recipes/use-recipe-url-state';

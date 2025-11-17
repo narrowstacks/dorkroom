@@ -46,6 +46,8 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 - Tailwind CSS 4.1.13 for styling
 - Vite for bundling
 - Vitest for testing
+- TanStack Query v5 for server state management
+- TanStack Router v1 for type-safe routing
 
 ## Code Conventions
 
@@ -75,6 +77,90 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 - Props destructuring with default values
 - Controlled components
 - Use `cn()` utility for conditional Tailwind classes
+
+### TanStack Query Patterns
+
+**Query Hooks (Data Fetching):**
+
+```typescript
+// packages/logic/src/hooks/api/use-films.ts
+import { useQuery } from '@tanstack/react-query';
+import { queryKeys, fetchFilms } from '../../queries';
+
+export function useFilms() {
+  return useQuery({
+    queryKey: queryKeys.films.list(),
+    queryFn: fetchFilms,
+  });
+}
+```
+
+**Usage in Components:**
+
+```typescript
+const { data: films, isPending, error } = useFilms();
+```
+
+**Mutation Hooks (Data Modification):**
+
+```typescript
+// packages/logic/src/hooks/custom-recipes/use-custom-recipe-mutations.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../../queries';
+
+export function useAddCustomRecipe() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (formData) => {
+      // Perform mutation
+      return newRecipe;
+    },
+    onMutate: async (formData) => {
+      // Optimistic update
+      const previousRecipes = queryClient.getQueryData(queryKeys.customRecipes.list());
+      queryClient.setQueryData(queryKeys.customRecipes.list(), [...previousRecipes, optimisticRecipe]);
+      return { previousRecipes };
+    },
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousRecipes) {
+        queryClient.setQueryData(queryKeys.customRecipes.list(), context.previousRecipes);
+      }
+    },
+    onSettled: () => {
+      // Invalidate cache after mutation
+      queryClient.invalidateQueries({ queryKey: queryKeys.customRecipes.list() });
+    },
+  });
+}
+```
+
+**Query Key Structure:**
+
+```typescript
+// packages/logic/src/queries/query-keys.ts
+export const queryKeys = {
+  films: {
+    all: () => ['films'] as const,
+    lists: () => [...queryKeys.films.all(), 'list'] as const,
+    list: () => [...queryKeys.films.lists()] as const,
+    details: () => [...queryKeys.films.all(), 'detail'] as const,
+    detail: (id: string) => [...queryKeys.films.details(), id] as const,
+  },
+  // Similar structure for developers, combinations, customRecipes
+};
+```
+
+**Important Patterns:**
+
+- Query hooks located in `packages/logic/src/hooks/api/`
+- Mutation hooks located in `packages/logic/src/hooks/custom-recipes/`
+- Query configuration and fetch functions in `packages/logic/src/queries/`
+- Always use optimistic updates for mutations affecting UI
+- Always invalidate related queries after mutations
+- Use `staleTime` and `gcTime` defaults from QueryClient config (5 min / 10 min)
+- For client-only data (like localStorage), use `staleTime: Infinity` and `gcTime: Infinity`
 
 ### Imports/Exports
 
