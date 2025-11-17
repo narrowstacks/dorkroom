@@ -1,4 +1,10 @@
-import type { Table, HeaderGroup, Header, Row, Cell } from '@tanstack/react-table';
+import type {
+  Table,
+  HeaderGroup,
+  Header,
+  Row,
+  Cell,
+} from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
@@ -50,63 +56,69 @@ export function DevelopmentResultsTable({
               color: 'var(--color-text-tertiary)',
             }}
           >
-            {headerGroups.map((headerGroup: HeaderGroup<DevelopmentCombinationView>) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header: Header<DevelopmentCombinationView, unknown>) => {
-                  const isSorted = header.column.getIsSorted();
-                  const isSortedDesc = isSorted === 'desc';
-                  const sortable = header.column.columnDef.enableSorting;
+            {headerGroups.map(
+              (headerGroup: HeaderGroup<DevelopmentCombinationView>) => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map(
+                    (header: Header<DevelopmentCombinationView, unknown>) => {
+                      const isSorted = header.column.getIsSorted();
+                      const isSortedDesc = isSorted === 'desc';
+                      const sortable = header.column.columnDef.enableSorting;
 
-                  return (
-                    <th
-                      key={header.id}
-                      className={cn(
-                        'px-4 py-3 text-left',
-                        header.id === 'film' && 'px-4',
-                        header.id !== 'film' && header.id !== 'developer' && 'px-3'
-                      )}
-                      style={{
-                        width: header.getSize(),
-                      }}
-                    >
-                      {sortable ? (
-                        <button
-                          type="button"
-                          onClick={() => header.column.toggleSorting()}
+                      return (
+                        <th
+                          key={header.id}
                           className={cn(
-                            'flex w-full items-center gap-1 text-xs uppercase tracking-wide transition',
-                            header.id === 'actions' && 'justify-start'
+                            'px-4 py-3 text-left',
+                            header.id === 'film' && 'px-4',
+                            header.id !== 'film' &&
+                              header.id !== 'developer' &&
+                              'px-3'
                           )}
                           style={{
-                            color: isSorted
-                              ? 'var(--color-text-primary)'
-                              : 'var(--color-text-tertiary)',
+                            width: header.getSize(),
                           }}
                         >
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
+                          {sortable ? (
+                            <button
+                              type="button"
+                              onClick={() => header.column.toggleSorting()}
+                              className={cn(
+                                'flex w-full items-center gap-1 text-xs uppercase tracking-wide transition',
+                                header.id === 'actions' && 'justify-start'
+                              )}
+                              style={{
+                                color: isSorted
+                                  ? 'var(--color-text-primary)'
+                                  : 'var(--color-text-tertiary)',
+                              }}
+                            >
+                              {flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                              {isSorted && (
+                                <span>{isSortedDesc ? '▼' : '▲'}</span>
+                              )}
+                            </button>
+                          ) : (
+                            <div
+                              className="flex w-full items-center gap-1 text-xs uppercase tracking-wide"
+                              style={{ color: 'var(--color-text-tertiary)' }}
+                            >
+                              {flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                            </div>
                           )}
-                          {isSorted && (
-                            <span>{isSortedDesc ? '▼' : '▲'}</span>
-                          )}
-                        </button>
-                      ) : (
-                        <div
-                          className="flex w-full items-center gap-1 text-xs uppercase tracking-wide"
-                          style={{ color: 'var(--color-text-tertiary)' }}
-                        >
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                        </div>
-                      )}
-                    </th>
-                  );
-                })}
-              </tr>
-            ))}
+                        </th>
+                      );
+                    }
+                  )}
+                </tr>
+              )
+            )}
           </thead>
           <tbody
             className="divide-y"
@@ -118,77 +130,83 @@ export function DevelopmentResultsTable({
             }
           >
             {rows.length > 0 ? (
-              rows.map((row: Row<DevelopmentCombinationView>, index: number) => {
-                const rowData = row.original;
-                return (
-                  <tr
-                    key={row.id}
-                    onClick={() => onSelectCombination?.(rowData)}
-                    className={cn(
-                      'cursor-pointer transition-all duration-200',
-                      'animate-slide-fade-bottom',
-                      index === 0 && 'animate-delay-100',
-                      index === 1 && 'animate-delay-200',
-                      index === 2 && 'animate-delay-300',
-                      index === 3 && 'animate-delay-400',
-                      index === 4 && 'animate-delay-500',
-                      index === 5 && 'animate-delay-600',
-                      index >= 6 && 'animate-delay-700'
-                    )}
-                    style={{
-                      backgroundColor:
-                        rowData.source === 'custom'
-                          ? colorMixOr(
-                              'var(--color-accent)',
-                              15,
-                              'transparent',
-                              'var(--color-border-muted)'
-                            )
-                          : 'rgba(var(--color-background-rgb), 0.25)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor =
-                        rowData.source === 'custom'
-                          ? colorMixOr(
-                              'var(--color-accent)',
-                              25,
-                              'transparent',
-                              'var(--color-border-secondary)'
-                            )
-                          : 'rgba(var(--color-background-rgb), 0.35)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor =
-                        rowData.source === 'custom'
-                          ? colorMixOr(
-                              'var(--color-accent)',
-                              15,
-                              'transparent',
-                              'var(--color-border-muted)'
-                            )
-                          : 'rgba(var(--color-background-rgb), 0.25)';
-                    }}
-                  >
-                    {row.getVisibleCells().map((cell: Cell<DevelopmentCombinationView, unknown>) => (
-                      <td
-                        key={cell.id}
-                        className={cn(
-                          'py-4 align-top',
-                          cell.column.id === 'film' && 'px-4',
-                          cell.column.id !== 'film' &&
-                            cell.column.id !== 'developer' &&
-                            'px-3'
+              rows.map(
+                (row: Row<DevelopmentCombinationView>, index: number) => {
+                  const rowData = row.original;
+                  return (
+                    <tr
+                      key={row.id}
+                      onClick={() => onSelectCombination?.(rowData)}
+                      className={cn(
+                        'cursor-pointer transition-all duration-200',
+                        'animate-slide-fade-bottom',
+                        index === 0 && 'animate-delay-100',
+                        index === 1 && 'animate-delay-200',
+                        index === 2 && 'animate-delay-300',
+                        index === 3 && 'animate-delay-400',
+                        index === 4 && 'animate-delay-500',
+                        index === 5 && 'animate-delay-600',
+                        index >= 6 && 'animate-delay-700'
+                      )}
+                      style={{
+                        backgroundColor:
+                          rowData.source === 'custom'
+                            ? colorMixOr(
+                                'var(--color-accent)',
+                                15,
+                                'transparent',
+                                'var(--color-border-muted)'
+                              )
+                            : 'rgba(var(--color-background-rgb), 0.25)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          rowData.source === 'custom'
+                            ? colorMixOr(
+                                'var(--color-accent)',
+                                25,
+                                'transparent',
+                                'var(--color-border-secondary)'
+                              )
+                            : 'rgba(var(--color-background-rgb), 0.35)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          rowData.source === 'custom'
+                            ? colorMixOr(
+                                'var(--color-accent)',
+                                15,
+                                'transparent',
+                                'var(--color-border-muted)'
+                              )
+                            : 'rgba(var(--color-background-rgb), 0.25)';
+                      }}
+                    >
+                      {row
+                        .getVisibleCells()
+                        .map(
+                          (cell: Cell<DevelopmentCombinationView, unknown>) => (
+                            <td
+                              key={cell.id}
+                              className={cn(
+                                'py-4 align-top',
+                                cell.column.id === 'film' && 'px-4',
+                                cell.column.id !== 'film' &&
+                                  cell.column.id !== 'developer' &&
+                                  'px-3'
+                              )}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </td>
+                          )
                         )}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })
+                    </tr>
+                  );
+                }
+              )
             ) : (
               <tr>
                 <td

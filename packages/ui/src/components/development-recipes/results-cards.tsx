@@ -283,8 +283,8 @@ export function DevelopmentResultsCards({
                 </div>
                 {(() => {
                   const temp = formatTemperatureWithUnit(
-                    row.original.combination.temperatureF,
-                    row.original.combination.temperatureC,
+                    combination.temperatureF,
+                    combination.temperatureC,
                     unit
                   );
                   return (

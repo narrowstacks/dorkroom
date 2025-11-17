@@ -207,7 +207,8 @@ export default function DevelopmentRecipesPage() {
   useEffect(() => {
     if (resultsContainerRef.current) {
       const element = resultsContainerRef.current;
-      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      const elementPosition =
+        element.getBoundingClientRect().top + window.scrollY;
       const navbarHeight = 80; // Approximate navbar height + extra buffer
       const targetPosition = elementPosition - navbarHeight;
 
@@ -1223,6 +1224,12 @@ export default function DevelopmentRecipesPage() {
                   table={table}
                   onSelectCombination={handleOpenDetail}
                   isMobile={isMobile}
+                  isFavorite={handleCheckFavorite}
+                  onToggleFavorite={handleToggleFavorite}
+                  onShareCombination={handleShareCombination}
+                  onCopyCombination={handleCopyCombination}
+                  onEditCustomRecipe={handleEditCustomRecipe}
+                  onDeleteCustomRecipe={handleDeleteCustomRecipe}
                 />
               ) : (
                 <DevelopmentResultsTable
