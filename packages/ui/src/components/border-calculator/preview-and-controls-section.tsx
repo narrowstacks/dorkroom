@@ -79,9 +79,8 @@ export function PreviewAndControlsSection({
 
       {(() => {
         // Show message when paper orientation is vertical (portrait)
-        // For custom paper: show when NOT landscape (portrait)
-        // For preset paper: show when landscape (portrait due to inverted logic)
-        const shouldShow = isCustomPaper ? !isLandscape : isLandscape;
+        // Show when NOT landscape (vertical orientation)
+        const shouldShow = !isLandscape;
         return (
           shouldShow && (
             <div
