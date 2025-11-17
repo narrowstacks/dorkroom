@@ -53,8 +53,6 @@ export default defineConfig(() => ({
           'react-vendor': ['react', 'react-dom', '@tanstack/react-router'],
           // Separate chunk for Lucide icons
           'lucide-icons': ['lucide-react'],
-          // Separate chunk for internal UI components
-          'ui-components': ['@dorkroom/ui'],
           // Separate chunk for logic/hooks
           'logic-hooks': ['@dorkroom/logic'],
         },
