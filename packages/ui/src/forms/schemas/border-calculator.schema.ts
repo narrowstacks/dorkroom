@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BORDER_CALCULATOR_DEFAULTS } from '@dorkroom/logic';
 
 /**
  * Validation schema for Border Calculator Form
@@ -38,11 +39,19 @@ const paperSizeOptions = [
 export const borderCalculatorSchema = z.object({
   // Paper Setup
   aspectRatio: z.enum(aspectRatioOptions),
-  customAspectWidth: dimensionNumber.optional().default(4),
-  customAspectHeight: dimensionNumber.optional().default(5),
+  customAspectWidth: dimensionNumber
+    .optional()
+    .default(BORDER_CALCULATOR_DEFAULTS.customAspectWidth),
+  customAspectHeight: dimensionNumber
+    .optional()
+    .default(BORDER_CALCULATOR_DEFAULTS.customAspectHeight),
   paperSize: z.enum(paperSizeOptions),
-  customPaperWidth: dimensionNumber.optional().default(8),
-  customPaperHeight: dimensionNumber.optional().default(10),
+  customPaperWidth: dimensionNumber
+    .optional()
+    .default(BORDER_CALCULATOR_DEFAULTS.customPaperWidth),
+  customPaperHeight: dimensionNumber
+    .optional()
+    .default(BORDER_CALCULATOR_DEFAULTS.customPaperHeight),
 
   // Borders & Offsets
   minBorder: z
@@ -50,8 +59,10 @@ export const borderCalculatorSchema = z.object({
     .min(0.125, 'Minimum border must be at least 0.125 inches')
     .max(4, 'Minimum border cannot exceed 4 inches'),
 
-  enableOffset: z.boolean().default(false),
-  ignoreMinBorder: z.boolean().default(false),
+  enableOffset: z.boolean().default(BORDER_CALCULATOR_DEFAULTS.enableOffset),
+  ignoreMinBorder: z
+    .boolean()
+    .default(BORDER_CALCULATOR_DEFAULTS.ignoreMinBorder),
   horizontalOffset: z
     .number()
     .min(-2, 'Horizontal offset cannot be less than -2')
@@ -63,10 +74,14 @@ export const borderCalculatorSchema = z.object({
     .max(2, 'Vertical offset cannot be more than +2'),
 
   // Blade Visualization
-  showBlades: z.boolean().default(false),
-  showBladeReadings: z.boolean().default(false),
-  isLandscape: z.boolean().default(false),
-  isRatioFlipped: z.boolean().default(false),
+  showBlades: z.boolean().default(BORDER_CALCULATOR_DEFAULTS.showBlades),
+  showBladeReadings: z
+    .boolean()
+    .default(BORDER_CALCULATOR_DEFAULTS.showBladeReadings),
+  isLandscape: z.boolean().default(BORDER_CALCULATOR_DEFAULTS.isLandscape),
+  isRatioFlipped: z
+    .boolean()
+    .default(BORDER_CALCULATOR_DEFAULTS.isRatioFlipped),
 
   // Presets
   selectedPresetId: z.string().optional(),

@@ -27,7 +27,9 @@ export function BladeReadingsSection({
   paperSizeWarning,
 }: BladeReadingsSectionProps) {
   // Determine if we should flip the blade readings based on orientation
-  const condition = isCustomPaper ? isLandscape : !isLandscape;
+  // For custom paper: flip when NOT landscape (portrait)
+  // For preset paper: flip when landscape
+  const condition = isCustomPaper ? !isLandscape : isLandscape;
 
   return (
     <CalculatorCard

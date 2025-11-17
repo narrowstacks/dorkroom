@@ -1,3 +1,4 @@
+import type { FormInstance } from '@tanstack/react-form';
 import { X } from 'lucide-react';
 import { LabeledSliderInput, WarningAlert } from '@dorkroom/ui';
 import {
@@ -5,23 +6,21 @@ import {
   SLIDER_MAX_BORDER,
   SLIDER_STEP_BORDER,
   BORDER_SLIDER_LABELS,
+  type BorderCalculatorState,
 } from '@dorkroom/logic';
 
 interface BorderSizeSectionProps {
   onClose: () => void;
-  minBorder: number;
-  setMinBorder: (value: number) => void;
-  setMinBorderSlider: (value: number) => void;
+  form: FormInstance<BorderCalculatorState>;
   minBorderWarning?: string;
 }
 
 export function BorderSizeSection({
   onClose,
-  minBorder,
-  setMinBorder,
-  setMinBorderSlider,
+  form,
   minBorderWarning,
 }: BorderSizeSectionProps) {
+  const minBorder = form.getFieldValue('minBorder');
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -38,8 +37,11 @@ export function BorderSizeSection({
         <LabeledSliderInput
           label="Minimum Border (inches):"
           value={minBorder}
-          onChange={setMinBorder}
-          onSliderChange={setMinBorderSlider}
+          onChange={(value) => {
+            form.setFieldValue('minBorder', value);
+            form.setFieldValue('lastValidMinBorder', value);
+          }}
+          onSliderChange={(value) => form.setFieldValue('minBorder', value)}
           min={SLIDER_MIN_BORDER}
           max={SLIDER_MAX_BORDER}
           step={SLIDER_STEP_BORDER}

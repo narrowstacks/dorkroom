@@ -6,20 +6,14 @@
 
 import { useReducer, useEffect, useMemo, useRef } from 'react';
 import { ASPECT_RATIOS, PAPER_SIZES } from '../../constants/border-calculator';
+import { BORDER_CALCULATOR_STORAGE_KEY } from '../../constants/storage-keys';
+import { BORDER_CALCULATOR_DEFAULTS } from '../../constants/border-calculator-defaults';
 import type {
   BorderCalculatorState,
   BorderCalculatorAction,
   BorderPresetSettings,
   AspectRatioValue,
   PaperSizeValue,
-} from '../../types/border-calculator';
-import {
-  DEFAULT_MIN_BORDER,
-  DEFAULT_CUSTOM_PAPER_WIDTH,
-  DEFAULT_CUSTOM_PAPER_HEIGHT,
-  DEFAULT_CUSTOM_ASPECT_WIDTH,
-  DEFAULT_CUSTOM_ASPECT_HEIGHT,
-  CALC_STORAGE_KEY,
 } from '../../types/border-calculator';
 
 const isBrowser = () => typeof window !== 'undefined';
@@ -28,31 +22,31 @@ const createInitialState = (): BorderCalculatorState => ({
   aspectRatio: ASPECT_RATIOS[0]!.value as AspectRatioValue,
   paperSize: PAPER_SIZES[2]!.value as PaperSizeValue,
 
-  customAspectWidth: DEFAULT_CUSTOM_ASPECT_WIDTH,
-  customAspectHeight: DEFAULT_CUSTOM_ASPECT_HEIGHT,
-  customPaperWidth: DEFAULT_CUSTOM_PAPER_WIDTH,
-  customPaperHeight: DEFAULT_CUSTOM_PAPER_HEIGHT,
+  customAspectWidth: BORDER_CALCULATOR_DEFAULTS.customAspectWidth,
+  customAspectHeight: BORDER_CALCULATOR_DEFAULTS.customAspectHeight,
+  customPaperWidth: BORDER_CALCULATOR_DEFAULTS.customPaperWidth,
+  customPaperHeight: BORDER_CALCULATOR_DEFAULTS.customPaperHeight,
 
-  lastValidCustomAspectWidth: DEFAULT_CUSTOM_ASPECT_WIDTH,
-  lastValidCustomAspectHeight: DEFAULT_CUSTOM_ASPECT_HEIGHT,
-  lastValidCustomPaperWidth: DEFAULT_CUSTOM_PAPER_WIDTH,
-  lastValidCustomPaperHeight: DEFAULT_CUSTOM_PAPER_HEIGHT,
+  lastValidCustomAspectWidth: BORDER_CALCULATOR_DEFAULTS.customAspectWidth,
+  lastValidCustomAspectHeight: BORDER_CALCULATOR_DEFAULTS.customAspectHeight,
+  lastValidCustomPaperWidth: BORDER_CALCULATOR_DEFAULTS.customPaperWidth,
+  lastValidCustomPaperHeight: BORDER_CALCULATOR_DEFAULTS.customPaperHeight,
 
-  minBorder: DEFAULT_MIN_BORDER,
-  enableOffset: false,
-  ignoreMinBorder: false,
-  horizontalOffset: 0,
-  verticalOffset: 0,
-  showBlades: false,
-  showBladeReadings: false,
+  minBorder: BORDER_CALCULATOR_DEFAULTS.minBorder,
+  enableOffset: BORDER_CALCULATOR_DEFAULTS.enableOffset,
+  ignoreMinBorder: BORDER_CALCULATOR_DEFAULTS.ignoreMinBorder,
+  horizontalOffset: BORDER_CALCULATOR_DEFAULTS.horizontalOffset,
+  verticalOffset: BORDER_CALCULATOR_DEFAULTS.verticalOffset,
+  showBlades: BORDER_CALCULATOR_DEFAULTS.showBlades,
+  showBladeReadings: BORDER_CALCULATOR_DEFAULTS.showBladeReadings,
   isLandscape: true,
-  isRatioFlipped: false,
+  isRatioFlipped: BORDER_CALCULATOR_DEFAULTS.isRatioFlipped,
 
   offsetWarning: null,
   bladeWarning: null,
   minBorderWarning: null,
   paperSizeWarning: null,
-  lastValidMinBorder: DEFAULT_MIN_BORDER,
+  lastValidMinBorder: BORDER_CALCULATOR_DEFAULTS.minBorder,
 
   selectedImageUri: null,
   imageDimensions: { width: 0, height: 0 },
@@ -174,7 +168,7 @@ export const useBorderCalculatorState = () => {
     if (!isBrowser()) return;
 
     try {
-      const raw = window.localStorage.getItem(CALC_STORAGE_KEY);
+      const raw = window.localStorage.getItem(BORDER_CALCULATOR_STORAGE_KEY);
       if (!raw) return;
 
       const cached = JSON.parse(raw);
@@ -196,7 +190,7 @@ export const useBorderCalculatorState = () => {
     persistTimeout.current = setTimeout(() => {
       try {
         window.localStorage.setItem(
-          CALC_STORAGE_KEY,
+          BORDER_CALCULATOR_STORAGE_KEY,
           JSON.stringify(persistableState)
         );
       } catch (error) {

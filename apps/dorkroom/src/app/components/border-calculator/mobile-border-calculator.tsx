@@ -1,4 +1,6 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { useForm } from '@tanstack/react-form';
+import { useStore } from '@tanstack/react-store';
 import {
   RotateCcw,
   EyeOff,
@@ -23,7 +25,6 @@ import {
   ShareModal,
   SaveBeforeShareModal,
   useMeasurement,
-  formatDimensions,
 } from '@dorkroom/ui';
 
 // Sections
@@ -36,14 +37,22 @@ import {
 
 // Hooks
 import {
-  useModularBorderCalculator as useBorderCalculator,
   useBorderPresets,
   usePresetSharing,
+  useDimensionCalculations,
+  useGeometryCalculations,
   shallowEqual,
   type BorderPreset,
-  type BorderSettings,
+  type BorderCalculatorState,
+  type BorderPresetSettings,
   PAPER_SIZES,
+  CALC_STORAGE_KEY,
+  borderCalculatorInitialState,
 } from '@dorkroom/logic';
+import {
+  borderCalculatorSchema,
+  createZodFormValidator,
+} from '@dorkroom/ui/forms';
 import { useTheme } from '../../contexts/theme-context';
 import { useMeasurementFormatter } from '@dorkroom/ui';
 
@@ -53,11 +62,13 @@ type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
 interface MobileBorderCalculatorProps {
   loadedPresetFromUrl?: {
     name: string;
-    settings: BorderSettings;
+    settings: BorderPresetSettings;
     isFromUrl?: boolean;
   } | null;
   clearLoadedPreset?: () => void;
 }
+
+const validateBorderCalculator = createZodFormValidator(borderCalculatorSchema);
 
 /**
  * Render the mobile UI for configuring border/calculation settings, managing presets, and sharing results.
@@ -80,59 +91,13 @@ export function MobileBorderCalculator({
 
   // Measurement unit
   const { unit } = useMeasurement();
-  const { formatWithUnit } = useMeasurementFormatter();
+  const { formatWithUnit, formatDimensions } = useMeasurementFormatter();
 
   // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeSection, setActiveSection] =
     useState<ActiveSection>('paperSize');
   const [currentPreset, setCurrentPreset] = useState<BorderPreset | null>(null);
-
-  // Border calculator hooks
-  const {
-    aspectRatio,
-    setAspectRatio,
-    paperSize,
-    setPaperSize,
-    customAspectWidth,
-    setCustomAspectWidth,
-    customAspectHeight,
-    setCustomAspectHeight,
-    customPaperWidth,
-    setCustomPaperWidth,
-    customPaperHeight,
-    setCustomPaperHeight,
-    minBorder,
-    setMinBorder,
-    setMinBorderSlider,
-    enableOffset,
-    setEnableOffset,
-    ignoreMinBorder,
-    setIgnoreMinBorder,
-    horizontalOffset,
-    setHorizontalOffset,
-    setHorizontalOffsetSlider,
-    verticalOffset,
-    setVerticalOffset,
-    setVerticalOffsetSlider,
-    showBlades,
-    setShowBlades,
-    showBladeReadings,
-    setShowBladeReadings,
-    isLandscape,
-    setIsLandscape,
-    isRatioFlipped,
-    setIsRatioFlipped,
-    offsetWarning,
-    bladeWarning,
-    calculation,
-    minBorderWarning,
-    paperSizeWarning,
-    resetToDefaults,
-    applyPreset,
-  } = useBorderCalculator();
-
-  const { presets, addPreset, updatePreset, removePreset } = useBorderPresets();
 
   // Sharing state
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -142,6 +107,184 @@ export function MobileBorderCalculator({
     nativeUrl: string;
   } | null>(null);
   const [isGeneratingShareUrl, setIsGeneratingShareUrl] = useState(false);
+
+  // Hydration ref
+  const hydrationRef = useRef(false);
+
+  // Form setup - single source of truth shared with desktop
+  const form = useForm({
+    defaultValues: borderCalculatorInitialState,
+    validators: {
+      onChange: validateBorderCalculator,
+    },
+  });
+
+  // Hydrate from persisted state on mount (runs exactly once)
+  useEffect(() => {
+    if (hydrationRef.current || typeof window === 'undefined') return;
+    hydrationRef.current = true;
+
+    try {
+      const raw = window.localStorage.getItem(CALC_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<BorderCalculatorState>;
+      Object.entries(parsed).forEach(([key, value]: [string, unknown]) => {
+        if (value === undefined) return;
+        form.setFieldValue(
+          key as keyof BorderCalculatorState,
+          value as BorderCalculatorState[keyof BorderCalculatorState]
+        );
+      });
+
+      // Recalculate orientation for custom paper after loading from storage
+      if (
+        parsed.paperSize === 'custom' &&
+        parsed.customPaperWidth !== undefined &&
+        parsed.customPaperHeight !== undefined
+      ) {
+        form.setFieldValue(
+          'isLandscape',
+          parsed.customPaperWidth < parsed.customPaperHeight
+        );
+      }
+    } catch (error) {
+      console.warn('Failed to load calculator state', error);
+    }
+  }, [form]);
+
+  // Subscribe to form changes for reactivity
+  const formValues = useStore(
+    form.store,
+    (state) => state.values as BorderCalculatorState
+  );
+
+  const {
+    aspectRatio,
+    paperSize,
+    customAspectWidth,
+    customAspectHeight,
+    customPaperWidth,
+    customPaperHeight,
+    minBorder,
+    enableOffset,
+    ignoreMinBorder,
+    horizontalOffset,
+    verticalOffset,
+    showBlades,
+    showBladeReadings,
+    isLandscape,
+    isRatioFlipped,
+    lastValidCustomAspectWidth,
+    lastValidCustomAspectHeight,
+    lastValidCustomPaperWidth,
+    lastValidCustomPaperHeight,
+    lastValidMinBorder,
+  } = formValues;
+
+  // Persist to localStorage
+  const persistableSnapshot = useMemo(
+    () => ({
+      aspectRatio,
+      paperSize,
+      customAspectWidth,
+      customAspectHeight,
+      customPaperWidth,
+      customPaperHeight,
+      minBorder,
+      enableOffset,
+      ignoreMinBorder,
+      horizontalOffset,
+      verticalOffset,
+      showBlades,
+      showBladeReadings,
+      isLandscape,
+      isRatioFlipped,
+      lastValidCustomAspectWidth,
+      lastValidCustomAspectHeight,
+      lastValidCustomPaperWidth,
+      lastValidCustomPaperHeight,
+      lastValidMinBorder,
+    }),
+    [
+      aspectRatio,
+      paperSize,
+      customAspectWidth,
+      customAspectHeight,
+      customPaperWidth,
+      customPaperHeight,
+      minBorder,
+      enableOffset,
+      ignoreMinBorder,
+      horizontalOffset,
+      verticalOffset,
+      showBlades,
+      showBladeReadings,
+      isLandscape,
+      isRatioFlipped,
+      lastValidCustomAspectWidth,
+      lastValidCustomAspectHeight,
+      lastValidCustomPaperWidth,
+      lastValidCustomPaperHeight,
+      lastValidMinBorder,
+    ]
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem(
+        CALC_STORAGE_KEY,
+        JSON.stringify(persistableSnapshot)
+      );
+    } catch (error) {
+      console.warn('Failed to save calculator state', error);
+    }
+  }, [persistableSnapshot]);
+
+  // Calculations
+  const dimensionData = useDimensionCalculations(formValues);
+  const { calculation } = useGeometryCalculations(
+    formValues,
+    dimensionData.orientedDimensions,
+    dimensionData.minBorderData,
+    dimensionData.paperEntry,
+    dimensionData.paperSizeWarning
+  );
+
+  useEffect(() => {
+    if (!calculation) return;
+    if (calculation.lastValidMinBorder !== lastValidMinBorder) {
+      form.setFieldValue('lastValidMinBorder', calculation.lastValidMinBorder);
+    }
+  }, [calculation, form, lastValidMinBorder]);
+
+  // Update orientation when custom paper dimensions change
+  useEffect(() => {
+    const currentPaperSize = form.getFieldValue('paperSize');
+
+    if (
+      currentPaperSize === 'custom' &&
+      customPaperWidth > 0 &&
+      customPaperHeight > 0
+    ) {
+      const shouldBeLandscape = customPaperWidth < customPaperHeight;
+      const currentIsLandscape = form.getFieldValue('isLandscape');
+
+      if (currentIsLandscape !== shouldBeLandscape) {
+        form.setFieldValue('isLandscape', shouldBeLandscape);
+      }
+    }
+  }, [paperSize, customPaperWidth, customPaperHeight, form]);
+
+  const offsetWarning = calculation?.offsetWarning ?? null;
+  const bladeWarning = calculation?.bladeWarning ?? null;
+  const minBorderWarning = calculation?.minBorderWarning ?? null;
+  const paperSizeWarning =
+    calculation?.paperSizeWarning ?? dimensionData.paperSizeWarning;
+
+  const { presets, addPreset, updatePreset, removePreset } = useBorderPresets();
 
   // Sharing hooks
   const {
@@ -153,7 +296,6 @@ export function MobileBorderCalculator({
   } = usePresetSharing({
     onShareSuccess: (result) => {
       if (result.method === 'clipboard') {
-        // Success toast hook could be placed here
         console.log('Preset link copied to clipboard!');
       } else if (result.method === 'native') {
         setIsShareModalOpen(false);
@@ -164,10 +306,43 @@ export function MobileBorderCalculator({
     },
   });
 
+  // Apply preset from URL
+  const applyPresetSettings = useCallback((settings: BorderPresetSettings) => {
+    form.setFieldValue('aspectRatio', settings.aspectRatio);
+    form.setFieldValue('paperSize', settings.paperSize);
+    form.setFieldValue('customAspectWidth', settings.customAspectWidth);
+    form.setFieldValue('customAspectHeight', settings.customAspectHeight);
+    form.setFieldValue('customPaperWidth', settings.customPaperWidth);
+    form.setFieldValue('customPaperHeight', settings.customPaperHeight);
+    form.setFieldValue('minBorder', settings.minBorder);
+    form.setFieldValue('enableOffset', settings.enableOffset);
+    form.setFieldValue('ignoreMinBorder', settings.ignoreMinBorder);
+    form.setFieldValue('horizontalOffset', settings.horizontalOffset);
+    form.setFieldValue('verticalOffset', settings.verticalOffset);
+    form.setFieldValue('showBlades', settings.showBlades);
+    form.setFieldValue('showBladeReadings', settings.showBladeReadings);
+    form.setFieldValue('isLandscape', settings.isLandscape);
+    form.setFieldValue('isRatioFlipped', settings.isRatioFlipped);
+    form.setFieldValue(
+      'lastValidCustomAspectWidth',
+      settings.customAspectWidth
+    );
+    form.setFieldValue(
+      'lastValidCustomAspectHeight',
+      settings.customAspectHeight
+    );
+    form.setFieldValue('lastValidCustomPaperWidth', settings.customPaperWidth);
+    form.setFieldValue(
+      'lastValidCustomPaperHeight',
+      settings.customPaperHeight
+    );
+    form.setFieldValue('lastValidMinBorder', settings.minBorder);
+  }, [form]);
+
   useEffect(() => {
     if (!loadedPresetFromUrl) return;
 
-    applyPreset(loadedPresetFromUrl.settings);
+    applyPresetSettings(loadedPresetFromUrl.settings);
 
     setCurrentPreset({
       id: `loaded-${Date.now()}`,
@@ -178,28 +353,25 @@ export function MobileBorderCalculator({
     if (clearLoadedPreset) {
       clearLoadedPreset();
     }
-  }, [loadedPresetFromUrl, applyPreset, clearLoadedPreset]);
+  }, [loadedPresetFromUrl, applyPresetSettings, clearLoadedPreset]);
 
   // Display values
   const paperSizeDisplayValue = useMemo(() => {
     if (paperSize === 'custom') {
-      return formatDimensions(customPaperWidth, customPaperHeight, unit);
+      return formatDimensions(customPaperWidth, customPaperHeight);
     }
 
-    // Find the paper size in PAPER_SIZES to get dimensions
     const size = PAPER_SIZES.find((s) => s.value === paperSize);
     if (!size) return paperSize;
 
-    // If metric, show metric with imperial reference
     if (unit === 'metric') {
-      const metricLabel = formatDimensions(size.width, size.height, unit);
+      const metricLabel = formatDimensions(size.width, size.height);
       const imperialLabel = `${size.width}×${size.height}in`;
       return `${metricLabel} (${imperialLabel})`;
     }
 
-    // In imperial, use the original label
     return size.label;
-  }, [paperSize, customPaperWidth, customPaperHeight, unit]);
+  }, [paperSize, customPaperWidth, customPaperHeight, unit, formatDimensions]);
 
   const aspectRatioDisplayValue = useMemo(() => {
     return aspectRatio === 'custom'
@@ -270,7 +442,6 @@ export function MobileBorderCalculator({
     setIsGeneratingShareUrl(true);
 
     try {
-      // Check if current settings match a saved preset
       const matchedPreset = presets.find((p) =>
         shallowEqual(p.settings, currentSettings)
       );
@@ -289,7 +460,6 @@ export function MobileBorderCalculator({
           setIsShareModalOpen(true);
         }
       } else if (currentPreset?.name?.trim()) {
-        // If there's a current named preset (unsaved or loaded), use that name
         const urls = getSharingUrls({
           name: currentPreset.name.trim(),
           settings: currentSettings,
@@ -303,7 +473,6 @@ export function MobileBorderCalculator({
           setIsShareModalOpen(true);
         }
       } else {
-        // No matching saved preset and no current name: prompt to save before share
         setIsSaveBeforeShareOpen(true);
       }
     } catch (error) {
@@ -374,36 +543,35 @@ export function MobileBorderCalculator({
     }
   }, [sharePreset, currentPreset, currentSettings]);
 
-  // Open drawer handlers
+  // Drawer handlers
   const openDrawerSection = useCallback((section: ActiveSection) => {
     setActiveSection(section);
     setIsDrawerOpen(true);
   }, []);
 
-  // Close drawer handler
   const closeDrawer = useCallback(() => {
     setIsDrawerOpen(false);
   }, []);
 
   const toggleBlades = useCallback(() => {
-    setShowBlades(!showBlades);
-  }, [setShowBlades, showBlades]);
+    form.setFieldValue('showBlades', !showBlades);
+  }, [form, showBlades]);
 
   const toggleBladeReadings = useCallback(() => {
-    setShowBladeReadings(!showBladeReadings);
-  }, [setShowBladeReadings, showBladeReadings]);
+    form.setFieldValue('showBladeReadings', !showBladeReadings);
+  }, [form, showBladeReadings]);
 
   const handleApplyPreset = useCallback(
     (preset: BorderPreset) => {
-      applyPreset(preset.settings);
+      applyPresetSettings(preset.settings);
       setCurrentPreset(preset);
       closeDrawer();
     },
-    [applyPreset, closeDrawer]
+    [applyPresetSettings, closeDrawer]
   );
 
   const handleSavePreset = useCallback(
-    (name: string, settings: BorderSettings) => {
+    (name: string, settings: BorderPresetSettings) => {
       const newPreset: BorderPreset = {
         id: Date.now().toString(),
         name,
@@ -413,17 +581,17 @@ export function MobileBorderCalculator({
       setCurrentPreset(newPreset);
       closeDrawer();
     },
-    [addPreset, closeDrawer, setCurrentPreset]
+    [addPreset, closeDrawer]
   );
 
   const handleUpdatePreset = useCallback(
-    (id: string, name: string, settings: BorderSettings) => {
+    (id: string, name: string, settings: BorderPresetSettings) => {
       updatePreset(id, { name, settings });
       setCurrentPreset((prev) =>
         prev?.id === id ? { ...prev, name, settings } : prev
       );
     },
-    [updatePreset, setCurrentPreset]
+    [updatePreset]
   );
 
   const handleDeletePreset = useCallback(
@@ -431,8 +599,12 @@ export function MobileBorderCalculator({
       removePreset(id);
       setCurrentPreset((prev) => (prev?.id === id ? null : prev));
     },
-    [removePreset, setCurrentPreset]
+    [removePreset]
   );
+
+  const resetToDefaults = () => {
+    form.reset();
+  };
 
   return (
     <div
@@ -669,31 +841,16 @@ export function MobileBorderCalculator({
               {activeSection === 'paperSize' && (
                 <PaperSizeSection
                   onClose={closeDrawer}
-                  aspectRatio={aspectRatio}
-                  setAspectRatio={setAspectRatio}
-                  customAspectWidth={customAspectWidth}
-                  setCustomAspectWidth={setCustomAspectWidth}
-                  customAspectHeight={customAspectHeight}
-                  setCustomAspectHeight={setCustomAspectHeight}
-                  paperSize={paperSize}
-                  setPaperSize={setPaperSize}
-                  customPaperWidth={customPaperWidth}
-                  setCustomPaperWidth={setCustomPaperWidth}
-                  customPaperHeight={customPaperHeight}
-                  setCustomPaperHeight={setCustomPaperHeight}
+                  form={form}
                   isLandscape={isLandscape}
-                  setIsLandscape={setIsLandscape}
                   isRatioFlipped={isRatioFlipped}
-                  setIsRatioFlipped={setIsRatioFlipped}
                 />
               )}
 
               {activeSection === 'borderSize' && (
                 <BorderSizeSection
                   onClose={closeDrawer}
-                  minBorder={minBorder}
-                  setMinBorder={setMinBorder}
-                  setMinBorderSlider={setMinBorderSlider}
+                  form={form}
                   minBorderWarning={minBorderWarning || undefined}
                 />
               )}
@@ -701,16 +858,9 @@ export function MobileBorderCalculator({
               {activeSection === 'positionOffsets' && (
                 <PositionOffsetsSection
                   onClose={closeDrawer}
+                  form={form}
                   enableOffset={enableOffset}
-                  setEnableOffset={setEnableOffset}
                   ignoreMinBorder={ignoreMinBorder}
-                  setIgnoreMinBorder={setIgnoreMinBorder}
-                  horizontalOffset={horizontalOffset}
-                  setHorizontalOffset={setHorizontalOffset}
-                  setHorizontalOffsetSlider={setHorizontalOffsetSlider}
-                  verticalOffset={verticalOffset}
-                  setVerticalOffset={setVerticalOffset}
-                  setVerticalOffsetSlider={setVerticalOffsetSlider}
                   offsetWarning={offsetWarning || undefined}
                 />
               )}

@@ -7,9 +7,11 @@ import type {
   ReciprocityCalculation,
   ReciprocityCalculatorState,
 } from '../types/reciprocity';
-
-const MAX_BAR_WIDTH = 300;
-const DEFAULT_METERED_TIME = '30s';
+import {
+  DEFAULT_RECIPROCITY_METERED_TIME,
+  DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
+  RECIPROCITY_MAX_BAR_WIDTH,
+} from '../constants/reciprocity-calculator-defaults';
 
 /**
  * Formats reciprocity time in seconds to human-readable string.
@@ -126,10 +128,16 @@ export function useReciprocityCalculator(): ReciprocityCalculatorState & {
   filmTypes: typeof RECIPROCITY_FILM_TYPES;
 } {
   const [filmType, setFilmType] = useState(RECIPROCITY_FILM_TYPES[0].value);
-  const [meteredTime, setMeteredTime] = useState(DEFAULT_METERED_TIME);
-  const [customFactor, setCustomFactor] = useState('1.3');
+  const [meteredTime, setMeteredTime] = useState(
+    DEFAULT_RECIPROCITY_METERED_TIME
+  );
+  const [customFactor, setCustomFactor] = useState(
+    DEFAULT_RECIPROCITY_CUSTOM_FACTOR
+  );
   const [formattedTime, setFormattedTime] = useState<string | null>(() => {
-    const initialSeconds = parseReciprocityTime(DEFAULT_METERED_TIME);
+    const initialSeconds = parseReciprocityTime(
+      DEFAULT_RECIPROCITY_METERED_TIME
+    );
     return initialSeconds !== null
       ? formatReciprocityTime(initialSeconds)
       : null;
@@ -184,9 +192,9 @@ export function useReciprocityCalculator(): ReciprocityCalculatorState & {
 
     const logScale = (time: number) =>
       Math.min(
-        MAX_BAR_WIDTH,
+        RECIPROCITY_MAX_BAR_WIDTH,
         (Math.log(time + 1) / Math.log(Math.max(adjustedTime, 10) + 1)) *
-          MAX_BAR_WIDTH
+          RECIPROCITY_MAX_BAR_WIDTH
       );
 
     const timeBarWidth = logScale(originalTime);
