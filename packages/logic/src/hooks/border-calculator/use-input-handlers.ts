@@ -9,6 +9,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { tryNumber, debounce } from '../../utils/input-validation';
+import { debugError } from '../../utils/debug-logger';
 import type {
   BorderCalculatorState,
   BorderCalculatorAction,
@@ -46,32 +47,34 @@ const VALID_PAPER_SIZES = new Set<PaperSizeValue>([
 
 /**
  * Validates and safely casts a value to AspectRatioValue
- * @throws Error if the value is not a valid AspectRatioValue
+ * @returns The valid AspectRatioValue or null if invalid
  */
-function validateAspectRatio(value: string): AspectRatioValue {
+function validateAspectRatio(value: string): AspectRatioValue | null {
   if (VALID_ASPECT_RATIOS.has(value as AspectRatioValue)) {
     return value as AspectRatioValue;
   }
-  throw new Error(
+  debugError(
     `Invalid aspect ratio value: "${value}". Expected one of: ${Array.from(
       VALID_ASPECT_RATIOS
     ).join(', ')}`
   );
+  return null;
 }
 
 /**
  * Validates and safely casts a value to PaperSizeValue
- * @throws Error if the value is not a valid PaperSizeValue
+ * @returns The valid PaperSizeValue or null if invalid
  */
-function validatePaperSize(value: string): PaperSizeValue {
+function validatePaperSize(value: string): PaperSizeValue | null {
   if (VALID_PAPER_SIZES.has(value as PaperSizeValue)) {
     return value as PaperSizeValue;
   }
-  throw new Error(
+  debugError(
     `Invalid paper size value: "${value}". Expected one of: ${Array.from(
       VALID_PAPER_SIZES
     ).join(', ')}`
   );
+  return null;
 }
 
 /**
@@ -178,14 +181,20 @@ export const useInputHandlers = (
   // Basic field setters
   const setAspectRatio = useCallback(
     (v: string) => {
-      dispatch({ type: 'SET_ASPECT_RATIO', value: validateAspectRatio(v) });
+      const validatedRatio = validateAspectRatio(v);
+      if (validatedRatio !== null) {
+        dispatch({ type: 'SET_ASPECT_RATIO', value: validatedRatio });
+      }
     },
     [dispatch]
   );
 
   const setPaperSize = useCallback(
     (v: string) => {
-      dispatch({ type: 'SET_PAPER_SIZE', value: validatePaperSize(v) });
+      const validatedSize = validatePaperSize(v);
+      if (validatedSize !== null) {
+        dispatch({ type: 'SET_PAPER_SIZE', value: validatedSize });
+      }
     },
     [dispatch]
   );

@@ -62,7 +62,11 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
           {label}
         </label>
       )}
-      {description && <p className="text-sm text-gray-500">{description}</p>}
+      {description && (
+        <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+          {description}
+        </p>
+      )}
       <input
         id={field.name}
         name={field.name}
