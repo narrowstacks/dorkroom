@@ -277,7 +277,7 @@ export default function ReciprocityCalculatorPage() {
               );
               const factor =
                 filmType === 'custom'
-                  ? customFactor
+                  ? Number.isFinite(customFactor) ? customFactor : 1.3
                   : selectedFilm?.factor ?? 1.3;
 
               const adjustedTime = Math.pow(parsedSeconds, factor);
@@ -502,7 +502,7 @@ export default function ReciprocityCalculatorPage() {
             );
             const factor =
               filmType === 'custom'
-                ? customFactor
+                ? Number.isFinite(customFactor) ? customFactor : 1.3
                 : selectedFilm?.factor ?? 1.3;
 
             const adjustedTime = Math.pow(parsedSeconds, factor);
