@@ -71,9 +71,12 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
         onChange={(e) => field.handleChange(e.target.value)}
         onBlur={field.handleBlur}
         placeholder={placeholder}
-        className={cn('tanstack-text-input w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2', {
-          'tanstack-text-input--error': hasErrors,
-        })}
+        className={cn(
+          'tanstack-text-input w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2',
+          {
+            'tanstack-text-input--error': hasErrors,
+          }
+        )}
         style={
           {
             '--border-color': hasErrors
@@ -85,7 +88,9 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
             backgroundColor: 'var(--color-surface-muted)',
             color: 'var(--color-text-primary)',
             '--tw-placeholder-color': 'var(--color-text-muted)',
-            '--tw-ring-color': hasErrors ? ringColorError : 'var(--color-border-primary)',
+            '--tw-ring-color': hasErrors
+              ? ringColorError
+              : 'var(--color-border-primary)',
           } as React.CSSProperties
         }
       />

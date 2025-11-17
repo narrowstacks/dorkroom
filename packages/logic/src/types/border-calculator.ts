@@ -66,8 +66,20 @@ export interface PaperSize extends SelectItem {
  *
  * @public
  */
-export type AspectRatioValue = 'custom' | '3:2' | '4:3' | '5:4' | '1:1' | '16:9';
-export type PaperSizeValue = 'custom' | '8x10' | '11x14' | '16x20' | '20x24' | '24x30';
+export type AspectRatioValue =
+  | 'custom'
+  | '3:2'
+  | '4:3'
+  | '5:4'
+  | '1:1'
+  | '16:9';
+export type PaperSizeValue =
+  | 'custom'
+  | '8x10'
+  | '11x14'
+  | '16x20'
+  | '20x24'
+  | '24x30';
 
 export interface BorderPresetSettings {
   /** Selected aspect ratio identifier */

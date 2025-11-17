@@ -30,14 +30,14 @@ The Dorkroom project is an ideal candidate for migrating to the TanStack ecosyst
 
 ### Key Outcomes
 
-| Metric | Current | After Migration | Impact |
-|--------|---------|----------------|--------|
-| Lines of Custom Code | ~800 | ~200-300 | **↓ 60-75%** |
-| Data Fetching Logic | 300 lines (custom) | ~50 lines (hooks) | **↓ 83%** |
-| Table/Pagination Code | 200 lines (custom) | ~80 lines (config) | **↓ 60%** |
-| Form Boilerplate | High | Low | **↓ 40-60%** |
-| Type Safety | Partial | Complete | **↑ 100%** |
-| Developer Experience | Good | Excellent | **↑ Significant** |
+| Metric                | Current            | After Migration    | Impact            |
+| --------------------- | ------------------ | ------------------ | ----------------- |
+| Lines of Custom Code  | ~800               | ~200-300           | **↓ 60-75%**      |
+| Data Fetching Logic   | 300 lines (custom) | ~50 lines (hooks)  | **↓ 83%**         |
+| Table/Pagination Code | 200 lines (custom) | ~80 lines (config) | **↓ 60%**         |
+| Form Boilerplate      | High               | Low                | **↓ 40-60%**      |
+| Type Safety           | Partial            | Complete           | **↑ 100%**        |
+| Developer Experience  | Good               | Excellent          | **↑ Significant** |
 
 ### Priority Rankings
 
@@ -66,6 +66,7 @@ Nx Workspace
 #### 1. Data Fetching (`packages/api/src/dorkroom/client.ts`)
 
 **Current Implementation:**
+
 - Custom `DorkroomClient` class (~200 lines)
 - Manual in-memory caching
 - Manual cache expiry (5-minute default)
@@ -75,6 +76,7 @@ Nx Workspace
 - Inconsistent loading/error states
 
 **Code Smell:**
+
 ```typescript
 // Custom cache management (to be replaced)
 private filmsCache: Film[] | null = null;
@@ -87,6 +89,7 @@ cacheExpiryMs: 5 * 60 * 1000
 #### 2. Tables (`packages/ui/src/components/development-recipes/results-table.tsx`)
 
 **Current Implementation:**
+
 - Custom HTML table (~150 lines)
 - Manual sorting logic
 - Custom pagination hook (`usePagination` ~50 lines)
@@ -95,6 +98,7 @@ cacheExpiryMs: 5 * 60 * 1000
 - No global filtering
 
 **Code Smell:**
+
 ```typescript
 // Manual pagination management (to be replaced)
 const { currentPage, totalPages, paginatedItems, ... } = usePagination(items, 24)
@@ -103,6 +107,7 @@ const { currentPage, totalPages, paginatedItems, ... } = usePagination(items, 24
 #### 3. Forms (`packages/ui/src/components/development-recipes/custom-recipe-form.tsx`)
 
 **Current Implementation:**
+
 - Fully custom form handling
 - useState for all fields (~15+ fields)
 - Manual validation
@@ -111,6 +116,7 @@ const { currentPage, totalPages, paginatedItems, ... } = usePagination(items, 24
 - No field-level error handling
 
 **Code Smell:**
+
 ```typescript
 // Manual form state management (to be replaced)
 const [formData, setFormData] = useState<CustomRecipeFormData>({
@@ -125,6 +131,7 @@ const [formData, setFormData] = useState<CustomRecipeFormData>({
 #### 4. Routing (`apps/dorkroom/src/app/app.tsx`)
 
 **Current Implementation:**
+
 - React Router DOM v6.29.0
 - Manual route definitions
 - Custom URL state management
@@ -132,6 +139,7 @@ const [formData, setFormData] = useState<CustomRecipeFormData>({
 - Manual navigation hooks
 
 **Code Smell:**
+
 ```typescript
 // String-based routing (to be replaced)
 <Route path="/" element={<HomePage />} />
@@ -145,6 +153,7 @@ const [formData, setFormData] = useState<CustomRecipeFormData>({
 ### Approach: Big Bang Migration
 
 **Rationale:**
+
 - Small, manageable codebase
 - Clear library boundaries
 - Faster time to unified developer experience
@@ -189,16 +198,17 @@ Phase 6: Testing & Optimization (2-4 days)
 
 #### Files to Modify
 
-| File | Action | Complexity |
-|------|--------|------------|
-| `packages/api/src/dorkroom/client.ts` | **DELETE** | Medium |
-| `packages/logic/src/hooks/development-recipes/use-development-recipes.ts` | **REWRITE** | Medium |
-| `packages/logic/src/services/filmdev-api.ts` | **CONVERT** | Low |
-| `apps/dorkroom/src/main.tsx` | **ADD PROVIDER** | Low |
+| File                                                                      | Action           | Complexity |
+| ------------------------------------------------------------------------- | ---------------- | ---------- |
+| `packages/api/src/dorkroom/client.ts`                                     | **DELETE**       | Medium     |
+| `packages/logic/src/hooks/development-recipes/use-development-recipes.ts` | **REWRITE**      | Medium     |
+| `packages/logic/src/services/filmdev-api.ts`                              | **CONVERT**      | Low        |
+| `apps/dorkroom/src/main.tsx`                                              | **ADD PROVIDER** | Low        |
 
 #### Implementation Pattern
 
 **Before:**
+
 ```typescript
 // packages/api/src/dorkroom/client.ts
 export class DorkroomClient {
@@ -214,6 +224,7 @@ export class DorkroomClient {
 ```
 
 **After:**
+
 ```typescript
 // packages/logic/src/hooks/use-films.ts
 import { useQuery } from '@tanstack/react-query';
@@ -262,24 +273,28 @@ export const queryKeys = {
 
 #### Files to Modify
 
-| File | Action | Complexity |
-|------|--------|------------|
-| `packages/ui/src/components/development-recipes/results-table.tsx` | **REWRITE** | Medium |
-| `packages/logic/src/hooks/use-pagination.ts` | **DELETE** | Low |
-| `packages/ui/src/components/development-recipes/results-cards.tsx` | **UPDATE** | Low |
+| File                                                               | Action      | Complexity |
+| ------------------------------------------------------------------ | ----------- | ---------- |
+| `packages/ui/src/components/development-recipes/results-table.tsx` | **REWRITE** | Medium     |
+| `packages/logic/src/hooks/use-pagination.ts`                       | **DELETE**  | Low        |
+| `packages/ui/src/components/development-recipes/results-cards.tsx` | **UPDATE**  | Low        |
 
 #### Implementation Pattern
 
 **Before:**
+
 ```typescript
 // Manual table with sorting
 const [sortConfig, setSortConfig] = useState({ key: 'film', direction: 'asc' });
 const sortedItems = useMemo(() => {
-  return [...items].sort((a, b) => { /* manual sorting */ });
+  return [...items].sort((a, b) => {
+    /* manual sorting */
+  });
 }, [items, sortConfig]);
 ```
 
 **After:**
+
 ```typescript
 // packages/ui/src/components/development-recipes/results-table.tsx
 import { useReactTable, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table';
@@ -288,7 +303,7 @@ const columns: ColumnDef<Recipe>[] = [
   {
     accessorKey: 'filmName',
     header: 'Film',
-    cell: info => info.getValue(),
+    cell: (info) => info.getValue(),
   },
   // ... more columns
 ];
@@ -354,14 +369,15 @@ export const recipeColumns: ColumnDef<Recipe>[] = [
 
 #### Files to Modify
 
-| File | Action | Complexity |
-|------|--------|------------|
-| `packages/ui/src/components/development-recipes/custom-recipe-form.tsx` | **REWRITE** | High |
-| `packages/ui/src/forms/` | **CREATE** | Medium |
+| File                                                                    | Action      | Complexity |
+| ----------------------------------------------------------------------- | ----------- | ---------- |
+| `packages/ui/src/components/development-recipes/custom-recipe-form.tsx` | **REWRITE** | High       |
+| `packages/ui/src/forms/`                                                | **CREATE**  | Medium     |
 
 #### Implementation Pattern
 
 **Before:**
+
 ```typescript
 // Manual form state
 const [formData, setFormData] = useState({
@@ -380,6 +396,7 @@ const handleSubmit = (e) => {
 ```
 
 **After:**
+
 ```typescript
 // packages/ui/src/components/development-recipes/custom-recipe-form.tsx
 import { useForm } from '@tanstack/react-form';
@@ -410,24 +427,19 @@ const CustomRecipeForm = () => {
   });
 
   return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      form.handleSubmit();
-    }}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        form.handleSubmit();
+      }}
+    >
       <form.Field
         name="name"
         validators={{
-          onChange: ({ value }) =>
-            value.length < 3 ? 'Name too short' : undefined,
+          onChange: ({ value }) => (value.length < 3 ? 'Name too short' : undefined),
         }}
       >
-        {(field) => (
-          <input
-            value={field.state.value}
-            onChange={(e) => field.handleChange(e.target.value)}
-            onBlur={field.handleBlur}
-          />
-        )}
+        {(field) => <input value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} onBlur={field.handleBlur} />}
       </form.Field>
       {/* More fields... */}
     </form>
@@ -454,15 +466,16 @@ const CustomRecipeForm = () => {
 
 #### Files to Modify
 
-| File | Action | Complexity |
-|------|--------|------------|
-| `apps/dorkroom/src/main.tsx` | **REPLACE PROVIDER** | Medium |
-| `apps/dorkroom/src/app/app.tsx` | **CONVERT ROUTES** | High |
-| All route components | **UPDATE HOOKS** | Medium |
+| File                            | Action               | Complexity |
+| ------------------------------- | -------------------- | ---------- |
+| `apps/dorkroom/src/main.tsx`    | **REPLACE PROVIDER** | Medium     |
+| `apps/dorkroom/src/app/app.tsx` | **CONVERT ROUTES**   | High       |
+| All route components            | **UPDATE HOOKS**     | Medium     |
 
 #### Implementation Pattern
 
 **Before:**
+
 ```typescript
 // apps/dorkroom/src/app/app.tsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -472,10 +485,11 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
     <Route path="/" element={<HomePage />} />
     <Route path="/border" element={<BorderCalculatorPage />} />
   </Routes>
-</BrowserRouter>
+</BrowserRouter>;
 ```
 
 **After:**
+
 ```typescript
 // apps/dorkroom/src/routes/__root.tsx
 import { createRootRoute, Outlet } from '@tanstack/react-router';
@@ -505,17 +519,19 @@ export const Route = createFileRoute('/border')({
 #### Type-Safe Navigation
 
 **Before:**
+
 ```typescript
 const navigate = useNavigate();
 navigate('/posts/123'); // String-based, no type safety
 ```
 
 **After:**
+
 ```typescript
 const navigate = useNavigate();
 navigate({
   to: '/posts/$postId',
-  params: { postId: '123' } // Type-safe, autocompleted
+  params: { postId: '123' }, // Type-safe, autocompleted
 });
 ```
 
@@ -608,6 +624,7 @@ ReactDOM.createRoot(rootElement).render(
 - [ ] Create query keys structure
 
 **Files:**
+
 ```
 packages/logic/src/hooks/
   ├── use-films.ts          (NEW)
@@ -623,6 +640,7 @@ packages/logic/src/hooks/
 - [ ] Add cache invalidation logic
 
 **Files:**
+
 ```
 packages/logic/src/hooks/
   ├── use-custom-recipes.ts     (NEW)
@@ -637,6 +655,7 @@ packages/logic/src/hooks/
 - [ ] Verify DevTools functionality
 
 **Files to Delete:**
+
 ```
 packages/api/src/dorkroom/client.ts ❌
 ```
@@ -652,6 +671,7 @@ packages/api/src/dorkroom/client.ts ❌
 - [ ] Configure pagination
 
 **Files:**
+
 ```
 packages/ui/src/components/development-recipes/
   ├── table-columns.tsx (NEW)
@@ -671,6 +691,7 @@ packages/ui/src/components/development-recipes/
 - [ ] Delete old pagination hook
 
 **Files to Delete:**
+
 ```
 packages/logic/src/hooks/use-pagination.ts ❌
 ```
@@ -686,6 +707,7 @@ packages/logic/src/hooks/use-pagination.ts ❌
 - [ ] Set up Zod schemas
 
 **Files:**
+
 ```
 packages/ui/src/forms/
   ├── form-factory.ts       (NEW)
@@ -720,6 +742,7 @@ packages/ui/src/forms/
 - [ ] Configure router provider
 
 **Files:**
+
 ```
 apps/dorkroom/src/routes/
   ├── __root.tsx            (NEW)
@@ -744,6 +767,7 @@ apps/dorkroom/src/routes/
 - [ ] Test navigation flows
 
 **Dependencies to Remove:**
+
 ```
 react-router-dom ❌
 ```
@@ -803,7 +827,7 @@ bun add -D @tanstack/react-query-devtools @tanstack/router-devtools
 ```json
 {
   "dependencies": {
-    "react-router-dom": "6.29.0"  // ❌ Remove after Router migration
+    "react-router-dom": "6.29.0" // ❌ Remove after Router migration
   }
 }
 ```
@@ -814,21 +838,21 @@ bun add -D @tanstack/react-query-devtools @tanstack/router-devtools
 
 ### Technical Risks
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Breaking existing features | Low | Medium | Incremental testing, feature-by-feature validation |
-| Performance regression | Very Low | Medium | TanStack libraries are highly optimized |
-| Learning curve | Medium | Low | Excellent documentation, many examples |
-| Type safety issues | Low | Low | Superior TypeScript support in TanStack |
-| Build failures | Low | Medium | Gradual migration, continuous testing |
+| Risk                       | Likelihood | Impact | Mitigation                                         |
+| -------------------------- | ---------- | ------ | -------------------------------------------------- |
+| Breaking existing features | Low        | Medium | Incremental testing, feature-by-feature validation |
+| Performance regression     | Very Low   | Medium | TanStack libraries are highly optimized            |
+| Learning curve             | Medium     | Low    | Excellent documentation, many examples             |
+| Type safety issues         | Low        | Low    | Superior TypeScript support in TanStack            |
+| Build failures             | Low        | Medium | Gradual migration, continuous testing              |
 
 ### Migration Risks
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Timeline overrun | Medium | Low | Buffer time included in estimate |
-| Scope creep | Low | Medium | Clear phase boundaries, resist feature additions |
-| Integration issues | Low | Medium | Test integration points between libraries |
+| Risk               | Likelihood | Impact | Mitigation                                       |
+| ------------------ | ---------- | ------ | ------------------------------------------------ |
+| Timeline overrun   | Medium     | Low    | Buffer time included in estimate                 |
+| Scope creep        | Low        | Medium | Clear phase boundaries, resist feature additions |
+| Integration issues | Low        | Medium | Test integration points between libraries        |
 
 ### Risk Mitigation Strategies
 
@@ -892,15 +916,19 @@ This section provides structured guidance for LLM agents implementing this migra
 ##### Pattern 1: Custom Data Fetching → TanStack Query
 
 **FIND:**
+
 ```typescript
 // Custom client class
 export class DorkroomClient {
   private cache: Data | null = null;
-  async fetchData() { /* ... */ }
+  async fetchData() {
+    /* ... */
+  }
 }
 ```
 
 **REPLACE WITH:**
+
 ```typescript
 import { useQuery } from '@tanstack/react-query';
 
@@ -916,12 +944,14 @@ export const useData = () => {
 ##### Pattern 2: Manual Table Sorting → TanStack Table
 
 **FIND:**
+
 ```typescript
 const [sort, setSort] = useState({ key: 'name', dir: 'asc' });
 const sorted = useMemo(() => items.sort(...), [items, sort]);
 ```
 
 **REPLACE WITH:**
+
 ```typescript
 import { useReactTable, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table';
 
@@ -936,33 +966,41 @@ const table = useReactTable({
 ##### Pattern 3: Manual Form State → TanStack Form
 
 **FIND:**
+
 ```typescript
 const [formData, setFormData] = useState({ name: '', age: 0 });
 const handleChange = (field) => (e) => setFormData({ ...formData, [field]: e.target.value });
 ```
 
 **REPLACE WITH:**
+
 ```typescript
 import { useForm } from '@tanstack/react-form';
 
 const form = useForm({
   defaultValues: { name: '', age: 0 },
-  onSubmit: async ({ value }) => { /* ... */ },
+  onSubmit: async ({ value }) => {
+    /* ... */
+  },
 });
 ```
 
 ##### Pattern 4: String Routes → Type-Safe Routes
 
 **FIND:**
+
 ```typescript
-<Link to="/posts/123">View Post</Link>
+<Link to="/posts/123">View Post</Link>;
 const navigate = useNavigate();
 navigate('/posts/123');
 ```
 
 **REPLACE WITH:**
+
 ```typescript
-<Link to="/posts/$postId" params={{ postId: '123' }}>View Post</Link>
+<Link to="/posts/$postId" params={{ postId: '123' }}>
+  View Post
+</Link>;
 const navigate = useNavigate();
 navigate({ to: '/posts/$postId', params: { postId: '123' } });
 ```
@@ -970,12 +1008,14 @@ navigate({ to: '/posts/$postId', params: { postId: '123' } });
 #### Implementation Checklist Per Phase
 
 **Phase 1 Checklist:**
+
 - [ ] Run installation command
 - [ ] Add QueryClientProvider to main.tsx
 - [ ] Verify DevTools appear in browser
 - [ ] Ensure build succeeds
 
 **Phase 2 Checklist:**
+
 - [ ] Create query hooks for each data type
 - [ ] Replace DorkroomClient usage with hooks
 - [ ] Test data fetching in browser
@@ -983,6 +1023,7 @@ navigate({ to: '/posts/$postId', params: { postId: '123' } });
 - [ ] Delete DorkroomClient.ts
 
 **Phase 3 Checklist:**
+
 - [ ] Define column types
 - [ ] Create table component
 - [ ] Replace old table component
@@ -990,6 +1031,7 @@ navigate({ to: '/posts/$postId', params: { postId: '123' } });
 - [ ] Delete usePagination hook
 
 **Phase 4 Checklist:**
+
 - [ ] Set up form factory
 - [ ] Create Zod schemas
 - [ ] Migrate forms one by one
@@ -997,6 +1039,7 @@ navigate({ to: '/posts/$postId', params: { postId: '123' } });
 - [ ] Verify error display
 
 **Phase 5 Checklist:**
+
 - [ ] Create route tree
 - [ ] Convert all route definitions
 - [ ] Update all Link components

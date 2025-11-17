@@ -104,7 +104,8 @@ export function PaperSetupSection({
                 const isCustom = value === 'custom';
                 if (isCustom) {
                   // For custom paper, calculate orientation based on actual dimensions
-                  const shouldBeLandscape = customAspectWidth < customAspectHeight;
+                  const shouldBeLandscape =
+                    customAspectWidth < customAspectHeight;
                   form.setFieldValue('isLandscape', shouldBeLandscape);
                 } else {
                   // For standard paper sizes, default to landscape

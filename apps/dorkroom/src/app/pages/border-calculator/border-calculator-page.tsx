@@ -15,7 +15,10 @@ import {
   BladeVisualizationSection,
   PresetsSection,
 } from '@dorkroom/ui';
-import { borderCalculatorSchema, createZodFormValidator } from '@dorkroom/ui/forms';
+import {
+  borderCalculatorSchema,
+  createZodFormValidator,
+} from '@dorkroom/ui/forms';
 import {
   AnimatedPreview,
   BorderInfoSection,
@@ -89,8 +92,15 @@ export default function BorderCalculatorPage() {
       });
 
       // Recalculate orientation for custom paper after loading from storage
-      if (parsed.paperSize === 'custom' && parsed.customPaperWidth !== undefined && parsed.customPaperHeight !== undefined) {
-        form.setFieldValue('isLandscape', parsed.customPaperWidth < parsed.customPaperHeight);
+      if (
+        parsed.paperSize === 'custom' &&
+        parsed.customPaperWidth !== undefined &&
+        parsed.customPaperHeight !== undefined
+      ) {
+        form.setFieldValue(
+          'isLandscape',
+          parsed.customPaperWidth < parsed.customPaperHeight
+        );
       }
     } catch (error) {
       console.warn('Failed to load calculator state', error);
@@ -237,7 +247,11 @@ export default function BorderCalculatorPage() {
   useEffect(() => {
     const currentPaperSize = form.getFieldValue('paperSize');
 
-    if (currentPaperSize === 'custom' && customPaperWidth > 0 && customPaperHeight > 0) {
+    if (
+      currentPaperSize === 'custom' &&
+      customPaperWidth > 0 &&
+      customPaperHeight > 0
+    ) {
       const shouldBeLandscape = customPaperWidth < customPaperHeight;
       const currentIsLandscape = form.getFieldValue('isLandscape');
 
@@ -263,10 +277,19 @@ export default function BorderCalculatorPage() {
     form.setFieldValue('showBladeReadings', settings.showBladeReadings);
     form.setFieldValue('isLandscape', settings.isLandscape);
     form.setFieldValue('isRatioFlipped', settings.isRatioFlipped);
-    form.setFieldValue('lastValidCustomAspectWidth', settings.customAspectWidth);
-    form.setFieldValue('lastValidCustomAspectHeight', settings.customAspectHeight);
+    form.setFieldValue(
+      'lastValidCustomAspectWidth',
+      settings.customAspectWidth
+    );
+    form.setFieldValue(
+      'lastValidCustomAspectHeight',
+      settings.customAspectHeight
+    );
     form.setFieldValue('lastValidCustomPaperWidth', settings.customPaperWidth);
-    form.setFieldValue('lastValidCustomPaperHeight', settings.customPaperHeight);
+    form.setFieldValue(
+      'lastValidCustomPaperHeight',
+      settings.customPaperHeight
+    );
     form.setFieldValue('lastValidMinBorder', settings.minBorder);
   };
 
@@ -357,7 +380,10 @@ export default function BorderCalculatorPage() {
 
   // URL preset loader
   const { loadedPreset, clearLoadedPreset } = useUrlPresetLoader({
-    onPresetLoaded: (preset: { name: string; settings: BorderPresetSettings }) => {
+    onPresetLoaded: (preset: {
+      name: string;
+      settings: BorderPresetSettings;
+    }) => {
       applyPresetSettings(preset.settings);
       setPresetName(preset.name);
       console.log(`Preset "${preset.name}" loaded from URL!`);
@@ -391,7 +417,10 @@ export default function BorderCalculatorPage() {
 
   // Wrapper for sharePreset to match useCalculatorSharing's expected signature
   const sharePresetWrapper = useCallback(
-    async (preset: { name: string; settings: BorderPresetSettings }, preferNative: boolean): Promise<void> => {
+    async (
+      preset: { name: string; settings: BorderPresetSettings },
+      preferNative: boolean
+    ): Promise<void> => {
       await sharePreset(preset, preferNative);
     },
     [sharePreset]

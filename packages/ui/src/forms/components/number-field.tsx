@@ -46,7 +46,10 @@ export const NumberField: React.FC<NumberFieldProps> = ({
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={field.name} className="text-sm font-medium text-gray-700">
+        <label
+          htmlFor={field.name}
+          className="text-sm font-medium text-gray-700"
+        >
           {label}
         </label>
       )}
@@ -76,9 +79,7 @@ export const NumberField: React.FC<NumberFieldProps> = ({
         </p>
       )}
       {showWarning && warning && (
-        <p className="text-sm text-amber-600">
-          ⚠ {warning}
-        </p>
+        <p className="text-sm text-amber-600">⚠ {warning}</p>
       )}
     </div>
   );

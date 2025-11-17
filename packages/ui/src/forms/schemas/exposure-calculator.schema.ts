@@ -15,4 +15,6 @@ export const exposureCalculatorSchema = z.object({
     .max(5, 'Stops adjustment cannot be more than +5'),
 });
 
-export type ExposureCalculatorFormData = z.infer<typeof exposureCalculatorSchema>;
+export type ExposureCalculatorFormData = z.infer<
+  typeof exposureCalculatorSchema
+>;

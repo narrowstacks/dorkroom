@@ -79,21 +79,23 @@ export function PreviewAndControlsSection({
 
       {(() => {
         const shouldShow = isCustomPaper ? isLandscape : !isLandscape;
-        return shouldShow && (
-          <div
-            className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
-            style={{
-              borderWidth: 1,
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-border-muted)',
-              color: 'var(--color-text-primary)',
-            }}
-          >
-            <strong className="font-semibold">Rotate your easel</strong>
-            <br />
-            Paper is in vertical orientation. Rotate your easel 90° to
-            match the blade readings.
-          </div>
+        return (
+          shouldShow && (
+            <div
+              className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
+              style={{
+                borderWidth: 1,
+                borderColor: 'var(--color-border-secondary)',
+                backgroundColor: 'var(--color-border-muted)',
+                color: 'var(--color-text-primary)',
+              }}
+            >
+              <strong className="font-semibold">Rotate your easel</strong>
+              <br />
+              Paper is in vertical orientation. Rotate your easel 90° to match
+              the blade readings.
+            </div>
+          )
         );
       })()}
 
@@ -107,12 +109,10 @@ export function PreviewAndControlsSection({
             color: 'var(--color-text-primary)',
           }}
         >
-          <strong className="font-semibold">
-            Non-standard paper
-          </strong>
+          <strong className="font-semibold">Non-standard paper</strong>
           <br />
-          Position paper in the {calculation.easelSizeLabel} slot all
-          the way to the left.
+          Position paper in the {calculation.easelSizeLabel} slot all the way to
+          the left.
         </div>
       )}
     </CalculatorCard>

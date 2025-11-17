@@ -1,4 +1,8 @@
-import type { BorderPresetSettings, AspectRatioValue, PaperSizeValue } from '../types/border-calculator';
+import type {
+  BorderPresetSettings,
+  AspectRatioValue,
+  PaperSizeValue,
+} from '../types/border-calculator';
 import { ASPECT_RATIOS, PAPER_SIZES } from '../constants/border-calculator';
 
 export interface PresetToShare {

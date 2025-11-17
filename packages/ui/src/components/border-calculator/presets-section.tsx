@@ -109,8 +109,7 @@ export function PresetsSection({
                 color: 'var(--color-primary)',
                 borderColor: 'var(--color-primary)',
                 borderWidth: 1,
-                backgroundColor:
-                  'rgba(var(--color-background-rgb), 0.06)',
+                backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
               }}
             >
               <Save className="h-4 w-4" />
@@ -124,8 +123,7 @@ export function PresetsSection({
                 color: 'var(--color-secondary)',
                 borderColor: 'var(--color-secondary)',
                 borderWidth: 1,
-                backgroundColor:
-                  'rgba(var(--color-background-rgb), 0.06)',
+                backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
               }}
             >
               <Save className="h-4 w-4" />
@@ -139,8 +137,7 @@ export function PresetsSection({
                 color: 'var(--color-accent)',
                 borderColor: 'var(--color-accent)',
                 borderWidth: 1,
-                backgroundColor:
-                  'rgba(var(--color-background-rgb), 0.06)',
+                backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
               }}
             >
               <Trash2 className="h-4 w-4" />

@@ -42,5 +42,9 @@ export const resizeCalculatorSchema = z
 export type ResizeCalculatorFormData = z.infer<typeof resizeCalculatorSchema>;
 
 // Export type discriminations for easier use
-export type ResizePrintSizeMode = ResizeCalculatorFormData & { isEnlargerHeightMode: false };
-export type ResizeEnlargerHeightMode = ResizeCalculatorFormData & { isEnlargerHeightMode: true };
+export type ResizePrintSizeMode = ResizeCalculatorFormData & {
+  isEnlargerHeightMode: false;
+};
+export type ResizeEnlargerHeightMode = ResizeCalculatorFormData & {
+  isEnlargerHeightMode: true;
+};

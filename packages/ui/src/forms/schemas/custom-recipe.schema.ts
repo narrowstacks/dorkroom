@@ -24,10 +24,7 @@ export const customFilmSchema = z.object({
     .string()
     .max(200, 'Grain structure description is too long')
     .optional(),
-  description: z
-    .string()
-    .max(500, 'Film description is too long')
-    .optional(),
+  description: z.string().max(500, 'Film description is too long').optional(),
 });
 
 // Custom Developer Schema
@@ -53,18 +50,12 @@ export const customDeveloperSchema = z.object({
     .number()
     .min(0, 'Stock life cannot be negative')
     .optional(),
-  notes: z
-    .string()
-    .max(500, 'Developer notes are too long')
-    .optional(),
+  notes: z.string().max(500, 'Developer notes are too long').optional(),
   mixingInstructions: z
     .string()
     .max(1000, 'Mixing instructions are too long')
     .optional(),
-  safetyNotes: z
-    .string()
-    .max(500, 'Safety notes are too long')
-    .optional(),
+  safetyNotes: z.string().max(500, 'Safety notes are too long').optional(),
   dilutions: z
     .array(
       z.object({
@@ -113,10 +104,7 @@ export const customRecipeSchema = z
       .max(200, 'Custom dilution is too long')
       .optional(),
 
-    notes: z
-      .string()
-      .max(1000, 'Recipe notes are too long')
-      .optional(),
+    notes: z.string().max(1000, 'Recipe notes are too long').optional(),
 
     isPublic: z.boolean().default(false),
     isFavorite: z.boolean().default(false),
@@ -153,7 +141,8 @@ export const customRecipeSchema = z
       return !!data.customDeveloper;
     },
     {
-      message: 'Either select an existing developer or provide custom developer details',
+      message:
+        'Either select an existing developer or provide custom developer details',
       path: ['selectedDeveloperId'],
     }
   );

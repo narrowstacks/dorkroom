@@ -104,10 +104,12 @@ export const useDevelopmentRecipes = (
     });
 
     // Sort by brand and name
-    return films.slice().sort(
-      (a: Film, b: Film) =>
-        a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name)
-    );
+    return films
+      .slice()
+      .sort(
+        (a: Film, b: Film) =>
+          a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name)
+      );
   }, [filmsQuery.data]);
 
   const allDevelopers = useMemo(() => {
@@ -119,11 +121,13 @@ export const useDevelopmentRecipes = (
     );
 
     // Sort by manufacturer and name
-    return developers.slice().sort(
-      (a: Developer, b: Developer) =>
-        a.manufacturer.localeCompare(b.manufacturer) ||
-        a.name.localeCompare(b.name)
-    );
+    return developers
+      .slice()
+      .sort(
+        (a: Developer, b: Developer) =>
+          a.manufacturer.localeCompare(b.manufacturer) ||
+          a.name.localeCompare(b.name)
+      );
   }, [developersQuery.data]);
 
   const allCombinations = combinationsQuery.data || [];
@@ -159,13 +163,16 @@ export const useDevelopmentRecipes = (
   }, []);
 
   // Combined loading and error states
-  const isLoading = filmsQuery.isPending ||
+  const isLoading =
+    filmsQuery.isPending ||
     developersQuery.isPending ||
     combinationsQuery.isPending;
-  const isLoaded = filmsQuery.isSuccess &&
+  const isLoaded =
+    filmsQuery.isSuccess &&
     developersQuery.isSuccess &&
     combinationsQuery.isSuccess;
-  const error = filmsQuery.error?.message ||
+  const error =
+    filmsQuery.error?.message ||
     developersQuery.error?.message ||
     combinationsQuery.error?.message ||
     null;
@@ -261,7 +268,9 @@ export const useDevelopmentRecipes = (
     combinations.forEach((combo) => {
       // Handle null/undefined dilutionId by using null-safe lookup
       const foundDilution = combo.dilutionId
-        ? selectedDeveloper.dilutions?.find((d: Dilution) => d.id === combo.dilutionId)
+        ? selectedDeveloper.dilutions?.find(
+            (d: Dilution) => d.id === combo.dilutionId
+          )
         : null;
 
       // Priority: customDilution > developer dilution lookup > fallback to 'Stock'
@@ -419,7 +428,9 @@ export const useDevelopmentRecipes = (
       combinations = combinations.filter((combo) => {
         // Handle null/undefined dilutionId by using null-safe lookup
         const foundDilution = combo.dilutionId
-          ? selectedDeveloper.dilutions?.find((d: Dilution) => d.id === combo.dilutionId)
+          ? selectedDeveloper.dilutions?.find(
+              (d: Dilution) => d.id === combo.dilutionId
+            )
           : null;
 
         // Priority: customDilution > developer dilution lookup > fallback to 'Stock'

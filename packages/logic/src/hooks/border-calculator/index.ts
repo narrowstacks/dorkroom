@@ -156,7 +156,10 @@ export const useBorderCalculator = () => {
 export default useBorderCalculator;
 
 // Re-export sub-hooks for testing or advanced usage
-export { useBorderCalculatorState, initialState } from './use-border-calculator-state';
+export {
+  useBorderCalculatorState,
+  initialState,
+} from './use-border-calculator-state';
 export { useDimensionCalculations } from './use-dimension-calculations';
 export { useGeometryCalculations } from './use-geometry-calculations';
 export { useWarningSystem } from './use-warning-system';

@@ -9,7 +9,14 @@ const dimensionNumber = z
   .min(0, 'Value must be non-negative')
   .max(1000, 'Value is too large');
 
-const aspectRatioOptions = ['3:2', '4:3', '5:4', '1:1', '16:9', 'custom'] as const;
+const aspectRatioOptions = [
+  '3:2',
+  '4:3',
+  '5:4',
+  '1:1',
+  '16:9',
+  'custom',
+] as const;
 const paperSizeOptions = [
   '8x10',
   '11x14',

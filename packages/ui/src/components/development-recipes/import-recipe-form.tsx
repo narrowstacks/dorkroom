@@ -95,7 +95,8 @@ export function ImportRecipeForm({
               disabled={!canSubmit || isProcessing || isSubmitting}
               className={cn(
                 'rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90',
-                (!canSubmit || isProcessing || isSubmitting) && 'cursor-not-allowed opacity-70'
+                (!canSubmit || isProcessing || isSubmitting) &&
+                  'cursor-not-allowed opacity-70'
               )}
             >
               {isProcessing || isSubmitting ? 'Importing…' : 'Import recipe'}

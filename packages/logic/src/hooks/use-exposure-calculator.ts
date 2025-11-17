@@ -148,7 +148,9 @@ export const useExposureCalculator = () => {
   const calculation = useMemo((): ExposureCalculation | null => {
     const originalTimeValue = parseExposureTime(state.originalTime);
     const stopsValue = parseFloat(state.stops);
-    const newTimeValue = state.newTime ? parseExposureTime(state.newTime) : null;
+    const newTimeValue = state.newTime
+      ? parseExposureTime(state.newTime)
+      : null;
 
     if (
       originalTimeValue === null ||

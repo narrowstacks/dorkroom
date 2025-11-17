@@ -44,6 +44,7 @@ import {
   cn,
 } from '@dorkroom/ui';
 import type { Combination, Film, Developer } from '@dorkroom/api';
+import { useTheme } from '../../contexts/theme-context';
 
 const CUSTOM_RECIPE_FORM_DEFAULT: CustomRecipeFormData = {
   name: '',
@@ -202,6 +203,11 @@ export default function DevelopmentRecipesPage() {
   ]);
   const [pageIndex, setPageIndex] = useState(0);
   const resultsContainerRef = useRef<HTMLDivElement>(null);
+  const { animationsEnabled } = useTheme();
+  const [favoriteTransitions, setFavoriteTransitions] = useState<
+    Map<string, 'adding' | 'removing'>
+  >(new Map());
+  const transitionTimeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   // Scroll to top of results when page changes, accounting for floating navbar
   useEffect(() => {
@@ -655,9 +661,56 @@ export default function DevelopmentRecipesPage() {
   );
 
   const handleToggleFavorite = useCallback(
-    (view: DevelopmentCombinationView) =>
-      toggleFavorite(String(view.combination.uuid || view.combination.id)),
-    [toggleFavorite]
+    (view: DevelopmentCombinationView) => {
+      const id = String(view.combination.uuid || view.combination.id);
+
+      if (!animationsEnabled) {
+        toggleFavorite(id);
+        return;
+      }
+
+      // Determine if adding or removing favorite
+      const isCurrentlyFavorite = isFavorite(id);
+      const transitionType = isCurrentlyFavorite ? 'removing' : 'adding';
+
+      // Add to transition state
+      setFavoriteTransitions((prev) => new Map(prev).set(id, transitionType));
+
+      // Clear any existing timeout for this ID
+      const existingTimeout = transitionTimeoutRefs.current.get(id);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+      }
+
+      // Set timeout for skeleton animation duration (500ms)
+      const timeout = setTimeout(() => {
+        toggleFavorite(id);
+
+        // For off-page items, show message skeleton for 2 seconds after toggle
+        if (transitionType === 'adding' && pageIndex > 0) {
+          const messageTimeout = setTimeout(() => {
+            setFavoriteTransitions((prev) => {
+              const newMap = new Map(prev);
+              newMap.delete(id);
+              return newMap;
+            });
+            transitionTimeoutRefs.current.delete(id);
+          }, 2000);
+          transitionTimeoutRefs.current.set(id, messageTimeout);
+        } else {
+          // Remove from transition state after animation completes
+          setFavoriteTransitions((prev) => {
+            const newMap = new Map(prev);
+            newMap.delete(id);
+            return newMap;
+          });
+          transitionTimeoutRefs.current.delete(id);
+        }
+      }, 500);
+
+      transitionTimeoutRefs.current.set(id, timeout);
+    },
+    [toggleFavorite, isFavorite, animationsEnabled, pageIndex]
   );
 
   // Memoize the isFavorite function for use in table sorting
@@ -1230,11 +1283,13 @@ export default function DevelopmentRecipesPage() {
                   onCopyCombination={handleCopyCombination}
                   onEditCustomRecipe={handleEditCustomRecipe}
                   onDeleteCustomRecipe={handleDeleteCustomRecipe}
+                  favoriteTransitions={favoriteTransitions}
                 />
               ) : (
                 <DevelopmentResultsTable
                   table={table}
                   onSelectCombination={handleOpenDetail}
+                  favoriteTransitions={favoriteTransitions}
                 />
               )}
             </div>

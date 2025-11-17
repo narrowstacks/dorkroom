@@ -38,7 +38,10 @@ export const TextareaField: React.FC<TextareaFieldProps> = ({
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={field.name} className="text-sm font-medium text-gray-700">
+        <label
+          htmlFor={field.name}
+          className="text-sm font-medium text-gray-700"
+        >
           {label}
         </label>
       )}

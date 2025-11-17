@@ -31,7 +31,10 @@ const readRecipesFromStorage = (): CustomRecipe[] => {
     const parsed = JSON.parse(raw) as CustomRecipe[];
     return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
-    debugError('[useCustomRecipeMutations] Failed to parse stored recipes:', error);
+    debugError(
+      '[useCustomRecipeMutations] Failed to parse stored recipes:',
+      error
+    );
     return [];
   }
 };
@@ -60,7 +63,9 @@ const createRecipeFromFormData = (
     : base?.filmId ?? `custom_film_${timestamp}`;
 
   const developerId = formData.useExistingDeveloper
-    ? formData.selectedDeveloperId || base?.developerId || `fallback_dev_${timestamp}`
+    ? formData.selectedDeveloperId ||
+      base?.developerId ||
+      `fallback_dev_${timestamp}`
     : base?.developerId ?? `custom_dev_${timestamp}`;
 
   return {
@@ -104,7 +109,9 @@ export function useAddCustomRecipe() {
     CustomRecipeFormData,
     { previousRecipes: CustomRecipe[] }
   >({
-    mutationFn: async (formData: CustomRecipeFormData): Promise<CustomRecipe> => {
+    mutationFn: async (
+      formData: CustomRecipeFormData
+    ): Promise<CustomRecipe> => {
       const newRecipe = createRecipeFromFormData(formData);
       const currentRecipes = readRecipesFromStorage();
       writeRecipesToStorage([...currentRecipes, newRecipe]);
@@ -212,12 +219,7 @@ export function useDeleteCustomRecipe() {
   const queryClient = useQueryClient();
   const queryKey = CUSTOM_RECIPES_QUERY_KEY;
 
-  return useMutation<
-    void,
-    Error,
-    string,
-    { previousRecipes: CustomRecipe[] }
-  >({
+  return useMutation<void, Error, string, { previousRecipes: CustomRecipe[] }>({
     mutationFn: async (id: string): Promise<void> => {
       const currentRecipes = readRecipesFromStorage();
       const updatedRecipes = currentRecipes.filter(
@@ -254,12 +256,7 @@ export function useClearCustomRecipes() {
   const queryClient = useQueryClient();
   const queryKey = CUSTOM_RECIPES_QUERY_KEY;
 
-  return useMutation<
-    void,
-    Error,
-    void,
-    { previousRecipes: CustomRecipe[] }
-  >({
+  return useMutation<void, Error, void, { previousRecipes: CustomRecipe[] }>({
     mutationFn: async (): Promise<void> => {
       writeRecipesToStorage([]);
     },

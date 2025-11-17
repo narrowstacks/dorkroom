@@ -12,7 +12,10 @@ interface UsePresetManagementProps {
   defaultPresets: PresetWithSettings[];
   currentSettings: BorderPresetSettings;
   onAddPreset: (preset: PresetWithSettings) => void;
-  onUpdatePreset: (id: string, data: { name: string; settings: BorderPresetSettings }) => void;
+  onUpdatePreset: (
+    id: string,
+    data: { name: string; settings: BorderPresetSettings }
+  ) => void;
   onRemovePreset: (id: string) => void;
   onApplySettings: (settings: BorderPresetSettings) => void;
 }

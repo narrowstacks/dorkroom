@@ -11,7 +11,10 @@ interface UseCalculatorSharingProps {
   presets: PresetWithSettings[];
   currentSettings: BorderPresetSettings;
   presetName: string;
-  getSharingUrls: (preset: { name: string; settings: BorderPresetSettings }) => {
+  getSharingUrls: (preset: {
+    name: string;
+    settings: BorderPresetSettings;
+  }) => {
     webUrl: string;
     nativeUrl: string;
   } | null;

@@ -119,7 +119,6 @@ export function useDevelopmentTable({
   onPageIndexChange,
   isFavorite,
 }: UseDevelopmentTableOptions) {
-
   const paginationState = useMemo(
     () => ({ pageIndex, pageSize: PAGE_SIZE } satisfies PaginationState),
     [pageIndex]

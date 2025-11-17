@@ -27,7 +27,10 @@ export default defineConfig(() => ({
   resolve: {
     alias: {
       '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src'),
-      '@dorkroom/logic': resolve(__dirname, '../../packages/logic/dist/index.js'),
+      '@dorkroom/logic': resolve(
+        __dirname,
+        '../../packages/logic/dist/index.js'
+      ),
       '@dorkroom/api': resolve(__dirname, '../../packages/api/dist/index.js'),
     },
   },

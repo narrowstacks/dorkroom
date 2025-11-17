@@ -37,7 +37,9 @@ const baseFormData: CustomRecipeFormData = {
   isFavorite: false,
 };
 
-const createStoredRecipe = (overrides: Partial<CustomRecipe> = {}): CustomRecipe => ({
+const createStoredRecipe = (
+  overrides: Partial<CustomRecipe> = {}
+): CustomRecipe => ({
   id: overrides.id ?? 'custom_recipe',
   name: overrides.name ?? 'Stored Recipe',
   filmId: overrides.filmId ?? 'film-1',
@@ -180,7 +182,10 @@ describe('custom recipe mutations', () => {
   it('clears recipes via useClearCustomRecipes', async () => {
     const { queryClient, wrapper } = createTestHarness();
     const queryKey = getQueryKey();
-    const existing = [createStoredRecipe({ id: 'one' }), createStoredRecipe({ id: 'two', name: 'Second' })];
+    const existing = [
+      createStoredRecipe({ id: 'one' }),
+      createStoredRecipe({ id: 'two', name: 'Second' }),
+    ];
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
     queryClient.setQueryData(queryKey, existing);
 

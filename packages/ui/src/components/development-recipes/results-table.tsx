@@ -8,6 +8,8 @@ import type {
 import { flexRender } from '@tanstack/react-table';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
+import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
+import { SkeletonTableRow } from '../ui/skeleton';
 
 export interface DevelopmentCombinationView {
   combination: import('@dorkroom/api').Combination;
@@ -21,11 +23,13 @@ export interface DevelopmentCombinationView {
 interface DevelopmentResultsTableProps {
   table: Table<DevelopmentCombinationView>;
   onSelectCombination?: (view: DevelopmentCombinationView) => void;
+  favoriteTransitions?: Map<string, 'adding' | 'removing'>;
 }
 
 export function DevelopmentResultsTable({
   table,
   onSelectCombination,
+  favoriteTransitions = new Map(),
 }: DevelopmentResultsTableProps) {
   const rows = table.getRowModel().rows;
   const headerGroups = table.getHeaderGroups();
@@ -133,6 +137,26 @@ export function DevelopmentResultsTable({
               rows.map(
                 (row: Row<DevelopmentCombinationView>, index: number) => {
                   const rowData = row.original;
+                  const id = String(
+                    rowData.combination.uuid || rowData.combination.id
+                  );
+                  const transitionState = favoriteTransitions.get(id);
+
+                  // Show skeleton or message during transition
+                  if (transitionState) {
+                    if (transitionState === 'adding') {
+                      return (
+                        <FavoriteMessageSkeleton
+                          key={`transition-${id}`}
+                          message="Added to favorites"
+                          variant="row"
+                        />
+                      );
+                    } else if (transitionState === 'removing') {
+                      return <SkeletonTableRow key={`transition-${id}`} />;
+                    }
+                  }
+
                   return (
                     <tr
                       key={row.id}

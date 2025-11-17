@@ -9,6 +9,8 @@ import { colorMixOr } from '../../lib/color';
 import { Tag } from '../ui/tag';
 import { ShareButton } from '../share-button';
 import type { ShareResult } from '../share-button';
+import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
+import { SkeletonCard } from '../ui/skeleton';
 
 interface DevelopmentResultsCardsProps {
   table: Table<DevelopmentCombinationView>;
@@ -22,6 +24,7 @@ interface DevelopmentResultsCardsProps {
   isMobile?: boolean;
   isFavorite?: (view: DevelopmentCombinationView) => boolean;
   onToggleFavorite?: (view: DevelopmentCombinationView) => void;
+  favoriteTransitions?: Map<string, 'adding' | 'removing'>;
 }
 
 const formatTime = (minutes: number) => {
@@ -67,6 +70,7 @@ export function DevelopmentResultsCards({
   isMobile = false,
   isFavorite,
   onToggleFavorite,
+  favoriteTransitions = new Map(),
 }: DevelopmentResultsCardsProps) {
   const { unit } = useTemperature();
   const rows = table.getRowModel().rows;
@@ -82,6 +86,24 @@ export function DevelopmentResultsCards({
       {rows.map((row: Row<DevelopmentCombinationView>, index: number) => {
         const rowData = row.original;
         const { combination, film, developer } = rowData;
+        const id = String(combination.uuid || combination.id);
+        const transitionState = favoriteTransitions.get(id);
+
+        // Show skeleton or message during transition
+        if (transitionState) {
+          if (transitionState === 'adding') {
+            return (
+              <FavoriteMessageSkeleton
+                key={`transition-${id}`}
+                message="Added to favorites"
+                variant="card"
+              />
+            );
+          } else if (transitionState === 'removing') {
+            return <SkeletonCard key={`transition-${id}`} />;
+          }
+        }
+
         return (
           <div
             key={combination.uuid || combination.id}

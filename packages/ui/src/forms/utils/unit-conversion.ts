@@ -23,7 +23,10 @@ export const toInches = (value: number, isMetric: boolean = false): number => {
  * @param isMetric - Whether to convert to metric (cm) or keep as imperial (inches)
  * @returns Value in display units
  */
-export const fromInches = (inches: number, isMetric: boolean = false): number => {
+export const fromInches = (
+  inches: number,
+  isMetric: boolean = false
+): number => {
   if (!Number.isFinite(inches)) return NaN;
   if (isMetric) {
     return inches * 2.54; // inches to cm
@@ -150,7 +153,10 @@ export const formatTimeString = (seconds: number): string => {
  * @param adjustedTime - New exposure time in seconds
  * @returns Number of stops difference
  */
-export const calculateStops = (originalTime: number, adjustedTime: number): number => {
+export const calculateStops = (
+  originalTime: number,
+  adjustedTime: number
+): number => {
   if (originalTime <= 0 || adjustedTime <= 0) return 0;
   return Math.log2(adjustedTime / originalTime);
 };
@@ -161,7 +167,10 @@ export const calculateStops = (originalTime: number, adjustedTime: number): numb
  * @param stops - Number of stops to adjust
  * @returns New exposure time in seconds
  */
-export const calculateNewTime = (originalTime: number, stops: number): number => {
+export const calculateNewTime = (
+  originalTime: number,
+  stops: number
+): number => {
   if (originalTime <= 0) return 0;
   return originalTime * Math.pow(2, stops);
 };

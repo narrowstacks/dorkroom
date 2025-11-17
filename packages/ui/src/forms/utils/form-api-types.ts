@@ -58,4 +58,17 @@ export interface FieldApi<TValue = unknown> {
  * @eslint-disable-next-line @typescript-eslint/no-explicit-any
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type FormInstance = ReactFormExtendedApi<any, any, any, any, any, any, any, any, any, any, any, any>;
+export type FormInstance = ReactFormExtendedApi<
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any
+>;
