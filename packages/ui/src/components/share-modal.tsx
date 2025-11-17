@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { cn } from '../lib/cn';
 import { colorMixOr } from '../lib/color';
+import { debugError } from '@dorkroom/logic';
 
 export interface ShareModalProps {
   isOpen: boolean;
@@ -60,7 +61,7 @@ export function ShareModal({
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (error) {
-      console.error('Failed to copy:', error);
+      debugError('Failed to copy:', error);
     }
   };
 
@@ -71,7 +72,7 @@ export function ShareModal({
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (error) {
-      console.error('Failed to copy:', error);
+      debugError('Failed to copy:', error);
     }
   };
 
@@ -81,7 +82,7 @@ export function ShareModal({
       setIsSharing(true);
       await onNativeShare();
     } catch (error) {
-      console.error('Failed to share:', error);
+      debugError('Failed to share:', error);
     } finally {
       setIsSharing(false);
     }

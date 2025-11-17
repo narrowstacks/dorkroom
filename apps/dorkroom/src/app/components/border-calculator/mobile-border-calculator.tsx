@@ -42,6 +42,8 @@ import {
   useDimensionCalculations,
   useGeometryCalculations,
   shallowEqual,
+  debugLog,
+  debugError,
   type BorderPreset,
   type BorderCalculatorState,
   type BorderPresetSettings,
@@ -296,13 +298,13 @@ export function MobileBorderCalculator({
   } = usePresetSharing({
     onShareSuccess: (result) => {
       if (result.method === 'clipboard') {
-        console.log('Preset link copied to clipboard!');
+        debugLog('Preset link copied to clipboard!');
       } else if (result.method === 'native') {
         setIsShareModalOpen(false);
       }
     },
     onShareError: (error) => {
-      console.error('Sharing failed:', error);
+      debugError('Sharing failed:', error);
     },
   });
 

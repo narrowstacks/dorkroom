@@ -12,6 +12,8 @@ import {
   useFavorites,
   getCustomRecipeFilm,
   getCustomRecipeDeveloper,
+  debugLog,
+  debugError,
   type CustomRecipeFormData,
   isFilmdevInput,
   extractRecipeId,
@@ -662,7 +664,7 @@ export default function DevelopmentRecipesPage() {
           setDetailView(null);
         }
       } catch (error) {
-        console.error('Failed to delete custom recipe:', error);
+        debugError('Failed to delete custom recipe:', error);
         window.alert('Failed to delete the recipe. Please try again.');
       }
     },
@@ -1082,14 +1084,14 @@ export default function DevelopmentRecipesPage() {
   // No manual loadData() call needed - it fetches on component mount
 
   const handleRefreshAll = useCallback(async () => {
-    console.log('🎯 handleRefreshAll() triggered from Refresh button');
+    debugLog('🎯 handleRefreshAll() triggered from Refresh button');
     setIsRefreshingData(true);
     try {
-      console.log('Calling forceRefresh() and refreshCustomRecipes()...');
+      debugLog('Calling forceRefresh() and refreshCustomRecipes()...');
       await Promise.all([forceRefresh(), refreshCustomRecipes()]);
-      console.log('✅ All refreshes completed');
+      debugLog('✅ All refreshes completed');
     } catch (error) {
-      console.error('❌ handleRefreshAll error:', error);
+      debugError('❌ handleRefreshAll error:', error);
     } finally {
       setIsRefreshingData(false);
     }

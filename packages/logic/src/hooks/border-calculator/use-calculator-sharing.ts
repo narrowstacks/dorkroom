@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { BorderPresetSettings } from '../../types/border-calculator';
+import { debugError } from '../../utils/debug-logger';
 
 interface PresetWithSettings {
   id: string;
@@ -83,7 +84,7 @@ export function useCalculatorSharing({
           setShareUrls(urls);
           setIsShareModalOpen(true);
         } else {
-          console.error('Failed to generate sharing URLs for saved preset');
+          debugError('Failed to generate sharing URLs for saved preset');
           // Still open modal to show error state
           setShareUrls(null);
           setIsShareModalOpen(true);
@@ -100,7 +101,7 @@ export function useCalculatorSharing({
             setShareUrls(urls);
             setIsShareModalOpen(true);
           } else {
-            console.error('Failed to generate sharing URLs for named settings');
+            debugError('Failed to generate sharing URLs for named settings');
             setShareUrls(null);
             setIsShareModalOpen(true);
           }
@@ -110,7 +111,7 @@ export function useCalculatorSharing({
         }
       }
     } catch (error) {
-      console.error('Error during share URL generation:', error);
+      debugError('Error during share URL generation:', error);
       setShareUrls(null);
       setIsShareModalOpen(true);
     } finally {
@@ -138,13 +139,13 @@ export function useCalculatorSharing({
         setShareUrls(urls);
         setIsShareModalOpen(true);
       } else {
-        console.error('Failed to generate sharing URLs after saving preset');
+        debugError('Failed to generate sharing URLs after saving preset');
         // Still open modal to show error state
         setShareUrls(null);
         setIsShareModalOpen(true);
       }
     } catch (error) {
-      console.error('Error during save and share:', error);
+      debugError('Error during save and share:', error);
       setIsSaveBeforeShareOpen(false);
       setShareUrls(null);
       setIsShareModalOpen(true);
@@ -159,7 +160,7 @@ export function useCalculatorSharing({
     try {
       await navigator.clipboard.writeText(url);
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
+      debugError('Failed to copy to clipboard:', error);
       throw error;
     }
   };
@@ -177,7 +178,7 @@ export function useCalculatorSharing({
         true // prefer native share
       );
     } catch (error) {
-      console.error('Native share failed:', error);
+      debugError('Native share failed:', error);
       throw error;
     }
   };

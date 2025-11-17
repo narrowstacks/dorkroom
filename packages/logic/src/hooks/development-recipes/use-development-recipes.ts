@@ -10,7 +10,7 @@ import { useFilms } from '../api/use-films';
 import { useDevelopers } from '../api/use-developers';
 import { useCombinations } from '../api/use-combinations';
 import { queryKeys } from '../../queries/query-keys';
-import { debugError } from '../../utils/debug-logger';
+import { debugError, debugLog } from '../../utils/debug-logger';
 import type { InitialUrlState } from '../../types/development-recipes-url';
 
 export type CustomRecipeFilter = 'all' | 'hide-custom' | 'only-custom';
@@ -179,8 +179,8 @@ export const useDevelopmentRecipes = (
 
   // Force refresh via TanStack Query refetch
   const forceRefresh = useCallback(async () => {
-    console.log('🔄 forceRefresh() called');
-    console.log('Query keys to refetch:', {
+    debugLog('🔄 forceRefresh() called');
+    debugLog('Query keys to refetch:', {
       films: queryKeys.films.list(),
       developers: queryKeys.developers.list(),
       combinations: queryKeys.combinations.list(),
@@ -188,19 +188,19 @@ export const useDevelopmentRecipes = (
     try {
       // Refetch all queries to ensure fresh data
       // Use exact query keys from queryKeys factory to match the queries created by the hooks
-      console.log('Starting refetch for all queries...');
+      debugLog('Starting refetch for all queries...');
       const results = await Promise.all([
         queryClient.refetchQueries({ queryKey: queryKeys.films.list() }),
         queryClient.refetchQueries({ queryKey: queryKeys.developers.list() }),
         queryClient.refetchQueries({ queryKey: queryKeys.combinations.list() }),
       ]);
-      console.log('✅ Refetch completed successfully', results);
+      debugLog('✅ Refetch completed successfully', results);
     } catch (err) {
       const errorMessage =
         err instanceof Error
           ? err.message
           : 'Failed to refresh development data';
-      console.error('❌ Refetch failed:', errorMessage, err);
+      debugError('❌ Refetch failed:', errorMessage, err);
       debugError('Failed to refresh development recipes data:', err);
       throw errorMessage;
     }

@@ -37,6 +37,8 @@ import {
   usePresetManagement,
   useCalculatorSharing,
   shallowEqual,
+  debugLog,
+  debugError,
   type SelectItem,
   type BorderCalculatorState,
   type BorderPresetSettings,
@@ -368,13 +370,13 @@ export default function BorderCalculatorPage() {
     onShareSuccess: (result) => {
       if (result.method === 'clipboard') {
         // Show success toast for clipboard copy
-        console.log('Preset link copied to clipboard!');
+        debugLog('Preset link copied to clipboard!');
       } else if (result.method === 'native') {
         setIsShareModalOpen(false);
       }
     },
     onShareError: (error: string) => {
-      console.error('Sharing failed:', error);
+      debugError('Sharing failed:', error);
     },
   });
 
@@ -386,10 +388,10 @@ export default function BorderCalculatorPage() {
     }) => {
       applyPresetSettings(preset.settings);
       setPresetName(preset.name);
-      console.log(`Preset "${preset.name}" loaded from URL!`);
+      debugLog(`Preset "${preset.name}" loaded from URL!`);
     },
     onLoadError: (error: string) => {
-      console.error('Failed to load preset from URL:', error);
+      debugError('Failed to load preset from URL:', error);
     },
   });
 

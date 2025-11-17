@@ -4,6 +4,7 @@ import type {
   PaperSizeValue,
 } from '../types/border-calculator';
 import { ASPECT_RATIOS, PAPER_SIZES } from '../constants/border-calculator';
+import { debugError } from './debug-logger';
 
 /**
  * Set of valid aspect ratio values for fast O(1) lookups.
@@ -177,7 +178,7 @@ export function encodePreset(preset: PresetToShare): string {
 
     return encoded;
   } catch (error) {
-    console.error('Failed to encode preset:', error);
+    debugError('Failed to encode preset:', error);
     return '';
   }
 }

@@ -6,6 +6,7 @@ import {
   isClipboardSupported,
   updateUrlWithPreset,
 } from '../utils/url-helpers';
+import { debugError } from '../utils/debug-logger';
 
 export interface ShareResult {
   success: boolean;
@@ -67,7 +68,7 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
         await navigator.clipboard.writeText(text);
         return true;
       } catch (error) {
-        console.error('Failed to copy to clipboard:', error);
+        debugError('Failed to copy to clipboard:', error);
         return false;
       }
     },
@@ -99,7 +100,7 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
         return true;
       } catch (error) {
         // User cancelled or share failed
-        console.error('Native share failed:', error);
+        debugError('Native share failed:', error);
         return false;
       }
     },
