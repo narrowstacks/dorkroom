@@ -1,4 +1,4 @@
-import type { FormInstance } from '@tanstack/react-form';
+import type { AnyFormApi } from '@tanstack/react-form';
 import { X } from 'lucide-react';
 import { LabeledSliderInput, ToggleSwitch, WarningAlert } from '@dorkroom/ui';
 import {
@@ -6,12 +6,11 @@ import {
   OFFSET_SLIDER_MAX,
   OFFSET_SLIDER_STEP,
   OFFSET_SLIDER_LABELS,
-  type BorderCalculatorState,
 } from '@dorkroom/logic';
 
 interface PositionOffsetsSectionProps {
   onClose: () => void;
-  form: FormInstance<BorderCalculatorState>;
+  form: AnyFormApi;
   enableOffset: boolean;
   ignoreMinBorder: boolean;
   offsetWarning?: string;

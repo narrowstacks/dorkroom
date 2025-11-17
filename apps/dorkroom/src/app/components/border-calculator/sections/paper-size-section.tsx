@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import type { FormInstance } from '@tanstack/react-form';
+import type { AnyFormApi } from '@tanstack/react-form';
 import { X, RotateCw, Square } from 'lucide-react';
 import {
   Select,
@@ -8,11 +8,11 @@ import {
   formatDimensions,
   useMeasurementConverter,
 } from '@dorkroom/ui';
-import { ASPECT_RATIOS, PAPER_SIZES, type SelectItem, type BorderCalculatorState } from '@dorkroom/logic';
+import { ASPECT_RATIOS, PAPER_SIZES, type SelectItem } from '@dorkroom/logic';
 
 interface PaperSizeSectionProps {
   onClose: () => void;
-  form: FormInstance<BorderCalculatorState>;
+  form: AnyFormApi;
   isLandscape: boolean;
   isRatioFlipped: boolean;
 }

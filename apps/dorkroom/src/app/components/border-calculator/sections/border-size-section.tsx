@@ -1,4 +1,4 @@
-import type { FormInstance } from '@tanstack/react-form';
+import type { AnyFormApi } from '@tanstack/react-form';
 import { X } from 'lucide-react';
 import { LabeledSliderInput, WarningAlert } from '@dorkroom/ui';
 import {
@@ -6,12 +6,11 @@ import {
   SLIDER_MAX_BORDER,
   SLIDER_STEP_BORDER,
   BORDER_SLIDER_LABELS,
-  type BorderCalculatorState,
 } from '@dorkroom/logic';
 
 interface BorderSizeSectionProps {
   onClose: () => void;
-  form: FormInstance<BorderCalculatorState>;
+  form: AnyFormApi;
   minBorderWarning?: string;
 }
 
