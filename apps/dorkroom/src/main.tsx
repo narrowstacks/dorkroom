@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import * as ReactDOM from 'react-dom/client';
+import { Analytics } from '@vercel/analytics/react';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -41,6 +42,7 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <StrictMode>
+    <Analytics />
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <MeasurementProvider>
