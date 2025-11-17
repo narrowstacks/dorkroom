@@ -295,7 +295,8 @@ export default function ReciprocityCalculatorPage() {
                     : selectedFilm?.label ?? 'Unknown',
               };
             }}
-            children={(calculation) =>
+          >
+            {(calculation) =>
               calculation ? (
                 <CalculatorCard
                   title="Reciprocity results"
@@ -424,7 +425,7 @@ export default function ReciprocityCalculatorPage() {
                 </CalculatorCard>
               ) : null
             }
-          />
+          </form.Subscribe>
         </div>
 
         <div className="space-y-6">
@@ -519,7 +520,8 @@ export default function ReciprocityCalculatorPage() {
                   : selectedFilm?.label ?? 'Unknown',
             };
           }}
-          children={(calculation) =>
+        >
+          {(calculation) =>
             calculation ? (
               <div className="mt-8">
                 <CalculatorCard
@@ -554,7 +556,7 @@ export default function ReciprocityCalculatorPage() {
               </div>
             ) : null
           }
-        />
+        </form.Subscribe>
       )}
     </div>
   );

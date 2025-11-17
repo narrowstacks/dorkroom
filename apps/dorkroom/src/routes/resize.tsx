@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { lazy, Suspense } from 'react';
+import { LoadingSpinner } from '../components/loading-spinner';
 
 const ResizeCalculatorPage = lazy(
   () => import('../app/pages/resize-calculator/resize-calculator-page')
@@ -7,13 +8,7 @@ const ResizeCalculatorPage = lazy(
 
 export const Route = createFileRoute('/resize')({
   component: () => (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingSpinner />}>
       <ResizeCalculatorPage />
     </Suspense>
   ),

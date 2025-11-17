@@ -5,6 +5,40 @@ import type {
 } from '../types/border-calculator';
 import { ASPECT_RATIOS, PAPER_SIZES } from '../constants/border-calculator';
 
+/**
+ * Set of valid aspect ratio values for fast O(1) lookups.
+ * Pre-computed from ASPECT_RATIOS constant for runtime validation.
+ */
+const validAspectRatios = new Set<string>(
+  ASPECT_RATIOS.map((ratio) => ratio.value)
+);
+
+/**
+ * Set of valid paper size values for fast O(1) lookups.
+ * Pre-computed from PAPER_SIZES constant for runtime validation.
+ */
+const validPaperSizes = new Set<string>(
+  PAPER_SIZES.map((size) => size.value)
+);
+
+/**
+ * Type guard to validate that a string is a valid AspectRatioValue.
+ * @param value - String to validate
+ * @returns True if value is a valid aspect ratio
+ */
+function isValidAspectRatio(value: unknown): value is AspectRatioValue {
+  return typeof value === 'string' && validAspectRatios.has(value);
+}
+
+/**
+ * Type guard to validate that a string is a valid PaperSizeValue.
+ * @param value - String to validate
+ * @returns True if value is a valid paper size
+ */
+function isValidPaperSize(value: unknown): value is PaperSizeValue {
+  return typeof value === 'string' && validPaperSizes.has(value);
+}
+
 export interface PresetToShare {
   name: string;
   settings: BorderPresetSettings;
@@ -22,8 +56,8 @@ export interface SharedPreset {
  * @param value - Value to search for
  * @returns Index of the matching option, or -1 if not found
  */
-function findIndexByValue<T extends { value: string }>(
-  options: T[],
+function findIndexByValue<T extends readonly { value: string }[]>(
+  options: T,
   value: string
 ): number {
   return options.findIndex((option) => option.value === value);
@@ -188,14 +222,23 @@ export function decodePreset(encoded: string): SharedPreset | null {
     const aspectRatioValue = ASPECT_RATIOS[aspectRatioIndex]?.value;
     const paperSizeValue = PAPER_SIZES[paperSizeIndex]?.value;
 
-    if (!aspectRatioValue || !paperSizeValue) {
-      throw new Error('Invalid aspect ratio or paper size index');
+    // Validate that the retrieved values are actually valid members of their respective unions
+    if (!isValidAspectRatio(aspectRatioValue)) {
+      throw new Error(
+        `Invalid aspect ratio at index ${aspectRatioIndex}: value "${aspectRatioValue}" is not a permitted AspectRatioValue`
+      );
+    }
+
+    if (!isValidPaperSize(paperSizeValue)) {
+      throw new Error(
+        `Invalid paper size at index ${paperSizeIndex}: value "${paperSizeValue}" is not a permitted PaperSizeValue`
+      );
     }
 
     const booleanSettings = fromBooleanBitmask(boolMask);
     const settings: BorderPresetSettings = {
-      aspectRatio: aspectRatioValue as AspectRatioValue,
-      paperSize: paperSizeValue as PaperSizeValue,
+      aspectRatio: aspectRatioValue,
+      paperSize: paperSizeValue,
       minBorder,
       horizontalOffset,
       verticalOffset,

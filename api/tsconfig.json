@@ -28,5 +28,10 @@
     "../**/*.test.ts",
     "../**/__mocks__/**",
     "../**/__tests__/**"
+  ],
+  "references": [
+    {
+      "path": "../packages/logic"
+    }
   ]
 }

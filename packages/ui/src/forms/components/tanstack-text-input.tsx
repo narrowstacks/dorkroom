@@ -87,7 +87,6 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
               : 'var(--color-border-primary)',
             backgroundColor: 'var(--color-surface-muted)',
             color: 'var(--color-text-primary)',
-            '--tw-placeholder-color': 'var(--color-text-muted)',
             '--tw-ring-color': hasErrors
               ? ringColorError
               : 'var(--color-border-primary)',
@@ -128,6 +127,10 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
 
         .tanstack-text-input:focus-visible {
           border-color: var(--border-color-focused);
+        }
+
+        .tanstack-text-input::placeholder {
+          color: var(--color-text-muted);
         }
       `}</style>
     </div>

@@ -1,6 +1,6 @@
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, type ChangeEvent } from 'react';
 import {
   CalculatorCard,
   CalculatorPageHeader,
@@ -223,7 +223,7 @@ export default function ExposureCalculatorPage() {
                         <input
                           type="number"
                           value={field.state.value}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
                             field.handleChange(parseFloat(e.target.value))
                           }
                           placeholder="1"

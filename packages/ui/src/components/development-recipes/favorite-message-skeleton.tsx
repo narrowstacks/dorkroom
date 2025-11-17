@@ -18,7 +18,7 @@ export function FavoriteMessageSkeleton({
         className="border-b"
         style={{ borderColor: 'var(--color-border-secondary)' }}
       >
-        <td colSpan={6} className={cn('px-4 py-4', className)}>
+        <td colSpan={8} className={cn('px-4 py-4', className)}>
           <div className="flex items-center justify-center gap-3">
             <Skeleton className="h-4 w-4 rounded-full" />
             <div

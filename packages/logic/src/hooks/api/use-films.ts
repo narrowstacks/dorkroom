@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
 import { Film } from '@dorkroom/api';
 import { fetchFilms } from '../../queries/fetch-functions';
 import { queryKeys } from '../../queries/query-keys';
@@ -10,8 +11,6 @@ import { queryKeys } from '../../queries/query-keys';
  * - window regains focus
  * - component mounts after being unmounted
  */
-import type { UseQueryResult } from '@tanstack/react-query';
-
 export function useFilms(): UseQueryResult<Film[]> {
   return useQuery<Film[]>({
     queryKey: queryKeys.films.list(),

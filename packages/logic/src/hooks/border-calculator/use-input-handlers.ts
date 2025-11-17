@@ -16,6 +16,64 @@ import type {
   PaperSizeValue,
 } from '../../types/border-calculator';
 
+// Validation sets for discriminated union types
+const VALID_ASPECT_RATIOS = new Set<AspectRatioValue>([
+  'custom',
+  '3:2',
+  '65:24',
+  '4:3',
+  '1:1',
+  '7:6',
+  '5:4',
+  '7:5',
+  '16:9',
+  '1.37:1',
+  '1.85:1',
+  '2:1',
+  '2.39:1',
+  '2.76:1',
+]);
+
+const VALID_PAPER_SIZES = new Set<PaperSizeValue>([
+  'custom',
+  '5x7',
+  '4x6',
+  '8x10',
+  '11x14',
+  '16x20',
+  '20x24',
+]);
+
+/**
+ * Validates and safely casts a value to AspectRatioValue
+ * @throws Error if the value is not a valid AspectRatioValue
+ */
+function validateAspectRatio(value: string): AspectRatioValue {
+  if (VALID_ASPECT_RATIOS.has(value as AspectRatioValue)) {
+    return value as AspectRatioValue;
+  }
+  throw new Error(
+    `Invalid aspect ratio value: "${value}". Expected one of: ${Array.from(
+      VALID_ASPECT_RATIOS
+    ).join(', ')}`
+  );
+}
+
+/**
+ * Validates and safely casts a value to PaperSizeValue
+ * @throws Error if the value is not a valid PaperSizeValue
+ */
+function validatePaperSize(value: string): PaperSizeValue {
+  if (VALID_PAPER_SIZES.has(value as PaperSizeValue)) {
+    return value as PaperSizeValue;
+  }
+  throw new Error(
+    `Invalid paper size value: "${value}". Expected one of: ${Array.from(
+      VALID_PAPER_SIZES
+    ).join(', ')}`
+  );
+}
+
 /**
  * Input handling hook for the border calculator that provides optimized setter functions
  * for different types of inputs (text, sliders, dropdowns, toggles).
@@ -120,14 +178,14 @@ export const useInputHandlers = (
   // Basic field setters
   const setAspectRatio = useCallback(
     (v: string) => {
-      dispatch({ type: 'SET_ASPECT_RATIO', value: v as AspectRatioValue });
+      dispatch({ type: 'SET_ASPECT_RATIO', value: validateAspectRatio(v) });
     },
     [dispatch]
   );
 
   const setPaperSize = useCallback(
     (v: string) => {
-      dispatch({ type: 'SET_PAPER_SIZE', value: v as PaperSizeValue });
+      dispatch({ type: 'SET_PAPER_SIZE', value: validatePaperSize(v) });
     },
     [dispatch]
   );

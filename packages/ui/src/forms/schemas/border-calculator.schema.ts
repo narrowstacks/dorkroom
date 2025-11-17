@@ -10,20 +10,29 @@ const dimensionNumber = z
   .max(1000, 'Value is too large');
 
 const aspectRatioOptions = [
-  '3:2',
-  '4:3',
-  '5:4',
-  '1:1',
-  '16:9',
   'custom',
+  '3:2',
+  '65:24',
+  '4:3',
+  '1:1',
+  '7:6',
+  '5:4',
+  '7:5',
+  '16:9',
+  '1.37:1',
+  '1.85:1',
+  '2:1',
+  '2.39:1',
+  '2.76:1',
 ] as const;
 const paperSizeOptions = [
+  'custom',
+  '5x7',
+  '4x6',
   '8x10',
   '11x14',
   '16x20',
   '20x24',
-  '24x30',
-  'custom',
 ] as const;
 
 export const borderCalculatorSchema = z.object({
