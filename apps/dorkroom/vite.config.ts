@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import { TanStackRouterVite } from '@tanstack/router-vite-plugin';
 import { resolve } from 'path';
 
 export default defineConfig(() => ({
@@ -23,7 +24,11 @@ export default defineConfig(() => ({
     port: 4300,
     host: 'localhost',
   },
-  plugins: [react(), nxViteTsPaths()],
+  plugins: [
+    TanStackRouterVite(),
+    react(),
+    nxViteTsPaths(),
+  ],
   resolve: {
     alias: {
       '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src'),
@@ -44,8 +49,8 @@ export default defineConfig(() => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Separate vendor chunk for React and React Router
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // Separate vendor chunk for React and TanStack Router
+          'react-vendor': ['react', 'react-dom', '@tanstack/react-router'],
           // Separate chunk for Lucide icons
           'lucide-icons': ['lucide-react'],
           // Separate chunk for internal UI components

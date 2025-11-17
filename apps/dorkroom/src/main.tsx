@@ -1,11 +1,11 @@
 import { StrictMode } from 'react';
-import { BrowserRouter } from 'react-router-dom';
 import * as ReactDOM from 'react-dom/client';
+import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import '@fontsource-variable/inter/index.css';
 import './styles.css';
-import App from './app/app';
+import { routeTree } from './routeTree.gen';
 import { ToastProvider, MeasurementProvider } from '@dorkroom/ui';
 import { ThemeProvider } from './app/contexts/theme-context';
 
@@ -20,6 +20,21 @@ const queryClient = new QueryClient({
   },
 });
 
+const router = createRouter({
+  routeTree,
+  context: {
+    queryClient,
+  },
+  defaultPreloadDelay: 50,
+});
+
+// Register router for type safety
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
@@ -30,9 +45,7 @@ root.render(
       <ThemeProvider>
         <MeasurementProvider>
           <ToastProvider>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
+            <RouterProvider router={router} />
           </ToastProvider>
         </MeasurementProvider>
       </ThemeProvider>
