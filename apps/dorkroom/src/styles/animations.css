@@ -1,0 +1,181 @@
+@layer utilities {
+  /* Custom Animation Keyframes */
+  @keyframes slideInFromTop {
+    0% {
+      opacity: 0;
+      transform: translateY(-1rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInFromBottom {
+    0% {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  /* Animation Utility Classes */
+  .animate-slide-in-from-top {
+    animation: slideInFromTop 500ms ease-out both;
+  }
+
+  .animate-slide-in-from-bottom {
+    animation: slideInFromBottom 500ms ease-out both;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 500ms ease-out both;
+  }
+
+  .animate-slide-fade-top {
+    animation: slideInFromTop 500ms ease-out both, fadeIn 500ms ease-out both;
+  }
+
+  .animate-slide-fade-bottom {
+    animation: slideInFromBottom 500ms ease-out both, fadeIn 500ms ease-out both;
+  }
+
+  /* Stagger delay utilities */
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .animate-delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .animate-delay-500 {
+    animation-delay: 500ms;
+  }
+
+  .animate-delay-600 {
+    animation-delay: 600ms;
+  }
+
+  .animate-delay-700 {
+    animation-delay: 700ms;
+  }
+
+  .animate-delay-800 {
+    animation-delay: 800ms;
+  }
+
+  /* Respect reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-slide-in-from-top,
+    .animate-slide-in-from-bottom,
+    .animate-fade-in,
+    .animate-slide-fade-top,
+    .animate-slide-fade-bottom {
+      animation: none;
+    }
+  }
+
+  /* Animated grain clipped to text with a subtle red glow */
+  @keyframes noiseShift {
+    0% {
+      background-position: 0 0, 0 0;
+    }
+    100% {
+      background-position: 0 0, 120px 80px;
+    }
+  }
+
+  .grainy-text-glow {
+    position: relative;
+    /* Make background visible only where text is */
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: #ffffff; /* fallback if background-clip not supported */
+
+    /* Layer 1: soft white fill; Layer 2: SVG noise tiled */
+    background-image: radial-gradient(
+        ellipse 100% 100% at 50% 50%,
+        rgba(255, 255, 255, 0.96) 0%,
+        rgba(255, 255, 255, 0.92) 40%,
+        rgba(255, 255, 255, 0.88) 100%
+      ),
+      url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http://www.w3.org/2000/svg%22%20viewBox%3D%220%200%2060%2060%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23n)%22%20opacity%3D%220.22%22/%3E%3C/svg%3E');
+    background-repeat: no-repeat, repeat;
+    background-size: auto, 120px 120px;
+    animation: noiseShift 14s linear infinite;
+    will-change: background-position;
+
+    /* Subtle red glow, contained to text outline */
+    text-shadow: 0 0 2px rgba(255, 48, 48, 0.25),
+      0 0 10px rgba(255, 32, 32, 0.22), 0 0 22px rgba(255, 24, 24, 0.18);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .grainy-text-glow {
+      animation: none;
+    }
+  }
+
+  /* Grainy, textured red glow around text using a blurred noise-filled duplicate */
+  .grainy-red-glow {
+    position: relative;
+    display: inline-block;
+    isolation: isolate;
+  }
+
+  .grainy-red-glow::before {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+
+    /* Fill duplicate text with red + noise, then blur to create outer glow */
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    background-image: radial-gradient(
+        ellipse 100% 100% at 50% 50%,
+        rgba(255, 62, 62, 0.95),
+        rgba(255, 62, 62, 0.5)
+      ),
+      url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http://www.w3.org/2000/svg%22%20viewBox%3D%220%200%2060%2060%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23n)%22%20opacity%3D%220.22%22/%3E%3C/svg%3E');
+    background-repeat: no-repeat, repeat;
+    background-size: 100% 100%, 120px 120px;
+
+    filter: blur(12px) contrast(150%) brightness(125%) saturate(160%);
+    mix-blend-mode: screen;
+    opacity: 0.9;
+    animation: noiseShift 16s linear infinite;
+    will-change: filter, background-position;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .grainy-red-glow::before {
+      animation: none;
+    }
+  }
+}
