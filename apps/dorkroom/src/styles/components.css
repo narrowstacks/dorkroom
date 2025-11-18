@@ -1,0 +1,396 @@
+@layer utilities {
+  .card-ring {
+    position: relative;
+  }
+
+  .card-ring::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.18),
+      rgba(255, 255, 255, 0)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* Tweak subtle ring for light theme to use dark ink instead of white */
+  [data-theme='light'] .card-ring::before {
+    background: linear-gradient(
+      135deg,
+      rgba(9, 9, 11, 0.09),
+      rgba(9, 9, 11, 0)
+    );
+  }
+
+  /* Remove gradient ring entirely in high-contrast */
+  [data-theme='high-contrast'] .card-ring::before {
+    background: none !important;
+  }
+
+  /* Animated grain clipped to text with a subtle red glow */
+  @keyframes noiseShift {
+    0% {
+      background-position: 0 0, 0 0;
+    }
+    100% {
+      background-position: 0 0, 120px 80px;
+    }
+  }
+
+  .grainy-text-glow {
+    position: relative;
+    /* Make background visible only where text is */
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: #ffffff; /* fallback if background-clip not supported */
+
+    /* Layer 1: soft white fill; Layer 2: SVG noise tiled */
+    background-image: radial-gradient(
+        ellipse 100% 100% at 50% 50%,
+        rgba(255, 255, 255, 0.96) 0%,
+        rgba(255, 255, 255, 0.92) 40%,
+        rgba(255, 255, 255, 0.88) 100%
+      ),
+      url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http://www.w3.org/2000/svg%22%20viewBox%3D%220%200%2060%2060%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23n)%22%20opacity%3D%220.22%22/%3E%3C/svg%3E');
+    background-repeat: no-repeat, repeat;
+    background-size: auto, 120px 120px;
+    animation: noiseShift 14s linear infinite;
+    will-change: background-position;
+
+    /* Subtle red glow, contained to text outline */
+    text-shadow: 0 0 2px rgba(255, 48, 48, 0.25),
+      0 0 10px rgba(255, 32, 32, 0.22), 0 0 22px rgba(255, 24, 24, 0.18);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .grainy-text-glow {
+      animation: none;
+    }
+  }
+
+  /* Grainy, textured red glow around text using a blurred noise-filled duplicate */
+  .grainy-red-glow {
+    position: relative;
+    display: inline-block;
+    isolation: isolate;
+  }
+
+  .grainy-red-glow::before {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+
+    /* Fill duplicate text with red + noise, then blur to create outer glow */
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    background-image: radial-gradient(
+        ellipse 100% 100% at 50% 50%,
+        rgba(255, 62, 62, 0.95),
+        rgba(255, 62, 62, 0.5)
+      ),
+      url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http://www.w3.org/2000/svg%22%20viewBox%3D%220%200%2060%2060%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23n)%22%20opacity%3D%220.22%22/%3E%3C/svg%3E');
+    background-repeat: no-repeat, repeat;
+    background-size: 100% 100%, 120px 120px;
+
+    filter: blur(12px) contrast(150%) brightness(125%) saturate(160%);
+    mix-blend-mode: screen;
+    opacity: 0.9;
+    animation: noiseShift 16s linear infinite;
+    will-change: filter, background-position;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .grainy-red-glow::before {
+      animation: none;
+    }
+  }
+
+  /* Slider styling with theme support */
+  .slider-track {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: var(--color-border-secondary);
+    border-radius: 4px;
+    accent-color: var(--color-primary);
+    touch-action: none;
+  }
+
+  .slider-track:hover {
+    background: var(--color-border-primary);
+  }
+
+  .slider-track::-webkit-slider-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 4px;
+    border: none;
+  }
+
+  .slider-track::-moz-range-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 4px;
+    border: none;
+  }
+
+  /* Firefox progress (filled) portion */
+  .slider-track::-moz-range-progress {
+    background: var(--color-primary);
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  .slider-track::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--color-text-primary);
+    cursor: pointer;
+    border: none;
+    transition: transform 120ms ease, box-shadow 120ms ease,
+      background-color 120ms ease;
+  }
+
+  .slider-track::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--color-text-primary);
+    cursor: pointer;
+    border: none;
+    transition: transform 120ms ease, box-shadow 120ms ease,
+      background-color 120ms ease;
+  }
+
+  /* Larger touch targets on touch devices */
+  @media (pointer: coarse) {
+    .slider-track::-webkit-slider-thumb {
+      height: 22px;
+      width: 22px;
+    }
+    .slider-track::-moz-range-thumb {
+      height: 22px;
+      width: 22px;
+    }
+  }
+
+  /* Disabled state */
+  .slider-track:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .slider-track:disabled::-webkit-slider-thumb,
+  .slider-track:disabled::-moz-range-thumb {
+    background: var(--color-text-tertiary);
+    box-shadow: none;
+    transform: none;
+    cursor: not-allowed;
+  }
+
+  /* Hover/active states for better affordance */
+  .slider-track::-webkit-slider-thumb:hover,
+  .slider-track:active::-webkit-slider-thumb {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 3px var(--color-border-muted);
+  }
+  .slider-track::-moz-range-thumb:hover,
+  .slider-track:active::-moz-range-thumb {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 3px var(--color-border-muted);
+  }
+
+  /* Accessible focus styles for range inputs */
+  .slider-track:focus-visible {
+    outline: 2px solid var(--color-border-primary);
+    outline-offset: 2px;
+  }
+
+  /* Darkroom theme: dashed red line for slider track */
+  [data-theme='darkroom'] .slider-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 0;
+    position: relative;
+    accent-color: var(--color-primary);
+  }
+
+  [data-theme='darkroom'] .slider-track::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    transform: translateY(-50%);
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--color-primary) 0px,
+      var(--color-primary) 8px,
+      transparent 8px,
+      transparent 16px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  [data-theme='darkroom'] .slider-track::-webkit-slider-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 0;
+  }
+
+  [data-theme='darkroom'] .slider-track::-moz-range-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 0;
+  }
+
+  [data-theme='darkroom'] .slider-track::-webkit-slider-thumb {
+    background: var(--color-primary);
+    position: relative;
+    z-index: 2;
+  }
+
+  [data-theme='darkroom'] .slider-track::-moz-range-thumb {
+    background: var(--color-primary);
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Stronger affordance in darkroom theme */
+  [data-theme='darkroom'] .slider-track::-webkit-slider-thumb:hover,
+  [data-theme='darkroom'] .slider-track:active::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px var(--color-primary);
+  }
+  [data-theme='darkroom'] .slider-track::-moz-range-thumb:hover,
+  [data-theme='darkroom'] .slider-track:active::-moz-range-thumb {
+    box-shadow: 0 0 0 3px var(--color-primary);
+  }
+
+  @supports (color: color-mix(in srgb, red 50%, white)) {
+    [data-theme='darkroom'] .slider-track::-webkit-slider-thumb:hover,
+    [data-theme='darkroom'] .slider-track:active::-webkit-slider-thumb {
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--color-primary) 35%, transparent);
+    }
+    [data-theme='darkroom'] .slider-track::-moz-range-thumb:hover,
+    [data-theme='darkroom'] .slider-track:active::-moz-range-thumb {
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--color-primary) 35%, transparent);
+    }
+  }
+
+  [data-theme='darkroom'] .slider-track:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* High-contrast theme: dashed black line for slider track */
+  [data-theme='high-contrast'] .slider-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 0;
+    position: relative;
+    accent-color: var(--color-primary);
+  }
+
+  [data-theme='high-contrast'] .slider-track::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    transform: translateY(-50%);
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--color-primary) 0px,
+      var(--color-primary) 8px,
+      transparent 8px,
+      transparent 16px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  [data-theme='high-contrast'] .slider-track::-webkit-slider-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 0;
+  }
+
+  [data-theme='high-contrast'] .slider-track::-moz-range-track {
+    background: transparent;
+    height: 8px;
+    border-radius: 0;
+  }
+
+  [data-theme='high-contrast'] .slider-track::-webkit-slider-thumb {
+    background: var(--color-primary);
+    position: relative;
+    z-index: 2;
+  }
+
+  [data-theme='high-contrast'] .slider-track::-moz-range-thumb {
+    background: var(--color-primary);
+    position: relative;
+    z-index: 2;
+  }
+
+  [data-theme='high-contrast'] .slider-track::-webkit-slider-thumb:hover,
+  [data-theme='high-contrast'] .slider-track:active::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px var(--color-primary);
+  }
+  [data-theme='high-contrast'] .slider-track::-moz-range-thumb:hover,
+  [data-theme='high-contrast'] .slider-track:active::-moz-range-thumb {
+    box-shadow: 0 0 0 3px var(--color-primary);
+  }
+
+  [data-theme='high-contrast'] .slider-track:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* Remove decorative gradients/noise in high-contrast */
+  [data-theme='high-contrast'] .grainy-text-glow {
+    background-image: none !important;
+    -webkit-text-fill-color: currentColor;
+    text-shadow: none !important;
+    color: var(--color-text-primary);
+  }
+
+  /* Home-page calculator buttons: use black borders in high-contrast */
+  [data-theme='high-contrast'] main a[href*='/border'],
+  [data-theme='high-contrast'] main a[href*='/stops'],
+  [data-theme='high-contrast'] main a[href*='/resize'],
+  [data-theme='high-contrast'] main a[href*='/exposure'],
+  [data-theme='high-contrast'] main a[href*='/reciprocity'],
+  [data-theme='high-contrast'] main a[href*='/development'] {
+    border: 2px solid var(--color-primary) !important;
+  }
+
+  /* Calculator buttons with red borders in darkroom theme - only on home page */
+  [data-theme='darkroom'] main a[href*='/border'],
+  [data-theme='darkroom'] main a[href*='/stops'],
+  [data-theme='darkroom'] main a[href*='/resize'],
+  [data-theme='darkroom'] main a[href*='/exposure'],
+  [data-theme='darkroom'] main a[href*='/reciprocity'],
+  [data-theme='darkroom'] main a[href*='/development'] {
+    border: 2px solid var(--color-primary) !important;
+  }
+}
