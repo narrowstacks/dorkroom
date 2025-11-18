@@ -89,7 +89,10 @@ describe('useBorderCalculatorState', () => {
       const { result } = renderHook(() => useBorderCalculatorState());
 
       expect(result.current.state.selectedImageUri).toBeNull();
-      expect(result.current.state.imageDimensions).toEqual({ width: 0, height: 0 });
+      expect(result.current.state.imageDimensions).toEqual({
+        width: 0,
+        height: 0,
+      });
       expect(result.current.state.isCropping).toBe(false);
       expect(result.current.state.cropOffset).toEqual({ x: 0, y: 0 });
       expect(result.current.state.cropScale).toBe(1);
@@ -232,14 +235,9 @@ describe('useBorderCalculatorState', () => {
 
     it('should handle all preset paper sizes', () => {
       const { result } = renderHook(() => useBorderCalculatorState());
-      const paperSizes: Array<'5x7' | '4x6' | '8x10' | '11x14' | '16x20' | '20x24'> = [
-        '5x7',
-        '4x6',
-        '8x10',
-        '11x14',
-        '16x20',
-        '20x24',
-      ];
+      const paperSizes: Array<
+        '5x7' | '4x6' | '8x10' | '11x14' | '16x20' | '20x24'
+      > = ['5x7', '4x6', '8x10', '11x14', '16x20', '20x24'];
 
       paperSizes.forEach((size) => {
         act(() => {
@@ -350,7 +348,9 @@ describe('useBorderCalculatorState', () => {
         });
       });
 
-      expect(result.current.state.selectedImageUri).toBe('file:///path/to/image.jpg');
+      expect(result.current.state.selectedImageUri).toBe(
+        'file:///path/to/image.jpg'
+      );
     });
 
     it('should update isCropping field', () => {
@@ -491,7 +491,10 @@ describe('useBorderCalculatorState', () => {
       });
 
       expect(result.current.state.selectedImageUri).toBe('file:///image.jpg');
-      expect(result.current.state.imageDimensions).toEqual({ width: 2000, height: 1500 });
+      expect(result.current.state.imageDimensions).toEqual({
+        width: 2000,
+        height: 1500,
+      });
       expect(result.current.state.isCropping).toBe(true);
       expect(result.current.state.cropOffset).toEqual({ x: 50, y: 75 });
       expect(result.current.state.cropScale).toBe(1.25);
@@ -583,7 +586,10 @@ describe('useBorderCalculatorState', () => {
       });
 
       expect(result.current.state.selectedImageUri).toBeNull();
-      expect(result.current.state.imageDimensions).toEqual({ width: 0, height: 0 });
+      expect(result.current.state.imageDimensions).toEqual({
+        width: 0,
+        height: 0,
+      });
       expect(result.current.state.isCropping).toBe(false);
       expect(result.current.state.cropScale).toBe(1);
     });
@@ -606,7 +612,9 @@ describe('useBorderCalculatorState', () => {
       expect(result.current.state.offsetWarning).toBe(
         'Image extends beyond paper edges'
       );
-      expect(result.current.state.bladeWarning).toBe('Blade positions too close to edge');
+      expect(result.current.state.bladeWarning).toBe(
+        'Blade positions too close to edge'
+      );
     });
 
     it('should update lastValidMinBorder field', () => {
@@ -761,7 +769,10 @@ describe('useBorderCalculatorState', () => {
 
     it('should handle corrupted localStorage data gracefully', () => {
       // Set invalid JSON
-      localStorageMock.setItem(BORDER_CALCULATOR_STORAGE_KEY, 'not-valid-json{');
+      localStorageMock.setItem(
+        BORDER_CALCULATOR_STORAGE_KEY,
+        'not-valid-json{'
+      );
 
       // Should not throw, should use defaults
       const { result } = renderHook(() => useBorderCalculatorState());

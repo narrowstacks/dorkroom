@@ -477,7 +477,7 @@ describe('border-calculations: Edge Cases and Boundary Tests', () => {
       // The easel dimensions might be swapped depending on orientation logic
       expect(
         (result.easelSize.width >= 9 && result.easelSize.height >= 12) ||
-        (result.easelSize.width >= 12 && result.easelSize.height >= 9)
+          (result.easelSize.width >= 12 && result.easelSize.height >= 9)
       ).toBe(true);
     });
 
@@ -622,8 +622,22 @@ describe('border-calculations: Edge Cases and Boundary Tests', () => {
 
     it('should ensure borders sum to paper dimensions with print', () => {
       const printSize = computePrintSize(10, 12, 3, 2, 1);
-      const offset = clampOffsets(10, 12, printSize.printW, printSize.printH, 1, 0, 0, false);
-      const borders = bordersFromGaps(offset.halfW, offset.halfH, offset.h, offset.v);
+      const offset = clampOffsets(
+        10,
+        12,
+        printSize.printW,
+        printSize.printH,
+        1,
+        0,
+        0,
+        false
+      );
+      const borders = bordersFromGaps(
+        offset.halfW,
+        offset.halfH,
+        offset.h,
+        offset.v
+      );
 
       const totalW = printSize.printW + borders.left + borders.right;
       const totalH = printSize.printH + borders.top + borders.bottom;
@@ -657,7 +671,14 @@ describe('border-calculations: Edge Cases and Boundary Tests', () => {
         const maxOffset = (w - printSize.printW) / 2;
 
         // Offset at maximum should still fit
-        const fitsAtMax = validatePrintFits(w, h, printSize.printW, printSize.printH, maxOffset, 0);
+        const fitsAtMax = validatePrintFits(
+          w,
+          h,
+          printSize.printW,
+          printSize.printH,
+          maxOffset,
+          0
+        );
         expect(fitsAtMax).toBe(true);
 
         // Offset slightly over should fail (if maxOffset > 0)
@@ -695,8 +716,22 @@ describe('border-calculations: Edge Cases and Boundary Tests', () => {
 
     it('should maintain precision through calculation chain', () => {
       const printSize = computePrintSize(8.5, 11, 1.414, 1, 0.625); // A4-ish
-      const offset = clampOffsets(8.5, 11, printSize.printW, printSize.printH, 0.625, 0.125, 0.25, false);
-      const borders = bordersFromGaps(offset.halfW, offset.halfH, offset.h, offset.v);
+      const offset = clampOffsets(
+        8.5,
+        11,
+        printSize.printW,
+        printSize.printH,
+        0.625,
+        0.125,
+        0.25,
+        false
+      );
+      const borders = bordersFromGaps(
+        offset.halfW,
+        offset.halfH,
+        offset.h,
+        offset.v
+      );
 
       // Total should still equal paper size
       const totalW = printSize.printW + borders.left + borders.right;

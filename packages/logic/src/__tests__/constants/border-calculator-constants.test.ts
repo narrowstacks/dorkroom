@@ -234,7 +234,8 @@ describe('Border Calculator Constants', () => {
     });
 
     it('should have step size that divides range evenly', () => {
-      const steps = (SLIDER_MAX_BORDER - SLIDER_MIN_BORDER) / SLIDER_STEP_BORDER;
+      const steps =
+        (SLIDER_MAX_BORDER - SLIDER_MIN_BORDER) / SLIDER_STEP_BORDER;
       expect(steps).toBe(Math.floor(steps)); // should be whole number
     });
 
@@ -300,7 +301,9 @@ describe('Border Calculator Constants', () => {
 
     it('should have valid default paper size', () => {
       expect(BORDER_CALCULATOR_DEFAULTS.paperSize).toBe('8x10');
-      expect(PAPER_SIZE_MAP.has(BORDER_CALCULATOR_DEFAULTS.paperSize)).toBe(true);
+      expect(PAPER_SIZE_MAP.has(BORDER_CALCULATOR_DEFAULTS.paperSize)).toBe(
+        true
+      );
     });
 
     it('should have default min border in valid range', () => {
@@ -491,8 +494,8 @@ describe('Border Calculator Constants', () => {
       ).map((r) => (r.width || 1) / (r.height || 1));
 
       filmRatios.forEach((filmRatio) => {
-        const hasMatch = calculatedRatios.some((calcRatio) =>
-          Math.abs(calcRatio - filmRatio) < 0.01
+        const hasMatch = calculatedRatios.some(
+          (calcRatio) => Math.abs(calcRatio - filmRatio) < 0.01
         );
         expect(hasMatch).toBe(true);
       });

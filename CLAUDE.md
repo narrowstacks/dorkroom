@@ -1,6 +1,6 @@
-# CLAUDE.md
+# CLAUDE.md | AGENT.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) and other AI coding agents when working with code in this repository.
 
 ## Project Overview
 
@@ -19,6 +19,7 @@ Dorkroom is an analog photography calculator app built with React 19, TypeScript
 - `bunx nx lint dorkroom` - Run ESLint
 - `bunx nx typecheck dorkroom` - TypeScript type checking
 - `bunx prettier --write .` - Format code, but only format the code you've touched this session.
+  - When creating/modifying markdown documents, **always run prettier on the files you've edited immediately after finishing all of your edits.** This avoids having to manually fix linter errors.
 
 ### Testing
 
@@ -57,7 +58,16 @@ Dorkroom is an analog photography calculator app built with React 19, TypeScript
 
 ### Style
 
-- Single quotes (Prettier configured)
+**Prettier Configuration (.prettierrc):**
+
+- Single quotes for strings
+- Semicolons at end of statements
+- Trailing commas in ES5-valid syntax (objects, arrays)
+- Bracket spacing in object literals: `{ foo }` not `{foo}`
+- Always include parentheses in arrow functions: `(x) =>` not `x =>`
+
+**Naming Conventions:**
+
 - PascalCase for components (`LabeledSliderInput`)
 - kebab-case for files (`labeled-slider-input.tsx`)
 - Interface naming: `ComponentNameProps`
@@ -311,7 +321,9 @@ export const queryKeys = {
 
 ## Search Strategy Guide
 
-Optimize search efficiency by choosing the right tool for each task:
+Optimize search efficiency by choosing the right tool for each task.
+
+If any of the tools are not available on the system, prompt user to install them.
 
 ### Finding Files
 
@@ -412,7 +424,7 @@ Is it complex multi-file analysis?
 
 - Keep commit messages short. Use conventional commit standards.
 - Confirm with user before committing, share commit message in your confirmation.
-- **Only commit, never push.**
+- **Only commit, never push without user prompting you to do so.**
 
 ## On using ast-grep vs ripgrep (rg)
 

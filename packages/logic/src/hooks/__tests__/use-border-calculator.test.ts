@@ -143,7 +143,14 @@ describe('useBorderCalculator', () => {
 
     it('should handle all preset paper sizes without errors', () => {
       const { result } = renderHook(() => useBorderCalculator());
-      const paperSizes = ['5x7', '4x6', '8x10', '11x14', '16x20', '20x24'] as const;
+      const paperSizes = [
+        '5x7',
+        '4x6',
+        '8x10',
+        '11x14',
+        '16x20',
+        '20x24',
+      ] as const;
 
       paperSizes.forEach((size) => {
         act(() => {
@@ -268,14 +275,12 @@ describe('useBorderCalculator', () => {
       expect(calc?.printWidth).toBeCloseTo(13 / 3, 1); // ≈ 4.33
 
       // Verify it respects paper boundaries
-      expect(calc!.printWidth + calc!.leftBorder + calc!.rightBorder).toBeCloseTo(
-        11,
-        1
-      );
-      expect(calc!.printHeight + calc!.topBorder + calc!.bottomBorder).toBeCloseTo(
-        14,
-        1
-      );
+      expect(
+        calc!.printWidth + calc!.leftBorder + calc!.rightBorder
+      ).toBeCloseTo(11, 1);
+      expect(
+        calc!.printHeight + calc!.topBorder + calc!.bottomBorder
+      ).toBeCloseTo(14, 1);
     });
   });
 
@@ -416,9 +421,9 @@ describe('useBorderCalculator', () => {
       expect(result.current.offsetWarning).toContain('beyond paper');
 
       // Blade readings should show negative values (impossible to achieve)
-      expect(
-        calc!.leftBladeReading < 0 || calc!.rightBladeReading < 0
-      ).toBe(true);
+      expect(calc!.leftBladeReading < 0 || calc!.rightBladeReading < 0).toBe(
+        true
+      );
     });
 
     it('should handle combined horizontal and vertical offsets', () => {
@@ -793,7 +798,8 @@ describe('useBorderCalculator', () => {
       expect(calc).not.toBeNull();
 
       // Physical constraint: print + borders must equal paper dimensions
-      const totalWidth = calc!.printWidth + calc!.leftBorder + calc!.rightBorder;
+      const totalWidth =
+        calc!.printWidth + calc!.leftBorder + calc!.rightBorder;
       const totalHeight =
         calc!.printHeight + calc!.topBorder + calc!.bottomBorder;
 
