@@ -327,6 +327,7 @@ export function MobileBorderCalculator({
     form.setFieldValue('showBladeReadings', settings.showBladeReadings);
     form.setFieldValue('isLandscape', settings.isLandscape);
     form.setFieldValue('isRatioFlipped', settings.isRatioFlipped);
+    form.setFieldValue('hasManuallyFlippedPaper', settings.hasManuallyFlippedPaper);
     form.setFieldValue(
       'lastValidCustomAspectWidth',
       settings.customAspectWidth
