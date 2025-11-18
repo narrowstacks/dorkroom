@@ -87,12 +87,12 @@ function selectReciprocityCalculation(
   const parsedSeconds = parseReciprocityTime(meteredTime);
   if (parsedSeconds === null || parsedSeconds <= 0) return null;
 
-  const selectedFilm = filmTypes.find(
-    (f: SelectItem) => f.value === filmType
-  );
+  const selectedFilm = filmTypes.find((f: SelectItem) => f.value === filmType);
   const factor =
     filmType === 'custom'
-      ? Number.isFinite(customFactor) ? customFactor : 1.3
+      ? Number.isFinite(customFactor)
+        ? customFactor
+        : 1.3
       : selectedFilm?.factor ?? 1.3;
 
   const adjustedTime = Math.pow(parsedSeconds, factor);
@@ -307,7 +307,9 @@ export default function ReciprocityCalculatorPage() {
           </CalculatorCard>
 
           <form.Subscribe
-            selector={(state) => selectReciprocityCalculation(state.values, filmTypes)}
+            selector={(state) =>
+              selectReciprocityCalculation(state.values, filmTypes)
+            }
           >
             {(calculation) =>
               calculation ? (
@@ -319,7 +321,7 @@ export default function ReciprocityCalculatorPage() {
                   actions={
                     <button
                       type="button"
-                      onClick={() => setShowChart(prev => !prev)}
+                      onClick={() => setShowChart((prev) => !prev)}
                       className="flex items-center gap-2 rounded-full px-3 py-2 transition-colors hover:bg-white/10"
                       aria-label={showChart ? 'Hide chart' : 'Show chart'}
                       title={showChart ? 'Hide chart' : 'Show chart'}
@@ -502,7 +504,9 @@ export default function ReciprocityCalculatorPage() {
       {/* Wide chart view - spans full width below the columns */}
       {showChart && isWideChart && (
         <form.Subscribe
-          selector={(state) => selectReciprocityCalculation(state.values, filmTypes)}
+          selector={(state) =>
+            selectReciprocityCalculation(state.values, filmTypes)
+          }
         >
           {(calculation) =>
             calculation ? (

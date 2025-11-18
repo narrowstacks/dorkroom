@@ -179,8 +179,14 @@ export function PaperSizeSection({
           selectedValue={aspectRatio}
           onValueChange={(value) => {
             form.setFieldValue('aspectRatio', value);
-            form.setFieldValue('lastValidCustomAspectWidth', form.getFieldValue('customAspectWidth'));
-            form.setFieldValue('lastValidCustomAspectHeight', form.getFieldValue('customAspectHeight'));
+            form.setFieldValue(
+              'lastValidCustomAspectWidth',
+              form.getFieldValue('customAspectWidth')
+            );
+            form.setFieldValue(
+              'lastValidCustomAspectHeight',
+              form.getFieldValue('customAspectHeight')
+            );
           }}
           items={ASPECT_RATIOS as SelectItem[]}
           placeholder="Select Aspect Ratio"
@@ -245,7 +251,9 @@ export function PaperSizeSection({
             Flip Paper
           </button>
           <button
-            onClick={() => form.setFieldValue('isRatioFlipped', !isRatioFlipped)}
+            onClick={() =>
+              form.setFieldValue('isRatioFlipped', !isRatioFlipped)
+            }
             className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
           >
             <Square className="h-4 w-4" />

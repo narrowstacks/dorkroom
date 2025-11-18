@@ -233,14 +233,28 @@ describe('CalculatorCard', () => {
   });
 
   describe('accessibility', () => {
-    it('uses semantic section element', () => {
-      const { container } = render(
+    it('renders as accessible region landmark', () => {
+      render(
         <CalculatorCard>
           <div>Content</div>
         </CalculatorCard>
       );
 
-      expect(container.querySelector('section')).toBeInTheDocument();
+      expect(
+        screen.getByRole('region', { name: /calculator card/i })
+      ).toBeInTheDocument();
+    });
+
+    it('uses title as region name when provided', () => {
+      render(
+        <CalculatorCard title="Border Calculator">
+          <div>Content</div>
+        </CalculatorCard>
+      );
+
+      expect(
+        screen.getByRole('region', { name: /border calculator/i })
+      ).toBeInTheDocument();
     });
 
     it('uses proper heading hierarchy', () => {

@@ -49,7 +49,9 @@ export function PositionOffsetsSection({
             <ToggleSwitch
               label="Ignore Min Border"
               value={ignoreMinBorder}
-              onValueChange={(value) => form.setFieldValue('ignoreMinBorder', value)}
+              onValueChange={(value) =>
+                form.setFieldValue('ignoreMinBorder', value)
+              }
             />
 
             {ignoreMinBorder && (
@@ -62,8 +64,12 @@ export function PositionOffsetsSection({
               <LabeledSliderInput
                 label="Horizontal Offset:"
                 value={horizontalOffset}
-                onChange={(value) => form.setFieldValue('horizontalOffset', value)}
-                onSliderChange={(value) => form.setFieldValue('horizontalOffset', value)}
+                onChange={(value) =>
+                  form.setFieldValue('horizontalOffset', value)
+                }
+                onSliderChange={(value) =>
+                  form.setFieldValue('horizontalOffset', value)
+                }
                 min={OFFSET_SLIDER_MIN}
                 max={OFFSET_SLIDER_MAX}
                 step={OFFSET_SLIDER_STEP}
@@ -75,8 +81,12 @@ export function PositionOffsetsSection({
               <LabeledSliderInput
                 label="Vertical Offset:"
                 value={verticalOffset}
-                onChange={(value) => form.setFieldValue('verticalOffset', value)}
-                onSliderChange={(value) => form.setFieldValue('verticalOffset', value)}
+                onChange={(value) =>
+                  form.setFieldValue('verticalOffset', value)
+                }
+                onSliderChange={(value) =>
+                  form.setFieldValue('verticalOffset', value)
+                }
                 min={OFFSET_SLIDER_MIN}
                 max={OFFSET_SLIDER_MAX}
                 step={OFFSET_SLIDER_STEP}

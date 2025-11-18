@@ -24,11 +24,7 @@ export default defineConfig(() => ({
     port: 4300,
     host: 'localhost',
   },
-  plugins: [
-    TanStackRouterVite(),
-    react(),
-    nxViteTsPaths(),
-  ],
+  plugins: [TanStackRouterVite(), react(), nxViteTsPaths()],
   resolve: {
     alias: {
       '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src/index.ts'),

@@ -6,8 +6,10 @@ import type {
 } from '@/types/borderPresetTypes';
 import { debugLog, debugError } from '@/utils/debugLogger';
 
-const findIndexByValue = <T extends readonly { value: string }[]>(arr: T, value: string) =>
-  arr.findIndex((item) => item.value === value);
+const findIndexByValue = <T extends readonly { value: string }[]>(
+  arr: T,
+  value: string
+) => arr.findIndex((item) => item.value === value);
 
 const getBooleanBitmask = (settings: BorderPresetSettings): number => {
   let mask = 0;

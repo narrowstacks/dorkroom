@@ -174,7 +174,9 @@ describe('Drawer', () => {
     });
 
     it('applies correct transform for different anchors when closed', () => {
-      const { rerender } = render(<Drawer {...defaultProps} anchor="top" isOpen={true} />);
+      const { rerender } = render(
+        <Drawer {...defaultProps} anchor="top" isOpen={true} />
+      );
 
       rerender(<Drawer {...defaultProps} anchor="top" isOpen={false} />);
       const drawer = document.querySelector('.absolute.border');

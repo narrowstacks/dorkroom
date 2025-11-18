@@ -106,3 +106,4 @@ export {
 
 // Forms (TanStack Form integration)
 export * from './forms';
+export type { FieldApi, FormInstance } from './forms/utils/form-api-types';

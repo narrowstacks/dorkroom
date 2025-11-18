@@ -245,8 +245,7 @@ function calculateAspectRatioMatch(
   newL: number
 ): boolean {
   if (isEnlargerMode) return true;
-  if (origWidth <= 0 || origLength <= 0 || newW <= 0 || newL <= 0)
-    return true;
+  if (origWidth <= 0 || origLength <= 0 || newW <= 0 || newL <= 0) return true;
   const originalRatio = (origWidth / origLength).toFixed(3);
   const newRatio = (newW / newL).toFixed(3);
   return originalRatio === newRatio;

@@ -23,10 +23,7 @@ export const toInches = (value: number, isMetric = false): number => {
  * @param isMetric - Whether to convert to metric (cm) or keep as imperial (inches)
  * @returns Value in display units
  */
-export const fromInches = (
-  inches: number,
-  isMetric = false
-): number => {
+export const fromInches = (inches: number, isMetric = false): number => {
   if (!Number.isFinite(inches)) return NaN;
   if (isMetric) {
     return inches * 2.54; // inches to cm

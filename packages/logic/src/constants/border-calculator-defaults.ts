@@ -3,7 +3,6 @@
  * Extracted to centralize calculator state initialization and make presets easier to manage.
  */
 
-
 /**
  * Default values for all border calculator settings.
  * These are used to initialize the calculator state and provide a reset baseline.

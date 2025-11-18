@@ -61,6 +61,8 @@ export function CalculatorCard({
           'var(--color-border-muted)'
         ),
       }}
+      role="region"
+      aria-label={title || 'Calculator card'}
     >
       {accent !== 'none' && (
         <div

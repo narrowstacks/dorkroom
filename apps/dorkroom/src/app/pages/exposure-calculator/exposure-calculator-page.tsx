@@ -226,7 +226,9 @@ export default function ExposureCalculatorPage() {
                           value={field.state.value}
                           onChange={(e: ChangeEvent<HTMLInputElement>) => {
                             const parsed = parseFloat(e.target.value);
-                            const finiteValue = Number.isFinite(parsed) ? parsed : 0;
+                            const finiteValue = Number.isFinite(parsed)
+                              ? parsed
+                              : 0;
                             field.handleChange(finiteValue);
                           }}
                           onBlur={field.handleBlur}

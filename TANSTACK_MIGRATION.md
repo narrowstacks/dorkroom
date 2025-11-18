@@ -785,7 +785,7 @@ apps/dorkroom/src/routes/
 #### Day 16: Cleanup ✅
 
 - [x] Remove React Router DOM from dependencies
-- [x] Delete old app.tsx component (migrated to __root.tsx)
+- [x] Delete old app.tsx component (migrated to \_\_root.tsx)
 - [x] Delete app.spec.tsx test (route-level testing)
 - [x] Update PlaceholderPage to remove React Router dependency
 - [x] Update HomePage Link imports to TanStack Router

@@ -18,9 +18,7 @@ const validAspectRatios = new Set<string>(
  * Set of valid paper size values for fast O(1) lookups.
  * Pre-computed from PAPER_SIZES constant for runtime validation.
  */
-const validPaperSizes = new Set<string>(
-  PAPER_SIZES.map((size) => size.value)
-);
+const validPaperSizes = new Set<string>(PAPER_SIZES.map((size) => size.value));
 
 /**
  * Type guard to validate that a string is a valid AspectRatioValue.

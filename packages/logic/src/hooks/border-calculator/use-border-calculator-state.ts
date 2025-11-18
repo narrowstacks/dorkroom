@@ -44,7 +44,7 @@ const createInitialState = (): BorderCalculatorState => {
     verticalOffset: BORDER_CALCULATOR_DEFAULTS.verticalOffset,
     showBlades: BORDER_CALCULATOR_DEFAULTS.showBlades,
     showBladeReadings: BORDER_CALCULATOR_DEFAULTS.showBladeReadings,
-    isLandscape: true,
+    isLandscape: BORDER_CALCULATOR_DEFAULTS.isLandscape,
     isRatioFlipped: BORDER_CALCULATOR_DEFAULTS.isRatioFlipped,
     hasManuallyFlippedPaper: false,
     offsetWarning: null,

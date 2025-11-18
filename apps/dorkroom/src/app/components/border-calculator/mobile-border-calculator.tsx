@@ -311,38 +311,47 @@ export function MobileBorderCalculator({
   });
 
   // Apply preset from URL
-  const applyPresetSettings = useCallback((settings: BorderPresetSettings) => {
-    form.setFieldValue('aspectRatio', settings.aspectRatio);
-    form.setFieldValue('paperSize', settings.paperSize);
-    form.setFieldValue('customAspectWidth', settings.customAspectWidth);
-    form.setFieldValue('customAspectHeight', settings.customAspectHeight);
-    form.setFieldValue('customPaperWidth', settings.customPaperWidth);
-    form.setFieldValue('customPaperHeight', settings.customPaperHeight);
-    form.setFieldValue('minBorder', settings.minBorder);
-    form.setFieldValue('enableOffset', settings.enableOffset);
-    form.setFieldValue('ignoreMinBorder', settings.ignoreMinBorder);
-    form.setFieldValue('horizontalOffset', settings.horizontalOffset);
-    form.setFieldValue('verticalOffset', settings.verticalOffset);
-    form.setFieldValue('showBlades', settings.showBlades);
-    form.setFieldValue('showBladeReadings', settings.showBladeReadings);
-    form.setFieldValue('isLandscape', settings.isLandscape);
-    form.setFieldValue('isRatioFlipped', settings.isRatioFlipped);
-    form.setFieldValue('hasManuallyFlippedPaper', settings.hasManuallyFlippedPaper);
-    form.setFieldValue(
-      'lastValidCustomAspectWidth',
-      settings.customAspectWidth
-    );
-    form.setFieldValue(
-      'lastValidCustomAspectHeight',
-      settings.customAspectHeight
-    );
-    form.setFieldValue('lastValidCustomPaperWidth', settings.customPaperWidth);
-    form.setFieldValue(
-      'lastValidCustomPaperHeight',
-      settings.customPaperHeight
-    );
-    form.setFieldValue('lastValidMinBorder', settings.minBorder);
-  }, [form]);
+  const applyPresetSettings = useCallback(
+    (settings: BorderPresetSettings) => {
+      form.setFieldValue('aspectRatio', settings.aspectRatio);
+      form.setFieldValue('paperSize', settings.paperSize);
+      form.setFieldValue('customAspectWidth', settings.customAspectWidth);
+      form.setFieldValue('customAspectHeight', settings.customAspectHeight);
+      form.setFieldValue('customPaperWidth', settings.customPaperWidth);
+      form.setFieldValue('customPaperHeight', settings.customPaperHeight);
+      form.setFieldValue('minBorder', settings.minBorder);
+      form.setFieldValue('enableOffset', settings.enableOffset);
+      form.setFieldValue('ignoreMinBorder', settings.ignoreMinBorder);
+      form.setFieldValue('horizontalOffset', settings.horizontalOffset);
+      form.setFieldValue('verticalOffset', settings.verticalOffset);
+      form.setFieldValue('showBlades', settings.showBlades);
+      form.setFieldValue('showBladeReadings', settings.showBladeReadings);
+      form.setFieldValue('isLandscape', settings.isLandscape);
+      form.setFieldValue('isRatioFlipped', settings.isRatioFlipped);
+      form.setFieldValue(
+        'hasManuallyFlippedPaper',
+        settings.hasManuallyFlippedPaper
+      );
+      form.setFieldValue(
+        'lastValidCustomAspectWidth',
+        settings.customAspectWidth
+      );
+      form.setFieldValue(
+        'lastValidCustomAspectHeight',
+        settings.customAspectHeight
+      );
+      form.setFieldValue(
+        'lastValidCustomPaperWidth',
+        settings.customPaperWidth
+      );
+      form.setFieldValue(
+        'lastValidCustomPaperHeight',
+        settings.customPaperHeight
+      );
+      form.setFieldValue('lastValidMinBorder', settings.minBorder);
+    },
+    [form]
+  );
 
   useEffect(() => {
     if (!loadedPresetFromUrl) return;
