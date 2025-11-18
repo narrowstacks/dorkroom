@@ -135,7 +135,7 @@ export default function ReciprocityCalculatorPage() {
       filmType: 'tri-x',
       meteredTime: '30s',
       customFactor: 1.3,
-    },
+    } as ReciprocityFormState,
     validators: {
       onChange: validateReciprocityForm,
     },
@@ -247,9 +247,11 @@ export default function ReciprocityCalculatorPage() {
                   <CalculatorNumberField
                     label="Reciprocity factor"
                     value={String(field.state.value)}
-                    onChange={(value: string) =>
-                      field.handleChange(parseFloat(value))
-                    }
+                    onChange={(value: string) => {
+                      const next = Number.parseFloat(value);
+                      if (Number.isNaN(next)) return;
+                      field.handleChange(next);
+                    }}
                     placeholder="1.3"
                     step={0.1}
                     helperText="Higher factors demand more compensation at longer exposures."

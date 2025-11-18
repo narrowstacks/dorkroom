@@ -16,7 +16,10 @@
  * shallowEqual(a, c); // false
  * ```
  */
-export function shallowEqual(obj1: unknown, obj2: unknown): boolean {
+export function shallowEqual<T extends object>(
+  obj1: T,
+  obj2: unknown
+): boolean {
   // Fast path: reference equality
   if (obj1 === obj2) {
     return true;

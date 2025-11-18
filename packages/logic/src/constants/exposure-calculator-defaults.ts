@@ -19,10 +19,10 @@ export const DEFAULT_EXPOSURE_STOPS = '1';
  * Complete default state for the exposure calculator.
  * Used to initialize the calculator and provide a reset baseline.
  */
-export const EXPOSURE_CALCULATOR_DEFAULTS: ExposureCalculatorState = {
+export const EXPOSURE_CALCULATOR_DEFAULTS = {
   originalTime: DEFAULT_EXPOSURE_ORIGINAL_TIME,
   stops: DEFAULT_EXPOSURE_STOPS,
   newTime: '',
-} as const;
+} as const satisfies ExposureCalculatorState;
 
 export default EXPOSURE_CALCULATOR_DEFAULTS;

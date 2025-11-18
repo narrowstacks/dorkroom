@@ -12,7 +12,7 @@ import { queryKeys } from '../../queries/query-keys';
  * - component mounts after being unmounted
  */
 export function useFilms(): UseQueryResult<Film[]> {
-  return useQuery<Film[]>({
+  return useQuery({
     queryKey: queryKeys.films.list(),
     queryFn: fetchFilms,
   });

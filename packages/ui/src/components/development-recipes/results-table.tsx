@@ -161,7 +161,14 @@ export function DevelopmentResultsTable({
                   return (
                     <tr
                       key={row.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => onSelectCombination?.(rowData)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          onSelectCombination?.(rowData);
+                        }
+                      }}
                       className={cn(
                         'cursor-pointer transition-all duration-200',
                         'animate-slide-fade-bottom',

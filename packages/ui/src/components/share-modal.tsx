@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { debugError } from '@dorkroom/logic';
 import { cn } from '../lib/cn';
 import { colorMixOr } from '../lib/color';
-import { debugError } from '@dorkroom/logic';
 
 export interface ShareModalProps {
   isOpen: boolean;

@@ -190,13 +190,19 @@ export function PaperSizeSection({
           <DimensionInputGroup
             widthValue={String(customAspectWidth)}
             onWidthChange={(value) => {
-              const num = Number(value) || 0;
+              const num = Number(value);
+              if (!Number.isFinite(num) || num <= 0) {
+                return;
+              }
               form.setFieldValue('customAspectWidth', num);
               form.setFieldValue('lastValidCustomAspectWidth', num);
             }}
             heightValue={String(customAspectHeight)}
             onHeightChange={(value) => {
-              const num = Number(value) || 0;
+              const num = Number(value);
+              if (!Number.isFinite(num) || num <= 0) {
+                return;
+              }
               form.setFieldValue('customAspectHeight', num);
               form.setFieldValue('lastValidCustomAspectHeight', num);
             }}

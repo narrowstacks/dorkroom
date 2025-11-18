@@ -472,7 +472,6 @@ export default function BorderCalculatorPage() {
                 calculation={calculation}
                 AnimatedPreview={AnimatedPreview}
                 isLandscape={isLandscape}
-                isCustomPaper={paperSize === 'custom'}
                 onResetToDefaults={resetToDefaults}
               />
 

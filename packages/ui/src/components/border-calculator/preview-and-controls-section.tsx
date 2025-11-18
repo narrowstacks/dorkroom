@@ -1,7 +1,7 @@
 import { RotateCw, RotateCcw, Square } from 'lucide-react';
-import { CalculatorCard } from '../calculator/calculator-card';
 import type { BorderCalculation } from '@dorkroom/logic';
 import type { FormInstance } from '@dorkroom/ui';
+import { CalculatorCard } from '../calculator/calculator-card';
 
 interface PreviewAndControlsSectionProps {
   form: FormInstance;
@@ -13,7 +13,6 @@ interface PreviewAndControlsSectionProps {
     className?: string;
   }>;
   isLandscape: boolean;
-  isCustomPaper: boolean;
   onResetToDefaults: () => void;
 }
 
@@ -26,7 +25,6 @@ export function PreviewAndControlsSection({
   calculation,
   AnimatedPreview,
   isLandscape,
-  isCustomPaper,
   onResetToDefaults,
 }: PreviewAndControlsSectionProps) {
   return (

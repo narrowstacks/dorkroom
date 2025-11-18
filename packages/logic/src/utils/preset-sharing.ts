@@ -267,7 +267,7 @@ export function decodePreset(encoded: string): SharedPreset | null {
 
     return { name, settings };
   } catch (error) {
-    console.error('Failed to decode preset:', error);
+    debugError('Failed to decode preset:', error);
     return null;
   }
 }
