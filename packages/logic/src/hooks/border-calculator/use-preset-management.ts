@@ -29,9 +29,12 @@ interface UsePresetManagementReturn {
   setPresetName: (name: string) => void;
   setIsEditingPreset: (isEditing: boolean) => void;
   handleSelectPreset: (id: string) => void;
-  savePreset: () => void;
-  updatePresetHandler: () => void;
-  deletePresetHandler: () => void;
+  savePreset: (name?: string, settings?: BorderPresetSettings) => void;
+  updatePresetHandler: (
+    id?: string,
+    data?: { name?: string; settings?: BorderPresetSettings }
+  ) => void;
+  deletePresetHandler: (id?: string) => void;
 }
 
 /**
@@ -73,30 +76,48 @@ export function usePresetManagement({
     }
   };
 
-  const savePreset = () => {
-    if (!presetName.trim()) return;
+  const savePreset = (
+    name?: string,
+    settings?: BorderPresetSettings
+  ) => {
+    const finalName = name !== undefined ? name : presetName;
+    const finalSettings = settings !== undefined ? settings : currentSettings;
+
+    if (!finalName.trim()) return;
     const newPreset = {
       id: 'user-' + Date.now(),
-      name: presetName.trim(),
-      settings: currentSettings,
+      name: finalName.trim(),
+      settings: finalSettings,
     };
     onAddPreset(newPreset);
     setSelectedPresetId(newPreset.id);
     setIsEditingPreset(false);
   };
 
-  const updatePresetHandler = () => {
-    if (!selectedPresetId) return;
-    const updated = { name: presetName.trim(), settings: currentSettings };
-    onUpdatePreset(selectedPresetId, updated);
+  const updatePresetHandler = (
+    id?: string,
+    data?: { name?: string; settings?: BorderPresetSettings }
+  ) => {
+    const targetId = id || selectedPresetId;
+    if (!targetId) return;
+
+    const finalName = data?.name !== undefined ? data.name : presetName;
+    const finalSettings =
+      data?.settings !== undefined ? data.settings : currentSettings;
+
+    const updated = { name: finalName.trim(), settings: finalSettings };
+    onUpdatePreset(targetId, updated);
     setIsEditingPreset(false);
   };
 
-  const deletePresetHandler = () => {
-    if (!selectedPresetId) return;
-    onRemovePreset(selectedPresetId);
-    setSelectedPresetId('');
-    setPresetName('');
+  const deletePresetHandler = (id?: string) => {
+    const targetId = id || selectedPresetId;
+    if (!targetId) return;
+    onRemovePreset(targetId);
+    if (targetId === selectedPresetId) {
+      setSelectedPresetId('');
+      setPresetName('');
+    }
     setIsEditingPreset(false);
   };
 

@@ -1,0 +1,187 @@
+import type { FC } from 'react';
+import {
+  ShareModal,
+  SaveBeforeShareModal,
+  PaperSetupSection,
+  BordersOffsetsSection,
+  BladeReadingsSection,
+  PreviewAndControlsSection,
+  BladeVisualizationSection,
+  PresetsSection,
+} from '@dorkroom/ui';
+import {
+  AnimatedPreview,
+  BorderInfoSection,
+} from '.';
+import {
+  type SelectItem,
+  SLIDER_MIN_BORDER,
+  SLIDER_MAX_BORDER,
+  SLIDER_STEP_BORDER,
+  BORDER_SLIDER_LABELS,
+  OFFSET_SLIDER_MIN,
+  OFFSET_SLIDER_MAX,
+  OFFSET_SLIDER_STEP,
+  OFFSET_SLIDER_LABELS,
+  ASPECT_RATIOS,
+} from '@dorkroom/logic';
+import type { useBorderCalculatorController } from '../../pages/border-calculator/hooks/use-border-calculator-controller';
+
+type DesktopBorderLayoutProps = ReturnType<typeof useBorderCalculatorController>;
+
+export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
+  form,
+  formValues,
+  calculation,
+  paperWidthInput,
+  paperHeightInput,
+  displayPaperSizes,
+  quarterRoundedMinBorder,
+  offsetWarning,
+  bladeWarning,
+  minBorderWarning,
+  paperSizeWarning,
+  presets,
+  selectedPresetId,
+  presetName,
+  isEditingPreset,
+  isSharing,
+  isGeneratingShareUrl,
+  isShareModalOpen,
+  isSaveBeforeShareOpen,
+  shareUrls,
+  canShareNatively,
+  canCopyToClipboard,
+  handlePaperWidthChange,
+  handlePaperWidthBlur,
+  handlePaperHeightChange,
+  handlePaperHeightBlur,
+  handleRoundMinBorderToQuarter,
+  resetToDefaults,
+  handleSelectPreset,
+  setPresetName,
+  setIsEditingPreset,
+  savePreset,
+  updatePresetHandler,
+  deletePresetHandler,
+  handleShareClick,
+  handleSaveAndShare,
+  handleCopyToClipboard,
+  handleNativeShare,
+  setIsShareModalOpen,
+  setIsSaveBeforeShareOpen,
+  formatWithUnit,
+  formatDimensions,
+  presetItems,
+}) => {
+  const {
+    customAspectWidth,
+    customAspectHeight,
+    enableOffset,
+    ignoreMinBorder,
+    isLandscape,
+  } = formValues;
+
+  return (
+    <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
+      <div className="mt-2 grid gap-2 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        <div className="space-y-6">
+          {calculation && (
+            <>
+              <PreviewAndControlsSection
+                form={form}
+                calculation={calculation}
+                AnimatedPreview={AnimatedPreview}
+                onResetToDefaults={resetToDefaults}
+              />
+
+              <BladeReadingsSection
+                calculation={calculation}
+                isLandscape={isLandscape}
+                formatWithUnit={formatWithUnit}
+                formatDimensions={formatDimensions}
+                bladeWarning={bladeWarning}
+                minBorderWarning={minBorderWarning}
+                paperSizeWarning={paperSizeWarning}
+              />
+            </>
+          )}
+        </div>
+
+        <div className="space-y-6">
+          <PaperSetupSection
+            form={form}
+            displayPaperSizes={displayPaperSizes}
+            paperWidthInput={paperWidthInput}
+            paperHeightInput={paperHeightInput}
+            onPaperWidthChange={handlePaperWidthChange}
+            onPaperWidthBlur={handlePaperWidthBlur}
+            onPaperHeightChange={handlePaperHeightChange}
+            onPaperHeightBlur={handlePaperHeightBlur}
+            aspectRatios={ASPECT_RATIOS as SelectItem[]}
+            customAspectWidth={customAspectWidth}
+            customAspectHeight={customAspectHeight}
+          />
+
+          <BordersOffsetsSection
+            form={form}
+            sliderMinBorder={SLIDER_MIN_BORDER}
+            sliderMaxBorder={SLIDER_MAX_BORDER}
+            sliderStepBorder={SLIDER_STEP_BORDER}
+            borderSliderLabels={BORDER_SLIDER_LABELS}
+            offsetSliderMin={OFFSET_SLIDER_MIN}
+            offsetSliderMax={OFFSET_SLIDER_MAX}
+            offsetSliderStep={OFFSET_SLIDER_STEP}
+            offsetSliderLabels={OFFSET_SLIDER_LABELS}
+            offsetWarning={offsetWarning}
+            enableOffset={enableOffset}
+            ignoreMinBorder={ignoreMinBorder}
+            onRoundToQuarter={handleRoundMinBorderToQuarter}
+            roundToQuarterDisabled={quarterRoundedMinBorder === null}
+          />
+
+          <BladeVisualizationSection form={form} />
+
+          <PresetsSection
+            selectedPresetId={selectedPresetId}
+            presetName={presetName}
+            isEditingPreset={isEditingPreset}
+            presetItems={presetItems}
+            isSharing={isSharing}
+            isGeneratingShareUrl={isGeneratingShareUrl}
+            onSelectPreset={handleSelectPreset}
+            onPresetNameChange={setPresetName}
+            onEditingChange={setIsEditingPreset}
+            onShareClick={handleShareClick}
+            onSavePreset={savePreset}
+            onUpdatePreset={updatePresetHandler}
+            onDeletePreset={deletePresetHandler}
+          />
+        </div>
+      </div>
+
+      <BorderInfoSection />
+
+      {/* Sharing Modals */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        presetName={presetName || 'Border Calculator Settings'}
+        webUrl={shareUrls?.webUrl || ''}
+        nativeUrl={shareUrls?.nativeUrl}
+        onCopyToClipboard={handleCopyToClipboard}
+        onNativeShare={canShareNatively ? handleNativeShare : undefined}
+        canShareNatively={canShareNatively}
+        canCopyToClipboard={canCopyToClipboard}
+      />
+
+      <SaveBeforeShareModal
+        isOpen={isSaveBeforeShareOpen}
+        onClose={() => setIsSaveBeforeShareOpen(false)}
+        onSaveAndShare={handleSaveAndShare}
+        isLoading={isSharing || isGeneratingShareUrl}
+      />
+    </div>
+  );
+};
+

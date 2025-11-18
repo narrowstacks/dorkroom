@@ -37,7 +37,6 @@ import {
   PositionOffsetsSection,
   PresetsSection,
 } from './sections';
-import { calculateQuarterInchMinBorder } from './utils/quarter-inch-rounding';
 
 // Hooks
 import {
@@ -45,6 +44,7 @@ import {
   usePresetSharing,
   useDimensionCalculations,
   useGeometryCalculations,
+  calculateQuarterInchMinBorder,
   shallowEqual,
   debugLog,
   debugError,
