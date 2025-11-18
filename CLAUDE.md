@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Dorkroom is an Nx workspace containing a React 19 application with TypeScript, Tailwind CSS, and supporting libraries. The monorepo includes a main app and shared packages for UI components and business logic.
+Dorkroom is an analog photography calculator app built with React 19, TypeScript, and Tailwind CSS. It's an Nx monorepo with specialized calculator tools (border, exposure, reciprocity, resize, stops) and a development recipes database. The project recently completed a major TanStack ecosystem migration (v5 Query, v1 Router, v1 Form, v8 Table).
 
 ## Essential Commands
 
@@ -41,13 +41,17 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 
 ### Key Technologies
 
-- React 19 with functional components
-- TypeScript with strict mode
+- React 19.0.0 with functional components
+- TypeScript 5.8.2 with strict mode
 - Tailwind CSS 4.1.13 for styling
-- Vite for bundling
-- Vitest for testing
+- Vite 6 for bundling
+- Vitest 3 for testing
+- Nx 21.4 for monorepo management
 - TanStack Query v5 for server state management
-- TanStack Router v1 for type-safe routing
+- TanStack Router v1 for file-based routing
+- TanStack Form v1 for form state management with Zod validation
+- TanStack Table v8 for data tables
+- Zod v4.1.12 for schema validation
 
 ## Code Conventions
 
@@ -77,6 +81,131 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 - Props destructuring with default values
 - Controlled components
 - Use `cn()` utility for conditional Tailwind classes
+
+### TanStack Router Patterns (File-Based Routing)
+
+Routes are defined using file-based routing in `apps/dorkroom/src/routes/`. Each route file exports a route component:
+
+```typescript
+// apps/dorkroom/src/routes/border-calculator.tsx
+import { createFileRoute } from '@tanstack/react-router';
+import { BorderCalculatorPage } from '../app/pages/border-calculator/border-calculator-page';
+
+export const Route = createFileRoute('/border-calculator')({
+  component: BorderCalculatorPage,
+});
+```
+
+**Important Patterns:**
+
+- Route files use kebab-case with `.tsx` extension
+- Components in `apps/dorkroom/src/app/pages/` follow PascalCase
+- Use `createFileRoute()` to define route configuration
+- Router devtools available in development for debugging
+
+### TanStack Form Patterns
+
+Forms use TanStack Form with Zod schema validation:
+
+```typescript
+import { useForm } from '@tanstack/react-form';
+import { zodValidator } from '@tanstack/zod-adapter';
+import { z } from 'zod';
+
+const schema = z.object({
+  borderSize: z.number().min(0),
+});
+
+export function MyCalculator() {
+  const form = useForm({
+    defaultValues: {
+      borderSize: 10,
+    },
+    onSubmit: async (values) => {
+      // Handle submission
+    },
+    validators: {
+      onChange: zodValidator({ schema }),
+    },
+  });
+
+  return (
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      form.handleSubmit();
+    }}>
+      {/* Form fields */}
+    </form>
+  );
+}
+```
+
+**Important Patterns:**
+
+- Zod schemas for all form validation
+- Use `@tanstack/zod-adapter` for schema integration
+- Always handle form submission prevention with `preventDefault()` and `stopPropagation()`
+
+### TanStack Table Patterns
+
+Data tables use TanStack Table v8 for rendering and interaction:
+
+```typescript
+import { createColumnHelper, useReactTable, getCoreRowModel } from '@tanstack/react-table';
+
+const columnHelper = createColumnHelper<Recipe>();
+
+const columns = [
+  columnHelper.accessor('name', {
+    header: 'Name',
+  }),
+];
+
+export function RecipeTable({ data }: { data: Recipe[] }) {
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  return (
+    <table>
+      <thead>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <tr key={headerGroup.id}>
+            {headerGroup.headers.map((header) => (
+              <th key={header.id}>
+                {header.isPlaceholder
+                  ? null
+                  : flexRender(header.column.columnDef.header, header.getContext())}
+              </th>
+            ))}
+          </tr>
+        ))}
+      </thead>
+      <tbody>
+        {table.getRowModel().rows.map((row) => (
+          <tr key={row.id}>
+            {row.getVisibleCells().map((cell) => (
+              <td key={cell.id}>
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+```
+
+**Important Patterns:**
+
+- Use `createColumnHelper<T>()` for type-safe column definitions
+- Core features: sorting, filtering, pagination via `useReactTable` hooks
+- Combine with TanStack Query for server-side data
+- Use `flexRender()` for rendering cell/header content
 
 ### TanStack Query Patterns
 
@@ -170,10 +299,24 @@ export const queryKeys = {
 
 ## Package Dependencies
 
-- UI package uses clsx and tailwind-merge
-- Logic package has React peer dependencies
-- All packages build to TypeScript declarations
+**UI Package (@dorkroom/ui):**
+
+- clsx for className utilities
+- tailwind-merge for Tailwind class merging
+- lucide-react for icons
+- Tailwind CSS 4.1.13
+
+**Logic Package (@dorkroom/logic):**
+
+- React peer dependencies (19.0.0)
+- TanStack ecosystem (Query, Router, Form, Table)
+- Zod for schema validation
+- All packages build to TypeScript declarations (.d.ts)
 
 ## Git rules
 
 - Keep commit messages short. Use conventional commit standards.
+
+## On using ast-grep vs ripgrep (rg)
+
+You run in an environment where `ast-grep` is available; whenever a search requires syntax-aware or structural matching, default to `ast-grep --lang typescript -p '<pattern>'` (or set `--lang` appropriately) and avoid falling back to text-only tools like `rg` or `grep` unless I explicitly request a plain-text search.
