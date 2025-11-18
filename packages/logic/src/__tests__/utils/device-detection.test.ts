@@ -49,7 +49,7 @@ describe('device detection', () => {
     window?: Window & typeof globalThis;
     navigator?: Navigator;
   };
-  const g = globalThis as MutableGlobal;
+  const g = globalThis as unknown as MutableGlobal;
   const originalWindow = g.window;
   const originalNavigator = g.navigator;
 

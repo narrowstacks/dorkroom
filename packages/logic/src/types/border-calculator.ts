@@ -239,11 +239,23 @@ export type BorderCalculatorAction =
   | { type: 'SET_ASPECT_RATIO'; value: AspectRatioValue }
   | {
       type: 'SET_IMAGE_FIELD';
-      key: Extract<
-        keyof BorderCalculatorState,
-        'selectedImageUri' | 'isCropping' | 'cropScale' | 'cropOffset'
-      >;
-      value: BorderCalculatorState[keyof BorderCalculatorState];
+      key: 'selectedImageUri';
+      value: string | null;
+    }
+  | {
+      type: 'SET_IMAGE_FIELD';
+      key: 'isCropping';
+      value: boolean;
+    }
+  | {
+      type: 'SET_IMAGE_FIELD';
+      key: 'cropScale';
+      value: number;
+    }
+  | {
+      type: 'SET_IMAGE_FIELD';
+      key: 'cropOffset';
+      value: { x: number; y: number };
     }
   | {
       type: 'SET_IMAGE_DIMENSIONS';
