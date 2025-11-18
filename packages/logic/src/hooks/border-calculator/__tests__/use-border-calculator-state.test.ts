@@ -282,6 +282,7 @@ describe('useBorderCalculatorState', () => {
       const { result } = renderHook(() => useBorderCalculatorState());
       const aspectRatios: Array<
         | '3:2'
+        | 'even-borders'
         | '65:24'
         | '4:3'
         | '1:1'
@@ -296,6 +297,7 @@ describe('useBorderCalculatorState', () => {
         | '2.76:1'
       > = [
         '3:2',
+        'even-borders',
         '65:24',
         '4:3',
         '1:1',

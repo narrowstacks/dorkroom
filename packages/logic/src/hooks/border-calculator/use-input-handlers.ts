@@ -20,6 +20,7 @@ import type {
 // Validation sets for discriminated union types
 const VALID_ASPECT_RATIOS = new Set<AspectRatioValue>([
   'custom',
+  'even-borders',
   '3:2',
   '65:24',
   '4:3',

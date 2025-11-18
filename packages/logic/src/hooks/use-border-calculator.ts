@@ -49,8 +49,11 @@ export function useBorderCalculator() {
   const [horizontalOffset, setHorizontalOffset] = useState(0);
   const [verticalOffset, setVerticalOffset] = useState(0);
   const [showBlades, setShowBlades] = useState(true);
+  const [showBladeReadings, setShowBladeReadings] = useState(true);
   const [isLandscape, setIsLandscape] = useState(false);
   const [isRatioFlipped, setIsRatioFlipped] = useState(false);
+  const [hasManuallyFlippedPaper, setHasManuallyFlippedPaper] =
+    useState(false);
 
   const setMinBorderSlider = (value: number) => {
     setMinBorder(value);
@@ -65,22 +68,6 @@ export function useBorderCalculator() {
   };
 
   const calculation = useMemo((): BorderCalculation | null => {
-    let ratioWidth = 2;
-    let ratioHeight = 3;
-
-    if (aspectRatio === 'custom') {
-      ratioWidth = customAspectWidth;
-      ratioHeight = customAspectHeight;
-    } else {
-      const [w, h] = aspectRatio.split(':').map(Number);
-      ratioWidth = w;
-      ratioHeight = h;
-    }
-
-    if (isRatioFlipped) {
-      [ratioWidth, ratioHeight] = [ratioHeight, ratioWidth];
-    }
-
     let paperW = 8;
     let paperH = 10;
 
@@ -97,14 +84,42 @@ export function useBorderCalculator() {
       [paperW, paperH] = [paperH, paperW];
     }
 
-    const aspectRatioValue = ratioWidth / ratioHeight;
+    let ratioWidth = 2;
+    let ratioHeight = 3;
+
+    if (aspectRatio === 'custom') {
+      ratioWidth = customAspectWidth;
+      ratioHeight = customAspectHeight;
+    } else if (aspectRatio === 'even-borders') {
+      ratioWidth = paperW > 0 ? paperW : 1;
+      ratioHeight = paperH > 0 ? paperH : 1;
+    } else {
+      const [w, h] = aspectRatio.split(':').map(Number);
+      ratioWidth = Number.isFinite(w) && w > 0 ? w : 2;
+      ratioHeight = Number.isFinite(h) && h > 0 ? h : 3;
+    }
+
+    if (aspectRatio !== 'even-borders' && isRatioFlipped) {
+      [ratioWidth, ratioHeight] = [ratioHeight, ratioWidth];
+    }
+
+    const safeRatioHeight = ratioHeight > 0 ? ratioHeight : 1;
+    const aspectRatioValue = ratioWidth / safeRatioHeight;
     const availableWidth = paperW - 2 * minBorder;
     const availableHeight = paperH - 2 * minBorder;
 
     let printWidth: number;
     let printHeight: number;
 
-    if (availableWidth / availableHeight > aspectRatioValue) {
+    if (
+      availableWidth <= 0 ||
+      availableHeight <= 0 ||
+      !Number.isFinite(aspectRatioValue) ||
+      aspectRatioValue <= 0
+    ) {
+      printWidth = 0;
+      printHeight = 0;
+    } else if (availableWidth / availableHeight > aspectRatioValue) {
       printHeight = availableHeight;
       printWidth = printHeight * aspectRatioValue;
     } else {
@@ -140,6 +155,7 @@ export function useBorderCalculator() {
       horizontalOffset,
       verticalOffset,
       enableOffset,
+      aspectRatio,
     });
 
     return {
@@ -278,8 +294,10 @@ export function useBorderCalculator() {
     setHorizontalOffset(0);
     setVerticalOffset(0);
     setShowBlades(true);
+    setShowBladeReadings(true);
     setIsLandscape(false);
     setIsRatioFlipped(false);
+    setHasManuallyFlippedPaper(false);
   };
 
   const applyPreset = (settings: BorderSettings) => {
@@ -295,8 +313,10 @@ export function useBorderCalculator() {
     setHorizontalOffset(settings.horizontalOffset);
     setVerticalOffset(settings.verticalOffset);
     setShowBlades(settings.showBlades);
+    setShowBladeReadings(settings.showBladeReadings);
     setIsLandscape(settings.isLandscape);
     setIsRatioFlipped(settings.isRatioFlipped);
+    setHasManuallyFlippedPaper(settings.hasManuallyFlippedPaper);
   };
 
   return {
@@ -327,10 +347,14 @@ export function useBorderCalculator() {
     setVerticalOffsetSlider,
     showBlades,
     setShowBlades,
+    showBladeReadings,
+    setShowBladeReadings,
     isLandscape,
     setIsLandscape,
     isRatioFlipped,
     setIsRatioFlipped,
+    hasManuallyFlippedPaper,
+    setHasManuallyFlippedPaper,
     offsetWarning,
     bladeWarning,
     calculation,

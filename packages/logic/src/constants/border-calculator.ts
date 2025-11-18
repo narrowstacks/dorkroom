@@ -44,6 +44,10 @@ export const ASPECT_RATIOS: readonly AspectRatio[] = [
     height: 2,
     value: '3:2',
   },
+  {
+    label: 'Even borders (match paper)',
+    value: 'even-borders',
+  },
   { label: 'XPan Pano (65:24)', width: 65, height: 24, value: '65:24' },
   {
     label: '6x4.5/6x8/35mm Half Frame (4:3)',

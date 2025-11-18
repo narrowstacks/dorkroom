@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useBorderCalculator } from '../use-border-calculator';
 import type { BorderSettings } from '../../types/border-calculator';
@@ -25,8 +25,10 @@ describe('useBorderCalculator', () => {
       expect(result.current.horizontalOffset).toBe(0);
       expect(result.current.verticalOffset).toBe(0);
       expect(result.current.showBlades).toBe(true);
+      expect(result.current.showBladeReadings).toBe(true);
       expect(result.current.isLandscape).toBe(false);
       expect(result.current.isRatioFlipped).toBe(false);
+      expect(result.current.hasManuallyFlippedPaper).toBe(false);
     });
 
     it('should initialize custom values with sensible defaults', () => {
@@ -172,6 +174,7 @@ describe('useBorderCalculator', () => {
       const { result } = renderHook(() => useBorderCalculator());
       const aspectRatios = [
         '3:2',
+        'even-borders',
         '65:24',
         '4:3',
         '1:1',
@@ -196,6 +199,32 @@ describe('useBorderCalculator', () => {
         expect(calc?.printWidth).toBeGreaterThan(0);
         expect(calc?.printHeight).toBeGreaterThan(0);
       });
+    });
+
+    it('should keep borders symmetrical when aspect ratio matches paper', () => {
+      const { result } = renderHook(() => useBorderCalculator());
+
+      act(() => {
+        result.current.setPaperSize('11x14');
+        result.current.setAspectRatio('even-borders');
+        result.current.setMinBorder(0.75);
+      });
+
+      let calc = result.current.calculation;
+      expect(calc).not.toBeNull();
+      expect(calc!.leftBorder).toBeCloseTo(calc!.rightBorder, 5);
+      expect(calc!.topBorder).toBeCloseTo(calc!.bottomBorder, 5);
+
+      act(() => {
+        result.current.setIsLandscape(true);
+        result.current.setIsRatioFlipped(true);
+        result.current.setPaperSize('5x7');
+      });
+
+      calc = result.current.calculation;
+      expect(calc).not.toBeNull();
+      expect(calc!.leftBorder).toBeCloseTo(calc!.rightBorder, 5);
+      expect(calc!.topBorder).toBeCloseTo(calc!.bottomBorder, 5);
     });
   });
 
@@ -698,8 +727,11 @@ describe('useBorderCalculator', () => {
         result.current.setEnableOffset(true);
         result.current.setHorizontalOffset(2);
         result.current.setVerticalOffset(1.5);
+        result.current.setShowBlades(false);
+        result.current.setShowBladeReadings(false);
         result.current.setIsLandscape(true);
         result.current.setIsRatioFlipped(true);
+        result.current.setHasManuallyFlippedPaper(true);
       });
 
       // Reset
@@ -714,8 +746,11 @@ describe('useBorderCalculator', () => {
       expect(result.current.enableOffset).toBe(false);
       expect(result.current.horizontalOffset).toBe(0);
       expect(result.current.verticalOffset).toBe(0);
+      expect(result.current.showBlades).toBe(true);
+      expect(result.current.showBladeReadings).toBe(true);
       expect(result.current.isLandscape).toBe(false);
       expect(result.current.isRatioFlipped).toBe(false);
+      expect(result.current.hasManuallyFlippedPaper).toBe(false);
     });
 
     it('should apply preset settings correctly', () => {
@@ -752,7 +787,9 @@ describe('useBorderCalculator', () => {
       expect(result.current.horizontalOffset).toBe(0.5);
       expect(result.current.verticalOffset).toBe(-0.25);
       expect(result.current.showBlades).toBe(false);
+      expect(result.current.showBladeReadings).toBe(true);
       expect(result.current.isLandscape).toBe(true);
+      expect(result.current.hasManuallyFlippedPaper).toBe(false);
     });
   });
 

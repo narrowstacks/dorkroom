@@ -32,6 +32,12 @@ export function PreviewAndControlsSection({
     (state) => state.values.showBladeReadings
   );
   const isLandscape = useStore(form.store, (state) => state.values.isLandscape);
+  const aspectRatio = useStore(form.store, (state) => state.values.aspectRatio);
+  const isEvenBordersSelected = aspectRatio === 'even-borders';
+  const flipControlBaseClasses =
+    'flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)]';
+  const enabledFlipClasses =
+    'hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]';
 
   return (
     <CalculatorCard accent="violet" padding="compact">
@@ -47,22 +53,36 @@ export function PreviewAndControlsSection({
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <button
+          type="button"
           onClick={() => {
             const newValue = !form.getFieldValue('isLandscape');
             form.setFieldValue('isLandscape', newValue);
             form.setFieldValue('hasManuallyFlippedPaper', true);
           }}
-          className="flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
+          className={`${flipControlBaseClasses} ${enabledFlipClasses}`}
         >
           <RotateCw className="h-4 w-4" />
           Flip Paper
         </button>
         <button
+          type="button"
           onClick={() => {
+            if (isEvenBordersSelected) return;
             const newValue = !form.getFieldValue('isRatioFlipped');
             form.setFieldValue('isRatioFlipped', newValue);
           }}
-          className="flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
+          className={`${flipControlBaseClasses} ${
+            isEvenBordersSelected
+              ? 'cursor-not-allowed opacity-50'
+              : enabledFlipClasses
+          }`}
+          disabled={isEvenBordersSelected}
+          aria-disabled={isEvenBordersSelected}
+          title={
+            isEvenBordersSelected
+              ? 'Even borders automatically match your paper orientation; flipping is disabled.'
+              : undefined
+          }
         >
           <Square className="h-4 w-4" />
           Flip Ratio

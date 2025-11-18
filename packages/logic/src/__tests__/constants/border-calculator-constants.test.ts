@@ -6,9 +6,11 @@ import {
   SLIDER_MIN_BORDER,
   SLIDER_MAX_BORDER,
   SLIDER_STEP_BORDER,
+  BORDER_SLIDER_LABELS,
   OFFSET_SLIDER_MIN,
   OFFSET_SLIDER_MAX,
   OFFSET_SLIDER_STEP,
+  OFFSET_SLIDER_LABELS,
   PAPER_SIZE_MAP,
   ASPECT_RATIO_MAP,
   EASEL_SIZE_MAP,
@@ -46,16 +48,19 @@ describe('Border Calculator Constants', () => {
 
       // Custom option
       expect(ratioLabels).toContain('custom');
+      // Paper-matching option
+      expect(ratioLabels).toContain('even-borders');
     });
 
-    it('should have valid numerical width and height for all ratios', () => {
+    it('should have valid numerical width and height for static ratios', () => {
       ASPECT_RATIOS.forEach((ratio) => {
-        if (ratio.value !== 'custom') {
-          expect(ratio.width).toBeDefined();
-          expect(ratio.height).toBeDefined();
-          expect(ratio.width).toBeGreaterThan(0);
-          expect(ratio.height).toBeGreaterThan(0);
+        if (ratio.value === 'custom' || ratio.value === 'even-borders') {
+          return;
         }
+        expect(ratio.width).toBeDefined();
+        expect(ratio.height).toBeDefined();
+        expect(ratio.width).toBeGreaterThan(0);
+        expect(ratio.height).toBeGreaterThan(0);
       });
     });
 

@@ -87,6 +87,12 @@ export const useDimensionCalculations = (state: BorderCalculatorState) => {
 
   // Optimized aspect ratio calculations
   const ratioEntry = useMemo((): RatioEntry => {
+    if (state.aspectRatio === 'even-borders') {
+      const safeWidth = paperEntry.w > 0 ? paperEntry.w : 1;
+      const safeHeight = paperEntry.h > 0 ? paperEntry.h : 1;
+      return { w: safeWidth, h: safeHeight };
+    }
+
     if (state.aspectRatio === 'custom') {
       return {
         w: state.lastValidCustomAspectWidth,
@@ -98,6 +104,8 @@ export const useDimensionCalculations = (state: BorderCalculatorState) => {
     const r = ASPECT_RATIO_MAP.get(state.aspectRatio);
     return r ? { w: r.width || 1, h: r.height || 1 } : { w: 3, h: 2 }; // fallback to 3:2
   }, [
+    paperEntry.w,
+    paperEntry.h,
     state.aspectRatio,
     state.lastValidCustomAspectWidth,
     state.lastValidCustomAspectHeight,
@@ -109,9 +117,12 @@ export const useDimensionCalculations = (state: BorderCalculatorState) => {
       ? { w: paperEntry.h, h: paperEntry.w }
       : { w: paperEntry.w, h: paperEntry.h };
 
-    const orientedRatio = state.isRatioFlipped
-      ? { w: ratioEntry.h, h: ratioEntry.w }
-      : { w: ratioEntry.w, h: ratioEntry.h };
+    const orientedRatio =
+      state.aspectRatio === 'even-borders'
+        ? { w: orientedPaper.w, h: orientedPaper.h }
+        : state.isRatioFlipped
+        ? { w: ratioEntry.h, h: ratioEntry.w }
+        : { w: ratioEntry.w, h: ratioEntry.h };
 
     return { orientedPaper, orientedRatio };
   }, [
@@ -119,6 +130,7 @@ export const useDimensionCalculations = (state: BorderCalculatorState) => {
     paperEntry.h,
     ratioEntry.w,
     ratioEntry.h,
+    state.aspectRatio,
     state.isLandscape,
     state.isRatioFlipped,
   ]);

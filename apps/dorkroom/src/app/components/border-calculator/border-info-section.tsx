@@ -11,6 +11,7 @@ const INFO_HOW_TO_USE = [
 const INFO_TIPS = [
   'Easels only provide markings for quarter-inch increments, so you are on your own for measuring the blade positions with a ruler.',
   'For uniform borders, keep offsets at 0',
+  'Select "Even borders" to automatically match your paper ratio for perfectly even margins.',
   'The "flip paper orientation" button rotates the paper between portrait and landscape',
   'The "flip aspect ratio" button swaps the width and height of your image',
 ];
