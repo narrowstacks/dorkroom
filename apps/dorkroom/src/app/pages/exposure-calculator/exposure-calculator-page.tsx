@@ -73,7 +73,7 @@ interface StopButtonProps {
   theme: ReturnType<typeof useTheme>;
 }
 
-function StopButton({ preset, onPress, theme }: StopButtonProps) {
+const StopButton: React.FC<StopButtonProps> = ({ preset, onPress, theme }) => {
   const currentTheme = themes[theme.resolvedTheme];
 
   return (
@@ -90,7 +90,7 @@ function StopButton({ preset, onPress, theme }: StopButtonProps) {
       {preset.label}
     </button>
   );
-}
+};
 
 export default function ExposureCalculatorPage() {
   const theme = useTheme();
@@ -131,18 +131,19 @@ export default function ExposureCalculatorPage() {
       const raw = window.localStorage.getItem(EXPOSURE_STORAGE_KEY);
       if (!raw) return;
 
-      const parsed = JSON.parse(raw) as Partial<ExposureFormState>;
-      Object.entries(parsed).forEach(([key, value]: [string, unknown]) => {
-        if (value === undefined) return;
-        form.setFieldValue(
-          key as keyof ExposureFormState,
-          value as ExposureFormState[keyof ExposureFormState]
-        );
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return;
+
+      (['originalTime', 'stops'] as const).forEach((key) => {
+        const value = (parsed as Partial<ExposureFormState>)[key];
+        if (typeof value !== 'number' || !Number.isFinite(value)) return;
+        form.setFieldValue(key, value);
       });
     } catch (error) {
       console.warn('Failed to load calculator state', error);
     }
-  }, [form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Persist form state to localStorage whenever it changes
   useEffect(() => {

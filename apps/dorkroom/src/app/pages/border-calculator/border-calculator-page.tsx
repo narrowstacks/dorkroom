@@ -105,7 +105,8 @@ export default function BorderCalculatorPage() {
     } catch (error) {
       console.warn('Failed to load calculator state', error);
     }
-  }, [form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const formValues = useStore(
     form.store,

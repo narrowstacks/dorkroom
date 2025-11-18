@@ -14,10 +14,10 @@ import {
   createZodFormValidator,
 } from '@dorkroom/ui';
 import {
-  useReciprocityCalculator,
   formatReciprocityTime,
   parseReciprocityTime,
   RECIPROCITY_EXPOSURE_PRESETS,
+  RECIPROCITY_FILM_TYPES,
   RECIPROCITY_STORAGE_KEY,
   type SelectItem,
   type ReciprocityFormState,
@@ -69,6 +69,48 @@ const RECIPROCITY_INSIGHTS = [
   },
 ];
 
+// Helper function to select and calculate reciprocity results
+function selectReciprocityCalculation(
+  values: ReciprocityFormState,
+  filmTypes: typeof RECIPROCITY_FILM_TYPES
+): {
+  originalTime: number;
+  adjustedTime: number;
+  factor: number;
+  percentageIncrease: number;
+  filmName: string;
+} | null {
+  const filmType = values.filmType;
+  const meteredTime = values.meteredTime;
+  const customFactor = values.customFactor;
+
+  const parsedSeconds = parseReciprocityTime(meteredTime);
+  if (parsedSeconds === null || parsedSeconds <= 0) return null;
+
+  const selectedFilm = filmTypes.find(
+    (f: SelectItem) => f.value === filmType
+  );
+  const factor =
+    filmType === 'custom'
+      ? Number.isFinite(customFactor) ? customFactor : 1.3
+      : selectedFilm?.factor ?? 1.3;
+
+  const adjustedTime = Math.pow(parsedSeconds, factor);
+  const percentageIncrease =
+    ((adjustedTime - parsedSeconds) / parsedSeconds) * 100;
+
+  return {
+    originalTime: parsedSeconds,
+    adjustedTime,
+    factor,
+    percentageIncrease,
+    filmName:
+      filmType === 'custom'
+        ? 'Custom profile'
+        : selectedFilm?.label ?? 'Unknown',
+  };
+}
+
 /**
  * Render the Reciprocity Failure Calculator page with inputs, results, and an interactive reciprocity curve.
  *
@@ -79,8 +121,9 @@ const RECIPROCITY_INSIGHTS = [
  * @returns The JSX element representing the reciprocity calculator UI.
  */
 export default function ReciprocityCalculatorPage() {
-  // Keep calculation logic from hook but manage form state with TanStack Form
-  const { formatTime, filmTypes } = useReciprocityCalculator();
+  // Use formatReciprocityTime directly for formatting calculations
+  const formatTime = formatReciprocityTime;
+  const filmTypes = RECIPROCITY_FILM_TYPES;
 
   const [showChart, setShowChart] = useState(false);
   const [isWideChart, setIsWideChart] = useState(false);
@@ -262,37 +305,7 @@ export default function ReciprocityCalculatorPage() {
           </CalculatorCard>
 
           <form.Subscribe
-            selector={(state) => {
-              const filmType = state.values.filmType;
-              const meteredTime = state.values.meteredTime;
-              const customFactor = state.values.customFactor;
-
-              const parsedSeconds = parseReciprocityTime(meteredTime);
-              if (parsedSeconds === null || parsedSeconds <= 0) return null;
-
-              const selectedFilm = filmTypes.find(
-                (f: SelectItem) => f.value === filmType
-              );
-              const factor =
-                filmType === 'custom'
-                  ? Number.isFinite(customFactor) ? customFactor : 1.3
-                  : selectedFilm?.factor ?? 1.3;
-
-              const adjustedTime = Math.pow(parsedSeconds, factor);
-              const percentageIncrease =
-                ((adjustedTime - parsedSeconds) / parsedSeconds) * 100;
-
-              return {
-                originalTime: parsedSeconds,
-                adjustedTime,
-                factor,
-                percentageIncrease,
-                filmName:
-                  filmType === 'custom'
-                    ? 'Custom profile'
-                    : selectedFilm?.label ?? 'Unknown',
-              };
-            }}
+            selector={(state) => selectReciprocityCalculation(state.values, filmTypes)}
           >
             {(calculation) =>
               calculation ? (
@@ -487,37 +500,7 @@ export default function ReciprocityCalculatorPage() {
       {/* Wide chart view - spans full width below the columns */}
       {showChart && isWideChart && (
         <form.Subscribe
-          selector={(state) => {
-            const filmType = state.values.filmType;
-            const meteredTime = state.values.meteredTime;
-            const customFactor = state.values.customFactor;
-
-            const parsedSeconds = parseReciprocityTime(meteredTime);
-            if (parsedSeconds === null || parsedSeconds <= 0) return null;
-
-            const selectedFilm = filmTypes.find(
-              (f: SelectItem) => f.value === filmType
-            );
-            const factor =
-              filmType === 'custom'
-                ? Number.isFinite(customFactor) ? customFactor : 1.3
-                : selectedFilm?.factor ?? 1.3;
-
-            const adjustedTime = Math.pow(parsedSeconds, factor);
-            const percentageIncrease =
-              ((adjustedTime - parsedSeconds) / parsedSeconds) * 100;
-
-            return {
-              originalTime: parsedSeconds,
-              adjustedTime,
-              factor,
-              percentageIncrease,
-              filmName:
-                filmType === 'custom'
-                  ? 'Custom profile'
-                  : selectedFilm?.label ?? 'Unknown',
-            };
-          }}
+          selector={(state) => selectReciprocityCalculation(state.values, filmTypes)}
         >
           {(calculation) =>
             calculation ? (

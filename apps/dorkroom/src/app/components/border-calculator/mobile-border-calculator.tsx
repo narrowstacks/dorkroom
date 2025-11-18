@@ -151,7 +151,8 @@ export function MobileBorderCalculator({
     } catch (error) {
       console.warn('Failed to load calculator state', error);
     }
-  }, [form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Subscribe to form changes for reactivity
   const formValues = useStore(

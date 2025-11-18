@@ -35,7 +35,7 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
 }) => {
   const meta = field.state.meta;
   const hasErrors =
-    (meta.errors as Array<string | unknown>).length > 0 &&
+    meta.errors.length > 0 &&
     (meta.isTouched || meta.isDirty);
 
   // Compute border colors based on current hasErrors value (every render)
@@ -76,6 +76,8 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
         onChange={(e) => field.handleChange(e.target.value)}
         onBlur={field.handleBlur}
         placeholder={placeholder}
+        aria-invalid={hasErrors}
+        aria-describedby={hasErrors ? `${field.name}-error` : undefined}
         className={cn(
           styles.input,
           'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2',
@@ -101,6 +103,8 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
       />
       {hasErrors && (
         <div
+          id={`${field.name}-error`}
+          role="alert"
           className="rounded-xl border px-3 py-2 text-sm"
           style={{
             borderColor: colorMixOr(

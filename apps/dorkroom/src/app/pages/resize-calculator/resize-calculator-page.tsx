@@ -236,6 +236,73 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
   );
 }
 
+// Helper function to calculate aspect ratio match
+function calculateAspectRatioMatch(
+  isEnlargerMode: boolean,
+  origWidth: number,
+  origLength: number,
+  newW: number,
+  newL: number
+): boolean {
+  if (isEnlargerMode) return true;
+  if (origWidth <= 0 || origLength <= 0 || newW <= 0 || newL <= 0)
+    return true;
+  const originalRatio = (origWidth / origLength).toFixed(3);
+  const newRatio = (newW / newL).toFixed(3);
+  return originalRatio === newRatio;
+}
+
+// Helper function to calculate exposure changes
+function calculateExposureChanges(
+  isEnlargerMode: boolean,
+  origTime: number,
+  origWidth: number,
+  origLength: number,
+  newW: number,
+  newL: number,
+  origHeight: number,
+  newH: number
+): { newTime: string; stopsDifference: string } {
+  let calculatedNewTime = '';
+  let calculatedStopsDifference = '';
+
+  if (isEnlargerMode) {
+    if (origHeight > 0 && newH > 0 && origTime > 0) {
+      const ratio = Math.pow(newH, 2) / Math.pow(origHeight, 2);
+      const newTimeValue = origTime * ratio;
+      const stops = Math.log2(ratio);
+
+      calculatedNewTime = newTimeValue.toFixed(1);
+      calculatedStopsDifference = stops.toFixed(2);
+    }
+  } else {
+    if (
+      origWidth > 0 &&
+      origLength > 0 &&
+      newW > 0 &&
+      newL > 0 &&
+      origTime > 0
+    ) {
+      const originalArea = origWidth * origLength;
+      const newArea = newW * newL;
+
+      if (originalArea > 0) {
+        const ratio = newArea / originalArea;
+        const newTimeValue = origTime * ratio;
+        const stops = Math.log2(ratio);
+
+        calculatedNewTime = newTimeValue.toFixed(1);
+        calculatedStopsDifference = stops.toFixed(2);
+      }
+    }
+  }
+
+  return {
+    newTime: calculatedNewTime,
+    stopsDifference: calculatedStopsDifference,
+  };
+}
+
 export default function ResizeCalculatorPage() {
   const { unit } = useMeasurement();
   const unitLabel = unit === 'imperial' ? 'in' : 'cm';
@@ -334,73 +401,6 @@ export default function ResizeCalculatorPage() {
       console.warn('Failed to save calculator state', error);
     }
   }, [persistableSnapshot]);
-
-  // Helper function to calculate aspect ratio
-  const calculateAspectRatioMatch = (
-    isEnlargerMode: boolean,
-    origWidth: number,
-    origLength: number,
-    newW: number,
-    newL: number
-  ) => {
-    if (isEnlargerMode) return true;
-    if (origWidth <= 0 || origLength <= 0 || newW <= 0 || newL <= 0)
-      return true;
-    const originalRatio = (origWidth / origLength).toFixed(3);
-    const newRatio = (newW / newL).toFixed(3);
-    return originalRatio === newRatio;
-  };
-
-  // Helper function to calculate exposure changes
-  const calculateExposureChanges = (
-    isEnlargerMode: boolean,
-    origTime: number,
-    origWidth: number,
-    origLength: number,
-    newW: number,
-    newL: number,
-    origHeight: number,
-    newH: number
-  ) => {
-    let calculatedNewTime = '';
-    let calculatedStopsDifference = '';
-
-    if (isEnlargerMode) {
-      if (origHeight > 0 && newH > 0 && origTime > 0) {
-        const ratio = Math.pow(newH, 2) / Math.pow(origHeight, 2);
-        const newTimeValue = origTime * ratio;
-        const stops = Math.log2(ratio);
-
-        calculatedNewTime = newTimeValue.toFixed(1);
-        calculatedStopsDifference = stops.toFixed(2);
-      }
-    } else {
-      if (
-        origWidth > 0 &&
-        origLength > 0 &&
-        newW > 0 &&
-        newL > 0 &&
-        origTime > 0
-      ) {
-        const originalArea = origWidth * origLength;
-        const newArea = newW * newL;
-
-        if (originalArea > 0) {
-          const ratio = newArea / originalArea;
-          const newTimeValue = origTime * ratio;
-          const stops = Math.log2(ratio);
-
-          calculatedNewTime = newTimeValue.toFixed(1);
-          calculatedStopsDifference = stops.toFixed(2);
-        }
-      }
-    }
-
-    return {
-      newTime: calculatedNewTime,
-      stopsDifference: calculatedStopsDifference,
-    };
-  };
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
