@@ -121,6 +121,8 @@ export interface BorderPresetSettings {
   isLandscape: boolean;
   /** Whether the aspect ratio is flipped from its default orientation */
   isRatioFlipped: boolean;
+  /** Whether the user has manually flipped the paper orientation */
+  hasManuallyFlippedPaper: boolean;
 }
 
 export type BorderSettings = BorderPresetSettings;

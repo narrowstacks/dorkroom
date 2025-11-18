@@ -176,6 +176,7 @@ export function MobileBorderCalculator({
     showBladeReadings,
     isLandscape,
     isRatioFlipped,
+    hasManuallyFlippedPaper,
     lastValidCustomAspectWidth,
     lastValidCustomAspectHeight,
     lastValidCustomPaperWidth,
@@ -201,6 +202,7 @@ export function MobileBorderCalculator({
       showBladeReadings,
       isLandscape,
       isRatioFlipped,
+      hasManuallyFlippedPaper,
       lastValidCustomAspectWidth,
       lastValidCustomAspectHeight,
       lastValidCustomPaperWidth,
@@ -223,6 +225,7 @@ export function MobileBorderCalculator({
       showBladeReadings,
       isLandscape,
       isRatioFlipped,
+      hasManuallyFlippedPaper,
       lastValidCustomAspectWidth,
       lastValidCustomAspectHeight,
       lastValidCustomPaperWidth,
@@ -418,6 +421,7 @@ export function MobileBorderCalculator({
       showBladeReadings,
       isLandscape,
       isRatioFlipped,
+      hasManuallyFlippedPaper,
     }),
     [
       aspectRatio,
@@ -435,6 +439,7 @@ export function MobileBorderCalculator({
       showBladeReadings,
       isLandscape,
       isRatioFlipped,
+      hasManuallyFlippedPaper,
     ]
   );
 

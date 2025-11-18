@@ -329,7 +329,8 @@ export default function ExposureCalculatorPage() {
                       color: currentTheme.primary,
                     }}
                   >
-                    ×2^{calculation.stopsValue}
+                    ×2^
+                    {calculation.stopsValue}
                   </span>
                   <span>{' = '}</span>
                   <span className="font-semibold">

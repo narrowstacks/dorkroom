@@ -137,6 +137,7 @@ export const DEFAULT_BORDER_PRESETS: BorderPreset[] = [
       showBladeReadings: false,
       isLandscape: true,
       isRatioFlipped: false,
+      hasManuallyFlippedPaper: false,
     },
   },
 ];

@@ -50,6 +50,7 @@ export function PreviewAndControlsSection({
           onClick={() => {
             const newValue = !form.getFieldValue('isLandscape');
             form.setFieldValue('isLandscape', newValue);
+            form.setFieldValue('hasManuallyFlippedPaper', true);
           }}
           className="flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
         >

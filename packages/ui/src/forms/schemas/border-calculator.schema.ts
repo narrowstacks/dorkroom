@@ -82,6 +82,7 @@ export const borderCalculatorSchema = z.object({
   isRatioFlipped: z
     .boolean()
     .default(BORDER_CALCULATOR_DEFAULTS.isRatioFlipped),
+  hasManuallyFlippedPaper: z.boolean().default(false),
 
   // Presets
   selectedPresetId: z.string().optional(),

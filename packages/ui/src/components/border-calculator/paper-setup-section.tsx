@@ -116,6 +116,7 @@ export function PaperSetupSection({
                   form.setFieldValue('isLandscape', true);
                 }
                 form.setFieldValue('isRatioFlipped', false);
+                form.setFieldValue('hasManuallyFlippedPaper', false);
               }}
               items={displayPaperSizes}
               placeholder="Select"

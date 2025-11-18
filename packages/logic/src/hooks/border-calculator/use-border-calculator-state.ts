@@ -41,6 +41,7 @@ const createInitialState = (): BorderCalculatorState => ({
   showBladeReadings: BORDER_CALCULATOR_DEFAULTS.showBladeReadings,
   isLandscape: true,
   isRatioFlipped: BORDER_CALCULATOR_DEFAULTS.isRatioFlipped,
+  hasManuallyFlippedPaper: false,
 
   offsetWarning: null,
   bladeWarning: null,
@@ -72,6 +73,7 @@ function reducer(
         paperSize: action.value,
         isLandscape: !isCustom,
         isRatioFlipped: false,
+        hasManuallyFlippedPaper: false,
       };
     }
 
@@ -155,6 +157,7 @@ export const useBorderCalculatorState = () => {
       showBladeReadings: state.showBladeReadings,
       isLandscape: state.isLandscape,
       isRatioFlipped: state.isRatioFlipped,
+      hasManuallyFlippedPaper: state.hasManuallyFlippedPaper,
       lastValidCustomAspectWidth: state.lastValidCustomAspectWidth,
       lastValidCustomAspectHeight: state.lastValidCustomAspectHeight,
       lastValidCustomPaperWidth: state.lastValidCustomPaperWidth,

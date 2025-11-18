@@ -129,6 +129,7 @@ export default function BorderCalculatorPage() {
     showBladeReadings,
     isLandscape,
     isRatioFlipped,
+    hasManuallyFlippedPaper,
     lastValidCustomAspectWidth,
     lastValidCustomAspectHeight,
     lastValidCustomPaperWidth,
@@ -178,6 +179,7 @@ export default function BorderCalculatorPage() {
       showBladeReadings,
       isLandscape,
       isRatioFlipped,
+      hasManuallyFlippedPaper,
       lastValidCustomAspectWidth,
       lastValidCustomAspectHeight,
       lastValidCustomPaperWidth,
@@ -200,6 +202,7 @@ export default function BorderCalculatorPage() {
       showBladeReadings,
       isLandscape,
       isRatioFlipped,
+      hasManuallyFlippedPaper,
       lastValidCustomAspectWidth,
       lastValidCustomAspectHeight,
       lastValidCustomPaperWidth,
@@ -247,11 +250,13 @@ export default function BorderCalculatorPage() {
   // (but don't override manual flips)
   useEffect(() => {
     const currentPaperSize = form.getFieldValue('paperSize');
+    const hasManuallyFlipped = form.getFieldValue('hasManuallyFlippedPaper');
 
     if (
       currentPaperSize === 'custom' &&
       customPaperWidth > 0 &&
-      customPaperHeight > 0
+      customPaperHeight > 0 &&
+      !hasManuallyFlipped
     ) {
       const shouldBeLandscape = customPaperWidth < customPaperHeight;
       const currentIsLandscape = form.getFieldValue('isLandscape');
@@ -278,6 +283,7 @@ export default function BorderCalculatorPage() {
     form.setFieldValue('showBladeReadings', settings.showBladeReadings);
     form.setFieldValue('isLandscape', settings.isLandscape);
     form.setFieldValue('isRatioFlipped', settings.isRatioFlipped);
+    form.setFieldValue('hasManuallyFlippedPaper', settings.hasManuallyFlippedPaper);
     form.setFieldValue(
       'lastValidCustomAspectWidth',
       settings.customAspectWidth
@@ -338,6 +344,7 @@ export default function BorderCalculatorPage() {
       showBladeReadings,
       isLandscape,
       isRatioFlipped,
+      hasManuallyFlippedPaper,
     }),
     [
       aspectRatio,
@@ -355,6 +362,7 @@ export default function BorderCalculatorPage() {
       showBladeReadings,
       isLandscape,
       isRatioFlipped,
+      hasManuallyFlippedPaper,
     ]
   );
 

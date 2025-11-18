@@ -249,6 +249,7 @@ export function decodePreset(encoded: string): SharedPreset | null {
       showBladeReadings: booleanSettings.showBladeReadings ?? false,
       isLandscape: booleanSettings.isLandscape ?? false,
       isRatioFlipped: booleanSettings.isRatioFlipped ?? false,
+      hasManuallyFlippedPaper: false,
       customAspectWidth: 0,
       customAspectHeight: 0,
       customPaperWidth: 0,
