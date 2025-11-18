@@ -1010,7 +1010,7 @@ describe('useBorderCalculatorState', () => {
       // Wait for persistence (debounced 500ms)
       await waitFor(
         () => {
-          return localStorageMock.setItem.mock.calls.length > 0;
+          expect(localStorageMock.setItem.mock.calls.length).toBeGreaterThan(0);
         },
         { timeout: 1000 }
       );

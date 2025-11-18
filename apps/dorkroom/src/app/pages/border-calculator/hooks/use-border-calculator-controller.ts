@@ -23,7 +23,6 @@ import {
   debugError,
   type BorderCalculatorState,
   type BorderPresetSettings,
-  type SelectItem,
   DESKTOP_BREAKPOINT,
   PAPER_SIZES,
   DEFAULT_BORDER_PRESETS,
