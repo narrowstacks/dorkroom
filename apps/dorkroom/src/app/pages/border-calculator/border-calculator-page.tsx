@@ -1,26 +1,21 @@
-import { useState, useMemo, useEffect } from 'react';
-import {
-  RotateCw,
-  RotateCcw,
-  Square,
-  Share2,
-  Save,
-  Trash2,
-} from 'lucide-react';
+import { useEffect, useRef, useMemo, useCallback } from 'react';
+import { useForm } from '@tanstack/react-form';
+import { useStore } from '@tanstack/react-store';
+
 // UI Components from @dorkroom/ui package
 import {
-  LabeledSliderInput,
-  TextInput,
-  DimensionInputGroup,
-  ToggleSwitch,
-  Select,
-  WarningAlert,
-  CalculatorCard,
-  CalculatorStat,
   ShareModal,
   SaveBeforeShareModal,
   useMeasurementFormatter,
   useMeasurementConverter,
+  PaperSetupSection,
+  BordersOffsetsSection,
+  BladeReadingsSection,
+  PreviewAndControlsSection,
+  BladeVisualizationSection,
+  PresetsSection,
+  borderCalculatorSchema,
+  createZodFormValidator,
 } from '@dorkroom/ui';
 import {
   AnimatedPreview,
@@ -30,13 +25,21 @@ import {
 
 // Constants and hooks
 import {
-  useModularBorderCalculator as useBorderCalculator,
   useBorderPresets,
   useWindowDimensions,
   usePresetSharing,
   useUrlPresetLoader,
+  useDimensionCalculations,
+  useGeometryCalculations,
+  usePaperDimensionInput,
+  usePresetManagement,
+  useCalculatorSharing,
   shallowEqual,
+  debugLog,
+  debugError,
   type SelectItem,
+  type BorderCalculatorState,
+  type BorderPresetSettings,
   DESKTOP_BREAKPOINT,
   SLIDER_MIN_BORDER,
   SLIDER_MAX_BORDER,
@@ -49,7 +52,11 @@ import {
   ASPECT_RATIOS,
   PAPER_SIZES,
   DEFAULT_BORDER_PRESETS,
+  CALC_STORAGE_KEY,
+  borderCalculatorInitialState,
 } from '@dorkroom/logic';
+
+const validateBorderCalculator = createZodFormValidator(borderCalculatorSchema);
 
 export default function BorderCalculatorPage() {
   const { width } = useWindowDimensions();
@@ -57,151 +64,247 @@ export default function BorderCalculatorPage() {
   const { formatWithUnit, formatDimensions, unit } = useMeasurementFormatter();
   const { toInches, toDisplay } = useMeasurementConverter();
 
+  const hydrationRef = useRef(false);
+
+  const form = useForm({
+    defaultValues: borderCalculatorInitialState,
+    validators: {
+      onChange: validateBorderCalculator,
+    },
+  });
+
+  // Hydrate from persisted state on mount (runs exactly once)
+  useEffect(() => {
+    if (hydrationRef.current || typeof window === 'undefined') return;
+    hydrationRef.current = true;
+
+    try {
+      const raw = window.localStorage.getItem(CALC_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<BorderCalculatorState>;
+      Object.entries(parsed).forEach(([key, value]: [string, unknown]) => {
+        if (value === undefined) return;
+        form.setFieldValue(
+          key as keyof BorderCalculatorState,
+          value as BorderCalculatorState[keyof BorderCalculatorState]
+        );
+      });
+
+      // Recalculate orientation for custom paper after loading from storage
+      if (
+        parsed.paperSize === 'custom' &&
+        parsed.customPaperWidth !== undefined &&
+        parsed.customPaperHeight !== undefined
+      ) {
+        form.setFieldValue(
+          'isLandscape',
+          parsed.customPaperWidth < parsed.customPaperHeight
+        );
+      }
+    } catch (error) {
+      console.warn('Failed to load calculator state', error);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const formValues = useStore(
+    form.store,
+    (state) => state.values as BorderCalculatorState
+  );
+
   const {
     aspectRatio,
-    setAspectRatio,
     paperSize,
-    setPaperSize,
     customAspectWidth,
-    setCustomAspectWidth,
     customAspectHeight,
-    setCustomAspectHeight,
     customPaperWidth,
-    setCustomPaperWidth,
     customPaperHeight,
-    setCustomPaperHeight,
     minBorder,
-    setMinBorder,
-    setMinBorderSlider,
     enableOffset,
-    setEnableOffset,
     ignoreMinBorder,
-    setIgnoreMinBorder,
     horizontalOffset,
-    setHorizontalOffset,
-    setHorizontalOffsetSlider,
     verticalOffset,
-    setVerticalOffset,
-    setVerticalOffsetSlider,
     showBlades,
-    setShowBlades,
     showBladeReadings,
-    setShowBladeReadings,
     isLandscape,
-    setIsLandscape,
     isRatioFlipped,
-    setIsRatioFlipped,
-    offsetWarning,
-    bladeWarning,
-    calculation,
-    minBorderWarning,
-    paperSizeWarning,
-    resetToDefaults,
-    applyPreset,
-  } = useBorderCalculator();
+    hasManuallyFlippedPaper,
+    lastValidCustomAspectWidth,
+    lastValidCustomAspectHeight,
+    lastValidCustomPaperWidth,
+    lastValidCustomPaperHeight,
+    lastValidMinBorder,
+  } = formValues;
 
   const { presets, addPreset, updatePreset, removePreset } = useBorderPresets();
 
-  // Local string state for custom paper dimensions (in display units)
-  const [paperWidthInput, setPaperWidthInput] = useState(
-    String(toDisplay(customPaperWidth))
+  // Paper dimension input hook
+  const {
+    paperWidthInput,
+    paperHeightInput,
+    handlePaperWidthChange,
+    handlePaperWidthBlur,
+    handlePaperHeightChange,
+    handlePaperHeightBlur,
+  } = usePaperDimensionInput({
+    initialWidth: customPaperWidth,
+    initialHeight: customPaperHeight,
+    toDisplay,
+    toInches,
+    onWidthChange: (inches: number) => {
+      form.setFieldValue('customPaperWidth', inches);
+      form.setFieldValue('lastValidCustomPaperWidth', inches);
+    },
+    onHeightChange: (inches: number) => {
+      form.setFieldValue('customPaperHeight', inches);
+      form.setFieldValue('lastValidCustomPaperHeight', inches);
+    },
+  });
+
+  const persistableSnapshot = useMemo(
+    () => ({
+      aspectRatio,
+      paperSize,
+      customAspectWidth,
+      customAspectHeight,
+      customPaperWidth,
+      customPaperHeight,
+      minBorder,
+      enableOffset,
+      ignoreMinBorder,
+      horizontalOffset,
+      verticalOffset,
+      showBlades,
+      showBladeReadings,
+      isLandscape,
+      isRatioFlipped,
+      hasManuallyFlippedPaper,
+      lastValidCustomAspectWidth,
+      lastValidCustomAspectHeight,
+      lastValidCustomPaperWidth,
+      lastValidCustomPaperHeight,
+      lastValidMinBorder,
+    }),
+    [
+      aspectRatio,
+      paperSize,
+      customAspectWidth,
+      customAspectHeight,
+      customPaperWidth,
+      customPaperHeight,
+      minBorder,
+      enableOffset,
+      ignoreMinBorder,
+      horizontalOffset,
+      verticalOffset,
+      showBlades,
+      showBladeReadings,
+      isLandscape,
+      isRatioFlipped,
+      hasManuallyFlippedPaper,
+      lastValidCustomAspectWidth,
+      lastValidCustomAspectHeight,
+      lastValidCustomPaperWidth,
+      lastValidCustomPaperHeight,
+      lastValidMinBorder,
+    ]
   );
-  const [paperHeightInput, setPaperHeightInput] = useState(
-    String(toDisplay(customPaperHeight))
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem(
+        CALC_STORAGE_KEY,
+        JSON.stringify(persistableSnapshot)
+      );
+    } catch (error) {
+      console.warn('Failed to save calculator state', error);
+    }
+  }, [persistableSnapshot]);
+
+  const dimensionData = useDimensionCalculations(formValues);
+  const { calculation } = useGeometryCalculations(
+    formValues,
+    dimensionData.orientedDimensions,
+    dimensionData.minBorderData,
+    dimensionData.paperEntry,
+    dimensionData.paperSizeWarning
   );
-  const [isEditingPaperWidth, setIsEditingPaperWidth] = useState(false);
-  const [isEditingPaperHeight, setIsEditingPaperHeight] = useState(false);
-
-  // Sync local state when parent state or unit changes (but not while editing)
-  useEffect(() => {
-    if (!isEditingPaperWidth) {
-      const displayValue = toDisplay(customPaperWidth);
-      // Round to 3 decimals to avoid floating point artifacts
-      setPaperWidthInput(String(Math.round(displayValue * 1000) / 1000));
-    }
-  }, [customPaperWidth, toDisplay, isEditingPaperWidth]);
 
   useEffect(() => {
-    if (!isEditingPaperHeight) {
-      const displayValue = toDisplay(customPaperHeight);
-      // Round to 3 decimals to avoid floating point artifacts
-      setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
+    if (!calculation) return;
+    if (calculation.lastValidMinBorder !== lastValidMinBorder) {
+      form.setFieldValue('lastValidMinBorder', calculation.lastValidMinBorder);
     }
-  }, [customPaperHeight, toDisplay, isEditingPaperHeight]);
+  }, [calculation, form, lastValidMinBorder]);
 
-  // Helper to validate and convert input to inches
-  const validateAndConvert = (value: string): number | null => {
-    // Allow empty, whitespace, or trailing decimal point
-    if (value === '' || /^\s*$/.test(value) || /^\d*\.$/.test(value)) {
-      return null;
+  const offsetWarning = calculation?.offsetWarning ?? null;
+  const bladeWarning = calculation?.bladeWarning ?? null;
+  const minBorderWarning = calculation?.minBorderWarning ?? null;
+  const paperSizeWarning =
+    calculation?.paperSizeWarning ?? dimensionData.paperSizeWarning;
+
+  // Update orientation only when custom paper dimensions change
+  // (but don't override manual flips)
+  useEffect(() => {
+    const currentPaperSize = form.getFieldValue('paperSize');
+    const hasManuallyFlipped = form.getFieldValue('hasManuallyFlippedPaper');
+
+    if (
+      currentPaperSize === 'custom' &&
+      customPaperWidth > 0 &&
+      customPaperHeight > 0 &&
+      !hasManuallyFlipped
+    ) {
+      const shouldBeLandscape = customPaperWidth < customPaperHeight;
+      const currentIsLandscape = form.getFieldValue('isLandscape');
+
+      if (currentIsLandscape !== shouldBeLandscape) {
+        form.setFieldValue('isLandscape', shouldBeLandscape);
+      }
     }
+  }, [paperSize, customPaperWidth, customPaperHeight, form]);
 
-    const parsed = parseFloat(value);
-    if (Number.isFinite(parsed) && parsed >= 0) {
-      return toInches(parsed);
-    }
-
-    return null;
+  const applyPresetSettings = (settings: BorderPresetSettings) => {
+    form.setFieldValue('aspectRatio', settings.aspectRatio);
+    form.setFieldValue('paperSize', settings.paperSize);
+    form.setFieldValue('customAspectWidth', settings.customAspectWidth);
+    form.setFieldValue('customAspectHeight', settings.customAspectHeight);
+    form.setFieldValue('customPaperWidth', settings.customPaperWidth);
+    form.setFieldValue('customPaperHeight', settings.customPaperHeight);
+    form.setFieldValue('minBorder', settings.minBorder);
+    form.setFieldValue('enableOffset', settings.enableOffset);
+    form.setFieldValue('ignoreMinBorder', settings.ignoreMinBorder);
+    form.setFieldValue('horizontalOffset', settings.horizontalOffset);
+    form.setFieldValue('verticalOffset', settings.verticalOffset);
+    form.setFieldValue('showBlades', settings.showBlades);
+    form.setFieldValue('showBladeReadings', settings.showBladeReadings);
+    form.setFieldValue('isLandscape', settings.isLandscape);
+    form.setFieldValue('isRatioFlipped', settings.isRatioFlipped);
+    form.setFieldValue(
+      'hasManuallyFlippedPaper',
+      settings.hasManuallyFlippedPaper
+    );
+    form.setFieldValue(
+      'lastValidCustomAspectWidth',
+      settings.customAspectWidth
+    );
+    form.setFieldValue(
+      'lastValidCustomAspectHeight',
+      settings.customAspectHeight
+    );
+    form.setFieldValue('lastValidCustomPaperWidth', settings.customPaperWidth);
+    form.setFieldValue(
+      'lastValidCustomPaperHeight',
+      settings.customPaperHeight
+    );
+    form.setFieldValue('lastValidMinBorder', settings.minBorder);
   };
 
-  // Handle width input change
-  const handlePaperWidthChange = (value: string) => {
-    setIsEditingPaperWidth(true);
-    setPaperWidthInput(value);
-
-    // Push valid changes to parent state immediately for live recomputation
-    const inches = validateAndConvert(value);
-    if (inches !== null) {
-      setCustomPaperWidth(inches);
-    }
-  };
-
-  // Handle width blur - convert to inches when stable
-  const handlePaperWidthBlur = () => {
-    setIsEditingPaperWidth(false);
-    const inches = validateAndConvert(paperWidthInput);
-    if (inches !== null) {
-      setCustomPaperWidth(inches);
-      // Format the display value to avoid floating point precision artifacts
-      const displayValue = toDisplay(inches);
-      setPaperWidthInput(String(Math.round(displayValue * 1000) / 1000));
-    } else if (paperWidthInput === '' || /^\s*$/.test(paperWidthInput)) {
-      // Reset to current value if empty
-      setPaperWidthInput(String(toDisplay(customPaperWidth)));
-    } else {
-      // Reset to current value if invalid
-      setPaperWidthInput(String(toDisplay(customPaperWidth)));
-    }
-  };
-
-  // Handle height input change
-  const handlePaperHeightChange = (value: string) => {
-    setIsEditingPaperHeight(true);
-    setPaperHeightInput(value);
-
-    // Push valid changes to parent state immediately for live recomputation
-    const inches = validateAndConvert(value);
-    if (inches !== null) {
-      setCustomPaperHeight(inches);
-    }
-  };
-
-  // Handle height blur - convert to inches when stable
-  const handlePaperHeightBlur = () => {
-    setIsEditingPaperHeight(false);
-    const inches = validateAndConvert(paperHeightInput);
-    if (inches !== null) {
-      setCustomPaperHeight(inches);
-      // Format the display value to avoid floating point precision artifacts
-      const displayValue = toDisplay(inches);
-      setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
-    } else if (paperHeightInput === '' || /^\s*$/.test(paperHeightInput)) {
-      // Reset to current value if empty
-      setPaperHeightInput(String(toDisplay(customPaperHeight)));
-    } else {
-      // Reset to current value if invalid
-      setPaperHeightInput(String(toDisplay(customPaperHeight)));
-    }
+  const resetToDefaults = () => {
+    form.reset();
   };
 
   // Transform paper sizes to show metric with imperial reference when in metric mode
@@ -227,19 +330,6 @@ export default function BorderCalculatorPage() {
     });
   }, [unit, formatDimensions]);
 
-  const [selectedPresetId, setSelectedPresetId] = useState('');
-  const [presetName, setPresetName] = useState('');
-  const [isEditingPreset, setIsEditingPreset] = useState(false);
-
-  // Sharing state
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [isSaveBeforeShareOpen, setIsSaveBeforeShareOpen] = useState(false);
-  const [shareUrls, setShareUrls] = useState<{
-    webUrl: string;
-    nativeUrl: string;
-  } | null>(null);
-  const [isGeneratingShareUrl, setIsGeneratingShareUrl] = useState(false);
-
   const currentSettings = useMemo(
     () => ({
       aspectRatio,
@@ -257,6 +347,7 @@ export default function BorderCalculatorPage() {
       showBladeReadings,
       isLandscape,
       isRatioFlipped,
+      hasManuallyFlippedPaper,
     }),
     [
       aspectRatio,
@@ -274,6 +365,7 @@ export default function BorderCalculatorPage() {
       showBladeReadings,
       isLandscape,
       isRatioFlipped,
+      hasManuallyFlippedPaper,
     ]
   );
 
@@ -288,194 +380,87 @@ export default function BorderCalculatorPage() {
     onShareSuccess: (result) => {
       if (result.method === 'clipboard') {
         // Show success toast for clipboard copy
-        console.log('Preset link copied to clipboard!');
+        debugLog('Preset link copied to clipboard!');
       } else if (result.method === 'native') {
         setIsShareModalOpen(false);
       }
     },
-    onShareError: (error) => {
-      console.error('Sharing failed:', error);
+    onShareError: (error: string) => {
+      debugError('Sharing failed:', error);
     },
   });
 
   // URL preset loader
   const { loadedPreset, clearLoadedPreset } = useUrlPresetLoader({
-    onPresetLoaded: (preset) => {
-      applyPreset(preset.settings);
+    onPresetLoaded: (preset: {
+      name: string;
+      settings: BorderPresetSettings;
+    }) => {
+      applyPresetSettings(preset.settings);
       setPresetName(preset.name);
-      console.log(`Preset "${preset.name}" loaded from URL!`);
+      debugLog(`Preset "${preset.name}" loaded from URL!`);
     },
-    onLoadError: (error) => {
-      console.error('Failed to load preset from URL:', error);
+    onLoadError: (error: string) => {
+      debugError('Failed to load preset from URL:', error);
     },
   });
 
-  const presetItems = useMemo(
-    () => [
-      ...presets.map((p) => ({ label: p.name, value: p.id })),
-      { label: '────────', value: '__divider__' },
-      ...DEFAULT_BORDER_PRESETS.map((p) => ({ label: p.name, value: p.id })),
-    ],
-    [presets]
+  // Preset management hook
+  const {
+    selectedPresetId,
+    presetName,
+    isEditingPreset,
+    presetItems,
+    setPresetName,
+    setIsEditingPreset,
+    handleSelectPreset,
+    savePreset,
+    updatePresetHandler,
+    deletePresetHandler,
+  } = usePresetManagement({
+    presets,
+    defaultPresets: DEFAULT_BORDER_PRESETS,
+    currentSettings,
+    onAddPreset: addPreset,
+    onUpdatePreset: updatePreset,
+    onRemovePreset: removePreset,
+    onApplySettings: applyPresetSettings,
+  });
+
+  // Wrapper for sharePreset to match useCalculatorSharing's expected signature
+  const sharePresetWrapper = useCallback(
+    async (
+      preset: { name: string; settings: BorderPresetSettings },
+      preferNative: boolean
+    ): Promise<void> => {
+      await sharePreset(preset, preferNative);
+    },
+    [sharePreset]
   );
 
-  const handleSelectPreset = (id: string) => {
-    if (id === '__divider__') return;
-    setSelectedPresetId(id);
-    const preset =
-      presets.find((p) => p.id === id) ||
-      DEFAULT_BORDER_PRESETS.find((p) => p.id === id);
-    if (preset) {
-      applyPreset(preset.settings);
-      setPresetName(preset.name);
-      setIsEditingPreset(false);
-    }
-  };
-
-  const savePreset = () => {
-    if (!presetName.trim()) return;
-    const newPreset = {
-      id: 'user-' + Date.now(),
-      name: presetName.trim(),
-      settings: currentSettings,
-    };
-    addPreset(newPreset);
-    setSelectedPresetId(newPreset.id);
-    setIsEditingPreset(false);
-  };
-
-  const updatePresetHandler = () => {
-    if (!selectedPresetId) return;
-    const updated = { name: presetName.trim(), settings: currentSettings };
-    updatePreset(selectedPresetId, updated);
-    setIsEditingPreset(false);
-  };
-
-  const deletePresetHandler = () => {
-    if (!selectedPresetId) return;
-    removePreset(selectedPresetId);
-    setSelectedPresetId('');
-    setPresetName('');
-    setIsEditingPreset(false);
-  };
-
-  // Sharing handlers
-  const handleShareClick = async () => {
-    setIsGeneratingShareUrl(true);
-
-    try {
-      // Check if current settings match a saved preset
-      const matchedPreset = presets.find((p) =>
-        shallowEqual(p.settings, currentSettings)
-      );
-
-      if (matchedPreset) {
-        // If it's a saved preset, share it directly
-        const urls = getSharingUrls({
-          name: matchedPreset.name,
-          settings: currentSettings,
-        });
-        if (urls) {
-          setShareUrls(urls);
-          setIsShareModalOpen(true);
-        } else {
-          console.error('Failed to generate sharing URLs for saved preset');
-          // Still open modal to show error state
-          setShareUrls(null);
-          setIsShareModalOpen(true);
-        }
-      } else {
-        // If not saved, check if user has a preset name already entered
-        if (presetName.trim()) {
-          // User has entered a name, generate URLs and share directly
-          const urls = getSharingUrls({
-            name: presetName.trim(),
-            settings: currentSettings,
-          });
-          if (urls) {
-            setShareUrls(urls);
-            setIsShareModalOpen(true);
-          } else {
-            console.error('Failed to generate sharing URLs for named settings');
-            setShareUrls(null);
-            setIsShareModalOpen(true);
-          }
-        } else {
-          // No name entered, open save-before-share modal
-          setIsSaveBeforeShareOpen(true);
-        }
-      }
-    } catch (error) {
-      console.error('Error during share URL generation:', error);
-      setShareUrls(null);
-      setIsShareModalOpen(true);
-    } finally {
-      setIsGeneratingShareUrl(false);
-    }
-  };
-
-  const handleSaveAndShare = async (name: string) => {
-    setIsGeneratingShareUrl(true);
-
-    try {
-      // Create and save the new preset
-      const newPreset = {
-        id: 'user-' + Date.now(),
-        name,
-        settings: currentSettings,
-      };
-      addPreset(newPreset);
-      setPresetName(name);
-      setSelectedPresetId(newPreset.id);
-
-      // Generate share URLs and open share modal
-      const urls = getSharingUrls({ name, settings: currentSettings });
-      setIsSaveBeforeShareOpen(false);
-
-      if (urls) {
-        setShareUrls(urls);
-        setIsShareModalOpen(true);
-      } else {
-        console.error('Failed to generate sharing URLs after saving preset');
-        // Still open modal to show error state
-        setShareUrls(null);
-        setIsShareModalOpen(true);
-      }
-    } catch (error) {
-      console.error('Error during save and share:', error);
-      setIsSaveBeforeShareOpen(false);
-      setShareUrls(null);
-      setIsShareModalOpen(true);
-    } finally {
-      setIsGeneratingShareUrl(false);
-    }
-  };
-
-  const handleCopyToClipboard = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-    } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
-      throw error;
-    }
-  };
-
-  const handleNativeShare = async () => {
-    if (!shareUrls) return;
-
-    try {
-      await sharePreset(
-        {
-          name: presetName || 'Border Calculator Settings',
-          settings: currentSettings,
-        },
-        false // prefer native share
-      );
-    } catch (error) {
-      console.error('Native share failed:', error);
-      throw error;
-    }
-  };
+  // Calculator sharing hook
+  const {
+    isShareModalOpen,
+    isSaveBeforeShareOpen,
+    shareUrls,
+    isGeneratingShareUrl,
+    setIsShareModalOpen,
+    setIsSaveBeforeShareOpen,
+    handleShareClick,
+    handleSaveAndShare,
+    handleCopyToClipboard,
+    handleNativeShare,
+  } = useCalculatorSharing({
+    presets,
+    currentSettings,
+    presetName,
+    getSharingUrls,
+    sharePreset: sharePresetWrapper,
+    canShareNatively,
+    canCopyToClipboard,
+    onAddPreset: addPreset,
+    shallowEqual,
+  });
 
   // If not desktop, use mobile UI
   if (!isDesktop) {
@@ -493,404 +478,74 @@ export default function BorderCalculatorPage() {
         <div className="space-y-6">
           {calculation && (
             <>
-              <CalculatorCard accent="violet" padding="compact">
-                <div className="flex justify-center">
-                  <div className="relative">
-                    <AnimatedPreview
-                      calculation={calculation}
-                      showBlades={showBlades}
-                      showBladeReadings={showBladeReadings}
-                      className="max-w-full"
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <button
-                    onClick={() => setIsLandscape(!isLandscape)}
-                    className="flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
-                  >
-                    <RotateCw className="h-4 w-4" />
-                    Flip Paper
-                  </button>
-                  <button
-                    onClick={() => setIsRatioFlipped(!isRatioFlipped)}
-                    className="flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
-                  >
-                    <Square className="h-4 w-4" />
-                    Flip Ratio
-                  </button>
-                </div>
-                <button
-                  onClick={resetToDefaults}
-                  className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 hover:brightness-110"
-                  style={{
-                    color: 'var(--color-accent)',
-                    borderColor: 'var(--color-accent)',
-                    borderWidth: 1,
-                    backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
-                  }}
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Reset to defaults
-                </button>
+              <PreviewAndControlsSection
+                form={form}
+                calculation={calculation}
+                AnimatedPreview={AnimatedPreview}
+                onResetToDefaults={resetToDefaults}
+              />
 
-                {calculation.paperHeight > calculation.paperWidth && (
-                  <div
-                    className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
-                    style={{
-                      borderWidth: 1,
-                      borderColor: 'var(--color-border-secondary)',
-                      backgroundColor: 'var(--color-border-muted)',
-                      color: 'var(--color-text-primary)',
-                    }}
-                  >
-                    <strong className="font-semibold">Rotate your easel</strong>
-                    <br />
-                    Paper is in vertical orientation. Rotate your easel 90° to
-                    match the blade readings.
-                  </div>
-                )}
-
-                {calculation.isNonStandardPaperSize && (
-                  <div
-                    className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
-                    style={{
-                      borderWidth: 1,
-                      borderColor: 'var(--color-border-secondary)',
-                      backgroundColor: 'var(--color-border-muted)',
-                      color: 'var(--color-text-primary)',
-                    }}
-                  >
-                    <strong className="font-semibold">
-                      Non-standard paper
-                    </strong>
-                    <br />
-                    Position paper in the {calculation.easelSizeLabel} slot all
-                    the way to the left.
-                  </div>
-                )}
-              </CalculatorCard>
-
-              <CalculatorCard
-                title="Blade readings"
-                description="Dial these values on your easel for a centered print."
-                accent="emerald"
-                padding="compact"
-              >
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <CalculatorStat
-                    label="Left blade"
-                    value={formatWithUnit(calculation.leftBladeReading)}
-                    className="p-4"
-                  />
-                  <CalculatorStat
-                    label="Right blade"
-                    value={formatWithUnit(calculation.rightBladeReading)}
-                    className="p-4"
-                  />
-                  <CalculatorStat
-                    label="Top blade"
-                    value={formatWithUnit(calculation.topBladeReading)}
-                    className="p-4"
-                  />
-                  <CalculatorStat
-                    label="Bottom blade"
-                    value={formatWithUnit(calculation.bottomBladeReading)}
-                    className="p-4"
-                  />
-                  <CalculatorStat
-                    label="Image size"
-                    value={formatDimensions(
-                      calculation.printWidth,
-                      calculation.printHeight
-                    )}
-                    helperText="Final image area within the borders."
-                    className="sm:col-span-2 p-4"
-                  />
-                </div>
-
-                {bladeWarning && (
-                  <div className="mt-4">
-                    <WarningAlert message={bladeWarning} action="error" />
-                  </div>
-                )}
-                {minBorderWarning && (
-                  <div className="mt-4">
-                    <WarningAlert message={minBorderWarning} action="error" />
-                  </div>
-                )}
-                {paperSizeWarning && (
-                  <div className="mt-4">
-                    <WarningAlert message={paperSizeWarning} action="warning" />
-                  </div>
-                )}
-              </CalculatorCard>
+              <BladeReadingsSection
+                calculation={calculation}
+                isLandscape={isLandscape}
+                isCustomPaper={paperSize === 'custom'}
+                formatWithUnit={formatWithUnit}
+                formatDimensions={formatDimensions}
+                bladeWarning={bladeWarning}
+                minBorderWarning={minBorderWarning}
+                paperSizeWarning={paperSizeWarning}
+              />
             </>
           )}
         </div>
 
         <div className="space-y-6">
-          <CalculatorCard
-            title="Paper setup"
-            description="Match the paper size and aspect ratio you're printing on."
-          >
-            <div className="space-y-5">
-              <Select
-                label="Aspect ratio"
-                selectedValue={aspectRatio}
-                onValueChange={setAspectRatio}
-                items={ASPECT_RATIOS as SelectItem[]}
-                placeholder="Select"
-              />
+          <PaperSetupSection
+            form={form}
+            displayPaperSizes={displayPaperSizes}
+            paperWidthInput={paperWidthInput}
+            paperHeightInput={paperHeightInput}
+            onPaperWidthChange={handlePaperWidthChange}
+            onPaperWidthBlur={handlePaperWidthBlur}
+            onPaperHeightChange={handlePaperHeightChange}
+            onPaperHeightBlur={handlePaperHeightBlur}
+            aspectRatios={ASPECT_RATIOS as SelectItem[]}
+            customAspectWidth={customAspectWidth}
+            customAspectHeight={customAspectHeight}
+          />
 
-              {aspectRatio === 'custom' && (
-                <DimensionInputGroup
-                  widthValue={String(customAspectWidth)}
-                  onWidthChange={(value) =>
-                    setCustomAspectWidth(Number(value) || 0)
-                  }
-                  heightValue={String(customAspectHeight)}
-                  onHeightChange={(value) =>
-                    setCustomAspectHeight(Number(value) || 0)
-                  }
-                  widthLabel="Width"
-                  heightLabel="Height"
-                  widthPlaceholder="Width"
-                  heightPlaceholder="Height"
-                />
-              )}
+          <BordersOffsetsSection
+            form={form}
+            sliderMinBorder={SLIDER_MIN_BORDER}
+            sliderMaxBorder={SLIDER_MAX_BORDER}
+            sliderStepBorder={SLIDER_STEP_BORDER}
+            borderSliderLabels={BORDER_SLIDER_LABELS}
+            offsetSliderMin={OFFSET_SLIDER_MIN}
+            offsetSliderMax={OFFSET_SLIDER_MAX}
+            offsetSliderStep={OFFSET_SLIDER_STEP}
+            offsetSliderLabels={OFFSET_SLIDER_LABELS}
+            offsetWarning={offsetWarning}
+            enableOffset={enableOffset}
+            ignoreMinBorder={ignoreMinBorder}
+          />
 
-              <Select
-                label="Paper size"
-                selectedValue={paperSize}
-                onValueChange={setPaperSize}
-                items={displayPaperSizes as SelectItem[]}
-                placeholder="Select"
-              />
+          <BladeVisualizationSection form={form} />
 
-              {paperSize === 'custom' && (
-                <DimensionInputGroup
-                  widthValue={paperWidthInput}
-                  onWidthChange={handlePaperWidthChange}
-                  onWidthBlur={handlePaperWidthBlur}
-                  heightValue={paperHeightInput}
-                  onHeightChange={handlePaperHeightChange}
-                  onHeightBlur={handlePaperHeightBlur}
-                  widthLabel="Width"
-                  heightLabel="Height"
-                  widthPlaceholder="Width"
-                  heightPlaceholder="Height"
-                />
-              )}
-            </div>
-          </CalculatorCard>
-
-          <CalculatorCard
-            title="Borders & offsets"
-            description="Control the border thickness and fine-tune print placement."
-          >
-            <div className="space-y-5">
-              <LabeledSliderInput
-                label="Minimum border (inches)"
-                value={minBorder}
-                onChange={setMinBorder}
-                onSliderChange={setMinBorderSlider}
-                min={SLIDER_MIN_BORDER}
-                max={SLIDER_MAX_BORDER}
-                step={SLIDER_STEP_BORDER}
-                labels={BORDER_SLIDER_LABELS}
-                continuousUpdate
-              />
-
-              <ToggleSwitch
-                label="Enable offsets"
-                value={enableOffset}
-                onValueChange={setEnableOffset}
-              />
-
-              {enableOffset && (
-                <div
-                  className="space-y-4 rounded-2xl p-4 border"
-                  style={{
-                    borderColor: 'var(--color-border-secondary)',
-                    backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
-                  }}
-                >
-                  <ToggleSwitch
-                    label="Ignore min border"
-                    value={ignoreMinBorder}
-                    onValueChange={setIgnoreMinBorder}
-                  />
-                  {ignoreMinBorder && (
-                    <p className="text-sm text-[color:var(--color-text-secondary)]">
-                      Print can be positioned freely but will stay within the
-                      paper edges.
-                    </p>
-                  )}
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <LabeledSliderInput
-                      label="Horizontal offset"
-                      value={horizontalOffset}
-                      onChange={setHorizontalOffset}
-                      onSliderChange={setHorizontalOffsetSlider}
-                      min={OFFSET_SLIDER_MIN}
-                      max={OFFSET_SLIDER_MAX}
-                      step={OFFSET_SLIDER_STEP}
-                      labels={OFFSET_SLIDER_LABELS}
-                      warning={!!offsetWarning}
-                      continuousUpdate
-                    />
-                    <LabeledSliderInput
-                      label="Vertical offset"
-                      value={verticalOffset}
-                      onChange={setVerticalOffset}
-                      onSliderChange={setVerticalOffsetSlider}
-                      min={OFFSET_SLIDER_MIN}
-                      max={OFFSET_SLIDER_MAX}
-                      step={OFFSET_SLIDER_STEP}
-                      labels={OFFSET_SLIDER_LABELS}
-                      warning={!!offsetWarning}
-                      continuousUpdate
-                    />
-                  </div>
-
-                  {offsetWarning && (
-                    <WarningAlert message={offsetWarning} action="warning" />
-                  )}
-                </div>
-              )}
-            </div>
-          </CalculatorCard>
-          <CalculatorCard
-            title="Blade visualization"
-            description="Control the display of easel blades and measurements on the preview."
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <ToggleSwitch
-                label="Show easel blades"
-                value={showBlades}
-                onValueChange={setShowBlades}
-              />
-              <ToggleSwitch
-                label="Show blade readings"
-                value={showBladeReadings}
-                onValueChange={setShowBladeReadings}
-              />
-            </div>
-          </CalculatorCard>
-          <CalculatorCard
-            title="Presets"
-            description="Save, recall, and share the setups you use most often."
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-              <div className="flex-1">
-                <Select
-                  label="Presets"
-                  selectedValue={selectedPresetId}
-                  onValueChange={handleSelectPreset}
-                  items={presetItems}
-                  placeholder="Select preset"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleShareClick}
-                  disabled={isSharing || isGeneratingShareUrl}
-                  className="rounded-full border p-2 transition focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:cursor-not-allowed text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
-                  title="Share preset"
-                >
-                  {isGeneratingShareUrl ? (
-                    <svg
-                      className="animate-spin h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                  ) : (
-                    <Share2 className="h-4 w-4" />
-                  )}
-                </button>
-                <button
-                  onClick={() => setIsEditingPreset(true)}
-                  className="rounded-full border p-2 transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
-                  title="Edit preset"
-                >
-                  <Save className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            {isEditingPreset && (
-              <div className="space-y-3">
-                <TextInput
-                  value={presetName}
-                  onValueChange={setPresetName}
-                  placeholder="Preset name"
-                  label="Preset name"
-                />
-                <div className="grid gap-2 sm:grid-cols-3">
-                  <button
-                    onClick={savePreset}
-                    className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 hover:brightness-110"
-                    style={{
-                      color: 'var(--color-primary)',
-                      borderColor: 'var(--color-primary)',
-                      borderWidth: 1,
-                      backgroundColor:
-                        'rgba(var(--color-background-rgb), 0.06)',
-                    }}
-                  >
-                    <Save className="h-4 w-4" />
-                    Save
-                  </button>
-                  <button
-                    onClick={updatePresetHandler}
-                    disabled={!selectedPresetId}
-                    className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
-                    style={{
-                      color: 'var(--color-secondary)',
-                      borderColor: 'var(--color-secondary)',
-                      borderWidth: 1,
-                      backgroundColor:
-                        'rgba(var(--color-background-rgb), 0.06)',
-                    }}
-                  >
-                    <Save className="h-4 w-4" />
-                    Update
-                  </button>
-                  <button
-                    onClick={deletePresetHandler}
-                    disabled={!selectedPresetId}
-                    className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
-                    style={{
-                      color: 'var(--color-accent)',
-                      borderColor: 'var(--color-accent)',
-                      borderWidth: 1,
-                      backgroundColor:
-                        'rgba(var(--color-background-rgb), 0.06)',
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Delete
-                  </button>
-                </div>
-              </div>
-            )}
-          </CalculatorCard>
+          <PresetsSection
+            selectedPresetId={selectedPresetId}
+            presetName={presetName}
+            isEditingPreset={isEditingPreset}
+            presetItems={presetItems}
+            isSharing={isSharing}
+            isGeneratingShareUrl={isGeneratingShareUrl}
+            onSelectPreset={handleSelectPreset}
+            onPresetNameChange={setPresetName}
+            onEditingChange={setIsEditingPreset}
+            onShareClick={handleShareClick}
+            onSavePreset={savePreset}
+            onUpdatePreset={updatePresetHandler}
+            onDeletePreset={deletePresetHandler}
+          />
         </div>
       </div>
 

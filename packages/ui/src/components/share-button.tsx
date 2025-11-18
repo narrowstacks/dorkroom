@@ -4,8 +4,18 @@ import { colorMixOr } from '../lib/color';
 import { shouldUseWebShare } from '@dorkroom/logic';
 import { useOptionalToast } from './toast';
 
+/**
+ * Result returned from ShareButton's onClick callback to control toast display
+ */
+export interface ShareResult {
+  /** Whether to show a toast notification */
+  showToast?: boolean;
+  /** The method used for sharing */
+  method?: 'clipboard' | 'webshare';
+}
+
 export interface ShareButtonProps {
-  onClick: () => void | Promise<unknown>;
+  onClick: () => void | ShareResult | Promise<void | ShareResult>;
   isLoading?: boolean;
   disabled?: boolean;
   variant?: 'primary' | 'secondary' | 'outline';
@@ -125,12 +135,15 @@ export function ShareButton({
 
       // If the caller indicates a clipboard path or explicit toast, show it
       if (!shouldShowToast && resolved && typeof resolved === 'object') {
-        const maybe: any = resolved;
-        if (maybe.showToast === true || maybe.method === 'clipboard') {
+        const shareResult = resolved as ShareResult;
+        if (
+          shareResult.showToast === true ||
+          shareResult.method === 'clipboard'
+        ) {
           shouldShowToast = true;
         }
       }
-    } catch (e) {
+    } catch {
       // On errors from caller, do not show toast here; leave it to caller to handle
     }
 

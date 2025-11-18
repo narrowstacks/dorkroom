@@ -9,8 +9,9 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "declaration": false,
+    "composite": true,
     "outDir": "./dist",
+    "declaration": true,
     "rootDir": "../",
     "baseUrl": "../",
     "types": ["node"],
@@ -28,5 +29,6 @@
     "../**/*.test.ts",
     "../**/__mocks__/**",
     "../**/__tests__/**"
-  ]
+  ],
+  "references": []
 }

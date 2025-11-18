@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
+import type { AnyFormApi } from '@tanstack/react-form';
 import { X, RotateCw, Square } from 'lucide-react';
 import {
   Select,
@@ -11,43 +12,23 @@ import { ASPECT_RATIOS, PAPER_SIZES, type SelectItem } from '@dorkroom/logic';
 
 interface PaperSizeSectionProps {
   onClose: () => void;
-  aspectRatio: string;
-  setAspectRatio: (value: string) => void;
-  customAspectWidth: number;
-  setCustomAspectWidth: (value: number) => void;
-  customAspectHeight: number;
-  setCustomAspectHeight: (value: number) => void;
-  paperSize: string;
-  setPaperSize: (value: string) => void;
-  customPaperWidth: number;
-  setCustomPaperWidth: (value: number) => void;
-  customPaperHeight: number;
-  setCustomPaperHeight: (value: number) => void;
+  form: AnyFormApi;
   isLandscape: boolean;
-  setIsLandscape: (value: boolean) => void;
   isRatioFlipped: boolean;
-  setIsRatioFlipped: (value: boolean) => void;
 }
 
 export function PaperSizeSection({
   onClose,
-  aspectRatio,
-  setAspectRatio,
-  customAspectWidth,
-  setCustomAspectWidth,
-  customAspectHeight,
-  setCustomAspectHeight,
-  paperSize,
-  setPaperSize,
-  customPaperWidth,
-  setCustomPaperWidth,
-  customPaperHeight,
-  setCustomPaperHeight,
+  form,
   isLandscape,
-  setIsLandscape,
   isRatioFlipped,
-  setIsRatioFlipped,
 }: PaperSizeSectionProps) {
+  const aspectRatio = form.getFieldValue('aspectRatio');
+  const customAspectWidth = form.getFieldValue('customAspectWidth');
+  const customAspectHeight = form.getFieldValue('customAspectHeight');
+  const paperSize = form.getFieldValue('paperSize');
+  const customPaperWidth = form.getFieldValue('customPaperWidth');
+  const customPaperHeight = form.getFieldValue('customPaperHeight');
   const { unit } = useMeasurement();
   const { toInches, toDisplay } = useMeasurementConverter();
 
@@ -101,7 +82,8 @@ export function PaperSizeSection({
     // Push valid changes to parent state immediately for live recomputation
     const inches = validateAndConvert(value);
     if (inches !== null) {
-      setCustomPaperWidth(inches);
+      form.setFieldValue('customPaperWidth', inches);
+      form.setFieldValue('lastValidCustomPaperWidth', inches);
     }
   };
 
@@ -110,7 +92,8 @@ export function PaperSizeSection({
     setIsEditingWidth(false);
     const inches = validateAndConvert(paperWidthInput);
     if (inches !== null) {
-      setCustomPaperWidth(inches);
+      form.setFieldValue('customPaperWidth', inches);
+      form.setFieldValue('lastValidCustomPaperWidth', inches);
       // Format the display value to avoid floating point precision artifacts
       const displayValue = toDisplay(inches);
       setPaperWidthInput(String(Math.round(displayValue * 1000) / 1000));
@@ -131,7 +114,8 @@ export function PaperSizeSection({
     // Push valid changes to parent state immediately for live recomputation
     const inches = validateAndConvert(value);
     if (inches !== null) {
-      setCustomPaperHeight(inches);
+      form.setFieldValue('customPaperHeight', inches);
+      form.setFieldValue('lastValidCustomPaperHeight', inches);
     }
   };
 
@@ -140,7 +124,8 @@ export function PaperSizeSection({
     setIsEditingHeight(false);
     const inches = validateAndConvert(paperHeightInput);
     if (inches !== null) {
-      setCustomPaperHeight(inches);
+      form.setFieldValue('customPaperHeight', inches);
+      form.setFieldValue('lastValidCustomPaperHeight', inches);
       // Format the display value to avoid floating point precision artifacts
       const displayValue = toDisplay(inches);
       setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
@@ -192,7 +177,17 @@ export function PaperSizeSection({
         <Select
           label="Aspect Ratio:"
           selectedValue={aspectRatio}
-          onValueChange={setAspectRatio}
+          onValueChange={(value) => {
+            form.setFieldValue('aspectRatio', value);
+            form.setFieldValue(
+              'lastValidCustomAspectWidth',
+              form.getFieldValue('customAspectWidth')
+            );
+            form.setFieldValue(
+              'lastValidCustomAspectHeight',
+              form.getFieldValue('customAspectHeight')
+            );
+          }}
           items={ASPECT_RATIOS as SelectItem[]}
           placeholder="Select Aspect Ratio"
         />
@@ -200,11 +195,23 @@ export function PaperSizeSection({
         {aspectRatio === 'custom' && (
           <DimensionInputGroup
             widthValue={String(customAspectWidth)}
-            onWidthChange={(value) => setCustomAspectWidth(Number(value) || 0)}
+            onWidthChange={(value) => {
+              const num = Number(value);
+              if (!Number.isFinite(num) || num <= 0) {
+                return;
+              }
+              form.setFieldValue('customAspectWidth', num);
+              form.setFieldValue('lastValidCustomAspectWidth', num);
+            }}
             heightValue={String(customAspectHeight)}
-            onHeightChange={(value) =>
-              setCustomAspectHeight(Number(value) || 0)
-            }
+            onHeightChange={(value) => {
+              const num = Number(value);
+              if (!Number.isFinite(num) || num <= 0) {
+                return;
+              }
+              form.setFieldValue('customAspectHeight', num);
+              form.setFieldValue('lastValidCustomAspectHeight', num);
+            }}
             widthLabel="Width:"
             heightLabel="Height:"
             widthPlaceholder="Width"
@@ -215,7 +222,7 @@ export function PaperSizeSection({
         <Select
           label="Paper Size:"
           selectedValue={paperSize}
-          onValueChange={setPaperSize}
+          onValueChange={(value) => form.setFieldValue('paperSize', value)}
           items={displayPaperSizes as SelectItem[]}
           placeholder="Select Paper Size"
         />
@@ -237,14 +244,16 @@ export function PaperSizeSection({
 
         <div className="flex gap-4">
           <button
-            onClick={() => setIsLandscape(!isLandscape)}
+            onClick={() => form.setFieldValue('isLandscape', !isLandscape)}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
           >
             <RotateCw className="h-4 w-4" />
             Flip Paper
           </button>
           <button
-            onClick={() => setIsRatioFlipped(!isRatioFlipped)}
+            onClick={() =>
+              form.setFieldValue('isRatioFlipped', !isRatioFlipped)
+            }
             className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
           >
             <Square className="h-4 w-4" />

@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
+import { SortingState } from '@tanstack/react-table';
 import {
   useCustomRecipes,
   useDevelopmentRecipes,
   useRecipeSharing,
   useRecipeUrlState,
-  usePagination,
+  useDevelopmentTable,
   useFeatureFlags,
   useViewPreference,
   useFavorites,
   getCustomRecipeFilm,
   getCustomRecipeDeveloper,
+  debugLog,
+  debugError,
   type CustomRecipeFormData,
   isFilmdevInput,
   extractRecipeId,
@@ -37,10 +40,13 @@ import {
   TemperatureProvider,
   SkeletonCard,
   SkeletonTableRow,
+  createTableColumns,
+  PaginationControls,
   type DevelopmentCombinationView,
   cn,
 } from '@dorkroom/ui';
 import type { Combination, Film, Developer } from '@dorkroom/api';
+import { useTheme } from '../../contexts/theme-context';
 
 const CUSTOM_RECIPE_FORM_DEFAULT: CustomRecipeFormData = {
   name: '',
@@ -141,8 +147,6 @@ export default function DevelopmentRecipesPage() {
     setTagFilter,
     setSelectedFilm,
     setSelectedDeveloper,
-    handleSort,
-    loadData,
     forceRefresh,
     clearFilters,
     getFilmById,
@@ -181,6 +185,7 @@ export default function DevelopmentRecipesPage() {
   const [importError, setImportError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [isFilmdevPreviewOpen, setIsFilmdevPreviewOpen] = useState(false);
+  const [isRefreshingData, setIsRefreshingData] = useState(false);
   const [filmdevPreviewData, setFilmdevPreviewData] =
     useState<FilmdevMappingResult | null>(null);
   const [filmdevPreviewRecipe, setFilmdevPreviewRecipe] =
@@ -195,6 +200,48 @@ export default function DevelopmentRecipesPage() {
   const [editingRecipe, setEditingRecipe] =
     useState<DevelopmentCombinationView | null>(null);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'film', desc: false },
+  ]);
+  const [pageIndex, setPageIndex] = useState(0);
+  const resultsContainerRef = useRef<HTMLDivElement>(null);
+  const { animationsEnabled } = useTheme();
+  const [favoriteTransitions, setFavoriteTransitions] = useState<
+    Map<string, 'adding' | 'removing'>
+  >(new Map());
+  const transitionTimeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Scroll to top of results when page changes, accounting for floating navbar
+  useEffect(() => {
+    if (resultsContainerRef.current) {
+      const element = resultsContainerRef.current;
+      const elementPosition =
+        element.getBoundingClientRect().top + window.scrollY;
+      const navbarHeight = 80; // Approximate navbar height + extra buffer
+      const targetPosition = elementPosition - navbarHeight;
+
+      window.scrollTo({
+        top: targetPosition,
+        behavior: 'smooth',
+      });
+    }
+  }, [pageIndex]);
+
+  // Prevent page index reset during favorite transitions
+  const prevPageIndexRef = useRef(pageIndex);
+  useEffect(() => {
+    const hasActiveTransitions = favoriteTransitions.size > 0;
+    if (
+      hasActiveTransitions &&
+      pageIndex === 0 &&
+      prevPageIndexRef.current > 0
+    ) {
+      // TanStack Table tried to reset to page 0, revert it
+      setPageIndex(prevPageIndexRef.current);
+    } else {
+      prevPageIndexRef.current = pageIndex;
+    }
+  }, [pageIndex, favoriteTransitions]);
 
   const recipesByUuid = useMemo(() => {
     const map = new Map<string, Combination>();
@@ -492,9 +539,6 @@ export default function DevelopmentRecipesPage() {
     isFavorite,
   ]);
 
-  const pagination = usePagination(combinedRows, 24);
-  const paginatedRows = pagination.paginatedItems;
-
   const handleOpenDetail = useCallback((view: DevelopmentCombinationView) => {
     setDetailView(view);
     setIsDetailOpen(true);
@@ -620,12 +664,108 @@ export default function DevelopmentRecipesPage() {
           setDetailView(null);
         }
       } catch (error) {
-        console.error('Failed to delete custom recipe:', error);
+        debugError('Failed to delete custom recipe:', error);
         window.alert('Failed to delete the recipe. Please try again.');
       }
     },
     [deleteCustomRecipe, refreshCustomRecipes, detailView]
   );
+
+  // Memoize favorite callbacks to prevent column recreation on every render
+  const handleCheckFavorite = useCallback(
+    (view: DevelopmentCombinationView) =>
+      isFavorite(String(view.combination.uuid || view.combination.id)),
+    [isFavorite]
+  );
+
+  const handleToggleFavorite = useCallback(
+    (view: DevelopmentCombinationView) => {
+      const id = String(view.combination.uuid || view.combination.id);
+
+      if (!animationsEnabled) {
+        toggleFavorite(id);
+        return;
+      }
+
+      // Determine if adding or removing favorite
+      const isCurrentlyFavorite = isFavorite(id);
+      const transitionType = isCurrentlyFavorite ? 'removing' : 'adding';
+
+      // Add to transition state
+      setFavoriteTransitions((prev) => new Map(prev).set(id, transitionType));
+
+      // Clear any existing timeout for this ID
+      const existingTimeout = transitionTimeoutRefs.current.get(id);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+      }
+
+      // Set timeout for skeleton animation duration (500ms)
+      const timeout = setTimeout(() => {
+        toggleFavorite(id);
+
+        // For off-page items, show message skeleton for 2 seconds after toggle
+        if (transitionType === 'adding' && pageIndex > 0) {
+          const messageTimeout = setTimeout(() => {
+            setFavoriteTransitions((prev) => {
+              const newMap = new Map(prev);
+              newMap.delete(id);
+              return newMap;
+            });
+            transitionTimeoutRefs.current.delete(id);
+          }, 2000);
+          transitionTimeoutRefs.current.set(id, messageTimeout);
+        } else {
+          // Remove from transition state after animation completes
+          setFavoriteTransitions((prev) => {
+            const newMap = new Map(prev);
+            newMap.delete(id);
+            return newMap;
+          });
+          transitionTimeoutRefs.current.delete(id);
+        }
+      }, 500);
+
+      transitionTimeoutRefs.current.set(id, timeout);
+    },
+    [toggleFavorite, isFavorite, animationsEnabled, pageIndex]
+  );
+
+  // Memoize the isFavorite function for use in table sorting
+  const memoizedIsFavorite = useCallback(
+    (id: string) => isFavorite(id),
+    [isFavorite]
+  );
+
+  // Create table columns with context handlers
+  const columns = useMemo(
+    () =>
+      createTableColumns({
+        isFavorite: handleCheckFavorite,
+        onToggleFavorite: handleToggleFavorite,
+        onEditCustomRecipe: handleEditCustomRecipe,
+        onDeleteCustomRecipe: handleDeleteCustomRecipe,
+        onShareCombination: handleShareCombination,
+      }),
+    [
+      handleCheckFavorite,
+      handleToggleFavorite,
+      handleEditCustomRecipe,
+      handleDeleteCustomRecipe,
+      handleShareCombination,
+    ]
+  );
+
+  // Create TanStack table instance
+  const table = useDevelopmentTable({
+    rows: combinedRows,
+    columns,
+    sorting,
+    onSortingChange: setSorting,
+    pageIndex,
+    onPageIndexChange: setPageIndex,
+    isFavorite: memoizedIsFavorite,
+  });
 
   const handleAcceptSharedRecipe = useCallback(async () => {
     if (!sharedRecipeView) return;
@@ -940,12 +1080,21 @@ export default function DevelopmentRecipesPage() {
     ]
   );
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  // Data loading is handled automatically by TanStack Query hooks
+  // No manual loadData() call needed - it fetches on component mount
 
   const handleRefreshAll = useCallback(async () => {
-    await Promise.all([forceRefresh(), refreshCustomRecipes()]);
+    debugLog('🎯 handleRefreshAll() triggered from Refresh button');
+    setIsRefreshingData(true);
+    try {
+      debugLog('Calling forceRefresh() and refreshCustomRecipes()...');
+      await Promise.all([forceRefresh(), refreshCustomRecipes()]);
+      debugLog('✅ All refreshes completed');
+    } catch (error) {
+      debugError('❌ handleRefreshAll error:', error);
+    } finally {
+      setIsRefreshingData(false);
+    }
   }, [forceRefresh, refreshCustomRecipes]);
 
   const filmOptions = useMemo(() => {
@@ -999,7 +1148,7 @@ export default function DevelopmentRecipesPage() {
             setIsCustomModalOpen(true);
           }}
           onRefresh={handleRefreshAll}
-          isRefreshing={isLoading}
+          isRefreshing={isRefreshingData}
           showImportButton={flags.RECIPE_IMPORT}
           isMobile={isMobile}
         />
@@ -1047,7 +1196,7 @@ export default function DevelopmentRecipesPage() {
         />
 
         <div className="transition-all duration-500 ease-in-out">
-          {isLoading && (
+          {(isLoading || isRefreshingData) && (
             <div className="space-y-4 animate-slide-fade-top">
               <div
                 className="flex items-center justify-center gap-3 rounded-2xl px-6 py-4 text-sm"
@@ -1135,66 +1284,39 @@ export default function DevelopmentRecipesPage() {
             </div>
           )}
 
-          {!isLoading && (
+          {!isLoading && !isRefreshingData && (
             <div
+              ref={resultsContainerRef}
               key={`results-${isLoaded}-${combinedRows.length}`}
               className="animate-slide-fade-top"
             >
               {isMobile || viewMode === 'grid' ? (
                 <DevelopmentResultsCards
-                  rows={paginatedRows}
+                  table={table}
                   onSelectCombination={handleOpenDetail}
+                  isMobile={isMobile}
+                  isFavorite={handleCheckFavorite}
+                  onToggleFavorite={handleToggleFavorite}
                   onShareCombination={handleShareCombination}
                   onCopyCombination={handleCopyCombination}
                   onEditCustomRecipe={handleEditCustomRecipe}
                   onDeleteCustomRecipe={handleDeleteCustomRecipe}
-                  isMobile={isMobile}
-                  isFavorite={(view) =>
-                    isFavorite(
-                      String(view.combination.uuid || view.combination.id)
-                    )
-                  }
-                  onToggleFavorite={(view) =>
-                    toggleFavorite(
-                      String(view.combination.uuid || view.combination.id)
-                    )
-                  }
+                  favoriteTransitions={favoriteTransitions}
                 />
               ) : (
                 <DevelopmentResultsTable
-                  rows={paginatedRows}
+                  table={table}
                   onSelectCombination={handleOpenDetail}
-                  onShareCombination={handleShareCombination}
-                  onCopyCombination={handleCopyCombination}
-                  onEditCustomRecipe={handleEditCustomRecipe}
-                  onDeleteCustomRecipe={handleDeleteCustomRecipe}
-                  isFavorite={(view) =>
-                    isFavorite(
-                      String(view.combination.uuid || view.combination.id)
-                    )
-                  }
-                  onToggleFavorite={(view) =>
-                    toggleFavorite(
-                      String(view.combination.uuid || view.combination.id)
-                    )
-                  }
-                  sortBy={sortBy}
-                  sortDirection={sortDirection}
-                  onSort={handleSort}
+                  favoriteTransitions={favoriteTransitions}
                 />
               )}
             </div>
           )}
         </div>
 
-        {!isLoading && (
+        {!isLoading && !isRefreshingData && (
           <div className="animate-slide-fade-top animate-delay-300">
-            <PaginationControls
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              onNext={pagination.goToNext}
-              onPrevious={pagination.goToPrevious}
-            />
+            <PaginationControls table={table} />
           </div>
         )}
 
@@ -1550,52 +1672,6 @@ export default function DevelopmentRecipesPage() {
         )}
       </div>
     </TemperatureProvider>
-  );
-}
-
-function PaginationControls({
-  currentPage,
-  totalPages,
-  onNext,
-  onPrevious,
-}: {
-  currentPage: number;
-  totalPages: number;
-  onNext: () => void;
-  onPrevious: () => void;
-}) {
-  if (totalPages <= 1) {
-    return null;
-  }
-
-  return (
-    <div className="flex items-center justify-end gap-2 text-sm text-white/70">
-      <button
-        type="button"
-        onClick={onPrevious}
-        disabled={currentPage === 1}
-        className={cn(
-          'rounded-full border border-white/20 px-3 py-1.5 transition hover:border-white/40 hover:text-white',
-          currentPage === 1 && 'cursor-not-allowed opacity-50'
-        )}
-      >
-        Previous
-      </button>
-      <span>
-        Page {currentPage} of {totalPages}
-      </span>
-      <button
-        type="button"
-        onClick={onNext}
-        disabled={currentPage === totalPages}
-        className={cn(
-          'rounded-full border border-white/20 px-3 py-1.5 transition hover:border-white/40 hover:text-white',
-          currentPage === totalPages && 'cursor-not-allowed opacity-50'
-        )}
-      >
-        Next
-      </button>
-    </div>
   );
 }
 

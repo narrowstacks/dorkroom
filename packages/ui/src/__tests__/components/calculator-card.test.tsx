@@ -85,13 +85,13 @@ describe('CalculatorCard', () => {
 
   describe('styling and layout', () => {
     it('applies base section styling', () => {
-      render(
+      const { container } = render(
         <CalculatorCard>
           <div>Content</div>
         </CalculatorCard>
       );
 
-      const section = screen.getByRole('region');
+      const section = container.querySelector('section');
       expect(section).toHaveClass(
         'relative',
         'overflow-hidden',
@@ -101,35 +101,35 @@ describe('CalculatorCard', () => {
     });
 
     it('applies custom className', () => {
-      render(
+      const { container } = render(
         <CalculatorCard className="custom-card-class">
           <div>Content</div>
         </CalculatorCard>
       );
 
-      const section = screen.getByRole('region');
+      const section = container.querySelector('section');
       expect(section).toHaveClass('custom-card-class');
     });
 
     it('applies normal padding by default', () => {
-      render(
+      const { container } = render(
         <CalculatorCard>
           <div>Content</div>
         </CalculatorCard>
       );
 
-      const section = screen.getByRole('region');
+      const section = container.querySelector('section');
       expect(section).toHaveClass('p-6', 'sm:p-8');
     });
 
     it('applies compact padding when specified', () => {
-      render(
+      const { container } = render(
         <CalculatorCard padding="compact">
           <div>Content</div>
         </CalculatorCard>
       );
 
-      const section = screen.getByRole('region');
+      const section = container.querySelector('section');
       expect(section).toHaveClass('p-5', 'sm:p-6');
     });
   });
@@ -233,14 +233,28 @@ describe('CalculatorCard', () => {
   });
 
   describe('accessibility', () => {
-    it('uses semantic section element', () => {
+    it('renders as accessible region landmark', () => {
       render(
         <CalculatorCard>
           <div>Content</div>
         </CalculatorCard>
       );
 
-      expect(screen.getByRole('region')).toBeInTheDocument();
+      expect(
+        screen.getByRole('region', { name: /calculator card/i })
+      ).toBeInTheDocument();
+    });
+
+    it('uses title as region name when provided', () => {
+      render(
+        <CalculatorCard title="Border Calculator">
+          <div>Content</div>
+        </CalculatorCard>
+      );
+
+      expect(
+        screen.getByRole('region', { name: /border calculator/i })
+      ).toBeInTheDocument();
     });
 
     it('uses proper heading hierarchy', () => {

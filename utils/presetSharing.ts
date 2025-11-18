@@ -4,10 +4,12 @@ import type {
   BorderPreset,
   BorderPresetSettings,
 } from '@/types/borderPresetTypes';
-import { debugLog } from '@/utils/debugLogger';
+import { debugLog, debugError } from '@/utils/debugLogger';
 
-const findIndexByValue = (arr: readonly { value: string }[], value: string) =>
-  arr.findIndex((item) => item.value === value);
+const findIndexByValue = <T extends readonly { value: string }[]>(
+  arr: T,
+  value: string
+) => arr.findIndex((item) => item.value === value);
 
 const getBooleanBitmask = (settings: BorderPresetSettings): number => {
   let mask = 0;
@@ -93,7 +95,7 @@ export const encodePreset = (preset: {
     return encoded;
   } catch (error) {
     debugLog('🔧 [PRESET ENCODE] Error encoding preset:', error);
-    console.error('Failed to encode preset:', error);
+    debugError('Failed to encode preset:', error);
     return '';
   }
 };
@@ -168,7 +170,7 @@ export const decodePreset = (
     return result;
   } catch (error) {
     debugLog('🔧 [PRESET DECODE] Error decoding preset:', error);
-    console.error('Failed to decode preset:', error);
+    debugError('Failed to decode preset:', error);
     return null;
   }
 };

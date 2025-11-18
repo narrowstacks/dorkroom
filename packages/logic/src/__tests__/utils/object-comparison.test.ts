@@ -109,4 +109,10 @@ describe('shallowEqual', () => {
     const obj2 = { text: 'hello\nworld\t!' };
     expect(shallowEqual(obj1, obj2)).toBe(true);
   });
+
+  it('should return false when comparing array-like objects to arrays', () => {
+    const obj1 = { 0: 'a', 1: 'b' };
+    const obj2 = ['a', 'b'];
+    expect(shallowEqual(obj1, obj2)).toBe(false);
+  });
 });

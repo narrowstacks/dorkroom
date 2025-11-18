@@ -1,7 +1,7 @@
 import { Modal } from '../modal';
 import { Drawer, DrawerBody, DrawerContent } from '../drawer';
 import { DevelopmentRecipeDetail } from './recipe-detail';
-import type { DevelopmentCombinationView } from './results-table';
+import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import { X } from 'lucide-react';

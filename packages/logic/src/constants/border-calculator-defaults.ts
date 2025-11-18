@@ -1,0 +1,28 @@
+/**
+ * Default settings for the Border Calculator
+ * Extracted to centralize calculator state initialization and make presets easier to manage.
+ */
+
+/**
+ * Default values for all border calculator settings.
+ * These are used to initialize the calculator state and provide a reset baseline.
+ */
+export const BORDER_CALCULATOR_DEFAULTS = {
+  aspectRatio: '3:2' as const,
+  paperSize: '8x10' as const,
+  customAspectWidth: 2,
+  customAspectHeight: 3,
+  customPaperWidth: 10,
+  customPaperHeight: 13,
+  minBorder: 0.5,
+  enableOffset: false,
+  ignoreMinBorder: false,
+  horizontalOffset: 0,
+  verticalOffset: 0,
+  showBlades: true,
+  showBladeReadings: true,
+  isLandscape: false,
+  isRatioFlipped: false,
+} as const;
+
+export default BORDER_CALCULATOR_DEFAULTS;

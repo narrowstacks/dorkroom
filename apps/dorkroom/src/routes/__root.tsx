@@ -1,17 +1,15 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Link,
-  NavLink,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate,
-} from 'react-router-dom';
+  Outlet,
+  createRootRoute,
+  useRouter,
+  useRouterState,
+} from '@tanstack/react-router';
 import { Beaker, Camera, Menu, Printer, Settings, X } from 'lucide-react';
-import { cn } from './lib/cn';
+import { cn } from '../app/lib/cn';
 import {
   NavigationDropdown,
-  PlaceholderPage,
   printingItems,
   shootingItems,
   navItems,
@@ -19,48 +17,33 @@ import {
   ROUTE_TITLES,
 } from '@dorkroom/ui';
 
-// Lazy load page components for better code splitting
-const HomePage = lazy(() => import('./pages/home-page'));
-const BorderCalculatorPage = lazy(
-  () => import('./pages/border-calculator/border-calculator-page')
-);
-const ResizeCalculatorPage = lazy(
-  () => import('./pages/resize-calculator/resize-calculator-page')
-);
-const ReciprocityCalculatorPage = lazy(
-  () => import('./pages/reciprocity-calculator/reciprocity-calculator-page')
-);
-const ExposureCalculatorPage = lazy(
-  () => import('./pages/exposure-calculator/exposure-calculator-page')
-);
-const DevelopmentRecipesPage = lazy(
-  () => import('./pages/development-recipes/development-recipes-page')
-);
-const SettingsPage = lazy(() => import('./pages/settings-page'));
-
-export function App() {
-  const location = useLocation();
-  const navigate = useNavigate();
+function RootComponent() {
+  const router = useRouter();
+  const routerState = useRouterState();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = routerState.location.pathname;
 
+  // Update document title based on route
   useEffect(() => {
     if (typeof document === 'undefined') {
       return;
     }
 
-    const normalisedPath = location.pathname.replace(/\/+$/, '') || '/';
+    const normalisedPath = pathname.replace(/\/+$/, '') || '/';
     const pageTitle =
       ROUTE_TITLES[normalisedPath] ||
       allNavItems.find((item) => item.to === normalisedPath)?.label ||
       'Dorkroom';
     document.title =
       pageTitle === 'Dorkroom' ? 'Dorkroom' : `${pageTitle} - Dorkroom`;
-  }, [location.pathname]);
+  }, [pathname]);
 
+  // Close mobile menu on navigation
   useEffect(() => {
     setIsMobileMenuOpen(false);
-  }, [location.pathname]);
+  }, [pathname]);
 
+  // Handle body overflow for mobile menu
   useEffect(() => {
     if (typeof document === 'undefined') {
       return undefined;
@@ -78,6 +61,10 @@ export function App() {
       return undefined;
     }
   }, [isMobileMenuOpen]);
+
+  const handleNavigate = (path: string) => {
+    router.navigate({ to: path });
+  };
 
   return (
     <div
@@ -118,39 +105,40 @@ export function App() {
                   backgroundColor: 'rgba(var(--color-background-rgb), 0.5)',
                 }}
               >
-                {navItems.map(({ label, to, icon: Icon }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    end={to === '/'}
-                    className={({ isActive }) =>
-                      cn(
+                {navItems.map(({ label, to, icon: Icon }) => {
+                  const isActive =
+                    to === '/' ? pathname === '/' : pathname.startsWith(to);
+                  return (
+                    <Link
+                      key={to}
+                      to={to}
+                      className={cn(
                         'flex min-w-fit items-center gap-2 rounded-full px-4 py-2 font-medium transition focus-visible:outline-none',
                         'focus-visible:ring-2',
                         'focus-visible:ring-[color:var(--color-border-primary)]',
                         'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--nav-hover-text)]',
                         isActive &&
                           'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
-                      )
-                    }
-                  >
-                    <Icon className="h-4 w-4" />
-                    {label}
-                  </NavLink>
-                ))}
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {label}
+                    </Link>
+                  );
+                })}
                 <NavigationDropdown
                   label="Printing"
                   icon={Printer}
                   items={printingItems}
-                  currentPath={location.pathname}
-                  onNavigate={navigate}
+                  currentPath={pathname}
+                  onNavigate={handleNavigate}
                 />
                 <NavigationDropdown
                   label="Shooting"
                   icon={Camera}
                   items={shootingItems}
-                  currentPath={location.pathname}
-                  onNavigate={navigate}
+                  currentPath={pathname}
+                  onNavigate={handleNavigate}
                 />
               </div>
             </nav>
@@ -190,7 +178,6 @@ export function App() {
           type="button"
           className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex h-12 w-12 items-center justify-center rounded-full shadow-lg backdrop-blur transition focus-visible:outline-none sm:hidden"
           style={{
-            // Flip colors: use light colors in dark mode, dark colors in light mode
             color: 'var(--color-background)',
             borderColor: 'var(--color-background)',
             borderWidth: 1,
@@ -234,34 +221,35 @@ export function App() {
               >
                 <ul className="space-y-1">
                   {/* Main navigation items */}
-                  {navItems.map(({ label, to, icon: Icon }) => (
-                    <li key={to}>
-                      <NavLink
-                        to={to}
-                        end={to === '/'}
-                        className={({ isActive }) =>
-                          cn(
+                  {navItems.map(({ label, to, icon: Icon }) => {
+                    const isActive =
+                      to === '/' ? pathname === '/' : pathname.startsWith(to);
+                    return (
+                      <li key={to}>
+                        <Link
+                          to={to}
+                          className={cn(
                             'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
                             'text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]',
                             isActive &&
                               'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
-                          )
-                        }
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <span
-                          className="flex h-9 w-9 items-center justify-center rounded-2xl"
-                          style={{
-                            backgroundColor:
-                              'rgba(var(--color-background-rgb), 0.08)',
-                          }}
+                          )}
+                          onClick={() => setIsMobileMenuOpen(false)}
                         >
-                          <Icon className="h-4 w-4" />
-                        </span>
-                        <span className="flex-1 text-left">{label}</span>
-                      </NavLink>
-                    </li>
-                  ))}
+                          <span
+                            className="flex h-9 w-9 items-center justify-center rounded-2xl"
+                            style={{
+                              backgroundColor:
+                                'rgba(var(--color-background-rgb), 0.08)',
+                            }}
+                          >
+                            <Icon className="h-4 w-4" />
+                          </span>
+                          <span className="flex-1 text-left">{label}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
 
                   {/* Printing section */}
                   <li className="pt-2">
@@ -274,33 +262,34 @@ export function App() {
                       </span>
                     </div>
                   </li>
-                  {printingItems.map(({ label, to, icon: Icon }) => (
-                    <li key={to}>
-                      <NavLink
-                        to={to}
-                        className={({ isActive }) =>
-                          cn(
+                  {printingItems.map(({ label, to, icon: Icon }) => {
+                    const isActive = pathname.startsWith(to);
+                    return (
+                      <li key={to}>
+                        <Link
+                          to={to}
+                          className={cn(
                             'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
                             'text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]',
                             isActive &&
                               'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
-                          )
-                        }
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <span
-                          className="flex h-9 w-9 items-center justify-center rounded-2xl"
-                          style={{
-                            backgroundColor:
-                              'rgba(var(--color-background-rgb), 0.08)',
-                          }}
+                          )}
+                          onClick={() => setIsMobileMenuOpen(false)}
                         >
-                          <Icon className="h-4 w-4" />
-                        </span>
-                        <span className="flex-1 text-left">{label}</span>
-                      </NavLink>
-                    </li>
-                  ))}
+                          <span
+                            className="flex h-9 w-9 items-center justify-center rounded-2xl"
+                            style={{
+                              backgroundColor:
+                                'rgba(var(--color-background-rgb), 0.08)',
+                            }}
+                          >
+                            <Icon className="h-4 w-4" />
+                          </span>
+                          <span className="flex-1 text-left">{label}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
 
                   {/* Shooting section */}
                   <li className="pt-2">
@@ -313,57 +302,61 @@ export function App() {
                       </span>
                     </div>
                   </li>
-                  {shootingItems.map(({ label, to, icon: Icon }) => (
-                    <li key={to}>
-                      <NavLink
-                        to={to}
-                        className={({ isActive }) =>
-                          cn(
+                  {shootingItems.map(({ label, to, icon: Icon }) => {
+                    const isActive = pathname.startsWith(to);
+                    return (
+                      <li key={to}>
+                        <Link
+                          to={to}
+                          className={cn(
                             'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
                             'text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--color-text-primary)]',
                             isActive &&
                               'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
-                          )
-                        }
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <span
-                          className="flex h-9 w-9 items-center justify-center rounded-2xl"
-                          style={{
-                            backgroundColor:
-                              'rgba(var(--color-background-rgb), 0.08)',
-                          }}
+                          )}
+                          onClick={() => setIsMobileMenuOpen(false)}
                         >
-                          <Icon className="h-4 w-4" />
-                        </span>
-                        <span className="flex-1 text-left">{label}</span>
-                      </NavLink>
-                    </li>
-                  ))}
+                          <span
+                            className="flex h-9 w-9 items-center justify-center rounded-2xl"
+                            style={{
+                              backgroundColor:
+                                'rgba(var(--color-background-rgb), 0.08)',
+                            }}
+                          >
+                            <Icon className="h-4 w-4" />
+                          </span>
+                          <span className="flex-1 text-left">{label}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
                   <li>
-                    <NavLink
-                      to="/settings"
-                      className={({ isActive }) =>
-                        cn(
-                          'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
-                          'text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]',
-                          isActive &&
-                            'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
-                        )
-                      }
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <span
-                        className="flex h-9 w-9 items-center justify-center rounded-2xl"
-                        style={{
-                          backgroundColor:
-                            'rgba(var(--color-background-rgb), 0.08)',
-                        }}
-                      >
-                        <Settings className="h-4 w-4" />
-                      </span>
-                      <span className="flex-1 text-left">Settings</span>
-                    </NavLink>
+                    {(() => {
+                      const isActive = pathname === '/settings';
+                      return (
+                        <Link
+                          to="/settings"
+                          className={cn(
+                            'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
+                            'text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]',
+                            isActive &&
+                              'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
+                          )}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <span
+                            className="flex h-9 w-9 items-center justify-center rounded-2xl"
+                            style={{
+                              backgroundColor:
+                                'rgba(var(--color-background-rgb), 0.08)',
+                            }}
+                          >
+                            <Settings className="h-4 w-4" />
+                          </span>
+                          <span className="flex-1 text-left">Settings</span>
+                        </Link>
+                      );
+                    })()}
                   </li>
                 </ul>
               </div>
@@ -372,54 +365,13 @@ export function App() {
         )}
 
         <main>
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center min-h-[50vh]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            }
-          >
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/border" element={<BorderCalculatorPage />} />
-              <Route path="/resize" element={<ResizeCalculatorPage />} />
-              <Route path="/stops" element={<ExposureCalculatorPage />} />
-              <Route
-                path="/reciprocity"
-                element={<ReciprocityCalculatorPage />}
-              />
-              <Route path="/development" element={<DevelopmentRecipesPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              {allNavItems
-                .filter(
-                  (item) =>
-                    ![
-                      '/',
-                      '/border',
-                      '/resize',
-                      '/stops',
-                      '/reciprocity',
-                      '/development',
-                    ].includes(item.to)
-                )
-                .map((item) => (
-                  <Route
-                    key={item.to}
-                    path={item.to}
-                    element={
-                      <PlaceholderPage
-                        title={item.label}
-                        summary={item.summary}
-                      />
-                    }
-                  />
-                ))}
-            </Routes>
-          </Suspense>
+          <Outlet />
         </main>
       </div>
     </div>
   );
 }
 
-export default App;
+export const Route = createRootRoute({
+  component: RootComponent,
+});

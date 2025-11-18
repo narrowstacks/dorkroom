@@ -134,7 +134,7 @@ const mockCombinations: Combination[] = [
 class MockHTTPTransport implements HTTPTransport {
   private shouldFail: boolean = false;
   private shouldFailJSON: boolean = false;
-  private customResponses: Map<string, any> = new Map();
+  private customResponses: Map<string, unknown> = new Map();
 
   setFailure(fail: boolean) {
     this.shouldFail = fail;
@@ -144,7 +144,7 @@ class MockHTTPTransport implements HTTPTransport {
     this.shouldFailJSON = fail;
   }
 
-  setCustomResponse(resource: string, data: any) {
+  setCustomResponse(resource: string, data: unknown) {
     this.customResponses.set(resource, data);
   }
 
@@ -157,12 +157,12 @@ class MockHTTPTransport implements HTTPTransport {
     const urlObj = new URL(url);
     const resource = urlObj.pathname.split('/').pop() || '';
 
-    let responseData: any;
+    let responseData: unknown;
     if (this.customResponses.has(resource)) {
       responseData = this.customResponses.get(resource);
     } else {
       // Default mock responses
-      let data: any;
+      let data: unknown;
       switch (resource) {
         case 'films':
           data = mockFilms;

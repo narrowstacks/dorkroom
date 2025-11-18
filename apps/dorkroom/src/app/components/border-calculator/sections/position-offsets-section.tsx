@@ -1,3 +1,4 @@
+import type { AnyFormApi } from '@tanstack/react-form';
 import { X } from 'lucide-react';
 import { LabeledSliderInput, ToggleSwitch, WarningAlert } from '@dorkroom/ui';
 import {
@@ -9,33 +10,21 @@ import {
 
 interface PositionOffsetsSectionProps {
   onClose: () => void;
+  form: AnyFormApi;
   enableOffset: boolean;
-  setEnableOffset: (value: boolean) => void;
   ignoreMinBorder: boolean;
-  setIgnoreMinBorder: (value: boolean) => void;
-  horizontalOffset: number;
-  setHorizontalOffset: (value: number) => void;
-  setHorizontalOffsetSlider: (value: number) => void;
-  verticalOffset: number;
-  setVerticalOffset: (value: number) => void;
-  setVerticalOffsetSlider: (value: number) => void;
   offsetWarning?: string;
 }
 
 export function PositionOffsetsSection({
   onClose,
+  form,
   enableOffset,
-  setEnableOffset,
   ignoreMinBorder,
-  setIgnoreMinBorder,
-  horizontalOffset,
-  setHorizontalOffset,
-  setHorizontalOffsetSlider,
-  verticalOffset,
-  setVerticalOffset,
-  setVerticalOffsetSlider,
   offsetWarning,
 }: PositionOffsetsSectionProps) {
+  const horizontalOffset = form.getFieldValue('horizontalOffset');
+  const verticalOffset = form.getFieldValue('verticalOffset');
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -52,7 +41,7 @@ export function PositionOffsetsSection({
         <ToggleSwitch
           label="Enable Offsets"
           value={enableOffset}
-          onValueChange={setEnableOffset}
+          onValueChange={(value) => form.setFieldValue('enableOffset', value)}
         />
 
         {enableOffset && (
@@ -60,7 +49,9 @@ export function PositionOffsetsSection({
             <ToggleSwitch
               label="Ignore Min Border"
               value={ignoreMinBorder}
-              onValueChange={setIgnoreMinBorder}
+              onValueChange={(value) =>
+                form.setFieldValue('ignoreMinBorder', value)
+              }
             />
 
             {ignoreMinBorder && (
@@ -73,8 +64,12 @@ export function PositionOffsetsSection({
               <LabeledSliderInput
                 label="Horizontal Offset:"
                 value={horizontalOffset}
-                onChange={setHorizontalOffset}
-                onSliderChange={setHorizontalOffsetSlider}
+                onChange={(value) =>
+                  form.setFieldValue('horizontalOffset', value)
+                }
+                onSliderChange={(value) =>
+                  form.setFieldValue('horizontalOffset', value)
+                }
                 min={OFFSET_SLIDER_MIN}
                 max={OFFSET_SLIDER_MAX}
                 step={OFFSET_SLIDER_STEP}
@@ -86,8 +81,12 @@ export function PositionOffsetsSection({
               <LabeledSliderInput
                 label="Vertical Offset:"
                 value={verticalOffset}
-                onChange={setVerticalOffset}
-                onSliderChange={setVerticalOffsetSlider}
+                onChange={(value) =>
+                  form.setFieldValue('verticalOffset', value)
+                }
+                onSliderChange={(value) =>
+                  form.setFieldValue('verticalOffset', value)
+                }
                 min={OFFSET_SLIDER_MIN}
                 max={OFFSET_SLIDER_MAX}
                 step={OFFSET_SLIDER_STEP}

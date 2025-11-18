@@ -1,17 +1,30 @@
+import { useForm } from '@tanstack/react-form';
+import { useStore } from '@tanstack/react-store';
+import { useEffect, useRef, useMemo, type ChangeEvent, type FC } from 'react';
 import {
   CalculatorCard,
   CalculatorPageHeader,
   CalculatorStat,
   CalculatorNumberField,
   ResultRow,
+  exposureCalculatorSchema,
+  createZodFormValidator,
 } from '@dorkroom/ui';
 import {
-  useExposureCalculator,
   EXPOSURE_PRESETS,
+  EXPOSURE_STORAGE_KEY,
   type ExposurePreset,
+  type ExposureFormState,
+  roundStopsToThirds,
+  roundToStandardPrecision,
+  calculateNewExposureTime,
+  formatExposureTime,
+  calculatePercentageIncrease,
 } from '@dorkroom/logic';
 import { useTheme } from '../../contexts/theme-context';
 import { themes } from '../../lib/themes';
+
+const validateExposureForm = createZodFormValidator(exposureCalculatorSchema);
 
 const HOW_TO_USE = [
   {
@@ -60,7 +73,7 @@ interface StopButtonProps {
   theme: ReturnType<typeof useTheme>;
 }
 
-function StopButton({ preset, onPress, theme }: StopButtonProps) {
+const StopButton: FC<StopButtonProps> = ({ preset, onPress, theme }) => {
   const currentTheme = themes[theme.resolvedTheme];
 
   return (
@@ -77,35 +90,80 @@ function StopButton({ preset, onPress, theme }: StopButtonProps) {
       {preset.label}
     </button>
   );
-}
+};
 
 export default function ExposureCalculatorPage() {
   const theme = useTheme();
   const currentTheme = themes[theme.resolvedTheme];
+  const hydrationRef = useRef(false);
 
-  const {
-    originalTime,
-    stops,
-    setOriginalTime,
-    setStops,
-    adjustStops,
-    calculation,
-    formatTime,
-  } = useExposureCalculator();
+  const form = useForm({
+    defaultValues: {
+      originalTime: 10,
+      stops: 1,
+    },
+    validators: {
+      onChange: validateExposureForm,
+    },
+  });
 
-  const addedExposure = calculation
-    ? formatTime(Math.abs(calculation.addedTime))
-    : '--';
+  // Subscribe to form values
+  const formValues = useStore(
+    form.store,
+    (state) => state.values as ExposureFormState
+  );
 
-  const exposureChange = calculation
-    ? calculation.addedTime >= 0
-      ? 'Add'
-      : 'Remove'
-    : '--';
+  // Create a memoized snapshot of persistable state
+  const persistableSnapshot = useMemo(
+    () => ({
+      originalTime: formValues.originalTime,
+      stops: formValues.stops,
+    }),
+    [formValues.originalTime, formValues.stops]
+  );
 
-  const percentageDisplay = calculation
-    ? `${Math.abs(calculation.percentageIncrease).toFixed(1)}%`
-    : '--';
+  // Hydrate from persisted state on mount (runs exactly once)
+  useEffect(() => {
+    if (hydrationRef.current || typeof window === 'undefined') return;
+    hydrationRef.current = true;
+
+    try {
+      const raw = window.localStorage.getItem(EXPOSURE_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return;
+
+      (['originalTime', 'stops'] as const).forEach((key) => {
+        const value = (parsed as Partial<ExposureFormState>)[key];
+        if (typeof value !== 'number' || !Number.isFinite(value)) return;
+        form.setFieldValue(key, value);
+      });
+    } catch (error) {
+      console.warn('Failed to load calculator state', error);
+    }
+  }, []);
+
+  // Persist form state to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem(
+        EXPOSURE_STORAGE_KEY,
+        JSON.stringify(persistableSnapshot)
+      );
+    } catch (error) {
+      console.warn('Failed to save calculator state', error);
+    }
+  }, [persistableSnapshot]);
+
+  const handleAdjustStops = (increment: number) => {
+    const currentStops = form.getFieldValue('stops');
+    const newStopsValue = roundStopsToThirds(currentStops + increment);
+    const truncatedStops = roundToStandardPrecision(newStopsValue);
+    form.setFieldValue('stops', truncatedStops);
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
@@ -121,14 +179,23 @@ export default function ExposureCalculatorPage() {
             title="Exposure inputs"
             description="Enter your base exposure time and adjust by stops using the controls below."
           >
-            <CalculatorNumberField
-              label="Original exposure time (seconds)"
-              value={originalTime}
-              onChange={setOriginalTime}
-              placeholder="10"
-              step={0.1}
-              helperText="Base exposure time you want to adjust"
-            />
+            <form.Field name="originalTime">
+              {(field) => (
+                <CalculatorNumberField
+                  label="Original exposure time (seconds)"
+                  value={String(field.state.value)}
+                  onChange={(value: string) => {
+                    const parsed = parseFloat(value);
+                    const finiteValue = Number.isFinite(parsed) ? parsed : 0;
+                    field.handleChange(finiteValue);
+                  }}
+                  onBlur={field.handleBlur}
+                  placeholder="10"
+                  step={0.1}
+                  helperText="Base exposure time you want to adjust"
+                />
+              )}
+            </form.Field>
 
             <div className="space-y-3">
               <label className="text-sm font-medium text-[color:var(--color-text-primary)]">
@@ -144,28 +211,40 @@ export default function ExposureCalculatorPage() {
                       <StopButton
                         key={preset.label}
                         preset={preset}
-                        onPress={adjustStops}
+                        onPress={handleAdjustStops}
                         theme={theme}
                       />
                     )
                   )}
 
                   {/* Custom stop value input */}
-                  <div className="mx-2">
-                    <input
-                      type="number"
-                      value={stops}
-                      onChange={(e) => setStops(e.target.value)}
-                      placeholder="1"
-                      step={0.1}
-                      className="w-20 rounded-lg border px-3 py-2 text-center text-sm"
-                      style={{
-                        backgroundColor: currentTheme.surface,
-                        borderColor: currentTheme.border.primary,
-                        color: currentTheme.text.primary,
-                      }}
-                    />
-                  </div>
+                  <form.Field name="stops">
+                    {(field) => (
+                      <div className="mx-2">
+                        <input
+                          type="number"
+                          value={field.state.value}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                            const parsed = parseFloat(e.target.value);
+                            const finiteValue = Number.isFinite(parsed)
+                              ? parsed
+                              : 0;
+                            field.handleChange(finiteValue);
+                          }}
+                          onBlur={field.handleBlur}
+                          placeholder="1"
+                          step={0.1}
+                          aria-label="Stops adjustment"
+                          className="w-20 rounded-lg border px-3 py-2 text-center text-sm"
+                          style={{
+                            backgroundColor: currentTheme.surface,
+                            borderColor: currentTheme.border.primary,
+                            color: currentTheme.text.primary,
+                          }}
+                        />
+                      </div>
+                    )}
+                  </form.Field>
 
                   {/* Positive adjustment buttons */}
                   {EXPOSURE_PRESETS.filter((preset) => preset.stops > 0).map(
@@ -173,7 +252,7 @@ export default function ExposureCalculatorPage() {
                       <StopButton
                         key={preset.label}
                         preset={preset}
-                        onPress={adjustStops}
+                        onPress={handleAdjustStops}
                         theme={theme}
                       />
                     )
@@ -187,71 +266,99 @@ export default function ExposureCalculatorPage() {
             </div>
           </CalculatorCard>
 
-          {calculation && (
-            <CalculatorCard
-              title="Exposure results"
-              description="Apply this adjusted exposure time to maintain consistent density at your new settings."
-              accent="emerald"
-              padding="compact"
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <CalculatorStat
-                  label="New exposure time"
-                  value={formatTime(calculation.newTimeValue)}
-                  helperText={`${calculation.stopsValue > 0 ? '+' : ''}${
-                    calculation.stopsValue
-                  } stops`}
-                  tone="default"
-                />
-                <CalculatorStat
-                  label={`${exposureChange} exposure`}
-                  value={addedExposure}
-                  helperText={`${percentageDisplay} change`}
-                />
-              </div>
-
-              <div
-                className="rounded-2xl p-4 font-mono text-sm"
-                style={{
-                  borderWidth: 1,
-                  borderColor: currentTheme.border.secondary,
-                  backgroundColor: `${currentTheme.background}20`,
-                  color: currentTheme.text.primary,
-                }}
+          <form.Subscribe
+            selector={(state) => {
+              const originalTime = state.values.originalTime;
+              const stops = state.values.stops;
+              const newTimeValue = calculateNewExposureTime(
+                originalTime,
+                stops
+              );
+              const addedTime = newTimeValue - originalTime;
+              const percentageIncrease = calculatePercentageIncrease(
+                originalTime,
+                newTimeValue
+              );
+              return {
+                originalTimeValue: originalTime,
+                stopsValue: stops,
+                newTimeValue,
+                addedTime,
+                percentageIncrease,
+              };
+            }}
+          >
+            {(calculation) => (
+              <CalculatorCard
+                title="Exposure results"
+                description="Apply this adjusted exposure time to maintain consistent density at your new settings."
+                accent="emerald"
+                padding="compact"
               >
-                {`${formatTime(calculation.originalTimeValue)} `}
-                <span
-                  className="align-super text-xs font-semibold"
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <CalculatorStat
+                    label="New exposure time"
+                    value={formatExposureTime(calculation.newTimeValue)}
+                    helperText={`${calculation.stopsValue > 0 ? '+' : ''}${
+                      calculation.stopsValue
+                    } stops`}
+                    tone="default"
+                  />
+                  <CalculatorStat
+                    label={`${
+                      calculation.addedTime >= 0 ? 'Add' : 'Remove'
+                    } exposure`}
+                    value={formatExposureTime(Math.abs(calculation.addedTime))}
+                    helperText={`${Math.abs(
+                      calculation.percentageIncrease
+                    ).toFixed(1)}% change`}
+                  />
+                </div>
+
+                <div
+                  className="rounded-2xl p-4 font-mono text-sm"
                   style={{
-                    color: currentTheme.primary,
+                    borderWidth: 1,
+                    borderColor: currentTheme.border.secondary,
+                    backgroundColor: `${currentTheme.background}20`,
+                    color: currentTheme.text.primary,
                   }}
                 >
-                  ×2^{calculation.stopsValue}
-                </span>
-                <span>{' = '}</span>
-                <span className="font-semibold">
-                  {formatTime(calculation.newTimeValue)}
-                </span>
-              </div>
+                  {`${formatExposureTime(calculation.originalTimeValue)} `}
+                  <span
+                    className="align-super text-xs font-semibold"
+                    style={{
+                      color: currentTheme.primary,
+                    }}
+                  >
+                    ×2^
+                    {calculation.stopsValue}
+                  </span>
+                  <span>{' = '}</span>
+                  <span className="font-semibold">
+                    {formatExposureTime(calculation.newTimeValue)}
+                  </span>
+                </div>
 
-              <div className="space-y-2">
-                <ResultRow
-                  label="Original time"
-                  value={formatTime(calculation.originalTimeValue)}
-                />
-                <ResultRow
-                  label="Stop adjustment"
-                  value={`${calculation.stopsValue > 0 ? '+' : ''}${
-                    calculation.stopsValue
-                  } stops`}
-                />
-                <ResultRow
-                  label="Multiplier"
-                  value={`×${Math.pow(2, calculation.stopsValue).toFixed(3)}`}
-                />
-              </div>
-            </CalculatorCard>
-          )}
+                <div className="space-y-2">
+                  <ResultRow
+                    label="Original time"
+                    value={formatExposureTime(calculation.originalTimeValue)}
+                  />
+                  <ResultRow
+                    label="Stop adjustment"
+                    value={`${calculation.stopsValue > 0 ? '+' : ''}${
+                      calculation.stopsValue
+                    } stops`}
+                  />
+                  <ResultRow
+                    label="Multiplier"
+                    value={`×${Math.pow(2, calculation.stopsValue).toFixed(3)}`}
+                  />
+                </div>
+              </CalculatorCard>
+            )}
+          </form.Subscribe>
         </div>
 
         <div className="space-y-6">

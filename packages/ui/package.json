@@ -15,6 +15,7 @@
   "dependencies": {
     "@dorkroom/api": "workspace:*",
     "@dorkroom/logic": "*",
+    "@tanstack/react-table": "^8.20.5",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.3.1"
   },

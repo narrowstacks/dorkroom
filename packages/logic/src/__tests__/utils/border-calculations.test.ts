@@ -82,6 +82,33 @@ describe('border calculations', () => {
       const result2 = findCenteringOffsets(8, 10, false);
       expect(result1).toEqual(result2);
     });
+
+    it('should reject square paper that cannot fit on rectangular easel', () => {
+      // Test case: 8x8 square paper on 10x6 easel should not fit
+      // This was previously incorrectly allowed by fitsSquare logic
+      const result = findCenteringOffsets(8, 8, false);
+
+      // The paper should either find a larger easel or return as non-standard
+      // It should NOT use the 10x8 easel with rotated slot (6x10) as that's geometrically impossible
+      if (result.easelSize.width === 10 && result.easelSize.height === 8) {
+        // If using 10x8 easel, the slot must be the standard orientation (10x8)
+        // NOT rotated (8x10) since 8 < 8 would fail
+        expect(result.effectiveSlot).toEqual({ width: 10, height: 8 });
+      }
+
+      // Verify the slot can actually accommodate the paper
+      expect(result.effectiveSlot.width).toBeGreaterThanOrEqual(8);
+      expect(result.effectiveSlot.height).toBeGreaterThanOrEqual(8);
+    });
+
+    it('should correctly handle near-square paper', () => {
+      // Test near-square paper (within 0.01 inch tolerance)
+      const result = findCenteringOffsets(8, 8.005, false);
+
+      // Should still require both dimensions to fit
+      expect(result.effectiveSlot.width).toBeGreaterThanOrEqual(8);
+      expect(result.effectiveSlot.height).toBeGreaterThanOrEqual(8.005);
+    });
   });
 
   describe('calculateBladeThickness', () => {

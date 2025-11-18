@@ -66,11 +66,35 @@ export interface PaperSize extends SelectItem {
  *
  * @public
  */
+export type AspectRatioValue =
+  | 'custom'
+  | '3:2'
+  | '65:24'
+  | '4:3'
+  | '1:1'
+  | '7:6'
+  | '5:4'
+  | '7:5'
+  | '16:9'
+  | '1.37:1'
+  | '1.85:1'
+  | '2:1'
+  | '2.39:1'
+  | '2.76:1';
+export type PaperSizeValue =
+  | 'custom'
+  | '5x7'
+  | '4x6'
+  | '8x10'
+  | '11x14'
+  | '16x20'
+  | '20x24';
+
 export interface BorderPresetSettings {
   /** Selected aspect ratio identifier */
-  aspectRatio: string;
+  aspectRatio: AspectRatioValue;
   /** Selected paper size identifier */
-  paperSize: string;
+  paperSize: PaperSizeValue;
   /** Custom aspect ratio width (when using custom aspect ratio) */
   customAspectWidth: number;
   /** Custom aspect ratio height (when using custom aspect ratio) */
@@ -97,7 +121,8 @@ export interface BorderPresetSettings {
   isLandscape: boolean;
   /** Whether the aspect ratio is flipped from its default orientation */
   isRatioFlipped: boolean;
-  [key: string]: unknown;
+  /** Whether the user has manually flipped the paper orientation */
+  hasManuallyFlippedPaper: boolean;
 }
 
 export type BorderSettings = BorderPresetSettings;
@@ -123,6 +148,10 @@ export interface BorderCalculatorState extends BorderPresetSettings {
   isCropping: boolean;
   cropOffset: { x: number; y: number };
   cropScale: number;
+  // Form state fields from preset management
+  selectedPresetId?: string;
+  presetName?: string;
+  isEditingPreset?: boolean;
 }
 
 // Calculation output
@@ -206,8 +235,8 @@ export type BorderCalculatorAction =
       key: keyof BorderCalculatorState;
       value: BorderCalculatorState[keyof BorderCalculatorState];
     }
-  | { type: 'SET_PAPER_SIZE'; value: string }
-  | { type: 'SET_ASPECT_RATIO'; value: string }
+  | { type: 'SET_PAPER_SIZE'; value: PaperSizeValue }
+  | { type: 'SET_ASPECT_RATIO'; value: AspectRatioValue }
   | {
       type: 'SET_IMAGE_FIELD';
       key: 'selectedImageUri';

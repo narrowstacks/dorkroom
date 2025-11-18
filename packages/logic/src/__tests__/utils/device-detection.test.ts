@@ -45,10 +45,9 @@ const createMockNavigator = (
 };
 
 describe('device detection', () => {
-  type MutableGlobal = {
-    window?: unknown;
-    navigator?: unknown;
-    [key: string]: unknown;
+  type MutableGlobal = typeof globalThis & {
+    window?: Window & typeof globalThis;
+    navigator?: Navigator;
   };
   const g = globalThis as unknown as MutableGlobal;
   const originalWindow = g.window;
@@ -66,7 +65,7 @@ describe('device detection', () => {
   describe('isMobileDevice', () => {
     it('should return false in SSR environment', () => {
       // Properly simulate SSR by unsetting window
-      delete g.window;
+      g.window = undefined as unknown as Window & typeof globalThis;
       expect(isMobileDevice()).toBe(false);
     });
 

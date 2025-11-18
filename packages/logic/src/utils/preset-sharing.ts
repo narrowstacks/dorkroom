@@ -1,5 +1,42 @@
-import type { BorderPresetSettings } from '../types/border-calculator';
+import type {
+  BorderPresetSettings,
+  AspectRatioValue,
+  PaperSizeValue,
+} from '../types/border-calculator';
 import { ASPECT_RATIOS, PAPER_SIZES } from '../constants/border-calculator';
+import { debugError } from './debug-logger';
+
+/**
+ * Set of valid aspect ratio values for fast O(1) lookups.
+ * Pre-computed from ASPECT_RATIOS constant for runtime validation.
+ */
+const validAspectRatios = new Set<string>(
+  ASPECT_RATIOS.map((ratio) => ratio.value)
+);
+
+/**
+ * Set of valid paper size values for fast O(1) lookups.
+ * Pre-computed from PAPER_SIZES constant for runtime validation.
+ */
+const validPaperSizes = new Set<string>(PAPER_SIZES.map((size) => size.value));
+
+/**
+ * Type guard to validate that a string is a valid AspectRatioValue.
+ * @param value - String to validate
+ * @returns True if value is a valid aspect ratio
+ */
+function isValidAspectRatio(value: unknown): value is AspectRatioValue {
+  return typeof value === 'string' && validAspectRatios.has(value);
+}
+
+/**
+ * Type guard to validate that a string is a valid PaperSizeValue.
+ * @param value - String to validate
+ * @returns True if value is a valid paper size
+ */
+function isValidPaperSize(value: unknown): value is PaperSizeValue {
+  return typeof value === 'string' && validPaperSizes.has(value);
+}
 
 export interface PresetToShare {
   name: string;
@@ -18,8 +55,8 @@ export interface SharedPreset {
  * @param value - Value to search for
  * @returns Index of the matching option, or -1 if not found
  */
-function findIndexByValue<T extends { value: string }>(
-  options: T[],
+function findIndexByValue<T extends readonly { value: string }[]>(
+  options: T,
   value: string
 ): number {
   return options.findIndex((option) => option.value === value);
@@ -139,7 +176,7 @@ export function encodePreset(preset: PresetToShare): string {
 
     return encoded;
   } catch (error) {
-    console.error('Failed to encode preset:', error);
+    debugError('Failed to encode preset:', error);
     return '';
   }
 }
@@ -181,17 +218,26 @@ export function decodePreset(encoded: string): SharedPreset | null {
     const verticalOffset = (parts[partIndex++] - 10000) / 100;
     const boolMask = parts[partIndex++];
 
-    const aspectRatio = ASPECT_RATIOS[aspectRatioIndex]?.value;
-    const paperSize = PAPER_SIZES[paperSizeIndex]?.value;
+    const aspectRatioValue = ASPECT_RATIOS[aspectRatioIndex]?.value;
+    const paperSizeValue = PAPER_SIZES[paperSizeIndex]?.value;
 
-    if (!aspectRatio || !paperSize) {
-      throw new Error('Invalid aspect ratio or paper size index');
+    // Validate that the retrieved values are actually valid members of their respective unions
+    if (!isValidAspectRatio(aspectRatioValue)) {
+      throw new Error(
+        `Invalid aspect ratio at index ${aspectRatioIndex}: value "${aspectRatioValue}" is not a permitted AspectRatioValue`
+      );
+    }
+
+    if (!isValidPaperSize(paperSizeValue)) {
+      throw new Error(
+        `Invalid paper size at index ${paperSizeIndex}: value "${paperSizeValue}" is not a permitted PaperSizeValue`
+      );
     }
 
     const booleanSettings = fromBooleanBitmask(boolMask);
     const settings: BorderPresetSettings = {
-      aspectRatio,
-      paperSize,
+      aspectRatio: aspectRatioValue,
+      paperSize: paperSizeValue,
       minBorder,
       horizontalOffset,
       verticalOffset,
@@ -201,6 +247,7 @@ export function decodePreset(encoded: string): SharedPreset | null {
       showBladeReadings: booleanSettings.showBladeReadings ?? false,
       isLandscape: booleanSettings.isLandscape ?? false,
       isRatioFlipped: booleanSettings.isRatioFlipped ?? false,
+      hasManuallyFlippedPaper: false,
       customAspectWidth: 0,
       customAspectHeight: 0,
       customPaperWidth: 0,
@@ -219,7 +266,7 @@ export function decodePreset(encoded: string): SharedPreset | null {
 
     return { name, settings };
   } catch (error) {
-    console.error('Failed to decode preset:', error);
+    debugError('Failed to decode preset:', error);
     return null;
   }
 }

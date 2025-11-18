@@ -2,17 +2,28 @@
 const DEBUG_ENABLED = process.env.NODE_ENV === 'development';
 const PERF_MONITORING_ENABLED = false;
 
+/**
+ * Chrome-specific Performance Memory API interface
+ */
+interface PerformanceWithMemory extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
+}
+
 // Use conditional compilation for better tree-shaking
 export const debugLog = DEBUG_ENABLED
-  ? (...args: any[]) => console.log(...args)
+  ? (...args: unknown[]) => console.log(...args)
   : () => {};
 
 export const debugWarn = DEBUG_ENABLED
-  ? (...args: any[]) => console.warn(...args)
+  ? (...args: unknown[]) => console.warn(...args)
   : () => {};
 
 export const debugError = DEBUG_ENABLED
-  ? (...args: any[]) => console.error(...args)
+  ? (...args: unknown[]) => console.error(...args)
   : () => {};
 
 // Performance timing utilities - only in debug mode
@@ -50,7 +61,7 @@ let fpsMonitoringState =
         animationFrameId: null as number | null,
         logInterval: null as NodeJS.Timeout | null,
       }
-    : ({} as any);
+    : ({} as Record<string, never>);
 
 const measureFrame =
   DEBUG_ENABLED && PERF_MONITORING_ENABLED
@@ -183,7 +194,7 @@ export const stopContinuousFPSMonitoring =
 
 export const debugLogPerformance =
   DEBUG_ENABLED && PERF_MONITORING_ENABLED
-    ? (label: string, data: Record<string, any>) => {
+    ? (label: string, data: Record<string, string | number | boolean>) => {
         console.log(`🚀 [PERFORMANCE] ${label}:`, data);
       }
     : () => {};
@@ -217,8 +228,9 @@ export const debugLogAnimationFrame =
 export const debugLogMemory =
   DEBUG_ENABLED && PERF_MONITORING_ENABLED
     ? (label: string) => {
-        if ((performance as any).memory) {
-          const memory = (performance as any).memory;
+        const perfWithMemory = performance as PerformanceWithMemory;
+        if (perfWithMemory.memory) {
+          const memory = perfWithMemory.memory;
           debugLogPerformance(`${label} - Memory`, {
             used: `${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB`,
             total: `${(memory.totalJSHeapSize / 1024 / 1024).toFixed(2)}MB`,

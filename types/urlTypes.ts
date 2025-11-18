@@ -2,6 +2,8 @@
  * TypeScript type definitions for URL parameter handling in development recipes
  */
 
+import { Film, Developer } from '@/api/dorkroom/types';
+
 /**
  * URL parameters for development recipe filtering and sharing
  */
@@ -30,10 +32,10 @@ export interface RecipeUrlParams {
  */
 export interface InitialUrlState {
   /** Film object resolved from URL slug */
-  selectedFilm?: any; // Will use Film type from API when available
+  selectedFilm?: Film;
 
   /** Developer object resolved from URL slug */
-  selectedDeveloper?: any; // Will use Developer type when available
+  selectedDeveloper?: Developer;
 
   /** Dilution filter value */
   dilutionFilter?: string;

@@ -128,7 +128,13 @@ export function DevelopmentActionsBar({
 
         <button
           type="button"
-          onClick={onRefresh}
+          onClick={() => {
+            console.log(
+              '🖱️ Refresh button clicked, isRefreshing:',
+              isRefreshing
+            );
+            onRefresh();
+          }}
           disabled={isRefreshing}
           className={cn(
             'flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition',

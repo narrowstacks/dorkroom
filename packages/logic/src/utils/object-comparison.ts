@@ -16,13 +16,21 @@
  * shallowEqual(a, c); // false
  * ```
  */
-export function shallowEqual(
-  obj1: Record<string, unknown>,
-  obj2: Record<string, unknown>
+export function shallowEqual<T extends object>(
+  obj1: T,
+  obj2: unknown
 ): boolean {
   // Fast path: reference equality
   if (obj1 === obj2) {
     return true;
+  }
+
+  // Type guard: both must be objects (not arrays)
+  if (obj1 === null || typeof obj1 !== 'object' || Array.isArray(obj1)) {
+    return false;
+  }
+  if (obj2 === null || typeof obj2 !== 'object' || Array.isArray(obj2)) {
+    return false;
   }
 
   // Get keys from both objects
@@ -38,7 +46,10 @@ export function shallowEqual(
   // Since both objects have the same number of keys (verified above),
   // we only need to check that all values match for each key in obj1.
   for (const key of keys1) {
-    if (obj1[key] !== obj2[key]) {
+    if (
+      (obj1 as Record<string, unknown>)[key] !==
+      (obj2 as Record<string, unknown>)[key]
+    ) {
       return false;
     }
   }

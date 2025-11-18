@@ -12,9 +12,10 @@ import type {
   ExposureCalculation,
 } from '../types/exposure-calculator';
 import { EXPOSURE_PRESETS } from '../types/exposure-calculator';
-
-const DEFAULT_ORIGINAL_TIME = '10';
-const DEFAULT_STOPS = '1';
+import {
+  DEFAULT_EXPOSURE_ORIGINAL_TIME,
+  DEFAULT_EXPOSURE_STOPS,
+} from '../constants/exposure-calculator-defaults';
 
 /**
  * Exposure calculator hook for photography stop calculations.
@@ -47,11 +48,11 @@ const DEFAULT_STOPS = '1';
  */
 export const useExposureCalculator = () => {
   const [state, setState] = useState<ExposureCalculatorState>({
-    originalTime: DEFAULT_ORIGINAL_TIME,
-    stops: DEFAULT_STOPS,
+    originalTime: DEFAULT_EXPOSURE_ORIGINAL_TIME,
+    stops: DEFAULT_EXPOSURE_STOPS,
     newTime: calculateNewExposureTime(
-      parseFloat(DEFAULT_ORIGINAL_TIME),
-      parseFloat(DEFAULT_STOPS)
+      parseFloat(DEFAULT_EXPOSURE_ORIGINAL_TIME),
+      parseFloat(DEFAULT_EXPOSURE_STOPS)
     ).toString(),
   });
 
@@ -148,7 +149,9 @@ export const useExposureCalculator = () => {
   const calculation = useMemo((): ExposureCalculation | null => {
     const originalTimeValue = parseExposureTime(state.originalTime);
     const stopsValue = parseFloat(state.stops);
-    const newTimeValue = parseExposureTime(state.newTime);
+    const newTimeValue = state.newTime
+      ? parseExposureTime(state.newTime)
+      : null;
 
     if (
       originalTimeValue === null ||

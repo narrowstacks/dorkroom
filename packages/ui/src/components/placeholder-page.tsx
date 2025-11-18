@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom';
-
 export interface PlaceholderPageProps {
   title: string;
   summary: string;
@@ -47,8 +45,8 @@ export function PlaceholderPage({ title, summary }: PlaceholderPageProps) {
         </p>
       </div>
       <div className="flex justify-center">
-        <Link
-          to="/"
+        <a
+          href="/"
           className="rounded-full px-5 py-2 text-sm font-medium transition"
           style={{
             color: 'var(--color-text-primary)',
@@ -58,7 +56,7 @@ export function PlaceholderPage({ title, summary }: PlaceholderPageProps) {
           }}
         >
           Back to home
-        </Link>
+        </a>
       </div>
     </div>
   );

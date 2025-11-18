@@ -1,6 +1,6 @@
 import { ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
 import { useState } from 'react';
-import type { DevelopmentCombinationView } from './results-table';
+import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { Dilution } from '@dorkroom/api';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { useTemperature } from '../../contexts/temperature-context';

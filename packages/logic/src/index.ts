@@ -7,9 +7,12 @@ export * from './types/exposure-calculator';
 
 // Constants exports
 export * from './constants/border-calculator';
+export * from './constants/border-calculator-defaults';
 export * from './constants/resize-calculator';
 export * from './constants/calculations';
 export * from './constants/reciprocity';
+export * from './constants/reciprocity-calculator-defaults';
+export * from './constants/exposure-calculator-defaults';
 export * from './constants/development-recipes';
 export * from './constants/feature-flags';
 
@@ -21,6 +24,7 @@ export * from './utils/url-helpers';
 export * from './utils/recipe-sharing';
 export * from './utils/custom-recipe-helpers';
 export * from './utils/exposure-calculations';
+export * from './utils/precision';
 export * from './utils/temperature-formatting';
 export * from './utils/time-formatting';
 export * from './utils/filmdev-mapper';
@@ -50,8 +54,17 @@ export {
 } from './hooks/use-exposure-calculator';
 export { useFeatureFlags } from './hooks/use-feature-flags';
 export { useDebounce, useDebouncedCallback } from './hooks/use-debounce';
-export { usePagination } from './hooks/use-pagination';
-export { useCustomRecipes } from './hooks/development-recipes/use-custom-recipes';
+export {
+  useDevelopmentTable,
+  type DevelopmentCombinationView,
+} from './hooks/development-recipes/use-development-table';
+export { useCustomRecipes } from './hooks/custom-recipes/use-custom-recipes-unified';
+export {
+  useAddCustomRecipe,
+  useUpdateCustomRecipe,
+  useDeleteCustomRecipe,
+  useClearCustomRecipes,
+} from './hooks/custom-recipes/use-custom-recipe-mutations';
 export { useCustomRecipeSharing } from './hooks/development-recipes/use-custom-recipe-sharing';
 export { useRecipeSharing } from './hooks/development-recipes/use-recipe-sharing';
 export { useRecipeUrlState } from './hooks/development-recipes/use-recipe-url-state';
@@ -69,9 +82,13 @@ export {
 export {
   useBorderCalculator as useModularBorderCalculator,
   useBorderCalculatorState,
+  initialState as borderCalculatorInitialState,
   useDimensionCalculations,
   useGeometryCalculations,
   useWarningSystem,
   useImageHandling,
   useInputHandlers,
+  usePaperDimensionInput,
+  usePresetManagement,
+  useCalculatorSharing,
 } from './hooks/border-calculator';

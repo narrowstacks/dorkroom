@@ -4,7 +4,7 @@ import type { BorderPresetSettings } from '@/types/borderPresetTypes';
 describe('presetSharing', () => {
   // Test data with standard aspect ratio and paper size
   const standardPresetSettings: BorderPresetSettings = {
-    aspectRatio: '3/2',
+    aspectRatio: '3:2',
     paperSize: '8x10',
     customAspectWidth: 0,
     customAspectHeight: 0,
@@ -40,7 +40,7 @@ describe('presetSharing', () => {
 
   // Test data with all boolean flags set
   const allFlagsPresetSettings: BorderPresetSettings = {
-    aspectRatio: '16/9',
+    aspectRatio: '16:9',
     paperSize: '11x14',
     customAspectWidth: 0,
     customAspectHeight: 0,
@@ -153,7 +153,7 @@ describe('presetSharing', () => {
 
       expect(decoded).not.toBeNull();
       expect(decoded!.name).toBe('Standard Test');
-      expect(decoded!.settings.aspectRatio).toBe('3/2');
+      expect(decoded!.settings.aspectRatio).toBe('3:2');
       expect(decoded!.settings.paperSize).toBe('8x10');
       expect(decoded!.settings.minBorder).toBeCloseTo(0.75);
       expect(decoded!.settings.showBlades).toBe(true);

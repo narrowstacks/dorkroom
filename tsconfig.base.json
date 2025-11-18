@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "composite": true,
     "declarationMap": true,
     "emitDeclarationOnly": true,
@@ -16,6 +17,14 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
-    "customConditions": ["development"]
+    "customConditions": ["development"],
+    "paths": {
+      "@dorkroom/api": ["packages/api/src/index.ts"],
+      "@dorkroom/api/*": ["packages/api/src/*"],
+      "@dorkroom/logic": ["packages/logic/src/index.ts"],
+      "@dorkroom/logic/*": ["packages/logic/src/*"],
+      "@dorkroom/ui": ["packages/ui/src/index.ts"],
+      "@dorkroom/ui/*": ["packages/ui/src/*"]
+    }
   }
 }

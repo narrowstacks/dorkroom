@@ -74,8 +74,27 @@ export const createMemoKey = (
     .join(':');
 };
 
+/**
+ * Formats a numeric value for display by rounding to 3 decimal places.
+ * Handles floating-point precision artifacts that commonly occur in calculations.
+ *
+ * @param value - The numeric value to format
+ * @returns String representation of the value with 3 decimal places of precision
+ *
+ * @example
+ * ```typescript
+ * formatForDisplay(3.14159); // returns "3.142"
+ * formatForDisplay(2.5); // returns "2.5"
+ * formatForDisplay(1.00001); // returns "1"
+ * ```
+ */
+export const formatForDisplay = (value: number): string => {
+  return String(Math.round(value * 1000) / 1000);
+};
+
 export default {
   roundToPrecision,
   roundToStandardPrecision,
   createMemoKey,
+  formatForDisplay,
 };

@@ -12,7 +12,7 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 
 - `bunx nx dev dorkroom -- --host=0.0.0.0` - Start development server. **Check if dev server is running on port 4200 before doing this!**
 - `bunx nx build dorkroom` - Build production bundle
-- `bunx nx serve dorkroom` - Alternative dev server (no hotloading of @dorkroom packages!)
+- `bunx nx serve dorkroom` - Alternative dev server (no hotloading of @dorkroom packages! Always rebuild dorkroom before serving.)
 
 ### Code Quality (run these after completing tasks)
 
@@ -38,7 +38,6 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 - `apps/dorkroom/` - Main React application
 - `packages/ui/` - Shared UI components (@dorkroom/ui)
 - `packages/logic/` - Business logic (@dorkroom/logic)
-- `original-*/` - Legacy code being migrated
 
 ### Key Technologies
 
@@ -47,6 +46,8 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 - Tailwind CSS 4.1.13 for styling
 - Vite for bundling
 - Vitest for testing
+- TanStack Query v5 for server state management
+- TanStack Router v1 for type-safe routing
 
 ## Code Conventions
 
@@ -57,12 +58,109 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 - kebab-case for files (`labeled-slider-input.tsx`)
 - Interface naming: `ComponentNameProps`
 
+### TypeScript Typing
+
+- **Never use `any` type** - always use specific types or `unknown` where the type cannot be determined
+- Use `unknown` instead of `any` for values whose type is truly unknown at compile time
+- Define proper interfaces for API responses, especially raw/transformed data structures
+- Use discriminated unions instead of generic object types where possible
+- Leverage TypeScript's type narrowing (type guards, `instanceof`, `typeof` checks)
+- For generic utilities (like throttle/debounce), use generic constraints: `<T extends (...args: any[]) => any>` is acceptable only for variadic function types where the specific signature cannot be known at definition time
+- When handling API data with both camelCase and snake_case fields, create dedicated `Raw*` types that enumerate all possible field variations
+- Use `null` or `undefined` explicitly in types rather than leaving fields untyped
+- Avoid casting with `as any` - use specific types or type guards instead
+- For Chrome/browser APIs with incomplete type definitions, create local interface definitions (e.g., `PerformanceWithMemory`)
+
 ### React Patterns
 
 - Functional components with TypeScript
 - Props destructuring with default values
 - Controlled components
 - Use `cn()` utility for conditional Tailwind classes
+
+### TanStack Query Patterns
+
+**Query Hooks (Data Fetching):**
+
+```typescript
+// packages/logic/src/hooks/api/use-films.ts
+import { useQuery } from '@tanstack/react-query';
+import { queryKeys, fetchFilms } from '../../queries';
+
+export function useFilms() {
+  return useQuery({
+    queryKey: queryKeys.films.list(),
+    queryFn: fetchFilms,
+  });
+}
+```
+
+**Usage in Components:**
+
+```typescript
+const { data: films, isPending, error } = useFilms();
+```
+
+**Mutation Hooks (Data Modification):**
+
+```typescript
+// packages/logic/src/hooks/custom-recipes/use-custom-recipe-mutations.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../../queries';
+
+export function useAddCustomRecipe() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (formData) => {
+      // Perform mutation
+      return newRecipe;
+    },
+    onMutate: async (formData) => {
+      // Optimistic update
+      const previousRecipes = queryClient.getQueryData(queryKeys.customRecipes.list());
+      queryClient.setQueryData(queryKeys.customRecipes.list(), [...previousRecipes, optimisticRecipe]);
+      return { previousRecipes };
+    },
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousRecipes) {
+        queryClient.setQueryData(queryKeys.customRecipes.list(), context.previousRecipes);
+      }
+    },
+    onSettled: () => {
+      // Invalidate cache after mutation
+      queryClient.invalidateQueries({ queryKey: queryKeys.customRecipes.list() });
+    },
+  });
+}
+```
+
+**Query Key Structure:**
+
+```typescript
+// packages/logic/src/queries/query-keys.ts
+export const queryKeys = {
+  films: {
+    all: () => ['films'] as const,
+    lists: () => [...queryKeys.films.all(), 'list'] as const,
+    list: () => [...queryKeys.films.lists()] as const,
+    details: () => [...queryKeys.films.all(), 'detail'] as const,
+    detail: (id: string) => [...queryKeys.films.details(), id] as const,
+  },
+  // Similar structure for developers, combinations, customRecipes
+};
+```
+
+**Important Patterns:**
+
+- Query hooks located in `packages/logic/src/hooks/api/`
+- Mutation hooks located in `packages/logic/src/hooks/custom-recipes/`
+- Query configuration and fetch functions in `packages/logic/src/queries/`
+- Always use optimistic updates for mutations affecting UI
+- Always invalidate related queries after mutations
+- Use `staleTime` and `gcTime` defaults from QueryClient config (5 min / 10 min)
+- For client-only data (like localStorage), use `staleTime: Infinity` and `gcTime: Infinity`
 
 ### Imports/Exports
 
@@ -75,3 +173,7 @@ Dorkroom is an Nx workspace containing a React 19 application with TypeScript, T
 - UI package uses clsx and tailwind-merge
 - Logic package has React peer dependencies
 - All packages build to TypeScript declarations
+
+## Git rules
+
+- Keep commit messages short. Use conventional commit standards.

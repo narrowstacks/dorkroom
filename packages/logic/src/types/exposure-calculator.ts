@@ -1,7 +1,12 @@
 export interface ExposureCalculatorState {
   originalTime: string;
   stops: string;
-  newTime: string;
+  newTime?: string;
+}
+
+export interface ExposureFormState {
+  originalTime: number;
+  stops: number;
 }
 
 export interface ExposureCalculation {
@@ -26,3 +31,5 @@ export const EXPOSURE_PRESETS: ExposurePreset[] = [
   { label: '+1/2', stops: 0.5 },
   { label: '+1', stops: 1 },
 ];
+
+export const EXPOSURE_STORAGE_KEY = 'exposureCalculatorState_v1';
