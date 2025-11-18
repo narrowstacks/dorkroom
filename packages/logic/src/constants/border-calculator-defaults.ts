@@ -21,7 +21,7 @@ export const BORDER_CALCULATOR_DEFAULTS = {
   verticalOffset: 0,
   showBlades: true,
   showBladeReadings: true,
-  isLandscape: false,
+  isLandscape: true,
   isRatioFlipped: false,
 } as const;
 
