@@ -12,12 +12,16 @@ interface BorderSizeSectionProps {
   onClose: () => void;
   form: AnyFormApi;
   minBorderWarning?: string;
+  onRoundToQuarter?: () => void;
+  roundToQuarterDisabled?: boolean;
 }
 
 export function BorderSizeSection({
   onClose,
   form,
   minBorderWarning,
+  onRoundToQuarter,
+  roundToQuarterDisabled,
 }: BorderSizeSectionProps) {
   const minBorder = form.getFieldValue('minBorder');
   return (
@@ -47,6 +51,17 @@ export function BorderSizeSection({
           labels={BORDER_SLIDER_LABELS}
           continuousUpdate={true}
         />
+
+        {onRoundToQuarter && (
+          <button
+            type="button"
+            onClick={onRoundToQuarter}
+            disabled={roundToQuarterDisabled}
+            className="w-full rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Round to 1/4"
+          </button>
+        )}
 
         {minBorderWarning && (
           <WarningAlert message={minBorderWarning} action="error" />

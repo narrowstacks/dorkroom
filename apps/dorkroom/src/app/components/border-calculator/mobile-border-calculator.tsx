@@ -37,6 +37,7 @@ import {
   PositionOffsetsSection,
   PresetsSection,
 } from './sections';
+import { calculateQuarterInchMinBorder } from './utils/quarter-inch-rounding';
 
 // Hooks
 import {
@@ -249,6 +250,7 @@ export function MobileBorderCalculator({
 
   // Calculations
   const dimensionData = useDimensionCalculations(formValues);
+  const { orientedPaper, orientedRatio } = dimensionData.orientedDimensions;
   const { calculation } = useGeometryCalculations(
     formValues,
     dimensionData.orientedDimensions,
@@ -256,6 +258,34 @@ export function MobileBorderCalculator({
     dimensionData.paperEntry,
     dimensionData.paperSizeWarning
   );
+
+  const quarterRoundedMinBorder = useMemo(() => {
+    if (!calculation) return null;
+
+    return calculateQuarterInchMinBorder({
+      paperWidth: orientedPaper.w,
+      paperHeight: orientedPaper.h,
+      ratioWidth: orientedRatio.w,
+      ratioHeight: orientedRatio.h,
+      currentMinBorder: minBorder,
+      printWidth: calculation.printWidth,
+      printHeight: calculation.printHeight,
+    });
+  }, [
+    calculation,
+    minBorder,
+    orientedPaper.h,
+    orientedPaper.w,
+    orientedRatio.h,
+    orientedRatio.w,
+  ]);
+
+  const handleRoundMinBorderToQuarter = useCallback(() => {
+    if (quarterRoundedMinBorder === null) return;
+
+    form.setFieldValue('minBorder', quarterRoundedMinBorder);
+    form.setFieldValue('lastValidMinBorder', quarterRoundedMinBorder);
+  }, [form, quarterRoundedMinBorder]);
 
   useEffect(() => {
     if (!calculation) return;
@@ -868,6 +898,8 @@ export function MobileBorderCalculator({
                   onClose={closeDrawer}
                   form={form}
                   minBorderWarning={minBorderWarning || undefined}
+                  onRoundToQuarter={handleRoundMinBorderToQuarter}
+                  roundToQuarterDisabled={quarterRoundedMinBorder === null}
                 />
               )}
 

@@ -22,6 +22,7 @@ import {
   BorderInfoSection,
   MobileBorderCalculator,
 } from '../../components/border-calculator';
+import { calculateQuarterInchMinBorder } from '../../components/border-calculator/utils/quarter-inch-rounding';
 
 // Constants and hooks
 import {
@@ -225,6 +226,7 @@ export default function BorderCalculatorPage() {
   }, [persistableSnapshot]);
 
   const dimensionData = useDimensionCalculations(formValues);
+  const { orientedPaper, orientedRatio } = dimensionData.orientedDimensions;
   const { calculation } = useGeometryCalculations(
     formValues,
     dimensionData.orientedDimensions,
@@ -232,6 +234,34 @@ export default function BorderCalculatorPage() {
     dimensionData.paperEntry,
     dimensionData.paperSizeWarning
   );
+
+  const quarterRoundedMinBorder = useMemo(() => {
+    if (!calculation) return null;
+
+    return calculateQuarterInchMinBorder({
+      paperWidth: orientedPaper.w,
+      paperHeight: orientedPaper.h,
+      ratioWidth: orientedRatio.w,
+      ratioHeight: orientedRatio.h,
+      currentMinBorder: minBorder,
+      printWidth: calculation.printWidth,
+      printHeight: calculation.printHeight,
+    });
+  }, [
+    calculation,
+    minBorder,
+    orientedPaper.h,
+    orientedPaper.w,
+    orientedRatio.h,
+    orientedRatio.w,
+  ]);
+
+  const handleRoundMinBorderToQuarter = useCallback(() => {
+    if (quarterRoundedMinBorder === null) return;
+
+    form.setFieldValue('minBorder', quarterRoundedMinBorder);
+    form.setFieldValue('lastValidMinBorder', quarterRoundedMinBorder);
+  }, [form, quarterRoundedMinBorder]);
 
   useEffect(() => {
     if (!calculation) return;
@@ -527,6 +557,8 @@ export default function BorderCalculatorPage() {
             offsetWarning={offsetWarning}
             enableOffset={enableOffset}
             ignoreMinBorder={ignoreMinBorder}
+            onRoundToQuarter={handleRoundMinBorderToQuarter}
+            roundToQuarterDisabled={quarterRoundedMinBorder === null}
           />
 
           <BladeVisualizationSection form={form} />

@@ -15,6 +15,8 @@ interface BordersOffsetsSectionProps {
   offsetWarning: string | null;
   enableOffset: boolean;
   ignoreMinBorder: boolean;
+  onRoundToQuarter?: () => void;
+  roundToQuarterDisabled?: boolean;
 }
 
 /**
@@ -34,6 +36,8 @@ export function BordersOffsetsSection({
   offsetWarning,
   enableOffset,
   ignoreMinBorder,
+  onRoundToQuarter,
+  roundToQuarterDisabled,
 }: BordersOffsetsSectionProps) {
   return (
     <CalculatorCard
@@ -62,6 +66,23 @@ export function BordersOffsetsSection({
             />
           )}
         </form.Field>
+
+        {onRoundToQuarter && (
+          <button
+            type="button"
+            onClick={onRoundToQuarter}
+            disabled={roundToQuarterDisabled}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
+            style={{
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
+              color: 'var(--color-text-primary)',
+            }}
+            title="Round blade readings down to the nearest quarter inch"
+          >
+            Round to 1/4"
+          </button>
+        )}
 
         <form.Field name="enableOffset">
           {(field: FieldApi<boolean>) => (
