@@ -412,7 +412,7 @@ Is it complex multi-file analysis?
 
 - Keep commit messages short. Use conventional commit standards.
 - Confirm with user before committing, share commit message in your confirmation.
-- **Only commit, never push**
+- **Only commit, never push.**
 
 ## On using ast-grep vs ripgrep (rg)
 
