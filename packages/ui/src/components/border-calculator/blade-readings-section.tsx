@@ -1,12 +1,17 @@
 import { WarningAlert, CalculatorCard, CalculatorStat } from '../../index';
 import type { BorderCalculation } from '@dorkroom/logic';
+import type { FormatDimensionsOptions } from '../../lib/measurement';
 
 interface BladeReadingsSectionProps {
   calculation: BorderCalculation;
   isLandscape: boolean;
   isCustomPaper: boolean;
   formatWithUnit: (value: number) => string;
-  formatDimensions: (width: number, height: number) => string;
+  formatDimensions: (
+    width: number,
+    height: number,
+    options?: FormatDimensionsOptions
+  ) => string;
   bladeWarning: string | null;
   minBorderWarning: string | null;
   paperSizeWarning: string | null;
@@ -79,7 +84,8 @@ export function BladeReadingsSection({
           label="Image size"
           value={formatDimensions(
             calculation.printWidth,
-            calculation.printHeight
+            calculation.printHeight,
+            { maxPrecision: 3 }
           )}
           helperText="Final image area within the borders."
           className="sm:col-span-2 p-4"

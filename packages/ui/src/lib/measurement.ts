@@ -19,6 +19,11 @@ import {
   convertStepSize,
 } from '@dorkroom/logic';
 
+export interface FormatDimensionsOptions {
+  precision?: number;
+  maxPrecision?: number;
+}
+
 /**
  * Format a measurement value for display with unit
  * @param inches - Value in inches (internal storage format)
@@ -50,16 +55,19 @@ export function formatMeasurementValue(
  * @param widthInches - Width in inches
  * @param heightInches - Height in inches
  * @param unit - Display unit preference
+ * @param options - Precision controls for display
  * @returns Formatted dimension string
  */
 export function formatDimensions(
   widthInches: number,
   heightInches: number,
-  unit: MeasurementUnit
+  unit: MeasurementUnit,
+  options?: FormatDimensionsOptions
 ): string {
   return coreFormatDimensionPair(widthInches, heightInches, unit, {
     includeUnit: true,
-    precision: 0,
+    precision: options?.precision,
+    maxPrecision: options?.maxPrecision,
   });
 }
 

@@ -53,7 +53,9 @@ export function BladeResultsDisplay({
           Blade Positions
         </h2>
         <p style={{ color: 'var(--color-text-secondary)' }}>
-          {formatDimensions(calculation.printWidth, calculation.printHeight)}{' '}
+          {formatDimensions(calculation.printWidth, calculation.printHeight, {
+            maxPrecision: 3,
+          })}{' '}
           image on {paperSize}
         </p>
       </div>

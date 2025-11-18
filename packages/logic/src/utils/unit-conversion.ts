@@ -168,16 +168,30 @@ export function formatDimensionPair(
   options?: {
     includeUnit?: boolean;
     precision?: number;
+    maxPrecision?: number;
   }
 ): string {
   const includeUnit = options?.includeUnit ?? true;
-  const precision = options?.precision ?? 0; // Default to whole numbers for dimensions
+  const explicitPrecision = options?.precision;
+  const maxPrecision = options?.maxPrecision;
 
   const displayWidth = convertInchesToDisplay(widthInches, unit);
   const displayHeight = convertInchesToDisplay(heightInches, unit);
 
-  const widthStr = displayWidth.toFixed(precision);
-  const heightStr = displayHeight.toFixed(precision);
+  const formatValue = (value: number): string => {
+    if (typeof explicitPrecision === 'number') {
+      return value.toFixed(explicitPrecision);
+    }
+
+    if (typeof maxPrecision === 'number') {
+      return Number(value.toFixed(maxPrecision)).toString();
+    }
+
+    return value.toFixed(0);
+  };
+
+  const widthStr = formatValue(displayWidth);
+  const heightStr = formatValue(displayHeight);
 
   if (includeUnit) {
     const unitLabel = getDisplayUnitLabel(unit);

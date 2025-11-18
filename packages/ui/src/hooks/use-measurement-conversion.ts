@@ -18,6 +18,7 @@ import {
   getUnitLabel,
   getDisplayPrecision,
   formatMeasurementRange,
+  type FormatDimensionsOptions,
 } from '../lib/measurement';
 
 /**
@@ -41,8 +42,11 @@ export function useMeasurementFormatter() {
     /**
      * Format dimensions (e.g., "8×10in" or "20×25cm")
      */
-    formatDimensions: (widthInches: number, heightInches: number) =>
-      formatDimensions(widthInches, heightInches, unit),
+    formatDimensions: (
+      widthInches: number,
+      heightInches: number,
+      options?: FormatDimensionsOptions
+    ) => formatDimensions(widthInches, heightInches, unit, options),
 
     /**
      * Format dimensions with precision (e.g., "8.25×10.50in")
