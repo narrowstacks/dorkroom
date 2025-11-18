@@ -46,7 +46,7 @@ import {
   cn,
 } from '@dorkroom/ui';
 import type { Combination, Film, Developer } from '@dorkroom/api';
-import { useTheme } from '../../contexts/theme-context';
+import { useTheme } from '@dorkroom/ui';
 
 const CUSTOM_RECIPE_FORM_DEFAULT: CustomRecipeFormData = {
   name: '',

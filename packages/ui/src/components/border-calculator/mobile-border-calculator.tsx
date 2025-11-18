@@ -16,19 +16,33 @@ import {
 // Components
 import { BladeResultsDisplay } from './blade-results-display';
 import { AnimatedPreview } from './animated-preview';
-import { SettingsButton } from '@dorkroom/ui';
+import { SettingsButton } from '../../components/settings-button';
 import {
   WarningAlert,
+} from '../../components/warning-alert';
+import {
   Drawer,
   DrawerContent,
   DrawerBody,
+} from '../../components/drawer';
+import {
   ShareModal,
+} from '../../components/share-modal';
+import {
   SaveBeforeShareModal,
+} from '../../components/save-before-share-modal';
+import {
   useMeasurement,
+} from '../../contexts/measurement-context';
+import {
   useMeasurementFormatter,
+} from '../../hooks/use-measurement-conversion';
+import {
   borderCalculatorSchema,
+} from '../../forms/schemas/border-calculator.schema';
+import {
   createZodFormValidator,
-} from '@dorkroom/ui';
+} from '../../forms/utils/create-zod-form-validator';
 
 // Sections
 import {
@@ -55,7 +69,7 @@ import {
   CALC_STORAGE_KEY,
   borderCalculatorInitialState,
 } from '@dorkroom/logic';
-import { useTheme } from '@dorkroom/ui';
+import { useTheme } from '../../contexts/theme-context';
 
 // Active section type
 type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
@@ -622,7 +636,7 @@ export function MobileBorderCalculator({
         id: Date.now().toString(),
         name,
         settings,
-      };
+        };
       addPreset(newPreset);
       setCurrentPreset(newPreset);
       closeDrawer();
@@ -667,7 +681,7 @@ export function MobileBorderCalculator({
             !isHighContrast
               ? 'shadow-[0_30px_90px_-40px_var(--color-visualization-overlay)]'
               : ''
-          } backdrop-blur-sm`}
+              } backdrop-blur-sm`}
           style={{
             background: 'var(--color-border-primary)',
           }}
@@ -693,7 +707,7 @@ export function MobileBorderCalculator({
             !isHighContrast
               ? 'shadow-[0_35px_110px_-50px_var(--color-visualization-overlay)]'
               : ''
-          } backdrop-blur-lg`}
+              } backdrop-blur-lg`}
           style={{
             borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-background)',
@@ -831,7 +845,7 @@ export function MobileBorderCalculator({
               onClick={handleShare}
               className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
                 !isHighContrast ? 'shadow-lg' : ''
-              }`}
+                }`}
               style={
                 {
                   background: 'var(--gradient-card-primary)',
@@ -851,7 +865,7 @@ export function MobileBorderCalculator({
           onClick={resetToDefaults}
           className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
             !isHighContrast ? 'shadow-lg' : ''
-          }`}
+            }`}
           style={
             {
               borderColor: 'var(--color-border-secondary)',

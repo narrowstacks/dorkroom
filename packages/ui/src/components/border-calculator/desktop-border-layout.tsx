@@ -1,18 +1,36 @@
 import type { FC } from 'react';
 import {
   ShareModal,
+} from '../../components/share-modal';
+import {
   SaveBeforeShareModal,
+} from '../../components/save-before-share-modal';
+import {
   PaperSetupSection,
+} from './paper-setup-section';
+import {
   BordersOffsetsSection,
+} from './borders-offsets-section';
+import {
   BladeReadingsSection,
+} from './blade-readings-section';
+import {
   PreviewAndControlsSection,
+} from './preview-and-controls-section';
+import {
   BladeVisualizationSection,
+} from './blade-visualization-section';
+import {
   PresetsSection,
-} from '@dorkroom/ui';
+} from './presets-section';
+
 import {
   AnimatedPreview,
+} from './animated-preview';
+import {
   BorderInfoSection,
-} from '.';
+} from './border-info-section';
+
 import {
   type SelectItem,
   SLIDER_MIN_BORDER,
@@ -25,9 +43,10 @@ import {
   OFFSET_SLIDER_LABELS,
   ASPECT_RATIOS,
 } from '@dorkroom/logic';
-import type { useBorderCalculatorController } from '../../pages/border-calculator/hooks/use-border-calculator-controller';
 
-type DesktopBorderLayoutProps = ReturnType<typeof useBorderCalculatorController>;
+import type { BorderCalculatorLayoutProps } from './types';
+
+type DesktopBorderLayoutProps = BorderCalculatorLayoutProps;
 
 export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
   form,
@@ -184,4 +203,3 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
     </div>
   );
 };
-

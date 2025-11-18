@@ -14,7 +14,7 @@
 
 import { useMemo } from 'react';
 import type { BorderCalculation } from '@dorkroom/logic';
-import { useMeasurementFormatter } from '@dorkroom/ui';
+import { useMeasurementFormatter } from '../../hooks/use-measurement-conversion';
 
 interface BladeReadingsOverlayProps {
   calculation: BorderCalculation;

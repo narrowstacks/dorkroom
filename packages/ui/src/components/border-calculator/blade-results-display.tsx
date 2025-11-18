@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
 import type { BorderCalculation } from '@dorkroom/logic';
-import { colorMixOr, useMeasurementFormatter } from '@dorkroom/ui';
+import { colorMixOr } from '../../lib/color';
+import { useMeasurementFormatter } from '../../hooks/use-measurement-conversion';
 
 interface BladeResultsDisplayProps {
   calculation: BorderCalculation | null;

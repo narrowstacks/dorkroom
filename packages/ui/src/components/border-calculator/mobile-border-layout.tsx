@@ -14,15 +14,21 @@ import {
 // Components
 import { BladeResultsDisplay } from './blade-results-display';
 import { AnimatedPreview } from './animated-preview';
-import { SettingsButton } from '@dorkroom/ui';
+import { SettingsButton } from '../../components/settings-button';
 import {
   WarningAlert,
+} from '../../components/warning-alert';
+import {
   Drawer,
   DrawerContent,
   DrawerBody,
+} from '../../components/drawer';
+import {
   ShareModal,
+} from '../../components/share-modal';
+import {
   SaveBeforeShareModal,
-} from '@dorkroom/ui';
+} from '../../components/save-before-share-modal';
 
 // Sections
 import {
@@ -33,14 +39,14 @@ import {
 } from './sections';
 
 // Hooks & Types
-import { useTheme } from '@dorkroom/ui';
-import type { useBorderCalculatorController } from '../../pages/border-calculator/hooks/use-border-calculator-controller';
+import { useTheme } from '../../contexts/theme-context';
+import type { BorderCalculatorLayoutProps } from './types';
 import type { BorderPreset } from '@dorkroom/logic';
 
 // Active section type
 type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
 
-type MobileBorderLayoutProps = ReturnType<typeof useBorderCalculatorController>;
+type MobileBorderLayoutProps = BorderCalculatorLayoutProps;
 
 /**
  * Render the mobile UI for configuring border/calculation settings, managing presets, and sharing results.
@@ -237,7 +243,7 @@ export function MobileBorderLayout({
             !isHighContrast
               ? 'shadow-[0_30px_90px_-40px_var(--color-visualization-overlay)]'
               : ''
-          } backdrop-blur-sm`}
+              } backdrop-blur-sm`}
           style={{
             background: 'var(--color-border-primary)',
           }}
@@ -263,7 +269,7 @@ export function MobileBorderLayout({
             !isHighContrast
               ? 'shadow-[0_35px_110px_-50px_var(--color-visualization-overlay)]'
               : ''
-          } backdrop-blur-lg`}
+              } backdrop-blur-lg`}
           style={{
             borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-background)',
@@ -401,7 +407,7 @@ export function MobileBorderLayout({
               onClick={handleShareClick}
               className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
                 !isHighContrast ? 'shadow-lg' : ''
-              }`}
+                }`}
               style={
                 {
                   background: 'var(--gradient-card-primary)',
@@ -421,7 +427,7 @@ export function MobileBorderLayout({
           onClick={resetToDefaults}
           className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
             !isHighContrast ? 'shadow-lg' : ''
-          }`}
+            }`}
           style={
             {
               borderColor: 'var(--color-border-secondary)',

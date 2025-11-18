@@ -1,8 +1,5 @@
 import { useBorderCalculatorController } from './hooks/use-border-calculator-controller';
-import {
-  MobileBorderLayout,
-  DesktopBorderLayout,
-} from '../../components/border-calculator';
+import { MobileBorderLayout, DesktopBorderLayout } from '@dorkroom/ui';
 
 export default function BorderCalculatorPage() {
   const controller = useBorderCalculatorController();

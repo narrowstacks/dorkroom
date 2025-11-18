@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Save, Trash2, Plus } from 'lucide-react';
-import { TextInput } from '@dorkroom/ui';
+import { TextInput } from '../../../components/text-input';
 import type { BorderPreset, BorderSettings } from '@dorkroom/logic';
 import { DEFAULT_BORDER_PRESETS } from '@dorkroom/logic';
 

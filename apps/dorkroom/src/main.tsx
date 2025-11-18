@@ -8,7 +8,7 @@ import '@fontsource-variable/inter/index.css';
 import './styles.css';
 import { routeTree } from './routeTree.gen';
 import { ToastProvider, MeasurementProvider } from '@dorkroom/ui';
-import { ThemeProvider } from './app/contexts/theme-context';
+import { ThemeProvider } from '@dorkroom/ui';
 
 const queryClient = new QueryClient({
   defaultOptions: {

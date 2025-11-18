@@ -1,6 +1,8 @@
 import type { AnyFormApi } from '@tanstack/react-form';
 import { X } from 'lucide-react';
-import { LabeledSliderInput, ToggleSwitch, WarningAlert } from '@dorkroom/ui';
+import { LabeledSliderInput } from '../../../components/labeled-slider-input';
+import { ToggleSwitch } from '../../../components/toggle-switch';
+import { WarningAlert } from '../../../components/warning-alert';
 import {
   OFFSET_SLIDER_MIN,
   OFFSET_SLIDER_MAX,

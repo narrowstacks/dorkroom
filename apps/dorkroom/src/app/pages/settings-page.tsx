@@ -8,7 +8,7 @@ import {
   Contrast,
 } from 'lucide-react';
 import { SettingsButton, ToggleSwitch, useMeasurement } from '@dorkroom/ui';
-import { useTheme } from '../contexts/theme-context';
+import { useTheme } from '@dorkroom/ui';
 
 export default function SettingsPage() {
   const { theme, setTheme, animationsEnabled, setAnimationsEnabled } =

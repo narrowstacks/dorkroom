@@ -1,6 +1,7 @@
 import type { AnyFormApi } from '@tanstack/react-form';
 import { X } from 'lucide-react';
-import { LabeledSliderInput, WarningAlert } from '@dorkroom/ui';
+import { LabeledSliderInput } from '../../../components/labeled-slider-input';
+import { WarningAlert } from '../../../components/warning-alert';
 import {
   SLIDER_MIN_BORDER,
   SLIDER_MAX_BORDER,

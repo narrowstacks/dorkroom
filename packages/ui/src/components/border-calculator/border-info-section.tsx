@@ -1,4 +1,5 @@
-import { CalculatorCard, colorMixOr } from '@dorkroom/ui';
+import { CalculatorCard } from '../calculator/calculator-card';
+import { colorMixOr } from '../../lib/color';
 
 const INFO_HOW_TO_USE = [
   'Select your desired aspect ratio (the ratio of your negative or image)',

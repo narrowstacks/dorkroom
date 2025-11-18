@@ -68,7 +68,18 @@ export {
   PreviewAndControlsSection,
   BladeVisualizationSection,
   PresetsSection,
+  AnimatedPreview,
+  BladeReadingsOverlay,
+  BladeResultsDisplay,
+  BorderInfoSection,
+  DesktopBorderLayout,
+  MobileBorderLayout,
+  MobileBorderCalculator,
+  PaperSizeSection,
+  BorderSizeSection,
+  PositionOffsetsSection,
 } from './components/border-calculator';
+export type { BorderCalculatorLayoutProps } from './components/border-calculator';
 export { ReciprocityChart } from './components/reciprocity-chart';
 
 // Navigation
@@ -107,3 +118,15 @@ export {
 // Forms (TanStack Form integration)
 export * from './forms';
 export type { FieldApi, FormInstance } from './forms/utils/form-api-types';
+
+// Theme
+export { ThemeProvider, useTheme } from './contexts/theme-context';
+export type { Theme, ThemeColors } from './lib/themes';
+export {
+  darkTheme,
+  lightTheme,
+  darkroomTheme,
+  themes,
+  getSystemTheme,
+  resolveTheme,
+} from './lib/themes';

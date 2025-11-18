@@ -1,13 +1,11 @@
 import { useMemo, useState, useEffect } from 'react';
 import type { AnyFormApi } from '@tanstack/react-form';
 import { X, RotateCw, Square } from 'lucide-react';
-import {
-  Select,
-  DimensionInputGroup,
-  useMeasurement,
-  formatDimensions,
-  useMeasurementConverter,
-} from '@dorkroom/ui';
+import { Select } from '../../../components/select';
+import { DimensionInputGroup } from '../../../components/dimension-input-group';
+import { useMeasurement } from '../../../contexts/measurement-context';
+import { formatDimensions } from '../../../lib/measurement';
+import { useMeasurementConverter } from '../../../hooks/use-measurement-conversion';
 import { ASPECT_RATIOS, PAPER_SIZES, type SelectItem } from '@dorkroom/logic';
 
 interface PaperSizeSectionProps {
