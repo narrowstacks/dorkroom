@@ -65,14 +65,7 @@ function computeFit(paperW: number, paperH: number, landscape: boolean) {
     const fitsRotated =
       easel.height >= oriented.width && easel.width >= oriented.height;
 
-    // For square paper (or nearly square), check if either easel dimension can accommodate
-    const isSquarePaper = Math.abs(oriented.width - oriented.height) < 0.01;
-    const fitsSquare =
-      isSquarePaper &&
-      Math.max(easel.width, easel.height) >= oriented.width &&
-      Math.max(easel.width, easel.height) >= oriented.height;
-
-    if (!fits && !fitsRotated && !fitsSquare) continue;
+    if (!fits && !fitsRotated) continue;
 
     const waste = easel.width * easel.height - oriented.width * oriented.height;
     if (waste < minWaste) {
@@ -81,9 +74,7 @@ function computeFit(paperW: number, paperH: number, landscape: boolean) {
         easel,
         slot: fits
           ? { width: easel.width, height: easel.height }
-          : fitsSquare || fitsRotated
-          ? { width: easel.height, height: easel.width }
-          : { width: easel.width, height: easel.height },
+          : { width: easel.height, height: easel.width },
       };
       if (waste === 0) break;
     }
