@@ -84,8 +84,10 @@ export function PreviewAndControlsSection({
 
       {(() => {
         // Show message when paper orientation is vertical (portrait)
-        // Show when NOT landscape (vertical orientation)
-        const shouldShow = !isLandscape;
+        // Show when NOT landscape (vertical orientation) and NOT 1:1 aspect ratio
+        const isSquareAspectRatio =
+          calculation.printWidth === calculation.printHeight;
+        const shouldShow = !isLandscape && !isSquareAspectRatio;
         return (
           shouldShow && (
             <div
