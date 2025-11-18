@@ -15,7 +15,7 @@ const getStorage = (): Storage | null => {
   }
   try {
     return window.localStorage;
-  } catch (error) {
+  } catch {
     return null;
   }
 };

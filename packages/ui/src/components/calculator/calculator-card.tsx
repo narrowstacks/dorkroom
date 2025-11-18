@@ -47,7 +47,6 @@ export function CalculatorCard({
 }: CalculatorCardProps) {
   return (
     <section
-      role="region"
       className={cn(
         'relative overflow-hidden rounded-3xl border shadow-subtle card-ring',
         padding === 'compact' ? 'p-5 sm:p-6' : 'p-6 sm:p-8',

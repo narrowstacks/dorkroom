@@ -1,5 +1,5 @@
-import { ToggleSwitch, CalculatorCard } from '@dorkroom/ui';
-import type { FormInstance, FieldApi } from '@dorkroom/ui';
+import { ToggleSwitch, CalculatorCard } from '../../index';
+import type { FormInstance, FieldApi } from '../../index';
 
 interface BladeVisualizationSectionProps {
   form: FormInstance;

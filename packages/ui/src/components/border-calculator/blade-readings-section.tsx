@@ -1,4 +1,4 @@
-import { WarningAlert, CalculatorCard, CalculatorStat } from '@dorkroom/ui';
+import { WarningAlert, CalculatorCard, CalculatorStat } from '../../index';
 import type { BorderCalculation } from '@dorkroom/logic';
 
 interface BladeReadingsSectionProps {

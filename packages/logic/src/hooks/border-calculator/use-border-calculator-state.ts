@@ -18,43 +18,47 @@ import type {
 
 const isBrowser = () => typeof window !== 'undefined';
 
-const createInitialState = (): BorderCalculatorState => ({
-  aspectRatio: ASPECT_RATIOS[0]!.value as AspectRatioValue,
-  paperSize: PAPER_SIZES[2]!.value as PaperSizeValue,
+const createInitialState = (): BorderCalculatorState => {
+  const aspectRatio = ASPECT_RATIOS[0];
+  const paperSize = PAPER_SIZES[2];
 
-  customAspectWidth: BORDER_CALCULATOR_DEFAULTS.customAspectWidth,
-  customAspectHeight: BORDER_CALCULATOR_DEFAULTS.customAspectHeight,
-  customPaperWidth: BORDER_CALCULATOR_DEFAULTS.customPaperWidth,
-  customPaperHeight: BORDER_CALCULATOR_DEFAULTS.customPaperHeight,
+  if (!aspectRatio || !paperSize) {
+    throw new Error('Invalid default values for aspect ratio or paper size');
+  }
 
-  lastValidCustomAspectWidth: BORDER_CALCULATOR_DEFAULTS.customAspectWidth,
-  lastValidCustomAspectHeight: BORDER_CALCULATOR_DEFAULTS.customAspectHeight,
-  lastValidCustomPaperWidth: BORDER_CALCULATOR_DEFAULTS.customPaperWidth,
-  lastValidCustomPaperHeight: BORDER_CALCULATOR_DEFAULTS.customPaperHeight,
-
-  minBorder: BORDER_CALCULATOR_DEFAULTS.minBorder,
-  enableOffset: BORDER_CALCULATOR_DEFAULTS.enableOffset,
-  ignoreMinBorder: BORDER_CALCULATOR_DEFAULTS.ignoreMinBorder,
-  horizontalOffset: BORDER_CALCULATOR_DEFAULTS.horizontalOffset,
-  verticalOffset: BORDER_CALCULATOR_DEFAULTS.verticalOffset,
-  showBlades: BORDER_CALCULATOR_DEFAULTS.showBlades,
-  showBladeReadings: BORDER_CALCULATOR_DEFAULTS.showBladeReadings,
-  isLandscape: true,
-  isRatioFlipped: BORDER_CALCULATOR_DEFAULTS.isRatioFlipped,
-  hasManuallyFlippedPaper: false,
-
-  offsetWarning: null,
-  bladeWarning: null,
-  minBorderWarning: null,
-  paperSizeWarning: null,
-  lastValidMinBorder: BORDER_CALCULATOR_DEFAULTS.minBorder,
-
-  selectedImageUri: null,
-  imageDimensions: { width: 0, height: 0 },
-  isCropping: false,
-  cropOffset: { x: 0, y: 0 },
-  cropScale: 1,
-});
+  return {
+    aspectRatio: aspectRatio.value as AspectRatioValue,
+    paperSize: paperSize.value as PaperSizeValue,
+    customAspectWidth: BORDER_CALCULATOR_DEFAULTS.customAspectWidth,
+    customAspectHeight: BORDER_CALCULATOR_DEFAULTS.customAspectHeight,
+    customPaperWidth: BORDER_CALCULATOR_DEFAULTS.customPaperWidth,
+    customPaperHeight: BORDER_CALCULATOR_DEFAULTS.customPaperHeight,
+    lastValidCustomAspectWidth: BORDER_CALCULATOR_DEFAULTS.customAspectWidth,
+    lastValidCustomAspectHeight: BORDER_CALCULATOR_DEFAULTS.customAspectHeight,
+    lastValidCustomPaperWidth: BORDER_CALCULATOR_DEFAULTS.customPaperWidth,
+    lastValidCustomPaperHeight: BORDER_CALCULATOR_DEFAULTS.customPaperHeight,
+    minBorder: BORDER_CALCULATOR_DEFAULTS.minBorder,
+    enableOffset: BORDER_CALCULATOR_DEFAULTS.enableOffset,
+    ignoreMinBorder: BORDER_CALCULATOR_DEFAULTS.ignoreMinBorder,
+    horizontalOffset: BORDER_CALCULATOR_DEFAULTS.horizontalOffset,
+    verticalOffset: BORDER_CALCULATOR_DEFAULTS.verticalOffset,
+    showBlades: BORDER_CALCULATOR_DEFAULTS.showBlades,
+    showBladeReadings: BORDER_CALCULATOR_DEFAULTS.showBladeReadings,
+    isLandscape: true,
+    isRatioFlipped: BORDER_CALCULATOR_DEFAULTS.isRatioFlipped,
+    hasManuallyFlippedPaper: false,
+    offsetWarning: null,
+    bladeWarning: null,
+    minBorderWarning: null,
+    paperSizeWarning: null,
+    lastValidMinBorder: BORDER_CALCULATOR_DEFAULTS.minBorder,
+    selectedImageUri: null,
+    imageDimensions: { width: 0, height: 0 },
+    isCropping: false,
+    cropOffset: { x: 0, y: 0 },
+    cropScale: 1,
+  };
+};
 
 export const initialState = createInitialState();
 

@@ -54,21 +54,30 @@ export interface FieldApi<TValue = unknown> {
  * of all 12 validator/handler function signatures. This is the same pattern used
  * by TanStack Form's AnyFieldApi (which has 23 `any` parameters).
  * See: https://github.com/TanStack/form/blob/main/packages/form-core/src/index.ts
- *
- * @eslint-disable-next-line @typescript-eslint/no-explicit-any
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type FormInstance = ReactFormExtendedApi<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any
 >;

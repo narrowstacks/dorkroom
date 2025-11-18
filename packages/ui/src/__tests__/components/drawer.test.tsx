@@ -174,8 +174,9 @@ describe('Drawer', () => {
     });
 
     it('applies correct transform for different anchors when closed', () => {
-      render(<Drawer {...defaultProps} anchor="top" isOpen={false} />);
+      const { rerender } = render(<Drawer {...defaultProps} anchor="top" isOpen={true} />);
 
+      rerender(<Drawer {...defaultProps} anchor="top" isOpen={false} />);
       const drawer = document.querySelector('.absolute.border');
       expect(drawer).toHaveClass('-translate-y-full');
     });

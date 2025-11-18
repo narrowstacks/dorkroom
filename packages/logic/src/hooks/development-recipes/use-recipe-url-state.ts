@@ -381,6 +381,7 @@ export const useRecipeUrlState = (
     };
 
     handleSharedRecipeLookup();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, recipesByUuid, isCustomRecipeUrl, decodeSharedCustomRecipe]);
 
   const updateUrl = useCallback(

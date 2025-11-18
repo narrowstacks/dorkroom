@@ -1,6 +1,6 @@
-import { LabeledSliderInput, ToggleSwitch, WarningAlert } from '@dorkroom/ui';
+import { LabeledSliderInput, ToggleSwitch, WarningAlert } from '../../index';
 import { CalculatorCard } from '../calculator/calculator-card';
-import type { FormInstance, FieldApi } from '@dorkroom/ui';
+import type { FormInstance, FieldApi } from '../../index';
 
 interface BordersOffsetsSectionProps {
   form: FormInstance;

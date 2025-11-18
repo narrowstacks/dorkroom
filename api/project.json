@@ -1,0 +1,14 @@
+{
+  "name": "dorkroom-api",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "api",
+  "tags": [],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:noop"
+    },
+    "lint": {
+      "executor": "nx:noop"
+    }
+  }
+}

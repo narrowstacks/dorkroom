@@ -1,5 +1,5 @@
 import { Share2, Save, Trash2 } from 'lucide-react';
-import { Select, TextInput, CalculatorCard } from '@dorkroom/ui';
+import { Select, TextInput, CalculatorCard } from '../../index';
 import type { SelectItem } from '@dorkroom/logic';
 
 interface PresetsSectionProps {

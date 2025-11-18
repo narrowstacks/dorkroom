@@ -9,7 +9,7 @@
  * @param isMetric - Whether the input is in metric (cm) or imperial (inches)
  * @returns Value in inches
  */
-export const toInches = (value: number, isMetric: boolean = false): number => {
+export const toInches = (value: number, isMetric = false): number => {
   if (!Number.isFinite(value)) return NaN;
   if (isMetric) {
     return value / 2.54; // cm to inches
@@ -25,7 +25,7 @@ export const toInches = (value: number, isMetric: boolean = false): number => {
  */
 export const fromInches = (
   inches: number,
-  isMetric: boolean = false
+  isMetric = false
 ): number => {
   if (!Number.isFinite(inches)) return NaN;
   if (isMetric) {
@@ -44,8 +44,8 @@ export const fromInches = (
  */
 export const validateAndConvertDimension = (
   value: string,
-  isMetric: boolean = false,
-  minValue: number = 0
+  isMetric = false,
+  minValue = 0
 ): number | null => {
   // Allow empty/whitespace (user still typing)
   if (value === '' || /^\s*$/.test(value)) {
@@ -81,8 +81,8 @@ export const validateAndConvertDimension = (
  */
 export const formatDimension = (
   inches: number,
-  isMetric: boolean = false,
-  decimalPlaces: number = 2
+  isMetric = false,
+  decimalPlaces = 2
 ): string => {
   if (!Number.isFinite(inches)) return '';
 

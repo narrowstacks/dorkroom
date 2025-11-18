@@ -143,7 +143,7 @@ export function ShareButton({
           shouldShowToast = true;
         }
       }
-    } catch (e) {
+    } catch {
       // On errors from caller, do not show toast here; leave it to caller to handle
     }
 

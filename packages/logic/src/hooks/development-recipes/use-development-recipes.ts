@@ -130,7 +130,10 @@ export const useDevelopmentRecipes = (
       );
   }, [developersQuery.data]);
 
-  const allCombinations = combinationsQuery.data || [];
+  const allCombinations = useMemo(
+    () => combinationsQuery.data || [],
+    [combinationsQuery.data]
+  );
 
   // UI state
   const [developerTypeFilter, setDeveloperTypeFilter] = useState('');
