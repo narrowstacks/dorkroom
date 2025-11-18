@@ -38,9 +38,6 @@ import {
   useMeasurementFormatter,
 } from '../../hooks/use-measurement-conversion';
 import {
-  borderCalculatorSchema,
-} from '../../forms/schemas/border-calculator.schema';
-import {
   createZodFormValidator,
 } from '../../forms/utils/create-zod-form-validator';
 
@@ -54,6 +51,7 @@ import {
 
 // Hooks
 import {
+  borderCalculatorSchema,
   useBorderPresets,
   usePresetSharing,
   useDimensionCalculations,

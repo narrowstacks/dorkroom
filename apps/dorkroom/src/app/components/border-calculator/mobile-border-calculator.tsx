@@ -26,7 +26,6 @@ import {
   SaveBeforeShareModal,
   useMeasurement,
   useMeasurementFormatter,
-  borderCalculatorSchema,
   createZodFormValidator,
 } from '@dorkroom/ui';
 
@@ -40,6 +39,7 @@ import {
 
 // Hooks
 import {
+  borderCalculatorSchema,
   useBorderPresets,
   usePresetSharing,
   useDimensionCalculations,

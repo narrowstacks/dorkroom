@@ -1,9 +1,9 @@
 import { Share2, Save, Trash2 } from 'lucide-react';
 import { Select, TextInput, CalculatorCard } from '../../index';
-import type { SelectItem } from '@dorkroom/logic';
+import type { SelectItem, BorderPresetSettings } from '@dorkroom/logic';
 
 interface PresetsSectionProps {
-  selectedPresetId: string;
+  selectedPresetId: string | null;
   presetName: string;
   isEditingPreset: boolean;
   presetItems: SelectItem[];
@@ -13,9 +13,9 @@ interface PresetsSectionProps {
   onPresetNameChange: (name: string) => void;
   onEditingChange: (isEditing: boolean) => void;
   onShareClick: () => void;
-  onSavePreset: () => void;
-  onUpdatePreset: () => void;
-  onDeletePreset: () => void;
+  onSavePreset: (name: string) => void;
+  onUpdatePreset: (id: string, data: { name: string; settings: BorderPresetSettings }) => void;
+  onDeletePreset: (id: string) => void;
 }
 
 /**
@@ -46,7 +46,7 @@ export function PresetsSection({
         <div className="flex-1">
           <Select
             label="Presets"
-            selectedValue={selectedPresetId}
+            selectedValue={selectedPresetId || ''}
             onValueChange={onSelectPreset}
             items={presetItems}
             placeholder="Select preset"
@@ -103,8 +103,9 @@ export function PresetsSection({
           />
           <div className="grid gap-2 sm:grid-cols-3">
             <button
-              onClick={onSavePreset}
-              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 hover:brightness-110"
+              onClick={() => onSavePreset(presetName)}
+              disabled={!presetName}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{
                 color: 'var(--color-primary)',
                 borderColor: 'var(--color-primary)',
@@ -116,7 +117,7 @@ export function PresetsSection({
               Save
             </button>
             <button
-              onClick={onUpdatePreset}
+              onClick={() => selectedPresetId && onUpdatePreset(selectedPresetId, { name: presetName, settings: {} as BorderPresetSettings })}
               disabled={!selectedPresetId}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{
@@ -130,7 +131,7 @@ export function PresetsSection({
               Update
             </button>
             <button
-              onClick={onDeletePreset}
+              onClick={() => selectedPresetId && onDeletePreset(selectedPresetId)}
               disabled={!selectedPresetId}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{

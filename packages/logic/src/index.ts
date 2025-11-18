@@ -33,6 +33,9 @@ export * from './utils/unit-conversion';
 export * from './utils/object-comparison';
 export { debugLog, debugWarn, debugError } from './utils/debug-logger';
 
+// Schemas
+export * from './schemas/border-calculator.schema';
+
 // Services exports
 export * from './services/filmdev-api';
 

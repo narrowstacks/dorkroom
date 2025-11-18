@@ -1,16 +1,17 @@
-import type { AnyFormApi } from '@tanstack/react-form';
+import type { FormInstance } from '../../forms/utils/form-api-types';
 import type {
   BorderCalculatorState,
-  GeometryCalculationResult,
   BorderPreset,
   BorderPresetSettings,
   SelectItem,
   PaperSize,
 } from '@dorkroom/logic';
+import { useGeometryCalculations } from '@dorkroom/logic';
+type GeometryCalculationResult = ReturnType<typeof useGeometryCalculations>['calculation'];
 
 export interface BorderCalculatorLayoutProps {
   isDesktop: boolean;
-  form: AnyFormApi;
+  form: FormInstance<BorderCalculatorState>;
   formValues: BorderCalculatorState;
   calculation: GeometryCalculationResult | null;
   paperWidthInput: string;

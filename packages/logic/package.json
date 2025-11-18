@@ -13,7 +13,8 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@dorkroom/api": "workspace:*"
+    "@dorkroom/api": "workspace:*",
+    "zod": "^4.1.12"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",

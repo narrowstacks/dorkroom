@@ -92,6 +92,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@dorkroom/api": "workspace:*",
+        "zod": "^4.1.12",
       },
       "devDependencies": {
         "@testing-library/jest-dom": "^6.8.0",
