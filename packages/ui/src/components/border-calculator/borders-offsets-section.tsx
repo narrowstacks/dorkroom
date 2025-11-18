@@ -37,7 +37,7 @@ export function BordersOffsetsSection({
 }: BordersOffsetsSectionProps) {
   return (
     <CalculatorCard
-      title="Borders & offsets"
+      title="Borders & Offsets"
       description="Control the border thickness and fine-tune print placement."
     >
       <div className="space-y-5">

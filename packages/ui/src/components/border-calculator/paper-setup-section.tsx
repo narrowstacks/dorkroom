@@ -40,14 +40,14 @@ export function PaperSetupSection({
 
   return (
     <CalculatorCard
-      title="Paper setup"
+      title="Paper Setup"
       description="Match the paper size and aspect ratio you're printing on."
     >
       <div className="space-y-5">
         <form.Field name="aspectRatio">
           {(field: FieldApi<string>) => (
             <Select
-              label="Aspect ratio"
+              label="Aspect Ratio"
               selectedValue={field.state.value}
               onValueChange={(value: string) => {
                 field.handleChange(value);
@@ -101,7 +101,7 @@ export function PaperSetupSection({
         <form.Field name="paperSize">
           {(field: FieldApi<string>) => (
             <Select
-              label="Paper size"
+              label="Paper Size"
               selectedValue={field.state.value}
               onValueChange={(value: string) => {
                 field.handleChange(value);

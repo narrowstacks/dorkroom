@@ -38,14 +38,14 @@ export function BladeReadingsSection({
 
   return (
     <CalculatorCard
-      title="Blade readings"
+      title="Blade Readings"
       description="Dial these values on your easel for a centered print."
       accent="emerald"
       padding="compact"
     >
       <div className="grid gap-3 sm:grid-cols-2">
         <CalculatorStat
-          label="Left blade"
+          label="Left Blade"
           value={formatWithUnit(
             condition
               ? calculation.topBladeReading
@@ -54,7 +54,7 @@ export function BladeReadingsSection({
           className="p-4"
         />
         <CalculatorStat
-          label="Right blade"
+          label="Right Blade"
           value={formatWithUnit(
             condition
               ? calculation.bottomBladeReading
@@ -63,7 +63,7 @@ export function BladeReadingsSection({
           className="p-4"
         />
         <CalculatorStat
-          label="Top blade"
+          label="Top Blade"
           value={formatWithUnit(
             condition
               ? calculation.leftBladeReading
@@ -72,7 +72,7 @@ export function BladeReadingsSection({
           className="p-4"
         />
         <CalculatorStat
-          label="Bottom blade"
+          label="Bottom Blade"
           value={formatWithUnit(
             condition
               ? calculation.rightBladeReading
@@ -81,7 +81,7 @@ export function BladeReadingsSection({
           className="p-4"
         />
         <CalculatorStat
-          label="Image size"
+          label="Image Size"
           value={formatDimensions(
             calculation.printWidth,
             calculation.printHeight,

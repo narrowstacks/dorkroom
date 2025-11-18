@@ -14,7 +14,7 @@ export function BladeVisualizationSection({
 }: BladeVisualizationSectionProps) {
   return (
     <CalculatorCard
-      title="Blade visualization"
+      title="Blade Visualization"
       description="Control the display of easel blades and measurements on the preview."
     >
       <div className="grid gap-4 sm:grid-cols-2">
