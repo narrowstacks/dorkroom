@@ -10,15 +10,15 @@ Dorkroom is an analog photography calculator app built with React 19, TypeScript
 
 ### Development
 
+- `bunx nx build dorkroom` - Build production bundle. **Always run before starting a server.**
 - `bunx nx dev dorkroom -- --host=0.0.0.0` - Start development server. **Check if dev server is running on port 4200 before doing this!**
-- `bunx nx build dorkroom` - Build production bundle
 - `bunx nx serve dorkroom` - Alternative dev server (no hotloading of @dorkroom packages! Always rebuild dorkroom before serving.)
 
 ### Code Quality (run these after completing tasks)
 
 - `bunx nx lint dorkroom` - Run ESLint
 - `bunx nx typecheck dorkroom` - TypeScript type checking
-- `bunx prettier --write .` - Format code
+- `bunx prettier --write .` - Format code, but only format the code you've touched this session.
 
 ### Testing
 
@@ -64,7 +64,7 @@ Dorkroom is an analog photography calculator app built with React 19, TypeScript
 
 ### TypeScript Typing
 
-- **Never use `any` type** - always use specific types or `unknown` where the type cannot be determined
+- **Never use `any` type** - always use specific types or `unknown` where the type cannot be determined, unless otherwise specified by a package we're using (such as some instances in TanStack)
 - Use `unknown` instead of `any` for values whose type is truly unknown at compile time
 - Define proper interfaces for API responses, especially raw/transformed data structures
 - Use discriminated unions instead of generic object types where possible
@@ -130,11 +130,13 @@ export function MyCalculator() {
   });
 
   return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      form.handleSubmit();
-    }}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
+      }}
+    >
       {/* Form fields */}
     </form>
   );
@@ -175,11 +177,7 @@ export function RecipeTable({ data }: { data: Recipe[] }) {
         {table.getHeaderGroups().map((headerGroup) => (
           <tr key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
-              <th key={header.id}>
-                {header.isPlaceholder
-                  ? null
-                  : flexRender(header.column.columnDef.header, header.getContext())}
-              </th>
+              <th key={header.id}>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</th>
             ))}
           </tr>
         ))}
@@ -188,9 +186,7 @@ export function RecipeTable({ data }: { data: Recipe[] }) {
         {table.getRowModel().rows.map((row) => (
           <tr key={row.id}>
             {row.getVisibleCells().map((cell) => (
-              <td key={cell.id}>
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </td>
+              <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
             ))}
           </tr>
         ))}
@@ -313,9 +309,101 @@ export const queryKeys = {
 - Zod for schema validation
 - All packages build to TypeScript declarations (.d.ts)
 
+## Search Strategy Guide
+
+Optimize search efficiency by choosing the right tool for each task:
+
+### Finding Files
+
+**Use `Glob` first** (fastest, integrated):
+- Pattern: `**/*.tsx`, `src/**/*.test.ts`, `apps/dorkroom/**/*`
+- Best for: File discovery, checking if patterns exist
+- Example: `Glob` with pattern `**/*border*.tsx`
+
+**Use `fd` for complex file filters:**
+- Filters by size, type, modification time, or regex names
+- Example: `fd --type f --size +100k` (files over 100KB)
+
+### Finding Text/Strings
+
+**Use `Grep` for simple text searches** (optimized for my use):
+- Pattern: "useQuery", "borderCalculator", "const name"
+- Supports regex, type filtering (--type js, --type ts)
+- Example: `Grep` with pattern `useQuery` and type `typescript`
+
+**Use `rg` directly for complex patterns or context:**
+- Superior context handling with `-A`/`-B`/`-C` flags
+- Example: `rg "function.*border" -A 5` (function + 5 lines after)
+- Better for: chains with `fzf`, when building complex patterns
+
+### Finding Code Structure
+
+**Use `ast-grep` for syntax-aware searches** (essential for TypeScript):
+- Structural patterns: function definitions, imports, exports, component props
+- Example: `ast-grep --lang typescript -p 'function useQuery'` finds all query hooks
+- Example: `ast-grep --lang typescript -p 'const $VAR = {$_}'` finds all object definitions
+- Best for: Understanding code patterns, finding hook implementations, tracking prop usage
+
+### Interactive Result Selection
+
+**Use `fzf` to filter large result sets:**
+- Chain any tool with `| fzf` to pick from many results
+- Example: `rg "TODO" | fzf` (pick which TODO to handle)
+- Example: `fd "*.test.ts" | fzf` (pick which test to review)
+- Best for: Multiple matches where you need to decide which one matters
+
+### Parsing JSON/YAML Configuration
+
+**Use `jq` for JSON extraction:**
+- Example: `cat package.json | jq '.dependencies | keys'` (all dependency names)
+- Example: `jq '.scripts | to_entries[] | .key' < package.json`
+- Best for: Configuration analysis, extracting specific fields from configs
+
+**Use `yq` for YAML extraction:**
+- Example: `yq '.scripts' .github/workflows/ci.yml` (get scripts section)
+- Example: `yq -r '.jobs | keys[]' < workflow.yml` (all job names)
+- Best for: GitHub Actions config, deployment configs
+
+### When to Use the Task Tool Instead
+
+**Don't manually chain tools for complex analysis.** Use `Task` agent with `subagent_type=Explore`:
+- Question: "How does authentication flow through this codebase?"
+- Question: "What components use the border calculator hook?"
+- Question: "Where are all form validations defined?"
+- This handles multi-file analysis, cross-referencing, and pattern synthesis better than manual command chains
+
+### Decision Tree
+
+```
+Is it finding FILES?
+  → Glob (simple patterns)
+  → fd (complex filters)
+
+Is it finding TEXT in files?
+  → Grep (quick, simple text)
+  → rg (when you need context/complex patterns)
+  → rg | fzf (when there are many results)
+
+Is it finding CODE STRUCTURE?
+  → ast-grep (TypeScript patterns)
+  → rg with regex (plain text structure)
+
+Is it PICKING from many results?
+  → Pipe to fzf (interactive selection)
+
+Is it parsing JSON/YAML config?
+  → jq (JSON files)
+  → yq (YAML files)
+
+Is it complex multi-file analysis?
+  → Task agent with Explore (better than manual chains)
+```
+
 ## Git rules
 
 - Keep commit messages short. Use conventional commit standards.
+- Confirm with user before committing, share commit message in your confirmation.
+- **Only commit, never push**
 
 ## On using ast-grep vs ripgrep (rg)
 
