@@ -518,7 +518,6 @@ export default function BorderCalculatorPage() {
               <BladeReadingsSection
                 calculation={calculation}
                 isLandscape={isLandscape}
-                isCustomPaper={paperSize === 'custom'}
                 formatWithUnit={formatWithUnit}
                 formatDimensions={formatDimensions}
                 bladeWarning={bladeWarning}

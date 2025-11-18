@@ -5,7 +5,6 @@ import type { FormatDimensionsOptions } from '../../lib/measurement';
 interface BladeReadingsSectionProps {
   calculation: BorderCalculation;
   isLandscape: boolean;
-  isCustomPaper: boolean;
   formatWithUnit: (value: number) => string;
   formatDimensions: (
     width: number,
@@ -24,17 +23,15 @@ interface BladeReadingsSectionProps {
 export function BladeReadingsSection({
   calculation,
   isLandscape,
-  isCustomPaper,
   formatWithUnit,
   formatDimensions,
   bladeWarning,
   minBorderWarning,
   paperSizeWarning,
 }: BladeReadingsSectionProps) {
-  // Determine if we should flip the blade readings based on orientation
-  // For custom paper: flip when NOT landscape (portrait)
-  // For preset paper: flip when landscape
-  const condition = isCustomPaper ? !isLandscape : isLandscape;
+  // Swap blade readings when paper is in portrait orientation (not landscape)
+  // This accounts for the easel being rotated 90° when the paper is vertical
+  const shouldSwapBlades = !isLandscape;
 
   return (
     <CalculatorCard
@@ -47,7 +44,7 @@ export function BladeReadingsSection({
         <CalculatorStat
           label="Left Blade"
           value={formatWithUnit(
-            condition
+            shouldSwapBlades
               ? calculation.topBladeReading
               : calculation.leftBladeReading
           )}
@@ -56,7 +53,7 @@ export function BladeReadingsSection({
         <CalculatorStat
           label="Right Blade"
           value={formatWithUnit(
-            condition
+            shouldSwapBlades
               ? calculation.bottomBladeReading
               : calculation.rightBladeReading
           )}
@@ -65,7 +62,7 @@ export function BladeReadingsSection({
         <CalculatorStat
           label="Top Blade"
           value={formatWithUnit(
-            condition
+            shouldSwapBlades
               ? calculation.leftBladeReading
               : calculation.topBladeReading
           )}
@@ -74,7 +71,7 @@ export function BladeReadingsSection({
         <CalculatorStat
           label="Bottom Blade"
           value={formatWithUnit(
-            condition
+            shouldSwapBlades
               ? calculation.rightBladeReading
               : calculation.bottomBladeReading
           )}
