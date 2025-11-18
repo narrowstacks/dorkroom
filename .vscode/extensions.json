@@ -11,6 +11,13 @@
     "unifiedjs.vscode-mdx",
     "christian-kohler.npm-intellisense",
     "bradlc.vscode-tailwindcss",
-    "ms-vscode.js-debug"
+    "ms-vscode.js-debug",
+    "aaron-bond.better-comments",
+    "fill-labs.dependi",
+    "bierner.markdown-preview-github-styles",
+    "rvest.vs-code-prettier-eslint",
+    "emeraldwalk.runonsave",
+    "frenco.vscode-vercel",
+    "dsznajder.es7-react-js-snippets"
   ]
 }
