@@ -25,11 +25,11 @@ export function shallowEqual<T extends object>(
     return true;
   }
 
-  // Type guard: both must be objects
-  if (obj1 === null || typeof obj1 !== 'object') {
+  // Type guard: both must be objects (not arrays)
+  if (obj1 === null || typeof obj1 !== 'object' || Array.isArray(obj1)) {
     return false;
   }
-  if (obj2 === null || typeof obj2 !== 'object') {
+  if (obj2 === null || typeof obj2 !== 'object' || Array.isArray(obj2)) {
     return false;
   }
 

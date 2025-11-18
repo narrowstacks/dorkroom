@@ -1,8 +1,10 @@
 import { Modal } from '../modal';
 import { Drawer, DrawerBody, DrawerContent } from '../drawer';
 import { DevelopmentRecipeDetail } from './recipe-detail';
-import type { DevelopmentCombinationView } from './results-table';
-import type { FilmdevMappingResult } from '@dorkroom/logic';
+import type {
+  DevelopmentCombinationView,
+  FilmdevMappingResult,
+} from '@dorkroom/logic';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import { X, ExternalLink } from 'lucide-react';

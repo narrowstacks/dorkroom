@@ -7,19 +7,11 @@ import type {
   Cell,
 } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
+import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
 import { SkeletonTableRow } from '../ui/skeleton';
-
-export interface DevelopmentCombinationView {
-  combination: import('@dorkroom/api').Combination;
-  film?: import('@dorkroom/api').Film;
-  developer?: import('@dorkroom/api').Developer;
-  source?: 'api' | 'custom';
-  canShare?: boolean;
-  canViewDetails?: boolean;
-}
 
 interface DevelopmentResultsTableProps {
   table: Table<DevelopmentCombinationView>;
@@ -166,6 +158,7 @@ export function DevelopmentResultsTable({
                       onClick={() => onSelectCombination?.(rowData)}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
                           onSelectCombination?.(rowData);
                         }
                       }}

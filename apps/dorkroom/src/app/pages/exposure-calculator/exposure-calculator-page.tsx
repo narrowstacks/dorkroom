@@ -1,6 +1,6 @@
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
-import { useEffect, useRef, useMemo, type ChangeEvent } from 'react';
+import { useEffect, useRef, useMemo, type ChangeEvent, type FC } from 'react';
 import {
   CalculatorCard,
   CalculatorPageHeader,
@@ -73,7 +73,7 @@ interface StopButtonProps {
   theme: ReturnType<typeof useTheme>;
 }
 
-const StopButton: React.FC<StopButtonProps> = ({ preset, onPress, theme }) => {
+const StopButton: FC<StopButtonProps> = ({ preset, onPress, theme }) => {
   const currentTheme = themes[theme.resolvedTheme];
 
   return (
@@ -142,7 +142,6 @@ export default function ExposureCalculatorPage() {
     } catch (error) {
       console.warn('Failed to load calculator state', error);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persist form state to localStorage whenever it changes
@@ -233,6 +232,7 @@ export default function ExposureCalculatorPage() {
                           onBlur={field.handleBlur}
                           placeholder="1"
                           step={0.1}
+                          aria-label="Stops adjustment"
                           className="w-20 rounded-lg border px-3 py-2 text-center text-sm"
                           style={{
                             backgroundColor: currentTheme.surface,

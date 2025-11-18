@@ -1,4 +1,5 @@
 import { RotateCw, RotateCcw, Square } from 'lucide-react';
+import { useStore } from '@tanstack/react-store';
 import type { BorderCalculation } from '@dorkroom/logic';
 import type { FormInstance } from '@dorkroom/ui';
 import { CalculatorCard } from '../calculator/calculator-card';
@@ -12,7 +13,6 @@ interface PreviewAndControlsSectionProps {
     showBladeReadings: boolean;
     className?: string;
   }>;
-  isLandscape: boolean;
   onResetToDefaults: () => void;
 }
 
@@ -24,17 +24,23 @@ export function PreviewAndControlsSection({
   form,
   calculation,
   AnimatedPreview,
-  isLandscape,
   onResetToDefaults,
 }: PreviewAndControlsSectionProps) {
+  const showBlades = useStore(form.store, (state) => state.values.showBlades);
+  const showBladeReadings = useStore(
+    form.store,
+    (state) => state.values.showBladeReadings
+  );
+  const isLandscape = useStore(form.store, (state) => state.values.isLandscape);
+
   return (
     <CalculatorCard accent="violet" padding="compact">
       <div className="flex justify-center">
         <div className="relative">
           <AnimatedPreview
             calculation={calculation}
-            showBlades={form.getFieldValue('showBlades')}
-            showBladeReadings={form.getFieldValue('showBladeReadings')}
+            showBlades={showBlades}
+            showBladeReadings={showBladeReadings}
             className="max-w-full"
           />
         </div>

@@ -471,7 +471,6 @@ export default function BorderCalculatorPage() {
                 form={form}
                 calculation={calculation}
                 AnimatedPreview={AnimatedPreview}
-                isLandscape={isLandscape}
                 onResetToDefaults={resetToDefaults}
               />
 

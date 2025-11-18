@@ -1,6 +1,6 @@
 import { ColumnDef, CellContext } from '@tanstack/react-table';
 import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
-import type { DevelopmentCombinationView } from './results-table';
+import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import { formatTemperatureWithUnit } from '../../lib/temperature';

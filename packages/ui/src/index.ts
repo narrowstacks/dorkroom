@@ -39,7 +39,7 @@ export { DevelopmentFiltersPanel } from './components/development-recipes/filter
 export { FilmDeveloperSelection } from './components/development-recipes/film-developer-selection';
 export { CollapsibleFilters } from './components/development-recipes/collapsible-filters';
 export { DevelopmentResultsTable } from './components/development-recipes/results-table';
-export type { DevelopmentCombinationView } from './components/development-recipes/results-table';
+export type { DevelopmentCombinationView } from '@dorkroom/logic';
 export { DevelopmentResultsCards } from './components/development-recipes/results-cards';
 export { FavoriteMessageSkeleton } from './components/development-recipes/favorite-message-skeleton';
 export { PaginationControls } from './components/development-recipes/pagination-controls';

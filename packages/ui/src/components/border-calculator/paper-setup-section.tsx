@@ -1,3 +1,4 @@
+import { useStore } from '@tanstack/react-store';
 import { Select, DimensionInputGroup } from '@dorkroom/ui';
 import { CalculatorCard } from '../calculator/calculator-card';
 import type { SelectItem } from '@dorkroom/logic';
@@ -34,6 +35,9 @@ export function PaperSetupSection({
   customAspectWidth,
   customAspectHeight,
 }: PaperSetupSectionProps) {
+  const aspectRatio = useStore(form.store, (state) => state.values.aspectRatio);
+  const paperSize = useStore(form.store, (state) => state.values.paperSize);
+
   return (
     <CalculatorCard
       title="Paper setup"
@@ -55,7 +59,7 @@ export function PaperSetupSection({
           )}
         </form.Field>
 
-        {form.getFieldValue('aspectRatio') === 'custom' && (
+        {aspectRatio === 'custom' && (
           <form.Field name="customAspectWidth">
             {(widthField: FieldApi<number>) => (
               <form.Field name="customAspectHeight">
@@ -119,7 +123,7 @@ export function PaperSetupSection({
           )}
         </form.Field>
 
-        {form.getFieldValue('paperSize') === 'custom' && (
+        {paperSize === 'custom' && (
           <DimensionInputGroup
             widthValue={paperWidthInput}
             onWidthChange={onPaperWidthChange}

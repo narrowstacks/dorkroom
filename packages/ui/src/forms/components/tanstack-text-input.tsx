@@ -80,10 +80,7 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
         aria-describedby={hasErrors ? `${field.name}-error` : undefined}
         className={cn(
           styles.input,
-          'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2',
-          {
-            'tanstack-text-input--error': hasErrors,
-          }
+          'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2'
         )}
         style={
           {
