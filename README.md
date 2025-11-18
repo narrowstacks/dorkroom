@@ -24,12 +24,34 @@ Dorkroom provides essential calculators for film photography and darkroom work:
 
 Built for darkroom obsessives who want fast, reliable calculations without the complexity.
 
+## Recent Updates
+
+**November 2025** - Completed major TanStack ecosystem migration:
+
+- ✅ Migrated from custom data fetching to **TanStack Query v5** for server state management
+- ✅ Migrated from React Router to **TanStack Router v1** with file-based routing
+- ✅ Adopted **TanStack Form v1** with Zod validation for all forms
+- ✅ Implemented **TanStack Table v8** for data tables with sorting and filtering
+- ✅ Full type safety with TypeScript 5.8.2 and runtime validation with Zod 4.1.12
+
+See [TANSTACK_MIGRATION.md](TANSTACK_MIGRATION.md) for complete migration details.
+
 ## Quick Start
 
 ### Prerequisites
 
-- Node.js 18+
-- bun, npm, or yarn (bun preferred)
+- **Node.js** 18+ (required)
+- **Bun** (required - project uses Bun workspaces)
+
+Install Bun:
+
+```bash
+# macOS/Linux
+curl -fsSL https://bun.sh/install | bash
+
+# Windows (via npm)
+npm install -g bun
+```
 
 ### Development
 
@@ -38,12 +60,15 @@ Built for darkroom obsessives who want fast, reliable calculations without the c
 git clone https://github.com/narrowstacks/dorkroom.git
 cd dorkroom
 
-# Install dependencies
+# Install dependencies (requires Bun)
 bun install
 
 # Set up environment variables (for API testing)
 cp .env.example .env
 # Edit .env with your Supabase credentials
+
+# Build before starting dev server
+bunx nx build dorkroom
 
 # Start development server
 bunx nx dev dorkroom -- --host=0.0.0.0
@@ -58,7 +83,10 @@ bunx nx dev dorkroom -- --host=0.0.0.0
 bunx nx build dorkroom
 
 # Build all packages
-bunx nx build
+bunx nx run-many --target=build
+
+# Visualize project dependencies
+bunx nx graph
 ```
 
 ### Testing
@@ -73,30 +101,50 @@ bunx nx test --ui
 
 ## Technology Stack
 
-- **Frontend**: React 19 with TypeScript
+- **Frontend**: React 19 with TypeScript 5.8.2
 - **Styling**: Tailwind CSS 4.1.13 with custom darkroom theme
-- **Build Tool**: Vite with Nx workspace
-- **Testing**: Vitest with Testing Library
+- **Build Tool**: Vite 6 with Nx 21.4 workspace
+- **Testing**: Vitest 3 with Testing Library
+- **State Management**: TanStack Query v5 for server state
+- **Routing**: TanStack Router v1 with file-based routing
+- **Forms**: TanStack Form v1 with Zod validation
+- **Tables**: TanStack Table v8 for data tables
+- **Schema Validation**: Zod 4.1.12
 - **Monorepo**: Nx with shared packages
 
 ## Architecture
 
+Dorkroom is built as an Nx monorepo with clear separation of concerns:
+
 ```
 apps/
-  dorkroom/           # Main React application
+  dorkroom/           # Main React application with TanStack Router file-based routing
+    src/routes/       # File-based route definitions
 packages/
   ui/                 # Shared UI components (@dorkroom/ui)
-  logic/              # Business logic (@dorkroom/logic)
-  api/                # API utilities (@dorkroom/api)
+  logic/              # Business logic, hooks, queries (@dorkroom/logic)
+  api/                # API utilities and TypeScript client (@dorkroom/api)
 api/                  # Serverless API endpoints (Vercel functions)
 ```
+
+### Key Architectural Patterns
+
+- **File-Based Routing**: TanStack Router with automatic route tree generation
+- **Type-Safe State**: TanStack Query for server state with query key structure
+- **Form Validation**: TanStack Form with Zod schemas for runtime validation
+- **Data Tables**: TanStack Table for sorting, filtering, and pagination
 
 ## Features
 
 - **Responsive Design** - Works on desktop, tablet, and mobile
 - **Dark Theme** - Custom darkroom-inspired UI optimized for low light
-- **Fast Calculations** - Instant results without page reloads
-- **Open Source** - Community-driven development
+- **Fast Calculations** - Instant results with real-time validation
+- **Type-Safe** - Full TypeScript coverage with strict mode
+- **Offline-Ready** - Smart caching with TanStack Query
+- **File-Based Routing** - Type-safe navigation with TanStack Router
+- **Form Validation** - Runtime schema validation with Zod
+- **Development Database** - 800+ film development recipes
+- **Open Source** - Community-driven development under AGPL-3.0
 
 ## API
 
@@ -124,9 +172,11 @@ We welcome contributions from the analog photography community!
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/new-calculator`
 3. Make your changes following our code organization guidelines:
+   - **Routes**: Add new routes to `apps/dorkroom/src/routes/` using file-based routing
    - **Business Logic**: Add calculations, utilities, types, and hooks to `packages/logic/`
    - **UI Components**: Add reusable components and contexts to `packages/ui/`
-   - **Application Code**: Add pages and app-specific components to `apps/dorkroom/`
+   - **API Client**: Add API utilities to `packages/api/`
+   - **Validation Schemas**: Define Zod schemas in appropriate package
 4. Test your changes thoroughly:
    ```bash
    # Test specific packages
@@ -147,7 +197,7 @@ We welcome contributions from the analog photography community!
    bunx nx typecheck ui
    bunx nx typecheck dorkroom
 
-   # Format code
+   # Format code (only files you've modified)
    bunx prettier --write .
    ```
 
@@ -155,14 +205,30 @@ We welcome contributions from the analog photography community!
 
 ## Code Quality
 
-This project maintains high code quality standards with package-specific tooling:
+This project maintains high code quality standards with package-specific tooling and modern development practices.
 
 ### Package Organization
 
-- **`packages/logic/`** - Pure TypeScript business logic (calculations, utilities, types, hooks)
-- **`packages/ui/`** - Reusable React components and contexts
-- **`packages/api/`** - API utilities and client code
-- **`apps/dorkroom/`** - Main application with pages and app-specific components
+- **`packages/logic/`** - Pure TypeScript business logic (calculations, utilities, types, hooks, TanStack Query queries)
+- **`packages/ui/`** - Reusable React components, contexts, and form components
+- **`packages/api/`** - API utilities, TypeScript client, and data fetching functions
+- **`apps/dorkroom/`** - Main application with file-based routes and app-specific components
+
+### Key Development Patterns
+
+**TanStack Ecosystem:**
+
+- All data fetching uses TanStack Query v5 with proper query key structure
+- File-based routing with TanStack Router v1 for type-safe navigation
+- Form handling with TanStack Form v1 and Zod schema validation
+- Data tables with TanStack Table v8 for sorting, filtering, pagination
+
+**Type Safety:**
+
+- Strict TypeScript mode enabled
+- Zod schemas for runtime validation
+- Type-safe route parameters and search params
+- No `any` types (use `unknown` when type cannot be determined)
 
 ### Quality Tools by Package
 
@@ -182,7 +248,9 @@ bunx nx typecheck dorkroom # Type check main application
 
 # Run across all projects
 bunx nx run-many --targets=lint,typecheck,test,build
-bunx prettier --write . # Format all code
+
+# Format code (Prettier - single quotes, semicolons, trailing commas)
+bunx prettier --write .
 ```
 
 ## Project Commands
@@ -192,8 +260,10 @@ bunx prettier --write . # Format all code
 | `bunx nx dev dorkroom -- --host=0.0.0.0` | Start development server       |
 | `bunx nx build dorkroom`                 | Build production bundle        |
 | `bunx nx test`                           | Run tests                      |
-| `bunx nx lint dorkrooom`                 | Run ESLint                     |
-| `bunx nx typecheck dorkrooom`            | TypeScript checking            |
+| `bunx nx test --ui`                      | Run tests with UI              |
+| `bunx nx lint dorkroom`                  | Run ESLint                     |
+| `bunx nx typecheck dorkroom`             | TypeScript checking            |
+| `bunx prettier --write .`                | Format code                    |
 | `bunx nx graph`                          | Visualize project dependencies |
 
 ## License
