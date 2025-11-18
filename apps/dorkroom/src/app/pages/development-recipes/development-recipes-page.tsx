@@ -286,6 +286,8 @@ export default function DevelopmentRecipesPage() {
         selectedDeveloper,
         dilutionFilter,
         isoFilter,
+        favoritesOnly,
+        customRecipeFilter,
       },
       recipesByUuid
     );
@@ -308,6 +310,11 @@ export default function DevelopmentRecipesPage() {
     }
     if (initialUrlState.isoFilter) {
       setIsoFilter(initialUrlState.isoFilter);
+    }
+    if (initialUrlState.view === 'favorites') {
+      setFavoritesOnly(true);
+    } else if (initialUrlState.view === 'custom') {
+      setCustomRecipeFilter('only-custom');
     }
 
     // Check for shared recipe in URL

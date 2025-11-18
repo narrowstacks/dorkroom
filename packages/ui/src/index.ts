@@ -130,3 +130,10 @@ export {
   getSystemTheme,
   resolveTheme,
 } from './lib/themes';
+
+// Marketing Components
+export { Greeting } from './components/marketing/greeting';
+export { ToolCard } from './components/marketing/tool-card';
+export type { ToolCardProps } from './components/marketing/tool-card';
+export { StatCard } from './components/marketing/stat-card';
+export type { StatCardProps } from './components/marketing/stat-card';

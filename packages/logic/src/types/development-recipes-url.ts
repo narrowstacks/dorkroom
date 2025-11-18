@@ -5,6 +5,7 @@ export interface RecipeUrlParams {
   iso?: string;
   recipe?: string;
   source?: 'share';
+  view?: 'favorites' | 'custom';
 }
 
 export interface InitialUrlState {
@@ -15,6 +16,7 @@ export interface InitialUrlState {
   recipeId?: string;
   fromUrl?: boolean;
   isSharedApiRecipe?: boolean;
+  view?: 'favorites' | 'custom';
 }
 
 export interface UrlValidationConfig {

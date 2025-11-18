@@ -22,6 +22,7 @@ const MANAGED_QUERY_KEYS: Array<keyof RecipeUrlParams> = [
   'iso',
   'recipe',
   'source',
+  'view',
 ];
 
 /**
@@ -36,7 +37,8 @@ const parseSearchParams = (searchParams: URLSearchParams): RecipeUrlParams => {
   MANAGED_QUERY_KEYS.forEach((key) => {
     const value = searchParams.get(key);
     if (value) {
-      (result as Record<string, string>)[key] = value;
+      // @ts-ignore - TypeScript has trouble mapping the generic key to specific union members
+      result[key] = value;
     }
   });
 
@@ -173,6 +175,14 @@ export const validateUrlParams = (
     sanitized.source = 'share';
   }
 
+  if (params.view) {
+    if (params.view === 'favorites' || params.view === 'custom') {
+      sanitized.view = params.view;
+    } else {
+      errors.push('Invalid view format');
+    }
+  }
+
   return {
     isValid: errors.length === 0,
     sanitized,
@@ -217,6 +227,8 @@ export const useRecipeUrlState = (
     selectedDeveloper: Developer | null;
     dilutionFilter: string;
     isoFilter: string;
+    favoritesOnly?: boolean;
+    customRecipeFilter?: string;
   },
   recipesByUuid?: Map<string, Combination>
 ): UseRecipeUrlStateReturn => {
@@ -295,6 +307,10 @@ export const useRecipeUrlState = (
 
     if (validation.sanitized.iso) {
       state.isoFilter = validation.sanitized.iso;
+    }
+
+    if (validation.sanitized.view) {
+      state.view = validation.sanitized.view;
     }
 
     if (validation.sanitized.recipe) {
@@ -455,12 +471,22 @@ export const useRecipeUrlState = (
       urlParams.iso = '';
     }
 
+    if (currentState.favoritesOnly) {
+      urlParams.view = 'favorites';
+    } else if (currentState.customRecipeFilter === 'only-custom') {
+      urlParams.view = 'custom';
+    } else {
+      urlParams.view = undefined;
+    }
+
     updateUrl(urlParams);
   }, [
     currentState.selectedFilm,
     currentState.selectedDeveloper,
     currentState.dilutionFilter,
     currentState.isoFilter,
+    currentState.favoritesOnly,
+    currentState.customRecipeFilter,
     updateUrl,
   ]);
 

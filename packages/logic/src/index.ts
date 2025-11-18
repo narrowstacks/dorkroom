@@ -39,6 +39,9 @@ export * from './schemas/border-calculator.schema';
 // Services exports
 export * from './services/filmdev-api';
 
+// API Hooks
+export * from './hooks/api';
+
 // Hook exports
 export { useWindowDimensions } from './hooks/use-window-dimensions';
 export { useBorderPresets } from './hooks/use-border-presets';

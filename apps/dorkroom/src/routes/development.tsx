@@ -14,6 +14,7 @@ const developmentSearchSchema = z.object({
   iso: z.string().optional(),
   recipe: z.string().optional(),
   source: z.string().optional(),
+  view: z.enum(['favorites', 'custom']).optional(),
 });
 
 export type DevelopmentSearchParams = z.infer<typeof developmentSearchSchema>;
