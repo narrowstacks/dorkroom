@@ -401,9 +401,9 @@
     transition: border-color 0.2s;
   }
 
-  .hero-card:hover {
+  /* .hero-card:hover {
     border-color: var(--color-hero-border-hover);
-  }
+  } */
 
   /* Hero Button Styles */
   .hero-button-success {
@@ -434,5 +434,72 @@
 
   .footer-link:hover {
     color: var(--color-text-primary);
+  }
+
+  /* Navigation button hover effects */
+  .nav-button {
+    transition: transform 0.15s ease, box-shadow 0.15s ease,
+      background-color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .nav-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Add subtle glow to circular nav buttons */
+  .nav-button.rounded-full:hover {
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.08),
+      0 0 0 1px rgba(var(--color-text-primary-rgb), 0.1),
+      inset 0 0 0 1px rgba(var(--color-text-primary-rgb), 0.05);
+  }
+
+  /* Theme-aware hover effects */
+  [data-theme='light'] .nav-button:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  [data-theme='light'] .nav-button.rounded-full:hover {
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.08),
+      0 0 0 1px rgba(9, 9, 11, 0.1),
+      inset 0 0 0 1px rgba(9, 9, 11, 0.05);
+  }
+
+  [data-theme='dark'] .nav-button:hover,
+  [data-theme='darkroom'] .nav-button:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  [data-theme='dark'] .nav-button.rounded-full:hover,
+  [data-theme='darkroom'] .nav-button.rounded-full:hover {
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.08),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  [data-theme='high-contrast'] .nav-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 0 var(--color-text-primary);
+    border-color: var(--color-text-primary) !important;
+  }
+
+  [data-theme='high-contrast'] .nav-button.rounded-full:hover {
+    box-shadow:
+      0 2px 0 var(--color-text-primary),
+      0 0 0 2px var(--color-text-primary);
+  }
+
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    .nav-button {
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .nav-button:hover {
+      transform: none;
+    }
   }
 }

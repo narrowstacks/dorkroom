@@ -25,7 +25,7 @@ import { Greeting, ToolCard, StatCard } from '@dorkroom/ui';
 // Calculator tools configuration - module level to prevent recreation on each render
 const CALCULATORS = [
   {
-    category: 'Print',
+    category: 'Printing',
     title: 'Border Calculator',
     description: 'Print borders & trim guides',
     href: '/border',
@@ -36,7 +36,7 @@ const CALCULATORS = [
     border: 'group-hover:border-indigo-500/50',
   },
   {
-    category: 'Exposure',
+    category: 'Printing',
     title: 'Stops Calculator',
     description: 'F-stop & time math',
     href: '/stops',
@@ -47,7 +47,7 @@ const CALCULATORS = [
     border: 'group-hover:border-blue-500/50',
   },
   {
-    category: 'Digital',
+    category: 'Printing',
     title: 'Resize Calculator',
     description: 'Scale prints, no wasting test strips',
     href: '/resize',
@@ -71,7 +71,7 @@ const CALCULATORS = [
   {
     category: 'Film Dev',
     title: 'Film Development Recipes',
-    description: 'Film & chemistry database',
+    description: 'B&W film development database',
     href: '/development',
     icon: FlaskConical,
     iconColorKey: 'rose' as const,
