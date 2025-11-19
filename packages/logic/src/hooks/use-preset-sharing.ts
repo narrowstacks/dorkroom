@@ -86,7 +86,7 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
     async (
       url: string,
       title = 'Border Calculator Preset'
-    ): Promise<boolean> => {
+    ): Promise<boolean | 'cancelled'> => {
       if (!shouldUseWebShare()) {
         return false;
       }
@@ -99,7 +99,12 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
         });
         return true;
       } catch (error) {
-        // User cancelled or share failed
+        // Check if user cancelled the share (AbortError)
+        if (error instanceof Error && error.name === 'AbortError') {
+          // User cancelled - return special value to prevent fallback
+          return 'cancelled';
+        }
+        // Other errors - log and return false to trigger fallback
         debugError('Native share failed:', error);
         return false;
       }
@@ -148,7 +153,7 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
         // Try native share if available and not preferring clipboard
         if (!preferClipboard && shouldUseWebShare()) {
           const shareSuccess = await shareNatively(url, preset.name);
-          if (shareSuccess) {
+          if (shareSuccess === true) {
             const result: ShareResult = {
               success: true,
               method: 'native',
@@ -156,6 +161,10 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
             };
             onShareSuccess?.(result);
             return result;
+          }
+          if (shareSuccess === 'cancelled') {
+            // User cancelled - return success without showing error
+            return { success: true, method: 'native', url };
           }
         }
 
