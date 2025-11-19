@@ -2,6 +2,22 @@ import type { Combination } from '@dorkroom/api';
 import type { CustomRecipe } from '../types/custom-recipes';
 
 /**
+ * Sentinel value used for temporary combinations that don't have a database ID.
+ * These combinations are client-side only (e.g., custom recipes, shared recipes).
+ * The `id` field is not used in the UI - only `uuid` is used for identification.
+ */
+const TEMPORARY_ID = -1 as const;
+
+/**
+ * Temperature constants for validation (Fahrenheit)
+ * These represent the physical limits for darkroom chemistry:
+ * - MIN_TEMPERATURE_F: Freezing point of water (32°F)
+ * - MAX_TEMPERATURE_F: Boiling point of water (212°F)
+ */
+const MIN_TEMPERATURE_F = 32; // Freezing point
+const MAX_TEMPERATURE_F = 212; // Boiling point
+
+/**
  * Validates numeric inputs for recipes to ensure they are within reasonable ranges.
  *
  * @param temperatureF - Temperature in Fahrenheit
@@ -22,8 +38,10 @@ function validateNumericInputs(
     throw new Error('Invalid numeric values provided');
   }
 
-  if (temperatureF < 32 || temperatureF > 212) {
-    throw new Error('Temperature must be between 32°F and 212°F');
+  if (temperatureF < MIN_TEMPERATURE_F || temperatureF > MAX_TEMPERATURE_F) {
+    throw new Error(
+      `Temperature must be between ${MIN_TEMPERATURE_F}°F and ${MAX_TEMPERATURE_F}°F`
+    );
   }
 
   if (timeMinutes <= 0) {
@@ -65,7 +83,7 @@ export function createCombinationFromCustomRecipe(
     'dateModified' in recipe ? recipe.dateModified || createdAt : timestamp;
 
   return {
-    id: -1, // Temporary ID for recipes (not used in the UI)
+    id: TEMPORARY_ID,
     uuid: uuid ?? recipeId,
     name: recipe.name,
     filmStockId: recipe.filmId,
@@ -121,7 +139,7 @@ export function createTemporaryCombination(data: {
   const timestamp = new Date().toISOString();
 
   return {
-    id: data.id ?? -1,
+    id: data.id ?? TEMPORARY_ID,
     uuid,
     name: data.name,
     filmStockId: data.filmStockId,

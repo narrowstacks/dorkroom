@@ -1,5 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Moon, Sun, Monitor, Contrast, Camera, ChevronDown } from 'lucide-react';
+import {
+  Moon,
+  Sun,
+  Monitor,
+  Contrast,
+  Camera,
+  ChevronDown,
+} from 'lucide-react';
 import { cn } from '../lib/cn';
 import { useTheme } from '../contexts/theme-context';
 import type { Theme } from '../lib/themes';
@@ -27,11 +34,27 @@ export interface ThemeToggleProps {
 export function ThemeToggle({ variant = 'icon', className }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const currentTheme = themeOptions.find((option) => option.value === theme);
   const CurrentIcon = currentTheme?.icon || Monitor;
+
+  // Reset focused index when menu opens
+  useEffect(() => {
+    if (isOpen) {
+      setFocusedIndex(-1);
+    }
+  }, [isOpen]);
+
+  // Focus menu item when focused index changes
+  useEffect(() => {
+    if (focusedIndex >= 0 && focusedIndex < menuItemRefs.current.length) {
+      menuItemRefs.current[focusedIndex]?.focus();
+    }
+  }, [focusedIndex]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -65,15 +88,48 @@ export function ThemeToggle({ variant = 'icon', className }: ThemeToggleProps) {
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
     setIsOpen(false);
+    buttonRef.current?.focus();
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
+  const handleButtonKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       setIsOpen(!isOpen);
-    } else if (event.key === 'ArrowDown' && !isOpen) {
+      if (!isOpen) {
+        setFocusedIndex(0);
+      }
+    } else if (event.key === 'ArrowDown') {
       event.preventDefault();
-      setIsOpen(true);
+      if (!isOpen) {
+        setIsOpen(true);
+        setFocusedIndex(0);
+      }
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (!isOpen) {
+        setIsOpen(true);
+        setFocusedIndex(themeOptions.length - 1);
+      }
+    }
+  };
+
+  const handleMenuKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setFocusedIndex((prev) =>
+        prev < themeOptions.length - 1 ? prev + 1 : 0
+      );
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setFocusedIndex((prev) =>
+        prev > 0 ? prev - 1 : themeOptions.length - 1
+      );
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      setFocusedIndex(0);
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      setFocusedIndex(themeOptions.length - 1);
     }
   };
 
@@ -84,7 +140,7 @@ export function ThemeToggle({ variant = 'icon', className }: ThemeToggleProps) {
           ref={buttonRef}
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          onKeyDown={handleKeyDown}
+          onKeyDown={handleButtonKeyDown}
           className={cn(
             'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
             'text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]'
@@ -93,40 +149,40 @@ export function ThemeToggle({ variant = 'icon', className }: ThemeToggleProps) {
           aria-haspopup="menu"
           aria-label="Theme"
         >
-          <span
-            className="flex h-9 w-9 items-center justify-center rounded-2xl"
-            style={{
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.08)',
-            }}
-          >
+          <span className="theme-toggle-icon-bg flex h-9 w-9 items-center justify-center rounded-2xl">
             <CurrentIcon className="h-4 w-4" />
           </span>
           <span className="flex-1 text-left">Theme</span>
           <ChevronDown
-            className={cn('h-4 w-4 transition-transform', isOpen && 'rotate-180')}
+            className={cn(
+              'h-4 w-4 transition-transform',
+              isOpen && 'rotate-180'
+            )}
           />
         </button>
 
         {isOpen && (
           <div
-            className="absolute left-0 top-full z-50 mt-2 min-w-56 rounded-2xl border p-2 shadow-xl backdrop-blur-md"
+            className="absolute bottom-full left-0 z-50 mb-2 min-w-56 rounded-2xl border p-2 shadow-xl"
             style={{
+              backgroundColor: 'var(--color-background)',
               borderColor: 'var(--color-border-primary)',
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.95)',
-              boxShadow:
-                '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
             }}
             role="menu"
           >
-            {themeOptions.map((option) => {
+            {themeOptions.map((option, index) => {
               const OptionIcon = option.icon;
               const isSelected = option.value === theme;
 
               return (
                 <button
                   key={option.value}
+                  ref={(el) => {
+                    menuItemRefs.current[index] = el;
+                  }}
                   type="button"
                   onClick={() => handleThemeChange(option.value)}
+                  onKeyDown={handleMenuKeyDown}
                   className={cn(
                     'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none',
                     'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
@@ -136,12 +192,12 @@ export function ThemeToggle({ variant = 'icon', className }: ThemeToggleProps) {
                   role="menuitem"
                 >
                   <span
-                    className="flex h-8 w-8 items-center justify-center rounded-xl"
-                    style={{
-                      backgroundColor: isSelected
-                        ? 'rgba(var(--color-background-rgb), 0.2)'
-                        : 'rgba(var(--color-background-rgb), 0.08)',
-                    }}
+                    className={cn(
+                      'flex h-8 w-8 items-center justify-center rounded-xl',
+                      isSelected
+                        ? 'theme-toggle-icon-bg-selected'
+                        : 'theme-toggle-icon-bg'
+                    )}
                   >
                     <OptionIcon className="h-4 w-4" />
                   </span>
@@ -162,7 +218,7 @@ export function ThemeToggle({ variant = 'icon', className }: ThemeToggleProps) {
         ref={buttonRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        onKeyDown={handleKeyDown}
+        onKeyDown={handleButtonKeyDown}
         className={cn(
           'flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none',
           'focus-visible:ring-2',
@@ -183,24 +239,26 @@ export function ThemeToggle({ variant = 'icon', className }: ThemeToggleProps) {
 
       {isOpen && (
         <div
-          className="absolute right-0 top-full z-50 mt-2 min-w-56 rounded-2xl border p-2 shadow-xl backdrop-blur-md"
+          className="absolute right-0 top-full z-50 mt-2 min-w-56 rounded-2xl border p-2 shadow-xl"
           style={{
+            backgroundColor: 'var(--color-background)',
             borderColor: 'var(--color-border-primary)',
-            backgroundColor: 'rgba(var(--color-background-rgb), 0.95)',
-            boxShadow:
-              '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
           }}
           role="menu"
         >
-          {themeOptions.map((option) => {
+          {themeOptions.map((option, index) => {
             const OptionIcon = option.icon;
             const isSelected = option.value === theme;
 
             return (
               <button
                 key={option.value}
+                ref={(el) => {
+                  menuItemRefs.current[index] = el;
+                }}
                 type="button"
                 onClick={() => handleThemeChange(option.value)}
+                onKeyDown={handleMenuKeyDown}
                 className={cn(
                   'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none',
                   'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
@@ -210,12 +268,12 @@ export function ThemeToggle({ variant = 'icon', className }: ThemeToggleProps) {
                 role="menuitem"
               >
                 <span
-                  className="flex h-8 w-8 items-center justify-center rounded-xl"
-                  style={{
-                    backgroundColor: isSelected
-                      ? 'rgba(var(--color-background-rgb), 0.2)'
-                      : 'rgba(var(--color-background-rgb), 0.08)',
-                  }}
+                  className={cn(
+                    'flex h-8 w-8 items-center justify-center rounded-xl',
+                    isSelected
+                      ? 'theme-toggle-icon-bg-selected'
+                      : 'theme-toggle-icon-bg'
+                  )}
                 >
                   <OptionIcon className="h-4 w-4" />
                 </span>
@@ -228,4 +286,3 @@ export function ThemeToggle({ variant = 'icon', className }: ThemeToggleProps) {
     </div>
   );
 }
-

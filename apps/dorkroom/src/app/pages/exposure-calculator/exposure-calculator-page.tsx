@@ -20,6 +20,7 @@ import {
   calculateNewExposureTime,
   formatExposureTime,
   calculatePercentageIncrease,
+  debugWarn,
 } from '@dorkroom/logic';
 import { useTheme, themes } from '@dorkroom/ui';
 
@@ -139,9 +140,10 @@ export default function ExposureCalculatorPage() {
         form.setFieldValue(key, value);
       });
     } catch (error) {
-      console.warn('Failed to load calculator state', error);
+      debugWarn('Failed to load calculator state', error);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount; form is stable but adding it would cause re-hydration
 
   // Persist form state to localStorage whenever it changes
   useEffect(() => {
@@ -153,7 +155,7 @@ export default function ExposureCalculatorPage() {
         JSON.stringify(persistableSnapshot)
       );
     } catch (error) {
-      console.warn('Failed to save calculator state', error);
+      debugWarn('Failed to save calculator state', error);
     }
   }, [persistableSnapshot]);
 

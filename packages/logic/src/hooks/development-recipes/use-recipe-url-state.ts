@@ -429,9 +429,13 @@ export const useRecipeUrlState = (
     (newParams: Partial<RecipeUrlParams>) => {
       if (updateTimeoutRef.current) {
         clearTimeout(updateTimeoutRef.current);
+        updateTimeoutRef.current = null;
       }
 
       updateTimeoutRef.current = setTimeout(() => {
+        // Clear the timeout ref immediately to prevent duplicate cleanup
+        updateTimeoutRef.current = null;
+
         if (!isInitializedRef.current || typeof window === 'undefined') {
           return;
         }

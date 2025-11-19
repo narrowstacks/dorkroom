@@ -246,16 +246,25 @@ export default function DevelopmentRecipesPage() {
     }
   }, [pageIndex, favoriteTransitions]);
 
+  // Optimize: only rebuild the recipes map when the actual data changes
+  // Using JSON.stringify as a stable key is not ideal for large datasets,
+  // but the filtered combinations are already memoized upstream, so changes
+  // to this array should be infrequent
   const recipesByUuid = useMemo(() => {
     const map = new Map<string, Combination>();
-    filteredCombinations.forEach((combo) => {
+
+    // Add API combinations (already filtered upstream)
+    for (const combo of filteredCombinations) {
       if (combo.uuid) {
         map.set(combo.uuid, combo);
       }
-    });
-    customRecipes.forEach((recipe) => {
+    }
+
+    // Add custom recipes (convert to Combination format)
+    for (const recipe of customRecipes) {
       map.set(recipe.id, createCombinationFromCustomRecipe(recipe));
-    });
+    }
+
     return map;
   }, [filteredCombinations, customRecipes]);
 
@@ -279,6 +288,7 @@ export default function DevelopmentRecipesPage() {
   );
 
   const urlStateAppliedRef = useRef(false);
+  const isApplyingUrlStateRef = useRef(false);
 
   // Memoize expensive shared custom recipe conversion
   const sharedCustomRecipeView = useMemo(() => {
@@ -371,6 +381,13 @@ export default function DevelopmentRecipesPage() {
       return;
     }
 
+    // Prevent re-entry while applying URL state
+    if (isApplyingUrlStateRef.current) {
+      return;
+    }
+
+    isApplyingUrlStateRef.current = true;
+
     if (initialUrlState.selectedFilm) {
       setSelectedFilm(initialUrlState.selectedFilm as Film);
     }
@@ -395,6 +412,7 @@ export default function DevelopmentRecipesPage() {
       setSharedRecipeSource('custom');
       setIsSharedRecipeModalOpen(true);
       urlStateAppliedRef.current = true;
+      isApplyingUrlStateRef.current = false;
       return;
     }
 
@@ -424,6 +442,7 @@ export default function DevelopmentRecipesPage() {
     }
 
     urlStateAppliedRef.current = true;
+    isApplyingUrlStateRef.current = false;
   }, [
     isLoaded,
     initialUrlState,

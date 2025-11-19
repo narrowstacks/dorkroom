@@ -1,6 +1,16 @@
 /**
  * Sanitize user-provided text to prevent XSS attacks.
- * Removes HTML tags and potentially dangerous characters while preserving readability.
+ * Removes HTML tags and potentially dangerous sequences while preserving readability.
+ *
+ * SECURITY NOTE: This function provides defense-in-depth sanitization for React applications.
+ * React already escapes HTML entities when rendering text, but this function adds an extra
+ * layer of protection by removing dangerous patterns before they reach the DOM.
+ *
+ * Why not DOMPurify?
+ * - React's built-in escaping is the primary XSS defense
+ * - This app only renders text content (no dangerouslySetInnerHTML)
+ * - Adding DOMPurify would increase bundle size for minimal security benefit
+ * - Defense-in-depth pattern removal is sufficient for our use case
  *
  * @param text - User input text to sanitize
  * @param maxLength - Optional maximum length (default: 5000)
@@ -14,23 +24,37 @@ export function sanitizeText(
     return '';
   }
 
-  // Remove HTML tags
-  let sanitized = text.replace(/<[^>]*>/g, '');
+  let sanitized = text;
 
-  // Remove potentially dangerous characters and sequences
-  // Keep common punctuation and letters
+  // Remove all HTML tags (including self-closing and malformed tags)
+  // This regex handles: <tag>, </tag>, <tag/>, <tag attr="value">
+  sanitized = sanitized.replace(/<[^>]*>/g, '');
+
+  // Remove dangerous protocol handlers and event attributes
+  // Handle variations: javascript:, JAVASCRIPT:, java\x00script:, etc.
   sanitized = sanitized
-    .replace(/javascript:/gi, '')
-    .replace(/on\w+=/gi, '')
-    .replace(/data:text\/html/gi, '')
-    .replace(/<script/gi, '')
-    .replace(/<\/script>/gi, '');
+    .replace(/javascript\s*:/gi, '')
+    .replace(/vbscript\s*:/gi, '')
+    .replace(/on\w+\s*=/gi, '') // onclick=, onerror=, etc.
+    .replace(/data\s*:\s*text\/html/gi, '')
+    .replace(/data\s*:\s*application/gi, '');
+
+  // Remove any remaining script-related content
+  // This catches cases where tags were URL-encoded or obfuscated
+  sanitized = sanitized
+    .replace(/script/gi, '')
+    .replace(/iframe/gi, '')
+    .replace(/object/gi, '')
+    .replace(/embed/gi, '');
+
+  // Remove null bytes and other control characters (except \n, \r, \t)
+  sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
   // WARNING: Do not manually encode HTML entities here.
   // React automatically handles HTML escaping during rendering.
   // Manual encoding would result in double-encoding (e.g., "&lt;" becomes "&amp;lt;").
   // We've already removed dangerous patterns above (script tags, event handlers, etc.),
-  // so we can safely let React handle the rest.
+  // so we can safely let React handle character escaping.
 
   // Trim to max length
   if (sanitized.length > maxLength) {
