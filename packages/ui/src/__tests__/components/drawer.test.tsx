@@ -106,6 +106,20 @@ describe('Drawer', () => {
       expect(drawer).toHaveClass('max-h-[80dvh]');
     });
 
+    it('merges custom class names onto the drawer container', () => {
+      render(
+        <Drawer
+          {...defaultProps}
+          className="max-h-[95dvh] custom-drawer-class"
+        />
+      );
+
+      const drawer = document.querySelector('.absolute.border');
+      expect(drawer).toHaveClass('custom-drawer-class');
+      expect(drawer).toHaveClass('max-h-[95dvh]');
+      expect(drawer).not.toHaveClass('max-h-[60dvh]');
+    });
+
     it('applies width for side anchors', () => {
       render(<Drawer {...defaultProps} anchor="left" />);
 

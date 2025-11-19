@@ -1763,6 +1763,7 @@ export default function DevelopmentRecipesPage() {
             size="lg"
             anchor="bottom"
             enableBackgroundBlur={true}
+            className="max-h-[100dvh]"
           >
             <DrawerContent className="h-full max-h-[100dvh] bg-[color:var(--color-surface)]">
               <div

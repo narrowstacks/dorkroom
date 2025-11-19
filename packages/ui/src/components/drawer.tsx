@@ -9,6 +9,7 @@ interface DrawerProps {
   anchor?: 'bottom' | 'top' | 'left' | 'right';
   enableBackgroundBlur?: boolean;
   enableBackgroundOverlay?: boolean;
+  className?: string;
 }
 
 export function Drawer({
@@ -19,6 +20,7 @@ export function Drawer({
   anchor = 'bottom',
   enableBackgroundBlur = false,
   enableBackgroundOverlay = true,
+  className,
 }: DrawerProps) {
   const [showContent, setShowContent] = useState(false);
 
@@ -81,7 +83,8 @@ export function Drawer({
             ? `${sizeClasses[size]} rounded-t-xl`
             : 'w-80 h-full',
           positionClasses[anchor],
-          transformClasses[anchor]
+          transformClasses[anchor],
+          className
         )}
         style={{
           backgroundColor: 'var(--color-surface)',
