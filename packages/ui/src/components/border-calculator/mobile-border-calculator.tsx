@@ -947,8 +947,7 @@ export function MobileBorderCalculator({
           presetName={currentPreset?.name || 'Border Calculator Settings'}
           webUrl={shareUrls?.webUrl || ''}
           onCopyToClipboard={handleCopyToClipboard}
-          onNativeShare={canShareNatively ? handleNativeShare : undefined}
-          canShareNatively={canShareNatively}
+          canShareNatively={false}
           canCopyToClipboard={canCopyToClipboard}
         />
 
