@@ -428,4 +428,4 @@ Is it complex multi-file analysis?
 
 ## On using ast-grep vs ripgrep (rg)
 
-You run in an environment where `ast-grep` is available; whenever a search requires syntax-aware or structural matching, default to `ast-grep --lang typescript -p '<pattern>'` (or set `--lang` appropriately) and avoid falling back to text-only tools like `rg` or `grep` unless I explicitly request a plain-text search.
+You run in an environment where `ast-grep` is available; whenever a search requires syntax-aware or structural matching, default to `ast-grep run --pattern '{FunctionOrOther}' --lang typescript .` (or set `--lang` appropriately) and avoid falling back to text-only tools like `rg` or `grep` unless I explicitly request a plain-text search.
