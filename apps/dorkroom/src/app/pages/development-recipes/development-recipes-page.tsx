@@ -1764,7 +1764,7 @@ export default function DevelopmentRecipesPage() {
             anchor="bottom"
             enableBackgroundBlur={true}
           >
-            <DrawerContent className="h-full max-h-[90vh] bg-[color:var(--color-surface)]">
+            <DrawerContent className="h-full max-h-[100dvh] bg-[color:var(--color-surface)]">
               <div
                 className="flex items-center justify-between border-b px-4 py-3"
                 style={{ borderColor: 'var(--color-border-secondary)' }}
