@@ -187,10 +187,8 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
         onClose={() => setIsShareModalOpen(false)}
         presetName={presetName || 'Border Calculator Settings'}
         webUrl={shareUrls?.webUrl || ''}
-        nativeUrl={shareUrls?.nativeUrl}
         onCopyToClipboard={handleCopyToClipboard}
-        onNativeShare={canShareNatively ? handleNativeShare : undefined}
-        canShareNatively={canShareNatively}
+        canShareNatively={false}
         canCopyToClipboard={canCopyToClipboard}
       />
 

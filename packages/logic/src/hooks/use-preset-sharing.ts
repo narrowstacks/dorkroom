@@ -2,10 +2,10 @@ import { useState, useCallback } from 'react';
 import { encodePreset, type PresetToShare } from '../utils/preset-sharing';
 import {
   generateSharingUrls,
-  isWebShareSupported,
   isClipboardSupported,
   updateUrlWithPreset,
 } from '../utils/url-helpers';
+import { shouldUseWebShare } from '../utils/device-detection';
 import { debugError } from '../utils/debug-logger';
 
 export interface ShareResult {
@@ -86,8 +86,8 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
     async (
       url: string,
       title = 'Border Calculator Preset'
-    ): Promise<boolean> => {
-      if (!isWebShareSupported()) {
+    ): Promise<boolean | 'cancelled'> => {
+      if (!shouldUseWebShare()) {
         return false;
       }
 
@@ -99,7 +99,12 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
         });
         return true;
       } catch (error) {
-        // User cancelled or share failed
+        // Check if user cancelled the share (AbortError)
+        if (error instanceof Error && error.name === 'AbortError') {
+          // User cancelled - return special value to prevent fallback
+          return 'cancelled';
+        }
+        // Other errors - log and return false to trigger fallback
         debugError('Native share failed:', error);
         return false;
       }
@@ -146,9 +151,9 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
         }
 
         // Try native share if available and not preferring clipboard
-        if (!preferClipboard && isWebShareSupported()) {
+        if (!preferClipboard && shouldUseWebShare()) {
           const shareSuccess = await shareNatively(url, preset.name);
-          if (shareSuccess) {
+          if (shareSuccess === true) {
             const result: ShareResult = {
               success: true,
               method: 'native',
@@ -156,6 +161,10 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
             };
             onShareSuccess?.(result);
             return result;
+          }
+          if (shareSuccess === 'cancelled') {
+            // User cancelled - return success without showing error
+            return { success: true, method: 'native', url };
           }
         }
 
@@ -213,7 +222,7 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
    * Get sharing URLs without performing a share action.
    *
    * @param preset - Preset data to encode
-   * @returns Object containing URL variants or null when encoding fails
+   * @returns Object containing web URL or null when encoding fails
    */
   const getSharingUrls = useCallback((preset: PresetToShare) => {
     const encoded = encodePreset(preset);
@@ -237,7 +246,7 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
     getSharingUrls,
 
     // Capabilities
-    canShareNatively: isWebShareSupported(),
+    canShareNatively: shouldUseWebShare(),
     canCopyToClipboard: isClipboardSupported(),
   };
 }

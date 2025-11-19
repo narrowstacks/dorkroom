@@ -1,6 +1,5 @@
 import {
   getDynamicShareUrl,
-  getNativeUrl,
   generateSharingUrls,
   getPresetFromUrl,
   updateUrlWithPreset,
@@ -94,19 +93,6 @@ describe('url helpers', () => {
     });
   });
 
-  describe('getNativeUrl', () => {
-    it('should generate native app URL', () => {
-      const encoded = 'abc123';
-      const url = getNativeUrl(encoded);
-      expect(url).toBe('dorkroom://preset/abc123');
-    });
-
-    it('should handle empty encoded string', () => {
-      const url = getNativeUrl('');
-      expect(url).toBe('dorkroom://preset/');
-    });
-  });
-
   describe('generateSharingUrls', () => {
     beforeEach(() => {
       // Reset mockWindow to localhost configuration before each test
@@ -120,12 +106,11 @@ describe('url helpers', () => {
       });
     });
 
-    it('should generate both web and native URLs', () => {
+    it('should generate web URL', () => {
       const encoded = 'abc123';
       const urls = generateSharingUrls(encoded);
 
       expect(urls.webUrl).toBe('http://localhost:4200/border#abc123');
-      expect(urls.nativeUrl).toBe('dorkroom://preset/abc123');
     });
   });
 

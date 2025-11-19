@@ -8,7 +8,6 @@ export interface ShareModalProps {
   onClose: () => void;
   presetName: string;
   webUrl: string;
-  nativeUrl?: string;
   onCopyToClipboard: (url: string) => Promise<void>;
   onNativeShare?: () => Promise<void>;
   canShareNatively?: boolean;
@@ -16,18 +15,16 @@ export interface ShareModalProps {
 }
 
 /**
- * Renders a modal that lets the user copy or natively share a preset's web and app URLs.
+ * Renders a modal that lets the user copy or natively share a preset's web URL.
  *
  * Displays an error state when no valid web URL is available. When open, the modal shows:
  * - an optional native share action (if enabled and provided),
- * - a web link (with protocol stripped for display) and copy control,
- * - an optional native/app link and copy control.
+ * - a web link (with protocol stripped for display) and copy control.
  *
  * @param isOpen - Whether the modal is visible.
  * @param onClose - Callback invoked to close the modal.
  * @param presetName - Human-readable name shown in the modal title.
  * @param webUrl - The web URL used for sharing and copying; must be non-empty to enable sharing UI.
- * @param nativeUrl - Optional app/native URL shown and copyable when present.
  * @param onCopyToClipboard - Handler invoked to copy a given URL to the clipboard.
  * @param onNativeShare - Optional handler invoked to perform a system/native share action.
  * @param canShareNatively - When true and `onNativeShare` is provided, shows the native share action.
@@ -39,7 +36,6 @@ export function ShareModal({
   onClose,
   presetName,
   webUrl,
-  nativeUrl,
   onCopyToClipboard,
   onNativeShare,
   canShareNatively = false,
@@ -58,17 +54,6 @@ export function ShareModal({
   const handleCopyWeb = async () => {
     try {
       await onCopyToClipboard(webUrl);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    } catch (error) {
-      debugError('Failed to copy:', error);
-    }
-  };
-
-  const handleCopyNative = async () => {
-    if (!nativeUrl) return;
-    try {
-      await onCopyToClipboard(nativeUrl);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (error) {
@@ -389,71 +374,6 @@ export function ShareModal({
                           )}
                         </div>
                       </div>
-
-                      {/* Native URL Section */}
-                      {nativeUrl && (
-                        <div className="space-y-2">
-                          <label
-                            className="block text-sm font-medium"
-                            style={{ color: 'var(--color-text-primary)' }}
-                          >
-                            App Link
-                          </label>
-                          <p
-                            className="text-xs"
-                            style={{ color: 'var(--color-text-secondary)' }}
-                          >
-                            Opens directly in the Dorkroom app
-                          </p>
-                          <div className="flex space-x-2">
-                            <input
-                              type="text"
-                              value={nativeUrl}
-                              readOnly
-                              className="flex-1 block w-full rounded-md px-3 py-2 text-sm placeholder:opacity-70"
-                              style={{
-                                borderWidth: 1,
-                                borderColor: 'var(--color-border-secondary)',
-                                backgroundColor: 'var(--color-surface-muted)',
-                                color: 'var(--color-text-primary)',
-                              }}
-                            />
-                            {canCopyToClipboard && (
-                              <button
-                                onClick={handleCopyNative}
-                                className={cn(
-                                  'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2'
-                                )}
-                                style={
-                                  {
-                                    backgroundColor:
-                                      'rgba(var(--color-background-rgb), 0.2)',
-                                    color: 'var(--color-text-primary)',
-                                    '--tw-ring-color':
-                                      'var(--color-border-primary)',
-                                  } as React.CSSProperties & {
-                                    '--tw-ring-color': string;
-                                  }
-                                }
-                              >
-                                <svg
-                                  className="h-4 w-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                  />
-                                </svg>
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>

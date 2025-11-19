@@ -55,7 +55,7 @@ export function StatCard({
   const iconColorVar = iconColorKey
     ? `var(--color-icon-stat-${iconColorKey})`
     : 'var(--color-text-primary)';
-  
+
   const variantStyles = iconColorKey ? COLOR_VARIANTS[iconColorKey] : undefined;
   const bg = propBg || variantStyles?.bg;
   const border = propBorder || variantStyles?.border;
@@ -127,10 +127,7 @@ export function StatCard({
         {...componentProps}
         aria-label={label}
         title={`${label}: ${value}`}
-        className={cn(
-          'group flex items-center gap-4 px-5 py-4',
-          commonClasses
-        )}
+        className={cn('group flex items-center gap-4 px-5 py-4', commonClasses)}
         style={{
           backgroundColor: 'var(--color-tool-card-bg)',
         }}
@@ -144,7 +141,7 @@ export function StatCard({
               color: iconColorVar,
             }}
           >
-            <Icon className="w-4 h-4" />
+            <Icon className="w-4 h-4" data-statcard-icon />
           </div>
           <div>
             <span className="text-[color:var(--color-text-tertiary)] text-sm font-medium">
@@ -164,10 +161,7 @@ export function StatCard({
       {...componentProps}
       aria-label={label}
       title={`${label}: ${value}`}
-      className={cn(
-        'group flex flex-col gap-2 p-4',
-        commonClasses
-      )}
+      className={cn('group flex flex-col gap-2 p-4', commonClasses)}
       style={{
         backgroundColor: 'var(--color-tool-card-bg)',
       }}
@@ -185,7 +179,7 @@ export function StatCard({
               color: iconColorVar,
             }}
           >
-            <Icon className="w-5 h-5" />
+            <Icon className="w-5 h-5" data-statcard-icon />
           </div>
           <span className="text-2xl font-bold text-[color:var(--color-text-primary)] leading-none">
             {value}

@@ -6,7 +6,7 @@ import {
   useRouter,
   useRouterState,
 } from '@tanstack/react-router';
-import { Beaker, Menu, Printer, Settings, X } from 'lucide-react';
+import { Beaker, GitBranch, Menu, Printer, Settings, X } from 'lucide-react';
 import { cn } from '../app/lib/cn';
 import {
   NavigationDropdown,
@@ -148,7 +148,7 @@ function RootComponent() {
                 href="https://github.com/narrowstacks/dorkroom"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full px-4 py-2 text-sm font-medium transition"
+                className="nav-button flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition"
                 style={{
                   color: 'var(--color-text-primary)',
                   borderColor: 'var(--color-border-secondary)',
@@ -156,12 +156,13 @@ function RootComponent() {
                   backgroundColor: 'transparent',
                 }}
               >
+                <GitBranch className="h-4 w-4" />
                 Contribute
               </a>
               <ThemeToggle variant="icon" />
               <Link
                 to="/settings"
-                className="flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none"
+                className="nav-button flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none"
                 style={{
                   color: 'var(--color-text-primary)',
                   borderColor: 'var(--color-border-secondary)',

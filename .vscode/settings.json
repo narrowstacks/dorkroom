@@ -1,13 +1,21 @@
 {
   "nxConsole.generateAiAgentRules": true,
   "cSpell.words": [
+    "agplv",
     "behaviour",
     "bunx",
+    "Csvg",
     "filmdev",
     "hotloading",
     "isos",
+    "normalised",
     "persistable",
     "refetches"
+    "firecrawl",
+    "mcp",
+    "FIRECRAWL",
+    "eamodio",
+    "waldzellai"
   ],
   "nxConsole.nxWorkspacePath": "",
   "npm.autoDetect": "off",

@@ -6,9 +6,6 @@ const URL_CONFIG = {
   PRODUCTION_WEB: 'https://beta.dorkroom.art',
   DEVELOPMENT_WEB: 'http://localhost:4200',
 
-  // Native app URL schemes
-  NATIVE_SCHEME: 'dorkroom',
-
   // Paths
   BORDER_CALCULATOR_PATH: '/border',
 };
@@ -67,46 +64,25 @@ export function getDynamicShareUrl(
 }
 
 /**
- * Generates a native app URL for deep linking to presets.
- * Creates URL using custom scheme for opening in native mobile app.
+ * Generates sharing URL for a preset.
+ * Provides shareable web URL for the preset.
  *
  * @public
  * @param encoded - Encoded preset string
- * @returns Native app deep link URL
- * @example
- * ```typescript
- * const nativeUrl = getNativeUrl('preset123abc');
- * console.log(nativeUrl); // 'dorkroom://preset/preset123abc'
- * ```
- */
-export function getNativeUrl(encoded: string): string {
-  return `${URL_CONFIG.NATIVE_SCHEME}://preset/${encoded}`;
-}
-
-/**
- * Generates both web and native sharing URLs for a preset.
- * Provides complete sharing solution for cross-platform compatibility.
- *
- * @public
- * @param encoded - Encoded preset string
- * @returns Object containing both web and native URLs
+ * @returns Object containing web URL
  * @example
  * ```typescript
  * const urls = generateSharingUrls('preset123abc');
  * console.log(urls.webUrl); // 'https://beta.dorkroom.art/border#preset123abc'
- * console.log(urls.nativeUrl); // 'dorkroom://preset/preset123abc'
  * ```
  */
 export function generateSharingUrls(encoded: string): {
   webUrl: string;
-  nativeUrl: string;
 } {
   const webUrl = `${getDynamicShareUrl()}#${encoded}`;
-  const nativeUrl = getNativeUrl(encoded);
 
   return {
     webUrl,
-    nativeUrl,
   };
 }
 

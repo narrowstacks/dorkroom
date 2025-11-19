@@ -220,7 +220,7 @@ export function ThemeToggle({ variant = 'icon', className }: ThemeToggleProps) {
         onClick={() => setIsOpen(!isOpen)}
         onKeyDown={handleButtonKeyDown}
         className={cn(
-          'flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none',
+          'nav-button flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none',
           'focus-visible:ring-2',
           'focus-visible:ring-[color:var(--color-border-primary)]',
           'text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-border-muted)]'

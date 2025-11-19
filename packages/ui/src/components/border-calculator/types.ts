@@ -35,7 +35,7 @@ export interface BorderCalculatorLayoutProps {
   isGeneratingShareUrl: boolean;
   isShareModalOpen: boolean;
   isSaveBeforeShareOpen: boolean;
-  shareUrls: { webUrl: string; nativeUrl: string } | null;
+  shareUrls: { webUrl: string } | null;
   canShareNatively: boolean;
   canCopyToClipboard: boolean;
   loadedPreset?: {

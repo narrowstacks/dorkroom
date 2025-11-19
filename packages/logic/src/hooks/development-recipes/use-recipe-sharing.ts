@@ -137,6 +137,15 @@ export function useRecipeSharing() {
             });
             return { success: true, method: 'webShare', url: shareUrl };
           } catch (shareError) {
+            // Check if user cancelled the share (AbortError)
+            if (
+              shareError instanceof Error &&
+              shareError.name === 'AbortError'
+            ) {
+              // User cancelled - don't show error, just return cancelled state
+              return { success: false, showToast: false };
+            }
+            // Other errors - log and fall back to clipboard
             console.log(
               '[RECIPE SHARE] Web Share failed, falling back:',
               shareError

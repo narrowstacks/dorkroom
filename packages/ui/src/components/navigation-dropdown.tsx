@@ -89,7 +89,7 @@ export function NavigationDropdown({
           'flex min-w-fit items-center gap-2 rounded-full px-4 py-2 font-medium transition focus-visible:outline-none',
           'focus-visible:ring-2',
           'focus-visible:ring-[color:var(--color-border-primary)]',
-          'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--color-text-primary]',
+          'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--nav-hover-text)]',
           isActive &&
             'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--color-background)]'
         )}
@@ -127,7 +127,7 @@ export function NavigationDropdown({
                 onClick={() => handleItemClick(item.to)}
                 className={cn(
                   'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none',
-                  'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
+                  'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--nav-hover-text)]',
                   isItemActive &&
                     'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
                 )}

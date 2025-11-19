@@ -134,12 +134,12 @@ export function Modal({
           </div>
         )}
         <div
-          className="space-y-4 text-sm"
+          className="max-h-[calc(100dvh-12rem)] space-y-4 overflow-y-auto text-sm"
           style={{ color: 'var(--color-text-secondary)' }}
         >
           {children}
         </div>
-        {footer && <div className="mt-6 flex flex-col gap-2">{footer}</div>}
+        {footer && <div className="mt-6 flex flex-col gap-2 pb-20">{footer}</div>}
       </div>
     </div>,
     document.body

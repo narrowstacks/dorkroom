@@ -125,10 +125,11 @@ export function CustomRecipeForm({
 
         {formData.useExistingFilm ? (
           <Select
-            label="Film"
             selectedValue={formData.selectedFilmId || ''}
             onValueChange={(value) => handleChange('selectedFilmId', value)}
             items={filmOptions}
+            ariaLabel="Film"
+            className="mt-3"
           />
         ) : (
           <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -218,12 +219,13 @@ export function CustomRecipeForm({
 
         {formData.useExistingDeveloper ? (
           <Select
-            label="Developer"
             selectedValue={formData.selectedDeveloperId || ''}
             onValueChange={(value) =>
               handleChange('selectedDeveloperId', value)
             }
             items={developerOptions}
+            ariaLabel="Developer"
+            className="mt-3"
           />
         ) : (
           <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
