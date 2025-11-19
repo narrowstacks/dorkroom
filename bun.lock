@@ -4,9 +4,7 @@
     "": {
       "name": "@dorkroom/source",
       "dependencies": {
-        "@fontsource-variable/cabin": "^5.2.8",
-        "@fontsource-variable/inter": "^5.2.8",
-        "@fontsource/inter": "^5.2.8",
+        "@fontsource-variable/montserrat": "^5.2.8",
         "@fontsource/vt323": "^5.2.7",
         "@mdx-js/react": "^3.1.1",
         "@tailwindcss/postcss": "^4.1.13",
@@ -461,11 +459,7 @@
 
     "@fastify/busboy": ["@fastify/busboy@2.1.1", "", {}, "sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA=="],
 
-    "@fontsource-variable/cabin": ["@fontsource-variable/cabin@5.2.8", "", {}, "sha512-6zCXSPy1ULBct/we+0oV1l+JoGqljyU4lVmEETb+5qSaNLeisZ3zRmm1+F7o6yXbJOt/K1wMBeVFYWm6GS9aWw=="],
-
-    "@fontsource-variable/inter": ["@fontsource-variable/inter@5.2.8", "", {}, "sha512-kOfP2D+ykbcX/P3IFnokOhVRNoTozo5/JxhAIVYLpea/UBmCQ/YWPBfWIDuBImXX/15KH+eKh4xpEUyS2sQQGQ=="],
-
-    "@fontsource/inter": ["@fontsource/inter@5.2.8", "", {}, "sha512-P6r5WnJoKiNVV+zvW2xM13gNdFhAEpQ9dQJHt3naLvfg+LkF2ldgSLiF4T41lf1SQCM9QmkqPTn4TH568IRagg=="],
+    "@fontsource-variable/montserrat": ["@fontsource-variable/montserrat@5.2.8", "", {}, "sha512-d8wykq7GCKhEOlLwEuQIOK3w3qsXNxwDlH0meru4AZZzQ4/+rZyvHWKL6BBtHdmbovSHEEQDkwkD8qYUKlcFtQ=="],
 
     "@fontsource/vt323": ["@fontsource/vt323@5.2.7", "", {}, "sha512-8JTMM23vMhQxin9Cn/ijty8cNwXW4INrln0VAJ2227Rz0CVfkzM3qr3l/CqudZJ6BXCnbCGUTdf2ym3cTNex8A=="],
 

@@ -4,7 +4,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import '@fontsource-variable/inter/index.css';
+import '@fontsource-variable/montserrat/index.css';
 import './styles.css';
 import { routeTree } from './routeTree.gen';
 import { ToastProvider, MeasurementProvider } from '@dorkroom/ui';

@@ -1010,10 +1010,12 @@ describe('useBorderCalculatorState', () => {
       // Wait for persistence (debounced 500ms)
       await waitFor(
         () => {
-          expect(localStorageMock.setItem.mock.calls.length).toBeGreaterThan(0);
+          expect(localStorageMock.setItem).toHaveBeenCalled();
         },
         { timeout: 1000 }
       );
+
+      expect(localStorageMock.setItem.mock.calls.length).toBeGreaterThan(0);
 
       // Verify persisted data contains the updates
       const savedCalls = localStorageMock.setItem.mock.calls;

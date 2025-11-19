@@ -35,8 +35,9 @@ export function StatCard({
     return (
       <Component
         {...componentProps}
+        aria-label={label}
         className={cn(
-          'flex items-center gap-4 px-5 py-4 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-800 transition-colors group',
+          'flex items-center gap-4 px-5 py-4 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-800 transition-colors group focus:outline-none focus:ring-2 focus:ring-white/20',
           className
         )}
       >
@@ -62,8 +63,9 @@ export function StatCard({
   return (
     <Component
       {...componentProps}
+      aria-label={label}
       className={cn(
-        'flex flex-col gap-2 p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-800 transition-colors group',
+        'flex flex-col gap-2 p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-800 transition-colors group focus:outline-none focus:ring-2 focus:ring-white/20',
         className
       )}
     >

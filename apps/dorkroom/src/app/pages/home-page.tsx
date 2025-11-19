@@ -5,10 +5,10 @@ import {
   GitBranch,
   HandCoins,
   Heart,
-  Layout,
   Library,
   Ruler,
   Timer,
+  CalculatorIcon,
 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import {
@@ -161,7 +161,7 @@ export function HomePage() {
       <div>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Layout className="w-5 h-5 text-zinc-500" />
+            <CalculatorIcon className="w-5 h-5 text-zinc-500" />
             Calculators
           </h2>
           <div className="h-px flex-1 bg-zinc-800 ml-4" />

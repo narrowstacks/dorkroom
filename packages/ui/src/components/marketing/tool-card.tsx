@@ -33,8 +33,9 @@ export function ToolCard({
   return (
     <Component
       {...componentProps}
+      aria-label={title}
       className={cn(
-        'group relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg',
+        'group relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-white/20',
         border,
         className
       )}

@@ -37,8 +37,17 @@ const parseSearchParams = (searchParams: URLSearchParams): RecipeUrlParams => {
   MANAGED_QUERY_KEYS.forEach((key) => {
     const value = searchParams.get(key);
     if (value) {
-      // @ts-expect-error - TypeScript has trouble mapping the generic key to specific union members
-      result[key] = value;
+      if (key === 'source') {
+        if (value === 'share') {
+          result.source = 'share';
+        }
+      } else if (key === 'view') {
+        if (value === 'favorites' || value === 'custom') {
+          result.view = value;
+        }
+      } else {
+        result[key as Exclude<keyof RecipeUrlParams, 'source' | 'view'>] = value;
+      }
     }
   });
 

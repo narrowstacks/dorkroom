@@ -2,6 +2,7 @@
   html,
   body {
     @apply font-sans antialiased h-dvh;
+    font-family: var(--font-family-sans);
     background-color: var(--color-background);
     color: var(--color-text-primary);
   }

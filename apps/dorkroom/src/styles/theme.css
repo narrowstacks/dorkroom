@@ -1,5 +1,7 @@
 @theme {
-  --font-family-sans: 'Inter Variable', Inter, ui-sans-serif, system-ui;
+  --font-family-sans: 'Montserrat Variable', 'Montserrat Sans', ui-sans-serif,
+    system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
   --color-background: #09090b;
   --color-surface: #121214;
   --color-surface-muted: #1c1c1f;
