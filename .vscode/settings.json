@@ -15,7 +15,8 @@
     "mcp",
     "FIRECRAWL",
     "eamodio",
-    "waldzellai"
+    "waldzellai",
+    "OLED"
   ],
   "nxConsole.nxWorkspacePath": "",
   "npm.autoDetect": "off",

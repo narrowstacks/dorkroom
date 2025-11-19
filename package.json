@@ -1,6 +1,6 @@
 {
   "name": "@dorkroom/source",
-  "version": "0.0.1",
+  "version": "0.9.0",
   "license": "AGPL-3.0-only",
   "scripts": {
     "supabase:login": "bunx supabase login",
@@ -10,7 +10,10 @@
     "supabase:deploy:films": "bunx supabase functions deploy films --no-verify-jwt",
     "supabase:deploy:developers": "bunx supabase functions deploy developers --no-verify-jwt",
     "supabase:deploy:combinations": "bunx supabase functions deploy combinations --no-verify-jwt",
-    "supabase:serve": "bunx supabase functions serve"
+    "supabase:serve": "bunx supabase functions serve",
+    "build": "bunx nx build dorkroom",
+    "dev": "bunx nx dev dorkroom -- --host=0.0.0.0",
+    "test": "bunx nx run-many -t lint test build typecheck"
   },
   "private": true,
   "dependencies": {
@@ -78,7 +81,7 @@
     "supabase": "^2.48.3",
     "tailwindcss": "^4.1.13",
     "tslib": "^2.3.0",
-    "typescript": "~5.8.2",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.29.0",
     "vite": "^6.0.0",
     "vitest": "^3.0.0"

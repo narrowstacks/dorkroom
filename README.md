@@ -1,42 +1,42 @@
-# Dorkroom
+# Dorkroom.art
 
-> Skip the math. Make prints.
+**Skip the math. Make prints!**
 
-**Dorkroom** is a collection of specialized calculators and tools designed for analog photographers and darkroom enthusiasts. Built to keep complex exposure math, border calculations, and chemistry planning out of your way so you can focus on making beautiful prints.
+> ![Dorkroom Homepage](resources/dorkroom-homepage.png)
 
-![React 19](https://img.shields.io/badge/React-19-61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.13-06B6D4)
+[**Dorkroom.art**](https://dorkroom.art/) is a collection of specialized calculators and tools designed for analog photographers and darkroom enthusiasts. Built to keep complex exposure math, border calculations, and chemistry planning out of your way so you can focus on making beautiful prints.
+
+![Version](https://img.shields.io/badge/Version-0.9.0-red) [![License](https://img.shields.io/badge/License-AGPL_V3.0-blue)](https://github.com/narrowstacks/dorkroom/blob/main/LICENSE)
+
+![React 19](https://img.shields.io/badge/React-19-61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.13-06B6D4) ![TanStack Query](https://img.shields.io/badge/-TanStack%20Query-red?style=flat-square&logo=react-query&logoColor=white)
+
+[![Uptime Robot status](https://img.shields.io/uptimerobot/status/m801823706-109991125954deb52b9281b8?logo=vercel&link=https%3A%2F%2Fstats.uptimerobot.com%2FL75VVTPwtz)](https://stats.uptimerobot.com/L75VVTPwtz) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/narrowstacks/dorkroom/ci.yml?logo=github&label=CI)](https://github.com/narrowstacks/dorkroom/actions/workflows/ci.yml) [![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-pr/narrowstacks/dorkroom)](https://github.com/narrowstacks/dorkroom/pulls) [![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/narrowstacks/dorkroom)](https://github.com/narrowstacks/dorkroom/issues)
 
 ## What is Dorkroom?
 
 Dorkroom provides essential calculators for film photography and darkroom work:
 
+### Film Development Resources
+
+- [**Development Recipes**](https://dorkroom.art/development) - Film + chemistry pairings and development times with many manufacturer approved development recipes.
+
 ### **Printing Tools**
 
-- **Border Calculator** - Calculate precise print borders with trim-safe guides
-- **Resize Calculator** - Scale prints without endless test strips
-- **Stops Calculator** - Translate exposure stops into seconds
+- [**Border Calculator**](https://dorkroom.art/border) - Calculate precise print borders with trim-safe guides
+- [**Resize Calculator**](https://dorkroom.art/resize) - Scale prints without endless test strips
+- [**Stops Calculator**](https://dorkroom.art/resize) - Translate exposure stops into seconds
 
 ### **Shooting Tools**
 
-- **Exposure Calculator** - Balance aperture, shutter, and ISO on location
-- **Reciprocity Calculator** - Correct for long exposure failure
-- **Development Recipes** - Film + chemistry pairings with proven results
+- [**Reciprocity Calculator**](https://dorkroom.art/reciprocity) - Calculate exposure time correction for long exposure (reciprocity) failure on films
 
-Built for darkroom obsessives who want fast, reliable calculations without the complexity.
+## In the Works
 
-## Recent Updates
+- **Dorkroom Docs** - Thorough documentation on how to use all the tools Dorkroom provides.
+- **Infobase** - A wiki-like docs database with plentiful guides on film, development, darkroom printing, and photography in general.
+- **Camera Exposure Calculator** - For calculating equivalent camera exposure values.
 
-**November 2025** - Completed major TanStack ecosystem migration:
-
-- ✅ Migrated from custom data fetching to **TanStack Query v5** for server state management
-- ✅ Migrated from React Router to **TanStack Router v1** with file-based routing
-- ✅ Adopted **TanStack Form v1** with Zod validation for all forms
-- ✅ Implemented **TanStack Table v8** for data tables with sorting and filtering
-- ✅ Full type safety with TypeScript 5.8.2 and runtime validation with Zod 4.1.12
-
-See [TANSTACK_MIGRATION.md](TANSTACK_MIGRATION.md) for complete migration details.
-
-## Quick Start
+## Development Quick Start
 
 ### Prerequisites
 
@@ -48,9 +48,11 @@ Install Bun:
 ```bash
 # macOS/Linux
 curl -fsSL https://bun.sh/install | bash
+```
 
-# Windows (via npm)
-npm install -g bun
+```powershell
+# Windows (via PowerShell)
+powershell -c "irm bun.sh/install.ps1|iex"
 ```
 
 ### Development
@@ -82,7 +84,7 @@ bunx nx dev dorkroom -- --host=0.0.0.0
 # Build for production
 bunx nx build dorkroom
 
-# Build all packages
+# Ensure all packages are built
 bunx nx run-many --target=build
 
 # Visualize project dependencies
@@ -92,16 +94,17 @@ bunx nx graph
 ### Testing
 
 ```bash
-# Run tests
-bunx nx test dorkroom
+# Run linting, testing, building, and typechecking in one go
+bunx nx run-many -t lint test build typecheck
 
-# Run tests with UI
-bunx nx test --ui
+# Run test for only one package (logic, ui, api)
+bunx nx test logic
+
 ```
 
 ## Technology Stack
 
-- **Frontend**: React 19 with TypeScript 5.8.2
+- **Frontend**: React 19 with TypeScript 5.9.3
 - **Styling**: Tailwind CSS 4.1.13 with custom darkroom theme
 - **Build Tool**: Vite 6 with Nx 21.4 workspace
 - **Testing**: Vitest 3 with Testing Library
@@ -137,7 +140,7 @@ api/                  # Serverless API endpoints (Vercel functions)
 ## Features
 
 - **Responsive Design** - Works on desktop, tablet, and mobile
-- **Dark Theme** - Custom darkroom-inspired UI optimized for low light
+- **Multiple Themes** - Dark and light themes with black and white high contrast (ideal for e-ink) and black and red darkroom theme (User beware! This will still likely fog paper if your screen is left near it long enough, especially with non-OLED screens)
 - **Fast Calculations** - Instant results with real-time validation
 - **Type-Safe** - Full TypeScript coverage with strict mode
 - **Offline-Ready** - Smart caching with TanStack Query
@@ -279,6 +282,9 @@ If you find Dorkroom useful for your darkroom work:
 - 🔗 Share with fellow analog photographers
 - ☕ Support development on Ko-fi
 
----
+## Special Thanks
 
-**Made with ❤️ for the analog photography community**
+- **[Harvey Milk Photo Center](https://harveymilkphotocenter.org) and its members**, for being a great community, resource, and my source of inspiration and my gainful employment.
+- **[FilmDev.org](https://filmdev.org/)**, for providing a great database, and a great API allowing our users to import from said database.
+- **[DigitalTruth Massive Development Chart](https://www.digitaltruth.com/devchart.php)**, for being a long time provider of film development time data, and whose interface frustrated me enough to make a whole alternative 😚.
+  - And a really special thanks for disallowing republishing of your data _"in any form or post on the Internet or any other computer network."_, despite most of the data not being made by you! A real good motivator for adding the "official" development time tags to the development recipe page and sourcing directly from manufacturers.

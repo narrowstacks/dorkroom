@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useWindowDimensions } from '../../hooks/use-window-dimensions';
 
@@ -6,10 +6,10 @@ import { useWindowDimensions } from '../../hooks/use-window-dimensions';
 const INITIAL_WIDTH = 1024;
 const INITIAL_HEIGHT = 768;
 const DEBOUNCE_DELAY_MS = 150;
-const TEST_TIMEOUT_MS = 300; // 2x debounce delay for safety
 
 describe('useWindowDimensions', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
     vi.clearAllMocks();
     // Mock initial window dimensions
     Object.defineProperty(window, 'innerWidth', {
@@ -25,6 +25,7 @@ describe('useWindowDimensions', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -63,14 +64,14 @@ describe('useWindowDimensions', () => {
     expect(result.current.width).toBe(INITIAL_WIDTH);
     expect(result.current.height).toBe(INITIAL_HEIGHT);
 
-    // Wait for debounce delay
-    await waitFor(
-      () => {
-        expect(result.current.width).toBe(1200);
-        expect(result.current.height).toBe(900);
-      },
-      { timeout: TEST_TIMEOUT_MS }
-    );
+    // Advance timers by debounce delay to trigger the update
+    act(() => {
+      vi.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+    });
+
+    // Should now have the updated values (no need for waitFor with fake timers)
+    expect(result.current.width).toBe(1200);
+    expect(result.current.height).toBe(900);
   });
 
   it('should cleanup event listener on unmount', () => {
@@ -100,8 +101,10 @@ describe('useWindowDimensions', () => {
     // Unmount before debounce completes
     unmount();
 
-    // Wait to ensure no update happens (slightly longer than debounce)
-    await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_DELAY_MS + 50));
+    // Advance timers beyond debounce delay to ensure any pending timeout would have fired
+    act(() => {
+      vi.advanceTimersByTime(DEBOUNCE_DELAY_MS + 50);
+    });
 
     // Should not update after unmount
     expect(result.current.width).toBe(initialWidth);
