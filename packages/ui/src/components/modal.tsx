@@ -139,7 +139,7 @@ export function Modal({
         >
           {children}
         </div>
-        {footer && <div className="mt-6 flex flex-col gap-2">{footer}</div>}
+        {footer && <div className="mt-6 flex flex-col gap-2 pb-20">{footer}</div>}
       </div>
     </div>,
     document.body
