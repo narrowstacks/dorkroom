@@ -15,7 +15,24 @@ export interface StatCardProps extends ComponentProps<'a'> {
   to?: string;
   search?: Record<string, unknown>;
   loading?: boolean;
+  bg?: string;
+  border?: string;
 }
+
+const COLOR_VARIANTS = {
+  emerald: {
+    bg: 'from-emerald-500/20 to-teal-500/20',
+    border: 'group-hover:border-emerald-500/50',
+  },
+  rose: {
+    bg: 'from-rose-500/20 to-red-500/20',
+    border: 'group-hover:border-rose-500/50',
+  },
+  indigo: {
+    bg: 'from-indigo-500/20 to-purple-500/20',
+    border: 'group-hover:border-indigo-500/50',
+  },
+};
 
 export function StatCard({
   label,
@@ -31,11 +48,18 @@ export function StatCard({
   to,
   search,
   loading = false,
+  bg: propBg,
+  border: propBorder,
   ...props
 }: StatCardProps) {
   const iconColorVar = iconColorKey
     ? `var(--color-icon-stat-${iconColorKey})`
     : 'var(--color-text-primary)';
+  
+  const variantStyles = iconColorKey ? COLOR_VARIANTS[iconColorKey] : undefined;
+  const bg = propBg || variantStyles?.bg;
+  const border = propBorder || variantStyles?.border;
+
   const componentProps =
     Component === 'a' ? { href } : { to: href || to, search, ...props };
 
@@ -77,6 +101,26 @@ export function StatCard({
     );
   }
 
+  const commonClasses = cn(
+    'relative overflow-hidden rounded-2xl border transition-all focus:outline-none focus:ring-2',
+    'border-[color:var(--color-border-primary)]',
+    'hover:bg-[color:var(--color-surface-muted)]',
+    'focus:ring-[color:var(--color-border-primary)]',
+    '[&:not([data-theme="high-contrast"])]:hover:-translate-y-0.5',
+    '[&:not([data-theme="high-contrast"])]:hover:shadow-lg',
+    border,
+    className
+  );
+
+  const gradientOverlay = (
+    <div
+      className={cn(
+        'absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity group-hover:opacity-100',
+        bg
+      )}
+    />
+  );
+
   if (variant === 'horizontal') {
     return (
       <Component
@@ -84,30 +128,32 @@ export function StatCard({
         aria-label={label}
         title={`${label}: ${value}`}
         className={cn(
-          'flex items-center gap-4 px-5 py-4 rounded-2xl border transition-colors group focus:outline-none focus:ring-2',
-          'bg-[color:var(--color-surface)]',
-          'border-[color:var(--color-border-primary)]',
-          'hover:bg-[color:var(--color-surface-muted)]',
-          'focus:ring-[color:var(--color-border-primary)]',
-          className
+          'group flex items-center gap-4 px-5 py-4',
+          commonClasses
         )}
+        style={{
+          backgroundColor: 'var(--color-tool-card-bg)',
+        }}
       >
-        <div
-          className="p-2 rounded-xl transition-colors"
-          style={{
-            backgroundColor: 'var(--color-surface-muted)',
-            color: iconColorVar,
-          }}
-        >
-          <Icon className="w-4 h-4" />
-        </div>
-        <div>
-          <span className="text-[color:var(--color-text-tertiary)] text-sm font-medium">
-            {label}
-          </span>
-          <span className="text-2xl font-bold text-[color:var(--color-text-primary)] block leading-none mb-1">
-            {value}
-          </span>
+        {gradientOverlay}
+        <div className="relative z-10 flex items-center gap-4 w-full">
+          <div
+            className="p-2 rounded-xl transition-colors"
+            style={{
+              backgroundColor: 'var(--color-surface-muted)',
+              color: iconColorVar,
+            }}
+          >
+            <Icon className="w-4 h-4" />
+          </div>
+          <div>
+            <span className="text-[color:var(--color-text-tertiary)] text-sm font-medium">
+              {label}
+            </span>
+            <span className="text-2xl font-bold text-[color:var(--color-text-primary)] block leading-none mb-1">
+              {value}
+            </span>
+          </div>
         </div>
       </Component>
     );
@@ -119,30 +165,32 @@ export function StatCard({
       aria-label={label}
       title={`${label}: ${value}`}
       className={cn(
-        'flex flex-col gap-2 p-4 rounded-2xl border transition-colors group focus:outline-none focus:ring-2',
-        'bg-[color:var(--color-surface)]',
-        'border-[color:var(--color-border-primary)]',
-        'hover:bg-[color:var(--color-surface-muted)]',
-        'focus:ring-[color:var(--color-border-primary)]',
-        className
+        'group flex flex-col gap-2 p-4',
+        commonClasses
       )}
+      style={{
+        backgroundColor: 'var(--color-tool-card-bg)',
+      }}
     >
-      <span className="text-[color:var(--color-text-tertiary)] text-xs font-medium">
-        {label}
-      </span>
-      <div className="flex items-center gap-3">
-        <div
-          className="p-2 rounded-lg shrink-0 transition-colors"
-          style={{
-            backgroundColor: 'var(--color-surface-muted)',
-            color: iconColorVar,
-          }}
-        >
-          <Icon className="w-5 h-5" />
-        </div>
-        <span className="text-2xl font-bold text-[color:var(--color-text-primary)] leading-none">
-          {value}
+      {gradientOverlay}
+      <div className="relative z-10 flex flex-col gap-2 w-full">
+        <span className="text-[color:var(--color-text-tertiary)] text-xs font-medium">
+          {label}
         </span>
+        <div className="flex items-center gap-3">
+          <div
+            className="p-2 rounded-lg shrink-0 transition-colors"
+            style={{
+              backgroundColor: 'var(--color-surface-muted)',
+              color: iconColorVar,
+            }}
+          >
+            <Icon className="w-5 h-5" />
+          </div>
+          <span className="text-2xl font-bold text-[color:var(--color-text-primary)] leading-none">
+            {value}
+          </span>
+        </div>
       </div>
     </Component>
   );

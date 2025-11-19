@@ -25,7 +25,7 @@ export function createCombinationFromCustomRecipe(
     'dateModified' in recipe ? recipe.dateModified || createdAt : timestamp;
 
   return {
-    id: 0, // Temporary ID for recipes (not used in the UI)
+    id: -1, // Temporary ID for recipes (not used in the UI)
     uuid: uuid ?? recipeId,
     name: recipe.name,
     filmStockId: recipe.filmId,
@@ -79,7 +79,7 @@ export function createTemporaryCombination(data: {
   const timestamp = new Date().toISOString();
 
   return {
-    id: data.id ?? 0,
+    id: data.id ?? -1,
     uuid,
     name: data.name,
     filmStockId: data.filmStockId,

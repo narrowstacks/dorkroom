@@ -393,4 +393,46 @@
   [data-theme='darkroom'] main a[href*='/development'] {
     border: 2px solid var(--color-primary) !important;
   }
+
+  /* Hero Card Styles */
+  .hero-card {
+    border-color: var(--color-hero-border);
+    background-color: var(--color-hero-bg);
+    transition: border-color 0.2s;
+  }
+
+  .hero-card:hover {
+    border-color: var(--color-hero-border-hover);
+  }
+
+  /* Hero Button Styles */
+  .hero-button-success {
+    background-color: var(--color-button-success);
+    color: var(--color-button-text);
+    transition: background-color 0.2s;
+  }
+
+  .hero-button-success:hover {
+    background-color: var(--color-button-success-hover);
+  }
+
+  .hero-button-error {
+    background-color: var(--color-button-error);
+    color: var(--color-button-text);
+    transition: background-color 0.2s;
+  }
+
+  .hero-button-error:hover {
+    background-color: var(--color-button-error-hover);
+  }
+
+  /* Footer Link Styles */
+  .footer-link {
+    color: var(--color-text-secondary);
+    transition: color 0.2s;
+  }
+
+  .footer-link:hover {
+    color: var(--color-text-primary);
+  }
 }

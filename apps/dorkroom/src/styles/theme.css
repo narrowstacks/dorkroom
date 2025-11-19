@@ -11,6 +11,8 @@
   --color-highlight: #e5ff7d;
   --spacing-18: 4.5rem;
   --border-radius-hero: 36px;
+  --size-hero-blob: 8rem;
+  --spacing-hero-blob-offset: -1rem;
 }
 
 /* Darkroom theme. All red or black. Mostly black. */

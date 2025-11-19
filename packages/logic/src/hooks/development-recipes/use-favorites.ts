@@ -71,33 +71,17 @@ export const useFavorites = () => {
   const [error, setError] = useState<Error | null>(null);
 
   const loadFavorites = useCallback(() => {
-    try {
-      const ids = readFavoritesFromStorage();
-      setFavoriteIds(ids);
-      setIsInitialized(true);
-      setError(null);
-      return ids;
-    } catch (err) {
-      const error =
-        err instanceof Error ? err : new Error('Failed to load favorites');
-      setError(error);
-      debugError('[useFavorites] Failed to load favorites:', err);
-      return [];
-    }
+    const ids = readFavoritesFromStorage();
+    setFavoriteIds(ids);
+    setIsInitialized(true);
+    setError(null);
+    return ids;
   }, []);
 
   const saveFavorites = useCallback((ids: string[]) => {
-    try {
-      writeFavoritesToStorage(ids);
-      setFavoriteIds(ids);
-      setError(null);
-    } catch (err) {
-      const error =
-        err instanceof Error ? err : new Error('Failed to save favorites');
-      setError(error);
-      debugError('[useFavorites] Failed to save favorites:', err);
-      // Keep the UI state even if save fails
-    }
+    writeFavoritesToStorage(ids);
+    setFavoriteIds(ids);
+    setError(null);
   }, []);
 
   useEffect(() => {

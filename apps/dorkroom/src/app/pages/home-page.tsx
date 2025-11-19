@@ -119,24 +119,15 @@ export function HomePage() {
       {/* Featured Dashboard Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6">
         {/* Main Hero - Compact */}
-        <div
-          className="md:col-span-8 relative overflow-hidden rounded-3xl border p-6 sm:p-8 transition-all group"
-          style={{
-            borderColor: 'var(--color-hero-border)',
-            backgroundColor: 'var(--color-hero-bg)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor =
-              'var(--color-hero-border-hover)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'var(--color-hero-border)';
-          }}
-        >
+        <div className="md:col-span-8 relative overflow-hidden rounded-3xl border p-6 sm:p-8 transition-all group hero-card">
           <div
-            className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 blur-3xl rounded-full"
+            className="absolute top-0 right-0 blur-3xl rounded-full"
             style={{
               backgroundImage: 'var(--gradient-hero-accent)',
+              width: 'var(--size-hero-blob)',
+              height: 'var(--size-hero-blob)',
+              marginTop: 'var(--spacing-hero-blob-offset)',
+              marginRight: 'var(--spacing-hero-blob-offset)',
             }}
           />
           <div className="relative z-10 flex flex-col justify-between h-full gap-6">
@@ -159,38 +150,14 @@ export function HomePage() {
             <div className="flex flex-wrap gap-2">
               <Link
                 to="/border"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors"
-                style={{
-                  backgroundColor: 'var(--color-button-success)',
-                  color: 'var(--color-button-text)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    'var(--color-button-success-hover)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    'var(--color-button-success)';
-                }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors hero-button-success"
               >
                 <Crop className="w-4 h-4" />
                 Try our darkroom easel border calculator
               </Link>
               <Link
                 to="/development"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors"
-                style={{
-                  backgroundColor: 'var(--color-button-error)',
-                  color: 'var(--color-button-text)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    'var(--color-button-error-hover)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    'var(--color-button-error)';
-                }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors hero-button-error"
               >
                 <FlaskConical className="w-4 h-4" />
                 Find the perfect film development recipe
@@ -328,14 +295,7 @@ export function HomePage() {
           © {new Date().getFullYear()} Dorkroom.{' '}
           <a
             href="https://github.com/narrowstacks/dorkroom/blob/main/LICENSE"
-            className="underline transition-colors"
-            style={{ color: 'var(--color-text-secondary)' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
-            }}
+            className="underline transition-colors footer-link"
             target="_blank"
             rel="noreferrer"
           >
@@ -347,14 +307,7 @@ export function HomePage() {
             href="https://github.com/narrowstacks/dorkroom"
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-2 transition-colors"
-            style={{ color: 'var(--color-text-secondary)' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
-            }}
+            className="flex items-center gap-2 transition-colors footer-link"
           >
             <GitBranch className="h-4 w-4" />
             <span>Contribute</span>
@@ -363,14 +316,7 @@ export function HomePage() {
             href="https://ko-fi.com/affords"
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-2 transition-colors"
-            style={{ color: 'var(--color-text-secondary)' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
-            }}
+            className="flex items-center gap-2 transition-colors footer-link"
           >
             <HandCoins className="h-4 w-4" />
             <span>Donate</span>
