@@ -48,16 +48,22 @@ supabase/.temp
 .DS_Store
 Thumbs.db
 
+# Nx
 .nx/cache
 .nx/workspace-data
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
+migrations.json
+
+# CLAUDE
+.claude/settings.local.json
 
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
 .playwright-mcp
 PR_BODY_THEMING.md
-.claude/settings.local.json
+
+# Miscellaneous
 .vercel
 .letta
-migrations.json
+

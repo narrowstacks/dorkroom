@@ -14,7 +14,7 @@
 
 ## What is Dorkroom?
 
-Dorkroom provides essential calculators for film photography and darkroom work:
+Dorkroom provides useful calculators for darkroom printing, film development, and photography.
 
 ### Film Development Resources
 
@@ -32,9 +32,12 @@ Dorkroom provides essential calculators for film photography and darkroom work:
 
 ## In the Works
 
+- **Development Recipes: _Volume Mixer_** - Accurate chemical mixing measurements based on a developer's dilutions.
 - **Dorkroom Docs** - Thorough documentation on how to use all the tools Dorkroom provides.
 - **Infobase** - A wiki-like docs database with plentiful guides on film, development, darkroom printing, and photography in general.
 - **Camera Exposure Calculator** - For calculating equivalent camera exposure values.
+- **Kindle browser support** - Support for for the app on the strange Kindle browser.
+  - _**Help needed!** The site currently does not render on Kindle browsers_ ☹️
 
 ## Development Quick Start
 
@@ -140,20 +143,21 @@ api/                  # Serverless API endpoints (Vercel functions)
 ## Features
 
 - **Responsive Design** - Works on desktop, tablet, and mobile
-- **Multiple Themes** - Dark and light themes with black and white high contrast (ideal for e-ink) and black and red darkroom theme (User beware! This will still likely fog paper if your screen is left near it long enough, especially with non-OLED screens)
+- **Multiple Themes** - Standard dark and light themes, as well as with black and white high contrast (ideal for e-ink) and black and red darkroom theme
+  - Darkroom theme: User beware! This will still likely fog paper if your screen is left near it long enough, especially with non-OLED screens. A warning about this will be added to the app soon.
 - **Fast Calculations** - Instant results with real-time validation
 - **Type-Safe** - Full TypeScript coverage with strict mode
 - **Offline-Ready** - Smart caching with TanStack Query
 - **File-Based Routing** - Type-safe navigation with TanStack Router
 - **Form Validation** - Runtime schema validation with Zod
-- **Development Database** - 800+ film development recipes
+- **Development Database** - Tons of film development recipes
 - **Open Source** - Community-driven development under AGPL-3.0
 
 ## API
 
 Dorkroom provides a comprehensive API for accessing film development data, available both as a TypeScript client package and as REST endpoints for external integrations.
 
-**For detailed API documentation, see [API.md](API.md)**
+**For detailed API documentation, see [API.md](docs/API.md)**
 
 ### Quick Overview
 
@@ -273,6 +277,8 @@ bunx prettier --write .
 
 AGPL 3.0 License - see the [LICENSE](LICENSE) file for details.
 
+You are allowed to reproduce any film development data on Dorkroom.art in any form or post on the Internet or any other computer network.
+
 ## Support
 
 If you find Dorkroom useful for your darkroom work:
@@ -280,7 +286,7 @@ If you find Dorkroom useful for your darkroom work:
 - ⭐ Star the project on GitHub
 - 🐛 Report bugs and suggest features
 - 🔗 Share with fellow analog photographers
-- ☕ Support development on Ko-fi
+- $ Support the developers on [Ko-fi](https://ko-fi.com/affords) or [sponsor us on GitHub](https://github.com/sponsors/narrowstacks)
 
 ## Special Thanks
 

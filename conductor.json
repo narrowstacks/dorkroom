@@ -1,7 +1,0 @@
-{
-  "scripts": {
-    "setup": "./conductor-setup.sh",
-    "run": "bunx nx dev dorkroom -- --host=0.0.0.0 --port $CONDUCTOR_PORT"
-  },
-  "runScriptMode": "nonconcurrent"
-}

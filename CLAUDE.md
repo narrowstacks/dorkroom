@@ -1,4 +1,4 @@
-# CLAUDE.md | AGENT.md
+# CLAUDE.md | AGENTS.md
 
 This file provides guidance to Claude Code (claude.ai/code) and other AI coding agents when working with code in this repository.
 
