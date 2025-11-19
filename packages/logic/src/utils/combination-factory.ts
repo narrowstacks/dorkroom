@@ -2,6 +2,40 @@ import type { Combination } from '@dorkroom/api';
 import type { CustomRecipe } from '../types/custom-recipes';
 
 /**
+ * Validates numeric inputs for recipes to ensure they are within reasonable ranges.
+ *
+ * @param temperatureF - Temperature in Fahrenheit
+ * @param timeMinutes - Development time in minutes
+ * @param shootingIso - ISO setting
+ * @throws Error if values are invalid or out of range
+ */
+function validateNumericInputs(
+  temperatureF: number,
+  timeMinutes: number,
+  shootingIso: number
+): void {
+  if (
+    !Number.isFinite(temperatureF) ||
+    !Number.isFinite(timeMinutes) ||
+    !Number.isFinite(shootingIso)
+  ) {
+    throw new Error('Invalid numeric values provided');
+  }
+
+  if (temperatureF < 32 || temperatureF > 212) {
+    throw new Error('Temperature must be between 32°F and 212°F');
+  }
+
+  if (timeMinutes <= 0) {
+    throw new Error('Time must be positive');
+  }
+
+  if (shootingIso <= 0) {
+    throw new Error('ISO must be positive');
+  }
+}
+
+/**
  * Creates a Combination object from a CustomRecipe or a partial recipe.
  * This provides type-safe conversion without using type assertions.
  *
@@ -15,6 +49,12 @@ export function createCombinationFromCustomRecipe(
     | Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'>,
   uuid?: string
 ): Combination {
+  validateNumericInputs(
+    recipe.temperatureF,
+    recipe.timeMinutes,
+    recipe.shootingIso
+  );
+
   const temperatureC = ((recipe.temperatureF - 32) * 5) / 9;
   const timestamp = new Date().toISOString();
 
@@ -74,6 +114,8 @@ export function createTemporaryCombination(data: {
   tags?: string[] | null;
   infoSource?: string | null;
 }): Combination {
+  validateNumericInputs(data.temperatureF, data.timeMinutes, data.shootingIso);
+
   const temperatureC = ((data.temperatureF - 32) * 5) / 9;
   const uuid = data.uuid ?? 'temp';
   const timestamp = new Date().toISOString();

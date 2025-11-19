@@ -55,22 +55,24 @@ describe('text-sanitization', () => {
       expect(result).not.toContain('data:text/html');
     });
 
-    it('escapes special characters', () => {
+    it('preserves special characters (React handles encoding)', () => {
       const input = 'Test & <test> "quote" \'apostrophe\' /slash/';
       const result = sanitizeText(input);
-      expect(result).toContain('&amp;');
-      // After removing tags and escaping, we only escape remaining special chars
-      expect(result).toContain('&quot;');
-      expect(result).toContain('&#x27;');
-      expect(result).toContain('&#x2F;');
+      // Tags are removed, but special chars are preserved
+      // React will handle the HTML encoding when rendering
+      expect(result).toContain('&');
+      expect(result).toContain('"');
+      expect(result).toContain("'");
+      expect(result).toContain('/');
+      expect(result).not.toContain('<test>');
     });
 
-    it('decodes HTML entities before re-escaping', () => {
+    it('preserves HTML entities as-is (prevents double-encoding)', () => {
       const input = '&lt;p&gt;Test&lt;/p&gt;';
       const result = sanitizeText(input);
-      // Should decode then re-escape
-      expect(result).toContain('&lt;');
-      expect(result).toContain('&gt;');
+      // Should preserve entities exactly as entered
+      // React will render them correctly without double-encoding
+      expect(result).toBe('&lt;p&gt;Test&lt;/p&gt;');
     });
 
     it('trims whitespace', () => {

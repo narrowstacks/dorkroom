@@ -377,32 +377,26 @@ export const useRecipeUrlState = (
             setSharedRecipeError('Invalid custom recipe data');
             setSharedRecipe(null);
             setSharedCustomRecipe(null);
-            isProcessingSharedRecipeRef.current = false;
+          }
+        } else {
+          // Standard recipe lookup
+          if (!recipesByUuid || recipesByUuid.size === 0) {
+            // Wait for recipes to load - keep loading state true
+            return;
           }
 
-          setIsLoadingSharedRecipe(false);
-          return;
-        }
-
-        if (!recipesByUuid || recipesByUuid.size === 0) {
-          setIsLoadingSharedRecipe(true);
-          setSharedRecipeError(null);
-          isProcessingSharedRecipeRef.current = false;
-          return;
-        }
-
-        if (recipesByUuid.has(recipeId)) {
-          setSharedRecipe(recipesByUuid.get(recipeId) ?? null);
-          setSharedCustomRecipe(null);
-          // Remove recipe param from URL after successful load
-          updateUrl({ recipe: '' });
-        } else {
-          setSharedRecipeError(
-            `Recipe with ID ${recipeId.substring(0, 20)}... not found`
-          );
-          setSharedRecipe(null);
-          setSharedCustomRecipe(null);
-          isProcessingSharedRecipeRef.current = false;
+          if (recipesByUuid.has(recipeId)) {
+            setSharedRecipe(recipesByUuid.get(recipeId) ?? null);
+            setSharedCustomRecipe(null);
+            // Remove recipe param from URL after successful load
+            updateUrl({ recipe: '' });
+          } else {
+            setSharedRecipeError(
+              `Recipe with ID ${recipeId.substring(0, 20)}... not found`
+            );
+            setSharedRecipe(null);
+            setSharedCustomRecipe(null);
+          }
         }
       } catch (error) {
         setSharedRecipeError(
@@ -412,9 +406,18 @@ export const useRecipeUrlState = (
         );
         setSharedRecipe(null);
         setSharedCustomRecipe(null);
-        isProcessingSharedRecipeRef.current = false;
       } finally {
-        setIsLoadingSharedRecipe(false);
+        // Only turn off loading if we are NOT waiting for recipes
+        // If we are waiting for recipes (standard recipe ID but no recipes loaded yet),
+        // we want to keep the loading state active until the recipes load and this effect re-runs
+        const isWaitingForRecipes =
+          !isCustomRecipeUrl(recipeId) &&
+          (!recipesByUuid || recipesByUuid.size === 0);
+
+        if (!isWaitingForRecipes) {
+          setIsLoadingSharedRecipe(false);
+        }
+        isProcessingSharedRecipeRef.current = false;
       }
     };
 

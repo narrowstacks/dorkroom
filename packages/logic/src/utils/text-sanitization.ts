@@ -26,28 +26,11 @@ export function sanitizeText(
     .replace(/<script/gi, '')
     .replace(/<\/script>/gi, '');
 
-  // Decode common HTML entities to prevent double encoding
-  const entityMap: Record<string, string> = {
-    '&lt;': '<',
-    '&gt;': '>',
-    '&amp;': '&',
-    '&quot;': '"',
-    '&#x27;': "'",
-    '&#x2F;': '/',
-  };
-
-  Object.keys(entityMap).forEach((entity) => {
-    sanitized = sanitized.replace(new RegExp(entity, 'g'), entityMap[entity]);
-  });
-
-  // Re-escape for safe rendering (React does this automatically, but being explicit)
-  sanitized = sanitized
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;');
+  // WARNING: Do not manually encode HTML entities here.
+  // React automatically handles HTML escaping during rendering.
+  // Manual encoding would result in double-encoding (e.g., "&lt;" becomes "&amp;lt;").
+  // We've already removed dangerous patterns above (script tags, event handlers, etc.),
+  // so we can safely let React handle the rest.
 
   // Trim to max length
   if (sanitized.length > maxLength) {

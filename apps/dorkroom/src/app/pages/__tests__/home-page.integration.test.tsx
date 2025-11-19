@@ -1,48 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
+import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
-  RouterProvider,
   createMemoryHistory,
   createRouter,
+  createRootRoute,
+  createRoute,
+  RouterProvider,
 } from '@tanstack/react-router';
+import React from 'react';
 import { HomePage } from '../home-page';
-import type { Film, Developer, Combination } from '@dorkroom/api';
-
-// Create a minimal route tree for testing
-const routeTree = {
-  id: '__root__',
-  path: '/',
-  component: HomePage,
-  children: [
-    {
-      id: '/border',
-      path: '/border',
-      component: () => <div>Border Calculator</div>,
-    },
-    {
-      id: '/development',
-      path: '/development',
-      component: () => <div>Development Recipes</div>,
-    },
-    {
-      id: '/stops',
-      path: '/stops',
-      component: () => <div>Stops Calculator</div>,
-    },
-    {
-      id: '/resize',
-      path: '/resize',
-      component: () => <div>Resize Calculator</div>,
-    },
-    {
-      id: '/reciprocity',
-      path: '/reciprocity',
-      component: () => <div>Reciprocity Calculator</div>,
-    },
-  ],
-};
+import type { Combination } from '@dorkroom/api';
+import {
+  useFavorites,
+  useCustomRecipes,
+  useCombinations,
+} from '@dorkroom/logic';
 
 // Mock the logic hooks
 const mockCombinations: Combination[] = [
@@ -80,40 +55,15 @@ const mockCombinations: Combination[] = [
   },
 ];
 
-vi.mock('@dorkroom/logic', () => ({
-  useFavorites: () => ({
-    favoriteIds: ['combo-1'],
-    isInitialized: true,
-    addFavorite: vi.fn(),
-    removeFavorite: vi.fn(),
-    isFavorite: vi.fn(),
-  }),
-  useCustomRecipes: () => ({
-    customRecipes: [
-      {
-        id: 'custom-1',
-        name: 'My Custom Recipe',
-        filmId: 'film-1',
-        developerId: 'dev-1',
-        temperatureF: 68,
-        timeMinutes: 8,
-        shootingIso: 400,
-        pushPull: 0,
-        isCustomFilm: false,
-        isCustomDeveloper: false,
-        isPublic: false,
-        dateCreated: '2024-01-01',
-        dateModified: '2024-01-01',
-      },
-    ],
-    isLoading: false,
-  }),
-  useCombinations: () => ({
-    data: mockCombinations,
-    isPending: false,
-    error: null,
-  }),
-}));
+vi.mock('@dorkroom/logic', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@dorkroom/logic')>();
+  return {
+    ...actual,
+    useFavorites: vi.fn(),
+    useCustomRecipes: vi.fn(),
+    useCombinations: vi.fn(),
+  };
+});
 
 // Create test wrapper with providers
 const createTestWrapper = () => {
@@ -129,83 +79,145 @@ const createTestWrapper = () => {
     initialEntries: ['/'],
   });
 
+  // Create a valid route tree using TanStack Router API
+  // Root route is just a wrapper - actual component goes on the index route
+  const rootRoute = createRootRoute();
+
+  const indexRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/',
+    component: HomePage,
+  });
+
+  const borderRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/border',
+    component: () => <div>Border Calculator</div>,
+  });
+
+  const developmentRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/development',
+    component: () => <div>Development Recipes</div>,
+  });
+
+  const stopsRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/stops',
+    component: () => <div>Stops Calculator</div>,
+  });
+
+  const resizeRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/resize',
+    component: () => <div>Resize Calculator</div>,
+  });
+
+  const reciprocityRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/reciprocity',
+    component: () => <div>Reciprocity Calculator</div>,
+  });
+
+  const routeTree = rootRoute.addChildren([
+    indexRoute,
+    borderRoute,
+    developmentRoute,
+    stopsRoute,
+    resizeRoute,
+    reciprocityRoute,
+  ]);
+
   // Mock router for testing
   const router = createRouter({
-    routeTree: routeTree as any,
+    routeTree,
     history,
   });
 
   return function Wrapper({ children }: { children: React.ReactNode }) {
     return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
     );
   };
 };
 
 describe('HomePage Integration Tests', () => {
-  let queryClient: QueryClient;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: false,
+
+    // Default mock implementations
+    vi.mocked(useFavorites).mockReturnValue({
+      favoriteIds: ['combo-1'],
+      isInitialized: true,
+      addFavorite: vi.fn(),
+      removeFavorite: vi.fn(),
+      isFavorite: vi.fn(),
+    });
+
+    vi.mocked(useCustomRecipes).mockReturnValue({
+      customRecipes: [
+        {
+          id: 'custom-1',
+          name: 'My Custom Recipe',
+          filmId: 'film-1',
+          developerId: 'dev-1',
+          temperatureF: 68,
+          timeMinutes: 8,
+          shootingIso: 400,
+          pushPull: 0,
+          isCustomFilm: false,
+          isCustomDeveloper: false,
+          isPublic: false,
+          dateCreated: '2024-01-01',
+          dateModified: '2024-01-01',
         },
-      },
+      ],
+      isLoading: false,
+    });
+
+    vi.mocked(useCombinations).mockReturnValue({
+      data: mockCombinations,
+      isPending: false,
+      error: null,
     });
   });
 
   describe('page layout and rendering', () => {
-    it('renders the home page successfully', () => {
+    it('renders the home page successfully', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      expect(screen.getByText(/skip the math/i)).toBeInTheDocument();
+      expect(await screen.findByText(/skip the math/i)).toBeInTheDocument();
     });
 
-    it('displays greeting component', () => {
+    it('displays greeting component', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
       // Greeting component should be present
       // (exact text depends on time of day)
-      const greetingElement = screen.getByText(/good/i);
+      const greetingElement = await screen.findByText(/good/i);
       expect(greetingElement).toBeInTheDocument();
     });
 
-    it('renders hero section with main CTA', () => {
+    it('renders hero section with main CTA', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      expect(screen.getByText(/skip the math/i)).toBeInTheDocument();
+      expect(await screen.findByText(/skip the math/i)).toBeInTheDocument();
       expect(
         screen.getByText(/collection of tools for the darkroom/i)
       ).toBeInTheDocument();
     });
 
-    it('displays primary action buttons', () => {
+    it('displays primary action buttons', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
       expect(
-        screen.getByRole('link', {
+        await screen.findByRole('link', {
           name: /try our darkroom easel border calculator/i,
         })
       ).toBeInTheDocument();
@@ -218,101 +230,83 @@ describe('HomePage Integration Tests', () => {
   });
 
   describe('statistics display', () => {
-    it('displays film development recipes count', () => {
+    it('displays film development recipes count', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      expect(screen.getByText('Film Development Recipes')).toBeInTheDocument();
+      expect(
+        await screen.findByText('Film Development Recipes')
+      ).toBeInTheDocument();
       expect(screen.getByText('2')).toBeInTheDocument(); // Mock data has 2 combinations
     });
 
-    it('displays favorite recipes count', () => {
+    it('displays favorite recipes count', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      expect(screen.getByText('Favorite Recipes')).toBeInTheDocument();
+      expect(await screen.findByText('Favorite Recipes')).toBeInTheDocument();
       expect(screen.getByText('1')).toBeInTheDocument(); // Mock has 1 favorite
     });
 
-    it('displays custom recipes count', () => {
+    it('displays custom recipes count', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      expect(screen.getByText('Your Custom Recipes')).toBeInTheDocument();
+      expect(
+        await screen.findByText('Your Custom Recipes')
+      ).toBeInTheDocument();
       expect(screen.getByText('1')).toBeInTheDocument(); // Mock has 1 custom recipe
     });
 
-    it('shows loading state for statistics', () => {
+    it('shows loading state for statistics', async () => {
       // Override mock to show loading state
-      vi.mock('@dorkroom/logic', () => ({
-        useFavorites: () => ({
-          favoriteIds: [],
-          isInitialized: false,
-          addFavorite: vi.fn(),
-          removeFavorite: vi.fn(),
-          isFavorite: vi.fn(),
-        }),
-        useCustomRecipes: () => ({
-          customRecipes: [],
-          isLoading: true,
-        }),
-        useCombinations: () => ({
-          data: undefined,
-          isPending: true,
-          error: null,
-        }),
-      }));
+      vi.mocked(useFavorites).mockReturnValue({
+        favoriteIds: [],
+        isInitialized: false,
+        addFavorite: vi.fn(),
+        removeFavorite: vi.fn(),
+        isFavorite: vi.fn(),
+      });
+
+      vi.mocked(useCustomRecipes).mockReturnValue({
+        customRecipes: [],
+        isLoading: true,
+      });
+
+      vi.mocked(useCombinations).mockReturnValue({
+        data: undefined,
+        isPending: true,
+        error: null,
+      });
 
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
       // Loading states should be present
-      expect(screen.getByText('Film Development Recipes')).toBeInTheDocument();
+      expect(
+        await screen.findByText('Film Development Recipes')
+      ).toBeInTheDocument();
     });
   });
 
   describe('calculator tools section', () => {
-    it('displays all calculator tools', () => {
+    it('displays all calculator tools', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      expect(screen.getByText('Border Calculator')).toBeInTheDocument();
+      expect(await screen.findByText('Border Calculator')).toBeInTheDocument();
       expect(screen.getByText('Stops Calculator')).toBeInTheDocument();
       expect(screen.getByText('Resize Calculator')).toBeInTheDocument();
       expect(screen.getByText('Reciprocity')).toBeInTheDocument();
       expect(screen.getByText('Film Development Recipes')).toBeInTheDocument();
     });
 
-    it('displays calculator descriptions', () => {
+    it('displays calculator descriptions', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
       expect(
-        screen.getByText('Print borders & trim guides')
+        await screen.findByText('Print borders & trim guides')
       ).toBeInTheDocument();
       expect(screen.getByText('F-stop & time math')).toBeInTheDocument();
       expect(screen.getByText(/scale prints/i)).toBeInTheDocument();
@@ -320,30 +314,22 @@ describe('HomePage Integration Tests', () => {
       expect(screen.getByText('Film & chemistry database')).toBeInTheDocument();
     });
 
-    it('displays calculator categories', () => {
+    it('displays calculator categories', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      expect(screen.getByText('Print')).toBeInTheDocument();
+      expect(await screen.findByText('Print')).toBeInTheDocument();
       expect(screen.getByText('Exposure')).toBeInTheDocument();
       expect(screen.getByText('Digital')).toBeInTheDocument();
       expect(screen.getByText('In the Field')).toBeInTheDocument();
       expect(screen.getByText('Film Dev')).toBeInTheDocument();
     });
 
-    it('calculator cards have correct links', () => {
+    it('calculator cards have correct links', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      const borderLink = screen.getByRole('link', {
+      const borderLink = await screen.findByRole('link', {
         name: /border calculator/i,
       });
       expect(borderLink).toHaveAttribute('href', '/border');
@@ -369,53 +355,37 @@ describe('HomePage Integration Tests', () => {
   });
 
   describe('coming soon section', () => {
-    it('displays coming soon section', () => {
+    it('displays coming soon section', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      expect(screen.getByText('Coming Soon')).toBeInTheDocument();
+      expect(await screen.findByText('Coming Soon')).toBeInTheDocument();
     });
 
-    it('displays coming soon items', () => {
+    it('displays coming soon items', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      expect(screen.getByText('Docs')).toBeInTheDocument();
+      expect(await screen.findByText('Docs')).toBeInTheDocument();
       expect(screen.getByText('Infobase')).toBeInTheDocument();
       expect(screen.getByText('Camera Exposure')).toBeInTheDocument();
     });
 
-    it('coming soon items are not clickable', () => {
+    it('coming soon items are not clickable', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
       // Coming soon items should not be links
-      const docs = screen.getByText('Docs').closest('div');
+      const docs = (await screen.findByText('Docs')).closest('div');
       expect(docs?.tagName).not.toBe('A');
     });
 
-    it('displays coming soon descriptions', () => {
+    it('displays coming soon descriptions', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
       expect(
-        screen.getByText('Documentation for Dorkroom')
+        await screen.findByText('Documentation for Dorkroom')
       ).toBeInTheDocument();
       expect(
         screen.getByText('Photography & darkroom guides')
@@ -427,29 +397,21 @@ describe('HomePage Integration Tests', () => {
   });
 
   describe('footer section', () => {
-    it('displays copyright information', () => {
+    it('displays copyright information', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
       const currentYear = new Date().getFullYear();
       expect(
-        screen.getByText(new RegExp(`© ${currentYear} Dorkroom`))
+        await screen.findByText(new RegExp(`© ${currentYear} Dorkroom`))
       ).toBeInTheDocument();
     });
 
-    it('displays license link', () => {
+    it('displays license link', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      const licenseLink = screen.getByRole('link', {
+      const licenseLink = await screen.findByRole('link', {
         name: /open source via the agplv3 license/i,
       });
       expect(licenseLink).toHaveAttribute(
@@ -459,15 +421,13 @@ describe('HomePage Integration Tests', () => {
       expect(licenseLink).toHaveAttribute('target', '_blank');
     });
 
-    it('displays contribute link', () => {
+    it('displays contribute link', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      const contributeLink = screen.getByRole('link', { name: /contribute/i });
+      const contributeLink = await screen.findByRole('link', {
+        name: /contribute/i,
+      });
       expect(contributeLink).toHaveAttribute(
         'href',
         'https://github.com/narrowstacks/dorkroom'
@@ -475,15 +435,11 @@ describe('HomePage Integration Tests', () => {
       expect(contributeLink).toHaveAttribute('target', '_blank');
     });
 
-    it('displays donate link', () => {
+    it('displays donate link', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      const donateLink = screen.getByRole('link', { name: /donate/i });
+      const donateLink = await screen.findByRole('link', { name: /donate/i });
       expect(donateLink).toHaveAttribute('href', 'https://ko-fi.com/affords');
       expect(donateLink).toHaveAttribute('target', '_blank');
     });
@@ -491,15 +447,10 @@ describe('HomePage Integration Tests', () => {
 
   describe('user interactions', () => {
     it('navigates to border calculator on CTA click', async () => {
-      const user = userEvent.setup();
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      const borderCTA = screen.getByRole('link', {
+      const borderCTA = await screen.findByRole('link', {
         name: /try our darkroom easel border calculator/i,
       });
 
@@ -508,29 +459,23 @@ describe('HomePage Integration Tests', () => {
 
     it('navigates to development recipes on CTA click', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      const developmentCTA = screen.getByRole('link', {
+      const developmentCTA = await screen.findByRole('link', {
         name: /find the perfect film development recipe/i,
       });
 
       expect(developmentCTA).toHaveAttribute('href', '/development');
     });
 
-    it('stat cards link to development page with correct search params', () => {
+    it('stat cards link to development page with correct search params', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
       // Favorite recipes stat should link with view=favorites
-      const favoritesStat = screen.getByText('Favorite Recipes').closest('a');
+      const favoritesStat = (
+        await screen.findByText('Favorite Recipes')
+      ).closest('a');
       expect(favoritesStat).toHaveAttribute(
         'href',
         '/development?view=favorites'
@@ -544,13 +489,9 @@ describe('HomePage Integration Tests', () => {
     it('calculator tools are clickable', async () => {
       const user = userEvent.setup();
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
-      const borderCalculator = screen.getByRole('link', {
+      const borderCalculator = await screen.findByRole('link', {
         name: /border calculator/i,
       });
       await user.hover(borderCalculator);
@@ -561,24 +502,19 @@ describe('HomePage Integration Tests', () => {
   });
 
   describe('responsive layout', () => {
-    it('renders without errors on different viewport sizes', () => {
+    it('renders without errors on different viewport sizes', async () => {
       const Wrapper = createTestWrapper();
-      const { container } = render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      const { container } = render(<Wrapper>{null}</Wrapper>);
 
+      expect(await screen.findByText(/skip the math/i)).toBeInTheDocument();
       expect(container).toBeInTheDocument();
     });
 
-    it('applies responsive grid classes', () => {
+    it('applies responsive grid classes', async () => {
       const Wrapper = createTestWrapper();
-      const { container } = render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      const { container } = render(<Wrapper>{null}</Wrapper>);
+
+      await screen.findByText(/skip the math/i);
 
       // Check for responsive grid classes
       const gridElements = container.querySelectorAll('[class*="grid"]');
@@ -587,25 +523,21 @@ describe('HomePage Integration Tests', () => {
   });
 
   describe('accessibility', () => {
-    it('has proper heading hierarchy', () => {
+    it('has proper heading hierarchy', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
+
+      await screen.findByText(/skip the math/i);
 
       const h2Elements = screen.getAllByRole('heading', { level: 2 });
       expect(h2Elements.length).toBeGreaterThan(0);
     });
 
-    it('all links have accessible names', () => {
+    it('all links have accessible names', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
+
+      await screen.findByText(/skip the math/i);
 
       const links = screen.getAllByRole('link');
       links.forEach((link) => {
@@ -613,13 +545,11 @@ describe('HomePage Integration Tests', () => {
       });
     });
 
-    it('external links have proper attributes', () => {
+    it('external links have proper attributes', async () => {
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
+
+      await screen.findByText(/skip the math/i);
 
       const externalLinks = [
         screen.getByRole('link', {
@@ -638,11 +568,9 @@ describe('HomePage Integration Tests', () => {
     it('stat cards are keyboard navigable', async () => {
       const user = userEvent.setup();
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
+
+      await screen.findByText(/skip the math/i);
 
       // Tab through stat cards
       await user.tab();
@@ -653,77 +581,69 @@ describe('HomePage Integration Tests', () => {
   });
 
   describe('data loading states', () => {
-    it('handles empty combinations list', () => {
-      vi.mock('@dorkroom/logic', () => ({
-        useFavorites: () => ({
-          favoriteIds: [],
-          isInitialized: true,
-          addFavorite: vi.fn(),
-          removeFavorite: vi.fn(),
-          isFavorite: vi.fn(),
-        }),
-        useCustomRecipes: () => ({
-          customRecipes: [],
-          isLoading: false,
-        }),
-        useCombinations: () => ({
-          data: [],
-          isPending: false,
-          error: null,
-        }),
-      }));
+    it('handles empty combinations list', async () => {
+      vi.mocked(useFavorites).mockReturnValue({
+        favoriteIds: [],
+        isInitialized: true,
+        addFavorite: vi.fn(),
+        removeFavorite: vi.fn(),
+        isFavorite: vi.fn(),
+      });
+
+      vi.mocked(useCustomRecipes).mockReturnValue({
+        customRecipes: [],
+        isLoading: false,
+      });
+
+      vi.mocked(useCombinations).mockReturnValue({
+        data: [],
+        isPending: false,
+        error: null,
+      });
 
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
       // Should show 0 for empty combinations
-      expect(screen.getByText('Film Development Recipes')).toBeInTheDocument();
+      expect(
+        await screen.findByText('Film Development Recipes')
+      ).toBeInTheDocument();
     });
 
-    it('handles error states gracefully', () => {
-      vi.mock('@dorkroom/logic', () => ({
-        useFavorites: () => ({
-          favoriteIds: [],
-          isInitialized: true,
-          addFavorite: vi.fn(),
-          removeFavorite: vi.fn(),
-          isFavorite: vi.fn(),
-        }),
-        useCustomRecipes: () => ({
-          customRecipes: [],
-          isLoading: false,
-        }),
-        useCombinations: () => ({
-          data: undefined,
-          isPending: false,
-          error: new Error('Failed to fetch'),
-        }),
-      }));
+    it('handles error states gracefully', async () => {
+      vi.mocked(useFavorites).mockReturnValue({
+        favoriteIds: [],
+        isInitialized: true,
+        addFavorite: vi.fn(),
+        removeFavorite: vi.fn(),
+        isFavorite: vi.fn(),
+      });
+
+      vi.mocked(useCustomRecipes).mockReturnValue({
+        customRecipes: [],
+        isLoading: false,
+      });
+
+      vi.mocked(useCombinations).mockReturnValue({
+        data: undefined,
+        isPending: false,
+        error: new Error('Failed to fetch'),
+      });
 
       const Wrapper = createTestWrapper();
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      render(<Wrapper>{null}</Wrapper>);
 
       // Page should still render
-      expect(screen.getByText(/skip the math/i)).toBeInTheDocument();
+      expect(await screen.findByText(/skip the math/i)).toBeInTheDocument();
     });
   });
 
   describe('visual design elements', () => {
-    it('renders with theme-aware styling', () => {
+    it('renders with theme-aware styling', async () => {
       const Wrapper = createTestWrapper();
-      const { container } = render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      const { container } = render(<Wrapper>{null}</Wrapper>);
+
+      await screen.findByText(/skip the math/i);
 
       // Check for CSS custom properties usage
       const elementsWithCustomProps =
@@ -731,13 +651,11 @@ describe('HomePage Integration Tests', () => {
       expect(elementsWithCustomProps.length).toBeGreaterThan(0);
     });
 
-    it('applies gradient backgrounds to hero section', () => {
+    it('applies gradient backgrounds to hero section', async () => {
       const Wrapper = createTestWrapper();
-      const { container } = render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+      const { container } = render(<Wrapper>{null}</Wrapper>);
+
+      await screen.findByText(/skip the math/i);
 
       // Hero section should have gradient styling
       const heroSection = container.querySelector('[style*="gradient"]');
