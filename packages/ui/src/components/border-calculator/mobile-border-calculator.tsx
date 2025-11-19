@@ -335,7 +335,6 @@ export function MobileBorderCalculator({
   const {
     sharePreset,
     getSharingUrls,
-    canShareNatively,
     canCopyToClipboard,
     isSharing,
   } = usePresetSharing({
@@ -584,21 +583,6 @@ export function MobileBorderCalculator({
       throw error;
     }
   }, []);
-
-  const handleNativeShare = useCallback(async () => {
-    try {
-      await sharePreset(
-        {
-          name: currentPreset?.name || 'Border Calculator Settings',
-          settings: currentSettings,
-        },
-        false
-      );
-    } catch (error) {
-      console.error('Native share failed:', error);
-      throw error;
-    }
-  }, [sharePreset, currentPreset, currentSettings]);
 
   // Drawer handlers
   const openDrawerSection = useCallback((section: ActiveSection) => {
