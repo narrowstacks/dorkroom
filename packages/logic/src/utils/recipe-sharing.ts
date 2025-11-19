@@ -4,6 +4,7 @@ import type {
   CustomDeveloperData,
 } from '../types/custom-recipes';
 import { debugError } from './debug-logger';
+import { sanitizeText, sanitizeRecipeName } from './text-sanitization';
 
 const CURRENT_RECIPE_SHARING_VERSION = 1;
 
@@ -203,8 +204,9 @@ export const createCustomRecipeFromEncoded = (
 ): Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'> => {
   const timestamp = Date.now();
 
+  // Sanitize all text fields to prevent XSS
   return {
-    name: encodedRecipe.name,
+    name: sanitizeRecipeName(encodedRecipe.name) || 'Untitled Recipe',
     filmId: encodedRecipe.isCustomFilm
       ? `custom_film_${timestamp}`
       : encodedRecipe.filmId,
@@ -215,14 +217,47 @@ export const createCustomRecipeFromEncoded = (
     timeMinutes: encodedRecipe.timeMinutes,
     shootingIso: encodedRecipe.shootingIso,
     pushPull: encodedRecipe.pushPull,
-    agitationSchedule: encodedRecipe.agitationSchedule,
-    notes: encodedRecipe.notes,
+    agitationSchedule: sanitizeText(encodedRecipe.agitationSchedule, 500),
+    notes: sanitizeText(encodedRecipe.notes, 2000),
     dilutionId: encodedRecipe.dilutionId,
-    customDilution: encodedRecipe.customDilution,
+    customDilution: sanitizeText(encodedRecipe.customDilution, 100),
     isCustomFilm: encodedRecipe.isCustomFilm,
     isCustomDeveloper: encodedRecipe.isCustomDeveloper,
-    customFilm: encodedRecipe.customFilm,
-    customDeveloper: encodedRecipe.customDeveloper,
+    customFilm: encodedRecipe.customFilm
+      ? {
+          ...encodedRecipe.customFilm,
+          brand: sanitizeText(encodedRecipe.customFilm.brand, 100) || 'Unknown',
+          name: sanitizeText(encodedRecipe.customFilm.name, 100) || 'Unknown',
+          grainStructure: sanitizeText(
+            encodedRecipe.customFilm.grainStructure,
+            100
+          ),
+          description: sanitizeText(encodedRecipe.customFilm.description, 500),
+        }
+      : undefined,
+    customDeveloper: encodedRecipe.customDeveloper
+      ? {
+          ...encodedRecipe.customDeveloper,
+          manufacturer:
+            sanitizeText(encodedRecipe.customDeveloper.manufacturer, 100) ||
+            'Unknown',
+          name:
+            sanitizeText(encodedRecipe.customDeveloper.name, 100) || 'Unknown',
+          notes: sanitizeText(encodedRecipe.customDeveloper.notes, 1000),
+          mixingInstructions: sanitizeText(
+            encodedRecipe.customDeveloper.mixingInstructions,
+            2000
+          ),
+          safetyNotes: sanitizeText(
+            encodedRecipe.customDeveloper.safetyNotes,
+            1000
+          ),
+          dilutions: encodedRecipe.customDeveloper.dilutions.map((d) => ({
+            name: sanitizeText(d.name, 50) || 'Unknown',
+            dilution: sanitizeText(d.dilution, 50) || '1:1',
+          })),
+        }
+      : undefined,
     isPublic: encodedRecipe.isPublic || false,
   };
 };

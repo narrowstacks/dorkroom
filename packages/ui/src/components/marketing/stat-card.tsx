@@ -82,6 +82,7 @@ export function StatCard({
       <Component
         {...componentProps}
         aria-label={label}
+        title={`${label}: ${value}`}
         className={cn(
           'flex items-center gap-4 px-5 py-4 rounded-2xl border transition-colors group focus:outline-none focus:ring-2',
           'bg-[color:var(--color-surface)]',
@@ -116,6 +117,7 @@ export function StatCard({
     <Component
       {...componentProps}
       aria-label={label}
+      title={`${label}: ${value}`}
       className={cn(
         'flex flex-col gap-2 p-4 rounded-2xl border transition-colors group focus:outline-none focus:ring-2',
         'bg-[color:var(--color-surface)]',

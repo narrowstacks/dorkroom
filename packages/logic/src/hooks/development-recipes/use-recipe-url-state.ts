@@ -46,7 +46,8 @@ const parseSearchParams = (searchParams: URLSearchParams): RecipeUrlParams => {
           result.view = value;
         }
       } else {
-        result[key as Exclude<keyof RecipeUrlParams, 'source' | 'view'>] = value;
+        result[key as Exclude<keyof RecipeUrlParams, 'source' | 'view'>] =
+          value;
       }
     }
   });
@@ -273,6 +274,7 @@ export const useRecipeUrlState = (
   const [sharedRecipeError, setSharedRecipeError] = useState<string | null>(
     null
   );
+  const isProcessingSharedRecipeRef = useRef(false);
 
   const initialUrlState = useMemo<InitialUrlState>(() => {
     if (!films.length || !developers.length) {
@@ -349,9 +351,16 @@ export const useRecipeUrlState = (
         setSharedCustomRecipe(null);
         setIsLoadingSharedRecipe(false);
         setSharedRecipeError(null);
+        isProcessingSharedRecipeRef.current = false;
         return;
       }
 
+      // Prevent infinite loop: don't process if we're already processing
+      if (isProcessingSharedRecipeRef.current) {
+        return;
+      }
+
+      isProcessingSharedRecipeRef.current = true;
       setIsLoadingSharedRecipe(true);
       setSharedRecipeError(null);
 
@@ -368,6 +377,7 @@ export const useRecipeUrlState = (
             setSharedRecipeError('Invalid custom recipe data');
             setSharedRecipe(null);
             setSharedCustomRecipe(null);
+            isProcessingSharedRecipeRef.current = false;
           }
 
           setIsLoadingSharedRecipe(false);
@@ -377,6 +387,7 @@ export const useRecipeUrlState = (
         if (!recipesByUuid || recipesByUuid.size === 0) {
           setIsLoadingSharedRecipe(true);
           setSharedRecipeError(null);
+          isProcessingSharedRecipeRef.current = false;
           return;
         }
 
@@ -391,6 +402,7 @@ export const useRecipeUrlState = (
           );
           setSharedRecipe(null);
           setSharedCustomRecipe(null);
+          isProcessingSharedRecipeRef.current = false;
         }
       } catch (error) {
         setSharedRecipeError(
@@ -400,6 +412,7 @@ export const useRecipeUrlState = (
         );
         setSharedRecipe(null);
         setSharedCustomRecipe(null);
+        isProcessingSharedRecipeRef.current = false;
       } finally {
         setIsLoadingSharedRecipe(false);
       }

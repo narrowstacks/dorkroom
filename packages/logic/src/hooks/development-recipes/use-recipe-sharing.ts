@@ -118,7 +118,11 @@ export function useRecipeSharing() {
       try {
         const shareUrl = generateRegularRecipeShareUrl(options);
         if (!shareUrl) {
-          return { success: false, error: 'Failed to generate share URL' };
+          return {
+            success: false,
+            error: 'Failed to generate share URL',
+            showToast: true,
+          };
         }
 
         // Use Web Share API only on mobile devices
@@ -150,7 +154,7 @@ export function useRecipeSharing() {
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : 'Failed to share recipe';
-        return { success: false, error: errorMessage };
+        return { success: false, error: errorMessage, showToast: true };
       }
     },
     [generateRegularRecipeShareUrl]
@@ -161,7 +165,11 @@ export function useRecipeSharing() {
       try {
         const shareUrl = generateRegularRecipeShareUrl(options);
         if (!shareUrl) {
-          return { success: false, error: 'Failed to generate share URL' };
+          return {
+            success: false,
+            error: 'Failed to generate share URL',
+            showToast: true,
+          };
         }
 
         await copyToClipboard(shareUrl);
@@ -176,7 +184,7 @@ export function useRecipeSharing() {
           error instanceof Error
             ? error.message
             : 'Failed to copy to clipboard';
-        return { success: false, error: errorMessage };
+        return { success: false, error: errorMessage, showToast: true };
       }
     },
     [generateRegularRecipeShareUrl]

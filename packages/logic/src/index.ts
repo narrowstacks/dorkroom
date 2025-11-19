@@ -23,6 +23,8 @@ export * from './utils/preset-sharing';
 export * from './utils/url-helpers';
 export * from './utils/recipe-sharing';
 export * from './utils/custom-recipe-helpers';
+export * from './utils/combination-factory';
+export * from './utils/text-sanitization';
 export * from './utils/exposure-calculations';
 export * from './utils/precision';
 export * from './utils/temperature-formatting';
