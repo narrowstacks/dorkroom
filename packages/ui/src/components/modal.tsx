@@ -134,7 +134,7 @@ export function Modal({
           </div>
         )}
         <div
-          className="space-y-4 text-sm"
+          className="max-h-[calc(100dvh-12rem)] space-y-4 overflow-y-auto text-sm"
           style={{ color: 'var(--color-text-secondary)' }}
         >
           {children}
