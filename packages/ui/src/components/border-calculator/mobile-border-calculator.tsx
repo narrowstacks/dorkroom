@@ -333,7 +333,6 @@ export function MobileBorderCalculator({
 
   // Sharing hooks
   const {
-    sharePreset,
     getSharingUrls,
     canCopyToClipboard,
     isSharing,
