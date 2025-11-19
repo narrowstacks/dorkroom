@@ -19,7 +19,7 @@ export function ToggleSwitch({
         type="button"
         onClick={() => onValueChange(!value)}
         className={cn(
-          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
+          'relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
           'focus:ring-primary/40 focus:ring-offset-transparent'
         )}
         style={{
