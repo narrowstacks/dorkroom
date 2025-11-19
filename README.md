@@ -2,7 +2,7 @@
 
 **Skip the math. Make prints!**
 
-> ![Dorkroom Homepage](resources/dorkroom-homepage.png)
+![Dorkroom Homepage](resources/dorkroom-homepage.png)
 
 [**Dorkroom.art**](https://dorkroom.art/) is a collection of specialized calculators and tools designed for analog photographers and darkroom enthusiasts. Built to keep complex exposure math, border calculations, and chemistry planning out of your way so you can focus on making beautiful prints.
 
