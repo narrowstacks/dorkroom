@@ -32,7 +32,7 @@ interface UseCalculatorSharingProps {
 interface UseCalculatorSharingReturn {
   isShareModalOpen: boolean;
   isSaveBeforeShareOpen: boolean;
-  shareUrls: { webUrl: string; nativeUrl: string } | null;
+  shareUrls: { webUrl: string } | null;
   isGeneratingShareUrl: boolean;
   setIsShareModalOpen: (open: boolean) => void;
   setIsSaveBeforeShareOpen: (open: boolean) => void;
@@ -61,7 +61,6 @@ export function useCalculatorSharing({
   const [isSaveBeforeShareOpen, setIsSaveBeforeShareOpen] = useState(false);
   const [shareUrls, setShareUrls] = useState<{
     webUrl: string;
-    nativeUrl: string;
   } | null>(null);
   const [isGeneratingShareUrl, setIsGeneratingShareUrl] = useState(false);
 

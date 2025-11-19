@@ -501,7 +501,6 @@ export function MobileBorderLayout({
           onClose={() => setIsShareModalOpen(false)}
           presetName={currentPreset?.name || 'Border Calculator Settings'}
           webUrl={shareUrls?.webUrl || ''}
-          nativeUrl={shareUrls?.nativeUrl}
           onCopyToClipboard={handleCopyToClipboard}
           onNativeShare={canShareNatively ? handleNativeShare : undefined}
           canShareNatively={canShareNatively}

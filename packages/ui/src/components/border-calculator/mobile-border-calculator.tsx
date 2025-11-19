@@ -117,7 +117,6 @@ export function MobileBorderCalculator({
   const [isSaveBeforeShareOpen, setIsSaveBeforeShareOpen] = useState(false);
   const [shareUrls, setShareUrls] = useState<{
     webUrl: string;
-    nativeUrl: string;
   } | null>(null);
   const [isGeneratingShareUrl, setIsGeneratingShareUrl] = useState(false);
 
@@ -593,7 +592,7 @@ export function MobileBorderCalculator({
           name: currentPreset?.name || 'Border Calculator Settings',
           settings: currentSettings,
         },
-        false
+        true
       );
     } catch (error) {
       console.error('Native share failed:', error);
@@ -947,7 +946,6 @@ export function MobileBorderCalculator({
           onClose={() => setIsShareModalOpen(false)}
           presetName={currentPreset?.name || 'Border Calculator Settings'}
           webUrl={shareUrls?.webUrl || ''}
-          nativeUrl={shareUrls?.nativeUrl}
           onCopyToClipboard={handleCopyToClipboard}
           onNativeShare={canShareNatively ? handleNativeShare : undefined}
           canShareNatively={canShareNatively}
