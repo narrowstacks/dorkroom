@@ -78,6 +78,39 @@
   --color-tooltip-bg: #000000;
   --color-tooltip-border: #ff0000;
   --color-tooltip-text: #ff0000;
+  /* Home page specific icon colors for darkroom theme - all red */
+  --color-icon-stat-emerald: #ff0000;
+  --color-icon-stat-rose: #ff0000;
+  --color-icon-stat-indigo: #ff0000;
+  --color-icon-card-indigo: #ff0000;
+  --color-icon-card-blue: #ff0000;
+  --color-icon-card-violet: #ff0000;
+  --color-icon-card-amber: #ff0000;
+  --color-icon-card-rose: #ff0000;
+  /* Home page button colors for darkroom theme */
+  --color-button-success: #ff0000;
+  --color-button-success-hover: #ff0000;
+  --color-button-error: #ff0000;
+  --color-button-error-hover: #ff0000;
+  --color-button-text: #000000;
+  /* Home page hero section colors for darkroom theme */
+  --color-hero-border: #ff0000;
+  --color-hero-border-hover: #ff0000;
+  --color-hero-bg: #000000;
+  --color-hero-title: #ff0000;
+  --color-hero-text: #a90000;
+  --gradient-hero-accent: none;
+  /* Tool card colors for darkroom theme */
+  --color-tool-card-bg: #000000;
+  --color-tool-card-icon-bg: #000000;
+  --color-tool-card-icon-ring: #ff0000;
+  --color-tool-card-icon-hover: #ff0000;
+  --color-tool-card-category: #ff0000;
+  --color-tool-card-category-hover: #ff0000;
+  --color-tool-card-title: #ff0000;
+  --color-tool-card-description: #a90000;
+  --color-tool-card-description-hover: #ff0000;
+  --color-tool-card-arrow: #ff0000;
 }
 
 /* Dark theme (default) */
@@ -170,6 +203,43 @@
   --color-tooltip-bg: rgba(245, 245, 244, 0.98);
   --color-tooltip-border: rgba(0, 0, 0, 0.2);
   --color-tooltip-text: #1a1a1a;
+  /* Home page specific icon colors for dark theme */
+  --color-icon-stat-emerald: #34d399;
+  --color-icon-stat-rose: #fb7185;
+  --color-icon-stat-indigo: #818cf8;
+  --color-icon-card-indigo: #818cf8;
+  --color-icon-card-blue: #60a5fa;
+  --color-icon-card-violet: #a78bfa;
+  --color-icon-card-amber: #fbbf24;
+  --color-icon-card-rose: #fb7185;
+  /* Home page button colors for dark theme (original: bg-emerald-800, bg-rose-800) */
+  --color-button-success: #065f46;
+  --color-button-success-hover: #047857;
+  --color-button-error: #991b1b;
+  --color-button-error-hover: #b91c1c;
+  --color-button-text: #ffffff;
+  /* Home page hero section colors for dark theme (original: border-zinc-800, bg-zinc-900/50) */
+  --color-hero-border: #27272a;
+  --color-hero-border-hover: #3f3f46;
+  --color-hero-bg: rgba(24, 24, 27, 0.5);
+  --color-hero-title: #ffffff;
+  --color-hero-text: #a1a1aa;
+  --gradient-hero-accent: linear-gradient(
+    to bottom right,
+    rgba(99, 102, 241, 0.2),
+    rgba(168, 85, 247, 0.2)
+  );
+  /* Tool card colors for dark theme (original: border-zinc-800, bg-zinc-900/30) */
+  --color-tool-card-bg: rgba(24, 24, 27, 0.3);
+  --color-tool-card-icon-bg: rgba(39, 39, 42, 0.5);
+  --color-tool-card-icon-ring: rgba(255, 255, 255, 0.05);
+  --color-tool-card-icon-hover: rgba(255, 255, 255, 0.1);
+  --color-tool-card-category: #71717a;
+  --color-tool-card-category-hover: #d4d4d8;
+  --color-tool-card-title: #ffffff;
+  --color-tool-card-description: #a1a1aa;
+  --color-tool-card-description-hover: #d4d4d8;
+  --color-tool-card-arrow: #52525b;
 }
 
 /* Light theme */
@@ -262,6 +332,43 @@
   --color-tooltip-bg: rgba(245, 245, 244, 0.98);
   --color-tooltip-border: rgba(9, 9, 11, 0.2);
   --color-tooltip-text: #09090b;
+  /* Home page specific icon colors for light theme */
+  --color-icon-stat-emerald: #10b981;
+  --color-icon-stat-rose: #f43f5e;
+  --color-icon-stat-indigo: #6366f1;
+  --color-icon-card-indigo: #818cf8;
+  --color-icon-card-blue: #60a5fa;
+  --color-icon-card-violet: #a78bfa;
+  --color-icon-card-amber: #f59e0b;
+  --color-icon-card-rose: #fb7185;
+  /* Home page button colors for light theme */
+  --color-button-success: #065f46;
+  --color-button-success-hover: #047857;
+  --color-button-error: #991b1b;
+  --color-button-error-hover: #b91c1c;
+  --color-button-text: #ffffff;
+  /* Home page hero section colors for light theme */
+  --color-hero-border: rgba(9, 9, 11, 0.18);
+  --color-hero-border-hover: rgba(9, 9, 11, 0.3);
+  --color-hero-bg: #f8f9fa;
+  --color-hero-title: #09090b;
+  --color-hero-text: #52525b;
+  --gradient-hero-accent: linear-gradient(
+    to bottom right,
+    rgba(99, 102, 241, 0.1),
+    rgba(168, 85, 247, 0.1)
+  );
+  /* Tool card colors for light theme */
+  --color-tool-card-bg: #f8f9fa;
+  --color-tool-card-icon-bg: rgba(9, 9, 11, 0.05);
+  --color-tool-card-icon-ring: rgba(9, 9, 11, 0.1);
+  --color-tool-card-icon-hover: rgba(9, 9, 11, 0.1);
+  --color-tool-card-category: #71717a;
+  --color-tool-card-category-hover: #52525b;
+  --color-tool-card-title: #09090b;
+  --color-tool-card-description: #52525b;
+  --color-tool-card-description-hover: #09090b;
+  --color-tool-card-arrow: #a1a1aa;
 }
 
 /* High-contrast theme: black on white, no gradients, no animations */
@@ -332,6 +439,39 @@
   --color-tooltip-bg: #ffffff;
   --color-tooltip-border: #000000;
   --color-tooltip-text: #000000;
+  /* Home page specific icon colors for high-contrast theme - all black */
+  --color-icon-stat-emerald: #000000;
+  --color-icon-stat-rose: #000000;
+  --color-icon-stat-indigo: #000000;
+  --color-icon-card-indigo: #000000;
+  --color-icon-card-blue: #000000;
+  --color-icon-card-violet: #000000;
+  --color-icon-card-amber: #000000;
+  --color-icon-card-rose: #000000;
+  /* Home page button colors for high-contrast theme */
+  --color-button-success: #000000;
+  --color-button-success-hover: #000000;
+  --color-button-error: #000000;
+  --color-button-error-hover: #000000;
+  --color-button-text: #ffffff;
+  /* Home page hero section colors for high-contrast theme */
+  --color-hero-border: #000000;
+  --color-hero-border-hover: #000000;
+  --color-hero-bg: #ffffff;
+  --color-hero-title: #000000;
+  --color-hero-text: #000000;
+  --gradient-hero-accent: none;
+  /* Tool card colors for high-contrast theme */
+  --color-tool-card-bg: #ffffff;
+  --color-tool-card-icon-bg: #ffffff;
+  --color-tool-card-icon-ring: #000000;
+  --color-tool-card-icon-hover: #ffffff;
+  --color-tool-card-category: #000000;
+  --color-tool-card-category-hover: #000000;
+  --color-tool-card-title: #000000;
+  --color-tool-card-description: #000000;
+  --color-tool-card-description-hover: #000000;
+  --color-tool-card-arrow: #000000;
 }
 
 /* Default to dark theme if no data-theme attribute */
@@ -423,6 +563,149 @@
 
 [data-theme='high-contrast'] {
   color-scheme: light;
+}
+
+/* Disable gradients in high-contrast and darkroom themes */
+[data-theme='high-contrast'] [style*='gradient'],
+[data-theme='darkroom'] [style*='gradient'],
+[data-theme='high-contrast'] [style*='--gradient-card'],
+[data-theme='darkroom'] [style*='--gradient-card'] {
+  background-image: none !important;
+}
+
+[data-theme='high-contrast'] [data-theme-gradient='true'],
+[data-theme='darkroom'] [data-theme-gradient='true'] {
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: var(--color-text-primary) !important;
+  color: var(--color-text-primary) !important;
+  background-image: none !important;
+}
+
+/* Ensure all icons use only black/red in darkroom theme (except coming soon section) */
+[data-theme='darkroom'] svg:not([data-coming-soon]) {
+  color: var(--color-text-primary) !important;
+  stroke: var(--color-text-primary) !important;
+}
+
+/* Ensure focus rings use only red/black in darkroom theme */
+[data-theme='darkroom'] *:focus-visible {
+  outline-color: var(--color-border-primary) !important;
+}
+
+[data-theme='darkroom'] *:focus-visible {
+  --tw-ring-color: var(--color-border-primary) !important;
+}
+
+/* Override Tailwind color classes in high-contrast theme - force black */
+[data-theme='high-contrast'] .text-indigo-400,
+[data-theme='high-contrast'] .text-blue-400,
+[data-theme='high-contrast'] .text-violet-400,
+[data-theme='high-contrast'] .text-amber-400,
+[data-theme='high-contrast'] .text-rose-400,
+[data-theme='high-contrast'] .text-emerald-400 {
+  color: #000000 !important;
+}
+
+/* Override Tailwind color classes in darkroom theme - force red */
+[data-theme='darkroom'] .text-indigo-400,
+[data-theme='darkroom'] .text-blue-400,
+[data-theme='darkroom'] .text-violet-400,
+[data-theme='darkroom'] .text-amber-400,
+[data-theme='darkroom'] .text-rose-400,
+[data-theme='darkroom'] .text-emerald-400 {
+  color: #ff0000 !important;
+}
+
+/* Override gradient backgrounds in high-contrast theme - no color on hover */
+[data-theme='high-contrast'] .bg-gradient-to-br,
+[data-theme='high-contrast'] .from-indigo-500\/20,
+[data-theme='high-contrast'] .from-blue-500\/20,
+[data-theme='high-contrast'] .from-violet-500\/20,
+[data-theme='high-contrast'] .from-amber-500\/20,
+[data-theme='high-contrast'] .from-rose-500\/20,
+[data-theme='high-contrast'] .to-purple-500\/20,
+[data-theme='high-contrast'] .to-cyan-500\/20,
+[data-theme='high-contrast'] .to-fuchsia-500\/20,
+[data-theme='high-contrast'] .to-orange-500\/20,
+[data-theme='high-contrast'] .to-red-500\/20 {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+/* Override gradient backgrounds in darkroom theme - no color on hover */
+[data-theme='darkroom'] .bg-gradient-to-br,
+[data-theme='darkroom'] .from-indigo-500\/20,
+[data-theme='darkroom'] .from-blue-500\/20,
+[data-theme='darkroom'] .from-violet-500\/20,
+[data-theme='darkroom'] .from-amber-500\/20,
+[data-theme='darkroom'] .from-rose-500\/20,
+[data-theme='darkroom'] .to-purple-500\/20,
+[data-theme='darkroom'] .to-cyan-500\/20,
+[data-theme='darkroom'] .to-fuchsia-500\/20,
+[data-theme='darkroom'] .to-orange-500\/20,
+[data-theme='darkroom'] .to-red-500\/20 {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+/* Override border hover colors in high-contrast theme - force black */
+[data-theme='high-contrast'] .group-hover\:border-indigo-500\/50,
+[data-theme='high-contrast'] .group-hover\:border-blue-500\/50,
+[data-theme='high-contrast'] .group-hover\:border-violet-500\/50,
+[data-theme='high-contrast'] .group-hover\:border-amber-500\/50,
+[data-theme='high-contrast'] .group-hover\:border-rose-500\/50 {
+  border-color: #000000 !important;
+}
+
+/* Override border hover colors in darkroom theme - force red */
+[data-theme='darkroom'] .group-hover\:border-indigo-500\/50,
+[data-theme='darkroom'] .group-hover\:border-blue-500\/50,
+[data-theme='darkroom'] .group-hover\:border-violet-500\/50,
+[data-theme='darkroom'] .group-hover\:border-amber-500\/50,
+[data-theme='darkroom'] .group-hover\:border-rose-500\/50 {
+  border-color: #ff0000 !important;
+}
+
+/* Make tool card icons black on hover in darkroom mode (so they're visible against red bg) */
+/* Only target anchor tags (tool cards), not button elements (dropdown items) */
+[data-theme='darkroom'] a.group:hover svg:not([data-coming-soon]) {
+  color: #000000 !important;
+  stroke: #000000 !important;
+}
+
+/* Make navigation icons black when nav item is active in darkroom mode (red bg needs black icons) */
+[data-theme='darkroom'] .shadow-subtle svg:not([data-coming-soon]) {
+  color: #000000 !important;
+  stroke: #000000 !important;
+}
+
+/* Keep dropdown menu icons red on hover in darkroom mode (visible against black hover bg) */
+[data-theme='darkroom']
+  button[role='menuitem']:hover
+  svg:not([data-coming-soon]),
+[data-theme='darkroom'] a[role='menuitem']:hover svg:not([data-coming-soon]) {
+  color: #ff0000 !important;
+  stroke: #ff0000 !important;
+}
+
+/* Make dropdown menu items white on hover in high-contrast theme (visible against black hover bg) */
+[data-theme='high-contrast'] button[role='menuitem']:hover,
+[data-theme='high-contrast'] a[role='menuitem']:hover {
+  color: #ffffff !important;
+}
+
+[data-theme='high-contrast'] button[role='menuitem']:hover svg,
+[data-theme='high-contrast'] a[role='menuitem']:hover svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Recipe detail sections: white background with black border in high-contrast mode */
+[data-theme='high-contrast'] .bg-border-muted,
+[data-theme='high-contrast'] .rounded-xl.border {
+  background-color: #ffffff !important;
+  border: 2px solid #000000 !important;
 }
 
 :root:not([data-theme]) {

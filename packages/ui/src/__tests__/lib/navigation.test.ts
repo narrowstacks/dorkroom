@@ -22,18 +22,14 @@ describe('navigation utilities', () => {
     });
 
     it('has correct main nav items', () => {
-      expect(navItems).toHaveLength(2);
+      expect(navItems).toHaveLength(3);
       const labels = navItems.map((item) => item.label);
-      expect(labels).toEqual(['Home', 'Development']);
+      expect(labels).toEqual(['Home', 'Development', 'Reciprocity']);
     });
 
     it('combines all items correctly', () => {
-      expect(allNavItems).toHaveLength(8);
-      expect(allNavItems).toEqual([
-        ...navItems,
-        ...printingItems,
-        ...shootingItems,
-      ]);
+      expect(allNavItems).toHaveLength(6);
+      expect(allNavItems).toEqual([...navItems, ...printingItems]);
     });
   });
 

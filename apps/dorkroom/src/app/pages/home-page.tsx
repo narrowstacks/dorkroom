@@ -9,6 +9,10 @@ import {
   Ruler,
   Timer,
   CalculatorIcon,
+  BookOpen,
+  GraduationCap,
+  Camera,
+  Construction,
 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import {
@@ -25,6 +29,7 @@ const calculators = [
     description: 'Print borders & trim guides',
     href: '/border',
     icon: Crop,
+    iconColorKey: 'indigo' as const,
     color: 'text-indigo-400',
     bg: 'from-indigo-500/20 to-purple-500/20',
     border: 'group-hover:border-indigo-500/50',
@@ -35,6 +40,7 @@ const calculators = [
     description: 'F-stop & time math',
     href: '/stops',
     icon: Gauge,
+    iconColorKey: 'blue' as const,
     color: 'text-blue-400',
     bg: 'from-blue-500/20 to-cyan-500/20',
     border: 'group-hover:border-blue-500/50',
@@ -45,6 +51,7 @@ const calculators = [
     description: 'Scale prints, no wasting test strips',
     href: '/resize',
     icon: Ruler,
+    iconColorKey: 'violet' as const,
     color: 'text-violet-400',
     bg: 'from-violet-500/20 to-fuchsia-500/20',
     border: 'group-hover:border-violet-500/50',
@@ -55,6 +62,7 @@ const calculators = [
     description: 'Long exposure correction',
     href: '/reciprocity',
     icon: Timer,
+    iconColorKey: 'amber' as const,
     color: 'text-amber-400',
     bg: 'from-amber-500/20 to-orange-500/20',
     border: 'group-hover:border-amber-500/50',
@@ -65,9 +73,31 @@ const calculators = [
     description: 'Film & chemistry database',
     href: '/development',
     icon: FlaskConical,
+    iconColorKey: 'rose' as const,
     color: 'text-rose-400',
     bg: 'from-rose-500/20 to-red-500/20',
     border: 'group-hover:border-rose-500/50',
+  },
+];
+
+const comingSoon = [
+  {
+    category: 'Resources',
+    title: 'Docs',
+    description: 'Documentation for Dorkroom',
+    icon: BookOpen,
+  },
+  {
+    category: 'Knowledge',
+    title: 'Infobase',
+    description: 'Photography & darkroom guides',
+    icon: GraduationCap,
+  },
+  {
+    category: 'Tools',
+    title: 'Camera Exposure',
+    description: 'Equivalent exposure calculator',
+    icon: Camera,
   },
 ];
 
@@ -90,14 +120,38 @@ export function HomePage() {
       {/* Featured Dashboard Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6">
         {/* Main Hero - Compact */}
-        <div className="md:col-span-8 relative overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/50 p-6 sm:p-8 transition-all hover:border-zinc-700 group">
-          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 blur-3xl rounded-full" />
+        <div
+          className="md:col-span-8 relative overflow-hidden rounded-3xl border p-6 sm:p-8 transition-all group"
+          style={{
+            borderColor: 'var(--color-hero-border)',
+            backgroundColor: 'var(--color-hero-bg)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor =
+              'var(--color-hero-border-hover)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'var(--color-hero-border)';
+          }}
+        >
+          <div
+            className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 blur-3xl rounded-full"
+            style={{
+              backgroundImage: 'var(--gradient-hero-accent)',
+            }}
+          />
           <div className="relative z-10 flex flex-col justify-between h-full gap-6">
             <div>
-              <h2 className="text-2xl font-bold text-white mb-2">
+              <h2
+                className="text-2xl font-bold mb-2"
+                style={{ color: 'var(--color-hero-title)' }}
+              >
                 Skip the math. Make prints!
               </h2>
-              <p className="text-zinc-400 max-w-md">
+              <p
+                className="max-w-md"
+                style={{ color: 'var(--color-hero-text)' }}
+              >
                 Dorkroom.art is a collection of tools for the darkroom and
                 photography. Calculate borders, exposures, and manage your
                 development recipes in our easy to use interface.
@@ -106,14 +160,38 @@ export function HomePage() {
             <div className="flex flex-wrap gap-2">
               <Link
                 to="/border"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-800 text-white hover:bg-emerald-700 font-medium text-sm transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors"
+                style={{
+                  backgroundColor: 'var(--color-button-success)',
+                  color: 'var(--color-button-text)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    'var(--color-button-success-hover)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    'var(--color-button-success)';
+                }}
               >
                 <Crop className="w-4 h-4" />
                 Try our darkroom easel border calculator
               </Link>
               <Link
                 to="/development"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-800 text-white hover:bg-rose-700 font-medium text-sm transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors"
+                style={{
+                  backgroundColor: 'var(--color-button-error)',
+                  color: 'var(--color-button-text)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    'var(--color-button-error-hover)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    'var(--color-button-error)';
+                }}
               >
                 <FlaskConical className="w-4 h-4" />
                 Find the perfect film development recipe
@@ -129,8 +207,7 @@ export function HomePage() {
             label="Film Development Recipes"
             value={combinations ? combinations.length.toLocaleString() : '-'}
             icon={FlaskConical}
-            iconColor="text-emerald-400"
-            iconBg="bg-emerald-500/10 group-hover:bg-emerald-500/20"
+            iconColorKey="emerald"
             variant="horizontal"
             className="col-span-2"
             loading={isCombinationsLoading}
@@ -143,8 +220,7 @@ export function HomePage() {
             label="Favorite Recipes"
             value={favoriteIds.length}
             icon={Heart}
-            iconColor="text-rose-400"
-            iconBg="bg-rose-500/10 group-hover:bg-rose-500/20"
+            iconColorKey="rose"
             loading={!isFavoritesInitialized}
           />
 
@@ -155,8 +231,7 @@ export function HomePage() {
             label="Your Custom Recipes"
             value={customRecipes.length}
             icon={Library}
-            iconColor="text-indigo-400"
-            iconBg="bg-indigo-500/10 group-hover:bg-indigo-500/20"
+            iconColorKey="indigo"
             loading={isCustomRecipesLoading}
           />
         </div>
@@ -165,11 +240,14 @@ export function HomePage() {
       {/* Tools Grid */}
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <CalculatorIcon className="w-5 h-5 text-zinc-500" />
+          <h2 className="text-xl font-bold text-[color:var(--color-text-primary)] flex items-center gap-2">
+            <CalculatorIcon className="w-5 h-5 text-[color:var(--color-text-tertiary)]" />
             Calculators
           </h2>
-          <div className="h-px flex-1 bg-zinc-800 ml-4" />
+          <div
+            className="h-px flex-1 ml-4"
+            style={{ backgroundColor: 'var(--color-border-primary)' }}
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -179,13 +257,86 @@ export function HomePage() {
         </div>
       </div>
 
+      {/* Coming Soon Section */}
+      <div>
+        <div
+          className="flex items-center justify-between mb-6"
+          data-coming-soon-section
+        >
+          <h2 className="text-xl font-bold text-[color:var(--color-text-primary)] flex items-center gap-2">
+            <Construction
+              className="w-5 h-5 text-[color:var(--color-text-tertiary)]"
+              data-coming-soon
+            />
+            Coming Soon
+          </h2>
+          <div
+            className="h-px flex-1 ml-4"
+            style={{ backgroundColor: 'var(--color-border-primary)' }}
+          />
+        </div>
+
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          data-coming-soon-section
+        >
+          {comingSoon.map((item) => (
+            <div
+              key={item.title}
+              className="relative overflow-hidden rounded-2xl border border-dashed p-5"
+              style={{
+                borderColor: 'var(--color-border-secondary)',
+                backgroundColor: 'var(--color-surface-muted)',
+              }}
+            >
+              <div className="flex items-start gap-4">
+                <div
+                  className="p-3 rounded-xl border"
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    borderColor: 'var(--color-border-secondary)',
+                    color: 'var(--color-text-tertiary)',
+                  }}
+                >
+                  <item.icon className="h-6 w-6" data-coming-soon />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-text-tertiary)] mb-1">
+                    {item.category}
+                  </p>
+                  <h3 className="font-semibold text-[color:var(--color-text-secondary)] truncate pr-4">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-[color:var(--color-text-tertiary)] line-clamp-1">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Footer Links - Minimal */}
-      <div className="border-t border-zinc-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-md text-white">
+      <div
+        className="border-t pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-md"
+        style={{
+          borderColor: 'var(--color-border-primary)',
+          color: 'var(--color-text-primary)',
+        }}
+      >
         <p>
           © {new Date().getFullYear()} Dorkroom.{' '}
           <a
             href="https://github.com/narrowstacks/dorkroom/blob/main/LICENSE"
-            className="underline text-zinc-400"
+            className="underline transition-colors"
+            style={{ color: 'var(--color-text-secondary)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+            }}
             target="_blank"
             rel="noreferrer"
           >
@@ -197,7 +348,14 @@ export function HomePage() {
             href="https://github.com/narrowstacks/dorkroom"
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-2 hover:text-white transition-colors"
+            className="flex items-center gap-2 transition-colors"
+            style={{ color: 'var(--color-text-secondary)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+            }}
           >
             <GitBranch className="h-4 w-4" />
             <span>Contribute</span>
@@ -206,7 +364,14 @@ export function HomePage() {
             href="https://ko-fi.com/affords"
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-2 hover:text-rose-400 transition-colors"
+            className="flex items-center gap-2 transition-colors"
+            style={{ color: 'var(--color-text-secondary)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+            }}
           >
             <HandCoins className="h-4 w-4" />
             <span>Donate</span>

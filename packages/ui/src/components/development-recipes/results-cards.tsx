@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
 import type { Table, Row } from '@tanstack/react-table';
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
@@ -73,6 +74,9 @@ export function DevelopmentResultsCards({
   favoriteTransitions = new Map(),
 }: DevelopmentResultsCardsProps) {
   const { unit } = useTemperature();
+  const [hoveredFavoriteId, setHoveredFavoriteId] = useState<string | null>(
+    null
+  );
   const rows = table.getRowModel().rows;
   return (
     <div
@@ -252,27 +256,39 @@ export function DevelopmentResultsCards({
                 className="ml-2 inline-flex items-center justify-center rounded-md p-1.5 transition"
                 style={{
                   backgroundColor: 'var(--color-surface-muted)',
+                  borderWidth: 1,
+                  borderColor: 'var(--color-border-secondary)',
                   color: isFavorite?.(rowData)
                     ? 'var(--color-semantic-warning)'
-                    : 'var(--color-text-tertiary)',
+                    : 'var(--color-border-secondary)',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor =
                     'var(--color-border-secondary)';
+                  setHoveredFavoriteId(id);
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor =
                     'var(--color-surface-muted)';
+                  setHoveredFavoriteId(null);
                 }}
               >
                 <Star
                   className="h-4 w-4"
                   aria-hidden="true"
-                  style={{
-                    fill: isFavorite?.(rowData)
+                  fill={
+                    isFavorite?.(rowData)
                       ? 'var(--color-semantic-warning)'
-                      : 'transparent',
-                  }}
+                      : 'none'
+                  }
+                  stroke={
+                    hoveredFavoriteId === id
+                      ? '#ffffff'
+                      : isFavorite?.(rowData)
+                      ? 'var(--color-semantic-warning)'
+                      : 'var(--color-border-secondary)'
+                  }
+                  strokeWidth={2}
                 />
               </button>
             </div>
@@ -386,89 +402,103 @@ export function DevelopmentResultsCards({
             )}
 
             {rowData.source === 'custom' && (
-              <div className="mt-3 flex justify-end gap-1.5">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditCustomRecipe?.(rowData);
-                  }}
-                  aria-label="Edit custom recipe"
-                  className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
-                  style={{
-                    backgroundColor: 'var(--color-border-muted)',
-                    color: 'var(--color-text-secondary)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      'var(--color-border-secondary)';
-                    e.currentTarget.style.color = 'var(--color-text-primary)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      'var(--color-border-muted)';
-                    e.currentTarget.style.color = 'var(--color-text-secondary)';
-                  }}
-                  title="Edit custom recipe"
-                >
-                  <Edit2 className="h-3 w-3" />
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteCustomRecipe?.(rowData);
-                  }}
-                  aria-label="Delete custom recipe"
-                  className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
-                  style={{
-                    backgroundColor: colorMixOr(
-                      'var(--color-semantic-error)',
-                      10,
-                      'transparent',
-                      'var(--color-border-muted)'
-                    ),
-                    color: colorMixOr(
-                      'var(--color-semantic-error)',
-                      80,
-                      'var(--color-text-primary)',
-                      'var(--color-semantic-error)'
-                    ),
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = colorMixOr(
-                      'var(--color-semantic-error)',
-                      20,
-                      'transparent',
-                      'var(--color-border-secondary)'
-                    );
-                    e.currentTarget.style.color = colorMixOr(
-                      'var(--color-semantic-error)',
-                      90,
-                      'var(--color-text-primary)',
-                      'var(--color-semantic-error)'
-                    );
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = colorMixOr(
-                      'var(--color-semantic-error)',
-                      10,
-                      'transparent',
-                      'var(--color-border-muted)'
-                    );
-                    e.currentTarget.style.color = colorMixOr(
-                      'var(--color-semantic-error)',
-                      80,
-                      'var(--color-text-primary)',
-                      'var(--color-semantic-error)'
-                    );
-                  }}
-                  title="Delete custom recipe"
-                >
-                  <Trash2 className="h-3 w-3" />
-                  Delete
-                </button>
+              <div className="mt-3 space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditCustomRecipe?.(rowData);
+                      }}
+                      aria-label="Edit"
+                      className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
+                      style={{
+                        backgroundColor: 'var(--color-border-muted)',
+                        color: 'var(--color-text-secondary)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          'var(--color-border-secondary)';
+                        e.currentTarget.style.color =
+                          'var(--color-text-primary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          'var(--color-border-muted)';
+                        e.currentTarget.style.color =
+                          'var(--color-text-secondary)';
+                      }}
+                      title="Edit"
+                    >
+                      <Edit2 className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteCustomRecipe?.(rowData);
+                      }}
+                      aria-label="Delete"
+                      className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
+                      style={{
+                        backgroundColor: colorMixOr(
+                          'var(--color-semantic-error)',
+                          10,
+                          'transparent',
+                          'var(--color-border-muted)'
+                        ),
+                        color: colorMixOr(
+                          'var(--color-semantic-error)',
+                          80,
+                          'var(--color-text-primary)',
+                          'var(--color-semantic-error)'
+                        ),
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = colorMixOr(
+                          'var(--color-semantic-error)',
+                          20,
+                          'transparent',
+                          'var(--color-border-secondary)'
+                        );
+                        e.currentTarget.style.color = colorMixOr(
+                          'var(--color-semantic-error)',
+                          90,
+                          'var(--color-text-primary)',
+                          'var(--color-semantic-error)'
+                        );
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = colorMixOr(
+                          'var(--color-semantic-error)',
+                          10,
+                          'transparent',
+                          'var(--color-border-muted)'
+                        );
+                        e.currentTarget.style.color = colorMixOr(
+                          'var(--color-semantic-error)',
+                          80,
+                          'var(--color-text-primary)',
+                          'var(--color-semantic-error)'
+                        );
+                      }}
+                      title="Delete"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                  {onShareCombination && (
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <ShareButton
+                        onClick={() => onShareCombination?.(rowData)}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

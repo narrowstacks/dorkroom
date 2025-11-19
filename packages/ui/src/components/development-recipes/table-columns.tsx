@@ -265,112 +265,138 @@ export const createTableColumns = (
             className="inline-flex items-center justify-center rounded-md p-1.5 transition"
             style={{
               backgroundColor: 'var(--color-surface-muted)',
+              borderWidth: 1,
+              borderColor: 'var(--color-border-secondary)',
               color: isFav
                 ? 'var(--color-semantic-warning)'
-                : 'var(--color-text-tertiary)',
+                : 'var(--color-border-secondary)',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor =
                 'var(--color-border-secondary)';
+              const star = e.currentTarget.querySelector('svg');
+              if (star) {
+                star.style.stroke = '#ffffff';
+              }
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor =
                 'var(--color-surface-muted)';
+              const star = e.currentTarget.querySelector('svg');
+              if (star) {
+                star.style.stroke = isFav
+                  ? 'var(--color-semantic-warning)'
+                  : 'var(--color-border-secondary)';
+              }
             }}
           >
             <Star
               className="h-4 w-4"
               aria-hidden="true"
-              style={{
-                fill: isFav ? 'var(--color-semantic-warning)' : 'transparent',
-              }}
+              fill={isFav ? 'var(--color-semantic-warning)' : 'none'}
+              stroke={
+                isFav
+                  ? 'var(--color-semantic-warning)'
+                  : 'var(--color-border-secondary)'
+              }
+              strokeWidth={2}
             />
           </button>
           {isCustom ? (
-            <>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  context.onEditCustomRecipe?.(view);
-                }}
-                aria-label="Edit custom recipe"
-                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
-                style={{
-                  backgroundColor: 'var(--color-surface-muted)',
-                  color: 'var(--color-text-secondary)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    'var(--color-border-secondary)';
-                  e.currentTarget.style.color = 'var(--color-text-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    'var(--color-surface-muted)';
-                  e.currentTarget.style.color = 'var(--color-text-secondary)';
-                }}
-                title="Edit custom recipe"
-              >
-                <Edit2 className="h-3 w-3" />
-                Edit
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  context.onDeleteCustomRecipe?.(view);
-                }}
-                aria-label="Delete custom recipe"
-                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
-                style={{
-                  backgroundColor: colorMixOr(
-                    'var(--color-semantic-error)',
-                    10,
-                    'transparent',
-                    'var(--color-border-muted)'
-                  ),
-                  color: colorMixOr(
-                    'var(--color-semantic-error)',
-                    80,
-                    'var(--color-text-primary)',
-                    'var(--color-semantic-error)'
-                  ),
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = colorMixOr(
-                    'var(--color-semantic-error)',
-                    20,
-                    'transparent',
-                    'var(--color-border-secondary)'
-                  );
-                  e.currentTarget.style.color = colorMixOr(
-                    'var(--color-semantic-error)',
-                    90,
-                    'var(--color-text-primary)',
-                    'var(--color-semantic-error)'
-                  );
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = colorMixOr(
-                    'var(--color-semantic-error)',
-                    10,
-                    'transparent',
-                    'var(--color-border-muted)'
-                  );
-                  e.currentTarget.style.color = colorMixOr(
-                    'var(--color-semantic-error)',
-                    80,
-                    'var(--color-text-primary)',
-                    'var(--color-semantic-error)'
-                  );
-                }}
-                title="Delete custom recipe"
-              >
-                <Trash2 className="h-3 w-3" />
-                Delete
-              </button>
-            </>
+            <div className="flex flex-col items-center gap-2">
+              {context.onShareCombination && (
+                <div onClick={(e) => e.stopPropagation()}>
+                  <ShareButton
+                    onClick={() => context.onShareCombination?.(view)}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  />
+                </div>
+              )}
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    context.onEditCustomRecipe?.(view);
+                  }}
+                  aria-label="Edit"
+                  className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
+                  style={{
+                    backgroundColor: 'var(--color-surface-muted)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      'var(--color-border-secondary)';
+                    e.currentTarget.style.color = 'var(--color-text-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      'var(--color-surface-muted)';
+                    e.currentTarget.style.color = 'var(--color-text-secondary)';
+                  }}
+                  title="Edit"
+                >
+                  <Edit2 className="h-3 w-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    context.onDeleteCustomRecipe?.(view);
+                  }}
+                  aria-label="Delete"
+                  className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
+                  style={{
+                    backgroundColor: colorMixOr(
+                      'var(--color-semantic-error)',
+                      10,
+                      'transparent',
+                      'var(--color-border-muted)'
+                    ),
+                    color: colorMixOr(
+                      'var(--color-semantic-error)',
+                      80,
+                      'var(--color-text-primary)',
+                      'var(--color-semantic-error)'
+                    ),
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = colorMixOr(
+                      'var(--color-semantic-error)',
+                      20,
+                      'transparent',
+                      'var(--color-border-secondary)'
+                    );
+                    e.currentTarget.style.color = colorMixOr(
+                      'var(--color-semantic-error)',
+                      90,
+                      'var(--color-text-primary)',
+                      'var(--color-semantic-error)'
+                    );
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = colorMixOr(
+                      'var(--color-semantic-error)',
+                      10,
+                      'transparent',
+                      'var(--color-border-muted)'
+                    );
+                    e.currentTarget.style.color = colorMixOr(
+                      'var(--color-semantic-error)',
+                      80,
+                      'var(--color-text-primary)',
+                      'var(--color-semantic-error)'
+                    );
+                  }}
+                  title="Delete"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
           ) : (
             <div onClick={(e) => e.stopPropagation()}>
               <ShareButton

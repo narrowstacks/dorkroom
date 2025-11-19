@@ -27,18 +27,25 @@ export function ToolCard({
   className,
   ...props
 }: ToolCardProps) {
-  const componentProps =
-    Component === 'a' ? { href } : { to: href, ...props };
+  const componentProps = Component === 'a' ? { href } : { to: href, ...props };
 
   return (
     <Component
       {...componentProps}
       aria-label={title}
       className={cn(
-        'group relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-white/20',
+        'group relative overflow-hidden rounded-2xl border p-5 transition-all focus:outline-none focus:ring-2',
+        'border-[color:var(--color-border-primary)]',
+        'hover:bg-[color:var(--color-surface-muted)]',
+        'focus:ring-[color:var(--color-border-primary)]',
+        '[&:not([data-theme="high-contrast"])]:hover:-translate-y-0.5',
+        '[&:not([data-theme="high-contrast"])]:hover:shadow-lg',
         border,
         className
       )}
+      style={{
+        backgroundColor: 'var(--color-tool-card-bg)',
+      }}
     >
       <div
         className={cn(
@@ -50,7 +57,10 @@ export function ToolCard({
       <div className="relative z-10 flex items-start gap-4">
         <div
           className={cn(
-            'p-3 rounded-xl bg-zinc-800/50 ring-1 ring-white/5 group-hover:bg-white/10 transition-colors',
+            'p-3 rounded-xl transition-colors',
+            'bg-[var(--color-tool-card-icon-bg)]',
+            'ring-1 ring-[color:var(--color-tool-card-icon-ring)]',
+            'group-hover:bg-[var(--color-tool-card-icon-hover)]',
             color
           )}
         >
@@ -59,13 +69,15 @@ export function ToolCard({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 group-hover:text-zinc-300">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-tool-card-category)] group-hover:text-[color:var(--color-tool-card-category-hover)]">
               {category}
             </p>
-            <ArrowRight className="h-3.5 w-3.5 text-zinc-600 opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
+            <ArrowRight className="h-3.5 w-3.5 text-[color:var(--color-tool-card-arrow)] opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
           </div>
-          <h3 className="font-semibold text-white truncate pr-4">{title}</h3>
-          <p className="text-sm text-zinc-400 line-clamp-1 group-hover:text-zinc-300">
+          <h3 className="font-semibold text-[color:var(--color-tool-card-title)] truncate pr-4">
+            {title}
+          </h3>
+          <p className="text-sm text-[color:var(--color-tool-card-description)] line-clamp-1 group-hover:text-[color:var(--color-tool-card-description-hover)]">
             {description}
           </p>
         </div>
@@ -73,4 +85,3 @@ export function ToolCard({
     </Component>
   );
 }
-

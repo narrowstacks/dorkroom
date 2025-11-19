@@ -7,8 +7,9 @@ export interface StatCardProps extends ComponentProps<'a'> {
   label: string;
   value: string | number;
   icon: LucideIcon;
-  iconColor: string;
-  iconBg: string;
+  iconColor?: string;
+  iconBg?: string;
+  iconColorKey?: 'emerald' | 'rose' | 'indigo';
   variant?: 'horizontal' | 'vertical';
   as?: ElementType;
   to?: string;
@@ -22,6 +23,7 @@ export function StatCard({
   icon: Icon,
   iconColor,
   iconBg,
+  iconColorKey,
   variant = 'vertical',
   as: Component = 'a',
   className,
@@ -31,6 +33,9 @@ export function StatCard({
   loading = false,
   ...props
 }: StatCardProps) {
+  const iconColorVar = iconColorKey
+    ? `var(--color-icon-stat-${iconColorKey})`
+    : 'var(--color-text-primary)';
   const componentProps =
     Component === 'a' ? { href } : { to: href || to, search, ...props };
 
@@ -39,14 +44,16 @@ export function StatCard({
       return (
         <div
           className={cn(
-            'flex items-center gap-4 px-5 py-4 rounded-2xl bg-zinc-900/50 border border-zinc-800',
+            'flex items-center gap-4 px-5 py-4 rounded-2xl border',
+            'bg-[color:var(--color-surface)]',
+            'border-[color:var(--color-border-primary)]',
             className
           )}
         >
-          <Skeleton className="w-8 h-8 rounded-xl bg-zinc-800" />
+          <Skeleton className="w-8 h-8 rounded-xl bg-[color:var(--color-surface-muted)]" />
           <div className="flex-1">
-            <Skeleton className="h-3 w-24 mb-2 bg-zinc-800" />
-            <Skeleton className="h-6 w-16 bg-zinc-800" />
+            <Skeleton className="h-3 w-24 mb-2 bg-[color:var(--color-surface-muted)]" />
+            <Skeleton className="h-6 w-16 bg-[color:var(--color-surface-muted)]" />
           </div>
         </div>
       );
@@ -55,14 +62,16 @@ export function StatCard({
     return (
       <div
         className={cn(
-          'flex flex-col gap-2 p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800',
+          'flex flex-col gap-2 p-4 rounded-2xl border',
+          'bg-[color:var(--color-surface)]',
+          'border-[color:var(--color-border-primary)]',
           className
         )}
       >
-        <Skeleton className="h-3 w-24 bg-zinc-800" />
+        <Skeleton className="h-3 w-24 bg-[color:var(--color-surface-muted)]" />
         <div className="flex items-center gap-3">
-          <Skeleton className="w-9 h-9 rounded-lg bg-zinc-800" />
-          <Skeleton className="h-6 w-16 bg-zinc-800" />
+          <Skeleton className="w-9 h-9 rounded-lg bg-[color:var(--color-surface-muted)]" />
+          <Skeleton className="h-6 w-16 bg-[color:var(--color-surface-muted)]" />
         </div>
       </div>
     );
@@ -74,22 +83,28 @@ export function StatCard({
         {...componentProps}
         aria-label={label}
         className={cn(
-          'flex items-center gap-4 px-5 py-4 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-800 transition-colors group focus:outline-none focus:ring-2 focus:ring-white/20',
+          'flex items-center gap-4 px-5 py-4 rounded-2xl border transition-colors group focus:outline-none focus:ring-2',
+          'bg-[color:var(--color-surface)]',
+          'border-[color:var(--color-border-primary)]',
+          'hover:bg-[color:var(--color-surface-muted)]',
+          'focus:ring-[color:var(--color-border-primary)]',
           className
         )}
       >
         <div
-          className={cn(
-            'p-2 rounded-xl transition-colors',
-            iconBg,
-            iconColor
-          )}
+          className="p-2 rounded-xl transition-colors"
+          style={{
+            backgroundColor: 'var(--color-surface-muted)',
+            color: iconColorVar,
+          }}
         >
           <Icon className="w-4 h-4" />
         </div>
         <div>
-          <span className="text-zinc-500 text-sm font-medium">{label}</span>
-          <span className="text-2xl font-bold text-white block leading-none mb-1">
+          <span className="text-[color:var(--color-text-tertiary)] text-sm font-medium">
+            {label}
+          </span>
+          <span className="text-2xl font-bold text-[color:var(--color-text-primary)] block leading-none mb-1">
             {value}
           </span>
         </div>
@@ -102,26 +117,31 @@ export function StatCard({
       {...componentProps}
       aria-label={label}
       className={cn(
-        'flex flex-col gap-2 p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-800 transition-colors group focus:outline-none focus:ring-2 focus:ring-white/20',
+        'flex flex-col gap-2 p-4 rounded-2xl border transition-colors group focus:outline-none focus:ring-2',
+        'bg-[color:var(--color-surface)]',
+        'border-[color:var(--color-border-primary)]',
+        'hover:bg-[color:var(--color-surface-muted)]',
+        'focus:ring-[color:var(--color-border-primary)]',
         className
       )}
     >
-      <span className="text-zinc-500 text-xs font-medium">{label}</span>
+      <span className="text-[color:var(--color-text-tertiary)] text-xs font-medium">
+        {label}
+      </span>
       <div className="flex items-center gap-3">
         <div
-          className={cn(
-            'p-2 rounded-lg shrink-0 transition-colors',
-            iconBg,
-            iconColor
-          )}
+          className="p-2 rounded-lg shrink-0 transition-colors"
+          style={{
+            backgroundColor: 'var(--color-surface-muted)',
+            color: iconColorVar,
+          }}
         >
           <Icon className="w-5 h-5" />
         </div>
-        <span className="text-2xl font-bold text-white leading-none">
+        <span className="text-2xl font-bold text-[color:var(--color-text-primary)] leading-none">
           {value}
         </span>
       </div>
     </Component>
   );
 }
-

@@ -72,9 +72,16 @@ export const navItems = [
     icon: asFunctionComponent(FlaskConical),
     summary: 'Film chemistry pairings with proven results.',
   },
+  {
+    label: 'Reciprocity',
+    to: '/reciprocity',
+    icon: asFunctionComponent(Timer),
+    summary: 'Correct for long exposure failure.',
+  },
 ];
 
-export const allNavItems = [...navItems, ...printingItems, ...shootingItems];
+export const allNavItems = [...navItems, ...printingItems];
+// Previously included ...shootingItems, but shooting section has been removed
 
 export const ROUTE_TITLES: Record<string, string> = {
   '/': 'Home',

@@ -14,6 +14,8 @@ export type {
   NavigationItem,
   NavigationDropdownProps,
 } from './components/navigation-dropdown';
+export { ThemeToggle } from './components/theme-toggle';
+export type { ThemeToggleProps } from './components/theme-toggle';
 export { PlaceholderPage } from './components/placeholder-page';
 export type { PlaceholderPageProps } from './components/placeholder-page';
 export { WarningAlert } from './components/warning-alert';

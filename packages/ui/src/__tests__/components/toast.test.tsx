@@ -103,7 +103,7 @@ describe('Toast', () => {
     render(<Toast {...defaultProps} />);
 
     const toast = screen.getByRole('status');
-    expect(toast).toHaveClass('fixed', 'top-4', 'right-4', 'z-50');
+    expect(toast).toHaveClass('fixed', 'top-4', 'right-4', 'z-[9999]');
   });
 
   describe('animation classes', () => {
