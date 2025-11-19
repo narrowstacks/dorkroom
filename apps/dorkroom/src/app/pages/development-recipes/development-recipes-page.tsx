@@ -1789,7 +1789,7 @@ export default function DevelopmentRecipesPage() {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <DrawerBody className="px-4 pb-6 pt-4">
+              <DrawerBody className="px-4 pb-24 pt-4">
                 <CustomRecipeForm
                   initialValue={
                     editingRecipe
