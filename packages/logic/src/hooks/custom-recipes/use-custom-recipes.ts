@@ -74,7 +74,10 @@ export function useCustomRecipes() {
     }
 
     const handleStorage = (event: StorageEvent) => {
-      if (event.key && event.key !== STORAGE_KEY) {
+      // Ignore events that aren't for our specific key
+      // Also ignore localStorage.clear() events (where key is null)
+      // as we don't want to wipe the in-memory cache unexpectedly if other data is cleared
+      if (!event.key || event.key !== STORAGE_KEY) {
         return;
       }
 

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { flushSync } from 'react-dom';
 import { Check, X } from 'lucide-react';
 import { cn } from '../lib/cn';
 
@@ -115,16 +114,17 @@ export function ToastProvider({ children }: ToastProviderProps) {
   } | null>(null);
 
   const showToast = (message: string, type: ToastProps['type'] = 'success') => {
-    const id = Math.random().toString(36).substring(7);
-    flushSync(() => {
-      setToast({ message, type, id });
-    });
+    // Use crypto.randomUUID() if available, otherwise fall back to a timestamp-based ID
+    const id =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `toast-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
+    setToast({ message, type, id });
   };
 
   const hideToast = () => {
-    flushSync(() => {
-      setToast(null);
-    });
+    setToast(null);
   };
 
   return (

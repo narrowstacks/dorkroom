@@ -34,14 +34,14 @@ describe('combination-factory', () => {
     it('throws error for invalid temperature (too low)', () => {
       const invalidRecipe = { ...validRecipe, temperatureF: 30 };
       expect(() => createCombinationFromCustomRecipe(invalidRecipe)).toThrow(
-        'Temperature must be between 32°F and 212°F'
+        'Temperature must be at least 32°F (freezing point)'
       );
     });
 
     it('throws error for invalid temperature (too high)', () => {
       const invalidRecipe = { ...validRecipe, temperatureF: 213 };
       expect(() => createCombinationFromCustomRecipe(invalidRecipe)).toThrow(
-        'Temperature must be between 32°F and 212°F'
+        'Temperature must be at most 212°F (boiling point)'
       );
     });
 
@@ -132,7 +132,7 @@ describe('combination-factory', () => {
     it('validates inputs similar to createCombinationFromCustomRecipe', () => {
       expect(() =>
         createTemporaryCombination({ ...validData, temperatureF: 0 })
-      ).toThrow('Temperature must be between 32°F and 212°F');
+      ).toThrow('Temperature must be at least 32°F (freezing point)');
 
       expect(() =>
         createTemporaryCombination({ ...validData, timeMinutes: -5 })

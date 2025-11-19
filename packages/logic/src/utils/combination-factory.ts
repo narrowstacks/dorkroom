@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { Combination } from '@dorkroom/api';
 import type { CustomRecipe } from '../types/custom-recipes';
 
@@ -9,13 +10,43 @@ import type { CustomRecipe } from '../types/custom-recipes';
 const TEMPORARY_ID = -1 as const;
 
 /**
- * Temperature constants for validation (Fahrenheit)
- * These represent the physical limits for darkroom chemistry:
- * - MIN_TEMPERATURE_F: Freezing point of water (32°F)
- * - MAX_TEMPERATURE_F: Boiling point of water (212°F)
+ * Zod schema for validating recipe numeric inputs.
+ * Enforces physical limits and reasonable ranges for development parameters.
  */
-const MIN_TEMPERATURE_F = 32; // Freezing point
-const MAX_TEMPERATURE_F = 212; // Boiling point
+const RecipeValidationSchema = z.object({
+  temperatureF: z
+    .number({
+      error: (issue) =>
+        issue.code === 'invalid_type' ? 'Invalid numeric values provided' : undefined,
+    })
+    .finite('Invalid numeric values provided')
+    .min(32, 'Temperature must be at least 32°F (freezing point)')
+    .max(212, 'Temperature must be at most 212°F (boiling point)'),
+  timeMinutes: z
+    .number({
+      error: (issue) =>
+        issue.code === 'invalid_type' ? 'Invalid numeric values provided' : undefined,
+    })
+    .finite('Invalid numeric values provided')
+    .positive('Time must be positive'),
+  shootingIso: z
+    .number({
+      error: (issue) =>
+        issue.code === 'invalid_type' ? 'Invalid numeric values provided' : undefined,
+    })
+    .finite('Invalid numeric values provided')
+    .positive('ISO must be positive'),
+  pushPull: z
+    .number({
+      error: (issue) =>
+        issue.code === 'invalid_type' ? 'Invalid numeric values provided' : undefined,
+    })
+    .finite('Invalid numeric values provided')
+    .min(-2, 'Push/pull must be at least -2 stops')
+    .max(5, 'Push/pull must be at most +5 stops')
+    .optional()
+    .nullable(),
+});
 
 /**
  * Validates numeric inputs for recipes to ensure they are within reasonable ranges.
@@ -23,33 +54,28 @@ const MAX_TEMPERATURE_F = 212; // Boiling point
  * @param temperatureF - Temperature in Fahrenheit
  * @param timeMinutes - Development time in minutes
  * @param shootingIso - ISO setting
+ * @param pushPull - Optional push/pull value in stops
  * @throws Error if values are invalid or out of range
  */
 function validateNumericInputs(
   temperatureF: number,
   timeMinutes: number,
-  shootingIso: number
+  shootingIso: number,
+  pushPull?: number | null
 ): void {
-  if (
-    !Number.isFinite(temperatureF) ||
-    !Number.isFinite(timeMinutes) ||
-    !Number.isFinite(shootingIso)
-  ) {
-    throw new Error('Invalid numeric values provided');
-  }
-
-  if (temperatureF < MIN_TEMPERATURE_F || temperatureF > MAX_TEMPERATURE_F) {
-    throw new Error(
-      `Temperature must be between ${MIN_TEMPERATURE_F}°F and ${MAX_TEMPERATURE_F}°F`
-    );
-  }
-
-  if (timeMinutes <= 0) {
-    throw new Error('Time must be positive');
-  }
-
-  if (shootingIso <= 0) {
-    throw new Error('ISO must be positive');
+  try {
+    RecipeValidationSchema.parse({
+      temperatureF,
+      timeMinutes,
+      shootingIso,
+      pushPull,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // Return the first error message
+      throw new Error(error.issues[0].message);
+    }
+    throw error;
   }
 }
 
@@ -70,7 +96,8 @@ export function createCombinationFromCustomRecipe(
   validateNumericInputs(
     recipe.temperatureF,
     recipe.timeMinutes,
-    recipe.shootingIso
+    recipe.shootingIso,
+    recipe.pushPull
   );
 
   const temperatureC = ((recipe.temperatureF - 32) * 5) / 9;
@@ -132,7 +159,12 @@ export function createTemporaryCombination(data: {
   tags?: string[] | null;
   infoSource?: string | null;
 }): Combination {
-  validateNumericInputs(data.temperatureF, data.timeMinutes, data.shootingIso);
+  validateNumericInputs(
+    data.temperatureF,
+    data.timeMinutes,
+    data.shootingIso,
+    data.pushPull
+  );
 
   const temperatureC = ((data.temperatureF - 32) * 5) / 9;
   const uuid = data.uuid ?? 'temp';

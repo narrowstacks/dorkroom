@@ -7,7 +7,11 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import '@fontsource-variable/montserrat/index.css';
 import './styles.css';
 import { routeTree } from './routeTree.gen';
-import { ToastProvider, MeasurementProvider } from '@dorkroom/ui';
+import {
+  ToastProvider,
+  MeasurementProvider,
+  ErrorBoundary,
+} from '@dorkroom/ui';
 import { ThemeProvider } from '@dorkroom/ui';
 
 const queryClient = new QueryClient({
@@ -43,15 +47,17 @@ const root = ReactDOM.createRoot(
 root.render(
   <StrictMode>
     <Analytics />
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <MeasurementProvider>
-          <ToastProvider>
-            <RouterProvider router={router} />
-          </ToastProvider>
-        </MeasurementProvider>
-      </ThemeProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <MeasurementProvider>
+            <ToastProvider>
+              <RouterProvider router={router} />
+            </ToastProvider>
+          </MeasurementProvider>
+        </ThemeProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </ErrorBoundary>
   </StrictMode>
 );

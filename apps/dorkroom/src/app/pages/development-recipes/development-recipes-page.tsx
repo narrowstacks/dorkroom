@@ -246,27 +246,37 @@ export default function DevelopmentRecipesPage() {
     }
   }, [pageIndex, favoriteTransitions]);
 
-  // Optimize: only rebuild the recipes map when the actual data changes
-  // Using JSON.stringify as a stable key is not ideal for large datasets,
-  // but the filtered combinations are already memoized upstream, so changes
-  // to this array should be infrequent
-  const recipesByUuid = useMemo(() => {
+  // Optimize: Split recipe maps to avoid reprocessing custom recipes (which have validation overhead)
+  // when only the filtered API results change, and vice versa.
+  const apiRecipesMap = useMemo(() => {
     const map = new Map<string, Combination>();
-
     // Add API combinations (already filtered upstream)
     for (const combo of filteredCombinations) {
       if (combo.uuid) {
         map.set(combo.uuid, combo);
       }
     }
+    return map;
+  }, [filteredCombinations]);
 
+  const customRecipesMap = useMemo(() => {
+    const map = new Map<string, Combination>();
     // Add custom recipes (convert to Combination format)
     for (const recipe of customRecipes) {
       map.set(recipe.id, createCombinationFromCustomRecipe(recipe));
     }
-
     return map;
-  }, [filteredCombinations, customRecipes]);
+  }, [customRecipes]);
+
+  const recipesByUuid = useMemo(() => {
+    // Start with API recipes
+    const map = new Map(apiRecipesMap);
+    // Overlay custom recipes (they take precedence if IDs collide, though they shouldn't)
+    for (const [id, combo] of customRecipesMap) {
+      map.set(id, combo);
+    }
+    return map;
+  }, [apiRecipesMap, customRecipesMap]);
 
   const {
     initialUrlState,
