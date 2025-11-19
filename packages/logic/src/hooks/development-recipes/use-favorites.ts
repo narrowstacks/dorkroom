@@ -67,10 +67,12 @@ const writeFavoritesToStorage = (ids: string[]): void => {
  */
 export const useFavorites = () => {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const loadFavorites = useCallback(() => {
     const ids = readFavoritesFromStorage();
     setFavoriteIds(ids);
+    setIsInitialized(true);
     return ids;
   }, []);
 
@@ -134,5 +136,6 @@ export const useFavorites = () => {
     removeFavorite,
     toggleFavorite,
     reload: loadFavorites,
+    isInitialized,
   };
 };

@@ -74,9 +74,11 @@ const calculators = [
 // Removed Greeting function definition
 
 export function HomePage() {
-  const { favoriteIds } = useFavorites();
-  const { customRecipes } = useCustomRecipes();
-  const { data: combinations } = useCombinations();
+  const { favoriteIds, isInitialized: isFavoritesInitialized } = useFavorites();
+  const { customRecipes, isLoading: isCustomRecipesLoading } =
+    useCustomRecipes();
+  const { data: combinations, isPending: isCombinationsLoading } =
+    useCombinations();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 pb-24 space-y-10">
@@ -131,6 +133,7 @@ export function HomePage() {
             iconBg="bg-emerald-500/10 group-hover:bg-emerald-500/20"
             variant="horizontal"
             className="col-span-2"
+            loading={isCombinationsLoading}
           />
 
           <StatCard
@@ -142,6 +145,7 @@ export function HomePage() {
             icon={Heart}
             iconColor="text-rose-400"
             iconBg="bg-rose-500/10 group-hover:bg-rose-500/20"
+            loading={!isFavoritesInitialized}
           />
 
           <StatCard
@@ -153,6 +157,7 @@ export function HomePage() {
             icon={Library}
             iconColor="text-indigo-400"
             iconBg="bg-indigo-500/10 group-hover:bg-indigo-500/20"
+            loading={isCustomRecipesLoading}
           />
         </div>
       </div>
