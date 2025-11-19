@@ -592,7 +592,7 @@ export function MobileBorderCalculator({
           name: currentPreset?.name || 'Border Calculator Settings',
           settings: currentSettings,
         },
-        true
+        false
       );
     } catch (error) {
       console.error('Native share failed:', error);
