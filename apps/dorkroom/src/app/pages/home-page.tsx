@@ -22,7 +22,8 @@ import {
 } from '@dorkroom/logic';
 import { Greeting, ToolCard, StatCard } from '@dorkroom/ui';
 
-const calculators = [
+// Calculator tools configuration - module level to prevent recreation on each render
+const CALCULATORS = [
   {
     category: 'Print',
     title: 'Border Calculator',
@@ -78,9 +79,9 @@ const calculators = [
     bg: 'from-rose-500/20 to-red-500/20',
     border: 'group-hover:border-rose-500/50',
   },
-];
+] as const;
 
-const comingSoon = [
+const COMING_SOON = [
   {
     category: 'Resources',
     title: 'Docs',
@@ -100,8 +101,6 @@ const comingSoon = [
     icon: Camera,
   },
 ];
-
-// Removed Greeting function definition
 
 export function HomePage() {
   const { favoriteIds, isInitialized: isFavoritesInitialized } = useFavorites();
@@ -251,7 +250,7 @@ export function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {calculators.map((tool) => (
+          {CALCULATORS.map((tool) => (
             <ToolCard key={tool.title} {...tool} as={Link} href={tool.href} />
           ))}
         </div>
@@ -280,7 +279,7 @@ export function HomePage() {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
           data-coming-soon-section
         >
-          {comingSoon.map((item) => (
+          {COMING_SOON.map((item) => (
             <div
               key={item.title}
               className="relative overflow-hidden rounded-2xl border border-dashed p-5"
