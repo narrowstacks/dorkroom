@@ -55,7 +55,7 @@ describe('ThemeToggle', () => {
       await userEvent.click(button);
 
       expect(
-        screen.getByRole('menuitem', { name: /dark/i })
+        screen.getByRole('menuitem', { name: /^dark$/i })
       ).toBeInTheDocument();
       expect(
         screen.getByRole('menuitem', { name: /light/i })
@@ -250,7 +250,7 @@ describe('ThemeToggle', () => {
       await userEvent.click(button);
 
       expect(
-        screen.getByRole('menuitem', { name: /dark/i })
+        screen.getByRole('menuitem', { name: /^dark$/i })
       ).toBeInTheDocument();
       expect(
         screen.getByRole('menuitem', { name: /light/i })
@@ -350,7 +350,7 @@ describe('ThemeToggle', () => {
         await userEvent.click(button);
 
         const option = screen.getByRole('menuitem', {
-          name: new RegExp(name, 'i'),
+          name: new RegExp(`^${name}$`, 'i'),
         });
         await userEvent.click(option);
 
@@ -423,7 +423,6 @@ describe('ThemeToggle', () => {
       const button = screen.getByRole('button', { name: 'Theme' });
       await userEvent.click(button);
 
-      const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
       const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
 
       unmount();
@@ -441,7 +440,7 @@ describe('ThemeToggle', () => {
       await userEvent.click(button);
 
       // Current theme (dark) should have selected styling
-      const darkOption = screen.getByRole('menuitem', { name: /dark/i });
+      const darkOption = screen.getByRole('menuitem', { name: /^dark$/i });
       expect(darkOption).toBeInTheDocument();
       // Selected option would have specific classes for styling
     });

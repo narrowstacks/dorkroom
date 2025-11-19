@@ -8,8 +8,6 @@ import {
 } from '../recipe-sharing';
 import type {
   CustomRecipe,
-  CustomFilmData,
-  CustomDeveloperData,
 } from '../../types/custom-recipes';
 
 describe('recipe-sharing', () => {
