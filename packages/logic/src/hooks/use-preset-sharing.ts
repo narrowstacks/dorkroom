@@ -222,7 +222,7 @@ export function usePresetSharing(options: UsePresetSharingOptions = {}) {
    * Get sharing URLs without performing a share action.
    *
    * @param preset - Preset data to encode
-   * @returns Object containing URL variants or null when encoding fails
+   * @returns Object containing web URL or null when encoding fails
    */
   const getSharingUrls = useCallback((preset: PresetToShare) => {
     const encoded = encodePreset(preset);

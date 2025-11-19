@@ -17,7 +17,6 @@ interface UseCalculatorSharingProps {
     settings: BorderPresetSettings;
   }) => {
     webUrl: string;
-    nativeUrl: string;
   } | null;
   sharePreset: (
     preset: { name: string; settings: BorderPresetSettings },
