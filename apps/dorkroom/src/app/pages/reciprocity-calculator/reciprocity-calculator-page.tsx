@@ -19,6 +19,7 @@ import {
   RECIPROCITY_EXPOSURE_PRESETS,
   RECIPROCITY_FILM_TYPES,
   RECIPROCITY_STORAGE_KEY,
+  debugWarn,
   type SelectItem,
   type ReciprocityFormState,
 } from '@dorkroom/logic';
@@ -175,7 +176,7 @@ export default function ReciprocityCalculatorPage() {
         );
       });
     } catch (error) {
-      console.warn('Failed to load calculator state', error);
+      debugWarn('Failed to load calculator state', error);
     }
   }, [form]);
 
@@ -189,7 +190,7 @@ export default function ReciprocityCalculatorPage() {
         JSON.stringify(persistableSnapshot)
       );
     } catch (error) {
-      console.warn('Failed to save calculator state', error);
+      debugWarn('Failed to save calculator state', error);
     }
   }, [persistableSnapshot]);
 

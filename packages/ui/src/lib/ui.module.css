@@ -37,3 +37,19 @@
 .group:hover .nav-summary-inactive {
   color: var(--nav-hover-text);
 }
+
+/*
+ * Theme toggle styles
+ */
+:root {
+  --theme-toggle-icon-bg: rgba(var(--color-background-rgb), 0.08);
+  --theme-toggle-icon-bg-selected: rgba(var(--color-background-rgb), 0.2);
+}
+
+.theme-toggle-icon-bg {
+  background-color: var(--theme-toggle-icon-bg);
+}
+
+.theme-toggle-icon-bg-selected {
+  background-color: var(--theme-toggle-icon-bg-selected);
+}

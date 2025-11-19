@@ -6,15 +6,15 @@ import {
   useRouter,
   useRouterState,
 } from '@tanstack/react-router';
-import { Beaker, Camera, Menu, Printer, Settings, X } from 'lucide-react';
+import { Beaker, Menu, Printer, Settings, X } from 'lucide-react';
 import { cn } from '../app/lib/cn';
 import {
   NavigationDropdown,
   printingItems,
-  shootingItems,
   navItems,
   allNavItems,
   ROUTE_TITLES,
+  ThemeToggle,
 } from '@dorkroom/ui';
 
 function RootComponent() {
@@ -133,13 +133,14 @@ function RootComponent() {
                   currentPath={pathname}
                   onNavigate={handleNavigate}
                 />
-                <NavigationDropdown
+                {/* Shooting section commented out - Reciprocity moved to main nav */}
+                {/* <NavigationDropdown
                   label="Shooting"
                   icon={Camera}
                   items={shootingItems}
                   currentPath={pathname}
                   onNavigate={handleNavigate}
-                />
+                /> */}
               </div>
             </nav>
             <div className="hidden items-center gap-3 sm:flex">
@@ -157,6 +158,7 @@ function RootComponent() {
               >
                 Contribute
               </a>
+              <ThemeToggle variant="icon" />
               <Link
                 to="/settings"
                 className="flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none"
@@ -291,8 +293,8 @@ function RootComponent() {
                     );
                   })}
 
-                  {/* Shooting section */}
-                  <li className="pt-2">
+                  {/* Shooting section commented out - Reciprocity moved to main nav */}
+                  {/* <li className="pt-2">
                     <div className="px-3.5 py-1">
                       <span
                         className="text-xs font-semibold uppercase tracking-wide"
@@ -329,7 +331,10 @@ function RootComponent() {
                         </Link>
                       </li>
                     );
-                  })}
+                  })} */}
+                  <li>
+                    <ThemeToggle variant="button" />
+                  </li>
                   <li>
                     {(() => {
                       const isActive = pathname === '/settings';

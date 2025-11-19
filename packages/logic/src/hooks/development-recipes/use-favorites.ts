@@ -67,16 +67,21 @@ const writeFavoritesToStorage = (ids: string[]): void => {
  */
 export const useFavorites = () => {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   const loadFavorites = useCallback(() => {
     const ids = readFavoritesFromStorage();
     setFavoriteIds(ids);
+    setIsInitialized(true);
+    setError(null);
     return ids;
   }, []);
 
   const saveFavorites = useCallback((ids: string[]) => {
     writeFavoritesToStorage(ids);
     setFavoriteIds(ids);
+    setError(null);
   }, []);
 
   useEffect(() => {
@@ -134,5 +139,7 @@ export const useFavorites = () => {
     removeFavorite,
     toggleFavorite,
     reload: loadFavorites,
+    isInitialized,
+    error,
   };
 };

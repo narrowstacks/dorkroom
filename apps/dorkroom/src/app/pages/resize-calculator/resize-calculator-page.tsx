@@ -23,6 +23,7 @@ import {
   DEFAULT_ORIGINAL_HEIGHT,
   DEFAULT_NEW_HEIGHT,
   RESIZE_STORAGE_KEY,
+  debugWarn,
   type ResizeCalculatorState,
 } from '@dorkroom/logic';
 
@@ -383,7 +384,7 @@ export default function ResizeCalculatorPage() {
         form.setFieldValue(key, value as ResizeCalculatorState[typeof key]);
       }
     } catch (error) {
-      console.warn('Failed to load calculator state', error);
+      debugWarn('Failed to load calculator state', error);
     }
   }, [form]);
 
@@ -397,7 +398,7 @@ export default function ResizeCalculatorPage() {
         JSON.stringify(persistableSnapshot)
       );
     } catch (error) {
-      console.warn('Failed to save calculator state', error);
+      debugWarn('Failed to save calculator state', error);
     }
   }, [persistableSnapshot]);
 

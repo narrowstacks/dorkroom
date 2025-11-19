@@ -20,10 +20,10 @@ import {
   calculateQuarterInchMinBorder,
   shallowEqual,
   debugLog,
+  debugWarn,
   debugError,
   type BorderCalculatorState,
   type BorderPresetSettings,
-  type SelectItem,
   DESKTOP_BREAKPOINT,
   PAPER_SIZES,
   DEFAULT_BORDER_PRESETS,
@@ -78,7 +78,7 @@ export function useBorderCalculatorController() {
         );
       }
     } catch (error) {
-      console.warn('Failed to load calculator state', error);
+      debugWarn('Failed to load calculator state', error);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -191,7 +191,7 @@ export function useBorderCalculatorController() {
         JSON.stringify(persistableSnapshot)
       );
     } catch (error) {
-      console.warn('Failed to save calculator state', error);
+      debugWarn('Failed to save calculator state', error);
     }
   }, [persistableSnapshot]);
 
@@ -469,7 +469,7 @@ export function useBorderCalculatorController() {
     paperHeightInput,
     displayPaperSizes,
     quarterRoundedMinBorder,
-    
+
     // Warnings
     offsetWarning,
     bladeWarning,
@@ -498,7 +498,7 @@ export function useBorderCalculatorController() {
     handlePaperHeightBlur,
     handleRoundMinBorderToQuarter,
     resetToDefaults,
-    
+
     // Preset Handlers
     handleSelectPreset,
     setPresetName,
@@ -516,11 +516,10 @@ export function useBorderCalculatorController() {
     handleNativeShare,
     setIsShareModalOpen,
     setIsSaveBeforeShareOpen,
-    
+
     // Helpers
     formatWithUnit,
     formatDimensions,
     currentSettings,
   };
 }
-

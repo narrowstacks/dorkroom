@@ -14,6 +14,8 @@ export type {
   NavigationItem,
   NavigationDropdownProps,
 } from './components/navigation-dropdown';
+export { ThemeToggle } from './components/theme-toggle';
+export type { ThemeToggleProps } from './components/theme-toggle';
 export { PlaceholderPage } from './components/placeholder-page';
 export type { PlaceholderPageProps } from './components/placeholder-page';
 export { WarningAlert } from './components/warning-alert';
@@ -35,6 +37,7 @@ export { SaveBeforeShareModal } from './components/save-before-share-modal';
 export { Modal } from './components/modal';
 export { Toast, ToastProvider, useToast } from './components/toast';
 export type { ToastProps } from './components/toast';
+export { ErrorBoundary } from './components/error-boundary';
 export { DevelopmentFiltersPanel } from './components/development-recipes/filters-panel';
 export { FilmDeveloperSelection } from './components/development-recipes/film-developer-selection';
 export { CollapsibleFilters } from './components/development-recipes/collapsible-filters';
@@ -130,3 +133,10 @@ export {
   getSystemTheme,
   resolveTheme,
 } from './lib/themes';
+
+// Marketing Components
+export { Greeting } from './components/marketing/greeting';
+export { ToolCard } from './components/marketing/tool-card';
+export type { ToolCardProps } from './components/marketing/tool-card';
+export { StatCard } from './components/marketing/stat-card';
+export type { StatCardProps } from './components/marketing/stat-card';

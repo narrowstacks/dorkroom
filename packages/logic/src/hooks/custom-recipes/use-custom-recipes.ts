@@ -47,6 +47,22 @@ const readRecipesFromStorage = (): CustomRecipe[] => {
 /**
  * Hook to fetch and cache custom recipes from localStorage
  * Uses TanStack Query to provide consistent cache management
+ *
+ * @returns TanStack Query result with custom recipes data, loading state, and error handling
+ *
+ * Error Handling:
+ * - Returns empty array if localStorage is unavailable
+ * - Logs parsing errors but continues with empty state
+ * - Exposes `error` state through TanStack Query for UI error handling
+ *
+ * @example
+ * ```typescript
+ * const { data: recipes, isPending, error } = useCustomRecipes();
+ *
+ * if (error) {
+ *   return <ErrorMessage>Failed to load custom recipes</ErrorMessage>;
+ * }
+ * ```
  */
 export function useCustomRecipes() {
   const queryClient = useQueryClient();
@@ -58,11 +74,21 @@ export function useCustomRecipes() {
     }
 
     const handleStorage = (event: StorageEvent) => {
-      if (event.key && event.key !== STORAGE_KEY) {
+      // Ignore events that aren't for our specific key
+      // Also ignore localStorage.clear() events (where key is null)
+      // as we don't want to wipe the in-memory cache unexpectedly if other data is cleared
+      if (!event.key || event.key !== STORAGE_KEY) {
         return;
       }
 
-      queryClient.setQueryData(queryKey, readRecipesFromStorage());
+      try {
+        queryClient.setQueryData(queryKey, readRecipesFromStorage());
+      } catch (error) {
+        debugError(
+          '[useCustomRecipes] Failed to update cache from storage event:',
+          error
+        );
+      }
     };
 
     window.addEventListener('storage', handleStorage);

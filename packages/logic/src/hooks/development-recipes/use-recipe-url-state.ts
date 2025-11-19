@@ -22,6 +22,7 @@ const MANAGED_QUERY_KEYS: Array<keyof RecipeUrlParams> = [
   'iso',
   'recipe',
   'source',
+  'view',
 ];
 
 /**
@@ -36,7 +37,18 @@ const parseSearchParams = (searchParams: URLSearchParams): RecipeUrlParams => {
   MANAGED_QUERY_KEYS.forEach((key) => {
     const value = searchParams.get(key);
     if (value) {
-      (result as Record<string, string>)[key] = value;
+      if (key === 'source') {
+        if (value === 'share') {
+          result.source = 'share';
+        }
+      } else if (key === 'view') {
+        if (value === 'favorites' || value === 'custom') {
+          result.view = value;
+        }
+      } else {
+        result[key as Exclude<keyof RecipeUrlParams, 'source' | 'view'>] =
+          value;
+      }
     }
   });
 
@@ -173,6 +185,14 @@ export const validateUrlParams = (
     sanitized.source = 'share';
   }
 
+  if (params.view) {
+    if (params.view === 'favorites' || params.view === 'custom') {
+      sanitized.view = params.view;
+    } else {
+      errors.push('Invalid view format');
+    }
+  }
+
   return {
     isValid: errors.length === 0,
     sanitized,
@@ -217,6 +237,8 @@ export const useRecipeUrlState = (
     selectedDeveloper: Developer | null;
     dilutionFilter: string;
     isoFilter: string;
+    favoritesOnly?: boolean;
+    customRecipeFilter?: string;
   },
   recipesByUuid?: Map<string, Combination>
 ): UseRecipeUrlStateReturn => {
@@ -252,6 +274,7 @@ export const useRecipeUrlState = (
   const [sharedRecipeError, setSharedRecipeError] = useState<string | null>(
     null
   );
+  const isProcessingSharedRecipeRef = useRef(false);
 
   const initialUrlState = useMemo<InitialUrlState>(() => {
     if (!films.length || !developers.length) {
@@ -297,6 +320,10 @@ export const useRecipeUrlState = (
       state.isoFilter = validation.sanitized.iso;
     }
 
+    if (validation.sanitized.view) {
+      state.view = validation.sanitized.view;
+    }
+
     if (validation.sanitized.recipe) {
       state.recipeId = validation.sanitized.recipe;
 
@@ -324,9 +351,16 @@ export const useRecipeUrlState = (
         setSharedCustomRecipe(null);
         setIsLoadingSharedRecipe(false);
         setSharedRecipeError(null);
+        isProcessingSharedRecipeRef.current = false;
         return;
       }
 
+      // Prevent infinite loop: don't process if we're already processing
+      if (isProcessingSharedRecipeRef.current) {
+        return;
+      }
+
+      isProcessingSharedRecipeRef.current = true;
       setIsLoadingSharedRecipe(true);
       setSharedRecipeError(null);
 
@@ -344,28 +378,25 @@ export const useRecipeUrlState = (
             setSharedRecipe(null);
             setSharedCustomRecipe(null);
           }
-
-          setIsLoadingSharedRecipe(false);
-          return;
-        }
-
-        if (!recipesByUuid || recipesByUuid.size === 0) {
-          setIsLoadingSharedRecipe(true);
-          setSharedRecipeError(null);
-          return;
-        }
-
-        if (recipesByUuid.has(recipeId)) {
-          setSharedRecipe(recipesByUuid.get(recipeId) ?? null);
-          setSharedCustomRecipe(null);
-          // Remove recipe param from URL after successful load
-          updateUrl({ recipe: '' });
         } else {
-          setSharedRecipeError(
-            `Recipe with ID ${recipeId.substring(0, 20)}... not found`
-          );
-          setSharedRecipe(null);
-          setSharedCustomRecipe(null);
+          // Standard recipe lookup
+          if (!recipesByUuid || recipesByUuid.size === 0) {
+            // Wait for recipes to load - keep loading state true
+            return;
+          }
+
+          if (recipesByUuid.has(recipeId)) {
+            setSharedRecipe(recipesByUuid.get(recipeId) ?? null);
+            setSharedCustomRecipe(null);
+            // Remove recipe param from URL after successful load
+            updateUrl({ recipe: '' });
+          } else {
+            setSharedRecipeError(
+              `Recipe with ID ${recipeId.substring(0, 20)}... not found`
+            );
+            setSharedRecipe(null);
+            setSharedCustomRecipe(null);
+          }
         }
       } catch (error) {
         setSharedRecipeError(
@@ -376,7 +407,17 @@ export const useRecipeUrlState = (
         setSharedRecipe(null);
         setSharedCustomRecipe(null);
       } finally {
-        setIsLoadingSharedRecipe(false);
+        // Only turn off loading if we are NOT waiting for recipes
+        // If we are waiting for recipes (standard recipe ID but no recipes loaded yet),
+        // we want to keep the loading state active until the recipes load and this effect re-runs
+        const isWaitingForRecipes =
+          !isCustomRecipeUrl(recipeId) &&
+          (!recipesByUuid || recipesByUuid.size === 0);
+
+        if (!isWaitingForRecipes) {
+          setIsLoadingSharedRecipe(false);
+        }
+        isProcessingSharedRecipeRef.current = false;
       }
     };
 
@@ -388,9 +429,13 @@ export const useRecipeUrlState = (
     (newParams: Partial<RecipeUrlParams>) => {
       if (updateTimeoutRef.current) {
         clearTimeout(updateTimeoutRef.current);
+        updateTimeoutRef.current = null;
       }
 
       updateTimeoutRef.current = setTimeout(() => {
+        // Clear the timeout ref immediately to prevent duplicate cleanup
+        updateTimeoutRef.current = null;
+
         if (!isInitializedRef.current || typeof window === 'undefined') {
           return;
         }
@@ -455,12 +500,22 @@ export const useRecipeUrlState = (
       urlParams.iso = '';
     }
 
+    if (currentState.favoritesOnly) {
+      urlParams.view = 'favorites';
+    } else if (currentState.customRecipeFilter === 'only-custom') {
+      urlParams.view = 'custom';
+    } else {
+      urlParams.view = undefined;
+    }
+
     updateUrl(urlParams);
   }, [
     currentState.selectedFilm,
     currentState.selectedDeveloper,
     currentState.dilutionFilter,
     currentState.isoFilter,
+    currentState.favoritesOnly,
+    currentState.customRecipeFilter,
     updateUrl,
   ]);
 

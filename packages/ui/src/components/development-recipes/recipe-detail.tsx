@@ -1,4 +1,4 @@
-import { ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
+import { ExternalLink, Edit2, Trash2, Star, Share2 } from 'lucide-react';
 import { useState } from 'react';
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { Dilution } from '@dorkroom/api';
@@ -13,6 +13,7 @@ interface DevelopmentRecipeDetailProps {
   onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;
   isFavorite?: (view: DevelopmentCombinationView) => boolean;
   onToggleFavorite?: (view: DevelopmentCombinationView) => void;
+  onShareRecipe?: (view: DevelopmentCombinationView) => void;
 }
 
 const DetailRow = ({
@@ -36,6 +37,7 @@ const DetailRow = ({
  * @param onDeleteCustomRecipe - Optional callback invoked with `view` when the "Delete recipe" action is triggered.
  * @param isFavorite - Optional predicate that returns whether `view` is marked as favorite.
  * @param onToggleFavorite - Optional callback invoked with `view` to toggle its favorite state.
+ * @param onShareRecipe - Optional callback invoked with `view` when the "Share recipe" action is triggered.
  * @returns The rendered recipe detail UI as a React element.
  */
 export function DevelopmentRecipeDetail({
@@ -44,6 +46,7 @@ export function DevelopmentRecipeDetail({
   onDeleteCustomRecipe,
   isFavorite,
   onToggleFavorite,
+  onShareRecipe,
 }: DevelopmentRecipeDetailProps) {
   const { combination, film, developer } = view;
   const { unit } = useTemperature();
@@ -52,7 +55,18 @@ export function DevelopmentRecipeDetail({
 
   return (
     <div className="space-y-5 text-sm">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        {onShareRecipe && (
+          <button
+            type="button"
+            title="Share recipe"
+            onClick={() => onShareRecipe(view)}
+            className="inline-flex items-center gap-2 rounded-full bg-border-muted px-3 py-1 text-xs font-medium text-secondary transition hover:bg-border-secondary hover:text-primary"
+          >
+            <Share2 className="h-4 w-4" />
+            Share
+          </button>
+        )}
         {onToggleFavorite && (
           <button
             type="button"
@@ -142,25 +156,27 @@ export function DevelopmentRecipeDetail({
 
       {view.source === 'custom' &&
         (onEditCustomRecipe || onDeleteCustomRecipe) && (
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-2 pt-4">
             {onEditCustomRecipe && (
               <button
                 type="button"
                 onClick={() => onEditCustomRecipe(view)}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-border-muted px-4 py-2 text-sm font-medium text-secondary transition hover:bg-border-secondary hover:text-primary"
+                className="flex-1 inline-flex items-center justify-center rounded-full bg-border-muted p-2.5 text-sm font-medium text-secondary transition hover:bg-border-secondary hover:text-primary"
+                aria-label="Edit"
+                title="Edit"
               >
                 <Edit2 className="h-4 w-4" />
-                Edit recipe
               </button>
             )}
             {onDeleteCustomRecipe && (
               <button
                 type="button"
                 onClick={() => onDeleteCustomRecipe(view)}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-error/10 px-4 py-2 text-sm font-medium text-error/80 transition hover:bg-error/20 hover:text-error/90"
+                className="flex-1 inline-flex items-center justify-center rounded-full bg-error/10 p-2.5 text-sm font-medium text-error/80 transition hover:bg-error/20 hover:text-error/90"
+                aria-label="Delete"
+                title="Delete"
               >
                 <Trash2 className="h-4 w-4" />
-                Delete recipe
               </button>
             )}
           </div>

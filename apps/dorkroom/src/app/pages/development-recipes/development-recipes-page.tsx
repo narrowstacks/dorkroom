@@ -14,6 +14,7 @@ import {
   getCustomRecipeDeveloper,
   debugLog,
   debugError,
+  createCombinationFromCustomRecipe,
   type CustomRecipeFormData,
   isFilmdevInput,
   extractRecipeId,
@@ -44,6 +45,7 @@ import {
   PaginationControls,
   type DevelopmentCombinationView,
   cn,
+  useToast,
 } from '@dorkroom/ui';
 import type { Combination, Film, Developer } from '@dorkroom/api';
 import { useTheme } from '@dorkroom/ui';
@@ -176,6 +178,7 @@ export default function DevelopmentRecipesPage() {
   const { isFavorite, toggleFavorite, addFavorite } = useFavorites();
   const isMobile = useIsMobile();
   const { viewMode, setViewMode } = useViewPreference();
+  const { showToast } = useToast();
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -243,59 +246,157 @@ export default function DevelopmentRecipesPage() {
     }
   }, [pageIndex, favoriteTransitions]);
 
-  const recipesByUuid = useMemo(() => {
+  // Optimize: Split recipe maps to avoid reprocessing custom recipes (which have validation overhead)
+  // when only the filtered API results change, and vice versa.
+  const apiRecipesMap = useMemo(() => {
     const map = new Map<string, Combination>();
-    filteredCombinations.forEach((combo) => {
+    // Add API combinations (already filtered upstream)
+    for (const combo of filteredCombinations) {
       if (combo.uuid) {
         map.set(combo.uuid, combo);
       }
-    });
-    customRecipes.forEach((recipe) => {
-      map.set(recipe.id, {
-        id: recipe.id,
-        uuid: recipe.id,
-        slug: recipe.id,
-        name: recipe.name,
-        filmStockId: recipe.filmId,
-        filmSlug: recipe.filmId,
-        developerId: recipe.developerId,
-        developerSlug: recipe.developerId,
-        temperatureF: recipe.temperatureF,
-        temperatureC: ((recipe.temperatureF - 32) * 5) / 9,
-        timeMinutes: recipe.timeMinutes,
-        shootingIso: recipe.shootingIso,
-        pushPull: recipe.pushPull,
-        agitationSchedule: recipe.agitationSchedule,
-        notes: recipe.notes,
-        customDilution: recipe.customDilution,
-        dilutionId: recipe.dilutionId,
-        dateAdded: recipe.dateCreated,
-        tags: ['custom'],
-        infoSource: null,
-      } as unknown as Combination);
-    });
+    }
     return map;
-  }, [filteredCombinations, customRecipes]);
+  }, [filteredCombinations]);
 
-  const { initialUrlState, isLoadingSharedRecipe, sharedRecipeError } =
-    useRecipeUrlState(
-      allFilms,
-      allDevelopers,
-      {
-        selectedFilm,
-        selectedDeveloper,
-        dilutionFilter,
-        isoFilter,
-      },
-      recipesByUuid
-    );
+  const customRecipesMap = useMemo(() => {
+    const map = new Map<string, Combination>();
+    // Add custom recipes (convert to Combination format)
+    for (const recipe of customRecipes) {
+      map.set(recipe.id, createCombinationFromCustomRecipe(recipe));
+    }
+    return map;
+  }, [customRecipes]);
+
+  const recipesByUuid = useMemo(() => {
+    // Start with API recipes
+    const map = new Map(apiRecipesMap);
+    // Overlay custom recipes (they take precedence if IDs collide, though they shouldn't)
+    for (const [id, combo] of customRecipesMap) {
+      map.set(id, combo);
+    }
+    return map;
+  }, [apiRecipesMap, customRecipesMap]);
+
+  const {
+    initialUrlState,
+    isLoadingSharedRecipe,
+    sharedRecipeError,
+    sharedCustomRecipe,
+  } = useRecipeUrlState(
+    allFilms,
+    allDevelopers,
+    {
+      selectedFilm,
+      selectedDeveloper,
+      dilutionFilter,
+      isoFilter,
+      favoritesOnly,
+      customRecipeFilter,
+    },
+    recipesByUuid
+  );
 
   const urlStateAppliedRef = useRef(false);
+  const isApplyingUrlStateRef = useRef(false);
+
+  // Memoize expensive shared custom recipe conversion
+  const sharedCustomRecipeView = useMemo(() => {
+    if (!sharedCustomRecipe) {
+      return null;
+    }
+
+    // Convert CustomRecipe to DevelopmentCombinationView
+    const combination = createCombinationFromCustomRecipe(
+      sharedCustomRecipe,
+      'shared-custom'
+    );
+
+    // Get film and developer (either from database or custom data)
+    let film = null;
+    let developer = null;
+
+    if (sharedCustomRecipe.isCustomFilm && sharedCustomRecipe.customFilm) {
+      // Create a temporary film object from custom data
+      film = {
+        id: 0,
+        uuid: 'custom_film_temp',
+        slug: 'custom-film',
+        brand: sharedCustomRecipe.customFilm.brand,
+        name: sharedCustomRecipe.customFilm.name,
+        colorType: sharedCustomRecipe.customFilm.colorType,
+        isoSpeed: sharedCustomRecipe.customFilm.isoSpeed,
+        grainStructure: sharedCustomRecipe.customFilm.grainStructure || null,
+        description: sharedCustomRecipe.customFilm.description || '',
+        manufacturerNotes: null,
+        reciprocityFailure: null,
+        discontinued: false,
+        staticImageUrl: null,
+        dateAdded: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    } else {
+      film = getFilmById(sharedCustomRecipe.filmId);
+    }
+
+    if (
+      sharedCustomRecipe.isCustomDeveloper &&
+      sharedCustomRecipe.customDeveloper
+    ) {
+      // Create a temporary developer object from custom data
+      developer = {
+        id: 0,
+        uuid: 'custom_dev_temp',
+        slug: 'custom-developer',
+        name: sharedCustomRecipe.customDeveloper.name,
+        manufacturer: sharedCustomRecipe.customDeveloper.manufacturer,
+        type: sharedCustomRecipe.customDeveloper.type,
+        description: '',
+        filmOrPaper:
+          sharedCustomRecipe.customDeveloper.filmOrPaper === 'film' ||
+          sharedCustomRecipe.customDeveloper.filmOrPaper === 'both',
+        dilutions: sharedCustomRecipe.customDeveloper.dilutions.map(
+          (d, index) => ({
+            id: String(index),
+            name: d.name,
+            dilution: d.dilution,
+          })
+        ),
+        mixingInstructions:
+          sharedCustomRecipe.customDeveloper.mixingInstructions || null,
+        storageRequirements: null,
+        safetyNotes: sharedCustomRecipe.customDeveloper.safetyNotes || null,
+        notes: sharedCustomRecipe.customDeveloper.notes || null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    } else {
+      developer = getDeveloperById(sharedCustomRecipe.developerId);
+    }
+
+    const recipeView: DevelopmentCombinationView = {
+      combination,
+      film,
+      developer,
+      source: 'custom',
+      canShare: true,
+    };
+
+    return recipeView;
+  }, [sharedCustomRecipe, getFilmById, getDeveloperById]);
 
   useEffect(() => {
     if (!isLoaded || !initialUrlState.fromUrl || urlStateAppliedRef.current) {
       return;
     }
+
+    // Prevent re-entry while applying URL state
+    if (isApplyingUrlStateRef.current) {
+      return;
+    }
+
+    isApplyingUrlStateRef.current = true;
 
     if (initialUrlState.selectedFilm) {
       setSelectedFilm(initialUrlState.selectedFilm as Film);
@@ -309,8 +410,23 @@ export default function DevelopmentRecipesPage() {
     if (initialUrlState.isoFilter) {
       setIsoFilter(initialUrlState.isoFilter);
     }
+    if (initialUrlState.view === 'favorites') {
+      setFavoritesOnly(true);
+    } else if (initialUrlState.view === 'custom') {
+      setCustomRecipeFilter('only-custom');
+    }
 
-    // Check for shared recipe in URL
+    // Check for shared custom recipe from URL
+    if (sharedCustomRecipeView) {
+      setSharedRecipeView(sharedCustomRecipeView);
+      setSharedRecipeSource('custom');
+      setIsSharedRecipeModalOpen(true);
+      urlStateAppliedRef.current = true;
+      isApplyingUrlStateRef.current = false;
+      return;
+    }
+
+    // Check for shared API recipe in URL
     if (initialUrlState.recipeId) {
       const recipe = recipesByUuid.get(initialUrlState.recipeId);
       if (recipe) {
@@ -336,13 +452,16 @@ export default function DevelopmentRecipesPage() {
     }
 
     urlStateAppliedRef.current = true;
+    isApplyingUrlStateRef.current = false;
   }, [
     isLoaded,
     initialUrlState,
+    sharedCustomRecipeView,
     setSelectedFilm,
     setSelectedDeveloper,
     setDilutionFilter,
     setIsoFilter,
+    setCustomRecipeFilter,
     getFilmById,
     getDeveloperById,
     recipesByUuid,
@@ -354,31 +473,8 @@ export default function DevelopmentRecipesPage() {
     }
 
     return customRecipes.map((recipe) => {
-      const combination: Combination = {
-        id: recipe.id,
-        uuid: recipe.id,
-        slug: recipe.id,
-        name: recipe.name,
-        filmStockId: recipe.filmId,
-        filmSlug: recipe.filmId,
-        developerId: recipe.developerId,
-        developerSlug: recipe.developerId,
-        temperatureF: recipe.temperatureF,
-        temperatureC: ((recipe.temperatureF - 32) * 5) / 9,
-        timeMinutes: recipe.timeMinutes,
-        shootingIso: recipe.shootingIso,
-        pushPull: recipe.pushPull,
-        agitationSchedule: recipe.agitationSchedule,
-        notes: recipe.notes,
-        customDilution: recipe.customDilution,
-        dilutionId: recipe.dilutionId,
-        dateAdded: recipe.dateCreated,
-        tags: ['custom'],
-        infoSource: null,
-      } as unknown as Combination;
-
       return {
-        combination,
+        combination: createCombinationFromCustomRecipe(recipe),
         film: getCustomRecipeFilm(recipe.id, customRecipes, getFilmById),
         developer: getCustomRecipeDeveloper(
           recipe.id,
@@ -544,54 +640,70 @@ export default function DevelopmentRecipesPage() {
     setIsDetailOpen(true);
   }, []);
 
-  const handleShareCombination = useCallback(
-    async (view: DevelopmentCombinationView) => {
+  // Helper function to execute sharing action and show appropriate toast
+  const executeRecipeShare = useCallback(
+    async (view: DevelopmentCombinationView, shareMethod: 'share' | 'copy') => {
       const combinationId = String(
         view.combination.uuid || view.combination.id
       );
 
+      let result;
       if (view.source === 'custom') {
         const recipe = customRecipes.find((item) => item.id === combinationId);
         if (!recipe) {
           return;
         }
-        await shareCustomRecipe({ recipe });
+
+        result =
+          shareMethod === 'share'
+            ? await shareCustomRecipe({ recipe })
+            : await copyCustomRecipeToClipboard({ recipe });
       } else {
-        // Share regular recipe
-        await shareRegularRecipe({
+        // Share or copy regular recipe
+        const recipeOptions = {
           recipeId: combinationId,
           recipeName: view.combination.name,
           filmSlug: view.film?.slug,
           developerSlug: view.developer?.slug,
-        });
+        };
+
+        result =
+          shareMethod === 'share'
+            ? await shareRegularRecipe(recipeOptions)
+            : await copyRegularRecipeToClipboard(recipeOptions);
+      }
+
+      // Show toast if the result indicates we should
+      if (result?.showToast) {
+        if (result.success && result.method === 'clipboard') {
+          showToast('Link copied to clipboard!', 'success');
+        } else if (!result.success && result.error) {
+          showToast(result.error, 'error');
+        }
       }
     },
-    [customRecipes, shareCustomRecipe, shareRegularRecipe]
+    [
+      customRecipes,
+      shareCustomRecipe,
+      copyCustomRecipeToClipboard,
+      shareRegularRecipe,
+      copyRegularRecipeToClipboard,
+      showToast,
+    ]
+  );
+
+  const handleShareCombination = useCallback(
+    async (view: DevelopmentCombinationView) => {
+      await executeRecipeShare(view, 'share');
+    },
+    [executeRecipeShare]
   );
 
   const handleCopyCombination = useCallback(
     async (view: DevelopmentCombinationView) => {
-      const combinationId = String(
-        view.combination.uuid || view.combination.id
-      );
-
-      if (view.source === 'custom') {
-        const recipe = customRecipes.find((item) => item.id === combinationId);
-        if (!recipe) {
-          return;
-        }
-        await copyCustomRecipeToClipboard({ recipe });
-      } else {
-        // Copy regular recipe link
-        await copyRegularRecipeToClipboard({
-          recipeId: combinationId,
-          recipeName: view.combination.name,
-          filmSlug: view.film?.slug,
-          developerSlug: view.developer?.slug,
-        });
-      }
+      await executeRecipeShare(view, 'copy');
     },
-    [customRecipes, copyCustomRecipeToClipboard, copyRegularRecipeToClipboard]
+    [executeRecipeShare]
   );
 
   const handleCustomRecipeSubmit = useCallback(
@@ -772,12 +884,100 @@ export default function DevelopmentRecipesPage() {
 
     setIsAddingSharedRecipe(true);
     try {
+      const combination = sharedRecipeView.combination;
+
       if (sharedRecipeSource === 'custom') {
-        // Handle custom recipe sharing - this would come from URL
-        // For now, we'll focus on the modal display
+        // Handle custom recipe sharing from URL
+        // Check if it uses custom film/developer or existing ones
+        const isCustomFilm =
+          combination.filmStockId === 'custom_film_temp' ||
+          combination.filmStockId.startsWith('custom_film_');
+        const isCustomDeveloper =
+          combination.developerId === 'custom_dev_temp' ||
+          combination.developerId.startsWith('custom_dev_');
+
+        // Validate film data if it's a custom film
+        if (
+          isCustomFilm &&
+          (!sharedRecipeView.film ||
+            !sharedRecipeView.film.brand ||
+            !sharedRecipeView.film.name ||
+            typeof sharedRecipeView.film.isoSpeed !== 'number')
+        ) {
+          throw new Error(
+            'Invalid film data in shared recipe. Missing required fields.'
+          );
+        }
+
+        // Validate developer data if it's a custom developer
+        if (
+          isCustomDeveloper &&
+          (!sharedRecipeView.developer ||
+            !sharedRecipeView.developer.manufacturer ||
+            !sharedRecipeView.developer.name ||
+            !sharedRecipeView.developer.type ||
+            !Array.isArray(sharedRecipeView.developer.dilutions))
+        ) {
+          throw new Error(
+            'Invalid developer data in shared recipe. Missing required fields.'
+          );
+        }
+
+        const formData: CustomRecipeFormData = {
+          name: combination.name || 'Shared Custom Recipe',
+          useExistingFilm: !isCustomFilm,
+          selectedFilmId: isCustomFilm ? '' : combination.filmStockId,
+          customFilm:
+            isCustomFilm && sharedRecipeView.film
+              ? {
+                  brand: sharedRecipeView.film.brand,
+                  name: sharedRecipeView.film.name,
+                  isoSpeed: sharedRecipeView.film.isoSpeed,
+                  colorType:
+                    sharedRecipeView.film.colorType === 'color' ||
+                    sharedRecipeView.film.colorType === 'slide'
+                      ? sharedRecipeView.film.colorType
+                      : 'bw',
+                  grainStructure: sharedRecipeView.film.grainStructure || '',
+                  description: sharedRecipeView.film.description || '',
+                }
+              : undefined,
+          useExistingDeveloper: !isCustomDeveloper,
+          selectedDeveloperId: isCustomDeveloper ? '' : combination.developerId,
+          customDeveloper:
+            isCustomDeveloper && sharedRecipeView.developer
+              ? {
+                  manufacturer: sharedRecipeView.developer.manufacturer,
+                  name: sharedRecipeView.developer.name,
+                  type: sharedRecipeView.developer.type,
+                  filmOrPaper: sharedRecipeView.developer.filmOrPaper
+                    ? 'film'
+                    : 'paper',
+                  dilutions: sharedRecipeView.developer.dilutions.map((d) => ({
+                    name: d.name,
+                    dilution: d.dilution,
+                  })),
+                  notes: sharedRecipeView.developer.notes || '',
+                  mixingInstructions:
+                    sharedRecipeView.developer.mixingInstructions || '',
+                  safetyNotes: sharedRecipeView.developer.safetyNotes || '',
+                }
+              : undefined,
+          temperatureF: combination.temperatureF,
+          timeMinutes: combination.timeMinutes,
+          shootingIso: combination.shootingIso,
+          pushPull: combination.pushPull || 0,
+          agitationSchedule: combination.agitationSchedule || '',
+          notes: combination.notes || 'Imported from shared custom recipe',
+          customDilution: combination.customDilution || '',
+          isPublic: false,
+        };
+
+        await addCustomRecipe(formData);
+        await refreshCustomRecipes();
+        showToast('Custom recipe added to your collection!', 'success');
       } else {
-        // Handle regular recipe - add to custom recipes
-        const combination = sharedRecipeView.combination;
+        // Handle regular API recipe - add to custom recipes
         const formData: CustomRecipeFormData = {
           name: combination.name || `Shared Recipe - ${combination.id}`,
           useExistingFilm: true,
@@ -796,10 +996,50 @@ export default function DevelopmentRecipesPage() {
 
         await addCustomRecipe(formData);
         await refreshCustomRecipes();
+        showToast('Recipe added to your collection!', 'success');
       }
 
       setIsSharedRecipeModalOpen(false);
       setSharedRecipeView(null);
+    } catch (error) {
+      debugError('Failed to add shared recipe:', error);
+
+      // Provide specific error message based on error type
+      let errorMessage = 'Failed to add recipe. Please try again.';
+      if (error instanceof Error) {
+        // Extract meaningful error messages
+        if (
+          error.message.includes('duplicate') ||
+          error.message.includes('already exists')
+        ) {
+          errorMessage = 'This recipe already exists in your collection.';
+        } else if (
+          error.message.includes('film') ||
+          error.message.includes('Film')
+        ) {
+          errorMessage = 'Invalid film data. Please check the recipe details.';
+        } else if (
+          error.message.includes('developer') ||
+          error.message.includes('Developer')
+        ) {
+          errorMessage =
+            'Invalid developer data. Please check the recipe details.';
+        } else if (
+          error.message.includes('storage') ||
+          error.message.includes('quota')
+        ) {
+          errorMessage =
+            'Storage limit reached. Please delete some recipes to make room.';
+        } else if (error.message) {
+          // Use the error message if it's descriptive enough
+          errorMessage =
+            error.message.length > 10 && error.message.length < 100
+              ? error.message
+              : 'Failed to add recipe. Please try again.';
+        }
+      }
+
+      showToast(errorMessage, 'error');
     } finally {
       setIsAddingSharedRecipe(false);
     }
@@ -808,6 +1048,7 @@ export default function DevelopmentRecipesPage() {
     sharedRecipeSource,
     addCustomRecipe,
     refreshCustomRecipes,
+    showToast,
   ]);
 
   const handleDeclineSharedRecipe = useCallback(() => {
@@ -1356,6 +1597,17 @@ export default function DevelopmentRecipesPage() {
                     view={detailView}
                     onEditCustomRecipe={handleEditCustomRecipe}
                     onDeleteCustomRecipe={handleDeleteCustomRecipe}
+                    isFavorite={(view) =>
+                      isFavorite(
+                        String(view.combination.uuid || view.combination.id)
+                      )
+                    }
+                    onToggleFavorite={(view) =>
+                      toggleFavorite(
+                        String(view.combination.uuid || view.combination.id)
+                      )
+                    }
+                    onShareRecipe={handleShareCombination}
                   />
                 )}
                 {detailView && (
@@ -1430,6 +1682,17 @@ export default function DevelopmentRecipesPage() {
                 view={detailView}
                 onEditCustomRecipe={handleEditCustomRecipe}
                 onDeleteCustomRecipe={handleDeleteCustomRecipe}
+                isFavorite={(view) =>
+                  isFavorite(
+                    String(view.combination.uuid || view.combination.id)
+                  )
+                }
+                onToggleFavorite={(view) =>
+                  toggleFavorite(
+                    String(view.combination.uuid || view.combination.id)
+                  )
+                }
+                onShareRecipe={handleShareCombination}
               />
             )}
             {detailView && (

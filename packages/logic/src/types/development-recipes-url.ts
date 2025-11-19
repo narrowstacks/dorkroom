@@ -1,3 +1,5 @@
+import type { Film, Developer } from '@dorkroom/api';
+
 export interface RecipeUrlParams {
   film?: string;
   developer?: string;
@@ -5,16 +7,18 @@ export interface RecipeUrlParams {
   iso?: string;
   recipe?: string;
   source?: 'share';
+  view?: 'favorites' | 'custom';
 }
 
 export interface InitialUrlState {
-  selectedFilm?: unknown;
-  selectedDeveloper?: unknown;
+  selectedFilm?: Film;
+  selectedDeveloper?: Developer;
   dilutionFilter?: string;
   isoFilter?: string;
   recipeId?: string;
   fromUrl?: boolean;
   isSharedApiRecipe?: boolean;
+  view?: 'favorites' | 'custom';
 }
 
 export interface UrlValidationConfig {
