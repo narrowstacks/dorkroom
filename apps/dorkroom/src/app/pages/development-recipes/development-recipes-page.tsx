@@ -125,6 +125,16 @@ const convertRecipeToFormData = (
   };
 };
 
+const getCombinationIdentifier = (
+  combination?: DevelopmentCombinationView['combination'] | null
+): string => {
+  if (!combination) {
+    return '';
+  }
+
+  return String(combination.uuid || combination.id);
+};
+
 export default function DevelopmentRecipesPage() {
   const {
     developerTypeFilter,
@@ -712,8 +722,11 @@ export default function DevelopmentRecipesPage() {
       try {
         if (editingRecipe) {
           // Update existing recipe
+          const editingId = getCombinationIdentifier(
+            editingRecipe.combination
+          );
           const customRecipe = customRecipes.find(
-            (r) => r.id === String(editingRecipe.combination.id)
+            (r) => r.id === editingId
           );
           if (customRecipe) {
             await updateCustomRecipe(customRecipe.id, data);
@@ -744,9 +757,8 @@ export default function DevelopmentRecipesPage() {
 
   const handleEditCustomRecipe = useCallback(
     (view: DevelopmentCombinationView) => {
-      const customRecipe = customRecipes.find(
-        (r) => r.id === String(view.combination.id)
-      );
+      const recipeId = getCombinationIdentifier(view.combination);
+      const customRecipe = customRecipes.find((r) => r.id === recipeId);
       if (customRecipe) {
         setEditingRecipe(view);
         setIsCustomModalOpen(true);
@@ -765,12 +777,13 @@ export default function DevelopmentRecipesPage() {
         return;
       }
       try {
-        await deleteCustomRecipe(String(view.combination.id));
+        const recipeId = getCombinationIdentifier(view.combination);
+        await deleteCustomRecipe(recipeId);
         await refreshCustomRecipes();
 
         // Close detail modal if it's showing the deleted recipe
         if (
-          String(detailView?.combination.id) === String(view.combination.id)
+          getCombinationIdentifier(detailView?.combination) === recipeId
         ) {
           setIsDetailOpen(false);
           setDetailView(null);

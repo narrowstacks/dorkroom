@@ -9,6 +9,7 @@ interface SelectProps {
   items: SelectItem[];
   placeholder?: string;
   className?: string;
+  ariaLabel?: string;
 }
 
 export function Select({
@@ -18,6 +19,7 @@ export function Select({
   items,
   placeholder,
   className,
+  ariaLabel,
 }: SelectProps) {
   return (
     <div className={cn('space-y-2', className)}>
@@ -34,6 +36,7 @@ export function Select({
           value={selectedValue}
           onChange={(e) => onValueChange((e.target as HTMLSelectElement).value)}
           className="w-full appearance-none rounded-lg border px-3 py-2 pr-8 focus:outline-none focus:ring-2"
+          aria-label={ariaLabel}
           style={
             {
               borderColor: 'var(--color-border-secondary)',
