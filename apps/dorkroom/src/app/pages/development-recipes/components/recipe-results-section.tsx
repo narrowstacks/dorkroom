@@ -1,4 +1,6 @@
 import {
+  DevelopmentResultsTableVirtualized,
+  DevelopmentResultsCardsVirtualized,
   cn,
   type DevelopmentCombinationView,
   DevelopmentResultsCards,
@@ -148,7 +150,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
           className="animate-slide-fade-top"
         >
           {isMobile || viewMode === 'grid' ? (
-            <DevelopmentResultsCards
+            <DevelopmentResultsCardsVirtualized
               table={table}
               onSelectCombination={onSelectCombination}
               isMobile={isMobile}
@@ -161,7 +163,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
               favoriteTransitions={favoriteTransitions}
             />
           ) : (
-            <DevelopmentResultsTable
+            <DevelopmentResultsTableVirtualized
               table={table}
               onSelectCombination={onSelectCombination}
               favoriteTransitions={favoriteTransitions}

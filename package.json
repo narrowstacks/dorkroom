@@ -28,6 +28,7 @@
     "@tanstack/react-router": "^1.136.8",
     "@tanstack/react-store": "^0.8.0",
     "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-virtual": "^3.13.12",
     "@tanstack/router-devtools": "^1.139.3",
     "@tanstack/router-vite-plugin": "^1.136.8",
     "@tanstack/zod-adapter": "^1.136.5",
