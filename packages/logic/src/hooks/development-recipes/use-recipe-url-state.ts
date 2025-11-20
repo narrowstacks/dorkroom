@@ -487,14 +487,14 @@ export const useRecipeUrlState = (
     }
 
     if (currentState.dilutionFilter) {
-      urlParams.dilution = currentState.dilutionFilter;
+      urlParams.dilution = String(currentState.dilutionFilter);
     } else {
       // Explicitly clear dilution from URL when cleared
       urlParams.dilution = '';
     }
 
     if (currentState.isoFilter) {
-      urlParams.iso = currentState.isoFilter;
+      urlParams.iso = String(currentState.isoFilter);
     } else {
       // Explicitly clear iso from URL when cleared
       urlParams.iso = '';

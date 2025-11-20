@@ -48,9 +48,7 @@ export interface UseRecipeDataReturn {
  * Hook that handles all data processing and derived state for development recipes
  * Consolidates recipe maps, combination views, filtering, and sorting
  */
-export function useRecipeData(
-  props: UseRecipeDataProps
-): UseRecipeDataReturn {
+export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
   const {
     filteredCombinations,
     customRecipes,
@@ -162,10 +160,7 @@ export function useRecipeData(
           sharedCustomRecipe.customDeveloper.filmOrPaper === 'film' ||
           sharedCustomRecipe.customDeveloper.filmOrPaper === 'both',
         dilutions: sharedCustomRecipe.customDeveloper.dilutions.map(
-          (
-            d: { name: string; dilution: string },
-            index: number
-          ) => ({
+          (d: { name: string; dilution: string }, index: number) => ({
             id: String(index),
             name: d.name,
             dilution: d.dilution,
@@ -306,56 +301,12 @@ export function useRecipeData(
       });
     }
 
-    const sorted = rows.sort((a, b) => {
-      if (sortBy === 'timeMinutes') {
-        return sortDirection === 'asc'
-          ? a.combination.timeMinutes - b.combination.timeMinutes
-          : b.combination.timeMinutes - a.combination.timeMinutes;
-      }
-      if (sortBy === 'temperatureF') {
-        return sortDirection === 'asc'
-          ? a.combination.temperatureF - b.combination.temperatureF
-          : b.combination.temperatureF - a.combination.temperatureF;
-      }
-      if (sortBy === 'shootingIso') {
-        return sortDirection === 'asc'
-          ? a.combination.shootingIso - b.combination.shootingIso
-          : b.combination.shootingIso - a.combination.shootingIso;
-      }
-      if (sortBy === 'developerName') {
-        const nameA = a.developer
-          ? `${a.developer.manufacturer} ${a.developer.name}`
-          : '';
-        const nameB = b.developer
-          ? `${b.developer.manufacturer} ${b.developer.name}`
-          : '';
-        return sortDirection === 'asc'
-          ? nameA.localeCompare(nameB)
-          : nameB.localeCompare(nameA);
-      }
-      const nameA = a.film ? `${a.film.brand} ${a.film.name}` : '';
-      const nameB = b.film ? `${b.film.brand} ${b.film.name}` : '';
-      return sortDirection === 'asc'
-        ? nameA.localeCompare(nameB)
-        : nameB.localeCompare(nameA);
-    });
-    // Stable partition: favorites first, then others, keeping relative order
-    const fav: DevelopmentCombinationView[] = [];
-    const nonFav: DevelopmentCombinationView[] = [];
-    for (const r of sorted) {
-      const id = String(r.combination.uuid || r.combination.id);
-      if (isFavorite(id)) {
-        fav.push(r);
-      } else {
-        nonFav.push(r);
-      }
-    }
-    return [...fav, ...nonFav];
+    // NOTE: Sorting is now handled by TanStack Table via the favoriteAware sorting function
+    // in use-development-table.ts. Return unsorted rows to allow table-based sorting.
+    return rows;
   }, [
     apiCombinationViews,
     filteredCustomViews,
-    sortBy,
-    sortDirection,
     customRecipeFilter,
     tagFilter,
     favoritesOnly,
