@@ -30,6 +30,13 @@ export const DevelopmentResultsTableVirtualized: FC<
   });
 
   const virtualRows = rowVirtualizer.getVirtualItems();
+  const totalSize = rowVirtualizer.getTotalSize();
+
+  const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start || 0 : 0;
+  const paddingBottom =
+    virtualRows.length > 0
+      ? totalSize - (virtualRows[virtualRows.length - 1]?.end || 0)
+      : 0;
 
   return (
     <div
@@ -135,11 +142,14 @@ export const DevelopmentResultsTableVirtualized: FC<
                 {
                   '--tw-divide-opacity': '0.15',
                   divideColor: 'var(--color-text-secondary)',
-                  height: `${rowVirtualizer.getTotalSize()}px`,
-                  position: 'relative',
                 } as React.CSSProperties
               }
             >
+              {paddingTop > 0 && (
+                <tr>
+                  <td style={{ height: `${paddingTop}px` }} />
+                </tr>
+              )}
               {virtualRows.length > 0 ? (
                 virtualRows.map((virtualRow, index) => {
                   const row = rows[virtualRow.index];
@@ -190,10 +200,6 @@ export const DevelopmentResultsTableVirtualized: FC<
                                 'var(--color-border-muted)'
                               )
                             : 'rgba(var(--color-background-rgb), 0.25)',
-                        height: `${virtualRow.size}px`,
-                        transform: `translateY(${
-                          virtualRow.start - index * virtualRow.size
-                        }px)`,
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor =
@@ -252,6 +258,11 @@ export const DevelopmentResultsTableVirtualized: FC<
                     No recipes match your current filters. Try adjusting your
                     search.
                   </td>
+                </tr>
+              )}
+              {paddingBottom > 0 && (
+                <tr>
+                  <td style={{ height: `${paddingBottom}px` }} />
                 </tr>
               )}
             </tbody>
