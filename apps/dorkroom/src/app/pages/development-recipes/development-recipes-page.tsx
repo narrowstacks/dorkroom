@@ -21,8 +21,8 @@ import {
   fetchFilmdevRecipe,
   mapFilmdevRecipe,
   FilmdevApiError,
-  type FilmdevMappingResult,
 } from '@dorkroom/logic';
+import { useRecipeModals } from './hooks/useRecipeModals';
 import {
   FilmDeveloperSelection,
   CollapsibleFilters,
@@ -189,29 +189,43 @@ export default function DevelopmentRecipesPage() {
   const isMobile = useIsMobile();
   const { viewMode, setViewMode } = useViewPreference();
   const { showToast } = useToast();
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [detailView, setDetailView] =
-    useState<DevelopmentCombinationView | null>(null);
-  const [isSubmittingRecipe, setIsSubmittingRecipe] = useState(false);
-  const [importError, setImportError] = useState<string | null>(null);
-  const [isImporting, setIsImporting] = useState(false);
-  const [isFilmdevPreviewOpen, setIsFilmdevPreviewOpen] = useState(false);
+
+  // Modal state management - extracted to custom hook
+  // This centralizes all modal-related state that was previously scattered across 14+ useState declarations
+  const {
+    isDetailOpen,
+    setIsDetailOpen,
+    detailView,
+    setDetailView,
+    isCustomModalOpen,
+    setIsCustomModalOpen,
+    editingRecipe,
+    setEditingRecipe,
+    isSubmittingRecipe,
+    setIsSubmittingRecipe,
+    isImportModalOpen,
+    setIsImportModalOpen,
+    importError,
+    isImporting,
+    setImportError,
+    setIsImporting,
+    isFilmdevPreviewOpen,
+    setIsFilmdevPreviewOpen,
+    filmdevPreviewData,
+    setFilmdevPreviewData,
+    filmdevPreviewRecipe,
+    setFilmdevPreviewRecipe,
+    isSharedRecipeModalOpen,
+    setIsSharedRecipeModalOpen,
+    sharedRecipeView,
+    sharedRecipeSource,
+    isAddingSharedRecipe,
+    setIsAddingSharedRecipe,
+    setSharedRecipeView,
+    setSharedRecipeSource,
+  } = useRecipeModals();
+
   const [isRefreshingData, setIsRefreshingData] = useState(false);
-  const [filmdevPreviewData, setFilmdevPreviewData] =
-    useState<FilmdevMappingResult | null>(null);
-  const [filmdevPreviewRecipe, setFilmdevPreviewRecipe] =
-    useState<DevelopmentCombinationView | null>(null);
-  const [isSharedRecipeModalOpen, setIsSharedRecipeModalOpen] = useState(false);
-  const [sharedRecipeView, setSharedRecipeView] =
-    useState<DevelopmentCombinationView | null>(null);
-  const [sharedRecipeSource, setSharedRecipeSource] = useState<
-    'shared' | 'custom'
-  >('shared');
-  const [isAddingSharedRecipe, setIsAddingSharedRecipe] = useState(false);
-  const [editingRecipe, setEditingRecipe] =
-    useState<DevelopmentCombinationView | null>(null);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'film', desc: false },
@@ -722,12 +736,8 @@ export default function DevelopmentRecipesPage() {
       try {
         if (editingRecipe) {
           // Update existing recipe
-          const editingId = getCombinationIdentifier(
-            editingRecipe.combination
-          );
-          const customRecipe = customRecipes.find(
-            (r) => r.id === editingId
-          );
+          const editingId = getCombinationIdentifier(editingRecipe.combination);
+          const customRecipe = customRecipes.find((r) => r.id === editingId);
           if (customRecipe) {
             await updateCustomRecipe(customRecipe.id, data);
           }
@@ -782,9 +792,7 @@ export default function DevelopmentRecipesPage() {
         await refreshCustomRecipes();
 
         // Close detail modal if it's showing the deleted recipe
-        if (
-          getCombinationIdentifier(detailView?.combination) === recipeId
-        ) {
+        if (getCombinationIdentifier(detailView?.combination) === recipeId) {
           setIsDetailOpen(false);
           setDetailView(null);
         }
