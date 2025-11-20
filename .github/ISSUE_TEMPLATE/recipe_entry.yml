@@ -1,0 +1,180 @@
+name: 📸 Add Film Development Recipe
+description: Submit a new film development recipe/combination to be added to the Dorkroom database
+title: '[Recipe] '
+labels: ['recipe', 'database', 'new-entry']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Film Development Recipe Entry
+        Use this form to submit a tested film development recipe for inclusion in the Dorkroom database. Please only submit recipes you have personally tested and verified.
+
+  - type: input
+    id: recipe_name
+    attributes:
+      label: Recipe Name
+      description: A descriptive name for this recipe
+      placeholder: e.g., Kodak Tri-X 400 in D-76 1:1, Ilford HP5+ Pushed to 1600 in Rodinal
+    validations:
+      required: true
+
+  - type: dropdown
+    id: film_status
+    attributes:
+      label: Film Status
+      description: Is this an existing film in the database or a new film?
+      options:
+        - existing_film
+        - new_film
+    validations:
+      required: true
+
+  - type: input
+    id: existing_film_name
+    attributes:
+      label: Existing Film Name
+      description: If this is an existing film, please specify the exact name from the database
+      placeholder: e.g., Kodak Tri-X 400, Ilford HP5 Plus
+
+  - type: input
+    id: new_film_brand
+    attributes:
+      label: New Film Brand
+      description: If this is a new film, provide the brand
+      placeholder: e.g., Kodak, Ilford, Fujifilm
+
+  - type: input
+    id: new_film_name
+    attributes:
+      label: New Film Name
+      description: If this is a new film, provide the specific name
+      placeholder: e.g., Tri-X 400, HP5 Plus
+
+  - type: input
+    id: new_film_iso
+    attributes:
+      label: New Film ISO
+      description: If this is a new film, provide the ISO rating
+      placeholder: e.g., 400, 100, 800
+
+  - type: dropdown
+    id: developer_status
+    attributes:
+      label: Developer Status
+      description: Is this an existing developer in the database or a new one?
+      options:
+        - existing_developer
+        - new_developer
+    validations:
+      required: true
+
+  - type: input
+    id: existing_developer_name
+    attributes:
+      label: Existing Developer Name
+      description: If this is an existing developer, please specify the exact name from the database
+      placeholder: e.g., Kodak D-76, Ilford Ilfotec HC-110
+
+  - type: input
+    id: new_developer_manufacturer
+    attributes:
+      label: New Developer Manufacturer
+      description: If this is a new developer, provide the manufacturer
+      placeholder: e.g., Kodak, Ilford, Adox
+
+  - type: input
+    id: new_developer_name
+    attributes:
+      label: New Developer Name
+      description: If this is a new developer, provide the specific name
+      placeholder: e.g., D-76, HC-110, Rodinal
+
+  - type: input
+    id: dilution
+    attributes:
+      label: Dilution
+      description: The dilution ratio used
+      placeholder: e.g., 1:1, 1:3, 1+9, stock
+    validations:
+      required: true
+
+  - type: input
+    id: temperature_f
+    attributes:
+      label: Temperature (°F)
+      description: Development temperature in Fahrenheit
+      placeholder: e.g., 68, 20°C = 68°F
+    validations:
+      required: true
+
+  - type: input
+    id: time_minutes
+    attributes:
+      label: Development Time (minutes)
+      description: Total development time
+      placeholder: e.g., 8.5, 12, 6.75
+    validations:
+      required: true
+
+  - type: input
+    id: shooting_iso
+    attributes:
+      label: Shooting ISO
+      description: The ISO at which the film was shot
+      placeholder: e.g., 400, 800 (for push), 200 (for pull)
+    validations:
+      required: true
+
+  - type: input
+    id: push_pull
+    attributes:
+      label: Push/Pull (stops)
+      description: Number of stops pushed (+) or pulled (-)
+      placeholder: e.g., 0 (normal), +1, +2, -1
+    validations:
+      required: true
+
+  - type: textarea
+    id: agitation_schedule
+    attributes:
+      label: Agitation Schedule
+      description: Detailed agitation instructions
+      placeholder: e.g., Continuous first 30 seconds, then 5 inversions every 30 seconds
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Recipe Notes
+      description: Additional details about results, contrast, grain, special considerations
+      placeholder: e.g., Produces normal contrast with fine grain. Good for general purpose. Slightly increased contrast when pushed 1 stop...
+
+  - type: textarea
+    id: test_conditions
+    attributes:
+      label: Test Conditions
+      description: Describe the testing conditions and results
+      placeholder: e.g., Tested on 35mm format, normal lighting conditions, scanned on Epson V800. Results show good shadow detail and manageable highlights...
+
+  - type: input
+    id: test_date
+    attributes:
+      label: Date Tested
+      description: When you tested this recipe
+      placeholder: e.g., 2024-01-15
+
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: Verification
+      description: Please confirm the following
+      options:
+        - label: I have personally tested this recipe and achieved consistent results
+          required: true
+        - label: This recipe is not already in the database (please check first)
+          required: true
+        - label: All measurements (time, temperature) are accurate
+          required: true
+        - label: I have provided sufficient detail for others to reproduce this recipe
+          required: true

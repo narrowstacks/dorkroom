@@ -1,0 +1,89 @@
+name: 🎬 Add New Film
+description: Submit a new film to be added to the Dorkroom database
+title: '[Film] '
+labels: ['film', 'database', 'new-entry']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Film Database Entry
+        Use this form to submit a new film for inclusion in the Dorkroom database. Please provide as much detail as possible.
+
+  - type: input
+    id: brand
+    attributes:
+      label: Film Brand
+      description: The manufacturer or brand of the film
+      placeholder: e.g., Kodak, Ilford, Fujifilm
+    validations:
+      required: true
+
+  - type: input
+    id: name
+    attributes:
+      label: Film Name
+      description: The specific name/model of the film
+      placeholder: e.g., Tri-X 400, HP5 Plus, Provia 100F
+    validations:
+      required: true
+
+  - type: dropdown
+    id: color_type
+    attributes:
+      label: Film Type
+      description: Select the color type of this film
+      options:
+        - bw (Black & White)
+        - color (Color Negative)
+        - slide (Color Positive/Slide)
+    validations:
+      required: true
+
+  - type: input
+    id: iso_speed
+    attributes:
+      label: ISO Speed
+      description: The standard ISO rating of this film
+      placeholder: e.g., 100, 400, 800
+    validations:
+      required: true
+
+  - type: textarea
+    id: grain_structure
+    attributes:
+      label: Grain Structure (Optional)
+      description: Describe the grain characteristics of this film
+      placeholder: e.g., Fine grain, Classic grain structure, High-speed grain
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description (Optional)
+      description: Additional details about the film's characteristics, uses, or notable features
+      placeholder: e.g., Classic black and white film known for its tonal range and push processing capabilities...
+
+  - type: textarea
+    id: source
+    attributes:
+      label: Source/Verification
+      description: Where did you get this information? Please provide links to manufacturer specs, reviews, or other reliable sources
+      placeholder: e.g., Manufacturer website, datasheet link, etc.
+
+  - type: textarea
+    id: additional_notes
+    attributes:
+      label: Additional Notes
+      description: Any other relevant information about this film
+
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: Verification
+      description: Please confirm the following
+      options:
+        - label: I have verified this information is accurate to the best of my knowledge
+          required: true
+        - label: This film is not already in the database (please check first)
+          required: true
+        - label: I have provided reliable sources for this information
+          required: false

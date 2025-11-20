@@ -1,0 +1,116 @@
+name: 🧪 Add New Developer
+description: Submit a new film developer to be added to the Dorkroom database
+title: '[Developer] '
+labels: ['developer', 'database', 'new-entry']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Developer Database Entry
+        Use this form to submit a new film developer for inclusion in the Dorkroom database. Please provide as much detail as possible.
+
+  - type: input
+    id: manufacturer
+    attributes:
+      label: Manufacturer
+      description: The company that makes this developer
+      placeholder: e.g., Kodak, Ilford, Adox, Rodinal
+    validations:
+      required: true
+
+  - type: input
+    id: name
+    attributes:
+      label: Developer Name
+      description: The specific name of this developer
+      placeholder: e.g., D-76, HC-110, Rodinal, X-Tol
+    validations:
+      required: true
+
+  - type: input
+    id: type
+    attributes:
+      label: Developer Type
+      description: The chemical type or category of this developer
+      placeholder: e.g., Metol, Phenidone, PQ, Fine-grain, High-contrast
+    validations:
+      required: true
+
+  - type: dropdown
+    id: film_or_paper
+    attributes:
+      label: Intended Use
+      description: What this developer is designed for
+      options:
+        - film
+        - paper
+        - both
+    validations:
+      required: true
+
+  - type: input
+    id: working_life_hours
+    attributes:
+      label: Working Life (hours, Optional)
+      description: How long the mixed solution remains effective
+      placeholder: e.g., 24, 168 (for one week)
+
+  - type: input
+    id: stock_life_months
+    attributes:
+      label: Stock Solution Life (months, Optional)
+      description: How long the concentrated stock solution lasts
+      placeholder: e.g., 6, 12, 24
+
+  - type: textarea
+    id: dilutions
+    attributes:
+      label: Dilutions
+      description: List the standard dilutions for this developer (one per line)
+      placeholder: |
+        1:1 - Standard working solution
+        1:3 - Fine grain development
+        1:9 - High acutance
+    validations:
+      required: true
+
+  - type: textarea
+    id: mixing_instructions
+    attributes:
+      label: Mixing Instructions (Optional)
+      description: How to prepare this developer from stock or powder
+      placeholder: e.g., Dissolve powder in 750ml water at 20°C, then top up to 1L...
+
+  - type: textarea
+    id: safety_notes
+    attributes:
+      label: Safety Notes (Optional)
+      description: Important safety information for handling this developer
+      placeholder: e.g., Use gloves, avoid skin contact, work in ventilated area...
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional Notes (Optional)
+      description: General notes about characteristics, recommended films, special handling, etc.
+      placeholder: e.g., Excellent for push processing, works well with high-speed films...
+
+  - type: textarea
+    id: source
+    attributes:
+      label: Source/Verification
+      description: Where did you get this information? Please provide links to manufacturer specs, datasheets, or other reliable sources
+      placeholder: e.g., Manufacturer website, MSDS, technical datasheet, etc.
+
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: Verification
+      description: Please confirm the following
+      options:
+        - label: I have verified this information is accurate to the best of my knowledge
+          required: true
+        - label: This developer is not already in the database (please check first)
+          required: true
+        - label: I have provided reliable sources for this information
+          required: false
