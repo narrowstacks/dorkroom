@@ -143,7 +143,9 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     allDevelopers,
   } = props;
 
-  const transitionTimeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const transitionTimeoutRefs = useRef<
+    Map<string, ReturnType<typeof setTimeout>>
+  >(new Map());
 
   const handleOpenDetail = useCallback(
     (view: DevelopmentCombinationView) => {
@@ -156,43 +158,53 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
   // Helper function to execute sharing action and show appropriate toast
   const executeRecipeShare = useCallback(
     async (view: DevelopmentCombinationView, shareMethod: 'share' | 'copy') => {
-      const combinationId = String(
-        view.combination.uuid || view.combination.id
-      );
+      try {
+        const combinationId = String(
+          view.combination.uuid || view.combination.id
+        );
 
-      let result;
-      if (view.source === 'custom') {
-        const recipe = customRecipes.find((item) => item.id === combinationId);
-        if (!recipe) {
-          return;
+        let result;
+        if (view.source === 'custom') {
+          const recipe = customRecipes.find(
+            (item) => item.id === combinationId
+          );
+          if (!recipe) {
+            return;
+          }
+
+          result =
+            shareMethod === 'share'
+              ? await shareCustomRecipe({ recipe })
+              : await copyCustomRecipeToClipboard({ recipe });
+        } else {
+          // Share or copy regular recipe
+          const recipeOptions = {
+            recipeId: combinationId,
+            recipeName: view.combination.name,
+            filmSlug: view.film?.slug,
+            developerSlug: view.developer?.slug,
+          };
+
+          result =
+            shareMethod === 'share'
+              ? await shareRegularRecipe(recipeOptions)
+              : await copyRegularRecipeToClipboard(recipeOptions);
         }
 
-        result =
-          shareMethod === 'share'
-            ? await shareCustomRecipe({ recipe })
-            : await copyCustomRecipeToClipboard({ recipe });
-      } else {
-        // Share or copy regular recipe
-        const recipeOptions = {
-          recipeId: combinationId,
-          recipeName: view.combination.name,
-          filmSlug: view.film?.slug,
-          developerSlug: view.developer?.slug,
-        };
-
-        result =
-          shareMethod === 'share'
-            ? await shareRegularRecipe(recipeOptions)
-            : await copyRegularRecipeToClipboard(recipeOptions);
-      }
-
-      // Show toast if the result indicates we should
-      if (result?.showToast) {
-        if (result.success && result.method === 'clipboard') {
-          showToast('Link copied to clipboard!', 'success');
-        } else if (!result.success && result.error) {
-          showToast(result.error, 'error');
+        // Show toast if the result indicates we should
+        if (result?.showToast) {
+          if (result.success && result.method === 'clipboard') {
+            showToast('Link copied to clipboard!', 'success');
+          } else if (!result.success && result.error) {
+            showToast(result.error, 'error');
+          }
         }
+      } catch (error) {
+        debugError('Failed to share/copy recipe:', error);
+        showToast(
+          'Something went wrong sharing this recipe. Please try again.',
+          'error'
+        );
       }
     },
     [
