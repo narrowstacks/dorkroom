@@ -141,7 +141,7 @@ export const DevelopmentResultsTableVirtualized: FC<
               }
             >
               {virtualRows.length > 0 ? (
-                virtualRows.map((virtualRow) => {
+                virtualRows.map((virtualRow, index) => {
                   const row = rows[virtualRow.index];
                   const rowData = row.original;
                   const id = String(
@@ -190,12 +190,10 @@ export const DevelopmentResultsTableVirtualized: FC<
                                 'var(--color-border-muted)'
                               )
                             : 'rgba(var(--color-background-rgb), 0.25)',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
                         height: `${virtualRow.size}px`,
-                        transform: `translateY(${virtualRow.start}px)`,
+                        transform: `translateY(${
+                          virtualRow.start - index * virtualRow.size
+                        }px)`,
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor =
