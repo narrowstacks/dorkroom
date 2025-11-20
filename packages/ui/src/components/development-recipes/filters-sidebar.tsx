@@ -47,12 +47,18 @@ const sortingOptions: SelectItem[] = [
   { label: 'Film (Z-A)', value: 'film-desc' },
   { label: 'Developer (A-Z)', value: 'developer-asc' },
   { label: 'Developer (Z-A)', value: 'developer-desc' },
-  { label: 'ISO (Low to High)', value: 'iso-asc' },
-  { label: 'ISO (High to Low)', value: 'iso-desc' },
-  { label: 'Time (Short to Long)', value: 'time-asc' },
-  { label: 'Time (Long to Short)', value: 'time-desc' },
-  { label: 'Temperature (Low to High)', value: 'temp-asc' },
-  { label: 'Temperature (High to Low)', value: 'temp-desc' },
+  { label: 'ISO (Low to High)', value: 'combination.shootingIso-asc' },
+  { label: 'ISO (High to Low)', value: 'combination.shootingIso-desc' },
+  { label: 'Time (Short to Long)', value: 'combination.timeMinutes-asc' },
+  { label: 'Time (Long to Short)', value: 'combination.timeMinutes-desc' },
+  {
+    label: 'Temperature (Low to High)',
+    value: 'combination.temperatureF-asc',
+  },
+  {
+    label: 'Temperature (High to Low)',
+    value: 'combination.temperatureF-desc',
+  },
 ];
 
 export const FiltersSidebar: FC<FiltersSidebarProps> = ({
@@ -119,13 +125,12 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
   return (
     <div
       className={cn(
-        'sticky top-6 h-fit space-y-4 rounded-2xl border p-4 shadow-subtle',
+        'sticky top-6 h-fit space-y-4 rounded-2xl border p-4 shadow-subtle backdrop-blur',
         className
       )}
       style={{
         borderColor: 'var(--color-border-secondary)',
-        backgroundColor: 'rgba(var(--color-background-rgb), 0.95)',
-        backdropFilter: 'blur(8px)',
+        backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',
       }}
     >
       <div>
