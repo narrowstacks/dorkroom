@@ -1,6 +1,3 @@
-// Legacy component - can be removed if not needed
-export * from './lib/ui';
-
 // Core UI Components
 export { LabeledSliderInput } from './components/labeled-slider-input';
 export { TextInput } from './components/text-input';

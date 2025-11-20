@@ -133,14 +133,6 @@ function RootComponent() {
                   currentPath={pathname}
                   onNavigate={handleNavigate}
                 />
-                {/* Shooting section commented out - Reciprocity moved to main nav */}
-                {/* <NavigationDropdown
-                  label="Shooting"
-                  icon={Camera}
-                  items={shootingItems}
-                  currentPath={pathname}
-                  onNavigate={handleNavigate}
-                /> */}
               </div>
             </nav>
             <div className="hidden items-center gap-3 sm:flex">
@@ -294,45 +286,6 @@ function RootComponent() {
                     );
                   })}
 
-                  {/* Shooting section commented out - Reciprocity moved to main nav */}
-                  {/* <li className="pt-2">
-                    <div className="px-3.5 py-1">
-                      <span
-                        className="text-xs font-semibold uppercase tracking-wide"
-                        style={{ color: 'var(--color-text-tertiary)' }}
-                      >
-                        Shooting
-                      </span>
-                    </div>
-                  </li>
-                  {shootingItems.map(({ label, to, icon: Icon }) => {
-                    const isActive = pathname.startsWith(to);
-                    return (
-                      <li key={to}>
-                        <Link
-                          to={to}
-                          className={cn(
-                            'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
-                            'text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--color-text-primary)]',
-                            isActive &&
-                              'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
-                          )}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <span
-                            className="flex h-9 w-9 items-center justify-center rounded-2xl"
-                            style={{
-                              backgroundColor:
-                                'rgba(var(--color-background-rgb), 0.08)',
-                            }}
-                          >
-                            <Icon className="h-4 w-4" />
-                          </span>
-                          <span className="flex-1 text-left">{label}</span>
-                        </Link>
-                      </li>
-                    );
-                  })} */}
                   <li>
                     <ThemeToggle variant="button" />
                   </li>

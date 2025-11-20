@@ -1,5 +1,5 @@
 import { ArrowRight, type LucideIcon } from 'lucide-react';
-import type { ComponentProps, ElementType } from 'react';
+import { memo, type ComponentProps, type ElementType } from 'react';
 import { cn } from '../../lib/cn';
 
 export interface ToolCardProps extends ComponentProps<'a'> {
@@ -14,7 +14,7 @@ export interface ToolCardProps extends ComponentProps<'a'> {
   as?: ElementType;
 }
 
-export function ToolCard({
+export const ToolCard = memo(function ToolCard({
   title,
   description,
   category,
@@ -84,4 +84,4 @@ export function ToolCard({
       </div>
     </Component>
   );
-}
+});

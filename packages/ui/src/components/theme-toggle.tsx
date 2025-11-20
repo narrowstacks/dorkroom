@@ -10,7 +10,6 @@ import {
 import { cn } from '../lib/cn';
 import { useTheme } from '../contexts/theme-context';
 import type { Theme } from '../lib/themes';
-import '../lib/ui.module.css';
 
 interface ThemeOption {
   value: Theme;
