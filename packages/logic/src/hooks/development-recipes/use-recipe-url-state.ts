@@ -449,8 +449,12 @@ export const useRecipeUrlState = (
         const mergedParams: RecipeUrlParams = { ...params, ...newParams };
 
         Object.entries(mergedParams).forEach(([key, value]) => {
-          if (value) {
+          // Only set non-empty string values to avoid Zod validation issues
+          if (value && value !== '') {
             searchParams.set(key, String(value));
+          } else {
+            // Explicitly delete empty values from URL
+            searchParams.delete(key);
           }
         });
 

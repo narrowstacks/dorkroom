@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import { SortingState } from '@tanstack/react-table';
 import {
   useCustomRecipes,
@@ -296,6 +296,11 @@ export default function DevelopmentRecipesPage() {
     onPageIndexChange: setPageIndex,
     isFavorite: memoizedIsFavorite,
   });
+
+  // Reset to first page when sorting changes
+  useEffect(() => {
+    setPageIndex(0);
+  }, [sorting]);
 
   const clearSelections = () => {
     setSelectedFilm(null);
