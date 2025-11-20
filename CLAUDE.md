@@ -92,232 +92,45 @@ Dorkroom is an analog photography calculator app built with React 19, TypeScript
 - Controlled components
 - Use `cn()` utility for conditional Tailwind classes
 
-### TanStack Router Patterns (File-Based Routing)
+### TanStack Ecosystem Patterns
 
-Routes are defined using file-based routing in `apps/dorkroom/src/routes/`. Each route file exports a route component:
+This project uses the TanStack ecosystem extensively:
 
-```typescript
-// apps/dorkroom/src/routes/border-calculator.tsx
-import { createFileRoute } from '@tanstack/react-router';
-import { BorderCalculatorPage } from '../app/pages/border-calculator/border-calculator-page';
+- **TanStack Router v1** - File-based routing in `apps/dorkroom/src/routes/`
+- **TanStack Form v1** - Form state with Zod validation
+- **TanStack Query v5** - Server state management and caching
+- **TanStack Table v8** - Data tables with sorting/filtering
 
-export const Route = createFileRoute('/border-calculator')({
-  component: BorderCalculatorPage,
-});
-```
+**For detailed patterns and code examples, see:**
 
-**Important Patterns:**
+- `packages/logic/CLAUDE.md` - TanStack Query, Form, Table patterns with full examples
+- `packages/ui/CLAUDE.md` - Component patterns and form integration
+- `packages/api/CLAUDE.md` - API types and transformation patterns
 
-- Route files use kebab-case with `.tsx` extension
-- Components in `apps/dorkroom/src/app/pages/` follow PascalCase
-- Use `createFileRoute()` to define route configuration
-- Router devtools available in development for debugging
+**Key Principles:**
 
-### TanStack Form Patterns
-
-Forms use TanStack Form with Zod schema validation:
-
-```typescript
-import { useForm } from '@tanstack/react-form';
-import { zodValidator } from '@tanstack/zod-adapter';
-import { z } from 'zod';
-
-const schema = z.object({
-  borderSize: z.number().min(0),
-});
-
-export function MyCalculator() {
-  const form = useForm({
-    defaultValues: {
-      borderSize: 10,
-    },
-    onSubmit: async (values) => {
-      // Handle submission
-    },
-    validators: {
-      onChange: zodValidator({ schema }),
-    },
-  });
-
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        form.handleSubmit();
-      }}
-    >
-      {/* Form fields */}
-    </form>
-  );
-}
-```
-
-**Important Patterns:**
-
-- Zod schemas for all form validation
-- Use `@tanstack/zod-adapter` for schema integration
-- Always handle form submission prevention with `preventDefault()` and `stopPropagation()`
-
-### TanStack Table Patterns
-
-Data tables use TanStack Table v8 for rendering and interaction:
-
-```typescript
-import { createColumnHelper, useReactTable, getCoreRowModel } from '@tanstack/react-table';
-
-const columnHelper = createColumnHelper<Recipe>();
-
-const columns = [
-  columnHelper.accessor('name', {
-    header: 'Name',
-  }),
-];
-
-export function RecipeTable({ data }: { data: Recipe[] }) {
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
-  return (
-    <table>
-      <thead>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <tr key={headerGroup.id}>
-            {headerGroup.headers.map((header) => (
-              <th key={header.id}>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</th>
-            ))}
-          </tr>
-        ))}
-      </thead>
-      <tbody>
-        {table.getRowModel().rows.map((row) => (
-          <tr key={row.id}>
-            {row.getVisibleCells().map((cell) => (
-              <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-```
-
-**Important Patterns:**
-
-- Use `createColumnHelper<T>()` for type-safe column definitions
-- Core features: sorting, filtering, pagination via `useReactTable` hooks
-- Combine with TanStack Query for server-side data
-- Use `flexRender()` for rendering cell/header content
-
-### TanStack Query Patterns
-
-**Query Hooks (Data Fetching):**
-
-```typescript
-// packages/logic/src/hooks/api/use-films.ts
-import { useQuery } from '@tanstack/react-query';
-import { queryKeys, fetchFilms } from '../../queries';
-
-export function useFilms() {
-  return useQuery({
-    queryKey: queryKeys.films.list(),
-    queryFn: fetchFilms,
-  });
-}
-```
-
-**Usage in Components:**
-
-```typescript
-const { data: films, isPending, error } = useFilms();
-```
-
-**Mutation Hooks (Data Modification):**
-
-```typescript
-// packages/logic/src/hooks/custom-recipes/use-custom-recipe-mutations.ts
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '../../queries';
-
-export function useAddCustomRecipe() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (formData) => {
-      // Perform mutation
-      return newRecipe;
-    },
-    onMutate: async (formData) => {
-      // Optimistic update
-      const previousRecipes = queryClient.getQueryData(queryKeys.customRecipes.list());
-      queryClient.setQueryData(queryKeys.customRecipes.list(), [...previousRecipes, optimisticRecipe]);
-      return { previousRecipes };
-    },
-    onError: (error, variables, context) => {
-      // Rollback on error
-      if (context?.previousRecipes) {
-        queryClient.setQueryData(queryKeys.customRecipes.list(), context.previousRecipes);
-      }
-    },
-    onSettled: () => {
-      // Invalidate cache after mutation
-      queryClient.invalidateQueries({ queryKey: queryKeys.customRecipes.list() });
-    },
-  });
-}
-```
-
-**Query Key Structure:**
-
-```typescript
-// packages/logic/src/queries/query-keys.ts
-export const queryKeys = {
-  films: {
-    all: () => ['films'] as const,
-    lists: () => [...queryKeys.films.all(), 'list'] as const,
-    list: () => [...queryKeys.films.lists()] as const,
-    details: () => [...queryKeys.films.all(), 'detail'] as const,
-    detail: (id: string) => [...queryKeys.films.details(), id] as const,
-  },
-  // Similar structure for developers, combinations, customRecipes
-};
-```
-
-**Important Patterns:**
-
-- Query hooks located in `packages/logic/src/hooks/api/`
-- Mutation hooks located in `packages/logic/src/hooks/custom-recipes/`
-- Query configuration and fetch functions in `packages/logic/src/queries/`
-- Always use optimistic updates for mutations affecting UI
-- Always invalidate related queries after mutations
-- Use `staleTime` and `gcTime` defaults from QueryClient config (5 min / 10 min)
-- For client-only data (like localStorage), use `staleTime: Infinity` and `gcTime: Infinity`
+- Always use Zod schemas for form validation
+- Always use optimistic updates for mutations
+- Always invalidate queries after mutations
+- Follow hierarchical query key structure
+- Keep business logic in `@dorkroom/logic` package
+- Keep UI components in `@dorkroom/ui` package
 
 ### Imports/Exports
 
 - Named exports from index files
 - ES6 imports/exports
-- Components exported from `packages/ui/src/index.ts`
+- Never import internal package paths (always use package name)
 
-## Package Dependencies
+## Package-Specific Documentation
 
-**UI Package (@dorkroom/ui):**
+Each package has detailed conventions and code examples in its own CLAUDE.md:
 
-- clsx for className utilities
-- tailwind-merge for Tailwind class merging
-- lucide-react for icons
-- Tailwind CSS 4.1.13
+- **`packages/ui/CLAUDE.md`** - UI component patterns, Tailwind usage, form components, accessibility
+- **`packages/logic/CLAUDE.md`** - TanStack Query/Form/Table patterns, business logic, schemas
+- **`packages/api/CLAUDE.md`** - API type definitions, raw/transformed types, error handling
 
-**Logic Package (@dorkroom/logic):**
-
-- React peer dependencies (19.0.0)
-- TanStack ecosystem (Query, Router, Form, Table)
-- Zod for schema validation
-- All packages build to TypeScript declarations (.d.ts)
+**Always reference package-specific documentation for detailed implementation patterns.**
 
 ## Search Strategy Guide
 
