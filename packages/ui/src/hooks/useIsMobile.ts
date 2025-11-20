@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
  * Hook to detect if the viewport is mobile-sized
  * Uses matchMedia to listen for viewport changes
  *
- * Initializes state from the media query immediately to prevent hydration
- * mismatches and layout shifts in SSR/SSG scenarios.
+ * On the client, initializes state from the media query as early as possible.
+ * On the server (SSR/SSG), defaults to `false` to avoid hydration mismatches.
  *
  * @param maxWidth - Maximum width in pixels to be considered mobile (default: 768)
  * @returns boolean indicating if viewport is mobile-sized

@@ -1,4 +1,10 @@
-import { useCallback, useRef, type Dispatch, type SetStateAction } from 'react';
+import {
+  useCallback,
+  useRef,
+  useEffect,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import type {
   CustomRecipeFormData,
@@ -147,6 +153,17 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     Map<string, ReturnType<typeof setTimeout>>
   >(new Map());
 
+  // Cleanup pending timeouts on unmount to prevent stale state updates
+  useEffect(() => {
+    const timeouts = transitionTimeoutRefs.current;
+    return () => {
+      for (const timeout of timeouts.values()) {
+        clearTimeout(timeout);
+      }
+      timeouts.clear();
+    };
+  }, []);
+
   const handleOpenDetail = useCallback(
     (view: DevelopmentCombinationView) => {
       setDetailView(view);
@@ -239,9 +256,15 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
           // Update existing recipe
           const editingId = getCombinationIdentifier(editingRecipe.combination);
           const customRecipe = customRecipes.find((r) => r.id === editingId);
-          if (customRecipe) {
-            await updateCustomRecipe(customRecipe.id, data);
+          if (!customRecipe) {
+            // Fail fast: recipe was deleted or doesn't exist
+            showToast(
+              'Unable to find the recipe you are editing. It may have been deleted.',
+              'error'
+            );
+            return;
           }
+          await updateCustomRecipe(customRecipe.id, data);
         } else {
           // Add new recipe
           const newId = await addCustomRecipe(data);
@@ -252,6 +275,13 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
         await refreshCustomRecipes();
         setIsCustomModalOpen(false);
         setEditingRecipe(null);
+      } catch (error) {
+        debugError('Failed to save custom recipe:', error);
+        showToast(
+          'Failed to save the recipe. Please try again.',
+          'error'
+        );
+        return; // Don't close modal or clear state on error
       } finally {
         setIsSubmittingRecipe(false);
       }
@@ -263,6 +293,7 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
       editingRecipe,
       customRecipes,
       addFavorite,
+      showToast,
       setIsSubmittingRecipe,
       setIsCustomModalOpen,
       setEditingRecipe,
@@ -638,7 +669,7 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
             matchInfo =
               '\n\nNote: Developer was added as a custom entry since no match was found in our database.';
           } else {
-            matchInfo = '. Imported from FilmDev.org.';
+            matchInfo = '\n\nImported from FilmDev.org.';
           }
 
           mappingResult.formData.notes =
@@ -797,9 +828,7 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
                   mixingInstructions:
                     importedRecipe.customDeveloper?.mixingInstructions,
                   safetyNotes: importedRecipe.customDeveloper?.safetyNotes,
-                  dilutions: importedRecipe.customDeveloper?.dilutions || [
-                    { name: 'Stock', dilution: 'Stock' },
-                  ],
+                  dilutions: importedRecipe.customDeveloper?.dilutions,
                 }
               : undefined,
           };
