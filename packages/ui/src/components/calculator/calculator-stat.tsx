@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, memo } from 'react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 
@@ -54,7 +54,7 @@ const getToneStyle = (
   }
 };
 
-export function CalculatorStat({
+export const CalculatorStat = memo(function CalculatorStat({
   label,
   value,
   helperText,
@@ -105,4 +105,4 @@ export function CalculatorStat({
       )}
     </div>
   );
-}
+});

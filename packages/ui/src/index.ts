@@ -1,6 +1,3 @@
-// Legacy component - can be removed if not needed
-export * from './lib/ui';
-
 // Core UI Components
 export { LabeledSliderInput } from './components/labeled-slider-input';
 export { TextInput } from './components/text-input';
@@ -117,6 +114,9 @@ export {
   useMeasurementConverter,
   useMeasurementUtils,
 } from './hooks/use-measurement-conversion';
+
+// Hooks
+export { useIsMobile } from './hooks/useIsMobile';
 
 // Forms (TanStack Form integration)
 export * from './forms';

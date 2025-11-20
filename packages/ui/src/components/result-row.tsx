@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { cn } from '../lib/cn';
 
 interface ResultRowProps {
@@ -6,7 +7,11 @@ interface ResultRowProps {
   className?: string;
 }
 
-export function ResultRow({ label, value, className }: ResultRowProps) {
+export const ResultRow = memo(function ResultRow({
+  label,
+  value,
+  className,
+}: ResultRowProps) {
   return (
     <div className={cn('flex justify-between items-center py-1', className)}>
       <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
@@ -20,4 +25,4 @@ export function ResultRow({ label, value, className }: ResultRowProps) {
       </span>
     </div>
   );
-}
+});

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '../lib/cn';
-import '../lib/ui.module.css';
 
 export interface NavigationItem {
   label: string;

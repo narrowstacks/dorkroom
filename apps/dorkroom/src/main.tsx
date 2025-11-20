@@ -1,9 +1,8 @@
-import { StrictMode } from 'react';
+import { StrictMode, lazy, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Analytics } from '@vercel/analytics/react';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import '@fontsource-variable/montserrat/index.css';
 import './styles.css';
 import { routeTree } from './routeTree.gen';
@@ -13,6 +12,16 @@ import {
   ErrorBoundary,
 } from '@dorkroom/ui';
 import { ThemeProvider } from '@dorkroom/ui';
+
+// Lazy load devtools only in development
+const ReactQueryDevtools =
+  process.env.NODE_ENV === 'development'
+    ? lazy(() =>
+        import('@tanstack/react-query-devtools').then((module) => ({
+          default: module.ReactQueryDevtools,
+        }))
+      )
+    : () => null;
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,7 +65,11 @@ root.render(
             </ToastProvider>
           </MeasurementProvider>
         </ThemeProvider>
-        <ReactQueryDevtools initialIsOpen={false} />
+        {process.env.NODE_ENV === 'development' && (
+          <Suspense fallback={null}>
+            <ReactQueryDevtools initialIsOpen={false} />
+          </Suspense>
+        )}
       </QueryClientProvider>
     </ErrorBoundary>
   </StrictMode>

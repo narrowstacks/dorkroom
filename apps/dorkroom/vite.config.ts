@@ -42,6 +42,10 @@ export default defineConfig(() => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
+    minify: 'esbuild',
+    esbuild: {
+      drop: ['console', 'debugger'], // Remove console.* and debugger in production
+    },
     rollupOptions: {
       output: {
         manualChunks: {
