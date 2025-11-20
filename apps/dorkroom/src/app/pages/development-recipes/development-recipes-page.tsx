@@ -313,6 +313,11 @@ export default function DevelopmentRecipesPage() {
     isFavorite: memoizedIsFavorite,
   });
 
+  // Reset to first page when sorting changes
+  useEffect(() => {
+    setPageIndex(0);
+  }, [sorting]);
+
   const clearSelections = () => {
     setSelectedFilm(null);
     setSelectedDeveloper(null);
