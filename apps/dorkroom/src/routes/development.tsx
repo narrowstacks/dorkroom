@@ -8,13 +8,13 @@ const DevelopmentRecipesPage = lazy(
 
 // Define search param schema for type-safety and validation
 const developmentSearchSchema = z.object({
-  film: z.string().optional(),
-  developer: z.string().optional(),
-  dilution: z.string().optional(),
-  iso: z.string().optional(),
-  recipe: z.string().optional(),
-  source: z.string().optional(),
-  view: z.enum(['favorites', 'custom']).optional(),
+  film: z.string().optional().catch(undefined),
+  developer: z.string().optional().catch(undefined),
+  dilution: z.string().optional().catch(undefined),
+  iso: z.string().optional().catch(undefined),
+  recipe: z.string().optional().catch(undefined),
+  source: z.string().optional().catch(undefined),
+  view: z.enum(['favorites', 'custom']).optional().catch(undefined),
 });
 
 export type DevelopmentSearchParams = z.infer<typeof developmentSearchSchema>;
