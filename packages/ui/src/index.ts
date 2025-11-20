@@ -115,6 +115,9 @@ export {
   useMeasurementUtils,
 } from './hooks/use-measurement-conversion';
 
+// Hooks
+export { useIsMobile } from './hooks/useIsMobile';
+
 // Forms (TanStack Form integration)
 export * from './forms';
 export type { FieldApi, FormInstance } from './forms/utils/form-api-types';
