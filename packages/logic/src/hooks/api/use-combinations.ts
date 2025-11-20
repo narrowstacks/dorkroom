@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Combination } from '@dorkroom/api';
-import { fetchCombinations } from '../../queries/fetch-functions';
+import { fetchCombinationsForQuery } from '@dorkroom/api';
 import { queryKeys } from '../../queries/query-keys';
 
 /**
@@ -36,6 +36,6 @@ import { queryKeys } from '../../queries/query-keys';
 export function useCombinations() {
   return useQuery<Combination[]>({
     queryKey: queryKeys.combinations.list(),
-    queryFn: fetchCombinations,
+    queryFn: fetchCombinationsForQuery,
   });
 }

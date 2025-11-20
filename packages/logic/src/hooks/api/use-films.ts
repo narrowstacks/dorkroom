@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { Film } from '@dorkroom/api';
-import { fetchFilms } from '../../queries/fetch-functions';
+import { fetchFilmsForQuery } from '@dorkroom/api';
 import { queryKeys } from '../../queries/query-keys';
 
 /**
@@ -14,6 +14,6 @@ import { queryKeys } from '../../queries/query-keys';
 export function useFilms(): UseQueryResult<Film[]> {
   return useQuery({
     queryKey: queryKeys.films.list(),
-    queryFn: fetchFilms,
+    queryFn: fetchFilmsForQuery,
   });
 }

@@ -1,12 +1,7 @@
 /**
  * Query Configuration & Utilities
  *
- * TanStack Query configuration, query keys, and fetch functions
+ * TanStack Query configuration and query keys
  */
 
 export { queryKeys } from './query-keys';
-export {
-  fetchFilms,
-  fetchDevelopers,
-  fetchCombinations,
-} from './fetch-functions';

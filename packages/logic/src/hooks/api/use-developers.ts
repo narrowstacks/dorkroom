@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Developer } from '@dorkroom/api';
-import { fetchDevelopers } from '../../queries/fetch-functions';
+import { fetchDevelopersForQuery } from '@dorkroom/api';
 import { queryKeys } from '../../queries/query-keys';
 
 /**
@@ -13,6 +13,6 @@ import { queryKeys } from '../../queries/query-keys';
 export function useDevelopers() {
   return useQuery<Developer[]>({
     queryKey: queryKeys.developers.list(),
-    queryFn: fetchDevelopers,
+    queryFn: fetchDevelopersForQuery,
   });
 }
