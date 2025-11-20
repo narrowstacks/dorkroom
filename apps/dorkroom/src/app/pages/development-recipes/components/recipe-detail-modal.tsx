@@ -1,3 +1,4 @@
+import type { FC } from 'react';
 import { X } from 'lucide-react';
 import {
   Modal,
@@ -22,7 +23,7 @@ export interface RecipeDetailModalProps {
   customRecipeSharingEnabled: boolean;
 }
 
-export function RecipeDetailModal(props: RecipeDetailModalProps) {
+export const RecipeDetailModal: FC<RecipeDetailModalProps> = (props) => {
   const {
     isOpen,
     onClose,
@@ -162,4 +163,4 @@ export function RecipeDetailModal(props: RecipeDetailModalProps) {
       <div className="flex gap-2 pt-4">{actionButtons}</div>
     </Modal>
   );
-}
+};

@@ -1,3 +1,4 @@
+import type { FC } from 'react';
 import { X } from 'lucide-react';
 import {
   Modal,
@@ -12,11 +13,11 @@ export interface ImportRecipeModalProps {
   onClose: () => void;
   isMobile: boolean;
   isProcessing: boolean;
-  error: string;
+  error?: string;
   onImport: (url: string) => Promise<void>;
 }
 
-export function ImportRecipeModal(props: ImportRecipeModalProps) {
+export const ImportRecipeModal: FC<ImportRecipeModalProps> = (props) => {
   const { isOpen, onClose, isMobile, isProcessing, error, onImport } = props;
 
   if (isMobile) {
@@ -73,4 +74,4 @@ export function ImportRecipeModal(props: ImportRecipeModalProps) {
       />
     </Modal>
   );
-}
+};

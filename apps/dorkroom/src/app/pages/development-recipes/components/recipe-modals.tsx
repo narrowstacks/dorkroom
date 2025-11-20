@@ -1,6 +1,4 @@
-import { RecipeDetailModal } from './recipe-detail-modal';
-import { CustomRecipeModal } from './custom-recipe-modal';
-import { ImportRecipeModal } from './import-recipe-modal';
+import type { FC } from 'react';
 import {
   SharedRecipeModal,
   FilmdevPreviewModal,
@@ -10,6 +8,9 @@ import type {
   CustomRecipeFormData,
   FilmdevMappingResult,
 } from '@dorkroom/logic';
+import { RecipeDetailModal } from './recipe-detail-modal';
+import { CustomRecipeModal } from './custom-recipe-modal';
+import { ImportRecipeModal } from './import-recipe-modal';
 
 export interface RecipeModalsProps {
   isMobile: boolean;
@@ -29,7 +30,7 @@ export interface RecipeModalsProps {
   isImportModalOpen: boolean;
   onCloseImportModal: () => void;
   isImporting: boolean;
-  importError: string;
+  importError?: string;
   onImportRecipe: (url: string) => Promise<void>;
   // Shared recipe modal
   isSharedRecipeModalOpen: boolean;
@@ -54,7 +55,7 @@ export interface RecipeModalsProps {
   customRecipeSharingEnabled: boolean;
 }
 
-export function RecipeModals(props: RecipeModalsProps) {
+export const RecipeModals: FC<RecipeModalsProps> = (props) => {
   const {
     isMobile,
     isDetailOpen,
@@ -156,4 +157,4 @@ export function RecipeModals(props: RecipeModalsProps) {
       />
     </>
   );
-}
+};

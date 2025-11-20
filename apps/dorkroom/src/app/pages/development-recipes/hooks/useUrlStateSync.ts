@@ -74,10 +74,10 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
     isApplyingUrlStateRef.current = true;
 
     if (initialUrlState.selectedFilm) {
-      setSelectedFilm(initialUrlState.selectedFilm as Film);
+      setSelectedFilm(initialUrlState.selectedFilm);
     }
     if (initialUrlState.selectedDeveloper) {
-      setSelectedDeveloper(initialUrlState.selectedDeveloper as Developer);
+      setSelectedDeveloper(initialUrlState.selectedDeveloper);
     }
     if (initialUrlState.dilutionFilter) {
       setDilutionFilter(initialUrlState.dilutionFilter);

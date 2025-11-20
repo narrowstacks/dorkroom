@@ -1,3 +1,4 @@
+import type { FC } from 'react';
 import { X } from 'lucide-react';
 import {
   Modal,
@@ -24,7 +25,7 @@ export interface CustomRecipeModalProps {
   developerOptions: Array<{ label: string; value: string }>;
 }
 
-export function CustomRecipeModal(props: CustomRecipeModalProps) {
+export const CustomRecipeModal: FC<CustomRecipeModalProps> = (props) => {
   const {
     isOpen,
     onClose,
@@ -100,4 +101,4 @@ export function CustomRecipeModal(props: CustomRecipeModalProps) {
       />
     </Modal>
   );
-}
+};

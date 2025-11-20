@@ -152,7 +152,7 @@ export default function DevelopmentRecipesPage() {
     favoritesOnly,
     sortBy,
     sortDirection,
-    sharedCustomRecipe: null, // Will be set by useRecipeUrlState
+    sharedCustomRecipe: null, // Computed internally by useRecipeData from URL state
     flags,
     isFavorite,
     getFilmById,
@@ -415,7 +415,7 @@ export default function DevelopmentRecipesPage() {
           isImportModalOpen={isImportModalOpen}
           onCloseImportModal={() => setIsImportModalOpen(false)}
           isImporting={isImporting}
-          importError={importError || ''}
+          importError={importError ?? undefined}
           onImportRecipe={handleImportRecipe}
           isSharedRecipeModalOpen={isSharedRecipeModalOpen}
           sharedRecipeView={sharedRecipeView}

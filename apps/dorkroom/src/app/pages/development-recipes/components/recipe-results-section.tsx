@@ -1,3 +1,4 @@
+import type { FC } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { Table } from '@tanstack/react-table';
 import {
@@ -27,7 +28,7 @@ export interface RecipeResultsSectionProps {
   isFavorite: (view: DevelopmentCombinationView) => boolean;
 }
 
-export function RecipeResultsSection(props: RecipeResultsSectionProps) {
+export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
   const {
     isLoading,
     isRefreshingData,
@@ -165,4 +166,4 @@ export function RecipeResultsSection(props: RecipeResultsSectionProps) {
       )}
     </div>
   );
-}
+};
