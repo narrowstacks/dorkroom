@@ -2,6 +2,11 @@
 
 This package contains all shared UI components for the Dorkroom application.
 
+## Important
+
+- **Always use Context7 before interacting with dependencies such as Tailwind CSS**, so you have the most up-to-date information on said dependency.
+- **Always watch out for circular dependencies between the dorkroom packages, avoid it at all costs.**
+
 ## Package Structure
 
 ```
@@ -54,24 +59,9 @@ export interface ButtonProps {
   onClick?: () => void;
 }
 
-export function Button({
-  variant = 'primary',
-  size = 'md',
-  children,
-  onClick
-}: ButtonProps) {
+export function Button({ variant = 'primary', size = 'md', children, onClick }: ButtonProps) {
   return (
-    <button
-      className={cn(
-        'rounded-md font-medium transition-colors',
-        variant === 'primary' && 'bg-blue-600 text-white hover:bg-blue-700',
-        variant === 'secondary' && 'bg-gray-200 text-gray-900 hover:bg-gray-300',
-        size === 'sm' && 'px-2 py-1 text-sm',
-        size === 'md' && 'px-4 py-2',
-        size === 'lg' && 'px-6 py-3 text-lg'
-      )}
-      onClick={onClick}
-    >
+    <button className={cn('rounded-md font-medium transition-colors', variant === 'primary' && 'bg-blue-600 text-white hover:bg-blue-700', variant === 'secondary' && 'bg-gray-200 text-gray-900 hover:bg-gray-300', size === 'sm' && 'px-2 py-1 text-sm', size === 'md' && 'px-4 py-2', size === 'lg' && 'px-6 py-3 text-lg')} onClick={onClick}>
       {children}
     </button>
   );
@@ -128,19 +118,7 @@ export function MyForm() {
     defaultValues: { borderSize: 10 },
   });
 
-  return (
-    <form.Field name="borderSize">
-      {(field: FieldApi<any, any, any, any, number>) => (
-        <LabeledSliderInput
-          label="Border Size"
-          value={field.state.value}
-          onChange={(value) => field.handleChange(value)}
-          min={0}
-          max={100}
-        />
-      )}
-    </form.Field>
-  );
+  return <form.Field name="borderSize">{(field: FieldApi<any, any, any, any, number>) => <LabeledSliderInput label="Border Size" value={field.state.value} onChange={(value) => field.handleChange(value)} min={0} max={100} />}</form.Field>;
 }
 ```
 
@@ -271,17 +249,9 @@ describe('Button', () => {
 **Example:**
 
 ```typescript
-export function IconButton({
-  icon: Icon,
-  label,
-  onClick
-}: IconButtonProps) {
+export function IconButton({ icon: Icon, label, onClick }: IconButtonProps) {
   return (
-    <button
-      onClick={onClick}
-      aria-label={label}
-      className="p-2 rounded-md hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-500"
-    >
+    <button onClick={onClick} aria-label={label} className="p-2 rounded-md hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-500">
       <Icon className="h-5 w-5" />
     </button>
   );

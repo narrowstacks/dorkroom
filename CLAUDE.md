@@ -170,8 +170,7 @@ If any of the tools are not available on the system, prompt user to install them
 **Use `ast-grep` for syntax-aware searches** (essential for TypeScript):
 
 - Structural patterns: function definitions, imports, exports, component props
-- Example: `ast-grep --lang typescript -p 'function useQuery'` finds all query hooks
-- Example: `ast-grep --lang typescript -p 'const $VAR = {$_}'` finds all object definitions
+- Examples for usage can be found by activating the Claude skill `ast-grep`
 - Best for: Understanding code patterns, finding hook implementations, tracking prop usage
 
 ### Interactive Result Selection
@@ -236,9 +235,5 @@ Is it complex multi-file analysis?
 ## Git rules
 
 - Keep commit messages short. Use conventional commit standards.
-- Confirm with user before committing, share commit message in your confirmation.
+- Confirm with user that they want to commit before committing, share commit message in your confirmation.
 - **Only commit, never push without user prompting you to do so.**
-
-## On using ast-grep vs ripgrep (rg)
-
-You run in an environment where `ast-grep` is available; whenever a search requires syntax-aware or structural matching, default to `ast-grep run --pattern '{FunctionOrOther}' --lang typescript .` (or set `--lang` appropriately) and avoid falling back to text-only tools like `rg` or `grep` unless I explicitly request a plain-text search.

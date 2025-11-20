@@ -2,6 +2,11 @@
 
 This package contains business logic, data fetching, state management, and validation for the Dorkroom application.
 
+## Important
+
+- **Always use Context7 before interacting with dependencies such as TanStack**, so you have the most up-to-date information on said dependency.
+- **Always watch out for circular dependencies between the dorkroom packages, avoid it at all costs.**
+
 ## Package Structure
 
 ```
@@ -332,15 +337,8 @@ export function BorderCalculator() {
         {(field) => (
           <div>
             <label htmlFor={field.name}>Border Size</label>
-            <input
-              id={field.name}
-              type="number"
-              value={field.state.value}
-              onChange={(e) => field.handleChange(Number(e.target.value))}
-            />
-            {field.state.meta.errors && (
-              <span>{field.state.meta.errors[0]}</span>
-            )}
+            <input id={field.name} type="number" value={field.state.value} onChange={(e) => field.handleChange(Number(e.target.value))} />
+            {field.state.meta.errors && <span>{field.state.meta.errors[0]}</span>}
           </div>
         )}
       </form.Field>
@@ -363,13 +361,7 @@ export function BorderCalculator() {
 **Basic Table Pattern:**
 
 ```typescript
-import {
-  createColumnHelper,
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  flexRender,
-} from '@tanstack/react-table';
+import { createColumnHelper, useReactTable, getCoreRowModel, getSortedRowModel, flexRender } from '@tanstack/react-table';
 import type { Recipe } from '../types';
 
 const columnHelper = createColumnHelper<Recipe>();
@@ -402,14 +394,7 @@ export function RecipeTable({ data }: { data: Recipe[] }) {
         {table.getHeaderGroups().map((headerGroup) => (
           <tr key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
-              <th key={header.id}>
-                {header.isPlaceholder
-                  ? null
-                  : flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-              </th>
+              <th key={header.id}>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</th>
             ))}
           </tr>
         ))}
@@ -418,9 +403,7 @@ export function RecipeTable({ data }: { data: Recipe[] }) {
         {table.getRowModel().rows.map((row) => (
           <tr key={row.id}>
             {row.getVisibleCells().map((cell) => (
-              <td key={cell.id}>
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </td>
+              <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
             ))}
           </tr>
         ))}
@@ -572,11 +555,7 @@ function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+  return ({ children }: { children: React.ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }
 
 describe('useFilms', () => {
