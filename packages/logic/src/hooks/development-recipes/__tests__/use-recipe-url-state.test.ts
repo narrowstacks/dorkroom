@@ -589,5 +589,109 @@ describe('useRecipeUrlState', () => {
       // Should not match due to case sensitivity
       expect(result.current.initialUrlState.selectedFilm).toBeUndefined();
     });
+
+    it('should remove ISO parameter from URL when cleared', () => {
+      vi.useFakeTimers();
+
+      const { rerender } = renderHook(
+        ({ currentState }) =>
+          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+        {
+          initialProps: {
+            currentState: {
+              ...mockCurrentState,
+              isoFilter: '400',
+            },
+          },
+        }
+      );
+
+      // Clear ISO filter
+      rerender({
+        currentState: {
+          ...mockCurrentState,
+          isoFilter: '',
+        },
+      });
+
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      const lastCall =
+        mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
+      // URL should NOT contain 'iso=' at all
+      expect(lastCall[2]).not.toContain('iso=');
+      // And definitely should not contain 'iso=' with empty value
+      expect(lastCall[2]).not.toMatch(/iso=(&|$)/);
+
+      vi.useRealTimers();
+    });
+
+    it('should remove dilution parameter from URL when cleared', () => {
+      vi.useFakeTimers();
+
+      const { rerender } = renderHook(
+        ({ currentState }) =>
+          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+        {
+          initialProps: {
+            currentState: {
+              ...mockCurrentState,
+              dilutionFilter: '1:1',
+            },
+          },
+        }
+      );
+
+      // Clear dilution filter
+      rerender({
+        currentState: {
+          ...mockCurrentState,
+          dilutionFilter: '',
+        },
+      });
+
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      const lastCall =
+        mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
+      // URL should NOT contain 'dilution=' at all
+      expect(lastCall[2]).not.toContain('dilution=');
+
+      vi.useRealTimers();
+    });
+
+    it('should properly set ISO parameter as string in URL', () => {
+      vi.useFakeTimers();
+
+      const { rerender } = renderHook(
+        ({ currentState }) =>
+          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+        {
+          initialProps: { currentState: mockCurrentState },
+        }
+      );
+
+      // Set ISO filter (even though it's a number, it should be stringified)
+      rerender({
+        currentState: {
+          ...mockCurrentState,
+          isoFilter: '800',
+        },
+      });
+
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      const lastCall =
+        mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
+      expect(lastCall[2]).toContain('iso=800');
+
+      vi.useRealTimers();
+    });
   });
 });

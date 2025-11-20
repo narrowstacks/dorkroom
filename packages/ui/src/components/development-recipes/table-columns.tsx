@@ -168,7 +168,8 @@ export const createTableColumns = (
     sortingFn: 'favoriteAware',
   },
   {
-    accessorKey: 'combination.shootingIso',
+    id: 'combination.shootingIso',
+    accessorFn: (row) => row.combination.shootingIso,
     header: 'ISO',
     cell: (context: CellContext<DevelopmentCombinationView, unknown>) => {
       return (
@@ -181,7 +182,8 @@ export const createTableColumns = (
     sortingFn: 'favoriteAware',
   },
   {
-    accessorKey: 'combination.timeMinutes',
+    id: 'combination.timeMinutes',
+    accessorFn: (row) => row.combination.timeMinutes,
     header: 'Time',
     cell: (context: CellContext<DevelopmentCombinationView, unknown>) => {
       return (
@@ -194,7 +196,8 @@ export const createTableColumns = (
     sortingFn: 'favoriteAware',
   },
   {
-    accessorKey: 'combination.temperatureF',
+    id: 'combination.temperatureF',
+    accessorFn: (row) => row.combination.temperatureF,
     header: 'Temp',
     cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => (
       <TemperatureCellRenderer cellContext={cellContext} />
@@ -203,7 +206,8 @@ export const createTableColumns = (
     sortingFn: 'favoriteAware',
   },
   {
-    accessorKey: 'combination.dilutionId',
+    id: 'combination.dilutionId',
+    accessorFn: (row) => row.combination.dilutionId,
     header: 'Dilution',
     cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => {
       return (
@@ -215,7 +219,8 @@ export const createTableColumns = (
     enableSorting: false,
   },
   {
-    accessorKey: 'combination.infoSource',
+    id: 'combination.infoSource',
+    accessorFn: (row) => row.combination.infoSource,
     header: 'Notes',
     cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => {
       const { combination } = cellContext.row.original;
