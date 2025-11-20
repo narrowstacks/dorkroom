@@ -450,7 +450,7 @@ export const useRecipeUrlState = (
 
         Object.entries(mergedParams).forEach(([key, value]) => {
           if (value) {
-            searchParams.set(key, value as string);
+            searchParams.set(key, String(value));
           }
         });
 
