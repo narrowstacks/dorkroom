@@ -67,3 +67,6 @@ PR_BODY_THEMING.md
 .vercel
 .letta
 
+# Security audit temporary directory
+.tmp-security-audit
+
