@@ -24,6 +24,7 @@
     "src/**/*.test.js",
     "src/**/*.spec.jsx",
     "src/**/*.test.jsx",
+    "src/routeTree.gen.ts",
     "vite.config.ts",
     "vite.config.mts",
     "vitest.config.ts",
@@ -33,12 +34,6 @@
     "eslint.config.mjs"
   ],
   "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
-  "exclude": [
-    "src/**/*.spec.ts",
-    "src/**/*.spec.tsx",
-    "src/**/*.test.ts",
-    "src/**/*.test.tsx"
-  ],
   "references": [
     {
       "path": "../../packages/api/tsconfig.lib.json"
