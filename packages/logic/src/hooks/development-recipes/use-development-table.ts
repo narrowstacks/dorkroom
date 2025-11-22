@@ -55,9 +55,11 @@ const createFavoriteAwareSortingFn = (
     const aIsFav = isFavorite(getCombinationKey(rowA.original));
     const bIsFav = isFavorite(getCombinationKey(rowB.original));
 
+    // Favorites always sort first
     if (aIsFav && !bIsFav) return -1;
     if (!aIsFav && bIsFav) return 1;
 
+    // For non-favorite comparisons, use the column-specific logic
     switch (columnId) {
       case 'film': {
         const labelA = rowA.original.film
@@ -77,21 +79,21 @@ const createFavoriteAwareSortingFn = (
           : '';
         return compareStrings(labelA, labelB);
       }
-      case 'combination.shootingIso':
-        return compareNumbers(
-          rowA.original.combination.shootingIso,
-          rowB.original.combination.shootingIso
-        );
-      case 'combination.timeMinutes':
-        return compareNumbers(
-          rowA.original.combination.timeMinutes,
-          rowB.original.combination.timeMinutes
-        );
-      case 'combination.temperatureF':
-        return compareNumbers(
-          rowA.original.combination.temperatureF,
-          rowB.original.combination.temperatureF
-        );
+      case 'combination.shootingIso': {
+        const isoA = Number(rowA.original.combination.shootingIso);
+        const isoB = Number(rowB.original.combination.shootingIso);
+        return compareNumbers(isoA, isoB);
+      }
+      case 'combination.timeMinutes': {
+        const timeA = Number(rowA.original.combination.timeMinutes);
+        const timeB = Number(rowB.original.combination.timeMinutes);
+        return compareNumbers(timeA, timeB);
+      }
+      case 'combination.temperatureF': {
+        const tempA = Number(rowA.original.combination.temperatureF);
+        const tempB = Number(rowB.original.combination.temperatureF);
+        return compareNumbers(tempA, tempB);
+      }
       default:
         return 0;
     }

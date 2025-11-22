@@ -39,8 +39,10 @@ export { DevelopmentFiltersPanel } from './components/development-recipes/filter
 export { FilmDeveloperSelection } from './components/development-recipes/film-developer-selection';
 export { CollapsibleFilters } from './components/development-recipes/collapsible-filters';
 export { DevelopmentResultsTable } from './components/development-recipes/results-table';
+export { DevelopmentResultsTableVirtualized } from './components/development-recipes/results-table-virtualized';
 export type { DevelopmentCombinationView } from '@dorkroom/logic';
 export { DevelopmentResultsCards } from './components/development-recipes/results-cards';
+export { DevelopmentResultsCardsVirtualized } from './components/development-recipes/results-cards-virtualized';
 export { FavoriteMessageSkeleton } from './components/development-recipes/favorite-message-skeleton';
 export { PaginationControls } from './components/development-recipes/pagination-controls';
 export { createTableColumns } from './components/development-recipes/table-columns';
@@ -52,6 +54,8 @@ export { ImportRecipeForm } from './components/development-recipes/import-recipe
 export { SharedRecipeModal } from './components/development-recipes/shared-recipe-modal';
 export { FilmdevPreviewModal } from './components/development-recipes/filmdev-preview-modal';
 export { TemperatureUnitToggle } from './components/development-recipes/temperature-unit-toggle';
+export { FiltersSidebar } from './components/development-recipes/filters-sidebar';
+export { MobileSortingControls } from './components/development-recipes/mobile-sorting-controls';
 export { MeasurementUnitToggle } from './components/measurement-unit-toggle';
 
 // Calculator Components
