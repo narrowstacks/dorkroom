@@ -1,5 +1,6 @@
 import {
   Aperture,
+  Contrast,
   FlaskConical,
   BookOpen,
   Crop,
@@ -35,6 +36,12 @@ export const printingItems: NavigationItem[] = [
     to: '/stops',
     icon: asFunctionComponent(Gauge),
     summary: 'Translate exposure stops into seconds.',
+  },
+  {
+    label: 'Split-Grade',
+    to: '/split-grade',
+    icon: asFunctionComponent(Contrast),
+    summary: 'Control shadows and highlights separately.',
   },
 ];
 
@@ -89,6 +96,7 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/resize': 'Print Resize Calculator',
   '/reciprocity': 'Reciprocity Failure Calculator',
   '/stops': 'Stops Calculator',
+  '/split-grade': 'Split-Grade Calculator',
   '/exposure': 'Exposure Calculator',
   '/development': 'Development Recipes',
   '/infobase': 'Infobase',

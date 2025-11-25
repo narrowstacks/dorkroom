@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StopsRouteImport } from './routes/stops'
+import { Route as SplitGradeRouteImport } from './routes/split-grade'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResizeRouteImport } from './routes/resize'
 import { Route as ReciprocityRouteImport } from './routes/reciprocity'
@@ -22,6 +23,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const StopsRoute = StopsRouteImport.update({
   id: '/stops',
   path: '/stops',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SplitGradeRoute = SplitGradeRouteImport.update({
+  id: '/split-grade',
+  path: '/split-grade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/reciprocity': typeof ReciprocityRoute
   '/resize': typeof ResizeRoute
   '/settings': typeof SettingsRoute
+  '/split-grade': typeof SplitGradeRoute
   '/stops': typeof StopsRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/reciprocity': typeof ReciprocityRoute
   '/resize': typeof ResizeRoute
   '/settings': typeof SettingsRoute
+  '/split-grade': typeof SplitGradeRoute
   '/stops': typeof StopsRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/reciprocity': typeof ReciprocityRoute
   '/resize': typeof ResizeRoute
   '/settings': typeof SettingsRoute
+  '/split-grade': typeof SplitGradeRoute
   '/stops': typeof StopsRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/reciprocity'
     | '/resize'
     | '/settings'
+    | '/split-grade'
     | '/stops'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/reciprocity'
     | '/resize'
     | '/settings'
+    | '/split-grade'
     | '/stops'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/reciprocity'
     | '/resize'
     | '/settings'
+    | '/split-grade'
     | '/stops'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   ReciprocityRoute: typeof ReciprocityRoute
   ResizeRoute: typeof ResizeRoute
   SettingsRoute: typeof SettingsRoute
+  SplitGradeRoute: typeof SplitGradeRoute
   StopsRoute: typeof StopsRoute
 }
 
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/stops'
       fullPath: '/stops'
       preLoaderRoute: typeof StopsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/split-grade': {
+      id: '/split-grade'
+      path: '/split-grade'
+      fullPath: '/split-grade'
+      preLoaderRoute: typeof SplitGradeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReciprocityRoute: ReciprocityRoute,
   ResizeRoute: ResizeRoute,
   SettingsRoute: SettingsRoute,
+  SplitGradeRoute: SplitGradeRoute,
   StopsRoute: StopsRoute,
 }
 export const routeTree = rootRouteImport
