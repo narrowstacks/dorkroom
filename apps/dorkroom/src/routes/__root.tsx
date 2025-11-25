@@ -38,10 +38,13 @@ function RootComponent() {
       pageTitle === 'Dorkroom' ? 'Dorkroom' : `${pageTitle} - Dorkroom`;
   }, [pathname]);
 
-  // Close mobile menu on navigation
+  // Close mobile menu on navigation using router subscription
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [pathname]);
+    const unsubscribe = router.subscribe('onBeforeNavigate', () => {
+      setIsMobileMenuOpen(false);
+    });
+    return unsubscribe;
+  }, [router]);
 
   // Handle body overflow for mobile menu
   useEffect(() => {
