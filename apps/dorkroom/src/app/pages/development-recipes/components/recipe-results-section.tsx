@@ -2,8 +2,8 @@ import type { FC } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { Table } from '@tanstack/react-table';
 import {
-  DevelopmentResultsTable,
-  DevelopmentResultsCards,
+  DevelopmentResultsTableVirtualized,
+  DevelopmentResultsCardsVirtualized,
   SkeletonCard,
   SkeletonTableRow,
   cn,
@@ -143,7 +143,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
           className="animate-slide-fade-top"
         >
           {isMobile || viewMode === 'grid' ? (
-            <DevelopmentResultsCards
+            <DevelopmentResultsCardsVirtualized
               table={table}
               onSelectCombination={onSelectCombination}
               isMobile={isMobile}
@@ -156,7 +156,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
               favoriteTransitions={favoriteTransitions}
             />
           ) : (
-            <DevelopmentResultsTable
+            <DevelopmentResultsTableVirtualized
               table={table}
               onSelectCombination={onSelectCombination}
               favoriteTransitions={favoriteTransitions}
