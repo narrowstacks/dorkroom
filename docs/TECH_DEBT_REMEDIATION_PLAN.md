@@ -151,7 +151,7 @@ if (cached && typeof cached === 'object') {
 | -------------------------------------------- | ----------------------------------------- | --------- |
 | HIGH severity `glob` vulnerability           | Update via transitive deps                | Completed |
 | HIGH severity `path-to-regexp` vulnerability | Update `@vercel/node` and Nx packages     | Completed |
-| React version mismatch                       | Aligned to 19.0.0 across all declarations | Completed |
+| React version mismatch                       | Aligned to 19.2.0 across all declarations | Completed |
 
 ### Priority 2: High (This Sprint)
 
