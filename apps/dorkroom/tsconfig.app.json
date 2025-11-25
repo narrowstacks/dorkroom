@@ -24,7 +24,6 @@
     "src/**/*.test.js",
     "src/**/*.spec.jsx",
     "src/**/*.test.jsx",
-    "src/routeTree.gen.ts",
     "vite.config.ts",
     "vite.config.mts",
     "vitest.config.ts",

@@ -18,6 +18,7 @@ export interface BorderCalculatorLayoutProps {
   paperHeightInput: string;
   displayPaperSizes: PaperSize[];
   quarterRoundedMinBorder: number | null;
+  maxAllowedMinBorder: number;
   
   // Warnings
   offsetWarning: string | null;

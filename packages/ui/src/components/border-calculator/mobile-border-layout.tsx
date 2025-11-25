@@ -52,6 +52,7 @@ export function MobileBorderLayout({
   paperHeightInput,
   displayPaperSizes,
   quarterRoundedMinBorder,
+  maxAllowedMinBorder,
   offsetWarning,
   bladeWarning,
   minBorderWarning,
@@ -466,6 +467,7 @@ export function MobileBorderLayout({
                   minBorderWarning={minBorderWarning || undefined}
                   onRoundToQuarter={handleRoundMinBorderToQuarter}
                   roundToQuarterDisabled={quarterRoundedMinBorder === null}
+                  maxAllowedMinBorder={maxAllowedMinBorder}
                 />
               )}
 

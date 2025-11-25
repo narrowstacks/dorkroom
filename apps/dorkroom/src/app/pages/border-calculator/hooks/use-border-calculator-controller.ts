@@ -5,6 +5,7 @@ import {
   useMeasurementFormatter,
   useMeasurementConverter,
   createZodFormValidator,
+  useOptionalToast,
 } from '@dorkroom/ui';
 import {
   borderCalculatorSchema,
@@ -38,6 +39,7 @@ export function useBorderCalculatorController() {
   const isDesktop = width > DESKTOP_BREAKPOINT;
   const { formatWithUnit, formatDimensions, unit } = useMeasurementFormatter();
   const { toInches, toDisplay } = useMeasurementConverter();
+  const toast = useOptionalToast();
 
   const hydrationRef = useRef(false);
 
@@ -197,6 +199,15 @@ export function useBorderCalculatorController() {
 
   const dimensionData = useDimensionCalculations(formValues);
   const { orientedPaper, orientedRatio } = dimensionData.orientedDimensions;
+
+  // Calculate the maximum allowed minimum border based on paper size
+  // Max border = half of the smaller paper dimension minus a small buffer
+  const maxAllowedMinBorder = useMemo(() => {
+    const smallerDimension = Math.min(orientedPaper.w, orientedPaper.h);
+    // Leave 0.125" room to ensure at least a minimal print area
+    return Math.max(0, smallerDimension / 2 - 0.125);
+  }, [orientedPaper.w, orientedPaper.h]);
+
   const { calculation } = useGeometryCalculations(
     formValues,
     dimensionData.orientedDimensions,
@@ -232,6 +243,18 @@ export function useBorderCalculatorController() {
     form.setFieldValue('minBorder', quarterRoundedMinBorder);
     form.setFieldValue('lastValidMinBorder', quarterRoundedMinBorder);
   }, [form, quarterRoundedMinBorder]);
+
+  // Clamp minBorder when paper size changes and current value exceeds the new max
+  useEffect(() => {
+    if (minBorder > maxAllowedMinBorder && maxAllowedMinBorder > 0) {
+      form.setFieldValue('minBorder', maxAllowedMinBorder);
+      form.setFieldValue('lastValidMinBorder', maxAllowedMinBorder);
+      toast?.showToast(
+        `Border reduced to ${maxAllowedMinBorder.toFixed(2)}" to fit paper size`,
+        'info'
+      );
+    }
+  }, [maxAllowedMinBorder, minBorder, form, toast]);
 
   useEffect(() => {
     if (!calculation) return;
@@ -469,6 +492,7 @@ export function useBorderCalculatorController() {
     paperHeightInput,
     displayPaperSizes,
     quarterRoundedMinBorder,
+    maxAllowedMinBorder,
 
     // Warnings
     offsetWarning,

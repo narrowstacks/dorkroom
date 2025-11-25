@@ -32,7 +32,12 @@ export { ShareButton } from './components/share-button';
 export { ShareModal } from './components/share-modal';
 export { SaveBeforeShareModal } from './components/save-before-share-modal';
 export { Modal } from './components/modal';
-export { Toast, ToastProvider, useToast } from './components/toast';
+export {
+  Toast,
+  ToastProvider,
+  useToast,
+  useOptionalToast,
+} from './components/toast';
 export type { ToastProps } from './components/toast';
 export { ErrorBoundary } from './components/error-boundary';
 export { DevelopmentFiltersPanel } from './components/development-recipes/filters-panel';

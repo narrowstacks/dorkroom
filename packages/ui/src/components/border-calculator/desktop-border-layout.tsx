@@ -31,12 +31,11 @@ import {
   BorderInfoSection,
 } from './border-info-section';
 
+import { useMemo } from 'react';
 import {
   type SelectItem,
   SLIDER_MIN_BORDER,
-  SLIDER_MAX_BORDER,
   SLIDER_STEP_BORDER,
-  BORDER_SLIDER_LABELS,
   OFFSET_SLIDER_MIN,
   OFFSET_SLIDER_MAX,
   OFFSET_SLIDER_STEP,
@@ -56,6 +55,7 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
   paperHeightInput,
   displayPaperSizes,
   quarterRoundedMinBorder,
+  maxAllowedMinBorder,
   offsetWarning,
   bladeWarning,
   minBorderWarning,
@@ -101,6 +101,16 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
     isLandscape,
   } = formValues;
 
+  // Generate dynamic slider labels based on the max allowed border
+  const borderSliderLabels = useMemo(() => {
+    const max = maxAllowedMinBorder;
+    // Generate 5 evenly spaced labels from 0 to max, rounded to 1 decimal
+    const step = max / 4;
+    return [0, step, step * 2, step * 3, max].map((v) =>
+      v === 0 ? '0' : v.toFixed(1).replace(/\.0$/, '')
+    );
+  }, [maxAllowedMinBorder]);
+
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
       <div className="mt-2 grid gap-2 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
@@ -145,9 +155,9 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
           <BordersOffsetsSection
             form={form}
             sliderMinBorder={SLIDER_MIN_BORDER}
-            sliderMaxBorder={SLIDER_MAX_BORDER}
+            sliderMaxBorder={maxAllowedMinBorder}
             sliderStepBorder={SLIDER_STEP_BORDER}
-            borderSliderLabels={BORDER_SLIDER_LABELS}
+            borderSliderLabels={borderSliderLabels}
             offsetSliderMin={OFFSET_SLIDER_MIN}
             offsetSliderMax={OFFSET_SLIDER_MAX}
             offsetSliderStep={OFFSET_SLIDER_STEP}

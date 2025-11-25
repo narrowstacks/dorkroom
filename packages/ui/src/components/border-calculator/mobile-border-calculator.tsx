@@ -262,6 +262,14 @@ export function MobileBorderCalculator({
   // Calculations
   const dimensionData = useDimensionCalculations(formValues);
   const { orientedPaper, orientedRatio } = dimensionData.orientedDimensions;
+
+  // Calculate the maximum allowed minimum border based on paper size
+  const maxAllowedMinBorder = useMemo(() => {
+    const smallerDimension = Math.min(orientedPaper.w, orientedPaper.h);
+    // Leave 0.125" room to ensure at least a minimal print area
+    return Math.max(0, smallerDimension / 2 - 0.125);
+  }, [orientedPaper.w, orientedPaper.h]);
+
   const { calculation } = useGeometryCalculations(
     formValues,
     dimensionData.orientedDimensions,
@@ -297,6 +305,14 @@ export function MobileBorderCalculator({
     form.setFieldValue('minBorder', quarterRoundedMinBorder);
     form.setFieldValue('lastValidMinBorder', quarterRoundedMinBorder);
   }, [form, quarterRoundedMinBorder]);
+
+  // Clamp minBorder when paper size changes and current value exceeds the new max
+  useEffect(() => {
+    if (minBorder > maxAllowedMinBorder && maxAllowedMinBorder > 0) {
+      form.setFieldValue('minBorder', maxAllowedMinBorder);
+      form.setFieldValue('lastValidMinBorder', maxAllowedMinBorder);
+    }
+  }, [maxAllowedMinBorder, minBorder, form]);
 
   useEffect(() => {
     if (!calculation) return;
@@ -894,6 +910,7 @@ export function MobileBorderCalculator({
                   minBorderWarning={minBorderWarning || undefined}
                   onRoundToQuarter={handleRoundMinBorderToQuarter}
                   roundToQuarterDisabled={quarterRoundedMinBorder === null}
+                  maxAllowedMinBorder={maxAllowedMinBorder}
                 />
               )}
 
