@@ -10,6 +10,7 @@ import {
   splitGradeCalculatorSchema,
   createZodFormValidator,
   Select,
+  ToggleSwitch,
 } from '@dorkroom/ui';
 import {
   SPLIT_GRADE_STORAGE_KEY,
@@ -21,6 +22,7 @@ import {
   DEFAULT_SPLIT_GRADE_CONTRAST_BALANCE,
   DEFAULT_SPLIT_GRADE_SOFT_GRADE,
   DEFAULT_SPLIT_GRADE_HARD_GRADE,
+  DEFAULT_SPLIT_GRADE_USE_FILTER_FACTORS,
   calculateSplitGrade,
   formatSplitGradeTime,
   getGradeInfo,
@@ -121,6 +123,7 @@ export default function SplitGradeCalculatorPage() {
       contrastBalance: DEFAULT_SPLIT_GRADE_CONTRAST_BALANCE,
       softGrade: DEFAULT_SPLIT_GRADE_SOFT_GRADE,
       hardGrade: DEFAULT_SPLIT_GRADE_HARD_GRADE,
+      useFilterFactors: DEFAULT_SPLIT_GRADE_USE_FILTER_FACTORS,
     } as SplitGradeFormState,
     validators: {
       onChange: validateSplitGradeForm,
@@ -140,12 +143,14 @@ export default function SplitGradeCalculatorPage() {
       contrastBalance: formValues.contrastBalance,
       softGrade: formValues.softGrade,
       hardGrade: formValues.hardGrade,
+      useFilterFactors: formValues.useFilterFactors,
     }),
     [
       formValues.baseTime,
       formValues.contrastBalance,
       formValues.softGrade,
       formValues.hardGrade,
+      formValues.useFilterFactors,
     ]
   );
 
@@ -178,6 +183,9 @@ export default function SplitGradeCalculatorPage() {
       }
       if (parsed.hardGrade && HARD_GRADE_OPTIONS.includes(parsed.hardGrade)) {
         form.setFieldValue('hardGrade', parsed.hardGrade);
+      }
+      if (typeof parsed.useFilterFactors === 'boolean') {
+        form.setFieldValue('useFilterFactors', parsed.useFilterFactors);
       }
     } catch (error) {
       debugWarn('Failed to load split-grade calculator state', error);
@@ -364,17 +372,53 @@ export default function SplitGradeCalculatorPage() {
                 )}
               </form.Field>
             </div>
+
+            {/* Filter factor compensation toggle */}
+            <div
+              className="rounded-xl p-4 mt-2"
+              style={{
+                backgroundColor: `${currentTheme.background}10`,
+                borderWidth: 1,
+                borderColor: currentTheme.border.secondary,
+              }}
+            >
+              <form.Field name="useFilterFactors">
+                {(field) => (
+                  <div className="space-y-2">
+                    <ToggleSwitch
+                      label="Apply filter factor compensation"
+                      value={field.state.value}
+                      onValueChange={field.handleChange}
+                    />
+                    <p
+                      className="text-xs"
+                      style={{ color: currentTheme.text.tertiary }}
+                    >
+                      {field.state.value
+                        ? 'Using filter factors for under-lens filters. Times adjusted for each grade.'
+                        : 'No compensation - for enlargers with built-in ND filters (color heads, Ilford MG heads).'}
+                    </p>
+                  </div>
+                )}
+              </form.Field>
+            </div>
           </CalculatorCard>
 
           <form.Subscribe
             selector={(state) => {
-              const { baseTime, contrastBalance, softGrade, hardGrade } =
-                state.values;
+              const {
+                baseTime,
+                contrastBalance,
+                softGrade,
+                hardGrade,
+                useFilterFactors,
+              } = state.values;
               return calculateSplitGrade(
                 baseTime,
                 contrastBalance,
                 softGrade,
-                hardGrade
+                hardGrade,
+                useFilterFactors
               );
             }}
           >
@@ -577,45 +621,66 @@ export default function SplitGradeCalculatorPage() {
             </ul>
           </CalculatorCard>
 
-          <CalculatorCard
-            title="Filter factors reference"
-            description="Exposure compensation built into this calculator for common multigrade filters."
-          >
-            <div className="space-y-2">
-              {GRADE_FILTER_FACTORS.filter(
-                (f) =>
-                  SOFT_GRADE_OPTIONS.includes(f.grade as ContrastGrade) ||
-                  HARD_GRADE_OPTIONS.includes(f.grade as ContrastGrade)
-              ).map((factor) => (
-                <div
-                  key={factor.grade}
-                  className="flex items-center justify-between py-2 border-b last:border-0"
-                  style={{ borderColor: currentTheme.border.secondary }}
+          <form.Subscribe selector={(state) => state.values.useFilterFactors}>
+            {(useFilterFactors) =>
+              useFilterFactors ? (
+                <CalculatorCard
+                  title="Filter factors reference"
+                  description="Exposure compensation being applied for common multigrade filters."
                 >
-                  <div>
-                    <span
-                      className="text-sm font-medium"
-                      style={{ color: currentTheme.text.primary }}
-                    >
-                      {factor.label}
-                    </span>
-                    <p
-                      className="text-xs"
-                      style={{ color: currentTheme.text.tertiary }}
-                    >
-                      {factor.description}
-                    </p>
+                  <div className="space-y-2">
+                    {GRADE_FILTER_FACTORS.filter(
+                      (f) =>
+                        SOFT_GRADE_OPTIONS.includes(f.grade as ContrastGrade) ||
+                        HARD_GRADE_OPTIONS.includes(f.grade as ContrastGrade)
+                    ).map((factor) => (
+                      <div
+                        key={factor.grade}
+                        className="flex items-center justify-between py-2 border-b last:border-0"
+                        style={{ borderColor: currentTheme.border.secondary }}
+                      >
+                        <div>
+                          <span
+                            className="text-sm font-medium"
+                            style={{ color: currentTheme.text.primary }}
+                          >
+                            {factor.label}
+                          </span>
+                          <p
+                            className="text-xs"
+                            style={{ color: currentTheme.text.tertiary }}
+                          >
+                            {factor.description}
+                          </p>
+                        </div>
+                        <span
+                          className="text-sm font-mono"
+                          style={{ color: currentTheme.text.secondary }}
+                        >
+                          ×{factor.factor}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                  <span
-                    className="text-sm font-mono"
+                </CalculatorCard>
+              ) : (
+                <CalculatorCard
+                  title="Compensated enlarger mode"
+                  description="Filter factor compensation is disabled."
+                >
+                  <p
+                    className="text-sm"
                     style={{ color: currentTheme.text.secondary }}
                   >
-                    ×{factor.factor}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CalculatorCard>
+                    You&apos;re using an enlarger with built-in exposure
+                    compensation (like a color head or Ilford Multigrade head
+                    with ND filters). The calculator will use equal times for
+                    each grade based purely on your contrast balance setting.
+                  </p>
+                </CalculatorCard>
+              )
+            }
+          </form.Subscribe>
         </div>
       </div>
     </div>

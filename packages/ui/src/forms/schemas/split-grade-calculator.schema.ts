@@ -35,6 +35,8 @@ export const splitGradeCalculatorSchema = z.object({
   softGrade: contrastGradeSchema,
 
   hardGrade: contrastGradeSchema,
+
+  useFilterFactors: z.boolean(),
 });
 
 export type SplitGradeCalculatorFormData = z.infer<

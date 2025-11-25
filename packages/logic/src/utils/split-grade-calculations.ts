@@ -15,27 +15,34 @@ import { roundToStandardPrecision } from './precision';
  * - 100% = all hard exposure (maximum contrast)
  *
  * Filter factors are applied to compensate for the different light transmission
- * of each grade's filter.
+ * of each grade's filter, unless useFilterFactors is false.
  *
  * @param baseTime - Base exposure time in seconds
  * @param contrastBalance - Balance from 0 (all soft) to 100 (all hard)
  * @param softGrade - Grade to use for soft exposure (default: '00')
  * @param hardGrade - Grade to use for hard exposure (default: '5')
+ * @param useFilterFactors - Whether to apply filter factor compensation (default: true).
+ *   Set to false for enlargers with built-in compensation (color heads, Ilford MG heads).
  * @returns Calculated split-grade exposure times
  *
  * @example
  * ```typescript
- * // 10 second base with equal soft/hard balance
- * const result = calculateSplitGrade(10, 50, '00', '5');
+ * // 10 second base with equal soft/hard balance (with filter factors)
+ * const result = calculateSplitGrade(10, 50, '00', '5', true);
  * // result.softTime ~= 12.5s (adjusted for Grade 00 factor)
  * // result.hardTime ~= 8s (adjusted for Grade 5 factor)
+ *
+ * // Same calculation without filter factors (compensated enlarger)
+ * const result2 = calculateSplitGrade(10, 50, '00', '5', false);
+ * // result2.softTime = 5s, result2.hardTime = 5s (equal split)
  * ```
  */
 export const calculateSplitGrade = (
   baseTime: number,
   contrastBalance: number,
   softGrade: ContrastGrade = '00',
-  hardGrade: ContrastGrade = '5'
+  hardGrade: ContrastGrade = '5',
+  useFilterFactors: boolean = true
 ): SplitGradeCalculation => {
   // Validate inputs
   if (
@@ -59,9 +66,9 @@ export const calculateSplitGrade = (
   const hardRatio = contrastBalance / 100;
   const softRatio = 1 - hardRatio;
 
-  // Get filter factors for compensation
-  const softFactor = getFilterFactor(softGrade);
-  const hardFactor = getFilterFactor(hardGrade);
+  // Get filter factors for compensation (or use 1.0 if disabled)
+  const softFactor = useFilterFactors ? getFilterFactor(softGrade) : 1.0;
+  const hardFactor = useFilterFactors ? getFilterFactor(hardGrade) : 1.0;
 
   // Calculate times with filter factor compensation
   // The base time is divided according to the balance,

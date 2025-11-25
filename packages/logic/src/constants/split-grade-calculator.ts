@@ -11,6 +11,12 @@ export const DEFAULT_SPLIT_GRADE_BASE_TIME = 10;
 export const DEFAULT_SPLIT_GRADE_CONTRAST_BALANCE = 50;
 export const DEFAULT_SPLIT_GRADE_SOFT_GRADE: ContrastGrade = '00';
 export const DEFAULT_SPLIT_GRADE_HARD_GRADE: ContrastGrade = '5';
+/**
+ * Default to using filter factors (for under-lens filters).
+ * Users with compensated enlarger heads (color heads, Ilford MG heads)
+ * can toggle this off.
+ */
+export const DEFAULT_SPLIT_GRADE_USE_FILTER_FACTORS = true;
 
 /**
  * Filter factors for Ilford Multigrade filters

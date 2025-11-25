@@ -49,6 +49,12 @@ export interface SplitGradeFormState {
   softGrade: ContrastGrade;
   /** Grade to use for hard exposure */
   hardGrade: ContrastGrade;
+  /**
+   * Whether to apply filter factor compensation.
+   * Set to false for enlargers with built-in compensation (color heads,
+   * Ilford Multigrade heads with ND filters, etc.)
+   */
+  useFilterFactors: boolean;
 }
 
 /**
