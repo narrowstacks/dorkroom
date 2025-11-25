@@ -1,4 +1,5 @@
 import {
+  Contrast,
   Crop,
   FlaskConical,
   Gauge,
@@ -56,6 +57,17 @@ const CALCULATORS = [
     color: 'text-violet-400',
     bg: 'from-violet-500/20 to-fuchsia-500/20',
     border: 'group-hover:border-violet-500/50',
+  },
+  {
+    category: 'Printing',
+    title: 'Split-Grade Calculator',
+    description: 'Control shadows & highlights separately',
+    href: '/split-grade',
+    icon: Contrast,
+    iconColorKey: 'emerald' as const,
+    color: 'text-emerald-400',
+    bg: 'from-emerald-500/20 to-teal-500/20',
+    border: 'group-hover:border-emerald-500/50',
   },
   {
     category: 'In the Field',
