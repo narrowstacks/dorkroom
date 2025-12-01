@@ -1,7 +1,7 @@
-import { X } from 'lucide-react';
-import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { cn } from '../lib/cn';
+import { X } from "lucide-react";
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
+import { cn } from "../lib/cn";
 
 /**
  * Props for the Modal component.
@@ -19,18 +19,18 @@ interface ModalProps {
   /** Modal content to be rendered inside the modal body */
   children: React.ReactNode;
   /** Size variant for the modal width (defaults to 'md') */
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: "sm" | "md" | "lg" | "xl";
   /** Optional footer content displayed at the bottom of the modal */
   footer?: React.ReactNode;
   /** Whether to hide the X close button in the header */
   hideCloseButton?: boolean;
 }
 
-const SIZE_CLASSES: Record<NonNullable<ModalProps['size']>, string> = {
-  sm: 'max-w-md',
-  md: 'max-w-2xl',
-  lg: 'max-w-4xl',
-  xl: 'max-w-5xl',
+const SIZE_CLASSES: Record<NonNullable<ModalProps["size"]>, string> = {
+  sm: "max-w-md",
+  md: "max-w-2xl",
+  lg: "max-w-4xl",
+  xl: "max-w-5xl",
 };
 
 /**
@@ -54,7 +54,7 @@ export function Modal({
   onClose,
   title,
   children,
-  size = 'md',
+  size = "md",
   footer,
   hideCloseButton,
 }: ModalProps) {
@@ -64,23 +64,22 @@ export function Modal({
     }
 
     const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = originalOverflow;
     };
   }, [isOpen]);
 
-  if (typeof document === 'undefined' || !isOpen) {
+  if (typeof document === "undefined" || !isOpen) {
     return null;
   }
 
   return createPortal(
-    // biome-ignore lint/a11y/useSemanticElements: Using div with role="dialog" instead of <dialog> for custom portal-based modal with backdrop click handling
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center px-4 backdrop-blur"
       style={{
-        backgroundColor: 'var(--color-visualization-overlay)',
-        height: '100dvh',
+        backgroundColor: "var(--color-visualization-overlay)",
+        height: "100dvh",
       }}
       role="dialog"
       aria-modal="true"
@@ -88,13 +87,13 @@ export function Modal({
     >
       <div
         className={cn(
-          'relative w-full rounded-2xl border p-6 shadow-xl backdrop-blur-lg',
-          SIZE_CLASSES[size]
+          "relative w-full rounded-2xl border p-6 shadow-xl backdrop-blur-lg",
+          SIZE_CLASSES[size],
         )}
         style={{
-          borderColor: 'var(--color-border-secondary)',
-          backgroundColor: 'var(--color-surface)',
-          color: 'var(--color-text-primary)',
+          borderColor: "var(--color-border-secondary)",
+          backgroundColor: "var(--color-surface)",
+          color: "var(--color-text-primary)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -105,19 +104,19 @@ export function Modal({
             className="absolute right-4 top-4 rounded-full p-2 transition focus-visible:outline-none focus-visible:ring-2"
             style={
               {
-                color: 'var(--color-text-muted)',
-                '--tw-ring-color': 'var(--color-border-primary)',
+                color: "var(--color-text-muted)",
+                "--tw-ring-color": "var(--color-border-primary)",
               } as React.CSSProperties
             }
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor =
-                'var(--color-border-muted)';
-              e.currentTarget.style.color = 'var(--color-text-primary)';
+                "var(--color-border-muted)";
+              e.currentTarget.style.color = "var(--color-text-primary)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor =
-                'var(--modal-close-bg-hover-leave, transparent)';
-              e.currentTarget.style.color = 'var(--color-text-muted)';
+                "var(--modal-close-bg-hover-leave, transparent)";
+              e.currentTarget.style.color = "var(--color-text-muted)";
             }}
             aria-label="Close"
           >
@@ -128,7 +127,7 @@ export function Modal({
           <div className="mb-4 pr-10">
             <h2
               className="text-lg font-semibold"
-              style={{ color: 'var(--color-text-primary)' }}
+              style={{ color: "var(--color-text-primary)" }}
             >
               {title}
             </h2>
@@ -136,7 +135,7 @@ export function Modal({
         )}
         <div
           className="max-h-[calc(100dvh-12rem)] space-y-4 overflow-y-auto text-sm"
-          style={{ color: 'var(--color-text-secondary)' }}
+          style={{ color: "var(--color-text-secondary)" }}
         >
           {children}
         </div>
@@ -145,6 +144,6 @@ export function Modal({
         )}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

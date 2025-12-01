@@ -1,17 +1,17 @@
-import { colorMixOr } from '../../lib/color';
-import { CalculatorCard } from '../calculator/calculator-card';
+import { colorMixOr } from "../../lib/color";
+import { CalculatorCard } from "../calculator/calculator-card";
 
 const INFO_HOW_TO_USE = [
-  'Select your desired aspect ratio (the ratio of your negative or image)',
+  "Select your desired aspect ratio (the ratio of your negative or image)",
   "Choose your paper size (the size of photo paper you're printing on)",
   'Set your minimum border width (at least 0.5" recommended)',
-  'Optionally enable offsets to shift the image from center',
-  'View the blade positions in the results section',
+  "Optionally enable offsets to shift the image from center",
+  "View the blade positions in the results section",
 ];
 
 const INFO_TIPS = [
-  'Easels only provide markings for quarter-inch increments, so you are on your own for measuring the blade positions with a ruler.',
-  'For uniform borders, keep offsets at 0',
+  "Easels only provide markings for quarter-inch increments, so you are on your own for measuring the blade positions with a ruler.",
+  "For uniform borders, keep offsets at 0",
   'Select "Even borders" to automatically match your paper ratio for perfectly even margins.',
   'The "flip paper orientation" button rotates the paper between portrait and landscape',
   'The "flip aspect ratio" button swaps the width and height of your image',
@@ -28,7 +28,7 @@ export function BorderInfoSection() {
       >
         <div
           className="space-y-5 text-sm"
-          style={{ color: 'var(--color-text-secondary)' }}
+          style={{ color: "var(--color-text-secondary)" }}
         >
           <p>
             The border calculator helps you determine the optimal placement of
@@ -39,24 +39,24 @@ export function BorderInfoSection() {
           <div className="space-y-3">
             <h4
               className="text-sm font-semibold uppercase tracking-[0.25em]"
-              style={{ color: 'var(--color-text-muted)' }}
+              style={{ color: "var(--color-text-muted)" }}
             >
               How to use
             </h4>
             <ul className="space-y-2">
-              {INFO_HOW_TO_USE.map((item, index) => (
+              {INFO_HOW_TO_USE.map((item) => (
                 <li
-                  key={index}
+                  key={item}
                   className="rounded-2xl border px-4 py-2"
                   style={{
-                    borderColor: 'var(--color-border-muted)',
+                    borderColor: "var(--color-border-muted)",
                     backgroundColor: colorMixOr(
-                      'var(--color-surface)',
+                      "var(--color-surface)",
                       20,
-                      'transparent',
-                      'var(--color-surface)'
+                      "transparent",
+                      "var(--color-surface)",
                     ),
-                    color: 'var(--color-text-secondary)',
+                    color: "var(--color-text-secondary)",
                   }}
                 >
                   {item}
@@ -68,21 +68,21 @@ export function BorderInfoSection() {
           <div className="space-y-3">
             <h4
               className="text-sm font-semibold uppercase tracking-[0.25em]"
-              style={{ color: 'var(--color-text-muted)' }}
+              style={{ color: "var(--color-text-muted)" }}
             >
               Blade measurements
             </h4>
             <div
               className="rounded-2xl border p-4 text-xs"
               style={{
-                borderColor: 'var(--color-border-secondary)',
+                borderColor: "var(--color-border-secondary)",
                 backgroundColor: colorMixOr(
-                  'var(--color-surface)',
+                  "var(--color-surface)",
                   80,
-                  'transparent',
-                  'var(--color-border-muted)'
+                  "transparent",
+                  "var(--color-border-muted)",
                 ),
-                color: 'var(--color-text-primary)',
+                color: "var(--color-text-primary)",
               }}
             >
               The measurements shown are distances from the edge of your
@@ -96,24 +96,24 @@ export function BorderInfoSection() {
           <div className="space-y-3">
             <h4
               className="text-sm font-semibold uppercase tracking-[0.25em]"
-              style={{ color: 'var(--color-text-muted)' }}
+              style={{ color: "var(--color-text-muted)" }}
             >
               Tips
             </h4>
             <ul className="space-y-2">
-              {INFO_TIPS.map((tip, index) => (
+              {INFO_TIPS.map((tip) => (
                 <li
-                  key={index}
+                  key={tip}
                   className="rounded-2xl border px-4 py-2"
                   style={{
-                    borderColor: 'var(--color-border-muted)',
+                    borderColor: "var(--color-border-muted)",
                     backgroundColor: colorMixOr(
-                      'var(--color-surface)',
+                      "var(--color-surface)",
                       20,
-                      'transparent',
-                      'var(--color-surface)'
+                      "transparent",
+                      "var(--color-surface)",
                     ),
-                    color: 'var(--color-text-secondary)',
+                    color: "var(--color-text-secondary)",
                   }}
                 >
                   {tip}

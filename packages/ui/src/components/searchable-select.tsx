@@ -1,7 +1,7 @@
-import type { SelectItem } from '@dorkroom/logic';
-import { ChevronDown, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { cn } from '../lib/cn';
+import type { SelectItem } from "@dorkroom/logic";
+import { ChevronDown, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { cn } from "../lib/cn";
 
 interface SearchableSelectProps {
   label?: string;
@@ -18,12 +18,12 @@ export function SearchableSelect({
   selectedValue,
   onValueChange,
   items,
-  placeholder = 'Search...',
+  placeholder = "Search...",
   className,
   allowClear = true,
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -31,11 +31,11 @@ export function SearchableSelect({
 
   // Find the selected item to display its label
   const selectedItem = items.find((item) => item.value === selectedValue);
-  const displayValue = selectedItem?.label || '';
+  const displayValue = selectedItem?.label || "";
 
   // Filter items based on search term
   const filteredItems = items.filter((item) =>
-    item.label.toLowerCase().includes(searchTerm.toLowerCase())
+    item.label.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Handle input change
@@ -48,7 +48,7 @@ export function SearchableSelect({
   // Handle item selection
   const handleSelectItem = (item: SelectItem) => {
     onValueChange(item.value);
-    setSearchTerm('');
+    setSearchTerm("");
     setIsOpen(false);
     setFocusedIndex(-1);
   };
@@ -56,8 +56,8 @@ export function SearchableSelect({
   // Handle clear selection
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onValueChange('');
-    setSearchTerm('');
+    onValueChange("");
+    setSearchTerm("");
     setIsOpen(false);
     setFocusedIndex(-1);
   };
@@ -65,7 +65,7 @@ export function SearchableSelect({
   // Handle input focus
   const handleInputFocus = () => {
     setIsOpen(true);
-    setSearchTerm('');
+    setSearchTerm("");
   };
 
   // Handle input blur
@@ -73,7 +73,7 @@ export function SearchableSelect({
     // Delay closing to allow for item selection
     setTimeout(() => {
       setIsOpen(false);
-      setSearchTerm('');
+      setSearchTerm("");
       setFocusedIndex(-1);
     }, 150);
   };
@@ -81,37 +81,37 @@ export function SearchableSelect({
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) {
-      if (e.key === 'Enter' || e.key === 'ArrowDown') {
+      if (e.key === "Enter" || e.key === "ArrowDown") {
         e.preventDefault();
         setIsOpen(true);
-        setSearchTerm('');
+        setSearchTerm("");
       }
       return;
     }
 
     switch (e.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
         setFocusedIndex((prev) =>
-          prev < filteredItems.length - 1 ? prev + 1 : 0
+          prev < filteredItems.length - 1 ? prev + 1 : 0,
         );
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
         setFocusedIndex((prev) =>
-          prev > 0 ? prev - 1 : filteredItems.length - 1
+          prev > 0 ? prev - 1 : filteredItems.length - 1,
         );
         break;
-      case 'Enter':
+      case "Enter":
         e.preventDefault();
         if (focusedIndex >= 0 && filteredItems[focusedIndex]) {
           handleSelectItem(filteredItems[focusedIndex]);
         }
         break;
-      case 'Escape':
+      case "Escape":
         e.preventDefault();
         setIsOpen(false);
-        setSearchTerm('');
+        setSearchTerm("");
         setFocusedIndex(-1);
         inputRef.current?.blur();
         break;
@@ -122,7 +122,7 @@ export function SearchableSelect({
   useEffect(() => {
     if (isOpen && selectedValue) {
       const selectedIndex = filteredItems.findIndex(
-        (item) => item.value === selectedValue
+        (item) => item.value === selectedValue,
       );
       if (selectedIndex >= 0) {
         setFocusedIndex(selectedIndex);
@@ -140,17 +140,17 @@ export function SearchableSelect({
         focusedIndex
       ] as HTMLElement;
       if (focusedElement) {
-        focusedElement.scrollIntoView({ block: 'start' });
+        focusedElement.scrollIntoView({ block: "start" });
       }
     }
   }, [focusedIndex]);
 
   return (
-    <div className={cn('relative space-y-2', className)}>
+    <div className={cn("relative space-y-2", className)}>
       {label && (
         <label
           className="block text-sm font-medium"
-          style={{ color: 'var(--color-text-secondary)' }}
+          style={{ color: "var(--color-text-secondary)" }}
         >
           {label}
         </label>
@@ -176,11 +176,11 @@ export function SearchableSelect({
           style={
             {
               borderColor: focused
-                ? 'var(--color-border-primary)'
-                : 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-surface-muted)',
-              color: 'var(--color-text-primary)',
-              '--tw-ring-color': 'var(--color-border-primary)',
+                ? "var(--color-border-primary)"
+                : "var(--color-border-secondary)",
+              backgroundColor: "var(--color-surface-muted)",
+              color: "var(--color-text-primary)",
+              "--tw-ring-color": "var(--color-border-primary)",
             } as React.CSSProperties
           }
         />
@@ -192,13 +192,13 @@ export function SearchableSelect({
               onClick={handleClear}
               className="flex h-4 w-4 items-center justify-center transition"
               style={{
-                color: 'var(--color-text-muted)',
+                color: "var(--color-text-muted)",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--color-text-secondary)';
+                e.currentTarget.style.color = "var(--color-text-secondary)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--color-text-muted)';
+                e.currentTarget.style.color = "var(--color-text-muted)";
               }}
             >
               <X className="h-3 w-3" />
@@ -206,30 +206,27 @@ export function SearchableSelect({
           )}
           <ChevronDown
             className={cn(
-              'h-4 w-4 transition-transform',
-              isOpen && 'rotate-180'
+              "h-4 w-4 transition-transform",
+              isOpen && "rotate-180",
             )}
-            style={{ color: 'var(--color-text-muted)' }}
+            style={{ color: "var(--color-text-muted)" }}
           />
         </div>
 
         {isOpen && (
           <ul
             ref={listRef}
-            role="listbox"
             className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg border backdrop-blur-sm"
             style={{
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-surface)',
+              borderColor: "var(--color-border-secondary)",
+              backgroundColor: "var(--color-surface)",
             }}
           >
             {filteredItems.length === 0 ? (
               <li
-                role="option"
-                aria-selected={false}
                 aria-disabled
                 className="px-3 py-2 text-sm"
-                style={{ color: 'var(--color-text-muted)' }}
+                style={{ color: "var(--color-text-muted)" }}
               >
                 No results found
               </li>
@@ -237,11 +234,9 @@ export function SearchableSelect({
               filteredItems.map((item, index) => (
                 <li
                   key={item.value}
-                  role="option"
-                  aria-selected={item.value === selectedValue}
                   onClick={() => handleSelectItem(item)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+                    if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       handleSelectItem(item);
                     }
@@ -251,23 +246,23 @@ export function SearchableSelect({
                   style={{
                     color:
                       item.value === selectedValue
-                        ? 'var(--color-text-primary)'
-                        : 'var(--color-text-secondary)',
+                        ? "var(--color-text-primary)"
+                        : "var(--color-text-secondary)",
                     backgroundColor:
                       index === focusedIndex || item.value === selectedValue
-                        ? 'var(--color-border-muted)'
-                        : 'transparent',
-                    fontWeight: item.value === selectedValue ? '500' : 'normal',
+                        ? "var(--color-border-muted)"
+                        : "transparent",
+                    fontWeight: item.value === selectedValue ? "500" : "normal",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor =
-                      'var(--color-border-muted)';
+                      "var(--color-border-muted)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor =
                       item.value === selectedValue
-                        ? 'var(--color-border-muted)'
-                        : 'transparent';
+                        ? "var(--color-border-muted)"
+                        : "transparent";
                   }}
                 >
                   {item.label}

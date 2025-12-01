@@ -1,8 +1,8 @@
-import { useForm } from '@tanstack/react-form';
-import { TanStackTextInput } from '../../forms/components/tanstack-text-input';
-import { importRecipeSchema } from '../../forms/schemas/import-recipe.schema';
-import { cn } from '../../lib/cn';
-import { colorMixOr } from '../../lib/color';
+import { useForm } from "@tanstack/react-form";
+import { TanStackTextInput } from "../../forms/components/tanstack-text-input";
+import { importRecipeSchema } from "../../forms/schemas/import-recipe.schema";
+import { cn } from "../../lib/cn";
+import { colorMixOr } from "../../lib/color";
 
 interface ImportRecipeFormProps {
   onImport: (encoded: string) => void;
@@ -19,7 +19,7 @@ export function ImportRecipeForm({
 }: ImportRecipeFormProps) {
   const form = useForm({
     defaultValues: {
-      encoded: '',
+      encoded: "",
     },
     validators: {
       onChange: importRecipeSchema,
@@ -54,22 +54,22 @@ export function ImportRecipeForm({
           className="rounded-xl border px-3 py-2 text-sm"
           style={{
             borderColor: colorMixOr(
-              'var(--color-semantic-error)',
+              "var(--color-semantic-error)",
               20,
-              'transparent',
-              'var(--color-border-secondary)'
+              "transparent",
+              "var(--color-border-secondary)",
             ),
             backgroundColor: colorMixOr(
-              'var(--color-semantic-error)',
+              "var(--color-semantic-error)",
               10,
-              'transparent',
-              'var(--color-border-muted)'
+              "transparent",
+              "var(--color-border-muted)",
             ),
             color: colorMixOr(
-              'var(--color-semantic-error)',
+              "var(--color-semantic-error)",
               80,
-              'var(--color-text-primary)',
-              'var(--color-semantic-error)'
+              "var(--color-text-primary)",
+              "var(--color-semantic-error)",
             ),
           }}
         >
@@ -89,20 +89,21 @@ export function ImportRecipeForm({
         )}
         <form.Subscribe
           selector={(state) => [state.canSubmit, state.isSubmitting]}
-          children={([canSubmit, isSubmitting]) => (
+        >
+          {([canSubmit, isSubmitting]) => (
             <button
               type="submit"
               disabled={!canSubmit || isProcessing || isSubmitting}
               className={cn(
-                'rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90',
+                "rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90",
                 (!canSubmit || isProcessing || isSubmitting) &&
-                  'cursor-not-allowed opacity-70'
+                  "cursor-not-allowed opacity-70",
               )}
             >
-              {isProcessing || isSubmitting ? 'Importing…' : 'Import recipe'}
+              {isProcessing || isSubmitting ? "Importing…" : "Import recipe"}
             </button>
           )}
-        />
+        </form.Subscribe>
       </div>
     </form>
   );

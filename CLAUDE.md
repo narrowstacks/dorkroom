@@ -241,3 +241,8 @@ Is it complex multi-file analysis?
 - Keep commit messages short. Use conventional commit standards.
 - Confirm with user that they want to commit before committing, share commit message in your confirmation.
 - **Only commit, never push without user prompting you to do so.**
+
+## Workflow requirements
+
+- You should always check the linter, typechecking, and tests via `bunx nx run-many --targets=lint,typecheck,test,build`, or individually as needed, before considering yourself done.
+- Once you consider yourself done, run `bunx nx format` to ensure consistent formatting.

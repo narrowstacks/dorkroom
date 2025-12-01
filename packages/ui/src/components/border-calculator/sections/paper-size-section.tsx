@@ -1,12 +1,12 @@
-import { ASPECT_RATIOS, PAPER_SIZES, type SelectItem } from '@dorkroom/logic';
-import type { AnyFormApi } from '@tanstack/react-form';
-import { RotateCw, Square, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { DimensionInputGroup } from '../../../components/dimension-input-group';
-import { Select } from '../../../components/select';
-import { useMeasurement } from '../../../contexts/measurement-context';
-import { useMeasurementConverter } from '../../../hooks/use-measurement-conversion';
-import { formatDimensions } from '../../../lib/measurement';
+import { ASPECT_RATIOS, PAPER_SIZES, type SelectItem } from "@dorkroom/logic";
+import type { AnyFormApi } from "@tanstack/react-form";
+import { RotateCw, Square, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { DimensionInputGroup } from "../../../components/dimension-input-group";
+import { Select } from "../../../components/select";
+import { useMeasurement } from "../../../contexts/measurement-context";
+import { useMeasurementConverter } from "../../../hooks/use-measurement-conversion";
+import { formatDimensions } from "../../../lib/measurement";
 
 interface PaperSizeSectionProps {
   onClose: () => void;
@@ -21,22 +21,22 @@ export function PaperSizeSection({
   isLandscape,
   isRatioFlipped,
 }: PaperSizeSectionProps) {
-  const aspectRatio = form.getFieldValue('aspectRatio');
-  const isEvenBordersSelected = aspectRatio === 'even-borders';
-  const customAspectWidth = form.getFieldValue('customAspectWidth');
-  const customAspectHeight = form.getFieldValue('customAspectHeight');
-  const paperSize = form.getFieldValue('paperSize');
-  const customPaperWidth = form.getFieldValue('customPaperWidth');
-  const customPaperHeight = form.getFieldValue('customPaperHeight');
+  const aspectRatio = form.getFieldValue("aspectRatio");
+  const isEvenBordersSelected = aspectRatio === "even-borders";
+  const customAspectWidth = form.getFieldValue("customAspectWidth");
+  const customAspectHeight = form.getFieldValue("customAspectHeight");
+  const paperSize = form.getFieldValue("paperSize");
+  const customPaperWidth = form.getFieldValue("customPaperWidth");
+  const customPaperHeight = form.getFieldValue("customPaperHeight");
   const { unit } = useMeasurement();
   const { toInches, toDisplay } = useMeasurementConverter();
 
   // Local string state for custom paper dimensions (in display units)
   const [paperWidthInput, setPaperWidthInput] = useState(
-    String(toDisplay(customPaperWidth))
+    String(toDisplay(customPaperWidth)),
   );
   const [paperHeightInput, setPaperHeightInput] = useState(
-    String(toDisplay(customPaperHeight))
+    String(toDisplay(customPaperHeight)),
   );
   const [isEditingWidth, setIsEditingWidth] = useState(false);
   const [isEditingHeight, setIsEditingHeight] = useState(false);
@@ -61,7 +61,7 @@ export function PaperSizeSection({
   // Helper to validate and convert input to inches
   const validateAndConvert = (value: string): number | null => {
     // Allow empty, whitespace, or trailing decimal point
-    if (value === '' || /^\s*$/.test(value) || /^\d*\.$/.test(value)) {
+    if (value === "" || /^\s*$/.test(value) || /^\d*\.$/.test(value)) {
       return null;
     }
 
@@ -81,8 +81,8 @@ export function PaperSizeSection({
     // Push valid changes to parent state immediately for live recomputation
     const inches = validateAndConvert(value);
     if (inches !== null) {
-      form.setFieldValue('customPaperWidth', inches);
-      form.setFieldValue('lastValidCustomPaperWidth', inches);
+      form.setFieldValue("customPaperWidth", inches);
+      form.setFieldValue("lastValidCustomPaperWidth", inches);
     }
   };
 
@@ -91,12 +91,12 @@ export function PaperSizeSection({
     setIsEditingWidth(false);
     const inches = validateAndConvert(paperWidthInput);
     if (inches !== null) {
-      form.setFieldValue('customPaperWidth', inches);
-      form.setFieldValue('lastValidCustomPaperWidth', inches);
+      form.setFieldValue("customPaperWidth", inches);
+      form.setFieldValue("lastValidCustomPaperWidth", inches);
       // Format the display value to avoid floating point precision artifacts
       const displayValue = toDisplay(inches);
       setPaperWidthInput(String(Math.round(displayValue * 1000) / 1000));
-    } else if (paperWidthInput === '' || /^\s*$/.test(paperWidthInput)) {
+    } else if (paperWidthInput === "" || /^\s*$/.test(paperWidthInput)) {
       // Reset to current value if empty
       setPaperWidthInput(String(toDisplay(customPaperWidth)));
     } else {
@@ -113,8 +113,8 @@ export function PaperSizeSection({
     // Push valid changes to parent state immediately for live recomputation
     const inches = validateAndConvert(value);
     if (inches !== null) {
-      form.setFieldValue('customPaperHeight', inches);
-      form.setFieldValue('lastValidCustomPaperHeight', inches);
+      form.setFieldValue("customPaperHeight", inches);
+      form.setFieldValue("lastValidCustomPaperHeight", inches);
     }
   };
 
@@ -123,12 +123,12 @@ export function PaperSizeSection({
     setIsEditingHeight(false);
     const inches = validateAndConvert(paperHeightInput);
     if (inches !== null) {
-      form.setFieldValue('customPaperHeight', inches);
-      form.setFieldValue('lastValidCustomPaperHeight', inches);
+      form.setFieldValue("customPaperHeight", inches);
+      form.setFieldValue("lastValidCustomPaperHeight", inches);
       // Format the display value to avoid floating point precision artifacts
       const displayValue = toDisplay(inches);
       setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
-    } else if (paperHeightInput === '' || /^\s*$/.test(paperHeightInput)) {
+    } else if (paperHeightInput === "" || /^\s*$/.test(paperHeightInput)) {
       // Reset to current value if empty
       setPaperHeightInput(String(toDisplay(customPaperHeight)));
     } else {
@@ -140,11 +140,11 @@ export function PaperSizeSection({
   // Transform paper sizes to show metric with imperial reference when in metric mode
   const displayPaperSizes = useMemo(() => {
     return PAPER_SIZES.map((size) => {
-      if (size.value === 'custom') {
+      if (size.value === "custom") {
         return size; // Keep "Custom Paper Size" as is
       }
 
-      if (unit === 'metric') {
+      if (unit === "metric") {
         // Show metric dimensions with imperial reference
         // e.g., "20.3×25.4cm (8×10in)"
         const metricLabel = formatDimensions(size.width, size.height, unit);
@@ -165,6 +165,7 @@ export function PaperSizeSection({
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-white">Paper & Image Size</h3>
         <button
+          type="button"
           onClick={onClose}
           className="rounded-lg border border-white/20 bg-white/5 p-2 text-white transition hover:bg-white/10"
         >
@@ -177,21 +178,21 @@ export function PaperSizeSection({
           label="Aspect Ratio:"
           selectedValue={aspectRatio}
           onValueChange={(value) => {
-            form.setFieldValue('aspectRatio', value);
+            form.setFieldValue("aspectRatio", value);
             form.setFieldValue(
-              'lastValidCustomAspectWidth',
-              form.getFieldValue('customAspectWidth')
+              "lastValidCustomAspectWidth",
+              form.getFieldValue("customAspectWidth"),
             );
             form.setFieldValue(
-              'lastValidCustomAspectHeight',
-              form.getFieldValue('customAspectHeight')
+              "lastValidCustomAspectHeight",
+              form.getFieldValue("customAspectHeight"),
             );
           }}
           items={ASPECT_RATIOS as SelectItem[]}
           placeholder="Select Aspect Ratio"
         />
 
-        {aspectRatio === 'custom' && (
+        {aspectRatio === "custom" && (
           <DimensionInputGroup
             widthValue={String(customAspectWidth)}
             onWidthChange={(value) => {
@@ -199,8 +200,8 @@ export function PaperSizeSection({
               if (!Number.isFinite(num) || num <= 0) {
                 return;
               }
-              form.setFieldValue('customAspectWidth', num);
-              form.setFieldValue('lastValidCustomAspectWidth', num);
+              form.setFieldValue("customAspectWidth", num);
+              form.setFieldValue("lastValidCustomAspectWidth", num);
             }}
             heightValue={String(customAspectHeight)}
             onHeightChange={(value) => {
@@ -208,8 +209,8 @@ export function PaperSizeSection({
               if (!Number.isFinite(num) || num <= 0) {
                 return;
               }
-              form.setFieldValue('customAspectHeight', num);
-              form.setFieldValue('lastValidCustomAspectHeight', num);
+              form.setFieldValue("customAspectHeight", num);
+              form.setFieldValue("lastValidCustomAspectHeight", num);
             }}
             widthLabel="Width:"
             heightLabel="Height:"
@@ -221,12 +222,12 @@ export function PaperSizeSection({
         <Select
           label="Paper Size:"
           selectedValue={paperSize}
-          onValueChange={(value) => form.setFieldValue('paperSize', value)}
+          onValueChange={(value) => form.setFieldValue("paperSize", value)}
           items={displayPaperSizes as SelectItem[]}
           placeholder="Select Paper Size"
         />
 
-        {paperSize === 'custom' && (
+        {paperSize === "custom" && (
           <DimensionInputGroup
             widthValue={paperWidthInput}
             onWidthChange={handleWidthChange}
@@ -244,7 +245,7 @@ export function PaperSizeSection({
         <div className="flex gap-4">
           <button
             type="button"
-            onClick={() => form.setFieldValue('isLandscape', !isLandscape)}
+            onClick={() => form.setFieldValue("isLandscape", !isLandscape)}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
           >
             <RotateCw className="h-4 w-4" />
@@ -254,18 +255,18 @@ export function PaperSizeSection({
             type="button"
             onClick={() => {
               if (isEvenBordersSelected) return;
-              form.setFieldValue('isRatioFlipped', !isRatioFlipped);
+              form.setFieldValue("isRatioFlipped", !isRatioFlipped);
             }}
             className={`flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-sm font-medium text-white transition ${
               isEvenBordersSelected
-                ? 'cursor-not-allowed opacity-50'
-                : 'hover:bg-white/10'
+                ? "cursor-not-allowed opacity-50"
+                : "hover:bg-white/10"
             }`}
             disabled={isEvenBordersSelected}
             aria-disabled={isEvenBordersSelected}
             title={
               isEvenBordersSelected
-                ? 'Even borders automatically match your paper orientation; flipping is disabled.'
+                ? "Even borders automatically match your paper orientation; flipping is disabled."
                 : undefined
             }
           >

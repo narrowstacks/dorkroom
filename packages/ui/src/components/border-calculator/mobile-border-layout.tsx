@@ -1,4 +1,4 @@
-import type { BorderPreset } from '@dorkroom/logic';
+import type { BorderPreset } from "@dorkroom/logic";
 import {
   BookOpen,
   Crop,
@@ -9,29 +9,29 @@ import {
   Ruler,
   Share,
   Target,
-} from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { Drawer, DrawerBody, DrawerContent } from '../../components/drawer';
-import { SaveBeforeShareModal } from '../../components/save-before-share-modal';
-import { SettingsButton } from '../../components/settings-button';
-import { ShareModal } from '../../components/share-modal';
-import { WarningAlert } from '../../components/warning-alert';
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { Drawer, DrawerBody, DrawerContent } from "../../components/drawer";
+import { SaveBeforeShareModal } from "../../components/save-before-share-modal";
+import { SettingsButton } from "../../components/settings-button";
+import { ShareModal } from "../../components/share-modal";
+import { WarningAlert } from "../../components/warning-alert";
 // Hooks & Types
-import { useTheme } from '../../contexts/theme-context';
-import { AnimatedPreview } from './animated-preview';
+import { useTheme } from "../../contexts/theme-context";
+import { AnimatedPreview } from "./animated-preview";
 // Components
-import { BladeResultsDisplay } from './blade-results-display';
+import { BladeResultsDisplay } from "./blade-results-display";
 // Sections
 import {
   BorderSizeSection,
   PaperSizeSection,
   PositionOffsetsSection,
   PresetsSection,
-} from './sections';
-import type { BorderCalculatorLayoutProps } from './types';
+} from "./sections";
+import type { BorderCalculatorLayoutProps } from "./types";
 
 // Active section type
-type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
+type ActiveSection = "paperSize" | "borderSize" | "positionOffsets" | "presets";
 
 type MobileBorderLayoutProps = BorderCalculatorLayoutProps;
 
@@ -45,8 +45,8 @@ export function MobileBorderLayout({
   form,
   formValues,
   calculation,
-  paperWidthInput,
-  paperHeightInput,
+  paperWidthInput: _paperWidthInput,
+  paperHeightInput: _paperHeightInput,
   displayPaperSizes,
   quarterRoundedMinBorder,
   maxAllowedMinBorder,
@@ -62,24 +62,24 @@ export function MobileBorderLayout({
   shareUrls,
   isSharing,
   isGeneratingShareUrl,
-  canShareNatively,
+  canShareNatively: _canShareNatively,
   canCopyToClipboard,
-  handlePaperWidthChange,
-  handlePaperWidthBlur,
-  handlePaperHeightChange,
-  handlePaperHeightBlur,
+  handlePaperWidthChange: _handlePaperWidthChange,
+  handlePaperWidthBlur: _handlePaperWidthBlur,
+  handlePaperHeightChange: _handlePaperHeightChange,
+  handlePaperHeightBlur: _handlePaperHeightBlur,
   handleRoundMinBorderToQuarter,
   resetToDefaults,
   handleSelectPreset,
-  setPresetName,
+  setPresetName: _setPresetName,
   savePreset,
   updatePresetHandler,
   deletePresetHandler,
-  applyPresetSettings,
+  applyPresetSettings: _applyPresetSettings,
   handleShareClick,
   handleSaveAndShare,
   handleCopyToClipboard,
-  handleNativeShare,
+  handleNativeShare: _handleNativeShare,
   setIsShareModalOpen,
   setIsSaveBeforeShareOpen,
   formatWithUnit,
@@ -88,7 +88,7 @@ export function MobileBorderLayout({
 }: MobileBorderLayoutProps) {
   // Theme
   const { resolvedTheme } = useTheme();
-  const isHighContrast = resolvedTheme === 'high-contrast';
+  const isHighContrast = resolvedTheme === "high-contrast";
 
   // Measurement unit
   // const { unit } = useMeasurement();
@@ -96,7 +96,7 @@ export function MobileBorderLayout({
   // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeSection, setActiveSection] =
-    useState<ActiveSection>('paperSize');
+    useState<ActiveSection>("paperSize");
 
   const {
     aspectRatio,
@@ -124,7 +124,7 @@ export function MobileBorderLayout({
     // If no ID but we have a name (e.g. from URL or custom name), create a transient object
     if (presetName) {
       return {
-        id: 'custom',
+        id: "custom",
         name: presetName,
         settings: currentSettings,
       } as BorderPreset;
@@ -136,7 +136,7 @@ export function MobileBorderLayout({
   const paperSizeDisplayValue = useMemo(() => {
     const size = displayPaperSizes.find((s) => s.value === paperSize);
     if (!size) {
-      if (paperSize === 'custom') {
+      if (paperSize === "custom") {
         return formatDimensions(customPaperWidth, customPaperHeight);
       }
       return paperSize;
@@ -151,7 +151,7 @@ export function MobileBorderLayout({
   ]);
 
   const aspectRatioDisplayValue = useMemo(() => {
-    return aspectRatio === 'custom'
+    return aspectRatio === "custom"
       ? `${customAspectWidth}:${customAspectHeight}`
       : aspectRatio;
   }, [aspectRatio, customAspectWidth, customAspectHeight]);
@@ -161,19 +161,19 @@ export function MobileBorderLayout({
   }, [minBorder, formatWithUnit]);
 
   const positionDisplayValue = useMemo(() => {
-    if (!enableOffset) return 'Centered';
+    if (!enableOffset) return "Centered";
     return `H:${horizontalOffset.toFixed(1)} V:${verticalOffset.toFixed(1)}`;
   }, [enableOffset, horizontalOffset, verticalOffset]);
 
   const presetsDisplayValue = useMemo(() => {
-    if (!currentPreset) return 'Presets';
+    if (!currentPreset) return "Presets";
     return currentPreset.name.length > 10
       ? currentPreset.name
       : `${currentPreset.name}`;
   }, [currentPreset]);
 
   const hasWarnings = Boolean(
-    bladeWarning || minBorderWarning || paperSizeWarning || offsetWarning
+    bladeWarning || minBorderWarning || paperSizeWarning || offsetWarning,
   );
 
   // Drawer handlers
@@ -187,11 +187,11 @@ export function MobileBorderLayout({
   };
 
   const toggleBlades = () => {
-    form.setFieldValue('showBlades', !showBlades);
+    form.setFieldValue("showBlades", !showBlades);
   };
 
   const toggleBladeReadings = () => {
-    form.setFieldValue('showBladeReadings', !showBladeReadings);
+    form.setFieldValue("showBladeReadings", !showBladeReadings);
   };
 
   // Handlers for PresetsSection
@@ -208,7 +208,7 @@ export function MobileBorderLayout({
   const onUpdatePreset = (
     id: string,
     name: string,
-    settings: typeof currentSettings
+    settings: typeof currentSettings,
   ) => {
     updatePresetHandler(id, { name, settings });
   };
@@ -220,8 +220,8 @@ export function MobileBorderLayout({
     <div
       className="min-h-dvh px-4 pb-24 pt-10"
       style={{
-        background: 'var(--color-background)',
-        color: 'var(--color-text-primary)',
+        background: "var(--color-background)",
+        color: "var(--color-text-primary)",
       }}
     >
       <div className="mx-auto max-w-md space-y-4">
@@ -229,18 +229,18 @@ export function MobileBorderLayout({
         <div
           className={`rounded-3xl p-[1px] ${
             !isHighContrast
-              ? 'shadow-[0_30px_90px_-40px_var(--color-visualization-overlay)]'
-              : ''
+              ? "shadow-[0_30px_90px_-40px_var(--color-visualization-overlay)]"
+              : ""
           } backdrop-blur-sm`}
           style={{
-            background: 'var(--color-border-primary)',
+            background: "var(--color-border-primary)",
           }}
         >
           <div
             className="rounded-[calc(1.5rem-1px)]"
             style={{
               backgroundColor:
-                resolvedTheme === 'light' ? '#ffffff' : 'var(--color-surface)',
+                resolvedTheme === "light" ? "#ffffff" : "var(--color-surface)",
             }}
           >
             <BladeResultsDisplay
@@ -255,19 +255,19 @@ export function MobileBorderLayout({
         <div
           className={`rounded-3xl border p-6 ${
             !isHighContrast
-              ? 'shadow-[0_35px_110px_-50px_var(--color-visualization-overlay)]'
-              : ''
+              ? "shadow-[0_35px_110px_-50px_var(--color-visualization-overlay)]"
+              : ""
           } backdrop-blur-lg`}
           style={{
-            borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'var(--color-background)',
+            borderColor: "var(--color-border-secondary)",
+            backgroundColor: "var(--color-background)",
           }}
         >
           <AnimatedPreview
             calculation={calculation}
             showBlades={showBlades}
             showBladeReadings={showBladeReadings}
-            className={!isHighContrast ? 'shadow-2xl' : undefined}
+            className={!isHighContrast ? "shadow-2xl" : undefined}
             borderColor="var(--color-border-primary)"
           />
         </div>
@@ -277,12 +277,12 @@ export function MobileBorderLayout({
           <div
             className="rounded-3xl border p-5 space-y-2"
             style={{
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-surface-muted)',
-              background: 'var(--gradient-card-warning)',
+              borderColor: "var(--color-border-secondary)",
+              backgroundColor: "var(--color-surface-muted)",
+              background: "var(--gradient-card-warning)",
               boxShadow: isHighContrast
-                ? 'none'
-                : '0 25px 80px -45px var(--color-visualization-overlay)',
+                ? "none"
+                : "0 25px 80px -45px var(--color-visualization-overlay)",
             }}
           >
             {bladeWarning && (
@@ -304,47 +304,47 @@ export function MobileBorderLayout({
         <div
           className="rounded-3xl border p-6 backdrop-blur-lg space-y-5"
           style={{
-            borderColor: 'var(--color-border-secondary)',
-            background: 'var(--color-surface)',
+            borderColor: "var(--color-border-secondary)",
+            background: "var(--color-surface)",
             boxShadow: isHighContrast
-              ? 'none'
-              : '0 40px 120px -60px var(--color-visualization-overlay)',
+              ? "none"
+              : "0 40px 120px -60px var(--color-visualization-overlay)",
           }}
         >
           <div className="space-y-3">
             <SettingsButton
               label="Paper and Image Size"
               value={`${aspectRatioDisplayValue} on ${paperSizeDisplayValue}`}
-              onPress={() => openDrawerSection('paperSize')}
+              onPress={() => openDrawerSection("paperSize")}
               icon={Image}
               className={
                 isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
+                  ? "backdrop-blur-sm"
+                  : "backdrop-blur-sm shadow-lg"
               }
             />
 
             <SettingsButton
               label="Border Size"
               value={borderSizeDisplayValue}
-              onPress={() => openDrawerSection('borderSize')}
+              onPress={() => openDrawerSection("borderSize")}
               icon={Ruler}
               className={
                 isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
+                  ? "backdrop-blur-sm"
+                  : "backdrop-blur-sm shadow-lg"
               }
             />
 
             <SettingsButton
               label="Position & Offsets"
               value={positionDisplayValue}
-              onPress={() => openDrawerSection('positionOffsets')}
+              onPress={() => openDrawerSection("positionOffsets")}
               icon={Move}
               className={
                 isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
+                  ? "backdrop-blur-sm"
+                  : "backdrop-blur-sm shadow-lg"
               }
             />
           </div>
@@ -358,8 +358,8 @@ export function MobileBorderLayout({
               centerLabel={true}
               className={
                 isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
+                  ? "backdrop-blur-sm"
+                  : "backdrop-blur-sm shadow-lg"
               }
             />
 
@@ -371,8 +371,8 @@ export function MobileBorderLayout({
               centerLabel={true}
               className={
                 isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
+                  ? "backdrop-blur-sm"
+                  : "backdrop-blur-sm shadow-lg"
               }
             />
           </div>
@@ -381,26 +381,27 @@ export function MobileBorderLayout({
             <div className="flex-1">
               <SettingsButton
                 value={presetsDisplayValue}
-                onPress={() => openDrawerSection('presets')}
+                onPress={() => openDrawerSection("presets")}
                 icon={BookOpen}
                 className={
                   isHighContrast
-                    ? 'backdrop-blur-sm'
-                    : 'backdrop-blur-sm shadow-lg'
+                    ? "backdrop-blur-sm"
+                    : "backdrop-blur-sm shadow-lg"
                 }
               />
             </div>
 
             <button
+              type="button"
               onClick={handleShareClick}
               className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
-                !isHighContrast ? 'shadow-lg' : ''
+                !isHighContrast ? "shadow-lg" : ""
               }`}
               style={
                 {
-                  background: 'var(--gradient-card-primary)',
-                  color: 'var(--color-text-primary)',
-                  '--tw-ring-color': 'var(--color-semantic-success)',
+                  background: "var(--gradient-card-primary)",
+                  color: "var(--color-text-primary)",
+                  "--tw-ring-color": "var(--color-semantic-success)",
                 } as React.CSSProperties
               }
               title="Share preset"
@@ -412,25 +413,26 @@ export function MobileBorderLayout({
 
         {/* Reset Button */}
         <button
+          type="button"
           onClick={resetToDefaults}
           className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
-            !isHighContrast ? 'shadow-lg' : ''
+            !isHighContrast ? "shadow-lg" : ""
           }`}
           style={
             {
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
-              color: 'var(--color-semantic-error)',
-              '--tw-ring-color': 'var(--color-semantic-error)',
+              borderColor: "var(--color-border-secondary)",
+              backgroundColor: "rgba(var(--color-background-rgb), 0.05)",
+              color: "var(--color-semantic-error)",
+              "--tw-ring-color": "var(--color-semantic-error)",
             } as React.CSSProperties
           }
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor =
-              'rgba(var(--color-background-rgb), 0.1)';
+              "rgba(var(--color-background-rgb), 0.1)";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor =
-              'rgba(var(--color-background-rgb), 0.05)';
+              "rgba(var(--color-background-rgb), 0.05)";
           }}
         >
           <RotateCcw className="h-4 w-4" />
@@ -448,7 +450,7 @@ export function MobileBorderLayout({
         >
           <DrawerContent>
             <DrawerBody>
-              {activeSection === 'paperSize' && (
+              {activeSection === "paperSize" && (
                 <PaperSizeSection
                   onClose={closeDrawer}
                   form={form}
@@ -457,7 +459,7 @@ export function MobileBorderLayout({
                 />
               )}
 
-              {activeSection === 'borderSize' && (
+              {activeSection === "borderSize" && (
                 <BorderSizeSection
                   onClose={closeDrawer}
                   form={form}
@@ -468,7 +470,7 @@ export function MobileBorderLayout({
                 />
               )}
 
-              {activeSection === 'positionOffsets' && (
+              {activeSection === "positionOffsets" && (
                 <PositionOffsetsSection
                   onClose={closeDrawer}
                   form={form}
@@ -478,7 +480,7 @@ export function MobileBorderLayout({
                 />
               )}
 
-              {activeSection === 'presets' && (
+              {activeSection === "presets" && (
                 <PresetsSection
                   onClose={closeDrawer}
                   presets={presets}
@@ -498,8 +500,8 @@ export function MobileBorderLayout({
         <ShareModal
           isOpen={isShareModalOpen}
           onClose={() => setIsShareModalOpen(false)}
-          presetName={currentPreset?.name || 'Border Calculator Settings'}
-          webUrl={shareUrls?.webUrl || ''}
+          presetName={currentPreset?.name || "Border Calculator Settings"}
+          webUrl={shareUrls?.webUrl || ""}
           onCopyToClipboard={handleCopyToClipboard}
           canShareNatively={false}
           canCopyToClipboard={canCopyToClipboard}

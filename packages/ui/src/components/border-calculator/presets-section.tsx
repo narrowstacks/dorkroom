@@ -1,6 +1,6 @@
-import type { BorderPresetSettings, SelectItem } from '@dorkroom/logic';
-import { Save, Share2, Trash2 } from 'lucide-react';
-import { CalculatorCard, Select, TextInput } from '../../index';
+import type { BorderPresetSettings, SelectItem } from "@dorkroom/logic";
+import { Save, Share2, Trash2 } from "lucide-react";
+import { CalculatorCard, Select, TextInput } from "../../index";
 
 interface PresetsSectionProps {
   selectedPresetId: string | null;
@@ -16,7 +16,7 @@ interface PresetsSectionProps {
   onSavePreset: (name: string) => void;
   onUpdatePreset: (
     id: string,
-    data: { name: string; settings: BorderPresetSettings }
+    data: { name: string; settings: BorderPresetSettings },
   ) => void;
   onDeletePreset: (id: string) => void;
 }
@@ -49,7 +49,7 @@ export function PresetsSection({
         <div className="flex-1">
           <Select
             label="Presets"
-            selectedValue={selectedPresetId || ''}
+            selectedValue={selectedPresetId || ""}
             onValueChange={onSelectPreset}
             items={presetItems}
             placeholder="Select preset"
@@ -57,6 +57,7 @@ export function PresetsSection({
         </div>
         <div className="flex gap-2">
           <button
+            type="button"
             onClick={onShareClick}
             disabled={isSharing || isGeneratingShareUrl}
             className="rounded-full border p-2 transition focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:cursor-not-allowed text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
@@ -67,6 +68,8 @@ export function PresetsSection({
                 className="animate-spin h-4 w-4"
                 fill="none"
                 viewBox="0 0 24 24"
+                aria-label="Loading"
+                role="img"
               >
                 <circle
                   className="opacity-25"
@@ -87,6 +90,7 @@ export function PresetsSection({
             )}
           </button>
           <button
+            type="button"
             onClick={() => onEditingChange(true)}
             className="rounded-full border p-2 transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
             title="Edit preset"
@@ -106,20 +110,22 @@ export function PresetsSection({
           />
           <div className="grid gap-2 sm:grid-cols-3">
             <button
+              type="button"
               onClick={() => onSavePreset(presetName)}
               disabled={!presetName}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{
-                color: 'var(--color-primary)',
-                borderColor: 'var(--color-primary)',
+                color: "var(--color-primary)",
+                borderColor: "var(--color-primary)",
                 borderWidth: 1,
-                backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
+                backgroundColor: "rgba(var(--color-background-rgb), 0.06)",
               }}
             >
               <Save className="h-4 w-4" />
               Save
             </button>
             <button
+              type="button"
               onClick={() =>
                 selectedPresetId &&
                 onUpdatePreset(selectedPresetId, {
@@ -130,26 +136,27 @@ export function PresetsSection({
               disabled={!selectedPresetId}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{
-                color: 'var(--color-secondary)',
-                borderColor: 'var(--color-secondary)',
+                color: "var(--color-secondary)",
+                borderColor: "var(--color-secondary)",
                 borderWidth: 1,
-                backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
+                backgroundColor: "rgba(var(--color-background-rgb), 0.06)",
               }}
             >
               <Save className="h-4 w-4" />
               Update
             </button>
             <button
+              type="button"
               onClick={() =>
                 selectedPresetId && onDeletePreset(selectedPresetId)
               }
               disabled={!selectedPresetId}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{
-                color: 'var(--color-accent)',
-                borderColor: 'var(--color-accent)',
+                color: "var(--color-accent)",
+                borderColor: "var(--color-accent)",
                 borderWidth: 1,
-                backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
+                backgroundColor: "rgba(var(--color-background-rgb), 0.06)",
               }}
             >
               <Trash2 className="h-4 w-4" />
