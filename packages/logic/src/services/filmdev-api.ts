@@ -81,12 +81,10 @@ export async function fetchFilmdevRecipe(
     );
   }
 
-  // Use proxy in development to avoid CORS issues
-  const isDevelopment =
-    typeof window !== 'undefined' && window.location.hostname === 'localhost';
-  const url = isDevelopment
-    ? `/api/filmdev/recipe/${recipeId}`
-    : `https://filmdev.org/api/recipe/${recipeId}`;
+  // Always use proxy to avoid CORS issues
+  // In development: Vite proxy handles /api/filmdev -> filmdev.org
+  // In production: Vercel serverless function handles /api/filmdev -> filmdev.org
+  const url = `/api/filmdev/recipe/${recipeId}`;
 
   try {
     const response = await fetch(url, {
