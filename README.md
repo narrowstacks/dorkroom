@@ -8,7 +8,7 @@
 
 ![Version](https://img.shields.io/badge/Version-0.9.0-red) [![License](https://img.shields.io/badge/License-AGPL_V3.0-blue)](https://github.com/narrowstacks/dorkroom/blob/main/LICENSE)
 
-![React 19](https://img.shields.io/badge/React-19-61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.13-06B6D4) ![TanStack Query](https://img.shields.io/badge/-TanStack%20Query-red?style=flat-square&logo=react-query&logoColor=white)
+![React 19](https://img.shields.io/badge/React-19-61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.13-06B6D4) ![TanStack Query](https://img.shields.io/badge/-TanStack%20Query-red?style=flat-square&logo=react-query&logoColor=white) ![Biome](https://img.shields.io/badge/Biome-60A5FA?logo=biome&logoColor=fff)
 
 [![Uptime Robot status](https://img.shields.io/uptimerobot/status/m801823706-109991125954deb52b9281b8?logo=vercel&link=https%3A%2F%2Fstats.uptimerobot.com%2FL75VVTPwtz)](https://stats.uptimerobot.com/L75VVTPwtz) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/narrowstacks/dorkroom/ci.yml?logo=github&label=CI)](https://github.com/narrowstacks/dorkroom/actions/workflows/ci.yml) [![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-pr/narrowstacks/dorkroom)](https://github.com/narrowstacks/dorkroom/pulls) [![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/narrowstacks/dorkroom)](https://github.com/narrowstacks/dorkroom/issues)
 
@@ -107,10 +107,11 @@ bunx nx test logic
 
 ## Technology Stack
 
-- **Frontend**: React 19 with TypeScript 5.9.3
+- **Frontend**: React 19 with TypeScript 5.8.2
 - **Styling**: Tailwind CSS 4.1.13 with custom darkroom theme
-- **Build Tool**: Vite 6 with Nx 21.4 workspace
+- **Build Tool**: Vite 6 with Nx 22 workspace
 - **Testing**: Vitest 3 with Testing Library
+- **Linting & Formatting**: Biome (single quotes, semicolons, trailing commas)
 - **State Management**: TanStack Query v5 for server state
 - **Routing**: TanStack Router v1 with file-based routing
 - **Forms**: TanStack Form v1 with Zod validation
@@ -194,7 +195,7 @@ We welcome contributions from the analog photography community!
 5. Run quality checks on affected packages:
 
    ```bash
-   # Lint specific packages
+   # Lint specific packages (Biome)
    bunx nx lint logic
    bunx nx lint ui
    bunx nx lint dorkroom
@@ -204,8 +205,8 @@ We welcome contributions from the analog photography community!
    bunx nx typecheck ui
    bunx nx typecheck dorkroom
 
-   # Format code (only files you've modified)
-   bunx prettier --write .
+   # Format code with Biome
+   bun run format
    ```
 
 6. Submit a pull request
@@ -245,9 +246,9 @@ bunx nx test logic        # Test business logic
 bunx nx test ui          # Test UI components
 bunx nx test dorkroom    # Test main application
 
-bunx nx lint logic       # Lint business logic
-bunx nx lint ui         # Lint UI components
-bunx nx lint dorkroom   # Lint main application
+bunx nx lint logic       # Lint business logic (Biome)
+bunx nx lint ui         # Lint UI components (Biome)
+bunx nx lint dorkroom   # Lint main application (Biome)
 
 bunx nx typecheck logic     # Type check business logic
 bunx nx typecheck ui       # Type check UI components
@@ -256,8 +257,11 @@ bunx nx typecheck dorkroom # Type check main application
 # Run across all projects
 bunx nx run-many --targets=lint,typecheck,test,build
 
-# Format code (Prettier - single quotes, semicolons, trailing commas)
-bunx prettier --write .
+# Format code with Biome (single quotes, semicolons, trailing commas)
+bun run format
+
+# Lint and auto-fix issues with Biome
+bun run lint:fix
 ```
 
 ## Project Commands
@@ -268,9 +272,10 @@ bunx prettier --write .
 | `bunx nx build dorkroom`                 | Build production bundle        |
 | `bunx nx test`                           | Run tests                      |
 | `bunx nx test --ui`                      | Run tests with UI              |
-| `bunx nx lint dorkroom`                  | Run ESLint                     |
+| `bunx nx lint dorkroom`                  | Run Biome linting              |
 | `bunx nx typecheck dorkroom`             | TypeScript checking            |
-| `bunx prettier --write .`                | Format code                    |
+| `bun run format`                         | Format code with Biome         |
+| `bun run lint:fix`                       | Lint and auto-fix with Biome   |
 | `bunx nx graph`                          | Visualize project dependencies |
 
 ## License

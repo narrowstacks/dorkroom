@@ -39,7 +39,7 @@ jobs:
         with:
           bun-version: latest
 
-      - run: bun install --frozen-lockfile
+      - run: bun install
 
       #       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       #       # - run: bunx nx-cloud record -- echo Hello World
