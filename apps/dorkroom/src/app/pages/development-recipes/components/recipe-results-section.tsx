@@ -1,14 +1,15 @@
-import type { FC } from 'react';
-import { Loader2 } from 'lucide-react';
-import type { Table } from '@tanstack/react-table';
 import {
-  DevelopmentResultsTable,
-  DevelopmentResultsCards,
-  SkeletonCard,
-  SkeletonTableRow,
   cn,
   type DevelopmentCombinationView,
+  DevelopmentResultsCards,
+  DevelopmentResultsTable,
+  type ShareResult,
+  SkeletonCard,
+  SkeletonTableRow,
 } from '@dorkroom/ui';
+import type { Table } from '@tanstack/react-table';
+import { Loader2 } from 'lucide-react';
+import type { FC } from 'react';
 
 export interface RecipeResultsSectionProps {
   isLoading: boolean;
@@ -21,7 +22,9 @@ export interface RecipeResultsSectionProps {
   favoriteTransitions: Map<string, 'adding' | 'removing'>;
   onSelectCombination: (view: DevelopmentCombinationView) => void;
   onToggleFavorite: (view: DevelopmentCombinationView) => void;
-  onShareCombination: (view: DevelopmentCombinationView) => Promise<void>;
+  onShareCombination: (
+    view: DevelopmentCombinationView
+  ) => undefined | ShareResult | Promise<undefined | ShareResult>;
   onCopyCombination: (view: DevelopmentCombinationView) => Promise<void>;
   onEditCustomRecipe: (view: DevelopmentCombinationView) => void;
   onDeleteCustomRecipe: (view: DevelopmentCombinationView) => Promise<void>;

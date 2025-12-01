@@ -1,13 +1,13 @@
-import { ColumnDef, CellContext } from '@tanstack/react-table';
-import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import type { CellContext, ColumnDef } from '@tanstack/react-table';
+import { Beaker, Edit2, ExternalLink, Star, Trash2 } from 'lucide-react';
+import { useTemperature } from '../../contexts/temperature-context';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
-import { useTemperature } from '../../contexts/temperature-context';
-import { Tag } from '../ui/tag';
-import { ShareButton } from '../share-button';
 import type { ShareResult } from '../share-button';
+import { ShareButton } from '../share-button';
+import { Tag } from '../ui/tag';
 
 /**
  * Formatting utilities (extracted from results-table.tsx)
@@ -82,7 +82,7 @@ export interface TableColumnContext {
   onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;
   onShareCombination?: (
     view: DevelopmentCombinationView
-  ) => void | ShareResult | Promise<void | ShareResult>;
+  ) => undefined | ShareResult | Promise<undefined | ShareResult>;
 }
 
 /**
@@ -108,8 +108,8 @@ export const createTableColumns = (
             {combination.pushPull === 0
               ? 'Box Speed'
               : combination.pushPull > 0
-              ? `Push +${combination.pushPull}`
-              : `Pull ${combination.pushPull}`}
+                ? `Push +${combination.pushPull}`
+                : `Pull ${combination.pushPull}`}
           </div>
           {combination.tags && combination.tags.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">

@@ -1,5 +1,5 @@
-import { WarningAlert, CalculatorCard, CalculatorStat } from '../../index';
 import type { BorderCalculation } from '@dorkroom/logic';
+import { CalculatorCard, CalculatorStat, WarningAlert } from '../../index';
 import type { FormatDimensionsOptions } from '../../lib/measurement';
 
 interface BladeReadingsSectionProps {

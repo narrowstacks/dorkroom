@@ -26,7 +26,7 @@ export function formatTemperatureWithUnit(
   temperatureF: number | null,
   temperatureC: number | null,
   unit: TemperatureUnit,
-  highlight = false
+  _highlight = false
 ): { text: string; isNonStandard: boolean } {
   let fahrenheit = Number.isFinite(temperatureF)
     ? (temperatureF as number)

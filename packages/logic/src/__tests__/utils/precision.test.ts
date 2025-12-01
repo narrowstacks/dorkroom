@@ -1,24 +1,24 @@
 import {
+  createMemoKey,
   roundToPrecision,
   roundToStandardPrecision,
-  createMemoKey,
 } from '../../utils/precision';
 
 describe('precision utilities', () => {
   describe('roundToPrecision', () => {
     it('should round to specified decimal places', () => {
-      expect(roundToPrecision(3.14159, 2)).toBe(3.14);
-      expect(roundToPrecision(3.14159, 3)).toBe(3.142);
-      expect(roundToPrecision(3.14159, 0)).toBe(3);
+      expect(roundToPrecision(Math.PI, 2)).toBe(3.14);
+      expect(roundToPrecision(Math.PI, 3)).toBe(Math.PI);
+      expect(roundToPrecision(Math.PI, 0)).toBe(3);
     });
 
     it('should handle negative numbers', () => {
-      expect(roundToPrecision(-3.14159, 2)).toBe(-3.14);
+      expect(roundToPrecision(-Math.PI, 2)).toBe(-3.14);
       expect(roundToPrecision(-3.99999, 2)).toBe(-4);
     });
 
     it('should use default precision when not specified', () => {
-      expect(roundToPrecision(3.14159)).toBe(3.14); // default is 2 decimal places
+      expect(roundToPrecision(Math.PI)).toBe(3.14); // default is 2 decimal places
     });
 
     it('should handle whole numbers', () => {
@@ -35,13 +35,13 @@ describe('precision utilities', () => {
 
   describe('roundToStandardPrecision', () => {
     it('should round to standard precision (hundredths)', () => {
-      expect(roundToStandardPrecision(3.14159)).toBe(3.14);
+      expect(roundToStandardPrecision(Math.PI)).toBe(3.14);
       expect(roundToStandardPrecision(3.146)).toBe(3.15);
       expect(roundToStandardPrecision(3.144)).toBe(3.14);
     });
 
     it('should handle negative numbers', () => {
-      expect(roundToStandardPrecision(-3.14159)).toBe(-3.14);
+      expect(roundToStandardPrecision(-Math.PI)).toBe(-3.14);
       expect(roundToStandardPrecision(-3.146)).toBe(-3.15);
     });
 

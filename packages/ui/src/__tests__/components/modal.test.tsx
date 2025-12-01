@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Modal } from '../../components/modal';
 
 // Mock createPortal to render directly in test environment
@@ -97,7 +97,7 @@ describe('Modal', () => {
   });
 
   it('renders footer when provided', () => {
-    const footer = <button>Footer Button</button>;
+    const footer = <button type="button">Footer Button</button>;
     render(<Modal {...defaultProps} footer={footer} />);
 
     expect(screen.getByText('Footer Button')).toBeInTheDocument();

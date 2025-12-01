@@ -1,14 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import type { CustomRecipe } from '../../types/custom-recipes';
 import {
-  encodeCustomRecipe,
-  decodeCustomRecipe,
   createCustomRecipeFromEncoded,
-  isValidCustomRecipeEncoding,
+  decodeCustomRecipe,
   type EncodedCustomRecipe,
+  encodeCustomRecipe,
+  isValidCustomRecipeEncoding,
 } from '../recipe-sharing';
-import type {
-  CustomRecipe,
-} from '../../types/custom-recipes';
 
 describe('recipe-sharing', () => {
   const mockCustomRecipe: CustomRecipe = {

@@ -1,12 +1,12 @@
-import { useCallback, useMemo } from 'react';
-import type { Combination, Film, Developer } from '@dorkroom/api';
+import type { Combination, Developer, Film } from '@dorkroom/api';
 import type { CustomRecipe } from '@dorkroom/logic';
 import {
-  getCustomRecipeFilm,
-  getCustomRecipeDeveloper,
   createCombinationFromCustomRecipe,
+  getCustomRecipeDeveloper,
+  getCustomRecipeFilm,
 } from '@dorkroom/logic';
-import { type DevelopmentCombinationView } from '@dorkroom/ui';
+import type { DevelopmentCombinationView } from '@dorkroom/ui';
+import { useCallback, useMemo } from 'react';
 
 export interface UseRecipeDataProps {
   filteredCombinations: Combination[];
@@ -48,9 +48,7 @@ export interface UseRecipeDataReturn {
  * Hook that handles all data processing and derived state for development recipes
  * Consolidates recipe maps, combination views, filtering, and sorting
  */
-export function useRecipeData(
-  props: UseRecipeDataProps
-): UseRecipeDataReturn {
+export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
   const {
     filteredCombinations,
     customRecipes,
@@ -118,8 +116,8 @@ export function useRecipeData(
     );
 
     // Get film and developer (either from database or custom data)
-    let film: Film | undefined = undefined;
-    let developer: Developer | undefined = undefined;
+    let film: Film | undefined;
+    let developer: Developer | undefined;
 
     if (sharedCustomRecipe.isCustomFilm && sharedCustomRecipe.customFilm) {
       // Create a temporary film object from custom data
@@ -162,10 +160,7 @@ export function useRecipeData(
           sharedCustomRecipe.customDeveloper.filmOrPaper === 'film' ||
           sharedCustomRecipe.customDeveloper.filmOrPaper === 'both',
         dilutions: sharedCustomRecipe.customDeveloper.dilutions.map(
-          (
-            d: { name: string; dilution: string },
-            index: number
-          ) => ({
+          (d: { name: string; dilution: string }, index: number) => ({
             id: String(index),
             name: d.name,
             dilution: d.dilution,
@@ -294,7 +289,7 @@ export function useRecipeData(
         if (tagFilter === 'custom') {
           return row.source === 'custom';
         }
-        return combination.tags && combination.tags.includes(tagFilter);
+        return combination.tags?.includes(tagFilter);
       });
     }
 

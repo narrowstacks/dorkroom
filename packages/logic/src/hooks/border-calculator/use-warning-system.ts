@@ -8,12 +8,12 @@
 \* ------------------------------------------------------------------ */
 
 import { useEffect, useRef } from 'react';
+import { CALCULATION_CONSTANTS } from '../../constants/calculations';
 import type {
-  BorderCalculatorState,
   BorderCalculatorAction,
+  BorderCalculatorState,
   WarningTimeouts,
 } from '../../types/border-calculator';
-import { CALCULATION_CONSTANTS } from '../../constants/calculations';
 
 interface WarningUpdateData {
   offsetWarning: string | null;

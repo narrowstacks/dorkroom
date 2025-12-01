@@ -1,6 +1,6 @@
-import { NumberInput } from '../number-input';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
+import { NumberInput } from '../number-input';
 
 interface CalculatorNumberFieldProps {
   label: string;

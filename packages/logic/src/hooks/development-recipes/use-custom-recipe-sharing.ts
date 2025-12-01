@@ -1,13 +1,13 @@
 import { useCallback, useState } from 'react';
 import type { CustomRecipe } from '../../types/custom-recipes';
-import {
-  encodeCustomRecipe,
-  decodeCustomRecipe,
-  createCustomRecipeFromEncoded,
-  isValidCustomRecipeEncoding,
-} from '../../utils/recipe-sharing';
 import { debugLog } from '../../utils/debug-logger';
 import { shouldUseWebShare } from '../../utils/device-detection';
+import {
+  createCustomRecipeFromEncoded,
+  decodeCustomRecipe,
+  encodeCustomRecipe,
+  isValidCustomRecipeEncoding,
+} from '../../utils/recipe-sharing';
 
 export interface CustomRecipeShareOptions {
   recipe: CustomRecipe;

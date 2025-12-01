@@ -4,12 +4,12 @@
    Geometry helpers adapted from the original border calculator
 \* ------------------------------------------------------------------ */
 
-import { EASEL_SIZES, BLADE_THICKNESS } from '../constants/border-calculator';
+import { BLADE_THICKNESS, EASEL_SIZES } from '../constants/border-calculator';
 import {
   CALCULATION_CONSTANTS,
   DERIVED_CONSTANTS,
 } from '../constants/calculations';
-import { roundToStandardPrecision, createMemoKey } from './precision';
+import { createMemoKey, roundToStandardPrecision } from './precision';
 
 const { BORDER_OPTIMIZATION, CACHE, PAPER } = CALCULATION_CONSTANTS;
 

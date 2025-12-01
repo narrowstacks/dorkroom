@@ -1,10 +1,10 @@
 import type {
-  CustomRecipe,
-  CustomFilmData,
   CustomDeveloperData,
+  CustomFilmData,
+  CustomRecipe,
 } from '../types/custom-recipes';
 import { debugError } from './debug-logger';
-import { sanitizeText, sanitizeRecipeName } from './text-sanitization';
+import { sanitizeRecipeName, sanitizeText } from './text-sanitization';
 
 const CURRENT_RECIPE_SHARING_VERSION = 1;
 

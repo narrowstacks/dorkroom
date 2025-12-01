@@ -1,12 +1,12 @@
 import {
-  getDynamicShareUrl,
-  generateSharingUrls,
-  getPresetFromUrl,
-  updateUrlWithPreset,
   clearPresetFromUrl,
-  isWebShareSupported,
-  isClipboardSupported,
+  generateSharingUrls,
   getDisplayUrl,
+  getDynamicShareUrl,
+  getPresetFromUrl,
+  isClipboardSupported,
+  isWebShareSupported,
+  updateUrlWithPreset,
 } from '../../utils/url-helpers';
 
 // Mock window object for testing

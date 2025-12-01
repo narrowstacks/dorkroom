@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  printingItems,
-  shootingItems,
-  navItems,
   allNavItems,
+  navItems,
+  printingItems,
   ROUTE_TITLES,
+  shootingItems,
 } from '../../lib/navigation';
 
 describe('navigation utilities', () => {

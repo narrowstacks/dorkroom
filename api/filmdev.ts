@@ -1,13 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import {
+  logApiError,
   logApiRequest,
   logApiResponse,
-  logApiError,
   logExternalApiCall,
   logExternalApiResponse,
+  serverlessError,
   serverlessLog,
   serverlessWarn,
-  serverlessError,
 } from '../utils/serverlessLogger';
 
 const FILMDEV_API_BASE = 'https://filmdev.org/api';

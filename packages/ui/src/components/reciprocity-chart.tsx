@@ -1,5 +1,5 @@
-import { useMemo, useState, useRef, useEffect } from 'react';
 import { formatSeconds } from '@dorkroom/logic';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface ReciprocityChartProps {
   /**
@@ -129,10 +129,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
 
     // Dynamic range based on current calculation with some headroom
     const maxMetered = Math.max(300, originalTime * 1.5);
-    const maxAdjusted = Math.max(
-      adjustedTime * 1.3,
-      Math.pow(maxMetered, factor)
-    );
+    const maxAdjusted = Math.max(adjustedTime * 1.3, maxMetered ** factor);
 
     // Scale functions
     const scaleX = (x: number) => (x / maxMetered) * plotWidth + padding.left;
@@ -144,7 +141,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
     const steps = 100;
     for (let i = 0; i <= steps; i++) {
       const x = (i / steps) * maxMetered;
-      const y = Math.pow(x, factor);
+      const y = x ** factor;
       curvePoints.push({ x: scaleX(x), y: scaleY(y) });
     }
 
@@ -221,7 +218,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
     }
 
     for (let t = effectiveInterval; t <= maxMetered; t += effectiveInterval) {
-      const adjustedT = Math.pow(t, factor);
+      const adjustedT = t ** factor;
       hoverPoints.push({
         meteredTime: t,
         adjustedTime: adjustedT,
@@ -234,7 +231,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
     // Always include the final maxMetered point if it's not already included
     const lastHoverPoint = hoverPoints[hoverPoints.length - 1];
     if (!lastHoverPoint || lastHoverPoint.meteredTime < maxMetered) {
-      const adjustedMaxMetered = Math.pow(maxMetered, factor);
+      const adjustedMaxMetered = maxMetered ** factor;
       hoverPoints.push({
         meteredTime: maxMetered,
         adjustedTime: adjustedMaxMetered,
@@ -373,7 +370,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
     return () => {
       resizeObserver.disconnect();
     };
-  }, [autoScrollOnResize]);
+  }, [autoScrollOnResize, isWideModeLayout]);
 
   return (
     <div className={className} ref={chartContainerRef}>

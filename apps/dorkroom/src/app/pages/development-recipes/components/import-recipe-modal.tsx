@@ -1,12 +1,12 @@
-import type { FC } from 'react';
-import { X } from 'lucide-react';
 import {
-  Modal,
   Drawer,
-  DrawerContent,
   DrawerBody,
+  DrawerContent,
   ImportRecipeForm,
+  Modal,
 } from '@dorkroom/ui';
+import { X } from 'lucide-react';
+import type { FC } from 'react';
 
 export interface ImportRecipeModalProps {
   isOpen: boolean;
@@ -65,7 +65,12 @@ export const ImportRecipeModal: FC<ImportRecipeModalProps> = (props) => {
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Import shared recipe" size="sm">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Import shared recipe"
+      size="sm"
+    >
       <ImportRecipeForm
         onImport={onImport}
         onCancel={onClose}

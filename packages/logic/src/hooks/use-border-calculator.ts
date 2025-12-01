@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type {
   BorderCalculation,
   BorderSettings,
@@ -52,8 +52,7 @@ export function useBorderCalculator() {
   const [showBladeReadings, setShowBladeReadings] = useState(true);
   const [isLandscape, setIsLandscape] = useState(false);
   const [isRatioFlipped, setIsRatioFlipped] = useState(false);
-  const [hasManuallyFlippedPaper, setHasManuallyFlippedPaper] =
-    useState(false);
+  const [hasManuallyFlippedPaper, setHasManuallyFlippedPaper] = useState(false);
 
   const setMinBorderSlider = (value: number) => {
     setMinBorder(value);

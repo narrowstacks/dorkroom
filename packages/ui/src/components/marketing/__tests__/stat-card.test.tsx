@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
 import { Heart } from 'lucide-react';
+import { describe, expect, it } from 'vitest';
 import { StatCard } from '../stat-card';
 
 describe('StatCard', () => {
@@ -15,7 +15,7 @@ describe('StatCard', () => {
 
   it('renders correctly with vertical variant (default)', () => {
     render(<StatCard {...defaultProps} />);
-    
+
     expect(screen.getByText('Test Stat')).toBeInTheDocument();
     expect(screen.getByText('123')).toBeInTheDocument();
     const card = screen.getByRole('link', { name: 'Test Stat' });
@@ -24,7 +24,7 @@ describe('StatCard', () => {
 
   it('renders correctly with horizontal variant', () => {
     render(<StatCard {...defaultProps} variant="horizontal" />);
-    
+
     expect(screen.getByText('Test Stat')).toBeInTheDocument();
     expect(screen.getByText('123')).toBeInTheDocument();
     const card = screen.getByRole('link', { name: 'Test Stat' });
@@ -38,9 +38,8 @@ describe('StatCard', () => {
 
   it('renders as a different component when "as" prop is provided', () => {
     render(<StatCard {...defaultProps} as="button" />);
-    expect(screen.getByRole('button', { name: 'Test Stat' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Test Stat' })
+    ).toBeInTheDocument();
   });
 });
-
-
-

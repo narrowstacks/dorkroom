@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { Greeting } from '../greeting';
 
 describe('Greeting', () => {
@@ -14,7 +14,3 @@ describe('Greeting', () => {
     expect(container).toHaveClass('custom-class');
   });
 });
-
-
-
-

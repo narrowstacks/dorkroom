@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { CalculatorCard } from '../../components/calculator/calculator-card';
 
 describe('CalculatorCard', () => {
@@ -53,7 +53,7 @@ describe('CalculatorCard', () => {
   });
 
   it('renders with actions', () => {
-    const actions = <button>Action Button</button>;
+    const actions = <button type="button">Action Button</button>;
 
     render(
       <CalculatorCard actions={actions}>
@@ -65,7 +65,7 @@ describe('CalculatorCard', () => {
   });
 
   it('renders complete card with all props', () => {
-    const actions = <button>Save</button>;
+    const actions = <button type="button">Save</button>;
 
     render(
       <CalculatorCard
@@ -218,7 +218,10 @@ describe('CalculatorCard', () => {
 
     it('renders header with proper responsive layout', () => {
       render(
-        <CalculatorCard title="Test" actions={<button>Action</button>}>
+        <CalculatorCard
+          title="Test"
+          actions={<button type="button">Action</button>}
+        >
           <div>Content</div>
         </CalculatorCard>
       );

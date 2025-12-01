@@ -1,26 +1,26 @@
 import {
+  useCombinations,
+  useCustomRecipes,
+  useFavorites,
+} from '@dorkroom/logic';
+import { Greeting, StatCard, ToolCard } from '@dorkroom/ui';
+import { Link } from '@tanstack/react-router';
+import {
+  BookOpen,
+  CalculatorIcon,
+  Camera,
+  Construction,
   Crop,
   FlaskConical,
   Gauge,
   GitBranch,
+  GraduationCap,
   HandCoins,
   Heart,
   Library,
   Ruler,
   Timer,
-  CalculatorIcon,
-  BookOpen,
-  GraduationCap,
-  Camera,
-  Construction,
 } from 'lucide-react';
-import { Link } from '@tanstack/react-router';
-import {
-  useCustomRecipes,
-  useFavorites,
-  useCombinations,
-} from '@dorkroom/logic';
-import { Greeting, ToolCard, StatCard } from '@dorkroom/ui';
 
 // Calculator tools configuration - module level to prevent recreation on each render
 const CALCULATORS = [

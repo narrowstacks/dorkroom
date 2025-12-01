@@ -1,10 +1,10 @@
-import { Modal } from '../modal';
-import { Drawer, DrawerBody, DrawerContent } from '../drawer';
-import { DevelopmentRecipeDetail } from './recipe-detail';
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import { X } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
-import { X } from 'lucide-react';
+import { Drawer, DrawerBody, DrawerContent } from '../drawer';
+import { Modal } from '../modal';
+import { DevelopmentRecipeDetail } from './recipe-detail';
 
 interface SharedRecipeModalProps {
   isOpen: boolean;
@@ -145,8 +145,8 @@ export function SharedRecipeModal({
           {isProcessing
             ? 'Adding...'
             : isCustomRecipe
-            ? 'Add to My Recipes'
-            : 'Save Recipe'}
+              ? 'Add to My Recipes'
+              : 'Save Recipe'}
         </button>
       )}
     </div>

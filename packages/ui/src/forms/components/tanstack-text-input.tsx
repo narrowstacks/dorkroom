@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import styles from './tanstack-text-input.module.css';

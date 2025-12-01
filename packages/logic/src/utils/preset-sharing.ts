@@ -1,9 +1,9 @@
+import { ASPECT_RATIOS, PAPER_SIZES } from '../constants/border-calculator';
 import type {
-  BorderPresetSettings,
   AspectRatioValue,
+  BorderPresetSettings,
   PaperSizeValue,
 } from '../types/border-calculator';
-import { ASPECT_RATIOS, PAPER_SIZES } from '../constants/border-calculator';
 import { debugError } from './debug-logger';
 
 /**

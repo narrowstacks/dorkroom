@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
+import { SLIDER_MIN_BORDER, SLIDER_STEP_BORDER } from '@dorkroom/logic';
 import type { AnyFormApi } from '@tanstack/react-form';
 import { X } from 'lucide-react';
+import { useMemo } from 'react';
 import { LabeledSliderInput } from '../../../components/labeled-slider-input';
 import { WarningAlert } from '../../../components/warning-alert';
-import { SLIDER_MIN_BORDER, SLIDER_STEP_BORDER } from '@dorkroom/logic';
 
 interface BorderSizeSectionProps {
   onClose: () => void;

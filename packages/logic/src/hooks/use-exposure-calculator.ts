@@ -1,21 +1,21 @@
-import { useState, useCallback, useMemo } from 'react';
-import {
-  calculateNewExposureTime,
-  roundStopsToThirds,
-  parseExposureTime,
-  formatExposureTime,
-  calculatePercentageIncrease,
-} from '../utils/exposure-calculations';
-import { roundToStandardPrecision } from '../utils/precision';
-import type {
-  ExposureCalculatorState,
-  ExposureCalculation,
-} from '../types/exposure-calculator';
-import { EXPOSURE_PRESETS } from '../types/exposure-calculator';
+import { useCallback, useMemo, useState } from 'react';
 import {
   DEFAULT_EXPOSURE_ORIGINAL_TIME,
   DEFAULT_EXPOSURE_STOPS,
 } from '../constants/exposure-calculator-defaults';
+import type {
+  ExposureCalculation,
+  ExposureCalculatorState,
+} from '../types/exposure-calculator';
+import { EXPOSURE_PRESETS } from '../types/exposure-calculator';
+import {
+  calculateNewExposureTime,
+  calculatePercentageIncrease,
+  formatExposureTime,
+  parseExposureTime,
+  roundStopsToThirds,
+} from '../utils/exposure-calculations';
+import { roundToStandardPrecision } from '../utils/precision';
 
 /**
  * Exposure calculator hook for photography stop calculations.
@@ -64,7 +64,7 @@ export const useExposureCalculator = () => {
 
       if (
         originalTimeValue === null ||
-        isNaN(stopsValue) ||
+        Number.isNaN(stopsValue) ||
         originalTimeValue <= 0
       ) {
         return '';
@@ -108,7 +108,7 @@ export const useExposureCalculator = () => {
       }
 
       const numericStops = parseFloat(stops);
-      if (!isNaN(numericStops)) {
+      if (!Number.isNaN(numericStops)) {
         const truncatedStops =
           roundToStandardPrecision(numericStops).toString();
         setState((prev) => ({
@@ -131,7 +131,7 @@ export const useExposureCalculator = () => {
   const adjustStops = useCallback(
     (increment: number) => {
       const currentStops = parseFloat(state.stops);
-      if (isNaN(currentStops)) return;
+      if (Number.isNaN(currentStops)) return;
 
       const newStopsValue = roundStopsToThirds(currentStops + increment);
       const truncatedStops = roundToStandardPrecision(newStopsValue).toString();
@@ -155,7 +155,7 @@ export const useExposureCalculator = () => {
 
     if (
       originalTimeValue === null ||
-      isNaN(stopsValue) ||
+      Number.isNaN(stopsValue) ||
       newTimeValue === null ||
       originalTimeValue <= 0
     ) {

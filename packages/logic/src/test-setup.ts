@@ -5,27 +5,23 @@ import '@testing-library/jest-dom';
 global.IS_REACT_ACT_ENVIRONMENT = true;
 
 // Mock localStorage if not fully available
-const localStorageMock = (function () {
+const localStorageMock = (() => {
   let store: Record<string, string> = {};
   return {
-    getItem: function (key: string) {
-      return store[key] || null;
-    },
-    setItem: function (key: string, value: string) {
+    getItem: (key: string) => store[key] || null,
+    setItem: (key: string, value: string) => {
       store[key] = value.toString();
     },
-    removeItem: function (key: string) {
+    removeItem: (key: string) => {
       delete store[key];
     },
-    clear: function () {
+    clear: () => {
       store = {};
     },
-    key: function (index: number) {
-        return Object.keys(store)[index] || null;
-    },
+    key: (index: number) => Object.keys(store)[index] || null,
     get length() {
-        return Object.keys(store).length;
-    }
+      return Object.keys(store).length;
+    },
   };
 })();
 

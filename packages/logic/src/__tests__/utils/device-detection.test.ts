@@ -1,6 +1,6 @@
 import {
-  isMobileDevice,
   isIOS,
+  isMobileDevice,
   shouldUseWebShare,
 } from '../../utils/device-detection';
 

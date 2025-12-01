@@ -1,5 +1,5 @@
-import { CalculatorCard } from '../calculator/calculator-card';
 import { colorMixOr } from '../../lib/color';
+import { CalculatorCard } from '../calculator/calculator-card';
 
 const INFO_HOW_TO_USE = [
   'Select your desired aspect ratio (the ratio of your negative or image)',

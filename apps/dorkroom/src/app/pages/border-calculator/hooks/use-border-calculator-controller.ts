@@ -1,36 +1,36 @@
-import { useEffect, useMemo, useCallback, useRef } from 'react';
-import { useForm } from '@tanstack/react-form';
-import { useStore } from '@tanstack/react-store';
 import {
-  useMeasurementFormatter,
-  useMeasurementConverter,
-  createZodFormValidator,
-  useOptionalToast,
-} from '@dorkroom/ui';
-import {
+  type BorderCalculatorState,
+  type BorderPresetSettings,
+  borderCalculatorInitialState,
   borderCalculatorSchema,
+  CALC_STORAGE_KEY,
+  calculateQuarterInchMinBorder,
+  DEFAULT_BORDER_PRESETS,
+  DESKTOP_BREAKPOINT,
+  debugError,
+  debugLog,
+  debugWarn,
+  PAPER_SIZES,
+  shallowEqual,
   useBorderPresets,
-  useWindowDimensions,
-  usePresetSharing,
-  useUrlPresetLoader,
+  useCalculatorSharing,
   useDimensionCalculations,
   useGeometryCalculations,
   usePaperDimensionInput,
   usePresetManagement,
-  useCalculatorSharing,
-  calculateQuarterInchMinBorder,
-  shallowEqual,
-  debugLog,
-  debugWarn,
-  debugError,
-  type BorderCalculatorState,
-  type BorderPresetSettings,
-  DESKTOP_BREAKPOINT,
-  PAPER_SIZES,
-  DEFAULT_BORDER_PRESETS,
-  CALC_STORAGE_KEY,
-  borderCalculatorInitialState,
+  usePresetSharing,
+  useUrlPresetLoader,
+  useWindowDimensions,
 } from '@dorkroom/logic';
+import {
+  createZodFormValidator,
+  useMeasurementConverter,
+  useMeasurementFormatter,
+  useOptionalToast,
+} from '@dorkroom/ui';
+import { useForm } from '@tanstack/react-form';
+import { useStore } from '@tanstack/react-store';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 const validateBorderCalculator = createZodFormValidator(borderCalculatorSchema);
 
@@ -83,7 +83,7 @@ export function useBorderCalculatorController() {
       debugWarn('Failed to load calculator state', error);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [form.setFieldValue]);
 
   const formValues = useStore(
     form.store,
@@ -287,7 +287,7 @@ export function useBorderCalculatorController() {
         form.setFieldValue('isLandscape', shouldBeLandscape);
       }
     }
-  }, [paperSize, customPaperWidth, customPaperHeight, form]);
+  }, [customPaperWidth, customPaperHeight, form]);
 
   const applyPresetSettings = useCallback(
     (settings: BorderPresetSettings) => {

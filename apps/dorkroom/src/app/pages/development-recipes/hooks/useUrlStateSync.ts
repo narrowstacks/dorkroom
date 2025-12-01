@@ -1,6 +1,6 @@
-import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react';
-import type { Film, Developer, Combination } from '@dorkroom/api';
+import type { Combination, Developer, Film } from '@dorkroom/api';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
+import { type Dispatch, type SetStateAction, useEffect, useRef } from 'react';
 
 export interface UseUrlStateSyncProps {
   isLoaded: boolean;
@@ -23,7 +23,9 @@ export interface UseUrlStateSyncProps {
   setDilutionFilter: (filter: string) => void;
   setIsoFilter: (filter: string) => void;
   setFavoritesOnly: Dispatch<SetStateAction<boolean>>;
-  setCustomRecipeFilter: (filter: 'all' | 'hide-custom' | 'only-custom') => void;
+  setCustomRecipeFilter: (
+    filter: 'all' | 'hide-custom' | 'only-custom'
+  ) => void;
   setSharedRecipeView: Dispatch<
     SetStateAction<DevelopmentCombinationView | null>
   >;

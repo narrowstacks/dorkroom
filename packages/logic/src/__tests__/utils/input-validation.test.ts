@@ -1,8 +1,8 @@
 import {
-  tryNumber,
   debounce,
   isValidNumberInProgress,
   isValidNumericInput,
+  tryNumber,
 } from '../../utils/input-validation';
 
 describe('input validation utilities', () => {

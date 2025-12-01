@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
 import { Calculator } from 'lucide-react';
+import { describe, expect, it } from 'vitest';
 import { ToolCard } from '../tool-card';
 
 describe('ToolCard', () => {
@@ -17,7 +17,7 @@ describe('ToolCard', () => {
 
   it('renders correctly', () => {
     render(<ToolCard {...defaultProps} />);
-    
+
     expect(screen.getByText('Test Tool')).toBeInTheDocument();
     expect(screen.getByText('A description of the tool')).toBeInTheDocument();
     expect(screen.getByText('Category')).toBeInTheDocument();
@@ -30,10 +30,8 @@ describe('ToolCard', () => {
 
   it('renders as a different component when "as" prop is provided', () => {
     render(<ToolCard {...defaultProps} as="button" />);
-    expect(screen.getByRole('button', { name: 'Test Tool' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Test Tool' })
+    ).toBeInTheDocument();
   });
 });
-
-
-
-

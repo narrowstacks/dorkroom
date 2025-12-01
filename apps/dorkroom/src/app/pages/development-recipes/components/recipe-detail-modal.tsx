@@ -1,13 +1,13 @@
-import type { FC } from 'react';
-import { X } from 'lucide-react';
 import {
-  Modal,
-  Drawer,
-  DrawerContent,
-  DrawerBody,
-  DevelopmentRecipeDetail,
   type DevelopmentCombinationView,
+  DevelopmentRecipeDetail,
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  Modal,
 } from '@dorkroom/ui';
+import { X } from 'lucide-react';
+import type { FC } from 'react';
 
 export interface RecipeDetailModalProps {
   isOpen: boolean;
@@ -42,7 +42,9 @@ export const RecipeDetailModal: FC<RecipeDetailModalProps> = (props) => {
     return null;
   }
 
-  const recipeId = String(detailView.combination.uuid || detailView.combination.id);
+  const recipeId = String(
+    detailView.combination.uuid || detailView.combination.id
+  );
   const isRecipeFavorite = isFavorite(recipeId);
   const isCustomRecipe = detailView.source === 'custom';
 
@@ -126,9 +128,7 @@ export const RecipeDetailModal: FC<RecipeDetailModalProps> = (props) => {
               onEditCustomRecipe={onEditCustomRecipe}
               onDeleteCustomRecipe={onDeleteCustomRecipe}
               isFavorite={(view) =>
-                isFavorite(
-                  String(view.combination.uuid || view.combination.id)
-                )
+                isFavorite(String(view.combination.uuid || view.combination.id))
               }
               onToggleFavorite={(view) =>
                 toggleFavorite(

@@ -1,15 +1,15 @@
-import { useMemo } from 'react';
+import type { Combination, Developer, Film } from '@dorkroom/api';
 import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
-  SortingState,
   type ColumnDef,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
   type PaginationState,
   type SortingFn,
+  type SortingState,
+  useReactTable,
 } from '@tanstack/react-table';
-import type { Combination, Film, Developer } from '@dorkroom/api';
+import { useMemo } from 'react';
 
 export interface DevelopmentCombinationView {
   combination: Combination;
@@ -120,7 +120,7 @@ export function useDevelopmentTable({
   isFavorite,
 }: UseDevelopmentTableOptions) {
   const paginationState = useMemo(
-    () => ({ pageIndex, pageSize: PAGE_SIZE } satisfies PaginationState),
+    () => ({ pageIndex, pageSize: PAGE_SIZE }) satisfies PaginationState,
     [pageIndex]
   );
 

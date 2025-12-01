@@ -1,16 +1,16 @@
-import type { FC } from 'react';
-import {
-  SharedRecipeModal,
-  FilmdevPreviewModal,
-  type DevelopmentCombinationView,
-} from '@dorkroom/ui';
 import type {
   CustomRecipeFormData,
   FilmdevMappingResult,
 } from '@dorkroom/logic';
-import { RecipeDetailModal } from './recipe-detail-modal';
+import {
+  type DevelopmentCombinationView,
+  FilmdevPreviewModal,
+  SharedRecipeModal,
+} from '@dorkroom/ui';
+import type { FC } from 'react';
 import { CustomRecipeModal } from './custom-recipe-modal';
 import { ImportRecipeModal } from './import-recipe-modal';
+import { RecipeDetailModal } from './recipe-detail-modal';
 
 export interface RecipeModalsProps {
   isMobile: boolean;

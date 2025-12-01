@@ -1,4 +1,4 @@
-import { AlertTriangle, AlertCircle } from 'lucide-react';
+import { AlertCircle, AlertTriangle } from 'lucide-react';
 import { cn } from '../lib/cn';
 import { colorMixOr } from '../lib/color';
 

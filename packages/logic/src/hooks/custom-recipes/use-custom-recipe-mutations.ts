@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  CustomRecipe,
-  type CustomRecipeFormData,
-} from '../../types/custom-recipes';
 import { queryKeys } from '../../queries/query-keys';
+import type {
+  CustomRecipe,
+  CustomRecipeFormData,
+} from '../../types/custom-recipes';
 import { debugError } from '../../utils/debug-logger';
 
 const STORAGE_KEY = 'dorkroom_custom_recipes';
@@ -60,13 +60,13 @@ const createRecipeFromFormData = (
 
   const filmId = formData.useExistingFilm
     ? formData.selectedFilmId || base?.filmId || `fallback_film_${timestamp}`
-    : base?.filmId ?? `custom_film_${timestamp}`;
+    : (base?.filmId ?? `custom_film_${timestamp}`);
 
   const developerId = formData.useExistingDeveloper
     ? formData.selectedDeveloperId ||
       base?.developerId ||
       `fallback_dev_${timestamp}`
-    : base?.developerId ?? `custom_dev_${timestamp}`;
+    : (base?.developerId ?? `custom_dev_${timestamp}`);
 
   return {
     ...base,

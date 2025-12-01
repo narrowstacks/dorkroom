@@ -16,10 +16,10 @@ Dorkroom is an analog photography calculator app built with React 19, TypeScript
 
 ### Code Quality (run these after completing tasks)
 
-- `bunx nx lint dorkroom` - Run ESLint
+- `bunx nx lint dorkroom` - Run Biome linting
 - `bunx nx typecheck dorkroom` - TypeScript type checking
-- `bunx prettier --write .` - Format code, but only format the code you've touched this session.
-  - When creating/modifying markdown documents, **always run prettier on the files you've edited immediately after finishing all of your edits.** This avoids having to manually fix linter errors.
+- `bun run format` - Format code with Biome (formats the entire codebase)
+- `bun run lint:fix` - Lint and auto-fix issues with Biome
 
 ### Testing
 
@@ -47,7 +47,8 @@ Dorkroom is an analog photography calculator app built with React 19, TypeScript
 - Tailwind CSS 4.1.13 for styling
 - Vite 6 for bundling
 - Vitest 3 for testing
-- Nx 21.4 for monorepo management
+- Nx 22 for monorepo management
+- Biome for linting and formatting
 - TanStack Query v5 for server state management
 - TanStack Router v1 for file-based routing
 - TanStack Form v1 for form state management with Zod validation
@@ -58,13 +59,16 @@ Dorkroom is an analog photography calculator app built with React 19, TypeScript
 
 ### Style
 
-**Prettier Configuration (.prettierrc):**
+**Biome Configuration (biome.json):**
 
 - Single quotes for strings
 - Semicolons at end of statements
 - Trailing commas in ES5-valid syntax (objects, arrays)
 - Bracket spacing in object literals: `{ foo }` not `{foo}`
 - Always include parentheses in arrow functions: `(x) =>` not `x =>`
+- Double quotes for JSX attributes
+- 2-space indentation
+- 80-character line width
 
 **Naming Conventions:**
 

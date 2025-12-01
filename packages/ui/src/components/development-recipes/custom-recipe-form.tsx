@@ -1,13 +1,13 @@
-import { useState } from 'react';
 import type {
-  CustomRecipeFormData,
-  CustomFilmData,
   CustomDeveloperData,
+  CustomFilmData,
+  CustomRecipeFormData,
+  SelectItem,
 } from '@dorkroom/logic';
-import { TextInput } from '../text-input';
-import { Select } from '../select';
-import type { SelectItem } from '@dorkroom/logic';
+import { useState } from 'react';
 import { cn } from '../../lib/cn';
+import { Select } from '../select';
+import { TextInput } from '../text-input';
 
 interface CustomRecipeFormProps {
   initialValue: CustomRecipeFormData;
@@ -354,8 +354,8 @@ export function CustomRecipeForm({
               value === 0
                 ? 'Box Speed'
                 : value > 0
-                ? `Push +${value}`
-                : `Pull ${Math.abs(value)}`,
+                  ? `Push +${value}`
+                  : `Pull ${Math.abs(value)}`,
             value: String(value),
           }))}
         />

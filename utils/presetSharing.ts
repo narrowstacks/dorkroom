@@ -1,10 +1,7 @@
-import { Buffer } from 'buffer';
+import { Buffer } from 'node:buffer';
 import { ASPECT_RATIOS, PAPER_SIZES } from '@/constants/border';
-import type {
-  BorderPreset,
-  BorderPresetSettings,
-} from '@/types/borderPresetTypes';
-import { debugLog, debugError } from '@/utils/debugLogger';
+import type { BorderPresetSettings } from '@/types/borderPresetTypes';
+import { debugError, debugLog } from '@/utils/debugLogger';
 
 const findIndexByValue = <T extends readonly { value: string }[]>(
   arr: T,

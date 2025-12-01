@@ -1,21 +1,21 @@
-import { useEffect, useState } from 'react';
 import {
+  allNavItems,
+  NavigationDropdown,
+  navItems,
+  printingItems,
+  ROUTE_TITLES,
+  ThemeToggle,
+} from '@dorkroom/ui';
+import {
+  createRootRoute,
   Link,
   Outlet,
-  createRootRoute,
   useRouter,
   useRouterState,
 } from '@tanstack/react-router';
 import { Beaker, GitBranch, Menu, Printer, Settings, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { cn } from '../app/lib/cn';
-import {
-  NavigationDropdown,
-  printingItems,
-  navItems,
-  allNavItems,
-  ROUTE_TITLES,
-  ThemeToggle,
-} from '@dorkroom/ui';
 
 function RootComponent() {
   const router = useRouter();
@@ -41,7 +41,7 @@ function RootComponent() {
   // Close mobile menu on navigation
   useEffect(() => {
     setIsMobileMenuOpen(false);
-  }, [pathname]);
+  }, []);
 
   // Handle body overflow for mobile menu
   useEffect(() => {

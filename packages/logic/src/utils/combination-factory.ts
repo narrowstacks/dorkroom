@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import type { Combination } from '@dorkroom/api';
+import { z } from 'zod';
 import type { CustomRecipe } from '../types/custom-recipes';
 
 /**
@@ -17,7 +17,9 @@ const RecipeValidationSchema = z.object({
   temperatureF: z
     .number({
       error: (issue) =>
-        issue.code === 'invalid_type' ? 'Invalid numeric values provided' : undefined,
+        issue.code === 'invalid_type'
+          ? 'Invalid numeric values provided'
+          : undefined,
     })
     .finite('Invalid numeric values provided')
     .min(32, 'Temperature must be at least 32°F (freezing point)')
@@ -25,21 +27,27 @@ const RecipeValidationSchema = z.object({
   timeMinutes: z
     .number({
       error: (issue) =>
-        issue.code === 'invalid_type' ? 'Invalid numeric values provided' : undefined,
+        issue.code === 'invalid_type'
+          ? 'Invalid numeric values provided'
+          : undefined,
     })
     .finite('Invalid numeric values provided')
     .positive('Time must be positive'),
   shootingIso: z
     .number({
       error: (issue) =>
-        issue.code === 'invalid_type' ? 'Invalid numeric values provided' : undefined,
+        issue.code === 'invalid_type'
+          ? 'Invalid numeric values provided'
+          : undefined,
     })
     .finite('Invalid numeric values provided')
     .positive('ISO must be positive'),
   pushPull: z
     .number({
       error: (issue) =>
-        issue.code === 'invalid_type' ? 'Invalid numeric values provided' : undefined,
+        issue.code === 'invalid_type'
+          ? 'Invalid numeric values provided'
+          : undefined,
     })
     .finite('Invalid numeric values provided')
     .min(-2, 'Push/pull must be at least -2 stops')
@@ -104,7 +112,7 @@ export function createCombinationFromCustomRecipe(
   const timestamp = new Date().toISOString();
 
   // For partial recipes (shared), use the provided uuid or a default
-  const recipeId = 'id' in recipe ? recipe.id : uuid ?? 'temp';
+  const recipeId = 'id' in recipe ? recipe.id : (uuid ?? 'temp');
   const createdAt = 'dateCreated' in recipe ? recipe.dateCreated : timestamp;
   const updatedAt =
     'dateModified' in recipe ? recipe.dateModified || createdAt : timestamp;

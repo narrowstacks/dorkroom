@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { X, Save, Trash2, Plus } from 'lucide-react';
-import { TextInput } from '../../../components/text-input';
 import type { BorderPreset, BorderSettings } from '@dorkroom/logic';
 import { DEFAULT_BORDER_PRESETS } from '@dorkroom/logic';
+import { Plus, Save, Trash2, X } from 'lucide-react';
+import { useState } from 'react';
+import { TextInput } from '../../../components/text-input';
 
 interface PresetsSectionProps {
   onClose: () => void;

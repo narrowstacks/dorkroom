@@ -1,47 +1,25 @@
-import type { FC } from 'react';
 import {
-  ShareModal,
-} from '../../components/share-modal';
-import {
-  SaveBeforeShareModal,
-} from '../../components/save-before-share-modal';
-import {
-  PaperSetupSection,
-} from './paper-setup-section';
-import {
-  BordersOffsetsSection,
-} from './borders-offsets-section';
-import {
-  BladeReadingsSection,
-} from './blade-readings-section';
-import {
-  PreviewAndControlsSection,
-} from './preview-and-controls-section';
-import {
-  BladeVisualizationSection,
-} from './blade-visualization-section';
-import {
-  PresetsSection,
-} from './presets-section';
-
-import {
-  AnimatedPreview,
-} from './animated-preview';
-import {
-  BorderInfoSection,
-} from './border-info-section';
-
-import { useMemo } from 'react';
-import {
+  ASPECT_RATIOS,
+  OFFSET_SLIDER_LABELS,
+  OFFSET_SLIDER_MAX,
+  OFFSET_SLIDER_MIN,
+  OFFSET_SLIDER_STEP,
   type SelectItem,
   SLIDER_MIN_BORDER,
   SLIDER_STEP_BORDER,
-  OFFSET_SLIDER_MIN,
-  OFFSET_SLIDER_MAX,
-  OFFSET_SLIDER_STEP,
-  OFFSET_SLIDER_LABELS,
-  ASPECT_RATIOS,
 } from '@dorkroom/logic';
+import type { FC } from 'react';
+import { useMemo } from 'react';
+import { SaveBeforeShareModal } from '../../components/save-before-share-modal';
+import { ShareModal } from '../../components/share-modal';
+import { AnimatedPreview } from './animated-preview';
+import { BladeReadingsSection } from './blade-readings-section';
+import { BladeVisualizationSection } from './blade-visualization-section';
+import { BorderInfoSection } from './border-info-section';
+import { BordersOffsetsSection } from './borders-offsets-section';
+import { PaperSetupSection } from './paper-setup-section';
+import { PresetsSection } from './presets-section';
+import { PreviewAndControlsSection } from './preview-and-controls-section';
 
 import type { BorderCalculatorLayoutProps } from './types';
 
@@ -60,7 +38,7 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
   bladeWarning,
   minBorderWarning,
   paperSizeWarning,
-  presets,
+  presets: _presets,
   selectedPresetId,
   presetName,
   isEditingPreset,
@@ -69,7 +47,7 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
   isShareModalOpen,
   isSaveBeforeShareOpen,
   shareUrls,
-  canShareNatively,
+  canShareNatively: _canShareNatively,
   canCopyToClipboard,
   handlePaperWidthChange,
   handlePaperWidthBlur,
@@ -86,7 +64,7 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
   handleShareClick,
   handleSaveAndShare,
   handleCopyToClipboard,
-  handleNativeShare,
+  handleNativeShare: _handleNativeShare,
   setIsShareModalOpen,
   setIsSaveBeforeShareOpen,
   formatWithUnit,

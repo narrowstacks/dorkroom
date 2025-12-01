@@ -37,7 +37,7 @@ export const formatTemperature = (temperatureData: TemperatureData): string => {
     ? (temperatureData.temperatureF as number)
     : null;
   const celsius = Number.isFinite(temperatureData.temperatureC ?? NaN)
-    ? temperatureData.temperatureC ?? null
+    ? (temperatureData.temperatureC ?? null)
     : null;
 
   // Only show both units if both were explicitly provided

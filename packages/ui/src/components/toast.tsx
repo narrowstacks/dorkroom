@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
 import { Check, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { cn } from '../lib/cn';
 
 export interface ToastProps {
@@ -42,7 +42,6 @@ export function Toast({
         return <Check className="h-4 w-4" />;
       case 'error':
         return <X className="h-4 w-4" />;
-      case 'info':
       default:
         return null;
     }
@@ -66,7 +65,6 @@ export function Toast({
           backgroundColor: baseBg,
           borderColor: 'var(--color-semantic-error)',
         };
-      case 'info':
       default:
         return {
           color: baseColor,

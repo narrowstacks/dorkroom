@@ -1,5 +1,5 @@
-import { encodePreset, decodePreset } from '../presetSharing';
 import type { BorderPresetSettings } from '@/types/borderPresetTypes';
+import { decodePreset, encodePreset } from '../presetSharing';
 
 describe('presetSharing', () => {
   // Test data with standard aspect ratio and paper size
@@ -117,7 +117,7 @@ describe('presetSharing', () => {
       let encoded;
       try {
         encoded = encodePreset(preset);
-      } catch (error) {
+      } catch (_error) {
         encoded = '';
       }
 
@@ -134,7 +134,7 @@ describe('presetSharing', () => {
       let encoded;
       try {
         encoded = encodePreset(preset);
-      } catch (error) {
+      } catch (_error) {
         encoded = '';
       }
 
@@ -152,12 +152,12 @@ describe('presetSharing', () => {
       const decoded = decodePreset(encoded);
 
       expect(decoded).not.toBeNull();
-      expect(decoded!.name).toBe('Standard Test');
-      expect(decoded!.settings.aspectRatio).toBe('3:2');
-      expect(decoded!.settings.paperSize).toBe('8x10');
-      expect(decoded!.settings.minBorder).toBeCloseTo(0.75);
-      expect(decoded!.settings.showBlades).toBe(true);
-      expect(decoded!.settings.isLandscape).toBe(false);
+      expect(decoded?.name).toBe('Standard Test');
+      expect(decoded?.settings.aspectRatio).toBe('3:2');
+      expect(decoded?.settings.paperSize).toBe('8x10');
+      expect(decoded?.settings.minBorder).toBeCloseTo(0.75);
+      expect(decoded?.settings.showBlades).toBe(true);
+      expect(decoded?.settings.isLandscape).toBe(false);
     });
 
     it('should decode a custom preset correctly', () => {
@@ -169,17 +169,17 @@ describe('presetSharing', () => {
       const decoded = decodePreset(encoded);
 
       expect(decoded).not.toBeNull();
-      expect(decoded!.name).toBe('Custom Test');
-      expect(decoded!.settings.aspectRatio).toBe('custom');
-      expect(decoded!.settings.paperSize).toBe('custom');
-      expect(decoded!.settings.customAspectWidth).toBeCloseTo(2.5);
-      expect(decoded!.settings.customAspectHeight).toBeCloseTo(3.5);
-      expect(decoded!.settings.customPaperWidth).toBeCloseTo(12);
-      expect(decoded!.settings.customPaperHeight).toBeCloseTo(16);
-      expect(decoded!.settings.enableOffset).toBe(true);
-      expect(decoded!.settings.ignoreMinBorder).toBe(true);
-      expect(decoded!.settings.isLandscape).toBe(true);
-      expect(decoded!.settings.isRatioFlipped).toBe(true);
+      expect(decoded?.name).toBe('Custom Test');
+      expect(decoded?.settings.aspectRatio).toBe('custom');
+      expect(decoded?.settings.paperSize).toBe('custom');
+      expect(decoded?.settings.customAspectWidth).toBeCloseTo(2.5);
+      expect(decoded?.settings.customAspectHeight).toBeCloseTo(3.5);
+      expect(decoded?.settings.customPaperWidth).toBeCloseTo(12);
+      expect(decoded?.settings.customPaperHeight).toBeCloseTo(16);
+      expect(decoded?.settings.enableOffset).toBe(true);
+      expect(decoded?.settings.ignoreMinBorder).toBe(true);
+      expect(decoded?.settings.isLandscape).toBe(true);
+      expect(decoded?.settings.isRatioFlipped).toBe(true);
     });
 
     it('should return null for invalid base64', () => {
@@ -205,7 +205,7 @@ describe('presetSharing', () => {
       const decoded = decodePreset(withoutPadding);
 
       expect(decoded).not.toBeNull();
-      expect(decoded!.name).toBe('Test');
+      expect(decoded?.name).toBe('Test');
     });
   });
 
@@ -223,40 +223,40 @@ describe('presetSharing', () => {
         const decoded = decodePreset(encoded);
 
         expect(decoded).not.toBeNull();
-        expect(decoded!.name).toBe(name);
+        expect(decoded?.name).toBe(name);
 
         // Check all settings are preserved
-        expect(decoded!.settings.aspectRatio).toBe(settings.aspectRatio);
-        expect(decoded!.settings.paperSize).toBe(settings.paperSize);
-        expect(decoded!.settings.minBorder).toBeCloseTo(settings.minBorder);
-        expect(decoded!.settings.horizontalOffset).toBeCloseTo(
+        expect(decoded?.settings.aspectRatio).toBe(settings.aspectRatio);
+        expect(decoded?.settings.paperSize).toBe(settings.paperSize);
+        expect(decoded?.settings.minBorder).toBeCloseTo(settings.minBorder);
+        expect(decoded?.settings.horizontalOffset).toBeCloseTo(
           settings.horizontalOffset
         );
-        expect(decoded!.settings.verticalOffset).toBeCloseTo(
+        expect(decoded?.settings.verticalOffset).toBeCloseTo(
           settings.verticalOffset
         );
-        expect(decoded!.settings.enableOffset).toBe(settings.enableOffset);
-        expect(decoded!.settings.ignoreMinBorder).toBe(
+        expect(decoded?.settings.enableOffset).toBe(settings.enableOffset);
+        expect(decoded?.settings.ignoreMinBorder).toBe(
           settings.ignoreMinBorder
         );
-        expect(decoded!.settings.showBlades).toBe(settings.showBlades);
-        expect(decoded!.settings.isLandscape).toBe(settings.isLandscape);
-        expect(decoded!.settings.isRatioFlipped).toBe(settings.isRatioFlipped);
+        expect(decoded?.settings.showBlades).toBe(settings.showBlades);
+        expect(decoded?.settings.isLandscape).toBe(settings.isLandscape);
+        expect(decoded?.settings.isRatioFlipped).toBe(settings.isRatioFlipped);
 
         if (settings.aspectRatio === 'custom') {
-          expect(decoded!.settings.customAspectWidth).toBeCloseTo(
+          expect(decoded?.settings.customAspectWidth).toBeCloseTo(
             settings.customAspectWidth
           );
-          expect(decoded!.settings.customAspectHeight).toBeCloseTo(
+          expect(decoded?.settings.customAspectHeight).toBeCloseTo(
             settings.customAspectHeight
           );
         }
 
         if (settings.paperSize === 'custom') {
-          expect(decoded!.settings.customPaperWidth).toBeCloseTo(
+          expect(decoded?.settings.customPaperWidth).toBeCloseTo(
             settings.customPaperWidth
           );
-          expect(decoded!.settings.customPaperHeight).toBeCloseTo(
+          expect(decoded?.settings.customPaperHeight).toBeCloseTo(
             settings.customPaperHeight
           );
         }
@@ -279,9 +279,9 @@ describe('presetSharing', () => {
 
       expect(decoded).not.toBeNull();
       // Values are rounded to centimeters (2 decimal places)
-      expect(decoded!.settings.minBorder).toBeCloseTo(0.0, 2);
-      expect(decoded!.settings.horizontalOffset).toBeCloseTo(100.0, 1);
-      expect(decoded!.settings.verticalOffset).toBeCloseTo(-50.55, 2);
+      expect(decoded?.settings.minBorder).toBeCloseTo(0.0, 2);
+      expect(decoded?.settings.horizontalOffset).toBeCloseTo(100.0, 1);
+      expect(decoded?.settings.verticalOffset).toBeCloseTo(-50.55, 2);
     });
 
     it('should handle zero values', () => {
@@ -300,9 +300,9 @@ describe('presetSharing', () => {
       const decoded = decodePreset(encoded);
 
       expect(decoded).not.toBeNull();
-      expect(decoded!.settings.minBorder).toBe(0);
-      expect(decoded!.settings.horizontalOffset).toBe(0);
-      expect(decoded!.settings.verticalOffset).toBe(0);
+      expect(decoded?.settings.minBorder).toBe(0);
+      expect(decoded?.settings.horizontalOffset).toBe(0);
+      expect(decoded?.settings.verticalOffset).toBe(0);
     });
   });
 
@@ -337,11 +337,11 @@ describe('presetSharing', () => {
         const decoded = decodePreset(encoded);
 
         expect(decoded).not.toBeNull();
-        expect(decoded!.settings.enableOffset).toBe(bools[0]);
-        expect(decoded!.settings.ignoreMinBorder).toBe(bools[1]);
-        expect(decoded!.settings.showBlades).toBe(bools[2]);
-        expect(decoded!.settings.isLandscape).toBe(bools[3]);
-        expect(decoded!.settings.isRatioFlipped).toBe(bools[4]);
+        expect(decoded?.settings.enableOffset).toBe(bools[0]);
+        expect(decoded?.settings.ignoreMinBorder).toBe(bools[1]);
+        expect(decoded?.settings.showBlades).toBe(bools[2]);
+        expect(decoded?.settings.isLandscape).toBe(bools[3]);
+        expect(decoded?.settings.isRatioFlipped).toBe(bools[4]);
       });
     });
   });
@@ -363,16 +363,16 @@ describe('presetSharing', () => {
 
       expect(decoded).not.toBeNull();
       // Values should be rounded to 2 decimal places (centimeters)
-      expect(decoded!.settings.minBorder).toBeCloseTo(1.23, 2);
-      expect(decoded!.settings.horizontalOffset).toBeCloseTo(2.99, 2);
-      expect(decoded!.settings.verticalOffset).toBeCloseTo(-1.56, 2);
+      expect(decoded?.settings.minBorder).toBeCloseTo(1.23, 2);
+      expect(decoded?.settings.horizontalOffset).toBeCloseTo(2.99, 2);
+      expect(decoded?.settings.verticalOffset).toBeCloseTo(-1.56, 2);
     });
 
     it('should handle custom dimensions precision', () => {
       const customPreciseSettings: BorderPresetSettings = {
         ...customPresetSettings,
-        customAspectWidth: 3.14159,
-        customAspectHeight: 2.71828,
+        customAspectWidth: Math.PI,
+        customAspectHeight: Math.E,
         customPaperWidth: 12.9876,
         customPaperHeight: 16.1234,
       };
@@ -384,10 +384,10 @@ describe('presetSharing', () => {
       const decoded = decodePreset(encoded);
 
       expect(decoded).not.toBeNull();
-      expect(decoded!.settings.customAspectWidth).toBeCloseTo(3.14, 2);
-      expect(decoded!.settings.customAspectHeight).toBeCloseTo(2.72, 2);
-      expect(decoded!.settings.customPaperWidth).toBeCloseTo(12.99, 2);
-      expect(decoded!.settings.customPaperHeight).toBeCloseTo(16.12, 2);
+      expect(decoded?.settings.customAspectWidth).toBeCloseTo(3.14, 2);
+      expect(decoded?.settings.customAspectHeight).toBeCloseTo(2.72, 2);
+      expect(decoded?.settings.customPaperWidth).toBeCloseTo(12.99, 2);
+      expect(decoded?.settings.customPaperHeight).toBeCloseTo(16.12, 2);
     });
   });
 

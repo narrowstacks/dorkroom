@@ -5,6 +5,7 @@
   "sourceRoot": "apps/dorkroom/src",
   "tags": [],
   "targets": {
+    "lint": {},
     "test": {
       "executor": "nx:noop"
     }

@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { useBorderCalculator } from '../use-border-calculator';
+import { act, renderHook } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import type { BorderSettings } from '../../types/border-calculator';
+import { useBorderCalculator } from '../use-border-calculator';
 
 /**
  * Comprehensive test suite for the useBorderCalculator hook.
@@ -68,25 +68,27 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
-      expect(calc?.paperWidth).toBe(8);
-      expect(calc?.paperHeight).toBe(10);
+      if (!calc) return;
+
+      expect(calc.paperWidth).toBe(8);
+      expect(calc.paperHeight).toBe(10);
 
       // For 3:2 on 8x10 portrait with 0.5" min border
       // Available space: 7x9 inches
       // Should be height-constrained: 9" tall, 13.5" wide (too wide)
       // So width-constrained: 7" wide, 4.67" tall
-      expect(calc?.printWidth).toBeCloseTo(7, 1);
-      expect(calc?.printHeight).toBeCloseTo(4.67, 1);
+      expect(calc.printWidth).toBeCloseTo(7, 1);
+      expect(calc.printHeight).toBeCloseTo(4.67, 1);
 
       // Borders should be symmetric when no offset
-      expect(calc?.leftBorder).toBeCloseTo(calc?.rightBorder || 0, 2);
-      expect(calc?.topBorder).toBeCloseTo(calc?.bottomBorder || 0, 2);
+      expect(calc.leftBorder).toBeCloseTo(calc.rightBorder, 2);
+      expect(calc.topBorder).toBeCloseTo(calc.bottomBorder, 2);
 
       // All borders must be positive (physical constraint)
-      expect(calc?.leftBorder).toBeGreaterThan(0);
-      expect(calc?.rightBorder).toBeGreaterThan(0);
-      expect(calc?.topBorder).toBeGreaterThan(0);
-      expect(calc?.bottomBorder).toBeGreaterThan(0);
+      expect(calc.leftBorder).toBeGreaterThan(0);
+      expect(calc.rightBorder).toBeGreaterThan(0);
+      expect(calc.topBorder).toBeGreaterThan(0);
+      expect(calc.bottomBorder).toBeGreaterThan(0);
     });
 
     it('should calculate correct borders for 6x4.5 (4:3) on 11x14 paper landscape', () => {
@@ -101,19 +103,21 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
-      expect(calc?.paperWidth).toBe(14); // landscape flips dimensions
-      expect(calc?.paperHeight).toBe(11);
+      if (!calc) return;
+
+      expect(calc.paperWidth).toBe(14); // landscape flips dimensions
+      expect(calc.paperHeight).toBe(11);
 
       // Available space: 12x9 inches with 1" borders
       // 4:3 ratio on 12x9 space
-      expect(calc?.printWidth).toBeCloseTo(12, 1);
-      expect(calc?.printHeight).toBeCloseTo(9, 1);
+      expect(calc.printWidth).toBeCloseTo(12, 1);
+      expect(calc.printHeight).toBeCloseTo(9, 1);
 
       // Should have 1" borders on all sides
-      expect(calc?.leftBorder).toBeCloseTo(1, 1);
-      expect(calc?.rightBorder).toBeCloseTo(1, 1);
-      expect(calc?.topBorder).toBeCloseTo(1, 1);
-      expect(calc?.bottomBorder).toBeCloseTo(1, 1);
+      expect(calc.leftBorder).toBeCloseTo(1, 1);
+      expect(calc.rightBorder).toBeCloseTo(1, 1);
+      expect(calc.topBorder).toBeCloseTo(1, 1);
+      expect(calc.bottomBorder).toBeCloseTo(1, 1);
     });
 
     it('should calculate correct borders for square (1:1) on 16x20 paper', () => {
@@ -127,20 +131,21 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // For 1:1 (square) on 16x20 with 2" min border
       // Available: 12x16 inches
       // Should fit 12x12 square (constrained by width)
-      expect(calc?.printWidth).toBeCloseTo(12, 1);
-      expect(calc?.printHeight).toBeCloseTo(12, 1);
+      expect(calc.printWidth).toBeCloseTo(12, 1);
+      expect(calc.printHeight).toBeCloseTo(12, 1);
 
       // Horizontal borders should be minimum (2")
-      expect(calc?.leftBorder).toBeCloseTo(2, 1);
-      expect(calc?.rightBorder).toBeCloseTo(2, 1);
+      expect(calc.leftBorder).toBeCloseTo(2, 1);
+      expect(calc.rightBorder).toBeCloseTo(2, 1);
 
       // Vertical borders should be larger (centered in taller space)
-      expect(calc?.topBorder).toBeCloseTo(4, 1);
-      expect(calc?.bottomBorder).toBeCloseTo(4, 1);
+      expect(calc.topBorder).toBeCloseTo(4, 1);
+      expect(calc.bottomBorder).toBeCloseTo(4, 1);
     });
 
     it('should handle all preset paper sizes without errors', () => {
@@ -161,12 +166,14 @@ describe('useBorderCalculator', () => {
 
         const calc = result.current.calculation;
         expect(calc).not.toBeNull();
-        expect(calc?.printWidth).toBeGreaterThan(0);
-        expect(calc?.printHeight).toBeGreaterThan(0);
-        expect(calc?.leftBorder).toBeGreaterThan(0);
-        expect(calc?.rightBorder).toBeGreaterThan(0);
-        expect(calc?.topBorder).toBeGreaterThan(0);
-        expect(calc?.bottomBorder).toBeGreaterThan(0);
+        if (!calc) return;
+
+        expect(calc.printWidth).toBeGreaterThan(0);
+        expect(calc.printHeight).toBeGreaterThan(0);
+        expect(calc.leftBorder).toBeGreaterThan(0);
+        expect(calc.rightBorder).toBeGreaterThan(0);
+        expect(calc.topBorder).toBeGreaterThan(0);
+        expect(calc.bottomBorder).toBeGreaterThan(0);
       });
     });
 
@@ -196,8 +203,10 @@ describe('useBorderCalculator', () => {
 
         const calc = result.current.calculation;
         expect(calc).not.toBeNull();
-        expect(calc?.printWidth).toBeGreaterThan(0);
-        expect(calc?.printHeight).toBeGreaterThan(0);
+        if (!calc) return;
+
+        expect(calc.printWidth).toBeGreaterThan(0);
+        expect(calc.printHeight).toBeGreaterThan(0);
       });
     });
 
@@ -212,8 +221,10 @@ describe('useBorderCalculator', () => {
 
       let calc = result.current.calculation;
       expect(calc).not.toBeNull();
-      expect(calc!.leftBorder).toBeCloseTo(calc!.rightBorder, 5);
-      expect(calc!.topBorder).toBeCloseTo(calc!.bottomBorder, 5);
+      if (!calc) return;
+
+      expect(calc.leftBorder).toBeCloseTo(calc.rightBorder, 5);
+      expect(calc.topBorder).toBeCloseTo(calc.bottomBorder, 5);
 
       act(() => {
         result.current.setIsLandscape(true);
@@ -223,8 +234,10 @@ describe('useBorderCalculator', () => {
 
       calc = result.current.calculation;
       expect(calc).not.toBeNull();
-      expect(calc!.leftBorder).toBeCloseTo(calc!.rightBorder, 5);
-      expect(calc!.topBorder).toBeCloseTo(calc!.bottomBorder, 5);
+      if (!calc) return;
+
+      expect(calc.leftBorder).toBeCloseTo(calc.rightBorder, 5);
+      expect(calc.topBorder).toBeCloseTo(calc.bottomBorder, 5);
     });
   });
 
@@ -255,19 +268,20 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // Verify landscape orientation is applied
-      expect(calc?.paperWidth).toBe(24);
-      expect(calc?.paperHeight).toBe(20);
+      expect(calc.paperWidth).toBe(24);
+      expect(calc.paperHeight).toBe(20);
 
       // XPan is ultra-wide: 65:24 ≈ 2.708:1
       // On 24x20 landscape with 1" borders: 22x18 available
       // Should be height-constrained
-      expect(calc?.printHeight).toBeCloseTo(18, 1);
-      expect(calc?.printWidth).toBeCloseTo(18 * (65 / 24), 1);
+      expect(calc.printHeight).toBeCloseTo(18, 1);
+      expect(calc.printWidth).toBeCloseTo(18 * (65 / 24), 1);
 
       // Verify aspect ratio is maintained
-      const aspectRatio = calc!.printWidth / calc!.printHeight;
+      const aspectRatio = calc.printWidth / calc.printHeight;
       expect(aspectRatio).toBeCloseTo(65 / 24, 2);
     });
 
@@ -283,14 +297,15 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // Should maintain 2.39:1 ratio
-      const aspectRatio = calc!.printWidth / calc!.printHeight;
+      const aspectRatio = calc.printWidth / calc.printHeight;
       expect(aspectRatio).toBeCloseTo(2.39, 2);
 
       // Print should fit on paper
-      expect(calc?.printWidth).toBeLessThanOrEqual(20);
-      expect(calc?.printHeight).toBeLessThanOrEqual(16);
+      expect(calc.printWidth).toBeLessThanOrEqual(20);
+      expect(calc.printHeight).toBeLessThanOrEqual(16);
     });
 
     it('should handle custom ultra-tall ratio (1:3 for vertical panorama)', () => {
@@ -306,22 +321,25 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // 1:3 is very tall (height = 3x width)
       // On 11x14 with 0.5" borders: 10x13 available
       // If use full height: height=13, width=13/3=4.33
       // If use full width: width=10, height=30 (impossible!)
       // So height-constrained
-      expect(calc?.printHeight).toBeCloseTo(13, 1);
-      expect(calc?.printWidth).toBeCloseTo(13 / 3, 1); // ≈ 4.33
+      expect(calc.printHeight).toBeCloseTo(13, 1);
+      expect(calc.printWidth).toBeCloseTo(13 / 3, 1); // ≈ 4.33
 
       // Verify it respects paper boundaries
-      expect(
-        calc!.printWidth + calc!.leftBorder + calc!.rightBorder
-      ).toBeCloseTo(11, 1);
-      expect(
-        calc!.printHeight + calc!.topBorder + calc!.bottomBorder
-      ).toBeCloseTo(14, 1);
+      expect(calc.printWidth + calc.leftBorder + calc.rightBorder).toBeCloseTo(
+        11,
+        1
+      );
+      expect(calc.printHeight + calc.topBorder + calc.bottomBorder).toBeCloseTo(
+        14,
+        1
+      );
     });
   });
 
@@ -338,11 +356,12 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // With 0 min border and no offset, print should fill entire paper
       // But actual borders might still exist due to centering
-      expect(calc?.printWidth).toBeGreaterThan(0);
-      expect(calc?.printHeight).toBeGreaterThan(0);
+      expect(calc.printWidth).toBeGreaterThan(0);
+      expect(calc.printHeight).toBeGreaterThan(0);
     });
 
     it('should generate warning for very small border (< 0.25 inches)', () => {
@@ -367,16 +386,17 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // With 6" borders on 20x24: 8x12 available space
-      expect(calc?.printWidth).toBeLessThanOrEqual(8);
-      expect(calc?.printHeight).toBeLessThanOrEqual(12);
+      expect(calc.printWidth).toBeLessThanOrEqual(8);
+      expect(calc.printHeight).toBeLessThanOrEqual(12);
 
       // Borders should be at least 6" each
-      expect(calc?.leftBorder).toBeGreaterThanOrEqual(5.9);
-      expect(calc?.rightBorder).toBeGreaterThanOrEqual(5.9);
-      expect(calc?.topBorder).toBeGreaterThanOrEqual(5.9);
-      expect(calc?.bottomBorder).toBeGreaterThanOrEqual(5.9);
+      expect(calc.leftBorder).toBeGreaterThanOrEqual(5.9);
+      expect(calc.rightBorder).toBeGreaterThanOrEqual(5.9);
+      expect(calc.topBorder).toBeGreaterThanOrEqual(5.9);
+      expect(calc.bottomBorder).toBeGreaterThanOrEqual(5.9);
     });
 
     it('should handle border too large for paper (no space for print)', () => {
@@ -420,12 +440,13 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // Left border should be smaller, right border larger (shifted right)
-      expect(calc!.leftBorder).toBeLessThan(calc!.rightBorder);
+      expect(calc.leftBorder).toBeLessThan(calc.rightBorder);
 
       // The offset subtracts from left, adds to right
-      const difference = calc!.rightBorder - calc!.leftBorder;
+      const difference = calc.rightBorder - calc.leftBorder;
       expect(difference).toBeCloseTo(1.0, 0); // 2x the offset
 
       // Should not generate offset warning if within bounds
@@ -447,12 +468,13 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // Bottom border should be smaller, top border larger
-      expect(calc!.bottomBorder).toBeLessThan(calc!.topBorder);
+      expect(calc.bottomBorder).toBeLessThan(calc.topBorder);
 
       // Difference should be approximately 2x the offset
-      const difference = calc!.topBorder - calc!.bottomBorder;
+      const difference = calc.topBorder - calc.bottomBorder;
       expect(difference).toBeCloseTo(1.5, 1);
     });
 
@@ -468,13 +490,14 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // Should generate warning about extending beyond paper
       expect(result.current.offsetWarning).not.toBeNull();
       expect(result.current.offsetWarning).toContain('beyond paper');
 
       // Blade readings should show negative values (impossible to achieve)
-      expect(calc!.leftBladeReading < 0 || calc!.rightBladeReading < 0).toBe(
+      expect(calc.leftBladeReading < 0 || calc.rightBladeReading < 0).toBe(
         true
       );
     });
@@ -505,19 +528,20 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // Horizontal offset: left < right (shifted right)
-      expect(calc!.leftBorder).toBeLessThan(calc!.rightBorder);
+      expect(calc.leftBorder).toBeLessThan(calc.rightBorder);
 
       // Vertical offset: negative means subtract from top, add to bottom
       // So top border decreases, bottom border increases
-      expect(calc!.topBorder).toBeLessThan(calc!.bottomBorder);
+      expect(calc.topBorder).toBeLessThan(calc.bottomBorder);
 
       // All borders must still be non-negative
-      expect(calc!.leftBorder).toBeGreaterThanOrEqual(0);
-      expect(calc!.rightBorder).toBeGreaterThanOrEqual(0);
-      expect(calc!.topBorder).toBeGreaterThanOrEqual(0);
-      expect(calc!.bottomBorder).toBeGreaterThanOrEqual(0);
+      expect(calc.leftBorder).toBeGreaterThanOrEqual(0);
+      expect(calc.rightBorder).toBeGreaterThanOrEqual(0);
+      expect(calc.topBorder).toBeGreaterThanOrEqual(0);
+      expect(calc.bottomBorder).toBeGreaterThanOrEqual(0);
     });
 
     it('should handle maximum offset range (-3 to +3 inches)', () => {
@@ -532,11 +556,12 @@ describe('useBorderCalculator', () => {
 
       let calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // With max positive offset on large paper, borders should exist
       // Whether they're positive depends on print size vs offset
-      expect(typeof calc?.leftBorder).toBe('number');
-      expect(typeof calc?.rightBorder).toBe('number');
+      expect(typeof calc.leftBorder).toBe('number');
+      expect(typeof calc.rightBorder).toBe('number');
 
       act(() => {
         result.current.setHorizontalOffset(-3); // max negative
@@ -544,10 +569,11 @@ describe('useBorderCalculator', () => {
 
       calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // With max negative offset, borders swap
-      expect(typeof calc?.leftBorder).toBe('number');
-      expect(typeof calc?.rightBorder).toBe('number');
+      expect(typeof calc.leftBorder).toBe('number');
+      expect(typeof calc.rightBorder).toBe('number');
     });
   });
 
@@ -565,12 +591,13 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // Blade readings should equal border widths for centered print
-      expect(calc?.leftBladeReading).toBeCloseTo(calc?.leftBorder || 0, 2);
-      expect(calc?.rightBladeReading).toBeCloseTo(calc?.rightBorder || 0, 2);
-      expect(calc?.topBladeReading).toBeCloseTo(calc?.topBorder || 0, 2);
-      expect(calc?.bottomBladeReading).toBeCloseTo(calc?.bottomBorder || 0, 2);
+      expect(calc.leftBladeReading).toBeCloseTo(calc.leftBorder, 2);
+      expect(calc.rightBladeReading).toBeCloseTo(calc.rightBorder, 2);
+      expect(calc.topBladeReading).toBeCloseTo(calc.topBorder, 2);
+      expect(calc.bottomBladeReading).toBeCloseTo(calc.bottomBorder, 2);
     });
 
     it('should generate blade warning when blades are too close to edge (< 0.125")', () => {
@@ -592,7 +619,10 @@ describe('useBorderCalculator', () => {
       const { result } = renderHook(() => useBorderCalculator());
 
       const calc = result.current.calculation;
-      expect(calc?.bladeThickness).toBe(0.125); // 1/8 inch standard blade thickness
+      expect(calc).not.toBeNull();
+      if (!calc) return;
+
+      expect(calc.bladeThickness).toBe(0.125); // 1/8 inch standard blade thickness
     });
 
     it('should maintain blade reading accuracy with offsets', () => {
@@ -608,12 +638,13 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // Blade readings should reflect actual border positions with offset
       // Left blade should be further from edge than right (offset shifts right)
       // This is critical for darkroom trimming accuracy
-      expect(calc?.leftBladeReading).not.toBe(calc?.rightBladeReading);
-      expect(calc?.topBladeReading).not.toBe(calc?.bottomBladeReading);
+      expect(calc.leftBladeReading).not.toBe(calc.rightBladeReading);
+      expect(calc.topBladeReading).not.toBe(calc.bottomBladeReading);
     });
   });
 
@@ -629,16 +660,22 @@ describe('useBorderCalculator', () => {
       });
 
       let calc = result.current.calculation;
-      expect(calc?.paperWidth).toBe(8);
-      expect(calc?.paperHeight).toBe(10);
+      expect(calc).not.toBeNull();
+      if (!calc) return;
+
+      expect(calc.paperWidth).toBe(8);
+      expect(calc.paperHeight).toBe(10);
 
       act(() => {
         result.current.setIsLandscape(true); // landscape: 10" wide x 8" tall
       });
 
       calc = result.current.calculation;
-      expect(calc?.paperWidth).toBe(10);
-      expect(calc?.paperHeight).toBe(8);
+      expect(calc).not.toBeNull();
+      if (!calc) return;
+
+      expect(calc.paperWidth).toBe(10);
+      expect(calc.paperHeight).toBe(8);
     });
 
     it('should flip aspect ratio when isRatioFlipped is true', () => {
@@ -651,14 +688,20 @@ describe('useBorderCalculator', () => {
       });
 
       let calc = result.current.calculation;
-      const ratio1 = calc!.printWidth / calc!.printHeight;
+      expect(calc).not.toBeNull();
+      if (!calc) return;
+
+      const ratio1 = calc.printWidth / calc.printHeight;
 
       act(() => {
         result.current.setIsRatioFlipped(true); // flip to 2:3
       });
 
       calc = result.current.calculation;
-      const ratio2 = calc!.printWidth / calc!.printHeight;
+      expect(calc).not.toBeNull();
+      if (!calc) return;
+
+      const ratio2 = calc.printWidth / calc.printHeight;
 
       // Ratios should be reciprocals
       expect(ratio1 * ratio2).toBeCloseTo(1, 1);
@@ -676,9 +719,10 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // 16:9 on landscape 14x11 should produce wide print
-      expect(calc!.printWidth).toBeGreaterThan(calc!.printHeight);
+      expect(calc.printWidth).toBeGreaterThan(calc.printHeight);
     });
   });
 
@@ -697,9 +741,11 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
-      expect(calc?.paperWidth).toBe(13);
-      expect(calc?.paperHeight).toBe(19);
-      expect(calc?.isNonStandardPaperSize).toBe(true);
+      if (!calc) return;
+
+      expect(calc.paperWidth).toBe(13);
+      expect(calc.paperHeight).toBe(19);
+      expect(calc.isNonStandardPaperSize).toBe(true);
     });
 
     it('should handle custom aspect ratio correctly', () => {
@@ -714,9 +760,10 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // Should maintain 5:7 aspect ratio
-      const aspectRatio = calc!.printWidth / calc!.printHeight;
+      const aspectRatio = calc.printWidth / calc.printHeight;
       expect(aspectRatio).toBeCloseTo(5 / 7, 2);
     });
 
@@ -746,8 +793,9 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
-      const aspectRatio = calc!.printWidth / calc!.printHeight;
+      const aspectRatio = calc.printWidth / calc.printHeight;
       expect(aspectRatio).toBeCloseTo(2.35, 2);
     });
   });
@@ -851,12 +899,13 @@ describe('useBorderCalculator', () => {
 
         const calc = result.current.calculation;
         expect(calc).not.toBeNull();
+        if (!calc) return;
 
         // Physical constraint: all borders must be >= 0
-        expect(calc!.leftBorder).toBeGreaterThanOrEqual(0);
-        expect(calc!.rightBorder).toBeGreaterThanOrEqual(0);
-        expect(calc!.topBorder).toBeGreaterThanOrEqual(0);
-        expect(calc!.bottomBorder).toBeGreaterThanOrEqual(0);
+        expect(calc.leftBorder).toBeGreaterThanOrEqual(0);
+        expect(calc.rightBorder).toBeGreaterThanOrEqual(0);
+        expect(calc.topBorder).toBeGreaterThanOrEqual(0);
+        expect(calc.bottomBorder).toBeGreaterThanOrEqual(0);
       });
     });
 
@@ -870,15 +919,14 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // Physical constraint: print + borders must equal paper dimensions
-      const totalWidth =
-        calc!.printWidth + calc!.leftBorder + calc!.rightBorder;
-      const totalHeight =
-        calc!.printHeight + calc!.topBorder + calc!.bottomBorder;
+      const totalWidth = calc.printWidth + calc.leftBorder + calc.rightBorder;
+      const totalHeight = calc.printHeight + calc.topBorder + calc.bottomBorder;
 
-      expect(totalWidth).toBeCloseTo(calc!.paperWidth, 1);
-      expect(totalHeight).toBeCloseTo(calc!.paperHeight, 1);
+      expect(totalWidth).toBeCloseTo(calc.paperWidth, 1);
+      expect(totalHeight).toBeCloseTo(calc.paperHeight, 1);
     });
 
     it('should produce consistent calculations for same inputs', () => {
@@ -908,17 +956,18 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // Blade readings should be positive and within paper dimensions
-      expect(calc!.leftBladeReading).toBeGreaterThan(0);
-      expect(calc!.rightBladeReading).toBeGreaterThan(0);
-      expect(calc!.topBladeReading).toBeGreaterThan(0);
-      expect(calc!.bottomBladeReading).toBeGreaterThan(0);
+      expect(calc.leftBladeReading).toBeGreaterThan(0);
+      expect(calc.rightBladeReading).toBeGreaterThan(0);
+      expect(calc.topBladeReading).toBeGreaterThan(0);
+      expect(calc.bottomBladeReading).toBeGreaterThan(0);
 
-      expect(calc!.leftBladeReading).toBeLessThanOrEqual(calc!.paperWidth);
-      expect(calc!.rightBladeReading).toBeLessThanOrEqual(calc!.paperWidth);
-      expect(calc!.topBladeReading).toBeLessThanOrEqual(calc!.paperHeight);
-      expect(calc!.bottomBladeReading).toBeLessThanOrEqual(calc!.paperHeight);
+      expect(calc.leftBladeReading).toBeLessThanOrEqual(calc.paperWidth);
+      expect(calc.rightBladeReading).toBeLessThanOrEqual(calc.paperWidth);
+      expect(calc.topBladeReading).toBeLessThanOrEqual(calc.paperHeight);
+      expect(calc.bottomBladeReading).toBeLessThanOrEqual(calc.paperHeight);
     });
   });
 
@@ -933,22 +982,23 @@ describe('useBorderCalculator', () => {
 
       const calc = result.current.calculation;
       expect(calc).not.toBeNull();
+      if (!calc) return;
 
       // Percentages should be between 0 and 100
-      expect(calc!.printWidthPercent).toBeGreaterThan(0);
-      expect(calc!.printWidthPercent).toBeLessThanOrEqual(100);
-      expect(calc!.printHeightPercent).toBeGreaterThan(0);
-      expect(calc!.printHeightPercent).toBeLessThanOrEqual(100);
+      expect(calc.printWidthPercent).toBeGreaterThan(0);
+      expect(calc.printWidthPercent).toBeLessThanOrEqual(100);
+      expect(calc.printHeightPercent).toBeGreaterThan(0);
+      expect(calc.printHeightPercent).toBeLessThanOrEqual(100);
 
       // Border percentages should sum with print percentages to 100
       const widthSum =
-        calc!.printWidthPercent +
-        calc!.leftBorderPercent +
-        calc!.rightBorderPercent;
+        calc.printWidthPercent +
+        calc.leftBorderPercent +
+        calc.rightBorderPercent;
       const heightSum =
-        calc!.printHeightPercent +
-        calc!.topBorderPercent +
-        calc!.bottomBorderPercent;
+        calc.printHeightPercent +
+        calc.topBorderPercent +
+        calc.bottomBorderPercent;
 
       expect(widthSum).toBeCloseTo(100, 1);
       expect(heightSum).toBeCloseTo(100, 1);

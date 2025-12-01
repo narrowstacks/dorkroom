@@ -1,24 +1,24 @@
-import { useState } from 'react';
-import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
-import type { Table, Row } from '@tanstack/react-table';
-import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { Dilution } from '@dorkroom/api';
+import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import type { Row, Table } from '@tanstack/react-table';
+import { Beaker, Edit2, ExternalLink, Star, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
-import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
-import { Tag } from '../ui/tag';
-import { ShareButton } from '../share-button';
+import { formatTemperatureWithUnit } from '../../lib/temperature';
 import type { ShareResult } from '../share-button';
-import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
+import { ShareButton } from '../share-button';
 import { SkeletonCard } from '../ui/skeleton';
+import { Tag } from '../ui/tag';
+import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
 
 interface DevelopmentResultsCardsProps {
   table: Table<DevelopmentCombinationView>;
   onSelectCombination?: (view: DevelopmentCombinationView) => void;
   onShareCombination?: (
     view: DevelopmentCombinationView
-  ) => void | ShareResult | Promise<void | ShareResult>;
+  ) => undefined | ShareResult | Promise<undefined | ShareResult>;
   onCopyCombination?: (view: DevelopmentCombinationView) => void;
   onEditCustomRecipe?: (view: DevelopmentCombinationView) => void;
   onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;
@@ -226,13 +226,11 @@ export function DevelopmentResultsCards({
                         Recipe
                       </span>
                     )}
-                    {combination.tags && combination.tags.length > 0 && (
-                      <>
-                        {combination.tags.map((tag: string) => (
-                          <Tag key={tag}>{tag}</Tag>
-                        ))}
-                      </>
-                    )}
+                    {combination.tags &&
+                      combination.tags.length > 0 &&
+                      combination.tags.map((tag: string) => (
+                        <Tag key={tag}>{tag}</Tag>
+                      ))}
                   </div>
                 )}
               </div>
@@ -285,8 +283,8 @@ export function DevelopmentResultsCards({
                     hoveredFavoriteId === id
                       ? '#ffffff'
                       : isFavorite?.(rowData)
-                      ? 'var(--color-semantic-warning)'
-                      : 'var(--color-border-secondary)'
+                        ? 'var(--color-semantic-warning)'
+                        : 'var(--color-border-secondary)'
                   }
                   strokeWidth={2}
                 />

@@ -1,6 +1,5 @@
+import { type Combination, fetchCombinationsForQuery } from '@dorkroom/api';
 import { useQuery } from '@tanstack/react-query';
-import { Combination } from '@dorkroom/api';
-import { fetchCombinationsForQuery } from '@dorkroom/api';
 import { queryKeys } from '../../queries/query-keys';
 
 /**

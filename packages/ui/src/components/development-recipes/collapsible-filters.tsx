@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import type { CustomRecipeFilter, SelectItem } from '@dorkroom/logic';
 import { ChevronDown } from 'lucide-react';
-import { Select } from '../select';
-import type { SelectItem, CustomRecipeFilter } from '@dorkroom/logic';
+import { useState } from 'react';
 import { cn } from '../../lib/cn';
+import { Select } from '../select';
 
 interface CollapsibleFiltersProps {
   className?: string;

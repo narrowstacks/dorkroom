@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import { useCustomRecipeSharing } from './use-custom-recipe-sharing';
 import { shouldUseWebShare } from '../../utils/device-detection';
+import { useCustomRecipeSharing } from './use-custom-recipe-sharing';
 
 interface RegularRecipeShareOptions {
   recipeId: string;

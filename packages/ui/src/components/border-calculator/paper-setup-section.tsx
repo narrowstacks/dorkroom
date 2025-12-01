@@ -1,8 +1,8 @@
-import { useStore } from '@tanstack/react-store';
-import { Select, DimensionInputGroup } from '../../index';
-import { CalculatorCard } from '../calculator/calculator-card';
 import type { SelectItem } from '@dorkroom/logic';
-import type { FormInstance, FieldApi } from '../../index';
+import { useStore } from '@tanstack/react-store';
+import type { FieldApi, FormInstance } from '../../index';
+import { DimensionInputGroup, Select } from '../../index';
+import { CalculatorCard } from '../calculator/calculator-card';
 
 interface PaperSetupSectionProps {
   form: FormInstance;

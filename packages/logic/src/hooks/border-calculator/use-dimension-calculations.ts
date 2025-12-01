@@ -9,16 +9,16 @@
 
 import { useMemo } from 'react';
 import {
-  PAPER_SIZE_MAP,
   ASPECT_RATIO_MAP,
   EASEL_SIZES,
+  PAPER_SIZE_MAP,
 } from '../../constants/border-calculator';
 import type {
   BorderCalculatorState,
+  MinBorderData,
+  OrientedDimensions,
   PaperEntry,
   RatioEntry,
-  OrientedDimensions,
-  MinBorderData,
 } from '../../types/border-calculator';
 
 // Pre-calculate max easel dimension for O(1) lookup
@@ -121,8 +121,8 @@ export const useDimensionCalculations = (state: BorderCalculatorState) => {
       state.aspectRatio === 'even-borders'
         ? { w: orientedPaper.w, h: orientedPaper.h }
         : state.isRatioFlipped
-        ? { w: ratioEntry.h, h: ratioEntry.w }
-        : { w: ratioEntry.w, h: ratioEntry.h };
+          ? { w: ratioEntry.h, h: ratioEntry.w }
+          : { w: ratioEntry.w, h: ratioEntry.h };
 
     return { orientedPaper, orientedRatio };
   }, [

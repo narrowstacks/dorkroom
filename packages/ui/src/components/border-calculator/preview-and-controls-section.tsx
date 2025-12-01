@@ -1,6 +1,6 @@
-import { RotateCw, RotateCcw, Square } from 'lucide-react';
-import { useStore } from '@tanstack/react-store';
 import type { BorderCalculation } from '@dorkroom/logic';
+import { useStore } from '@tanstack/react-store';
+import { RotateCcw, RotateCw, Square } from 'lucide-react';
 import type { FormInstance } from '../../index';
 import { CalculatorCard } from '../calculator/calculator-card';
 

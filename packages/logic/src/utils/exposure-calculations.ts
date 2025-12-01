@@ -18,7 +18,7 @@ export const calculateNewExposureTime = (
   originalTime: number,
   stopChange: number
 ): number => {
-  return originalTime * Math.pow(2, stopChange);
+  return originalTime * 2 ** stopChange;
 };
 
 /**
@@ -85,7 +85,7 @@ export const parseExposureTime = (input: string): number | null => {
   if (!trimmed) return null;
 
   const numericValue = parseFloat(trimmed);
-  if (isNaN(numericValue) || numericValue <= 0) {
+  if (Number.isNaN(numericValue) || numericValue <= 0) {
     return null;
   }
 

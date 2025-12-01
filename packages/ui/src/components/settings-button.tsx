@@ -1,4 +1,4 @@
-import { ChevronRight, LucideIcon } from 'lucide-react';
+import { ChevronRight, type LucideIcon } from 'lucide-react';
 import { cn } from '../lib/cn';
 
 interface SettingsButtonProps {

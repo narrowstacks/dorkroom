@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // Default dimensions for SSR environment
 const DEFAULT_WIDTH = 1024;

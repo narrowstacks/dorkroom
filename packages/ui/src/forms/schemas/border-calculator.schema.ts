@@ -1,4 +1,4 @@
 export {
-  borderCalculatorSchema,
   type BorderCalculatorFormData,
+  borderCalculatorSchema,
 } from '@dorkroom/logic';

@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import {
   FEATURE_FLAGS,
-  isFeatureEnabled,
   type FeatureFlags,
+  isFeatureEnabled,
 } from '../constants/feature-flags';
 
 /**

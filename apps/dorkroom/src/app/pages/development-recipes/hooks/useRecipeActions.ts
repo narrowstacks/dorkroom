@@ -1,26 +1,26 @@
-import {
-  useCallback,
-  useRef,
-  useEffect,
-  type Dispatch,
-  type SetStateAction,
-} from 'react';
-import type { DevelopmentCombinationView } from '@dorkroom/ui';
+import type { Developer, Film } from '@dorkroom/api';
 import type {
-  CustomRecipeFormData,
   CustomRecipe,
+  CustomRecipeFormData,
   FilmdevMappingResult,
 } from '@dorkroom/logic';
 import {
-  debugLog,
   debugError,
-  isFilmdevInput,
+  debugLog,
   extractRecipeId,
-  fetchFilmdevRecipe,
-  mapFilmdevRecipe,
   FilmdevApiError,
+  fetchFilmdevRecipe,
+  isFilmdevInput,
+  mapFilmdevRecipe,
 } from '@dorkroom/logic';
-import type { Film, Developer } from '@dorkroom/api';
+import type { DevelopmentCombinationView } from '@dorkroom/ui';
+import {
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 import { getCombinationIdentifier } from '../utils/recipeUtils';
 
 interface UseRecipeActionsProps {
@@ -55,9 +55,7 @@ interface UseRecipeActionsProps {
 
   // Modal state setters
   setIsDetailOpen: Dispatch<SetStateAction<boolean>>;
-  setDetailView: Dispatch<
-    SetStateAction<DevelopmentCombinationView | null>
-  >;
+  setDetailView: Dispatch<SetStateAction<DevelopmentCombinationView | null>>;
   setIsCustomModalOpen: Dispatch<SetStateAction<boolean>>;
   setEditingRecipe: Dispatch<SetStateAction<DevelopmentCombinationView | null>>;
   setIsSubmittingRecipe: Dispatch<SetStateAction<boolean>>;
@@ -67,9 +65,7 @@ interface UseRecipeActionsProps {
   >;
   setIsAddingSharedRecipe: Dispatch<SetStateAction<boolean>>;
   setIsFilmdevPreviewOpen: Dispatch<SetStateAction<boolean>>;
-  setFilmdevPreviewData: Dispatch<
-    SetStateAction<FilmdevMappingResult | null>
-  >;
+  setFilmdevPreviewData: Dispatch<SetStateAction<FilmdevMappingResult | null>>;
   setFilmdevPreviewRecipe: Dispatch<
     SetStateAction<DevelopmentCombinationView | null>
   >;
@@ -237,6 +233,8 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
   const handleShareCombination = useCallback(
     async (view: DevelopmentCombinationView) => {
       await executeRecipeShare(view, 'share');
+      // Return undefined to indicate toast is handled internally
+      return undefined;
     },
     [executeRecipeShare]
   );
@@ -277,10 +275,7 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
         setEditingRecipe(null);
       } catch (error) {
         debugError('Failed to save custom recipe:', error);
-        showToast(
-          'Failed to save the recipe. Please try again.',
-          'error'
-        );
+        showToast('Failed to save the recipe. Please try again.', 'error');
         return; // Don't close modal or clear state on error
       } finally {
         setIsSubmittingRecipe(false);

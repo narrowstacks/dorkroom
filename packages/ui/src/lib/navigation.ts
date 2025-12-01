@@ -1,14 +1,14 @@
 import {
   Aperture,
-  FlaskConical,
   BookOpen,
   Crop,
+  FlaskConical,
   Gauge,
   Home,
   Ruler,
   Timer,
 } from 'lucide-react';
-import { createElement, ComponentType } from 'react';
+import { type ComponentType, createElement } from 'react';
 import type { NavigationItem } from '../components/navigation-dropdown';
 
 // Wrap Lucide icons so typeof component is 'function' in tests

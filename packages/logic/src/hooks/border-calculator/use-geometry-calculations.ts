@@ -8,28 +8,28 @@
 \* ------------------------------------------------------------------ */
 
 import { useMemo } from 'react';
-import { useWindowDimensions } from '../use-window-dimensions';
 import { EASEL_SIZE_MAP } from '../../constants/border-calculator';
-import {
-  calculateBladeThickness,
-  findCenteringOffsets,
-  computePrintSize,
-  clampOffsets,
-  bordersFromGaps,
-  bladeReadings,
-} from '../../utils/border-calculations';
 import type {
+  BladeData,
   BorderCalculatorState,
-  OrientedDimensions,
-  MinBorderData,
-  PaperEntry,
-  PrintSize,
-  OffsetData,
   Borders,
   EaselData,
+  MinBorderData,
+  OffsetData,
+  OrientedDimensions,
+  PaperEntry,
   PaperShift,
-  BladeData,
+  PrintSize,
 } from '../../types/border-calculator';
+import {
+  bladeReadings,
+  bordersFromGaps,
+  calculateBladeThickness,
+  clampOffsets,
+  computePrintSize,
+  findCenteringOffsets,
+} from '../../utils/border-calculations';
+import { useWindowDimensions } from '../use-window-dimensions';
 
 /**
  * Hook for performing all geometry-related calculations including print size,
@@ -163,7 +163,7 @@ export const useGeometryCalculations = (
       bladeWarning = 'Negative blade reading – use opposite side of scale.';
     if (values.some((v) => Math.abs(v) < 3 && v !== 0))
       bladeWarning =
-        (bladeWarning ? bladeWarning + '\n' : '') +
+        (bladeWarning ? `${bladeWarning}\n` : '') +
         'Many easels have no markings below about 3 in.';
 
     return { blades, bladeWarning };

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { cn } from '../lib/cn';
 import { colorMixOr } from '../lib/color';
 
@@ -182,7 +183,6 @@ export function SaveBeforeShareModal({
                                   color: 'var(--color-text-primary)',
                                 } as React.CSSProperties)
                           }
-                          autoFocus
                           maxLength={50}
                         />
                         {displayError && (

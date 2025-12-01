@@ -12,8 +12,8 @@
    - Responsive text sizing
 \* ------------------------------------------------------------------ */
 
-import { useMemo } from 'react';
 import type { BorderCalculation } from '@dorkroom/logic';
+import { useMemo } from 'react';
 import { useMeasurementFormatter } from '../../hooks/use-measurement-conversion';
 
 interface BladeReadingsOverlayProps {
@@ -174,28 +174,28 @@ function BladeReadingIndicator({ reading }: BladeReadingIndicatorProps) {
           transform: isInside ? 'translate(0, -50%)' : 'translate(-100%, -50%)',
           arrow: isInside ? '←' : '→',
           flexDirection: 'row' as const,
-          arrowFirst: isInside ? true : false,
+          arrowFirst: !!isInside,
         };
       case 'right':
         return {
           transform: isInside ? 'translate(-100%, -50%)' : 'translate(0, -50%)',
           arrow: isInside ? '→' : '←',
           flexDirection: 'row' as const,
-          arrowFirst: isInside ? false : true,
+          arrowFirst: !isInside,
         };
       case 'top':
         return {
           transform: isInside ? 'translate(-50%, 0)' : 'translate(-50%, -100%)',
           arrow: isInside ? '↑' : '↓',
           flexDirection: 'column' as const,
-          arrowFirst: isInside ? true : false,
+          arrowFirst: !!isInside,
         };
       case 'bottom':
         return {
           transform: isInside ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
           arrow: isInside ? '↓' : '↑',
           flexDirection: 'column' as const,
-          arrowFirst: isInside ? false : true,
+          arrowFirst: !isInside,
         };
       default:
         return {

@@ -1,7 +1,7 @@
-import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
 import type { BorderCalculation } from '@dorkroom/logic';
-import { colorMixOr } from '../../lib/color';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from 'lucide-react';
 import { useMeasurementFormatter } from '../../hooks/use-measurement-conversion';
+import { colorMixOr } from '../../lib/color';
 
 interface BladeResultsDisplayProps {
   calculation: BorderCalculation | null;
@@ -12,7 +12,7 @@ interface BladeResultsDisplayProps {
 export function BladeResultsDisplay({
   calculation,
   paperSize,
-  aspectRatio,
+  aspectRatio: _aspectRatio,
 }: BladeResultsDisplayProps) {
   const { formatWithUnit, formatDimensions } = useMeasurementFormatter();
 

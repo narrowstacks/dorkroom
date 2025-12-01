@@ -1,4 +1,4 @@
-import { ReactNode, memo } from 'react';
+import { memo, type ReactNode } from 'react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 
@@ -61,7 +61,6 @@ export const CalculatorCard = memo(function CalculatorCard({
           'var(--color-border-muted)'
         ),
       }}
-      role="region"
       aria-label={title || 'Calculator card'}
     >
       {accent !== 'none' && (

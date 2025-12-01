@@ -1,6 +1,6 @@
 import {
   formatTemperature,
-  TemperatureData,
+  type TemperatureData,
 } from '../../utils/temperature-formatting';
 
 describe('temperature formatting', () => {

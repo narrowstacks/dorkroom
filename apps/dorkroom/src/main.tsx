@@ -1,17 +1,17 @@
-import { StrictMode, lazy, Suspense } from 'react';
-import * as ReactDOM from 'react-dom/client';
-import { Analytics } from '@vercel/analytics/react';
-import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createRouter, RouterProvider } from '@tanstack/react-router';
+import { Analytics } from '@vercel/analytics/react';
+import { lazy, StrictMode, Suspense } from 'react';
+import * as ReactDOM from 'react-dom/client';
 import '@fontsource-variable/montserrat/index.css';
 import './styles.css';
-import { routeTree } from './routeTree.gen';
 import {
-  ToastProvider,
-  MeasurementProvider,
   ErrorBoundary,
+  MeasurementProvider,
+  ThemeProvider,
+  ToastProvider,
 } from '@dorkroom/ui';
-import { ThemeProvider } from '@dorkroom/ui';
+import { routeTree } from './routeTree.gen';
 
 // Lazy load devtools only in development
 const ReactQueryDevtools =

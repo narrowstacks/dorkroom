@@ -1,6 +1,6 @@
+import { X } from 'lucide-react';
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
 import { cn } from '../lib/cn';
 
 /**
@@ -75,6 +75,7 @@ export function Modal({
   }
 
   return createPortal(
+    // biome-ignore lint/a11y/useSemanticElements: Using div with role="dialog" instead of <dialog> for custom portal-based modal with backdrop click handling
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center px-4 backdrop-blur"
       style={{
@@ -139,7 +140,9 @@ export function Modal({
         >
           {children}
         </div>
-        {footer && <div className="mt-6 flex flex-col gap-2 pb-20">{footer}</div>}
+        {footer && (
+          <div className="mt-6 flex flex-col gap-2 pb-20">{footer}</div>
+        )}
       </div>
     </div>,
     document.body

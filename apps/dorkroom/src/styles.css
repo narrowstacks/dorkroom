@@ -1,8 +1,8 @@
-@import 'tailwindcss';
-@import './styles/theme.css';
-@import './styles/base.css';
-@import './styles/animations.css';
-@import './styles/components.css';
-@import './styles/utilities.css';
+@import "tailwindcss";
+@import "./styles/theme.css";
+@import "./styles/base.css";
+@import "./styles/animations.css";
+@import "./styles/components.css";
+@import "./styles/utilities.css";
 
 @source "../../../**/*.{js,ts,jsx,tsx}";

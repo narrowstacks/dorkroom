@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { BorderPresetSettings } from '../../types/border-calculator';
 
 interface PresetWithSettings {
@@ -76,16 +76,13 @@ export function usePresetManagement({
     }
   };
 
-  const savePreset = (
-    name?: string,
-    settings?: BorderPresetSettings
-  ) => {
+  const savePreset = (name?: string, settings?: BorderPresetSettings) => {
     const finalName = name !== undefined ? name : presetName;
     const finalSettings = settings !== undefined ? settings : currentSettings;
 
     if (!finalName.trim()) return;
     const newPreset = {
-      id: 'user-' + Date.now(),
+      id: `user-${Date.now()}`,
       name: finalName.trim(),
       settings: finalSettings,
     };

@@ -1,9 +1,9 @@
 import {
+  type Dispatch,
+  type RefObject,
+  type SetStateAction,
   useEffect,
   useRef,
-  type Dispatch,
-  type SetStateAction,
-  type RefObject,
 } from 'react';
 
 export interface UseResultsPaginationProps {
@@ -17,9 +17,7 @@ export interface UseResultsPaginationProps {
  * Hook that manages pagination scroll behavior and page index stability
  * Scrolls to top of results when page changes and prevents unwanted resets during transitions
  */
-export function useResultsPagination(
-  props: UseResultsPaginationProps
-): void {
+export function useResultsPagination(props: UseResultsPaginationProps): void {
   const { pageIndex, setPageIndex, favoriteTransitions, resultsContainerRef } =
     props;
 
@@ -37,7 +35,7 @@ export function useResultsPagination(
         behavior: 'smooth',
       });
     }
-  }, [pageIndex, resultsContainerRef]);
+  }, [resultsContainerRef]);
 
   // Prevent page index reset during favorite transitions
   const prevPageIndexRef = useRef(pageIndex);

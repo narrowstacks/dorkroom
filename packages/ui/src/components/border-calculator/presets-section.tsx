@@ -1,6 +1,6 @@
-import { Share2, Save, Trash2 } from 'lucide-react';
-import { Select, TextInput, CalculatorCard } from '../../index';
-import type { SelectItem, BorderPresetSettings } from '@dorkroom/logic';
+import type { BorderPresetSettings, SelectItem } from '@dorkroom/logic';
+import { Save, Share2, Trash2 } from 'lucide-react';
+import { CalculatorCard, Select, TextInput } from '../../index';
 
 interface PresetsSectionProps {
   selectedPresetId: string | null;
@@ -14,7 +14,10 @@ interface PresetsSectionProps {
   onEditingChange: (isEditing: boolean) => void;
   onShareClick: () => void;
   onSavePreset: (name: string) => void;
-  onUpdatePreset: (id: string, data: { name: string; settings: BorderPresetSettings }) => void;
+  onUpdatePreset: (
+    id: string,
+    data: { name: string; settings: BorderPresetSettings }
+  ) => void;
   onDeletePreset: (id: string) => void;
 }
 
@@ -117,7 +120,13 @@ export function PresetsSection({
               Save
             </button>
             <button
-              onClick={() => selectedPresetId && onUpdatePreset(selectedPresetId, { name: presetName, settings: {} as BorderPresetSettings })}
+              onClick={() =>
+                selectedPresetId &&
+                onUpdatePreset(selectedPresetId, {
+                  name: presetName,
+                  settings: {} as BorderPresetSettings,
+                })
+              }
               disabled={!selectedPresetId}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{
@@ -131,7 +140,9 @@ export function PresetsSection({
               Update
             </button>
             <button
-              onClick={() => selectedPresetId && onDeletePreset(selectedPresetId)}
+              onClick={() =>
+                selectedPresetId && onDeletePreset(selectedPresetId)
+              }
               disabled={!selectedPresetId}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{

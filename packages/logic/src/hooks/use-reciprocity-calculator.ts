@@ -3,15 +3,15 @@ import {
   RECIPROCITY_EXPOSURE_PRESETS,
   RECIPROCITY_FILM_TYPES,
 } from '../constants/reciprocity';
+import {
+  DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
+  DEFAULT_RECIPROCITY_METERED_TIME,
+  RECIPROCITY_MAX_BAR_WIDTH,
+} from '../constants/reciprocity-calculator-defaults';
 import type {
   ReciprocityCalculation,
   ReciprocityCalculatorState,
 } from '../types/reciprocity';
-import {
-  DEFAULT_RECIPROCITY_METERED_TIME,
-  DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
-  RECIPROCITY_MAX_BAR_WIDTH,
-} from '../constants/reciprocity-calculator-defaults';
 
 /**
  * Formats reciprocity time in seconds to human-readable string.
@@ -186,7 +186,7 @@ export function useReciprocityCalculator(): ReciprocityCalculatorState & {
       }
     }
 
-    const adjustedTime = Math.pow(originalTime, factor);
+    const adjustedTime = originalTime ** factor;
     const percentageIncrease =
       ((adjustedTime - originalTime) / originalTime) * 100;
 

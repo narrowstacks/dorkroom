@@ -1,7 +1,7 @@
-import { useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CustomRecipe } from '../../types/custom-recipes';
+import { useEffect, useMemo } from 'react';
 import { queryKeys } from '../../queries/query-keys';
+import type { CustomRecipe } from '../../types/custom-recipes';
 import { debugError, debugWarn } from '../../utils/debug-logger';
 
 const STORAGE_KEY = 'dorkroom_custom_recipes';

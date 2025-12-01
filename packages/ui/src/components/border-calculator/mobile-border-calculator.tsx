@@ -1,73 +1,54 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+// Hooks
+import {
+  type BorderCalculatorState,
+  type BorderPreset,
+  type BorderPresetSettings,
+  borderCalculatorInitialState,
+  borderCalculatorSchema,
+  CALC_STORAGE_KEY,
+  calculateQuarterInchMinBorder,
+  debugError,
+  debugLog,
+  PAPER_SIZES,
+  shallowEqual,
+  useBorderPresets,
+  useDimensionCalculations,
+  useGeometryCalculations,
+  usePresetSharing,
+} from '@dorkroom/logic';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import {
-  RotateCcw,
-  EyeOff,
   BookOpen,
-  Share,
   Crop,
+  EyeOff,
   Image,
-  Ruler,
   Move,
+  RotateCcw,
+  Ruler,
+  Share,
   Target,
 } from 'lucide-react';
-
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Drawer, DrawerBody, DrawerContent } from '../../components/drawer';
+import { SaveBeforeShareModal } from '../../components/save-before-share-modal';
+import { SettingsButton } from '../../components/settings-button';
+import { ShareModal } from '../../components/share-modal';
+import { WarningAlert } from '../../components/warning-alert';
+import { useMeasurement } from '../../contexts/measurement-context';
+import { useTheme } from '../../contexts/theme-context';
+import { createZodFormValidator } from '../../forms/utils/create-zod-form-validator';
+import { useMeasurementFormatter } from '../../hooks/use-measurement-conversion';
+import { AnimatedPreview } from './animated-preview';
 // Components
 import { BladeResultsDisplay } from './blade-results-display';
-import { AnimatedPreview } from './animated-preview';
-import { SettingsButton } from '../../components/settings-button';
-import {
-  WarningAlert,
-} from '../../components/warning-alert';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerBody,
-} from '../../components/drawer';
-import {
-  ShareModal,
-} from '../../components/share-modal';
-import {
-  SaveBeforeShareModal,
-} from '../../components/save-before-share-modal';
-import {
-  useMeasurement,
-} from '../../contexts/measurement-context';
-import {
-  useMeasurementFormatter,
-} from '../../hooks/use-measurement-conversion';
-import {
-  createZodFormValidator,
-} from '../../forms/utils/create-zod-form-validator';
-
 // Sections
 import {
-  PaperSizeSection,
   BorderSizeSection,
+  PaperSizeSection,
   PositionOffsetsSection,
   PresetsSection,
 } from './sections';
-
-// Hooks
-import {
-  borderCalculatorSchema,
-  useBorderPresets,
-  usePresetSharing,
-  useDimensionCalculations,
-  useGeometryCalculations,
-  calculateQuarterInchMinBorder,
-  shallowEqual,
-  debugLog,
-  debugError,
-  type BorderPreset,
-  type BorderCalculatorState,
-  type BorderPresetSettings,
-  PAPER_SIZES,
-  CALC_STORAGE_KEY,
-  borderCalculatorInitialState,
-} from '@dorkroom/logic';
-import { useTheme } from '../../contexts/theme-context';
 
 // Active section type
 type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
@@ -164,7 +145,7 @@ export function MobileBorderCalculator({
       console.warn('Failed to load calculator state', error);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [form.setFieldValue]);
 
   // Subscribe to form changes for reactivity
   const formValues = useStore(
@@ -337,7 +318,7 @@ export function MobileBorderCalculator({
         form.setFieldValue('isLandscape', shouldBeLandscape);
       }
     }
-  }, [paperSize, customPaperWidth, customPaperHeight, form]);
+  }, [customPaperWidth, customPaperHeight, form]);
 
   const offsetWarning = calculation?.offsetWarning ?? null;
   const bladeWarning = calculation?.bladeWarning ?? null;
@@ -348,11 +329,7 @@ export function MobileBorderCalculator({
   const { presets, addPreset, updatePreset, removePreset } = useBorderPresets();
 
   // Sharing hooks
-  const {
-    getSharingUrls,
-    canCopyToClipboard,
-    isSharing,
-  } = usePresetSharing({
+  const { getSharingUrls, canCopyToClipboard, isSharing } = usePresetSharing({
     onShareSuccess: (result) => {
       if (result.method === 'clipboard') {
         debugLog('Preset link copied to clipboard!');
@@ -560,7 +537,7 @@ export function MobileBorderCalculator({
       setIsGeneratingShareUrl(true);
       try {
         const newPreset: BorderPreset = {
-          id: 'user-' + Date.now(),
+          id: `user-${Date.now()}`,
           name,
           settings: currentSettings,
         };
@@ -632,7 +609,7 @@ export function MobileBorderCalculator({
         id: Date.now().toString(),
         name,
         settings,
-        };
+      };
       addPreset(newPreset);
       setCurrentPreset(newPreset);
       closeDrawer();
@@ -677,7 +654,7 @@ export function MobileBorderCalculator({
             !isHighContrast
               ? 'shadow-[0_30px_90px_-40px_var(--color-visualization-overlay)]'
               : ''
-              } backdrop-blur-sm`}
+          } backdrop-blur-sm`}
           style={{
             background: 'var(--color-border-primary)',
           }}
@@ -703,7 +680,7 @@ export function MobileBorderCalculator({
             !isHighContrast
               ? 'shadow-[0_35px_110px_-50px_var(--color-visualization-overlay)]'
               : ''
-              } backdrop-blur-lg`}
+          } backdrop-blur-lg`}
           style={{
             borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-background)',
@@ -841,7 +818,7 @@ export function MobileBorderCalculator({
               onClick={handleShare}
               className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
                 !isHighContrast ? 'shadow-lg' : ''
-                }`}
+              }`}
               style={
                 {
                   background: 'var(--gradient-card-primary)',
@@ -861,7 +838,7 @@ export function MobileBorderCalculator({
           onClick={resetToDefaults}
           className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
             !isHighContrast ? 'shadow-lg' : ''
-            }`}
+          }`}
           style={
             {
               borderColor: 'var(--color-border-secondary)',

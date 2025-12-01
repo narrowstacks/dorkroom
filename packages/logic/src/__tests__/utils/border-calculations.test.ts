@@ -1,11 +1,11 @@
 import {
-  findCenteringOffsets,
+  bladeReadings,
+  bordersFromGaps,
   calculateBladeThickness,
   calculateOptimalMinBorder,
-  computePrintSize,
   clampOffsets,
-  bordersFromGaps,
-  bladeReadings,
+  computePrintSize,
+  findCenteringOffsets,
   validatePrintFits,
 } from '../../utils/border-calculations';
 

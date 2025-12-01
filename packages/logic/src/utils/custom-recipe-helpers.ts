@@ -1,4 +1,4 @@
-import type { Film, Developer } from '@dorkroom/api';
+import type { Developer, Film } from '@dorkroom/api';
 import type { CustomRecipe } from '../types/custom-recipes';
 
 /**
@@ -34,7 +34,7 @@ export const getCustomRecipeFilm = (
   if (recipe.isCustomFilm && recipe.customFilm) {
     const now = new Date().toISOString();
     return {
-      id: parseInt(`${Date.now()}`), // Generate a numeric ID
+      id: parseInt(`${Date.now()}`, 10), // Generate a numeric ID
       uuid: `custom_film_${recipe.id}`,
       slug: `custom_film_${recipe.id}`,
       brand: recipe.customFilm.brand,
@@ -89,7 +89,7 @@ export const getCustomRecipeDeveloper = (
   if (recipe.isCustomDeveloper && recipe.customDeveloper) {
     const now = new Date().toISOString();
     return {
-      id: parseInt(`${Date.now()}`), // Generate a numeric ID
+      id: parseInt(`${Date.now()}`, 10), // Generate a numeric ID
       uuid: `custom_dev_${recipe.id}`,
       slug: `custom_dev_${recipe.id}`,
       name: recipe.customDeveloper.name,

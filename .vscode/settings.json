@@ -3,6 +3,7 @@
   "cSpell.words": [
     "agplv",
     "behaviour",
+    "biomejs",
     "bunx",
     "Csvg",
     "filmdev",
@@ -10,7 +11,7 @@
     "isos",
     "normalised",
     "persistable",
-    "refetches"
+    "refetches",
     "firecrawl",
     "mcp",
     "FIRECRAWL",
@@ -20,5 +21,28 @@
   ],
   "nxConsole.nxWorkspacePath": "",
   "npm.autoDetect": "off",
-  "npm.packageManager": "bun"
+  "npm.packageManager": "bun",
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "explicit"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  }
 }

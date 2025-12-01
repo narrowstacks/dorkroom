@@ -1,13 +1,13 @@
+import type { Combination, Developer, Film } from '@dorkroom/api';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Film, Developer, Combination } from '@dorkroom/api';
-import {
-  type RecipeUrlParams,
-  type InitialUrlState,
-  type UrlValidationConfig,
-  type UrlValidationResult,
+import type {
+  InitialUrlState,
+  RecipeUrlParams,
+  UrlValidationConfig,
+  UrlValidationResult,
 } from '../../types/development-recipes-url';
-import { useCustomRecipeSharing } from './use-custom-recipe-sharing';
 import type { ImportedCustomRecipe } from './use-custom-recipe-sharing';
+import { useCustomRecipeSharing } from './use-custom-recipe-sharing';
 
 const VALIDATION_CONFIG: UrlValidationConfig = {
   maxSlugLength: 100,
@@ -340,6 +340,46 @@ export const useRecipeUrlState = (
     return state;
   }, [params, films, developers]);
 
+  const updateUrl = useCallback(
+    (newParams: Partial<RecipeUrlParams>) => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+        updateTimeoutRef.current = null;
+      }
+
+      updateTimeoutRef.current = setTimeout(() => {
+        // Clear the timeout ref immediately to prevent duplicate cleanup
+        updateTimeoutRef.current = null;
+
+        if (!isInitializedRef.current || typeof window === 'undefined') {
+          return;
+        }
+
+        const searchParams = new URLSearchParams(window.location.search);
+
+        MANAGED_QUERY_KEYS.forEach((key) => {
+          searchParams.delete(key);
+        });
+
+        const mergedParams: RecipeUrlParams = { ...params, ...newParams };
+
+        Object.entries(mergedParams).forEach(([key, value]) => {
+          if (value) {
+            searchParams.set(key, value as string);
+          }
+        });
+
+        const searchString = searchParams.toString();
+        const newUrl = `${window.location.pathname}${
+          searchString ? `?${searchString}` : ''
+        }${window.location.hash ?? ''}`;
+        window.history.replaceState(null, '', newUrl);
+        setParams(parseSearchParams(searchParams));
+      }, 300);
+    },
+    [params]
+  );
+
   useEffect(() => {
     const handleSharedRecipeLookup = async () => {
       const validation = validateUrlParams(params);
@@ -368,7 +408,7 @@ export const useRecipeUrlState = (
         if (isCustomRecipeUrl(recipeId)) {
           const importedRecipe = decodeSharedCustomRecipe(recipeId);
 
-          if (importedRecipe && importedRecipe.isValid) {
+          if (importedRecipe?.isValid) {
             setSharedCustomRecipe(importedRecipe.recipe);
             setSharedRecipe(null);
             // Remove recipe param from URL after successful load
@@ -423,47 +463,13 @@ export const useRecipeUrlState = (
 
     handleSharedRecipeLookup();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params, recipesByUuid, isCustomRecipeUrl, decodeSharedCustomRecipe]);
-
-  const updateUrl = useCallback(
-    (newParams: Partial<RecipeUrlParams>) => {
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-        updateTimeoutRef.current = null;
-      }
-
-      updateTimeoutRef.current = setTimeout(() => {
-        // Clear the timeout ref immediately to prevent duplicate cleanup
-        updateTimeoutRef.current = null;
-
-        if (!isInitializedRef.current || typeof window === 'undefined') {
-          return;
-        }
-
-        const searchParams = new URLSearchParams(window.location.search);
-
-        MANAGED_QUERY_KEYS.forEach((key) => {
-          searchParams.delete(key);
-        });
-
-        const mergedParams: RecipeUrlParams = { ...params, ...newParams };
-
-        Object.entries(mergedParams).forEach(([key, value]) => {
-          if (value) {
-            searchParams.set(key, value as string);
-          }
-        });
-
-        const searchString = searchParams.toString();
-        const newUrl = `${window.location.pathname}${
-          searchString ? `?${searchString}` : ''
-        }${window.location.hash ?? ''}`;
-        window.history.replaceState(null, '', newUrl);
-        setParams(parseSearchParams(searchParams));
-      }, 300);
-    },
-    [params]
-  );
+  }, [
+    params,
+    recipesByUuid,
+    isCustomRecipeUrl,
+    decodeSharedCustomRecipe, // Remove recipe param from URL after successful load
+    updateUrl,
+  ]);
 
   useEffect(() => {
     if (!isInitializedRef.current) {

@@ -50,7 +50,7 @@ export const debugLogTiming =
     : () => undefined;
 
 // Continuous FPS monitoring - only initialize in debug mode
-let fpsMonitoringState =
+const fpsMonitoringState =
   DEBUG_ENABLED && PERF_MONITORING_ENABLED
     ? {
         isActive: false,
@@ -123,18 +123,18 @@ export const startContinuousFPSMonitoring =
               avgFPS >= 55
                 ? 'excellent'
                 : avgFPS >= 45
-                ? 'good'
-                : avgFPS >= 30
-                ? 'fair'
-                : 'poor';
+                  ? 'good'
+                  : avgFPS >= 30
+                    ? 'fair'
+                    : 'poor';
             const qualityColor =
               avgFPS >= 55
                 ? '🟢'
                 : avgFPS >= 45
-                ? '🟡'
-                : avgFPS >= 30
-                ? '🟠'
-                : '🔴';
+                  ? '🟡'
+                  : avgFPS >= 30
+                    ? '🟠'
+                    : '🔴';
 
             debugLog(
               `${qualityColor} [FPS MONITOR] ${label} - Avg: ${avgFPS.toFixed(

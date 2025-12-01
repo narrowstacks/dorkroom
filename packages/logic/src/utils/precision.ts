@@ -26,7 +26,7 @@ export const roundToPrecision = (
   value: number,
   places: number = DECIMAL_PLACES
 ): number => {
-  const multiplier = Math.pow(10, places);
+  const multiplier = 10 ** places;
   return Math.round(value * multiplier) / multiplier;
 };
 

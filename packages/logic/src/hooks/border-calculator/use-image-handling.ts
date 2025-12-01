@@ -4,10 +4,10 @@
    Image state helpers adapted from the original implementation
 \* ------------------------------------------------------------------ */
 
-import { useRef, useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import type {
-  BorderCalculatorState,
   BorderCalculatorAction,
+  BorderCalculatorState,
 } from '../../types/border-calculator';
 
 /**

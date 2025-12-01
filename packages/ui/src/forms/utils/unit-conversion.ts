@@ -169,5 +169,5 @@ export const calculateNewTime = (
   stops: number
 ): number => {
   if (originalTime <= 0) return 0;
-  return originalTime * Math.pow(2, stops);
+  return originalTime * 2 ** stops;
 };

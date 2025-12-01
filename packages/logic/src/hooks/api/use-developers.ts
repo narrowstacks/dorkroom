@@ -1,6 +1,5 @@
+import { type Developer, fetchDevelopersForQuery } from '@dorkroom/api';
 import { useQuery } from '@tanstack/react-query';
-import { Developer } from '@dorkroom/api';
-import { fetchDevelopersForQuery } from '@dorkroom/api';
 import { queryKeys } from '../../queries/query-keys';
 
 /**

@@ -1,8 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import {
+  type FilmdevApiError,
+  type FilmdevRecipe,
   fetchFilmdevRecipe,
-  FilmdevRecipe,
-  FilmdevApiError,
 } from '../../services/filmdev-api';
 
 /**

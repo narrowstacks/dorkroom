@@ -1,29 +1,29 @@
-import { useForm } from '@tanstack/react-form';
-import { useStore } from '@tanstack/react-store';
-import { useMemo, useState, useEffect, useRef } from 'react';
 import {
-  CalculatorCard,
-  CalculatorPageHeader,
-  CalculatorStat,
-  Select,
-  TextInput,
-  CalculatorNumberField,
-  ResultRow,
-  ReciprocityChart,
-  reciprocityCalculatorSchema,
-  createZodFormValidator,
-} from '@dorkroom/ui';
-import {
+  debugWarn,
   formatReciprocityTime,
   parseReciprocityTime,
   RECIPROCITY_EXPOSURE_PRESETS,
   RECIPROCITY_FILM_TYPES,
   RECIPROCITY_STORAGE_KEY,
-  debugWarn,
-  type SelectItem,
   type ReciprocityFormState,
+  type SelectItem,
 } from '@dorkroom/logic';
+import {
+  CalculatorCard,
+  CalculatorNumberField,
+  CalculatorPageHeader,
+  CalculatorStat,
+  createZodFormValidator,
+  ReciprocityChart,
+  ResultRow,
+  reciprocityCalculatorSchema,
+  Select,
+  TextInput,
+} from '@dorkroom/ui';
+import { useForm } from '@tanstack/react-form';
+import { useStore } from '@tanstack/react-store';
 import { ChartLine, Maximize2, Minimize2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const validateReciprocityForm = createZodFormValidator(
   reciprocityCalculatorSchema
@@ -94,9 +94,9 @@ function selectReciprocityCalculation(
       ? Number.isFinite(customFactor)
         ? customFactor
         : 1.3
-      : selectedFilm?.factor ?? 1.3;
+      : (selectedFilm?.factor ?? 1.3);
 
-  const adjustedTime = Math.pow(parsedSeconds, factor);
+  const adjustedTime = parsedSeconds ** factor;
   const percentageIncrease =
     ((adjustedTime - parsedSeconds) / parsedSeconds) * 100;
 
@@ -108,7 +108,7 @@ function selectReciprocityCalculation(
     filmName:
       filmType === 'custom'
         ? 'Custom profile'
-        : selectedFilm?.label ?? 'Unknown',
+        : (selectedFilm?.label ?? 'Unknown'),
   };
 }
 

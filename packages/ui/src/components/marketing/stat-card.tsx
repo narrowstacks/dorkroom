@@ -1,4 +1,4 @@
-import { type LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { ComponentProps, ElementType } from 'react';
 import { cn } from '../../lib/cn';
 import { Skeleton } from '../ui/skeleton';

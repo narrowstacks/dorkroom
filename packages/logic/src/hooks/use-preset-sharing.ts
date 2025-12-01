@@ -1,12 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
+import { debugError } from '../utils/debug-logger';
+import { shouldUseWebShare } from '../utils/device-detection';
 import { encodePreset, type PresetToShare } from '../utils/preset-sharing';
 import {
   generateSharingUrls,
   isClipboardSupported,
   updateUrlWithPreset,
 } from '../utils/url-helpers';
-import { shouldUseWebShare } from '../utils/device-detection';
-import { debugError } from '../utils/debug-logger';
 
 export interface ShareResult {
   success: boolean;

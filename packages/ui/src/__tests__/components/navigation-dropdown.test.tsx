@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Home, Settings, Users } from 'lucide-react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   NavigationDropdown,
-  NavigationItem,
+  type NavigationItem,
 } from '../../components/navigation-dropdown';
 
 describe('NavigationDropdown', () => {

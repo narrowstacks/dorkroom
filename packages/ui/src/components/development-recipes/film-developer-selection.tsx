@@ -1,6 +1,6 @@
-import { SearchableSelect } from '../searchable-select';
 import type { SelectItem } from '@dorkroom/logic';
 import { cn } from '../../lib/cn';
+import { SearchableSelect } from '../searchable-select';
 
 interface FilmDeveloperSelectionProps {
   className?: string;

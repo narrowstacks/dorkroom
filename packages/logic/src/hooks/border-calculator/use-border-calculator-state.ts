@@ -4,15 +4,15 @@
    Core state management for the border calculator (web adaptation)
 \* ------------------------------------------------------------------ */
 
-import { useReducer, useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useReducer, useRef } from 'react';
 import { ASPECT_RATIOS, PAPER_SIZES } from '../../constants/border-calculator';
-import { BORDER_CALCULATOR_STORAGE_KEY } from '../../constants/storage-keys';
 import { BORDER_CALCULATOR_DEFAULTS } from '../../constants/border-calculator-defaults';
+import { BORDER_CALCULATOR_STORAGE_KEY } from '../../constants/storage-keys';
 import type {
-  BorderCalculatorState,
-  BorderCalculatorAction,
-  BorderPresetSettings,
   AspectRatioValue,
+  BorderCalculatorAction,
+  BorderCalculatorState,
+  BorderPresetSettings,
   PaperSizeValue,
 } from '../../types/border-calculator';
 

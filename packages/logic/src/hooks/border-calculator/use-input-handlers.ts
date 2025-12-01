@@ -8,14 +8,14 @@
 \* ------------------------------------------------------------------ */
 
 import { useCallback, useMemo } from 'react';
-import { tryNumber, debounce } from '../../utils/input-validation';
-import { debugError } from '../../utils/debug-logger';
 import type {
-  BorderCalculatorState,
-  BorderCalculatorAction,
   AspectRatioValue,
+  BorderCalculatorAction,
+  BorderCalculatorState,
   PaperSizeValue,
 } from '../../types/border-calculator';
+import { debugError } from '../../utils/debug-logger';
+import { debounce, tryNumber } from '../../utils/input-validation';
 
 // Validation sets for discriminated union types
 const VALID_ASPECT_RATIOS = new Set<AspectRatioValue>([

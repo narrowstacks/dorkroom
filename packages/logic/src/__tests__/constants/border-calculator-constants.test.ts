@@ -1,20 +1,20 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  ASPECT_RATIOS,
-  PAPER_SIZES,
-  EASEL_SIZES,
-  SLIDER_MIN_BORDER,
-  SLIDER_MAX_BORDER,
-  SLIDER_STEP_BORDER,
-  BORDER_SLIDER_LABELS,
-  OFFSET_SLIDER_MIN,
-  OFFSET_SLIDER_MAX,
-  OFFSET_SLIDER_STEP,
-  OFFSET_SLIDER_LABELS,
-  PAPER_SIZE_MAP,
   ASPECT_RATIO_MAP,
-  EASEL_SIZE_MAP,
+  ASPECT_RATIOS,
+  BORDER_SLIDER_LABELS,
   DEFAULT_BORDER_PRESETS,
+  EASEL_SIZE_MAP,
+  EASEL_SIZES,
+  OFFSET_SLIDER_LABELS,
+  OFFSET_SLIDER_MAX,
+  OFFSET_SLIDER_MIN,
+  OFFSET_SLIDER_STEP,
+  PAPER_SIZE_MAP,
+  PAPER_SIZES,
+  SLIDER_MAX_BORDER,
+  SLIDER_MIN_BORDER,
+  SLIDER_STEP_BORDER,
 } from '../../constants/border-calculator';
 import { BORDER_CALCULATOR_DEFAULTS } from '../../constants/border-calculator-defaults';
 
@@ -89,7 +89,7 @@ describe('Border Calculator Constants', () => {
         const ratio = ASPECT_RATIOS.find((r) => r.value === value);
         expect(ratio).toBeDefined();
 
-        if (ratio && ratio.width && ratio.height) {
+        if (ratio?.width && ratio.height) {
           const calculated = ratio.width / ratio.height;
           expect(calculated).toBeCloseTo(expectedRatio, 2);
         }
@@ -367,7 +367,7 @@ describe('Border Calculator Constants', () => {
       // Aspect ratio should be valid
       const ratio = customAspectWidth / customAspectHeight;
       expect(ratio).toBeGreaterThan(0);
-      expect(isFinite(ratio)).toBe(true);
+      expect(Number.isFinite(ratio)).toBe(true);
     });
   });
 

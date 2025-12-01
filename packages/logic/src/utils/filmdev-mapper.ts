@@ -1,9 +1,9 @@
+import type { Developer, Film } from '@dorkroom/api';
 import type { FilmdevRecipe } from '../services/filmdev-api';
-import type { Film, Developer } from '@dorkroom/api';
 import type {
-  CustomRecipeFormData,
-  CustomFilmData,
   CustomDeveloperData,
+  CustomFilmData,
+  CustomRecipeFormData,
 } from '../types/custom-recipes';
 
 /**
@@ -58,7 +58,7 @@ export function findBestFilmMatch(
   // Try ISO speed matching for common films
   const isoMatch = filmString.match(/(\d+)/);
   if (isoMatch) {
-    const iso = parseInt(isoMatch[1]);
+    const iso = parseInt(isoMatch[1], 10);
     bestMatch = availableFilms.find(
       (film) =>
         film.isoSpeed === iso &&
@@ -257,13 +257,13 @@ export function parseTemperature(
 ): number {
   // Try to parse Fahrenheit first since that's what your system uses
   const fahrenheit = parseFloat(fahrenheitString);
-  if (!isNaN(fahrenheit) && fahrenheit > 0) {
+  if (!Number.isNaN(fahrenheit) && fahrenheit > 0) {
     return fahrenheit;
   }
 
   // Fall back to Celsius and convert
   const celsius = parseFloat(celsiusString);
-  if (!isNaN(celsius) && celsius > 0) {
+  if (!Number.isNaN(celsius) && celsius > 0) {
     return celsiusToFahrenheit(celsius);
   }
 

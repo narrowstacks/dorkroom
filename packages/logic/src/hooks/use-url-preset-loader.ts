@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { BorderPresetSettings } from '../types/border-calculator';
 import { decodePreset, isValidEncodedPreset } from '../utils/preset-sharing';
-import { getPresetFromUrl, clearPresetFromUrl } from '../utils/url-helpers';
+import { clearPresetFromUrl, getPresetFromUrl } from '../utils/url-helpers';
 
 export interface LoadedPreset {
   name: string;

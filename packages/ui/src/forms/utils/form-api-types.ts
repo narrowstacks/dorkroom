@@ -4,9 +4,9 @@
  */
 
 import type {
-  ReactFormExtendedApi,
-  FormValidateOrFn,
   FormAsyncValidateOrFn,
+  FormValidateOrFn,
+  ReactFormExtendedApi,
 } from '@tanstack/react-form';
 
 /**
@@ -101,7 +101,7 @@ export type FormInstance<
   TOnDynamic extends undefined | FormValidateOrFn<TFormData> = any,
   TOnDynamicAsync extends undefined | FormAsyncValidateOrFn<TFormData> = any,
   TOnServer extends undefined | FormAsyncValidateOrFn<TFormData> = any,
-  TSubmitMeta = any
+  TSubmitMeta = any,
 > = ReactFormExtendedApi<
   TFormData,
   TOnMount,

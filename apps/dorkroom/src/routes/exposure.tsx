@@ -1,6 +1,6 @@
+import { PlaceholderPage } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
 import { Suspense } from 'react';
-import { PlaceholderPage } from '@dorkroom/ui';
 import { LoadingSpinner } from '../components/loading-spinner';
 
 export const Route = createFileRoute('/exposure')({

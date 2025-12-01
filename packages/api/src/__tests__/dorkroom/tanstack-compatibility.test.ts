@@ -1,7 +1,7 @@
 import {
-  fetchFilmsForQuery,
-  fetchDevelopersForQuery,
   fetchCombinationsForQuery,
+  fetchDevelopersForQuery,
+  fetchFilmsForQuery,
 } from '../../dorkroom/client';
 
 // Mock fetch globally

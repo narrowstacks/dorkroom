@@ -1,11 +1,11 @@
-import { ExternalLink, Edit2, Trash2, Star, Share2 } from 'lucide-react';
-import { useState } from 'react';
-import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { Dilution } from '@dorkroom/api';
-import { formatTemperatureWithUnit } from '../../lib/temperature';
+import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import { Edit2, ExternalLink, Share2, Star, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
-import { Tag } from '../ui/tag';
+import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { CollapsibleSection } from '../ui/collapsible-section';
+import { Tag } from '../ui/tag';
 
 interface DevelopmentRecipeDetailProps {
   view: DevelopmentCombinationView;

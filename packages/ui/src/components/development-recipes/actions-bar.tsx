@@ -1,4 +1,4 @@
-import { Grid, Rows, Upload, Plus } from 'lucide-react';
+import { Grid, Plus, Rows, Upload } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { TemperatureUnitToggle } from './temperature-unit-toggle';
 

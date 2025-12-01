@@ -40,7 +40,10 @@ export const positiveDimensionValidator = (max = 1000) =>
  * @param max - Maximum allowed value (default: 1000)
  */
 export const dimensionValidator = (max = 1000) =>
-  z.number().min(0, 'Value must be non-negative').max(max, 'Value is too large');
+  z
+    .number()
+    .min(0, 'Value must be non-negative')
+    .max(max, 'Value is too large');
 
 /**
  * Creates a validator for reciprocity factors.

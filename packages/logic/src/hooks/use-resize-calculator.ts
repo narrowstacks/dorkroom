@@ -1,12 +1,12 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  DEFAULT_ORIGINAL_WIDTH,
-  DEFAULT_ORIGINAL_LENGTH,
-  DEFAULT_NEW_WIDTH,
-  DEFAULT_NEW_LENGTH,
-  DEFAULT_ORIGINAL_TIME,
-  DEFAULT_ORIGINAL_HEIGHT,
   DEFAULT_NEW_HEIGHT,
+  DEFAULT_NEW_LENGTH,
+  DEFAULT_NEW_WIDTH,
+  DEFAULT_ORIGINAL_HEIGHT,
+  DEFAULT_ORIGINAL_LENGTH,
+  DEFAULT_ORIGINAL_TIME,
+  DEFAULT_ORIGINAL_WIDTH,
 } from '../constants/resize-calculator';
 
 export interface UseResizeCalculatorReturn {
@@ -61,10 +61,10 @@ export const useResizeCalculator = (): UseResizeCalculatorReturn => {
     const newL = parseFloat(newLength);
 
     if (
-      isNaN(origWidth) ||
-      isNaN(origLength) ||
-      isNaN(newW) ||
-      isNaN(newL) ||
+      Number.isNaN(origWidth) ||
+      Number.isNaN(origLength) ||
+      Number.isNaN(newW) ||
+      Number.isNaN(newL) ||
       origWidth <= 0 ||
       origLength <= 0 ||
       newW <= 0 ||
@@ -97,9 +97,9 @@ export const useResizeCalculator = (): UseResizeCalculatorReturn => {
       const newH = parseFloat(newHeight);
 
       if (
-        !isNaN(origHeight) &&
-        !isNaN(newH) &&
-        !isNaN(origTime) &&
+        !Number.isNaN(origHeight) &&
+        !Number.isNaN(newH) &&
+        !Number.isNaN(origTime) &&
         origHeight > 0 &&
         newH > 0 &&
         origTime > 0
@@ -107,8 +107,8 @@ export const useResizeCalculator = (): UseResizeCalculatorReturn => {
         const oldMagnification = origHeight;
         const newMagnification = newH;
 
-        const numerator = Math.pow(newMagnification, 2);
-        const denominator = Math.pow(oldMagnification, 2);
+        const numerator = newMagnification ** 2;
+        const denominator = oldMagnification ** 2;
         const ratio = numerator / denominator;
 
         const newTimeValue = origTime * ratio;
@@ -124,11 +124,11 @@ export const useResizeCalculator = (): UseResizeCalculatorReturn => {
       const newL = parseFloat(newLength);
 
       if (
-        !isNaN(origWidth) &&
-        !isNaN(origLength) &&
-        !isNaN(newW) &&
-        !isNaN(newL) &&
-        !isNaN(origTime) &&
+        !Number.isNaN(origWidth) &&
+        !Number.isNaN(origLength) &&
+        !Number.isNaN(newW) &&
+        !Number.isNaN(newL) &&
+        !Number.isNaN(origTime) &&
         origWidth > 0 &&
         origLength > 0 &&
         newW > 0 &&

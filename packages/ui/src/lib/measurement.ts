@@ -7,16 +7,16 @@
  */
 
 import {
-  type MeasurementUnit,
-  convertInchesToDisplay,
   convertDisplayToInches,
-  getPrecisionForUnit,
+  convertInchesToDisplay,
+  convertStepSize,
+  formatDimensionPair as coreFormatDimensionPair,
+  formatMeasurement as coreFormatMeasurement,
   getDisplayUnitLabel,
   getDisplayUnitSymbol,
-  formatMeasurement as coreFormatMeasurement,
-  formatDimensionPair as coreFormatDimensionPair,
+  getPrecisionForUnit,
   getStepSizeForUnit,
-  convertStepSize,
+  type MeasurementUnit,
 } from '@dorkroom/logic';
 
 export interface FormatDimensionsOptions {

@@ -123,7 +123,7 @@ export function useCalculatorSharing({
     try {
       // Create and save the new preset
       const newPreset = {
-        id: 'user-' + Date.now(),
+        id: `user-${Date.now()}`,
         name,
         settings: currentSettings,
       };

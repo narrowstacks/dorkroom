@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { shouldUseWebShare } from '@dorkroom/logic';
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cn } from '../lib/cn';
 import { colorMixOr } from '../lib/color';
-import { shouldUseWebShare } from '@dorkroom/logic';
 import { useOptionalToast } from './toast';
 
 /**
@@ -15,7 +16,7 @@ export interface ShareResult {
 }
 
 export interface ShareButtonProps {
-  onClick: () => void | ShareResult | Promise<void | ShareResult>;
+  onClick: () => undefined | ShareResult | Promise<undefined | ShareResult>;
   isLoading?: boolean;
   disabled?: boolean;
   variant?: 'primary' | 'secondary' | 'outline';
@@ -225,8 +226,8 @@ export function ShareButton({
           (isLoading
             ? 'Sharing...'
             : shouldUseWebShare()
-            ? 'Share'
-            : 'Copy link')}
+              ? 'Share'
+              : 'Copy link')}
       </button>
 
       {/* Local toast notification that appears below the button */}

@@ -1,14 +1,18 @@
 import {
-  Moon,
-  Sun,
-  Monitor,
-  Ruler,
-  Globe,
+  SettingsButton,
+  ToggleSwitch,
+  useMeasurement,
+  useTheme,
+} from '@dorkroom/ui';
+import {
   Camera,
   Contrast,
+  Globe,
+  Monitor,
+  Moon,
+  Ruler,
+  Sun,
 } from 'lucide-react';
-import { SettingsButton, ToggleSwitch, useMeasurement } from '@dorkroom/ui';
-import { useTheme } from '@dorkroom/ui';
 
 export default function SettingsPage() {
   const { theme, setTheme, animationsEnabled, setAnimationsEnabled } =

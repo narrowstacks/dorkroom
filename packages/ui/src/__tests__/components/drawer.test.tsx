@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { act } from 'react';
-import { Drawer, DrawerContent, DrawerBody } from '../../components/drawer';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Drawer, DrawerBody, DrawerContent } from '../../components/drawer';
 
 // Mock timers for testing animations
 beforeEach(() => {

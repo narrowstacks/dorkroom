@@ -1,17 +1,17 @@
-import type * as React from 'react';
+import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type {
-  Table,
-  HeaderGroup,
-  Header,
-  Row,
   Cell,
+  Header,
+  HeaderGroup,
+  Row,
+  Table,
 } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
-import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import type * as React from 'react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
-import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
 import { SkeletonTableRow } from '../ui/skeleton';
+import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
 
 interface DevelopmentResultsTableProps {
   table: Table<DevelopmentCombinationView>;

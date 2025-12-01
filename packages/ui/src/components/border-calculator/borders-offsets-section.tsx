@@ -1,6 +1,6 @@
+import type { FieldApi, FormInstance } from '../../index';
 import { LabeledSliderInput, ToggleSwitch, WarningAlert } from '../../index';
 import { CalculatorCard } from '../calculator/calculator-card';
-import type { FormInstance, FieldApi } from '../../index';
 
 interface BordersOffsetsSectionProps {
   form: FormInstance;
@@ -35,7 +35,7 @@ export function BordersOffsetsSection({
   offsetSliderLabels,
   offsetWarning,
   enableOffset,
-  ignoreMinBorder,
+  ignoreMinBorder: _ignoreMinBorder,
   onRoundToQuarter,
   roundToQuarterDisabled,
 }: BordersOffsetsSectionProps) {

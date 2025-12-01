@@ -1,5 +1,5 @@
 import { ArrowRight, type LucideIcon } from 'lucide-react';
-import { memo, type ComponentProps, type ElementType } from 'react';
+import { type ComponentProps, type ElementType, memo } from 'react';
 import { cn } from '../../lib/cn';
 
 export interface ToolCardProps extends ComponentProps<'a'> {

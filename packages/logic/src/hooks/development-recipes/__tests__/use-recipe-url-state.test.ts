@@ -1,6 +1,6 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Combination } from '@dorkroom/api';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useRecipeUrlState } from '../use-recipe-url-state';
 
 // Mock window.location and history
@@ -547,8 +547,8 @@ describe('useRecipeUrlState', () => {
               selectedFilm: mockFilms[0],
               isoFilter: '400',
             } as {
-              selectedFilm: typeof mockFilms[0] | null;
-              selectedDeveloper: typeof mockDevelopers[0] | null;
+              selectedFilm: (typeof mockFilms)[0] | null;
+              selectedDeveloper: (typeof mockDevelopers)[0] | null;
               dilutionFilter: string;
               isoFilter: string;
               favoritesOnly: boolean;

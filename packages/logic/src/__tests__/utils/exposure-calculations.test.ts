@@ -1,9 +1,9 @@
 import {
   calculateNewExposureTime,
-  roundStopsToThirds,
+  calculatePercentageIncrease,
   formatExposureTime,
   parseExposureTime,
-  calculatePercentageIncrease,
+  roundStopsToThirds,
 } from '../../utils/exposure-calculations';
 
 describe('exposure calculations', () => {

@@ -1,14 +1,14 @@
+import {
+  OFFSET_SLIDER_LABELS,
+  OFFSET_SLIDER_MAX,
+  OFFSET_SLIDER_MIN,
+  OFFSET_SLIDER_STEP,
+} from '@dorkroom/logic';
 import type { AnyFormApi } from '@tanstack/react-form';
 import { X } from 'lucide-react';
 import { LabeledSliderInput } from '../../../components/labeled-slider-input';
 import { ToggleSwitch } from '../../../components/toggle-switch';
 import { WarningAlert } from '../../../components/warning-alert';
-import {
-  OFFSET_SLIDER_MIN,
-  OFFSET_SLIDER_MAX,
-  OFFSET_SLIDER_STEP,
-  OFFSET_SLIDER_LABELS,
-} from '@dorkroom/logic';
 
 interface PositionOffsetsSectionProps {
   onClose: () => void;

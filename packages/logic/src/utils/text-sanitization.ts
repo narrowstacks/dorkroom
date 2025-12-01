@@ -48,6 +48,9 @@ export function sanitizeText(
     .replace(/embed/gi, '');
 
   // Remove null bytes and other control characters (except \n, \r, \t)
+  // Using RegExp constructor to avoid biome lint warning about control characters
+  // This matches: \x00-\x08 (NUL to BS), \x0B (VT), \x0C (FF), \x0E-\x1F (SO to US), \x7F (DEL)
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: Intentionally matching control characters for sanitization
   sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
   // WARNING: Do not manually encode HTML entities here.
@@ -58,7 +61,7 @@ export function sanitizeText(
 
   // Trim to max length
   if (sanitized.length > maxLength) {
-    sanitized = sanitized.substring(0, maxLength) + '...';
+    sanitized = `${sanitized.substring(0, maxLength)}...`;
   }
 
   // Trim whitespace

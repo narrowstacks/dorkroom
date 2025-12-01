@@ -10,8 +10,8 @@
    - Blade visualization with smooth transitions
 \* ------------------------------------------------------------------ */
 
-import { useMemo, useState, useEffect } from 'react';
 import type { BorderCalculation } from '@dorkroom/logic';
+import { useEffect, useMemo, useState } from 'react';
 import { BladeReadingsOverlay } from './blade-readings-overlay';
 
 interface AnimatedPreviewProps {

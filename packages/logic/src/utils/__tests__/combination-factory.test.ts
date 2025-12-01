@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import type { CustomRecipe } from '../../types/custom-recipes';
 import {
   createCombinationFromCustomRecipe,
   createTemporaryCombination,
 } from '../combination-factory';
-import type { CustomRecipe } from '../../types/custom-recipes';
 
 describe('combination-factory', () => {
   const validRecipe: CustomRecipe = {
@@ -140,4 +140,3 @@ describe('combination-factory', () => {
     });
   });
 });
-

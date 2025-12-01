@@ -3,6 +3,7 @@
   "root": "packages/ui",
   "projectType": "library",
   "targets": {
+    "lint": {},
     "build": {
       "executor": "nx:run-commands",
       "options": {
@@ -19,12 +20,6 @@
         }
       ],
       "outputs": ["{projectRoot}/dist"]
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint",
-      "options": {
-        "lintFilePatterns": ["packages/ui/src/**/*.{ts,tsx,js,jsx}"]
-      }
     },
     "test": {
       "executor": "@nx/vite:test",

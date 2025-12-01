@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { act } from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   Toast,
   ToastProvider,
-  useToast,
   useOptionalToast,
+  useToast,
 } from '../../components/toast';
 
 // Mock timers for testing animations and auto-dismiss
@@ -121,7 +121,7 @@ describe('ToastProvider', () => {
     const { showToast } = useToast();
 
     return (
-      <button onClick={() => showToast('Test toast', 'success')}>
+      <button type="button" onClick={() => showToast('Test toast', 'success')}>
         Show Toast
       </button>
     );
@@ -153,7 +153,7 @@ describe('ToastProvider', () => {
     const TestComponentDefault = () => {
       const { showToast } = useToast();
       return (
-        <button onClick={() => showToast('Default toast')}>
+        <button type="button" onClick={() => showToast('Default toast')}>
           Show Default Toast
         </button>
       );
@@ -175,8 +175,10 @@ describe('ToastProvider', () => {
       const { showToast } = useToast();
       return (
         <>
-          <button onClick={() => showToast('First toast')}>First Toast</button>
-          <button onClick={() => showToast('Second toast')}>
+          <button type="button" onClick={() => showToast('First toast')}>
+            First Toast
+          </button>
+          <button type="button" onClick={() => showToast('Second toast')}>
             Second Toast
           </button>
         </>

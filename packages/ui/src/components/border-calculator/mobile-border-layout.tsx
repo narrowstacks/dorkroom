@@ -1,37 +1,34 @@
-import { useState, useMemo } from 'react';
+import type { BorderPreset } from '@dorkroom/logic';
 import {
-  RotateCcw,
-  EyeOff,
   BookOpen,
-  Share,
   Crop,
+  EyeOff,
   Image,
-  Ruler,
   Move,
+  RotateCcw,
+  Ruler,
+  Share,
   Target,
 } from 'lucide-react';
-
+import { useMemo, useState } from 'react';
+import { Drawer, DrawerBody, DrawerContent } from '../../components/drawer';
+import { SaveBeforeShareModal } from '../../components/save-before-share-modal';
+import { SettingsButton } from '../../components/settings-button';
+import { ShareModal } from '../../components/share-modal';
+import { WarningAlert } from '../../components/warning-alert';
+// Hooks & Types
+import { useTheme } from '../../contexts/theme-context';
+import { AnimatedPreview } from './animated-preview';
 // Components
 import { BladeResultsDisplay } from './blade-results-display';
-import { AnimatedPreview } from './animated-preview';
-import { SettingsButton } from '../../components/settings-button';
-import { WarningAlert } from '../../components/warning-alert';
-import { Drawer, DrawerContent, DrawerBody } from '../../components/drawer';
-import { ShareModal } from '../../components/share-modal';
-import { SaveBeforeShareModal } from '../../components/save-before-share-modal';
-
 // Sections
 import {
-  PaperSizeSection,
   BorderSizeSection,
+  PaperSizeSection,
   PositionOffsetsSection,
   PresetsSection,
 } from './sections';
-
-// Hooks & Types
-import { useTheme } from '../../contexts/theme-context';
 import type { BorderCalculatorLayoutProps } from './types';
-import type { BorderPreset } from '@dorkroom/logic';
 
 // Active section type
 type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';

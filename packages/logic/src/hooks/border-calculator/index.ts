@@ -11,9 +11,9 @@ import type { BorderCalculation } from '../../types/border-calculator';
 import { useBorderCalculatorState } from './use-border-calculator-state';
 import { useDimensionCalculations } from './use-dimension-calculations';
 import { useGeometryCalculations } from './use-geometry-calculations';
-import { useWarningSystem } from './use-warning-system';
 import { useImageHandling } from './use-image-handling';
 import { useInputHandlers } from './use-input-handlers';
+import { useWarningSystem } from './use-warning-system';
 
 /**
  * Main border calculator hook that orchestrates all border calculation functionality.
@@ -155,20 +155,18 @@ export const useBorderCalculator = () => {
 
 export default useBorderCalculator;
 
+export * from '../../types/border-calculator';
 // Re-export sub-hooks for testing or advanced usage
 export {
-  useBorderCalculatorState,
   initialState,
+  useBorderCalculatorState,
 } from './use-border-calculator-state';
+export { useCalculatorSharing } from './use-calculator-sharing';
 export { useDimensionCalculations } from './use-dimension-calculations';
 export { useGeometryCalculations } from './use-geometry-calculations';
-export { useWarningSystem } from './use-warning-system';
 export { useImageHandling } from './use-image-handling';
 export { useInputHandlers } from './use-input-handlers';
-
 // UI-focused hooks
 export { usePaperDimensionInput } from './use-paper-dimension-input';
 export { usePresetManagement } from './use-preset-management';
-export { useCalculatorSharing } from './use-calculator-sharing';
-
-export * from '../../types/border-calculator';
+export { useWarningSystem } from './use-warning-system';

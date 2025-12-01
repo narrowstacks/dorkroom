@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, X } from 'lucide-react';
-import { cn } from '../lib/cn';
 import type { SelectItem } from '@dorkroom/logic';
+import { ChevronDown, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { cn } from '../lib/cn';
 
 interface SearchableSelectProps {
   label?: string;
@@ -162,11 +162,11 @@ export function SearchableSelect({
           type="text"
           value={isOpen ? searchTerm : displayValue}
           onChange={(e) => handleInputChange(e.target.value)}
-          onFocus={(e) => {
+          onFocus={(_e) => {
             setFocused(true);
             handleInputFocus();
           }}
-          onBlur={(e) => {
+          onBlur={(_e) => {
             setFocused(false);
             handleInputBlur();
           }}
@@ -216,6 +216,7 @@ export function SearchableSelect({
         {isOpen && (
           <ul
             ref={listRef}
+            role="listbox"
             className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg border backdrop-blur-sm"
             style={{
               borderColor: 'var(--color-border-secondary)',
@@ -224,6 +225,9 @@ export function SearchableSelect({
           >
             {filteredItems.length === 0 ? (
               <li
+                role="option"
+                aria-selected={false}
+                aria-disabled
                 className="px-3 py-2 text-sm"
                 style={{ color: 'var(--color-text-muted)' }}
               >
@@ -233,7 +237,16 @@ export function SearchableSelect({
               filteredItems.map((item, index) => (
                 <li
                   key={item.value}
+                  role="option"
+                  aria-selected={item.value === selectedValue}
                   onClick={() => handleSelectItem(item)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleSelectItem(item);
+                    }
+                  }}
+                  tabIndex={index === focusedIndex ? 0 : -1}
                   className="cursor-pointer px-3 py-2 text-sm transition-colors"
                   style={{
                     color:

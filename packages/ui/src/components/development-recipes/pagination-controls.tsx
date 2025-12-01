@@ -1,6 +1,6 @@
-import { cn } from '../../lib/cn';
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { Table } from '@tanstack/react-table';
+import { cn } from '../../lib/cn';
 
 interface PaginationControlsProps {
   table: Table<DevelopmentCombinationView>;

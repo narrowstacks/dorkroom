@@ -1,5 +1,5 @@
-import { cn } from '../lib/cn';
 import { useMeasurement } from '../contexts/measurement-context';
+import { cn } from '../lib/cn';
 import { getUnitLabel } from '../lib/measurement';
 
 interface DimensionInputGroupProps {

@@ -6,8 +6,8 @@
 
 import type {
   AspectRatio,
-  PaperSize,
   BorderPreset,
+  PaperSize,
 } from '../types/border-calculator';
 
 export const DESKTOP_BREAKPOINT = 768;

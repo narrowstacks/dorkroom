@@ -1,13 +1,16 @@
-import type { FormInstance } from '../../forms/utils/form-api-types';
 import type {
   BorderCalculatorState,
   BorderPreset,
   BorderPresetSettings,
-  SelectItem,
   PaperSize,
+  SelectItem,
+  useGeometryCalculations,
 } from '@dorkroom/logic';
-import { useGeometryCalculations } from '@dorkroom/logic';
-type GeometryCalculationResult = ReturnType<typeof useGeometryCalculations>['calculation'];
+import type { FormInstance } from '../../forms/utils/form-api-types';
+
+type GeometryCalculationResult = ReturnType<
+  typeof useGeometryCalculations
+>['calculation'];
 
 export interface BorderCalculatorLayoutProps {
   isDesktop: boolean;
@@ -19,7 +22,7 @@ export interface BorderCalculatorLayoutProps {
   displayPaperSizes: PaperSize[];
   quarterRoundedMinBorder: number | null;
   maxAllowedMinBorder: number;
-  
+
   // Warnings
   offsetWarning: string | null;
   bladeWarning: string | null;
@@ -52,13 +55,16 @@ export interface BorderCalculatorLayoutProps {
   handlePaperHeightBlur: () => void;
   handleRoundMinBorderToQuarter: () => void;
   resetToDefaults: () => void;
-  
+
   // Preset Handlers
   handleSelectPreset: (id: string) => void;
   setPresetName: (name: string) => void;
   setIsEditingPreset: (isEditing: boolean) => void;
   savePreset: (name: string) => void;
-  updatePresetHandler: (id: string, data: { name: string; settings: BorderPresetSettings }) => void;
+  updatePresetHandler: (
+    id: string,
+    data: { name: string; settings: BorderPresetSettings }
+  ) => void;
   deletePresetHandler: (id: string) => void;
   clearLoadedPreset?: () => void;
   applyPresetSettings: (settings: BorderPresetSettings) => void;
@@ -70,10 +76,9 @@ export interface BorderCalculatorLayoutProps {
   handleNativeShare: () => Promise<void>;
   setIsShareModalOpen: (isOpen: boolean) => void;
   setIsSaveBeforeShareOpen: (isOpen: boolean) => void;
-  
+
   // Helpers
   formatWithUnit: (value: number) => string;
   formatDimensions: (width: number, height: number) => string;
   currentSettings: BorderPresetSettings;
 }
-

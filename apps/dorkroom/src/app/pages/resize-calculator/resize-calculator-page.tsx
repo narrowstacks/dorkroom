@@ -1,31 +1,31 @@
-import { useForm } from '@tanstack/react-form';
-import { useStore } from '@tanstack/react-store';
-import { useEffect, useRef, useMemo } from 'react';
 import {
-  ToggleSwitch,
-  WarningAlert,
+  DEFAULT_NEW_HEIGHT,
+  DEFAULT_NEW_LENGTH,
+  DEFAULT_NEW_WIDTH,
+  DEFAULT_ORIGINAL_HEIGHT,
+  DEFAULT_ORIGINAL_LENGTH,
+  DEFAULT_ORIGINAL_TIME,
+  DEFAULT_ORIGINAL_WIDTH,
+  debugWarn,
+  RESIZE_STORAGE_KEY,
+  type ResizeCalculatorState,
+} from '@dorkroom/logic';
+import {
   CalculatorCard,
   CalculatorNumberField,
   CalculatorPageHeader,
   CalculatorStat,
   colorMixOr,
+  createZodFormValidator,
+  resizeCalculatorSchema,
+  ToggleSwitch,
   useMeasurement,
   useMeasurementConverter,
-  resizeCalculatorSchema,
-  createZodFormValidator,
+  WarningAlert,
 } from '@dorkroom/ui';
-import {
-  DEFAULT_ORIGINAL_WIDTH,
-  DEFAULT_ORIGINAL_LENGTH,
-  DEFAULT_NEW_WIDTH,
-  DEFAULT_NEW_LENGTH,
-  DEFAULT_ORIGINAL_TIME,
-  DEFAULT_ORIGINAL_HEIGHT,
-  DEFAULT_NEW_HEIGHT,
-  RESIZE_STORAGE_KEY,
-  debugWarn,
-  type ResizeCalculatorState,
-} from '@dorkroom/logic';
+import { useForm } from '@tanstack/react-form';
+import { useStore } from '@tanstack/react-store';
+import { useEffect, useMemo, useRef } from 'react';
 
 const validateResizeForm = createZodFormValidator(resizeCalculatorSchema);
 
@@ -268,7 +268,7 @@ function calculateExposureChanges(
 
   if (isEnlargerMode) {
     if (origHeight > 0 && newH > 0 && origTime > 0) {
-      const ratio = Math.pow(newH, 2) / Math.pow(origHeight, 2);
+      const ratio = newH ** 2 / origHeight ** 2;
       const newTimeValue = origTime * ratio;
       const stops = Math.log2(ratio);
 
@@ -689,8 +689,8 @@ export default function ResizeCalculatorPage() {
                 ? stopsNumber > 0
                   ? 'The new print is larger, add exposure.'
                   : stopsNumber < 0
-                  ? 'The new print is smaller, remove exposure.'
-                  : 'Same size print — keep your original exposure.'
+                    ? 'The new print is smaller, remove exposure.'
+                    : 'Same size print — keep your original exposure.'
                 : undefined;
 
               return { newTime, stopsDifference, stopsHelper };

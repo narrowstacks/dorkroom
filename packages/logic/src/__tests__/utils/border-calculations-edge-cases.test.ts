@@ -1,12 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
-  findCenteringOffsets,
+  bladeReadings,
+  bordersFromGaps,
   calculateBladeThickness,
   calculateOptimalMinBorder,
-  computePrintSize,
   clampOffsets,
-  bordersFromGaps,
-  bladeReadings,
+  computePrintSize,
+  findCenteringOffsets,
   validatePrintFits,
 } from '../../utils/border-calculations';
 
@@ -715,7 +715,7 @@ describe('border-calculations: Edge Cases and Boundary Tests', () => {
     });
 
     it('should maintain precision through calculation chain', () => {
-      const printSize = computePrintSize(8.5, 11, 1.414, 1, 0.625); // A4-ish
+      const printSize = computePrintSize(8.5, 11, Math.SQRT2, 1, 0.625); // A4-ish
       const offset = clampOffsets(
         8.5,
         11,

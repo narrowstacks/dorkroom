@@ -1,6 +1,6 @@
+import type { SelectItem } from '@dorkroom/logic';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '../lib/cn';
-import type { SelectItem } from '@dorkroom/logic';
 
 interface SelectProps {
   label?: string;

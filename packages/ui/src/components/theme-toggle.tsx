@@ -1,14 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
 import {
-  Moon,
-  Sun,
-  Monitor,
-  Contrast,
   Camera,
   ChevronDown,
+  Contrast,
+  Monitor,
+  Moon,
+  Sun,
 } from 'lucide-react';
-import { cn } from '../lib/cn';
+import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../contexts/theme-context';
+import { cn } from '../lib/cn';
 import type { Theme } from '../lib/themes';
 
 interface ThemeOption {

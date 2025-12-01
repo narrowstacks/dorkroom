@@ -3,6 +3,7 @@
   "root": "packages/logic",
   "projectType": "library",
   "targets": {
+    "lint": {},
     "build": {
       "executor": "nx:run-commands",
       "options": {

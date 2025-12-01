@@ -1,10 +1,10 @@
-import {
-  Film,
-  Developer,
+import type {
   Combination,
-  RawFilm,
-  RawDeveloper,
+  Developer,
+  Film,
   RawCombination,
+  RawDeveloper,
+  RawFilm,
 } from './types';
 
 const BASE_URL = 'https://dorkroom.art/api';

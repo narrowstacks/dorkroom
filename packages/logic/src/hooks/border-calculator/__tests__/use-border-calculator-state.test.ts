@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
-import { useBorderCalculatorState } from '../use-border-calculator-state';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BORDER_CALCULATOR_STORAGE_KEY } from '../../../constants/storage-keys';
 import type { BorderCalculatorState } from '../../../types/border-calculator';
+import { useBorderCalculatorState } from '../use-border-calculator-state';
 
 /**
  * Comprehensive test suite for the useBorderCalculatorState hook.

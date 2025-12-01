@@ -45,11 +45,15 @@
   }
 
   .animate-slide-fade-top {
-    animation: slideInFromTop 500ms ease-out both, fadeIn 500ms ease-out both;
+    animation:
+      slideInFromTop 500ms ease-out both,
+      fadeIn 500ms ease-out both;
   }
 
   .animate-slide-fade-bottom {
-    animation: slideInFromBottom 500ms ease-out both, fadeIn 500ms ease-out both;
+    animation:
+      slideInFromBottom 500ms ease-out both,
+      fadeIn 500ms ease-out both;
   }
 
   /* Stagger delay utilities */

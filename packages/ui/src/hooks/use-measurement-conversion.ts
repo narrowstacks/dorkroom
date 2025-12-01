@@ -5,20 +5,20 @@
  * to provide easy-to-use measurement conversion in React components.
  */
 
-import { useMemo, useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useMeasurement } from '../contexts/measurement-context';
 import {
-  formatMeasurementWithUnit,
-  formatMeasurementValue,
+  type FormatDimensionsOptions,
   formatDimensions,
+  formatMeasurementRange,
+  formatMeasurementValue,
+  formatMeasurementWithUnit,
   formatPreciseDimensions,
-  toDisplayValue,
-  toInternalValue,
+  getDisplayPrecision,
   getInputStepSize,
   getUnitLabel,
-  getDisplayPrecision,
-  formatMeasurementRange,
-  type FormatDimensionsOptions,
+  toDisplayValue,
+  toInternalValue,
 } from '../lib/measurement';
 
 /**

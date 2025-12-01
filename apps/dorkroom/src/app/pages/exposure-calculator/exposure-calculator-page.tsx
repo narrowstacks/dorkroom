@@ -1,28 +1,29 @@
-import { useForm } from '@tanstack/react-form';
-import { useStore } from '@tanstack/react-store';
-import { useEffect, useRef, useMemo, type ChangeEvent, type FC } from 'react';
 import {
-  CalculatorCard,
-  CalculatorPageHeader,
-  CalculatorStat,
-  CalculatorNumberField,
-  ResultRow,
-  exposureCalculatorSchema,
-  createZodFormValidator,
-} from '@dorkroom/ui';
-import {
-  EXPOSURE_PRESETS,
-  EXPOSURE_STORAGE_KEY,
-  type ExposurePreset,
-  type ExposureFormState,
-  roundStopsToThirds,
-  roundToStandardPrecision,
   calculateNewExposureTime,
-  formatExposureTime,
   calculatePercentageIncrease,
   debugWarn,
+  EXPOSURE_PRESETS,
+  EXPOSURE_STORAGE_KEY,
+  type ExposureFormState,
+  type ExposurePreset,
+  formatExposureTime,
+  roundStopsToThirds,
+  roundToStandardPrecision,
 } from '@dorkroom/logic';
-import { useTheme, themes } from '@dorkroom/ui';
+import {
+  CalculatorCard,
+  CalculatorNumberField,
+  CalculatorPageHeader,
+  CalculatorStat,
+  createZodFormValidator,
+  exposureCalculatorSchema,
+  ResultRow,
+  themes,
+  useTheme,
+} from '@dorkroom/ui';
+import { useForm } from '@tanstack/react-form';
+import { useStore } from '@tanstack/react-store';
+import { type ChangeEvent, type FC, useEffect, useMemo, useRef } from 'react';
 
 const validateExposureForm = createZodFormValidator(exposureCalculatorSchema);
 
@@ -143,7 +144,7 @@ export default function ExposureCalculatorPage() {
       debugWarn('Failed to load calculator state', error);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount; form is stable but adding it would cause re-hydration
+  }, [form.setFieldValue]); // Only run once on mount; form is stable but adding it would cause re-hydration
 
   // Persist form state to localStorage whenever it changes
   useEffect(() => {
@@ -354,7 +355,7 @@ export default function ExposureCalculatorPage() {
                   />
                   <ResultRow
                     label="Multiplier"
-                    value={`×${Math.pow(2, calculation.stopsValue).toFixed(3)}`}
+                    value={`×${(2 ** calculation.stopsValue).toFixed(3)}`}
                   />
                 </div>
               </CalculatorCard>

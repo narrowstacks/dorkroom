@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
-import type { UseQueryResult } from '@tanstack/react-query';
 import type { Film } from '@dorkroom/api';
 import { fetchFilmsForQuery } from '@dorkroom/api';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '../../queries/query-keys';
 
 /**
