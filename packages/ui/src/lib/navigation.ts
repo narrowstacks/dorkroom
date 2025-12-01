@@ -94,3 +94,23 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/infobase': 'Infobase',
   '/settings': 'Settings',
 };
+
+export const ROUTE_DESCRIPTIONS: Record<string, string> = {
+  '/': 'Film photography calculators and resources for analog photographers. Development recipes, printing calculators, and exposure tools.',
+  '/border':
+    'Calculate clean, precise borders for darkroom prints. Get precise measurements and visual guides for your easel.',
+  '/resize':
+    'Scale darkroom prints to new sizes. Calculate exposure adjustments when enlarging or reducing print dimensions.',
+  '/reciprocity':
+    'Compensate for reciprocity failure in long exposures. Get corrected exposure times for film stocks like Ilford HP5, Kodak Tri-X, and more.',
+  '/stops':
+    'Convert between exposure stops and seconds. Quickly translate f-stop or time adjustments into precise exposure values.',
+  '/exposure':
+    'Balance aperture, shutter speed, and ISO for correct exposure. Calculate equivalent exposures across different settings.',
+  '/development':
+    'Browse film and developer combinations with proven development times. Find recipes for popular film stocks and chemistry.',
+  '/infobase':
+    'Reference tables, technical notes, and recipes for analog photography. Quick lookup for common darkroom data.',
+  '/settings':
+    'Customize your Dorkroom experience. Configure preferences for units, defaults, and display options.',
+};

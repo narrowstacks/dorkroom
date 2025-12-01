@@ -1,6 +1,6 @@
-import type { BorderPresetSettings, SelectItem } from "@dorkroom/logic";
-import { Save, Share2, Trash2 } from "lucide-react";
-import { CalculatorCard, Select, TextInput } from "../../index";
+import type { BorderPresetSettings, SelectItem } from '@dorkroom/logic';
+import { Save, Share2, Trash2 } from 'lucide-react';
+import { CalculatorCard, Select, TextInput } from '../../index';
 
 interface PresetsSectionProps {
   selectedPresetId: string | null;
@@ -16,7 +16,7 @@ interface PresetsSectionProps {
   onSavePreset: (name: string) => void;
   onUpdatePreset: (
     id: string,
-    data: { name: string; settings: BorderPresetSettings },
+    data: { name: string; settings: BorderPresetSettings }
   ) => void;
   onDeletePreset: (id: string) => void;
 }
@@ -49,7 +49,7 @@ export function PresetsSection({
         <div className="flex-1">
           <Select
             label="Presets"
-            selectedValue={selectedPresetId || ""}
+            selectedValue={selectedPresetId || ''}
             onValueChange={onSelectPreset}
             items={presetItems}
             placeholder="Select preset"
@@ -115,10 +115,10 @@ export function PresetsSection({
               disabled={!presetName}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{
-                color: "var(--color-primary)",
-                borderColor: "var(--color-primary)",
+                color: 'var(--color-primary)',
+                borderColor: 'var(--color-primary)',
                 borderWidth: 1,
-                backgroundColor: "rgba(var(--color-background-rgb), 0.06)",
+                backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
               }}
             >
               <Save className="h-4 w-4" />
@@ -136,10 +136,10 @@ export function PresetsSection({
               disabled={!selectedPresetId}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{
-                color: "var(--color-secondary)",
-                borderColor: "var(--color-secondary)",
+                color: 'var(--color-secondary)',
+                borderColor: 'var(--color-secondary)',
                 borderWidth: 1,
-                backgroundColor: "rgba(var(--color-background-rgb), 0.06)",
+                backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
               }}
             >
               <Save className="h-4 w-4" />
@@ -153,10 +153,10 @@ export function PresetsSection({
               disabled={!selectedPresetId}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{
-                color: "var(--color-accent)",
-                borderColor: "var(--color-accent)",
+                color: 'var(--color-accent)',
+                borderColor: 'var(--color-accent)',
                 borderWidth: 1,
-                backgroundColor: "rgba(var(--color-background-rgb), 0.06)",
+                backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
               }}
             >
               <Trash2 className="h-4 w-4" />

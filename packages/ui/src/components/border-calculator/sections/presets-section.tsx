@@ -1,8 +1,8 @@
-import type { BorderPreset, BorderSettings } from "@dorkroom/logic";
-import { DEFAULT_BORDER_PRESETS } from "@dorkroom/logic";
-import { Plus, Save, Trash2, X } from "lucide-react";
-import { useState } from "react";
-import { TextInput } from "../../../components/text-input";
+import type { BorderPreset, BorderSettings } from '@dorkroom/logic';
+import { DEFAULT_BORDER_PRESETS } from '@dorkroom/logic';
+import { Plus, Save, Trash2, X } from 'lucide-react';
+import { useState } from 'react';
+import { TextInput } from '../../../components/text-input';
 
 interface PresetsSectionProps {
   onClose: () => void;
@@ -26,14 +26,14 @@ export function PresetsSection({
   getCurrentSettings,
 }: PresetsSectionProps) {
   const [isCreating, setIsCreating] = useState(false);
-  const [newPresetName, setNewPresetName] = useState("");
+  const [newPresetName, setNewPresetName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
+  const [editName, setEditName] = useState('');
 
   const handleSaveNew = () => {
     if (!newPresetName.trim()) return;
     onSavePreset(newPresetName.trim(), getCurrentSettings());
-    setNewPresetName("");
+    setNewPresetName('');
     setIsCreating(false);
   };
 
@@ -41,7 +41,7 @@ export function PresetsSection({
     if (!editName.trim()) return;
     onUpdatePreset(id, editName.trim(), getCurrentSettings());
     setEditingId(null);
-    setEditName("");
+    setEditName('');
   };
 
   const startEdit = (preset: BorderPreset) => {
@@ -51,7 +51,7 @@ export function PresetsSection({
 
   const cancelEdit = () => {
     setEditingId(null);
-    setEditName("");
+    setEditName('');
   };
 
   const allPresets = [...presets, ...DEFAULT_BORDER_PRESETS];
@@ -61,7 +61,7 @@ export function PresetsSection({
       <div className="flex items-center justify-between">
         <h3
           className="text-lg font-semibold"
-          style={{ color: "var(--color-text-primary)" }}
+          style={{ color: 'var(--color-text-primary)' }}
         >
           Presets
         </h3>
@@ -70,16 +70,16 @@ export function PresetsSection({
           onClick={onClose}
           className="rounded-lg border p-2 transition"
           style={{
-            borderColor: "var(--color-border-primary)",
-            backgroundColor: "var(--color-border-muted)",
-            color: "var(--color-text-primary)",
+            borderColor: 'var(--color-border-primary)',
+            backgroundColor: 'var(--color-border-muted)',
+            color: 'var(--color-text-primary)',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor =
-              "var(--color-border-secondary)";
+              'var(--color-border-secondary)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = "var(--color-border-muted)";
+            e.currentTarget.style.backgroundColor = 'var(--color-border-muted)';
           }}
         >
           <X className="h-5 w-5" />
@@ -92,8 +92,8 @@ export function PresetsSection({
           <div
             className="rounded-lg border p-4 space-y-3"
             style={{
-              borderColor: "var(--color-border-primary)",
-              backgroundColor: "var(--color-border-muted)",
+              borderColor: 'var(--color-border-primary)',
+              backgroundColor: 'var(--color-border-muted)',
             }}
           >
             <TextInput
@@ -108,14 +108,14 @@ export function PresetsSection({
                 onClick={handleSaveNew}
                 className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition"
                 style={{
-                  backgroundColor: "var(--color-semantic-success)",
-                  color: "var(--color-background)",
+                  backgroundColor: 'var(--color-semantic-success)',
+                  color: 'var(--color-background)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.filter = "brightness(0.9)";
+                  e.currentTarget.style.filter = 'brightness(0.9)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.filter = "brightness(1)";
+                  e.currentTarget.style.filter = 'brightness(1)';
                 }}
               >
                 <Save className="h-4 w-4" />
@@ -125,21 +125,21 @@ export function PresetsSection({
                 type="button"
                 onClick={() => {
                   setIsCreating(false);
-                  setNewPresetName("");
+                  setNewPresetName('');
                 }}
                 className="rounded-lg border px-3 py-2 text-sm font-medium transition"
                 style={{
-                  borderColor: "var(--color-border-primary)",
-                  backgroundColor: "var(--color-border-muted)",
-                  color: "var(--color-text-primary)",
+                  borderColor: 'var(--color-border-primary)',
+                  backgroundColor: 'var(--color-border-muted)',
+                  color: 'var(--color-text-primary)',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor =
-                    "var(--color-border-secondary)";
+                    'var(--color-border-secondary)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor =
-                    "var(--color-border-muted)";
+                    'var(--color-border-muted)';
                 }}
               >
                 Cancel
@@ -152,9 +152,9 @@ export function PresetsSection({
             onClick={() => setIsCreating(true)}
             className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-3 text-sm font-medium transition"
             style={{
-              borderColor: "var(--color-border-primary)",
-              backgroundColor: "var(--color-border-muted)",
-              color: "var(--color-text-primary)",
+              borderColor: 'var(--color-border-primary)',
+              backgroundColor: 'var(--color-border-muted)',
+              color: 'var(--color-text-primary)',
             }}
           >
             <Plus className="h-4 w-4" />
@@ -174,8 +174,8 @@ export function PresetsSection({
                 key={preset.id}
                 className={`rounded-lg border p-3 transition-colors ${
                   isActive
-                    ? "border-blue-500/50 bg-blue-500/10"
-                    : "border-white/20 bg-white/5 hover:bg-white/10"
+                    ? 'border-blue-500/50 bg-blue-500/10'
+                    : 'border-white/20 bg-white/5 hover:bg-white/10'
                 }`}
               >
                 {isEditing ? (

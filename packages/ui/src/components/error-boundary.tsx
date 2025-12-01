@@ -1,5 +1,5 @@
-import { Component, type ErrorInfo, type ReactNode } from "react";
-import { cn } from "../lib/cn";
+import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { cn } from '../lib/cn';
 
 interface Props {
   children: ReactNode;
@@ -22,7 +22,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught error:", error, errorInfo);
+    console.error('Uncaught error:', error, errorInfo);
   }
 
   public override render() {
@@ -63,14 +63,14 @@ export class ErrorBoundary extends Component<Props, State> {
             type="button"
             onClick={() => window.location.reload()}
             className={cn(
-              "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
-              "bg-[color:var(--color-text-primary)] text-[color:var(--color-background)]",
-              "hover:opacity-90",
+              'rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+              'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)]',
+              'hover:opacity-90'
             )}
           >
             Reload Page
           </button>
-          {process.env.NODE_ENV === "development" && this.state.error && (
+          {process.env.NODE_ENV === 'development' && this.state.error && (
             <pre className="mt-8 max-w-full overflow-auto rounded-lg bg-black/5 p-4 text-left text-xs text-[color:var(--color-text-tertiary)]">
               {this.state.error.toString()}
             </pre>

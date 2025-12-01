@@ -1,9 +1,9 @@
-import { SLIDER_MIN_BORDER, SLIDER_STEP_BORDER } from "@dorkroom/logic";
-import type { AnyFormApi } from "@tanstack/react-form";
-import { X } from "lucide-react";
-import { useMemo } from "react";
-import { LabeledSliderInput } from "../../../components/labeled-slider-input";
-import { WarningAlert } from "../../../components/warning-alert";
+import { SLIDER_MIN_BORDER, SLIDER_STEP_BORDER } from '@dorkroom/logic';
+import type { AnyFormApi } from '@tanstack/react-form';
+import { X } from 'lucide-react';
+import { useMemo } from 'react';
+import { LabeledSliderInput } from '../../../components/labeled-slider-input';
+import { WarningAlert } from '../../../components/warning-alert';
 
 interface BorderSizeSectionProps {
   onClose: () => void;
@@ -22,7 +22,7 @@ export function BorderSizeSection({
   roundToQuarterDisabled,
   maxAllowedMinBorder,
 }: BorderSizeSectionProps) {
-  const minBorder = form.getFieldValue("minBorder");
+  const minBorder = form.getFieldValue('minBorder');
 
   // Generate dynamic slider labels based on the max allowed border
   const borderSliderLabels = useMemo(() => {
@@ -30,7 +30,7 @@ export function BorderSizeSection({
     // Generate 5 evenly spaced labels from 0 to max, rounded to 1 decimal
     const step = max / 4;
     return [0, step, step * 2, step * 3, max].map((v) =>
-      v === 0 ? "0" : v.toFixed(1).replace(/\.0$/, ""),
+      v === 0 ? '0' : v.toFixed(1).replace(/\.0$/, '')
     );
   }, [maxAllowedMinBorder]);
 
@@ -52,10 +52,10 @@ export function BorderSizeSection({
           label="Minimum Border (inches):"
           value={minBorder}
           onChange={(value) => {
-            form.setFieldValue("minBorder", value);
-            form.setFieldValue("lastValidMinBorder", value);
+            form.setFieldValue('minBorder', value);
+            form.setFieldValue('lastValidMinBorder', value);
           }}
-          onSliderChange={(value) => form.setFieldValue("minBorder", value)}
+          onSliderChange={(value) => form.setFieldValue('minBorder', value)}
           min={SLIDER_MIN_BORDER}
           max={maxAllowedMinBorder}
           step={SLIDER_STEP_BORDER}

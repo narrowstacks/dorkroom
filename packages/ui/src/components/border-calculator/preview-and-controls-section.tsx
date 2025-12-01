@@ -1,8 +1,8 @@
-import type { BorderCalculation } from "@dorkroom/logic";
-import { useStore } from "@tanstack/react-store";
-import { RotateCcw, RotateCw, Square } from "lucide-react";
-import type { FormInstance } from "../../index";
-import { CalculatorCard } from "../calculator/calculator-card";
+import type { BorderCalculation } from '@dorkroom/logic';
+import { useStore } from '@tanstack/react-store';
+import { RotateCcw, RotateCw, Square } from 'lucide-react';
+import type { FormInstance } from '../../index';
+import { CalculatorCard } from '../calculator/calculator-card';
 
 interface PreviewAndControlsSectionProps {
   form: FormInstance;
@@ -29,15 +29,15 @@ export function PreviewAndControlsSection({
   const showBlades = useStore(form.store, (state) => state.values.showBlades);
   const showBladeReadings = useStore(
     form.store,
-    (state) => state.values.showBladeReadings,
+    (state) => state.values.showBladeReadings
   );
   const isLandscape = useStore(form.store, (state) => state.values.isLandscape);
   const aspectRatio = useStore(form.store, (state) => state.values.aspectRatio);
-  const isEvenBordersSelected = aspectRatio === "even-borders";
+  const isEvenBordersSelected = aspectRatio === 'even-borders';
   const flipControlBaseClasses =
-    "flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)]";
+    'flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)]';
   const enabledFlipClasses =
-    "hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]";
+    'hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]';
 
   return (
     <CalculatorCard accent="violet" padding="compact">
@@ -55,9 +55,9 @@ export function PreviewAndControlsSection({
         <button
           type="button"
           onClick={() => {
-            const newValue = !form.getFieldValue("isLandscape");
-            form.setFieldValue("isLandscape", newValue);
-            form.setFieldValue("hasManuallyFlippedPaper", true);
+            const newValue = !form.getFieldValue('isLandscape');
+            form.setFieldValue('isLandscape', newValue);
+            form.setFieldValue('hasManuallyFlippedPaper', true);
           }}
           className={`${flipControlBaseClasses} ${enabledFlipClasses}`}
         >
@@ -68,19 +68,19 @@ export function PreviewAndControlsSection({
           type="button"
           onClick={() => {
             if (isEvenBordersSelected) return;
-            const newValue = !form.getFieldValue("isRatioFlipped");
-            form.setFieldValue("isRatioFlipped", newValue);
+            const newValue = !form.getFieldValue('isRatioFlipped');
+            form.setFieldValue('isRatioFlipped', newValue);
           }}
           className={`${flipControlBaseClasses} ${
             isEvenBordersSelected
-              ? "cursor-not-allowed opacity-50"
+              ? 'cursor-not-allowed opacity-50'
               : enabledFlipClasses
           }`}
           disabled={isEvenBordersSelected}
           aria-disabled={isEvenBordersSelected}
           title={
             isEvenBordersSelected
-              ? "Even borders automatically match your paper orientation; flipping is disabled."
+              ? 'Even borders automatically match your paper orientation; flipping is disabled.'
               : undefined
           }
         >
@@ -93,10 +93,10 @@ export function PreviewAndControlsSection({
         onClick={onResetToDefaults}
         className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 hover:brightness-110"
         style={{
-          color: "var(--color-accent)",
-          borderColor: "var(--color-accent)",
+          color: 'var(--color-accent)',
+          borderColor: 'var(--color-accent)',
           borderWidth: 1,
-          backgroundColor: "rgba(var(--color-background-rgb), 0.06)",
+          backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
         }}
       >
         <RotateCcw className="h-4 w-4" />
@@ -115,9 +115,9 @@ export function PreviewAndControlsSection({
               className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
               style={{
                 borderWidth: 1,
-                borderColor: "var(--color-border-secondary)",
-                backgroundColor: "var(--color-border-muted)",
-                color: "var(--color-text-primary)",
+                borderColor: 'var(--color-border-secondary)',
+                backgroundColor: 'var(--color-border-muted)',
+                color: 'var(--color-text-primary)',
               }}
             >
               <strong className="font-semibold">Rotate your easel</strong>
@@ -134,9 +134,9 @@ export function PreviewAndControlsSection({
           className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
           style={{
             borderWidth: 1,
-            borderColor: "var(--color-border-secondary)",
-            backgroundColor: "var(--color-border-muted)",
-            color: "var(--color-text-primary)",
+            borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'var(--color-border-muted)',
+            color: 'var(--color-text-primary)',
           }}
         >
           <strong className="font-semibold">Non-standard paper</strong>

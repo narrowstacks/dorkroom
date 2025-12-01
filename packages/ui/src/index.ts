@@ -122,6 +122,7 @@ export {
   allNavItems,
   navItems,
   printingItems,
+  ROUTE_DESCRIPTIONS,
   ROUTE_TITLES,
   shootingItems,
 } from './lib/navigation';
