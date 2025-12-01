@@ -8,7 +8,7 @@ import {
   serverlessLog,
   serverlessWarn,
   serverlessError,
-} from '../../../utils/serverlessLogger';
+} from '../utils/serverlessLogger';
 
 const FILMDEV_API_BASE = 'https://filmdev.org/api';
 
@@ -35,6 +35,8 @@ function isValidRecipeId(id: string): boolean {
 /**
  * HTTP handler that proxies GET requests to filmdev.org recipe API.
  *
+ * Expects: GET /api/filmdev?id=12345
+ *
  * Handles CORS preflight (OPTIONS), allows only GET, validates the recipe ID parameter,
  * forwards the request to filmdev.org, and returns the upstream JSON payload.
  * Responses include a generated `requestId` for tracing.
@@ -54,7 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   logApiRequest(
     requestId,
     req.method || 'GET',
-    req.url || '/api/filmdev/recipe',
+    req.url || '/api/filmdev',
     userAgent
   );
 
@@ -83,7 +85,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // Extract and validate recipe ID from path parameter
+  // Extract and validate recipe ID from query parameter
   const { id } = req.query;
   const recipeId = Array.isArray(id) ? id[0] : id;
 
@@ -91,7 +93,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     serverlessWarn('Invalid recipe ID', { requestId, recipeId });
     return res.status(400).json({
       error: 'Invalid recipe ID',
-      message: 'Recipe ID must be a positive integer',
+      message: 'Recipe ID must be a positive integer. Use ?id=12345',
       requestId,
     });
   }

@@ -15,7 +15,12 @@ export default defineConfig(() => ({
       '/api/filmdev': {
         target: 'https://filmdev.org',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/filmdev/, '/api'),
+        // Rewrite /api/filmdev?id=123 to /api/recipe/123
+        rewrite: (path) => {
+          const url = new URL(path, 'http://localhost');
+          const id = url.searchParams.get('id');
+          return id ? `/api/recipe/${id}` : '/api';
+        },
         secure: true,
       },
     },

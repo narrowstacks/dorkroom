@@ -84,7 +84,7 @@ export async function fetchFilmdevRecipe(
   // Always use proxy to avoid CORS issues
   // In development: Vite proxy handles /api/filmdev -> filmdev.org
   // In production: Vercel serverless function handles /api/filmdev -> filmdev.org
-  const url = `/api/filmdev/recipe/${recipeId}`;
+  const url = `/api/filmdev?id=${recipeId}`;
 
   try {
     const response = await fetch(url, {
