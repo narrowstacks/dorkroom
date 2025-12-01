@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { reciprocityFactorValidator } from '@dorkroom/logic';
 
 /**
  * Validation schema for Reciprocity Calculator Form
@@ -7,12 +8,7 @@ import { z } from 'zod';
 export const reciprocityCalculatorSchema = z.object({
   filmType: z.string().min(1, 'Please select a film type'),
 
-  customFactor: z
-    .number()
-    .min(0.1, 'Reciprocity factor must be at least 0.1')
-    .max(10, 'Reciprocity factor cannot exceed 10')
-    .optional()
-    .default(1.3),
+  customFactor: reciprocityFactorValidator().optional().default(1.3),
 
   meteredTime: z
     .string()

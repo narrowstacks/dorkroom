@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { positiveDimensionValidator, exposureTimeValidator } from '@dorkroom/logic';
 
 /**
  * Validation schema for Resize Calculator Form
@@ -7,18 +8,12 @@ import { z } from 'zod';
  * 2. Enlarger Height Mode: Calculate time change from original to new enlarger height
  */
 
-const positiveNumber = z
-  .number()
-  .min(0.1, 'Value must be greater than 0')
-  .max(1000, 'Value is too large');
+const positiveNumber = positiveDimensionValidator();
 
 export const resizeCalculatorSchema = z
   .object({
     isEnlargerHeightMode: z.boolean(),
-    originalTime: z
-      .number()
-      .min(0.1, 'Original time must be greater than 0')
-      .max(3600, 'Original time cannot exceed 1 hour'),
+    originalTime: exposureTimeValidator(),
   })
   .and(
     z.discriminatedUnion('isEnlargerHeightMode', [

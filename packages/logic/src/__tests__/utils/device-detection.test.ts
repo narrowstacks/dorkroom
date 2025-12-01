@@ -1,7 +1,6 @@
 import {
   isMobileDevice,
   isIOS,
-  isAndroid,
   shouldUseWebShare,
 } from '../../utils/device-detection';
 
@@ -259,60 +258,6 @@ describe('device detection', () => {
       });
 
       expect(isIOS()).toBe(false);
-    });
-  });
-
-  describe('isAndroid', () => {
-    it('should return false in SSR environment', () => {
-      expect(isAndroid()).toBe(false);
-    });
-
-    it('should return true for Android devices', () => {
-      Object.defineProperty(global, 'window', {
-        value: createMockWindow({
-          navigator: { userAgent: 'Mozilla/5.0 (Linux; Android 11; SM-G975F)' },
-        }),
-        writable: true,
-      });
-
-      expect(isAndroid()).toBe(true);
-    });
-
-    it('should return false for iOS devices', () => {
-      Object.defineProperty(global, 'window', {
-        value: createMockWindow({
-          navigator: {
-            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X)',
-          },
-        }),
-        writable: true,
-      });
-
-      expect(isAndroid()).toBe(false);
-    });
-
-    it('should return false for desktop', () => {
-      Object.defineProperty(global, 'window', {
-        value: createMockWindow({
-          navigator: {
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0',
-          },
-        }),
-        writable: true,
-      });
-
-      expect(isAndroid()).toBe(false);
-    });
-
-    it('should handle missing navigator gracefully', () => {
-      Object.defineProperty(global, 'window', {
-        value: createMockWindow({
-          navigator: {},
-        }),
-        writable: true,
-      });
-
-      expect(isAndroid()).toBe(false);
     });
   });
 

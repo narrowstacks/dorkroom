@@ -74,31 +74,6 @@ export const isIOS = (): boolean => {
 };
 
 /**
- * Detects if the device is specifically an Android device.
- *
- * @returns True if the device is running Android, false otherwise
- *
- * @example
- * ```typescript
- * if (isAndroid()) {
- *   // Apply Android-specific behavior
- *   setupAndroidSpecificFeatures();
- * }
- * ```
- */
-export const isAndroid = (): boolean => {
-  if (
-    typeof window === 'undefined' ||
-    typeof window.navigator === 'undefined'
-  ) {
-    return false;
-  }
-
-  const userAgent = window.navigator.userAgent ?? '';
-  return /Android/.test(userAgent);
-};
-
-/**
  * Determines if the Web Share API is available and should be used.
  * Returns true for mobile devices with Web Share API support, combining
  * API availability with mobile device detection for optimal UX.

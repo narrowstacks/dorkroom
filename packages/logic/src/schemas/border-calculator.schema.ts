@@ -1,14 +1,12 @@
 import { z } from 'zod';
 import { BORDER_CALCULATOR_DEFAULTS } from '../constants/border-calculator-defaults';
+import { dimensionValidator } from './validators';
 
 /**
  * Validation schema for Border Calculator Form
  */
 
-const dimensionNumber = z
-  .number()
-  .min(0, 'Value must be non-negative')
-  .max(1000, 'Value is too large');
+const dimensionNumber = dimensionValidator();
 
 const aspectRatioOptions = [
   'custom',

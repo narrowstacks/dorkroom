@@ -51,17 +51,11 @@ export const useFeatureFlags = () => {
     [flags.RECIPE_IMPORT]
   );
 
-  const isAdvancedChemistryCalculatorEnabled = useMemo(
-    () => flags.ADVANCED_CHEMISTRY_CALCULATOR,
-    [flags.ADVANCED_CHEMISTRY_CALCULATOR]
-  );
-
   return {
     flags,
     isEnabled,
     isCustomRecipeSharingEnabled,
     isRecipeImportEnabled,
-    isAdvancedChemistryCalculatorEnabled,
   };
 };
 
