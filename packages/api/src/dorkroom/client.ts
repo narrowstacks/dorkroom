@@ -1,3 +1,8 @@
+import {
+  combinationsResponseSchema,
+  developersResponseSchema,
+  filmsResponseSchema,
+} from './schemas';
 import type {
   Combination,
   Developer,
@@ -23,7 +28,7 @@ export class DorkroomApiClient {
   }
 
   /**
-   * Fetch films from the API
+   * Fetch films from the API with runtime validation
    */
   async fetchFilms(options?: { signal?: AbortSignal }): Promise<Film[]> {
     const response = await fetch(`${this.baseUrl}/films`, {
@@ -32,12 +37,24 @@ export class DorkroomApiClient {
     if (!response.ok) {
       throw new Error(`Failed to fetch films: ${response.statusText}`);
     }
-    const data = (await response.json()) as { data: RawFilm[] };
-    return data.data.map(this.transformFilm.bind(this));
+
+    const json: unknown = await response.json();
+
+    // Runtime validation of API response
+    const result = filmsResponseSchema.safeParse(json);
+    if (!result.success) {
+      console.error(
+        '[DorkroomApiClient] Films API response validation failed:',
+        result.error
+      );
+      throw new Error('Invalid API response format for films');
+    }
+
+    return result.data.data.map(this.transformFilm.bind(this));
   }
 
   /**
-   * Fetch developers from the API
+   * Fetch developers from the API with runtime validation
    */
   async fetchDevelopers(options?: {
     signal?: AbortSignal;
@@ -48,12 +65,24 @@ export class DorkroomApiClient {
     if (!response.ok) {
       throw new Error(`Failed to fetch developers: ${response.statusText}`);
     }
-    const data = (await response.json()) as { data: RawDeveloper[] };
-    return data.data.map(this.transformDeveloper.bind(this));
+
+    const json: unknown = await response.json();
+
+    // Runtime validation of API response
+    const result = developersResponseSchema.safeParse(json);
+    if (!result.success) {
+      console.error(
+        '[DorkroomApiClient] Developers API response validation failed:',
+        result.error
+      );
+      throw new Error('Invalid API response format for developers');
+    }
+
+    return result.data.data.map(this.transformDeveloper.bind(this));
   }
 
   /**
-   * Fetch combinations from the API
+   * Fetch combinations from the API with runtime validation
    */
   async fetchCombinations(options?: {
     signal?: AbortSignal;
@@ -64,8 +93,20 @@ export class DorkroomApiClient {
     if (!response.ok) {
       throw new Error(`Failed to fetch combinations: ${response.statusText}`);
     }
-    const data = (await response.json()) as { data: RawCombination[] };
-    return data.data.map(this.transformCombination.bind(this));
+
+    const json: unknown = await response.json();
+
+    // Runtime validation of API response
+    const result = combinationsResponseSchema.safeParse(json);
+    if (!result.success) {
+      console.error(
+        '[DorkroomApiClient] Combinations API response validation failed:',
+        result.error
+      );
+      throw new Error('Invalid API response format for combinations');
+    }
+
+    return result.data.data.map(this.transformCombination.bind(this));
   }
 
   /**

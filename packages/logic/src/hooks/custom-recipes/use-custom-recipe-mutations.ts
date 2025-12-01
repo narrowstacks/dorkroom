@@ -1,10 +1,16 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../queries/query-keys';
 import type {
+  CustomDeveloperData,
+  CustomFilmData,
   CustomRecipe,
   CustomRecipeFormData,
 } from '../../types/custom-recipes';
 import { debugError } from '../../utils/debug-logger';
+import {
+  sanitizeRecipeName,
+  sanitizeText,
+} from '../../utils/text-sanitization';
 
 const STORAGE_KEY = 'dorkroom_custom_recipes';
 const CUSTOM_RECIPES_QUERY_KEY = queryKeys.customRecipes.list();
@@ -51,6 +57,56 @@ const writeRecipesToStorage = (recipes: CustomRecipe[]): void => {
   }
 };
 
+/**
+ * Sanitize custom film data to prevent XSS attacks.
+ */
+const sanitizeCustomFilm = (
+  film: CustomFilmData | undefined
+): CustomFilmData | undefined => {
+  if (!film) return undefined;
+
+  return {
+    ...film,
+    brand: sanitizeText(film.brand, 100) || 'Unknown',
+    name: sanitizeText(film.name, 100) || 'Unknown',
+    grainStructure: sanitizeText(film.grainStructure, 100),
+    description: sanitizeText(film.description, 500),
+  };
+};
+
+/**
+ * Sanitize custom developer data to prevent XSS attacks.
+ */
+const sanitizeCustomDeveloper = (
+  developer: CustomDeveloperData | undefined
+): CustomDeveloperData | undefined => {
+  if (!developer) return undefined;
+
+  return {
+    ...developer,
+    manufacturer: sanitizeText(developer.manufacturer, 100) || 'Unknown',
+    name: sanitizeText(developer.name, 100) || 'Unknown',
+    type: sanitizeText(developer.type, 100) || 'Unknown',
+    notes: sanitizeText(developer.notes, 1000),
+    mixingInstructions: sanitizeText(developer.mixingInstructions, 2000),
+    safetyNotes: sanitizeText(developer.safetyNotes, 1000),
+    dilutions: developer.dilutions.map((d) => ({
+      name: sanitizeText(d.name, 50) || 'Unknown',
+      dilution: sanitizeText(d.dilution, 50) || '1:1',
+    })),
+  };
+};
+
+/**
+ * Sanitize tags array.
+ */
+const sanitizeTags = (tags: string[] | undefined): string[] | undefined => {
+  if (!tags) return undefined;
+  return tags
+    .map((tag) => sanitizeText(tag, 50))
+    .filter((tag): tag is string => Boolean(tag));
+};
+
 const createRecipeFromFormData = (
   formData: CustomRecipeFormData,
   base?: CustomRecipe
@@ -73,25 +129,26 @@ const createRecipeFromFormData = (
     id:
       base?.id ??
       `custom_${timestamp}_${Math.random().toString(36).slice(2, 11)}`,
-    name: formData.name,
+    // Sanitize all text fields to prevent XSS attacks
+    name: sanitizeRecipeName(formData.name) || 'Untitled Recipe',
     filmId,
     developerId,
     temperatureF: formData.temperatureF,
     timeMinutes: formData.timeMinutes,
     shootingIso: formData.shootingIso,
     pushPull: formData.pushPull,
-    agitationSchedule: formData.agitationSchedule,
-    notes: formData.notes,
-    customDilution: formData.customDilution,
+    agitationSchedule: sanitizeText(formData.agitationSchedule, 500),
+    notes: sanitizeText(formData.notes, 2000),
+    customDilution: sanitizeText(formData.customDilution, 100),
     isCustomFilm: !formData.useExistingFilm,
     isCustomDeveloper: !formData.useExistingDeveloper,
-    customFilm: formData.customFilm,
-    customDeveloper: formData.customDeveloper,
+    customFilm: sanitizeCustomFilm(formData.customFilm),
+    customDeveloper: sanitizeCustomDeveloper(formData.customDeveloper),
     dilutionId: base?.dilutionId ?? undefined,
     dateCreated: base?.dateCreated ?? nowIso,
     dateModified: nowIso,
     isPublic: formData.isPublic,
-    tags: formData.tags,
+    tags: sanitizeTags(formData.tags),
   } satisfies CustomRecipe;
 };
 

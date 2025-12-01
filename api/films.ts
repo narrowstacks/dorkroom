@@ -9,6 +9,7 @@ import {
   serverlessLog,
   serverlessWarn,
 } from '../utils/serverlessLogger';
+import { validateAndSanitizeQuery } from '../utils/queryValidation';
 
 // The master API key that has high rate limits
 const SUPABASE_MASTER_API_KEY = process.env.SUPABASE_MASTER_API_KEY;
@@ -25,44 +26,8 @@ function createTimeoutSignal(timeoutMs: number): AbortSignal {
   return controller.signal;
 }
 
-/**
- * Produce a URLSearchParams containing only allowed query keys while trimming values.
- *
- * Filters the incoming request query to the allowed keys ("query", "fuzzy", "limit", "colorType", "brand"), trims string values, and for array values uses the first non-empty string.
- *
- * @param query - The incoming request's query object to sanitize
- * @returns A URLSearchParams with filtered, trimmed parameters; array parameters are represented by their first non-empty string value
- */
-function validateAndSanitizeQuery(
-  query: VercelRequest['query']
-): URLSearchParams {
-  const params = new URLSearchParams();
-
-  // Allow only specific known parameters to prevent injection
-  const allowedParams = ['query', 'fuzzy', 'limit', 'colorType', 'brand'];
-
-  for (const [key, value] of Object.entries(query)) {
-    if (
-      allowedParams.includes(key) &&
-      typeof value === 'string' &&
-      value.trim()
-    ) {
-      params.set(key, value.trim());
-    } else if (
-      allowedParams.includes(key) &&
-      Array.isArray(value) &&
-      value.length > 0
-    ) {
-      // Handle array parameters (take first value)
-      const firstValue = value[0];
-      if (typeof firstValue === 'string' && firstValue.trim()) {
-        params.set(key, firstValue.trim());
-      }
-    }
-  }
-
-  return params;
-}
+// Allowed query parameters for this endpoint
+const ALLOWED_PARAMS = ['query', 'fuzzy', 'limit', 'colorType', 'brand'];
 
 /**
  * HTTP handler that proxies validated GET requests to the Supabase films function and returns its JSON response.
@@ -144,8 +109,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // Validate and sanitize query parameters
-    const queryParams = validateAndSanitizeQuery(req.query);
+    // Validate and sanitize query parameters with security limits
+    const queryParams = validateAndSanitizeQuery(req.query, ALLOWED_PARAMS);
     const queryString = queryParams.toString();
     const targetUrl = queryString
       ? `${SUPABASE_ENDPOINT}?${queryString}`

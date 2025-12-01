@@ -15,6 +15,12 @@ const FILMDEV_API_BASE = 'https://filmdev.org/api';
 // Request timeout in milliseconds (30 seconds)
 const TIMEOUT_MS = 30000;
 
+// Maximum response size in bytes (1MB) to prevent memory exhaustion
+const MAX_RESPONSE_SIZE = 1024 * 1024;
+
+// Maximum recipe ID to prevent DoS with extremely large numbers
+const MAX_RECIPE_ID = 10_000_000;
+
 // Helper function to create AbortSignal with timeout
 function createTimeoutSignal(timeoutMs: number): AbortSignal {
   const controller = new AbortController();
@@ -23,13 +29,15 @@ function createTimeoutSignal(timeoutMs: number): AbortSignal {
 }
 
 /**
- * Validates that a recipe ID is a positive integer.
+ * Validates that a recipe ID is a positive integer within acceptable bounds.
  *
  * @param id - The recipe ID to validate
  * @returns true if valid, false otherwise
  */
 function isValidRecipeId(id: string): boolean {
-  return /^\d+$/.test(id) && parseInt(id, 10) > 0;
+  if (!/^\d+$/.test(id)) return false;
+  const numericId = parseInt(id, 10);
+  return numericId > 0 && numericId < MAX_RECIPE_ID;
 }
 
 /**
@@ -151,6 +159,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         error: 'Invalid response format',
         message: 'Expected JSON response from filmdev.org',
         contentType,
+        requestId,
+      });
+    }
+
+    // Check response size to prevent memory exhaustion
+    const contentLength = response.headers.get('content-length');
+    if (contentLength && parseInt(contentLength, 10) > MAX_RESPONSE_SIZE) {
+      serverlessError('Response too large', {
+        requestId,
+        contentLength,
+        maxAllowed: MAX_RESPONSE_SIZE,
+      });
+      return res.status(502).json({
+        error: 'Response too large',
+        message: 'Response from filmdev.org exceeds maximum allowed size',
         requestId,
       });
     }

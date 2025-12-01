@@ -8,6 +8,13 @@ import { sanitizeRecipeName, sanitizeText } from './text-sanitization';
 
 const CURRENT_RECIPE_SHARING_VERSION = 1;
 
+/**
+ * Maximum length for encoded recipe strings.
+ * This limit ensures URLs remain within browser limits (typically 2000-8000 chars).
+ * Conservative limit of 4000 chars leaves room for base URL and other params.
+ */
+export const MAX_ENCODED_LENGTH = 4000;
+
 export interface EncodedCustomRecipe {
   name: string;
   filmId: string;
@@ -110,10 +117,20 @@ export const encodeCustomRecipe = (recipe: CustomRecipe): string => {
     };
 
     const jsonString = JSON.stringify(encodedRecipe);
-    return encodeBase64(jsonString)
+    const encoded = encodeBase64(jsonString)
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/, '');
+
+    // Check URL length limit to prevent browser URL issues
+    if (encoded.length > MAX_ENCODED_LENGTH) {
+      debugError(
+        `Recipe too large to share via URL: ${encoded.length} chars exceeds ${MAX_ENCODED_LENGTH} limit`
+      );
+      return '';
+    }
+
+    return encoded;
   } catch (error) {
     debugError('Failed to encode custom recipe:', error);
     return '';

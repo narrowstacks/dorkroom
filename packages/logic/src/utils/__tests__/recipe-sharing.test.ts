@@ -6,6 +6,7 @@ import {
   type EncodedCustomRecipe,
   encodeCustomRecipe,
   isValidCustomRecipeEncoding,
+  MAX_ENCODED_LENGTH,
 } from '../recipe-sharing';
 
 describe('recipe-sharing', () => {
@@ -555,6 +556,74 @@ describe('recipe-sharing', () => {
       const decoded = decodeCustomRecipe(encoded);
       expect(decoded).toBeTruthy();
       expect(decoded?.name).toBe(mockCustomRecipe.name);
+    });
+  });
+
+  describe('URL length limits', () => {
+    it('should have a reasonable max encoded length constant', () => {
+      expect(MAX_ENCODED_LENGTH).toBe(4000);
+    });
+
+    it('should return empty string for oversized recipes', () => {
+      // Create a recipe with very long notes that will exceed the limit
+      const oversizedRecipe: CustomRecipe = {
+        ...mockCustomRecipe,
+        notes: 'x'.repeat(10000), // Very long notes
+        agitationSchedule: 'y'.repeat(10000), // Very long agitation
+        customDilution: 'z'.repeat(1000), // Long dilution
+        customFilm: {
+          brand: 'a'.repeat(500),
+          name: 'b'.repeat(500),
+          isoSpeed: 400,
+          colorType: 'bw',
+          grainStructure: 'c'.repeat(500),
+          description: 'd'.repeat(2000),
+        },
+        customDeveloper: {
+          manufacturer: 'e'.repeat(500),
+          name: 'f'.repeat(500),
+          type: 'powder',
+          filmOrPaper: 'film',
+          notes: 'g'.repeat(2000),
+          mixingInstructions: 'h'.repeat(3000),
+          safetyNotes: 'i'.repeat(2000),
+          dilutions: [
+            { name: 'j'.repeat(100), dilution: 'k'.repeat(100) },
+            { name: 'l'.repeat(100), dilution: 'm'.repeat(100) },
+          ],
+        },
+        isCustomFilm: true,
+        isCustomDeveloper: true,
+      };
+
+      const encoded = encodeCustomRecipe(oversizedRecipe);
+      expect(encoded).toBe('');
+    });
+
+    it('should return encoded string for recipes within limit', () => {
+      const normalRecipe: CustomRecipe = {
+        ...mockCustomRecipe,
+        notes: 'Short notes',
+        agitationSchedule: 'Standard agitation',
+      };
+
+      const encoded = encodeCustomRecipe(normalRecipe);
+      expect(encoded).not.toBe('');
+      expect(encoded.length).toBeLessThanOrEqual(MAX_ENCODED_LENGTH);
+    });
+
+    it('should handle recipes near the limit boundary', () => {
+      // Create a recipe that's close to but under the limit
+      const nearLimitRecipe: CustomRecipe = {
+        ...mockCustomRecipe,
+        notes: 'x'.repeat(2000), // Moderate length notes
+      };
+
+      const encoded = encodeCustomRecipe(nearLimitRecipe);
+      // Should encode successfully if under limit
+      if (encoded.length > 0) {
+        expect(encoded.length).toBeLessThanOrEqual(MAX_ENCODED_LENGTH);
+      }
     });
   });
 });
