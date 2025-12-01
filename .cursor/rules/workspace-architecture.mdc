@@ -5,46 +5,49 @@ description: Workspace architecture and project structure guidelines
 
 # Dorkroom Nx Workspace Architecture
 
-This is an Nx 21.4.0 monorepo with npm package management for a photography development calculator app.
+This is an Nx 22 monorepo with Bun package management for an analog photography calculator app.
 
 ## Project Structure
 
 ### Applications
 
 - **`apps/dorkroom/`** - Main React application (private)
-  - Uses Vite bundler, React 19, and React Router
-  - Depends on `@dorkroom/logic` and `@dorkroom/ui` packages
+  - Uses Vite 6 bundler, React 19, and TanStack Router v1
+  - Depends on `@dorkroom/logic`, `@dorkroom/ui`, and `@dorkroom/api` packages
   - Entry point: [main.tsx](mdc:apps/dorkroom/src/main.tsx)
+  - File-based routing in `src/routes/`
 
 ### Libraries
 
 - **`packages/logic/`** - Business logic and calculations (public)
   - Pure TypeScript library with no UI dependencies
-  - Exports: types, constants, utilities, hooks
+  - Exports: types, constants, utilities, hooks, Zod schemas
+  - TanStack Query/Form/Table patterns
   - Main export: [index.ts](mdc:packages/logic/src/index.ts)
 - **`packages/ui/`** - Reusable UI components (public)
-  - React components with TypeScript
+  - React components with TypeScript and Tailwind CSS
   - Depends on `@dorkroom/logic`
   - Main export: [index.ts](mdc:packages/ui/src/index.ts)
-
-## Migration Context
-
-This workspace contains original code being migrated from a legacy structure:
-
-- `original-components/` - Legacy React components to be moved to `packages/ui/`
-- `original-constants/` - Legacy constants to be moved to `packages/logic/`
-- `original-hooks/` - Legacy hooks to be moved to `packages/logic/`
-- `original-types/` - Legacy types to be moved to `packages/logic/`
-- `original-utils/` - Legacy utilities to be moved to `packages/logic/`
-- `original-views/` - Legacy views to be moved to `apps/dorkroom/src/app/pages/`
+- **`packages/api/`** - API type definitions and transformations
+  - Raw and transformed type definitions
+  - API client utilities
+  - Main export: [index.ts](mdc:packages/api/src/index.ts)
 
 ## Dependencies & Tech Stack
 
 ### Core Framework
 
-- React 19.0.0 with React Router 6.29.0
+- React 19.0.0 with TanStack Router v1 (file-based routing)
 - TypeScript 5.8.2 with strict mode enabled
-- Vite 6.0.0 for build tooling
+- Vite 6 for build tooling
+- Bun for package management
+
+### TanStack Ecosystem
+
+- TanStack Router v1 - File-based routing
+- TanStack Query v5 - Server state management and caching
+- TanStack Form v1 - Form state management with Zod validation
+- TanStack Table v8 - Data tables with sorting/filtering
 
 ### Styling & UI
 
@@ -53,19 +56,21 @@ This workspace contains original code being migrated from a legacy structure:
 - Lucide React icons
 - Custom utility functions with `clsx` and `tailwind-merge`
 
+### Validation
+
+- Zod v4.1.12 for schema validation
+
 ### Testing & Quality
 
-- Vitest 3.0.0 with coverage and UI
-- ESLint 9.8.0 with TypeScript ESLint
+- Vitest 3 with coverage and UI
+- Biome for linting and formatting
 - React Testing Library
-- Prettier for code formatting
 
 ## Nx Configuration Highlights
 
 ### Plugins Enabled
 
 - `@nx/js/typescript` - TypeScript build and typecheck
-- `@nx/react/router-plugin` - React Router support
 - `@nx/eslint/plugin` - ESLint integration
 - `@nx/vite/plugin` - Vite build system
 
@@ -74,7 +79,7 @@ This workspace contains original code being migrated from a legacy structure:
 - `build` - Production build
 - `dev`/`serve` - Development server
 - `test` - Run tests with Vitest
-- `lint` - ESLint checks
+- `lint` - Biome linting
 - `typecheck` - TypeScript type checking
 - `preview` - Preview production build
 
@@ -84,11 +89,33 @@ Use TypeScript path mapping for clean imports:
 
 - `@dorkroom/logic` - Business logic package
 - `@dorkroom/ui` - UI components package
+- `@dorkroom/api` - API types and transformations
 
 ## Development Guidelines
 
-1. **Separation of Concerns**: Keep business logic in `logic` package, UI in `ui` package
+1. **Separation of Concerns**: Keep business logic in `logic` package, UI in `ui` package, API types in `api` package
 2. **Barrel Exports**: Use index.ts files to create clean public APIs
 3. **Dependency Direction**: UI can depend on logic, but logic should be UI-agnostic
-4. **Migration Priority**: Gradually move code from `original-*` folders to proper packages
-5. **Testing**: Tests should be co-located with source code using `.spec.ts` or `.test.tsx` extensions
+4. **Zod Schemas**: Always use Zod schemas for form validation
+5. **TanStack Patterns**: Use optimistic updates for mutations, invalidate queries after mutations
+6. **Testing**: Tests should be co-located with source code using `.spec.ts` or `.test.tsx` extensions
+
+## Essential Commands
+
+### Development
+
+- `bunx nx build dorkroom` - Build production bundle
+- `bunx nx dev dorkroom -- --host=0.0.0.0` - Start development server
+- `bunx nx serve dorkroom` - Alternative dev server
+
+### Code Quality
+
+- `bunx nx lint dorkroom` - Run Biome linting
+- `bunx nx typecheck dorkroom` - TypeScript type checking
+- `bun run format` - Format code with Biome
+- `bun run lint:fix` - Lint and auto-fix issues
+
+### Testing
+
+- `bunx nx test` - Run Vitest tests
+- `bunx nx test --ui` - Run tests with UI

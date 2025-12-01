@@ -12,13 +12,16 @@ description: Import organization and barrel export patterns
 ```typescript
 // 1. Node modules (React, third-party libraries)
 import { type FC, useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useForm } from '@tanstack/react-form';
 import { clsx } from 'clsx';
 
 // 2. Internal packages (workspace libraries)
 import type { BorderCalculationOptions } from '@dorkroom/logic';
 import { useBorderCalculator, calculateDimensions } from '@dorkroom/logic';
 import { CalculatorCard, NumberInput } from '@dorkroom/ui';
+import type { Recipe } from '@dorkroom/api';
 
 // 3. Relative imports (same project)
 import type { ComponentProps } from './types';
@@ -53,7 +56,7 @@ import { type ComponentProps, cn } from '@dorkroom/ui';
 ```typescript
 // ✅ Use descriptive aliases for conflicting names
 import { Button as UIButton } from '@dorkroom/ui';
-import { Button as RouterButton } from 'react-router-dom';
+import { Link as RouterLink } from '@tanstack/react-router';
 
 // ✅ Destructure commonly used items
 import {
@@ -80,6 +83,9 @@ See [packages/logic/src/index.ts](mdc:packages/logic/src/index.ts) and [packages
 export type { BorderCalculationOptions } from './types/border-calculator';
 export type { CalculationResult, ValidationError } from './types/calculations';
 
+// Schema exports (Zod schemas)
+export { borderInputSchema, recipeSchema } from './schemas';
+
 // Constants exports
 export { BORDER_PRESETS } from './constants/border-presets';
 export { PAPER_SIZES, DEFAULT_MARGINS } from './constants/dimensions';
@@ -92,12 +98,8 @@ export { validateInput, formatNumber } from './utils/input-validation';
 export { useBorderCalculator } from './hooks/use-border-calculator';
 export { usePresetSharing } from './hooks/use-preset-sharing';
 
-// Re-export with aliases when needed
-export {
-  useBorderCalculator as useModularBorderCalculator,
-  useBorderCalculatorState,
-  useDimensionCalculations,
-} from './hooks/border-calculator';
+// TanStack Query hooks
+export { useRecipeQuery, useRecipesMutation } from './queries/recipes';
 ```
 
 ### Component Barrel Exports
@@ -119,6 +121,9 @@ export {
   CalculatorStat,
 } from './components/calculator';
 
+// Form components (TanStack Form integration)
+export { FormField, FormInput, FormSelect } from './components/form';
+
 // Utilities (always export utilities from packages)
 export { cn } from './lib/cn';
 ```
@@ -127,7 +132,7 @@ export { cn } from './lib/cn';
 
 ```typescript
 // ✅ Feature folder barrel exports
-// src/app/pages/border-calculator/index.ts
+// src/features/border-calculator/index.ts
 
 export { BorderCalculatorPage } from './border-calculator-page';
 export { BorderPreview } from './components/border-preview';
@@ -145,6 +150,7 @@ Based on [tsconfig.base.json](mdc:tsconfig.base.json), use these import paths:
 // ✅ Use workspace package aliases
 import { calculateBorderSize } from '@dorkroom/logic';
 import { CalculatorCard } from '@dorkroom/ui';
+import type { Recipe } from '@dorkroom/api';
 
 // ❌ Don't use relative paths for workspace packages
 import { calculateBorderSize } from '../../../packages/logic/src/utils/border-calculations';
@@ -162,6 +168,31 @@ import { CONSTANTS } from '../../constants';
 import { formatResult } from './utils';
 // Instead of:
 import { formatResult } from './utils/formatting';
+```
+
+## TanStack Router File-Based Routing
+
+Routes are auto-generated based on file structure in `apps/dorkroom/src/routes/`:
+
+```typescript
+// ✅ Route file imports
+// routes/border-calculator.tsx
+import { createFileRoute } from '@tanstack/react-router';
+import { BorderCalculatorPage } from '../features/border-calculator';
+
+export const Route = createFileRoute('/border-calculator')({
+  component: BorderCalculatorPage,
+});
+
+// ✅ Route with loader and TanStack Query
+import { createFileRoute } from '@tanstack/react-router';
+import { queryClient } from '../lib/query-client';
+import { recipesQueryOptions } from '@dorkroom/logic';
+
+export const Route = createFileRoute('/recipes/')({
+  loader: () => queryClient.ensureQueryData(recipesQueryOptions()),
+  component: RecipesPage,
+});
 ```
 
 ## Module Organization Best Practices
@@ -197,6 +228,9 @@ const loadCalculationWorker = async () => {
   const { WorkerCalculator } = await import('./workers/calculation-worker');
   return new WorkerCalculator();
 };
+
+// ✅ Route-level code splitting (handled by TanStack Router)
+// Routes are automatically code-split by file
 ```
 
 ### Tree Shaking Considerations
@@ -213,58 +247,33 @@ export { calculateBorderSize, validateDimensions };
 export default BorderCalculator;
 ```
 
-## Migration Guidelines
-
-### Moving from Legacy Structure
-
-When moving code from `original-*` folders:
-
-```typescript
-// ✅ Update imports from legacy structure
-// Before (legacy):
-import { BorderCalculator } from '../../../original-components/border-calculator';
-
-// After (new structure):
-import { BorderCalculator } from '@dorkroom/ui';
-```
-
-### Gradual Migration Pattern
-
-```typescript
-// ✅ Create compatibility re-exports during migration
-// packages/ui/src/legacy.ts (temporary)
-export {
-  BorderCalculator,
-  DimensionInput,
-} from '../../../original-components/border-calculator';
-
-// Then import from legacy file temporarily
-import { BorderCalculator } from '@dorkroom/ui/legacy';
-```
-
 ## File Naming and Structure
 
 ### Consistent Naming
 
 ```typescript
-// ✅ Component files: PascalCase with descriptive names
-BorderCalculatorPage.tsx;
-DimensionInputGroup.tsx;
-CalculatorResult.tsx;
+// ✅ Component files: kebab-case
+border-calculator-page.tsx;
+dimension-input-group.tsx;
+calculator-result.tsx;
 
-// ✅ Hook files: camelCase starting with 'use'
-useBorderCalculator.ts;
-useCalculationState.ts;
-usePresetSharing.ts;
+// ✅ Hook files: kebab-case starting with 'use'
+use-border-calculator.ts;
+use-calculation-state.ts;
+use-preset-sharing.ts;
 
-// ✅ Utility files: camelCase or kebab-case
-borderCalculations.ts;
-input - validation.ts;
-preset - sharing.ts;
+// ✅ Utility files: kebab-case
+border-calculations.ts;
+input-validation.ts;
+preset-sharing.ts;
 
-// ✅ Type files: camelCase or kebab-case
-borderTypes.ts;
-calculation - types.ts;
+// ✅ Type files: kebab-case
+border-types.ts;
+calculation-types.ts;
+
+// ✅ Schema files: kebab-case
+border-schema.ts;
+recipe-schema.ts;
 ```
 
 ### Index File Strategy
@@ -272,12 +281,56 @@ calculation - types.ts;
 ```typescript
 // ✅ Use index.ts for clean imports
 // folder/index.ts
-export { Component } from './Component';
-export { useHook } from './useHook';
+export { Component } from './component';
+export { useHook } from './use-hook';
 export type { ComponentProps } from './types';
 
 // Allows clean imports:
 import { Component, useHook, type ComponentProps } from './folder';
+```
+
+## TanStack Ecosystem Import Patterns
+
+### TanStack Query
+
+```typescript
+// ✅ Import from @tanstack/react-query
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query';
+
+// ✅ Query options pattern
+import { queryOptions } from '@tanstack/react-query';
+
+export const recipesQueryOptions = () =>
+  queryOptions({
+    queryKey: ['recipes'],
+    queryFn: fetchRecipes,
+  });
+```
+
+### TanStack Form
+
+```typescript
+// ✅ Import from @tanstack/react-form
+import { useForm, type FormApi } from '@tanstack/react-form';
+import { zodValidator } from '@tanstack/zod-form-adapter';
+```
+
+### TanStack Table
+
+```typescript
+// ✅ Import from @tanstack/react-table
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  type ColumnDef,
+} from '@tanstack/react-table';
 ```
 
 This organization ensures clean, maintainable imports and exports across the Dorkroom monorepo.

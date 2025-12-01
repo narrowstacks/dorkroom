@@ -13,6 +13,83 @@ description: TypeScript coding standards and conventions
 - Composite builds with declaration maps
 - See [tsconfig.base.json](mdc:tsconfig.base.json) for base configuration
 
+## Critical Typing Rules
+
+### Never Use `any` Type
+
+```typescript
+// ❌ NEVER use any
+const processData = (input: any): any => {};
+const result = data as any;
+
+// ✅ Use specific types
+const processData = (input: CalculationInput): CalculationResult => {};
+
+// ✅ Use unknown for truly unknown types
+const parseJSON = (text: string): unknown => JSON.parse(text);
+
+// ✅ Use type guards to narrow unknown
+function isCalculationResult(value: unknown): value is CalculationResult {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'borderTop' in value &&
+    'borderBottom' in value
+  );
+}
+
+// ✅ Exception: Generic function signatures where specific type cannot be known
+// This is acceptable ONLY for variadic function types
+type ThrottledFunction<T extends (...args: any[]) => any> = (
+  ...args: Parameters<T>
+) => ReturnType<T>;
+```
+
+### API Data Typing
+
+```typescript
+// ✅ Create dedicated Raw* types for API responses with both casing formats
+interface RawRecipeData {
+  // camelCase fields
+  filmId?: string;
+  developerId?: string;
+  dilutionRatio?: string;
+  // snake_case fields from API
+  film_id?: string;
+  developer_id?: string;
+  dilution_ratio?: string;
+}
+
+// ✅ Create clean transformed types
+interface Recipe {
+  filmId: string;
+  developerId: string;
+  dilutionRatio: string;
+}
+
+// ✅ Use null or undefined explicitly
+interface ApiResponse {
+  data: Recipe | null;
+  error: string | undefined;
+  loading: boolean;
+}
+```
+
+### Browser API Types
+
+```typescript
+// ✅ Create local interfaces for incomplete browser API types
+interface PerformanceWithMemory extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
+}
+
+const perf = performance as PerformanceWithMemory;
+```
+
 ## Code Style Requirements
 
 ### Type Definitions
@@ -37,6 +114,11 @@ export interface BorderCalculationOptions {
 // ✅ Use type for unions and computed types
 export type CalculationMode = 'automatic' | 'manual' | 'preset';
 export type BorderPreset = (typeof BORDER_PRESETS)[keyof typeof BORDER_PRESETS];
+
+// ✅ Use discriminated unions instead of generic object types
+type CalculationResult =
+  | { success: true; data: BorderDimensions }
+  | { success: false; error: string };
 ```
 
 ### Strict Configuration Compliance
@@ -77,6 +159,30 @@ switch (calculationMode) {
 }
 ```
 
+### Type Narrowing
+
+```typescript
+// ✅ Use type guards for runtime validation
+function isValidDimension(value: unknown): value is number {
+  return typeof value === 'number' && value > 0 && isFinite(value);
+}
+
+// ✅ Use typeof checks
+if (typeof input === 'string') {
+  return parseFloat(input);
+}
+
+// ✅ Use instanceof checks
+if (error instanceof ValidationError) {
+  return { field: error.field, message: error.message };
+}
+
+// ✅ Use in operator for property checks
+if ('borderTop' in result) {
+  return formatBorderResult(result);
+}
+```
+
 ### Naming Conventions
 
 ```typescript
@@ -106,7 +212,10 @@ const canApplyPreset = validatePreset();
 ```typescript
 // ✅ Use custom error types
 class ValidationError extends Error {
-  constructor(field: string, value: unknown) {
+  constructor(
+    public field: string,
+    value: unknown
+  ) {
     super(`Invalid value for ${field}: ${value}`);
     this.name = 'ValidationError';
   }
@@ -116,11 +225,6 @@ class ValidationError extends Error {
 type CalculationResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
-
-// ✅ Use type guards for runtime validation
-function isValidDimension(value: unknown): value is number {
-  return typeof value === 'number' && value > 0 && isFinite(value);
-}
 ```
 
 ### Generic Constraints
@@ -150,6 +254,28 @@ type CalculationKeys = keyof BorderCalculationOptions;
 // ✅ Create custom utility types for domain-specific needs
 type ReadonlyDeep<T> = {
   readonly [P in keyof T]: T[P] extends object ? ReadonlyDeep<T[P]> : T[P];
+};
+```
+
+## Zod Schema Integration
+
+```typescript
+import { z } from 'zod';
+
+// ✅ Define Zod schemas for validation
+const borderInputSchema = z.object({
+  paperWidth: z.number().positive('Width must be positive'),
+  paperHeight: z.number().positive('Height must be positive'),
+  imageWidth: z.number().positive('Width must be positive'),
+  imageHeight: z.number().positive('Height must be positive'),
+});
+
+// ✅ Infer TypeScript types from Zod schemas
+type BorderInput = z.infer<typeof borderInputSchema>;
+
+// ✅ Use schemas for runtime validation
+const validateBorderInput = (input: unknown): BorderInput => {
+  return borderInputSchema.parse(input);
 };
 ```
 

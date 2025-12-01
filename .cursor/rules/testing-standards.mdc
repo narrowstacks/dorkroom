@@ -7,34 +7,42 @@ description: Testing standards using Vitest and React Testing Library
 
 ## Testing Framework Configuration
 
-- **Vitest 3.0.0** - Modern test runner with native TypeScript support
+- **Vitest 3** - Modern test runner with native TypeScript support
 - **React Testing Library 16.1.0** - Component testing utilities
-- **jsdom 22.1.0** - DOM environment for tests
+- **jsdom** - DOM environment for tests
 - **@vitest/coverage-v8** - Coverage reporting
 - **@vitest/ui** - Test UI for debugging
+
+## Test Commands
+
+```bash
+bunx nx test              # Run Vitest tests
+bunx nx test --ui         # Run tests with UI
+bunx nx test --coverage   # Run with coverage
+```
 
 ## Test File Organization
 
 ### File Naming Conventions
 
 ```typescript
-// ✅ Component tests: ComponentName.test.tsx
-BorderCalculator.test.tsx;
-DimensionInput.test.tsx;
-CalculatorCard.test.tsx;
+// ✅ Component tests: kebab-case with .test.tsx
+border-calculator.test.tsx;
+dimension-input.test.tsx;
+calculator-card.test.tsx;
 
-// ✅ Hook tests: hookName.test.ts
-useBorderCalculator.test.ts;
-useCalculationState.test.ts;
-usePresetSharing.test.ts;
+// ✅ Hook tests: kebab-case with .test.ts
+use-border-calculator.test.ts;
+use-calculation-state.test.ts;
+use-preset-sharing.test.ts;
 
-// ✅ Utility tests: utilityName.test.ts
-borderCalculations.test.ts;
-inputValidation.test.ts;
-presetSharing.test.ts;
+// ✅ Utility tests: kebab-case with .test.ts
+border-calculations.test.ts;
+input-validation.test.ts;
+preset-sharing.test.ts;
 
 // ✅ Integration tests: feature.integration.test.ts
-borderCalculator.integration.test.ts;
+border-calculator.integration.test.ts;
 ```
 
 ### Test File Structure
@@ -44,7 +52,7 @@ borderCalculator.integration.test.ts;
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { BorderCalculationOptions } from '@dorkroom/logic';
-import { BorderCalculator } from './BorderCalculator';
+import { BorderCalculator } from './border-calculator';
 
 // Mock external dependencies at the top
 vi.mock('@dorkroom/logic', () => ({
@@ -151,6 +159,60 @@ it('shows loading state during calculation', async () => {
 });
 ```
 
+### Testing with TanStack Router
+
+```typescript
+import { createRouter, createMemoryHistory } from '@tanstack/react-router';
+import { RouterProvider } from '@tanstack/react-router';
+import { routeTree } from '../routeTree.gen';
+
+// ✅ Create test router wrapper
+const createTestRouter = (initialPath: string = '/') => {
+  const history = createMemoryHistory({ initialEntries: [initialPath] });
+  return createRouter({ routeTree, history });
+};
+
+// ✅ Render with router context
+it('navigates to calculator page', async () => {
+  const router = createTestRouter('/border-calculator');
+  render(<RouterProvider router={router} />);
+
+  expect(screen.getByText(/border calculator/i)).toBeInTheDocument();
+});
+```
+
+### Testing with TanStack Query
+
+```typescript
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// ✅ Create test query client wrapper
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <QueryClientProvider client={createTestQueryClient()}>
+    {children}
+  </QueryClientProvider>
+);
+
+// ✅ Test query hooks
+it('fetches recipe data', async () => {
+  const { result } = renderHook(() => useRecipe('123'), { wrapper });
+
+  await waitFor(() => {
+    expect(result.current.isSuccess).toBe(true);
+  });
+
+  expect(result.current.data).toEqual(expectedRecipe);
+});
+```
+
 ### Custom Render Utilities
 
 ```typescript
@@ -159,31 +221,23 @@ import {
   render as rtlRender,
   type RenderOptions,
 } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactElement } from 'react';
 
 interface CustomRenderOptions extends RenderOptions {
-  initialRoute?: string;
+  queryClient?: QueryClient;
 }
 
 const render = (
   ui: ReactElement,
-  { initialRoute = '/', ...options }: CustomRenderOptions = {}
+  { queryClient = createTestQueryClient(), ...options }: CustomRenderOptions = {}
 ) => {
-  window.history.pushState({}, 'Test page', initialRoute);
-
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    <BrowserRouter>{children}</BrowserRouter>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 
   return rtlRender(ui, { wrapper: Wrapper, ...options });
 };
-
-// Use in tests
-it('navigates to calculator page', () => {
-  render(<App />, { initialRoute: '/border-calculator' });
-  expect(screen.getByText(/border calculator/i)).toBeInTheDocument();
-});
 ```
 
 ## Hook Testing
@@ -193,7 +247,7 @@ it('navigates to calculator page', () => {
 ```typescript
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { useBorderCalculator } from './useBorderCalculator';
+import { useBorderCalculator } from './use-border-calculator';
 
 describe('useBorderCalculator', () => {
   it('initializes with default state', () => {
@@ -248,7 +302,7 @@ describe('useBorderCalculator', () => {
 
 ```typescript
 import { describe, it, expect } from 'vitest';
-import { calculateBorderSize, validateDimensions } from './borderCalculations';
+import { calculateBorderSize, validateDimensions } from './border-calculations';
 
 describe('borderCalculations', () => {
   describe('calculateBorderSize', () => {
@@ -302,10 +356,10 @@ describe('borderCalculations', () => {
 
 ```typescript
 // ✅ Mock external dependencies
-vi.mock('react-router-dom', () => ({
+vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => vi.fn(),
   useLocation: () => ({ pathname: '/test' }),
-  BrowserRouter: ({ children }: { children: React.ReactNode }) => children,
+  Link: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 // ✅ Partial module mocking
@@ -318,7 +372,7 @@ vi.mock('@dorkroom/logic', async () => {
 });
 
 // ✅ Mock with factory function
-vi.mock('./expensiveCalculation', () => ({
+vi.mock('./expensive-calculation', () => ({
   performCalculation: vi.fn(() => Promise.resolve({ result: 42 })),
 }));
 ```
@@ -349,7 +403,7 @@ const mockCalculate = vi
 // ✅ Test complete user workflows
 import { render, screen, userEvent } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { BorderCalculatorPage } from './BorderCalculatorPage';
+import { BorderCalculatorPage } from './border-calculator-page';
 
 describe('BorderCalculatorPage Integration', () => {
   it('completes full calculation workflow', async () => {
@@ -387,7 +441,7 @@ describe('BorderCalculatorPage Integration', () => {
 // - Integration tests: Cover main user workflows
 
 // ✅ Use coverage reports to identify gaps
-// Run: npm run test:coverage
+// Run: bunx nx test --coverage
 ```
 
 ### Test Quality Guidelines

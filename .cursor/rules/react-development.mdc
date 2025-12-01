@@ -7,10 +7,40 @@ description: React component development standards and patterns
 
 ## Framework Configuration
 
-- React 19.0.0 with React Router 6.29.0
-- Vite build system with React plugin
+- React 19.0.0 with TanStack Router v1 (file-based routing)
+- TanStack Query v5 for server state management
+- TanStack Form v1 for form state management
+- TanStack Table v8 for data tables
+- Vite 6 build system with React plugin
 - TypeScript with JSX support
 - Entry point: [main.tsx](mdc:apps/dorkroom/src/main.tsx)
+
+## TanStack Router File-Based Routing
+
+Routes are defined in `apps/dorkroom/src/routes/`:
+
+```typescript
+// ✅ Route file structure
+// routes/__root.tsx - Root layout
+// routes/index.tsx - Home page (/)
+// routes/border-calculator.tsx - /border-calculator
+// routes/recipes/index.tsx - /recipes
+// routes/recipes/$recipeId.tsx - /recipes/:recipeId
+
+// ✅ Route component with loader
+import { createFileRoute } from '@tanstack/react-router';
+
+export const Route = createFileRoute('/border-calculator')({
+  component: BorderCalculatorPage,
+  loader: () => {
+    // Optional: prefetch data
+  },
+});
+
+function BorderCalculatorPage() {
+  return <div>Border Calculator</div>;
+}
+```
 
 ## Component Architecture
 
@@ -116,6 +146,87 @@ export const MyComponent: FC<MyComponentProps> = (props) => {
 
 // Default export at the end
 export default MyComponent;
+```
+
+## TanStack Query Patterns
+
+### Query Usage
+
+```typescript
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+// ✅ Query with proper key structure
+const { data, isLoading, error } = useQuery({
+  queryKey: ['recipes', recipeId],
+  queryFn: () => fetchRecipe(recipeId),
+  staleTime: 5 * 60 * 1000, // 5 minutes
+});
+
+// ✅ Mutation with optimistic update
+const queryClient = useQueryClient();
+
+const mutation = useMutation({
+  mutationFn: updateRecipe,
+  onMutate: async (newRecipe) => {
+    await queryClient.cancelQueries({ queryKey: ['recipes', newRecipe.id] });
+    const previous = queryClient.getQueryData(['recipes', newRecipe.id]);
+    queryClient.setQueryData(['recipes', newRecipe.id], newRecipe);
+    return { previous };
+  },
+  onError: (err, newRecipe, context) => {
+    queryClient.setQueryData(['recipes', newRecipe.id], context?.previous);
+  },
+  onSettled: () => {
+    queryClient.invalidateQueries({ queryKey: ['recipes'] });
+  },
+});
+```
+
+## TanStack Form Patterns
+
+### Form with Zod Validation
+
+```typescript
+import { useForm } from '@tanstack/react-form';
+import { zodValidator } from '@tanstack/zod-form-adapter';
+import { z } from 'zod';
+
+const borderSchema = z.object({
+  paperWidth: z.number().positive('Width must be positive'),
+  paperHeight: z.number().positive('Height must be positive'),
+  imageWidth: z.number().positive('Width must be positive'),
+  imageHeight: z.number().positive('Height must be positive'),
+});
+
+// ✅ Form with Zod validation
+const form = useForm({
+  defaultValues: {
+    paperWidth: 210,
+    paperHeight: 297,
+    imageWidth: 180,
+    imageHeight: 240,
+  },
+  validatorAdapter: zodValidator(),
+  validators: {
+    onChange: borderSchema,
+  },
+  onSubmit: async ({ value }) => {
+    await calculateBorder(value);
+  },
+});
+
+// ✅ Field component usage
+<form.Field
+  name="paperWidth"
+  children={(field) => (
+    <NumberInput
+      value={field.state.value}
+      onChange={(e) => field.handleChange(Number(e.target.value))}
+      onBlur={field.handleBlur}
+      error={field.state.meta.errors?.[0]}
+    />
+  )}
+/>;
 ```
 
 ## Hooks and State Management
@@ -294,46 +405,6 @@ const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
 >
   Interactive content
 </div>;
-```
-
-## Error Boundaries and Error Handling
-
-### Error Boundary Implementation
-
-```typescript
-// ✅ Create error boundaries for component sections
-class CalculatorErrorBoundary extends Component<
-  { children: ReactNode },
-  { hasError: boolean; error?: Error }
-> {
-  constructor(props: { children: ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Calculator Error:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="error-fallback">
-          <h2>Something went wrong with the calculator</h2>
-          <button onClick={() => this.setState({ hasError: false })}>
-            Try again
-          </button>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
 ```
 
 ## Performance Optimization
