@@ -85,16 +85,22 @@ function useCombinations() {
 
 ### Custom API Client
 
-Create a client for a different API endpoint:
+By default, the client uses the production Dorkroom API at `https://dorkroom.art/api`. You can create a client with a custom base URL:
 
 ```typescript
-import { DorkroomApiClient } from '@dorkroom/api';
+import { DorkroomApiClient, DEFAULT_BASE_URL } from '@dorkroom/api';
+
+// Default client uses production API
+const client = new DorkroomApiClient();
 
 // For staging environment
 const stagingClient = new DorkroomApiClient('https://staging.dorkroom.art/api');
 
 // For local development
 const localClient = new DorkroomApiClient('http://localhost:3001/api');
+
+// Reference the default URL if needed
+console.log(DEFAULT_BASE_URL); // 'https://dorkroom.art/api'
 
 const stagingFilms = await stagingClient.fetchFilms();
 const localFilms = await localClient.fetchFilms();

@@ -7,7 +7,10 @@ import type {
   RawFilm,
 } from './types';
 
-const BASE_URL = 'https://dorkroom.art/api';
+/**
+ * Default API base URL for production Dorkroom API
+ */
+export const DEFAULT_BASE_URL = 'https://dorkroom.art/api';
 
 /**
  * API client for Dorkroom API
@@ -15,7 +18,7 @@ const BASE_URL = 'https://dorkroom.art/api';
 export class DorkroomApiClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string = BASE_URL) {
+  constructor(baseUrl: string = DEFAULT_BASE_URL) {
     this.baseUrl = baseUrl;
   }
 
@@ -29,7 +32,7 @@ export class DorkroomApiClient {
     if (!response.ok) {
       throw new Error(`Failed to fetch films: ${response.statusText}`);
     }
-    const data = await response.json();
+    const data = (await response.json()) as { data: RawFilm[] };
     return data.data.map(this.transformFilm.bind(this));
   }
 
@@ -45,7 +48,7 @@ export class DorkroomApiClient {
     if (!response.ok) {
       throw new Error(`Failed to fetch developers: ${response.statusText}`);
     }
-    const data = await response.json();
+    const data = (await response.json()) as { data: RawDeveloper[] };
     return data.data.map(this.transformDeveloper.bind(this));
   }
 
@@ -61,7 +64,7 @@ export class DorkroomApiClient {
     if (!response.ok) {
       throw new Error(`Failed to fetch combinations: ${response.statusText}`);
     }
-    const data = await response.json();
+    const data = (await response.json()) as { data: RawCombination[] };
     return data.data.map(this.transformCombination.bind(this));
   }
 

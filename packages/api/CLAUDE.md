@@ -1,15 +1,88 @@
 # @dorkroom/api Package
 
-This package contains TypeScript type definitions for the Dorkroom API, including both raw API response types (snake_case) and transformed application types (camelCase).
+This package provides an API client and TypeScript type definitions for the Dorkroom API, including both raw API response types (snake_case) and transformed application types (camelCase).
 
 ## Package Structure
 
 ```
 packages/api/src/
 ├── dorkroom/
+│   ├── client.ts   # API client with data transformation
 │   ├── types.ts    # Type definitions for Films, Developers, Combinations
 │   └── index.ts    # Re-exports
 └── index.ts        # Package entry point
+```
+
+## API Client
+
+### DorkroomApiClient
+
+The main API client class that handles fetching and transforming data:
+
+```typescript
+import { DorkroomApiClient, DEFAULT_BASE_URL } from '@dorkroom/api';
+
+// Uses production API by default (https://dorkroom.art/api)
+const client = new DorkroomApiClient();
+
+// Custom base URL for development/staging
+const devClient = new DorkroomApiClient('http://localhost:3001/api');
+
+// Fetch data
+const films = await client.fetchFilms();
+const developers = await client.fetchDevelopers();
+const combinations = await client.fetchCombinations();
+```
+
+### DEFAULT_BASE_URL
+
+The default production API URL is exported for reference:
+
+```typescript
+import { DEFAULT_BASE_URL } from '@dorkroom/api';
+
+console.log(DEFAULT_BASE_URL); // 'https://dorkroom.art/api'
+```
+
+### Convenience Functions
+
+Simple functions using the default client:
+
+```typescript
+import { fetchFilms, fetchDevelopers, fetchCombinations } from '@dorkroom/api';
+
+// With abort signal
+const controller = new AbortController();
+const films = await fetchFilms({ signal: controller.signal });
+
+// Without options
+const developers = await fetchDevelopers();
+```
+
+### TanStack Query Integration
+
+Functions designed for TanStack Query's `QueryFunctionContext`:
+
+```typescript
+import { fetchFilmsForQuery, fetchDevelopersForQuery, fetchCombinationsForQuery } from '@dorkroom/api';
+import { useQuery } from '@tanstack/react-query';
+
+function useFilms() {
+  return useQuery({
+    queryKey: ['films'],
+    queryFn: fetchFilmsForQuery,
+  });
+}
+```
+
+### Default Client Instance
+
+A pre-configured client instance is exported:
+
+```typescript
+import { apiClient } from '@dorkroom/api';
+
+const films = await apiClient.fetchFilms();
 ```
 
 ## Type Definitions
@@ -20,6 +93,8 @@ The Dorkroom API returns data in snake_case format, but the application uses cam
 
 1. **Raw types** - Direct API response format (snake_case)
 2. **Transformed types** - Application format (camelCase)
+
+The `DorkroomApiClient` automatically transforms raw API responses to camelCase.
 
 ### Film Types
 
@@ -55,8 +130,8 @@ export interface RawFilm {
   slug: string;
   brand: string;
   name: string;
-  color_type: string; // snake_case
-  iso_speed: number; // snake_case
+  color_type: string;
+  iso_speed: number;
   grain_structure: string | null;
   description: string;
   manufacturer_notes: string[] | null;
@@ -66,34 +141,6 @@ export interface RawFilm {
   date_added: string;
   created_at: string;
   updated_at: string;
-}
-```
-
-**Transformation Example:**
-
-```typescript
-// In packages/logic/src/queries/films.ts
-import type { RawFilm, Film } from '@dorkroom/api';
-
-function transformFilm(raw: RawFilm): Film {
-  return {
-    id: raw.id,
-    uuid: raw.uuid,
-    slug: raw.slug,
-    brand: raw.brand,
-    name: raw.name,
-    colorType: raw.color_type, // Transform to camelCase
-    isoSpeed: raw.iso_speed, // Transform to camelCase
-    grainStructure: raw.grain_structure,
-    description: raw.description,
-    manufacturerNotes: raw.manufacturer_notes,
-    reciprocityFailure: raw.reciprocity_failure,
-    discontinued: raw.discontinued,
-    staticImageUrl: raw.static_image_url,
-    dateAdded: raw.date_added,
-    createdAt: raw.created_at,
-    updatedAt: raw.updated_at,
-  };
 }
 ```
 
@@ -138,7 +185,7 @@ export interface RawDeveloper {
   manufacturer: string;
   type: string;
   description: string;
-  film_or_paper: boolean; // snake_case
+  film_or_paper: boolean;
   dilutions: RawDilution[];
   mixing_instructions: string | null;
   storage_requirements: string | null;
@@ -227,22 +274,6 @@ export interface CombinationsApiResponse {
 }
 ```
 
-**Usage in fetch functions:**
-
-```typescript
-import type { RawFilm, Film, FilmsApiResponse } from '@dorkroom/api';
-
-export async function fetchFilms(): Promise<Film[]> {
-  const response = await fetch('/api/films.json');
-  if (!response.ok) {
-    throw new DorkroomApiError('Failed to fetch films', response.status, '/api/films.json');
-  }
-
-  const rawFilms: RawFilm[] = await response.json();
-  return rawFilms.map(transformFilm);
-}
-```
-
 ## Error Handling
 
 **DorkroomApiError:**
@@ -277,7 +308,9 @@ try {
 }
 ```
 
-## Type Conventions
+## Data Transformation
+
+The `DorkroomApiClient` automatically transforms API responses:
 
 ### Field Naming
 
@@ -288,8 +321,17 @@ try {
 - `grain_structure` → `grainStructure`
 - `manufacturer_notes` → `manufacturerNotes`
 - `film_or_paper` → `filmOrPaper`
+- `temperature_celsius` → `temperatureC` (with calculated `temperatureF`)
 - `created_at` → `createdAt`
 - `updated_at` → `updatedAt`
+
+### Special Transformations
+
+- **Temperature**: `temperature_celsius` is transformed to both `temperatureC` and `temperatureF` (calculated)
+- **Dilution IDs**: Numeric `dilution_id` is converted to string `dilutionId`
+- **Tags**: String tags are parsed into `string[]` arrays
+
+## Type Conventions
 
 ### Null Handling
 
@@ -324,61 +366,25 @@ Always check for null before mapping:
 const tagList = combination.tags?.map((tag) => tag.trim()) ?? [];
 ```
 
-## Transformation Guidelines
-
-When creating transformation functions in `@dorkroom/logic`:
-
-1. **One-to-one mapping** - Every snake_case field maps to camelCase
-2. **Type safety** - Use both Raw and Transformed types
-3. **Null preservation** - Keep null values, don't convert to undefined
-4. **Array handling** - Transform nested arrays/objects recursively
-5. **Date strings** - Keep as ISO strings, transform to Date in services if needed
-
-**Example Transformation:**
-
-```typescript
-// In @dorkroom/logic package
-import type { RawDeveloper, Developer, RawDilution, Dilution } from '@dorkroom/api';
-
-function transformDilution(raw: RawDilution): Dilution {
-  return {
-    id: String(raw.id), // Convert number to string
-    name: raw.name,
-    dilution: raw.dilution,
-  };
-}
-
-function transformDeveloper(raw: RawDeveloper): Developer {
-  return {
-    id: raw.id,
-    uuid: raw.uuid,
-    slug: raw.slug,
-    name: raw.name,
-    manufacturer: raw.manufacturer,
-    type: raw.type,
-    description: raw.description,
-    filmOrPaper: raw.film_or_paper,
-    dilutions: raw.dilutions.map(transformDilution), // Transform nested array
-    mixingInstructions: raw.mixing_instructions,
-    storageRequirements: raw.storage_requirements,
-    safetyNotes: raw.safety_notes,
-    notes: null, // Field not in raw type
-    createdAt: raw.created_at,
-    updatedAt: raw.updated_at,
-  };
-}
-```
-
 ## Import/Export
 
 **Package exports:**
 
 ```typescript
-// From @dorkroom/api
+// Client and constants
+export { DorkroomApiClient, DEFAULT_BASE_URL, apiClient } from '@dorkroom/api';
+
+// Convenience functions
+export { fetchFilms, fetchDevelopers, fetchCombinations } from '@dorkroom/api';
+export { fetchFilmsForQuery, fetchDevelopersForQuery, fetchCombinationsForQuery } from '@dorkroom/api';
+
+// Types
 export type { Film, RawFilm } from '@dorkroom/api';
 export type { Developer, RawDeveloper } from '@dorkroom/api';
 export type { Combination, RawCombination } from '@dorkroom/api';
 export type { Dilution, RawDilution } from '@dorkroom/api';
+
+// Error class
 export { DorkroomApiError } from '@dorkroom/api';
 ```
 
@@ -386,23 +392,26 @@ export { DorkroomApiError } from '@dorkroom/api';
 
 ```typescript
 // In @dorkroom/logic
-import type { Film, RawFilm, DorkroomApiError } from '@dorkroom/api';
+import { apiClient, type Film, type Developer } from '@dorkroom/api';
 
 // In apps/dorkroom
-import type { Film, Developer, Combination } from '@dorkroom/api';
+import { fetchFilmsForQuery, type Film, type Combination } from '@dorkroom/api';
+
+// External consumers
+import { DorkroomApiClient, DEFAULT_BASE_URL } from '@dorkroom/api';
 ```
 
 ## Best Practices
 
-1. **Separate concerns** - Keep transformation logic in `@dorkroom/logic`, not in this package
-2. **Type-only exports** - This package exports types only, no runtime code (except DorkroomApiError)
-3. **No business logic** - Pure type definitions, no validation or computation
-4. **Complete types** - Define all fields, even if unused in current implementation
-5. **Document differences** - Comment any field name changes or type coercions
+1. **Use the client** - Prefer `DorkroomApiClient` or convenience functions over raw fetch
+2. **Custom URLs** - Pass custom base URL to constructor for non-production environments
+3. **Abort signals** - Pass `{ signal }` for cancellable requests
+4. **Type imports** - Use `type` imports for types to ensure tree-shaking
+5. **Error handling** - Check for `DorkroomApiError` for API-specific error details
 
 ## Dependencies
 
-**None** - This is a pure TypeScript types package with no runtime dependencies.
+**Runtime:** None - This package has no runtime dependencies.
 
 **Build:**
 
