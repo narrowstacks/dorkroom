@@ -113,6 +113,24 @@ export class DorkroomApiClient {
    * Transform raw film data to camelCase format
    */
   private transformFilm(raw: RawFilm): Film {
+    // Parse manufacturer_notes from PostgreSQL array format string
+    // Format: {"note1","note2","note3"}
+    let manufacturerNotes: string[] | null = null;
+    if (raw.manufacturer_notes) {
+      try {
+        // Remove curly braces and split by comma, handling quoted strings
+        const notesStr = raw.manufacturer_notes.slice(1, -1); // Remove { }
+        if (notesStr) {
+          manufacturerNotes = notesStr
+            .split('","')
+            .map((note) => note.replace(/^"|"$/g, '').trim())
+            .filter(Boolean);
+        }
+      } catch {
+        manufacturerNotes = null;
+      }
+    }
+
     return {
       id: raw.id,
       uuid: raw.uuid,
@@ -123,7 +141,7 @@ export class DorkroomApiClient {
       isoSpeed: raw.iso_speed,
       grainStructure: raw.grain_structure,
       description: raw.description,
-      manufacturerNotes: raw.manufacturer_notes,
+      manufacturerNotes,
       reciprocityFailure: raw.reciprocity_failure,
       discontinued: raw.discontinued,
       staticImageUrl: raw.static_image_url,
@@ -148,9 +166,9 @@ export class DorkroomApiClient {
       filmOrPaper: raw.film_or_paper,
       dilutions:
         raw.dilutions?.map((d) => ({
-          id: String(d.id), // Convert number ID to string
-          name: d.name || d.dilution, // Use name if available, fallback to dilution
-          dilution: d.dilution,
+          id: String(d.id), // Convert number/string ID to string
+          name: d.name || d.dilution || d.ratio || '', // Use name if available, fallback to dilution/ratio
+          dilution: d.dilution || d.ratio || '', // Some API entries use 'ratio' instead of 'dilution'
         })) || [],
       mixingInstructions: raw.mixing_instructions,
       storageRequirements: raw.storage_requirements,
@@ -168,38 +186,28 @@ export class DorkroomApiClient {
     // Convert temperature from Celsius to Fahrenheit
     const temperatureF = Math.round((raw.temperature_celsius * 9) / 5 + 32);
 
-    // Parse tags if they're a string
-    let tags: string[] | null = null;
-    if (raw.tags) {
-      if (typeof raw.tags === 'string') {
-        tags = raw.tags
-          .split(',')
-          .map((tag) => tag.trim())
-          .filter(Boolean);
-      } else if (Array.isArray(raw.tags)) {
-        tags = raw.tags;
-      }
-    }
+    // Tags come as an array from the API
+    const tags = raw.tags ?? null;
 
     return {
       id: raw.id,
       uuid: raw.uuid,
-      name: raw.name,
+      name: raw.name ?? '',
       filmStockId: raw.film_stock,
       filmSlug: raw.film_stock, // API returns slug in film_stock field
       developerId: raw.developer,
       developerSlug: raw.developer, // API returns slug in developer field
       shootingIso: raw.shooting_iso,
-      dilutionId: raw.dilution_id ? String(raw.dilution_id) : null,
-      customDilution: null, // Not provided by current API
+      dilutionId: raw.dilution_id ?? null,
+      customDilution: raw.custom_dilution ?? null,
       temperatureC: raw.temperature_celsius,
       temperatureF,
       timeMinutes: raw.time_minutes,
-      agitationMethod: raw.agitation_method,
+      agitationMethod: raw.agitation_method ?? '',
       agitationSchedule: null, // Not provided by current API
       pushPull: raw.push_pull,
       tags,
-      notes: null, // Not provided by current API
+      notes: raw.notes ?? null,
       infoSource: raw.info_source,
       createdAt: raw.created_at,
       updatedAt: raw.updated_at,

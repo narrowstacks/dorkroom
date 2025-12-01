@@ -26,9 +26,10 @@ export interface Dilution {
 }
 
 export interface RawDilution {
-  id: number;
+  id: number | string;
   name: string;
-  dilution: string;
+  dilution?: string;
+  ratio?: string; // Some API entries use 'ratio' instead of 'dilution'
 }
 
 export interface Developer {
@@ -100,7 +101,7 @@ export interface RawFilm {
   iso_speed: number;
   grain_structure: string | null;
   description: string;
-  manufacturer_notes: string[] | null;
+  manufacturer_notes: string | null; // PostgreSQL array format string
   reciprocity_failure: string | null;
   discontinued: boolean;
   static_image_url: string | null;
@@ -129,16 +130,18 @@ export interface RawDeveloper {
 export interface RawCombination {
   id: number;
   uuid: string;
-  name: string;
+  name: string | null;
   film_stock: string;
   developer: string;
   shooting_iso: number;
-  dilution_id: number | null;
+  dilution_id: string | null; // String in API, not number
+  custom_dilution: string | null;
   temperature_celsius: number;
   time_minutes: number;
-  agitation_method: string;
+  agitation_method: string | null;
   push_pull: number;
-  tags: string | null;
+  tags: string[] | null; // Array, not string
+  notes: string | null;
   info_source: string | null;
   created_at: string;
   updated_at: string;

@@ -11,7 +11,7 @@ import {
 
 describe('API Response Schemas', () => {
   describe('rawDilutionSchema', () => {
-    it('should accept valid dilution data', () => {
+    it('should accept valid dilution data with number id', () => {
       const validDilution = {
         id: 1,
         name: 'Stock',
@@ -22,21 +22,32 @@ describe('API Response Schemas', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should reject dilution with missing fields', () => {
-      const invalidDilution = {
-        id: 1,
-        // missing name and dilution
-      };
-
-      const result = rawDilutionSchema.safeParse(invalidDilution);
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject dilution with wrong types', () => {
-      const invalidDilution = {
-        id: 'not-a-number',
+    it('should accept dilution with string id', () => {
+      const validDilution = {
+        id: '1',
         name: 'Stock',
         dilution: '1+0',
+      };
+
+      const result = rawDilutionSchema.safeParse(validDilution);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept dilution with ratio instead of dilution', () => {
+      const validDilution = {
+        id: '1',
+        name: 'Stock',
+        ratio: '1+0',
+      };
+
+      const result = rawDilutionSchema.safeParse(validDilution);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject dilution with missing name', () => {
+      const invalidDilution = {
+        id: 1,
+        // missing name
       };
 
       const result = rawDilutionSchema.safeParse(invalidDilution);
@@ -55,7 +66,7 @@ describe('API Response Schemas', () => {
       iso_speed: 400,
       grain_structure: 'Fine',
       description: 'A versatile black and white film',
-      manufacturer_notes: ['Push to 1600', 'Great for portraits'],
+      manufacturer_notes: '{"Push to 1600","Great for portraits"}', // PostgreSQL array format
       reciprocity_failure: '1s->2s, 10s->25s',
       discontinued: false,
       static_image_url: 'https://example.com/film.jpg',
@@ -152,10 +163,30 @@ describe('API Response Schemas', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should reject developer with invalid dilution', () => {
+    it('should accept developer with string dilution ids', () => {
+      const developerStringIds = {
+        ...validDeveloper,
+        dilutions: [{ id: '1', name: 'A', dilution: '1+15' }],
+      };
+
+      const result = rawDeveloperSchema.safeParse(developerStringIds);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept developer with ratio field in dilution', () => {
+      const developerWithRatio = {
+        ...validDeveloper,
+        dilutions: [{ id: '1', name: 'Stock', ratio: '1+0' }],
+      };
+
+      const result = rawDeveloperSchema.safeParse(developerWithRatio);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject developer with missing dilution name', () => {
       const developerInvalidDilution = {
         ...validDeveloper,
-        dilutions: [{ id: 'not-a-number', name: 'A', dilution: '1+15' }],
+        dilutions: [{ id: 1 }], // missing name
       };
 
       const result = rawDeveloperSchema.safeParse(developerInvalidDilution);
@@ -171,12 +202,14 @@ describe('API Response Schemas', () => {
       film_stock: 'kodak-tmax-400',
       developer: 'kodak-hc110',
       shooting_iso: 400,
-      dilution_id: 2,
+      dilution_id: '2', // String in API
+      custom_dilution: null,
       temperature_celsius: 20,
       time_minutes: 8,
       agitation_method: 'Continuous first 30s, then 10s every minute',
       push_pull: 0,
-      tags: 'standard,push-process',
+      tags: ['standard', 'push-process'], // Array in API
+      notes: null,
       info_source: 'Massive Dev Chart',
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-01-01T00:00:00Z',
@@ -190,8 +223,12 @@ describe('API Response Schemas', () => {
     it('should accept combination with null optional fields', () => {
       const combinationWithNulls = {
         ...validCombination,
+        name: null,
         dilution_id: null,
+        custom_dilution: null,
+        agitation_method: null,
         tags: null,
+        notes: null,
         info_source: null,
       };
 
@@ -203,6 +240,16 @@ describe('API Response Schemas', () => {
       const invalidCombination = {
         ...validCombination,
         time_minutes: 'not-a-number',
+      };
+
+      const result = rawCombinationSchema.safeParse(invalidCombination);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject combination with wrong type for tags (string instead of array)', () => {
+      const invalidCombination = {
+        ...validCombination,
+        tags: 'not-an-array',
       };
 
       const result = rawCombinationSchema.safeParse(invalidCombination);
@@ -314,16 +361,18 @@ describe('API Response Schemas', () => {
           {
             id: 1,
             uuid: '123e4567-e89b-12d3-a456-426614174002',
-            name: 'Test Combination',
+            name: null, // Can be null
             film_stock: 'test-film',
             developer: 'test-developer',
             shooting_iso: 400,
-            dilution_id: null,
+            dilution_id: '1', // String
+            custom_dilution: null,
             temperature_celsius: 20,
             time_minutes: 8,
-            agitation_method: 'Standard',
+            agitation_method: null, // Can be null
             push_pull: 0,
-            tags: null,
+            tags: ['tag1'], // Array
+            notes: null,
             info_source: null,
             created_at: '2024-01-01T00:00:00Z',
             updated_at: '2024-01-01T00:00:00Z',
