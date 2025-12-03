@@ -1,0 +1,28 @@
+# CODEOWNERS - Defines code ownership for automatic review requests
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+* @narrowstacks
+
+# Main application
+/apps/dorkroom/ @narrowstacks
+
+# Packages
+/packages/api/ @narrowstacks
+/packages/logic/ @narrowstacks
+/packages/ui/ @narrowstacks
+
+# API and serverless functions
+/api/ @narrowstacks
+/supabase/ @narrowstacks
+
+# Documentation
+*.md @narrowstacks
+/docs/ @narrowstacks
+
+# Configuration files
+/.github/ @narrowstacks
+/nx.json @narrowstacks
+/biome.json @narrowstacks
+/package.json @narrowstacks
+/tsconfig*.json @narrowstacks
