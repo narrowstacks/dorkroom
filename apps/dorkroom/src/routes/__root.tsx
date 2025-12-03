@@ -5,6 +5,7 @@ import {
   printingItems,
   ROUTE_TITLES,
   ThemeToggle,
+  Tooltip,
 } from '@dorkroom/ui';
 import {
   createRootRoute,
@@ -14,7 +15,15 @@ import {
   useRouter,
   useRouterState,
 } from '@tanstack/react-router';
-import { Beaker, GitBranch, Menu, Printer, Settings, X } from 'lucide-react';
+import {
+  Beaker,
+  GitBranch,
+  Menu,
+  Newspaper,
+  Printer,
+  Settings,
+  X,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { cn } from '../app/lib/cn';
 
@@ -139,35 +148,58 @@ function RootComponent() {
                 </div>
               </nav>
               <div className="hidden items-center gap-3 sm:flex">
-                <a
-                  href="https://github.com/narrowstacks/dorkroom"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="nav-button flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition"
-                  style={{
-                    color: 'var(--color-text-primary)',
-                    borderColor: 'var(--color-border-secondary)',
-                    borderWidth: 1,
-                    backgroundColor: 'transparent',
-                  }}
-                >
-                  <GitBranch className="h-4 w-4" />
-                  Contribute
-                </a>
-                <ThemeToggle variant="icon" />
-                <Link
-                  to="/settings"
-                  className="nav-button flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none"
-                  style={{
-                    color: 'var(--color-text-primary)',
-                    borderColor: 'var(--color-border-secondary)',
-                    borderWidth: 1,
-                    backgroundColor: 'transparent',
-                  }}
-                  aria-label="Settings"
-                >
-                  <Settings className="h-4 w-4" />
-                </Link>
+                <Tooltip label="Contribute on GitHub">
+                  <a
+                    href="https://github.com/narrowstacks/dorkroom"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="nav-button flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none"
+                    style={{
+                      color: 'var(--color-text-primary)',
+                      borderColor: 'var(--color-border-secondary)',
+                      borderWidth: 1,
+                      backgroundColor: 'transparent',
+                    }}
+                    aria-label="Contribute on GitHub"
+                  >
+                    <GitBranch className="h-4 w-4" />
+                  </a>
+                </Tooltip>
+                <Tooltip label="Newsletter">
+                  <a
+                    href="https://news.dorkroom.art"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="nav-button flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none"
+                    style={{
+                      color: 'var(--color-text-primary)',
+                      borderColor: 'var(--color-border-secondary)',
+                      borderWidth: 1,
+                      backgroundColor: 'transparent',
+                    }}
+                    aria-label="Newsletter"
+                  >
+                    <Newspaper className="h-4 w-4" />
+                  </a>
+                </Tooltip>
+                <Tooltip label="Themes">
+                  <ThemeToggle variant="icon" />
+                </Tooltip>
+                <Tooltip label="Settings">
+                  <Link
+                    to="/settings"
+                    className="nav-button flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none"
+                    style={{
+                      color: 'var(--color-text-primary)',
+                      borderColor: 'var(--color-border-secondary)',
+                      borderWidth: 1,
+                      backgroundColor: 'transparent',
+                    }}
+                    aria-label="Settings"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Link>
+                </Tooltip>
               </div>
             </div>
           </header>
@@ -290,6 +322,58 @@ function RootComponent() {
                         </li>
                       );
                     })}
+
+                    {/* Links section */}
+                    <li className="pt-2">
+                      <div className="px-3.5 py-1">
+                        <span
+                          className="text-xs font-semibold uppercase tracking-wide"
+                          style={{ color: 'var(--color-text-tertiary)' }}
+                        >
+                          Links
+                        </span>
+                      </div>
+                    </li>
+                    <li>
+                      <a
+                        href="https://github.com/narrowstacks/dorkroom"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span
+                          className="flex h-9 w-9 items-center justify-center rounded-2xl"
+                          style={{
+                            backgroundColor:
+                              'rgba(var(--color-background-rgb), 0.08)',
+                          }}
+                        >
+                          <GitBranch className="h-4 w-4" />
+                        </span>
+                        <span className="flex-1 text-left">Contribute</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="https://news.dorkroom.art"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span
+                          className="flex h-9 w-9 items-center justify-center rounded-2xl"
+                          style={{
+                            backgroundColor:
+                              'rgba(var(--color-background-rgb), 0.08)',
+                          }}
+                        >
+                          <Newspaper className="h-4 w-4" />
+                        </span>
+                        <span className="flex-1 text-left">Newsletter</span>
+                      </a>
+                    </li>
 
                     <li>
                       <ThemeToggle variant="button" />

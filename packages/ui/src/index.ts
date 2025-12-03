@@ -75,6 +75,8 @@ export { ShareModal } from './components/share-modal';
 export { TextInput } from './components/text-input';
 export type { ThemeToggleProps } from './components/theme-toggle';
 export { ThemeToggle } from './components/theme-toggle';
+export type { TooltipProps } from './components/tooltip';
+export { Tooltip } from './components/tooltip';
 export type { ToastProps } from './components/toast';
 export {
   Toast,
