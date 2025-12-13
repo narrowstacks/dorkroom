@@ -1,3 +1,4 @@
+import type { Combination } from '@dorkroom/api';
 import {
   useCustomRecipes,
   useDevelopmentRecipes,
@@ -20,7 +21,7 @@ import {
   useToast,
 } from '@dorkroom/ui';
 import type { SortingState } from '@tanstack/react-table';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { RecipeModals } from './components/recipe-modals';
 import { RecipeResultsSection } from './components/recipe-results-section';
 import { useRecipeActions } from './hooks/useRecipeActions';
@@ -129,6 +130,31 @@ export default function DevelopmentRecipesPage() {
     Map<string, 'adding' | 'removing'>
   >(new Map());
 
+  // URL state - must come before useRecipeData to provide sharedCustomRecipe
+  // Note: recipesByUuid is passed from useRecipeData below (works because effects re-run)
+  const [recipesByUuidState, setRecipesByUuidState] = useState<
+    Map<string, Combination>
+  >(new Map());
+
+  const {
+    initialUrlState,
+    isLoadingSharedRecipe,
+    sharedRecipeError,
+    sharedCustomRecipe,
+  } = useRecipeUrlState(
+    allFilms,
+    allDevelopers,
+    {
+      selectedFilm,
+      selectedDeveloper,
+      dilutionFilter,
+      isoFilter,
+      favoritesOnly,
+      customRecipeFilter,
+    },
+    recipesByUuidState
+  );
+
   // Data processing and derived state
   const {
     recipesByUuid,
@@ -152,27 +178,17 @@ export default function DevelopmentRecipesPage() {
     favoritesOnly,
     sortBy,
     sortDirection,
-    sharedCustomRecipe: null, // Computed internally by useRecipeData from URL state
+    sharedCustomRecipe,
     flags,
     isFavorite,
     getFilmById,
     getDeveloperById,
   });
 
-  const { initialUrlState, isLoadingSharedRecipe, sharedRecipeError } =
-    useRecipeUrlState(
-      allFilms,
-      allDevelopers,
-      {
-        selectedFilm,
-        selectedDeveloper,
-        dilutionFilter,
-        isoFilter,
-        favoritesOnly,
-        customRecipeFilter,
-      },
-      recipesByUuid
-    );
+  // Sync recipesByUuid to state for useRecipeUrlState (API recipe lookup)
+  useEffect(() => {
+    setRecipesByUuidState(recipesByUuid);
+  }, [recipesByUuid]);
 
   // Action handlers
   const {
