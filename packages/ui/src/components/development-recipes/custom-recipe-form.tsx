@@ -74,7 +74,11 @@ export function CustomRecipeForm({
       })),
       { label: 'Custom dilution', value: 'custom' },
     ];
-  }, [formData.useExistingDeveloper, formData.selectedDeveloperId, allDevelopers]);
+  }, [
+    formData.useExistingDeveloper,
+    formData.selectedDeveloperId,
+    allDevelopers,
+  ]);
 
   // Show dilution dropdown only when using existing developer with dilutions
   const showDilutionDropdown =

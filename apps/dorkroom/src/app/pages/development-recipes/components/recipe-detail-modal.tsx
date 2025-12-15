@@ -1,12 +1,8 @@
 import {
   type DevelopmentCombinationView,
   DevelopmentRecipeDetail,
-  Drawer,
-  DrawerBody,
-  DrawerContent,
-  Modal,
+  ResponsiveModal,
 } from '@dorkroom/ui';
-import { X } from 'lucide-react';
 import type { FC } from 'react';
 
 export interface RecipeDetailModalProps {
@@ -23,21 +19,19 @@ export interface RecipeDetailModalProps {
   customRecipeSharingEnabled: boolean;
 }
 
-export const RecipeDetailModal: FC<RecipeDetailModalProps> = (props) => {
-  const {
-    isOpen,
-    onClose,
-    detailView,
-    isMobile,
-    isFavorite,
-    toggleFavorite,
-    onEditCustomRecipe,
-    onDeleteCustomRecipe,
-    onShareRecipe,
-    onCopyRecipe,
-    customRecipeSharingEnabled,
-  } = props;
-
+export const RecipeDetailModal: FC<RecipeDetailModalProps> = ({
+  isOpen,
+  onClose,
+  detailView,
+  isMobile,
+  isFavorite,
+  toggleFavorite,
+  onEditCustomRecipe,
+  onDeleteCustomRecipe,
+  onShareRecipe,
+  onCopyRecipe,
+  customRecipeSharingEnabled,
+}) => {
   if (!detailView) {
     return null;
   }
@@ -49,7 +43,7 @@ export const RecipeDetailModal: FC<RecipeDetailModalProps> = (props) => {
   const isCustomRecipe = detailView.source === 'custom';
 
   const actionButtons = (
-    <>
+    <div className={isMobile ? 'flex flex-col gap-2' : 'flex gap-2 pt-4'}>
       <button
         type="button"
         onClick={() => toggleFavorite(recipeId)}
@@ -88,66 +82,19 @@ export const RecipeDetailModal: FC<RecipeDetailModalProps> = (props) => {
           </button>
         </>
       )}
-    </>
+    </div>
   );
 
-  if (isMobile) {
-    return (
-      <Drawer
-        isOpen={isOpen}
-        onClose={onClose}
-        size="lg"
-        anchor="bottom"
-        enableBackgroundBlur={true}
-      >
-        <DrawerContent className="h-full max-h-[85vh] bg-[color:var(--color-surface)]">
-          <div
-            className="flex items-center justify-between border-b px-4 py-3"
-            style={{ borderColor: 'var(--color-border-secondary)' }}
-          >
-            <h2 className="text-base font-semibold text-[color:var(--color-text-primary)]">
-              Recipe details
-            </h2>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-full p-2 transition"
-              style={{
-                color: 'var(--color-text-secondary)',
-                borderColor: 'var(--color-border-secondary)',
-                borderWidth: 1,
-              }}
-            >
-              <span className="sr-only">Close</span>
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <DrawerBody className="space-y-4 px-4 pb-6 pt-4">
-            <DevelopmentRecipeDetail
-              view={detailView}
-              onEditCustomRecipe={onEditCustomRecipe}
-              onDeleteCustomRecipe={onDeleteCustomRecipe}
-              isFavorite={(view) =>
-                isFavorite(String(view.combination.uuid || view.combination.id))
-              }
-              onToggleFavorite={(view) =>
-                toggleFavorite(
-                  String(view.combination.uuid || view.combination.id)
-                )
-              }
-              onShareRecipe={onShareRecipe}
-            />
-            <div className="flex flex-col gap-2 pt-2 sm:flex-row">
-              {actionButtons}
-            </div>
-          </DrawerBody>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Recipe details" size="lg">
+    <ResponsiveModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Recipe details"
+      size="lg"
+      mobileSize="lg"
+      isMobile={isMobile}
+      drawerBodyClassName="space-y-4"
+    >
       <DevelopmentRecipeDetail
         view={detailView}
         onEditCustomRecipe={onEditCustomRecipe}
@@ -160,7 +107,7 @@ export const RecipeDetailModal: FC<RecipeDetailModalProps> = (props) => {
         }
         onShareRecipe={onShareRecipe}
       />
-      <div className="flex gap-2 pt-4">{actionButtons}</div>
-    </Modal>
+      {actionButtons}
+    </ResponsiveModal>
   );
 };

@@ -100,11 +100,18 @@ export function Drawer({
 interface DrawerContentProps {
   children: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function DrawerContent({ children, className }: DrawerContentProps) {
+export function DrawerContent({
+  children,
+  className,
+  style,
+}: DrawerContentProps) {
   return (
-    <div className={cn('h-full flex flex-col', className)}>{children}</div>
+    <div className={cn('h-full flex flex-col', className)} style={style}>
+      {children}
+    </div>
   );
 }
 

@@ -1,47 +1,21 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
 import { queryKeys } from '../../queries/query-keys';
+import { createStorageManager, isArray } from '../../services/local-storage';
 import type { CustomRecipe } from '../../types/custom-recipes';
-import { debugError, debugWarn } from '../../utils/debug-logger';
+import { debugError } from '../../utils/debug-logger';
 
 const STORAGE_KEY = 'dorkroom_custom_recipes';
 
-const getStorage = (): Storage | null => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  try {
-    return window.localStorage;
-  } catch (error) {
-    debugWarn('Local storage unavailable for custom recipes:', error);
-    return null;
-  }
-};
+// Use centralized storage manager
+const recipesStorage = createStorageManager<CustomRecipe[]>(STORAGE_KEY, {
+  defaultValue: [],
+  validate: isArray(),
+  logContext: 'useCustomRecipes',
+});
 
 const readRecipesFromStorage = (): CustomRecipe[] => {
-  const storage = getStorage();
-
-  if (!storage) {
-    return [];
-  }
-
-  try {
-    const raw = storage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return [];
-    }
-
-    const parsed = JSON.parse(raw) as CustomRecipe[];
-    if (Array.isArray(parsed)) {
-      return parsed;
-    }
-
-    return [];
-  } catch (error) {
-    debugError('[useCustomRecipes] Failed to parse stored recipes:', error);
-    return [];
-  }
+  return recipesStorage.read();
 };
 
 /**

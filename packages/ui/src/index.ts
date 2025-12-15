@@ -55,6 +55,8 @@ export type { ToolCardProps } from './components/marketing/tool-card';
 export { ToolCard } from './components/marketing/tool-card';
 export { MeasurementUnitToggle } from './components/measurement-unit-toggle';
 export { Modal } from './components/modal';
+export type { ResponsiveModalProps } from './components/responsive-modal';
+export { ResponsiveModal } from './components/responsive-modal';
 export type {
   NavigationDropdownProps,
   NavigationItem,
@@ -75,8 +77,6 @@ export { ShareModal } from './components/share-modal';
 export { TextInput } from './components/text-input';
 export type { ThemeToggleProps } from './components/theme-toggle';
 export { ThemeToggle } from './components/theme-toggle';
-export type { TooltipProps } from './components/tooltip';
-export { Tooltip } from './components/tooltip';
 export type { ToastProps } from './components/toast';
 export {
   Toast,
@@ -85,6 +85,8 @@ export {
   useToast,
 } from './components/toast';
 export { ToggleSwitch } from './components/toggle-switch';
+export type { TooltipProps } from './components/tooltip';
+export { Tooltip } from './components/tooltip';
 export { CollapsibleSection } from './components/ui/collapsible-section';
 export {
   Skeleton,

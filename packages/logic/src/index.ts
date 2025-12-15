@@ -57,6 +57,12 @@ export {
   useExposureCalculator,
 } from './hooks/use-exposure-calculator';
 export { useFeatureFlags } from './hooks/use-feature-flags';
+export {
+  type FieldValidator,
+  type LocalStorageFormPersistenceOptions,
+  type LocalStorageFormPersistenceReturn,
+  useLocalStorageFormPersistence,
+} from './hooks/use-local-storage-form-persistence';
 export { usePresetSharing } from './hooks/use-preset-sharing';
 export {
   formatReciprocityTime,
@@ -72,6 +78,13 @@ export * from './schemas/border-calculator.schema';
 export * from './schemas/validators';
 // Services exports
 export * from './services/filmdev-api';
+export {
+  createStorageManager,
+  isArray,
+  isStringArray,
+  type StorageManager,
+  type StorageManagerOptions,
+} from './services/local-storage';
 export * from './types/border-calculator';
 export * from './types/custom-recipes';
 export * from './types/development-recipes-url';
