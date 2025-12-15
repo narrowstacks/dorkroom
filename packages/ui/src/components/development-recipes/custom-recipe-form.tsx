@@ -1,10 +1,11 @@
+import type { Developer, Film } from '@dorkroom/api';
 import type {
   CustomDeveloperData,
   CustomFilmData,
   CustomRecipeFormData,
   SelectItem,
 } from '@dorkroom/logic';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { cn } from '../../lib/cn';
 import { Select } from '../select';
 import { TextInput } from '../text-input';
@@ -15,6 +16,8 @@ interface CustomRecipeFormProps {
   onCancel?: () => void;
   filmOptions: SelectItem[];
   developerOptions: SelectItem[];
+  allFilms: Film[];
+  allDevelopers: Developer[];
   isSubmitting?: boolean;
 }
 
@@ -46,9 +49,42 @@ export function CustomRecipeForm({
   onCancel,
   filmOptions,
   developerOptions,
+  allFilms,
+  allDevelopers,
   isSubmitting,
 }: CustomRecipeFormProps) {
   const [formData, setFormData] = useState<CustomRecipeFormData>(initialValue);
+
+  // Get dilution options for the selected developer
+  const dilutionOptions = useMemo(() => {
+    if (!formData.useExistingDeveloper || !formData.selectedDeveloperId) {
+      return [];
+    }
+    const developer = allDevelopers.find(
+      (d) => d.uuid === formData.selectedDeveloperId
+    );
+    if (!developer?.dilutions?.length) {
+      return [];
+    }
+    return [
+      { label: 'Select dilution', value: '' },
+      ...developer.dilutions.map((d) => ({
+        label: d.name || d.dilution,
+        value: d.id,
+      })),
+      { label: 'Custom dilution', value: 'custom' },
+    ];
+  }, [formData.useExistingDeveloper, formData.selectedDeveloperId, allDevelopers]);
+
+  // Show dilution dropdown only when using existing developer with dilutions
+  const showDilutionDropdown =
+    formData.useExistingDeveloper &&
+    formData.selectedDeveloperId &&
+    dilutionOptions.length > 2; // More than just "Select" and "Custom"
+
+  // Show custom dilution input when: custom developer OR "custom" selected in dropdown
+  const showCustomDilutionInput =
+    !formData.useExistingDeveloper || formData.selectedDilutionId === 'custom';
 
   const handleChange = <K extends keyof CustomRecipeFormData>(
     key: K,
@@ -83,6 +119,17 @@ export function CustomRecipeForm({
     }));
   };
 
+  // Handle film selection - auto-set shooting ISO to film's native ISO
+  const handleFilmSelect = (filmId: string) => {
+    const film = allFilms.find((f) => f.uuid === filmId);
+    setFormData((prev) => ({
+      ...prev,
+      selectedFilmId: filmId,
+      // Auto-set shooting ISO to film's native ISO when selecting a film
+      shootingIso: film?.isoSpeed ?? prev.shootingIso,
+    }));
+  };
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     onSubmit(formData);
@@ -94,6 +141,13 @@ export function CustomRecipeForm({
       className="space-y-6 text-sm"
       style={{ color: 'var(--color-text-secondary)' }}
     >
+      <TextInput
+        label="Recipe name"
+        value={formData.name}
+        onValueChange={(value) => handleChange('name', value)}
+        placeholder="My HP5+ in D-76 recipe"
+      />
+
       <div
         className="rounded-xl border p-4"
         style={{
@@ -126,7 +180,7 @@ export function CustomRecipeForm({
         {formData.useExistingFilm ? (
           <Select
             selectedValue={formData.selectedFilmId || ''}
-            onValueChange={(value) => handleChange('selectedFilmId', value)}
+            onValueChange={handleFilmSelect}
             items={filmOptions}
             ariaLabel="Film"
             className="mt-3"
@@ -368,13 +422,31 @@ export function CustomRecipeForm({
           onValueChange={(value) => handleChange('agitationSchedule', value)}
           placeholder="30s initial, 10s every minute"
         />
+        {showDilutionDropdown ? (
+          <Select
+            label="Dilution"
+            selectedValue={formData.selectedDilutionId || ''}
+            onValueChange={(value) => handleChange('selectedDilutionId', value)}
+            items={dilutionOptions}
+          />
+        ) : (
+          <TextInput
+            label="Custom dilution"
+            value={formData.customDilution}
+            onValueChange={(value) => handleChange('customDilution', value)}
+            placeholder="1+1"
+          />
+        )}
+      </div>
+
+      {showDilutionDropdown && showCustomDilutionInput && (
         <TextInput
           label="Custom dilution"
           value={formData.customDilution}
           onValueChange={(value) => handleChange('customDilution', value)}
           placeholder="1+1"
         />
-      </div>
+      )}
 
       <TextInput
         label="Notes"

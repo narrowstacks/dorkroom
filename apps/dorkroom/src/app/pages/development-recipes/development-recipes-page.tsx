@@ -428,6 +428,8 @@ export default function DevelopmentRecipesPage() {
           onCustomRecipeSubmit={handleCustomRecipeSubmit}
           filmOptions={filmOptions}
           developerOptions={developerOptions}
+          allFilms={allFilms}
+          allDevelopers={allDevelopers}
           isImportModalOpen={isImportModalOpen}
           onCloseImportModal={() => setIsImportModalOpen(false)}
           isImporting={isImporting}

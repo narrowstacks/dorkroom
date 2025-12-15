@@ -1,3 +1,4 @@
+import type { Developer, Film } from '@dorkroom/api';
 import type { CustomRecipeFormData } from '@dorkroom/logic';
 import {
   CustomRecipeForm,
@@ -23,6 +24,8 @@ export interface CustomRecipeModalProps {
   onSubmit: (data: CustomRecipeFormData) => Promise<void>;
   filmOptions: Array<{ label: string; value: string }>;
   developerOptions: Array<{ label: string; value: string }>;
+  allFilms: Film[];
+  allDevelopers: Developer[];
 }
 
 export const CustomRecipeModal: FC<CustomRecipeModalProps> = (props) => {
@@ -35,6 +38,8 @@ export const CustomRecipeModal: FC<CustomRecipeModalProps> = (props) => {
     onSubmit,
     filmOptions,
     developerOptions,
+    allFilms,
+    allDevelopers,
   } = props;
 
   const title = editingRecipe ? 'Edit custom recipe' : 'Add custom recipe';
@@ -81,6 +86,8 @@ export const CustomRecipeModal: FC<CustomRecipeModalProps> = (props) => {
               onCancel={onClose}
               filmOptions={filmOptions}
               developerOptions={developerOptions}
+              allFilms={allFilms}
+              allDevelopers={allDevelopers}
               isSubmitting={isSubmitting}
             />
           </DrawerBody>
@@ -97,6 +104,8 @@ export const CustomRecipeModal: FC<CustomRecipeModalProps> = (props) => {
         onCancel={onClose}
         filmOptions={filmOptions}
         developerOptions={developerOptions}
+        allFilms={allFilms}
+        allDevelopers={allDevelopers}
         isSubmitting={isSubmitting}
       />
     </Modal>

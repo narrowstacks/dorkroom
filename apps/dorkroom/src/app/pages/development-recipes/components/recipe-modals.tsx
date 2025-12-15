@@ -1,3 +1,4 @@
+import type { Developer, Film } from '@dorkroom/api';
 import type {
   CustomRecipeFormData,
   FilmdevMappingResult,
@@ -26,6 +27,8 @@ export interface RecipeModalsProps {
   onCustomRecipeSubmit: (data: CustomRecipeFormData) => Promise<void>;
   filmOptions: Array<{ label: string; value: string }>;
   developerOptions: Array<{ label: string; value: string }>;
+  allFilms: Film[];
+  allDevelopers: Developer[];
   // Import modal
   isImportModalOpen: boolean;
   onCloseImportModal: () => void;
@@ -68,6 +71,8 @@ export const RecipeModals: FC<RecipeModalsProps> = (props) => {
     onCustomRecipeSubmit,
     filmOptions,
     developerOptions,
+    allFilms,
+    allDevelopers,
     isImportModalOpen,
     onCloseImportModal,
     isImporting,
@@ -118,6 +123,8 @@ export const RecipeModals: FC<RecipeModalsProps> = (props) => {
         onSubmit={onCustomRecipeSubmit}
         filmOptions={filmOptions}
         developerOptions={developerOptions}
+        allFilms={allFilms}
+        allDevelopers={allDevelopers}
       />
 
       <ImportRecipeModal
