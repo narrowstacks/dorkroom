@@ -134,7 +134,11 @@ const createTestWrapper = () => {
     history,
   });
 
-  return function Wrapper({ children }: { children: React.ReactNode }) {
+  return function Wrapper({
+    children: _children,
+  }: {
+    children: React.ReactNode;
+  }) {
     return (
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />

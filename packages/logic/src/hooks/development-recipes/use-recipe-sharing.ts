@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { shouldUseWebShare } from '../../utils/device-detection';
 import { useCustomRecipeSharing } from './use-custom-recipe-sharing';
 
-interface RegularRecipeShareOptions {
+export interface RegularRecipeShareOptions {
   recipeId: string;
   recipeName?: string;
   filmSlug?: string;
@@ -11,7 +11,7 @@ interface RegularRecipeShareOptions {
   includeSource?: boolean;
 }
 
-interface RecipeShareResult {
+export interface RecipeShareResult {
   success: boolean;
   method?: 'webShare' | 'clipboard';
   url?: string;

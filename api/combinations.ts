@@ -178,7 +178,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Parse JSON response with error handling
-    let data;
+    let data: unknown;
     try {
       data = await response.json();
     } catch (_parseError) {

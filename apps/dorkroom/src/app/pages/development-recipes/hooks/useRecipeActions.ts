@@ -2,7 +2,12 @@ import type { Developer, Film } from '@dorkroom/api';
 import type {
   CustomRecipe,
   CustomRecipeFormData,
+  CustomRecipeShareOptions,
+  CustomRecipeShareResult,
   FilmdevMappingResult,
+  ImportedCustomRecipe,
+  RecipeShareResult,
+  RegularRecipeShareOptions,
 } from '@dorkroom/logic';
 import { debugError, debugLog } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
@@ -21,17 +26,20 @@ interface UseRecipeActionsProps {
   deleteCustomRecipe: (id: string) => Promise<void>;
   refreshCustomRecipes: () => Promise<unknown>;
 
-  // Sharing functions - using any to accept actual hook return types
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  shareCustomRecipe: (params: any) => Promise<any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  copyCustomRecipeToClipboard: (params: any) => Promise<any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  shareRegularRecipe: (params: any) => Promise<any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  copyRegularRecipeToClipboard: (params: any) => Promise<any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  decodeSharedCustomRecipe: (input: string) => any;
+  // Sharing functions
+  shareCustomRecipe: (
+    params: CustomRecipeShareOptions
+  ) => Promise<CustomRecipeShareResult>;
+  copyCustomRecipeToClipboard: (
+    params: CustomRecipeShareOptions
+  ) => Promise<CustomRecipeShareResult>;
+  shareRegularRecipe: (
+    params: RegularRecipeShareOptions
+  ) => Promise<RecipeShareResult>;
+  copyRegularRecipeToClipboard: (
+    params: RegularRecipeShareOptions
+  ) => Promise<RecipeShareResult>;
+  decodeSharedCustomRecipe: (input: string) => ImportedCustomRecipe | null;
 
   // Favorites
   isFavorite: (id: string) => boolean;

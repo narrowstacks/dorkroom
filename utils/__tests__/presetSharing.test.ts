@@ -114,7 +114,7 @@ describe('presetSharing', () => {
       };
       const preset = { name: 'Invalid', settings: invalidSettings };
 
-      let encoded;
+      let encoded = '';
       try {
         encoded = encodePreset(preset);
       } catch (_error) {
@@ -131,7 +131,7 @@ describe('presetSharing', () => {
       };
       const preset = { name: 'Invalid', settings: invalidSettings };
 
-      let encoded;
+      let encoded = '';
       try {
         encoded = encodePreset(preset);
       } catch (_error) {

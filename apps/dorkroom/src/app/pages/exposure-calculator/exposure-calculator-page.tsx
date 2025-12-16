@@ -168,10 +168,10 @@ export default function ExposureCalculatorPage() {
               )}
             </form.Field>
 
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-[color:var(--color-text-primary)]">
+            <fieldset className="space-y-3 border-0 p-0 m-0">
+              <legend className="text-sm font-medium text-[color:var(--color-text-primary)]">
                 Stop adjustment
-              </label>
+              </legend>
 
               <div className="space-y-4">
                 {/* All adjustment buttons and input on same line */}
@@ -234,7 +234,7 @@ export default function ExposureCalculatorPage() {
                   Positive values increase exposure, negative decrease
                 </p>
               </div>
-            </div>
+            </fieldset>
           </CalculatorCard>
 
           <form.Subscribe

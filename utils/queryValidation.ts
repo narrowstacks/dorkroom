@@ -78,7 +78,7 @@ export function validateAndSanitizeQuery(
       const numValue = parseInt(trimmed, 10);
 
       // Skip non-numeric values
-      if (isNaN(numValue)) continue;
+      if (Number.isNaN(numValue)) continue;
 
       // Enforce bounds for limit-type parameters
       if (key === 'limit' || key === 'count') {
@@ -112,5 +112,5 @@ export function isValidNumericParam(
 ): boolean {
   if (!value) return false;
   const num = parseInt(value, 10);
-  return !isNaN(num) && num >= min && num <= max;
+  return !Number.isNaN(num) && num >= min && num <= max;
 }

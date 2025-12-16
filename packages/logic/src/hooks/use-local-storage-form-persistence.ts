@@ -30,8 +30,7 @@ export interface LocalStorageFormPersistenceOptions<T extends object> {
    * Only requires setFieldValue method with compatible signature.
    */
   form: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setFieldValue: (field: any, value: any) => void;
+    setFieldValue: (field: keyof T, value: T[keyof T]) => void;
   };
   /**
    * Current form values to persist
@@ -140,13 +139,13 @@ export function useLocalStorageFormPersistence<T extends object>(
         snapshot[key] = formValues[key];
       }
       return snapshot;
-      // We need to track all the values that are being persisted
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally using dynamic deps array to track form value changes
     keysToUse.map((key) => formValues[key])
   );
 
   // Hydrate from localStorage on mount (runs exactly once)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentional - only run once on mount
   useEffect(() => {
     if (
       hydrationRef.current ||
@@ -200,8 +199,6 @@ export function useLocalStorageFormPersistence<T extends object>(
       );
       isHydratedRef.current = true;
     }
-    // Only run once on mount - form.setFieldValue should be stable
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.setFieldValue]);
 
   // Persist form state to localStorage whenever it changes

@@ -88,19 +88,30 @@ export interface FieldApi<TValue = unknown> {
  * @template TOnServer - Server validator (defaults to any compatible type)
  * @template TSubmitMeta - Submit metadata type (defaults to any compatible type)
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export type FormInstance<
+  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
   TFormData = any,
+  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
   TOnMount extends undefined | FormValidateOrFn<TFormData> = any,
+  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
   TOnChange extends undefined | FormValidateOrFn<TFormData> = any,
+  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
   TOnChangeAsync extends undefined | FormAsyncValidateOrFn<TFormData> = any,
+  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
   TOnBlur extends undefined | FormValidateOrFn<TFormData> = any,
+  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
   TOnBlurAsync extends undefined | FormAsyncValidateOrFn<TFormData> = any,
+  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
   TOnSubmit extends undefined | FormValidateOrFn<TFormData> = any,
+  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
   TOnSubmitAsync extends undefined | FormAsyncValidateOrFn<TFormData> = any,
+  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
   TOnDynamic extends undefined | FormValidateOrFn<TFormData> = any,
+  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
   TOnDynamicAsync extends undefined | FormAsyncValidateOrFn<TFormData> = any,
+  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
   TOnServer extends undefined | FormAsyncValidateOrFn<TFormData> = any,
+  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
   TSubmitMeta = any,
 > = ReactFormExtendedApi<
   TFormData,
@@ -116,4 +127,3 @@ export type FormInstance<
   TOnServer,
   TSubmitMeta
 >;
-/* eslint-enable @typescript-eslint/no-explicit-any */

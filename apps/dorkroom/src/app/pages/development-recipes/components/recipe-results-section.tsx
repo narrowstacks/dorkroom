@@ -88,6 +88,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
               )}
             >
               {Array.from({ length: 12 }).map((_, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton array, order never changes
                 <SkeletonCard key={i} />
               ))}
             </div>
@@ -130,6 +131,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
                 </thead>
                 <tbody>
                   {Array.from({ length: 8 }).map((_, i) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton array, order never changes
                     <SkeletonTableRow key={i} />
                   ))}
                 </tbody>

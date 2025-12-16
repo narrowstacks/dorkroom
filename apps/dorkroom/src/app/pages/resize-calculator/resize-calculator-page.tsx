@@ -158,6 +158,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
               : HOW_TO_USE_PRINT
             ).map((item, index) => (
               <li
+                // biome-ignore lint/suspicious/noArrayIndexKey: Static content array, order never changes
                 key={index}
                 className="rounded-2xl border px-4 py-2"
                 style={{
@@ -213,6 +214,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
           <ul className="space-y-2">
             {TIPS.map((tip, index) => (
               <li
+                // biome-ignore lint/suspicious/noArrayIndexKey: Static content array, order never changes
                 key={index}
                 className="rounded-2xl border px-4 py-2"
                 style={{

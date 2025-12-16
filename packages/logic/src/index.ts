@@ -33,7 +33,12 @@ export {
   useUpdateCustomRecipe,
 } from './hooks/custom-recipes/use-custom-recipe-mutations';
 export { useCustomRecipes } from './hooks/custom-recipes/use-custom-recipes-unified';
-export { useCustomRecipeSharing } from './hooks/development-recipes/use-custom-recipe-sharing';
+export {
+  type CustomRecipeShareOptions,
+  type CustomRecipeShareResult,
+  type ImportedCustomRecipe,
+  useCustomRecipeSharing,
+} from './hooks/development-recipes/use-custom-recipe-sharing';
 export {
   type CustomRecipeFilter,
   useDevelopmentRecipes,
@@ -43,7 +48,11 @@ export {
   useDevelopmentTable,
 } from './hooks/development-recipes/use-development-table';
 export { useFavorites } from './hooks/development-recipes/use-favorites';
-export { useRecipeSharing } from './hooks/development-recipes/use-recipe-sharing';
+export {
+  type RecipeShareResult,
+  type RegularRecipeShareOptions,
+  useRecipeSharing,
+} from './hooks/development-recipes/use-recipe-sharing';
 export { useRecipeUrlState } from './hooks/development-recipes/use-recipe-url-state';
 export {
   useViewPreference,

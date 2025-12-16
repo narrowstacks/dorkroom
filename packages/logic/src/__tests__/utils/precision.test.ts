@@ -8,7 +8,8 @@ describe('precision utilities', () => {
   describe('roundToPrecision', () => {
     it('should round to specified decimal places', () => {
       expect(roundToPrecision(Math.PI, 2)).toBe(3.14);
-      expect(roundToPrecision(2.7182818, 3)).toBe(2.718);
+      // biome-ignore lint/suspicious/noApproximativeNumericConstant: Testing specific decimal precision
+      expect(roundToPrecision(Math.E, 3)).toBe(2.718);
       expect(roundToPrecision(Math.PI, 0)).toBe(3);
     });
 
