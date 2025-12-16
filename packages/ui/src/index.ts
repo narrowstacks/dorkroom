@@ -55,8 +55,6 @@ export type { ToolCardProps } from './components/marketing/tool-card';
 export { ToolCard } from './components/marketing/tool-card';
 export { MeasurementUnitToggle } from './components/measurement-unit-toggle';
 export { Modal } from './components/modal';
-export type { ResponsiveModalProps } from './components/responsive-modal';
-export { ResponsiveModal } from './components/responsive-modal';
 export type {
   NavigationDropdownProps,
   NavigationItem,
@@ -66,6 +64,8 @@ export { NumberInput } from './components/number-input';
 export type { PlaceholderPageProps } from './components/placeholder-page';
 export { PlaceholderPage } from './components/placeholder-page';
 export { ReciprocityChart } from './components/reciprocity-chart';
+export type { ResponsiveModalProps } from './components/responsive-modal';
+export { ResponsiveModal } from './components/responsive-modal';
 export { ResultRow } from './components/result-row';
 export { SaveBeforeShareModal } from './components/save-before-share-modal';
 export { SearchableSelect } from './components/searchable-select';
