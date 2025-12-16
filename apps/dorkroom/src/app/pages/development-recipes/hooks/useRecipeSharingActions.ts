@@ -9,7 +9,7 @@ import { useCallback } from 'react';
  */
 interface SharingResult {
   success: boolean;
-  method?: 'clipboard' | 'share';
+  method?: 'clipboard' | 'webShare';
   showToast?: boolean;
   error?: string;
 }

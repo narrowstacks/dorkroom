@@ -2,6 +2,7 @@ import type { Developer, Film } from '@dorkroom/api';
 import type {
   CustomRecipeFormData,
   FilmdevMappingResult,
+  ImportedCustomRecipe,
 } from '@dorkroom/logic';
 import {
   debugError,
@@ -14,50 +15,11 @@ import {
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
 
-interface DecodedRecipeResult {
-  isValid: boolean;
-  recipe?: {
-    name: string;
-    temperatureF: number;
-    timeMinutes: number;
-    shootingIso: number;
-    pushPull: number;
-    agitationSchedule?: string;
-    notes?: string;
-    customDilution?: string;
-    isPublic?: boolean;
-    filmId: string;
-    developerId: string;
-    isCustomFilm?: boolean;
-    isCustomDeveloper?: boolean;
-    customFilm?: {
-      brand: string;
-      name: string;
-      isoSpeed: number;
-      colorType: 'bw' | 'color' | 'slide';
-      description?: string;
-      grainStructure?: string;
-    };
-    customDeveloper?: {
-      manufacturer: string;
-      name: string;
-      type: string;
-      filmOrPaper: string;
-      workingLifeHours?: number;
-      stockLifeMonths?: number;
-      notes?: string;
-      mixingInstructions?: string;
-      safetyNotes?: string;
-      dilutions?: Array<{ name: string; dilution: string }>;
-    };
-  };
-}
-
 export interface UseRecipeImportActionsProps {
   // Recipe operations
   addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
   refreshCustomRecipes: () => Promise<unknown>;
-  decodeSharedCustomRecipe: (input: string) => DecodedRecipeResult;
+  decodeSharedCustomRecipe: (input: string) => ImportedCustomRecipe | null;
 
   // Film/Developer data
   allFilms: Film[];
