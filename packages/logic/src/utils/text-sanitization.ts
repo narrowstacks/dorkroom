@@ -93,3 +93,91 @@ export function sanitizeRecipeName(name: string | undefined | null): string {
 export function sanitizeRecipeNotes(notes: string | undefined | null): string {
   return sanitizeText(notes, 2000);
 }
+
+// Import types for type-safe sanitization
+import type {
+  CustomDeveloperData,
+  CustomFilmData,
+} from '../types/custom-recipes';
+
+/**
+ * Sanitize custom film data to prevent XSS attacks.
+ * Preserves all fields while sanitizing text values.
+ *
+ * @param film - Custom film data object to sanitize
+ * @returns Sanitized film data, or undefined if input is falsy
+ * @example
+ * ```typescript
+ * const film = { brand: '<script>evil</script>', name: 'Test Film', isoSpeed: 400, colorType: 'bw' };
+ * const safe = sanitizeCustomFilm(film);
+ * console.log(safe.brand); // 'evil' (script tag removed)
+ * ```
+ */
+export function sanitizeCustomFilm(
+  film: CustomFilmData | undefined | null
+): CustomFilmData | undefined {
+  if (!film) return undefined;
+
+  return {
+    ...film,
+    brand: sanitizeText(film.brand, 100) || 'Unknown',
+    name: sanitizeText(film.name, 100) || 'Unknown',
+    grainStructure: sanitizeText(film.grainStructure, 100),
+    description: sanitizeText(film.description, 500),
+  };
+}
+
+/**
+ * Sanitize custom developer data to prevent XSS attacks.
+ * Preserves all fields while sanitizing text values, including dilution arrays.
+ *
+ * @param developer - Custom developer data object to sanitize
+ * @returns Sanitized developer data, or undefined if input is falsy
+ * @example
+ * ```typescript
+ * const dev = { manufacturer: '<script>evil</script>', name: 'HC-110', type: 'liquid', filmOrPaper: 'film', dilutions: [] };
+ * const safe = sanitizeCustomDeveloper(dev);
+ * console.log(safe.manufacturer); // 'evil' (script tag removed)
+ * ```
+ */
+export function sanitizeCustomDeveloper(
+  developer: CustomDeveloperData | undefined | null
+): CustomDeveloperData | undefined {
+  if (!developer) return undefined;
+
+  return {
+    ...developer,
+    manufacturer: sanitizeText(developer.manufacturer, 100) || 'Unknown',
+    name: sanitizeText(developer.name, 100) || 'Unknown',
+    type: sanitizeText(developer.type, 100) || 'Unknown',
+    notes: sanitizeText(developer.notes, 1000),
+    mixingInstructions: sanitizeText(developer.mixingInstructions, 2000),
+    safetyNotes: sanitizeText(developer.safetyNotes, 1000),
+    dilutions: developer.dilutions.map((d) => ({
+      name: sanitizeText(d.name, 50) || 'Unknown',
+      dilution: sanitizeText(d.dilution, 50) || '1:1',
+    })),
+  };
+}
+
+/**
+ * Sanitize an array of tags.
+ * Removes empty values after sanitization.
+ *
+ * @param tags - Array of tag strings to sanitize
+ * @returns Sanitized tags array, or undefined if input is falsy
+ * @example
+ * ```typescript
+ * const tags = ['<b>bold</b>', 'normal', ''];
+ * const safe = sanitizeTags(tags);
+ * console.log(safe); // ['bold', 'normal']
+ * ```
+ */
+export function sanitizeTags(
+  tags: string[] | undefined | null
+): string[] | undefined {
+  if (!tags) return undefined;
+  return tags
+    .map((tag) => sanitizeText(tag, 50))
+    .filter((tag): tag is string => Boolean(tag));
+}

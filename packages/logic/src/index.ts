@@ -33,7 +33,12 @@ export {
   useUpdateCustomRecipe,
 } from './hooks/custom-recipes/use-custom-recipe-mutations';
 export { useCustomRecipes } from './hooks/custom-recipes/use-custom-recipes-unified';
-export { useCustomRecipeSharing } from './hooks/development-recipes/use-custom-recipe-sharing';
+export {
+  type CustomRecipeShareOptions,
+  type CustomRecipeShareResult,
+  type ImportedCustomRecipe,
+  useCustomRecipeSharing,
+} from './hooks/development-recipes/use-custom-recipe-sharing';
 export {
   type CustomRecipeFilter,
   useDevelopmentRecipes,
@@ -43,7 +48,11 @@ export {
   useDevelopmentTable,
 } from './hooks/development-recipes/use-development-table';
 export { useFavorites } from './hooks/development-recipes/use-favorites';
-export { useRecipeSharing } from './hooks/development-recipes/use-recipe-sharing';
+export {
+  type RecipeShareResult,
+  type RegularRecipeShareOptions,
+  useRecipeSharing,
+} from './hooks/development-recipes/use-recipe-sharing';
 export { useRecipeUrlState } from './hooks/development-recipes/use-recipe-url-state';
 export {
   useViewPreference,
@@ -57,6 +66,12 @@ export {
   useExposureCalculator,
 } from './hooks/use-exposure-calculator';
 export { useFeatureFlags } from './hooks/use-feature-flags';
+export {
+  type FieldValidator,
+  type LocalStorageFormPersistenceOptions,
+  type LocalStorageFormPersistenceReturn,
+  useLocalStorageFormPersistence,
+} from './hooks/use-local-storage-form-persistence';
 export { usePresetSharing } from './hooks/use-preset-sharing';
 export {
   formatReciprocityTime,
@@ -72,6 +87,13 @@ export * from './schemas/border-calculator.schema';
 export * from './schemas/validators';
 // Services exports
 export * from './services/filmdev-api';
+export {
+  createStorageManager,
+  isArray,
+  isStringArray,
+  type StorageManager,
+  type StorageManagerOptions,
+} from './services/local-storage';
 export * from './types/border-calculator';
 export * from './types/custom-recipes';
 export * from './types/development-recipes-url';

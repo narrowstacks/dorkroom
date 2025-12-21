@@ -4,7 +4,6 @@ import type { FormatDimensionsOptions } from '../../lib/measurement';
 
 interface BladeReadingsSectionProps {
   calculation: BorderCalculation;
-  isLandscape: boolean;
   formatWithUnit: (value: number) => string;
   formatDimensions: (
     width: number,
@@ -22,16 +21,20 @@ interface BladeReadingsSectionProps {
  */
 export function BladeReadingsSection({
   calculation,
-  isLandscape,
   formatWithUnit,
   formatDimensions,
   bladeWarning,
   minBorderWarning,
   paperSizeWarning,
 }: BladeReadingsSectionProps) {
+  // Determine actual paper orientation from calculated dimensions
+  // This correctly handles custom paper sizes where width > height (already landscape)
+  const isPaperActuallyLandscape =
+    calculation.paperWidth > calculation.paperHeight;
+
   // Swap blade readings when paper is in portrait orientation (not landscape)
   // This accounts for the easel being rotated 90° when the paper is vertical
-  const shouldSwapBlades = !isLandscape;
+  const shouldSwapBlades = !isPaperActuallyLandscape;
 
   return (
     <CalculatorCard

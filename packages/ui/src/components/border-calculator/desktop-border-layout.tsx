@@ -76,7 +76,6 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
     customAspectHeight,
     enableOffset,
     ignoreMinBorder,
-    isLandscape,
   } = formValues;
 
   // Generate dynamic slider labels based on the max allowed border
@@ -104,7 +103,6 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
 
               <BladeReadingsSection
                 calculation={calculation}
-                isLandscape={isLandscape}
                 formatWithUnit={formatWithUnit}
                 formatDimensions={formatDimensions}
                 bladeWarning={bladeWarning}

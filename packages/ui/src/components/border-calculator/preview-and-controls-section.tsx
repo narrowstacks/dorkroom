@@ -31,7 +31,6 @@ export function PreviewAndControlsSection({
     form.store,
     (state) => state.values.showBladeReadings
   );
-  const isLandscape = useStore(form.store, (state) => state.values.isLandscape);
   const aspectRatio = useStore(form.store, (state) => state.values.aspectRatio);
   const isEvenBordersSelected = aspectRatio === 'even-borders';
   const flipControlBaseClasses =
@@ -104,11 +103,15 @@ export function PreviewAndControlsSection({
       </button>
 
       {(() => {
+        // Determine actual paper orientation from calculated dimensions
+        // This correctly handles custom paper sizes where width > height (already landscape)
+        const isPaperActuallyLandscape =
+          calculation.paperWidth > calculation.paperHeight;
         // Show message when paper orientation is vertical (portrait)
         // Show when NOT landscape (vertical orientation) and NOT 1:1 aspect ratio
         const isSquareAspectRatio =
           Math.abs(calculation.printWidth - calculation.printHeight) < 0.01;
-        const shouldShow = !isLandscape && !isSquareAspectRatio;
+        const shouldShow = !isPaperActuallyLandscape && !isSquareAspectRatio;
         return (
           shouldShow && (
             <div

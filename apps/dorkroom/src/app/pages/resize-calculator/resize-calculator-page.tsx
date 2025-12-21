@@ -6,9 +6,9 @@ import {
   DEFAULT_ORIGINAL_LENGTH,
   DEFAULT_ORIGINAL_TIME,
   DEFAULT_ORIGINAL_WIDTH,
-  debugWarn,
   RESIZE_STORAGE_KEY,
   type ResizeCalculatorState,
+  useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
 import {
   CalculatorCard,
@@ -25,7 +25,6 @@ import {
 } from '@dorkroom/ui';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
-import { useEffect, useMemo, useRef } from 'react';
 
 const validateResizeForm = createZodFormValidator(resizeCalculatorSchema);
 
@@ -159,6 +158,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
               : HOW_TO_USE_PRINT
             ).map((item, index) => (
               <li
+                // biome-ignore lint/suspicious/noArrayIndexKey: Static content array, order never changes
                 key={index}
                 className="rounded-2xl border px-4 py-2"
                 style={{
@@ -214,6 +214,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
           <ul className="space-y-2">
             {TIPS.map((tip, index) => (
               <li
+                // biome-ignore lint/suspicious/noArrayIndexKey: Static content array, order never changes
                 key={index}
                 className="rounded-2xl border px-4 py-2"
                 style={{
@@ -307,7 +308,6 @@ export default function ResizeCalculatorPage() {
   const { unit } = useMeasurement();
   const unitLabel = unit === 'imperial' ? 'in' : 'cm';
   const { toInches, toDisplay } = useMeasurementConverter();
-  const hydrationRef = useRef(false);
 
   const form = useForm({
     defaultValues: {
@@ -331,76 +331,22 @@ export default function ResizeCalculatorPage() {
     (state) => state.values as ResizeCalculatorState
   );
 
-  // Create a memoized snapshot of persistable state
-  const persistableSnapshot = useMemo(
-    () => ({
-      isEnlargerHeightMode: formValues.isEnlargerHeightMode,
-      originalWidth: formValues.originalWidth,
-      originalLength: formValues.originalLength,
-      newWidth: formValues.newWidth,
-      newLength: formValues.newLength,
-      originalTime: formValues.originalTime,
-      originalHeight: formValues.originalHeight,
-      newHeight: formValues.newHeight,
-    }),
-    [
-      formValues.isEnlargerHeightMode,
-      formValues.originalWidth,
-      formValues.originalLength,
-      formValues.newWidth,
-      formValues.newLength,
-      formValues.originalTime,
-      formValues.originalHeight,
-      formValues.newHeight,
-    ]
-  );
-
-  // Hydrate from persisted state on mount (runs exactly once)
-  useEffect(() => {
-    if (hydrationRef.current || typeof window === 'undefined') return;
-    hydrationRef.current = true;
-
-    try {
-      const raw = window.localStorage.getItem(RESIZE_STORAGE_KEY);
-      if (!raw) return;
-
-      const parsed = JSON.parse(raw) as Partial<ResizeCalculatorState>;
-
-      const fieldKeys = [
-        'isEnlargerHeightMode',
-        'originalWidth',
-        'originalLength',
-        'newWidth',
-        'newLength',
-        'originalTime',
-        'originalHeight',
-        'newHeight',
-      ] as const satisfies Array<keyof ResizeCalculatorState>;
-
-      for (const key of fieldKeys) {
-        const value = parsed[key];
-        if (value === undefined) continue;
-
-        form.setFieldValue(key, value as ResizeCalculatorState[typeof key]);
-      }
-    } catch (error) {
-      debugWarn('Failed to load calculator state', error);
-    }
-  }, [form]);
-
-  // Persist form state to localStorage whenever it changes
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      window.localStorage.setItem(
-        RESIZE_STORAGE_KEY,
-        JSON.stringify(persistableSnapshot)
-      );
-    } catch (error) {
-      debugWarn('Failed to save calculator state', error);
-    }
-  }, [persistableSnapshot]);
+  // Persist and hydrate form state to/from localStorage
+  useLocalStorageFormPersistence({
+    storageKey: RESIZE_STORAGE_KEY,
+    form,
+    formValues,
+    persistKeys: [
+      'isEnlargerHeightMode',
+      'originalWidth',
+      'originalLength',
+      'newWidth',
+      'newLength',
+      'originalTime',
+      'originalHeight',
+      'newHeight',
+    ],
+  });
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">

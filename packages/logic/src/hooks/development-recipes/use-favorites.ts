@@ -1,44 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { debugError, debugWarn } from '../../utils/debug-logger';
+import {
+  createStorageManager,
+  isStringArray,
+} from '../../services/local-storage';
 
 const STORAGE_KEY = 'dorkroom_favorite_recipes';
 
-const getStorage = (): Storage | null => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  try {
-    return window.localStorage;
-  } catch (error) {
-    debugWarn('Local storage unavailable for favorites:', error);
-    return null;
-  }
-};
-
-const readFavoritesFromStorage = (): string[] => {
-  const storage = getStorage();
-  if (!storage) return [];
-  try {
-    const raw = storage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as string[]) : [];
-  } catch (error) {
-    debugError('[useFavorites] Failed to parse favorites:', error);
-    return [];
-  }
-};
-
-const writeFavoritesToStorage = (ids: string[]): void => {
-  const storage = getStorage();
-  if (!storage) return;
-  try {
-    storage.setItem(STORAGE_KEY, JSON.stringify(ids));
-  } catch (error) {
-    debugError('[useFavorites] Failed to persist favorites:', error);
-    // Swallow so the UI can keep working even if persistence fails
-  }
-};
+const favoritesStorage = createStorageManager<string[]>(STORAGE_KEY, {
+  defaultValue: [],
+  validate: isStringArray,
+  logContext: 'useFavorites',
+});
 
 /**
  * Hook for managing favorite recipe IDs stored in localStorage.
@@ -71,7 +43,7 @@ export const useFavorites = () => {
   const [error, setError] = useState<Error | null>(null);
 
   const loadFavorites = useCallback(() => {
-    const ids = readFavoritesFromStorage();
+    const ids = favoritesStorage.read();
     setFavoriteIds(ids);
     setIsInitialized(true);
     setError(null);
@@ -79,7 +51,7 @@ export const useFavorites = () => {
   }, []);
 
   const saveFavorites = useCallback((ids: string[]) => {
-    writeFavoritesToStorage(ids);
+    favoritesStorage.write(ids);
     setFavoriteIds(ids);
     setError(null);
   }, []);

@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 
 export function LoadingSpinner(): JSX.Element {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: role="status" is correct for loading indicators, <output> is for calculations
     <div
       className="flex items-center justify-center min-h-[50vh]"
       role="status"

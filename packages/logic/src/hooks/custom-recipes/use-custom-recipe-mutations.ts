@@ -1,110 +1,34 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../queries/query-keys';
+import { createStorageManager, isArray } from '../../services/local-storage';
 import type {
-  CustomDeveloperData,
-  CustomFilmData,
   CustomRecipe,
   CustomRecipeFormData,
 } from '../../types/custom-recipes';
-import { debugError } from '../../utils/debug-logger';
 import {
+  sanitizeCustomDeveloper,
+  sanitizeCustomFilm,
   sanitizeRecipeName,
+  sanitizeTags,
   sanitizeText,
 } from '../../utils/text-sanitization';
 
 const STORAGE_KEY = 'dorkroom_custom_recipes';
 const CUSTOM_RECIPES_QUERY_KEY = queryKeys.customRecipes.list();
 
-const getStorage = (): Storage | null => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  try {
-    return window.localStorage;
-  } catch {
-    return null;
-  }
-};
+// Use the centralized storage manager
+const recipesStorage = createStorageManager<CustomRecipe[]>(STORAGE_KEY, {
+  defaultValue: [],
+  validate: isArray(),
+  logContext: 'useCustomRecipeMutations',
+});
 
 const readRecipesFromStorage = (): CustomRecipe[] => {
-  const storage = getStorage();
-  if (!storage) return [];
-
-  try {
-    const raw = storage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-
-    const parsed = JSON.parse(raw) as CustomRecipe[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    debugError(
-      '[useCustomRecipeMutations] Failed to parse stored recipes:',
-      error
-    );
-    return [];
-  }
+  return recipesStorage.read();
 };
 
 const writeRecipesToStorage = (recipes: CustomRecipe[]): void => {
-  const storage = getStorage();
-  if (!storage) return;
-
-  try {
-    storage.setItem(STORAGE_KEY, JSON.stringify(recipes));
-  } catch (error) {
-    debugError('[useCustomRecipeMutations] Failed to persist recipes:', error);
-    throw error;
-  }
-};
-
-/**
- * Sanitize custom film data to prevent XSS attacks.
- */
-const sanitizeCustomFilm = (
-  film: CustomFilmData | undefined
-): CustomFilmData | undefined => {
-  if (!film) return undefined;
-
-  return {
-    ...film,
-    brand: sanitizeText(film.brand, 100) || 'Unknown',
-    name: sanitizeText(film.name, 100) || 'Unknown',
-    grainStructure: sanitizeText(film.grainStructure, 100),
-    description: sanitizeText(film.description, 500),
-  };
-};
-
-/**
- * Sanitize custom developer data to prevent XSS attacks.
- */
-const sanitizeCustomDeveloper = (
-  developer: CustomDeveloperData | undefined
-): CustomDeveloperData | undefined => {
-  if (!developer) return undefined;
-
-  return {
-    ...developer,
-    manufacturer: sanitizeText(developer.manufacturer, 100) || 'Unknown',
-    name: sanitizeText(developer.name, 100) || 'Unknown',
-    type: sanitizeText(developer.type, 100) || 'Unknown',
-    notes: sanitizeText(developer.notes, 1000),
-    mixingInstructions: sanitizeText(developer.mixingInstructions, 2000),
-    safetyNotes: sanitizeText(developer.safetyNotes, 1000),
-    dilutions: developer.dilutions.map((d) => ({
-      name: sanitizeText(d.name, 50) || 'Unknown',
-      dilution: sanitizeText(d.dilution, 50) || '1:1',
-    })),
-  };
-};
-
-/**
- * Sanitize tags array.
- */
-const sanitizeTags = (tags: string[] | undefined): string[] | undefined => {
-  if (!tags) return undefined;
-  return tags
-    .map((tag) => sanitizeText(tag, 50))
-    .filter((tag): tag is string => Boolean(tag));
+  recipesStorage.write(recipes);
 };
 
 const createRecipeFromFormData = (

@@ -1,5 +1,4 @@
 import {
-  debugWarn,
   formatReciprocityTime,
   parseReciprocityTime,
   RECIPROCITY_EXPOSURE_PRESETS,
@@ -7,6 +6,7 @@ import {
   RECIPROCITY_STORAGE_KEY,
   type ReciprocityFormState,
   type SelectItem,
+  useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
 import {
   CalculatorCard,
@@ -23,7 +23,7 @@ import {
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { ChartLine, Maximize2, Minimize2 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 const validateReciprocityForm = createZodFormValidator(
   reciprocityCalculatorSchema
@@ -128,7 +128,6 @@ export default function ReciprocityCalculatorPage() {
 
   const [showChart, setShowChart] = useState(false);
   const [isWideChart, setIsWideChart] = useState(false);
-  const hydrationRef = useRef(false);
 
   // TanStack Form for input state
   const form = useForm({
@@ -148,51 +147,13 @@ export default function ReciprocityCalculatorPage() {
     (state) => state.values as ReciprocityFormState
   );
 
-  // Create a memoized snapshot of persistable state
-  const persistableSnapshot = useMemo(
-    () => ({
-      filmType: formValues.filmType,
-      meteredTime: formValues.meteredTime,
-      customFactor: formValues.customFactor,
-    }),
-    [formValues.filmType, formValues.meteredTime, formValues.customFactor]
-  );
-
-  // Hydrate from persisted state on mount (runs exactly once)
-  useEffect(() => {
-    if (hydrationRef.current || typeof window === 'undefined') return;
-    hydrationRef.current = true;
-
-    try {
-      const raw = window.localStorage.getItem(RECIPROCITY_STORAGE_KEY);
-      if (!raw) return;
-
-      const parsed = JSON.parse(raw) as Partial<ReciprocityFormState>;
-      Object.entries(parsed).forEach(([key, value]: [string, unknown]) => {
-        if (value === undefined) return;
-        form.setFieldValue(
-          key as keyof ReciprocityFormState,
-          value as ReciprocityFormState[keyof ReciprocityFormState]
-        );
-      });
-    } catch (error) {
-      debugWarn('Failed to load calculator state', error);
-    }
-  }, [form]);
-
-  // Persist form state to localStorage whenever it changes
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      window.localStorage.setItem(
-        RECIPROCITY_STORAGE_KEY,
-        JSON.stringify(persistableSnapshot)
-      );
-    } catch (error) {
-      debugWarn('Failed to save calculator state', error);
-    }
-  }, [persistableSnapshot]);
+  // Persist and hydrate form state to/from localStorage
+  useLocalStorageFormPersistence({
+    storageKey: RECIPROCITY_STORAGE_KEY,
+    form,
+    formValues,
+    persistKeys: ['filmType', 'meteredTime', 'customFactor'],
+  });
 
   // Calculate derived values from form state
   const { parsedDisplay } = (() => {

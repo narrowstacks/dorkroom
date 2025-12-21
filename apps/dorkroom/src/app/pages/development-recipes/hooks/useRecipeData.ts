@@ -23,7 +23,10 @@ export interface UseRecipeDataProps {
   favoritesOnly: boolean;
   sortBy: string;
   sortDirection: 'asc' | 'desc';
-  sharedCustomRecipe: CustomRecipe | null;
+  sharedCustomRecipe:
+    | CustomRecipe
+    | Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'>
+    | null;
   flags: {
     CUSTOM_RECIPE_SHARING: boolean;
   };

@@ -18,6 +18,7 @@ export const CUSTOM_RECIPE_FORM_DEFAULT: CustomRecipeFormData = {
   pushPull: 0,
   agitationSchedule: '30s initial, 10s every minute',
   notes: '',
+  selectedDilutionId: '',
   customDilution: '',
   isPublic: false,
   isFavorite: false,
@@ -77,6 +78,11 @@ export const convertRecipeToFormData = (
     pushPull: combination.pushPull || 0,
     agitationSchedule: combination.agitationSchedule || '',
     notes: combination.notes || '',
+    selectedDilutionId: combination.dilutionId
+      ? String(combination.dilutionId)
+      : combination.customDilution
+        ? 'custom'
+        : '',
     customDilution: combination.customDilution || '',
     isPublic: false, // Default to false for editing
     isFavorite: false,

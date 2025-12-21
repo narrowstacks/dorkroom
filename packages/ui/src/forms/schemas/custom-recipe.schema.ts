@@ -99,6 +99,8 @@ export const customRecipeSchema = z
       .min(1, 'Agitation schedule is required')
       .max(500, 'Agitation schedule is too long'),
 
+    selectedDilutionId: z.string().optional(), // dilution ID or 'custom'
+
     customDilution: z
       .string()
       .max(200, 'Custom dilution is too long')

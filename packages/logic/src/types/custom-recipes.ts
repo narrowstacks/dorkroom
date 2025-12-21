@@ -60,6 +60,7 @@ export interface CustomRecipeFormData {
   pushPull: number;
   agitationSchedule: string;
   notes: string;
+  selectedDilutionId?: string; // dilution ID or 'custom'
   customDilution: string;
   isPublic: boolean;
   tags?: string[];

@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { validateAndSanitizeQuery } from '../utils/queryValidation';
 import {
   logApiError,
   logApiRequest,
@@ -9,7 +10,6 @@ import {
   serverlessLog,
   serverlessWarn,
 } from '../utils/serverlessLogger';
-import { validateAndSanitizeQuery } from '../utils/queryValidation';
 
 // The master API key that has high rate limits
 const SUPABASE_MASTER_API_KEY = process.env.SUPABASE_MASTER_API_KEY;
@@ -175,7 +175,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Parse JSON response with error handling
-    let data;
+    let data: unknown;
     try {
       data = await response.json();
     } catch (_parseError) {

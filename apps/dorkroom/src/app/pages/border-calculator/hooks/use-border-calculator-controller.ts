@@ -9,13 +9,13 @@ import {
   DESKTOP_BREAKPOINT,
   debugError,
   debugLog,
-  debugWarn,
   PAPER_SIZES,
   shallowEqual,
   useBorderPresets,
   useCalculatorSharing,
   useDimensionCalculations,
   useGeometryCalculations,
+  useLocalStorageFormPersistence,
   usePaperDimensionInput,
   usePresetManagement,
   usePresetSharing,
@@ -30,7 +30,7 @@ import {
 } from '@dorkroom/ui';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 const validateBorderCalculator = createZodFormValidator(borderCalculatorSchema);
 
@@ -41,49 +41,12 @@ export function useBorderCalculatorController() {
   const { toInches, toDisplay } = useMeasurementConverter();
   const toast = useOptionalToast();
 
-  const hydrationRef = useRef(false);
-
   const form = useForm({
     defaultValues: borderCalculatorInitialState,
     validators: {
       onChange: validateBorderCalculator,
     },
   });
-
-  // Hydrate from persisted state on mount (runs exactly once)
-  useEffect(() => {
-    if (hydrationRef.current || typeof window === 'undefined') return;
-    hydrationRef.current = true;
-
-    try {
-      const raw = window.localStorage.getItem(CALC_STORAGE_KEY);
-      if (!raw) return;
-
-      const parsed = JSON.parse(raw) as Partial<BorderCalculatorState>;
-      Object.entries(parsed).forEach(([key, value]: [string, unknown]) => {
-        if (value === undefined) return;
-        form.setFieldValue(
-          key as keyof BorderCalculatorState,
-          value as BorderCalculatorState[keyof BorderCalculatorState]
-        );
-      });
-
-      // Recalculate orientation for custom paper after loading from storage
-      if (
-        parsed.paperSize === 'custom' &&
-        parsed.customPaperWidth !== undefined &&
-        parsed.customPaperHeight !== undefined
-      ) {
-        form.setFieldValue(
-          'isLandscape',
-          parsed.customPaperWidth < parsed.customPaperHeight
-        );
-      }
-    } catch (error) {
-      debugWarn('Failed to load calculator state', error);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.setFieldValue]);
 
   const formValues = useStore(
     form.store,
@@ -110,6 +73,49 @@ export function useBorderCalculatorController() {
     lastValidMinBorder,
   } = formValues;
 
+  // Persist and hydrate form state to/from localStorage
+  useLocalStorageFormPersistence({
+    storageKey: CALC_STORAGE_KEY,
+    form,
+    formValues,
+    persistKeys: [
+      'aspectRatio',
+      'paperSize',
+      'customAspectWidth',
+      'customAspectHeight',
+      'customPaperWidth',
+      'customPaperHeight',
+      'minBorder',
+      'enableOffset',
+      'ignoreMinBorder',
+      'horizontalOffset',
+      'verticalOffset',
+      'showBlades',
+      'showBladeReadings',
+      'isLandscape',
+      'isRatioFlipped',
+      'hasManuallyFlippedPaper',
+      'lastValidCustomAspectWidth',
+      'lastValidCustomAspectHeight',
+      'lastValidCustomPaperWidth',
+      'lastValidCustomPaperHeight',
+      'lastValidMinBorder',
+    ],
+    onHydrated: (loadedValues) => {
+      // Recalculate orientation for custom paper after loading from storage
+      if (
+        loadedValues.paperSize === 'custom' &&
+        loadedValues.customPaperWidth !== undefined &&
+        loadedValues.customPaperHeight !== undefined
+      ) {
+        form.setFieldValue(
+          'isLandscape',
+          loadedValues.customPaperWidth < loadedValues.customPaperHeight
+        );
+      }
+    },
+  });
+
   const { presets, addPreset, updatePreset, removePreset } = useBorderPresets();
 
   // Paper dimension input hook
@@ -134,68 +140,6 @@ export function useBorderCalculatorController() {
       form.setFieldValue('lastValidCustomPaperHeight', inches);
     },
   });
-
-  const persistableSnapshot = useMemo(
-    () => ({
-      aspectRatio,
-      paperSize,
-      customAspectWidth,
-      customAspectHeight,
-      customPaperWidth,
-      customPaperHeight,
-      minBorder,
-      enableOffset,
-      ignoreMinBorder,
-      horizontalOffset,
-      verticalOffset,
-      showBlades,
-      showBladeReadings,
-      isLandscape,
-      isRatioFlipped,
-      hasManuallyFlippedPaper,
-      lastValidCustomAspectWidth: formValues.lastValidCustomAspectWidth,
-      lastValidCustomAspectHeight: formValues.lastValidCustomAspectHeight,
-      lastValidCustomPaperWidth: formValues.lastValidCustomPaperWidth,
-      lastValidCustomPaperHeight: formValues.lastValidCustomPaperHeight,
-      lastValidMinBorder,
-    }),
-    [
-      aspectRatio,
-      paperSize,
-      customAspectWidth,
-      customAspectHeight,
-      customPaperWidth,
-      customPaperHeight,
-      minBorder,
-      enableOffset,
-      ignoreMinBorder,
-      horizontalOffset,
-      verticalOffset,
-      showBlades,
-      showBladeReadings,
-      isLandscape,
-      isRatioFlipped,
-      hasManuallyFlippedPaper,
-      formValues.lastValidCustomAspectWidth,
-      formValues.lastValidCustomAspectHeight,
-      formValues.lastValidCustomPaperWidth,
-      formValues.lastValidCustomPaperHeight,
-      lastValidMinBorder,
-    ]
-  );
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      window.localStorage.setItem(
-        CALC_STORAGE_KEY,
-        JSON.stringify(persistableSnapshot)
-      );
-    } catch (error) {
-      debugWarn('Failed to save calculator state', error);
-    }
-  }, [persistableSnapshot]);
 
   const dimensionData = useDimensionCalculations(formValues);
   const { orientedPaper, orientedRatio } = dimensionData.orientedDimensions;

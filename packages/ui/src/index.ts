@@ -64,6 +64,8 @@ export { NumberInput } from './components/number-input';
 export type { PlaceholderPageProps } from './components/placeholder-page';
 export { PlaceholderPage } from './components/placeholder-page';
 export { ReciprocityChart } from './components/reciprocity-chart';
+export type { ResponsiveModalProps } from './components/responsive-modal';
+export { ResponsiveModal } from './components/responsive-modal';
 export { ResultRow } from './components/result-row';
 export { SaveBeforeShareModal } from './components/save-before-share-modal';
 export { SearchableSelect } from './components/searchable-select';
@@ -75,8 +77,6 @@ export { ShareModal } from './components/share-modal';
 export { TextInput } from './components/text-input';
 export type { ThemeToggleProps } from './components/theme-toggle';
 export { ThemeToggle } from './components/theme-toggle';
-export type { TooltipProps } from './components/tooltip';
-export { Tooltip } from './components/tooltip';
 export type { ToastProps } from './components/toast';
 export {
   Toast,
@@ -85,6 +85,8 @@ export {
   useToast,
 } from './components/toast';
 export { ToggleSwitch } from './components/toggle-switch';
+export type { TooltipProps } from './components/tooltip';
+export { Tooltip } from './components/tooltip';
 export { CollapsibleSection } from './components/ui/collapsible-section';
 export {
   Skeleton,

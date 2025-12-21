@@ -1,7 +1,6 @@
 import {
   calculateNewExposureTime,
   calculatePercentageIncrease,
-  debugWarn,
   EXPOSURE_PRESETS,
   EXPOSURE_STORAGE_KEY,
   type ExposureFormState,
@@ -9,6 +8,7 @@ import {
   formatExposureTime,
   roundStopsToThirds,
   roundToStandardPrecision,
+  useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
 import {
   CalculatorCard,
@@ -23,7 +23,7 @@ import {
 } from '@dorkroom/ui';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
-import { type ChangeEvent, type FC, useEffect, useMemo, useRef } from 'react';
+import type { ChangeEvent, FC } from 'react';
 
 const validateExposureForm = createZodFormValidator(exposureCalculatorSchema);
 
@@ -96,7 +96,6 @@ const StopButton: FC<StopButtonProps> = ({ preset, onPress, theme }) => {
 export default function ExposureCalculatorPage() {
   const theme = useTheme();
   const currentTheme = themes[theme.resolvedTheme];
-  const hydrationRef = useRef(false);
 
   const form = useForm({
     defaultValues: {
@@ -114,51 +113,21 @@ export default function ExposureCalculatorPage() {
     (state) => state.values as ExposureFormState
   );
 
-  // Create a memoized snapshot of persistable state
-  const persistableSnapshot = useMemo(
-    () => ({
-      originalTime: formValues.originalTime,
-      stops: formValues.stops,
-    }),
-    [formValues.originalTime, formValues.stops]
-  );
-
-  // Hydrate from persisted state on mount (runs exactly once)
-  useEffect(() => {
-    if (hydrationRef.current || typeof window === 'undefined') return;
-    hydrationRef.current = true;
-
-    try {
-      const raw = window.localStorage.getItem(EXPOSURE_STORAGE_KEY);
-      if (!raw) return;
-
-      const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== 'object') return;
-
-      (['originalTime', 'stops'] as const).forEach((key) => {
-        const value = (parsed as Partial<ExposureFormState>)[key];
-        if (typeof value !== 'number' || !Number.isFinite(value)) return;
-        form.setFieldValue(key, value);
-      });
-    } catch (error) {
-      debugWarn('Failed to load calculator state', error);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.setFieldValue]); // Only run once on mount; form is stable but adding it would cause re-hydration
-
-  // Persist form state to localStorage whenever it changes
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      window.localStorage.setItem(
-        EXPOSURE_STORAGE_KEY,
-        JSON.stringify(persistableSnapshot)
-      );
-    } catch (error) {
-      debugWarn('Failed to save calculator state', error);
-    }
-  }, [persistableSnapshot]);
+  // Persist and hydrate form state to/from localStorage
+  useLocalStorageFormPersistence({
+    storageKey: EXPOSURE_STORAGE_KEY,
+    form,
+    formValues,
+    persistKeys: ['originalTime', 'stops'],
+    validators: {
+      originalTime: {
+        validate: (v) => typeof v === 'number' && Number.isFinite(v),
+      },
+      stops: {
+        validate: (v) => typeof v === 'number' && Number.isFinite(v),
+      },
+    },
+  });
 
   const handleAdjustStops = (increment: number) => {
     const currentStops = form.getFieldValue('stops');
@@ -199,10 +168,10 @@ export default function ExposureCalculatorPage() {
               )}
             </form.Field>
 
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-[color:var(--color-text-primary)]">
+            <fieldset className="space-y-3 border-0 p-0 m-0">
+              <legend className="text-sm font-medium text-[color:var(--color-text-primary)]">
                 Stop adjustment
-              </label>
+              </legend>
 
               <div className="space-y-4">
                 {/* All adjustment buttons and input on same line */}
@@ -265,7 +234,7 @@ export default function ExposureCalculatorPage() {
                   Positive values increase exposure, negative decrease
                 </p>
               </div>
-            </div>
+            </fieldset>
           </CalculatorCard>
 
           <form.Subscribe
