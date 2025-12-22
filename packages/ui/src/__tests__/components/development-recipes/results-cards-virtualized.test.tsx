@@ -165,6 +165,7 @@ const TableWrapper: FC<TableWrapperProps> = ({ rows, children }) => {
     columns: testColumns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    sortingFns: {},
   });
   return <TestWrapper>{children(table)}</TestWrapper>;
 };
