@@ -54,3 +54,85 @@ export const MIN_CONTAINER_HEIGHT = '400px';
  * Calculated as: 100dvh - minimal header/footer (120px)
  */
 export const MAX_CONTAINER_HEIGHT = 'calc(100dvh - 120px)';
+
+/**
+ * Debounce delay for resize observations in milliseconds.
+ * This prevents the virtualizer from recalculating on every frame during
+ * rapid window resizing, which can cause browser lockups.
+ */
+export const RESIZE_DEBOUNCE_MS = 100;
+
+/**
+ * Type for the rect object used by TanStack Virtual's observeElementRect.
+ */
+export interface VirtualizerRect {
+  width: number;
+  height: number;
+}
+
+/**
+ * Creates a debounced observeElementRect function for TanStack Virtual.
+ * This prevents browser lockups during rapid window resizing by batching
+ * resize observations.
+ *
+ * @param debounceMs - Debounce delay in milliseconds (default: RESIZE_DEBOUNCE_MS)
+ * @returns A function compatible with TanStack Virtual's observeElementRect option
+ */
+export function createDebouncedObserveElementRect(
+  debounceMs: number = RESIZE_DEBOUNCE_MS
+) {
+  return <T extends Element>(
+    instance: { options: { getScrollElement: () => T | null } },
+    cb: (rect: VirtualizerRect) => void
+  ): (() => void) | undefined => {
+    const element = instance.options.getScrollElement();
+    if (!element) return;
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let lastRect: VirtualizerRect | null = null;
+
+    const updateRect = (rect: VirtualizerRect) => {
+      // Skip if dimensions haven't changed
+      if (
+        lastRect &&
+        lastRect.width === rect.width &&
+        lastRect.height === rect.height
+      ) {
+        return;
+      }
+      lastRect = rect;
+      cb(rect);
+    };
+
+    const debouncedUpdate = (rect: VirtualizerRect) => {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(() => {
+        updateRect(rect);
+        timeoutId = null;
+      }, debounceMs);
+    };
+
+    // Initial measurement (not debounced)
+    const initialRect = element.getBoundingClientRect();
+    updateRect({ width: initialRect.width, height: initialRect.height });
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        const { width, height } = entry.contentRect;
+        debouncedUpdate({ width, height });
+      }
+    });
+
+    observer.observe(element);
+
+    return () => {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+      observer.disconnect();
+    };
+  };
+}

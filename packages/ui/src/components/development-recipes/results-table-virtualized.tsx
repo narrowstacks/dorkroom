@@ -2,12 +2,13 @@ import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { Cell, Header, HeaderGroup, Table } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
-import { type FC, useRef } from 'react';
+import { type FC, useMemo, useRef } from 'react';
 import { cn } from '../../lib/cn';
 import { SkeletonTableRow } from '../ui/skeleton';
 import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
 import { useRecipeHoverStyles } from './use-recipe-hover-styles';
 import {
+  createDebouncedObserveElementRect,
   DEFAULT_CONTAINER_HEIGHT,
   MAX_CONTAINER_HEIGHT,
   MIN_CONTAINER_HEIGHT,
@@ -41,11 +42,19 @@ export const DevelopmentResultsTableVirtualized: FC<
   const internalRef = useRef<HTMLDivElement>(null);
   const parentRef = scrollContainerRef || internalRef;
 
+  // Memoize the debounced observer to prevent recreation on every render
+  const debouncedObserveElementRect = useMemo(
+    () => createDebouncedObserveElementRect(),
+    []
+  );
+
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => TABLE_ROW_ESTIMATED_HEIGHT,
     overscan: TABLE_OVERSCAN,
+    // Use debounced resize observation to prevent browser lockups during rapid resizing
+    observeElementRect: debouncedObserveElementRect,
   });
 
   const virtualRows = rowVirtualizer.getVirtualItems();

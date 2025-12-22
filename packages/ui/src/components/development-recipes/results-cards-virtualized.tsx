@@ -3,7 +3,7 @@ import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { Row, Table } from '@tanstack/react-table';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { Beaker, Edit2, ExternalLink, Star, Trash2 } from 'lucide-react';
-import { type FC, useEffect, useRef, useState } from 'react';
+import { type FC, useEffect, useMemo, useRef, useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
@@ -20,9 +20,11 @@ import {
 import {
   CARD_OVERSCAN,
   CARD_ROW_ESTIMATED_HEIGHT,
+  createDebouncedObserveElementRect,
   DEFAULT_CONTAINER_HEIGHT,
   MAX_CONTAINER_HEIGHT,
   MIN_CONTAINER_HEIGHT,
+  RESIZE_DEBOUNCE_MS,
 } from './virtualization-constants';
 
 /** Tailwind breakpoint widths in pixels */
@@ -33,6 +35,8 @@ const BREAKPOINT_SM = 640;
 /**
  * Hook to calculate responsive column count based on container width
  * Matches Tailwind breakpoints: sm:640px, lg:1024px, xl:1280px
+ *
+ * Uses debounced ResizeObserver to prevent browser lockups during rapid resizing.
  */
 function useResponsiveColumnCount(
   containerRef: React.RefObject<HTMLDivElement | null>,
@@ -59,6 +63,28 @@ function useResponsiveColumnCount(
 
     // Track mount state to prevent updates after unmount
     let isMounted = true;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let lastColumnCount: number | null = null;
+
+    const updateColumnCount = (width: number) => {
+      const newColumnCount = calculateColumns(width);
+      // Skip update if column count hasn't changed
+      if (lastColumnCount === newColumnCount) return;
+      lastColumnCount = newColumnCount;
+      setColumnCount(newColumnCount);
+    };
+
+    const debouncedUpdate = (width: number) => {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(() => {
+        if (isMounted) {
+          updateColumnCount(width);
+        }
+        timeoutId = null;
+      }, RESIZE_DEBOUNCE_MS);
+    };
 
     const observer = new ResizeObserver((entries) => {
       // Prevent state updates if component unmounted during async callback
@@ -66,16 +92,19 @@ function useResponsiveColumnCount(
 
       for (const entry of entries) {
         const width = entry.contentRect.width;
-        setColumnCount(calculateColumns(width));
+        debouncedUpdate(width);
       }
     });
 
     observer.observe(container);
-    // Initial calculation
-    setColumnCount(calculateColumns(container.clientWidth));
+    // Initial calculation (not debounced)
+    updateColumnCount(container.clientWidth);
 
     return () => {
       isMounted = false; // Set flag first to prevent any in-flight callbacks
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
       observer.disconnect();
     };
   }, [containerRef, isMobile]);
@@ -167,11 +196,19 @@ export const DevelopmentResultsCardsVirtualized: FC<
   // Calculate number of columns based on container width (responsive)
   const columnCount = useResponsiveColumnCount(parentRef, isMobile);
 
+  // Memoize the debounced observer to prevent recreation on every render
+  const debouncedObserveElementRect = useMemo(
+    () => createDebouncedObserveElementRect(),
+    []
+  );
+
   const rowVirtualizer = useVirtualizer({
     count: Math.ceil(rows.length / columnCount),
     getScrollElement: () => parentRef.current,
     estimateSize: () => CARD_ROW_ESTIMATED_HEIGHT,
     overscan: CARD_OVERSCAN,
+    // Use debounced resize observation to prevent browser lockups during rapid resizing
+    observeElementRect: debouncedObserveElementRect,
   });
 
   const virtualRows = rowVirtualizer.getVirtualItems();

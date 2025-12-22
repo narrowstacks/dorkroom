@@ -3,6 +3,12 @@
   "include": [],
   "references": [
     {
+      "path": "../logic"
+    },
+    {
+      "path": "../api"
+    },
+    {
       "path": "./tsconfig.lib.json"
     },
     {

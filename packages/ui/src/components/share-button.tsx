@@ -23,6 +23,8 @@ export interface ShareButtonProps {
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   children?: React.ReactNode;
+  /** When true, only show the icon without text label */
+  iconOnly?: boolean;
 }
 
 export function ShareButton({
@@ -33,6 +35,7 @@ export function ShareButton({
   size = 'md',
   className,
   children,
+  iconOnly = false,
 }: ShareButtonProps) {
   const [showToast, setShowToast] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -179,6 +182,12 @@ export function ShareButton({
         onBlur={(e) => {
           e.currentTarget.style.boxShadow = '';
         }}
+        aria-label={
+          iconOnly ? (shouldUseWebShare() ? 'Share' : 'Copy link') : undefined
+        }
+        title={
+          iconOnly ? (shouldUseWebShare() ? 'Share' : 'Copy link') : undefined
+        }
       >
         {isLoading && (
           <svg
@@ -206,7 +215,7 @@ export function ShareButton({
 
         {!isLoading && (
           <svg
-            className="mr-2 h-4 w-4"
+            className={cn('h-4 w-4', !iconOnly && 'mr-2')}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -222,12 +231,13 @@ export function ShareButton({
           </svg>
         )}
 
-        {children ||
-          (isLoading
-            ? 'Sharing...'
-            : shouldUseWebShare()
-              ? 'Share'
-              : 'Copy link')}
+        {!iconOnly &&
+          (children ||
+            (isLoading
+              ? 'Sharing...'
+              : shouldUseWebShare()
+                ? 'Share'
+                : 'Copy link'))}
       </button>
 
       {/* Local toast notification that appears below the button */}
