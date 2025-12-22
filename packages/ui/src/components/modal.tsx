@@ -85,6 +85,8 @@ export function Modal({
       aria-modal="true"
       onClick={onClose}
     >
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: modal content stops propagation to prevent closing when clicking inside */}
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard events handled by parent dialog */}
       <div
         className={cn(
           'relative w-full rounded-2xl border p-6 shadow-xl backdrop-blur-lg',

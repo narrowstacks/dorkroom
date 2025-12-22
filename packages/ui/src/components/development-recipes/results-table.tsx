@@ -151,6 +151,7 @@ export function DevelopmentResultsTable({
                   }
 
                   return (
+                    // biome-ignore lint/a11y/useSemanticElements: Table row uses ARIA role with keyboard support; can't use button inside table
                     <tr
                       key={row.id}
                       role="button"

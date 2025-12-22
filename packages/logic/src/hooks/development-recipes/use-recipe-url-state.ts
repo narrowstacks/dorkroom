@@ -467,7 +467,7 @@ export const useRecipeUrlState = (
     params,
     recipesByUuid,
     isCustomRecipeUrl,
-    decodeSharedCustomRecipe, // Remove recipe param from URL after successful load
+    decodeSharedCustomRecipe,
     updateUrl,
   ]);
 

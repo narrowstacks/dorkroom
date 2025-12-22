@@ -112,7 +112,7 @@ export const createTableColumns = (
                 : `Pull ${combination.pushPull}`}
           </div>
           {combination.tags && combination.tags.length > 0 && (
-            <div className="mt-1 flex flex-wrap gap-1">
+            <div className="mt-1 flex flex-nowrap gap-1">
               {combination.tags.map((tag: string) => (
                 <Tag key={tag}>{tag}</Tag>
               ))}
@@ -168,7 +168,10 @@ export const createTableColumns = (
     sortingFn: 'favoriteAware',
   },
   {
-    accessorKey: 'combination.shootingIso',
+    // Use accessorFn instead of accessorKey for nested fields to ensure
+    // proper integration with custom sorting functions (favoriteAware)
+    id: 'combination.shootingIso',
+    accessorFn: (row) => row.combination.shootingIso,
     header: 'ISO',
     cell: (context: CellContext<DevelopmentCombinationView, unknown>) => {
       return (
@@ -181,7 +184,8 @@ export const createTableColumns = (
     sortingFn: 'favoriteAware',
   },
   {
-    accessorKey: 'combination.timeMinutes',
+    id: 'combination.timeMinutes',
+    accessorFn: (row) => row.combination.timeMinutes,
     header: 'Time',
     cell: (context: CellContext<DevelopmentCombinationView, unknown>) => {
       return (
@@ -194,7 +198,8 @@ export const createTableColumns = (
     sortingFn: 'favoriteAware',
   },
   {
-    accessorKey: 'combination.temperatureF',
+    id: 'combination.temperatureF',
+    accessorFn: (row) => row.combination.temperatureF,
     header: 'Temp',
     cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => (
       <TemperatureCellRenderer cellContext={cellContext} />
@@ -203,7 +208,8 @@ export const createTableColumns = (
     sortingFn: 'favoriteAware',
   },
   {
-    accessorKey: 'combination.dilutionId',
+    id: 'combination.dilutionId',
+    accessorFn: (row) => row.combination.dilutionId,
     header: 'Dilution',
     cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => {
       return (
@@ -215,7 +221,8 @@ export const createTableColumns = (
     enableSorting: false,
   },
   {
-    accessorKey: 'combination.infoSource',
+    id: 'combination.infoSource',
+    accessorFn: (row) => row.combination.infoSource,
     header: 'Notes',
     cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => {
       const { combination } = cellContext.row.original;
@@ -305,14 +312,18 @@ export const createTableColumns = (
           {isCustom ? (
             <div className="flex flex-col items-center gap-2">
               {context.onShareCombination && (
-                <div onClick={(e) => e.stopPropagation()}>
+                // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent row
+                <span
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
                   <ShareButton
                     onClick={() => context.onShareCombination?.(view)}
                     variant="outline"
                     size="sm"
                     className="text-xs"
                   />
-                </div>
+                </span>
               )}
               <div className="flex items-center justify-center gap-2">
                 <button
@@ -398,14 +409,18 @@ export const createTableColumns = (
               </div>
             </div>
           ) : (
-            <div onClick={(e) => e.stopPropagation()}>
+            // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent row
+            <span
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+            >
               <ShareButton
                 onClick={() => context.onShareCombination?.(view)}
                 variant="outline"
                 size="sm"
                 className="text-xs"
               />
-            </div>
+            </span>
           )}
         </div>
       );

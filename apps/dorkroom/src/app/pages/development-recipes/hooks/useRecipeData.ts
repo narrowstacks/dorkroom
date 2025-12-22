@@ -21,8 +21,6 @@ export interface UseRecipeDataProps {
   customRecipeFilter: 'all' | 'hide-custom' | 'only-custom';
   tagFilter: string;
   favoritesOnly: boolean;
-  sortBy: string;
-  sortDirection: 'asc' | 'desc';
   sharedCustomRecipe:
     | CustomRecipe
     | Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'>
@@ -65,8 +63,6 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     customRecipeFilter,
     tagFilter,
     favoritesOnly,
-    sortBy,
-    sortDirection,
     sharedCustomRecipe,
     flags,
     isFavorite,
@@ -304,56 +300,12 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
       });
     }
 
-    const sorted = rows.sort((a, b) => {
-      if (sortBy === 'timeMinutes') {
-        return sortDirection === 'asc'
-          ? a.combination.timeMinutes - b.combination.timeMinutes
-          : b.combination.timeMinutes - a.combination.timeMinutes;
-      }
-      if (sortBy === 'temperatureF') {
-        return sortDirection === 'asc'
-          ? a.combination.temperatureF - b.combination.temperatureF
-          : b.combination.temperatureF - a.combination.temperatureF;
-      }
-      if (sortBy === 'shootingIso') {
-        return sortDirection === 'asc'
-          ? a.combination.shootingIso - b.combination.shootingIso
-          : b.combination.shootingIso - a.combination.shootingIso;
-      }
-      if (sortBy === 'developerName') {
-        const nameA = a.developer
-          ? `${a.developer.manufacturer} ${a.developer.name}`
-          : '';
-        const nameB = b.developer
-          ? `${b.developer.manufacturer} ${b.developer.name}`
-          : '';
-        return sortDirection === 'asc'
-          ? nameA.localeCompare(nameB)
-          : nameB.localeCompare(nameA);
-      }
-      const nameA = a.film ? `${a.film.brand} ${a.film.name}` : '';
-      const nameB = b.film ? `${b.film.brand} ${b.film.name}` : '';
-      return sortDirection === 'asc'
-        ? nameA.localeCompare(nameB)
-        : nameB.localeCompare(nameA);
-    });
-    // Stable partition: favorites first, then others, keeping relative order
-    const fav: DevelopmentCombinationView[] = [];
-    const nonFav: DevelopmentCombinationView[] = [];
-    for (const r of sorted) {
-      const id = String(r.combination.uuid || r.combination.id);
-      if (isFavorite(id)) {
-        fav.push(r);
-      } else {
-        nonFav.push(r);
-      }
-    }
-    return [...fav, ...nonFav];
+    // NOTE: Sorting is now handled by TanStack Table via the favoriteAware sorting function
+    // in use-development-table.ts. Return unsorted rows to allow table-based sorting.
+    return rows;
   }, [
     apiCombinationViews,
     filteredCustomViews,
-    sortBy,
-    sortDirection,
     customRecipeFilter,
     tagFilter,
     favoritesOnly,

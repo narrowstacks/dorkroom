@@ -1,11 +1,12 @@
 import {
   cn,
   type DevelopmentCombinationView,
-  DevelopmentResultsCards,
-  DevelopmentResultsTable,
+  DevelopmentResultsCardsVirtualized,
+  DevelopmentResultsTableVirtualized,
   type ShareResult,
   SkeletonCard,
   SkeletonTableRow,
+  VirtualizedErrorBoundary,
 } from '@dorkroom/ui';
 import type { Table } from '@tanstack/react-table';
 import { Loader2 } from 'lucide-react';
@@ -19,6 +20,8 @@ export interface RecipeResultsSectionProps {
   viewMode: 'table' | 'grid';
   table: Table<DevelopmentCombinationView>;
   resultsContainerRef: React.RefObject<HTMLDivElement | null>;
+  /** Ref to the virtualized scroll container, used to scroll to top on page change */
+  virtualScrollContainerRef: React.RefObject<HTMLDivElement | null>;
   favoriteTransitions: Map<string, 'adding' | 'removing'>;
   onSelectCombination: (view: DevelopmentCombinationView) => void;
   onToggleFavorite: (view: DevelopmentCombinationView) => void;
@@ -40,6 +43,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
     viewMode,
     table,
     resultsContainerRef,
+    virtualScrollContainerRef,
     favoriteTransitions,
     onSelectCombination,
     onToggleFavorite,
@@ -147,26 +151,32 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
           key={`results-${isLoaded}-${table.getRowModel().rows.length}`}
           className="animate-slide-fade-top"
         >
-          {isMobile || viewMode === 'grid' ? (
-            <DevelopmentResultsCards
-              table={table}
-              onSelectCombination={onSelectCombination}
-              isMobile={isMobile}
-              isFavorite={(view) => isFavorite(view)}
-              onToggleFavorite={onToggleFavorite}
-              onShareCombination={onShareCombination}
-              onCopyCombination={onCopyCombination}
-              onEditCustomRecipe={onEditCustomRecipe}
-              onDeleteCustomRecipe={onDeleteCustomRecipe}
-              favoriteTransitions={favoriteTransitions}
-            />
-          ) : (
-            <DevelopmentResultsTable
-              table={table}
-              onSelectCombination={onSelectCombination}
-              favoriteTransitions={favoriteTransitions}
-            />
-          )}
+          <VirtualizedErrorBoundary>
+            {isMobile || viewMode === 'grid' ? (
+              <DevelopmentResultsCardsVirtualized
+                table={table}
+                onSelectCombination={onSelectCombination}
+                isMobile={isMobile}
+                isFavorite={(view: DevelopmentCombinationView) =>
+                  isFavorite(view)
+                }
+                onToggleFavorite={onToggleFavorite}
+                onShareCombination={onShareCombination}
+                onCopyCombination={onCopyCombination}
+                onEditCustomRecipe={onEditCustomRecipe}
+                onDeleteCustomRecipe={onDeleteCustomRecipe}
+                favoriteTransitions={favoriteTransitions}
+                scrollContainerRef={virtualScrollContainerRef}
+              />
+            ) : (
+              <DevelopmentResultsTableVirtualized
+                table={table}
+                onSelectCombination={onSelectCombination}
+                favoriteTransitions={favoriteTransitions}
+                scrollContainerRef={virtualScrollContainerRef}
+              />
+            )}
+          </VirtualizedErrorBoundary>
         </div>
       )}
     </div>

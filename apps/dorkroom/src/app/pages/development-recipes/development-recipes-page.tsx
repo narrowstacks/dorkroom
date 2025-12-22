@@ -14,6 +14,8 @@ import {
   createTableColumns,
   DevelopmentActionsBar,
   FilmDeveloperSelection,
+  FiltersSidebar,
+  MobileSortingControls,
   PaginationControls,
   TemperatureProvider,
   useIsMobile,
@@ -37,8 +39,6 @@ export default function DevelopmentRecipesPage() {
     isoFilter,
     customRecipeFilter,
     tagFilter,
-    sortBy,
-    sortDirection,
     selectedFilm,
     selectedDeveloper,
     isLoading,
@@ -125,6 +125,7 @@ export default function DevelopmentRecipesPage() {
   ]);
   const [pageIndex, setPageIndex] = useState(0);
   const resultsContainerRef = useRef<HTMLDivElement>(null);
+  const virtualScrollContainerRef = useRef<HTMLDivElement>(null);
   const { animationsEnabled } = useTheme();
   const [favoriteTransitions, setFavoriteTransitions] = useState<
     Map<string, 'adding' | 'removing'>
@@ -176,8 +177,6 @@ export default function DevelopmentRecipesPage() {
     customRecipeFilter,
     tagFilter,
     favoritesOnly,
-    sortBy,
-    sortDirection,
     sharedCustomRecipe,
     flags,
     isFavorite,
@@ -279,6 +278,7 @@ export default function DevelopmentRecipesPage() {
     setPageIndex,
     favoriteTransitions,
     resultsContainerRef,
+    virtualScrollContainerRef,
   });
 
   // Create table columns with action handlers
@@ -311,9 +311,23 @@ export default function DevelopmentRecipesPage() {
     isFavorite: memoizedIsFavorite,
   });
 
+  // Reset to first page when sorting changes
+  // Memoize the stringified sorting to avoid recreating on every render
+  const sortingKey = useMemo(() => JSON.stringify(sorting), [sorting]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: sortingKey is intentionally used to trigger page reset when sorting changes
+  useEffect(() => {
+    setPageIndex(0);
+  }, [sortingKey]);
+
+  const clearSelections = () => {
+    setSelectedFilm(null);
+    setSelectedDeveloper(null);
+  };
+
   return (
     <TemperatureProvider>
-      <div className="mx-auto max-w-7xl space-y-6 py-6 px-4 pb-12 sm:px-6 lg:px-8">
+      {/* Max-width of 1920px accommodates wider displays while maintaining content readability */}
+      <div className="mx-auto max-w-[1920px] space-y-6 py-6 px-4 pb-12 sm:px-6 lg:px-8">
         {error && (
           <div
             className="rounded-2xl px-4 py-3 text-sm"
@@ -347,69 +361,154 @@ export default function DevelopmentRecipesPage() {
           isMobile={isMobile}
         />
 
-        <FilmDeveloperSelection
-          selectedFilm={selectedFilm?.uuid || ''}
-          onFilmChange={(value) => {
-            const film = allFilms.find((f) => f.uuid === value);
-            setSelectedFilm(film || null);
-          }}
-          filmOptions={filmOptions}
-          selectedDeveloper={selectedDeveloper?.uuid || ''}
-          onDeveloperChange={(value) => {
-            const developer = allDevelopers.find((d) => d.uuid === value);
-            setSelectedDeveloper(developer || null);
-          }}
-          developerOptions={developerOptions}
-        />
+        {isMobile ? (
+          <>
+            <FilmDeveloperSelection
+              selectedFilm={selectedFilm?.uuid || ''}
+              onFilmChange={(value) => {
+                const film = allFilms.find((f) => f.uuid === value);
+                setSelectedFilm(film || null);
+              }}
+              filmOptions={filmOptions}
+              selectedDeveloper={selectedDeveloper?.uuid || ''}
+              onDeveloperChange={(value) => {
+                const developer = allDevelopers.find((d) => d.uuid === value);
+                setSelectedDeveloper(developer || null);
+              }}
+              developerOptions={developerOptions}
+            />
 
-        <CollapsibleFilters
-          developerTypeFilter={developerTypeFilter}
-          onDeveloperTypeFilterChange={setDeveloperTypeFilter}
-          developerTypeOptions={[
-            { label: 'All developers', value: '' },
-            { label: 'Powder', value: 'powder' },
-            { label: 'Concentrate', value: 'concentrate' },
-          ]}
-          dilutionFilter={dilutionFilter}
-          onDilutionFilterChange={setDilutionFilter}
-          dilutionOptions={getAvailableDilutions()}
-          isoFilter={isoFilter}
-          onIsoFilterChange={setIsoFilter}
-          isoOptions={getAvailableISOs()}
-          customRecipeFilter={customRecipeFilter}
-          onCustomRecipeFilterChange={setCustomRecipeFilter}
-          tagFilter={tagFilter}
-          onTagFilterChange={setTagFilter}
-          tagOptions={getAvailableTags()}
-          onClearFilters={clearFilters}
-          showDeveloperTypeFilter={!selectedDeveloper}
-          showDilutionFilter={!!selectedDeveloper}
-          defaultCollapsed={true}
-          favoritesOnly={favoritesOnly}
-          onFavoritesOnlyChange={setFavoritesOnly}
-        />
+            <CollapsibleFilters
+              developerTypeFilter={developerTypeFilter}
+              onDeveloperTypeFilterChange={setDeveloperTypeFilter}
+              developerTypeOptions={[
+                { label: 'All developers', value: '' },
+                { label: 'Powder', value: 'powder' },
+                { label: 'Concentrate', value: 'concentrate' },
+              ]}
+              dilutionFilter={dilutionFilter}
+              onDilutionFilterChange={setDilutionFilter}
+              dilutionOptions={getAvailableDilutions()}
+              isoFilter={isoFilter}
+              onIsoFilterChange={setIsoFilter}
+              isoOptions={getAvailableISOs()}
+              customRecipeFilter={customRecipeFilter}
+              onCustomRecipeFilterChange={setCustomRecipeFilter}
+              tagFilter={tagFilter}
+              onTagFilterChange={setTagFilter}
+              tagOptions={getAvailableTags()}
+              onClearFilters={clearFilters}
+              showDeveloperTypeFilter={!selectedDeveloper}
+              showDilutionFilter={!!selectedDeveloper}
+              showIsoFilter={!!selectedFilm}
+              defaultCollapsed={true}
+              favoritesOnly={favoritesOnly}
+              onFavoritesOnlyChange={setFavoritesOnly}
+            />
 
-        <RecipeResultsSection
-          isLoading={isLoading}
-          isRefreshingData={isRefreshingData}
-          isLoaded={isLoaded}
-          isMobile={isMobile}
-          viewMode={viewMode}
-          table={table}
-          resultsContainerRef={resultsContainerRef}
-          favoriteTransitions={favoriteTransitions}
-          onSelectCombination={handleOpenDetail}
-          onToggleFavorite={handleToggleFavorite}
-          onShareCombination={handleShareCombination}
-          onCopyCombination={handleCopyCombination}
-          onEditCustomRecipe={handleEditCustomRecipe}
-          onDeleteCustomRecipe={handleDeleteCustomRecipe}
-          isFavorite={handleCheckFavorite}
-        />
+            <MobileSortingControls
+              sorting={sorting}
+              onSortingChange={setSorting}
+            />
 
-        {!isLoading && !isRefreshingData && (
-          <div className="animate-slide-fade-top animate-delay-300">
-            <PaginationControls table={table} />
+            <RecipeResultsSection
+              isLoading={isLoading}
+              isRefreshingData={isRefreshingData}
+              isLoaded={isLoaded}
+              isMobile={isMobile}
+              viewMode={viewMode}
+              table={table}
+              resultsContainerRef={resultsContainerRef}
+              virtualScrollContainerRef={virtualScrollContainerRef}
+              favoriteTransitions={favoriteTransitions}
+              onSelectCombination={handleOpenDetail}
+              onToggleFavorite={handleToggleFavorite}
+              onShareCombination={handleShareCombination}
+              onCopyCombination={handleCopyCombination}
+              onEditCustomRecipe={handleEditCustomRecipe}
+              onDeleteCustomRecipe={handleDeleteCustomRecipe}
+              isFavorite={handleCheckFavorite}
+            />
+
+            {!isLoading && !isRefreshingData && (
+              <div className="animate-slide-fade-top animate-delay-300">
+                <PaginationControls table={table} />
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="flex gap-6">
+            <aside className="w-80 flex-shrink-0">
+              <FiltersSidebar
+                selectedFilm={selectedFilm?.uuid || ''}
+                onFilmChange={(value) => {
+                  const film = allFilms.find((f) => f.uuid === value);
+                  setSelectedFilm(film || null);
+                }}
+                filmOptions={filmOptions}
+                selectedDeveloper={selectedDeveloper?.uuid || ''}
+                onDeveloperChange={(value) => {
+                  const developer = allDevelopers.find((d) => d.uuid === value);
+                  setSelectedDeveloper(developer || null);
+                }}
+                developerOptions={developerOptions}
+                developerTypeFilter={developerTypeFilter}
+                onDeveloperTypeFilterChange={setDeveloperTypeFilter}
+                developerTypeOptions={[
+                  { label: 'All developers', value: '' },
+                  { label: 'Powder', value: 'powder' },
+                  { label: 'Concentrate', value: 'concentrate' },
+                ]}
+                dilutionFilter={dilutionFilter}
+                onDilutionFilterChange={setDilutionFilter}
+                dilutionOptions={getAvailableDilutions()}
+                isoFilter={isoFilter}
+                onIsoFilterChange={setIsoFilter}
+                isoOptions={getAvailableISOs()}
+                customRecipeFilter={customRecipeFilter}
+                onCustomRecipeFilterChange={setCustomRecipeFilter}
+                tagFilter={tagFilter}
+                onTagFilterChange={setTagFilter}
+                tagOptions={getAvailableTags()}
+                favoritesOnly={favoritesOnly}
+                onFavoritesOnlyChange={setFavoritesOnly}
+                sorting={sorting}
+                onSortingChange={setSorting}
+                showSortingControls={viewMode === 'grid'}
+                onClearFilters={clearFilters}
+                onClearSelections={clearSelections}
+                showDeveloperTypeFilter={!selectedDeveloper}
+                showDilutionFilter={!!selectedDeveloper}
+                showIsoFilter={!!selectedFilm}
+              />
+            </aside>
+
+            <main className="flex-1 min-w-0 space-y-6">
+              <RecipeResultsSection
+                isLoading={isLoading}
+                isRefreshingData={isRefreshingData}
+                isLoaded={isLoaded}
+                isMobile={isMobile}
+                viewMode={viewMode}
+                table={table}
+                resultsContainerRef={resultsContainerRef}
+                virtualScrollContainerRef={virtualScrollContainerRef}
+                favoriteTransitions={favoriteTransitions}
+                onSelectCombination={handleOpenDetail}
+                onToggleFavorite={handleToggleFavorite}
+                onShareCombination={handleShareCombination}
+                onCopyCombination={handleCopyCombination}
+                onEditCustomRecipe={handleEditCustomRecipe}
+                onDeleteCustomRecipe={handleDeleteCustomRecipe}
+                isFavorite={handleCheckFavorite}
+              />
+
+              {!isLoading && !isRefreshingData && (
+                <div className="animate-slide-fade-top animate-delay-300">
+                  <PaginationControls table={table} />
+                </div>
+              )}
+            </main>
           </div>
         )}
 

@@ -11,6 +11,8 @@ export interface UseResultsPaginationProps {
   setPageIndex: Dispatch<SetStateAction<number>>;
   favoriteTransitions: Map<string, 'adding' | 'removing'>;
   resultsContainerRef: RefObject<HTMLDivElement | null>;
+  /** Ref to the virtualized scroll container, scrolled to top on page change */
+  virtualScrollContainerRef: RefObject<HTMLDivElement | null>;
 }
 
 /**
@@ -18,10 +20,30 @@ export interface UseResultsPaginationProps {
  * Scrolls to top of results when page changes and prevents unwanted resets during transitions
  */
 export function useResultsPagination(props: UseResultsPaginationProps): void {
-  const { pageIndex, setPageIndex, favoriteTransitions, resultsContainerRef } =
-    props;
+  const {
+    pageIndex,
+    setPageIndex,
+    favoriteTransitions,
+    resultsContainerRef,
+    virtualScrollContainerRef,
+  } = props;
 
-  // Scroll to top of results when page changes, accounting for floating navbar
+  // Scroll virtualized container to top when page changes
+  const prevPageIndex = useRef(pageIndex);
+  useEffect(() => {
+    // Only scroll if page actually changed (not initial render)
+    if (prevPageIndex.current !== pageIndex) {
+      if (virtualScrollContainerRef.current) {
+        virtualScrollContainerRef.current.scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        });
+      }
+    }
+    prevPageIndex.current = pageIndex;
+  }, [pageIndex, virtualScrollContainerRef]);
+
+  // Scroll window to results container when page changes, accounting for floating navbar
   useEffect(() => {
     if (resultsContainerRef.current) {
       const element = resultsContainerRef.current;
