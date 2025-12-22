@@ -1,25 +1,69 @@
-import { useRef, useState, type FC } from 'react';
-import { Beaker, ExternalLink, Edit2, Trash2, Star } from 'lucide-react';
-import type { Table, Row } from '@tanstack/react-table';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { Dilution } from '@dorkroom/api';
+import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import type { Row, Table } from '@tanstack/react-table';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { Beaker, Edit2, ExternalLink, Star, Trash2 } from 'lucide-react';
+import { type FC, useEffect, useRef, useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
-import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
-import { Tag } from '../ui/tag';
-import { ShareButton } from '../share-button';
+import { formatTemperatureWithUnit } from '../../lib/temperature';
 import type { ShareResult } from '../share-button';
-import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
+import { ShareButton } from '../share-button';
 import { SkeletonCard } from '../ui/skeleton';
+import { Tag } from '../ui/tag';
+import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
+
+/**
+ * Hook to calculate responsive column count based on container width
+ * Matches Tailwind breakpoints: sm:640px, lg:1024px, xl:1280px
+ */
+function useResponsiveColumnCount(
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  isMobile: boolean
+): number {
+  const [columnCount, setColumnCount] = useState(isMobile ? 2 : 3);
+
+  useEffect(() => {
+    if (isMobile) {
+      setColumnCount(2);
+      return;
+    }
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const calculateColumns = (width: number): number => {
+      // Match Tailwind breakpoints for grid-cols
+      if (width >= 1280) return 4; // xl
+      if (width >= 1024) return 3; // lg
+      if (width >= 640) return 2; // sm
+      return 1;
+    };
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const width = entry.contentRect.width;
+        setColumnCount(calculateColumns(width));
+      }
+    });
+
+    observer.observe(container);
+    // Initial calculation
+    setColumnCount(calculateColumns(container.clientWidth));
+
+    return () => observer.disconnect();
+  }, [containerRef, isMobile]);
+
+  return columnCount;
+}
 
 interface DevelopmentResultsCardsVirtualizedProps {
   table: Table<DevelopmentCombinationView>;
   onSelectCombination?: (view: DevelopmentCombinationView) => void;
   onShareCombination?: (
     view: DevelopmentCombinationView
-  ) => void | ShareResult | Promise<void | ShareResult>;
+  ) => undefined | ShareResult | Promise<undefined | ShareResult>;
   onCopyCombination?: (view: DevelopmentCombinationView) => void;
   onEditCustomRecipe?: (view: DevelopmentCombinationView) => void;
   onDeleteCustomRecipe?: (view: DevelopmentCombinationView) => void;
@@ -27,6 +71,10 @@ interface DevelopmentResultsCardsVirtualizedProps {
   isFavorite?: (view: DevelopmentCombinationView) => boolean;
   onToggleFavorite?: (view: DevelopmentCombinationView) => void;
   favoriteTransitions?: Map<string, 'adding' | 'removing'>;
+  /** Height of the virtualized container. Defaults to calc(100dvh - 280px) */
+  height?: string;
+  /** Ref to the scroll container, can be used to scroll to top on page change */
+  scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 const formatTime = (minutes: number) => {
@@ -75,6 +123,8 @@ export const DevelopmentResultsCardsVirtualized: FC<
   isFavorite,
   onToggleFavorite,
   favoriteTransitions = new Map(),
+  height = 'calc(100dvh - 280px)',
+  scrollContainerRef,
 }) => {
   const { unit } = useTemperature();
   const [hoveredFavoriteId, setHoveredFavoriteId] = useState<string | null>(
@@ -82,10 +132,11 @@ export const DevelopmentResultsCardsVirtualized: FC<
   );
   const rows = table.getRowModel().rows;
 
-  const parentRef = useRef<HTMLDivElement>(null);
+  const internalRef = useRef<HTMLDivElement>(null);
+  const parentRef = scrollContainerRef || internalRef;
 
-  // Calculate number of columns based on viewport
-  const columnCount = isMobile ? 2 : 4;
+  // Calculate number of columns based on container width (responsive)
+  const columnCount = useResponsiveColumnCount(parentRef, isMobile);
 
   const rowVirtualizer = useVirtualizer({
     count: Math.ceil(rows.length / columnCount),
@@ -100,7 +151,9 @@ export const DevelopmentResultsCardsVirtualized: FC<
     <div
       ref={parentRef}
       style={{
-        height: '600px',
+        height,
+        minHeight: '400px',
+        maxHeight: 'calc(100dvh - 120px)',
         overflow: 'auto',
       }}
     >
@@ -128,12 +181,8 @@ export const DevelopmentResultsCardsVirtualized: FC<
               }}
             >
               <div
-                className={cn(
-                  'grid gap-4',
-                  isMobile
-                    ? 'grid-cols-2'
-                    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                )}
+                className="grid gap-4"
+                style={{ gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` }}
               >
                 {rowItems.map((row: Row<DevelopmentCombinationView>) => {
                   const rowData = row.original;
@@ -157,9 +206,18 @@ export const DevelopmentResultsCardsVirtualized: FC<
                   }
 
                   return (
+                    // biome-ignore lint/a11y/useSemanticElements: Card uses ARIA role with keyboard support instead of button to avoid resetting button styles
                     <div
                       key={combination.uuid || combination.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => onSelectCombination?.(rowData)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          onSelectCombination?.(rowData);
+                        }
+                      }}
                       className={cn(
                         'cursor-pointer rounded-2xl border p-3 shadow-subtle transition-all duration-200 hover:scale-[1.02]',
                         'animate-slide-fade-bottom'
@@ -273,13 +331,10 @@ export const DevelopmentResultsCardsVirtualized: FC<
                                 </span>
                               )}
                               {combination.tags &&
-                                combination.tags.length > 0 && (
-                                  <>
-                                    {combination.tags.map((tag: string) => (
-                                      <Tag key={tag}>{tag}</Tag>
-                                    ))}
-                                  </>
-                                )}
+                                combination.tags.length > 0 &&
+                                combination.tags.map((tag: string) => (
+                                  <Tag key={tag}>{tag}</Tag>
+                                ))}
                             </div>
                           )}
                         </div>
@@ -332,8 +387,8 @@ export const DevelopmentResultsCardsVirtualized: FC<
                               hoveredFavoriteId === id
                                 ? '#ffffff'
                                 : isFavorite?.(rowData)
-                                ? 'var(--color-semantic-warning)'
-                                : 'var(--color-border-secondary)'
+                                  ? 'var(--color-semantic-warning)'
+                                  : 'var(--color-border-secondary)'
                             }
                             strokeWidth={2}
                           />
@@ -445,7 +500,11 @@ export const DevelopmentResultsCardsVirtualized: FC<
                               )}
                               {rowData.source !== 'custom' &&
                                 (onShareCombination || onCopyCombination) && (
-                                  <div onClick={(e) => e.stopPropagation()}>
+                                  // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent card
+                                  <span
+                                    onClick={(e) => e.stopPropagation()}
+                                    onKeyDown={(e) => e.stopPropagation()}
+                                  >
                                     <ShareButton
                                       onClick={() =>
                                         onShareCombination?.(rowData)
@@ -454,7 +513,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
                                       size="sm"
                                       className="text-xs"
                                     />
-                                  </div>
+                                  </span>
                                 )}
                             </div>
                           )}
@@ -551,14 +610,18 @@ export const DevelopmentResultsCardsVirtualized: FC<
                               </button>
                             </div>
                             {onShareCombination && (
-                              <div onClick={(e) => e.stopPropagation()}>
+                              // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent card
+                              <span
+                                onClick={(e) => e.stopPropagation()}
+                                onKeyDown={(e) => e.stopPropagation()}
+                              >
                                 <ShareButton
                                   onClick={() => onShareCombination?.(rowData)}
                                   variant="outline"
                                   size="sm"
                                   className="text-xs"
                                 />
-                              </div>
+                              </span>
                             )}
                           </div>
                         </div>

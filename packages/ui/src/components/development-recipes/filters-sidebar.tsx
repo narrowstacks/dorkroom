@@ -1,9 +1,9 @@
-import { type FC } from 'react';
+import type { CustomRecipeFilter, SelectItem } from '@dorkroom/logic';
+import type { SortingState } from '@tanstack/react-table';
+import type { FC } from 'react';
+import { cn } from '../../lib/cn';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
-import type { SelectItem, CustomRecipeFilter } from '@dorkroom/logic';
-import type { SortingState } from '@tanstack/react-table';
-import { cn } from '../../lib/cn';
 
 interface FiltersSidebarProps {
   className?: string;
@@ -40,6 +40,7 @@ interface FiltersSidebarProps {
   onClearSelections: () => void;
   showDeveloperTypeFilter?: boolean;
   showDilutionFilter?: boolean;
+  showIsoFilter?: boolean;
 }
 
 const sortingOptions: SelectItem[] = [
@@ -92,6 +93,7 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
   onClearSelections,
   showDeveloperTypeFilter = true,
   showDilutionFilter = true,
+  showIsoFilter = true,
 }) => {
   const hasSelections = selectedFilm || selectedDeveloper;
 
@@ -118,7 +120,10 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
   };
 
   const handleSortingChange = (value: string) => {
-    const [id, direction] = value.split('-');
+    // Use lastIndexOf to handle column IDs that contain dashes (e.g., "combination.shootingIso-asc")
+    const lastDash = value.lastIndexOf('-');
+    const id = value.slice(0, lastDash);
+    const direction = value.slice(lastDash + 1);
     onSortingChange?.([{ id, desc: direction === 'desc' }]);
   };
 
@@ -219,12 +224,14 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
               items={dilutionOptions}
             />
           )}
-          <Select
-            label="ISO"
-            selectedValue={isoFilter}
-            onValueChange={onIsoFilterChange}
-            items={isoOptions}
-          />
+          {showIsoFilter && (
+            <Select
+              label="ISO"
+              selectedValue={isoFilter}
+              onValueChange={onIsoFilterChange}
+              items={isoOptions}
+            />
+          )}
           <Select
             label="Recipe type"
             selectedValue={customRecipeFilter}

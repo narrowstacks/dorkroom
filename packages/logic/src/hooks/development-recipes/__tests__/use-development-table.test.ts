@@ -1,8 +1,11 @@
-import { renderHook } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { useDevelopmentTable, type DevelopmentCombinationView } from '../use-development-table';
-import type { Combination, Film, Developer } from '@dorkroom/api';
+import type { Combination, Developer, Film } from '@dorkroom/api';
 import type { ColumnDef } from '@tanstack/react-table';
+import { renderHook } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import {
+  type DevelopmentCombinationView,
+  useDevelopmentTable,
+} from '../use-development-table';
 
 describe('useDevelopmentTable', () => {
   const mockFilm: Film = {
@@ -42,9 +45,12 @@ describe('useDevelopmentTable', () => {
     updatedAt: '2023-01-01',
   };
 
-  const createMockCombination = (overrides: Partial<Combination> = {}): Combination => ({
-    id: '1',
+  const createMockCombination = (
+    overrides: Partial<Combination> = {}
+  ): Combination => ({
+    id: 1,
     uuid: 'c1',
+    name: 'HP5 Plus in DD-X',
     filmStockId: 'f1',
     developerId: 'd1',
     dilutionId: '1',
@@ -53,32 +59,52 @@ describe('useDevelopmentTable', () => {
     timeMinutes: 8,
     temperatureF: 68,
     temperatureC: 20,
-    agitationType: 'continuous',
-    agitationFrequencySeconds: 30,
+    agitationMethod: 'continuous',
+    agitationSchedule: null,
     notes: null,
     infoSource: null,
     customDilution: null,
     filmSlug: 'hp5',
     developerSlug: 'dd-x',
     tags: [],
+    createdAt: '2023-01-01',
+    updatedAt: '2023-01-01',
     ...overrides,
   });
 
   const createMockRows = (): DevelopmentCombinationView[] => [
     {
-      combination: createMockCombination({ id: '1', uuid: 'c1', shootingIso: 400, timeMinutes: 8, temperatureF: 68 }),
+      combination: createMockCombination({
+        id: 1,
+        uuid: 'c1',
+        shootingIso: 400,
+        timeMinutes: 8,
+        temperatureF: 68,
+      }),
       film: mockFilm,
       developer: mockDeveloper,
       source: 'api',
     },
     {
-      combination: createMockCombination({ id: '2', uuid: 'c2', shootingIso: 200, timeMinutes: 10, temperatureF: 70 }),
+      combination: createMockCombination({
+        id: 2,
+        uuid: 'c2',
+        shootingIso: 200,
+        timeMinutes: 10,
+        temperatureF: 70,
+      }),
       film: mockFilm,
       developer: mockDeveloper,
       source: 'api',
     },
     {
-      combination: createMockCombination({ id: '3', uuid: 'c3', shootingIso: 800, timeMinutes: 6, temperatureF: 65 }),
+      combination: createMockCombination({
+        id: 3,
+        uuid: 'c3',
+        shootingIso: 800,
+        timeMinutes: 6,
+        temperatureF: 65,
+      }),
       film: mockFilm,
       developer: mockDeveloper,
       source: 'api',
@@ -92,35 +118,30 @@ describe('useDevelopmentTable', () => {
       accessorKey: 'film',
       header: 'Film',
       enableSorting: true,
-      sortingFn: 'favoriteAware',
     },
     {
       id: 'developer',
       accessorKey: 'developer',
       header: 'Developer',
       enableSorting: true,
-      sortingFn: 'favoriteAware',
     },
     {
       id: 'combination.shootingIso',
       accessorFn: (row) => row.combination.shootingIso,
       header: 'ISO',
       enableSorting: true,
-      sortingFn: 'favoriteAware',
     },
     {
       id: 'combination.timeMinutes',
       accessorFn: (row) => row.combination.timeMinutes,
       header: 'Time',
       enableSorting: true,
-      sortingFn: 'favoriteAware',
     },
     {
       id: 'combination.temperatureF',
       accessorFn: (row) => row.combination.temperatureF,
       header: 'Temp',
       enableSorting: true,
-      sortingFn: 'favoriteAware',
     },
   ];
 
@@ -141,7 +162,9 @@ describe('useDevelopmentTable', () => {
       })
     );
 
-    expect(result.current.getState().sorting).toEqual([{ id: 'film', desc: false }]);
+    expect(result.current.getState().sorting).toEqual([
+      { id: 'film', desc: false },
+    ]);
   });
 
   it('should sort by ISO (low to high)', () => {

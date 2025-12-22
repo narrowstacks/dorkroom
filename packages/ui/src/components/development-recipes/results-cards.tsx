@@ -109,9 +109,18 @@ export function DevelopmentResultsCards({
         }
 
         return (
+          // biome-ignore lint/a11y/useSemanticElements: Card uses ARIA role with keyboard support instead of button to avoid resetting button styles
           <div
             key={combination.uuid || combination.id}
+            role="button"
+            tabIndex={0}
             onClick={() => onSelectCombination?.(rowData)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                onSelectCombination?.(rowData);
+              }
+            }}
             className={cn(
               'cursor-pointer rounded-2xl border p-3 shadow-subtle transition-all duration-200 hover:scale-[1.02]',
               'animate-slide-fade-bottom',
@@ -385,14 +394,18 @@ export function DevelopmentResultsCards({
                     )}
                     {rowData.source !== 'custom' &&
                       (onShareCombination || onCopyCombination) && (
-                        <div onClick={(e) => e.stopPropagation()}>
+                        // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent card
+                        <span
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                        >
                           <ShareButton
                             onClick={() => onShareCombination?.(rowData)}
                             variant="outline"
                             size="sm"
                             className="text-xs"
                           />
-                        </div>
+                        </span>
                       )}
                   </div>
                 )}
@@ -487,14 +500,18 @@ export function DevelopmentResultsCards({
                     </button>
                   </div>
                   {onShareCombination && (
-                    <div onClick={(e) => e.stopPropagation()}>
+                    // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent card
+                    <span
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    >
                       <ShareButton
                         onClick={() => onShareCombination?.(rowData)}
                         variant="outline"
                         size="sm"
                         className="text-xs"
                       />
-                    </div>
+                    </span>
                   )}
                 </div>
               </div>

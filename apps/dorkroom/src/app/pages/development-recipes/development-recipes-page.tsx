@@ -39,8 +39,6 @@ export default function DevelopmentRecipesPage() {
     isoFilter,
     customRecipeFilter,
     tagFilter,
-    sortBy,
-    sortDirection,
     selectedFilm,
     selectedDeveloper,
     isLoading,
@@ -127,6 +125,7 @@ export default function DevelopmentRecipesPage() {
   ]);
   const [pageIndex, setPageIndex] = useState(0);
   const resultsContainerRef = useRef<HTMLDivElement>(null);
+  const virtualScrollContainerRef = useRef<HTMLDivElement>(null);
   const { animationsEnabled } = useTheme();
   const [favoriteTransitions, setFavoriteTransitions] = useState<
     Map<string, 'adding' | 'removing'>
@@ -178,8 +177,6 @@ export default function DevelopmentRecipesPage() {
     customRecipeFilter,
     tagFilter,
     favoritesOnly,
-    sortBy,
-    sortDirection,
     sharedCustomRecipe,
     flags,
     isFavorite,
@@ -281,6 +278,7 @@ export default function DevelopmentRecipesPage() {
     setPageIndex,
     favoriteTransitions,
     resultsContainerRef,
+    virtualScrollContainerRef,
   });
 
   // Create table columns with action handlers
@@ -314,6 +312,7 @@ export default function DevelopmentRecipesPage() {
   });
 
   // Reset to first page when sorting changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: sorting is intentionally used to trigger page reset
   useEffect(() => {
     setPageIndex(0);
   }, [sorting]);
@@ -398,6 +397,7 @@ export default function DevelopmentRecipesPage() {
               onClearFilters={clearFilters}
               showDeveloperTypeFilter={!selectedDeveloper}
               showDilutionFilter={!!selectedDeveloper}
+              showIsoFilter={!!selectedFilm}
               defaultCollapsed={true}
               favoritesOnly={favoritesOnly}
               onFavoritesOnlyChange={setFavoritesOnly}
@@ -416,6 +416,7 @@ export default function DevelopmentRecipesPage() {
               viewMode={viewMode}
               table={table}
               resultsContainerRef={resultsContainerRef}
+              virtualScrollContainerRef={virtualScrollContainerRef}
               favoriteTransitions={favoriteTransitions}
               onSelectCombination={handleOpenDetail}
               onToggleFavorite={handleToggleFavorite}
@@ -475,6 +476,7 @@ export default function DevelopmentRecipesPage() {
                 onClearSelections={clearSelections}
                 showDeveloperTypeFilter={!selectedDeveloper}
                 showDilutionFilter={!!selectedDeveloper}
+                showIsoFilter={!!selectedFilm}
               />
             </aside>
 
@@ -487,6 +489,7 @@ export default function DevelopmentRecipesPage() {
                 viewMode={viewMode}
                 table={table}
                 resultsContainerRef={resultsContainerRef}
+                virtualScrollContainerRef={virtualScrollContainerRef}
                 favoriteTransitions={favoriteTransitions}
                 onSelectCombination={handleOpenDetail}
                 onToggleFavorite={handleToggleFavorite}

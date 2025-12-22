@@ -23,6 +23,7 @@ interface CollapsibleFiltersProps {
   onClearFilters: () => void;
   showDeveloperTypeFilter?: boolean;
   showDilutionFilter?: boolean;
+  showIsoFilter?: boolean;
   defaultCollapsed?: boolean;
   favoritesOnly?: boolean;
   onFavoritesOnlyChange?: (value: boolean) => void;
@@ -47,6 +48,7 @@ export function CollapsibleFilters({
   onClearFilters,
   showDeveloperTypeFilter = true,
   showDilutionFilter = true,
+  showIsoFilter = true,
   defaultCollapsed = true,
   favoritesOnly = false,
   onFavoritesOnlyChange,
@@ -189,12 +191,14 @@ export function CollapsibleFilters({
                 items={dilutionOptions}
               />
             )}
-            <Select
-              label="ISO"
-              selectedValue={isoFilter}
-              onValueChange={onIsoFilterChange}
-              items={isoOptions}
-            />
+            {showIsoFilter && (
+              <Select
+                label="ISO"
+                selectedValue={isoFilter}
+                onValueChange={onIsoFilterChange}
+                items={isoOptions}
+              />
+            )}
             <Select
               label="Recipe type"
               selectedValue={customRecipeFilter}

@@ -112,7 +112,7 @@ export const createTableColumns = (
                 : `Pull ${combination.pushPull}`}
           </div>
           {combination.tags && combination.tags.length > 0 && (
-            <div className="mt-1 flex flex-wrap gap-1">
+            <div className="mt-1 flex flex-nowrap gap-1">
               {combination.tags.map((tag: string) => (
                 <Tag key={tag}>{tag}</Tag>
               ))}

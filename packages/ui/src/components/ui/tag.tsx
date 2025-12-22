@@ -13,7 +13,7 @@ export function Tag({ children, className, size = 'xs' }: TagProps) {
   return (
     <span
       className={cn(
-        'rounded-full px-2 py-0.5 uppercase tracking-wide border',
+        'rounded-full px-2 py-0.5 uppercase tracking-wide border whitespace-nowrap',
         size === 'xs' ? 'text-[10px]' : 'text-xs',
         className
       )}

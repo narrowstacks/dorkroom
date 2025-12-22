@@ -21,8 +21,6 @@ export interface UseRecipeDataProps {
   customRecipeFilter: 'all' | 'hide-custom' | 'only-custom';
   tagFilter: string;
   favoritesOnly: boolean;
-  sortBy: string;
-  sortDirection: 'asc' | 'desc';
   sharedCustomRecipe:
     | CustomRecipe
     | Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'>
@@ -65,8 +63,6 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     customRecipeFilter,
     tagFilter,
     favoritesOnly,
-    sortBy,
-    sortDirection,
     sharedCustomRecipe,
     flags,
     isFavorite,

@@ -1,26 +1,37 @@
-import { useRef, type FC } from 'react';
-import type { Table, HeaderGroup, Header, Cell } from '@tanstack/react-table';
+import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import type { Cell, Header, HeaderGroup, Table } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import { type FC, useRef } from 'react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
-import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
 import { SkeletonTableRow } from '../ui/skeleton';
+import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
 
 interface DevelopmentResultsTableVirtualizedProps {
   table: Table<DevelopmentCombinationView>;
   onSelectCombination?: (view: DevelopmentCombinationView) => void;
   favoriteTransitions?: Map<string, 'adding' | 'removing'>;
+  /** Height of the virtualized container. Defaults to calc(100dvh - 280px) */
+  height?: string;
+  /** Ref to the scroll container, can be used to scroll to top on page change */
+  scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export const DevelopmentResultsTableVirtualized: FC<
   DevelopmentResultsTableVirtualizedProps
-> = ({ table, onSelectCombination, favoriteTransitions = new Map() }) => {
+> = ({
+  table,
+  onSelectCombination,
+  favoriteTransitions = new Map(),
+  height = 'calc(100dvh - 280px)',
+  scrollContainerRef,
+}) => {
   const rows = table.getRowModel().rows;
   const headerGroups = table.getHeaderGroups();
 
-  const parentRef = useRef<HTMLDivElement>(null);
+  const internalRef = useRef<HTMLDivElement>(null);
+  const parentRef = scrollContainerRef || internalRef;
 
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
@@ -50,7 +61,9 @@ export const DevelopmentResultsTableVirtualized: FC<
         <div
           ref={parentRef}
           style={{
-            height: '600px',
+            height,
+            minHeight: '400px',
+            maxHeight: 'calc(100dvh - 120px)',
             overflow: 'auto',
           }}
         >
@@ -67,9 +80,8 @@ export const DevelopmentResultsTableVirtualized: FC<
             <thead
               className="text-xs uppercase tracking-wide sticky top-0 z-10"
               style={{
-                backgroundColor: 'rgba(var(--color-surface-muted-rgb), 0.95)',
+                backgroundColor: 'var(--color-surface-muted)',
                 color: 'var(--color-text-tertiary)',
-                backdropFilter: 'blur(8px)',
               }}
             >
               {headerGroups.map(
@@ -151,7 +163,7 @@ export const DevelopmentResultsTableVirtualized: FC<
                 </tr>
               )}
               {virtualRows.length > 0 ? (
-                virtualRows.map((virtualRow, index) => {
+                virtualRows.map((virtualRow) => {
                   const row = rows[virtualRow.index];
                   const rowData = row.original;
                   const id = String(
@@ -175,6 +187,7 @@ export const DevelopmentResultsTableVirtualized: FC<
                   }
 
                   return (
+                    // biome-ignore lint/a11y/useSemanticElements: Table row uses ARIA role with keyboard support for clickable behavior
                     <tr
                       key={row.id}
                       role="button"
@@ -251,7 +264,7 @@ export const DevelopmentResultsTableVirtualized: FC<
               ) : (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={table.getAllColumns().length}
                     className="px-6 py-12 text-center text-sm"
                     style={{ color: 'var(--color-text-muted)' }}
                   >

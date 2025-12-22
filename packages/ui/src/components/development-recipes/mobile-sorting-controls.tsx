@@ -1,8 +1,8 @@
-import { type FC } from 'react';
-import { Select } from '../select';
 import type { SelectItem } from '@dorkroom/logic';
 import type { SortingState } from '@tanstack/react-table';
+import type { FC } from 'react';
 import { cn } from '../../lib/cn';
+import { Select } from '../select';
 
 interface MobileSortingControlsProps {
   className?: string;
@@ -43,7 +43,10 @@ export const MobileSortingControls: FC<MobileSortingControlsProps> = ({
   };
 
   const handleSortingChange = (value: string) => {
-    const [id, direction] = value.split('-');
+    // Use lastIndexOf to handle column IDs that contain dashes (e.g., "combination.shootingIso-asc")
+    const lastDash = value.lastIndexOf('-');
+    const id = value.slice(0, lastDash);
+    const direction = value.slice(lastDash + 1);
     onSortingChange([{ id, desc: direction === 'desc' }]);
   };
 
