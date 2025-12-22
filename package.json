@@ -34,7 +34,7 @@
     "@vercel/analytics": "^1.5.0",
     "@vercel/node": "^5.3.24",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.544.0",
+    "lucide-react": "^0.562.0",
     "react": "19.2.3",
     "react-dom": "19.0.0",
     "tailwind-merge": "^3.3.1",
