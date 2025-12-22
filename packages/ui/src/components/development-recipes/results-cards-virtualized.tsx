@@ -75,8 +75,8 @@ function useResponsiveColumnCount(
     setColumnCount(calculateColumns(container.clientWidth));
 
     return () => {
-      isMounted = false;
       observer.disconnect();
+      isMounted = false;
     };
   }, [containerRef, isMobile]);
 

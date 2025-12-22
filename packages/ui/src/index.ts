@@ -47,6 +47,7 @@ export { SharedRecipeModal } from './components/development-recipes/shared-recip
 export type { TableColumnContext } from './components/development-recipes/table-columns';
 export { createTableColumns } from './components/development-recipes/table-columns';
 export { TemperatureUnitToggle } from './components/development-recipes/temperature-unit-toggle';
+export { VirtualizedErrorBoundary } from './components/development-recipes/virtualized-error-boundary';
 export { DimensionInputGroup } from './components/dimension-input-group';
 export { Drawer, DrawerBody, DrawerContent } from './components/drawer';
 export { ErrorBoundary } from './components/error-boundary';

@@ -312,10 +312,12 @@ export default function DevelopmentRecipesPage() {
   });
 
   // Reset to first page when sorting changes
-  // biome-ignore lint/correctness/useExhaustiveDependencies: sorting is intentionally used to trigger page reset
+  // Using JSON.stringify to ensure stable comparison and prevent potential infinite loops
+  const sortingKey = JSON.stringify(sorting);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: sortingKey is intentionally used to trigger page reset when sorting changes
   useEffect(() => {
     setPageIndex(0);
-  }, [sorting]);
+  }, [sortingKey]);
 
   const clearSelections = () => {
     setSelectedFilm(null);
@@ -324,6 +326,7 @@ export default function DevelopmentRecipesPage() {
 
   return (
     <TemperatureProvider>
+      {/* Max-width of 1920px accommodates wider displays while maintaining content readability */}
       <div className="mx-auto max-w-[1920px] space-y-6 py-6 px-4 pb-12 sm:px-6 lg:px-8">
         {error && (
           <div
