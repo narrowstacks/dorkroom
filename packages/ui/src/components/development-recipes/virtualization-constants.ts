@@ -25,11 +25,12 @@ export const TABLE_OVERSCAN = 5;
  * - Header section with film/developer names (~48px)
  * - Tags/badges row (~24px)
  * - 2x2 stats grid (ISO, Time, Temp, Dilution) (~96px)
- * - Source link and action buttons (~48px)
- * - Padding and gaps (~64px)
- * Total: ~280px for typical card
+ * - Source link and action buttons (~36px)
+ * - Padding (~36px)
+ * - Row gap to match horizontal gap-4 (~16px)
+ * Total: ~256px for typical card row
  */
-export const CARD_ROW_ESTIMATED_HEIGHT = 280;
+export const CARD_ROW_ESTIMATED_HEIGHT = 240;
 
 /**
  * Number of card rows to render above/below the visible viewport.

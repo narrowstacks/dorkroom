@@ -176,6 +176,9 @@ export const DevelopmentResultsCardsVirtualized: FC<
 
   const virtualRows = rowVirtualizer.getVirtualItems();
 
+  // Padding to prevent hover scale effect from being clipped at container edges
+  const HOVER_OVERFLOW_PADDING = 8;
+
   return (
     <div
       ref={parentRef}
@@ -184,6 +187,11 @@ export const DevelopmentResultsCardsVirtualized: FC<
         minHeight: MIN_CONTAINER_HEIGHT,
         maxHeight: MAX_CONTAINER_HEIGHT,
         overflow: 'auto',
+        // Add padding to accommodate hover scale effect overflow
+        paddingTop: HOVER_OVERFLOW_PADDING,
+        paddingBottom: HOVER_OVERFLOW_PADDING,
+        paddingLeft: HOVER_OVERFLOW_PADDING,
+        paddingRight: HOVER_OVERFLOW_PADDING,
       }}
     >
       <div
