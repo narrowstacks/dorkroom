@@ -7,16 +7,8 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  type FC,
-  it,
-  type ReactNode,
-  vi,
-} from 'vitest';
+import type { FC, ReactNode } from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DevelopmentResultsCardsVirtualized } from '../../../components/development-recipes/results-cards-virtualized';
 import { TemperatureProvider } from '../../../contexts/temperature-context';
 
@@ -93,7 +85,7 @@ const mockDeveloper: Developer = {
   type: 'liquid',
   description: 'Standard dev',
   filmOrPaper: true,
-  dilutions: [{ id: 1, name: '1+4', dilution: '1+4' }],
+  dilutions: [{ id: '1', name: '1+4', dilution: '1+4' }],
   mixingInstructions: null,
   storageRequirements: null,
   safetyNotes: null,
