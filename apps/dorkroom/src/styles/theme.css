@@ -20,6 +20,8 @@
 [data-theme="darkroom"] {
   --color-background: #000000;
   --color-background-rgb: 0, 0, 0;
+  --settings-container-bg: #000000;
+  --settings-container-border: #ff0000;
   --color-surface: #000000;
   --color-surface-muted: #000000;
   --color-primary: #ff0000;
@@ -119,6 +121,8 @@
 [data-theme="dark"] {
   --color-background: #09090b;
   --color-background-rgb: 9, 9, 11;
+  --settings-container-bg: rgba(0, 0, 0, 0.35);
+  --settings-container-border: rgba(255, 255, 255, 0.08);
   --color-surface: #121214;
   --color-surface-muted: #1c1c1f;
   --color-primary: #6ef3a4;
@@ -248,6 +252,8 @@
 [data-theme="light"] {
   --color-background: #ffffff;
   --color-background-rgb: 255, 255, 255;
+  --settings-container-bg: rgba(0, 0, 0, 0.03);
+  --settings-container-border: rgba(0, 0, 0, 0.1);
   --color-surface: #f8f9fa;
   --color-surface-muted: #f1f3f4;
   --color-primary: #2d7a4a; /* deep green for accessible accents */
@@ -377,6 +383,8 @@
 [data-theme="high-contrast"] {
   --color-background: #ffffff;
   --color-background-rgb: 255, 255, 255;
+  --settings-container-bg: #ffffff;
+  --settings-container-border: #000000;
   --color-surface: #ffffff;
   --color-surface-muted: #ffffff;
   --color-primary: #000000;
@@ -480,6 +488,8 @@
 :root:not([data-theme]) {
   --color-background: #09090b;
   --color-background-rgb: 9, 9, 11;
+  --settings-container-bg: rgba(0, 0, 0, 0.35);
+  --settings-container-border: rgba(255, 255, 255, 0.08);
   --color-surface: #121214;
   --color-surface-muted: #1c1c1f;
   --color-primary: #6ef3a4;

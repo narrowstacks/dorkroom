@@ -6,6 +6,7 @@ interface SettingsButtonProps {
   value?: string;
   onPress: () => void;
   icon?: LucideIcon;
+  iconClassName?: string;
   showChevron?: boolean;
   centerLabel?: boolean;
   className?: string;
@@ -17,6 +18,7 @@ export function SettingsButton({
   value,
   onPress,
   icon: Icon,
+  iconClassName,
   showChevron = true,
   centerLabel = false,
   className,
@@ -70,7 +72,7 @@ export function SettingsButton({
         >
           {Icon && (
             <Icon
-              className="h-5 w-5"
+              className={cn('h-5 w-5 shrink-0', iconClassName)}
               style={{ color: 'var(--color-text-tertiary)' }}
             />
           )}
