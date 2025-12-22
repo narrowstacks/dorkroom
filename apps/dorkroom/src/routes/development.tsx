@@ -8,58 +8,15 @@ const DevelopmentRecipesPage = lazy(
 );
 
 // Define search param schema for type-safety and validation
+// Invalid params are silently recovered to undefined for better UX
 const developmentSearchSchema = z.object({
-  film: z
-    .string()
-    .optional()
-    .catch((ctx) => {
-      if (import.meta.env.DEV) console.warn('Invalid film param:', ctx.error);
-      return undefined;
-    }),
-  developer: z
-    .string()
-    .optional()
-    .catch((ctx) => {
-      if (import.meta.env.DEV)
-        console.warn('Invalid developer param:', ctx.error);
-      return undefined;
-    }),
-  dilution: z
-    .string()
-    .optional()
-    .catch((ctx) => {
-      if (import.meta.env.DEV)
-        console.warn('Invalid dilution param:', ctx.error);
-      return undefined;
-    }),
-  iso: z
-    .string()
-    .optional()
-    .catch((ctx) => {
-      if (import.meta.env.DEV) console.warn('Invalid iso param:', ctx.error);
-      return undefined;
-    }),
-  recipe: z
-    .string()
-    .optional()
-    .catch((ctx) => {
-      if (import.meta.env.DEV) console.warn('Invalid recipe param:', ctx.error);
-      return undefined;
-    }),
-  source: z
-    .string()
-    .optional()
-    .catch((ctx) => {
-      if (import.meta.env.DEV) console.warn('Invalid source param:', ctx.error);
-      return undefined;
-    }),
-  view: z
-    .enum(['favorites', 'custom'])
-    .optional()
-    .catch((ctx) => {
-      if (import.meta.env.DEV) console.warn('Invalid view param:', ctx.error);
-      return undefined;
-    }),
+  film: z.string().optional().catch(undefined),
+  developer: z.string().optional().catch(undefined),
+  dilution: z.string().optional().catch(undefined),
+  iso: z.string().optional().catch(undefined),
+  recipe: z.string().optional().catch(undefined),
+  source: z.string().optional().catch(undefined),
+  view: z.enum(['favorites', 'custom']).optional().catch(undefined),
 });
 
 export type DevelopmentSearchParams = z.infer<typeof developmentSearchSchema>;

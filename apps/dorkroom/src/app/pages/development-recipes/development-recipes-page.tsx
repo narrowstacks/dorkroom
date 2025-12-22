@@ -312,8 +312,8 @@ export default function DevelopmentRecipesPage() {
   });
 
   // Reset to first page when sorting changes
-  // Using JSON.stringify to ensure stable comparison and prevent potential infinite loops
-  const sortingKey = JSON.stringify(sorting);
+  // Memoize the stringified sorting to avoid recreating on every render
+  const sortingKey = useMemo(() => JSON.stringify(sorting), [sorting]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: sortingKey is intentionally used to trigger page reset when sorting changes
   useEffect(() => {
     setPageIndex(0);

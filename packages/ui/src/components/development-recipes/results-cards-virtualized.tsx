@@ -75,8 +75,8 @@ function useResponsiveColumnCount(
     setColumnCount(calculateColumns(container.clientWidth));
 
     return () => {
+      isMounted = false; // Set flag first to prevent any in-flight callbacks
       observer.disconnect();
-      isMounted = false;
     };
   }, [containerRef, isMobile]);
 
@@ -378,7 +378,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
                             }
                             stroke={
                               hoveredFavoriteId === id
-                                ? '#ffffff'
+                                ? 'var(--color-background)'
                                 : isFavorite?.(rowData)
                                   ? 'var(--color-semantic-warning)'
                                   : 'var(--color-border-secondary)'
