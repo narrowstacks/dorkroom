@@ -116,6 +116,7 @@ bunx nx test logic
 - **Routing**: TanStack Router v1 with file-based routing
 - **Forms**: TanStack Form v1 with Zod validation
 - **Tables**: TanStack Table v8 for data tables
+- **Virtualization**: TanStack Virtual v3 for performant list rendering
 - **Schema Validation**: Zod 4.1.12
 - **Monorepo**: Nx with shared packages
 
@@ -151,6 +152,7 @@ api/                  # Serverless API endpoints (Vercel functions)
 - **Offline-Ready** - Smart caching with TanStack Query
 - **File-Based Routing** - Type-safe navigation with TanStack Router
 - **Form Validation** - Runtime schema validation with Zod
+- **Virtualized Lists** - Efficient rendering of large data sets with TanStack Virtual
 - **Development Database** - Tons of film development recipes
 - **Open Source** - Community-driven development under AGPL-3.0
 
@@ -169,11 +171,11 @@ Dorkroom provides a comprehensive API for accessing film development data, avail
 
 ## Contributing
 
-We welcome contributions from the analog photography community!
+We welcome contributions from the analog photography community! Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating.
 
 - **GitHub**: [https://github.com/narrowstacks/dorkroom](https://github.com/narrowstacks/dorkroom)
 - **Issues**: Report bugs or request features
-- **Pull Requests**: Submit improvements and new calculators
+- **Pull Requests**: Submit improvements and new calculators (see our [PR template](.github/PULL_REQUEST_TEMPLATE.md))
 
 ### Development Workflow
 
@@ -230,6 +232,7 @@ This project maintains high code quality standards with package-specific tooling
 - File-based routing with TanStack Router v1 for type-safe navigation
 - Form handling with TanStack Form v1 and Zod schema validation
 - Data tables with TanStack Table v8 for sorting, filtering, pagination
+- Virtualized lists with TanStack Virtual v3 for performant rendering of large datasets
 
 **Type Safety:**
 
@@ -277,6 +280,10 @@ bun run lint:fix
 | `bun run format`                         | Format code with Biome         |
 | `bun run lint:fix`                       | Lint and auto-fix with Biome   |
 | `bunx nx graph`                          | Visualize project dependencies |
+
+## Security
+
+Found a security vulnerability? Please report it responsibly. See our [Security Policy](SECURITY.md) for details on how to report issues and what to expect.
 
 ## License
 
