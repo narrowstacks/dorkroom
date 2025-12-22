@@ -1,7 +1,7 @@
 import type { Dilution } from '@dorkroom/api';
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { Row, Table } from '@tanstack/react-table';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { Beaker, Edit2, ExternalLink, Star, Trash2 } from 'lucide-react';
 import { type FC, useEffect, useRef, useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
@@ -193,7 +193,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
           position: 'relative',
         }}
       >
-        {virtualRows.map((virtualRow) => {
+        {virtualRows.map((virtualRow: VirtualItem) => {
           const startIndex = virtualRow.index * columnCount;
           const endIndex = Math.min(startIndex + columnCount, rows.length);
           const rowItems = rows.slice(startIndex, endIndex);

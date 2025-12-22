@@ -1,7 +1,7 @@
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { Cell, Header, HeaderGroup, Table } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { type FC, useRef } from 'react';
 import { cn } from '../../lib/cn';
 import { SkeletonTableRow } from '../ui/skeleton';
@@ -171,7 +171,7 @@ export const DevelopmentResultsTableVirtualized: FC<
                 </tr>
               )}
               {virtualRows.length > 0 ? (
-                virtualRows.map((virtualRow) => {
+                virtualRows.map((virtualRow: VirtualItem) => {
                   const row = rows[virtualRow.index];
                   const rowData = row.original;
                   const id = String(

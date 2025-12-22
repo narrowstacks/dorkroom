@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 1,
   "workspaces": {
     "": {
       "name": "@dorkroom/source",
@@ -102,6 +101,7 @@
         "@dorkroom/api": "workspace:*",
         "@dorkroom/logic": "*",
         "@tanstack/react-table": "^8.20.5",
+        "@tanstack/react-virtual": "^3.13.13",
         "clsx": "^2.1.1",
         "tailwind-merge": "^3.3.1",
       },

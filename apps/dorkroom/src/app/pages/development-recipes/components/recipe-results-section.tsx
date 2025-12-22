@@ -157,7 +157,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
                 table={table}
                 onSelectCombination={onSelectCombination}
                 isMobile={isMobile}
-                isFavorite={(view) => isFavorite(view)}
+                isFavorite={(view: DevelopmentCombinationView) => isFavorite(view)}
                 onToggleFavorite={onToggleFavorite}
                 onShareCombination={onShareCombination}
                 onCopyCombination={onCopyCombination}
