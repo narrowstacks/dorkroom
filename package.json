@@ -71,7 +71,6 @@
     "jsdom": "~22.1.0",
     "nx": "22.3.3",
     "postcss": "^8.5.6",
-    "supabase": "^2.67.3",
     "tailwindcss": "^4.1.18",
     "tslib": "^2.3.0",
     "typescript": "^5.9.3",
@@ -79,6 +78,9 @@
     "vitest": "^3.0.0"
   },
   "workspaces": ["apps/*", "packages/*"],
+  "optionalDependencies": {
+    "supabase": "^2.67.3"
+  },
   "overrides": {
     "@swc/core": "~1.13.5",
     "react": "19.0.0",
