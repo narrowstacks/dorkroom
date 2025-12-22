@@ -8,7 +8,7 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 
 **Do not open a public GitHub issue for security vulnerabilities.**
 
-Instead, please email us at: **security@dorkroom.art**
+Instead, please email us at: **aaron@affords.art**
 
 Include the following information:
 
