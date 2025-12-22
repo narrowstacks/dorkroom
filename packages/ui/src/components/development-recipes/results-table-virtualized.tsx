@@ -4,9 +4,16 @@ import { flexRender } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { type FC, useRef } from 'react';
 import { cn } from '../../lib/cn';
-import { colorMixOr } from '../../lib/color';
 import { SkeletonTableRow } from '../ui/skeleton';
 import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
+import { useRecipeHoverStyles } from './use-recipe-hover-styles';
+import {
+  DEFAULT_CONTAINER_HEIGHT,
+  MAX_CONTAINER_HEIGHT,
+  MIN_CONTAINER_HEIGHT,
+  TABLE_OVERSCAN,
+  TABLE_ROW_ESTIMATED_HEIGHT,
+} from './virtualization-constants';
 
 interface DevelopmentResultsTableVirtualizedProps {
   table: Table<DevelopmentCombinationView>;
@@ -24,11 +31,12 @@ export const DevelopmentResultsTableVirtualized: FC<
   table,
   onSelectCombination,
   favoriteTransitions = new Map(),
-  height = 'calc(100dvh - 280px)',
+  height = DEFAULT_CONTAINER_HEIGHT,
   scrollContainerRef,
 }) => {
   const rows = table.getRowModel().rows;
   const headerGroups = table.getHeaderGroups();
+  const hoverStyles = useRecipeHoverStyles();
 
   const internalRef = useRef<HTMLDivElement>(null);
   const parentRef = scrollContainerRef || internalRef;
@@ -36,8 +44,8 @@ export const DevelopmentResultsTableVirtualized: FC<
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 80,
-    overscan: 5,
+    estimateSize: () => TABLE_ROW_ESTIMATED_HEIGHT,
+    overscan: TABLE_OVERSCAN,
   });
 
   const virtualRows = rowVirtualizer.getVirtualItems();
@@ -62,8 +70,8 @@ export const DevelopmentResultsTableVirtualized: FC<
           ref={parentRef}
           style={{
             height,
-            minHeight: '400px',
-            maxHeight: 'calc(100dvh - 120px)',
+            minHeight: MIN_CONTAINER_HEIGHT,
+            maxHeight: MAX_CONTAINER_HEIGHT,
             overflow: 'auto',
           }}
         >
@@ -186,6 +194,12 @@ export const DevelopmentResultsTableVirtualized: FC<
                     }
                   }
 
+                  // Pre-select styles based on source to avoid calculation in event handlers
+                  const styles =
+                    rowData.source === 'custom'
+                      ? hoverStyles.custom
+                      : hoverStyles.api;
+
                   return (
                     // biome-ignore lint/a11y/useSemanticElements: Table row uses ARIA role with keyboard support for clickable behavior
                     <tr
@@ -204,37 +218,15 @@ export const DevelopmentResultsTableVirtualized: FC<
                         'animate-slide-fade-bottom'
                       )}
                       style={{
-                        backgroundColor:
-                          rowData.source === 'custom'
-                            ? colorMixOr(
-                                'var(--color-accent)',
-                                15,
-                                'transparent',
-                                'var(--color-border-muted)'
-                              )
-                            : 'rgba(var(--color-background-rgb), 0.25)',
+                        backgroundColor: styles.default.backgroundColor,
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor =
-                          rowData.source === 'custom'
-                            ? colorMixOr(
-                                'var(--color-accent)',
-                                25,
-                                'transparent',
-                                'var(--color-border-secondary)'
-                              )
-                            : 'rgba(var(--color-background-rgb), 0.35)';
+                          styles.hover.backgroundColor;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor =
-                          rowData.source === 'custom'
-                            ? colorMixOr(
-                                'var(--color-accent)',
-                                15,
-                                'transparent',
-                                'var(--color-border-muted)'
-                              )
-                            : 'rgba(var(--color-background-rgb), 0.25)';
+                          styles.default.backgroundColor;
                       }}
                     >
                       {row
