@@ -20,6 +20,7 @@ export default function SettingsPage() {
   const { unit, setUnit } = useMeasurement();
 
   const showAnimations = theme !== 'high-contrast' && theme !== 'darkroom';
+  const hideEmojis = theme === 'high-contrast' || theme === 'darkroom';
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -147,7 +148,7 @@ export default function SettingsPage() {
               </h2>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1">
                 <SettingsButton
-                  label="Imperial 🇺🇸"
+                  label={hideEmojis ? 'Imperial' : 'Imperial 🇺🇸'}
                   value="Inches, feet"
                   onPress={() => setUnit('imperial')}
                   icon={Ruler}
@@ -156,7 +157,7 @@ export default function SettingsPage() {
                   isSelected={unit === 'imperial'}
                 />
                 <SettingsButton
-                  label="Metric 🌍"
+                  label={hideEmojis ? 'Metric' : 'Metric 🌍'}
                   value="Millimeters, centimeters"
                   onPress={() => setUnit('metric')}
                   icon={Globe}
