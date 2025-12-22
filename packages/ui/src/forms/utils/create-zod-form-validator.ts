@@ -5,13 +5,13 @@ import type { z } from 'zod';
  * Returns TanStack's expected "global form error" shape so the form can map
  * issues back to individual fields.
  */
-export const createZodFormValidator = <TSchema extends z.ZodTypeAny>(
-  schema: TSchema
+export const createZodFormValidator = <TInput, TOutput>(
+  schema: z.ZodType<TOutput, TInput>
 ) => {
   return ({
     value,
   }: {
-    value: z.input<TSchema>;
+    value: TInput;
   }):
     | {
         form?: string;

@@ -3,15 +3,6 @@
   "include": [],
   "references": [
     {
-      "path": "../../packages/api"
-    },
-    {
-      "path": "../../packages/logic"
-    },
-    {
-      "path": "../../packages/ui"
-    },
-    {
       "path": "./tsconfig.app.json"
     }
   ],
