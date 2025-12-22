@@ -168,6 +168,8 @@ export const createTableColumns = (
     sortingFn: 'favoriteAware',
   },
   {
+    // Use accessorFn instead of accessorKey for nested fields to ensure
+    // proper integration with custom sorting functions (favoriteAware)
     id: 'combination.shootingIso',
     accessorFn: (row) => row.combination.shootingIso,
     header: 'ISO',
@@ -310,14 +312,18 @@ export const createTableColumns = (
           {isCustom ? (
             <div className="flex flex-col items-center gap-2">
               {context.onShareCombination && (
-                <div onClick={(e) => e.stopPropagation()}>
+                // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent row
+                <span
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
                   <ShareButton
                     onClick={() => context.onShareCombination?.(view)}
                     variant="outline"
                     size="sm"
                     className="text-xs"
                   />
-                </div>
+                </span>
               )}
               <div className="flex items-center justify-center gap-2">
                 <button
@@ -403,14 +409,18 @@ export const createTableColumns = (
               </div>
             </div>
           ) : (
-            <div onClick={(e) => e.stopPropagation()}>
+            // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent row
+            <span
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+            >
               <ShareButton
                 onClick={() => context.onShareCombination?.(view)}
                 variant="outline"
                 size="sm"
                 className="text-xs"
               />
-            </div>
+            </span>
           )}
         </div>
       );

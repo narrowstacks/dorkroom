@@ -13,6 +13,22 @@ import { ShareButton } from '../share-button';
 import { SkeletonCard } from '../ui/skeleton';
 import { Tag } from '../ui/tag';
 import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
+import {
+  useDeleteButtonStyles,
+  useRecipeHoverStyles,
+} from './use-recipe-hover-styles';
+import {
+  CARD_OVERSCAN,
+  CARD_ROW_ESTIMATED_HEIGHT,
+  DEFAULT_CONTAINER_HEIGHT,
+  MAX_CONTAINER_HEIGHT,
+  MIN_CONTAINER_HEIGHT,
+} from './virtualization-constants';
+
+/** Tailwind breakpoint widths in pixels */
+const BREAKPOINT_XL = 1280;
+const BREAKPOINT_LG = 1024;
+const BREAKPOINT_SM = 640;
 
 /**
  * Hook to calculate responsive column count based on container width
@@ -35,13 +51,19 @@ function useResponsiveColumnCount(
 
     const calculateColumns = (width: number): number => {
       // Match Tailwind breakpoints for grid-cols
-      if (width >= 1280) return 4; // xl
-      if (width >= 1024) return 3; // lg
-      if (width >= 640) return 2; // sm
+      if (width >= BREAKPOINT_XL) return 4; // xl
+      if (width >= BREAKPOINT_LG) return 3; // lg
+      if (width >= BREAKPOINT_SM) return 2; // sm
       return 1;
     };
 
+    // Track mount state to prevent updates after unmount
+    let isMounted = true;
+
     const observer = new ResizeObserver((entries) => {
+      // Prevent state updates if component unmounted during async callback
+      if (!isMounted) return;
+
       for (const entry of entries) {
         const width = entry.contentRect.width;
         setColumnCount(calculateColumns(width));
@@ -52,7 +74,10 @@ function useResponsiveColumnCount(
     // Initial calculation
     setColumnCount(calculateColumns(container.clientWidth));
 
-    return () => observer.disconnect();
+    return () => {
+      isMounted = false;
+      observer.disconnect();
+    };
   }, [containerRef, isMobile]);
 
   return columnCount;
@@ -123,7 +148,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
   isFavorite,
   onToggleFavorite,
   favoriteTransitions = new Map(),
-  height = 'calc(100dvh - 280px)',
+  height = DEFAULT_CONTAINER_HEIGHT,
   scrollContainerRef,
 }) => {
   const { unit } = useTemperature();
@@ -131,6 +156,10 @@ export const DevelopmentResultsCardsVirtualized: FC<
     null
   );
   const rows = table.getRowModel().rows;
+
+  // Pre-compute hover styles to avoid recalculating on every hover event
+  const hoverStyles = useRecipeHoverStyles();
+  const deleteButtonStyles = useDeleteButtonStyles();
 
   const internalRef = useRef<HTMLDivElement>(null);
   const parentRef = scrollContainerRef || internalRef;
@@ -141,8 +170,8 @@ export const DevelopmentResultsCardsVirtualized: FC<
   const rowVirtualizer = useVirtualizer({
     count: Math.ceil(rows.length / columnCount),
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 280,
-    overscan: 2,
+    estimateSize: () => CARD_ROW_ESTIMATED_HEIGHT,
+    overscan: CARD_OVERSCAN,
   });
 
   const virtualRows = rowVirtualizer.getVirtualItems();
@@ -152,8 +181,8 @@ export const DevelopmentResultsCardsVirtualized: FC<
       ref={parentRef}
       style={{
         height,
-        minHeight: '400px',
-        maxHeight: 'calc(100dvh - 120px)',
+        minHeight: MIN_CONTAINER_HEIGHT,
+        maxHeight: MAX_CONTAINER_HEIGHT,
         overflow: 'auto',
       }}
     >
@@ -182,7 +211,9 @@ export const DevelopmentResultsCardsVirtualized: FC<
             >
               <div
                 className="grid gap-4"
-                style={{ gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` }}
+                style={{
+                  gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,
+                }}
               >
                 {rowItems.map((row: Row<DevelopmentCombinationView>) => {
                   const rowData = row.original;
@@ -205,6 +236,12 @@ export const DevelopmentResultsCardsVirtualized: FC<
                     }
                   }
 
+                  // Pre-select styles based on source to avoid calculation in event handlers
+                  const cardStyles =
+                    rowData.source === 'custom'
+                      ? hoverStyles.custom
+                      : hoverStyles.api;
+
                   return (
                     // biome-ignore lint/a11y/useSemanticElements: Card uses ARIA role with keyboard support instead of button to avoid resetting button styles
                     <div
@@ -223,64 +260,20 @@ export const DevelopmentResultsCardsVirtualized: FC<
                         'animate-slide-fade-bottom'
                       )}
                       style={{
-                        borderColor:
-                          rowData.source === 'custom'
-                            ? colorMixOr(
-                                'var(--color-accent)',
-                                30,
-                                'transparent',
-                                'var(--color-border-secondary)'
-                              )
-                            : 'var(--color-border-secondary)',
-                        backgroundColor:
-                          rowData.source === 'custom'
-                            ? colorMixOr(
-                                'var(--color-accent)',
-                                15,
-                                'transparent',
-                                'var(--color-border-muted)'
-                              )
-                            : 'rgba(var(--color-background-rgb), 0.25)',
+                        borderColor: cardStyles.default.borderColor,
+                        backgroundColor: cardStyles.default.backgroundColor,
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.borderColor =
-                          rowData.source === 'custom'
-                            ? colorMixOr(
-                                'var(--color-accent)',
-                                40,
-                                'transparent',
-                                'var(--color-border-primary)'
-                              )
-                            : 'var(--color-border-primary)';
+                          cardStyles.hover.borderColor;
                         e.currentTarget.style.backgroundColor =
-                          rowData.source === 'custom'
-                            ? colorMixOr(
-                                'var(--color-accent)',
-                                20,
-                                'transparent',
-                                'var(--color-border-secondary)'
-                              )
-                            : 'rgba(var(--color-background-rgb), 0.3)';
+                          cardStyles.hover.backgroundColor;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.borderColor =
-                          rowData.source === 'custom'
-                            ? colorMixOr(
-                                'var(--color-accent)',
-                                30,
-                                'transparent',
-                                'var(--color-border-secondary)'
-                              )
-                            : 'var(--color-border-secondary)';
+                          cardStyles.default.borderColor;
                         e.currentTarget.style.backgroundColor =
-                          rowData.source === 'custom'
-                            ? colorMixOr(
-                                'var(--color-accent)',
-                                15,
-                                'transparent',
-                                'var(--color-border-muted)'
-                              )
-                            : 'rgba(var(--color-background-rgb), 0.25)';
+                          cardStyles.default.backgroundColor;
                       }}
                     >
                       <div className="flex justify-between items-start">
@@ -561,48 +554,21 @@ export const DevelopmentResultsCardsVirtualized: FC<
                                 aria-label="Delete"
                                 className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
                                 style={{
-                                  backgroundColor: colorMixOr(
-                                    'var(--color-semantic-error)',
-                                    10,
-                                    'transparent',
-                                    'var(--color-border-muted)'
-                                  ),
-                                  color: colorMixOr(
-                                    'var(--color-semantic-error)',
-                                    80,
-                                    'var(--color-text-primary)',
-                                    'var(--color-semantic-error)'
-                                  ),
+                                  backgroundColor:
+                                    deleteButtonStyles.default.backgroundColor,
+                                  color: deleteButtonStyles.default.color,
                                 }}
                                 onMouseEnter={(e) => {
                                   e.currentTarget.style.backgroundColor =
-                                    colorMixOr(
-                                      'var(--color-semantic-error)',
-                                      20,
-                                      'transparent',
-                                      'var(--color-border-secondary)'
-                                    );
-                                  e.currentTarget.style.color = colorMixOr(
-                                    'var(--color-semantic-error)',
-                                    90,
-                                    'var(--color-text-primary)',
-                                    'var(--color-semantic-error)'
-                                  );
+                                    deleteButtonStyles.hover.backgroundColor;
+                                  e.currentTarget.style.color =
+                                    deleteButtonStyles.hover.color;
                                 }}
                                 onMouseLeave={(e) => {
                                   e.currentTarget.style.backgroundColor =
-                                    colorMixOr(
-                                      'var(--color-semantic-error)',
-                                      10,
-                                      'transparent',
-                                      'var(--color-border-muted)'
-                                    );
-                                  e.currentTarget.style.color = colorMixOr(
-                                    'var(--color-semantic-error)',
-                                    80,
-                                    'var(--color-text-primary)',
-                                    'var(--color-semantic-error)'
-                                  );
+                                    deleteButtonStyles.default.backgroundColor;
+                                  e.currentTarget.style.color =
+                                    deleteButtonStyles.default.color;
                                 }}
                                 title="Delete"
                               >

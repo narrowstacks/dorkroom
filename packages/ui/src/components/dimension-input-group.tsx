@@ -40,6 +40,7 @@ export function DimensionInputGroup({
     <div className={cn('grid grid-cols-2 gap-4', className)}>
       <div className="space-y-2">
         <label
+          htmlFor="dimension-width-input"
           className="block text-sm font-medium"
           style={{ color: 'var(--color-text-secondary)' }}
         >
@@ -47,6 +48,7 @@ export function DimensionInputGroup({
           {showUnits && ` (${unitLabel})`}
         </label>
         <input
+          id="dimension-width-input"
           type="number"
           value={widthValue}
           onChange={(e) => onWidthChange((e.target as HTMLInputElement).value)}
@@ -62,9 +64,9 @@ export function DimensionInputGroup({
               '--focus-border-color': 'var(--color-border-primary)',
             } as React.CSSProperties
           }
-          onFocus={(e) =>
-            (e.target.style.borderColor = 'var(--color-border-primary)')
-          }
+          onFocus={(e) => {
+            e.target.style.borderColor = 'var(--color-border-primary)';
+          }}
           onBlur={(e) => {
             e.target.style.borderColor = 'var(--color-border-secondary)';
             onWidthBlur?.();
@@ -73,6 +75,7 @@ export function DimensionInputGroup({
       </div>
       <div className="space-y-2">
         <label
+          htmlFor="dimension-height-input"
           className="block text-sm font-medium"
           style={{ color: 'var(--color-text-secondary)' }}
         >
@@ -80,6 +83,7 @@ export function DimensionInputGroup({
           {showUnits && ` (${unitLabel})`}
         </label>
         <input
+          id="dimension-height-input"
           type="number"
           value={heightValue}
           onChange={(e) => onHeightChange((e.target as HTMLInputElement).value)}
@@ -95,9 +99,9 @@ export function DimensionInputGroup({
               '--focus-border-color': 'var(--color-border-primary)',
             } as React.CSSProperties
           }
-          onFocus={(e) =>
-            (e.target.style.borderColor = 'var(--color-border-primary)')
-          }
+          onFocus={(e) => {
+            e.target.style.borderColor = 'var(--color-border-primary)';
+          }}
           onBlur={(e) => {
             e.target.style.borderColor = 'var(--color-border-secondary)';
             onHeightBlur?.();

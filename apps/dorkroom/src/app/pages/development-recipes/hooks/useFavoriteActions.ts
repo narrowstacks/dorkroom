@@ -25,6 +25,14 @@ export interface UseFavoriteActionsReturn {
 /**
  * Hook for managing favorite actions with animation support.
  * Extracts favorites logic from the main useRecipeActions hook.
+ *
+ * Memory management: The favoriteTransitions Map passed to this hook is
+ * automatically cleaned up after animations complete. Each entry is:
+ * 1. Added when a toggle starts (with 'adding' or 'removing' state)
+ * 2. Removed after animation completes via setTimeout (500ms for toggle, +2000ms for message display)
+ * 3. All pending timeouts are cleared on unmount to prevent stale state updates
+ *
+ * This ensures the Map never grows unbounded, even with frequent favorite toggling.
  */
 export function useFavoriteActions({
   isFavorite,
