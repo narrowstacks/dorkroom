@@ -2,5 +2,11 @@
   "name": "@dorkroom/dorkroom",
   "version": "0.0.1",
   "private": true,
-  "license": "AGPL-3.0-only"
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "dev": "vite --host=0.0.0.0",
+    "build": "vite build",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit"
+  }
 }

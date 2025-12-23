@@ -36,10 +36,10 @@ bun install
 cp .env.example .env
 
 # Build packages
-bunx nx build dorkroom
+bun run build
 
 # Start development server
-bunx nx dev dorkroom -- --host=0.0.0.0
+bun run dev
 ```
 
 ## Code Guidelines
@@ -99,7 +99,7 @@ docs: update API examples in README
 
 3. **Run quality checks** (all must pass):
    ```bash
-   bunx nx run-many --targets=lint,typecheck,test,build
+   bun run test
    ```
 
 4. **Format your code**:
@@ -127,15 +127,12 @@ docs: update API examples in README
 
 ```bash
 # Run all tests
-bunx nx run-many -t test
+bun run test
 
 # Test specific package
-bunx nx test logic
-bunx nx test ui
-bunx nx test dorkroom
-
-# Run tests with UI
-bunx nx test --ui
+turbo run test --filter=@dorkroom/logic
+turbo run test --filter=@dorkroom/ui
+turbo run test --filter=@dorkroom/dorkroom
 ```
 
 ### Writing Tests

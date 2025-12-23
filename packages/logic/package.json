@@ -12,6 +12,12 @@
     },
     "./package.json": "./package.json"
   },
+  "scripts": {
+    "build": "tsc --project tsconfig.lib.json",
+    "lint": "biome check .",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit --project tsconfig.json"
+  },
   "dependencies": {
     "@dorkroom/api": "workspace:*",
     "fuse.js": "^7.1.0",

@@ -2,7 +2,6 @@
 
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { TanStackRouterVite } from '@tanstack/router-vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
@@ -36,7 +35,7 @@ export default defineConfig(() => ({
   optimizeDeps: {
     include: ['react', 'react-dom'],
   },
-  plugins: [TanStackRouterVite(), react(), nxViteTsPaths()],
+  plugins: [TanStackRouterVite(), react()],
   resolve: {
     alias: {
       '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src/index.ts'),

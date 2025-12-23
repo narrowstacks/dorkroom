@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Dorkroom is an analog photography calculator app. Nx monorepo with React 19, TypeScript, Tailwind CSS 4, and the TanStack ecosystem (Query v5, Router v1, Form v1, Table v8).
+Dorkroom is an analog photography calculator app. Turborepo monorepo with React 19, TypeScript, Tailwind CSS 4, and the TanStack ecosystem (Query v5, Router v1, Form v1, Table v8).
 
 **Structure:**
 
@@ -15,11 +15,11 @@ Dorkroom is an analog photography calculator app. Nx monorepo with React 19, Typ
 
 ```bash
 # Development
-bunx nx dev dorkroom -- --host=0.0.0.0   # Start dev server (check port 4200 first!)
-bunx nx build dorkroom                    # Build (always run before serving)
+bun run dev                               # Start dev server (check port 4200 first!)
+bun run build                             # Build all packages
 
 # Verification (run before considering done)
-bunx nx run-many --targets=lint,typecheck,test,build
+bun run test                              # Runs lint, test, build, typecheck
 
 # Formatting (run after verification passes)
 bun run format

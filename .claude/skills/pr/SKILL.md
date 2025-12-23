@@ -90,7 +90,7 @@ Run through this checklist:
 
 <!-- Describe how you tested your changes -->
 
-- [ ] I have run `bunx nx run-many --targets=lint,typecheck,test,build` and all checks pass
+- [ ] I have run `bun run test` and all checks pass
 - [ ] I have added tests that prove my fix/feature works
 - [ ] I have tested manually in the development environment
 
@@ -191,7 +191,7 @@ Let tools catch shallow issues so humans can focus on logic and architecture:
 
 ```bash
 # Run verification before considering done
-bunx nx run-many --targets=lint,typecheck,test,build
+bun run test
 ```
 
 ## Team Metrics to Track

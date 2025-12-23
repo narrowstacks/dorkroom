@@ -42,6 +42,12 @@
     "access": "public"
   },
   "type": "module",
+  "scripts": {
+    "build": "tsc --project tsconfig.lib.json",
+    "lint": "biome check .",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit --project tsconfig.json"
+  },
   "devDependencies": {
     "@types/node": "^20.0.0"
   }

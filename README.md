@@ -72,11 +72,11 @@ bun install
 cp .env.example .env
 # Edit .env with your Supabase credentials
 
-# Build before starting dev server
-bunx nx build dorkroom
+# Build all packages
+bun run build
 
 # Start development server
-bunx nx dev dorkroom -- --host=0.0.0.0
+bun run dev
 
 # Open http://localhost:4200
 ```
@@ -85,31 +85,27 @@ bunx nx dev dorkroom -- --host=0.0.0.0
 
 ```bash
 # Build for production
-bunx nx build dorkroom
+bun run build
 
-# Ensure all packages are built
-bunx nx run-many --target=build
-
-# Visualize project dependencies
-bunx nx graph
+# Build specific package
+turbo run build --filter=@dorkroom/logic
 ```
 
 ### Testing
 
 ```bash
 # Run linting, testing, building, and typechecking in one go
-bunx nx run-many -t lint test build typecheck
+bun run test
 
 # Run test for only one package (logic, ui, api)
-bunx nx test logic
-
+turbo run test --filter=@dorkroom/logic
 ```
 
 ## Technology Stack
 
 - **Frontend**: React 19 with TypeScript 5.8.2
 - **Styling**: Tailwind CSS 4.1.13 with custom darkroom theme
-- **Build Tool**: Vite 6 with Nx 22 workspace
+- **Build Tool**: Vite 7 with Turborepo
 - **Testing**: Vitest 3 with Testing Library
 - **Linting & Formatting**: Biome (single quotes, semicolons, trailing commas)
 - **State Management**: TanStack Query v5 for server state
@@ -118,11 +114,11 @@ bunx nx test logic
 - **Tables**: TanStack Table v8 for data tables
 - **Virtualization**: TanStack Virtual v3 for performant list rendering
 - **Schema Validation**: Zod 4.1.12
-- **Monorepo**: Nx with shared packages
+- **Monorepo**: Turborepo with Bun workspaces
 
 ## Architecture
 
-Dorkroom is built as an Nx monorepo with clear separation of concerns:
+Dorkroom is built as a Turborepo monorepo with clear separation of concerns:
 
 ```
 apps/
@@ -190,22 +186,22 @@ We welcome contributions from the analog photography community! Please read our 
 4. Test your changes thoroughly:
    ```bash
    # Test specific packages
-   bunx nx test logic
-   bunx nx test ui
-   bunx nx test dorkroom
+   turbo run test --filter=@dorkroom/logic
+   turbo run test --filter=@dorkroom/ui
+   turbo run test --filter=@dorkroom/dorkroom
    ```
 5. Run quality checks on affected packages:
 
    ```bash
    # Lint specific packages (Biome)
-   bunx nx lint logic
-   bunx nx lint ui
-   bunx nx lint dorkroom
+   turbo run lint --filter=@dorkroom/logic
+   turbo run lint --filter=@dorkroom/ui
+   turbo run lint --filter=@dorkroom/dorkroom
 
    # Type check specific packages
-   bunx nx typecheck logic
-   bunx nx typecheck ui
-   bunx nx typecheck dorkroom
+   turbo run typecheck --filter=@dorkroom/logic
+   turbo run typecheck --filter=@dorkroom/ui
+   turbo run typecheck --filter=@dorkroom/dorkroom
 
    # Format code with Biome
    bun run format
@@ -245,20 +241,20 @@ This project maintains high code quality standards with package-specific tooling
 
 ```bash
 # Run quality checks on specific packages
-bunx nx test logic        # Test business logic
-bunx nx test ui          # Test UI components
-bunx nx test dorkroom    # Test main application
+turbo run test --filter=@dorkroom/logic        # Test business logic
+turbo run test --filter=@dorkroom/ui           # Test UI components
+turbo run test --filter=@dorkroom/dorkroom     # Test main application
 
-bunx nx lint logic       # Lint business logic (Biome)
-bunx nx lint ui         # Lint UI components (Biome)
-bunx nx lint dorkroom   # Lint main application (Biome)
+turbo run lint --filter=@dorkroom/logic        # Lint business logic (Biome)
+turbo run lint --filter=@dorkroom/ui           # Lint UI components (Biome)
+turbo run lint --filter=@dorkroom/dorkroom     # Lint main application (Biome)
 
-bunx nx typecheck logic     # Type check business logic
-bunx nx typecheck ui       # Type check UI components
-bunx nx typecheck dorkroom # Type check main application
+turbo run typecheck --filter=@dorkroom/logic   # Type check business logic
+turbo run typecheck --filter=@dorkroom/ui      # Type check UI components
+turbo run typecheck --filter=@dorkroom/dorkroom # Type check main application
 
 # Run across all projects
-bunx nx run-many --targets=lint,typecheck,test,build
+bun run test
 
 # Format code with Biome (single quotes, semicolons, trailing commas)
 bun run format
@@ -269,17 +265,15 @@ bun run lint:fix
 
 ## Project Commands
 
-| Command                                  | Description                    |
-| ---------------------------------------- | ------------------------------ |
-| `bunx nx dev dorkroom -- --host=0.0.0.0` | Start development server       |
-| `bunx nx build dorkroom`                 | Build production bundle        |
-| `bunx nx test`                           | Run tests                      |
-| `bunx nx test --ui`                      | Run tests with UI              |
-| `bunx nx lint dorkroom`                  | Run Biome linting              |
-| `bunx nx typecheck dorkroom`             | TypeScript checking            |
-| `bun run format`                         | Format code with Biome         |
-| `bun run lint:fix`                       | Lint and auto-fix with Biome   |
-| `bunx nx graph`                          | Visualize project dependencies |
+| Command                                    | Description                  |
+| ------------------------------------------ | ---------------------------- |
+| `bun run dev`                              | Start development server     |
+| `bun run build`                            | Build all packages           |
+| `bun run test`                             | Run lint, test, build, typecheck |
+| `turbo run test --filter=@dorkroom/logic`  | Test specific package        |
+| `bun run lint`                             | Run Biome linting            |
+| `bun run format`                           | Format code with Biome       |
+| `bun run lint:fix`                         | Lint and auto-fix with Biome |
 
 ## Security
 
