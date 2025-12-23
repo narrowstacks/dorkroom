@@ -7,7 +7,12 @@
     },
     "@dorkroom/dorkroom#build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      "env": [
+        "SUPABASE_MASTER_API_KEY",
+        "SUPABASE_ENDPOINT",
+        "VITE_FEATURE_INFOBASE"
+      ]
     },
     "dev": {
       "cache": false,
