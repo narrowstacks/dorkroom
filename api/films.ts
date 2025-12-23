@@ -200,8 +200,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       responseTime,
       true
     );
+    const responseData = data as Record<string, unknown> | null;
     logApiResponse(requestId, 200, responseTime, {
-      dataLength: Array.isArray(data?.data) ? data.data.length : 'N/A',
+      dataLength: Array.isArray(responseData?.data)
+        ? responseData.data.length
+        : 'N/A',
     });
 
     // Return the data with cache headers
