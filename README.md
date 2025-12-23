@@ -19,6 +19,7 @@ Dorkroom provides useful calculators for darkroom printing, film development, an
 ### Film Development Resources
 
 - [**Development Recipes**](https://dorkroom.art/development) - Film + chemistry pairings and development times with many manufacturer approved development recipes.
+- [**Film Database**](https://dorkroom.art/development) - List of films and their information provided by the API.
 
 ### **Printing Tools**
 
