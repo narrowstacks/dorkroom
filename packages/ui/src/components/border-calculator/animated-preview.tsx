@@ -11,7 +11,7 @@
 \* ------------------------------------------------------------------ */
 
 import type { BorderCalculation } from '@dorkroom/logic';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { BladeReadingsOverlay } from './blade-readings-overlay';
 
 interface AnimatedPreviewProps {
@@ -42,7 +42,6 @@ const AnimatedBlade = ({
     background: 'var(--blade-background)',
     border: 'var(--blade-border)',
     opacity,
-    transition: 'all 0.15s ease-in-out',
     boxShadow: 'var(--blade-shadow)',
     zIndex: 10,
   };
@@ -79,11 +78,6 @@ export function AnimatedPreview({
   showBladeReadings = false,
   className,
 }: AnimatedPreviewProps) {
-  const [animatedValues, setAnimatedValues] = useState({
-    printScale: { x: 0, y: 0 },
-    printTranslate: { x: 0, y: 0 },
-    bladeOpacity: showBlades ? 1 : 0,
-  });
 
   // Static dimensions for consistent layout - make responsive for mobile
   const staticDimensions = useMemo(() => {
@@ -148,25 +142,6 @@ export function AnimatedPreview({
     };
   }, [calculation, staticDimensions]);
 
-  // Update animated values when transform values change
-  useEffect(() => {
-    if (!transformValues) return;
-
-    setAnimatedValues((prev) => ({
-      printScale: transformValues.printScale,
-      printTranslate: transformValues.printTranslate,
-      bladeOpacity: prev.bladeOpacity,
-    }));
-  }, [transformValues]);
-
-  // Update blade opacity
-  useEffect(() => {
-    setAnimatedValues((prev) => ({
-      ...prev,
-      bladeOpacity: showBlades ? 1 : 0,
-    }));
-  }, [showBlades]);
-
   if (!calculation || !transformValues) {
     return (
       <div
@@ -186,8 +161,7 @@ export function AnimatedPreview({
     top: 0,
     width: staticDimensions.width,
     height: staticDimensions.height,
-    transform: `translate(${animatedValues.printTranslate.x}px, ${animatedValues.printTranslate.y}px) scaleX(${animatedValues.printScale.x}) scaleY(${animatedValues.printScale.y})`,
-    transition: 'transform 0.15s ease-in-out',
+    transform: `translate(${transformValues.printTranslate.x}px, ${transformValues.printTranslate.y}px) scaleX(${transformValues.printScale.x}) scaleY(${transformValues.printScale.y})`,
     transformOrigin: 'center center',
   };
 
@@ -210,7 +184,7 @@ export function AnimatedPreview({
       {/* Print area */}
       <div style={printStyle} />
 
-      {/* Animated blades */}
+      {/* Blades */}
       {showBlades && (
         <>
           <AnimatedBlade
@@ -218,28 +192,28 @@ export function AnimatedPreview({
             position="left"
             positionPercent={transformValues.leftBorderPercent}
             thickness={bladeThickness}
-            opacity={animatedValues.bladeOpacity}
+            opacity={1}
           />
           <AnimatedBlade
             orientation="vertical"
             position="right"
             positionPercent={transformValues.rightBorderPercent}
             thickness={bladeThickness}
-            opacity={animatedValues.bladeOpacity}
+            opacity={1}
           />
           <AnimatedBlade
             orientation="horizontal"
             position="top"
             positionPercent={transformValues.topBorderPercent}
             thickness={bladeThickness}
-            opacity={animatedValues.bladeOpacity}
+            opacity={1}
           />
           <AnimatedBlade
             orientation="horizontal"
             position="bottom"
             positionPercent={transformValues.bottomBorderPercent}
             thickness={bladeThickness}
-            opacity={animatedValues.bladeOpacity}
+            opacity={1}
           />
         </>
       )}
