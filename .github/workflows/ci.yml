@@ -52,8 +52,4 @@ jobs:
       #       # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
 
       - name: Run quality checks
-        run: bunx nx run-many -t lint test build typecheck
-
-      - name: Fix CI
-        run: bunx nx fix-ci
-        if: always()
+        run: bunx turbo run lint test build typecheck

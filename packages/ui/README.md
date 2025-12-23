@@ -322,19 +322,19 @@ export function MyComponent({
 ### Building
 
 ```bash
-bunx nx build ui
+turbo run build --filter=@dorkroom/ui
 ```
 
 ### Testing
 
 ```bash
-bunx nx test ui
+turbo run test --filter=@dorkroom/ui
 ```
 
 ### Type Checking
 
 ```bash
-bunx nx typecheck ui
+turbo run typecheck --filter=@dorkroom/ui
 ```
 
 ## Architecture Notes

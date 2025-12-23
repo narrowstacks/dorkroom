@@ -257,19 +257,19 @@ import {
 ### Building
 
 ```bash
-bunx nx build logic
+turbo run build --filter=@dorkroom/logic
 ```
 
 ### Testing
 
 ```bash
-bunx nx test logic
+turbo run test --filter=@dorkroom/logic
 ```
 
 ### Type Checking
 
 ```bash
-bunx nx typecheck logic
+turbo run typecheck --filter=@dorkroom/logic
 ```
 
 ## Architecture Notes

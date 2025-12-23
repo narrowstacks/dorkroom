@@ -233,19 +233,19 @@ export const fetchFilms = async (context?: QueryFunctionContext) => {
 ### Building
 
 ```bash
-nx build @dorkroom/api
+turbo run build --filter=@dorkroom/api
 ```
 
 ### Testing
 
 ```bash
-nx test @dorkroom/api
+turbo run test --filter=@dorkroom/api
 ```
 
 ### Type Checking
 
 ```bash
-nx typecheck @dorkroom/api
+turbo run typecheck --filter=@dorkroom/api
 ```
 
 ## Architecture

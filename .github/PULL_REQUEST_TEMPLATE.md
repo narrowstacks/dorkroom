@@ -29,7 +29,7 @@
 
 <!-- Describe how you tested your changes -->
 
-- [ ] I have run `bunx nx run-many --targets=lint,typecheck,test,build` and all checks pass
+- [ ] I have run `bun run test` and all checks pass
 - [ ] I have added tests that prove my fix/feature works
 - [ ] I have tested manually in the development environment
 

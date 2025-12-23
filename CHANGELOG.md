@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Migrated from Nx to Turborepo** for monorepo task orchestration
 - Expanded package documentation for @dorkroom/logic and @dorkroom/ui
 
 ## [0.9.0] - 2024
@@ -32,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **REST API** - `/api/films`, `/api/developers`, `/api/combinations` endpoints
 - Multiple theme support (dark, light, high contrast, darkroom)
 - TanStack ecosystem integration (Query v5, Router v1, Form v1, Table v8)
-- Nx monorepo architecture with shared packages
+- Monorepo architecture with shared packages
 - Comprehensive CI/CD pipeline with quality gates
 - Issue templates for bugs, features, recipes, and documentation
 

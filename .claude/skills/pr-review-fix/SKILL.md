@@ -152,4 +152,4 @@ Moving to comment 2 of 3...
 - Use `--not_outdated` to skip comments on code that has already been changed
 - If a comment requires discussion rather than a code fix, use the reply command to respond
 - Always read the full thread context before making changes
-- Consider running tests after fixes: `bunx nx run-many --targets=lint,typecheck,test`
+- Consider running tests after fixes: `bun run test`
