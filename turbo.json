@@ -10,8 +10,7 @@
       "outputs": ["dist/**"],
       "env": [
         "SUPABASE_MASTER_API_KEY",
-        "SUPABASE_ENDPOINT",
-        "VITE_FEATURE_INFOBASE"
+        "SUPABASE_ENDPOINT"
       ]
     },
     "dev": {
