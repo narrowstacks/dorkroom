@@ -10,7 +10,7 @@
       "!**/.nx",
       "!**/node_modules",
       "!**/routeTree.gen.ts",
-      "!**.tsbuildinfo"
+      "!**/*.tsbuildinfo"
     ]
   },
   "formatter": {
