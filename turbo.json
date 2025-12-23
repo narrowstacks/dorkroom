@@ -9,10 +9,7 @@
     "@dorkroom/dorkroom#build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"],
-      "env": [
-        "SUPABASE_MASTER_API_KEY",
-        "SUPABASE_ENDPOINT"
-      ]
+      "env": ["SUPABASE_MASTER_API_KEY", "SUPABASE_ENDPOINT"]
     },
     "dev": {
       "cache": false,

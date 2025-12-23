@@ -45,7 +45,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.lib.json",
     "lint": "biome check .",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit --project tsconfig.json"
   },
   "devDependencies": {
