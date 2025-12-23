@@ -63,5 +63,5 @@ PR_BODY_THEMING.md
 .vercel
 .letta
 
-tsconfig.tsbuildinfo
+**/*.tsbuildinfo
 .mcp.json
