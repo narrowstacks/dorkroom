@@ -33,6 +33,9 @@ export default defineConfig(() => ({
     port: 4300,
     host: 'localhost',
   },
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+  },
   plugins: [TanStackRouterVite(), react(), nxViteTsPaths()],
   resolve: {
     alias: {
@@ -43,6 +46,7 @@ export default defineConfig(() => ({
       ),
       '@dorkroom/api': resolve(__dirname, '../../packages/api/src/index.ts'),
     },
+    dedupe: ['react', 'react-dom'],
   },
   build: {
     outDir: './dist',
