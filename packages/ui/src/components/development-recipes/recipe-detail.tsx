@@ -16,6 +16,20 @@ interface DevelopmentRecipeDetailProps {
   onShareRecipe?: (view: DevelopmentCombinationView) => void;
 }
 
+/** Format time as "Xm XXs" instead of decimal minutes */
+const formatTime = (minutes: number): string => {
+  if (minutes < 1) {
+    return `${Math.round(minutes * 60)}s`;
+  }
+
+  const wholeMinutes = Math.floor(minutes);
+  const seconds = Math.round((minutes - wholeMinutes) * 60);
+  if (seconds === 0) {
+    return `${wholeMinutes}m`;
+  }
+  return `${wholeMinutes}m ${seconds.toString().padStart(2, '0')}s`;
+};
+
 const DetailRow = ({
   label,
   value,
@@ -95,7 +109,7 @@ export function DevelopmentRecipeDetail({
         <DetailRow label="ISO" value={combination.shootingIso} />
         <DetailRow
           label="Development time"
-          value={`${combination.timeMinutes.toFixed(2)} minutes`}
+          value={formatTime(combination.timeMinutes)}
         />
         <DetailRow
           label="Temperature"

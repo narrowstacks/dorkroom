@@ -1,7 +1,11 @@
 import type { SelectItem } from '@dorkroom/logic';
-import { ChevronLeft, ChevronRight, Filter, Search } from 'lucide-react';
-import { type FC, useRef, useState } from 'react';
-import { cn } from '../../lib/cn';
+import { Search } from 'lucide-react';
+import { type FC, useRef } from 'react';
+import {
+  FilterPanelContainer,
+  FilterPanelHeader,
+  FilterPanelSection,
+} from '../filters';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
 
@@ -68,14 +72,7 @@ export const FilmFiltersPanel: FC<FilmFiltersPanelProps> = ({
   onCollapsedChange,
   defaultCollapsed = false,
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const searchIconRef = useRef<SVGSVGElement>(null);
-
-  const handleToggleCollapse = () => {
-    const newCollapsed = !isCollapsed;
-    setIsCollapsed(newCollapsed);
-    onCollapsedChange?.(newCollapsed);
-  };
 
   // Count active filters (including search)
   const activeFilterCount = [
@@ -86,159 +83,15 @@ export const FilmFiltersPanel: FC<FilmFiltersPanelProps> = ({
     discontinuedFilter !== 'all',
   ].filter(Boolean).length;
 
-  // Collapsed state - show only toggle button
-  if (isCollapsed) {
-    return (
-      <div
-        className={cn(
-          'sticky top-6 flex flex-col items-center gap-3 rounded-2xl border p-3 shadow-lg animate-collapse-width',
-          className
-        )}
-        style={{
-          borderColor: 'var(--color-border-primary)',
-          backgroundColor: 'var(--color-surface)',
-          width: '64px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-        }}
-      >
-        <button
-          type="button"
-          onClick={handleToggleCollapse}
-          className="flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-200"
-          style={{
-            backgroundColor: 'var(--color-surface-muted)',
-            color: 'var(--color-text-secondary)',
-            border: '1px solid var(--color-border-secondary)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-primary)';
-            e.currentTarget.style.color = 'var(--color-background)';
-            e.currentTarget.style.borderColor = 'var(--color-primary)';
-            e.currentTarget.style.transform = 'scale(1.05)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor =
-              'var(--color-surface-muted)';
-            e.currentTarget.style.color = 'var(--color-text-secondary)';
-            e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
-            e.currentTarget.style.transform = 'scale(1)';
-          }}
-          aria-label="Expand filters"
-          title="Expand filters"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
-
-        <div className="relative flex h-11 w-11 items-center justify-center">
-          <div
-            className="flex h-full w-full items-center justify-center rounded-xl transition-all duration-200"
-            style={{
-              backgroundColor: hasActiveFilters
-                ? 'var(--color-primary)'
-                : 'var(--color-surface-muted)',
-              color: hasActiveFilters
-                ? 'var(--color-background)'
-                : 'var(--color-text-muted)',
-              border: hasActiveFilters
-                ? '1px solid var(--color-primary)'
-                : '1px solid var(--color-border-secondary)',
-            }}
-            title={
-              hasActiveFilters
-                ? `${activeFilterCount} filters active`
-                : 'No filters'
-            }
-          >
-            <Filter className="h-5 w-5" />
-          </div>
-          {hasActiveFilters && (
-            <span
-              className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold"
-              style={{
-                backgroundColor: 'var(--color-accent)',
-                color: 'var(--color-background)',
-                border: '2px solid var(--color-surface)',
-              }}
-            >
-              {activeFilterCount}
-            </span>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Expanded state
   return (
-    <div
-      className={cn(
-        'sticky top-6 h-fit space-y-5 animate-expand-width',
-        className
-      )}
-      style={{ width: '304px' }}
+    <FilterPanelContainer
+      className={className}
+      activeFilterCount={activeFilterCount}
+      hasActiveFilters={hasActiveFilters}
+      onCollapsedChange={onCollapsedChange}
+      defaultCollapsed={defaultCollapsed}
     >
-      {/* Header with collapse button */}
-      <div
-        className="flex items-center justify-between rounded-xl border px-4 py-3 shadow-md"
-        style={{
-          borderColor: 'var(--color-border-primary)',
-          backgroundColor: 'var(--color-surface)',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <div
-            className="flex h-8 w-8 items-center justify-center rounded-lg"
-            style={{
-              backgroundColor: 'var(--color-primary)',
-              color: 'var(--color-background)',
-            }}
-          >
-            <Filter className="h-4 w-4" />
-          </div>
-          <h2
-            className="text-lg font-bold"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            Filters
-          </h2>
-          {hasActiveFilters && (
-            <span
-              className="ml-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
-              style={{
-                backgroundColor: 'var(--color-accent)',
-                color: 'var(--color-background)',
-              }}
-            >
-              {activeFilterCount}
-            </span>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={handleToggleCollapse}
-          className="flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200"
-          style={{
-            color: 'var(--color-text-muted)',
-            border: '1px solid transparent',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor =
-              'var(--color-surface-muted)';
-            e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
-            e.currentTarget.style.color = 'var(--color-text-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.borderColor = 'transparent';
-            e.currentTarget.style.color = 'var(--color-text-muted)';
-          }}
-          aria-label="Collapse filters"
-          title="Collapse filters"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-      </div>
+      <FilterPanelHeader />
 
       {/* Search input - Primary action */}
       <div
@@ -295,86 +148,44 @@ export const FilmFiltersPanel: FC<FilmFiltersPanelProps> = ({
         </div>
       </div>
 
-      {/* Filters section - Secondary controls */}
-      <div
-        className="space-y-4 rounded-xl border p-4 shadow-md"
-        style={{
-          borderColor: 'var(--color-border-primary)',
-          backgroundColor: 'var(--color-surface)',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-        }}
+      {/* Filters section */}
+      <FilterPanelSection
+        title="Filter Options"
+        onClear={onClearFilters}
+        showClear={hasActiveFilters}
       >
-        <div className="flex items-center justify-between">
-          <h3
-            className="flex items-center gap-2 text-sm font-semibold"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            <div
-              className="h-1 w-1 rounded-full"
-              style={{ backgroundColor: 'var(--color-primary)' }}
-            />
-            Filter Options
-          </h3>
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={onClearFilters}
-              className="rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all duration-200"
-              style={{
-                color: 'var(--color-text-secondary)',
-                border: '1px solid var(--color-border-secondary)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-accent)';
-                e.currentTarget.style.color = 'var(--color-background)';
-                e.currentTarget.style.borderColor = 'var(--color-accent)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = 'var(--color-text-secondary)';
-                e.currentTarget.style.borderColor =
-                  'var(--color-border-secondary)';
-              }}
-            >
-              Clear all
-            </button>
-          )}
-        </div>
+        <Select
+          label="Film type"
+          selectedValue={colorTypeFilter}
+          onValueChange={onColorTypeChange}
+          items={FILM_TYPE_OPTIONS}
+        />
 
-        <div className="space-y-3.5">
-          <Select
-            label="Film type"
-            selectedValue={colorTypeFilter}
-            onValueChange={onColorTypeChange}
-            items={FILM_TYPE_OPTIONS}
-          />
+        <SearchableSelect
+          label="ISO speed"
+          selectedValue={isoSpeedFilter}
+          onValueChange={onIsoSpeedChange}
+          items={isoOptions}
+          placeholder="Select ISO..."
+        />
 
-          <SearchableSelect
-            label="ISO speed"
-            selectedValue={isoSpeedFilter}
-            onValueChange={onIsoSpeedChange}
-            items={isoOptions}
-            placeholder="Select ISO..."
-          />
+        <SearchableSelect
+          label="Brand"
+          selectedValue={brandFilter}
+          onValueChange={onBrandChange}
+          items={brandOptions}
+          placeholder="Select brand..."
+        />
 
-          <SearchableSelect
-            label="Brand"
-            selectedValue={brandFilter}
-            onValueChange={onBrandChange}
-            items={brandOptions}
-            placeholder="Select brand..."
-          />
-
-          <Select
-            label="Status"
-            selectedValue={discontinuedFilter}
-            onValueChange={(value) =>
-              onDiscontinuedChange(value as 'all' | 'active' | 'discontinued')
-            }
-            items={DISCONTINUED_OPTIONS}
-          />
-        </div>
-      </div>
-    </div>
+        <Select
+          label="Status"
+          selectedValue={discontinuedFilter}
+          onValueChange={(value) =>
+            onDiscontinuedChange(value as 'all' | 'active' | 'discontinued')
+          }
+          items={DISCONTINUED_OPTIONS}
+        />
+      </FilterPanelSection>
+    </FilterPanelContainer>
   );
 };

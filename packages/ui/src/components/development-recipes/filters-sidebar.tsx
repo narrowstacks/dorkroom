@@ -1,7 +1,11 @@
 import type { CustomRecipeFilter, SelectItem } from '@dorkroom/logic';
 import type { SortingState } from '@tanstack/react-table';
 import type { FC } from 'react';
-import { cn } from '../../lib/cn';
+import {
+  FilterPanelContainer,
+  FilterPanelHeader,
+  FilterPanelSection,
+} from '../filters';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
 
@@ -41,6 +45,9 @@ interface FiltersSidebarProps {
   showDeveloperTypeFilter?: boolean;
   showDilutionFilter?: boolean;
   showIsoFilter?: boolean;
+  // Collapse state
+  onCollapsedChange?: (collapsed: boolean) => void;
+  defaultCollapsed?: boolean;
 }
 
 const sortingOptions: SelectItem[] = [
@@ -60,6 +67,12 @@ const sortingOptions: SelectItem[] = [
     label: 'Temperature (High to Low)',
     value: 'combination.temperatureF-desc',
   },
+];
+
+const customRecipeOptions: SelectItem[] = [
+  { label: 'All recipes', value: 'all' },
+  { label: 'Hide custom recipes', value: 'hide-custom' },
+  { label: 'Only custom recipes', value: 'only-custom' },
 ];
 
 export const FiltersSidebar: FC<FiltersSidebarProps> = ({
@@ -94,14 +107,10 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
   showDeveloperTypeFilter = true,
   showDilutionFilter = true,
   showIsoFilter = true,
+  onCollapsedChange,
+  defaultCollapsed = false,
 }) => {
   const hasSelections = selectedFilm || selectedDeveloper;
-
-  const customRecipeOptions = [
-    { label: 'All recipes', value: 'all' },
-    { label: 'Hide custom recipes', value: 'hide-custom' },
-    { label: 'Only custom recipes', value: 'only-custom' },
-  ];
 
   const hasActiveFilters =
     developerTypeFilter ||
@@ -110,6 +119,18 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
     customRecipeFilter !== 'all' ||
     tagFilter ||
     favoritesOnly;
+
+  // Count active filters (including selections)
+  const activeFilterCount = [
+    selectedFilm,
+    selectedDeveloper,
+    developerTypeFilter,
+    dilutionFilter,
+    isoFilter,
+    customRecipeFilter !== 'all',
+    tagFilter,
+    favoritesOnly,
+  ].filter(Boolean).length;
 
   // Get current sorting value for select
   const getCurrentSortingValue = (): string => {
@@ -128,161 +149,115 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
   };
 
   return (
-    <div
-      className={cn(
-        'sticky top-6 h-fit space-y-4 rounded-2xl border p-4 shadow-subtle backdrop-blur',
-        className
-      )}
-      style={{
-        borderColor: 'var(--color-border-secondary)',
-        backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',
-      }}
+    <FilterPanelContainer
+      className={className}
+      activeFilterCount={activeFilterCount}
+      hasActiveFilters={!!(hasActiveFilters || hasSelections)}
+      onCollapsedChange={onCollapsedChange}
+      defaultCollapsed={defaultCollapsed}
     >
-      <div>
-        <h3
-          className="mb-3 text-sm font-semibold uppercase tracking-wide"
-          style={{ color: 'var(--color-text-tertiary)' }}
-        >
-          Film & Developer
-        </h3>
+      <FilterPanelHeader />
 
-        <div className="space-y-3">
-          <SearchableSelect
-            label="Film"
-            placeholder="Search films..."
-            selectedValue={selectedFilm}
-            onValueChange={onFilmChange}
-            items={filmOptions}
-          />
-          <SearchableSelect
-            label="Developer"
-            placeholder="Search developers..."
-            selectedValue={selectedDeveloper}
-            onValueChange={onDeveloperChange}
-            items={developerOptions}
-          />
-
-          {hasSelections && (
-            <button
-              type="button"
-              onClick={onClearSelections}
-              className={cn(
-                'w-full rounded-full border px-3 py-1.5 text-sm font-medium transition',
-                'border-[var(--color-border-secondary)] text-[var(--color-text-secondary)]',
-                'hover:border-[var(--color-border-primary)] hover:text-[var(--color-text-primary)]'
-              )}
-            >
-              Clear selections
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div
-        className="border-t pt-4"
-        style={{ borderColor: 'var(--color-border-secondary)' }}
+      {/* Film & Developer section */}
+      <FilterPanelSection
+        title="Film & Developer"
+        onClear={onClearSelections}
+        showClear={!!hasSelections}
+        clearLabel="Clear"
       >
-        <div className="mb-3 flex items-center justify-between">
-          <h3
-            className="text-sm font-semibold uppercase tracking-wide"
-            style={{ color: 'var(--color-text-tertiary)' }}
+        <SearchableSelect
+          label="Film"
+          placeholder="Search films..."
+          selectedValue={selectedFilm}
+          onValueChange={onFilmChange}
+          items={filmOptions}
+        />
+        <SearchableSelect
+          label="Developer"
+          placeholder="Search developers..."
+          selectedValue={selectedDeveloper}
+          onValueChange={onDeveloperChange}
+          items={developerOptions}
+        />
+      </FilterPanelSection>
+
+      {/* Advanced Filters section */}
+      <FilterPanelSection
+        title="Advanced Filters"
+        onClear={onClearFilters}
+        showClear={!!hasActiveFilters}
+      >
+        {showDeveloperTypeFilter && (
+          <Select
+            label="Developer type"
+            selectedValue={developerTypeFilter}
+            onValueChange={onDeveloperTypeFilterChange}
+            items={developerTypeOptions}
+          />
+        )}
+        {showDilutionFilter && (
+          <Select
+            label="Dilution"
+            selectedValue={dilutionFilter}
+            onValueChange={onDilutionFilterChange}
+            items={dilutionOptions}
+          />
+        )}
+        {showIsoFilter && (
+          <Select
+            label="ISO"
+            selectedValue={isoFilter}
+            onValueChange={onIsoFilterChange}
+            items={isoOptions}
+          />
+        )}
+        <Select
+          label="Recipe type"
+          selectedValue={customRecipeFilter}
+          onValueChange={(value) =>
+            onCustomRecipeFilterChange(value as CustomRecipeFilter)
+          }
+          items={customRecipeOptions}
+        />
+        <Select
+          label="Tag"
+          selectedValue={tagFilter}
+          onValueChange={onTagFilterChange}
+          items={tagOptions}
+        />
+        {onFavoritesOnlyChange && (
+          <label
+            className="flex cursor-pointer items-center gap-2.5 rounded-lg px-1 py-1 text-sm transition-colors"
+            style={{ color: 'var(--color-text-secondary)' }}
           >
-            Advanced Filters
-          </h3>
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={onClearFilters}
-              className="text-xs transition"
-              style={{ color: 'var(--color-text-secondary)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--color-text-primary)';
+            <input
+              type="checkbox"
+              checked={favoritesOnly}
+              onChange={(e) => onFavoritesOnlyChange(e.target.checked)}
+              className="h-4 w-4 rounded border-2 transition-colors"
+              style={{
+                borderColor: favoritesOnly
+                  ? 'var(--color-primary)'
+                  : 'var(--color-border-secondary)',
+                accentColor: 'var(--color-primary)',
               }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--color-text-secondary)';
-              }}
-            >
-              Clear all
-            </button>
-          )}
-        </div>
+            />
+            Favorites only
+          </label>
+        )}
+      </FilterPanelSection>
 
-        <div className="space-y-3">
-          {showDeveloperTypeFilter && (
-            <Select
-              label="Developer type"
-              selectedValue={developerTypeFilter}
-              onValueChange={onDeveloperTypeFilterChange}
-              items={developerTypeOptions}
-            />
-          )}
-          {showDilutionFilter && (
-            <Select
-              label="Dilution"
-              selectedValue={dilutionFilter}
-              onValueChange={onDilutionFilterChange}
-              items={dilutionOptions}
-            />
-          )}
-          {showIsoFilter && (
-            <Select
-              label="ISO"
-              selectedValue={isoFilter}
-              onValueChange={onIsoFilterChange}
-              items={isoOptions}
-            />
-          )}
-          <Select
-            label="Recipe type"
-            selectedValue={customRecipeFilter}
-            onValueChange={(value) =>
-              onCustomRecipeFilterChange(value as CustomRecipeFilter)
-            }
-            items={customRecipeOptions}
-          />
-          <Select
-            label="Tag"
-            selectedValue={tagFilter}
-            onValueChange={onTagFilterChange}
-            items={tagOptions}
-          />
-          {onFavoritesOnlyChange && (
-            <label
-              className="flex items-center gap-2 text-sm"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              <input
-                type="checkbox"
-                checked={favoritesOnly}
-                onChange={(e) => onFavoritesOnlyChange(e.target.checked)}
-                className="rounded"
-              />
-              Favorites only
-            </label>
-          )}
-        </div>
-      </div>
-
+      {/* Sort By section */}
       {showSortingControls && onSortingChange && (
-        <div
-          className="border-t pt-4"
-          style={{ borderColor: 'var(--color-border-secondary)' }}
-        >
-          <h3
-            className="mb-3 text-sm font-semibold uppercase tracking-wide"
-            style={{ color: 'var(--color-text-tertiary)' }}
-          >
-            Sort By
-          </h3>
-
+        <FilterPanelSection title="Sort By">
           <Select
             label=""
             selectedValue={getCurrentSortingValue()}
             onValueChange={handleSortingChange}
             items={sortingOptions}
           />
-        </div>
+        </FilterPanelSection>
       )}
-    </div>
+    </FilterPanelContainer>
   );
 };

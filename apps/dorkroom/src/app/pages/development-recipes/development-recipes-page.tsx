@@ -17,6 +17,7 @@ import {
   FiltersSidebar,
   MobileSortingControls,
   PaginationControls,
+  RecipeDetailPanel,
   TemperatureProvider,
   useIsMobile,
   useTheme,
@@ -124,6 +125,8 @@ export default function DevelopmentRecipesPage() {
     { id: 'film', desc: false },
   ]);
   const [pageIndex, setPageIndex] = useState(0);
+  const [isFiltersSidebarCollapsed, setIsFiltersSidebarCollapsed] =
+    useState(false);
   const resultsContainerRef = useRef<HTMLDivElement>(null);
   const virtualScrollContainerRef = useRef<HTMLDivElement>(null);
   const { animationsEnabled } = useTheme();
@@ -438,7 +441,10 @@ export default function DevelopmentRecipesPage() {
           </>
         ) : (
           <div className="flex gap-6">
-            <aside className="w-80 flex-shrink-0">
+            <aside
+              className="flex-shrink-0 transition-all duration-300"
+              style={{ width: isFiltersSidebarCollapsed ? '64px' : '304px' }}
+            >
               <FiltersSidebar
                 selectedFilm={selectedFilm?.uuid || ''}
                 onFilmChange={(value) => {
@@ -480,6 +486,8 @@ export default function DevelopmentRecipesPage() {
                 showDeveloperTypeFilter={!selectedDeveloper}
                 showDilutionFilter={!!selectedDeveloper}
                 showIsoFilter={!!selectedFilm}
+                onCollapsedChange={setIsFiltersSidebarCollapsed}
+                defaultCollapsed={false}
               />
             </aside>
 
@@ -509,12 +517,32 @@ export default function DevelopmentRecipesPage() {
                 </div>
               )}
             </main>
+
+            {/* Recipe detail sidebar (desktop only) */}
+            <RecipeDetailPanel
+              view={detailView}
+              isOpen={isDetailOpen}
+              onClose={() => setIsDetailOpen(false)}
+              isMobile={false}
+              isFavorite={(view) =>
+                isFavorite(String(view.combination.uuid || view.combination.id))
+              }
+              onToggleFavorite={(view) =>
+                toggleFavorite(
+                  String(view.combination.uuid || view.combination.id)
+                )
+              }
+              onEditCustomRecipe={handleEditCustomRecipe}
+              onDeleteCustomRecipe={handleDeleteCustomRecipe}
+              onShareRecipe={handleShareCombination}
+              customRecipeSharingEnabled={flags.CUSTOM_RECIPE_SHARING}
+            />
           </div>
         )}
 
         <RecipeModals
           isMobile={isMobile}
-          isDetailOpen={isDetailOpen}
+          isDetailOpen={isMobile && isDetailOpen}
           detailView={detailView}
           onCloseDetail={() => setIsDetailOpen(false)}
           isCustomModalOpen={isCustomModalOpen}
