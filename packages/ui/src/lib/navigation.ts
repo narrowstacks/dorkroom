@@ -2,6 +2,7 @@ import {
   Aperture,
   BookOpen,
   Crop,
+  Film,
   FlaskConical,
   Gauge,
   Home,
@@ -73,6 +74,12 @@ export const navItems = [
     summary: 'Film chemistry pairings with proven results.',
   },
   {
+    label: 'Films',
+    to: '/films',
+    icon: asFunctionComponent(Film),
+    summary: 'Browse and search the film stock database.',
+  },
+  {
     label: 'Reciprocity',
     to: '/reciprocity',
     icon: asFunctionComponent(Timer),
@@ -91,6 +98,7 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/stops': 'Stops Calculator',
   '/exposure': 'Exposure Calculator',
   '/development': 'Development Recipes',
+  '/films': 'Film Database',
   '/infobase': 'Infobase',
   '/settings': 'Settings',
 };
@@ -109,6 +117,8 @@ export const ROUTE_DESCRIPTIONS: Record<string, string> = {
     'Balance aperture, shutter speed, and ISO for correct exposure. Calculate equivalent exposures across different settings.',
   '/development':
     'Browse film and developer combinations with proven development times. Find recipes for popular film stocks and chemistry.',
+  '/films':
+    'Browse and search the complete film stock database. Filter by brand, ISO, color type, and more.',
   '/infobase':
     'Reference tables, technical notes, and recipes for analog photography. Quick lookup for common darkroom data.',
   '/settings':

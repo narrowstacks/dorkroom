@@ -22,7 +22,7 @@
       "outputs": ["{projectRoot}/dist"]
     },
     "test": {
-      "executor": "@nx/vite:test",
+      "executor": "@nx/vitest:test",
       "outputs": ["{projectRoot}/test-output/vitest"],
       "options": {
         "passWithNoTests": true

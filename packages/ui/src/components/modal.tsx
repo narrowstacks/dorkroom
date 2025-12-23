@@ -89,7 +89,7 @@ export function Modal({
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard events handled by parent dialog */}
       <div
         className={cn(
-          'relative w-full rounded-2xl border p-6 shadow-xl backdrop-blur-lg',
+          'relative w-full rounded-2xl border p-6 shadow-xl backdrop-blur-lg animate-scale-fade-in',
           SIZE_CLASSES[size]
         )}
         style={{

@@ -69,6 +69,9 @@
   --color-tag-official-fuji: #c00000;
   --color-tag-community: #a00000;
   --color-tag-default: #800000;
+  --color-tag-bw: #800000;
+  --color-tag-color: #ff0000;
+  --color-tag-slide: #e00000;
   --toggle-pill-border: 1px solid #ff0000;
   --toggle-circle-border: 1px solid #ff0000;
   /* Ensure toggle knob is black in both states */
@@ -201,6 +204,9 @@
   --color-tag-official-fuji: #7dd6ff;
   --color-tag-community: #f99f96;
   --color-tag-default: #a1a1aa;
+  --color-tag-bw: #a1a1aa;
+  --color-tag-color: #e5ff7d;
+  --color-tag-slide: #f472b6;
   /* Navigation hover text colors */
   --nav-hover-text: #ffffff;
   --nav-active-hover-text: #000000;
@@ -332,6 +338,9 @@
   --color-tag-official-fuji: #1e6091;
   --color-tag-community: #c4524a;
   --color-tag-default: #52525b;
+  --color-tag-bw: #52525b;
+  --color-tag-color: #a16207;
+  --color-tag-slide: #be185d;
   /* Navigation hover text colors */
   --nav-hover-text: var(--color-text-primary);
   --nav-active-hover-text: #ffffff; /* active pill is black; keep text white on hover */
@@ -433,6 +442,9 @@
   --color-tag-official-fuji: #000000;
   --color-tag-community: #000000;
   --color-tag-default: #000000;
+  --color-tag-bw: #000000;
+  --color-tag-color: #000000;
+  --color-tag-slide: #000000;
   --toggle-pill-border: 1px solid #000000;
   --toggle-pill-border-active: 1px solid #000000;
   --toggle-circle-border: 1px solid #000000;
@@ -558,6 +570,9 @@
     rgba(169, 38, 86, 0.64),
     rgba(73, 19, 43, 0.47)
   );
+  --color-tag-bw: #a1a1aa;
+  --color-tag-color: #e5ff7d;
+  --color-tag-slide: #f472b6;
 }
 
 [data-theme="dark"] {

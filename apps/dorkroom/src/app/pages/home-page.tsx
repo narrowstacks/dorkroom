@@ -11,6 +11,7 @@ import {
   Camera,
   Construction,
   Crop,
+  Film,
   FlaskConical,
   Gauge,
   GitBranch,
@@ -78,6 +79,17 @@ const CALCULATORS = [
     color: 'text-rose-400',
     bg: 'from-rose-500/20 to-red-500/20',
     border: 'group-hover:border-rose-500/50',
+  },
+  {
+    category: 'Reference',
+    title: 'Film Database',
+    description: 'Browse film stocks by brand & ISO',
+    href: '/films',
+    icon: Film,
+    iconColorKey: 'cyan' as const,
+    color: 'text-cyan-400',
+    bg: 'from-cyan-500/20 to-teal-500/20',
+    border: 'group-hover:border-cyan-500/50',
   },
 ] as const;
 

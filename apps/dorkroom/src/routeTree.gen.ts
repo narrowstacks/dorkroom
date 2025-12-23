@@ -14,6 +14,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResizeRouteImport } from './routes/resize'
 import { Route as ReciprocityRouteImport } from './routes/reciprocity'
 import { Route as InfobaseRouteImport } from './routes/infobase'
+import { Route as FilmsRouteImport } from './routes/films'
 import { Route as ExposureRouteImport } from './routes/exposure'
 import { Route as DevelopmentRouteImport } from './routes/development'
 import { Route as BorderRouteImport } from './routes/border'
@@ -44,6 +45,11 @@ const InfobaseRoute = InfobaseRouteImport.update({
   path: '/infobase',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FilmsRoute = FilmsRouteImport.update({
+  id: '/films',
+  path: '/films',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExposureRoute = ExposureRouteImport.update({
   id: '/exposure',
   path: '/exposure',
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/border': typeof BorderRoute
   '/development': typeof DevelopmentRoute
   '/exposure': typeof ExposureRoute
+  '/films': typeof FilmsRoute
   '/infobase': typeof InfobaseRoute
   '/reciprocity': typeof ReciprocityRoute
   '/resize': typeof ResizeRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/border': typeof BorderRoute
   '/development': typeof DevelopmentRoute
   '/exposure': typeof ExposureRoute
+  '/films': typeof FilmsRoute
   '/infobase': typeof InfobaseRoute
   '/reciprocity': typeof ReciprocityRoute
   '/resize': typeof ResizeRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/border': typeof BorderRoute
   '/development': typeof DevelopmentRoute
   '/exposure': typeof ExposureRoute
+  '/films': typeof FilmsRoute
   '/infobase': typeof InfobaseRoute
   '/reciprocity': typeof ReciprocityRoute
   '/resize': typeof ResizeRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/border'
     | '/development'
     | '/exposure'
+    | '/films'
     | '/infobase'
     | '/reciprocity'
     | '/resize'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/border'
     | '/development'
     | '/exposure'
+    | '/films'
     | '/infobase'
     | '/reciprocity'
     | '/resize'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/border'
     | '/development'
     | '/exposure'
+    | '/films'
     | '/infobase'
     | '/reciprocity'
     | '/resize'
@@ -140,6 +152,7 @@ export interface RootRouteChildren {
   BorderRoute: typeof BorderRoute
   DevelopmentRoute: typeof DevelopmentRoute
   ExposureRoute: typeof ExposureRoute
+  FilmsRoute: typeof FilmsRoute
   InfobaseRoute: typeof InfobaseRoute
   ReciprocityRoute: typeof ReciprocityRoute
   ResizeRoute: typeof ResizeRoute
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InfobaseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/films': {
+      id: '/films'
+      path: '/films'
+      fullPath: '/films'
+      preLoaderRoute: typeof FilmsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/exposure': {
       id: '/exposure'
       path: '/exposure'
@@ -220,6 +240,7 @@ const rootRouteChildren: RootRouteChildren = {
   BorderRoute: BorderRoute,
   DevelopmentRoute: DevelopmentRoute,
   ExposureRoute: ExposureRoute,
+  FilmsRoute: FilmsRoute,
   InfobaseRoute: InfobaseRoute,
   ReciprocityRoute: ReciprocityRoute,
   ResizeRoute: ResizeRoute,

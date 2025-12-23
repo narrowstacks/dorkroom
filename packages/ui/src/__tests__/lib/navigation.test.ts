@@ -22,13 +22,13 @@ describe('navigation utilities', () => {
     });
 
     it('has correct main nav items', () => {
-      expect(navItems).toHaveLength(3);
+      expect(navItems).toHaveLength(4);
       const labels = navItems.map((item) => item.label);
-      expect(labels).toEqual(['Home', 'Development', 'Reciprocity']);
+      expect(labels).toEqual(['Home', 'Development', 'Films', 'Reciprocity']);
     });
 
     it('combines all items correctly', () => {
-      expect(allNavItems).toHaveLength(6);
+      expect(allNavItems).toHaveLength(7);
       expect(allNavItems).toEqual([...navItems, ...printingItems]);
     });
   });
@@ -98,8 +98,13 @@ describe('navigation utilities', () => {
         const normalizedTitle = title.toLowerCase();
         const normalizedLabel = item.label.toLowerCase();
 
-        if (item.label !== 'Home' && item.label !== 'Development') {
+        if (
+          item.label !== 'Home' &&
+          item.label !== 'Development' &&
+          item.label !== 'Films'
+        ) {
           // Most items should have their label in the title
+          // Films is excluded because label is 'Films' but title is 'Film Database'
           expect(normalizedTitle).toContain(normalizedLabel);
         }
       });

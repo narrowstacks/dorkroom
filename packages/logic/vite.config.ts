@@ -22,6 +22,7 @@ export default defineConfig(() => ({
     setupFiles: ['./src/test-setup.ts'],
     reporters: ['default'],
     passWithNoTests: true,
+    pool: 'forks',
     coverage: {
       reportsDirectory: './test-output/vitest/coverage',
       provider: 'v8' as const,

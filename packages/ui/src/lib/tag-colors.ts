@@ -46,8 +46,84 @@ export function getTagColors(tag: string): TagColorConfig {
   return TAG_COLORS[tag] || DEFAULT_TAG_COLORS;
 }
 
+// Tag matching constants
+const BW_TAGS = ['bw', 'b&w', 'b & w'];
+const COLOR_TAGS = ['color', 'colour'];
+
 // Theme-aware tag styles using CSS custom properties
 export function getTagThemeStyle(tag: string): TagThemeStyle {
+  const normalizedTag = tag.toLowerCase();
+
+  // Film type tags
+  if (BW_TAGS.includes(normalizedTag)) {
+    return {
+      backgroundColor: colorMixOr(
+        'var(--color-tag-bw)',
+        20,
+        'transparent',
+        'var(--color-border-muted)'
+      ),
+      color: colorMixOr(
+        'var(--color-tag-bw)',
+        80,
+        'var(--color-text-primary)',
+        'var(--color-text-primary)'
+      ),
+      borderColor: colorMixOr(
+        'var(--color-tag-bw)',
+        30,
+        'transparent',
+        'var(--color-border-secondary)'
+      ),
+    };
+  }
+
+  if (COLOR_TAGS.includes(normalizedTag)) {
+    return {
+      backgroundColor: colorMixOr(
+        'var(--color-tag-color)',
+        20,
+        'transparent',
+        'var(--color-border-muted)'
+      ),
+      color: colorMixOr(
+        'var(--color-tag-color)',
+        80,
+        'var(--color-text-primary)',
+        'var(--color-text-primary)'
+      ),
+      borderColor: colorMixOr(
+        'var(--color-tag-color)',
+        30,
+        'transparent',
+        'var(--color-border-secondary)'
+      ),
+    };
+  }
+
+  if (normalizedTag === 'slide') {
+    return {
+      backgroundColor: colorMixOr(
+        'var(--color-tag-slide)',
+        20,
+        'transparent',
+        'var(--color-border-muted)'
+      ),
+      color: colorMixOr(
+        'var(--color-tag-slide)',
+        80,
+        'var(--color-text-primary)',
+        'var(--color-text-primary)'
+      ),
+      borderColor: colorMixOr(
+        'var(--color-tag-slide)',
+        30,
+        'transparent',
+        'var(--color-border-secondary)'
+      ),
+    };
+  }
+
   switch (tag) {
     case 'official-ilford':
       return {
