@@ -31,6 +31,74 @@
     }
   }
 
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  @keyframes slideInFromRight {
+    0% {
+      opacity: 0;
+      transform: translateX(1rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scaleFadeIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes slideInFromLeft {
+    0% {
+      opacity: 0;
+      transform: translateX(-1rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes expandWidth {
+    0% {
+      opacity: 0;
+      transform: scaleX(0.2);
+      transform-origin: left center;
+    }
+    100% {
+      opacity: 1;
+      transform: scaleX(1);
+      transform-origin: left center;
+    }
+  }
+
+  @keyframes collapseWidth {
+    0% {
+      opacity: 0;
+      transform: scaleX(1.5);
+      transform-origin: left center;
+    }
+    100% {
+      opacity: 1;
+      transform: scaleX(1);
+      transform-origin: left center;
+    }
+  }
+
   /* Animation Utility Classes */
   .animate-slide-in-from-top {
     animation: slideInFromTop 500ms ease-out both;
@@ -54,6 +122,30 @@
     animation:
       slideInFromBottom 500ms ease-out both,
       fadeIn 500ms ease-out both;
+  }
+
+  .animate-slide-fade-right {
+    animation:
+      slideInFromRight 300ms ease-out both,
+      fadeIn 300ms ease-out both;
+  }
+
+  .animate-scale-fade-in {
+    animation: scaleFadeIn 200ms ease-out both;
+  }
+
+  .animate-slide-fade-left {
+    animation:
+      slideInFromLeft 300ms ease-out both,
+      fadeIn 300ms ease-out both;
+  }
+
+  .animate-expand-width {
+    animation: expandWidth 250ms ease-out both;
+  }
+
+  .animate-collapse-width {
+    animation: collapseWidth 250ms ease-out both;
   }
 
   /* Stagger delay utilities */
@@ -95,7 +187,12 @@
     .animate-slide-in-from-bottom,
     .animate-fade-in,
     .animate-slide-fade-top,
-    .animate-slide-fade-bottom {
+    .animate-slide-fade-bottom,
+    .animate-slide-fade-right,
+    .animate-slide-fade-left,
+    .animate-scale-fade-in,
+    .animate-expand-width,
+    .animate-collapse-width {
       animation: none;
     }
   }

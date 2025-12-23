@@ -51,6 +51,17 @@ export { VirtualizedErrorBoundary } from './components/development-recipes/virtu
 export { DimensionInputGroup } from './components/dimension-input-group';
 export { Drawer, DrawerBody, DrawerContent } from './components/drawer';
 export { ErrorBoundary } from './components/error-boundary';
+// Film Components
+export {
+  FilmCard,
+  FilmCardSkeleton,
+  FilmDetailPanel,
+  FilmDetailPanelSkeleton,
+  FilmFiltersMobile,
+  FilmFiltersPanel,
+  FilmImage,
+  FilmResultsVirtualized,
+} from './components/films';
 export { LabeledSliderInput } from './components/labeled-slider-input';
 // Marketing Components
 export { Greeting } from './components/marketing/greeting';

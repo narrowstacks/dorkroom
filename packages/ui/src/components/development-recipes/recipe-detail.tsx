@@ -187,9 +187,19 @@ export function DevelopmentRecipeDetail({
         isExpanded={isFilmExpanded}
         onToggle={() => setIsFilmExpanded(!isFilmExpanded)}
       >
-        {film?.description && (
-          <p className="text-sm text-secondary">{film.description}</p>
-        )}
+        <div className="space-y-3">
+          {film?.description && (
+            <p className="text-sm text-secondary">{film.description}</p>
+          )}
+          {film?.slug && (
+            <a
+              href={`/films?film=${film.slug}`}
+              className="inline-flex items-center gap-2 text-xs text-tertiary underline-offset-4 hover:text-primary hover:underline"
+            >
+              <ExternalLink className="h-3 w-3" /> View in Film Database
+            </a>
+          )}
+        </div>
       </CollapsibleSection>
 
       <CollapsibleSection

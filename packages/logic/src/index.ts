@@ -58,6 +58,8 @@ export {
   useViewPreference,
   type ViewMode,
 } from './hooks/development-recipes/use-view-preference';
+// Film hooks
+export { type UseFilmDatabaseReturn, useFilmDatabase } from './hooks/films';
 export { useBorderCalculator } from './hooks/use-border-calculator';
 export { useBorderPresets } from './hooks/use-border-presets';
 export { useDebounce, useDebouncedCallback } from './hooks/use-debounce';
@@ -107,6 +109,7 @@ export { debugError, debugLog, debugWarn } from './utils/debug-logger';
 export * from './utils/device-detection';
 export * from './utils/exposure-calculations';
 export * from './utils/filmdev-mapper';
+export * from './utils/fuzzy-search';
 export * from './utils/input-validation';
 export * from './utils/object-comparison';
 export * from './utils/precision';
