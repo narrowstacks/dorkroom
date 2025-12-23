@@ -78,7 +78,6 @@ export function AnimatedPreview({
   showBladeReadings = false,
   className,
 }: AnimatedPreviewProps) {
-
   // Static dimensions for consistent layout - make responsive for mobile
   const staticDimensions = useMemo(() => {
     if (!calculation) {

@@ -31,7 +31,7 @@ const FilmCardComponent: FC<FilmCardProps> = ({
         }
       }}
       className={cn(
-        'cursor-pointer rounded-2xl border p-4 shadow-subtle transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] animate-slide-fade-bottom',
+        'cursor-pointer rounded-2xl border p-4 shadow-subtle transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
         className
       )}

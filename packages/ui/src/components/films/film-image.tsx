@@ -15,6 +15,28 @@ const sizeMap = {
   lg: 80,
 } as const;
 
+// Module-level cache to track which images have been successfully loaded
+// This prevents showing loading state for images that are already in browser cache
+const loadedImageCache = new Set<string>();
+
+/**
+ * Check if an image is already loaded in the browser cache
+ * Uses the browser's native image complete check
+ */
+function isImageCached(src: string): boolean {
+  if (loadedImageCache.has(src)) return true;
+
+  // Check if browser has the image cached
+  const img = new Image();
+  img.src = src;
+  // If complete is true and naturalWidth > 0, the image is cached
+  if (img.complete && img.naturalWidth > 0) {
+    loadedImageCache.add(src);
+    return true;
+  }
+  return false;
+}
+
 export const FilmImage: FC<FilmImageProps> = ({
   src,
   alt,
@@ -22,8 +44,10 @@ export const FilmImage: FC<FilmImageProps> = ({
   className,
 }) => {
   const [hasError, setHasError] = useState(false);
-  // Only start in loading state if we have a src to load
-  const [isLoading, setIsLoading] = useState(!!src);
+  // Check cache first - skip loading state if image is already cached
+  const [isLoading, setIsLoading] = useState(
+    () => !!src && !isImageCached(src)
+  );
   const [hasTimedOut, setHasTimedOut] = useState(false);
   const dimension = sizeMap[size];
 
@@ -31,8 +55,8 @@ export const FilmImage: FC<FilmImageProps> = ({
   useEffect(() => {
     setHasError(false);
     setHasTimedOut(false);
-    // Only show loading state if we have a src to load
-    setIsLoading(!!src);
+    // Only show loading state if we have a src to load and it's not cached
+    setIsLoading(!!src && !isImageCached(src));
   }, [src]);
 
   // Timeout after 5 seconds - show fallback icon instead of loading animation
@@ -98,7 +122,10 @@ export const FilmImage: FC<FilmImageProps> = ({
               setHasError(true);
               setIsLoading(false);
             }}
-            onLoad={() => setIsLoading(false)}
+            onLoad={() => {
+              if (src) loadedImageCache.add(src);
+              setIsLoading(false);
+            }}
             className={cn(
               'w-full h-full object-cover transition-opacity duration-300',
               isLoading && 'opacity-0'
