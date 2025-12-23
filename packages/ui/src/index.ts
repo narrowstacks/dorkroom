@@ -27,13 +27,13 @@ export {
   CalculatorPageHeader,
   CalculatorStat,
 } from './components/calculator';
+export type { DetailPanelProps } from './components/detail-panel';
 // Detail Panel Components
 export {
   DetailPanel,
   DetailPanelCloseButton,
   DetailPanelExpandButton,
 } from './components/detail-panel';
-export type { DetailPanelProps } from './components/detail-panel';
 export { DevelopmentActionsBar } from './components/development-recipes/actions-bar';
 export { CollapsibleFilters } from './components/development-recipes/collapsible-filters';
 export { CustomRecipeForm } from './components/development-recipes/custom-recipe-form';
@@ -46,8 +46,8 @@ export { ImportRecipeForm } from './components/development-recipes/import-recipe
 export { MobileSortingControls } from './components/development-recipes/mobile-sorting-controls';
 export { PaginationControls } from './components/development-recipes/pagination-controls';
 export { DevelopmentRecipeDetail } from './components/development-recipes/recipe-detail';
-export { RecipeDetailPanel } from './components/development-recipes/recipe-detail-panel';
 export type { RecipeDetailPanelProps } from './components/development-recipes/recipe-detail-panel';
+export { RecipeDetailPanel } from './components/development-recipes/recipe-detail-panel';
 export { DevelopmentResultsCards } from './components/development-recipes/results-cards';
 export { DevelopmentResultsCardsVirtualized } from './components/development-recipes/results-cards-virtualized';
 export { DevelopmentResultsTable } from './components/development-recipes/results-table';

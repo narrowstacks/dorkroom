@@ -2,12 +2,12 @@ import type { Dilution } from '@dorkroom/api';
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import { ExternalLink, Star } from 'lucide-react';
 import type { FC } from 'react';
+import { useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { DetailPanel } from '../detail-panel';
 import { CollapsibleSection } from '../ui/collapsible-section';
 import { Tag } from '../ui/tag';
-import { useState } from 'react';
 
 /**
  * Props for the RecipeDetailPanel component.

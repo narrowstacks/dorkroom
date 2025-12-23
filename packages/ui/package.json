@@ -14,12 +14,13 @@
   },
   "scripts": {
     "build": "tsc --project tsconfig.lib.json",
+    "lint": "biome check .",
     "test": "vitest run",
     "typecheck": "tsc --noEmit --project tsconfig.json"
   },
   "dependencies": {
     "@dorkroom/api": "workspace:*",
-    "@dorkroom/logic": "*",
+    "@dorkroom/logic": "workspace:*",
     "@tanstack/react-table": "^8.20.5",
     "@tanstack/react-virtual": "^3.13.13",
     "clsx": "^2.1.1",
