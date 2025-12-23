@@ -65,3 +65,4 @@ PR_BODY_THEMING.md
 
 **/*.tsbuildinfo
 .mcp.json
+packages/logic/tsconfig.tsbuildinfo
