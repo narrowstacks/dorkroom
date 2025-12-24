@@ -3,12 +3,21 @@
 # Exit 0 = skip build, Exit 1 = proceed with build
 
 echo "🔍 Checking if build should be skipped..."
+echo "📌 Current commit: $VERCEL_GIT_COMMIT_SHA"
+echo "📌 Previous commit: $VERCEL_GIT_PREVIOUS_SHA"
 
-# Fetch enough history for comparison (Vercel uses shallow clones)
-git fetch --depth=2 origin main 2>/dev/null || true
+# Check if we have a previous commit to compare against
+if [ -z "$VERCEL_GIT_PREVIOUS_SHA" ]; then
+  echo "⚠️ No previous commit SHA, falling back to turbo-ignore"
+  npx turbo-ignore
+  exit $?
+fi
 
-# Get changed files
-CHANGED_FILES=$(git diff --name-only HEAD^ HEAD 2>/dev/null)
+# Fetch the previous commit for comparison
+git fetch --depth=1 origin "$VERCEL_GIT_PREVIOUS_SHA" 2>/dev/null || true
+
+# Get changed files between previous and current commit
+CHANGED_FILES=$(git diff --name-only "$VERCEL_GIT_PREVIOUS_SHA" "$VERCEL_GIT_COMMIT_SHA" 2>/dev/null)
 GIT_EXIT_CODE=$?
 
 echo "📁 Changed files (exit code: $GIT_EXIT_CODE):"
