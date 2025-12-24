@@ -15,7 +15,7 @@ import { Drawer, DrawerBody, DrawerContent } from '../../components/drawer';
 import { SaveBeforeShareModal } from '../../components/save-before-share-modal';
 import { SettingsButton } from '../../components/settings-button';
 import { ShareModal } from '../../components/share-modal';
-import { WarningAlert } from '../../components/warning-alert';
+import { StatusAlert } from '../../components/status-alert';
 // Hooks & Types
 import { useTheme } from '../../contexts/theme-context';
 import { AnimatedPreview } from './animated-preview';
@@ -286,16 +286,16 @@ export function MobileBorderLayout({
             }}
           >
             {bladeWarning && (
-              <WarningAlert message={bladeWarning} action="error" />
+              <StatusAlert message={bladeWarning} action="error" />
             )}
             {minBorderWarning && (
-              <WarningAlert message={minBorderWarning} action="error" />
+              <StatusAlert message={minBorderWarning} action="error" />
             )}
             {paperSizeWarning && (
-              <WarningAlert message={paperSizeWarning} action="warning" />
+              <StatusAlert message={paperSizeWarning} action="warning" />
             )}
             {offsetWarning && (
-              <WarningAlert message={offsetWarning} action="warning" />
+              <StatusAlert message={offsetWarning} action="warning" />
             )}
           </div>
         )}

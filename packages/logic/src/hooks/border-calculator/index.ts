@@ -13,7 +13,7 @@ import { useDimensionCalculations } from './use-dimension-calculations';
 import { useGeometryCalculations } from './use-geometry-calculations';
 import { useImageHandling } from './use-image-handling';
 import { useInputHandlers } from './use-input-handlers';
-import { useWarningSystem } from './use-warning-system';
+import { useAlertSystem } from './use-alert-system';
 
 /**
  * Main border calculator hook that orchestrates all border calculation functionality.
@@ -60,8 +60,8 @@ export const useBorderCalculator = () => {
     paperSizeWarning
   );
 
-  // Warning system management
-  useWarningSystem(state, dispatch, {
+  // Alert system management
+  useAlertSystem(state, dispatch, {
     offsetWarning: calculation.offsetWarning,
     bladeWarning: calculation.bladeWarning,
     minBorderWarning: calculation.minBorderWarning,
@@ -169,4 +169,4 @@ export { useInputHandlers } from './use-input-handlers';
 // UI-focused hooks
 export { usePaperDimensionInput } from './use-paper-dimension-input';
 export { usePresetManagement } from './use-preset-management';
-export { useWarningSystem } from './use-warning-system';
+export { useAlertSystem } from './use-alert-system';

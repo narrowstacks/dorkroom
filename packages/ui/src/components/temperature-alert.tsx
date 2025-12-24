@@ -40,7 +40,7 @@ export const TEMP_WARNING_COLORS = {
   },
 } as const;
 
-interface TemperatureWarningProps {
+interface TemperatureAlertProps {
   /** Temperature in Fahrenheit */
   temperatureF?: number | null;
   /** Temperature in Celsius */
@@ -56,10 +56,10 @@ interface TemperatureWarningProps {
  *
  * Only renders when temperature differs from standard.
  */
-export function TemperatureWarning({
+export function TemperatureAlert({
   temperatureF,
   temperatureC,
-}: TemperatureWarningProps) {
+}: TemperatureAlertProps) {
   const { unit } = useTemperature();
   const warning = getTemperatureWarning(temperatureF, temperatureC);
 

@@ -1,5 +1,5 @@
 import type { BorderCalculation } from '@dorkroom/logic';
-import { CalculatorCard, CalculatorStat, WarningAlert } from '../../index';
+import { CalculatorCard, CalculatorStat, StatusAlert } from '../../index';
 import type { FormatDimensionsOptions } from '../../lib/measurement';
 
 interface BladeReadingsSectionProps {
@@ -94,17 +94,17 @@ export function BladeReadingsSection({
 
       {bladeWarning && (
         <div className="mt-4">
-          <WarningAlert message={bladeWarning} action="error" />
+          <StatusAlert message={bladeWarning} action="error" />
         </div>
       )}
       {minBorderWarning && (
         <div className="mt-4">
-          <WarningAlert message={minBorderWarning} action="error" />
+          <StatusAlert message={minBorderWarning} action="error" />
         </div>
       )}
       {paperSizeWarning && (
         <div className="mt-4">
-          <WarningAlert message={paperSizeWarning} action="warning" />
+          <StatusAlert message={paperSizeWarning} action="warning" />
         </div>
       )}
     </CalculatorCard>

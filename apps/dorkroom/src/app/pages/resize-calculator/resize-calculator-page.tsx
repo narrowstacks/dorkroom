@@ -21,7 +21,7 @@ import {
   ToggleSwitch,
   useMeasurement,
   useMeasurementConverter,
-  WarningAlert,
+  StatusAlert,
 } from '@dorkroom/ui';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
@@ -570,7 +570,7 @@ export default function ResizeCalculatorPage() {
             >
               {({ isEnlargerMode, isMatched }) =>
                 !isEnlargerMode && !isMatched ? (
-                  <WarningAlert
+                  <StatusAlert
                     message="The aspect ratios of the original and target prints do not match. Try to match the aspect ratio of the original print to the target print as close as possible."
                     action="warning"
                   />

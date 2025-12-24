@@ -24,7 +24,7 @@ export {
   useInputHandlers,
   usePaperDimensionInput,
   usePresetManagement,
-  useWarningSystem,
+  useAlertSystem,
 } from './hooks/border-calculator';
 export {
   useAddCustomRecipe,

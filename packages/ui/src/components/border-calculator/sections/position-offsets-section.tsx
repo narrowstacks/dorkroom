@@ -8,7 +8,7 @@ import type { AnyFormApi } from '@tanstack/react-form';
 import { X } from 'lucide-react';
 import { LabeledSliderInput } from '../../../components/labeled-slider-input';
 import { ToggleSwitch } from '../../../components/toggle-switch';
-import { WarningAlert } from '../../../components/warning-alert';
+import { StatusAlert } from '../../../components/status-alert';
 
 interface PositionOffsetsSectionProps {
   onClose: () => void;
@@ -100,7 +100,7 @@ export function PositionOffsetsSection({
             </div>
 
             {offsetWarning && (
-              <WarningAlert message={offsetWarning} action="warning" />
+              <StatusAlert message={offsetWarning} action="warning" />
             )}
           </div>
         )}

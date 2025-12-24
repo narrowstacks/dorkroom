@@ -99,7 +99,7 @@ export { NavigationDropdown } from './components/navigation-dropdown';
 export { NumberInput } from './components/number-input';
 export type { PlaceholderPageProps } from './components/placeholder-page';
 export { PlaceholderPage } from './components/placeholder-page';
-export { PushPullWarning } from './components/push-pull-warning';
+export { PushPullAlert } from './components/push-pull-alert';
 export { ReciprocityChart } from './components/reciprocity-chart';
 export type { ResponsiveModalProps } from './components/responsive-modal';
 export { ResponsiveModal } from './components/responsive-modal';
@@ -111,7 +111,7 @@ export { SettingsButton } from './components/settings-button';
 // Sharing Components
 export { ShareButton, type ShareResult } from './components/share-button';
 export { ShareModal } from './components/share-modal';
-export { TemperatureWarning } from './components/temperature-warning';
+export { TemperatureAlert } from './components/temperature-alert';
 export { TextInput } from './components/text-input';
 export type { ThemeToggleProps } from './components/theme-toggle';
 export { ThemeToggle } from './components/theme-toggle';
@@ -133,7 +133,7 @@ export {
 } from './components/ui/skeleton';
 export { Tag } from './components/ui/tag';
 export { VolumeUnitToggle } from './components/volume-unit-toggle';
-export { WarningAlert } from './components/warning-alert';
+export { StatusAlert } from './components/status-alert';
 // Measurement
 export {
   MeasurementProvider,

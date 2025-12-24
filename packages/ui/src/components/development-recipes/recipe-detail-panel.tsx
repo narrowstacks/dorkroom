@@ -9,8 +9,8 @@ import { useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { DetailPanel } from '../detail-panel';
-import { PushPullWarning } from '../push-pull-warning';
-import { TemperatureWarning } from '../temperature-warning';
+import { PushPullAlert } from '../push-pull-alert';
+import { TemperatureAlert } from '../temperature-alert';
 import { CollapsibleSection } from '../ui/collapsible-section';
 import { Tag } from '../ui/tag';
 import { VolumeMixer } from './volume-mixer';
@@ -175,14 +175,14 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
         )}
       </div>
 
-      {/* Non-standard temperature warning */}
-      <TemperatureWarning
+      {/* Non-standard temperature alert */}
+      <TemperatureAlert
         temperatureF={combination.temperatureF}
         temperatureC={combination.temperatureC}
       />
 
-      {/* Push/pull warning */}
-      <PushPullWarning
+      {/* Push/pull alert */}
+      <PushPullAlert
         shootingIso={combination.shootingIso}
         pushPull={pushPull}
       />
@@ -353,14 +353,14 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
           </p>
         </div>
 
-        {/* Non-standard temperature warning */}
-        <TemperatureWarning
+        {/* Non-standard temperature alert */}
+        <TemperatureAlert
           temperatureF={combination.temperatureF}
           temperatureC={combination.temperatureC}
         />
 
-        {/* Push/pull warning */}
-        <PushPullWarning
+        {/* Push/pull alert */}
+        <PushPullAlert
           shootingIso={combination.shootingIso}
           pushPull={pushPull}
         />

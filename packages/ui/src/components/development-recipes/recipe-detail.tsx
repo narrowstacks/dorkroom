@@ -7,7 +7,7 @@ import { Edit2, ExternalLink, Share2, Star, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
-import { PushPullWarning } from '../push-pull-warning';
+import { PushPullAlert } from '../push-pull-alert';
 import { CollapsibleSection } from '../ui/collapsible-section';
 import { Tag } from '../ui/tag';
 
@@ -115,8 +115,8 @@ export function DevelopmentRecipeDetail({
         )}
       </div>
 
-      {/* Push/pull warning */}
-      <PushPullWarning
+      {/* Push/pull alert */}
+      <PushPullAlert
         shootingIso={combination.shootingIso}
         pushPull={pushPull}
       />

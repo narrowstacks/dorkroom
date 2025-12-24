@@ -1,10 +1,10 @@
 /* ------------------------------------------------------------------ *
-   use-warning-system.ts
+   use-alert-system.ts
    -------------------------------------------------------------
-   Hook for debounced warning management
+   Hook for debounced alert management
    -------------------------------------------------------------
    Exports:
-     - useWarningSystem: Manages warning state with debouncing
+     - useAlertSystem: Manages alert state with debouncing
 \* ------------------------------------------------------------------ */
 
 import { useEffect, useRef } from 'react';
@@ -36,7 +36,7 @@ const WARNING_DELAY = CALCULATION_CONSTANTS.DEBOUNCE_WARNING_DELAY;
  *
  * @example
  * ```typescript
- * useWarningSystem(state, dispatch, {
+ * useAlertSystem(state, dispatch, {
  *   offsetWarning: calculation.offsetWarning,
  *   bladeWarning: calculation.bladeWarning,
  *   minBorderWarning: calculation.minBorderWarning,
@@ -45,7 +45,7 @@ const WARNING_DELAY = CALCULATION_CONSTANTS.DEBOUNCE_WARNING_DELAY;
  * });
  * ```
  */
-export const useWarningSystem = (
+export const useAlertSystem = (
   state: BorderCalculatorState,
   dispatch: (action: BorderCalculatorAction) => void,
   warningData: WarningUpdateData

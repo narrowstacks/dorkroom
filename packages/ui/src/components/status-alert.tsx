@@ -2,17 +2,17 @@ import { AlertCircle, AlertTriangle } from 'lucide-react';
 import { cn } from '../lib/cn';
 import { colorMixOr } from '../lib/color';
 
-interface WarningAlertProps {
+interface StatusAlertProps {
   message: string;
   action?: 'warning' | 'error';
   className?: string;
 }
 
-export function WarningAlert({
+export function StatusAlert({
   message,
   action = 'warning',
   className,
-}: WarningAlertProps) {
+}: StatusAlertProps) {
   const Icon = action === 'error' ? AlertCircle : AlertTriangle;
 
   return (

@@ -45,6 +45,7 @@ bun run format
 2. **Never use `any`** - use specific types or `unknown`
 3. **Never import internal package paths** - always use `@dorkroom/ui`, `@dorkroom/logic`, `@dorkroom/api`
 4. **Avoid circular dependencies** between packages
+5. **Avoid using "warning" or "error" in file names** as this causes false warnings and errors flags in the build log.
 
 ## Git
 

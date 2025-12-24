@@ -7,7 +7,6 @@ import type { LucideIcon } from 'lucide-react';
 import {
   ArrowDown,
   ArrowUp,
-  Beaker,
   Edit2,
   ExternalLink,
   Flame,
@@ -18,7 +17,6 @@ import {
 import { memo } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { cn } from '../../lib/cn';
-import { colorMixOr } from '../../lib/color';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import type { ShareResult } from '../share-button';
 import { ShareButton } from '../share-button';
@@ -337,7 +335,6 @@ export const createTableColumns = (
     header: 'Developer',
     cell: (context: CellContext<DevelopmentCombinationView, unknown>) => {
       const { developer } = context.row.original;
-      const isCustom = context.row.original.source === 'custom';
       return (
         <div>
           <div

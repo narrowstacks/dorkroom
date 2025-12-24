@@ -3,7 +3,7 @@ import type { AnyFormApi } from '@tanstack/react-form';
 import { X } from 'lucide-react';
 import { useMemo } from 'react';
 import { LabeledSliderInput } from '../../../components/labeled-slider-input';
-import { WarningAlert } from '../../../components/warning-alert';
+import { StatusAlert } from '../../../components/status-alert';
 
 interface BorderSizeSectionProps {
   onClose: () => void;
@@ -75,7 +75,7 @@ export function BorderSizeSection({
         )}
 
         {minBorderWarning && (
-          <WarningAlert message={minBorderWarning} action="error" />
+          <StatusAlert message={minBorderWarning} action="error" />
         )}
 
         <div className="rounded-lg border border-white/10 bg-white/5 p-4">

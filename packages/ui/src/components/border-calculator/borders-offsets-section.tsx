@@ -1,5 +1,5 @@
 import type { FieldApi, FormInstance } from '../../index';
-import { LabeledSliderInput, ToggleSwitch, WarningAlert } from '../../index';
+import { LabeledSliderInput, ToggleSwitch, StatusAlert } from '../../index';
 import { CalculatorCard } from '../calculator/calculator-card';
 
 interface BordersOffsetsSectionProps {
@@ -168,7 +168,7 @@ export function BordersOffsetsSection({
             </div>
 
             {offsetWarning && (
-              <WarningAlert message={offsetWarning} action="warning" />
+              <StatusAlert message={offsetWarning} action="warning" />
             )}
           </div>
         )}

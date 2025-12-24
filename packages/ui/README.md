@@ -129,7 +129,7 @@ import {
 ### Feedback Components
 
 ```tsx
-import { Toast, useToast, WarningAlert, Tooltip } from '@dorkroom/ui';
+import { Toast, useToast, StatusAlert, Tooltip } from '@dorkroom/ui';
 
 // Toast notifications
 function MyComponent() {
@@ -141,10 +141,10 @@ function MyComponent() {
   };
 }
 
-// Warning alert
-<WarningAlert>
+// Status alert
+<StatusAlert>
   Border size exceeds safe print margin
-</WarningAlert>
+</StatusAlert>
 
 // Tooltip
 <Tooltip content="Click to copy share link">

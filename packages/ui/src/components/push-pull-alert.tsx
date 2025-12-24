@@ -14,7 +14,7 @@ export const PUSH_PULL_WARNING_COLORS = {
   },
 } as const;
 
-interface PushPullWarningProps {
+interface PushPullAlertProps {
   /** The shooting ISO used for this recipe */
   shootingIso: number;
   /** Number of stops pushed (positive) or pulled (negative), 0 = box speed */
@@ -30,10 +30,10 @@ interface PushPullWarningProps {
  *
  * Only renders when film is pushed or pulled (pushPull !== 0).
  */
-export function PushPullWarning({
+export function PushPullAlert({
   shootingIso,
   pushPull,
-}: PushPullWarningProps) {
+}: PushPullAlertProps) {
   if (pushPull === 0) {
     return null;
   }
