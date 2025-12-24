@@ -7,7 +7,7 @@ CHANGED_FILES=$(git diff --name-only HEAD^ HEAD 2>/dev/null || echo "")
 
 if [ -n "$CHANGED_FILES" ]; then
   # Skip if changes are ONLY in these paths
-  NON_BUILD_PATTERNS="^(docs/|\.md$|\.github/|CLAUDE\.md$|\.cursor/|\.vscode/)"
+  NON_BUILD_PATTERNS="(^docs/|^\.github/|^\.cursor/|^\.vscode/|^\.claude/|\.md$)"
 
   # Check if ANY changed file is NOT in the skip patterns
   if echo "$CHANGED_FILES" | grep -qvE "$NON_BUILD_PATTERNS"; then
