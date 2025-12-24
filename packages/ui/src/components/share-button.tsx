@@ -1,8 +1,8 @@
 import { shouldUseWebShare } from '@dorkroom/logic';
+import { Loader2, Share2 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '../lib/cn';
-import { colorMixOr } from '../lib/color';
 import { useOptionalToast } from './toast';
 
 /**
@@ -25,6 +25,62 @@ export interface ShareButtonProps {
   children?: React.ReactNode;
   /** When true, only show the icon without text label */
   iconOnly?: boolean;
+}
+
+/**
+ * Get CSS classes for button variants with hover states.
+ * Uses CSS for hover to prevent flickering on re-render.
+ */
+function getVariantClasses(
+  variant: 'primary' | 'secondary' | 'outline',
+  isDarkroom: boolean,
+  isDarkTheme: boolean
+): { buttonClasses: string; iconClasses: string } {
+  switch (variant) {
+    case 'primary':
+      return {
+        buttonClasses: cn(
+          'bg-[var(--color-semantic-info)] text-[var(--color-surface)]',
+          // Hover: slightly darker/more saturated
+          'hover:[background-color:color-mix(in_srgb,var(--color-semantic-info)_85%,black)]',
+          isDarkroom && 'hover:text-black'
+        ),
+        iconClasses: 'stroke-[var(--color-surface)]',
+      };
+    case 'secondary':
+      return {
+        buttonClasses: cn(
+          'bg-[var(--color-text-tertiary)] text-[var(--color-surface)]',
+          'hover:bg-[var(--color-text-secondary)]',
+          isDarkroom && 'hover:text-black'
+        ),
+        iconClasses: 'stroke-[var(--color-surface)]',
+      };
+    case 'outline':
+      if (isDarkroom) {
+        return {
+          buttonClasses: cn(
+            'bg-transparent border border-[var(--color-semantic-info)] text-[var(--color-semantic-info)]',
+            'hover:bg-[var(--color-semantic-info)] hover:text-black'
+          ),
+          iconClasses:
+            'stroke-[var(--color-semantic-info)] group-hover:stroke-black',
+        };
+      }
+      return {
+        buttonClasses: cn(
+          'bg-transparent border border-[var(--color-border-primary)] text-[var(--color-text-secondary)]',
+          'hover:bg-[var(--color-border-secondary)]',
+          isDarkTheme ? 'hover:text-white' : 'hover:text-black'
+        ),
+        iconClasses: cn(
+          'stroke-[var(--color-text-secondary)]',
+          isDarkTheme ? 'group-hover:stroke-white' : 'group-hover:stroke-black'
+        ),
+      };
+    default:
+      return { buttonClasses: '', iconClasses: '' };
+  }
 }
 
 export function ShareButton({
@@ -51,82 +107,35 @@ export function ShareButton({
     };
   }, []);
 
+  const theme = document.documentElement.getAttribute('data-theme');
+  const isDarkroom = theme === 'darkroom';
+  const isDarkTheme = theme === 'dark' || theme === 'high-contrast';
+
+  const { buttonClasses, iconClasses } = getVariantClasses(
+    variant,
+    isDarkroom,
+    isDarkTheme
+  );
+
   const baseClasses = cn(
-    'inline-flex items-center justify-center font-medium transition-all duration-200',
+    'group inline-flex items-center justify-center font-medium transition-colors',
     'focus:outline-none focus:ring-2 focus:ring-offset-2',
     'disabled:opacity-50 disabled:cursor-not-allowed',
-    'rounded-lg',
+    // Use rounded-md for icon-only buttons to match ActionIconButton
+    iconOnly ? 'rounded-md' : 'rounded-lg',
     {
-      // Size variants
-      'px-3 py-1.5 text-sm': size === 'sm',
+      // Size variants - use square padding for iconOnly
+      'p-1.5 text-sm': size === 'sm' && iconOnly,
+      'px-3 py-1.5 text-sm': size === 'sm' && !iconOnly,
       'px-4 py-2 text-sm': size === 'md',
       'px-6 py-3 text-base': size === 'lg',
 
       // Loading state
       'cursor-wait': isLoading,
     },
+    buttonClasses,
     className
   );
-
-  const getVariantStyle = () => {
-    switch (variant) {
-      case 'primary':
-        return {
-          backgroundColor: 'var(--color-semantic-info)',
-          color: 'var(--color-surface)',
-        };
-      case 'secondary':
-        return {
-          backgroundColor: 'var(--color-text-tertiary)',
-          color: 'var(--color-surface)',
-        };
-      case 'outline':
-        return {
-          backgroundColor: 'transparent',
-          borderColor: 'var(--color-border-primary)',
-          color: 'var(--color-text-secondary)',
-        };
-      default:
-        return {};
-    }
-  };
-
-  const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (disabled || isLoading) return;
-    const isDarkroomMode =
-      document.documentElement.getAttribute('data-theme') === 'darkroom';
-
-    switch (variant) {
-      case 'primary':
-        e.currentTarget.style.backgroundColor = colorMixOr(
-          'var(--color-semantic-info)',
-          85,
-          'transparent',
-          'var(--color-semantic-info)'
-        );
-        // In darkroom mode, change text color to black for better contrast against red background
-        if (isDarkroomMode) {
-          e.currentTarget.style.color = '#000000';
-        }
-        break;
-      case 'secondary':
-        e.currentTarget.style.backgroundColor = 'var(--color-text-secondary)';
-        if (isDarkroomMode) {
-          e.currentTarget.style.color = '#000000';
-        }
-        break;
-      case 'outline':
-        e.currentTarget.style.backgroundColor = 'var(--color-surface-muted)';
-        break;
-    }
-  };
-
-  const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (disabled || isLoading) return;
-    const style = getVariantStyle();
-    e.currentTarget.style.backgroundColor = style.backgroundColor || '';
-    e.currentTarget.style.color = style.color || '';
-  };
 
   const handleClick = async () => {
     const isWebShare = shouldUseWebShare();
@@ -165,23 +174,13 @@ export function ShareButton({
   };
 
   return (
-    <div className="relative">
+    <div className={cn('relative', iconOnly && 'inline-flex')}>
       <button
         ref={buttonRef}
         type="button"
         onClick={handleClick}
         disabled={disabled || isLoading}
         className={baseClasses}
-        style={getVariantStyle()}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onFocus={(e) => {
-          e.currentTarget.style.boxShadow =
-            '0 0 0 2px var(--color-border-primary)';
-        }}
-        onBlur={(e) => {
-          e.currentTarget.style.boxShadow = '';
-        }}
         aria-label={
           iconOnly ? (shouldUseWebShare() ? 'Share' : 'Copy link') : undefined
         }
@@ -189,46 +188,24 @@ export function ShareButton({
           iconOnly ? (shouldUseWebShare() ? 'Share' : 'Copy link') : undefined
         }
       >
-        {isLoading && (
-          <svg
-            className="mr-2 h-4 w-4 animate-spin"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
+        {isLoading ? (
+          <Loader2
+            className={cn(
+              'pointer-events-none h-4 w-4 animate-spin',
+              !iconOnly && 'mr-2'
+            )}
             aria-hidden="true"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
-        )}
-
-        {!isLoading && (
-          <svg
-            className={cn('h-4 w-4', !iconOnly && 'mr-2')}
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          />
+        ) : (
+          <Share2
+            className={cn(
+              'pointer-events-none h-4 w-4 transition-colors',
+              iconClasses,
+              !iconOnly && 'mr-2'
+            )}
             aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
-            />
-          </svg>
+            strokeWidth={2}
+          />
         )}
 
         {!iconOnly &&

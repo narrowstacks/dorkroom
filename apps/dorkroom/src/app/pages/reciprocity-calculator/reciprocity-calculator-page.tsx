@@ -181,9 +181,9 @@ export default function ReciprocityCalculatorPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
       <CalculatorPageHeader
-        eyebrow="Long Exposure Maths"
+        eyebrow="Long Exposure Math"
         title="Reciprocity Failure Calculator"
-        description="Compensate for long exposure reciprocity the moment your meter starts to drift. Choose a film stock, enter the metered time, and we will do the power-curve maths for you."
+        description="Compensate for long exposure reciprocity the moment your meter starts to drift. Choose a film stock, enter the metered time, and the calculator does the rest."
       />
 
       <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">

@@ -27,6 +27,7 @@ export {
   CalculatorPageHeader,
   CalculatorStat,
 } from './components/calculator';
+export { ConfirmModal } from './components/confirm-modal';
 export type { DetailPanelProps } from './components/detail-panel';
 // Detail Panel Components
 export {

@@ -18,6 +18,7 @@ export interface InitialUrlState {
   recipeId?: string;
   fromUrl?: boolean;
   isSharedApiRecipe?: boolean;
+  isDirectSelection?: boolean;
   view?: 'favorites' | 'custom';
 }
 

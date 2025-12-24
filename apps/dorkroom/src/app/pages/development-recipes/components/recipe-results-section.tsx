@@ -32,6 +32,8 @@ export interface RecipeResultsSectionProps {
   onEditCustomRecipe: (view: DevelopmentCombinationView) => void;
   onDeleteCustomRecipe: (view: DevelopmentCombinationView) => Promise<void>;
   isFavorite: (view: DevelopmentCombinationView) => boolean;
+  /** ID of the currently selected recipe to highlight */
+  selectedRecipeId?: string | null;
 }
 
 export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
@@ -52,6 +54,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
     onEditCustomRecipe,
     onDeleteCustomRecipe,
     isFavorite,
+    selectedRecipeId,
   } = props;
 
   return (
@@ -146,11 +149,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
       )}
 
       {!isLoading && !isRefreshingData && (
-        <div
-          ref={resultsContainerRef}
-          key={`results-${isLoaded}-${table.getRowModel().rows.length}`}
-          className="animate-slide-fade-top"
-        >
+        <div ref={resultsContainerRef} className="animate-slide-fade-top">
           <VirtualizedErrorBoundary>
             {isMobile || viewMode === 'grid' ? (
               <DevelopmentResultsCardsVirtualized
@@ -167,6 +166,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
                 onDeleteCustomRecipe={onDeleteCustomRecipe}
                 favoriteTransitions={favoriteTransitions}
                 scrollContainerRef={virtualScrollContainerRef}
+                selectedRecipeId={selectedRecipeId}
               />
             ) : (
               <DevelopmentResultsTableVirtualized
@@ -174,6 +174,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
                 onSelectCombination={onSelectCombination}
                 favoriteTransitions={favoriteTransitions}
                 scrollContainerRef={virtualScrollContainerRef}
+                selectedRecipeId={selectedRecipeId}
               />
             )}
           </VirtualizedErrorBoundary>

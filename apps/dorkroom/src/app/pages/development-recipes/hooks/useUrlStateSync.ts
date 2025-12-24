@@ -13,6 +13,7 @@ export interface UseUrlStateSyncProps {
     view?: string;
     recipeId?: string;
     isSharedApiRecipe?: boolean;
+    isDirectSelection?: boolean;
   };
   sharedCustomRecipeView: DevelopmentCombinationView | null;
   recipesByUuid: Map<string, Combination>;
@@ -103,7 +104,7 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
       return;
     }
 
-    // Check for shared API recipe in URL
+    // Check for recipe in URL (direct selection or shared)
     if (initialUrlState.recipeId) {
       const recipe = recipesByUuid.get(initialUrlState.recipeId);
       if (recipe) {
@@ -111,16 +112,22 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
           combination: recipe,
           film: getFilmById(recipe.filmStockId),
           developer: getDeveloperById(recipe.developerId),
-          source: 'api', // Assume shared recipes are from API unless proven otherwise
+          source: 'api', // Assume API recipes unless proven otherwise
           canShare: true,
         };
 
-        // If this is a shared API recipe (has film/developer URL params), open detail directly
-        if (initialUrlState.isSharedApiRecipe) {
+        // Direct selection (from bookmark/link without source=share) - open detail directly
+        if (initialUrlState.isDirectSelection) {
           setDetailView(recipeView);
           setIsDetailOpen(true);
-        } else {
-          // Otherwise, show the shared recipe modal for potential import
+        }
+        // Shared API recipe (has film/developer URL params) - open detail directly
+        else if (initialUrlState.isSharedApiRecipe) {
+          setDetailView(recipeView);
+          setIsDetailOpen(true);
+        }
+        // Otherwise, show the shared recipe modal for potential import
+        else {
           setSharedRecipeView(recipeView);
           setSharedRecipeSource('shared');
           setIsSharedRecipeModalOpen(true);

@@ -137,6 +137,8 @@ interface DevelopmentResultsCardsVirtualizedProps {
   height?: string;
   /** Ref to the scroll container, can be used to scroll to top on page change */
   scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
+  /** ID of the currently selected recipe to highlight in the grid */
+  selectedRecipeId?: string | null;
 }
 
 const formatTime = (minutes: number) => {
@@ -187,6 +189,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
   favoriteTransitions = new Map(),
   height = DEFAULT_CONTAINER_HEIGHT,
   scrollContainerRef,
+  selectedRecipeId,
 }) => {
   const { unit } = useTemperature();
   const [hoveredFavoriteId, setHoveredFavoriteId] = useState<string | null>(
@@ -217,6 +220,13 @@ export const DevelopmentResultsCardsVirtualized: FC<
     overscan: CARD_OVERSCAN,
     // Use debounced resize observation to prevent browser lockups during rapid resizing
     observeElementRect: debouncedObserveElementRect,
+    // Enable dynamic measurement for rows with varying heights (e.g., custom recipes with extra buttons)
+    measureElement:
+      typeof window !== 'undefined' &&
+      'ResizeObserver' in window &&
+      navigator.userAgent.indexOf('Firefox') === -1
+        ? (element) => element?.getBoundingClientRect().height
+        : undefined,
   });
 
   const virtualRows = rowVirtualizer.getVirtualItems();
@@ -254,6 +264,8 @@ export const DevelopmentResultsCardsVirtualized: FC<
           return (
             <div
               key={virtualRow.key}
+              data-index={virtualRow.index}
+              ref={rowVirtualizer.measureElement}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -261,6 +273,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
                 width: '100%',
                 transform: `translateY(${virtualRow.start}px)`,
               }}
+              className="pb-4"
             >
               <div
                 className="grid gap-4"
@@ -294,6 +307,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
                     rowData.source === 'custom'
                       ? hoverStyles.custom
                       : hoverStyles.api;
+                  const isSelected = id === selectedRecipeId;
 
                   return (
                     // biome-ignore lint/a11y/useSemanticElements: Card uses ARIA role with keyboard support instead of button to avoid resetting button styles
@@ -301,6 +315,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
                       key={combination.uuid || combination.id}
                       role="button"
                       tabIndex={0}
+                      aria-pressed={isSelected}
                       onClick={() => onSelectCombination?.(rowData)}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
@@ -313,20 +328,28 @@ export const DevelopmentResultsCardsVirtualized: FC<
                         'animate-slide-fade-bottom'
                       )}
                       style={{
-                        borderColor: cardStyles.default.borderColor,
-                        backgroundColor: cardStyles.default.backgroundColor,
+                        borderColor: isSelected
+                          ? cardStyles.selected.borderColor
+                          : cardStyles.default.borderColor,
+                        backgroundColor: isSelected
+                          ? cardStyles.selected.backgroundColor
+                          : cardStyles.default.backgroundColor,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor =
-                          cardStyles.hover.borderColor;
-                        e.currentTarget.style.backgroundColor =
-                          cardStyles.hover.backgroundColor;
+                        if (!isSelected) {
+                          e.currentTarget.style.borderColor =
+                            cardStyles.hover.borderColor;
+                          e.currentTarget.style.backgroundColor =
+                            cardStyles.hover.backgroundColor;
+                        }
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor =
-                          cardStyles.default.borderColor;
-                        e.currentTarget.style.backgroundColor =
-                          cardStyles.default.backgroundColor;
+                        if (!isSelected) {
+                          e.currentTarget.style.borderColor =
+                            cardStyles.default.borderColor;
+                          e.currentTarget.style.backgroundColor =
+                            cardStyles.default.backgroundColor;
+                        }
                       }}
                     >
                       <div className="flex justify-between items-start">

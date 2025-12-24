@@ -39,6 +39,12 @@ export function useRecipeModals() {
   >('shared');
   const [isAddingSharedRecipe, setIsAddingSharedRecipe] = useState(false);
 
+  // Delete confirmation modal state
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [deleteConfirmRecipe, setDeleteConfirmRecipe] =
+    useState<DevelopmentCombinationView | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Helper functions to open modals with data
   const openDetailDrawer = (view: DevelopmentCombinationView) => {
     setDetailView(view);
@@ -102,6 +108,17 @@ export function useRecipeModals() {
     setIsAddingSharedRecipe(false);
   };
 
+  const openDeleteConfirm = (view: DevelopmentCombinationView) => {
+    setDeleteConfirmRecipe(view);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const closeDeleteConfirm = () => {
+    setIsDeleteConfirmOpen(false);
+    setDeleteConfirmRecipe(null);
+    setIsDeleting(false);
+  };
+
   return {
     // Detail drawer
     isDetailOpen,
@@ -152,5 +169,15 @@ export function useRecipeModals() {
     setIsAddingSharedRecipe,
     openSharedRecipeModal,
     closeSharedRecipeModal,
+
+    // Delete confirmation modal
+    isDeleteConfirmOpen,
+    setIsDeleteConfirmOpen,
+    deleteConfirmRecipe,
+    setDeleteConfirmRecipe,
+    isDeleting,
+    setIsDeleting,
+    openDeleteConfirm,
+    closeDeleteConfirm,
   };
 }

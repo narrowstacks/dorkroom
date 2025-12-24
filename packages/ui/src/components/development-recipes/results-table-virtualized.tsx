@@ -24,6 +24,8 @@ interface DevelopmentResultsTableVirtualizedProps {
   height?: string;
   /** Ref to the scroll container, can be used to scroll to top on page change */
   scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
+  /** ID of the currently selected recipe to highlight in the table */
+  selectedRecipeId?: string | null;
 }
 
 export const DevelopmentResultsTableVirtualized: FC<
@@ -34,13 +36,16 @@ export const DevelopmentResultsTableVirtualized: FC<
   favoriteTransitions = new Map(),
   height = DEFAULT_CONTAINER_HEIGHT,
   scrollContainerRef,
+  selectedRecipeId,
 }) => {
   const rows = table.getRowModel().rows;
   const headerGroups = table.getHeaderGroups();
-  const hoverStyles = useRecipeHoverStyles();
 
   const internalRef = useRef<HTMLDivElement>(null);
   const parentRef = scrollContainerRef || internalRef;
+
+  // Pre-compute hover styles to avoid recalculating on every hover event
+  const hoverStyles = useRecipeHoverStyles();
 
   // Memoize the debounced observer to prevent recreation on every render
   const debouncedObserveElementRect = useMemo(
@@ -88,6 +93,9 @@ export const DevelopmentResultsTableVirtualized: FC<
             className="min-w-full divide-y text-sm"
             style={
               {
+                // Fixed layout ensures column widths are determined by headers,
+                // preventing resize when custom recipe rows virtualize in/out
+                tableLayout: 'fixed',
                 '--tw-divide-opacity': '0.15',
                 divideColor: 'var(--color-border-secondary)',
                 color: 'var(--color-border-secondary)',
@@ -204,10 +212,11 @@ export const DevelopmentResultsTableVirtualized: FC<
                   }
 
                   // Pre-select styles based on source to avoid calculation in event handlers
-                  const styles =
+                  const rowStyles =
                     rowData.source === 'custom'
                       ? hoverStyles.custom
                       : hoverStyles.api;
+                  const isSelected = id === selectedRecipeId;
 
                   return (
                     // biome-ignore lint/a11y/useSemanticElements: Table row uses ARIA role with keyboard support for clickable behavior
@@ -215,6 +224,7 @@ export const DevelopmentResultsTableVirtualized: FC<
                       key={row.id}
                       role="button"
                       tabIndex={0}
+                      aria-pressed={isSelected}
                       onClick={() => onSelectCombination?.(rowData)}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
@@ -223,19 +233,28 @@ export const DevelopmentResultsTableVirtualized: FC<
                         }
                       }}
                       className={cn(
-                        'cursor-pointer transition-all duration-200',
+                        'cursor-pointer transition-colors duration-200',
                         'animate-slide-fade-bottom'
                       )}
                       style={{
-                        backgroundColor: styles.default.backgroundColor,
+                        backgroundColor: isSelected
+                          ? rowStyles.selected.backgroundColor
+                          : rowStyles.default.backgroundColor,
+                        boxShadow: isSelected
+                          ? 'inset 3px 0 0 var(--color-primary)'
+                          : undefined,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor =
-                          styles.hover.backgroundColor;
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor =
+                            rowStyles.hover.backgroundColor;
+                        }
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor =
-                          styles.default.backgroundColor;
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor =
+                            rowStyles.default.backgroundColor;
+                        }
                       }}
                     >
                       {row

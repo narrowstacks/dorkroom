@@ -51,6 +51,9 @@ Thumbs.db
 # Turbo
 .turbo
 
+# Nx (legacy, may regenerate from dependencies)
+.nx
+
 # CLAUDE
 .claude/settings.local.json
 

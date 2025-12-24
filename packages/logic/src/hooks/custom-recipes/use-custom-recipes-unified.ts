@@ -99,10 +99,10 @@ export function useCustomRecipesUnified() {
     await clearMutation.mutateAsync();
   }, [clearMutation]);
 
-  // Manual refresh function
+  // Manual refresh function - returns the fresh data from the refetch result
   const forceRefresh = useCallback(async (): Promise<CustomRecipe[]> => {
-    await recipesQuery.refetch();
-    return recipesQuery.data ?? [];
+    const result = await recipesQuery.refetch();
+    return result.data ?? [];
   }, [recipesQuery]);
 
   return {

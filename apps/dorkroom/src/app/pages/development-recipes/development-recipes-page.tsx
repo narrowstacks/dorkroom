@@ -11,6 +11,7 @@ import {
 } from '@dorkroom/logic';
 import {
   CollapsibleFilters,
+  ConfirmModal,
   createTableColumns,
   DevelopmentActionsBar,
   FilmDeveloperSelection,
@@ -18,6 +19,7 @@ import {
   MobileSortingControls,
   PaginationControls,
   RecipeDetailPanel,
+  type TableColumnContext,
   TemperatureProvider,
   useIsMobile,
   useTheme,
@@ -117,6 +119,12 @@ export default function DevelopmentRecipesPage() {
     setIsAddingSharedRecipe,
     setSharedRecipeView,
     setSharedRecipeSource,
+    isDeleteConfirmOpen,
+    deleteConfirmRecipe,
+    isDeleting,
+    openDeleteConfirm,
+    closeDeleteConfirm,
+    setIsDeleting,
   } = useRecipeModals();
 
   const [isRefreshingData, setIsRefreshingData] = useState(false);
@@ -140,6 +148,13 @@ export default function DevelopmentRecipesPage() {
     Map<string, Combination>
   >(new Map());
 
+  // Get the selected recipe ID for URL syncing
+  // Only sync API recipes to URL (not custom recipes which use encoded sharing)
+  const selectedRecipeId =
+    isDetailOpen && detailView?.source === 'api'
+      ? String(detailView.combination.uuid || detailView.combination.id)
+      : null;
+
   const {
     initialUrlState,
     isLoadingSharedRecipe,
@@ -155,6 +170,7 @@ export default function DevelopmentRecipesPage() {
       isoFilter,
       favoritesOnly,
       customRecipeFilter,
+      selectedRecipeId,
     },
     recipesByUuidState
   );
@@ -200,6 +216,7 @@ export default function DevelopmentRecipesPage() {
     handleCustomRecipeSubmit,
     handleEditCustomRecipe,
     handleDeleteCustomRecipe,
+    confirmDeleteCustomRecipe,
     handleCheckFavorite,
     handleToggleFavorite,
     handleAcceptSharedRecipe,
@@ -239,6 +256,10 @@ export default function DevelopmentRecipesPage() {
     setIsImportModalOpen,
     setIsImporting,
     setImportError,
+    deleteConfirmRecipe,
+    openDeleteConfirm,
+    closeDeleteConfirm,
+    setIsDeleting,
     editingRecipe,
     detailView,
     sharedRecipeView,
@@ -252,6 +273,7 @@ export default function DevelopmentRecipesPage() {
     getDeveloperById,
     allFilms,
     allDevelopers,
+    customRecipeSharingEnabled: flags.CUSTOM_RECIPE_SHARING,
   });
 
   // URL state synchronization
@@ -284,23 +306,41 @@ export default function DevelopmentRecipesPage() {
     virtualScrollContainerRef,
   });
 
-  // Create table columns with action handlers
+  // Use refs to store handlers so columns can stay stable
+  // This prevents table cell re-renders when handlers change (e.g., after navigation)
+  const columnHandlersRef = useRef<TableColumnContext>({
+    isFavorite: handleCheckFavorite,
+    onToggleFavorite: handleToggleFavorite,
+    onEditCustomRecipe: handleEditCustomRecipe,
+    onDeleteCustomRecipe: handleDeleteCustomRecipe,
+    onShareCombination: handleShareCombination,
+  });
+
+  // Update ref on each render to keep handlers current
+  columnHandlersRef.current = {
+    isFavorite: handleCheckFavorite,
+    onToggleFavorite: handleToggleFavorite,
+    onEditCustomRecipe: handleEditCustomRecipe,
+    onDeleteCustomRecipe: handleDeleteCustomRecipe,
+    onShareCombination: handleShareCombination,
+  };
+
+  // Create stable columns - wrapper functions read from ref at call time
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally stable - handlers accessed via ref
   const columns = useMemo(
     () =>
       createTableColumns({
-        isFavorite: handleCheckFavorite,
-        onToggleFavorite: handleToggleFavorite,
-        onEditCustomRecipe: handleEditCustomRecipe,
-        onDeleteCustomRecipe: handleDeleteCustomRecipe,
-        onShareCombination: handleShareCombination,
+        isFavorite: (view) => columnHandlersRef.current.isFavorite?.(view),
+        onToggleFavorite: (view) =>
+          columnHandlersRef.current.onToggleFavorite?.(view),
+        onEditCustomRecipe: (view) =>
+          columnHandlersRef.current.onEditCustomRecipe?.(view),
+        onDeleteCustomRecipe: (view) =>
+          columnHandlersRef.current.onDeleteCustomRecipe?.(view),
+        onShareCombination: (view) =>
+          columnHandlersRef.current.onShareCombination?.(view),
       }),
-    [
-      handleCheckFavorite,
-      handleToggleFavorite,
-      handleEditCustomRecipe,
-      handleDeleteCustomRecipe,
-      handleShareCombination,
-    ]
+    []
   );
 
   // Create TanStack table instance
@@ -431,6 +471,7 @@ export default function DevelopmentRecipesPage() {
               onEditCustomRecipe={handleEditCustomRecipe}
               onDeleteCustomRecipe={handleDeleteCustomRecipe}
               isFavorite={handleCheckFavorite}
+              selectedRecipeId={selectedRecipeId}
             />
 
             {!isLoading && !isRefreshingData && (
@@ -509,6 +550,7 @@ export default function DevelopmentRecipesPage() {
                 onEditCustomRecipe={handleEditCustomRecipe}
                 onDeleteCustomRecipe={handleDeleteCustomRecipe}
                 isFavorite={handleCheckFavorite}
+                selectedRecipeId={selectedRecipeId}
               />
 
               {!isLoading && !isRefreshingData && (
@@ -580,6 +622,18 @@ export default function DevelopmentRecipesPage() {
           onShareRecipe={handleShareCombination}
           onCopyRecipe={handleCopyCombination}
           customRecipeSharingEnabled={flags.CUSTOM_RECIPE_SHARING}
+        />
+
+        <ConfirmModal
+          isOpen={isDeleteConfirmOpen}
+          onClose={closeDeleteConfirm}
+          onConfirm={confirmDeleteCustomRecipe}
+          title="Delete Recipe"
+          message="Are you sure you want to delete this custom recipe? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          isDestructive
+          isProcessing={isDeleting}
         />
 
         {(isLoadingSharedRecipe || sharedRecipeError) && (

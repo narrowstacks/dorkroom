@@ -239,6 +239,7 @@ export const useRecipeUrlState = (
     isoFilter: string;
     favoritesOnly?: boolean;
     customRecipeFilter?: string;
+    selectedRecipeId?: string | null;
   },
   recipesByUuid?: Map<string, Combination>
 ): UseRecipeUrlStateReturn => {
@@ -327,12 +328,18 @@ export const useRecipeUrlState = (
     if (validation.sanitized.recipe) {
       state.recipeId = validation.sanitized.recipe;
 
-      // Check if this is a shared API recipe (has film/developer params and source=share)
-      const hasFilmDeveloper =
-        validation.sanitized.film && validation.sanitized.developer;
       const isFromShare = validation.sanitized.source === 'share';
-      if (hasFilmDeveloper && isFromShare) {
-        state.isSharedApiRecipe = true;
+
+      if (isFromShare) {
+        // Check if this is a shared API recipe (has film/developer params and source=share)
+        const hasFilmDeveloper =
+          validation.sanitized.film && validation.sanitized.developer;
+        if (hasFilmDeveloper) {
+          state.isSharedApiRecipe = true;
+        }
+      } else {
+        // Recipe in URL without source=share means direct selection (bookmark/link)
+        state.isDirectSelection = true;
       }
     }
 
@@ -514,6 +521,17 @@ export const useRecipeUrlState = (
       urlParams.view = undefined;
     }
 
+    // Sync selected recipe to URL (for direct viewing, not sharing)
+    if (currentState.selectedRecipeId) {
+      urlParams.recipe = currentState.selectedRecipeId;
+      // Clear source when it's a direct selection, not a share
+      urlParams.source = undefined;
+    } else {
+      // Clear recipe from URL when panel is closed
+      urlParams.recipe = '';
+      urlParams.source = undefined;
+    }
+
     updateUrl(urlParams);
   }, [
     currentState.selectedFilm,
@@ -522,6 +540,7 @@ export const useRecipeUrlState = (
     currentState.isoFilter,
     currentState.favoritesOnly,
     currentState.customRecipeFilter,
+    currentState.selectedRecipeId,
     updateUrl,
   ]);
 

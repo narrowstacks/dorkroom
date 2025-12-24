@@ -1,5 +1,6 @@
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
+import type { LucideIcon } from 'lucide-react';
 import {
   Beaker,
   Edit2,
@@ -9,6 +10,7 @@ import {
   Star,
   Trash2,
 } from 'lucide-react';
+import { memo } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
@@ -16,6 +18,135 @@ import { formatTemperatureWithUnit } from '../../lib/temperature';
 import type { ShareResult } from '../share-button';
 import { ShareButton } from '../share-button';
 import { Tag } from '../ui/tag';
+
+/**
+ * Theme-aware action button that uses CSS for hover states.
+ * This prevents flickering when components re-render mid-hover.
+ */
+interface ActionIconButtonProps {
+  icon: LucideIcon;
+  onClick: (e: React.MouseEvent) => void;
+  title: string;
+  ariaLabel: string;
+  ariaPressed?: boolean;
+  variant: 'favorite' | 'favorite-active' | 'edit' | 'delete';
+  isDarkroom: boolean;
+}
+
+const ActionIconButton = memo(function ActionIconButton({
+  icon: Icon,
+  onClick,
+  title,
+  ariaLabel,
+  ariaPressed,
+  variant,
+  isDarkroom,
+}: ActionIconButtonProps) {
+  // Base classes for all buttons
+  const baseClasses =
+    'group inline-flex items-center justify-center rounded-md p-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2';
+
+  // Get variant-specific classes and styles
+  const getVariantConfig = () => {
+    if (isDarkroom) {
+      // Darkroom mode: all buttons use red accent, hover fills with red bg and black icon
+      return {
+        className: cn(
+          baseClasses,
+          'border',
+          // Default state
+          'bg-[var(--color-surface-muted)] border-[var(--color-semantic-info)]',
+          // Hover state - CSS handles this
+          'hover:bg-[var(--color-semantic-info)]'
+        ),
+        iconClassName:
+          'pointer-events-none h-4 w-4 transition-colors stroke-[var(--color-semantic-info)] group-hover:stroke-black',
+        iconStyle:
+          variant === 'favorite-active'
+            ? { fill: 'var(--color-semantic-info)' }
+            : undefined,
+        iconHoverFill: variant === 'favorite-active' ? 'black' : undefined,
+      };
+    }
+
+    // Non-darkroom themes
+    switch (variant) {
+      case 'favorite':
+        return {
+          className: cn(
+            baseClasses,
+            'border',
+            'bg-[var(--color-surface-muted)] border-[var(--color-border-primary)]',
+            'hover:bg-[var(--color-border-secondary)]'
+          ),
+          iconClassName:
+            'pointer-events-none h-4 w-4 transition-colors stroke-[var(--color-border-primary)] group-hover:stroke-white',
+        };
+      case 'favorite-active':
+        return {
+          className: cn(
+            baseClasses,
+            'border',
+            'bg-[var(--color-surface-muted)] border-[var(--color-border-primary)]',
+            'hover:bg-[var(--color-border-secondary)]'
+          ),
+          iconClassName:
+            'pointer-events-none h-4 w-4 transition-colors stroke-[var(--color-semantic-warning)] group-hover:stroke-white',
+          iconStyle: { fill: 'var(--color-semantic-warning)' },
+        };
+      case 'edit':
+        return {
+          className: cn(
+            baseClasses,
+            'border border-transparent', // Transparent border for consistent sizing with bordered buttons
+            'bg-[var(--color-surface-muted)]',
+            'hover:bg-[var(--color-border-secondary)]'
+          ),
+          iconClassName:
+            'pointer-events-none h-4 w-4 transition-colors stroke-[var(--color-text-secondary)] group-hover:stroke-white',
+        };
+      case 'delete':
+        return {
+          className: cn(
+            baseClasses,
+            'border border-transparent', // Transparent border for consistent sizing with bordered buttons
+            // Use color-mix for error tint background
+            '[background-color:color-mix(in_srgb,var(--color-semantic-error)_10%,transparent)]',
+            // Hover: slightly more saturated
+            'hover:[background-color:color-mix(in_srgb,var(--color-semantic-error)_20%,transparent)]'
+          ),
+          iconClassName: cn(
+            'pointer-events-none h-4 w-4 transition-colors',
+            // Error color stroke
+            '[stroke:color-mix(in_srgb,var(--color-semantic-error)_80%,var(--color-text-primary))]',
+            'group-hover:[stroke:color-mix(in_srgb,var(--color-semantic-error)_90%,var(--color-text-primary))]'
+          ),
+        };
+      default:
+        return { className: baseClasses, iconClassName: 'h-4 w-4' };
+    }
+  };
+
+  const config = getVariantConfig();
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      aria-label={ariaLabel}
+      aria-pressed={ariaPressed}
+      className={config.className}
+    >
+      <Icon
+        className={config.iconClassName}
+        aria-hidden="true"
+        strokeWidth={2}
+        style={config.iconStyle}
+      />
+    </button>
+  );
+});
 
 /**
  * Formatting utilities (extracted from results-table.tsx)
@@ -277,157 +408,68 @@ export const createTableColumns = (
       const view = cellCtx.row.original;
       const isFav = context.isFavorite?.(view);
       const isCustom = view.source === 'custom';
+      const isDarkroom =
+        document.documentElement.getAttribute('data-theme') === 'darkroom';
 
       return (
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            title={isFav ? 'Remove from favorites' : 'Add to favorites'}
-            aria-pressed={Boolean(isFav)}
-            aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
-            onClick={(e) => {
-              e.stopPropagation();
-              context.onToggleFavorite?.(view);
-            }}
-            className="inline-flex items-center justify-center rounded-md p-1.5 transition"
-            style={{
-              backgroundColor: 'var(--color-surface-muted)',
-              borderWidth: 1,
-              borderColor: 'var(--color-border-secondary)',
-              color: isFav
-                ? 'var(--color-semantic-warning)'
-                : 'var(--color-border-secondary)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor =
-                'var(--color-border-secondary)';
-              const star = e.currentTarget.querySelector('svg');
-              if (star) {
-                star.style.stroke = '#ffffff';
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor =
-                'var(--color-surface-muted)';
-              const star = e.currentTarget.querySelector('svg');
-              if (star) {
-                star.style.stroke = isFav
-                  ? 'var(--color-semantic-warning)'
-                  : 'var(--color-border-secondary)';
-              }
-            }}
-          >
-            <Star
-              className="h-4 w-4"
-              aria-hidden="true"
-              fill={isFav ? 'var(--color-semantic-warning)' : 'none'}
-              stroke={
-                isFav
-                  ? 'var(--color-semantic-warning)'
-                  : 'var(--color-border-secondary)'
-              }
-              strokeWidth={2}
+        // Vertical stack: favorite+share on top, edit+delete below (if custom)
+        // This prevents column width changes when custom recipes virtualize in/out
+        <div className="flex flex-col gap-1.5">
+          {/* Primary actions row - always same width */}
+          <div className="flex items-center gap-2">
+            <ActionIconButton
+              icon={Star}
+              onClick={(e) => {
+                e.stopPropagation();
+                context.onToggleFavorite?.(view);
+              }}
+              title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+              ariaLabel={isFav ? 'Remove from favorites' : 'Add to favorites'}
+              ariaPressed={Boolean(isFav)}
+              variant={isFav ? 'favorite-active' : 'favorite'}
+              isDarkroom={isDarkroom}
             />
-          </button>
-          {/* Share button - always present */}
-          {context.onShareCombination && (
-            // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent row
-            <span
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => e.stopPropagation()}
-            >
-              <ShareButton
-                onClick={() => context.onShareCombination?.(view)}
-                variant="outline"
-                size="sm"
-                iconOnly
-              />
-            </span>
-          )}
-          {/* Edit and Delete buttons - only for custom recipes */}
+            {context.onShareCombination && (
+              // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent row
+              <span
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+              >
+                <ShareButton
+                  onClick={() => context.onShareCombination?.(view)}
+                  variant="outline"
+                  size="sm"
+                  iconOnly
+                />
+              </span>
+            )}
+          </div>
+          {/* Custom recipe actions row - only adds height, not width */}
           {isCustom && (
-            <>
-              <button
-                type="button"
+            <div className="flex items-center gap-2">
+              <ActionIconButton
+                icon={Edit2}
                 onClick={(e) => {
                   e.stopPropagation();
                   context.onEditCustomRecipe?.(view);
                 }}
-                aria-label="Edit"
-                className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
-                style={{
-                  backgroundColor: 'var(--color-surface-muted)',
-                  color: 'var(--color-text-secondary)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    'var(--color-border-secondary)';
-                  e.currentTarget.style.color = 'var(--color-text-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    'var(--color-surface-muted)';
-                  e.currentTarget.style.color = 'var(--color-text-secondary)';
-                }}
                 title="Edit"
-              >
-                <Edit2 className="h-3 w-3" />
-              </button>
-              <button
-                type="button"
+                ariaLabel="Edit"
+                variant="edit"
+                isDarkroom={isDarkroom}
+              />
+              <ActionIconButton
+                icon={Trash2}
                 onClick={(e) => {
                   e.stopPropagation();
                   context.onDeleteCustomRecipe?.(view);
                 }}
-                aria-label="Delete"
-                className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
-                style={{
-                  backgroundColor: colorMixOr(
-                    'var(--color-semantic-error)',
-                    10,
-                    'transparent',
-                    'var(--color-border-muted)'
-                  ),
-                  color: colorMixOr(
-                    'var(--color-semantic-error)',
-                    80,
-                    'var(--color-text-primary)',
-                    'var(--color-semantic-error)'
-                  ),
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = colorMixOr(
-                    'var(--color-semantic-error)',
-                    20,
-                    'transparent',
-                    'var(--color-border-secondary)'
-                  );
-                  e.currentTarget.style.color = colorMixOr(
-                    'var(--color-semantic-error)',
-                    90,
-                    'var(--color-text-primary)',
-                    'var(--color-semantic-error)'
-                  );
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = colorMixOr(
-                    'var(--color-semantic-error)',
-                    10,
-                    'transparent',
-                    'var(--color-border-muted)'
-                  );
-                  e.currentTarget.style.color = colorMixOr(
-                    'var(--color-semantic-error)',
-                    80,
-                    'var(--color-text-primary)',
-                    'var(--color-semantic-error)'
-                  );
-                }}
                 title="Delete"
-              >
-                <Trash2 className="h-3 w-3" />
-              </button>
-            </>
+                ariaLabel="Delete"
+                variant="delete"
+                isDarkroom={isDarkroom}
+              />
+            </div>
           )}
         </div>
       );

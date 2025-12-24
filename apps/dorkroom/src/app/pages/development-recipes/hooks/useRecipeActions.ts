@@ -24,7 +24,7 @@ interface UseRecipeActionsProps {
   addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
   updateCustomRecipe: (id: string, data: CustomRecipeFormData) => Promise<void>;
   deleteCustomRecipe: (id: string) => Promise<void>;
-  refreshCustomRecipes: () => Promise<unknown>;
+  refreshCustomRecipes: () => Promise<CustomRecipe[]>;
 
   // Sharing functions
   shareCustomRecipe: (
@@ -71,6 +71,12 @@ interface UseRecipeActionsProps {
   setIsImporting: Dispatch<SetStateAction<boolean>>;
   setImportError: Dispatch<SetStateAction<string | null>>;
 
+  // Delete confirmation modal
+  deleteConfirmRecipe: DevelopmentCombinationView | null;
+  openDeleteConfirm: (view: DevelopmentCombinationView) => void;
+  closeDeleteConfirm: () => void;
+  setIsDeleting: Dispatch<SetStateAction<boolean>>;
+
   // Current state values
   editingRecipe: DevelopmentCombinationView | null;
   detailView: DevelopmentCombinationView | null;
@@ -91,6 +97,9 @@ interface UseRecipeActionsProps {
   getDeveloperById: (id: string) => Developer | undefined;
   allFilms: Film[];
   allDevelopers: Developer[];
+
+  // Feature flags
+  customRecipeSharingEnabled: boolean;
 }
 
 /**
@@ -129,6 +138,10 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     setIsImportModalOpen,
     setIsImporting,
     setImportError,
+    deleteConfirmRecipe,
+    openDeleteConfirm,
+    closeDeleteConfirm,
+    setIsDeleting,
     editingRecipe,
     detailView,
     sharedRecipeView,
@@ -141,6 +154,7 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     getDeveloperById,
     allFilms,
     allDevelopers,
+    customRecipeSharingEnabled,
   } = props;
 
   // Detail drawer actions
@@ -165,6 +179,7 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     handleCustomRecipeSubmit,
     handleEditCustomRecipe,
     handleDeleteCustomRecipe,
+    confirmDeleteCustomRecipe,
   } = useCustomRecipeCrud({
     customRecipes,
     addCustomRecipe,
@@ -180,6 +195,13 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     setIsSubmittingRecipe,
     setIsDetailOpen,
     setDetailView,
+    deleteConfirmRecipe,
+    openDeleteConfirm,
+    closeDeleteConfirm,
+    setIsDeleting,
+    getFilmById,
+    getDeveloperById,
+    customRecipeSharingEnabled,
   });
 
   // Favorite actions
@@ -243,6 +265,7 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     handleCustomRecipeSubmit,
     handleEditCustomRecipe,
     handleDeleteCustomRecipe,
+    confirmDeleteCustomRecipe,
     handleCheckFavorite,
     handleToggleFavorite,
     handleAcceptSharedRecipe,

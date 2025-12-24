@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
 import { colorMixOr } from '../../lib/color';
 
+interface RecipeStateStyles {
+  backgroundColor: string;
+  borderColor: string;
+}
+
 /**
  * Pre-computed hover styles for recipe cards and table rows.
  * Memoizes colorMixOr calculations to avoid recomputing on every hover event.
@@ -8,13 +13,15 @@ import { colorMixOr } from '../../lib/color';
 export interface RecipeHoverStyles {
   /** Styles for API/regular recipes */
   api: {
-    default: { backgroundColor: string; borderColor: string };
-    hover: { backgroundColor: string; borderColor: string };
+    default: RecipeStateStyles;
+    hover: RecipeStateStyles;
+    selected: RecipeStateStyles;
   };
   /** Styles for custom recipes (with accent color) */
   custom: {
-    default: { backgroundColor: string; borderColor: string };
-    hover: { backgroundColor: string; borderColor: string };
+    default: RecipeStateStyles;
+    hover: RecipeStateStyles;
+    selected: RecipeStateStyles;
   };
 }
 
@@ -39,6 +46,10 @@ export function useRecipeHoverStyles(): RecipeHoverStyles {
         hover: {
           backgroundColor: 'rgba(var(--color-background-rgb), 0.35)',
           borderColor: 'var(--color-border-primary)',
+        },
+        selected: {
+          backgroundColor: 'var(--color-surface-muted)',
+          borderColor: 'var(--color-primary)',
         },
       },
       custom: {
@@ -69,6 +80,15 @@ export function useRecipeHoverStyles(): RecipeHoverStyles {
             'transparent',
             'var(--color-border-primary)'
           ),
+        },
+        selected: {
+          backgroundColor: colorMixOr(
+            'var(--color-accent)',
+            25,
+            'transparent',
+            'var(--color-surface-muted)'
+          ),
+          borderColor: 'var(--color-primary)',
         },
       },
     }),

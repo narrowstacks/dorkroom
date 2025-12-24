@@ -20,6 +20,7 @@ bun run build                             # Build all packages
 
 # Verification (run before considering done)
 bun run test                              # Runs lint, test, build, typecheck
+bun run test:unit "pattern"               # Run only tests matching pattern
 
 # Formatting (run after verification passes)
 bun run format

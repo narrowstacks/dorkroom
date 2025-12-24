@@ -1,5 +1,11 @@
+import type { Developer, Film } from '@dorkroom/api';
 import type { CustomRecipe, CustomRecipeFormData } from '@dorkroom/logic';
-import { debugError } from '@dorkroom/logic';
+import {
+  createCombinationFromCustomRecipe,
+  debugError,
+  getCustomRecipeDeveloper,
+  getCustomRecipeFilm,
+} from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
 import { getCombinationIdentifier } from '../utils/recipeUtils';
@@ -9,7 +15,7 @@ export interface UseCustomRecipeCrudProps {
   addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
   updateCustomRecipe: (id: string, data: CustomRecipeFormData) => Promise<void>;
   deleteCustomRecipe: (id: string) => Promise<void>;
-  refreshCustomRecipes: () => Promise<unknown>;
+  refreshCustomRecipes: () => Promise<CustomRecipe[]>;
   addFavorite: (id: string) => void;
   showToast: (message: string, type: 'success' | 'error') => void;
   // Modal state
@@ -21,12 +27,24 @@ export interface UseCustomRecipeCrudProps {
   setIsSubmittingRecipe: Dispatch<SetStateAction<boolean>>;
   setIsDetailOpen: Dispatch<SetStateAction<boolean>>;
   setDetailView: Dispatch<SetStateAction<DevelopmentCombinationView | null>>;
+  // Delete confirmation modal
+  deleteConfirmRecipe: DevelopmentCombinationView | null;
+  openDeleteConfirm: (view: DevelopmentCombinationView) => void;
+  closeDeleteConfirm: () => void;
+  setIsDeleting: Dispatch<SetStateAction<boolean>>;
+  // Data helpers for building updated views
+  getFilmById: (id: string) => Film | undefined;
+  getDeveloperById: (id: string) => Developer | undefined;
+  customRecipeSharingEnabled: boolean;
 }
 
 export interface UseCustomRecipeCrudReturn {
   handleCustomRecipeSubmit: (data: CustomRecipeFormData) => Promise<void>;
   handleEditCustomRecipe: (view: DevelopmentCombinationView) => void;
-  handleDeleteCustomRecipe: (view: DevelopmentCombinationView) => Promise<void>;
+  /** Opens the delete confirmation modal */
+  handleDeleteCustomRecipe: (view: DevelopmentCombinationView) => void;
+  /** Confirms and performs the deletion (called from modal) */
+  confirmDeleteCustomRecipe: () => Promise<void>;
 }
 
 /**
@@ -48,11 +66,20 @@ export function useCustomRecipeCrud({
   setIsSubmittingRecipe,
   setIsDetailOpen,
   setDetailView,
+  deleteConfirmRecipe,
+  openDeleteConfirm,
+  closeDeleteConfirm,
+  setIsDeleting,
+  getFilmById,
+  getDeveloperById,
+  customRecipeSharingEnabled,
 }: UseCustomRecipeCrudProps): UseCustomRecipeCrudReturn {
   const handleCustomRecipeSubmit = useCallback(
     async (data: CustomRecipeFormData) => {
       setIsSubmittingRecipe(true);
       try {
+        let recipeId: string;
+
         if (editingRecipe) {
           // Update existing recipe
           const editingId = getCombinationIdentifier(editingRecipe.combination);
@@ -66,14 +93,38 @@ export function useCustomRecipeCrud({
             return;
           }
           await updateCustomRecipe(customRecipe.id, data);
+          recipeId = customRecipe.id;
         } else {
           // Add new recipe
-          const newId = await addCustomRecipe(data);
+          recipeId = await addCustomRecipe(data);
           if (data.isFavorite) {
-            addFavorite(newId);
+            addFavorite(recipeId);
           }
         }
-        await refreshCustomRecipes();
+
+        // Refresh and get the updated recipes
+        const updatedRecipes = await refreshCustomRecipes();
+
+        // If detail view is showing the edited recipe, update it with fresh data
+        const detailViewId = getCombinationIdentifier(detailView?.combination);
+        if (editingRecipe && detailViewId === recipeId) {
+          const updatedRecipe = updatedRecipes.find((r) => r.id === recipeId);
+          if (updatedRecipe) {
+            const updatedView: DevelopmentCombinationView = {
+              combination: createCombinationFromCustomRecipe(updatedRecipe),
+              film: getCustomRecipeFilm(recipeId, updatedRecipes, getFilmById),
+              developer: getCustomRecipeDeveloper(
+                recipeId,
+                updatedRecipes,
+                getDeveloperById
+              ),
+              source: 'custom',
+              canShare: customRecipeSharingEnabled,
+            };
+            setDetailView(updatedView);
+          }
+        }
+
         setIsCustomModalOpen(false);
         setEditingRecipe(null);
       } catch (error) {
@@ -90,11 +141,16 @@ export function useCustomRecipeCrud({
       refreshCustomRecipes,
       editingRecipe,
       customRecipes,
+      detailView,
       addFavorite,
       showToast,
       setIsSubmittingRecipe,
       setIsCustomModalOpen,
       setEditingRecipe,
+      setDetailView,
+      getFilmById,
+      getDeveloperById,
+      customRecipeSharingEnabled,
     ]
   );
 
@@ -111,41 +167,53 @@ export function useCustomRecipeCrud({
   );
 
   const handleDeleteCustomRecipe = useCallback(
-    async (view: DevelopmentCombinationView) => {
-      if (
-        !window.confirm(
-          'Are you sure you want to delete this custom recipe? This action cannot be undone.'
-        )
-      ) {
-        return;
-      }
-      try {
-        const recipeId = getCombinationIdentifier(view.combination);
-        await deleteCustomRecipe(recipeId);
-        await refreshCustomRecipes();
-
-        // Close detail modal if it's showing the deleted recipe
-        if (getCombinationIdentifier(detailView?.combination) === recipeId) {
-          setIsDetailOpen(false);
-          setDetailView(null);
-        }
-      } catch (error) {
-        debugError('Failed to delete custom recipe:', error);
-        window.alert('Failed to delete the recipe. Please try again.');
-      }
+    (view: DevelopmentCombinationView) => {
+      openDeleteConfirm(view);
     },
-    [
-      deleteCustomRecipe,
-      refreshCustomRecipes,
-      detailView,
-      setIsDetailOpen,
-      setDetailView,
-    ]
+    [openDeleteConfirm]
   );
+
+  const confirmDeleteCustomRecipe = useCallback(async () => {
+    if (!deleteConfirmRecipe) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const recipeId = getCombinationIdentifier(
+        deleteConfirmRecipe.combination
+      );
+      await deleteCustomRecipe(recipeId);
+      await refreshCustomRecipes();
+
+      // Close detail modal if it's showing the deleted recipe
+      if (getCombinationIdentifier(detailView?.combination) === recipeId) {
+        setIsDetailOpen(false);
+        setDetailView(null);
+      }
+
+      closeDeleteConfirm();
+    } catch (error) {
+      debugError('Failed to delete custom recipe:', error);
+      showToast('Failed to delete the recipe. Please try again.', 'error');
+      setIsDeleting(false);
+    }
+  }, [
+    deleteConfirmRecipe,
+    deleteCustomRecipe,
+    refreshCustomRecipes,
+    detailView,
+    setIsDetailOpen,
+    setDetailView,
+    closeDeleteConfirm,
+    setIsDeleting,
+    showToast,
+  ]);
 
   return {
     handleCustomRecipeSubmit,
     handleEditCustomRecipe,
     handleDeleteCustomRecipe,
+    confirmDeleteCustomRecipe,
   };
 }
