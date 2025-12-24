@@ -25,7 +25,7 @@ Dorkroom provides useful calculators for darkroom printing, film development, an
 
 - [**Border Calculator**](https://dorkroom.art/border) - Calculate precise print borders with trim-safe guides
 - [**Resize Calculator**](https://dorkroom.art/resize) - Scale prints without endless test strips
-- [**Stops Calculator**](https://dorkroom.art/resize) - Translate exposure stops into seconds
+- [**Stops Calculator**](https://dorkroom.art/stops) - Translate exposure stops into seconds
 
 ### **Shooting Tools**
 
