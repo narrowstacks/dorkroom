@@ -13,11 +13,12 @@ if [ -z "$VERCEL_GIT_PREVIOUS_SHA" ]; then
   exit $?
 fi
 
-# Fetch the previous commit for comparison
-git fetch --depth=1 origin "$VERCEL_GIT_PREVIOUS_SHA" 2>/dev/null || true
+# Unshallow the repo to get full history for diff
+echo "📥 Fetching git history..."
+git fetch --unshallow 2>/dev/null || git fetch origin main 2>/dev/null || true
 
 # Get changed files between previous and current commit
-CHANGED_FILES=$(git diff --name-only "$VERCEL_GIT_PREVIOUS_SHA" "$VERCEL_GIT_COMMIT_SHA" 2>/dev/null)
+CHANGED_FILES=$(git diff --name-only "$VERCEL_GIT_PREVIOUS_SHA" "$VERCEL_GIT_COMMIT_SHA" 2>&1)
 GIT_EXIT_CODE=$?
 
 echo "📁 Changed files (exit code: $GIT_EXIT_CODE):"
