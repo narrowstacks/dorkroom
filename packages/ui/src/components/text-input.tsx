@@ -7,7 +7,14 @@ interface TextInputProps {
   label?: string;
   className?: string;
   description?: string;
-  inputMode?: 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url';
+  inputMode?:
+    | 'text'
+    | 'decimal'
+    | 'numeric'
+    | 'tel'
+    | 'search'
+    | 'email'
+    | 'url';
 }
 
 export function TextInput({

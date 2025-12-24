@@ -7,7 +7,77 @@ import type {
 } from '../types/custom-recipes';
 
 /**
+ * Extracts ISO speed from a film name string.
+ * Looks for common ISO patterns (100, 400, 3200, etc.)
+ */
+function extractIsoFromString(str: string): number | null {
+  // Match common ISO values - look for standalone numbers that are valid ISOs
+  const isoPattern =
+    /\b(25|50|64|80|100|125|160|200|320|400|800|1600|3200|6400|12800|25600)\b/;
+  const match = str.match(isoPattern);
+  return match ? parseInt(match[1], 10) : null;
+}
+
+/**
+ * Scores how well a film matches a search string.
+ * Higher score = better match.
+ */
+function scoreFilmMatch(film: Film, searchString: string): number {
+  const fullName = `${film.brand} ${film.name}`.toLowerCase();
+  const filmNameLower = film.name.toLowerCase();
+  const brandLower = film.brand.toLowerCase();
+
+  let score = 0;
+
+  // Exact full name match - highest priority
+  if (fullName === searchString) return 1000;
+  if (filmNameLower === searchString) return 900;
+
+  // Check if search string contains the full name or vice versa
+  if (searchString.includes(fullName)) score += 100;
+  if (fullName.includes(searchString)) score += 90;
+
+  // Brand match
+  if (searchString.includes(brandLower)) score += 30;
+
+  // Name match (without brand)
+  if (searchString.includes(filmNameLower)) score += 40;
+
+  // ISO matching - critical for disambiguation
+  const searchIso = extractIsoFromString(searchString);
+  if (searchIso !== null) {
+    // Strong bonus if ISO matches exactly
+    if (film.isoSpeed === searchIso) {
+      score += 50;
+    } else {
+      // Penalty if search has ISO but film's ISO doesn't match
+      score -= 30;
+    }
+  }
+
+  // Word-based partial matching (for brand/product names, not numbers)
+  const searchWords = searchString
+    .split(/[\s-]+/)
+    .filter((w) => w.length > 1 && !/^\d+$/.test(w));
+  const filmWords = fullName.split(/[\s-]+/).filter((w) => w.length > 1);
+  for (const searchWord of searchWords) {
+    for (const filmWord of filmWords) {
+      if (filmWord.includes(searchWord) || searchWord.includes(filmWord)) {
+        score += 10;
+      }
+    }
+  }
+
+  return score;
+}
+
+/**
  * Finds the best matching local film for a filmdev.org film string.
+ * Uses a scoring system to find the most accurate match, prioritizing:
+ * 1. Exact matches
+ * 2. ISO speed matching (critical for "Pan 400" vs "Pan 100")
+ * 3. Brand + name containment
+ * 4. Word-based partial matches
  *
  * @param filmdevFilmString - Film name provided by filmdev.org
  * @param availableFilms - Collection of locally known films to search
@@ -21,53 +91,22 @@ export function findBestFilmMatch(
 
   const filmString = filmdevFilmString.trim().toLowerCase();
 
-  // Try exact name match first
-  let bestMatch = availableFilms.find(
-    (film) =>
-      film.name.toLowerCase() === filmString ||
-      `${film.brand} ${film.name}`.toLowerCase() === filmString
-  );
+  // Score all films and find the best match
+  let bestFilm: Film | null = null;
+  let bestScore = 0;
 
-  if (bestMatch) return bestMatch;
-
-  // Try partial matches with brand and name
-  bestMatch = availableFilms.find((film) => {
-    const fullName = `${film.brand} ${film.name}`.toLowerCase();
-    const filmNameLower = film.name.toLowerCase();
-    const brandLower = film.brand.toLowerCase();
-
-    return (
-      fullName.includes(filmString) ||
-      filmString.includes(fullName) ||
-      filmString.includes(filmNameLower) ||
-      filmString.includes(brandLower)
-    );
-  });
-
-  if (bestMatch) return bestMatch;
-
-  // Try word-based matching (e.g., "Tri-X" matches "TRI-X 400")
-  const filmWords = filmString.split(/[\s-]+/).filter((w) => w.length > 1);
-  bestMatch = availableFilms.find((film) => {
-    const filmText = `${film.brand} ${film.name}`.toLowerCase();
-    return filmWords.some((word) => filmText.includes(word));
-  });
-
-  if (bestMatch) return bestMatch;
-
-  // Try ISO speed matching for common films
-  const isoMatch = filmString.match(/(\d+)/);
-  if (isoMatch) {
-    const iso = parseInt(isoMatch[1], 10);
-    bestMatch = availableFilms.find(
-      (film) =>
-        film.isoSpeed === iso &&
-        (filmString.includes(film.name.toLowerCase()) ||
-          filmString.includes(film.brand.toLowerCase()))
-    );
+  for (const film of availableFilms) {
+    const score = scoreFilmMatch(film, filmString);
+    if (score > bestScore) {
+      bestScore = score;
+      bestFilm = film;
+    }
   }
 
-  return bestMatch || null;
+  // Only return a match if the score is above a minimum threshold
+  // This prevents very weak matches from being returned
+  const MIN_SCORE = 30;
+  return bestScore >= MIN_SCORE ? bestFilm : null;
 }
 
 /**
@@ -331,6 +370,25 @@ export function mapFilmdevRecipeToFormData(
       recipe.dilution_ratio ? ` (${recipe.dilution_ratio})` : ''
     }`;
 
+  // Determine shooting ISO from developed_at field
+  // This is the ISO at which the film was actually shot (may differ from box speed)
+  const shootingIso = recipe.developed_at || 400;
+
+  // Determine box speed ISO from the matched film or by extracting from film name
+  const boxSpeedIso =
+    matchedFilm?.isoSpeed || extractIsoFromString(recipe.film) || shootingIso;
+
+  // Calculate push/pull stops: log2(shootingIso / boxSpeedIso)
+  // Positive = push (shot at higher ISO), Negative = pull (shot at lower ISO)
+  const pushPull =
+    shootingIso !== boxSpeedIso
+      ? Math.round(Math.log2(shootingIso / boxSpeedIso))
+      : 0;
+
+  // Build the source URL from recipe_link or construct from ID
+  const sourceUrl =
+    recipe.recipe_link || `https://filmdev.org/recipe/show/${recipe.id}`;
+
   return {
     name: recipeName,
     useExistingFilm: !!matchedFilm,
@@ -341,14 +399,15 @@ export function mapFilmdevRecipeToFormData(
     customDeveloper,
     temperatureF,
     timeMinutes,
-    shootingIso: 400, // Default, user can adjust
-    pushPull: 0, // Default to normal development
+    shootingIso,
+    pushPull,
     agitationSchedule: '30s initial, 10s every minute', // Default schedule
     notes:
       recipe.notes || `Imported from filmdev.org (Recipe ID: ${recipe.id})`,
     customDilution,
     isPublic: false, // Default to private
     tags: ['filmdev.org'], // Automatically tag filmdev.org imports
+    sourceUrl, // Link back to filmdev.org recipe
   };
 }
 

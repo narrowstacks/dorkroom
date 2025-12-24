@@ -111,6 +111,7 @@ export { SettingsButton } from './components/settings-button';
 // Sharing Components
 export { ShareButton, type ShareResult } from './components/share-button';
 export { ShareModal } from './components/share-modal';
+export { StatusAlert } from './components/status-alert';
 export { TemperatureAlert } from './components/temperature-alert';
 export { TextInput } from './components/text-input';
 export type { ThemeToggleProps } from './components/theme-toggle';
@@ -133,7 +134,6 @@ export {
 } from './components/ui/skeleton';
 export { Tag } from './components/ui/tag';
 export { VolumeUnitToggle } from './components/volume-unit-toggle';
-export { StatusAlert } from './components/status-alert';
 // Measurement
 export {
   MeasurementProvider,

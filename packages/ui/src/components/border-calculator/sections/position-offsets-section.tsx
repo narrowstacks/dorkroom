@@ -7,8 +7,8 @@ import {
 import type { AnyFormApi } from '@tanstack/react-form';
 import { X } from 'lucide-react';
 import { LabeledSliderInput } from '../../../components/labeled-slider-input';
-import { ToggleSwitch } from '../../../components/toggle-switch';
 import { StatusAlert } from '../../../components/status-alert';
+import { ToggleSwitch } from '../../../components/toggle-switch';
 
 interface PositionOffsetsSectionProps {
   onClose: () => void;

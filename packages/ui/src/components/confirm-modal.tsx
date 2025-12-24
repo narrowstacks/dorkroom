@@ -61,6 +61,7 @@ export function ConfirmModal({
   }
 
   return createPortal(
+    // biome-ignore lint/a11y/useKeyWithClickEvents: backdrop click closes modal, keyboard Escape handled separately
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center px-4 backdrop-blur"
       style={{

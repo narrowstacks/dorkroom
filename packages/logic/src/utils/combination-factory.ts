@@ -138,7 +138,7 @@ export function createCombinationFromCustomRecipe(
     createdAt,
     updatedAt,
     tags: ['custom'],
-    infoSource: null,
+    infoSource: recipe.sourceUrl ?? null,
   };
 }
 

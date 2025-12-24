@@ -19,6 +19,8 @@ export interface CustomRecipe {
   dateModified: string;
   isPublic: boolean;
   tags?: string[];
+  /** External source URL (e.g., filmdev.org recipe link) */
+  sourceUrl?: string;
 }
 
 export interface CustomFilmData {
@@ -64,6 +66,8 @@ export interface CustomRecipeFormData {
   customDilution: string;
   isPublic: boolean;
   tags?: string[];
+  /** External source URL (e.g., filmdev.org recipe link) */
+  sourceUrl?: string;
   // UI-only helper flag for saving flow
   isFavorite?: boolean;
 }

@@ -15,6 +15,7 @@ export * from './hooks/api';
 // Border calculator modular hooks
 export {
   initialState as borderCalculatorInitialState,
+  useAlertSystem,
   useBorderCalculator as useModularBorderCalculator,
   useBorderCalculatorState,
   useCalculatorSharing,
@@ -24,7 +25,6 @@ export {
   useInputHandlers,
   usePaperDimensionInput,
   usePresetManagement,
-  useAlertSystem,
 } from './hooks/border-calculator';
 export {
   useAddCustomRecipe,

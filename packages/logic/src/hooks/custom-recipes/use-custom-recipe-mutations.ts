@@ -73,6 +73,9 @@ const createRecipeFromFormData = (
     dateModified: nowIso,
     isPublic: formData.isPublic,
     tags: sanitizeTags(formData.tags),
+    // Preserve source URL from form data (for filmdev.org imports)
+    // Falls back to existing sourceUrl if not provided in form
+    sourceUrl: formData.sourceUrl ?? base?.sourceUrl,
   } satisfies CustomRecipe;
 };
 

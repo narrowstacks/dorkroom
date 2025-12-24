@@ -180,7 +180,10 @@ export function DevelopmentRecipeDetail({
           rel="noreferrer"
           className="inline-flex items-center gap-2 text-xs text-tertiary underline-offset-4 hover:text-primary hover:underline"
         >
-          <ExternalLink className="h-3 w-3" /> View source
+          <ExternalLink className="h-3 w-3" />{' '}
+          {combination.infoSource.includes('filmdev.org')
+            ? 'View on FilmDev.org'
+            : 'View source'}
         </a>
       )}
 

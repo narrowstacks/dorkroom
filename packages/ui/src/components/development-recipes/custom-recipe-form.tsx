@@ -432,7 +432,7 @@ export function CustomRecipeForm({
           onValueChange={(value) => {
             setTimeMinutesInput(value);
             const numValue = Number(value);
-            if (value !== '' && !isNaN(numValue)) {
+            if (value !== '' && !Number.isNaN(numValue)) {
               handleChange('timeMinutes', numValue);
             }
           }}
@@ -445,7 +445,7 @@ export function CustomRecipeForm({
           onValueChange={(value) => {
             setShootingIsoInput(value);
             const numValue = Number(value);
-            if (value !== '' && !isNaN(numValue)) {
+            if (value !== '' && !Number.isNaN(numValue)) {
               handleChange('shootingIso', numValue);
             }
           }}
@@ -453,12 +453,12 @@ export function CustomRecipeForm({
           placeholder="400"
         />
         <div className="space-y-2">
-          <label
+          <span
             className="block text-sm font-medium"
             style={{ color: 'var(--color-text-secondary)' }}
           >
             Push/Pull
-          </label>
+          </span>
           <div
             className={cn(
               'flex h-10 items-center rounded-lg border px-3 text-sm',

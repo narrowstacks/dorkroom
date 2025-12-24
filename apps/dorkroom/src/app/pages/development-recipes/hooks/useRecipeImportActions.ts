@@ -373,7 +373,7 @@ export function useRecipeImportActions({
               pushPull: mappingResult.formData.pushPull,
               tags: mappingResult.formData.tags || null,
               notes: mappingResult.formData.notes,
-              infoSource: 'filmdev.org',
+              infoSource: mappingResult.formData.sourceUrl || null,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             },

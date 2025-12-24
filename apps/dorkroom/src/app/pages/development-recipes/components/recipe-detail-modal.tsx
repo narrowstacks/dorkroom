@@ -36,9 +36,6 @@ export const RecipeDetailModal: FC<RecipeDetailModalProps> = ({
     return null;
   }
 
-  const recipeId = String(
-    detailView.combination.uuid || detailView.combination.id
-  );
   const isCustomRecipe = detailView.source === 'custom';
 
   const actionButtons =

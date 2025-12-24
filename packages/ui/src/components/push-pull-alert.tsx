@@ -30,10 +30,7 @@ interface PushPullAlertProps {
  *
  * Only renders when film is pushed or pulled (pushPull !== 0).
  */
-export function PushPullAlert({
-  shootingIso,
-  pushPull,
-}: PushPullAlertProps) {
+export function PushPullAlert({ shootingIso, pushPull }: PushPullAlertProps) {
   if (pushPull === 0) {
     return null;
   }

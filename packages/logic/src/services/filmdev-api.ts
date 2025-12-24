@@ -22,6 +22,8 @@ export interface FilmdevRecipe {
   profile_link: string;
   photos_link: string;
   format: string | null;
+  /** The ISO at which the film was actually shot (may differ from box speed for push/pull) */
+  developed_at: number | null;
 }
 
 export interface FilmdevApiResponse {

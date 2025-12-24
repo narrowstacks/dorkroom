@@ -406,7 +406,9 @@ export function DevelopmentResultsCards({
                         }}
                       >
                         <ExternalLink className="h-3 w-3" aria-hidden="true" />{' '}
-                        Source
+                        {combination.infoSource.includes('filmdev.org')
+                          ? 'FilmDev.org'
+                          : 'Source'}
                       </a>
                     )}
                     {rowData.source !== 'custom' &&

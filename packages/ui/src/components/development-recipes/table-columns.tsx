@@ -422,7 +422,10 @@ export const createTableColumns = (
                 e.currentTarget.style.color = 'var(--color-text-tertiary)';
               }}
             >
-              <ExternalLink className="h-3 w-3" aria-hidden="true" /> Source
+              <ExternalLink className="h-3 w-3" aria-hidden="true" />{' '}
+              {combination.infoSource.includes('filmdev.org')
+                ? 'FilmDev.org'
+                : 'Source'}
             </a>
           )}
         </div>

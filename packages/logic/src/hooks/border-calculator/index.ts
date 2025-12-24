@@ -8,12 +8,12 @@
 \* ------------------------------------------------------------------ */
 
 import type { BorderCalculation } from '../../types/border-calculator';
+import { useAlertSystem } from './use-alert-system';
 import { useBorderCalculatorState } from './use-border-calculator-state';
 import { useDimensionCalculations } from './use-dimension-calculations';
 import { useGeometryCalculations } from './use-geometry-calculations';
 import { useImageHandling } from './use-image-handling';
 import { useInputHandlers } from './use-input-handlers';
-import { useAlertSystem } from './use-alert-system';
 
 /**
  * Main border calculator hook that orchestrates all border calculation functionality.
@@ -156,6 +156,7 @@ export const useBorderCalculator = () => {
 export default useBorderCalculator;
 
 export * from '../../types/border-calculator';
+export { useAlertSystem } from './use-alert-system';
 // Re-export sub-hooks for testing or advanced usage
 export {
   initialState,
@@ -169,4 +170,3 @@ export { useInputHandlers } from './use-input-handlers';
 // UI-focused hooks
 export { usePaperDimensionInput } from './use-paper-dimension-input';
 export { usePresetManagement } from './use-preset-management';
-export { useAlertSystem } from './use-alert-system';

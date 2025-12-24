@@ -1,5 +1,5 @@
 import type { FieldApi, FormInstance } from '../../index';
-import { LabeledSliderInput, ToggleSwitch, StatusAlert } from '../../index';
+import { LabeledSliderInput, StatusAlert, ToggleSwitch } from '../../index';
 import { CalculatorCard } from '../calculator/calculator-card';
 
 interface BordersOffsetsSectionProps {

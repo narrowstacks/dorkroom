@@ -326,7 +326,6 @@ export default function DevelopmentRecipesPage() {
   };
 
   // Create stable columns - wrapper functions read from ref at call time
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally stable - handlers accessed via ref
   const columns = useMemo(
     () =>
       createTableColumns({
