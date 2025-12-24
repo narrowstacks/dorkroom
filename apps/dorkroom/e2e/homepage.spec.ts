@@ -1,4 +1,9 @@
+import { devices } from '@playwright/test';
 import { expect, test } from '@chromatic-com/playwright';
+
+// Device viewports for responsive testing
+const MOBILE_VIEWPORT = devices['iPhone SE'].viewport;
+const TABLET_VIEWPORT = devices['iPad Mini'].viewport;
 
 test.describe('Homepage Visual Regression', () => {
   test('homepage renders correctly', async ({ page }) => {
@@ -20,34 +25,24 @@ test.describe('Homepage Visual Regression', () => {
     });
   });
 
-  test('homepage calculator grid', async ({ page }) => {
+  test('homepage has calculator section', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    // Find the calculator section and screenshot it
-    const calculatorSection = page.locator('section').filter({
-      has: page.getByRole('heading', { name: /calculators/i }),
+    // Verify calculator section heading is visible
+    const calculatorHeading = page.getByRole('heading', {
+      name: /calculators/i,
+      level: 2,
     });
+    await expect(calculatorHeading).toBeVisible();
 
-    if (await calculatorSection.isVisible()) {
-      await expect(calculatorSection).toHaveScreenshot('calculator-grid.png');
-    }
-  });
-
-  test('homepage stats section', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    // Find stats/metrics section
-    const statsSection = page.locator('[data-testid="stats-section"]');
-
-    if (await statsSection.isVisible()) {
-      await expect(statsSection).toHaveScreenshot('stats-section.png');
-    }
+    // Verify at least one calculator link exists
+    const borderCalcLink = page.getByRole('link', { name: /border/i }).first();
+    await expect(borderCalcLink).toBeVisible();
   });
 
   test('homepage responsive - mobile', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 });
+    await page.setViewportSize(MOBILE_VIEWPORT);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
@@ -57,7 +52,7 @@ test.describe('Homepage Visual Regression', () => {
   });
 
   test('homepage responsive - tablet', async ({ page }) => {
-    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.setViewportSize(TABLET_VIEWPORT);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 

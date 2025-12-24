@@ -1,7 +1,20 @@
+/**
+ * Test setup for Vitest with jsdom environment.
+ *
+ * This file is loaded before each test via vite.config.ts setupFiles.
+ */
 import '@testing-library/jest-dom';
 
-// Fix for "The current testing environment is not configured to support act(...)"
-// @ts-expect-error - Global property
+/**
+ * Required for React 19 with Testing Library in jsdom.
+ *
+ * Without this, React warns: "The current testing environment is not configured
+ * to support act(...)". This is still needed with React 19 + Testing Library v16
+ * when using vitest's jsdom environment.
+ *
+ * @see https://react.dev/blog/2022/03/08/react-18-upgrade-guide#configuring-your-testing-environment
+ */
+// @ts-expect-error - Global property not typed
 global.IS_REACT_ACT_ENVIRONMENT = true;
 
 // Mock localStorage if not fully available
