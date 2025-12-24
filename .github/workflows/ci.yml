@@ -56,8 +56,17 @@ jobs:
         with:
           bun-version: latest
 
-      # Cache bun install
+      # Cache node_modules (fastest - skips install entirely on cache hit)
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('bun.lock') }}
+
+      # Cache bun global cache (for partial cache hits)
       - name: Cache bun dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ~/.bun/install/cache
@@ -74,7 +83,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
-      - run: bun install
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
 
       - name: Run quality checks (lint, test, build, typecheck)
         run: bun run test
@@ -102,8 +113,17 @@ jobs:
         with:
           bun-version: latest
 
-      # Cache bun install
+      # Cache node_modules (fastest - skips install entirely on cache hit)
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('bun.lock') }}
+
+      # Cache bun global cache (for partial cache hits)
       - name: Cache bun dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ~/.bun/install/cache
@@ -120,7 +140,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
-      - run: bun install
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
 
       # Get Playwright version for cache key
       - name: Get Playwright version
