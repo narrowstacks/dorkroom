@@ -29,8 +29,6 @@ export default defineConfig({
     command: 'bun run dev',
     url: 'http://localhost:4200',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    timeout: 60 * 1000, // Vite usually starts in < 10s
   },
-  // Snapshots are platform-specific. In CI, ensure consistent platform.
-  snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
 });

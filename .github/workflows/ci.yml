@@ -53,8 +53,7 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    # Runs in parallel with build-and-test for faster CI
-    # Trade-off: Uses runner minutes even if unit tests fail
+    needs: [build-and-test]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

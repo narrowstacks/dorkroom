@@ -7,11 +7,14 @@ const MOBILE_VIEWPORT = devices['iPhone SE'].viewport!;
 // biome-ignore lint/style/noNonNullAssertion: Well-known Playwright device descriptors always have viewport
 const TABLET_VIEWPORT = devices['iPad Mini'].viewport!;
 
-test.describe('Homepage Visual Regression', () => {
-  test('homepage renders correctly', async ({ page }) => {
-    await page.goto('/');
+// Note: Chromatic automatically captures screenshots at the end of each test.
+// We don't use Playwright's toHaveScreenshot() because it creates platform-specific
+// baselines (macOS vs Ubuntu font rendering differs). Chromatic handles visual
+// regression on consistent cloud infrastructure.
 
-    // Wait for the page to be fully loaded
+test.describe('Homepage', () => {
+  test('renders correctly', async ({ page }) => {
+    await page.goto('/');
     await page.waitForLoadState('networkidle');
 
     // Verify page title
@@ -21,13 +24,10 @@ test.describe('Homepage Visual Regression', () => {
     const heading = page.getByRole('heading', { level: 1 });
     await expect(heading).toBeVisible();
 
-    // Take a full-page screenshot for Chromatic visual regression
-    await expect(page).toHaveScreenshot('homepage-full.png', {
-      fullPage: true,
-    });
+    // Chromatic captures screenshot automatically at test end
   });
 
-  test('homepage has calculator section', async ({ page }) => {
+  test('has calculator section', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
@@ -38,7 +38,7 @@ test.describe('Homepage Visual Regression', () => {
     });
     await expect(calculatorHeading).toBeVisible();
 
-    // Verify Border Calculator link is visible in the calculators section
+    // Verify Border Calculator link is visible
     const borderCalcLink = page.getByRole('link', {
       name: 'Border Calculator',
       exact: true,
@@ -46,23 +46,40 @@ test.describe('Homepage Visual Regression', () => {
     await expect(borderCalcLink).toBeVisible();
   });
 
-  test('homepage responsive - mobile', async ({ page }) => {
+  test('can navigate to border calculator', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Click the Border Calculator link
+    await page
+      .getByRole('link', { name: 'Border Calculator', exact: true })
+      .click();
+
+    // Verify navigation succeeded
+    await expect(page).toHaveURL('/border');
+  });
+
+  test('responsive - mobile viewport', async ({ page }) => {
     await page.setViewportSize(MOBILE_VIEWPORT);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    await expect(page).toHaveScreenshot('homepage-mobile.png', {
-      fullPage: true,
-    });
+    // Verify page renders at mobile size
+    const heading = page.getByRole('heading', { level: 1 });
+    await expect(heading).toBeVisible();
+
+    // Chromatic captures screenshot at this viewport
   });
 
-  test('homepage responsive - tablet', async ({ page }) => {
+  test('responsive - tablet viewport', async ({ page }) => {
     await page.setViewportSize(TABLET_VIEWPORT);
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    await expect(page).toHaveScreenshot('homepage-tablet.png', {
-      fullPage: true,
-    });
+    // Verify page renders at tablet size
+    const heading = page.getByRole('heading', { level: 1 });
+    await expect(heading).toBeVisible();
+
+    // Chromatic captures screenshot at this viewport
   });
 });

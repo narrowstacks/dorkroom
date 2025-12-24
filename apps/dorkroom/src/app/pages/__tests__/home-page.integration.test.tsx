@@ -187,20 +187,27 @@ describe('HomePage', () => {
       ).not.toThrow();
     });
 
-    it('handles API error gracefully', () => {
+    it('handles API error gracefully with fallback content', () => {
       vi.mocked(useCombinations).mockReturnValue({
         data: undefined,
         isPending: false,
         error: new Error('Failed to fetch'),
       });
 
-      expect(() =>
-        render(
-          <Wrapper>
-            <HomePage />
-          </Wrapper>
-        )
-      ).not.toThrow();
+      render(
+        <Wrapper>
+          <HomePage />
+        </Wrapper>
+      );
+
+      // HomePage gracefully degrades - shows "-" for missing data instead of error message
+      // The page should still render with main content visible
+      expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+
+      // Calculators section should still be visible (static content, not API-dependent)
+      expect(
+        screen.getByRole('heading', { name: /calculators/i, level: 2 })
+      ).toBeInTheDocument();
     });
 
     it('handles empty state with no favorites or recipes', () => {
@@ -258,7 +265,7 @@ describe('HomePage', () => {
       }
     });
 
-    it('external links open in new tab with noreferrer', () => {
+    it('external links have security attributes', () => {
       render(
         <Wrapper>
           <HomePage />
@@ -273,7 +280,9 @@ describe('HomePage', () => {
 
       for (const link of externalLinks) {
         expect(link).toHaveAttribute('target', '_blank');
-        expect(link).toHaveAttribute('rel', 'noreferrer');
+        // noreferrer implies noopener in modern browsers
+        const rel = link.getAttribute('rel');
+        expect(rel).toContain('noreferrer');
       }
     });
   });
