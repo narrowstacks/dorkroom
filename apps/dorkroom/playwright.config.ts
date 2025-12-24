@@ -17,6 +17,7 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4200',
     trace: 'on-first-retry',
+    actionTimeout: 10 * 1000, // 10s per action (default 30s is too long for simple nav)
   },
   projects: [
     {

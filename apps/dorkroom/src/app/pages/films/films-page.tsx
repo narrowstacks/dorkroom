@@ -201,14 +201,9 @@ export default function FilmsPage() {
       </a>
 
       {/* ARIA live region for result count announcements */}
-      <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
+      <output aria-live="polite" aria-atomic="true" className="sr-only">
         {resultCountAnnouncement}
-      </div>
+      </output>
 
       <CalculatorPageHeader
         title="Film Database"

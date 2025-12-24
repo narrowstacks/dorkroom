@@ -1,9 +1,11 @@
-import { devices } from '@playwright/test';
 import { expect, test } from '@chromatic-com/playwright';
+import { devices } from '@playwright/test';
 
 // Device viewports for responsive testing
-const MOBILE_VIEWPORT = devices['iPhone SE'].viewport;
-const TABLET_VIEWPORT = devices['iPad Mini'].viewport;
+// biome-ignore lint/style/noNonNullAssertion: Well-known Playwright device descriptors always have viewport
+const MOBILE_VIEWPORT = devices['iPhone SE'].viewport!;
+// biome-ignore lint/style/noNonNullAssertion: Well-known Playwright device descriptors always have viewport
+const TABLET_VIEWPORT = devices['iPad Mini'].viewport!;
 
 test.describe('Homepage Visual Regression', () => {
   test('homepage renders correctly', async ({ page }) => {
@@ -36,8 +38,11 @@ test.describe('Homepage Visual Regression', () => {
     });
     await expect(calculatorHeading).toBeVisible();
 
-    // Verify at least one calculator link exists
-    const borderCalcLink = page.getByRole('link', { name: /border/i }).first();
+    // Verify Border Calculator link is visible in the calculators section
+    const borderCalcLink = page.getByRole('link', {
+      name: 'Border Calculator',
+      exact: true,
+    });
     await expect(borderCalcLink).toBeVisible();
   });
 

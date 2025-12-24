@@ -158,15 +158,7 @@ describe('HomePage', () => {
     ).not.toThrow();
   });
 
-  // Run `bun test -- -u` to update snapshots when UI intentionally changes
-  it('matches snapshot', () => {
-    const { container } = render(
-      <Wrapper>
-        <HomePage />
-      </Wrapper>
-    );
-    expect(container).toMatchSnapshot();
-  });
+  // Note: Visual regression testing is handled by Chromatic (see e2e/homepage.spec.ts)
 
   describe('data states', () => {
     it('handles loading state when data is pending', () => {
