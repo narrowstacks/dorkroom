@@ -211,7 +211,6 @@
   }
 
   /* Disable all animations and transitions helper */
-  /* biome-ignore lint/complexity/noImportantStyles: Required to override inline styles in components like animated-preview.tsx */
   [data-theme="high-contrast"] *,
   [data-theme="high-contrast"] *::before,
   [data-theme="high-contrast"] *::after,
@@ -221,7 +220,9 @@
   [data-animations-disabled="true"] *,
   [data-animations-disabled="true"] *::before,
   [data-animations-disabled="true"] *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: Required to override inline styles in components */
     animation: none !important;
+    /* biome-ignore lint/complexity/noImportantStyles: Required to override inline styles in components */
     transition: none !important;
   }
 

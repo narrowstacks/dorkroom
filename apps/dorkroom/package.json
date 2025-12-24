@@ -8,6 +8,8 @@
     "build": "vite build",
     "lint": "biome check .",
     "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "typecheck": "tsc --noEmit"
   }
 }
