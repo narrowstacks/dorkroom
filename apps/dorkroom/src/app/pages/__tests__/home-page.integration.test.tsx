@@ -1,10 +1,56 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import type { Combination } from '@dorkroom/api';
+import {
+  useCombinations,
+  useCustomRecipes,
+  useFavorites,
+} from '@dorkroom/logic';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { HomePage } from '../home-page';
+
+// Mock the hooks - vi.mocked() provides better type inference
+vi.mock('@dorkroom/logic', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@dorkroom/logic')>();
+  return {
+    ...actual,
+    useFavorites: vi.fn(),
+    useCustomRecipes: vi.fn(),
+    useCombinations: vi.fn(),
+  };
+});
+
+// Mock TanStack Router's Link to render as <a>
+vi.mock('@tanstack/react-router', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@tanstack/react-router')>();
+  return {
+    ...actual,
+    Link: ({
+      to,
+      search,
+      children,
+      className,
+      ...props
+    }: {
+      to: string;
+      search?: Record<string, string>;
+      children: ReactNode;
+      className?: string;
+    }) => {
+      const searchParams = search
+        ? `?${new URLSearchParams(search).toString()}`
+        : '';
+      return (
+        <a href={`${to}${searchParams}`} className={className} {...props}>
+          {children}
+        </a>
+      );
+    },
+  };
+});
 
 const mockCombinations: Combination[] = [
   {
@@ -41,46 +87,8 @@ const mockCombinations: Combination[] = [
   },
 ];
 
-// Types for mock hook return values
-type MockUseFavorites = {
-  favoriteIds: string[];
-  isInitialized: boolean;
-  addFavorite: ReturnType<typeof vi.fn>;
-  removeFavorite: ReturnType<typeof vi.fn>;
-  isFavorite: ReturnType<typeof vi.fn>;
-};
-
-type MockUseCustomRecipes = {
-  customRecipes: Array<{
-    id: string;
-    name: string;
-    filmId: string;
-    developerId: string;
-    temperatureF: number;
-    timeMinutes: number;
-    shootingIso: number;
-    pushPull: number;
-    isCustomFilm: boolean;
-    isCustomDeveloper: boolean;
-    isPublic: boolean;
-    dateCreated: string;
-    dateModified: string;
-  }>;
-  isLoading: boolean;
-};
-
-type MockUseCombinations = {
-  data: Combination[] | undefined;
-  isPending: boolean;
-  error: Error | null;
-};
-
-// Default mock values
-const defaultMocks: {
-  useFavorites: MockUseFavorites;
-  useCustomRecipes: MockUseCustomRecipes;
-  useCombinations: MockUseCombinations;
-} = {
+// Default mock return values
+const defaultMocks = {
   useFavorites: {
     favoriteIds: ['combo-1'],
     isInitialized: true,
@@ -115,56 +123,6 @@ const defaultMocks: {
   },
 };
 
-// Create mutable mock return values (typed to allow test-specific overrides)
-let mockFavoritesValue: MockUseFavorites = { ...defaultMocks.useFavorites };
-let mockCustomRecipesValue: MockUseCustomRecipes = {
-  ...defaultMocks.useCustomRecipes,
-};
-let mockCombinationsValue: MockUseCombinations = {
-  ...defaultMocks.useCombinations,
-};
-
-// Mock the hooks with explicit return types for type safety
-vi.mock('@dorkroom/logic', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@dorkroom/logic')>();
-  return {
-    ...actual,
-    useFavorites: (): MockUseFavorites => mockFavoritesValue,
-    useCustomRecipes: (): MockUseCustomRecipes => mockCustomRecipesValue,
-    useCombinations: (): MockUseCombinations => mockCombinationsValue,
-  };
-});
-
-// Mock TanStack Router's Link to render as <a>
-vi.mock('@tanstack/react-router', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@tanstack/react-router')>();
-  return {
-    ...actual,
-    Link: ({
-      to,
-      search,
-      children,
-      className,
-      ...props
-    }: {
-      to: string;
-      search?: Record<string, string>;
-      children: ReactNode;
-      className?: string;
-    }) => {
-      const searchParams = search
-        ? `?${new URLSearchParams(search).toString()}`
-        : '';
-      return (
-        <a href={`${to}${searchParams}`} className={className} {...props}>
-          {children}
-        </a>
-      );
-    },
-  };
-});
-
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -178,14 +136,19 @@ const createWrapper = () => {
 };
 
 describe('HomePage', () => {
+  let Wrapper: ReturnType<typeof createWrapper>;
+
   beforeEach(() => {
-    mockFavoritesValue = { ...defaultMocks.useFavorites };
-    mockCustomRecipesValue = { ...defaultMocks.useCustomRecipes };
-    mockCombinationsValue = { ...defaultMocks.useCombinations };
+    // Reset mocks to default values using vi.mocked() for type safety
+    vi.mocked(useFavorites).mockReturnValue(defaultMocks.useFavorites);
+    vi.mocked(useCustomRecipes).mockReturnValue(defaultMocks.useCustomRecipes);
+    vi.mocked(useCombinations).mockReturnValue(defaultMocks.useCombinations);
+
+    // Create fresh wrapper with new QueryClient to prevent cache pollution
+    Wrapper = createWrapper();
   });
 
-  it('renders successfully with favorites and combinations data', () => {
-    const Wrapper = createWrapper();
+  it('renders without crashing when all data is loaded', () => {
     expect(() =>
       render(
         <Wrapper>
@@ -197,7 +160,6 @@ describe('HomePage', () => {
 
   // Run `bun test -- -u` to update snapshots when UI intentionally changes
   it('matches snapshot', () => {
-    const Wrapper = createWrapper();
     const { container } = render(
       <Wrapper>
         <HomePage />
@@ -208,23 +170,22 @@ describe('HomePage', () => {
 
   describe('data states', () => {
     it('handles loading state when data is pending', () => {
-      mockFavoritesValue = {
+      vi.mocked(useFavorites).mockReturnValue({
         ...defaultMocks.useFavorites,
         favoriteIds: [],
         isInitialized: false,
-      };
-      mockCustomRecipesValue = {
+      });
+      vi.mocked(useCustomRecipes).mockReturnValue({
         ...defaultMocks.useCustomRecipes,
         customRecipes: [],
         isLoading: true,
-      };
-      mockCombinationsValue = {
+      });
+      vi.mocked(useCombinations).mockReturnValue({
         data: undefined,
         isPending: true,
         error: null,
-      };
+      });
 
-      const Wrapper = createWrapper();
       expect(() =>
         render(
           <Wrapper>
@@ -235,13 +196,12 @@ describe('HomePage', () => {
     });
 
     it('handles API error gracefully', () => {
-      mockCombinationsValue = {
+      vi.mocked(useCombinations).mockReturnValue({
         data: undefined,
         isPending: false,
         error: new Error('Failed to fetch'),
-      };
+      });
 
-      const Wrapper = createWrapper();
       expect(() =>
         render(
           <Wrapper>
@@ -252,21 +212,20 @@ describe('HomePage', () => {
     });
 
     it('handles empty state with no favorites or recipes', () => {
-      mockFavoritesValue = {
+      vi.mocked(useFavorites).mockReturnValue({
         ...defaultMocks.useFavorites,
         favoriteIds: [],
-      };
-      mockCustomRecipesValue = {
+      });
+      vi.mocked(useCustomRecipes).mockReturnValue({
         ...defaultMocks.useCustomRecipes,
         customRecipes: [],
-      };
-      mockCombinationsValue = {
+      });
+      vi.mocked(useCombinations).mockReturnValue({
         data: [],
         isPending: false,
         error: null,
-      };
+      });
 
-      const Wrapper = createWrapper();
       expect(() =>
         render(
           <Wrapper>
@@ -278,20 +237,23 @@ describe('HomePage', () => {
   });
 
   describe('accessibility', () => {
-    it('has proper heading hierarchy', () => {
-      const Wrapper = createWrapper();
+    it('has proper heading hierarchy with single h1', () => {
       render(
         <Wrapper>
           <HomePage />
         </Wrapper>
       );
 
+      // Page should have exactly one h1 for proper document structure
+      const h1s = screen.queryAllByRole('heading', { level: 1 });
+      expect(h1s).toHaveLength(1);
+
+      // Should have section headings (h2s)
       const h2s = screen.getAllByRole('heading', { level: 2 });
       expect(h2s.length).toBeGreaterThan(0);
     });
 
     it('all links have accessible names', () => {
-      const Wrapper = createWrapper();
       render(
         <Wrapper>
           <HomePage />
@@ -305,7 +267,6 @@ describe('HomePage', () => {
     });
 
     it('external links open in new tab with noreferrer', () => {
-      const Wrapper = createWrapper();
       render(
         <Wrapper>
           <HomePage />
@@ -326,7 +287,6 @@ describe('HomePage', () => {
 
   describe('navigation', () => {
     it('calculator links point to valid routes', () => {
-      const Wrapper = createWrapper();
       render(
         <Wrapper>
           <HomePage />
