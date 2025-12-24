@@ -1,9 +1,13 @@
 import type { Dilution } from '@dorkroom/api';
-import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import {
+  calculatePushPull,
+  type DevelopmentCombinationView,
+} from '@dorkroom/logic';
 import { Edit2, ExternalLink, Share2, Star, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
+import { PushPullWarning } from '../push-pull-warning';
 import { CollapsibleSection } from '../ui/collapsible-section';
 import { Tag } from '../ui/tag';
 
@@ -67,6 +71,11 @@ export function DevelopmentRecipeDetail({
   const [isFilmExpanded, setIsFilmExpanded] = useState(false);
   const [isDeveloperExpanded, setIsDeveloperExpanded] = useState(false);
 
+  // Calculate pushPull from film box speed if available, otherwise use stored value
+  const pushPull = film?.isoSpeed
+    ? calculatePushPull(combination.shootingIso, film.isoSpeed)
+    : combination.pushPull;
+
   return (
     <div className="space-y-5 text-sm">
       <div className="flex justify-end gap-2">
@@ -105,6 +114,13 @@ export function DevelopmentRecipeDetail({
           </button>
         )}
       </div>
+
+      {/* Push/pull warning */}
+      <PushPullWarning
+        shootingIso={combination.shootingIso}
+        pushPull={pushPull}
+      />
+
       <div className="space-y-3 rounded-xl border border-secondary bg-border-muted p-4">
         <DetailRow label="ISO" value={combination.shootingIso} />
         <DetailRow
@@ -138,7 +154,7 @@ export function DevelopmentRecipeDetail({
           label="Agitation"
           value={combination.agitationSchedule || 'Standard'}
         />
-        <DetailRow label="Push/Pull" value={combination.pushPull} />
+        <DetailRow label="Push/Pull" value={pushPull} />
         {combination.tags && combination.tags.length > 0 && (
           <div className="flex flex-wrap justify-end gap-2 text-xs text-tertiary">
             {combination.tags.map((tag: string) => (

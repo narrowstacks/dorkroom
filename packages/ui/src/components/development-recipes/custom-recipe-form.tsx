@@ -1,9 +1,10 @@
 import type { Developer, Film } from '@dorkroom/api';
-import type {
-  CustomDeveloperData,
-  CustomFilmData,
-  CustomRecipeFormData,
-  SelectItem,
+import {
+  type CustomDeveloperData,
+  type CustomFilmData,
+  type CustomRecipeFormData,
+  calculatePushPull,
+  type SelectItem,
 } from '@dorkroom/logic';
 import { useMemo, useState } from 'react';
 import { cn } from '../../lib/cn';
@@ -55,6 +56,14 @@ export function CustomRecipeForm({
 }: CustomRecipeFormProps) {
   const [formData, setFormData] = useState<CustomRecipeFormData>(initialValue);
 
+  // Local string state for numeric inputs to allow decimal entry
+  const [timeMinutesInput, setTimeMinutesInput] = useState(
+    String(initialValue.timeMinutes || '')
+  );
+  const [shootingIsoInput, setShootingIsoInput] = useState(
+    String(initialValue.shootingIso || '')
+  );
+
   // Get dilution options for the selected developer
   const dilutionOptions = useMemo(() => {
     if (!formData.useExistingDeveloper || !formData.selectedDeveloperId) {
@@ -89,6 +98,33 @@ export function CustomRecipeForm({
   // Show custom dilution input when: custom developer OR "custom" selected in dropdown
   const showCustomDilutionInput =
     !formData.useExistingDeveloper || formData.selectedDilutionId === 'custom';
+
+  // Get the box speed from the selected film or custom film
+  const boxSpeed = useMemo(() => {
+    if (formData.useExistingFilm && formData.selectedFilmId) {
+      const film = allFilms.find((f) => f.uuid === formData.selectedFilmId);
+      return film?.isoSpeed ?? null;
+    }
+    return formData.customFilm?.isoSpeed ?? null;
+  }, [
+    formData.useExistingFilm,
+    formData.selectedFilmId,
+    formData.customFilm?.isoSpeed,
+    allFilms,
+  ]);
+
+  // Calculate push/pull from box speed and shooting ISO
+  const calculatedPushPull = useMemo(() => {
+    if (!boxSpeed || !formData.shootingIso) return 0;
+    return calculatePushPull(formData.shootingIso, boxSpeed);
+  }, [boxSpeed, formData.shootingIso]);
+
+  // Format push/pull for display
+  const pushPullDisplay = useMemo(() => {
+    if (calculatedPushPull === 0) return 'Box Speed';
+    if (calculatedPushPull > 0) return `Push +${calculatedPushPull}`;
+    return `Pull ${calculatedPushPull}`;
+  }, [calculatedPushPull]);
 
   const handleChange = <K extends keyof CustomRecipeFormData>(
     key: K,
@@ -126,17 +162,22 @@ export function CustomRecipeForm({
   // Handle film selection - auto-set shooting ISO to film's native ISO
   const handleFilmSelect = (filmId: string) => {
     const film = allFilms.find((f) => f.uuid === filmId);
+    const newIso = film?.isoSpeed;
+    if (newIso !== undefined) {
+      setShootingIsoInput(String(newIso));
+    }
     setFormData((prev) => ({
       ...prev,
       selectedFilmId: filmId,
       // Auto-set shooting ISO to film's native ISO when selecting a film
-      shootingIso: film?.isoSpeed ?? prev.shootingIso,
+      shootingIso: newIso ?? prev.shootingIso,
     }));
   };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    onSubmit(formData);
+    // Include the calculated pushPull value in the submission
+    onSubmit({ ...formData, pushPull: calculatedPushPull });
   };
 
   return (
@@ -387,36 +428,64 @@ export function CustomRecipeForm({
         />
         <TextInput
           label="Development time (minutes)"
-          value={String(formData.timeMinutes)}
-          onValueChange={(value) =>
-            handleChange('timeMinutes', Number(value) || 0)
-          }
+          value={timeMinutesInput}
+          onValueChange={(value) => {
+            setTimeMinutesInput(value);
+            const numValue = Number(value);
+            if (value !== '' && !isNaN(numValue)) {
+              handleChange('timeMinutes', numValue);
+            }
+          }}
+          inputMode="decimal"
           placeholder="9.75"
         />
         <TextInput
           label="Shooting ISO"
-          value={String(formData.shootingIso)}
-          onValueChange={(value) =>
-            handleChange('shootingIso', Number(value) || 0)
-          }
+          value={shootingIsoInput}
+          onValueChange={(value) => {
+            setShootingIsoInput(value);
+            const numValue = Number(value);
+            if (value !== '' && !isNaN(numValue)) {
+              handleChange('shootingIso', numValue);
+            }
+          }}
+          inputMode="decimal"
           placeholder="400"
         />
-        <Select
-          label="Push/Pull"
-          selectedValue={String(formData.pushPull)}
-          onValueChange={(value) =>
-            handleChange('pushPull', Number(value) as number)
-          }
-          items={[-2, -1, 0, 1, 2].map((value) => ({
-            label:
-              value === 0
-                ? 'Box Speed'
-                : value > 0
-                  ? `Push +${value}`
-                  : `Pull ${Math.abs(value)}`,
-            value: String(value),
-          }))}
-        />
+        <div className="space-y-2">
+          <label
+            className="block text-sm font-medium"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            Push/Pull
+          </label>
+          <div
+            className={cn(
+              'flex h-10 items-center rounded-lg border px-3 text-sm',
+              calculatedPushPull !== 0 && 'font-medium'
+            )}
+            style={{
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'var(--color-surface-muted)',
+              color:
+                calculatedPushPull === 0
+                  ? 'var(--color-text-primary)'
+                  : calculatedPushPull > 0
+                    ? 'var(--color-semantic-warning)'
+                    : 'var(--color-semantic-info, #3b82f6)',
+            }}
+          >
+            {pushPullDisplay}
+            {boxSpeed && (
+              <span
+                className="ml-auto text-xs"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                Box: ISO {boxSpeed}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">

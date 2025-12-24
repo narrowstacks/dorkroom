@@ -1,7 +1,12 @@
-import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import {
+  calculatePushPull,
+  type DevelopmentCombinationView,
+} from '@dorkroom/logic';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import type { LucideIcon } from 'lucide-react';
 import {
+  ArrowDown,
+  ArrowUp,
   Beaker,
   Edit2,
   ExternalLink,
@@ -224,6 +229,54 @@ function TemperatureCellRenderer({
 }
 
 /**
+ * ISO cell renderer component - highlights non-box speed ISOs
+ * Up arrow for pushed film (higher ISO than box speed), down arrow for pulled film
+ *
+ * For custom recipes, calculates pushPull from film.isoSpeed and shootingIso
+ * to ensure accurate display regardless of the stored pushPull value.
+ */
+function IsoCellRenderer({
+  cellContext,
+}: {
+  cellContext: CellContext<DevelopmentCombinationView, unknown>;
+}) {
+  const { combination, film } = cellContext.row.original;
+  const { shootingIso } = combination;
+
+  // Calculate pushPull from film box speed if available, otherwise use stored value
+  const pushPull = film?.isoSpeed
+    ? calculatePushPull(shootingIso, film.isoSpeed)
+    : combination.pushPull;
+
+  const isPushed = pushPull > 0;
+  const isNonBoxSpeed = pushPull !== 0;
+
+  const getIsoColor = () => {
+    if (!isNonBoxSpeed) return 'var(--color-text-primary)';
+    return isPushed
+      ? 'var(--color-semantic-warning)'
+      : 'var(--color-semantic-info, #3b82f6)';
+  };
+
+  const IsoIcon = isPushed ? ArrowUp : ArrowDown;
+
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1',
+        isNonBoxSpeed && 'font-medium'
+      )}
+      style={{ color: getIsoColor() }}
+    >
+      {shootingIso}
+      {isNonBoxSpeed && (
+        <IsoIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      )}
+    </span>
+  );
+}
+
+/**
  * Column context for handlers - passed through table meta
  */
 export interface TableColumnContext {
@@ -247,6 +300,10 @@ export const createTableColumns = (
     header: 'Film',
     cell: (context: CellContext<DevelopmentCombinationView, unknown>) => {
       const { combination, film } = context.row.original;
+      // Calculate pushPull from film box speed if available, otherwise use stored value
+      const pushPull = film?.isoSpeed
+        ? calculatePushPull(combination.shootingIso, film.isoSpeed)
+        : combination.pushPull;
       return (
         <div>
           <div
@@ -256,11 +313,11 @@ export const createTableColumns = (
             {film ? `${film.brand} ${film.name}` : 'Unknown film'}
           </div>
           <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-            {combination.pushPull === 0
+            {pushPull === 0
               ? 'Box Speed'
-              : combination.pushPull > 0
-                ? `Push +${combination.pushPull}`
-                : `Pull ${combination.pushPull}`}
+              : pushPull > 0
+                ? `Push +${pushPull}`
+                : `Pull ${pushPull}`}
           </div>
           {combination.tags && combination.tags.length > 0 && (
             <div className="mt-1 flex flex-nowrap gap-1">
@@ -291,27 +348,6 @@ export const createTableColumns = (
               ? `${developer.manufacturer} ${developer.name}`
               : 'Unknown developer'}
           </div>
-          {isCustom && (
-            <div
-              className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
-              style={{
-                backgroundColor: colorMixOr(
-                  'var(--color-accent)',
-                  10,
-                  'transparent',
-                  'var(--color-border-muted)'
-                ),
-                color: colorMixOr(
-                  'var(--color-accent)',
-                  80,
-                  'var(--color-text-primary)',
-                  'var(--color-text-primary)'
-                ),
-              }}
-            >
-              <Beaker className="h-3 w-3" /> Custom
-            </div>
-          )}
         </div>
       );
     },
@@ -324,13 +360,9 @@ export const createTableColumns = (
     id: 'combination.shootingIso',
     accessorFn: (row) => row.combination.shootingIso,
     header: 'ISO',
-    cell: (context: CellContext<DevelopmentCombinationView, unknown>) => {
-      return (
-        <div style={{ color: 'var(--color-text-primary)' }}>
-          {context.row.original.combination.shootingIso}
-        </div>
-      );
-    },
+    cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => (
+      <IsoCellRenderer cellContext={cellContext} />
+    ),
     enableSorting: true,
     sortingFn: 'favoriteAware',
   },

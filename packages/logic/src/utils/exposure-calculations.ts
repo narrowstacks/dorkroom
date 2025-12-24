@@ -1,4 +1,4 @@
-import { roundToStandardPrecision } from './precision';
+import { roundToPrecision, roundToStandardPrecision } from './precision';
 
 /**
  * Calculates new exposure time based on stop adjustment using the standard formula.
@@ -112,4 +112,42 @@ export const calculatePercentageIncrease = (
 ): number => {
   if (originalTime <= 0) return 0;
   return ((newTime - originalTime) / originalTime) * 100;
+};
+
+/**
+ * Calculates push/pull stops from shooting ISO and box speed.
+ * Uses the formula: stops = log2(shootingIso / boxSpeed)
+ *
+ * Positive values indicate push (shooting at higher ISO than box speed).
+ * Negative values indicate pull (shooting at lower ISO than box speed).
+ * Zero indicates shooting at box speed.
+ *
+ * @param shootingIso - The ISO the film was shot at
+ * @param boxSpeed - The film's native ISO (box speed)
+ * @returns Number of stops pushed (positive) or pulled (negative), rounded to nearest half-stop
+ * @example
+ * ```typescript
+ * // FP4 (ISO 125) shot at 400 = push +1.68 stops (rounds to +1.5)
+ * const pushed = calculatePushPull(400, 125); // 1.5
+ *
+ * // HP5 (ISO 400) shot at box speed = 0 stops
+ * const boxSpeed = calculatePushPull(400, 400); // 0
+ *
+ * // HP5 (ISO 400) pulled to 200 = pull -1 stop
+ * const pulled = calculatePushPull(200, 400); // -1
+ *
+ * // Film shot at 75 when box speed is 100 = pull -0.5 stops
+ * const slightPull = calculatePushPull(75, 100); // -0.5
+ * ```
+ */
+export const calculatePushPull = (
+  shootingIso: number,
+  boxSpeed: number
+): number => {
+  if (shootingIso <= 0 || boxSpeed <= 0) return 0;
+  if (shootingIso === boxSpeed) return 0;
+
+  const stops = Math.log2(shootingIso / boxSpeed);
+  // Round to nearest 2 decimal places
+  return roundToPrecision(stops, 2);
 };

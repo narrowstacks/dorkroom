@@ -7,6 +7,7 @@ interface TextInputProps {
   label?: string;
   className?: string;
   description?: string;
+  inputMode?: 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url';
 }
 
 export function TextInput({
@@ -16,6 +17,7 @@ export function TextInput({
   label,
   className,
   description,
+  inputMode,
 }: TextInputProps) {
   return (
     <div className={cn('space-y-2', className)}>
@@ -30,6 +32,7 @@ export function TextInput({
       {description && <p className="text-sm text-gray-500">{description}</p>}
       <input
         type="text"
+        inputMode={inputMode}
         value={value}
         onChange={(e) => onValueChange((e.target as HTMLInputElement).value)}
         placeholder={placeholder}

@@ -99,6 +99,7 @@ export { NavigationDropdown } from './components/navigation-dropdown';
 export { NumberInput } from './components/number-input';
 export type { PlaceholderPageProps } from './components/placeholder-page';
 export { PlaceholderPage } from './components/placeholder-page';
+export { PushPullWarning } from './components/push-pull-warning';
 export { ReciprocityChart } from './components/reciprocity-chart';
 export type { ResponsiveModalProps } from './components/responsive-modal';
 export { ResponsiveModal } from './components/responsive-modal';

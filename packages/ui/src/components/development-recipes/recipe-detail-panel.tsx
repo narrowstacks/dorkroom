@@ -1,11 +1,15 @@
 import type { Dilution } from '@dorkroom/api';
-import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import {
+  calculatePushPull,
+  type DevelopmentCombinationView,
+} from '@dorkroom/logic';
 import { ExternalLink, Star } from 'lucide-react';
 import type { FC } from 'react';
 import { useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { DetailPanel } from '../detail-panel';
+import { PushPullWarning } from '../push-pull-warning';
 import { TemperatureWarning } from '../temperature-warning';
 import { CollapsibleSection } from '../ui/collapsible-section';
 import { Tag } from '../ui/tag';
@@ -104,6 +108,11 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
   const isCustomRecipe = view.source === 'custom';
   const isFav = isFavorite?.(view) ?? false;
 
+  // Calculate pushPull from film box speed if available, otherwise use stored value
+  const pushPull = film?.isoSpeed
+    ? calculatePushPull(combination.shootingIso, film.isoSpeed)
+    : combination.pushPull;
+
   const filmDatabaseUrl = film?.slug ? `/films?film=${film.slug}` : null;
 
   // Get dilution label
@@ -172,6 +181,12 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
         temperatureC={combination.temperatureC}
       />
 
+      {/* Push/pull warning */}
+      <PushPullWarning
+        shootingIso={combination.shootingIso}
+        pushPull={pushPull}
+      />
+
       {/* Main details box */}
       <div className="space-y-3 rounded-xl border border-secondary bg-border-muted p-4">
         <DetailRow label="ISO" value={combination.shootingIso} />
@@ -194,7 +209,7 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
           label="Agitation"
           value={combination.agitationSchedule || 'Standard'}
         />
-        <DetailRow label="Push/Pull" value={combination.pushPull} />
+        <DetailRow label="Push/Pull" value={pushPull} />
         {combination.tags && combination.tags.length > 0 && (
           <div className="flex flex-wrap justify-end gap-2 text-xs text-tertiary">
             {combination.tags.map((tag: string) => (
@@ -344,6 +359,12 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
           temperatureC={combination.temperatureC}
         />
 
+        {/* Push/pull warning */}
+        <PushPullWarning
+          shootingIso={combination.shootingIso}
+          pushPull={pushPull}
+        />
+
         {/* Primary info: Time and Temperature - prominent display */}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl border border-secondary bg-border-muted p-4">
@@ -398,7 +419,7 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
             <div className="text-xs uppercase tracking-wide text-muted mb-2">
               Push/Pull
             </div>
-            <p className="text-primary font-medium">{combination.pushPull}</p>
+            <p className="text-primary font-medium">{pushPull}</p>
           </div>
         </div>
 

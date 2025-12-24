@@ -1,8 +1,13 @@
 import type { Dilution } from '@dorkroom/api';
-import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import {
+  calculatePushPull,
+  type DevelopmentCombinationView,
+} from '@dorkroom/logic';
 import type { Row, Table } from '@tanstack/react-table';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import {
+  ArrowDown,
+  ArrowUp,
   Beaker,
   Edit2,
   ExternalLink,
@@ -472,12 +477,42 @@ export const DevelopmentResultsCardsVirtualized: FC<
                           <div style={{ color: 'var(--color-text-muted)' }}>
                             ISO
                           </div>
-                          <div
-                            className="text-sm"
-                            style={{ color: 'var(--color-text-primary)' }}
-                          >
-                            {combination.shootingIso}
-                          </div>
+                          {(() => {
+                            // Calculate pushPull from film box speed if available
+                            const pushPull = film?.isoSpeed
+                              ? calculatePushPull(
+                                  combination.shootingIso,
+                                  film.isoSpeed
+                                )
+                              : combination.pushPull;
+                            const isPushed = pushPull > 0;
+                            const isNonBoxSpeed = pushPull !== 0;
+                            const getIsoColor = () => {
+                              if (!isNonBoxSpeed)
+                                return 'var(--color-text-primary)';
+                              return isPushed
+                                ? 'var(--color-semantic-warning)'
+                                : 'var(--color-semantic-info, #3b82f6)';
+                            };
+                            const IsoIcon = isPushed ? ArrowUp : ArrowDown;
+                            return (
+                              <div
+                                className={cn(
+                                  'text-sm inline-flex items-center gap-1',
+                                  isNonBoxSpeed && 'font-medium'
+                                )}
+                                style={{ color: getIsoColor() }}
+                              >
+                                {isNonBoxSpeed && (
+                                  <IsoIcon
+                                    className="h-3.5 w-3.5 shrink-0"
+                                    aria-hidden="true"
+                                  />
+                                )}
+                                {combination.shootingIso}
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div>
                           <div style={{ color: 'var(--color-text-muted)' }}>
