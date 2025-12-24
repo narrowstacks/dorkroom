@@ -41,8 +41,46 @@ const mockCombinations: Combination[] = [
   },
 ];
 
+// Types for mock hook return values
+type MockUseFavorites = {
+  favoriteIds: string[];
+  isInitialized: boolean;
+  addFavorite: ReturnType<typeof vi.fn>;
+  removeFavorite: ReturnType<typeof vi.fn>;
+  isFavorite: ReturnType<typeof vi.fn>;
+};
+
+type MockUseCustomRecipes = {
+  customRecipes: Array<{
+    id: string;
+    name: string;
+    filmId: string;
+    developerId: string;
+    temperatureF: number;
+    timeMinutes: number;
+    shootingIso: number;
+    pushPull: number;
+    isCustomFilm: boolean;
+    isCustomDeveloper: boolean;
+    isPublic: boolean;
+    dateCreated: string;
+    dateModified: string;
+  }>;
+  isLoading: boolean;
+};
+
+type MockUseCombinations = {
+  data: Combination[] | undefined;
+  isPending: boolean;
+  error: Error | null;
+};
+
 // Default mock values
-const defaultMocks = {
+const defaultMocks: {
+  useFavorites: MockUseFavorites;
+  useCustomRecipes: MockUseCustomRecipes;
+  useCombinations: MockUseCombinations;
+} = {
   useFavorites: {
     favoriteIds: ['combo-1'],
     isInitialized: true,
@@ -77,21 +115,23 @@ const defaultMocks = {
   },
 };
 
-// Create mutable mock return values
-let mockFavoritesValue = { ...defaultMocks.useFavorites };
-let mockCustomRecipesValue = { ...defaultMocks.useCustomRecipes };
-let mockCombinationsValue = {
+// Create mutable mock return values (typed to allow test-specific overrides)
+let mockFavoritesValue: MockUseFavorites = { ...defaultMocks.useFavorites };
+let mockCustomRecipesValue: MockUseCustomRecipes = {
+  ...defaultMocks.useCustomRecipes,
+};
+let mockCombinationsValue: MockUseCombinations = {
   ...defaultMocks.useCombinations,
-} as typeof defaultMocks.useCombinations & { data: Combination[] | undefined };
+};
 
-// Mock the hooks
+// Mock the hooks with explicit return types for type safety
 vi.mock('@dorkroom/logic', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@dorkroom/logic')>();
   return {
     ...actual,
-    useFavorites: () => mockFavoritesValue,
-    useCustomRecipes: () => mockCustomRecipesValue,
-    useCombinations: () => mockCombinationsValue,
+    useFavorites: (): MockUseFavorites => mockFavoritesValue,
+    useCustomRecipes: (): MockUseCustomRecipes => mockCustomRecipesValue,
+    useCombinations: (): MockUseCombinations => mockCombinationsValue,
   };
 });
 
@@ -144,7 +184,7 @@ describe('HomePage', () => {
     mockCombinationsValue = { ...defaultMocks.useCombinations };
   });
 
-  it('renders without crashing', () => {
+  it('renders successfully with favorites and combinations data', () => {
     const Wrapper = createWrapper();
     expect(() =>
       render(
@@ -155,6 +195,7 @@ describe('HomePage', () => {
     ).not.toThrow();
   });
 
+  // Run `bun test -- -u` to update snapshots when UI intentionally changes
   it('matches snapshot', () => {
     const Wrapper = createWrapper();
     const { container } = render(
@@ -166,7 +207,7 @@ describe('HomePage', () => {
   });
 
   describe('data states', () => {
-    it('renders in loading state without crashing', () => {
+    it('handles loading state when data is pending', () => {
       mockFavoritesValue = {
         ...defaultMocks.useFavorites,
         favoriteIds: [],
@@ -193,18 +234,7 @@ describe('HomePage', () => {
       ).not.toThrow();
     });
 
-    it('renders with data without crashing', () => {
-      const Wrapper = createWrapper();
-      expect(() =>
-        render(
-          <Wrapper>
-            <HomePage />
-          </Wrapper>
-        )
-      ).not.toThrow();
-    });
-
-    it('renders in error state without crashing', () => {
+    it('handles API error gracefully', () => {
       mockCombinationsValue = {
         data: undefined,
         isPending: false,
@@ -221,7 +251,7 @@ describe('HomePage', () => {
       ).not.toThrow();
     });
 
-    it('renders with empty data without crashing', () => {
+    it('handles empty state with no favorites or recipes', () => {
       mockFavoritesValue = {
         ...defaultMocks.useFavorites,
         favoriteIds: [],
