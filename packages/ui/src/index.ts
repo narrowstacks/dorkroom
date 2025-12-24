@@ -57,6 +57,7 @@ export type { TableColumnContext } from './components/development-recipes/table-
 export { createTableColumns } from './components/development-recipes/table-columns';
 export { TemperatureUnitToggle } from './components/development-recipes/temperature-unit-toggle';
 export { VirtualizedErrorBoundary } from './components/development-recipes/virtualized-error-boundary';
+export { VolumeMixer } from './components/development-recipes/volume-mixer';
 export { DimensionInputGroup } from './components/dimension-input-group';
 export { Drawer, DrawerBody, DrawerContent } from './components/drawer';
 export { ErrorBoundary } from './components/error-boundary';
@@ -108,6 +109,7 @@ export { SettingsButton } from './components/settings-button';
 // Sharing Components
 export { ShareButton, type ShareResult } from './components/share-button';
 export { ShareModal } from './components/share-modal';
+export { TemperatureWarning } from './components/temperature-warning';
 export { TextInput } from './components/text-input';
 export type { ThemeToggleProps } from './components/theme-toggle';
 export { ThemeToggle } from './components/theme-toggle';
@@ -128,6 +130,7 @@ export {
   SkeletonTableRow,
 } from './components/ui/skeleton';
 export { Tag } from './components/ui/tag';
+export { VolumeUnitToggle } from './components/volume-unit-toggle';
 export { WarningAlert } from './components/warning-alert';
 // Measurement
 export {
@@ -141,6 +144,8 @@ export {
 } from './contexts/temperature-context';
 // Theme
 export { ThemeProvider, useTheme } from './contexts/theme-context';
+// Volume
+export { useVolume, VolumeProvider } from './contexts/volume-context';
 // Forms (TanStack Form integration)
 export * from './forms';
 export type { FieldApi, FormInstance } from './forms/utils/form-api-types';

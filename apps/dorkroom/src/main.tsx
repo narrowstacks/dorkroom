@@ -10,6 +10,7 @@ import {
   MeasurementProvider,
   ThemeProvider,
   ToastProvider,
+  VolumeProvider,
 } from '@dorkroom/ui';
 import { routeTree } from './routeTree.gen';
 
@@ -60,9 +61,11 @@ root.render(
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <MeasurementProvider>
-            <ToastProvider>
-              <RouterProvider router={router} />
-            </ToastProvider>
+            <VolumeProvider>
+              <ToastProvider>
+                <RouterProvider router={router} />
+              </ToastProvider>
+            </VolumeProvider>
           </MeasurementProvider>
         </ThemeProvider>
         {process.env.NODE_ENV === 'development' && (

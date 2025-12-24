@@ -11,6 +11,10 @@ export function isNonStandardTemperature(temperatureF: number): boolean {
   );
 }
 
+export function isHigherTemperature(temperatureF: number): boolean {
+  return temperatureF > STANDARD_TEMP_F;
+}
+
 /**
  * Formats a temperature value for display in the requested unit and indicates if it differs from the standard temperature.
  *
@@ -20,14 +24,14 @@ export function isNonStandardTemperature(temperatureF: number): boolean {
  * @param temperatureC - Temperature in degrees Celsius, or `null` if not provided
  * @param unit - The unit to format the output in (`'fahrenheit'` or `'celsius'`)
  * @param highlight - Unused; accepted for API compatibility
- * @returns An object with `text` containing the formatted temperature (e.g., `"68.0°F"` or `"20.0°C"`) or `"—"` when no value is available, and `isNonStandard` indicating whether the temperature differs from the standard temperature for the computed Fahrenheit value
+ * @returns An object with `text` containing the formatted temperature (e.g., `"68.0°F"` or `"20.0°C"`) or `"—"` when no value is available, `isNonStandard` indicating whether the temperature differs from the standard temperature, and `isHigher` indicating whether it's above standard (for color coding)
  */
 export function formatTemperatureWithUnit(
   temperatureF: number | null,
   temperatureC: number | null,
   unit: TemperatureUnit,
   _highlight = false
-): { text: string; isNonStandard: boolean } {
+): { text: string; isNonStandard: boolean; isHigher: boolean } {
   let fahrenheit = Number.isFinite(temperatureF)
     ? (temperatureF as number)
     : null;
@@ -44,12 +48,15 @@ export function formatTemperatureWithUnit(
 
   const isNonStandard =
     fahrenheit !== null ? isNonStandardTemperature(fahrenheit) : false;
+  const isHigher =
+    fahrenheit !== null ? isHigherTemperature(fahrenheit) : false;
 
   if (unit === 'celsius') {
     if (celsius !== null) {
       return {
         text: `${celsius.toFixed(1)}°C`,
         isNonStandard,
+        isHigher,
       };
     }
   } else {
@@ -57,6 +64,7 @@ export function formatTemperatureWithUnit(
       return {
         text: `${fahrenheit.toFixed(1)}°F`,
         isNonStandard,
+        isHigher,
       };
     }
   }
@@ -64,5 +72,6 @@ export function formatTemperatureWithUnit(
   return {
     text: '—',
     isNonStandard: false,
+    isHigher: false,
   };
 }

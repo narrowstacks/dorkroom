@@ -6,8 +6,10 @@ import { useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { DetailPanel } from '../detail-panel';
+import { TemperatureWarning } from '../temperature-warning';
 import { CollapsibleSection } from '../ui/collapsible-section';
 import { Tag } from '../ui/tag';
+import { VolumeMixer } from './volume-mixer';
 
 /**
  * Props for the RecipeDetailPanel component.
@@ -87,9 +89,12 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
   const { unit } = useTemperature();
   const [isFilmExpanded, setIsFilmExpanded] = useState(false);
   const [isDeveloperExpanded, setIsDeveloperExpanded] = useState(false);
+  const [isVolumeMixerExpanded, setIsVolumeMixerExpanded] = useState(true);
   // State for expanded modal view collapsible sections
   const [isExpandedFilmOpen, setIsExpandedFilmOpen] = useState(false);
   const [isExpandedDeveloperOpen, setIsExpandedDeveloperOpen] = useState(false);
+  const [isExpandedVolumeMixerOpen, setIsExpandedVolumeMixerOpen] =
+    useState(true);
 
   if (!view) {
     return null;
@@ -160,6 +165,12 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
           </button>
         )}
       </div>
+
+      {/* Non-standard temperature warning */}
+      <TemperatureWarning
+        temperatureF={combination.temperatureF}
+        temperatureC={combination.temperatureC}
+      />
 
       {/* Main details box */}
       <div className="space-y-3 rounded-xl border border-secondary bg-border-muted p-4">
@@ -253,6 +264,16 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
         </div>
       )}
 
+      {/* Volume Mixer section */}
+      <CollapsibleSection
+        title="Volume Mixer"
+        subtitle={`Calculate for ${dilutionLabel}`}
+        isExpanded={isVolumeMixerExpanded}
+        onToggle={() => setIsVolumeMixerExpanded(!isVolumeMixerExpanded)}
+      >
+        <VolumeMixer dilutionString={dilutionLabel} />
+      </CollapsibleSection>
+
       {/* Film section */}
       <CollapsibleSection
         title="Film"
@@ -316,6 +337,12 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
             {developer?.name ?? 'Developer'}
           </p>
         </div>
+
+        {/* Non-standard temperature warning */}
+        <TemperatureWarning
+          temperatureF={combination.temperatureF}
+          temperatureC={combination.temperatureC}
+        />
 
         {/* Primary info: Time and Temperature - prominent display */}
         <div className="grid gap-4 sm:grid-cols-2">
@@ -406,6 +433,18 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
 
       {/* Right column: Film and Developer info (collapsible, collapsed by default) */}
       <div className="space-y-6">
+        {/* Volume Mixer - collapsible */}
+        <CollapsibleSection
+          title="Volume Mixer"
+          subtitle={`Calculate for ${dilutionLabel}`}
+          isExpanded={isExpandedVolumeMixerOpen}
+          onToggle={() =>
+            setIsExpandedVolumeMixerOpen(!isExpandedVolumeMixerOpen)
+          }
+        >
+          <VolumeMixer dilutionString={dilutionLabel} />
+        </CollapsibleSection>
+
         {/* Film info - collapsible */}
         <CollapsibleSection
           title="Film"

@@ -1,7 +1,15 @@
 import type { Dilution } from '@dorkroom/api';
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { Row, Table } from '@tanstack/react-table';
-import { Beaker, Edit2, ExternalLink, Star, Trash2 } from 'lucide-react';
+import {
+  Beaker,
+  Edit2,
+  ExternalLink,
+  Flame,
+  Snowflake,
+  Star,
+  Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { cn } from '../../lib/cn';
@@ -332,18 +340,27 @@ export function DevelopmentResultsCards({
                     combination.temperatureC,
                     unit
                   );
+                  const getTempColor = () => {
+                    if (!temp.isNonStandard) return 'var(--color-text-primary)';
+                    return temp.isHigher
+                      ? 'var(--color-semantic-warning)'
+                      : 'var(--color-semantic-info, #3b82f6)';
+                  };
+                  const TempIcon = temp.isHigher ? Flame : Snowflake;
                   return (
                     <div
                       className={cn(
-                        'text-sm',
+                        'text-sm inline-flex items-center gap-1',
                         temp.isNonStandard && 'font-medium'
                       )}
-                      style={{
-                        color: temp.isNonStandard
-                          ? 'var(--color-semantic-warning)'
-                          : 'var(--color-text-primary)',
-                      }}
+                      style={{ color: getTempColor() }}
                     >
+                      {temp.isNonStandard && (
+                        <TempIcon
+                          className="h-3.5 w-3.5 shrink-0"
+                          aria-hidden="true"
+                        />
+                      )}
                       {temp.text}
                     </div>
                   );

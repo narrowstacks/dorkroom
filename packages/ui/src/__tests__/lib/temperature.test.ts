@@ -31,6 +31,7 @@ describe('temperature utilities', () => {
         expect(result).toEqual({
           text: '75.5°F',
           isNonStandard: true,
+          isHigher: true,
         });
       });
 
@@ -39,6 +40,7 @@ describe('temperature utilities', () => {
         expect(result).toEqual({
           text: '68.0°F',
           isNonStandard: false,
+          isHigher: false,
         });
       });
 
@@ -47,6 +49,7 @@ describe('temperature utilities', () => {
         expect(result).toEqual({
           text: '77.0°F',
           isNonStandard: true,
+          isHigher: true,
         });
       });
     });
@@ -57,6 +60,7 @@ describe('temperature utilities', () => {
         expect(result).toEqual({
           text: '25.5°C',
           isNonStandard: true,
+          isHigher: true,
         });
       });
 
@@ -65,6 +69,7 @@ describe('temperature utilities', () => {
         expect(result).toEqual({
           text: '20.0°C',
           isNonStandard: false,
+          isHigher: false,
         });
       });
 
@@ -73,6 +78,7 @@ describe('temperature utilities', () => {
         expect(result).toEqual({
           text: '25.0°C',
           isNonStandard: true,
+          isHigher: true,
         });
       });
     });
@@ -83,6 +89,7 @@ describe('temperature utilities', () => {
         expect(result).toEqual({
           text: '—',
           isNonStandard: false,
+          isHigher: false,
         });
       });
 
@@ -91,6 +98,7 @@ describe('temperature utilities', () => {
         expect(result).toEqual({
           text: '—',
           isNonStandard: false,
+          isHigher: false,
         });
       });
 
@@ -99,6 +107,7 @@ describe('temperature utilities', () => {
         expect(result).toEqual({
           text: '—',
           isNonStandard: false,
+          isHigher: false,
         });
       });
 
@@ -107,6 +116,16 @@ describe('temperature utilities', () => {
         expect(result).toEqual({
           text: '23.9°C',
           isNonStandard: true, // Because 75°F is non-standard
+          isHigher: true, // 75°F > 68°F
+        });
+      });
+
+      it('correctly identifies lower temperatures', () => {
+        const result = formatTemperatureWithUnit(60, null, 'fahrenheit');
+        expect(result).toEqual({
+          text: '60.0°F',
+          isNonStandard: true,
+          isHigher: false, // 60°F < 68°F
         });
       });
     });

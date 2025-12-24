@@ -1,6 +1,14 @@
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
-import { Beaker, Edit2, ExternalLink, Star, Trash2 } from 'lucide-react';
+import {
+  Beaker,
+  Edit2,
+  ExternalLink,
+  Flame,
+  Snowflake,
+  Star,
+  Trash2,
+} from 'lucide-react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
@@ -48,6 +56,7 @@ const formatDilution = (row: DevelopmentCombinationView): string => {
 
 /**
  * Temperature cell renderer component - uses hook to get current temperature unit
+ * Color coding: yellow (warning) + AlertTriangle for higher temps, blue (info) + Snowflake for lower temps
  */
 function TemperatureCellRenderer({
   cellContext,
@@ -58,15 +67,26 @@ function TemperatureCellRenderer({
   const { temperatureF, temperatureC } = cellContext.row.original.combination;
   const temp = formatTemperatureWithUnit(temperatureF, temperatureC, unit);
 
+  const getTempColor = () => {
+    if (!temp.isNonStandard) return 'var(--color-text-primary)';
+    return temp.isHigher
+      ? 'var(--color-semantic-warning)'
+      : 'var(--color-semantic-info, #3b82f6)';
+  };
+
+  const TempIcon = temp.isHigher ? Flame : Snowflake;
+
   return (
     <span
-      className={cn(temp.isNonStandard && 'font-medium')}
-      style={{
-        color: temp.isNonStandard
-          ? 'var(--color-semantic-warning)'
-          : 'var(--color-text-primary)',
-      }}
+      className={cn(
+        'inline-flex items-center gap-1',
+        temp.isNonStandard && 'font-medium'
+      )}
+      style={{ color: getTempColor() }}
     >
+      {temp.isNonStandard && (
+        <TempIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      )}
       {temp.text}
     </span>
   );
