@@ -5,6 +5,7 @@
 echo "🔍 Checking if build should be skipped..."
 echo "📌 Current commit: $VERCEL_GIT_COMMIT_SHA"
 echo "📌 Previous commit: $VERCEL_GIT_PREVIOUS_SHA"
+echo "📌 Repo: $VERCEL_GIT_REPO_OWNER/$VERCEL_GIT_REPO_SLUG"
 
 # Check if we have a previous commit to compare against
 if [ -z "$VERCEL_GIT_PREVIOUS_SHA" ]; then
@@ -13,18 +14,16 @@ if [ -z "$VERCEL_GIT_PREVIOUS_SHA" ]; then
   exit $?
 fi
 
-# Unshallow the repo to get full history for diff
-echo "📥 Fetching git history..."
-git fetch --unshallow 2>/dev/null || git fetch origin main 2>/dev/null || true
+# Use GitHub API to get changed files (works without git history)
+GITHUB_API="https://api.github.com/repos/$VERCEL_GIT_REPO_OWNER/$VERCEL_GIT_REPO_SLUG/compare/$VERCEL_GIT_PREVIOUS_SHA...$VERCEL_GIT_COMMIT_SHA"
+echo "📡 Fetching diff from GitHub API..."
 
-# Get changed files between previous and current commit
-CHANGED_FILES=$(git diff --name-only "$VERCEL_GIT_PREVIOUS_SHA" "$VERCEL_GIT_COMMIT_SHA" 2>&1)
-GIT_EXIT_CODE=$?
+CHANGED_FILES=$(curl -s "$GITHUB_API" | grep '"filename":' | sed 's/.*"filename": "\([^"]*\)".*/\1/')
 
-echo "📁 Changed files (exit code: $GIT_EXIT_CODE):"
+echo "📁 Changed files:"
 echo "$CHANGED_FILES"
 
-if [ $GIT_EXIT_CODE -ne 0 ] || [ -z "$CHANGED_FILES" ]; then
+if [ -z "$CHANGED_FILES" ]; then
   echo "⚠️ Could not determine changed files, falling back to turbo-ignore"
   npx turbo-ignore
   exit $?
