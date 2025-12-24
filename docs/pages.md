@@ -14,6 +14,7 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 | `/resize` | Resize Calculator | Implemented |
 | `/reciprocity` | Reciprocity Calculator | Implemented |
 | `/development` | Film Development Recipes | Implemented |
+| `/films` | Film Database | Implemented |
 | `/settings` | Settings | Implemented |
 | `/exposure` | Camera Exposure | Placeholder |
 | `/infobase` | Infobase | Placeholder |

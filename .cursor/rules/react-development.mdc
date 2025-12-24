@@ -3,38 +3,20 @@ globs: *.tsx,*.jsx
 description: React component development standards and patterns
 ---
 
-# React Development Standards
+# React Development
 
-## Framework Configuration
+React 19 with TanStack Router v1 (file-based routing). Use Context7 for TanStack library patterns.
 
-- React 19.0.0 with TanStack Router v1 (file-based routing)
-- TanStack Query v5 for server state management
-- TanStack Form v1 for form state management
-- TanStack Table v8 for data tables
-- Vite 6 build system with React plugin
-- TypeScript with JSX support
-- Entry point: [main.tsx](mdc:apps/dorkroom/src/main.tsx)
+## File-Based Routing
 
-## TanStack Router File-Based Routing
-
-Routes are defined in `apps/dorkroom/src/routes/`:
+Routes in `apps/dorkroom/src/routes/`:
 
 ```typescript
-// ✅ Route file structure
-// routes/__root.tsx - Root layout
-// routes/index.tsx - Home page (/)
-// routes/border-calculator.tsx - /border-calculator
-// routes/recipes/index.tsx - /recipes
-// routes/recipes/$recipeId.tsx - /recipes/:recipeId
-
-// ✅ Route component with loader
+// routes/border.tsx
 import { createFileRoute } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/border-calculator')({
+export const Route = createFileRoute('/border')({
   component: BorderCalculatorPage,
-  loader: () => {
-    // Optional: prefetch data
-  },
 });
 
 function BorderCalculatorPage() {
@@ -42,129 +24,61 @@ function BorderCalculatorPage() {
 }
 ```
 
-## Component Architecture
+## Component Patterns
 
-### Component Types
+### Props Interface Naming
 
 ```typescript
-// ✅ Use FC type for functional components
-import type { FC, ReactNode } from 'react';
-
 interface CalculatorCardProps {
   title: string;
   children: ReactNode;
   onReset?: () => void;
 }
 
-export const CalculatorCard: FC<CalculatorCardProps> = ({
-  title,
-  children,
-  onReset,
-}) => {
-  return (
-    <div className="calculator-card">
-      <h2>{title}</h2>
-      {children}
-      {onReset && <button onClick={onReset}>Reset</button>}
-    </div>
-  );
+export const CalculatorCard: FC<CalculatorCardProps> = ({ title, children, onReset }) => {
+  // ...
 };
 ```
 
-### Props Interface Conventions
+### Component Structure
 
 ```typescript
-// ✅ Name props interfaces with component name + Props suffix
-interface BorderCalculatorProps {
-  initialValues?: BorderCalculationOptions;
-  onCalculationComplete?: (result: BorderResult) => void;
-  disabled?: boolean;
-}
-
-// ✅ Use optional props with sensible defaults
-interface ToggleSwitchProps {
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  label?: string;
-  disabled?: boolean;
-  size?: 'sm' | 'md' | 'lg';
-}
-
-export const ToggleSwitch: FC<ToggleSwitchProps> = ({
-  checked,
-  onChange,
-  label,
-  disabled = false,
-  size = 'md',
-}) => {
-  // Implementation
-};
-```
-
-### Component File Structure
-
-```typescript
-// ✅ Standard component file structure
 import { type FC, useState, useEffect } from 'react';
-import type { ComponentProps } from './types';
 import { cn } from '@dorkroom/ui';
 import { useCalculation } from '@dorkroom/logic';
 
-// Component interface
-interface MyComponentProps extends ComponentProps {
-  // Component-specific props
+interface MyComponentProps {
+  // props
 }
 
-// Component implementation
 export const MyComponent: FC<MyComponentProps> = (props) => {
-  // Hooks at the top
+  // 1. Hooks
   const [state, setState] = useState();
   const calculation = useCalculation();
 
-  // Effects after state
-  useEffect(() => {
-    // Effect logic
-  }, []);
+  // 2. Effects
+  useEffect(() => {}, []);
 
-  // Event handlers
-  const handleClick = () => {
-    // Handler logic
-  };
+  // 3. Handlers
+  const handleClick = () => {};
 
-  // Early returns for loading/error states
-  if (calculation.loading) {
-    return <div>Loading...</div>;
-  }
+  // 4. Early returns
+  if (calculation.loading) return <div>Loading...</div>;
 
-  // Main render
-  return (
-    <div className={cn('component-class', props.className)}>
-      {/* JSX content */}
-    </div>
-  );
+  // 5. Render
+  return <div className={cn('base-class', props.className)}>{/* content */}</div>;
 };
-
-// Default export at the end
-export default MyComponent;
 ```
 
-## TanStack Query Patterns
-
-### Query Usage
+## TanStack Query
 
 ```typescript
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-// ✅ Query with proper key structure
-const { data, isLoading, error } = useQuery({
+const { data, isLoading } = useQuery({
   queryKey: ['recipes', recipeId],
   queryFn: () => fetchRecipe(recipeId),
-  staleTime: 5 * 60 * 1000, // 5 minutes
 });
 
-// ✅ Mutation with optimistic update
-const queryClient = useQueryClient();
-
+// Mutations with optimistic updates (see packages/logic/CLAUDE.md)
 const mutation = useMutation({
   mutationFn: updateRecipe,
   onMutate: async (newRecipe) => {
@@ -182,251 +96,59 @@ const mutation = useMutation({
 });
 ```
 
-## TanStack Form Patterns
-
-### Form with Zod Validation
+## TanStack Form + Zod
 
 ```typescript
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
-import { z } from 'zod';
 
-const borderSchema = z.object({
-  paperWidth: z.number().positive('Width must be positive'),
-  paperHeight: z.number().positive('Height must be positive'),
-  imageWidth: z.number().positive('Width must be positive'),
-  imageHeight: z.number().positive('Height must be positive'),
-});
-
-// ✅ Form with Zod validation
 const form = useForm({
-  defaultValues: {
-    paperWidth: 210,
-    paperHeight: 297,
-    imageWidth: 180,
-    imageHeight: 240,
-  },
+  defaultValues: { paperWidth: 210, paperHeight: 297 },
   validatorAdapter: zodValidator(),
-  validators: {
-    onChange: borderSchema,
-  },
-  onSubmit: async ({ value }) => {
-    await calculateBorder(value);
-  },
+  validators: { onChange: borderSchema },
+  onSubmit: async ({ value }) => await calculate(value),
 });
 
-// ✅ Field component usage
+// Field usage
 <form.Field
   name="paperWidth"
   children={(field) => (
     <NumberInput
       value={field.state.value}
       onChange={(e) => field.handleChange(Number(e.target.value))}
-      onBlur={field.handleBlur}
       error={field.state.meta.errors?.[0]}
     />
   )}
-/>;
+/>
 ```
 
-## Hooks and State Management
+## Styling with Tailwind
 
-### Custom Hooks Pattern
-
-```typescript
-// ✅ Custom hooks should start with 'use' and return consistent interface
-interface UseBorderCalculatorReturn {
-  calculations: BorderCalculation[];
-  isCalculating: boolean;
-  error: string | null;
-  calculate: (options: BorderCalculationOptions) => Promise<void>;
-  reset: () => void;
-}
-
-export const useBorderCalculator = (
-  initialOptions?: BorderCalculationOptions
-): UseBorderCalculatorReturn => {
-  const [calculations, setCalculations] = useState<BorderCalculation[]>([]);
-  const [isCalculating, setIsCalculating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Implementation
-
-  return {
-    calculations,
-    isCalculating,
-    error,
-    calculate,
-    reset,
-  };
-};
-```
-
-### State Updates
-
-```typescript
-// ✅ Use functional updates for state that depends on previous state
-const [count, setCount] = useState(0);
-const increment = () => setCount((prev) => prev + 1);
-
-// ✅ Use object spread for partial state updates
-const [formState, setFormState] = useState(initialFormState);
-const updateField = (field: string, value: unknown) => {
-  setFormState((prev) => ({ ...prev, [field]: value }));
-};
-
-// ✅ Use useCallback for event handlers passed as props
-const handleSubmit = useCallback(
-  (data: FormData) => {
-    onSubmit?.(data);
-  },
-  [onSubmit]
-);
-```
-
-## Styling with Tailwind CSS
-
-### Class Name Organization
+Use `cn()` from `@dorkroom/ui`:
 
 ```typescript
 import { cn } from '@dorkroom/ui';
 
-// ✅ Use cn utility for conditional classes
 const buttonClasses = cn(
-  // Base classes
-  'px-4 py-2 rounded-lg font-medium transition-colors',
-  // Conditional classes
-  {
-    'bg-blue-600 text-white hover:bg-blue-700': variant === 'primary',
-    'bg-gray-200 text-gray-900 hover:bg-gray-300': variant === 'secondary',
-    'opacity-50 cursor-not-allowed': disabled,
-  },
-  // Additional classes from props
+  'px-4 py-2 rounded-lg font-medium',
+  { 'bg-blue-600 text-white': variant === 'primary' },
   className
 );
-
-// ✅ Group related classes logically
-const cardClasses = cn(
-  // Layout
-  'flex flex-col gap-4 p-6',
-  // Appearance
-  'bg-white rounded-xl shadow-sm border border-gray-200',
-  // Responsive
-  'sm:p-8 md:gap-6',
-  // Conditional
-  { 'shadow-lg': elevated }
-);
 ```
 
-### Responsive Design
+## Accessibility
 
-```typescript
-// ✅ Use Tailwind responsive prefixes consistently
-<div className={cn(
-  'grid gap-4',
-  'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-  'p-4 sm:p-6 lg:p-8'
-)}>
+- Use semantic HTML (`<button>`, `<label>`, `<input>`)
+- Include ARIA labels where needed
+- Handle keyboard navigation
+- Use `:focus-visible` for focus states
+
+## Icons
+
+Use Lucide React with className sizing:
+
+```tsx
+import { Camera } from 'lucide-react';
+
+<Camera className="h-5 w-5" />
 ```
-
-## Event Handling
-
-### Form Handling
-
-```typescript
-// ✅ Use proper form event types
-import type { FormEvent, ChangeEvent } from 'react';
-
-const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-  event.preventDefault();
-  const formData = new FormData(event.currentTarget);
-  // Process form data
-};
-
-const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-  const { name, value } = event.target;
-  updateField(name, value);
-};
-```
-
-### Button and Click Handling
-
-```typescript
-// ✅ Use proper mouse event types
-import type { MouseEvent } from 'react';
-
-const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-  event.stopPropagation(); // If needed
-  // Handle click
-};
-```
-
-## Accessibility Standards
-
-### ARIA Attributes
-
-```typescript
-// ✅ Include proper ARIA attributes
-<button
-  type="button"
-  aria-label="Calculate border dimensions"
-  aria-pressed={isActive}
-  disabled={isCalculating}
-  onClick={handleCalculate}
->
-  {isCalculating ? 'Calculating...' : 'Calculate'}
-</button>
-
-// ✅ Use semantic HTML elements
-<main role="main">
-  <section aria-labelledby="calculator-heading">
-    <h1 id="calculator-heading">Border Calculator</h1>
-    {/* Content */}
-  </section>
-</main>
-```
-
-### Keyboard Navigation
-
-```typescript
-// ✅ Handle keyboard events for interactive elements
-const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault();
-    handleActivate();
-  }
-};
-
-<div
-  role="button"
-  tabIndex={0}
-  onKeyDown={handleKeyDown}
-  onClick={handleActivate}
->
-  Interactive content
-</div>;
-```
-
-## Performance Optimization
-
-### Memoization
-
-```typescript
-// ✅ Use React.memo for components with expensive renders
-export const ExpensiveCalculationDisplay = memo<CalculationDisplayProps>(
-  ({ calculations, options }) => {
-    const processedData = useMemo(() => {
-      return calculations.map((calc) => processCalculation(calc, options));
-    }, [calculations, options]);
-
-    return <div>{/* Render processed data */}</div>;
-  }
-);
-
-// ✅ Use useMemo for expensive computations
-const expensiveValue = useMemo(() => {
-  return performExpensiveCalculation(inputData);
-}, [inputData]);
-```
-
-This ensures consistent, accessible, and performant React development across the Dorkroom application.

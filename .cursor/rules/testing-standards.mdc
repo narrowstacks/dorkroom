@@ -5,188 +5,66 @@ description: Testing standards using Vitest and React Testing Library
 
 # Testing Standards
 
-## Testing Framework Configuration
+Vitest 3 + React Testing Library. Tests co-located with source using `.test.ts` or `.spec.ts` extensions.
 
-- **Vitest 3** - Modern test runner with native TypeScript support
-- **React Testing Library 16.1.0** - Component testing utilities
-- **jsdom** - DOM environment for tests
-- **@vitest/coverage-v8** - Coverage reporting
-- **@vitest/ui** - Test UI for debugging
-
-## Test Commands
+## Commands
 
 ```bash
-bunx nx test              # Run Vitest tests
-bunx nx test --ui         # Run tests with UI
-bunx nx test --coverage   # Run with coverage
+bun run test                    # Full verification: lint, test, build, typecheck
+bun run test:unit "pattern"     # Run specific tests
 ```
 
-## Test File Organization
-
-### File Naming Conventions
+## Test Structure
 
 ```typescript
-// ✅ Component tests: kebab-case with .test.tsx
-border-calculator.test.tsx;
-dimension-input.test.tsx;
-calculator-card.test.tsx;
-
-// ✅ Hook tests: kebab-case with .test.ts
-use-border-calculator.test.ts;
-use-calculation-state.test.ts;
-use-preset-sharing.test.ts;
-
-// ✅ Utility tests: kebab-case with .test.ts
-border-calculations.test.ts;
-input-validation.test.ts;
-preset-sharing.test.ts;
-
-// ✅ Integration tests: feature.integration.test.ts
-border-calculator.integration.test.ts;
-```
-
-### Test File Structure
-
-```typescript
-// ✅ Standard test file structure
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { BorderCalculationOptions } from '@dorkroom/logic';
-import { BorderCalculator } from './border-calculator';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock external dependencies at the top
 vi.mock('@dorkroom/logic', () => ({
   useBorderCalculator: vi.fn(),
-  calculateBorderSize: vi.fn(),
 }));
 
 describe('BorderCalculator', () => {
-  // Setup and teardown
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+  beforeEach(() => vi.clearAllMocks());
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  // Test cases grouped by functionality
   describe('rendering', () => {
     it('renders calculator inputs', () => {
       render(<BorderCalculator />);
       expect(screen.getByLabelText(/paper width/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/paper height/i)).toBeInTheDocument();
-    });
-  });
-
-  describe('calculations', () => {
-    it('calculates border size correctly', async () => {
-      const mockCalculate = vi.fn();
-      vi.mocked(useBorderCalculator).mockReturnValue({
-        calculate: mockCalculate,
-        result: null,
-        loading: false,
-        error: null,
-      });
-
-      render(<BorderCalculator />);
-
-      fireEvent.click(screen.getByRole('button', { name: /calculate/i }));
-
-      await waitFor(() => {
-        expect(mockCalculate).toHaveBeenCalledWith({
-          paperWidth: expect.any(Number),
-          paperHeight: expect.any(Number),
-        });
-      });
-    });
-  });
-
-  describe('error handling', () => {
-    it('displays error message when calculation fails', () => {
-      vi.mocked(useBorderCalculator).mockReturnValue({
-        calculate: vi.fn(),
-        result: null,
-        loading: false,
-        error: 'Invalid dimensions',
-      });
-
-      render(<BorderCalculator />);
-
-      expect(screen.getByText(/invalid dimensions/i)).toBeInTheDocument();
     });
   });
 });
 ```
 
-## Component Testing Patterns
+## React Testing Library
 
-### React Testing Library Best Practices
+### Query by Role and Label
 
 ```typescript
-// ✅ Query by accessible names and roles
-const calculateButton = screen.getByRole('button', { name: /calculate/i });
-const widthInput = screen.getByLabelText(/paper width/i);
-const errorMessage = screen.getByRole('alert');
+const button = screen.getByRole('button', { name: /calculate/i });
+const input = screen.getByLabelText(/paper width/i);
+const alert = screen.getByRole('alert');
+```
 
-// ✅ Use user-event for more realistic interactions
+### User Events
+
+```typescript
 import { userEvent } from '@testing-library/user-event';
 
-it('handles user input correctly', async () => {
+it('handles user input', async () => {
   const user = userEvent.setup();
   render(<DimensionInput />);
 
-  const input = screen.getByLabelText(/width/i);
-  await user.type(input, '210');
-  await user.tab(); // Trigger blur event
-
-  expect(input).toHaveValue('210');
-});
-
-// ✅ Test component behavior, not implementation details
-it('shows loading state during calculation', async () => {
-  vi.mocked(useBorderCalculator).mockReturnValue({
-    calculate: vi.fn(),
-    result: null,
-    loading: true,
-    error: null,
-  });
-
-  render(<BorderCalculator />);
-
-  expect(screen.getByText(/calculating/i)).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /calculate/i })).toBeDisabled();
+  await user.type(screen.getByLabelText(/width/i), '210');
+  expect(screen.getByLabelText(/width/i)).toHaveValue('210');
 });
 ```
 
-### Testing with TanStack Router
+## TanStack Query Tests
+
+Wrap with QueryClientProvider using `retry: false`:
 
 ```typescript
-import { createRouter, createMemoryHistory } from '@tanstack/react-router';
-import { RouterProvider } from '@tanstack/react-router';
-import { routeTree } from '../routeTree.gen';
-
-// ✅ Create test router wrapper
-const createTestRouter = (initialPath: string = '/') => {
-  const history = createMemoryHistory({ initialEntries: [initialPath] });
-  return createRouter({ routeTree, history });
-};
-
-// ✅ Render with router context
-it('navigates to calculator page', async () => {
-  const router = createTestRouter('/border-calculator');
-  render(<RouterProvider router={router} />);
-
-  expect(screen.getByText(/border calculator/i)).toBeInTheDocument();
-});
-```
-
-### Testing with TanStack Query
-
-```typescript
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-// ✅ Create test query client wrapper
 const createTestQueryClient = () =>
   new QueryClient({
     defaultOptions: {
@@ -201,282 +79,56 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
   </QueryClientProvider>
 );
 
-// ✅ Test query hooks
-it('fetches recipe data', async () => {
+it('fetches data', async () => {
   const { result } = renderHook(() => useRecipe('123'), { wrapper });
-
-  await waitFor(() => {
-    expect(result.current.isSuccess).toBe(true);
-  });
-
-  expect(result.current.data).toEqual(expectedRecipe);
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
 });
 ```
 
-### Custom Render Utilities
-
-```typescript
-// ✅ Create custom render function for common providers
-import {
-  render as rtlRender,
-  type RenderOptions,
-} from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { ReactElement } from 'react';
-
-interface CustomRenderOptions extends RenderOptions {
-  queryClient?: QueryClient;
-}
-
-const render = (
-  ui: ReactElement,
-  { queryClient = createTestQueryClient(), ...options }: CustomRenderOptions = {}
-) => {
-  const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-
-  return rtlRender(ui, { wrapper: Wrapper, ...options });
-};
-```
-
-## Hook Testing
-
-### Testing Custom Hooks
+## Hook Tests
 
 ```typescript
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import { useBorderCalculator } from './use-border-calculator';
 
 describe('useBorderCalculator', () => {
-  it('initializes with default state', () => {
-    const { result } = renderHook(() => useBorderCalculator());
-
-    expect(result.current.result).toBeNull();
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBeNull();
-  });
-
   it('calculates border dimensions', async () => {
     const { result } = renderHook(() => useBorderCalculator());
 
     await act(async () => {
-      await result.current.calculate({
-        paperWidth: 210,
-        paperHeight: 297,
-        imageWidth: 180,
-        imageHeight: 240,
-      });
+      await result.current.calculate({ paperWidth: 210, paperHeight: 297 });
     });
 
     expect(result.current.result).toEqual({
       borderTop: expect.any(Number),
       borderBottom: expect.any(Number),
-      borderLeft: expect.any(Number),
-      borderRight: expect.any(Number),
-    });
-  });
-
-  it('handles calculation errors', async () => {
-    const { result } = renderHook(() => useBorderCalculator());
-
-    await act(async () => {
-      await result.current.calculate({
-        paperWidth: -1, // Invalid input
-        paperHeight: 297,
-        imageWidth: 180,
-        imageHeight: 240,
-      });
-    });
-
-    expect(result.current.error).toBeTruthy();
-    expect(result.current.result).toBeNull();
-  });
-});
-```
-
-## Utility Function Testing
-
-### Pure Function Tests
-
-```typescript
-import { describe, it, expect } from 'vitest';
-import { calculateBorderSize, validateDimensions } from './border-calculations';
-
-describe('borderCalculations', () => {
-  describe('calculateBorderSize', () => {
-    it('calculates correct border size for landscape image', () => {
-      const result = calculateBorderSize({
-        paperWidth: 210,
-        paperHeight: 297,
-        imageWidth: 180,
-        imageHeight: 120,
-      });
-
-      expect(result).toEqual({
-        borderTop: expect.closeTo(88.5, 1),
-        borderBottom: expect.closeTo(88.5, 1),
-        borderLeft: expect.closeTo(15, 1),
-        borderRight: expect.closeTo(15, 1),
-      });
-    });
-
-    it('handles edge case of zero dimensions', () => {
-      expect(() => {
-        calculateBorderSize({
-          paperWidth: 0,
-          paperHeight: 297,
-          imageWidth: 180,
-          imageHeight: 120,
-        });
-      }).toThrow('Invalid paper dimensions');
-    });
-  });
-
-  describe('validateDimensions', () => {
-    it('returns true for valid dimensions', () => {
-      expect(validateDimensions({ width: 210, height: 297 })).toBe(true);
-    });
-
-    it('returns false for negative dimensions', () => {
-      expect(validateDimensions({ width: -1, height: 297 })).toBe(false);
-    });
-
-    it('returns false for zero dimensions', () => {
-      expect(validateDimensions({ width: 0, height: 297 })).toBe(false);
     });
   });
 });
 ```
 
-## Mocking Strategies
-
-### Module Mocking
+## Mocking
 
 ```typescript
-// ✅ Mock external dependencies
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => vi.fn(),
-  useLocation: () => ({ pathname: '/test' }),
-  Link: ({ children }: { children: React.ReactNode }) => children,
+// Module mock
+vi.mock('@dorkroom/logic', () => ({
+  useBorderCalculator: vi.fn(),
 }));
 
-// ✅ Partial module mocking
+// Partial mock
 vi.mock('@dorkroom/logic', async () => {
   const actual = await vi.importActual('@dorkroom/logic');
-  return {
-    ...actual,
-    useBorderCalculator: vi.fn(),
-  };
+  return { ...actual, useBorderCalculator: vi.fn() };
 });
 
-// ✅ Mock with factory function
-vi.mock('./expensive-calculation', () => ({
-  performCalculation: vi.fn(() => Promise.resolve({ result: 42 })),
-}));
+// Mock implementation
+const mockCalculate = vi.fn()
+  .mockResolvedValueOnce({ result: 'first' })
+  .mockRejectedValue(new Error('failed'));
 ```
 
-### Spy and Mock Functions
+## Best Practices
 
-```typescript
-// ✅ Spy on console methods
-const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-afterEach(() => {
-  consoleSpy.mockRestore();
-});
-
-// ✅ Mock implementation with different return values
-const mockCalculate = vi
-  .fn()
-  .mockResolvedValueOnce({ result: 'first call' })
-  .mockResolvedValueOnce({ result: 'second call' })
-  .mockRejectedValue(new Error('third call fails'));
-```
-
-## Integration Testing
-
-### Feature Integration Tests
-
-```typescript
-// ✅ Test complete user workflows
-import { render, screen, userEvent } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { BorderCalculatorPage } from './border-calculator-page';
-
-describe('BorderCalculatorPage Integration', () => {
-  it('completes full calculation workflow', async () => {
-    const user = userEvent.setup();
-    render(<BorderCalculatorPage />);
-
-    // Enter paper dimensions
-    await user.type(screen.getByLabelText(/paper width/i), '210');
-    await user.type(screen.getByLabelText(/paper height/i), '297');
-
-    // Enter image dimensions
-    await user.type(screen.getByLabelText(/image width/i), '180');
-    await user.type(screen.getByLabelText(/image height/i), '240');
-
-    // Trigger calculation
-    await user.click(screen.getByRole('button', { name: /calculate/i }));
-
-    // Verify results are displayed
-    expect(await screen.findByText(/border dimensions/i)).toBeInTheDocument();
-    expect(screen.getByText(/top.*\d+/i)).toBeInTheDocument();
-    expect(screen.getByText(/bottom.*\d+/i)).toBeInTheDocument();
-  });
-});
-```
-
-## Test Coverage and Quality
-
-### Coverage Targets
-
-```typescript
-// ✅ Aim for high coverage on critical paths
-// - Business logic functions: 95%+
-// - React components: 85%+
-// - Hooks: 90%+
-// - Integration tests: Cover main user workflows
-
-// ✅ Use coverage reports to identify gaps
-// Run: bunx nx test --coverage
-```
-
-### Test Quality Guidelines
-
-```typescript
-// ✅ Write descriptive test names
-it('displays validation error when paper width exceeds maximum allowed size', () => {
-  // Test implementation
-});
-
-// ✅ Use arrange-act-assert pattern
-it('calculates border size correctly', () => {
-  // Arrange
-  const options = {
-    paperWidth: 210,
-    paperHeight: 297,
-    imageWidth: 180,
-    imageHeight: 240,
-  };
-
-  // Act
-  const result = calculateBorderSize(options);
-
-  // Assert
-  expect(result.borderTop).toBeCloseTo(28.5, 1);
-});
-
-// ✅ Test one thing at a time
-it('validates paper width', () => {
-  expect(validatePaperWidth(210)).toBe(true);
-});
-
-it('validates paper height', () => {
-  expect(validatePaperHeight(297)).toBe(true);
-});
-```
-
-This testing strategy ensures reliable, maintainable tests that catch regressions and guide development in the Dorkroom application.
+1. **Test behavior, not implementation** - Query by accessible roles
+2. **Arrange-Act-Assert** - Clear test structure
+3. **One assertion per test** when possible
+4. **Descriptive names** - `'displays error when paper width exceeds maximum'`

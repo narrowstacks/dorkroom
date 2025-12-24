@@ -3,119 +3,63 @@ alwaysApply: true
 description: Workspace architecture and project structure guidelines
 ---
 
-# Dorkroom Nx Workspace Architecture
+# Dorkroom Workspace Architecture
 
-This is an Nx 22 monorepo with Bun package management for an analog photography calculator app.
+Turborepo monorepo with Bun package management for an analog photography calculator app.
 
 ## Project Structure
 
 ### Applications
 
-- **`apps/dorkroom/`** - Main React application (private)
-  - Uses Vite 6 bundler, React 19, and TanStack Router v1
-  - Depends on `@dorkroom/logic`, `@dorkroom/ui`, and `@dorkroom/api` packages
-  - Entry point: [main.tsx](mdc:apps/dorkroom/src/main.tsx)
-  - File-based routing in `src/routes/`
+- **`apps/dorkroom/`** - Main React application
+  - Vite 7, React 19, TanStack Router v1 (file-based routing)
+  - Entry point: `src/main.tsx`
+  - Routes: `src/routes/`
 
-### Libraries
+### Packages
 
-- **`packages/logic/`** - Business logic and calculations (public)
-  - Pure TypeScript library with no UI dependencies
-  - Exports: types, constants, utilities, hooks, Zod schemas
-  - TanStack Query/Form/Table patterns
-  - Main export: [index.ts](mdc:packages/logic/src/index.ts)
-- **`packages/ui/`** - Reusable UI components (public)
-  - React components with TypeScript and Tailwind CSS
-  - Depends on `@dorkroom/logic`
-  - Main export: [index.ts](mdc:packages/ui/src/index.ts)
-- **`packages/api/`** - API type definitions and transformations
-  - Raw and transformed type definitions
-  - API client utilities
-  - Main export: [index.ts](mdc:packages/api/src/index.ts)
+- **`@dorkroom/logic`** - Business logic, hooks, schemas, types
+- **`@dorkroom/ui`** - Reusable React components with Tailwind
+- **`@dorkroom/api`** - API client and type transformations
 
-## Dependencies & Tech Stack
+## Tech Stack
 
-### Core Framework
+| Category | Technology |
+|----------|------------|
+| Framework | React 19, Vite 7, TypeScript 5.9 |
+| Routing | TanStack Router v1 (file-based) |
+| State | TanStack Query v5, TanStack Store |
+| Forms | TanStack Form v1 + Zod |
+| Tables | TanStack Table v8 + TanStack Virtual v3 |
+| Styling | Tailwind CSS 4, Lucide icons |
+| Testing | Vitest 3, React Testing Library |
+| Linting | Biome |
 
-- React 19.0.0 with TanStack Router v1 (file-based routing)
-- TypeScript 5.8.2 with strict mode enabled
-- Vite 6 for build tooling
-- Bun for package management
+## Import Paths
 
-### TanStack Ecosystem
+Always use package aliases:
 
-- TanStack Router v1 - File-based routing
-- TanStack Query v5 - Server state management and caching
-- TanStack Form v1 - Form state management with Zod validation
-- TanStack Table v8 - Data tables with sorting/filtering
+```typescript
+import { useBorderCalculator } from '@dorkroom/logic';
+import { CalculatorCard, cn } from '@dorkroom/ui';
+import type { Recipe } from '@dorkroom/api';
+```
 
-### Styling & UI
-
-- Tailwind CSS 4.1.13 with PostCSS
-- Inter font family (`@fontsource-variable/inter`)
-- Lucide React icons
-- Custom utility functions with `clsx` and `tailwind-merge`
-
-### Validation
-
-- Zod v4.1.12 for schema validation
-
-### Testing & Quality
-
-- Vitest 3 with coverage and UI
-- Biome for linting and formatting
-- React Testing Library
-
-## Nx Configuration Highlights
-
-### Plugins Enabled
-
-- `@nx/js/typescript` - TypeScript build and typecheck
-- `@nx/eslint/plugin` - ESLint integration
-- `@nx/vite/plugin` - Vite build system
-
-### Available Targets
-
-- `build` - Production build
-- `dev`/`serve` - Development server
-- `test` - Run tests with Vitest
-- `lint` - Biome linting
-- `typecheck` - TypeScript type checking
-- `preview` - Preview production build
-
-### Import Paths
-
-Use TypeScript path mapping for clean imports:
-
-- `@dorkroom/logic` - Business logic package
-- `@dorkroom/ui` - UI components package
-- `@dorkroom/api` - API types and transformations
-
-## Development Guidelines
-
-1. **Separation of Concerns**: Keep business logic in `logic` package, UI in `ui` package, API types in `api` package
-2. **Barrel Exports**: Use index.ts files to create clean public APIs
-3. **Dependency Direction**: UI can depend on logic, but logic should be UI-agnostic
-4. **Zod Schemas**: Always use Zod schemas for form validation
-5. **TanStack Patterns**: Use optimistic updates for mutations, invalidate queries after mutations
-6. **Testing**: Tests should be co-located with source code using `.spec.ts` or `.test.tsx` extensions
+Never import internal package paths.
 
 ## Essential Commands
 
-### Development
+```bash
+bun run dev          # Start dev server
+bun run build        # Build all packages
+bun run test         # Lint, test, build, typecheck
+bun run format       # Format with Biome
+```
 
-- `bunx nx build dorkroom` - Build production bundle
-- `bunx nx dev dorkroom -- --host=0.0.0.0` - Start development server
-- `bunx nx serve dorkroom` - Alternative dev server
+## Package Documentation
 
-### Code Quality
+Read the `CLAUDE.md` in each package before modifying:
 
-- `bunx nx lint dorkroom` - Run Biome linting
-- `bunx nx typecheck dorkroom` - TypeScript type checking
-- `bun run format` - Format code with Biome
-- `bun run lint:fix` - Lint and auto-fix issues
-
-### Testing
-
-- `bunx nx test` - Run Vitest tests
-- `bunx nx test --ui` - Run tests with UI
+- `packages/logic/CLAUDE.md` - Query/Form/Table patterns, schemas
+- `packages/ui/CLAUDE.md` - Component patterns, accessibility
+- `packages/api/CLAUDE.md` - API types, transformations

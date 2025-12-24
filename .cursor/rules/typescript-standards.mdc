@@ -3,331 +3,107 @@ globs: *.ts,*.tsx
 description: TypeScript coding standards and conventions
 ---
 
-# TypeScript Coding Standards
+# TypeScript Standards
 
-## Configuration Overview
+TypeScript 5.9 with strict mode. Use Context7 for library-specific patterns.
 
-- TypeScript 5.8.2 with strict mode enabled
-- ES2022 target with ESNext modules
-- Bundler module resolution
-- Composite builds with declaration maps
-- See [tsconfig.base.json](mdc:tsconfig.base.json) for base configuration
+## Critical Rules
 
-## Critical Typing Rules
-
-### Never Use `any` Type
+### Never Use `any`
 
 ```typescript
-// ❌ NEVER use any
-const processData = (input: any): any => {};
-const result = data as any;
+// ❌ Never
+const process = (input: any): any => {};
 
 // ✅ Use specific types
-const processData = (input: CalculationInput): CalculationResult => {};
+const process = (input: CalculationInput): CalculationResult => {};
 
-// ✅ Use unknown for truly unknown types
+// ✅ Use unknown for truly unknown
 const parseJSON = (text: string): unknown => JSON.parse(text);
 
-// ✅ Use type guards to narrow unknown
+// ✅ Exception: Generic function signatures
+type ThrottledFn<T extends (...args: any[]) => any> = (...args: Parameters<T>) => ReturnType<T>;
+```
+
+### Type Guards for Narrowing
+
+```typescript
 function isCalculationResult(value: unknown): value is CalculationResult {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'borderTop' in value &&
-    'borderBottom' in value
-  );
-}
-
-// ✅ Exception: Generic function signatures where specific type cannot be known
-// This is acceptable ONLY for variadic function types
-type ThrottledFunction<T extends (...args: any[]) => any> = (
-  ...args: Parameters<T>
-) => ReturnType<T>;
-```
-
-### API Data Typing
-
-```typescript
-// ✅ Create dedicated Raw* types for API responses with both casing formats
-interface RawRecipeData {
-  // camelCase fields
-  filmId?: string;
-  developerId?: string;
-  dilutionRatio?: string;
-  // snake_case fields from API
-  film_id?: string;
-  developer_id?: string;
-  dilution_ratio?: string;
-}
-
-// ✅ Create clean transformed types
-interface Recipe {
-  filmId: string;
-  developerId: string;
-  dilutionRatio: string;
-}
-
-// ✅ Use null or undefined explicitly
-interface ApiResponse {
-  data: Recipe | null;
-  error: string | undefined;
-  loading: boolean;
+  return typeof value === 'object' && value !== null && 'borderTop' in value;
 }
 ```
 
-### Browser API Types
+## API Type Conventions
+
+From `@dorkroom/api`:
+
+- `Raw*` types (snake_case from API) → Transformed types (camelCase)
+- Use explicit `null` for nullable fields, not optional
 
 ```typescript
-// ✅ Create local interfaces for incomplete browser API types
-interface PerformanceWithMemory extends Performance {
-  memory?: {
-    usedJSHeapSize: number;
-    totalJSHeapSize: number;
-    jsHeapSizeLimit: number;
-  };
-}
+// ✅ Correct
+grainStructure: string | null;
 
-const perf = performance as PerformanceWithMemory;
+// ❌ Incorrect
+grainStructure?: string;
 ```
 
-## Code Style Requirements
+## Naming Conventions
 
-### Type Definitions
+| Type | Convention | Example |
+|------|------------|---------|
+| Types, Interfaces | PascalCase | `BorderCalculationOptions` |
+| Variables, Functions | camelCase | `calculateDimensions` |
+| Constants | SCREAMING_SNAKE_CASE | `MAX_BORDER_SIZE` |
+| Booleans | Prefixed | `isValid`, `hasData`, `canSubmit` |
 
-```typescript
-// ✅ Prefer explicit return types for functions
-export function calculateBorderSize(
-  width: number,
-  height: number
-): BorderDimensions {
-  return { width: width * 0.1, height: height * 0.1 };
-}
+## Zod Schemas
 
-// ✅ Use interface for object shapes
-export interface BorderCalculationOptions {
-  readonly paperWidth: number;
-  readonly paperHeight: number;
-  readonly imageWidth: number;
-  readonly imageHeight: number;
-}
-
-// ✅ Use type for unions and computed types
-export type CalculationMode = 'automatic' | 'manual' | 'preset';
-export type BorderPreset = (typeof BORDER_PRESETS)[keyof typeof BORDER_PRESETS];
-
-// ✅ Use discriminated unions instead of generic object types
-type CalculationResult =
-  | { success: true; data: BorderDimensions }
-  | { success: false; error: string };
-```
-
-### Strict Configuration Compliance
+Always export both schema and inferred type:
 
 ```typescript
-// ✅ No implicit any - always provide types
-const processCalculation = (input: CalculationInput): CalculationResult => {
-  // Implementation
-};
-
-// ✅ No unused locals - remove or prefix with underscore
-const useCalculator = (options: Options) => {
-  const _unusedHelper = createHelper(); // Prefixed to indicate intentionally unused
-  return processOptions(options);
-};
-
-// ✅ No implicit returns - handle all code paths
-function validateInput(value: number): boolean {
-  if (value < 0) {
-    return false;
-  }
-  if (value > 100) {
-    return false;
-  }
-  return true; // Explicit return for all paths
-}
-
-// ✅ No fallthrough cases
-switch (calculationMode) {
-  case 'automatic':
-    return performAutoCalculation();
-  case 'manual':
-    return performManualCalculation();
-  case 'preset':
-    return applyPreset();
-  default:
-    throw new Error(`Unknown calculation mode: ${calculationMode}`);
-}
-```
-
-### Type Narrowing
-
-```typescript
-// ✅ Use type guards for runtime validation
-function isValidDimension(value: unknown): value is number {
-  return typeof value === 'number' && value > 0 && isFinite(value);
-}
-
-// ✅ Use typeof checks
-if (typeof input === 'string') {
-  return parseFloat(input);
-}
-
-// ✅ Use instanceof checks
-if (error instanceof ValidationError) {
-  return { field: error.field, message: error.message };
-}
-
-// ✅ Use in operator for property checks
-if ('borderTop' in result) {
-  return formatBorderResult(result);
-}
-```
-
-### Naming Conventions
-
-```typescript
-// ✅ Use PascalCase for types, interfaces, classes
-interface BorderCalculationState {}
-type CalculationResult = {};
-class BorderCalculator {}
-
-// ✅ Use camelCase for variables, functions, methods
-const borderWidth = 10;
-const calculateDimensions = () => {};
-
-// ✅ Use SCREAMING_SNAKE_CASE for constants
-const MAX_BORDER_SIZE = 100;
-const DEFAULT_PAPER_SIZES = {
-  A4: { width: 210, height: 297 },
-} as const;
-
-// ✅ Use descriptive names for boolean variables
-const isCalculationValid = true;
-const hasValidDimensions = checkDimensions();
-const canApplyPreset = validatePreset();
-```
-
-### Error Handling
-
-```typescript
-// ✅ Use custom error types
-class ValidationError extends Error {
-  constructor(
-    public field: string,
-    value: unknown
-  ) {
-    super(`Invalid value for ${field}: ${value}`);
-    this.name = 'ValidationError';
-  }
-}
-
-// ✅ Prefer Result types for operations that can fail
-type CalculationResult<T> =
-  | { success: true; data: T }
-  | { success: false; error: string };
-```
-
-### Generic Constraints
-
-```typescript
-// ✅ Use meaningful generic constraints
-interface Calculator<T extends CalculationInput> {
-  calculate(input: T): CalculationResult;
-}
-
-// ✅ Provide default generic parameters when appropriate
-interface Hook<T = unknown, E = Error> {
-  data: T | null;
-  error: E | null;
-  loading: boolean;
-}
-```
-
-### Utility Types Usage
-
-```typescript
-// ✅ Use built-in utility types effectively
-type PartialCalculationOptions = Partial<BorderCalculationOptions>;
-type RequiredPresetFields = Required<Pick<BorderPreset, 'name' | 'dimensions'>>;
-type CalculationKeys = keyof BorderCalculationOptions;
-
-// ✅ Create custom utility types for domain-specific needs
-type ReadonlyDeep<T> = {
-  readonly [P in keyof T]: T[P] extends object ? ReadonlyDeep<T[P]> : T[P];
-};
-```
-
-## Zod Schema Integration
-
-```typescript
-import { z } from 'zod';
-
-// ✅ Define Zod schemas for validation
-const borderInputSchema = z.object({
-  paperWidth: z.number().positive('Width must be positive'),
-  paperHeight: z.number().positive('Height must be positive'),
-  imageWidth: z.number().positive('Width must be positive'),
-  imageHeight: z.number().positive('Height must be positive'),
+export const borderInputSchema = z.object({
+  paperWidth: z.number().positive(),
+  paperHeight: z.number().positive(),
 });
 
-// ✅ Infer TypeScript types from Zod schemas
-type BorderInput = z.infer<typeof borderInputSchema>;
-
-// ✅ Use schemas for runtime validation
-const validateBorderInput = (input: unknown): BorderInput => {
-  return borderInputSchema.parse(input);
-};
+export type BorderInput = z.infer<typeof borderInputSchema>;
 ```
 
-## File Organization
+## Type-Only Imports
 
-### Barrel Exports
-
-- Use index.ts files to create clean public APIs
-- Group related exports logically
-- Re-export with descriptive names when needed
-
-### Type-Only Imports
+Separate type imports from value imports:
 
 ```typescript
-// ✅ Use type-only imports for types
-import type { BorderCalculationOptions } from './types';
-import type { FC } from 'react';
+import type { FC, ReactNode } from 'react';
+import type { BorderOptions } from '@dorkroom/logic';
 
-// ✅ Regular imports for runtime values
-import { calculateBorderSize } from './utils';
 import { useState } from 'react';
+import { calculateBorderSize } from '@dorkroom/logic';
 ```
 
-### Declaration Files
+## Utility Types
 
-- Provide .d.ts files for any JavaScript libraries
-- Use module augmentation for extending third-party types
-- Keep ambient declarations in dedicated files
-
-## Performance Considerations
-
-### Const Assertions
+Use built-in utility types:
 
 ```typescript
-// ✅ Use const assertions for immutable data
+type PartialOptions = Partial<BorderCalculationOptions>;
+type RequiredFields = Required<Pick<Preset, 'name' | 'dimensions'>>;
+type OptionKeys = keyof BorderCalculationOptions;
+```
+
+## Const Assertions
+
+Use for immutable data:
+
+```typescript
 const PAPER_SIZES = {
   A4: { width: 210, height: 297 },
   LETTER: { width: 216, height: 279 },
 } as const;
 
-// ✅ Use satisfies operator for type checking without widening
+// Use satisfies for type checking without widening
 const config = {
   borderWidth: 10,
-  borderHeight: 15,
-} satisfies BorderCalculationOptions;
+} satisfies BorderOptions;
 ```
-
-### Lazy Loading Types
-
-```typescript
-// ✅ Use dynamic imports for heavy types when appropriate
-type LazyCalculator = () => Promise<typeof import('./heavy-calculator')>;
-```
-
-This configuration ensures type safety, maintainability, and consistency across the Dorkroom codebase.
