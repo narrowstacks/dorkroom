@@ -3,7 +3,7 @@
   "outputDirectory": "apps/dorkroom/dist",
   "devCommand": "turbo run dev --filter=@dorkroom/dorkroom",
   "installCommand": "bun install",
-  "ignoreCommand": "npx turbo-ignore",
+  "ignoreCommand": "bash scripts/should-deploy.sh",
   "framework": null,
   "functions": {
     "api/**/*.ts": {
