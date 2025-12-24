@@ -36,9 +36,9 @@ export function Drawer({
   }, [isOpen]);
 
   const sizeClasses = {
-    sm: 'max-h-[40dvh]',
-    md: 'max-h-[60dvh]',
-    lg: 'max-h-[80dvh]',
+    sm: 'max-h-[40dvh] h-[40dvh]',
+    md: 'max-h-[60dvh] h-[60dvh]',
+    lg: 'max-h-[80dvh] h-[80dvh]',
   };
 
   const transformClasses = {
@@ -78,7 +78,7 @@ export function Drawer({
       {/* Drawer */}
       <div
         className={cn(
-          'absolute border transition-transform duration-300 ease-out',
+          'absolute border transition-transform duration-300 ease-out overflow-hidden',
           anchor === 'bottom' || anchor === 'top'
             ? `${sizeClasses[size]} rounded-t-xl`
             : 'w-80 h-full',

@@ -10,6 +10,7 @@ import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { PushPullAlert } from '../push-pull-alert';
 import { CollapsibleSection } from '../ui/collapsible-section';
 import { Tag } from '../ui/tag';
+import { VolumeMixer } from './volume-mixer';
 
 interface DevelopmentRecipeDetailProps {
   view: DevelopmentCombinationView;
@@ -70,11 +71,22 @@ export function DevelopmentRecipeDetail({
   const { unit } = useTemperature();
   const [isFilmExpanded, setIsFilmExpanded] = useState(false);
   const [isDeveloperExpanded, setIsDeveloperExpanded] = useState(false);
+  const [isVolumeMixerExpanded, setIsVolumeMixerExpanded] = useState(true);
 
   // Calculate pushPull from film box speed if available, otherwise use stored value
   const pushPull = film?.isoSpeed
     ? calculatePushPull(combination.shootingIso, film.isoSpeed)
     : combination.pushPull;
+
+  // Get dilution label for volume mixer
+  const dilutionLabel =
+    combination.customDilution ||
+    (developer && combination.dilutionId
+      ? developer.dilutions.find(
+          (d: Dilution) => String(d.id) === String(combination.dilutionId)
+        )?.dilution
+      : undefined) ||
+    'Stock';
 
   return (
     <div className="space-y-5 text-sm">
@@ -137,19 +149,7 @@ export function DevelopmentRecipeDetail({
             ).text
           }
         />
-        <DetailRow
-          label="Dilution"
-          value={
-            combination.customDilution ||
-            (developer && combination.dilutionId
-              ? developer.dilutions.find(
-                  (d: Dilution) =>
-                    String(d.id) === String(combination.dilutionId)
-                )?.dilution
-              : undefined) ||
-            'Stock'
-          }
-        />
+        <DetailRow label="Dilution" value={dilutionLabel} />
         <DetailRow
           label="Agitation"
           value={combination.agitationSchedule || 'Standard'}
@@ -211,6 +211,17 @@ export function DevelopmentRecipeDetail({
             )}
           </div>
         )}
+
+      {/* Volume Mixer section */}
+      <CollapsibleSection
+        title="Volume Mixer"
+        subtitle={dilutionLabel}
+        isExpanded={isVolumeMixerExpanded}
+        onToggle={() => setIsVolumeMixerExpanded(!isVolumeMixerExpanded)}
+      >
+        <VolumeMixer dilutionString={dilutionLabel} />
+      </CollapsibleSection>
+
       <CollapsibleSection
         title="Film"
         subtitle={film ? `${film.brand} ${film.name}` : 'Unknown film'}
