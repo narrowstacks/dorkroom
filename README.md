@@ -18,7 +18,7 @@ Dorkroom provides useful calculators for darkroom printing, film development, an
 
 ### Film Development Resources
 
-- [**Development Recipes**](https://dorkroom.art/development) - Film + chemistry pairings and development times with many manufacturer approved development recipes.
+- [**Development Recipes**](https://dorkroom.art/development) - Film + chemistry pairings and development times with many manufacturer approved development recipes, including a volume mixer.
 - [**Film Database**](https://dorkroom.art/films) - List of films and their information provided by the API.
 
 ### **Printing Tools**
@@ -33,9 +33,7 @@ Dorkroom provides useful calculators for darkroom printing, film development, an
 
 ## In the Works
 
-- **Development Recipes: _Volume Mixer_** - Accurate chemical mixing measurements based on a developer's dilutions.
 - **Dorkroom Docs** - Thorough documentation on how to use all the tools Dorkroom provides.
-- **Infobase** - A wiki-like docs database with plentiful guides on film, development, darkroom printing, and photography in general.
 - **Camera Exposure Calculator** - For calculating equivalent camera exposure values.
 - **Kindle browser support** - Support for for the app on the strange Kindle browser.
   - _**Help needed!** The site currently does not render on Kindle browsers_ ☹️
