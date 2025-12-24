@@ -114,7 +114,7 @@ turbo run test --filter=@dorkroom/logic
 - **Forms**: TanStack Form v1 with Zod validation
 - **Tables**: TanStack Table v8 for data tables
 - **Virtualization**: TanStack Virtual v3 for performant list rendering
-- **Schema Validation**: Zod 4.1.12
+- **Schema Validation**: Zod 4
 - **Monorepo**: Turborepo with Bun workspaces
 
 ## Architecture
