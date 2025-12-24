@@ -274,8 +274,9 @@ describe('HomePage', () => {
       );
 
       const links = screen.getAllByRole('link');
+      // Match only http/https URLs, excluding protocol-relative (//), mailto:, tel:, etc.
       const externalLinks = links.filter((link) =>
-        link.getAttribute('href')?.startsWith('http')
+        link.getAttribute('href')?.match(/^https?:\/\//)
       );
 
       for (const link of externalLinks) {
