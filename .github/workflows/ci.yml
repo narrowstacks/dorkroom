@@ -83,9 +83,28 @@ jobs:
 
       - run: bun install
 
-      # Install Playwright browsers
+      # Get Playwright version for cache key
+      - name: Get Playwright version
+        id: playwright-version
+        run: echo "version=$(bunx playwright --version | cut -d' ' -f2)" >> $GITHUB_OUTPUT
+
+      # Cache Playwright browsers
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+
+      # Install Playwright browsers (skip download if cached)
       - name: Install Playwright Browsers
         run: bunx playwright install --with-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+
+      # Install OS dependencies only (when browsers are cached)
+      - name: Install Playwright OS dependencies
+        run: bunx playwright install-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
 
       # Run E2E tests (generates Chromatic archives in test-results/)
       - name: Run E2E tests
