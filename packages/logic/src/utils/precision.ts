@@ -89,6 +89,7 @@ export const createMemoKey = (
  * ```
  */
 export const formatForDisplay = (value: number): string => {
+  // Handles floating-point artifacts
   return String(Math.round(value * 1000) / 1000);
 };
 
