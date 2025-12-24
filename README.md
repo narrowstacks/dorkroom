@@ -45,7 +45,7 @@ Dorkroom provides useful calculators for darkroom printing, film development, an
 ### Prerequisites
 
 - **Node.js** 18+ (required)
-- **Bun** (required - project uses Bun workspaces)
+- **Bun** (required - uses Bun workspaces)
 
 Install Bun:
 
