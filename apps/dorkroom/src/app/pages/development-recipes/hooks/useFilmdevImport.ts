@@ -225,8 +225,8 @@ export function useFilmdevImport({
                       })
                     ),
                   mixingInstructions:
-                    mappingResult.formData.customDeveloper
-                      .mixingInstructions || null,
+                    mappingResult.formData.customDeveloper.mixingInstructions ||
+                    null,
                   storageRequirements: null,
                   safetyNotes:
                     mappingResult.formData.customDeveloper.safetyNotes || null,

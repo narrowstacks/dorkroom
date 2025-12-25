@@ -136,7 +136,7 @@ export function useRecipeImportActions({
         } else {
           await handleCodeImport(input);
         }
-      } catch (err) {
+      } catch {
         // Errors are handled by sub-hooks
         // This catch prevents unhandled promise rejections
       }
