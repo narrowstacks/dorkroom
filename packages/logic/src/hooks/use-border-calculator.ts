@@ -5,36 +5,38 @@ import type {
 } from '../types/border-calculator';
 
 /**
+ * @deprecated This monolithic hook is deprecated. Use the modular approach instead:
+ *
+ * For simple use cases:
+ * ```typescript
+ * import { useModularBorderCalculator } from '@dorkroom/logic';
+ * const calculator = useModularBorderCalculator();
+ * ```
+ *
+ * For advanced use cases (recommended for app-level integration):
+ * ```typescript
+ * import {
+ *   useBorderCalculatorState,
+ *   useDimensionCalculations,
+ *   useGeometryCalculations,
+ *   useInputHandlers,
+ * } from '@dorkroom/logic';
+ *
+ * const { state, dispatch } = useBorderCalculatorState();
+ * const dimensionData = useDimensionCalculations(state);
+ * const { calculation } = useGeometryCalculations(state, dimensionData.orientedDimensions, ...);
+ * const inputHandlers = useInputHandlers(state, dispatch);
+ * ```
+ *
+ * Will be removed in v2.0.0
+ *
+ * ---
+ *
  * Border calculator hook for darkroom printing calculations.
  * Provides state management and calculations for determining optimal print borders,
  * blade positions, and paper layout for darkroom enlarger setups.
  *
  * @returns Object containing all calculator state, calculations, and control functions
- * @example
- * ```typescript
- * const {
- *   aspectRatio,
- *   setAspectRatio,
- *   paperSize,
- *   setPaperSize,
- *   calculation,
- *   resetToDefaults,
- *   applyPreset
- * } = useBorderCalculator();
- *
- * // Set up a 2:3 ratio on 8x10 paper
- * setAspectRatio('2:3');
- * setPaperSize('8x10');
- *
- * // Get calculated borders and blade positions
- * if (calculation) {
- *   console.log('Left border:', calculation.leftBorder);
- *   console.log('Blade positions:', {
- *     left: calculation.leftBladeReading,
- *     right: calculation.rightBladeReading
- *   });
- * }
- * ```
  */
 export function useBorderCalculator() {
   const [aspectRatio, setAspectRatio] = useState('2:3');
@@ -136,26 +138,6 @@ export function useBorderCalculator() {
     const rightBladeReading = rightBorder;
     const topBladeReading = topBorder;
     const bottomBladeReading = bottomBorder;
-
-    // Debug: Log the actual values
-    console.log('Blade calculation debug:', {
-      paperW,
-      paperH,
-      printWidth,
-      printHeight,
-      leftBorder,
-      rightBorder,
-      topBorder,
-      bottomBorder,
-      leftBladeReading,
-      rightBladeReading,
-      topBladeReading,
-      bottomBladeReading,
-      horizontalOffset,
-      verticalOffset,
-      enableOffset,
-      aspectRatio,
-    });
 
     return {
       // Border values

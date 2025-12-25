@@ -1,48 +1,20 @@
-import { useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
+import { UnitToggle } from '../unit-toggle';
+
+const TEMPERATURE_OPTIONS = [
+  { value: 'fahrenheit', label: '°F' },
+  { value: 'celsius', label: '°C' },
+] as const;
 
 export function TemperatureUnitToggle() {
   const { unit, toggleUnit } = useTemperature();
-  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <button
-      type="button"
-      onClick={toggleUnit}
-      className="rounded-full border px-3 py-1.5 text-sm font-medium transition flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-      style={{
-        borderColor: 'var(--color-border-primary)',
-        color: isHovered
-          ? 'var(--color-text-primary)'
-          : 'var(--color-text-secondary)',
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      aria-label={`Switch to ${
-        unit === 'fahrenheit' ? 'Celsius' : 'Fahrenheit'
-      }`}
-    >
-      <span
-        style={{
-          color:
-            unit === 'fahrenheit'
-              ? 'var(--color-text-primary)'
-              : 'var(--color-text-muted)',
-        }}
-      >
-        °F
-      </span>
-      <span style={{ color: 'var(--color-text-muted)' }}>|</span>
-      <span
-        style={{
-          color:
-            unit === 'celsius'
-              ? 'var(--color-text-primary)'
-              : 'var(--color-text-muted)',
-        }}
-      >
-        °C
-      </span>
-    </button>
+    <UnitToggle
+      currentUnit={unit}
+      onToggle={toggleUnit}
+      options={[TEMPERATURE_OPTIONS[0], TEMPERATURE_OPTIONS[1]]}
+      ariaLabel={`Switch to ${unit === 'fahrenheit' ? 'Celsius' : 'Fahrenheit'}`}
+    />
   );
 }

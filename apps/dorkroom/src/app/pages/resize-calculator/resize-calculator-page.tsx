@@ -12,11 +12,12 @@ import {
 } from '@dorkroom/logic';
 import {
   CalculatorCard,
+  CalculatorLayout,
   CalculatorNumberField,
-  CalculatorPageHeader,
   CalculatorStat,
   colorMixOr,
   createZodFormValidator,
+  InfoCardList,
   resizeCalculatorSchema,
   StatusAlert,
   ToggleSwitch,
@@ -152,30 +153,10 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
           >
             How to use
           </h4>
-          <ul className="space-y-2">
-            {(isEnlargerHeightMode
-              ? HOW_TO_USE_ENLARGER
-              : HOW_TO_USE_PRINT
-            ).map((item, index) => (
-              <li
-                // biome-ignore lint/suspicious/noArrayIndexKey: Static content array, order never changes
-                key={index}
-                className="rounded-2xl border px-4 py-2"
-                style={{
-                  borderColor: 'var(--color-border-muted)',
-                  backgroundColor: colorMixOr(
-                    'var(--color-surface)',
-                    20,
-                    'transparent',
-                    'var(--color-surface)'
-                  ),
-                  color: 'var(--color-text-secondary)',
-                }}
-              >
-                {item}
-              </li>
-            ))}
-          </ul>
+          <InfoCardList
+            items={isEnlargerHeightMode ? HOW_TO_USE_ENLARGER : HOW_TO_USE_PRINT}
+            variant="default"
+          />
         </div>
 
         <div className="space-y-3">
@@ -211,27 +192,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
           >
             Tips
           </h4>
-          <ul className="space-y-2">
-            {TIPS.map((tip, index) => (
-              <li
-                // biome-ignore lint/suspicious/noArrayIndexKey: Static content array, order never changes
-                key={index}
-                className="rounded-2xl border px-4 py-2"
-                style={{
-                  borderColor: 'var(--color-border-muted)',
-                  backgroundColor: colorMixOr(
-                    'var(--color-surface)',
-                    20,
-                    'transparent',
-                    'var(--color-surface)'
-                  ),
-                  color: 'var(--color-text-secondary)',
-                }}
-              >
-                {tip}
-              </li>
-            ))}
-          </ul>
+          <InfoCardList items={TIPS} variant="default" />
         </div>
       </div>
     </CalculatorCard>
@@ -349,15 +310,12 @@ export default function ResizeCalculatorPage() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
-      <CalculatorPageHeader
-        eyebrow="Exposure Math"
-        title="Print Resize Calculator"
-        description="Scale a print up or down and get a solid starting exposure without burning through paper."
-      />
-
-      <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-        <div className="space-y-6">
+    <CalculatorLayout
+      eyebrow="Exposure Math"
+      title="Print Resize Calculator"
+      description="Scale a print up or down and get a solid starting exposure without burning through paper."
+      sidebar={<InfoSection isEnlargerHeightMode={formValues.isEnlargerHeightMode} />}
+    >
           <CalculatorCard
             title="Resize inputs"
             description="Provide either print dimensions or enlarger heights so we can work out the exposure change."
@@ -668,12 +626,6 @@ export default function ResizeCalculatorPage() {
               ) : null
             }
           </form.Subscribe>
-        </div>
-
-        <div className="space-y-6">
-          <InfoSection isEnlargerHeightMode={formValues.isEnlargerHeightMode} />
-        </div>
-      </div>
-    </div>
+    </CalculatorLayout>
   );
 }

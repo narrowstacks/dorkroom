@@ -160,6 +160,40 @@
   .border-secondary {
     border-color: var(--color-border-secondary);
   }
+  .border-primary {
+    border-color: var(--color-border-primary);
+  }
+  .border-muted {
+    border-color: var(--color-border-muted);
+  }
+
+  /* Theme-aware surface backgrounds */
+  .bg-surface {
+    background-color: var(--color-surface);
+  }
+  .bg-surface-muted {
+    background-color: var(--color-surface-muted);
+  }
+  .bg-background {
+    background-color: var(--color-background);
+  }
+
+  /* Themed input pattern - for calculator inputs */
+  .themed-input {
+    background-color: var(--color-surface);
+    border-color: var(--color-border-primary);
+    color: var(--color-text-primary);
+  }
+
+  /* Themed button pattern - for calculator stop buttons */
+  .themed-button {
+    background-color: var(--color-surface);
+    border-color: var(--color-border-primary);
+    color: var(--color-text-primary);
+  }
+  .themed-button:hover {
+    background-color: var(--color-surface-muted);
+  }
 
   /* Custom error color utilities */
   .text-error {

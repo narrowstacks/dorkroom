@@ -1,5 +1,3 @@
-export type { BorderCalculatorFormData } from './border-calculator.schema';
-export { borderCalculatorSchema } from './border-calculator.schema';
 export type {
   CustomDeveloperData,
   CustomFilmData,

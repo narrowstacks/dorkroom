@@ -20,12 +20,22 @@ export {
   PresetsSection,
   PreviewAndControlsSection,
 } from './components/border-calculator';
+export type {
+  CalculatorLayoutProps,
+  InfoCardItem,
+  InfoCardListProps,
+  InfoCardProps,
+  InfoCardVariant,
+} from './components/calculator';
 // Calculator Components
 export {
   CalculatorCard,
+  CalculatorLayout,
   CalculatorNumberField,
   CalculatorPageHeader,
   CalculatorStat,
+  InfoCard,
+  InfoCardList,
 } from './components/calculator';
 export { ConfirmModal } from './components/confirm-modal';
 export type { DetailPanelProps } from './components/detail-panel';
@@ -133,6 +143,11 @@ export {
   SkeletonTableRow,
 } from './components/ui/skeleton';
 export { Tag } from './components/ui/tag';
+export type {
+  UnitToggleOption,
+  UnitToggleProps,
+} from './components/unit-toggle';
+export { UnitToggle } from './components/unit-toggle';
 export { VolumeUnitToggle } from './components/volume-unit-toggle';
 // Measurement
 export {

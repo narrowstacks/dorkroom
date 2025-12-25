@@ -10,6 +10,7 @@ Dorkroom is an analog photography calculator app. Turborepo monorepo with React 
 - `packages/ui/` - Shared UI components (@dorkroom/ui)
 - `packages/logic/` - Business logic, hooks, schemas (@dorkroom/logic)
 - `packages/api/` - API client and types (@dorkroom/api)
+- `api/` - Vercel serverless functions (proxy to Supabase)
 
 ## Essential Commands
 
@@ -33,6 +34,7 @@ bun run format
 - `packages/logic/CLAUDE.md` - TanStack Query/Form/Table patterns, mutations, schemas
 - `packages/ui/CLAUDE.md` - Component patterns, Tailwind, accessibility
 - `packages/api/CLAUDE.md` - API types, Raw vs Transformed types, error handling
+- `api/CLAUDE.md` - Vercel serverless functions, Supabase proxy endpoints
 
 **Reference:**
 

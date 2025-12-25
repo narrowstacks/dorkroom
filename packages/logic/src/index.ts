@@ -12,10 +12,12 @@ export * from './constants/reciprocity-calculator-defaults';
 export * from './constants/resize-calculator';
 // API Hooks
 export * from './hooks/api';
-// Border calculator modular hooks
+// Border calculator modular hooks (recommended)
 export {
   initialState as borderCalculatorInitialState,
   useAlertSystem,
+  useBorderCalculator,
+  // Alias for backwards compatibility
   useBorderCalculator as useModularBorderCalculator,
   useBorderCalculatorState,
   useCalculatorSharing,
@@ -60,7 +62,11 @@ export {
 } from './hooks/development-recipes/use-view-preference';
 // Film hooks
 export { type UseFilmDatabaseReturn, useFilmDatabase } from './hooks/films';
-export { useBorderCalculator } from './hooks/use-border-calculator';
+/**
+ * @deprecated Use `useBorderCalculator` from './hooks/border-calculator' instead.
+ * This legacy hook will be removed in v2.0.0.
+ */
+export { useBorderCalculator as useLegacyBorderCalculator } from './hooks/use-border-calculator';
 export { useBorderPresets } from './hooks/use-border-presets';
 export { useDebounce, useDebouncedCallback } from './hooks/use-debounce';
 export {
