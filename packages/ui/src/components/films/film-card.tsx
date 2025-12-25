@@ -17,6 +17,23 @@ const FilmCardComponent: FC<FilmCardProps> = ({
   onClick,
   className,
 }) => {
+  const tagsContent = (
+    <>
+      <Tag>{film.colorType}</Tag>
+      <span
+        className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border"
+        style={{
+          backgroundColor: 'var(--color-surface-muted)',
+          color: 'var(--color-text-secondary)',
+          borderColor: 'var(--color-border-secondary)',
+        }}
+      >
+        ISO {film.isoSpeed}
+      </span>
+      {film.discontinued && <Tag variant="discontinued">Discontinued</Tag>}
+    </>
+  );
+
   return (
     // biome-ignore lint/a11y/useSemanticElements: Card uses ARIA role with keyboard support instead of button to avoid resetting button styles
     <div
@@ -73,23 +90,16 @@ const FilmCardComponent: FC<FilmCardProps> = ({
             {film.brand} {film.name}
           </div>
 
-          <div className="mt-1 flex flex-wrap items-center gap-2">
-            <Tag>{film.colorType}</Tag>
-            <span
-              className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border"
-              style={{
-                backgroundColor: 'var(--color-surface-muted)',
-                color: 'var(--color-text-secondary)',
-                borderColor: 'var(--color-border-secondary)',
-              }}
-            >
-              ISO {film.isoSpeed}
-            </span>
-            {film.discontinued && (
-              <Tag variant="discontinued">Discontinued</Tag>
-            )}
+          {/* Desktop: tags inline with name */}
+          <div className="mt-1 hidden sm:flex flex-wrap items-center gap-2">
+            {tagsContent}
           </div>
         </div>
+      </div>
+
+      {/* Mobile: tags in full-width row below for better wrapping */}
+      <div className="mt-2 flex sm:hidden flex-wrap items-center gap-1.5">
+        {tagsContent}
       </div>
     </div>
   );
