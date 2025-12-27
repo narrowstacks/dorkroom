@@ -180,15 +180,18 @@ export { cn } from './lib/cn';
 export { colorMixOr, supportsColorMix } from './lib/color';
 export * from './lib/measurement';
 // Navigation
-export type { MobileNavItem } from './lib/navigation';
+export type { MobileNavItem, NavigationCategory } from './lib/navigation';
 export {
   allNavItems,
+  cameraItems,
+  filmItems,
   mobileNavItems,
   navItems,
+  navigationCategories,
   printingItems,
   ROUTE_DESCRIPTIONS,
   ROUTE_TITLES,
-  shootingItems,
+  referenceItems,
 } from './lib/navigation';
 export type { TemperatureUnit } from './lib/temperature';
 export { formatTemperatureWithUnit } from './lib/temperature';

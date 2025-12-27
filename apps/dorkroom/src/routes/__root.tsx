@@ -2,8 +2,7 @@ import {
   allNavItems,
   MobileNavGrid,
   NavigationDropdown,
-  navItems,
-  printingItems,
+  navigationCategories,
   ROUTE_TITLES,
   ThemeToggle,
   Tooltip,
@@ -19,9 +18,9 @@ import {
 import {
   Beaker,
   GitBranch,
+  Home,
   Menu,
   Newspaper,
-  Printer,
   Settings,
   X,
 } from 'lucide-react';
@@ -118,34 +117,30 @@ function RootComponent() {
                     backgroundColor: 'rgba(var(--color-background-rgb), 0.5)',
                   }}
                 >
-                  {navItems.map(({ label, to, icon: Icon }) => {
-                    const isActive =
-                      to === '/' ? pathname === '/' : pathname.startsWith(to);
-                    return (
-                      <Link
-                        key={to}
-                        to={to}
-                        className={cn(
-                          'flex min-w-fit items-center gap-2 rounded-full px-4 py-2 font-medium transition focus-visible:outline-none',
-                          'focus-visible:ring-2',
-                          'focus-visible:ring-[color:var(--color-border-primary)]',
-                          'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--nav-hover-text)]',
-                          isActive &&
-                            'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
-                        )}
-                      >
-                        <Icon className="h-4 w-4" />
-                        {label}
-                      </Link>
-                    );
-                  })}
-                  <NavigationDropdown
-                    label="Printing"
-                    icon={Printer}
-                    items={printingItems}
-                    currentPath={pathname}
-                    onNavigate={handleNavigate}
-                  />
+                  <Link
+                    to="/"
+                    className={cn(
+                      'flex min-w-fit items-center gap-2 rounded-full px-4 py-2 font-medium transition focus-visible:outline-none',
+                      'focus-visible:ring-2',
+                      'focus-visible:ring-[color:var(--color-border-primary)]',
+                      'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--nav-hover-text)]',
+                      pathname === '/' &&
+                        'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
+                    )}
+                  >
+                    <Home className="h-4 w-4" />
+                    Home
+                  </Link>
+                  {navigationCategories.map((category) => (
+                    <NavigationDropdown
+                      key={category.label}
+                      label={category.label}
+                      icon={category.icon}
+                      items={category.items}
+                      currentPath={pathname}
+                      onNavigate={handleNavigate}
+                    />
+                  ))}
                 </div>
               </nav>
               <div className="hidden items-center gap-3 sm:flex">

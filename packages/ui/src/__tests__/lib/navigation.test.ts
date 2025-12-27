@@ -1,13 +1,38 @@
 import { describe, expect, it } from 'vitest';
 import {
   allNavItems,
+  cameraItems,
+  filmItems,
   navItems,
+  navigationCategories,
   printingItems,
   ROUTE_TITLES,
-  shootingItems,
+  referenceItems,
 } from '../../lib/navigation';
 
 describe('navigation utilities', () => {
+  describe('navigation categories', () => {
+    it('has correct number of categories', () => {
+      expect(navigationCategories).toHaveLength(4);
+    });
+
+    it('has correct category labels', () => {
+      const labels = navigationCategories.map((cat) => cat.label);
+      expect(labels).toEqual(['Printing', 'Film', 'Camera', 'Reference']);
+    });
+
+    it('has all required category properties', () => {
+      navigationCategories.forEach((category) => {
+        expect(category).toHaveProperty('label');
+        expect(category).toHaveProperty('icon');
+        expect(category).toHaveProperty('items');
+        expect(typeof category.label).toBe('string');
+        expect(typeof category.icon).toBe('function');
+        expect(Array.isArray(category.items)).toBe(true);
+      });
+    });
+  });
+
   describe('navigation item arrays', () => {
     it('has correct printing items', () => {
       expect(printingItems).toHaveLength(3);
@@ -15,21 +40,36 @@ describe('navigation utilities', () => {
       expect(labels).toEqual(['Border', 'Resize', 'Stops']);
     });
 
-    it('has correct shooting items', () => {
-      expect(shootingItems).toHaveLength(3);
-      const labels = shootingItems.map((item) => item.label);
-      expect(labels).toEqual(['Exposure', 'Reciprocity', 'Infobase']);
+    it('has correct film items', () => {
+      expect(filmItems).toHaveLength(2);
+      const labels = filmItems.map((item) => item.label);
+      expect(labels).toEqual(['Development', 'Reciprocity']);
     });
 
-    it('has correct main nav items', () => {
-      expect(navItems).toHaveLength(4);
-      const labels = navItems.map((item) => item.label);
-      expect(labels).toEqual(['Home', 'Development', 'Films', 'Reciprocity']);
+    it('has correct camera items', () => {
+      expect(cameraItems).toHaveLength(1);
+      expect(cameraItems[0].label).toBe('Exposure');
+    });
+
+    it('has correct reference items', () => {
+      expect(referenceItems).toHaveLength(2);
+      const labels = referenceItems.map((item) => item.label);
+      expect(labels).toEqual(['Films', 'Docs']);
+    });
+
+    it('has correct main nav items (Home only)', () => {
+      expect(navItems).toHaveLength(1);
+      expect(navItems[0].label).toBe('Home');
     });
 
     it('combines all items correctly', () => {
-      expect(allNavItems).toHaveLength(7);
-      expect(allNavItems).toEqual([...navItems, ...printingItems]);
+      const expectedLength =
+        navItems.length +
+        printingItems.length +
+        filmItems.length +
+        cameraItems.length +
+        referenceItems.length;
+      expect(allNavItems).toHaveLength(expectedLength);
     });
   });
 
@@ -98,13 +138,10 @@ describe('navigation utilities', () => {
         const normalizedTitle = title.toLowerCase();
         const normalizedLabel = item.label.toLowerCase();
 
-        if (
-          item.label !== 'Home' &&
-          item.label !== 'Development' &&
-          item.label !== 'Films'
-        ) {
+        // Exclude items where label doesn't match title pattern
+        const exceptions = ['Home', 'Development', 'Films', 'Docs'];
+        if (!exceptions.includes(item.label)) {
           // Most items should have their label in the title
-          // Films is excluded because label is 'Films' but title is 'Film Database'
           expect(normalizedTitle).toContain(normalizedLabel);
         }
       });

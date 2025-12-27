@@ -1,6 +1,7 @@
 import {
   Aperture,
   BookOpen,
+  Camera,
   Crop,
   Film,
   FlaskConical,
@@ -8,6 +9,7 @@ import {
   GitBranch,
   Home,
   Newspaper,
+  Printer,
   Ruler,
   Settings,
   Timer,
@@ -42,34 +44,7 @@ export const printingItems: NavigationItem[] = [
   },
 ];
 
-export const shootingItems: NavigationItem[] = [
-  {
-    label: 'Exposure',
-    to: '/exposure',
-    icon: asFunctionComponent(Aperture),
-    summary: 'Balance aperture, shutter, and ISO on set.',
-  },
-  {
-    label: 'Reciprocity',
-    to: '/reciprocity',
-    icon: asFunctionComponent(Timer),
-    summary: 'Correct for long exposure failure.',
-  },
-  {
-    label: 'Infobase',
-    to: '/infobase',
-    icon: asFunctionComponent(BookOpen),
-    summary: 'Reference tables, notes, and recipes.',
-  },
-];
-
-export const navItems = [
-  {
-    label: 'Home',
-    to: '/',
-    icon: asFunctionComponent(Home),
-    summary: 'Skip the math. Make prints.',
-  },
+export const filmItems: NavigationItem[] = [
   {
     label: 'Development',
     to: '/development',
@@ -77,12 +52,6 @@ export const navItems = [
     summary: 'Film chemistry pairings with proven results.',
   },
   {
-    label: 'Films',
-    to: '/films',
-    icon: asFunctionComponent(Film),
-    summary: 'Browse and search the film stock database.',
-  },
-  {
     label: 'Reciprocity',
     to: '/reciprocity',
     icon: asFunctionComponent(Timer),
@@ -90,8 +59,75 @@ export const navItems = [
   },
 ];
 
-export const allNavItems = [...navItems, ...printingItems];
-// Previously included ...shootingItems, but shooting section has been removed
+export const cameraItems: NavigationItem[] = [
+  {
+    label: 'Exposure',
+    to: '/exposure',
+    icon: asFunctionComponent(Aperture),
+    summary: 'Balance aperture, shutter, and ISO on set.',
+  },
+];
+
+export const referenceItems: NavigationItem[] = [
+  {
+    label: 'Films',
+    to: '/films',
+    icon: asFunctionComponent(Film),
+    summary: 'Browse and search the film stock database.',
+  },
+  {
+    label: 'Docs',
+    to: '/docs',
+    icon: asFunctionComponent(BookOpen),
+    summary: 'Guides and documentation for analog photography.',
+  },
+];
+
+export const navItems: NavigationItem[] = [
+  {
+    label: 'Home',
+    to: '/',
+    icon: asFunctionComponent(Home),
+    summary: 'Skip the math. Make prints.',
+  },
+];
+
+export interface NavigationCategory {
+  label: string;
+  icon: ComponentType<{ className?: string }>;
+  items: NavigationItem[];
+}
+
+export const navigationCategories: NavigationCategory[] = [
+  {
+    label: 'Printing',
+    icon: asFunctionComponent(Printer),
+    items: printingItems,
+  },
+  {
+    label: 'Film',
+    icon: asFunctionComponent(Film),
+    items: filmItems,
+  },
+  {
+    label: 'Camera',
+    icon: asFunctionComponent(Camera),
+    items: cameraItems,
+  },
+  {
+    label: 'Reference',
+    icon: asFunctionComponent(BookOpen),
+    items: referenceItems,
+  },
+];
+
+export const allNavItems = [
+  ...navItems,
+  ...printingItems,
+  ...filmItems,
+  ...cameraItems,
+  ...referenceItems,
+];
 
 export const ROUTE_TITLES: Record<string, string> = {
   '/': 'Home',
@@ -102,7 +138,7 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/exposure': 'Exposure Calculator',
   '/development': 'Development Recipes',
   '/films': 'Film Database',
-  '/infobase': 'Infobase',
+  '/docs': 'Documentation',
   '/settings': 'Settings',
 };
 
@@ -122,8 +158,8 @@ export const ROUTE_DESCRIPTIONS: Record<string, string> = {
     'Browse film and developer combinations with proven development times. Find recipes for popular film stocks and chemistry.',
   '/films':
     'Browse and search the complete film stock database. Filter by brand, ISO, color type, and more.',
-  '/infobase':
-    'Reference tables, technical notes, and recipes for analog photography. Quick lookup for common darkroom data.',
+  '/docs':
+    'Guides and documentation for analog photography. Learn techniques, understand concepts, and master your craft.',
   '/settings':
     'Customize your Dorkroom experience. Configure preferences for units, defaults, and display options.',
 };
@@ -135,52 +171,17 @@ export interface MobileNavItem {
   icon: ComponentType<{ className?: string }>;
   ariaLabel?: string;
   type: 'route' | 'external' | 'theme' | 'settings';
+  category?: 'utility' | 'printing' | 'film' | 'camera' | 'reference';
 }
 
 export const mobileNavItems: MobileNavItem[] = [
-  // Row 1-2: Main navigation
+  // Utility section
   {
     label: 'Home',
     to: '/',
     icon: asFunctionComponent(Home),
     type: 'route',
-  },
-  {
-    label: 'Development',
-    to: '/development',
-    icon: asFunctionComponent(FlaskConical),
-    type: 'route',
-  },
-  {
-    label: 'Films',
-    to: '/films',
-    icon: asFunctionComponent(Film),
-    type: 'route',
-  },
-  {
-    label: 'Reciprocity',
-    to: '/reciprocity',
-    icon: asFunctionComponent(Timer),
-    type: 'route',
-  },
-  {
-    label: 'Border',
-    to: '/border',
-    icon: asFunctionComponent(Crop),
-    type: 'route',
-  },
-  {
-    label: 'Resize',
-    to: '/resize',
-    icon: asFunctionComponent(Ruler),
-    type: 'route',
-  },
-  // Row 3: More navigation + external links
-  {
-    label: 'Stops',
-    to: '/stops',
-    icon: asFunctionComponent(Gauge),
-    type: 'route',
+    category: 'utility',
   },
   {
     label: 'GitHub',
@@ -188,6 +189,7 @@ export const mobileNavItems: MobileNavItem[] = [
     icon: asFunctionComponent(GitBranch),
     ariaLabel: 'Contribute on GitHub',
     type: 'external',
+    category: 'utility',
   },
   {
     label: 'Newsletter',
@@ -195,17 +197,79 @@ export const mobileNavItems: MobileNavItem[] = [
     icon: asFunctionComponent(Newspaper),
     ariaLabel: 'Subscribe to newsletter',
     type: 'external',
+    category: 'utility',
   },
-  // Row 4: Utilities (Theme toggle handled separately, then Settings)
   {
     label: 'Theme',
     icon: asFunctionComponent(Settings), // Placeholder, ThemeToggle uses its own icon
     type: 'theme',
+    category: 'utility',
   },
   {
     label: 'Settings',
     to: '/settings',
     icon: asFunctionComponent(Settings),
     type: 'settings',
+    category: 'utility',
+  },
+  // Printing section
+  {
+    label: 'Border',
+    to: '/border',
+    icon: asFunctionComponent(Crop),
+    type: 'route',
+    category: 'printing',
+  },
+  {
+    label: 'Resize',
+    to: '/resize',
+    icon: asFunctionComponent(Ruler),
+    type: 'route',
+    category: 'printing',
+  },
+  {
+    label: 'Stops',
+    to: '/stops',
+    icon: asFunctionComponent(Gauge),
+    type: 'route',
+    category: 'printing',
+  },
+  // Film section
+  {
+    label: 'Development',
+    to: '/development',
+    icon: asFunctionComponent(FlaskConical),
+    type: 'route',
+    category: 'film',
+  },
+  {
+    label: 'Reciprocity',
+    to: '/reciprocity',
+    icon: asFunctionComponent(Timer),
+    type: 'route',
+    category: 'film',
+  },
+  // Camera section
+  {
+    label: 'Exposure',
+    to: '/exposure',
+    icon: asFunctionComponent(Aperture),
+    type: 'route',
+    category: 'camera',
+  },
+  // Reference section
+  {
+    label: 'Films',
+    to: '/films',
+    icon: asFunctionComponent(Film),
+    type: 'route',
+    category: 'reference',
+  },
+  {
+    label: 'Docs',
+    to: '/docs',
+    icon: asFunctionComponent(BookOpen),
+    type: 'route',
+    category: 'reference',
   },
 ];

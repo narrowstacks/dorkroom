@@ -78,16 +78,19 @@ export function MobileNavGrid({
   onNavigate,
   onClose,
 }: MobileNavGridProps) {
-  // Utilities section: Home, external links, theme, settings
-  const homeItem = mobileNavItems.find((item) => item.to === '/');
-  const externalItems = mobileNavItems.filter(
-    (item) => item.type === 'external'
+  // Group items by category
+  const utilityItems = mobileNavItems.filter(
+    (item) => item.category === 'utility'
   );
-  const settingsItem = mobileNavItems.find((item) => item.type === 'settings');
-
-  // Calculator section: all route items except Home
-  const calculatorItems = mobileNavItems.filter(
-    (item) => item.type === 'route' && item.to !== '/'
+  const printingItems = mobileNavItems.filter(
+    (item) => item.category === 'printing'
+  );
+  const filmItems = mobileNavItems.filter((item) => item.category === 'film');
+  const cameraItems = mobileNavItems.filter(
+    (item) => item.category === 'camera'
+  );
+  const referenceItems = mobileNavItems.filter(
+    (item) => item.category === 'reference'
   );
 
   const isRouteActive = (to: string) => {
@@ -96,6 +99,26 @@ export function MobileNavGrid({
   };
 
   const renderNavCell = (item: MobileNavItem) => {
+    // Theme toggle is handled separately
+    if (item.type === 'theme') {
+      return <ThemeToggle key="theme" variant="grid" onSelect={onClose} />;
+    }
+
+    // Settings uses its own icon
+    if (item.type === 'settings') {
+      return (
+        <NavGridCell
+          key={item.to || item.label}
+          item={{ ...item, icon: Settings }}
+          isActive={item.to ? pathname === item.to : false}
+          onClick={() => {
+            if (item.to) onNavigate(item.to);
+            onClose();
+          }}
+        />
+      );
+    }
+
     const isActive = item.to ? isRouteActive(item.to) : false;
     return (
       <NavGridCell
@@ -112,37 +135,43 @@ export function MobileNavGrid({
     );
   };
 
+  const renderSectionHeader = (label: string) => (
+    <div
+      key={`header-${label}`}
+      className="col-span-3 px-1 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider"
+      style={{ color: 'var(--color-text-tertiary)' }}
+    >
+      {label}
+    </div>
+  );
+
   return (
     <div className="p-4">
       <nav className="grid grid-cols-3 gap-2" aria-label="Main navigation">
-        {/* Utilities section: Home, GitHub, Newsletter, Theme, Settings */}
-        {homeItem && renderNavCell(homeItem)}
-        {externalItems.map(renderNavCell)}
-        <ThemeToggle variant="grid" onSelect={onClose} />
-        {settingsItem && (
-          <NavGridCell
-            item={{
-              ...settingsItem,
-              icon: Settings,
-            }}
-            isActive={pathname === '/settings'}
-            onClick={() => {
-              if (settingsItem.to) {
-                onNavigate(settingsItem.to);
-              }
-              onClose();
-            }}
-          />
-        )}
+        {/* Utility section */}
+        {utilityItems.map(renderNavCell)}
 
-        {/* Divider between utilities and calculators */}
+        {/* Divider */}
         <div
           className="col-span-3 my-1 h-px"
           style={{ backgroundColor: 'var(--color-border-muted)' }}
         />
 
-        {/* Calculator section */}
-        {calculatorItems.map(renderNavCell)}
+        {/* Printing section */}
+        {printingItems.length > 0 && renderSectionHeader('Printing')}
+        {printingItems.map(renderNavCell)}
+
+        {/* Film section */}
+        {filmItems.length > 0 && renderSectionHeader('Film')}
+        {filmItems.map(renderNavCell)}
+
+        {/* Camera section */}
+        {cameraItems.length > 0 && renderSectionHeader('Camera')}
+        {cameraItems.map(renderNavCell)}
+
+        {/* Reference section */}
+        {referenceItems.length > 0 && renderSectionHeader('Reference')}
+        {referenceItems.map(renderNavCell)}
       </nav>
     </div>
   );
