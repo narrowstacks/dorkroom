@@ -1,5 +1,6 @@
 import {
   allNavItems,
+  MobileNavGrid,
   NavigationDropdown,
   navItems,
   printingItems,
@@ -240,173 +241,26 @@ function RootComponent() {
               />
               <nav
                 id="mobile-navigation"
-                className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-50 flex justify-end px-6"
+                className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-50"
                 role="dialog"
                 aria-modal="true"
+                aria-label="Navigation menu"
               >
                 <div
-                  className="mt-4 w-full max-w-xs rounded-3xl border p-5 shadow-xl backdrop-blur"
+                  className="rounded-3xl border shadow-xl backdrop-blur"
                   style={{
                     backgroundColor: 'rgba(var(--color-background-rgb), 0.95)',
                     borderColor: 'var(--color-border-secondary)',
                   }}
                 >
-                  <ul className="space-y-1">
-                    {/* Main navigation items */}
-                    {navItems.map(({ label, to, icon: Icon }) => {
-                      const isActive =
-                        to === '/' ? pathname === '/' : pathname.startsWith(to);
-                      return (
-                        <li key={to}>
-                          <Link
-                            to={to}
-                            className={cn(
-                              'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
-                              'text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]',
-                              isActive &&
-                                'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
-                            )}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            <span
-                              className="flex h-9 w-9 items-center justify-center rounded-2xl"
-                              style={{
-                                backgroundColor:
-                                  'rgba(var(--color-background-rgb), 0.08)',
-                              }}
-                            >
-                              <Icon className="h-4 w-4" />
-                            </span>
-                            <span className="flex-1 text-left">{label}</span>
-                          </Link>
-                        </li>
-                      );
-                    })}
-
-                    {/* Printing section */}
-                    <li className="pt-2">
-                      <div className="px-3.5 py-1">
-                        <span
-                          className="text-xs font-semibold uppercase tracking-wide"
-                          style={{ color: 'var(--color-text-tertiary)' }}
-                        >
-                          Printing
-                        </span>
-                      </div>
-                    </li>
-                    {printingItems.map(({ label, to, icon: Icon }) => {
-                      const isActive = pathname.startsWith(to);
-                      return (
-                        <li key={to}>
-                          <Link
-                            to={to}
-                            className={cn(
-                              'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
-                              'text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]',
-                              isActive &&
-                                'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
-                            )}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            <span
-                              className="flex h-9 w-9 items-center justify-center rounded-2xl"
-                              style={{
-                                backgroundColor:
-                                  'rgba(var(--color-background-rgb), 0.08)',
-                              }}
-                            >
-                              <Icon className="h-4 w-4" />
-                            </span>
-                            <span className="flex-1 text-left">{label}</span>
-                          </Link>
-                        </li>
-                      );
-                    })}
-
-                    {/* Links section */}
-                    <li className="pt-2">
-                      <div className="px-3.5 py-1">
-                        <span
-                          className="text-xs font-semibold uppercase tracking-wide"
-                          style={{ color: 'var(--color-text-tertiary)' }}
-                        >
-                          Links
-                        </span>
-                      </div>
-                    </li>
-                    <li>
-                      <a
-                        href="https://github.com/narrowstacks/dorkroom"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <span
-                          className="flex h-9 w-9 items-center justify-center rounded-2xl"
-                          style={{
-                            backgroundColor:
-                              'rgba(var(--color-background-rgb), 0.08)',
-                          }}
-                        >
-                          <GitBranch className="h-4 w-4" />
-                        </span>
-                        <span className="flex-1 text-left">Contribute</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="https://news.dorkroom.art"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <span
-                          className="flex h-9 w-9 items-center justify-center rounded-2xl"
-                          style={{
-                            backgroundColor:
-                              'rgba(var(--color-background-rgb), 0.08)',
-                          }}
-                        >
-                          <Newspaper className="h-4 w-4" />
-                        </span>
-                        <span className="flex-1 text-left">Newsletter</span>
-                      </a>
-                    </li>
-
-                    <li>
-                      <ThemeToggle variant="button" />
-                    </li>
-                    <li>
-                      {(() => {
-                        const isActive = pathname === '/settings';
-                        return (
-                          <Link
-                            to="/settings"
-                            className={cn(
-                              'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
-                              'text-[color:var(--color-text-secondary)] hover-surface-tint hover:text-[color:var(--nav-hover-text)]',
-                              isActive &&
-                                'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
-                            )}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            <span
-                              className="flex h-9 w-9 items-center justify-center rounded-2xl"
-                              style={{
-                                backgroundColor:
-                                  'rgba(var(--color-background-rgb), 0.08)',
-                              }}
-                            >
-                              <Settings className="h-4 w-4" />
-                            </span>
-                            <span className="flex-1 text-left">Settings</span>
-                          </Link>
-                        );
-                      })()}
-                    </li>
-                  </ul>
+                  <MobileNavGrid
+                    pathname={pathname}
+                    onNavigate={(path) => {
+                      router.navigate({ to: path });
+                      setIsMobileMenuOpen(false);
+                    }}
+                    onClose={() => setIsMobileMenuOpen(false)}
+                  />
                 </div>
               </nav>
             </>

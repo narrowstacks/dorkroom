@@ -26,11 +26,16 @@ const themeOptions: ThemeOption[] = [
 ];
 
 export interface ThemeToggleProps {
-  variant?: 'button' | 'icon';
+  variant?: 'button' | 'icon' | 'grid';
   className?: string;
+  onSelect?: () => void;
 }
 
-export function ThemeToggle({ variant = 'icon', className }: ThemeToggleProps) {
+export function ThemeToggle({
+  variant = 'icon',
+  className,
+  onSelect,
+}: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
@@ -88,6 +93,7 @@ export function ThemeToggle({ variant = 'icon', className }: ThemeToggleProps) {
     setTheme(newTheme);
     setIsOpen(false);
     buttonRef.current?.focus();
+    onSelect?.();
   };
 
   const handleButtonKeyDown = (event: React.KeyboardEvent) => {
@@ -131,6 +137,88 @@ export function ThemeToggle({ variant = 'icon', className }: ThemeToggleProps) {
       setFocusedIndex(themeOptions.length - 1);
     }
   };
+
+  const handleGridThemeChange = (newTheme: Theme) => {
+    setTheme(newTheme);
+    setIsOpen(false);
+    onSelect?.();
+  };
+
+  if (variant === 'grid') {
+    return (
+      <div ref={dropdownRef} className={cn('relative', className)}>
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          onKeyDown={handleButtonKeyDown}
+          className={cn(
+            'flex w-full flex-col items-center justify-center gap-1.5 rounded-xl p-3',
+            'min-h-[72px]',
+            'text-[color:var(--color-text-secondary)]',
+            'hover-surface-tint hover:text-[color:var(--nav-hover-text)]',
+            'transition focus-visible:outline-none focus-visible:ring-2',
+            'focus-visible:ring-[color:var(--color-border-primary)]'
+          )}
+          aria-expanded={isOpen}
+          aria-haspopup="menu"
+          aria-label="Change theme"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[rgba(var(--color-background-rgb),0.08)]">
+            <CurrentIcon className="h-5 w-5" />
+          </span>
+          <span className="text-[11px] font-medium">Theme</span>
+        </button>
+
+        {isOpen && (
+          <div
+            className="absolute bottom-full left-1/2 z-50 mb-2 min-w-48 -translate-x-1/2 rounded-2xl border p-2 shadow-xl"
+            style={{
+              backgroundColor: 'var(--color-background)',
+              borderColor: 'var(--color-border-primary)',
+            }}
+            role="menu"
+          >
+            {themeOptions.map((option, index) => {
+              const OptionIcon = option.icon;
+              const isSelected = option.value === theme;
+
+              return (
+                <button
+                  key={option.value}
+                  ref={(el) => {
+                    menuItemRefs.current[index] = el;
+                  }}
+                  type="button"
+                  onClick={() => handleGridThemeChange(option.value)}
+                  onKeyDown={handleMenuKeyDown}
+                  className={cn(
+                    'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none',
+                    'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
+                    isSelected &&
+                      'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
+                  )}
+                  role="menuitem"
+                >
+                  <span
+                    className={cn(
+                      'flex h-8 w-8 items-center justify-center rounded-xl',
+                      isSelected
+                        ? 'theme-toggle-icon-bg-selected'
+                        : 'theme-toggle-icon-bg'
+                    )}
+                  >
+                    <OptionIcon className="h-4 w-4" />
+                  </span>
+                  <span className="flex-1">{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (variant === 'button') {
     return (

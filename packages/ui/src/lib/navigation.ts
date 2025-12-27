@@ -5,8 +5,11 @@ import {
   Film,
   FlaskConical,
   Gauge,
+  GitBranch,
   Home,
+  Newspaper,
   Ruler,
+  Settings,
   Timer,
 } from 'lucide-react';
 import { type ComponentType, createElement } from 'react';
@@ -124,3 +127,85 @@ export const ROUTE_DESCRIPTIONS: Record<string, string> = {
   '/settings':
     'Customize your Dorkroom experience. Configure preferences for units, defaults, and display options.',
 };
+
+export interface MobileNavItem {
+  label: string;
+  to?: string;
+  href?: string;
+  icon: ComponentType<{ className?: string }>;
+  ariaLabel?: string;
+  type: 'route' | 'external' | 'theme' | 'settings';
+}
+
+export const mobileNavItems: MobileNavItem[] = [
+  // Row 1-2: Main navigation
+  {
+    label: 'Home',
+    to: '/',
+    icon: asFunctionComponent(Home),
+    type: 'route',
+  },
+  {
+    label: 'Development',
+    to: '/development',
+    icon: asFunctionComponent(FlaskConical),
+    type: 'route',
+  },
+  {
+    label: 'Films',
+    to: '/films',
+    icon: asFunctionComponent(Film),
+    type: 'route',
+  },
+  {
+    label: 'Reciprocity',
+    to: '/reciprocity',
+    icon: asFunctionComponent(Timer),
+    type: 'route',
+  },
+  {
+    label: 'Border',
+    to: '/border',
+    icon: asFunctionComponent(Crop),
+    type: 'route',
+  },
+  {
+    label: 'Resize',
+    to: '/resize',
+    icon: asFunctionComponent(Ruler),
+    type: 'route',
+  },
+  // Row 3: More navigation + external links
+  {
+    label: 'Stops',
+    to: '/stops',
+    icon: asFunctionComponent(Gauge),
+    type: 'route',
+  },
+  {
+    label: 'GitHub',
+    href: 'https://github.com/narrowstacks/dorkroom',
+    icon: asFunctionComponent(GitBranch),
+    ariaLabel: 'Contribute on GitHub',
+    type: 'external',
+  },
+  {
+    label: 'Newsletter',
+    href: 'https://news.dorkroom.art',
+    icon: asFunctionComponent(Newspaper),
+    ariaLabel: 'Subscribe to newsletter',
+    type: 'external',
+  },
+  // Row 4: Utilities (Theme toggle handled separately, then Settings)
+  {
+    label: 'Theme',
+    icon: asFunctionComponent(Settings), // Placeholder, ThemeToggle uses its own icon
+    type: 'theme',
+  },
+  {
+    label: 'Settings',
+    to: '/settings',
+    icon: asFunctionComponent(Settings),
+    type: 'settings',
+  },
+];

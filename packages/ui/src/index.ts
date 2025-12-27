@@ -100,6 +100,8 @@ export { StatCard } from './components/marketing/stat-card';
 export type { ToolCardProps } from './components/marketing/tool-card';
 export { ToolCard } from './components/marketing/tool-card';
 export { MeasurementUnitToggle } from './components/measurement-unit-toggle';
+export type { MobileNavGridProps } from './components/mobile-nav-grid';
+export { MobileNavGrid } from './components/mobile-nav-grid';
 export { Modal } from './components/modal';
 export type {
   NavigationDropdownProps,
@@ -178,8 +180,10 @@ export { cn } from './lib/cn';
 export { colorMixOr, supportsColorMix } from './lib/color';
 export * from './lib/measurement';
 // Navigation
+export type { MobileNavItem } from './lib/navigation';
 export {
   allNavItems,
+  mobileNavItems,
   navItems,
   printingItems,
   ROUTE_DESCRIPTIONS,
