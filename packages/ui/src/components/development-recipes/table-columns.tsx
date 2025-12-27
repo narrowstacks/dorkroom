@@ -268,7 +268,12 @@ function IsoCellRenderer({
     >
       {shootingIso}
       {isNonBoxSpeed && (
-        <IsoIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <>
+          <IsoIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span className="text-xs">
+            {pushPull > 0 ? `+${pushPull}` : pushPull}
+          </span>
+        </>
       )}
     </span>
   );
@@ -296,33 +301,23 @@ export const createTableColumns = (
   {
     accessorKey: 'film',
     header: 'Film',
+    size: 280,
     cell: (context: CellContext<DevelopmentCombinationView, unknown>) => {
       const { combination, film } = context.row.original;
-      // Calculate pushPull from film box speed if available, otherwise use stored value
-      const pushPull = film?.isoSpeed
-        ? calculatePushPull(combination.shootingIso, film.isoSpeed)
-        : combination.pushPull;
       return (
-        <div>
-          <div
+        <div className="flex items-center gap-2">
+          <span
             style={{ color: 'var(--color-text-primary)' }}
-            className="font-medium"
+            className="font-medium whitespace-nowrap"
           >
             {film ? `${film.brand} ${film.name}` : 'Unknown film'}
-          </div>
-          <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-            {pushPull === 0
-              ? 'Box Speed'
-              : pushPull > 0
-                ? `Push +${pushPull}`
-                : `Pull ${pushPull}`}
-          </div>
+          </span>
           {combination.tags && combination.tags.length > 0 && (
-            <div className="mt-1 flex flex-nowrap gap-1">
+            <>
               {combination.tags.map((tag: string) => (
                 <Tag key={tag}>{tag}</Tag>
               ))}
-            </div>
+            </>
           )}
         </div>
       );
@@ -333,6 +328,7 @@ export const createTableColumns = (
   {
     accessorKey: 'developer',
     header: 'Developer',
+    size: 180,
     cell: (context: CellContext<DevelopmentCombinationView, unknown>) => {
       const { developer } = context.row.original;
       return (
@@ -357,6 +353,7 @@ export const createTableColumns = (
     id: 'combination.shootingIso',
     accessorFn: (row) => row.combination.shootingIso,
     header: 'ISO',
+    size: 100,
     cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => (
       <IsoCellRenderer cellContext={cellContext} />
     ),
@@ -367,6 +364,7 @@ export const createTableColumns = (
     id: 'combination.timeMinutes',
     accessorFn: (row) => row.combination.timeMinutes,
     header: 'Time',
+    size: 90,
     cell: (context: CellContext<DevelopmentCombinationView, unknown>) => {
       return (
         <div style={{ color: 'var(--color-text-primary)' }}>
@@ -381,6 +379,7 @@ export const createTableColumns = (
     id: 'combination.temperatureF',
     accessorFn: (row) => row.combination.temperatureF,
     header: 'Temp',
+    size: 80,
     cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => (
       <TemperatureCellRenderer cellContext={cellContext} />
     ),
@@ -391,6 +390,7 @@ export const createTableColumns = (
     id: 'combination.dilutionId',
     accessorFn: (row) => row.combination.dilutionId,
     header: 'Dilution',
+    size: 80,
     cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => {
       return (
         <div style={{ color: 'var(--color-text-primary)' }}>
@@ -404,16 +404,22 @@ export const createTableColumns = (
     id: 'combination.infoSource',
     accessorFn: (row) => row.combination.infoSource,
     header: 'Notes',
+    size: 50,
     cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => {
       const { combination } = cellContext.row.original;
       return (
-        <div style={{ color: 'var(--color-text-secondary)' }}>
+        <div>
           {combination.infoSource && (
             <a
               href={combination.infoSource}
               target="_blank"
               rel="noreferrer"
-              className="mt-2 inline-flex items-center gap-1 text-xs underline-offset-4 hover:underline"
+              title={
+                combination.infoSource.includes('filmdev.org')
+                  ? 'View on FilmDev.org'
+                  : 'View source'
+              }
+              className="inline-flex items-center"
               style={{ color: 'var(--color-text-tertiary)' }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.color = 'var(--color-text-primary)';
@@ -422,10 +428,7 @@ export const createTableColumns = (
                 e.currentTarget.style.color = 'var(--color-text-tertiary)';
               }}
             >
-              <ExternalLink className="h-3 w-3" aria-hidden="true" />{' '}
-              {combination.infoSource.includes('filmdev.org')
-                ? 'FilmDev.org'
-                : 'Source'}
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
             </a>
           )}
         </div>
@@ -436,6 +439,7 @@ export const createTableColumns = (
   {
     id: 'actions',
     header: 'Actions',
+    size: 100,
     cell: (cellCtx: CellContext<DevelopmentCombinationView, unknown>) => {
       const view = cellCtx.row.original;
       const isFav = context.isFavorite?.(view);

@@ -6,12 +6,12 @@
 /**
  * Estimated height for each table row in pixels.
  * Accounts for:
- * - Film info line (16px) + push/pull status (12px) + optional tags (24px)
- * - Developer info with optional custom badge
- * - Padding (16px top + 16px bottom)
- * Total: ~80px for typical row, may vary with tags
+ * - Film info line with inline tags (~24px)
+ * - Developer info (~24px)
+ * - Padding (8px top + 8px bottom)
+ * Total: ~48px for typical row
  */
-export const TABLE_ROW_ESTIMATED_HEIGHT = 80;
+export const TABLE_ROW_ESTIMATED_HEIGHT = 48;
 
 /**
  * Number of rows to render above/below the visible viewport.

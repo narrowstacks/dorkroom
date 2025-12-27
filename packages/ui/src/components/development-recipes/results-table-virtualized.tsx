@@ -264,7 +264,7 @@ export const DevelopmentResultsTableVirtualized: FC<
                             <td
                               key={cell.id}
                               className={cn(
-                                'py-4 align-top',
+                                'py-2 align-top',
                                 cell.column.id === 'film' && 'px-4',
                                 cell.column.id !== 'film' &&
                                   cell.column.id !== 'developer' &&
