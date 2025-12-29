@@ -54,19 +54,24 @@ export default defineConfig(() => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
-    minify: 'esbuild',
-    esbuild: {
-      drop: ['console', 'debugger'], // Remove console.* and debugger in production
-    },
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Separate vendor chunk for React and TanStack Router
-          'react-vendor': ['react', 'react-dom', '@tanstack/react-router'],
-          // Separate chunk for Lucide icons
-          'lucide-icons': ['lucide-react'],
-          // Separate chunk for logic/hooks
-          'logic-hooks': ['@dorkroom/logic'],
+        // Rolldown uses advancedChunks instead of manualChunks
+        advancedChunks: {
+          groups: [
+            {
+              name: 'react-vendor',
+              test: /[\\/]node_modules[\\/](react|react-dom|@tanstack[\\/]react-router)[\\/]/,
+            },
+            {
+              name: 'lucide-icons',
+              test: /[\\/]node_modules[\\/]lucide-react[\\/]/,
+            },
+            {
+              name: 'logic-hooks',
+              test: /[\\/]packages[\\/]logic[\\/]/,
+            },
+          ],
         },
       },
     },

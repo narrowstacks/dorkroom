@@ -27,34 +27,7 @@
     "useEditorconfig": true
   },
   "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "a11y": {
-        "useButtonType": "warn",
-        "noSvgWithoutTitle": "warn",
-        "useKeyWithClickEvents": "warn",
-        "noStaticElementInteractions": "warn",
-        "noLabelWithoutControl": "warn",
-        "useSemanticElements": "warn"
-      },
-      "correctness": {
-        "useExhaustiveDependencies": "warn",
-        "useHookAtTopLevel": "error",
-        "noUnusedFunctionParameters": "warn",
-        "noChildrenProp": "warn"
-      },
-      "suspicious": {
-        "noExplicitAny": "warn",
-        "noImplicitAnyLet": "warn",
-        "noArrayIndexKey": "warn",
-        "noAssignInExpressions": "warn",
-        "noControlCharactersInRegex": "warn"
-      },
-      "style": {
-        "noNonNullAssertion": "warn"
-      }
-    }
+    "enabled": false
   },
   "javascript": {
     "formatter": {

@@ -43,10 +43,10 @@
   },
   "type": "module",
   "scripts": {
-    "build": "tsc --project tsconfig.lib.json",
-    "lint": "biome check .",
+    "build": "bunx tsgo --project tsconfig.lib.json",
+    "lint": "bunx oxlint --type-aware .",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit --project tsconfig.json"
+    "typecheck": "bunx tsgo --noEmit --project tsconfig.json"
   },
   "devDependencies": {
     "@types/node": "^20.0.0"
