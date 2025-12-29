@@ -252,7 +252,7 @@ describe('useFilmDatabase', () => {
       // Verify alphabetical sorting by brand first
       const brands = result.current.films.map((f) => f.brand);
       const uniqueBrands = [...new Set(brands)];
-      const sortedBrands = [...uniqueBrands].sort();
+      const sortedBrands = [...uniqueBrands].sort((a, b) => a.localeCompare(b));
       expect(uniqueBrands).toEqual(sortedBrands);
 
       // First film should be from Fujifilm (alphabetically first)
@@ -263,7 +263,7 @@ describe('useFilmDatabase', () => {
         (f) => f.brand === 'Fujifilm'
       );
       const fujifilmNames = fujifilmFilms.map((f) => f.name);
-      const sortedNames = [...fujifilmNames].sort();
+      const sortedNames = [...fujifilmNames].sort((a, b) => a.localeCompare(b));
       expect(fujifilmNames).toEqual(sortedNames);
     });
 
@@ -857,7 +857,7 @@ describe('useFilmDatabase', () => {
 
       // Should be sorted alphabetically (after "All Brands")
       const brandValues = brands.slice(1).map((b) => b.value);
-      const sortedValues = [...brandValues].sort();
+      const sortedValues = [...brandValues].sort((a, b) => a.localeCompare(b));
       expect(brandValues).toEqual(sortedValues);
     });
 
