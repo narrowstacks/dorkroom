@@ -1,10 +1,8 @@
 import { expect, test } from '@chromatic-com/playwright';
 import { devices } from '@playwright/test';
 
-// biome-ignore lint/style/noNonNullAssertion: Well-known Playwright device descriptors always have viewport
-const MOBILE_VIEWPORT = devices['iPhone SE'].viewport!;
-// biome-ignore lint/style/noNonNullAssertion: Well-known Playwright device descriptors always have viewport
-const TABLET_VIEWPORT = devices['iPad Mini'].viewport!;
+const MOBILE_VIEWPORT = devices['iPhone SE'].viewport;
+const TABLET_VIEWPORT = devices['iPad Mini'].viewport;
 
 test.describe('Films Database', () => {
   test('renders correctly', async ({ page }) => {

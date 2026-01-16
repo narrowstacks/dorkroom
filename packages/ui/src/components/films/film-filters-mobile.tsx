@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- CSS custom properties extend CSSProperties */
 import type { SelectItem } from '@dorkroom/logic';
 import { ChevronDown, Search } from 'lucide-react';
 import { type FC, useState } from 'react';

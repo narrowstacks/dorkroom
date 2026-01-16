@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- Test file requires type assertions for mocking window/navigator */
 import {
   isIOS,
   isMobileDevice,
@@ -23,7 +24,7 @@ const createMockWindow = (overrides: Partial<MockWindow> = {}): MockWindow => {
     navigator: {
       userAgent: '',
       maxTouchPoints: 0,
-      ...(overrides.navigator as MockNavigator | undefined),
+      ...overrides.navigator,
     },
     innerWidth: 1920,
     innerHeight: 1080,

@@ -51,6 +51,7 @@ declare module '@tanstack/react-router' {
 }
 
 const root = ReactDOM.createRoot(
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- root element is guaranteed to exist in index.html
   document.getElementById('root') as HTMLElement
 );
 

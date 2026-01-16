@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- Test setup file requires type assertions for mocking global APIs */
 import '@testing-library/jest-dom';
 
 // Mock fetch globally

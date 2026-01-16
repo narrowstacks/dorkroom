@@ -109,6 +109,7 @@ export const useBorderCalculator = () => {
     ...imageHandling,
 
     /* geometry results */
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- explicit type to ensure interface conformance
     calculation: {
       leftBorder: calculation.leftBorder,
       rightBorder: calculation.rightBorder,

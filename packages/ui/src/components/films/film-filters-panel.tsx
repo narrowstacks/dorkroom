@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- CSS custom properties extend CSSProperties */
 import type { SelectItem } from '@dorkroom/logic';
 import { Search } from 'lucide-react';
 import { type FC, useRef } from 'react';

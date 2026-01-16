@@ -140,7 +140,7 @@ export const RecipeModals: FC<RecipeModalsProps> = (props) => {
         isOpen={isSharedRecipeModalOpen}
         onClose={onDeclineSharedRecipe}
         recipe={sharedRecipeView}
-        onAddToCollection={onAcceptSharedRecipe}
+        onAddToCollection={() => void onAcceptSharedRecipe()}
         isProcessing={isAddingSharedRecipe}
         recipeSource={sharedRecipeSource}
         variant={isMobile ? 'drawer' : 'modal'}
@@ -156,7 +156,7 @@ export const RecipeModals: FC<RecipeModalsProps> = (props) => {
       <FilmdevPreviewModal
         isOpen={isFilmdevPreviewOpen}
         onClose={onCloseFilmdevPreview}
-        onConfirm={onConfirmFilmdevImport}
+        onConfirm={() => void onConfirmFilmdevImport()}
         mappingResult={filmdevPreviewData}
         previewRecipe={filmdevPreviewRecipe}
         isProcessing={isImporting}

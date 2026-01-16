@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- Test file requires type assertions for mocking ResizeObserver and DOM elements */
 import type { Combination, Developer, Film } from '@dorkroom/api';
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { ColumnDef, Table } from '@tanstack/react-table';

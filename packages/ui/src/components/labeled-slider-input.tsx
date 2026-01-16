@@ -73,7 +73,7 @@ export function LabeledSliderInput({
   labels = [],
   className,
   warning = false,
-  continuousUpdate = false,
+  continuousUpdate: _continuousUpdate = false,
 }: LabeledSliderInputProps) {
   const [isFocused, setIsFocused] = useState(false);
   const inputId = useId();

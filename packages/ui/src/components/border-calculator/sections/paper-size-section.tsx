@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- CSS custom properties extend CSSProperties */
 import { ASPECT_RATIOS, PAPER_SIZES, type SelectItem } from '@dorkroom/logic';
 import type { AnyFormApi } from '@tanstack/react-form';
 import { RotateCw, Square, X } from 'lucide-react';

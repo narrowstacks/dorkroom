@@ -161,9 +161,11 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
                 }
                 onToggleFavorite={onToggleFavorite}
                 onShareCombination={onShareCombination}
-                onCopyCombination={onCopyCombination}
+                onCopyCombination={(view) => void onCopyCombination?.(view)}
                 onEditCustomRecipe={onEditCustomRecipe}
-                onDeleteCustomRecipe={onDeleteCustomRecipe}
+                onDeleteCustomRecipe={(recipe) =>
+                  void onDeleteCustomRecipe?.(recipe)
+                }
                 favoriteTransitions={favoriteTransitions}
                 scrollContainerRef={virtualScrollContainerRef}
                 selectedRecipeId={selectedRecipeId}

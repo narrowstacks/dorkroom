@@ -63,7 +63,7 @@ export function Drawer({
 
   return (
     <div className="fixed inset-0 z-50" style={{ height: '100dvh' }}>
-      {/* Backdrop */}
+      {/* Backdrop - eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- backdrop closes drawer on click, keyboard Escape handled by parent */}
       <div
         className={cn(
           'absolute inset-0 transition-opacity duration-300 h-full',
@@ -72,6 +72,7 @@ export function Drawer({
           isOpen ? 'opacity-100' : 'opacity-0'
         )}
         style={{ height: '100dvh' }}
+        role="presentation"
         onClick={onClose}
       />
 

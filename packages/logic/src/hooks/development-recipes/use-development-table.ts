@@ -45,7 +45,7 @@ const compareNumbers = (a?: number | null, b?: number | null) => {
   if (a === undefined || a === null || b === undefined || b === null) {
     return 0;
   }
-  return (a as number) - (b as number);
+  return a - b;
 };
 
 const createFavoriteAwareSortingFn = (

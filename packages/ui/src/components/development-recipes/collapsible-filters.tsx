@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- CSS custom properties extend CSSProperties */
 import type { CustomRecipeFilter, SelectItem } from '@dorkroom/logic';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';

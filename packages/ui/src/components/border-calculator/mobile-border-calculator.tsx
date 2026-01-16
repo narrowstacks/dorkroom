@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- Component uses CSS custom properties and SelectItem value casts */
 // Hooks
 import {
   type BorderCalculatorState,
@@ -148,10 +149,7 @@ export function MobileBorderCalculator({
   }, [form.setFieldValue]);
 
   // Subscribe to form changes for reactivity
-  const formValues = useStore(
-    form.store,
-    (state) => state.values as BorderCalculatorState
-  );
+  const formValues = useStore(form.store, (state) => state.values);
 
   const {
     aspectRatio,
@@ -436,9 +434,7 @@ export function MobileBorderCalculator({
 
   const presetsDisplayValue = useMemo(() => {
     if (!currentPreset) return 'Presets';
-    return currentPreset.name.length > 10
-      ? currentPreset.name
-      : `${currentPreset.name}`;
+    return currentPreset.name;
   }, [currentPreset]);
 
   const hasWarnings = Boolean(
@@ -816,7 +812,9 @@ export function MobileBorderCalculator({
 
             <button
               type="button"
-              onClick={handleShare}
+              onClick={() => {
+                void handleShare();
+              }}
               className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
                 !isHighContrast ? 'shadow-lg' : ''
               }`}

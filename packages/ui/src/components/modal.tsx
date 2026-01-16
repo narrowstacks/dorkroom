@@ -75,6 +75,7 @@ export function Modal({
   }
 
   return createPortal(
+    /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- backdrop click closes modal, keyboard Escape handled via useEffect */
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center px-4 backdrop-blur"
       style={{
@@ -85,8 +86,7 @@ export function Modal({
       aria-modal="true"
       onClick={onClose}
     >
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: modal content stops propagation to prevent closing when clicking inside */}
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard events handled by parent dialog */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- stops propagation to parent */}
       <div
         className={cn(
           'relative w-full rounded-2xl border p-6 shadow-xl backdrop-blur-lg animate-scale-fade-in',
@@ -97,6 +97,7 @@ export function Modal({
           backgroundColor: 'var(--color-surface)',
           color: 'var(--color-text-primary)',
         }}
+        role="presentation"
         onClick={(e) => e.stopPropagation()}
       >
         {!hideCloseButton && (

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- Test file requires type assertions for mocking window */
 import {
   clearPresetFromUrl,
   generateSharingUrls,
