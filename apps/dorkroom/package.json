@@ -3,6 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "license": "AGPL-3.0-only",
+  "dependencies": {
+    "@dorkroom/api": "workspace:*",
+    "@dorkroom/logic": "workspace:*",
+    "@dorkroom/ui": "workspace:*"
+  },
   "scripts": {
     "dev": "vite --host=0.0.0.0",
     "build": "vite build",
