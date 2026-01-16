@@ -56,6 +56,13 @@ export default defineConfig(() => ({
     },
     rollupOptions: {
       output: {
+        // Oxc minifier options - drop console.* and debugger in production
+        minify: {
+          compress: {
+            dropConsole: true,
+            dropDebugger: true,
+          },
+        },
         // Rolldown uses advancedChunks instead of manualChunks
         advancedChunks: {
           groups: [

@@ -12,6 +12,23 @@ Dorkroom is an analog photography calculator app. Turborepo monorepo with React 
 - `packages/api/` - API client and types (@dorkroom/api)
 - `api/` - Vercel serverless functions (proxy to Supabase)
 
+## Toolchain
+
+Modern Rust-based toolchain for fast builds:
+
+- **Bundler**: [Rolldown](https://rolldown.rs) via `rolldown-vite` (replaces Rollup/esbuild)
+- **Linter**: [Oxlint](https://oxc.rs/docs/guide/usage/linter) (replaces ESLint)
+- **Type Checker**: [tsgo](https://github.com/nicolo-ribaudo/ts-go) (TypeScript 7 preview)
+- **Formatter**: [Biome](https://biomejs.dev)
+
+**Key configs:**
+
+- `apps/dorkroom/vite.config.ts` - Rolldown minification with `dropConsole`/`dropDebugger`
+- `.oxlintrc.json` - Type-aware linting rules
+- `biome.json` - Formatting rules
+
+**Rollback**: To revert to the old toolchain, see the PR history for `feat/modern-toolchain`.
+
 ## Essential Commands
 
 ```bash
