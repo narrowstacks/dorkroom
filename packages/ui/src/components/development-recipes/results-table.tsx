@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- CSS custom properties extend CSSProperties */
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type {
   Cell,
@@ -151,9 +152,9 @@ export function DevelopmentResultsTable({
                   }
 
                   return (
-                    // biome-ignore lint/a11y/useSemanticElements: Table row uses ARIA role with keyboard support; can't use button inside table
                     <tr
                       key={row.id}
+                      // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- Table row uses ARIA role with keyboard support; button cannot be valid child of tbody
                       role="button"
                       tabIndex={0}
                       onClick={() => onSelectCombination?.(rowData)}

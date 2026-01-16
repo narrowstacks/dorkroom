@@ -6,7 +6,7 @@ import { colorMixOr } from '../lib/color';
 export interface SaveBeforeShareModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSaveAndShare: (presetName: string) => void;
+  onSaveAndShare: (presetName: string) => void | Promise<void>;
   isLoading?: boolean;
   error?: string | null;
 }
@@ -59,7 +59,7 @@ export function SaveBeforeShareModal({
     }
 
     setValidationError(null);
-    onSaveAndShare(trimmedName);
+    void onSaveAndShare(trimmedName);
   };
 
   const handleClose = () => {
@@ -80,13 +80,12 @@ export function SaveBeforeShareModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:items-center sm:p-0">
-        {/* Backdrop */}
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop closes modal on click */}
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard close handled by Escape key in parent */}
+        {/* Backdrop - eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- keyboard close handled by Escape key in useEffect */}
         <div
           className="fixed inset-0 backdrop-blur-sm transition-opacity"
           style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
           onClick={handleClose}
+          role="presentation"
         />
 
         {/* Modal */}
@@ -269,6 +268,7 @@ export function SaveBeforeShareModal({
                 disabled={isLoading}
                 className="mt-3 inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm focus:outline-none focus:ring-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 style={
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- extending CSSProperties with CSS custom properties
                   {
                     borderWidth: 1,
                     borderColor: 'var(--color-border-secondary)',

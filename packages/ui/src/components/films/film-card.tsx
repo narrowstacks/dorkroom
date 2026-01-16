@@ -35,8 +35,8 @@ const FilmCardComponent: FC<FilmCardProps> = ({
   );
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: Card uses ARIA role with keyboard support instead of button to avoid resetting button styles
     <div
+      // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- Card uses div with ARIA role for complex nested content; button element would require resetting all button styles
       role="button"
       tabIndex={0}
       aria-pressed={isSelected}

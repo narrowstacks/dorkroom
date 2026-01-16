@@ -6,6 +6,7 @@ export interface FeatureFlags {
 const isDevelopment =
   (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') ||
   (typeof window !== 'undefined' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- checking for dev flag on window object
     (window as unknown as { __DORKROOM_DEV__?: boolean }).__DORKROOM_DEV__ ===
       true);
 

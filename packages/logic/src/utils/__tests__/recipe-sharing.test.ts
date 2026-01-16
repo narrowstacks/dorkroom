@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- Test file requires type assertions for mocking JSON.stringify and testing invalid inputs */
 import { describe, expect, it, vi } from 'vitest';
 import type { CustomRecipe } from '../../types/custom-recipes';
 import {

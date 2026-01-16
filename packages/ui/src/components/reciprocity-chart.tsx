@@ -35,6 +35,11 @@ interface Point {
   y: number;
 }
 
+// Helper to determine if container is in "wide" mode (used for layout mode detection)
+const isWideModeLayout = (width: number): boolean => {
+  return width > 768; // Typical md breakpoint for Tailwind
+};
+
 // Chart configuration constants for maintainability and theming
 const CHART_CONFIG = {
   dimensions: {
@@ -308,11 +313,6 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
   // Flag to skip the initial resize observer callback (on mount)
   const isInitialMountRef = useRef(true);
 
-  // Helper to determine if container is in "wide" mode (used for layout mode detection)
-  const isWideModeLayout = (width: number): boolean => {
-    return width > 768; // Typical md breakpoint for Tailwind
-  };
-
   // Scroll chart into view only on intentional layout mode changes (not on initial render or generic window resizes)
   useEffect(() => {
     if (!chartContainerRef.current || !autoScrollOnResize) return;
@@ -370,7 +370,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
     return () => {
       resizeObserver.disconnect();
     };
-  }, [autoScrollOnResize, isWideModeLayout]);
+  }, [autoScrollOnResize]);
 
   return (
     <div className={className} ref={chartContainerRef}>
@@ -541,7 +541,6 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
         {/* Interactive hover points along the curve (15 second increments) */}
         {chartData.hoverPoints.map((point, i) => (
           <g key={`hover-${i}`}>
-            {/* Invisible larger circle for hover detection */}
             <circle
               cx={point.x}
               cy={point.y}
@@ -551,6 +550,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
               onMouseEnter={() => setHoveredPointIndex(i)}
               onMouseLeave={() => setHoveredPointIndex(null)}
               tabIndex={0}
+              // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- SVG circle element cannot be replaced with button; uses role="button" for accessibility
               role="button"
               aria-label={point.annotation}
               onFocus={() => {

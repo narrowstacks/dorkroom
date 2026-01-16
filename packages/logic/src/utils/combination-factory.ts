@@ -80,7 +80,7 @@ function validateNumericInputs(
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      // Return the first error message
+      // eslint-disable-next-line eslint/preserve-caught-error -- Return first error message; original ZodError details not needed in production
       throw new Error(error.issues[0].message);
     }
     throw error;

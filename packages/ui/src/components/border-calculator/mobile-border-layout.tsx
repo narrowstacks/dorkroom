@@ -167,9 +167,7 @@ export function MobileBorderLayout({
 
   const presetsDisplayValue = useMemo(() => {
     if (!currentPreset) return 'Presets';
-    return currentPreset.name.length > 10
-      ? currentPreset.name
-      : `${currentPreset.name}`;
+    return currentPreset.name;
   }, [currentPreset]);
 
   const hasWarnings = Boolean(

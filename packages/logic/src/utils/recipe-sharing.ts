@@ -167,6 +167,7 @@ export const decodeCustomRecipe = (
     }
 
     const jsonString = decodeBase64(base64);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- JSON.parse returns unknown, validated below
     const recipe = JSON.parse(jsonString) as EncodedCustomRecipe;
 
     if (

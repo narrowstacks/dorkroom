@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- Generic object comparison needs index access with Record type */
 /**
  * Efficiently compares two objects for shallow equality.
  * This is significantly faster than JSON.stringify for object comparison.
@@ -46,6 +47,7 @@ export function shallowEqual<T extends object>(
   // Since both objects have the same number of keys (verified above),
   // we only need to check that all values match for each key in obj1.
   for (const key of keys1) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- generic object comparison needs index access
     if (
       (obj1 as Record<string, unknown>)[key] !==
       (obj2 as Record<string, unknown>)[key]

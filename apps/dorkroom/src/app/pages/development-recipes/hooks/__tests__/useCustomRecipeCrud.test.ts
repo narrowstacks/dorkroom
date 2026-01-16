@@ -132,6 +132,9 @@ describe('useCustomRecipeCrud', () => {
   let mockShowToast: ReturnType<typeof vi.fn>;
   let mockGetFilmById: ReturnType<typeof vi.fn>;
   let mockGetDeveloperById: ReturnType<typeof vi.fn>;
+  let mockOpenDeleteConfirm: ReturnType<typeof vi.fn>;
+  let mockCloseDeleteConfirm: ReturnType<typeof vi.fn>;
+  let mockSetIsDeleting: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     mockSetIsCustomModalOpen = vi.fn();
@@ -147,6 +150,9 @@ describe('useCustomRecipeCrud', () => {
     mockShowToast = vi.fn();
     mockGetFilmById = vi.fn().mockReturnValue(mockFilm);
     mockGetDeveloperById = vi.fn().mockReturnValue(mockDeveloper);
+    mockOpenDeleteConfirm = vi.fn();
+    mockCloseDeleteConfirm = vi.fn();
+    mockSetIsDeleting = vi.fn();
   });
 
   describe('handleCustomRecipeSubmit', () => {
@@ -186,6 +192,10 @@ describe('useCustomRecipeCrud', () => {
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
           setIsDetailOpen: mockSetIsDetailOpen,
           setDetailView: mockSetDetailView,
+          deleteConfirmRecipe: null,
+          openDeleteConfirm: mockOpenDeleteConfirm,
+          closeDeleteConfirm: mockCloseDeleteConfirm,
+          setIsDeleting: mockSetIsDeleting,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
           customRecipeSharingEnabled: true,
@@ -245,6 +255,10 @@ describe('useCustomRecipeCrud', () => {
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
           setIsDetailOpen: mockSetIsDetailOpen,
           setDetailView: mockSetDetailView,
+          deleteConfirmRecipe: null,
+          openDeleteConfirm: mockOpenDeleteConfirm,
+          closeDeleteConfirm: mockCloseDeleteConfirm,
+          setIsDeleting: mockSetIsDeleting,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
           customRecipeSharingEnabled: true,
@@ -284,6 +298,10 @@ describe('useCustomRecipeCrud', () => {
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
           setIsDetailOpen: mockSetIsDetailOpen,
           setDetailView: mockSetDetailView,
+          deleteConfirmRecipe: null,
+          openDeleteConfirm: mockOpenDeleteConfirm,
+          closeDeleteConfirm: mockCloseDeleteConfirm,
+          setIsDeleting: mockSetIsDeleting,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
           customRecipeSharingEnabled: true,
@@ -321,6 +339,10 @@ describe('useCustomRecipeCrud', () => {
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
           setIsDetailOpen: mockSetIsDetailOpen,
           setDetailView: mockSetDetailView,
+          deleteConfirmRecipe: null,
+          openDeleteConfirm: mockOpenDeleteConfirm,
+          closeDeleteConfirm: mockCloseDeleteConfirm,
+          setIsDeleting: mockSetIsDeleting,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
           customRecipeSharingEnabled: false, // Sharing disabled
@@ -358,6 +380,10 @@ describe('useCustomRecipeCrud', () => {
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
           setIsDetailOpen: mockSetIsDetailOpen,
           setDetailView: mockSetDetailView,
+          deleteConfirmRecipe: null,
+          openDeleteConfirm: mockOpenDeleteConfirm,
+          closeDeleteConfirm: mockCloseDeleteConfirm,
+          setIsDeleting: mockSetIsDeleting,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
           customRecipeSharingEnabled: true,
@@ -395,6 +421,10 @@ describe('useCustomRecipeCrud', () => {
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
           setIsDetailOpen: mockSetIsDetailOpen,
           setDetailView: mockSetDetailView,
+          deleteConfirmRecipe: null,
+          openDeleteConfirm: mockOpenDeleteConfirm,
+          closeDeleteConfirm: mockCloseDeleteConfirm,
+          setIsDeleting: mockSetIsDeleting,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
           customRecipeSharingEnabled: true,
@@ -429,6 +459,10 @@ describe('useCustomRecipeCrud', () => {
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
           setIsDetailOpen: mockSetIsDetailOpen,
           setDetailView: mockSetDetailView,
+          deleteConfirmRecipe: null,
+          openDeleteConfirm: mockOpenDeleteConfirm,
+          closeDeleteConfirm: mockCloseDeleteConfirm,
+          setIsDeleting: mockSetIsDeleting,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
           customRecipeSharingEnabled: true,

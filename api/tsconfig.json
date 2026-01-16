@@ -13,11 +13,10 @@
     "outDir": "./dist",
     "declaration": true,
     "rootDir": "../",
-    "baseUrl": "../",
     "types": ["node"],
     "lib": ["es2020", "dom"],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["../*"]
     }
   },
   "include": ["**/*.ts", "../utils/**/*.ts"],

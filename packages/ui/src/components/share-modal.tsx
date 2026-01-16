@@ -78,10 +78,11 @@ export function ShareModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:items-center sm:p-0">
-        {/* Backdrop */}
+        {/* Backdrop - eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- backdrop closes modal on click, keyboard Escape handled in useEffect */}
         <div
           className="fixed inset-0 backdrop-blur-sm transition-opacity"
           style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
+          role="presentation"
           onClick={onClose}
         />
 
@@ -218,7 +219,9 @@ export function ShareModal({
                       {canShareNatively && onNativeShare && (
                         <div className="space-y-2">
                           <button
-                            onClick={handleNativeShare}
+                            onClick={() => {
+                              void handleNativeShare();
+                            }}
                             disabled={isSharing}
                             className={cn(
                               'w-full flex items-center justify-center px-4 py-2 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2'
@@ -291,6 +294,7 @@ export function ShareModal({
                       {/* Web URL Section */}
                       <div className="space-y-2">
                         <label
+                          htmlFor="share-modal-web-link"
                           className="block text-sm font-medium"
                           style={{ color: 'var(--color-text-primary)' }}
                         >
@@ -304,6 +308,7 @@ export function ShareModal({
                         </p>
                         <div className="flex space-x-2">
                           <input
+                            id="share-modal-web-link"
                             type="text"
                             value={displayUrl}
                             readOnly
@@ -317,7 +322,9 @@ export function ShareModal({
                           />
                           {canCopyToClipboard && (
                             <button
-                              onClick={handleCopyWeb}
+                              onClick={() => {
+                                void handleCopyWeb();
+                              }}
                               className={cn(
                                 'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2'
                               )}

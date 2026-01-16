@@ -397,7 +397,7 @@ export default function DevelopmentRecipesPage() {
             setEditingRecipe(null);
             setIsCustomModalOpen(true);
           }}
-          onRefresh={handleRefreshAll}
+          onRefresh={() => void handleRefreshAll()}
           isRefreshing={isRefreshingData}
           showImportButton={flags.RECIPE_IMPORT}
           isMobile={isMobile}
@@ -575,7 +575,7 @@ export default function DevelopmentRecipesPage() {
               }
               onEditCustomRecipe={handleEditCustomRecipe}
               onDeleteCustomRecipe={handleDeleteCustomRecipe}
-              onShareRecipe={handleShareCombination}
+              onShareRecipe={(view) => void handleShareCombination(view)}
               customRecipeSharingEnabled={flags.CUSTOM_RECIPE_SHARING}
             />
           </div>
@@ -626,7 +626,7 @@ export default function DevelopmentRecipesPage() {
         <ConfirmModal
           isOpen={isDeleteConfirmOpen}
           onClose={closeDeleteConfirm}
-          onConfirm={confirmDeleteCustomRecipe}
+          onConfirm={() => void confirmDeleteCustomRecipe()}
           title="Delete Recipe"
           message="Are you sure you want to delete this custom recipe? This action cannot be undone."
           confirmText="Delete"

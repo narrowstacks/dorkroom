@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- CSS custom properties extend CSSProperties */
 import type { CustomRecipeFilter, SelectItem } from '@dorkroom/logic';
 import { cn } from '../../lib/cn';
 import { SearchableSelect } from '../searchable-select';

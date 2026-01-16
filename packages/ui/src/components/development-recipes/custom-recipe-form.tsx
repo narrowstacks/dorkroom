@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- Component uses CSS custom properties that extend CSSProperties */
 import type { Developer, Film } from '@dorkroom/api';
 import {
   type CustomDeveloperData,
@@ -13,7 +14,7 @@ import { TextInput } from '../text-input';
 
 interface CustomRecipeFormProps {
   initialValue: CustomRecipeFormData;
-  onSubmit: (data: CustomRecipeFormData) => void;
+  onSubmit: (data: CustomRecipeFormData) => void | Promise<void>;
   onCancel?: () => void;
   filmOptions: SelectItem[];
   developerOptions: SelectItem[];
@@ -177,7 +178,7 @@ export function CustomRecipeForm({
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     // Include the calculated pushPull value in the submission
-    onSubmit({ ...formData, pushPull: calculatedPushPull });
+    void onSubmit({ ...formData, pushPull: calculatedPushPull });
   };
 
   return (

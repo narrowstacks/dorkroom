@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- CSS custom properties extend CSSProperties */
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import type { Cell, Header, HeaderGroup, Table } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
@@ -219,9 +220,9 @@ export const DevelopmentResultsTableVirtualized: FC<
                   const isSelected = id === selectedRecipeId;
 
                   return (
-                    // biome-ignore lint/a11y/useSemanticElements: Table row uses ARIA role with keyboard support for clickable behavior
                     <tr
                       key={row.id}
+                      // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- Table row uses ARIA role with keyboard support; button cannot be valid child of tbody
                       role="button"
                       tabIndex={0}
                       aria-pressed={isSelected}

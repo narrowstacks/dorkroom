@@ -5,7 +5,7 @@ import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 
 interface ImportRecipeFormProps {
-  onImport: (encoded: string) => void;
+  onImport: (encoded: string) => void | Promise<void>;
   onCancel?: () => void;
   isProcessing?: boolean;
   error?: string | null;
@@ -25,7 +25,7 @@ export function ImportRecipeForm({
       onChange: importRecipeSchema,
     },
     onSubmit: async ({ value }) => {
-      onImport(value.encoded.trim());
+      await onImport(value.encoded.trim());
     },
   });
 
@@ -34,7 +34,7 @@ export function ImportRecipeForm({
       onSubmit={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        form.handleSubmit();
+        void form.handleSubmit();
       }}
       className="space-y-4 text-sm text-white/80"
     >

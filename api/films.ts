@@ -200,6 +200,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       responseTime,
       true
     );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- API response structure matches expected shape
     const responseData = data as Record<string, unknown> | null;
     logApiResponse(requestId, 200, responseTime, {
       dataLength: Array.isArray(responseData?.data)

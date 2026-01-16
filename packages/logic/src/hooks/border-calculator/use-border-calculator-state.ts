@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- SelectItem values match predefined enum types */
 /* ------------------------------------------------------------------ *
    use-border-calculator-state.ts
    -------------------------------------------------------------
@@ -26,6 +27,7 @@ const createInitialState = (): BorderCalculatorState => {
     throw new Error('Invalid default values for aspect ratio or paper size');
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- SelectItem values match predefined AspectRatioValue/PaperSizeValue enums
   return {
     aspectRatio: aspectRatio.value as AspectRatioValue,
     paperSize: paperSize.value as PaperSizeValue,

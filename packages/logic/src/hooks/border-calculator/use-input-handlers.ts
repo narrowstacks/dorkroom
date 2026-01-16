@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- Set membership checks validate type casts */
 /* ------------------------------------------------------------------ *
    use-input-handlers.ts
    -------------------------------------------------------------
@@ -51,6 +52,7 @@ const VALID_PAPER_SIZES = new Set<PaperSizeValue>([
  * @returns The valid AspectRatioValue or null if invalid
  */
 function validateAspectRatio(value: string): AspectRatioValue | null {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- checking Set membership validates the cast
   if (VALID_ASPECT_RATIOS.has(value as AspectRatioValue)) {
     return value as AspectRatioValue;
   }
@@ -67,6 +69,7 @@ function validateAspectRatio(value: string): AspectRatioValue | null {
  * @returns The valid PaperSizeValue or null if invalid
  */
 function validatePaperSize(value: string): PaperSizeValue | null {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- checking Set membership validates the cast
   if (VALID_PAPER_SIZES.has(value as PaperSizeValue)) {
     return value as PaperSizeValue;
   }

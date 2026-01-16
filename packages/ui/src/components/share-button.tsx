@@ -148,11 +148,7 @@ export function ShareButton({
 
       // If the caller indicates a clipboard path or explicit toast, show it
       if (!shouldShowToast && resolved && typeof resolved === 'object') {
-        const shareResult = resolved as ShareResult;
-        if (
-          shareResult.showToast === true ||
-          shareResult.method === 'clipboard'
-        ) {
+        if (resolved.showToast === true || resolved.method === 'clipboard') {
           shouldShowToast = true;
         }
       }
@@ -178,7 +174,9 @@ export function ShareButton({
       <button
         ref={buttonRef}
         type="button"
-        onClick={handleClick}
+        onClick={() => {
+          void handleClick();
+        }}
         disabled={disabled || isLoading}
         className={baseClasses}
         aria-label={

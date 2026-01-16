@@ -117,9 +117,9 @@ export function DevelopmentResultsCards({
         }
 
         return (
-          // biome-ignore lint/a11y/useSemanticElements: Card uses ARIA role with keyboard support instead of button to avoid resetting button styles
           <div
             key={combination.uuid || combination.id}
+            // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- Card uses div with ARIA role for complex nested content; button element would require resetting all button styles
             role="button"
             tabIndex={0}
             onClick={() => onSelectCombination?.(rowData)}
@@ -413,8 +413,9 @@ export function DevelopmentResultsCards({
                     )}
                     {rowData.source !== 'custom' &&
                       (onShareCombination || onCopyCombination) && (
-                        // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent card
+                        // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- wrapper to stop event propagation to parent card
                         <span
+                          role="presentation"
                           onClick={(e) => e.stopPropagation()}
                           onKeyDown={(e) => e.stopPropagation()}
                         >
@@ -519,8 +520,9 @@ export function DevelopmentResultsCards({
                     </button>
                   </div>
                   {onShareCombination && (
-                    // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent card
+                    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- wrapper to stop event propagation to parent card
                     <span
+                      role="presentation"
                       onClick={(e) => e.stopPropagation()}
                       onKeyDown={(e) => e.stopPropagation()}
                     >

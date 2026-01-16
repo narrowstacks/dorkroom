@@ -33,6 +33,7 @@ export const getCustomRecipeFilm = (
 
   if (recipe.isCustomFilm && recipe.customFilm) {
     const now = new Date().toISOString();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- parseInt result with valid input is safe to cast
     return {
       id: parseInt(`${Date.now()}`, 10), // Generate a numeric ID
       uuid: `custom_film_${recipe.id}`,

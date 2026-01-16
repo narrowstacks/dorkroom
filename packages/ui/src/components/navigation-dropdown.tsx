@@ -37,6 +37,7 @@ export function NavigationDropdown({
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- event.target is EventTarget, need Node for contains()
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);

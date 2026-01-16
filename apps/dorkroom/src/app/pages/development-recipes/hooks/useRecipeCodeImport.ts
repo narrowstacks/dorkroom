@@ -91,8 +91,8 @@ export function useRecipeCodeImport({
                   importedRecipe.customDeveloper?.manufacturer || '',
                 name: importedRecipe.customDeveloper?.name || '',
                 type: importedRecipe.customDeveloper?.type || 'powder',
-                filmOrPaper: (importedRecipe.customDeveloper?.filmOrPaper ||
-                  'film') as 'film' | 'paper' | 'both',
+                filmOrPaper:
+                  importedRecipe.customDeveloper?.filmOrPaper || 'film',
                 workingLifeHours:
                   importedRecipe.customDeveloper?.workingLifeHours,
                 stockLifeMonths:

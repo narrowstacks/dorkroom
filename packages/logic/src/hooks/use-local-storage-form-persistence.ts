@@ -128,6 +128,7 @@ export function useLocalStorageFormPersistence<T extends object>(
 
   // Determine which keys to persist
   const keysToUse = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Object.keys returns string[], casting to keyof T for type safety
     return persistKeys ?? (Object.keys(formValues) as Array<keyof T>);
   }, [persistKeys, formValues]);
 
@@ -140,12 +141,11 @@ export function useLocalStorageFormPersistence<T extends object>(
       }
       return snapshot;
     },
-    // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally using dynamic deps array to track form value changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally using dynamic deps array to track form value changes
     keysToUse.map((key) => formValues[key])
   );
 
   // Hydrate from localStorage on mount (runs exactly once)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentional - only run once on mount
   useEffect(() => {
     if (
       hydrationRef.current ||
@@ -163,6 +163,7 @@ export function useLocalStorageFormPersistence<T extends object>(
         return;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- JSON.parse returns unknown, validated below
       const parsed = JSON.parse(raw) as Partial<T>;
       if (!parsed || typeof parsed !== 'object') {
         isHydratedRef.current = true;
@@ -186,7 +187,9 @@ export function useLocalStorageFormPersistence<T extends object>(
           ? fieldValidator.transform(value)
           : value;
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- value validated by fieldValidator
         form.setFieldValue(key, transformedValue as T[typeof key]);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- value validated by fieldValidator
         loadedValues[key] = transformedValue as T[typeof key];
       }
 
@@ -199,6 +202,7 @@ export function useLocalStorageFormPersistence<T extends object>(
       );
       isHydratedRef.current = true;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentional - only run once on mount
   }, [form.setFieldValue]);
 
   // Persist form state to localStorage whenever it changes

@@ -46,8 +46,7 @@ const parseSearchParams = (searchParams: URLSearchParams): RecipeUrlParams => {
           result.view = value;
         }
       } else {
-        result[key as Exclude<keyof RecipeUrlParams, 'source' | 'view'>] =
-          value;
+        result[key] = value;
       }
     }
   });
@@ -159,6 +158,7 @@ export const validateUrlParams = (
 
   if (params.dilution) {
     const isValidDilution = VALIDATION_CONFIG.dilutionPatterns.some((pattern) =>
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- params.dilution is truthy, safe to cast to string
       pattern.test(params.dilution as string)
     );
     if (isValidDilution) {
@@ -372,6 +372,7 @@ export const useRecipeUrlState = (
 
         Object.entries(mergedParams).forEach(([key, value]) => {
           if (value) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- RecipeUrlParams values are strings
             searchParams.set(key, value as string);
           }
         });
@@ -468,7 +469,7 @@ export const useRecipeUrlState = (
       }
     };
 
-    handleSharedRecipeLookup();
+    void handleSharedRecipeLookup();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     params,

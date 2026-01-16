@@ -43,7 +43,9 @@ export const RecipeDetailModal: FC<RecipeDetailModalProps> = ({
       <div className={isMobile ? 'flex flex-col gap-2' : 'flex gap-2 pt-4'}>
         <button
           type="button"
-          onClick={() => onShareRecipe(detailView)}
+          onClick={() => {
+            void onShareRecipe(detailView);
+          }}
           className={`${isMobile ? 'w-full' : 'flex-1'} rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-105`}
           style={{
             backgroundColor: 'var(--color-text-primary)',
@@ -54,7 +56,7 @@ export const RecipeDetailModal: FC<RecipeDetailModalProps> = ({
         </button>
         <button
           type="button"
-          onClick={() => onCopyRecipe(detailView)}
+          onClick={() => void onCopyRecipe(detailView)}
           className={`${isMobile ? 'w-full' : 'flex-1'} rounded-full px-4 py-2 text-sm font-medium transition`}
           style={{
             color: 'var(--color-text-secondary)',
@@ -80,14 +82,14 @@ export const RecipeDetailModal: FC<RecipeDetailModalProps> = ({
       <DevelopmentRecipeDetail
         view={detailView}
         onEditCustomRecipe={onEditCustomRecipe}
-        onDeleteCustomRecipe={onDeleteCustomRecipe}
+        onDeleteCustomRecipe={(recipe) => void onDeleteCustomRecipe(recipe)}
         isFavorite={(view) =>
           isFavorite(String(view.combination.uuid || view.combination.id))
         }
         onToggleFavorite={(view) =>
           toggleFavorite(String(view.combination.uuid || view.combination.id))
         }
-        onShareRecipe={onShareRecipe}
+        onShareRecipe={(view) => void onShareRecipe(view)}
       />
       {actionButtons}
     </ResponsiveModal>

@@ -34,7 +34,8 @@ export interface TemperatureData {
  */
 export const formatTemperature = (temperatureData: TemperatureData): string => {
   const fahrenheit = Number.isFinite(temperatureData.temperatureF)
-    ? (temperatureData.temperatureF as number)
+    ? // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Number.isFinite narrows to number but TS doesn't track this
+      (temperatureData.temperatureF as number)
     : null;
   const celsius = Number.isFinite(temperatureData.temperatureC ?? NaN)
     ? (temperatureData.temperatureC ?? null)

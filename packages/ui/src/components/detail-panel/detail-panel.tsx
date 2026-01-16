@@ -203,7 +203,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
   // Expanded full-screen modal view
   if (isExpanded) {
     return createPortal(
-      // biome-ignore lint/a11y/useKeyWithClickEvents: Escape key handled via useEffect hook
+      /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- Escape key handled via useEffect hook */
       <div
         className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8"
         style={{
@@ -215,8 +215,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
         aria-label={ariaLabel}
         onClick={handleCollapseModal}
       >
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: modal content stops propagation */}
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard events handled by parent */}
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- stops propagation to parent */}
         <div
           className="relative w-full max-w-4xl rounded-2xl border shadow-xl animate-scale-fade-in"
           style={{
@@ -225,6 +224,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
             color: 'var(--color-text-primary)',
             maxHeight: 'calc(100dvh - 4rem)',
           }}
+          role="presentation"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header with collapse button only (no need for two close buttons) */}
@@ -252,7 +252,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
   // Mobile bottom drawer
   if (isMobile) {
     return createPortal(
-      // biome-ignore lint/a11y/useKeyWithClickEvents: Escape key handled via useEffect hook
+      /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- Escape key handled via useEffect hook */
       <div
         className="fixed inset-0 z-[100] flex items-end"
         style={{
@@ -263,8 +263,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
         aria-modal="true"
         onClick={onClose}
       >
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: panel content stops propagation to prevent closing when clicking inside */}
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard events handled by parent dialog */}
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- stops propagation, drag functionality handled via touch/mouse events */}
         <div
           ref={panelRef}
           className="relative w-full rounded-t-3xl border border-b-0 shadow-xl transition-transform duration-300 ease-out"
@@ -275,6 +274,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
             maxHeight: '80vh',
             transform: `translateY(${dragOffset}px)`,
           }}
+          role="presentation"
           onClick={(e) => e.stopPropagation()}
           onTouchStart={(e) => handleDragStart(e.touches[0].clientY)}
           onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}

@@ -119,7 +119,7 @@ export function useAddCustomRecipe() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey });
+      void queryClient.invalidateQueries({ queryKey });
     },
   });
 }
@@ -190,7 +190,7 @@ export function useUpdateCustomRecipe() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey });
+      void queryClient.invalidateQueries({ queryKey });
     },
   });
 }
@@ -228,7 +228,7 @@ export function useDeleteCustomRecipe() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey });
+      void queryClient.invalidateQueries({ queryKey });
     },
   });
 }
@@ -257,7 +257,7 @@ export function useClearCustomRecipes() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey });
+      void queryClient.invalidateQueries({ queryKey });
     },
   });
 }

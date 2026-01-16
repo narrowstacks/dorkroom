@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- CSS custom properties extend CSSProperties */
 import {
   ASPECT_RATIOS,
   OFFSET_SLIDER_LABELS,

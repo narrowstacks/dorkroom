@@ -61,7 +61,7 @@ export function ConfirmModal({
   }
 
   return createPortal(
-    // biome-ignore lint/a11y/useKeyWithClickEvents: backdrop click closes modal, keyboard Escape handled separately
+    /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- backdrop click closes modal, keyboard Escape handled separately via useEffect */
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center px-4 backdrop-blur"
       style={{
@@ -72,8 +72,7 @@ export function ConfirmModal({
       aria-modal="true"
       onClick={onClose}
     >
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: modal content stops propagation */}
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard events handled by parent */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- stops propagation to parent, no interactive role needed */}
       <div
         className="relative w-full max-w-sm rounded-2xl border p-5 shadow-xl backdrop-blur-lg animate-scale-fade-in"
         style={{
@@ -81,6 +80,7 @@ export function ConfirmModal({
           backgroundColor: 'var(--color-surface)',
           color: 'var(--color-text-primary)',
         }}
+        role="presentation"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
