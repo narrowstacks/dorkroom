@@ -14,7 +14,7 @@
   },
   "scripts": {
     "build": "bunx tsgo --project tsconfig.lib.json",
-    "lint": "bunx oxlint --type-aware --react-plugin --jsx-a11y-plugin .",
+    "lint": "bunx oxlint --type-aware --tsconfig tsconfig.lib.json --react-plugin --jsx-a11y-plugin .",
     "test": "vitest run",
     "typecheck": "bunx tsgo --noEmit --project tsconfig.json"
   },

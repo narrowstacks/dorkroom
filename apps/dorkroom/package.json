@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host=0.0.0.0",
     "build": "vite build",
-    "lint": "bunx oxlint --type-aware --react-plugin --jsx-a11y-plugin .",
+    "lint": "bunx oxlint --type-aware --tsconfig tsconfig.app.json --react-plugin --jsx-a11y-plugin .",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",

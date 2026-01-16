@@ -44,7 +44,7 @@
   "type": "module",
   "scripts": {
     "build": "bunx tsgo --project tsconfig.lib.json",
-    "lint": "bunx oxlint --type-aware .",
+    "lint": "bunx oxlint --type-aware --tsconfig tsconfig.lib.json .",
     "test": "vitest run",
     "typecheck": "bunx tsgo --noEmit --project tsconfig.json"
   },
