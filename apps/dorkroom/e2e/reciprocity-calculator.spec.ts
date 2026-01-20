@@ -1,8 +1,12 @@
 import { expect, test } from '@chromatic-com/playwright';
 import { devices } from '@playwright/test';
 
+// Runtime checks ensure type safety - these devices are guaranteed to have viewports
 const MOBILE_VIEWPORT = devices['iPhone SE'].viewport;
 const TABLET_VIEWPORT = devices['iPad Mini'].viewport;
+if (!MOBILE_VIEWPORT || !TABLET_VIEWPORT) {
+  throw new Error('Missing viewport configuration for test devices');
+}
 
 test.describe('Reciprocity Calculator', () => {
   test('renders correctly', async ({ page }) => {

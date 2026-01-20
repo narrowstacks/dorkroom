@@ -56,13 +56,12 @@ export default defineConfig(() => ({
     },
     rollupOptions: {
       output: {
-        // Oxc minifier options - drop console.* and debugger in production
-        minify: {
-          compress: {
-            dropConsole: true,
-            dropDebugger: true,
-          },
-        },
+        // NOTE: Console/debugger dropping is not yet supported in rolldown-vite
+        // See: https://github.com/vitejs/rolldown-vite/discussions/302
+        // Rolldown removes debugger statements by default; console dropping
+        // will be available via build.rollupOptions.minify once implemented
+        // Tracking issue: https://github.com/rolldown/rolldown/issues/3637
+
         // Rolldown uses advancedChunks instead of manualChunks
         advancedChunks: {
           groups: [

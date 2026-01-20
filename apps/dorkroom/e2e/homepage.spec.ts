@@ -1,9 +1,12 @@
 import { expect, test } from '@chromatic-com/playwright';
 import { devices } from '@playwright/test';
 
-// Device viewports for responsive testing
+// Runtime checks ensure type safety - these devices are guaranteed to have viewports
 const MOBILE_VIEWPORT = devices['iPhone SE'].viewport;
 const TABLET_VIEWPORT = devices['iPad Mini'].viewport;
+if (!MOBILE_VIEWPORT || !TABLET_VIEWPORT) {
+  throw new Error('Missing viewport configuration for test devices');
+}
 
 // Note: Chromatic automatically captures screenshots at the end of each test.
 // We don't use Playwright's toHaveScreenshot() because it creates platform-specific
