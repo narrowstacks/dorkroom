@@ -13,10 +13,10 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsc --project tsconfig.lib.json",
-    "lint": "biome check .",
+    "build": "bunx tsgo --project tsconfig.lib.json",
+    "lint": "bunx oxlint --type-aware --tsconfig tsconfig.lib.json --react-plugin --jsx-a11y-plugin .",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit --project tsconfig.json"
+    "typecheck": "bunx tsgo --noEmit --project tsconfig.json"
   },
   "dependencies": {
     "@dorkroom/api": "workspace:*",

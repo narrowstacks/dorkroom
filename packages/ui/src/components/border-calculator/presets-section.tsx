@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- CSS custom properties extend CSSProperties */
 import type { BorderPresetSettings, SelectItem } from '@dorkroom/logic';
 import { Save, Share2, Trash2 } from 'lucide-react';
 import { CalculatorCard, Select, TextInput } from '../../index';

@@ -143,10 +143,7 @@ export default function ReciprocityCalculatorPage() {
   });
 
   // Subscribe to form values
-  const formValues = useStore(
-    form.store,
-    (state) => state.values as ReciprocityFormState
-  );
+  const formValues = useStore(form.store, (state) => state.values);
 
   // Persist and hydrate form state to/from localStorage
   useLocalStorageFormPersistence({

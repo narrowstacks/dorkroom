@@ -73,7 +73,7 @@ function RootComponent() {
   }, [isMobileMenuOpen]);
 
   const handleNavigate = (path: string) => {
-    router.navigate({ to: path });
+    void router.navigate({ to: path });
   };
 
   return (
@@ -251,7 +251,7 @@ function RootComponent() {
                   <MobileNavGrid
                     pathname={pathname}
                     onNavigate={(path) => {
-                      router.navigate({ to: path });
+                      void router.navigate({ to: path });
                       setIsMobileMenuOpen(false);
                     }}
                     onClose={() => setIsMobileMenuOpen(false)}

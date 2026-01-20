@@ -112,7 +112,7 @@ export const useDevelopmentRecipes = (
 
     // Filter for film developers only (filmOrPaper: true = film, false = paper)
     const developers = developersQuery.data.filter(
-      (developer: Developer) => developer.filmOrPaper === true
+      (developer: Developer) => developer.filmOrPaper
     );
 
     // Sort by manufacturer and name
@@ -143,12 +143,10 @@ export const useDevelopmentRecipes = (
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const [selectedFilm, setSelectedFilmState] = useState<Film | null>(
-    (initialUrlState?.selectedFilm as Film | undefined) || null
+    initialUrlState?.selectedFilm ?? null
   );
   const [selectedDeveloper, setSelectedDeveloperState] =
-    useState<Developer | null>(
-      (initialUrlState?.selectedDeveloper as Developer | undefined) || null
-    );
+    useState<Developer | null>(initialUrlState?.selectedDeveloper ?? null);
 
   const setSelectedFilm = useCallback((film: Film | null) => {
     setSelectedFilmState(film);
@@ -199,6 +197,7 @@ export const useDevelopmentRecipes = (
           ? err.message
           : 'Failed to refresh development data';
       debugError('❌ Refetch failed:', errorMessage, err);
+      // eslint-disable-next-line eslint/preserve-caught-error -- err is logged above; rethrow with cleaner message
       throw new Error(errorMessage);
     }
   }, [queryClient]);

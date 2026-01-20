@@ -6,6 +6,7 @@
 const DEBUG_ENABLED =
   (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') ||
   (typeof window !== 'undefined' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- checking for debug flag on window object
     (window as unknown as { __DORKROOM_DEBUG__?: boolean })
       .__DORKROOM_DEBUG__ === true);
 

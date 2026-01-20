@@ -12,6 +12,23 @@ Dorkroom is an analog photography calculator app. Turborepo monorepo with React 
 - `packages/api/` - API client and types (@dorkroom/api)
 - `api/` - Vercel serverless functions (proxy to Supabase)
 
+## Toolchain
+
+Modern Rust-based toolchain for fast builds:
+
+- **Bundler**: [Rolldown](https://rolldown.rs) via `rolldown-vite` (replaces Rollup/esbuild)
+- **Linter**: [Oxlint](https://oxc.rs/docs/guide/usage/linter) (replaces ESLint)
+- **Type Checker**: [tsgo](https://github.com/nicolo-ribaudo/ts-go) (TypeScript 7 preview)
+- **Formatter**: [Biome](https://biomejs.dev)
+
+**Key configs:**
+
+- `apps/dorkroom/vite.config.ts` - Rolldown bundling with `advancedChunks`
+- `.oxlintrc.json` - Type-aware linting rules
+- `biome.json` - Formatting rules
+
+**Rollback**: To revert to the old toolchain, see the PR history for `feat/modern-toolchain`.
+
 ## Essential Commands
 
 ```bash
@@ -19,12 +36,13 @@ Dorkroom is an analog photography calculator app. Turborepo monorepo with React 
 bun run dev                               # Start dev server (check port 4200 first!)
 bun run build                             # Build all packages
 
-# Verification (run before considering done)
-bun run test                              # Runs lint, test, build, typecheck
-bun run test:unit "pattern"               # Run only tests matching pattern
+# Before committing (run in this order)
+bun run test                              # 1. Runs lint, test, build, typecheck
+bun run format                            # 2. Format code (after test passes)
+# Then commit and push                    # 3. Commit only after test + format
 
-# Formatting (run after verification passes)
-bun run format
+# Run specific tests
+bun run test:unit "pattern"               # Run only tests matching pattern
 ```
 
 ## Documentation
@@ -57,3 +75,30 @@ bun run format
 ## Codebase Search
 
 For complex multi-file analysis, use the Task tool with `subagent_type=Explore` instead of manual tool chains.
+
+## Landing the Plane (Session Completion)
+
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**MANDATORY WORKFLOW:**
+
+1. **Run quality gates** (if code changed):
+   ```bash
+   bun run test                           # lint, test, build, typecheck
+   bun run format                         # format BEFORE committing
+   ```
+2. **Commit and PUSH TO REMOTE** - This is MANDATORY:
+   ```bash
+   git pull --rebase
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+3. **Clean up** - Clear stashes, prune remote branches
+4. **Verify** - All changes committed AND pushed
+5. **Hand off** - Provide context for next session
+
+**CRITICAL RULES:**
+- Work is NOT complete until `git push` succeeds
+- NEVER stop before pushing - that leaves work stranded locally
+- NEVER say "ready to push when you are" - YOU must push
+- If push fails, resolve and retry until it succeeds

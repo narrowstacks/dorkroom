@@ -1,5 +1,4 @@
 import {
-  type BorderCalculatorState,
   type BorderPresetSettings,
   borderCalculatorInitialState,
   borderCalculatorSchema,
@@ -48,10 +47,7 @@ export function useBorderCalculatorController() {
     },
   });
 
-  const formValues = useStore(
-    form.store,
-    (state) => state.values as BorderCalculatorState
-  );
+  const formValues = useStore(form.store, (state) => state.values);
 
   const {
     aspectRatio,

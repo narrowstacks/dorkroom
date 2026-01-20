@@ -466,8 +466,9 @@ export const createTableColumns = (
               isDarkroom={isDarkroom}
             />
             {context.onShareCombination && (
-              // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent row
+              // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- wrapper to stop event propagation to parent row
               <span
+                role="presentation"
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => e.stopPropagation()}
               >

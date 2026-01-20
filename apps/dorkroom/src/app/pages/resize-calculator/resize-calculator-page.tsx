@@ -333,9 +333,7 @@ export default function ResizeCalculatorPage() {
           )}
         </form.Field>
 
-        <form.Subscribe
-          selector={(state) => state.values.isEnlargerHeightMode as boolean}
-        >
+        <form.Subscribe selector={(state) => state.values.isEnlargerHeightMode}>
           {(isEnlargerHeightMode) =>
             !isEnlargerHeightMode ? (
               <div className="space-y-6">
@@ -510,11 +508,11 @@ export default function ResizeCalculatorPage() {
 
         <form.Subscribe
           selector={(state) => {
-            const isEnlargerMode = state.values.isEnlargerHeightMode as boolean;
-            const origWidth = state.values.originalWidth as number;
-            const origLength = state.values.originalLength as number;
-            const newW = state.values.newWidth as number;
-            const newL = state.values.newLength as number;
+            const isEnlargerMode = state.values.isEnlargerHeightMode;
+            const origWidth = state.values.originalWidth;
+            const origLength = state.values.originalLength;
+            const newW = state.values.newWidth;
+            const newL = state.values.newLength;
 
             const isMatched = calculateAspectRatioMatch(
               isEnlargerMode,
@@ -570,14 +568,14 @@ export default function ResizeCalculatorPage() {
 
       <form.Subscribe
         selector={(state) => {
-          const isEnlargerMode = state.values.isEnlargerHeightMode as boolean;
-          const origTime = state.values.originalTime as number;
-          const origWidth = state.values.originalWidth as number;
-          const origLength = state.values.originalLength as number;
-          const newW = state.values.newWidth as number;
-          const newL = state.values.newLength as number;
-          const origHeight = state.values.originalHeight as number;
-          const newH = state.values.newHeight as number;
+          const isEnlargerMode = state.values.isEnlargerHeightMode;
+          const origTime = state.values.originalTime;
+          const origWidth = state.values.originalWidth;
+          const origLength = state.values.originalLength;
+          const newW = state.values.newWidth;
+          const newL = state.values.newLength;
+          const origHeight = state.values.originalHeight;
+          const newH = state.values.newHeight;
 
           const { newTime, stopsDifference } = calculateExposureChanges(
             isEnlargerMode,

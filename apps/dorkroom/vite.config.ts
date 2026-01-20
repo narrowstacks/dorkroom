@@ -54,19 +54,30 @@ export default defineConfig(() => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
-    minify: 'esbuild',
-    esbuild: {
-      drop: ['console', 'debugger'], // Remove console.* and debugger in production
-    },
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Separate vendor chunk for React and TanStack Router
-          'react-vendor': ['react', 'react-dom', '@tanstack/react-router'],
-          // Separate chunk for Lucide icons
-          'lucide-icons': ['lucide-react'],
-          // Separate chunk for logic/hooks
-          'logic-hooks': ['@dorkroom/logic'],
+        // NOTE: Console/debugger dropping is not yet supported in rolldown-vite
+        // See: https://github.com/vitejs/rolldown-vite/discussions/302
+        // Rolldown removes debugger statements by default; console dropping
+        // will be available via build.rollupOptions.minify once implemented
+        // Tracking issue: https://github.com/rolldown/rolldown/issues/3637
+
+        // Rolldown uses advancedChunks instead of manualChunks
+        advancedChunks: {
+          groups: [
+            {
+              name: 'react-vendor',
+              test: /[\\/]node_modules[\\/](react|react-dom|@tanstack[\\/]react-router)[\\/]/,
+            },
+            {
+              name: 'lucide-icons',
+              test: /[\\/]node_modules[\\/]lucide-react[\\/]/,
+            },
+            {
+              name: 'logic-hooks',
+              test: /[\\/]packages[\\/]logic[\\/]/,
+            },
+          ],
         },
       },
     },

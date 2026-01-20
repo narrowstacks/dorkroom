@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- Number.isFinite narrows type but TS doesn't track this */
 export type TemperatureUnit = 'fahrenheit' | 'celsius';
 
 export const STANDARD_TEMP_F = 68;
@@ -32,6 +33,7 @@ export function formatTemperatureWithUnit(
   unit: TemperatureUnit,
   _highlight = false
 ): { text: string; isNonStandard: boolean; isHigher: boolean } {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Number.isFinite narrows to number but TS doesn't track this
   let fahrenheit = Number.isFinite(temperatureF)
     ? (temperatureF as number)
     : null;

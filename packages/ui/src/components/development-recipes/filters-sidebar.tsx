@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- CSS custom properties extend CSSProperties */
 import type { CustomRecipeFilter, SelectItem } from '@dorkroom/logic';
 import type { SortingState } from '@tanstack/react-table';
 import type { FC } from 'react';

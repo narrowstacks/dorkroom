@@ -60,7 +60,6 @@ export default function FilmsPage() {
   // Sync URL params to filter state when URL changes (back/forward navigation, bookmarks)
   // Only runs when URL params change - does NOT include state values in deps to avoid
   // clearing user input before the debounced URL sync fires
-  // biome-ignore lint/correctness/useExhaustiveDependencies: setters are stable refs, state values intentionally excluded
   useEffect(() => {
     // Only sync FROM URL when URL has a value and differs from current state
     // We don't clear state when URL is undefined - the debounced state→URL sync handles that
@@ -95,6 +94,7 @@ export default function FilmsPage() {
     ) {
       setDiscontinuedFilter(searchParams.status);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- setters are stable refs, state values intentionally excluded
   }, [
     searchParams.search,
     searchParams.color,
@@ -130,15 +130,15 @@ export default function FilmsPage() {
   }, [urlFilm, urlFilmSlug, isLoading]);
 
   // Debounced URL sync (500ms)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: navigate is stable from TanStack Router
   useEffect(() => {
     const timeout = setTimeout(() => {
-      navigate({
+      void navigate({
         to: '/films',
         search: {
           search: searchQuery || undefined,
           color: colorTypeFilter
-            ? (colorTypeFilter as 'bw' | 'color' | 'slide')
+            ? // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- colorTypeFilter values match route search params
+              (colorTypeFilter as 'bw' | 'color' | 'slide')
             : undefined,
           iso: isoSpeedFilter || undefined,
           brand: brandFilter || undefined,
@@ -150,6 +150,7 @@ export default function FilmsPage() {
     }, 500);
 
     return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate is stable from TanStack Router
   }, [
     searchQuery,
     colorTypeFilter,

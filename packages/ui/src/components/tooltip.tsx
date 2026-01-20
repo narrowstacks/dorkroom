@@ -17,6 +17,7 @@ export function Tooltip({
   const [isVisible, setIsVisible] = useState(false);
 
   return (
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- wrapper div for hover tooltip behavior, children handle interaction
     <div
       className={cn('relative inline-flex', className)}
       onMouseEnter={() => setIsVisible(true)}

@@ -129,6 +129,7 @@ export function createStorageManager<T>(
         return defaultValue;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- JSON.parse returns unknown, caller validates via schema
       return parsed as T;
     } catch (error) {
       debugError(`[${context}] Failed to parse stored data:`, error);

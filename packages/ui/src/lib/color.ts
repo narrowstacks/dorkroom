@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- checking for CSS.supports API availability */
 // Runtime detection for CSS color-mix support
 export const supportsColorMix: boolean =
   typeof CSS !== 'undefined' &&

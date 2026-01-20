@@ -136,6 +136,7 @@ export function SearchableSelect({
   // Scroll focused item into view
   useEffect(() => {
     if (focusedIndex >= 0 && listRef.current) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- children collection items are HTMLElements
       const focusedElement = listRef.current.children[
         focusedIndex
       ] as HTMLElement;
@@ -216,6 +217,7 @@ export function SearchableSelect({
         {isOpen && (
           <ul
             ref={listRef}
+            role="listbox"
             className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg border backdrop-blur-sm"
             style={{
               borderColor: 'var(--color-border-secondary)',
@@ -224,7 +226,9 @@ export function SearchableSelect({
           >
             {filteredItems.length === 0 ? (
               <li
-                aria-disabled
+                role="option"
+                aria-disabled="true"
+                aria-selected={false}
                 className="px-3 py-2 text-sm"
                 style={{ color: 'var(--color-text-muted)' }}
               >
@@ -234,6 +238,8 @@ export function SearchableSelect({
               filteredItems.map((item, index) => (
                 <li
                   key={item.value}
+                  role="option"
+                  aria-selected={item.value === selectedValue}
                   onClick={() => handleSelectItem(item)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
