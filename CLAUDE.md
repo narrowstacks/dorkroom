@@ -23,7 +23,7 @@ Modern Rust-based toolchain for fast builds:
 
 **Key configs:**
 
-- `apps/dorkroom/vite.config.ts` - Rolldown minification with `dropConsole`/`dropDebugger`
+- `apps/dorkroom/vite.config.ts` - Rolldown bundling with `advancedChunks`
 - `.oxlintrc.json` - Type-aware linting rules
 - `biome.json` - Formatting rules
 
@@ -36,12 +36,13 @@ Modern Rust-based toolchain for fast builds:
 bun run dev                               # Start dev server (check port 4200 first!)
 bun run build                             # Build all packages
 
-# Verification (run before considering done)
-bun run test                              # Runs lint, test, build, typecheck
-bun run test:unit "pattern"               # Run only tests matching pattern
+# Before committing (run in this order)
+bun run test                              # 1. Runs lint, test, build, typecheck
+bun run format                            # 2. Format code (after test passes)
+# Then commit and push                    # 3. Commit only after test + format
 
-# Formatting (run after verification passes)
-bun run format
+# Run specific tests
+bun run test:unit "pattern"               # Run only tests matching pattern
 ```
 
 ## Documentation
@@ -81,8 +82,12 @@ For complex multi-file analysis, use the Task tool with `subagent_type=Explore` 
 
 **MANDATORY WORKFLOW:**
 
-1. **Run quality gates** (if code changed) - Tests, linters, builds
-2. **PUSH TO REMOTE** - This is MANDATORY:
+1. **Run quality gates** (if code changed):
+   ```bash
+   bun run test                           # lint, test, build, typecheck
+   bun run format                         # format BEFORE committing
+   ```
+2. **Commit and PUSH TO REMOTE** - This is MANDATORY:
    ```bash
    git pull --rebase
    git push
