@@ -184,7 +184,7 @@ export default function LensCalculatorPage() {
             }
 
             const cropFactorRatio =
-              targetFormat.cropFactor / sourceFormat.cropFactor;
+              sourceFormat.cropFactor / targetFormat.cropFactor;
             const equivalentFocalLength = focalLength * cropFactorRatio;
             const fieldOfView =
               2 *

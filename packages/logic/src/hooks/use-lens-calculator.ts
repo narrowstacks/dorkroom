@@ -16,14 +16,16 @@ import { roundToStandardPrecision } from '../utils/precision';
 
 /**
  * Calculates the equivalent focal length when converting between formats
- * Formula: equivalent = focalLength * (targetCropFactor / sourceCropFactor)
+ * Formula: equivalent = focalLength * (sourceCropFactor / targetCropFactor)
+ *
+ * Example: 80mm on 6x6 (crop 0.55) to 35mm (crop 1.0) = 80 * (0.55 / 1.0) = 44mm
  */
 export const calculateEquivalentFocalLength = (
   focalLength: number,
   sourceFormat: SensorFormat,
   targetFormat: SensorFormat
 ): number => {
-  const cropFactorRatio = targetFormat.cropFactor / sourceFormat.cropFactor;
+  const cropFactorRatio = sourceFormat.cropFactor / targetFormat.cropFactor;
   return focalLength * cropFactorRatio;
 };
 
@@ -158,7 +160,7 @@ export const useLensCalculator = () => {
       targetFormat
     );
 
-    const cropFactorRatio = targetFormat.cropFactor / sourceFormat.cropFactor;
+    const cropFactorRatio = sourceFormat.cropFactor / targetFormat.cropFactor;
     const fieldOfView = calculateFieldOfView(focalLengthValue, sourceFormat);
 
     return {
