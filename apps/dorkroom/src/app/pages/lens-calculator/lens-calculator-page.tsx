@@ -197,17 +197,13 @@ export default function LensCalculatorPage() {
         <div className="space-y-4">
           <form.Field name="sourceFormat">
             {(field) => (
-              <div className="space-y-2">
-                <span className="block text-sm font-medium text-primary">
-                  Source format (your lens)
-                </span>
-                <Select
-                  value={field.state.value}
-                  onChange={(value) => field.handleChange(value)}
-                  options={formatOptions}
-                  aria-label="Source format"
-                />
-              </div>
+              <Select
+                label="Source format (your lens)"
+                selectedValue={field.state.value}
+                onValueChange={(value) => field.handleChange(value)}
+                items={formatOptions}
+                ariaLabel="Source format"
+              />
             )}
           </form.Field>
 
@@ -224,17 +220,13 @@ export default function LensCalculatorPage() {
 
           <form.Field name="targetFormat">
             {(field) => (
-              <div className="space-y-2">
-                <span className="block text-sm font-medium text-primary">
-                  Target format (equivalent on)
-                </span>
-                <Select
-                  value={field.state.value}
-                  onChange={(value) => field.handleChange(value)}
-                  options={formatOptions}
-                  aria-label="Target format"
-                />
-              </div>
+              <Select
+                label="Target format (equivalent on)"
+                selectedValue={field.state.value}
+                onValueChange={(value) => field.handleChange(value)}
+                items={formatOptions}
+                ariaLabel="Target format"
+              />
             )}
           </form.Field>
         </div>
