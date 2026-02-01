@@ -96,11 +96,11 @@ export const SENSOR_FORMATS: SensorFormat[] = [
   // Film 35mm (same as digital full frame)
   createFormat('film-35mm', '35mm Film', '35mm', 'film-35mm', 36, 24),
 
-  // Medium format film
+  // Medium format film (landscape orientation)
   createFormat('film-645', '6×4.5 (645)', '645', 'film-medium', 56, 41.5),
   createFormat('film-6x6', '6×6 (Square)', '6×6', 'film-medium', 56, 56),
-  createFormat('film-6x7', '6×7', '6×7', 'film-medium', 56, 70),
-  createFormat('film-6x9', '6×9', '6×9', 'film-medium', 56, 84),
+  createFormat('film-6x7', '6×7', '6×7', 'film-medium', 70, 56),
+  createFormat('film-6x9', '6×9', '6×9', 'film-medium', 84, 56),
 ];
 
 /**
