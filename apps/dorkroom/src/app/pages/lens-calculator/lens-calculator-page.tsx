@@ -205,6 +205,16 @@ export default function LensCalculatorPage() {
             calculation && (
               <>
                 <CalculatorCard
+                  title="Size comparison"
+                  description="Visual comparison of the two sensor/film formats."
+                >
+                  <SensorSizeVisualization
+                    sourceFormat={calculation.sourceFormat}
+                    targetFormat={calculation.targetFormat}
+                  />
+                </CalculatorCard>
+
+                <CalculatorCard
                   title="Equivalent focal length"
                   description="The focal length on the target format that gives the same field of view."
                   accent="emerald"
@@ -260,16 +270,6 @@ export default function LensCalculatorPage() {
                       value={`${calculation.cropFactorRatio.toFixed(3)}×`}
                     />
                   </div>
-                </CalculatorCard>
-
-                <CalculatorCard
-                  title="Size comparison"
-                  description="Visual comparison of the two sensor/film formats."
-                >
-                  <SensorSizeVisualization
-                    sourceFormat={calculation.sourceFormat}
-                    targetFormat={calculation.targetFormat}
-                  />
                 </CalculatorCard>
               </>
             )
