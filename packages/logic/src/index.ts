@@ -7,6 +7,7 @@ export * from './constants/calculations';
 export * from './constants/development-recipes';
 export * from './constants/exposure-calculator-defaults';
 export * from './constants/feature-flags';
+export * from './constants/lens-calculator-defaults';
 export * from './constants/reciprocity';
 export * from './constants/reciprocity-calculator-defaults';
 export * from './constants/resize-calculator';
@@ -75,6 +76,13 @@ export {
 } from './hooks/use-exposure-calculator';
 export { useFeatureFlags } from './hooks/use-feature-flags';
 export {
+  calculateEquivalentFocalLength,
+  calculateFieldOfView,
+  formatFocalLength,
+  type UseLensCalculatorReturn,
+  useLensCalculator,
+} from './hooks/use-lens-calculator';
+export {
   type FieldValidator,
   type LocalStorageFormPersistenceOptions,
   type LocalStorageFormPersistenceReturn,
@@ -106,6 +114,7 @@ export * from './types/border-calculator';
 export * from './types/custom-recipes';
 export * from './types/development-recipes-url';
 export * from './types/exposure-calculator';
+export * from './types/lens-calculator';
 export * from './types/reciprocity';
 // Utils exports
 export * from './utils/border-calculations';
