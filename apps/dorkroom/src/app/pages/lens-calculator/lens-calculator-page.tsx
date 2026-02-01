@@ -173,7 +173,111 @@ export default function LensCalculatorPage() {
       title="Lens Equivalency Calculator"
       description="Calculate equivalent focal lengths between different sensor and film formats. Find out what lens gives you the same field of view when switching between cameras or formats."
       sidebar={
-        <>
+        <form.Subscribe
+          selector={(state) => {
+            const focalLength = state.values.focalLength;
+            const sourceFormat = SENSOR_FORMAT_MAP[state.values.sourceFormat];
+            const targetFormat = SENSOR_FORMAT_MAP[state.values.targetFormat];
+
+            if (!sourceFormat || !targetFormat || focalLength <= 0) {
+              return null;
+            }
+
+            const cropFactorRatio =
+              targetFormat.cropFactor / sourceFormat.cropFactor;
+            const equivalentFocalLength = focalLength * cropFactorRatio;
+            const fieldOfView =
+              2 *
+              Math.atan(sourceFormat.diagonal / (2 * focalLength)) *
+              (180 / Math.PI);
+
+            return {
+              focalLength,
+              equivalentFocalLength,
+              sourceFormat,
+              targetFormat,
+              cropFactorRatio,
+              fieldOfView,
+            };
+          }}
+        >
+          {(calculation) =>
+            calculation && (
+              <>
+                <CalculatorCard
+                  title="Equivalent focal length"
+                  description="The focal length on the target format that gives the same field of view."
+                  accent="emerald"
+                  padding="compact"
+                >
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <CalculatorStat
+                      label="Equivalent focal length"
+                      value={formatFocalLength(
+                        calculation.equivalentFocalLength
+                      )}
+                      helperText={`On ${calculation.targetFormat.shortName}`}
+                      tone="default"
+                    />
+                    <CalculatorStat
+                      label="Field of view"
+                      value={`${calculation.fieldOfView.toFixed(1)}°`}
+                      helperText="Diagonal angle"
+                    />
+                  </div>
+
+                  <div className="rounded-2xl p-4 font-mono text-sm border border-secondary bg-background/20 text-primary">
+                    {formatFocalLength(calculation.focalLength)}
+                    <span className="text-tertiary"> on </span>
+                    <span className="font-medium">
+                      {calculation.sourceFormat.shortName}
+                    </span>
+                    <span className="text-tertiary"> = </span>
+                    <span className="font-semibold">
+                      {formatFocalLength(calculation.equivalentFocalLength)}
+                    </span>
+                    <span className="text-tertiary"> on </span>
+                    <span className="font-medium">
+                      {calculation.targetFormat.shortName}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <ResultRow
+                      label="Source focal length"
+                      value={formatFocalLength(calculation.focalLength)}
+                    />
+                    <ResultRow
+                      label="Source crop factor"
+                      value={`${calculation.sourceFormat.cropFactor.toFixed(2)}×`}
+                    />
+                    <ResultRow
+                      label="Target crop factor"
+                      value={`${calculation.targetFormat.cropFactor.toFixed(2)}×`}
+                    />
+                    <ResultRow
+                      label="Conversion ratio"
+                      value={`${calculation.cropFactorRatio.toFixed(3)}×`}
+                    />
+                  </div>
+                </CalculatorCard>
+
+                <CalculatorCard
+                  title="Size comparison"
+                  description="Visual comparison of the two sensor/film formats."
+                >
+                  <SensorSizeVisualization
+                    sourceFormat={calculation.sourceFormat}
+                    targetFormat={calculation.targetFormat}
+                  />
+                </CalculatorCard>
+              </>
+            )
+          }
+        </form.Subscribe>
+      }
+      footer={
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
           <CalculatorCard
             title="How to use this calculator"
             description="A quick guide to finding equivalent focal lengths across different sensor sizes."
@@ -187,7 +291,7 @@ export default function LensCalculatorPage() {
           >
             <InfoCardList items={LENS_INSIGHTS} variant="insight" />
           </CalculatorCard>
-        </>
+        </div>
       }
     >
       <CalculatorCard
@@ -270,107 +374,6 @@ export default function LensCalculatorPage() {
           </div>
         </fieldset>
       </CalculatorCard>
-
-      <form.Subscribe
-        selector={(state) => {
-          const focalLength = state.values.focalLength;
-          const sourceFormat = SENSOR_FORMAT_MAP[state.values.sourceFormat];
-          const targetFormat = SENSOR_FORMAT_MAP[state.values.targetFormat];
-
-          if (!sourceFormat || !targetFormat || focalLength <= 0) {
-            return null;
-          }
-
-          const cropFactorRatio =
-            targetFormat.cropFactor / sourceFormat.cropFactor;
-          const equivalentFocalLength = focalLength * cropFactorRatio;
-          const fieldOfView =
-            2 *
-            Math.atan(sourceFormat.diagonal / (2 * focalLength)) *
-            (180 / Math.PI);
-
-          return {
-            focalLength,
-            equivalentFocalLength,
-            sourceFormat,
-            targetFormat,
-            cropFactorRatio,
-            fieldOfView,
-          };
-        }}
-      >
-        {(calculation) =>
-          calculation && (
-            <>
-              <CalculatorCard
-                title="Equivalent focal length"
-                description="The focal length on the target format that gives the same field of view."
-                accent="emerald"
-                padding="compact"
-              >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <CalculatorStat
-                    label="Equivalent focal length"
-                    value={formatFocalLength(calculation.equivalentFocalLength)}
-                    helperText={`On ${calculation.targetFormat.shortName}`}
-                    tone="default"
-                  />
-                  <CalculatorStat
-                    label="Field of view"
-                    value={`${calculation.fieldOfView.toFixed(1)}°`}
-                    helperText="Diagonal angle"
-                  />
-                </div>
-
-                <div className="rounded-2xl p-4 font-mono text-sm border border-secondary bg-background/20 text-primary">
-                  {formatFocalLength(calculation.focalLength)}
-                  <span className="text-tertiary"> on </span>
-                  <span className="font-medium">
-                    {calculation.sourceFormat.shortName}
-                  </span>
-                  <span className="text-tertiary"> = </span>
-                  <span className="font-semibold">
-                    {formatFocalLength(calculation.equivalentFocalLength)}
-                  </span>
-                  <span className="text-tertiary"> on </span>
-                  <span className="font-medium">
-                    {calculation.targetFormat.shortName}
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  <ResultRow
-                    label="Source focal length"
-                    value={formatFocalLength(calculation.focalLength)}
-                  />
-                  <ResultRow
-                    label="Source crop factor"
-                    value={`${calculation.sourceFormat.cropFactor.toFixed(2)}×`}
-                  />
-                  <ResultRow
-                    label="Target crop factor"
-                    value={`${calculation.targetFormat.cropFactor.toFixed(2)}×`}
-                  />
-                  <ResultRow
-                    label="Conversion ratio"
-                    value={`${calculation.cropFactorRatio.toFixed(3)}×`}
-                  />
-                </div>
-              </CalculatorCard>
-
-              <CalculatorCard
-                title="Size comparison"
-                description="Visual comparison of the two sensor/film formats."
-              >
-                <SensorSizeVisualization
-                  sourceFormat={calculation.sourceFormat}
-                  targetFormat={calculation.targetFormat}
-                />
-              </CalculatorCard>
-            </>
-          )
-        }
-      </form.Subscribe>
     </CalculatorLayout>
   );
 }
