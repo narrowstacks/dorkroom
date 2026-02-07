@@ -248,114 +248,95 @@ export default function LensCalculatorPage() {
           </div>
         </CalculatorCard>
 
-        {/* Column 2: Visualization + Results */}
-        <div className="space-y-6">
-          {/* Visualization */}
-          <form.Subscribe
-            selector={(state) => {
-              const sourceFormat = SENSOR_FORMAT_MAP[state.values.sourceFormat];
-              const targetFormat = SENSOR_FORMAT_MAP[state.values.targetFormat];
-              if (!sourceFormat || !targetFormat) return null;
-              return { sourceFormat, targetFormat };
-            }}
-          >
-            {(formats) =>
-              formats && (
-                <CalculatorCard title="Size Comparison">
-                  <div className="flex items-center justify-center">
-                    <SensorSizeVisualization
-                      sourceFormat={formats.sourceFormat}
-                      targetFormat={formats.targetFormat}
-                    />
-                  </div>
-                </CalculatorCard>
-              )
+        {/* Column 2: Visualization + Results in single card */}
+        <form.Subscribe
+          selector={(state) => {
+            const focalLength = state.values.focalLength;
+            const sourceFormat = SENSOR_FORMAT_MAP[state.values.sourceFormat];
+            const targetFormat = SENSOR_FORMAT_MAP[state.values.targetFormat];
+
+            if (!sourceFormat || !targetFormat || focalLength <= 0) {
+              return null;
             }
-          </form.Subscribe>
 
-          {/* Results */}
-          <form.Subscribe
-            selector={(state) => {
-              const focalLength = state.values.focalLength;
-              const sourceFormat = SENSOR_FORMAT_MAP[state.values.sourceFormat];
-              const targetFormat = SENSOR_FORMAT_MAP[state.values.targetFormat];
+            const cropFactorRatio =
+              sourceFormat.cropFactor / targetFormat.cropFactor;
+            const equivalentFocalLength = focalLength * cropFactorRatio;
+            const fieldOfView =
+              2 *
+              Math.atan(sourceFormat.diagonal / (2 * focalLength)) *
+              (180 / Math.PI);
 
-              if (!sourceFormat || !targetFormat || focalLength <= 0) {
-                return null;
-              }
+            return {
+              focalLength,
+              equivalentFocalLength,
+              sourceFormat,
+              targetFormat,
+              cropFactorRatio,
+              fieldOfView,
+            };
+          }}
+        >
+          {(calculation) =>
+            calculation && (
+              <CalculatorCard
+                title="Equivalent Focal Length"
+                accent="emerald"
+                padding="compact"
+              >
+                {/* Visualization */}
+                <div className="flex items-center justify-center pb-4 border-b border-secondary">
+                  <SensorSizeVisualization
+                    sourceFormat={calculation.sourceFormat}
+                    targetFormat={calculation.targetFormat}
+                  />
+                </div>
 
-              const cropFactorRatio =
-                sourceFormat.cropFactor / targetFormat.cropFactor;
-              const equivalentFocalLength = focalLength * cropFactorRatio;
-              const fieldOfView =
-                2 *
-                Math.atan(sourceFormat.diagonal / (2 * focalLength)) *
-                (180 / Math.PI);
+                {/* Results */}
+                <div className="grid gap-3 grid-cols-2 pt-4">
+                  <CalculatorStat
+                    label="Equivalent"
+                    value={formatFocalLength(calculation.equivalentFocalLength)}
+                    helperText={`On ${calculation.targetFormat.shortName}`}
+                    tone="default"
+                  />
+                  <CalculatorStat
+                    label="Field of view"
+                    value={`${calculation.fieldOfView.toFixed(1)}°`}
+                    helperText="Diagonal"
+                  />
+                </div>
 
-              return {
-                focalLength,
-                equivalentFocalLength,
-                sourceFormat,
-                targetFormat,
-                cropFactorRatio,
-                fieldOfView,
-              };
-            }}
-          >
-            {(calculation) =>
-              calculation && (
-                <CalculatorCard
-                  title="Equivalent Focal Length"
-                  accent="emerald"
-                  padding="compact"
-                >
-                  <div className="grid gap-3 grid-cols-2">
-                    <CalculatorStat
-                      label="Equivalent"
-                      value={formatFocalLength(
-                        calculation.equivalentFocalLength
-                      )}
-                      helperText={`On ${calculation.targetFormat.shortName}`}
-                      tone="default"
-                    />
-                    <CalculatorStat
-                      label="Field of view"
-                      value={`${calculation.fieldOfView.toFixed(1)}°`}
-                      helperText="Diagonal"
-                    />
-                  </div>
+                <div className="rounded-xl p-3 font-mono text-sm border border-secondary bg-background/20 text-primary text-center">
+                  {formatFocalLength(calculation.focalLength)}
+                  <span className="text-tertiary"> on </span>
+                  <span className="font-medium">
+                    {calculation.sourceFormat.shortName}
+                  </span>
+                  <span className="text-tertiary"> = </span>
+                  <span className="font-semibold">
+                    {formatFocalLength(calculation.equivalentFocalLength)}
+                  </span>
+                  <span className="text-tertiary"> on </span>
+                  <span className="font-medium">
+                    {calculation.targetFormat.shortName}
+                  </span>
+                </div>
 
-                  <div className="rounded-xl p-3 font-mono text-sm border border-secondary bg-background/20 text-primary text-center">
-                    {formatFocalLength(calculation.focalLength)}
-                    <span className="text-tertiary"> on </span>
-                    <span className="font-medium">
-                      {calculation.sourceFormat.shortName}
-                    </span>
-                    <span className="text-tertiary"> = </span>
-                    <span className="font-semibold">
-                      {formatFocalLength(calculation.equivalentFocalLength)}
-                    </span>
-                    <span className="text-tertiary"> on </span>
-                    <span className="font-medium">
-                      {calculation.targetFormat.shortName}
-                    </span>
-                  </div>
-
-                  <div className="space-y-1.5 text-sm">
-                    <ResultRow
-                      label="Source crop factor"
-                      value={`${calculation.sourceFormat.cropFactor.toFixed(2)}×`}
-                    />
-                    <ResultRow
-                      label="Target crop factor"
-                      value={`${calculation.targetFormat.cropFactor.toFixed(2)}×`}
-                    />
-                  </div>
-                </CalculatorCard>
-              )
-            }
-          </form.Subscribe>
-        </div>
+                <div className="space-y-1.5 text-sm">
+                  <ResultRow
+                    label="Source crop factor"
+                    value={`${calculation.sourceFormat.cropFactor.toFixed(2)}×`}
+                  />
+                  <ResultRow
+                    label="Target crop factor"
+                    value={`${calculation.targetFormat.cropFactor.toFixed(2)}×`}
+                  />
+                </div>
+              </CalculatorCard>
+            )
+          }
+        </form.Subscribe>
       </div>
 
       {/* Footer info cards */}
