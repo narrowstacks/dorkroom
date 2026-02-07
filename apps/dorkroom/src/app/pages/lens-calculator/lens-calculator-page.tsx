@@ -20,7 +20,7 @@ import {
 } from '@dorkroom/ui';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
-import { ArrowLeftRight } from 'lucide-react';
+import { ArrowRightLeft } from 'lucide-react';
 import type { FC } from 'react';
 
 const validateLensForm = createZodFormValidator(lensCalculatorSchema);
@@ -102,7 +102,7 @@ const FocalLengthPresetButton: FC<FocalLengthPresetButtonProps> = ({
   <button
     type="button"
     onClick={() => onClick(value)}
-    className="rounded-lg px-3 py-2 text-sm font-medium transition-colors border min-w-[50px] themed-button"
+    className="rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors border min-w-[44px] themed-button"
   >
     {label}
   </button>
@@ -204,25 +204,20 @@ export default function LensCalculatorPage() {
           {(calculation) =>
             calculation && (
               <>
-                <CalculatorCard
-                  title="Size comparison"
-                  description="Visual comparison of the two sensor/film formats."
-                >
-                  <SensorSizeVisualization
-                    sourceFormat={calculation.sourceFormat}
-                    targetFormat={calculation.targetFormat}
-                  />
-                </CalculatorCard>
+                <SensorSizeVisualization
+                  sourceFormat={calculation.sourceFormat}
+                  targetFormat={calculation.targetFormat}
+                  className="mb-6"
+                />
 
                 <CalculatorCard
                   title="Equivalent focal length"
-                  description="The focal length on the target format that gives the same field of view."
                   accent="emerald"
                   padding="compact"
                 >
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-3 grid-cols-2">
                     <CalculatorStat
-                      label="Equivalent focal length"
+                      label="Equivalent"
                       value={formatFocalLength(
                         calculation.equivalentFocalLength
                       )}
@@ -232,11 +227,11 @@ export default function LensCalculatorPage() {
                     <CalculatorStat
                       label="Field of view"
                       value={`${calculation.fieldOfView.toFixed(1)}°`}
-                      helperText="Diagonal angle"
+                      helperText="Diagonal"
                     />
                   </div>
 
-                  <div className="rounded-2xl p-4 font-mono text-sm border border-secondary bg-background/20 text-primary">
+                  <div className="rounded-xl p-3 font-mono text-sm border border-secondary bg-background/20 text-primary text-center">
                     {formatFocalLength(calculation.focalLength)}
                     <span className="text-tertiary"> on </span>
                     <span className="font-medium">
@@ -252,11 +247,7 @@ export default function LensCalculatorPage() {
                     </span>
                   </div>
 
-                  <div className="space-y-2">
-                    <ResultRow
-                      label="Source focal length"
-                      value={formatFocalLength(calculation.focalLength)}
-                    />
+                  <div className="space-y-1.5 text-sm">
                     <ResultRow
                       label="Source crop factor"
                       value={`${calculation.sourceFormat.cropFactor.toFixed(2)}×`}
@@ -264,10 +255,6 @@ export default function LensCalculatorPage() {
                     <ResultRow
                       label="Target crop factor"
                       value={`${calculation.targetFormat.cropFactor.toFixed(2)}×`}
-                    />
-                    <ResultRow
-                      label="Conversion ratio"
-                      value={`${calculation.cropFactorRatio.toFixed(3)}×`}
                     />
                   </div>
                 </CalculatorCard>
@@ -294,85 +281,76 @@ export default function LensCalculatorPage() {
         </div>
       }
     >
-      <CalculatorCard
-        title="Format selection"
-        description="Choose your source and target sensor or film formats."
-      >
+      <CalculatorCard title="Lens & Format">
         <div className="space-y-4">
-          <form.Field name="sourceFormat">
-            {(field) => (
-              <Select
-                label="Source format (your lens)"
-                selectedValue={field.state.value}
-                onValueChange={(value) => field.handleChange(value)}
-                items={formatOptions}
-                ariaLabel="Source format"
-              />
-            )}
-          </form.Field>
+          {/* Focal length input with presets */}
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <form.Field name="focalLength">
+                {(field) => (
+                  <CalculatorNumberField
+                    label="Focal length (mm)"
+                    value={String(field.state.value)}
+                    onChange={(value: string) => {
+                      const parsed = parseFloat(value);
+                      const finiteValue = Number.isFinite(parsed) ? parsed : 0;
+                      field.handleChange(finiteValue);
+                    }}
+                    onBlur={field.handleBlur}
+                    placeholder="50"
+                    step={1}
+                  />
+                )}
+              </form.Field>
+            </div>
+            <div className="flex gap-1.5 pb-0.5">
+              {FOCAL_LENGTH_PRESETS.map((preset) => (
+                <FocalLengthPresetButton
+                  key={preset.value}
+                  value={preset.value}
+                  label={preset.label}
+                  onClick={handlePresetClick}
+                />
+              ))}
+            </div>
+          </div>
 
-          <div className="flex justify-center">
+          {/* Format selection row */}
+          <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-end">
+            <form.Field name="sourceFormat">
+              {(field) => (
+                <Select
+                  label="Source format"
+                  selectedValue={field.state.value}
+                  onValueChange={(value) => field.handleChange(value)}
+                  items={formatOptions}
+                  ariaLabel="Source format"
+                />
+              )}
+            </form.Field>
+
             <button
               type="button"
               onClick={handleSwapFormats}
-              className="p-2 rounded-lg border transition-colors themed-button hover:bg-surface-elevated"
+              className="p-2 mb-0.5 rounded-lg border transition-colors themed-button hover:bg-surface-elevated"
               aria-label="Swap source and target formats"
             >
-              <ArrowLeftRight className="w-5 h-5" />
+              <ArrowRightLeft className="w-4 h-4" />
             </button>
-          </div>
 
-          <form.Field name="targetFormat">
-            {(field) => (
-              <Select
-                label="Target format (equivalent on)"
-                selectedValue={field.state.value}
-                onValueChange={(value) => field.handleChange(value)}
-                items={formatOptions}
-                ariaLabel="Target format"
-              />
-            )}
-          </form.Field>
+            <form.Field name="targetFormat">
+              {(field) => (
+                <Select
+                  label="Target format"
+                  selectedValue={field.state.value}
+                  onValueChange={(value) => field.handleChange(value)}
+                  items={formatOptions}
+                  ariaLabel="Target format"
+                />
+              )}
+            </form.Field>
+          </div>
         </div>
-      </CalculatorCard>
-
-      <CalculatorCard
-        title="Focal length"
-        description="Enter the focal length of your lens on the source format."
-      >
-        <form.Field name="focalLength">
-          {(field) => (
-            <CalculatorNumberField
-              label="Focal length (mm)"
-              value={String(field.state.value)}
-              onChange={(value: string) => {
-                const parsed = parseFloat(value);
-                const finiteValue = Number.isFinite(parsed) ? parsed : 0;
-                field.handleChange(finiteValue);
-              }}
-              onBlur={field.handleBlur}
-              placeholder="50"
-              step={1}
-              helperText="Lens focal length in millimeters"
-            />
-          )}
-        </form.Field>
-
-        <fieldset className="space-y-3 border-0 p-0 m-0">
-          <legend className="text-sm font-medium text-primary">
-            Common focal lengths
-          </legend>
-          <div className="flex flex-wrap items-center gap-2 justify-center">
-            {FOCAL_LENGTH_PRESETS.map((preset) => (
-              <FocalLengthPresetButton
-                key={preset.value}
-                value={preset.value}
-                label={preset.label}
-                onClick={handlePresetClick}
-              />
-            ))}
-          </div>
-        </fieldset>
       </CalculatorCard>
     </CalculatorLayout>
   );

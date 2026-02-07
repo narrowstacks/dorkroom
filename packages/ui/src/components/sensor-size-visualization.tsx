@@ -30,9 +30,9 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
   }, [sourceFormat, targetFormat]);
 
   // Calculate display dimensions maintaining aspect ratios
-  // Container max dimensions
-  const maxWidth = 280;
-  const maxHeight = 200;
+  // Compact container dimensions
+  const maxWidth = 220;
+  const maxHeight = 140;
 
   const { outerWidth, outerHeight, innerWidth, innerHeight } = useMemo(() => {
     // Scale larger format to fit container
@@ -71,7 +71,7 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
   }, [sourceFormat, targetFormat]);
 
   return (
-    <div className={`flex flex-col items-center gap-4 ${className}`}>
+    <div className={`flex flex-col items-center gap-3 ${className}`}>
       {/* Visualization container */}
       <div
         className="relative flex items-center justify-center"
@@ -108,10 +108,10 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
 
           {/* Larger format label */}
           <span
-            className="absolute text-xs font-medium px-1.5 py-0.5 rounded"
+            className="absolute text-[10px] font-medium px-1 py-0.5 rounded"
             style={{
-              top: 4,
-              left: 4,
+              top: 3,
+              left: 3,
               backgroundColor: isSourceLarger
                 ? 'var(--color-accent-primary)'
                 : 'var(--color-accent-secondary)',
@@ -123,10 +123,10 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
 
           {/* Smaller format label - positioned at bottom right of inner box */}
           <span
-            className="absolute text-xs font-medium px-1.5 py-0.5 rounded"
+            className="absolute text-[10px] font-medium px-1 py-0.5 rounded"
             style={{
-              bottom: (outerHeight - innerHeight) / 2 + 4,
-              right: (outerWidth - innerWidth) / 2 + 4,
+              bottom: (outerHeight - innerHeight) / 2 + 3,
+              right: (outerWidth - innerWidth) / 2 + 3,
               backgroundColor: isSourceLarger
                 ? 'var(--color-accent-secondary)'
                 : 'var(--color-accent-primary)',
@@ -138,48 +138,44 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-4 h-3 rounded-sm border-2"
-            style={{
-              borderColor: 'var(--color-accent-primary)',
-              backgroundColor: 'var(--color-accent-primary-bg)',
-            }}
-          />
-          <span className="text-secondary">
-            {sourceFormat.name}
-            <span className="text-tertiary ml-1">
-              ({sourceFormat.width}×{sourceFormat.height}mm)
+      {/* Compact legend */}
+      <div className="flex flex-col items-center gap-1 text-xs">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <div
+              className="w-3 h-2 rounded-sm border"
+              style={{
+                borderColor: 'var(--color-accent-primary)',
+                backgroundColor: 'var(--color-accent-primary-bg)',
+              }}
+            />
+            <span className="text-secondary">{sourceFormat.shortName}</span>
+            <span className="text-tertiary">
+              ({sourceFormat.width}×{sourceFormat.height})
             </span>
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div
-            className="w-4 h-3 rounded-sm border-2"
-            style={{
-              borderColor: 'var(--color-accent-secondary)',
-              backgroundColor: 'var(--color-accent-secondary-bg)',
-            }}
-          />
-          <span className="text-secondary">
-            {targetFormat.name}
-            <span className="text-tertiary ml-1">
-              ({targetFormat.width}×{targetFormat.height}mm)
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div
+              className="w-3 h-2 rounded-sm border"
+              style={{
+                borderColor: 'var(--color-accent-secondary)',
+                backgroundColor: 'var(--color-accent-secondary-bg)',
+              }}
+            />
+            <span className="text-secondary">{targetFormat.shortName}</span>
+            <span className="text-tertiary">
+              ({targetFormat.width}×{targetFormat.height})
             </span>
-          </span>
+          </div>
         </div>
+        <p className="text-tertiary">
+          Target is{' '}
+          <span className="font-medium text-secondary">
+            {areaRatio > 1 ? areaRatio.toFixed(2) : (1 / areaRatio).toFixed(2)}×
+          </span>{' '}
+          {areaRatio > 1 ? 'larger' : 'smaller'}
+        </p>
       </div>
-
-      {/* Area ratio info */}
-      <p className="text-xs text-tertiary text-center">
-        Target is{' '}
-        <span className="font-medium text-secondary">
-          {areaRatio > 1 ? areaRatio.toFixed(2) : (1 / areaRatio).toFixed(2)}×
-        </span>{' '}
-        {areaRatio > 1 ? 'larger' : 'smaller'} in area
-      </p>
     </div>
   );
 };
