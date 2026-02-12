@@ -2,9 +2,9 @@ import {
   useCombinations,
   useCustomRecipes,
   useFavorites,
-} from "@dorkroom/logic";
-import { Greeting, StatCard, ToolCard } from "@dorkroom/ui";
-import { Link } from "@tanstack/react-router";
+} from '@dorkroom/logic';
+import { Greeting, StatCard, ToolCard } from '@dorkroom/ui';
+import { Link } from '@tanstack/react-router';
 import {
   BookOpen,
   CalculatorIcon,
@@ -21,95 +21,95 @@ import {
   Library,
   Ruler,
   Timer,
-} from "lucide-react";
+} from 'lucide-react';
 
 // Calculator tools configuration - module level to prevent recreation on each render
 const CALCULATORS = [
   {
-    category: "Printing",
-    title: "Border Calculator",
-    description: "Print borders & trim guides",
-    href: "/border",
+    category: 'Printing',
+    title: 'Border Calculator',
+    description: 'Print borders & trim guides',
+    href: '/border',
     icon: Crop,
-    iconColorKey: "indigo" as const,
-    color: "text-indigo-400",
-    bg: "from-indigo-500/20 to-purple-500/20",
-    border: "group-hover:border-indigo-500/50",
+    iconColorKey: 'indigo' as const,
+    color: 'text-indigo-400',
+    bg: 'from-indigo-500/20 to-purple-500/20',
+    border: 'group-hover:border-indigo-500/50',
   },
   {
-    category: "Printing",
-    title: "Stops Calculator",
-    description: "F-stop & time math",
-    href: "/stops",
+    category: 'Printing',
+    title: 'Stops Calculator',
+    description: 'F-stop & time math',
+    href: '/stops',
     icon: Gauge,
-    iconColorKey: "blue" as const,
-    color: "text-blue-400",
-    bg: "from-blue-500/20 to-cyan-500/20",
-    border: "group-hover:border-blue-500/50",
+    iconColorKey: 'blue' as const,
+    color: 'text-blue-400',
+    bg: 'from-blue-500/20 to-cyan-500/20',
+    border: 'group-hover:border-blue-500/50',
   },
   {
-    category: "Printing",
-    title: "Resize Calculator",
-    description: "Scale prints, no wasting test strips",
-    href: "/resize",
+    category: 'Printing',
+    title: 'Resize Calculator',
+    description: 'Scale prints, no wasting test strips',
+    href: '/resize',
     icon: Ruler,
-    iconColorKey: "violet" as const,
-    color: "text-violet-400",
-    bg: "from-violet-500/20 to-fuchsia-500/20",
-    border: "group-hover:border-violet-500/50",
+    iconColorKey: 'violet' as const,
+    color: 'text-violet-400',
+    bg: 'from-violet-500/20 to-fuchsia-500/20',
+    border: 'group-hover:border-violet-500/50',
   },
   {
-    category: "In the Field",
-    title: "Reciprocity",
-    description: "Long exposure correction",
-    href: "/reciprocity",
+    category: 'In the Field',
+    title: 'Reciprocity',
+    description: 'Long exposure correction',
+    href: '/reciprocity',
     icon: Timer,
-    iconColorKey: "amber" as const,
-    color: "text-amber-400",
-    bg: "from-amber-500/20 to-orange-500/20",
-    border: "group-hover:border-amber-500/50",
+    iconColorKey: 'amber' as const,
+    color: 'text-amber-400',
+    bg: 'from-amber-500/20 to-orange-500/20',
+    border: 'group-hover:border-amber-500/50',
   },
   {
-    category: "Film Dev",
-    title: "Film Development Recipes",
-    description: "B&W film development database",
-    href: "/development",
+    category: 'Film Dev',
+    title: 'Film Development Recipes',
+    description: 'B&W film development database',
+    href: '/development',
     icon: FlaskConical,
-    iconColorKey: "rose" as const,
-    color: "text-rose-400",
-    bg: "from-rose-500/20 to-red-500/20",
-    border: "group-hover:border-rose-500/50",
+    iconColorKey: 'rose' as const,
+    color: 'text-rose-400',
+    bg: 'from-rose-500/20 to-red-500/20',
+    border: 'group-hover:border-rose-500/50',
   },
   {
-    category: "Reference",
-    title: "Film Database",
-    description: "Browse film stocks by brand & ISO",
-    href: "/films",
+    category: 'Reference',
+    title: 'Film Database',
+    description: 'Browse film stocks by brand & ISO',
+    href: '/films',
     icon: Film,
-    iconColorKey: "cyan" as const,
-    color: "text-cyan-400",
-    bg: "from-cyan-500/20 to-teal-500/20",
-    border: "group-hover:border-cyan-500/50",
+    iconColorKey: 'cyan' as const,
+    color: 'text-cyan-400',
+    bg: 'from-cyan-500/20 to-teal-500/20',
+    border: 'group-hover:border-cyan-500/50',
   },
 ] as const;
 
 const COMING_SOON = [
   {
-    category: "Resources",
-    title: "Docs",
-    description: "Documentation for Dorkroom",
+    category: 'Resources',
+    title: 'Docs',
+    description: 'Documentation for Dorkroom',
     icon: BookOpen,
   },
   {
-    category: "Knowledge",
-    title: "Infobase",
-    description: "Photography & darkroom guides",
+    category: 'Knowledge',
+    title: 'Infobase',
+    description: 'Photography & darkroom guides',
     icon: GraduationCap,
   },
   {
-    category: "Tools",
-    title: "Camera Exposure",
-    description: "Equivalent exposure calculator",
+    category: 'Tools',
+    title: 'Camera Exposure',
+    description: 'Equivalent exposure calculator',
     icon: Camera,
   },
 ];
@@ -135,24 +135,24 @@ export function HomePage() {
           <div
             className="absolute top-0 right-0 blur-3xl rounded-full"
             style={{
-              backgroundImage: "var(--gradient-hero-accent)",
-              width: "var(--size-hero-blob)",
-              height: "var(--size-hero-blob)",
-              marginTop: "var(--spacing-hero-blob-offset)",
-              marginRight: "var(--spacing-hero-blob-offset)",
+              backgroundImage: 'var(--gradient-hero-accent)',
+              width: 'var(--size-hero-blob)',
+              height: 'var(--size-hero-blob)',
+              marginTop: 'var(--spacing-hero-blob-offset)',
+              marginRight: 'var(--spacing-hero-blob-offset)',
             }}
           />
           <div className="relative z-10 flex flex-col justify-between h-full gap-6">
             <div>
               <h2
                 className="text-2xl font-bold mb-2"
-                style={{ color: "var(--color-hero-title)" }}
+                style={{ color: 'var(--color-hero-title)' }}
               >
                 Skip the math. Make prints!
               </h2>
               <p
                 className="max-w-md"
-                style={{ color: "var(--color-hero-text)" }}
+                style={{ color: 'var(--color-hero-text)' }}
               >
                 Darkroom printing calculators, film development recipes, and
                 exposure tools. Free and open source.
@@ -182,7 +182,7 @@ export function HomePage() {
             as={Link}
             to="/development"
             label="Film Development Recipes"
-            value={combinations ? combinations.length.toLocaleString() : "-"}
+            value={combinations ? combinations.length.toLocaleString() : '-'}
             icon={FlaskConical}
             iconColorKey="emerald"
             variant="horizontal"
@@ -193,7 +193,7 @@ export function HomePage() {
           <StatCard
             as={Link}
             to="/development"
-            search={{ view: "favorites" }}
+            search={{ view: 'favorites' }}
             label="Favorite Recipes"
             value={favoriteIds.length}
             icon={Heart}
@@ -204,7 +204,7 @@ export function HomePage() {
           <StatCard
             as={Link}
             to="/development"
-            search={{ view: "custom" }}
+            search={{ view: 'custom' }}
             label="Your Custom Recipes"
             value={customRecipes.length}
             icon={Library}
@@ -223,7 +223,7 @@ export function HomePage() {
           </h2>
           <div
             className="h-px flex-1 ml-4"
-            style={{ backgroundColor: "var(--color-border-primary)" }}
+            style={{ backgroundColor: 'var(--color-border-primary)' }}
           />
         </div>
 
@@ -249,7 +249,7 @@ export function HomePage() {
           </h2>
           <div
             className="h-px flex-1 ml-4"
-            style={{ backgroundColor: "var(--color-border-primary)" }}
+            style={{ backgroundColor: 'var(--color-border-primary)' }}
           />
         </div>
 
@@ -262,17 +262,17 @@ export function HomePage() {
               key={item.title}
               className="relative overflow-hidden rounded-2xl border border-dashed p-5"
               style={{
-                borderColor: "var(--color-border-secondary)",
-                backgroundColor: "var(--color-surface-muted)",
+                borderColor: 'var(--color-border-secondary)',
+                backgroundColor: 'var(--color-surface-muted)',
               }}
             >
               <div className="flex items-start gap-4">
                 <div
                   className="p-3 rounded-xl border"
                   style={{
-                    backgroundColor: "var(--color-surface)",
-                    borderColor: "var(--color-border-secondary)",
-                    color: "var(--color-text-tertiary)",
+                    backgroundColor: 'var(--color-surface)',
+                    borderColor: 'var(--color-border-secondary)',
+                    color: 'var(--color-text-tertiary)',
                   }}
                 >
                   <item.icon className="h-6 w-6" data-coming-soon />
@@ -298,12 +298,12 @@ export function HomePage() {
       <div
         className="border-t pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-md"
         style={{
-          borderColor: "var(--color-border-primary)",
-          color: "var(--color-text-primary)",
+          borderColor: 'var(--color-border-primary)',
+          color: 'var(--color-text-primary)',
         }}
       >
         <p>
-          © {new Date().getFullYear()} Dorkroom.{" "}
+          © {new Date().getFullYear()} Dorkroom.{' '}
           <a
             href="https://github.com/narrowstacks/dorkroom/blob/main/LICENSE"
             className="underline transition-colors footer-link"
@@ -311,7 +311,7 @@ export function HomePage() {
             rel="noreferrer"
           >
             Open Source via the AGPLv3 license.
-          </a>{" "}
+          </a>{' '}
         </p>
         <div className="flex items-center gap-6">
           <a

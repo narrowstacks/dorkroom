@@ -394,8 +394,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
                           </div>
                           {combination.tags &&
                             combination.tags.filter(
-                              (t: string) =>
-                                !isOfficialTag(t) && t !== 'custom'
+                              (t: string) => !isOfficialTag(t) && t !== 'custom'
                             ).length > 0 && (
                               <div className="mt-2 flex flex-wrap items-center gap-2">
                                 {combination.tags

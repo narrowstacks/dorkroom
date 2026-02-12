@@ -5,7 +5,9 @@ import {
   borderCalculatorSchema,
   CALC_STORAGE_KEY,
   calculateQuarterInchMinBorder,
+  DEBUG_LOG,
   DEFAULT_BORDER_PRESETS,
+  DESKTOP_BREAKPOINT,
   debugError,
   debugLog,
   PAPER_SIZES,
@@ -33,11 +35,9 @@ import { useCallback, useEffect, useMemo } from 'react';
 
 const validateBorderCalculator = createZodFormValidator(borderCalculatorSchema);
 
-const MOBILE_BREAKPOINT = 768;
-
 export function useBorderCalculatorController() {
   const { width } = useWindowDimensions();
-  const isDesktop = width > MOBILE_BREAKPOINT;
+  const isDesktop = width > DESKTOP_BREAKPOINT;
   const { formatWithUnit, formatDimensions, unit } = useMeasurementFormatter();
   const { toInches, toDisplay } = useMeasurementConverter();
   const toast = useOptionalToast();

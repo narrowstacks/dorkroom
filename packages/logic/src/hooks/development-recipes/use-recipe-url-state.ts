@@ -197,7 +197,7 @@ export const validateUrlParams = (
       params.recipe.match(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       ) ||
-      params.recipe.length > 20
+      params.recipe.match(/^[A-Za-z0-9_-]{20,}$/)
     ) {
       sanitized.recipe = params.recipe;
     } else {
@@ -268,6 +268,11 @@ export const useRecipeUrlState = (
   );
   const isInitializedRef = useRef(false);
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const paramsRef = useRef(params);
+
+  useEffect(() => {
+    paramsRef.current = params;
+  }, [params]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -385,44 +390,44 @@ export const useRecipeUrlState = (
     return state;
   }, [params, films, developers]);
 
-  const updateUrl = useCallback(
-    (newParams: Partial<RecipeUrlParams>) => {
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-        updateTimeoutRef.current = null;
+  const updateUrl = useCallback((newParams: Partial<RecipeUrlParams>) => {
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+      updateTimeoutRef.current = null;
+    }
+
+    updateTimeoutRef.current = setTimeout(() => {
+      updateTimeoutRef.current = null;
+
+      if (!isInitializedRef.current || typeof window === 'undefined') {
+        return;
       }
 
-      updateTimeoutRef.current = setTimeout(() => {
-        updateTimeoutRef.current = null;
+      const searchParams = new URLSearchParams(window.location.search);
 
-        if (!isInitializedRef.current || typeof window === 'undefined') {
-          return;
+      MANAGED_QUERY_KEYS.forEach((key) => {
+        searchParams.delete(key);
+      });
+
+      const mergedParams: RecipeUrlParams = {
+        ...paramsRef.current,
+        ...newParams,
+      };
+
+      Object.entries(mergedParams).forEach(([key, value]) => {
+        if (value) {
+          searchParams.set(key, value as string);
         }
+      });
 
-        const searchParams = new URLSearchParams(window.location.search);
-
-        MANAGED_QUERY_KEYS.forEach((key) => {
-          searchParams.delete(key);
-        });
-
-        const mergedParams: RecipeUrlParams = { ...params, ...newParams };
-
-        Object.entries(mergedParams).forEach(([key, value]) => {
-          if (value) {
-            searchParams.set(key, value as string);
-          }
-        });
-
-        const searchString = searchParams.toString();
-        const newUrl = `${window.location.pathname}${
-          searchString ? `?${searchString}` : ''
-        }${window.location.hash ?? ''}`;
-        window.history.replaceState(null, '', newUrl);
-        setParams(parseSearchParams(searchParams));
-      }, 300);
-    },
-    [params]
-  );
+      const searchString = searchParams.toString();
+      const newUrl = `${window.location.pathname}${
+        searchString ? `?${searchString}` : ''
+      }${window.location.hash ?? ''}`;
+      window.history.replaceState(null, '', newUrl);
+      setParams(parseSearchParams(searchParams));
+    }, 300);
+  }, []);
 
   useEffect(() => {
     const handleSharedRecipeLookup = async () => {

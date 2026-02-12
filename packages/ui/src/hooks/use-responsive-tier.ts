@@ -54,13 +54,13 @@ export function useResponsiveTier(): ResponsiveTierResult {
 
     const update = () => setTier(getTier(window.innerWidth));
 
-    // Initial sync
-    update();
-
     const queries = [smQuery, mdQuery, xlQuery];
     for (const q of queries) {
       q.addEventListener('change', update);
     }
+
+    // Initial sync after listeners are attached
+    update();
 
     return () => {
       for (const q of queries) {

@@ -121,6 +121,25 @@ export const EASEL_SIZE_MAP = new Map(
 
 export const BLADE_THICKNESS = 15;
 
+/**
+ * Generates evenly-spaced slider labels from 0 to maxBorder.
+ * Returns 5 labels: 0, 25%, 50%, 75%, 100% of maxBorder.
+ * Values are formatted with 1 decimal place, omitting ".0" for whole numbers.
+ *
+ * @param maxBorder - The maximum border value in inches
+ * @returns Array of 5 formatted label strings
+ *
+ * @example
+ * generateBorderSliderLabels(6) // ['0', '1.5', '3', '4.5', '6']
+ * generateBorderSliderLabels(4) // ['0', '1', '2', '3', '4']
+ */
+export function generateBorderSliderLabels(maxBorder: number): string[] {
+  const step = maxBorder / 4;
+  return [0, step, step * 2, step * 3, maxBorder].map((v) =>
+    v === 0 ? '0' : v.toFixed(1).replace(/\.0$/, '')
+  );
+}
+
 export const DEFAULT_BORDER_PRESETS: BorderPreset[] = [
   {
     id: 'default-8x10',

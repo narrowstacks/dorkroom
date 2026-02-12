@@ -45,13 +45,7 @@ function usePortalTooltip() {
   return { ref, pos, show, hide };
 }
 
-function PortalTooltip({
-  pos,
-  text,
-}: {
-  pos: TooltipPosition;
-  text: string;
-}) {
+function PortalTooltip({ pos, text }: { pos: TooltipPosition; text: string }) {
   return createPortal(
     <span
       className="pointer-events-none fixed z-[9999] -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium shadow-lg"
@@ -88,6 +82,7 @@ export function OfficialBadge({ tag, showTooltip = true }: OfficialBadgeProps) {
     >
       <span
         className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border"
+        role="img"
         style={{
           backgroundColor: themeStyle.backgroundColor,
           borderColor: themeStyle.borderColor,
@@ -97,9 +92,7 @@ export function OfficialBadge({ tag, showTooltip = true }: OfficialBadgeProps) {
       >
         <Check className="h-3 w-3" strokeWidth={3} />
       </span>
-      {showTooltip && pos && (
-        <PortalTooltip pos={pos} text={tooltipText} />
-      )}
+      {showTooltip && pos && <PortalTooltip pos={pos} text={tooltipText} />}
     </span>
   );
 }
@@ -117,6 +110,7 @@ export function CustomBadge({ showTooltip = true }: CustomBadgeProps) {
     >
       <span
         className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border"
+        role="img"
         style={{
           backgroundColor: colorMixOr(
             'var(--color-accent)',
@@ -141,9 +135,7 @@ export function CustomBadge({ showTooltip = true }: CustomBadgeProps) {
       >
         <Beaker className="h-2.5 w-2.5" strokeWidth={2.5} />
       </span>
-      {showTooltip && pos && (
-        <PortalTooltip pos={pos} text={tooltipText} />
-      )}
+      {showTooltip && pos && <PortalTooltip pos={pos} text={tooltipText} />}
     </span>
   );
 }

@@ -1,8 +1,8 @@
-import type { SelectItem } from "@dorkroom/logic";
-import { useStore } from "@tanstack/react-store";
-import type { FieldApi, FormInstance } from "../../index";
-import { DimensionInputGroup, Select } from "../../index";
-import { CalculatorCard } from "../calculator/calculator-card";
+import type { SelectItem } from '@dorkroom/logic';
+import { useStore } from '@tanstack/react-store';
+import type { FieldApi, FormInstance } from '../../index';
+import { DimensionInputGroup, Select } from '../../index';
+import { CalculatorCard } from '../calculator/calculator-card';
 
 interface PaperSetupSectionProps {
   form: FormInstance;
@@ -51,7 +51,7 @@ export function PaperSetupSection({
               selectedValue={field.state.value}
               onValueChange={(value: string) => {
                 field.handleChange(value);
-                form.setFieldValue("isRatioFlipped", false);
+                form.setFieldValue('isRatioFlipped', false);
               }}
               items={aspectRatios}
               placeholder="Select"
@@ -59,7 +59,7 @@ export function PaperSetupSection({
           )}
         </form.Field>
 
-        {aspectRatio === "custom" && (
+        {aspectRatio === 'custom' && (
           <form.Field name="customAspectWidth">
             {(widthField: FieldApi<number>) => (
               <form.Field name="customAspectHeight">
@@ -71,8 +71,8 @@ export function PaperSetupSection({
                       widthField.handleChange(numValue);
                       if (numValue > 0) {
                         form.setFieldValue(
-                          "lastValidCustomAspectWidth",
-                          numValue,
+                          'lastValidCustomAspectWidth',
+                          numValue
                         );
                       }
                     }}
@@ -82,8 +82,8 @@ export function PaperSetupSection({
                       heightField.handleChange(numValue);
                       if (numValue > 0) {
                         form.setFieldValue(
-                          "lastValidCustomAspectHeight",
-                          numValue,
+                          'lastValidCustomAspectHeight',
+                          numValue
                         );
                       }
                     }}
@@ -105,18 +105,18 @@ export function PaperSetupSection({
               selectedValue={field.state.value}
               onValueChange={(value: string) => {
                 field.handleChange(value);
-                const isCustom = value === "custom";
+                const isCustom = value === 'custom';
                 if (isCustom) {
                   // For custom paper, calculate orientation based on actual dimensions
                   const shouldBeLandscape =
                     customAspectWidth < customAspectHeight;
-                  form.setFieldValue("isLandscape", shouldBeLandscape);
+                  form.setFieldValue('isLandscape', shouldBeLandscape);
                 } else {
                   // For standard paper sizes, default to landscape
-                  form.setFieldValue("isLandscape", true);
+                  form.setFieldValue('isLandscape', true);
                 }
-                form.setFieldValue("isRatioFlipped", false);
-                form.setFieldValue("hasManuallyFlippedPaper", false);
+                form.setFieldValue('isRatioFlipped', false);
+                form.setFieldValue('hasManuallyFlippedPaper', false);
               }}
               items={displayPaperSizes}
               placeholder="Select"
@@ -124,7 +124,7 @@ export function PaperSetupSection({
           )}
         </form.Field>
 
-        {paperSize === "custom" && (
+        {paperSize === 'custom' && (
           <DimensionInputGroup
             widthValue={paperWidthInput}
             onWidthChange={onPaperWidthChange}

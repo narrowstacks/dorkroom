@@ -1,4 +1,8 @@
-import { SLIDER_MIN_BORDER, SLIDER_STEP_BORDER } from '@dorkroom/logic';
+import {
+  generateBorderSliderLabels,
+  SLIDER_MIN_BORDER,
+  SLIDER_STEP_BORDER,
+} from '@dorkroom/logic';
 import type { AnyFormApi } from '@tanstack/react-form';
 import { X } from 'lucide-react';
 import { useMemo } from 'react';
@@ -24,15 +28,10 @@ export function BorderSizeSection({
 }: BorderSizeSectionProps) {
   const minBorder = form.getFieldValue('minBorder');
 
-  // Generate dynamic slider labels based on the max allowed border
-  const borderSliderLabels = useMemo(() => {
-    const max = maxAllowedMinBorder;
-    // Generate 5 evenly spaced labels from 0 to max, rounded to 1 decimal
-    const step = max / 4;
-    return [0, step, step * 2, step * 3, max].map((v) =>
-      v === 0 ? '0' : v.toFixed(1).replace(/\.0$/, '')
-    );
-  }, [maxAllowedMinBorder]);
+  const borderSliderLabels = useMemo(
+    () => generateBorderSliderLabels(maxAllowedMinBorder),
+    [maxAllowedMinBorder]
+  );
 
   return (
     <div className="p-6 space-y-6">

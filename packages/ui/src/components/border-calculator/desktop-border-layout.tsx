@@ -1,5 +1,6 @@
 import {
   ASPECT_RATIOS,
+  generateBorderSliderLabels,
   OFFSET_SLIDER_LABELS,
   OFFSET_SLIDER_MAX,
   OFFSET_SLIDER_MIN,
@@ -78,15 +79,10 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
     ignoreMinBorder,
   } = formValues;
 
-  // Generate dynamic slider labels based on the max allowed border
-  const borderSliderLabels = useMemo(() => {
-    const max = maxAllowedMinBorder;
-    // Generate 5 evenly spaced labels from 0 to max, rounded to 1 decimal
-    const step = max / 4;
-    return [0, step, step * 2, step * 3, max].map((v) =>
-      v === 0 ? '0' : v.toFixed(1).replace(/\.0$/, '')
-    );
-  }, [maxAllowedMinBorder]);
+  const borderSliderLabels = useMemo(
+    () => generateBorderSliderLabels(maxAllowedMinBorder),
+    [maxAllowedMinBorder]
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">

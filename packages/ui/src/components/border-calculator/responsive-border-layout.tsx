@@ -1,5 +1,6 @@
 import {
   ASPECT_RATIOS,
+  generateBorderSliderLabels,
   OFFSET_SLIDER_LABELS,
   OFFSET_SLIDER_MAX,
   OFFSET_SLIDER_MIN,
@@ -83,13 +84,10 @@ export const ResponsiveBorderLayout: FC<ResponsiveBorderLayoutProps> = ({
     ignoreMinBorder,
   } = formValues;
 
-  const borderSliderLabels = useMemo(() => {
-    const max = maxAllowedMinBorder;
-    const step = max / 4;
-    return [0, step, step * 2, step * 3, max].map((v) =>
-      v === 0 ? '0' : v.toFixed(1).replace(/\.0$/, '')
-    );
-  }, [maxAllowedMinBorder]);
+  const borderSliderLabels = useMemo(
+    () => generateBorderSliderLabels(maxAllowedMinBorder),
+    [maxAllowedMinBorder]
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-12 pt-6 sm:px-6 md:px-8 md:pt-8">

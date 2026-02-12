@@ -1,5 +1,6 @@
 import type { SelectItem } from '@dorkroom/logic';
 import { ChevronDown } from 'lucide-react';
+import { useId } from 'react';
 import { cn } from '../lib/cn';
 
 interface SelectProps {
@@ -21,10 +22,13 @@ export function Select({
   className,
   ariaLabel,
 }: SelectProps) {
+  const selectId = useId();
+
   return (
     <div className={cn('space-y-1.5', className)}>
       {label && (
         <label
+          htmlFor={selectId}
           className="block text-xs font-medium"
           style={{ color: 'var(--color-text-secondary)' }}
         >
@@ -33,6 +37,7 @@ export function Select({
       )}
       <div className="relative">
         <select
+          id={selectId}
           value={selectedValue}
           onChange={(e) => onValueChange((e.target as HTMLSelectElement).value)}
           className="w-full appearance-none rounded-lg border px-3 py-1.5 pr-8 text-sm focus:outline-none focus:ring-2"
@@ -45,12 +50,12 @@ export function Select({
               '--tw-ring-color': 'var(--color-border-primary)',
             } as React.CSSProperties
           }
-          onFocus={(e) =>
-            (e.target.style.borderColor = 'var(--color-border-primary)')
-          }
-          onBlur={(e) =>
-            (e.target.style.borderColor = 'var(--color-border-secondary)')
-          }
+          onFocus={(e) => {
+            e.target.style.borderColor = 'var(--color-border-primary)';
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = 'var(--color-border-secondary)';
+          }}
         >
           {placeholder && !selectedValue && (
             <option value="" disabled>
