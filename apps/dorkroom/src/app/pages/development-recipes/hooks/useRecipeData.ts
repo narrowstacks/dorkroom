@@ -18,8 +18,7 @@ export interface UseRecipeDataProps {
   developerTypeFilter: string;
   dilutionFilter: string;
   isoFilter: string;
-  customRecipeFilter: 'all' | 'hide-custom' | 'only-custom';
-  tagFilter: string;
+  customRecipeFilter: 'all' | 'hide-custom' | 'only-custom' | 'official';
   favoritesOnly: boolean;
   sharedCustomRecipe:
     | CustomRecipe
@@ -61,7 +60,6 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     dilutionFilter,
     isoFilter,
     customRecipeFilter,
-    tagFilter,
     favoritesOnly,
     sharedCustomRecipe,
     flags,
@@ -254,8 +252,15 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
         return false;
       }
 
-      if (isoFilter && combination.shootingIso.toString() !== isoFilter) {
-        return false;
+      if (isoFilter) {
+        if (isoFilter === 'boxspeed' && selectedFilm) {
+          if (combination.shootingIso !== selectedFilm.isoSpeed) return false;
+        } else if (
+          isoFilter !== 'boxspeed' &&
+          combination.shootingIso.toString() !== isoFilter
+        ) {
+          return false;
+        }
       }
 
       return true;
@@ -272,24 +277,17 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
   const combinedRows = useMemo<DevelopmentCombinationView[]>(() => {
     let rows: DevelopmentCombinationView[] = [];
 
-    // Apply custom recipe filter
+    // Apply recipe type filter
     if (customRecipeFilter === 'all') {
       rows = [...apiCombinationViews, ...filteredCustomViews];
     } else if (customRecipeFilter === 'hide-custom') {
       rows = [...apiCombinationViews];
     } else if (customRecipeFilter === 'only-custom') {
       rows = [...filteredCustomViews];
-    }
-
-    // Apply tag filter
-    if (tagFilter) {
-      rows = rows.filter((row) => {
-        const { combination } = row;
-        if (tagFilter === 'custom') {
-          return row.source === 'custom';
-        }
-        return combination.tags?.includes(tagFilter);
-      });
+    } else if (customRecipeFilter === 'official') {
+      rows = [...apiCombinationViews, ...filteredCustomViews].filter((row) =>
+        row.combination.tags?.some((t) => t.startsWith('official-'))
+      );
     }
 
     // Apply favorites-only filter if enabled
@@ -307,7 +305,6 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     apiCombinationViews,
     filteredCustomViews,
     customRecipeFilter,
-    tagFilter,
     favoritesOnly,
     isFavorite,
   ]);

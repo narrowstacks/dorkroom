@@ -48,8 +48,8 @@ export const CalculatorCard = memo(function CalculatorCard({
   return (
     <section
       className={cn(
-        'relative overflow-hidden rounded-3xl border shadow-subtle card-ring',
-        padding === 'compact' ? 'p-5 sm:p-6' : 'p-6 sm:p-8',
+        'relative overflow-hidden rounded-2xl border shadow-subtle card-ring',
+        padding === 'compact' ? 'p-3.5 sm:p-4' : 'p-4 sm:p-5',
         className
       )}
       style={{
@@ -69,13 +69,13 @@ export const CalculatorCard = memo(function CalculatorCard({
           style={getAccentStyle(accent)}
         />
       )}
-      <div className="relative z-10 flex flex-col gap-6">
+      <div className="relative z-10 flex flex-col gap-3.5">
         {(title || description || actions) && (
-          <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-1">
+          <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-0.5">
               {title && (
                 <h2
-                  className="text-lg font-semibold tracking-tight sm:text-xl"
+                  className="text-base font-semibold tracking-tight"
                   style={{ color: 'var(--color-text-primary)' }}
                 >
                   {title}
@@ -83,7 +83,7 @@ export const CalculatorCard = memo(function CalculatorCard({
               )}
               {description && (
                 <div
-                  className="text-sm leading-relaxed"
+                  className="text-xs leading-relaxed"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
                   {description}
@@ -95,7 +95,7 @@ export const CalculatorCard = memo(function CalculatorCard({
             )}
           </header>
         )}
-        <div className="flex flex-col gap-5">{children}</div>
+        <div className="flex flex-col gap-3.5">{children}</div>
       </div>
     </section>
   );

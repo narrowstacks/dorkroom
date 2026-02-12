@@ -242,10 +242,10 @@
     rgba(168, 85, 247, 0.2)
   );
   /* Tool card colors for dark theme (original: border-zinc-800, bg-zinc-900/30) */
-  --color-tool-card-bg: rgba(24, 24, 27, 0.3);
-  --color-tool-card-icon-bg: rgba(39, 39, 42, 0.5);
-  --color-tool-card-icon-ring: rgba(255, 255, 255, 0.05);
-  --color-tool-card-icon-hover: rgba(255, 255, 255, 0.1);
+  --color-tool-card-bg: rgba(24, 24, 27, 0.6);
+  --color-tool-card-icon-bg: rgba(39, 39, 42, 0.8);
+  --color-tool-card-icon-ring: rgba(255, 255, 255, 0.12);
+  --color-tool-card-icon-hover: rgba(255, 255, 255, 0.18);
   --color-tool-card-category: #71717a;
   --color-tool-card-category-hover: #d4d4d8;
   --color-tool-card-title: #ffffff;
@@ -349,15 +349,16 @@
   --color-tooltip-bg: rgba(245, 245, 244, 0.98);
   --color-tooltip-border: rgba(9, 9, 11, 0.2);
   --color-tooltip-text: #09090b;
-  /* Home page specific icon colors for light theme */
+  /* Home page specific icon colors for light theme - use -600 variants for contrast */
   --color-icon-stat-emerald: #10b981;
   --color-icon-stat-rose: #f43f5e;
   --color-icon-stat-indigo: #6366f1;
-  --color-icon-card-indigo: #818cf8;
-  --color-icon-card-blue: #60a5fa;
-  --color-icon-card-violet: #a78bfa;
-  --color-icon-card-amber: #f59e0b;
-  --color-icon-card-rose: #fb7185;
+  --color-icon-card-indigo: #4f46e5;
+  --color-icon-card-blue: #2563eb;
+  --color-icon-card-violet: #7c3aed;
+  --color-icon-card-amber: #d97706;
+  --color-icon-card-rose: #e11d48;
+  --color-icon-card-cyan: #0891b2;
   /* Home page button colors for light theme */
   --color-button-success: #065f46;
   --color-button-success-hover: #047857;
@@ -377,8 +378,8 @@
   );
   /* Tool card colors for light theme */
   --color-tool-card-bg: #f8f9fa;
-  --color-tool-card-icon-bg: rgba(9, 9, 11, 0.05);
-  --color-tool-card-icon-ring: rgba(9, 9, 11, 0.1);
+  --color-tool-card-icon-bg: rgba(9, 9, 11, 0.06);
+  --color-tool-card-icon-ring: rgba(9, 9, 11, 0.12);
   --color-tool-card-icon-hover: rgba(9, 9, 11, 0.1);
   --color-tool-card-category: #71717a;
   --color-tool-card-category-hover: #52525b;
@@ -622,6 +623,26 @@
 
 [data-theme="darkroom"] *:focus-visible {
   --tw-ring-color: var(--color-border-primary);
+}
+
+/* Override Tailwind color classes in light theme - use -600 variants for contrast */
+[data-theme="light"] .text-indigo-400 {
+  color: #4f46e5;
+}
+[data-theme="light"] .text-blue-400 {
+  color: #2563eb;
+}
+[data-theme="light"] .text-violet-400 {
+  color: #7c3aed;
+}
+[data-theme="light"] .text-amber-400 {
+  color: #d97706;
+}
+[data-theme="light"] .text-rose-400 {
+  color: #e11d48;
+}
+[data-theme="light"] .text-cyan-400 {
+  color: #0891b2;
 }
 
 /* Override Tailwind color classes in high-contrast theme - force black */

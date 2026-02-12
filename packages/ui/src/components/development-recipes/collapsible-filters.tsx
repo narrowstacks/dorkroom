@@ -17,9 +17,6 @@ interface CollapsibleFiltersProps {
   isoOptions: SelectItem[];
   customRecipeFilter: CustomRecipeFilter;
   onCustomRecipeFilterChange: (value: CustomRecipeFilter) => void;
-  tagFilter: string;
-  onTagFilterChange: (value: string) => void;
-  tagOptions: SelectItem[];
   onClearFilters: () => void;
   showDeveloperTypeFilter?: boolean;
   showDilutionFilter?: boolean;
@@ -28,6 +25,13 @@ interface CollapsibleFiltersProps {
   favoritesOnly?: boolean;
   onFavoritesOnlyChange?: (value: boolean) => void;
 }
+
+const recipeTypeOptions: SelectItem[] = [
+  { label: 'All recipes', value: 'all' },
+  { label: 'Official only', value: 'official' },
+  { label: 'Hide custom recipes', value: 'hide-custom' },
+  { label: 'Only custom recipes', value: 'only-custom' },
+];
 
 export function CollapsibleFilters({
   className,
@@ -42,9 +46,6 @@ export function CollapsibleFilters({
   isoOptions,
   customRecipeFilter,
   onCustomRecipeFilterChange,
-  tagFilter,
-  onTagFilterChange,
-  tagOptions,
   onClearFilters,
   showDeveloperTypeFilter = true,
   showDilutionFilter = true,
@@ -55,19 +56,12 @@ export function CollapsibleFilters({
 }: CollapsibleFiltersProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
-  const customRecipeOptions = [
-    { label: 'All recipes', value: 'all' },
-    { label: 'Hide custom recipes', value: 'hide-custom' },
-    { label: 'Only custom recipes', value: 'only-custom' },
-  ];
-
   // Check if any filters are active
   const hasActiveFilters =
     developerTypeFilter ||
     dilutionFilter ||
     isoFilter ||
     customRecipeFilter !== 'all' ||
-    tagFilter ||
     favoritesOnly;
 
   const activeFilterCount = [
@@ -75,7 +69,6 @@ export function CollapsibleFilters({
     dilutionFilter,
     isoFilter,
     customRecipeFilter !== 'all' ? customRecipeFilter : '',
-    tagFilter,
     favoritesOnly ? 'favorites' : '',
   ].filter(Boolean).length;
 
@@ -112,7 +105,7 @@ export function CollapsibleFilters({
               className="text-base font-semibold"
               style={{ color: 'var(--color-text-primary)' }}
             >
-              Advanced Filters
+              Filters
             </h3>
             {hasActiveFilters && (
               <div
@@ -130,8 +123,7 @@ export function CollapsibleFilters({
             className="text-sm"
             style={{ color: 'var(--color-text-tertiary)' }}
           >
-            Refine results by developer type, dilution, ISO, recipe type, and
-            tags.
+            Refine results by developer type, dilution, ISO, and recipe type.
           </p>
         </div>
         <ChevronDown
@@ -205,13 +197,7 @@ export function CollapsibleFilters({
               onValueChange={(value) =>
                 onCustomRecipeFilterChange(value as CustomRecipeFilter)
               }
-              items={customRecipeOptions}
-            />
-            <Select
-              label="Tag"
-              selectedValue={tagFilter}
-              onValueChange={onTagFilterChange}
-              items={tagOptions}
+              items={recipeTypeOptions}
             />
             {onFavoritesOnlyChange && (
               <div className="flex items-end">

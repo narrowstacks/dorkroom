@@ -83,9 +83,8 @@ export function BorderSizeSection({
             About Border Size
           </h4>
           <p className="text-xs text-white/70 leading-relaxed">
-            The minimum border determines how much white space surrounds your
-            image. Larger borders provide more safety margin but reduce the
-            effective image size.
+            How much white space around the image. Bigger borders mean a smaller
+            print, but they give you room if the easel is slightly off.
           </p>
         </div>
       </div>

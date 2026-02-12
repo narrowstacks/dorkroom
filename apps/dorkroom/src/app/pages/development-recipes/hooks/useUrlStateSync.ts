@@ -10,6 +10,9 @@ export interface UseUrlStateSyncProps {
     selectedDeveloper?: Developer | null;
     dilutionFilter?: string;
     isoFilter?: string;
+    developerTypeFilter?: string;
+    customRecipeFilter?: string;
+    favoritesOnly?: boolean;
     view?: string;
     recipeId?: string;
     isSharedApiRecipe?: boolean;
@@ -23,9 +26,10 @@ export interface UseUrlStateSyncProps {
   setSelectedDeveloper: (developer: Developer | null) => void;
   setDilutionFilter: (filter: string) => void;
   setIsoFilter: (filter: string) => void;
+  setDeveloperTypeFilter: (filter: string) => void;
   setFavoritesOnly: Dispatch<SetStateAction<boolean>>;
   setCustomRecipeFilter: (
-    filter: 'all' | 'hide-custom' | 'only-custom'
+    filter: 'all' | 'hide-custom' | 'only-custom' | 'official'
   ) => void;
   setSharedRecipeView: Dispatch<
     SetStateAction<DevelopmentCombinationView | null>
@@ -52,6 +56,7 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
     setSelectedDeveloper,
     setDilutionFilter,
     setIsoFilter,
+    setDeveloperTypeFilter,
     setFavoritesOnly,
     setCustomRecipeFilter,
     setSharedRecipeView,
@@ -88,10 +93,20 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
     if (initialUrlState.isoFilter) {
       setIsoFilter(initialUrlState.isoFilter);
     }
-    if (initialUrlState.view === 'favorites') {
+    if (initialUrlState.developerTypeFilter) {
+      setDeveloperTypeFilter(initialUrlState.developerTypeFilter);
+    }
+    if (initialUrlState.favoritesOnly) {
       setFavoritesOnly(true);
-    } else if (initialUrlState.view === 'custom') {
-      setCustomRecipeFilter('only-custom');
+    }
+    if (initialUrlState.customRecipeFilter) {
+      setCustomRecipeFilter(
+        initialUrlState.customRecipeFilter as
+          | 'all'
+          | 'hide-custom'
+          | 'only-custom'
+          | 'official'
+      );
     }
 
     // Check for shared custom recipe from URL
@@ -145,6 +160,7 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
     setSelectedDeveloper,
     setDilutionFilter,
     setIsoFilter,
+    setDeveloperTypeFilter,
     setCustomRecipeFilter,
     setFavoritesOnly,
     getFilmById,

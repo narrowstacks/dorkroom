@@ -19,6 +19,7 @@ export {
   PositionOffsetsSection,
   PresetsSection,
   PreviewAndControlsSection,
+  ResponsiveBorderLayout,
 } from './components/border-calculator';
 export type {
   CalculatorLayoutProps,
@@ -173,6 +174,11 @@ export {
   useMeasurementFormatter,
   useMeasurementUtils,
 } from './hooks/use-measurement-conversion';
+export {
+  type ResponsiveTier,
+  type ResponsiveTierResult,
+  useResponsiveTier,
+} from './hooks/use-responsive-tier';
 // Hooks
 export { useIsMobile } from './hooks/useIsMobile';
 // Utilities

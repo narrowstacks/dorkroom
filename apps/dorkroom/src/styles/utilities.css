@@ -17,6 +17,7 @@
         rgba(246 249 150 / 0.14),
         transparent 60%
       ), #09090b;
+    background-attachment: fixed;
   }
 
   [data-theme="light"] .backdrop-gradient {
@@ -36,6 +37,7 @@
         rgba(122, 140, 31, 0.08),
         transparent 60%
       ), #ffffff;
+    background-attachment: fixed;
   }
 
   [data-theme="darkroom"] .backdrop-gradient {

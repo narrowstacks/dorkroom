@@ -17,7 +17,6 @@ import {
   CalculatorStat,
   createZodFormValidator,
   exposureCalculatorSchema,
-  InfoCardList,
   ResultRow,
 } from '@dorkroom/ui';
 import { useForm } from '@tanstack/react-form';
@@ -27,44 +26,16 @@ import type { ChangeEvent, FC } from 'react';
 const validateExposureForm = createZodFormValidator(exposureCalculatorSchema);
 
 const HOW_TO_USE = [
-  {
-    title: 'Enter your original exposure time',
-    description:
-      'Start by entering the base exposure time in seconds that you want to adjust.',
-  },
-  {
-    title: 'Adjust by stops',
-    description:
-      'Use the preset buttons or enter a custom stop value. Each stop doubles or halves the exposure time.',
-  },
-  {
-    title: 'Apply the new exposure',
-    description:
-      'Use the calculated exposure time for your adjusted aperture or f-stop printing needs.',
-  },
+  'Enter your base exposure time in seconds',
+  'Use the preset buttons or type a custom stop value',
+  'Apply the new exposure time when printing at a different aperture',
 ];
 
-const EXPOSURE_INSIGHTS = [
-  {
-    title: 'Stop system basics',
-    description:
-      'Each stop represents a doubling or halving of light. This corresponds to common aperture and shutter speed increments.',
-  },
-  {
-    title: 'Darkroom applications',
-    description:
-      'Essential for f-stop printing where you change aperture between test strips and final prints, requiring exposure compensation.',
-  },
-  {
-    title: 'Mathematical precision',
-    description:
-      'The relationship is logarithmic: new exposure = original × 2^stops. Fractional stops provide fine control.',
-  },
-  {
-    title: 'Practical workflow',
-    description:
-      'Make test strips at one aperture, then use this calculator when printing at a different aperture for consistent density.',
-  },
+const TIPS = [
+  'Each stop doubles or halves the light, matching standard aperture and shutter speed increments.',
+  'Useful for f-stop printing: make test strips at one aperture, then compensate exposure when you switch to another.',
+  'The math is logarithmic: new exposure = original × 2^stops. Fractional stops give you finer control.',
+  'For consistent print density, recalculate exposure any time you change aperture between test strip and final print.',
 ];
 
 interface StopButtonProps {
@@ -124,30 +95,156 @@ export default function ExposureCalculatorPage() {
 
   return (
     <CalculatorLayout
-      eyebrow="F-Stop Mathematics"
       title="Exposure Stop Calculator"
-      description="Calculate exposure adjustments by stops for darkroom printing and photography. Perfect for f-stop printing where you need to compensate exposure when changing apertures."
-      sidebar={
+      description={
         <>
-          <CalculatorCard
-            title="How to use this calculator"
-            description="A quick guide to adjusting exposures by stops for consistent darkroom printing results."
-          >
-            <InfoCardList items={HOW_TO_USE} variant="default" />
-          </CalculatorCard>
-
-          <CalculatorCard
-            title="Understanding exposure stops"
-            description="The mathematical relationship between stops and exposure times, and how to apply it in the darkroom."
-          >
-            <InfoCardList items={EXPOSURE_INSIGHTS} variant="insight" />
-          </CalculatorCard>
+          Adjust exposure times by stops for darkroom printing.
+          <br />
+          Recalculate your exposure when switching apertures between test strips
+          and final prints.
         </>
+      }
+      sidebar={
+        <CalculatorCard
+          title="How this calculator works"
+          padding="normal"
+          className="bg-surface-muted/80"
+        >
+          <div className="space-y-6">
+            <p
+              className="text-[15px] leading-relaxed"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              Each stop doubles or halves the amount of light hitting your
+              paper. When you change aperture between a test strip and your
+              final print, use this to figure out the new exposure time.
+            </p>
+
+            <div className="space-y-3">
+              <h4
+                className="text-sm font-semibold"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                How to use
+              </h4>
+              <ol className="ml-5 space-y-2 list-decimal">
+                {HOW_TO_USE.map((item) => (
+                  <li
+                    key={item}
+                    className="pl-2 text-[15px] leading-relaxed"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  >
+                    {item}
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="space-y-3">
+              <h4
+                className="text-sm font-semibold"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                Tips
+              </h4>
+              <ul className="ml-5 space-y-2 list-disc">
+                {TIPS.map((tip) => (
+                  <li
+                    key={tip}
+                    className="pl-2 text-[15px] leading-relaxed"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  >
+                    {tip}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </CalculatorCard>
+      }
+      results={
+        <form.Subscribe
+          selector={(state) => {
+            const originalTime = state.values.originalTime;
+            const stops = state.values.stops;
+            const newTimeValue = calculateNewExposureTime(originalTime, stops);
+            const addedTime = newTimeValue - originalTime;
+            const percentageIncrease = calculatePercentageIncrease(
+              originalTime,
+              newTimeValue
+            );
+            return {
+              originalTimeValue: originalTime,
+              stopsValue: stops,
+              newTimeValue,
+              addedTime,
+              percentageIncrease,
+            };
+          }}
+        >
+          {(calculation) => (
+            <CalculatorCard
+              title="Exposure results"
+              description={`Adjusted exposure time for ${calculation.stopsValue >= 0 ? 'increased' : 'decreased'} amount of stops`}
+              accent="emerald"
+              padding="compact"
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <CalculatorStat
+                  label="New exposure time"
+                  value={formatExposureTime(calculation.newTimeValue)}
+                  helperText={`${calculation.stopsValue > 0 ? '+' : ''}${
+                    calculation.stopsValue
+                  } stops`}
+                  tone="emerald"
+                />
+                <CalculatorStat
+                  label={`${
+                    calculation.addedTime >= 0 ? 'Add' : 'Remove'
+                  } exposure`}
+                  value={formatExposureTime(Math.abs(calculation.addedTime))}
+                  helperText={`${Math.abs(
+                    calculation.percentageIncrease
+                  ).toFixed(1)}% change`}
+                />
+              </div>
+
+              <div className="rounded-2xl p-4 font-mono text-sm border border-secondary bg-background/20 text-primary">
+                {`${formatExposureTime(calculation.originalTimeValue)} `}
+                <span className="align-super text-xs font-semibold text-[color:var(--color-primary)]">
+                  ×2^
+                  {calculation.stopsValue}
+                </span>
+                <span>{' = '}</span>
+                <span className="font-semibold">
+                  {formatExposureTime(calculation.newTimeValue)}
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                <ResultRow
+                  label="Original time"
+                  value={formatExposureTime(calculation.originalTimeValue)}
+                />
+                <ResultRow
+                  label="Stop adjustment"
+                  value={`${calculation.stopsValue > 0 ? '+' : ''}${
+                    calculation.stopsValue
+                  } stops`}
+                />
+                <ResultRow
+                  label="Multiplier"
+                  value={`×${(2 ** calculation.stopsValue).toFixed(3)}`}
+                />
+              </div>
+            </CalculatorCard>
+          )}
+        </form.Subscribe>
       }
     >
       <CalculatorCard
         title="Exposure inputs"
-        description="Enter your base exposure time and adjust by stops using the controls below."
+        description="Set your base time and dial in the stop adjustment."
       >
         <form.Field name="originalTime">
           {(field) => (
@@ -228,84 +325,6 @@ export default function ExposureCalculatorPage() {
           </div>
         </fieldset>
       </CalculatorCard>
-
-      <form.Subscribe
-        selector={(state) => {
-          const originalTime = state.values.originalTime;
-          const stops = state.values.stops;
-          const newTimeValue = calculateNewExposureTime(originalTime, stops);
-          const addedTime = newTimeValue - originalTime;
-          const percentageIncrease = calculatePercentageIncrease(
-            originalTime,
-            newTimeValue
-          );
-          return {
-            originalTimeValue: originalTime,
-            stopsValue: stops,
-            newTimeValue,
-            addedTime,
-            percentageIncrease,
-          };
-        }}
-      >
-        {(calculation) => (
-          <CalculatorCard
-            title="Exposure results"
-            description="Apply this adjusted exposure time to maintain consistent density at your new settings."
-            accent="emerald"
-            padding="compact"
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <CalculatorStat
-                label="New exposure time"
-                value={formatExposureTime(calculation.newTimeValue)}
-                helperText={`${calculation.stopsValue > 0 ? '+' : ''}${
-                  calculation.stopsValue
-                } stops`}
-                tone="default"
-              />
-              <CalculatorStat
-                label={`${
-                  calculation.addedTime >= 0 ? 'Add' : 'Remove'
-                } exposure`}
-                value={formatExposureTime(Math.abs(calculation.addedTime))}
-                helperText={`${Math.abs(calculation.percentageIncrease).toFixed(
-                  1
-                )}% change`}
-              />
-            </div>
-
-            <div className="rounded-2xl p-4 font-mono text-sm border border-secondary bg-background/20 text-primary">
-              {`${formatExposureTime(calculation.originalTimeValue)} `}
-              <span className="align-super text-xs font-semibold text-[color:var(--color-primary)]">
-                ×2^
-                {calculation.stopsValue}
-              </span>
-              <span>{' = '}</span>
-              <span className="font-semibold">
-                {formatExposureTime(calculation.newTimeValue)}
-              </span>
-            </div>
-
-            <div className="space-y-2">
-              <ResultRow
-                label="Original time"
-                value={formatExposureTime(calculation.originalTimeValue)}
-              />
-              <ResultRow
-                label="Stop adjustment"
-                value={`${calculation.stopsValue > 0 ? '+' : ''}${
-                  calculation.stopsValue
-                } stops`}
-              />
-              <ResultRow
-                label="Multiplier"
-                value={`×${(2 ** calculation.stopsValue).toFixed(3)}`}
-              />
-            </div>
-          </CalculatorCard>
-        )}
-      </form.Subscribe>
     </CalculatorLayout>
   );
 }

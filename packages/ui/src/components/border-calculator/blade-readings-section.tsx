@@ -39,11 +39,11 @@ export function BladeReadingsSection({
   return (
     <CalculatorCard
       title="Blade Readings"
-      description="Dial these values on your easel for a centered print."
+      description="Set your easel blades to these positions."
       accent="emerald"
       padding="compact"
     >
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-2 sm:grid-cols-2">
         <CalculatorStat
           label="Left Blade"
           value={formatWithUnit(
@@ -51,7 +51,6 @@ export function BladeReadingsSection({
               ? calculation.topBladeReading
               : calculation.leftBladeReading
           )}
-          className="p-4"
         />
         <CalculatorStat
           label="Right Blade"
@@ -60,7 +59,6 @@ export function BladeReadingsSection({
               ? calculation.bottomBladeReading
               : calculation.rightBladeReading
           )}
-          className="p-4"
         />
         <CalculatorStat
           label="Top Blade"
@@ -69,7 +67,6 @@ export function BladeReadingsSection({
               ? calculation.leftBladeReading
               : calculation.topBladeReading
           )}
-          className="p-4"
         />
         <CalculatorStat
           label="Bottom Blade"
@@ -78,7 +75,6 @@ export function BladeReadingsSection({
               ? calculation.rightBladeReading
               : calculation.bottomBladeReading
           )}
-          className="p-4"
         />
         <CalculatorStat
           label="Image Size"
@@ -88,22 +84,22 @@ export function BladeReadingsSection({
             { maxPrecision: 3 }
           )}
           helperText="Final image area within the borders."
-          className="sm:col-span-2 p-4"
+          className="sm:col-span-2"
         />
       </div>
 
       {bladeWarning && (
-        <div className="mt-4">
+        <div className="mt-2">
           <StatusAlert message={bladeWarning} action="error" />
         </div>
       )}
       {minBorderWarning && (
-        <div className="mt-4">
+        <div className="mt-2">
           <StatusAlert message={minBorderWarning} action="error" />
         </div>
       )}
       {paperSizeWarning && (
-        <div className="mt-4">
+        <div className="mt-2">
           <StatusAlert message={paperSizeWarning} action="warning" />
         </div>
       )}

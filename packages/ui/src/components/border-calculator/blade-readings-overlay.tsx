@@ -5,8 +5,8 @@
    with smart positioning and arrow indicators
    -------------------------------------------------------------
    Features:
-   - Dynamic positioning based on available space
-   - Boundary-aware positioning to keep readings visible
+   - Inside positioning when print area is large enough
+   - Boundary-straddling when labels don't fit inside
    - Arrow indicators pointing towards blade positions
    - Smooth transitions for show/hide
    - Responsive text sizing
@@ -25,12 +25,8 @@ interface BladeReadingsOverlayProps {
 }
 
 interface BladeReading {
-  label: string;
   value: string;
-  position: {
-    x: number;
-    y: number;
-  };
+  position: { x: number; y: number };
   side: 'left' | 'right' | 'top' | 'bottom';
   isInside: boolean;
 }
@@ -47,7 +43,6 @@ export function BladeReadingsOverlay({
   const readings = useMemo((): BladeReading[] => {
     if (!calculation) return [];
 
-    // Calculate print area boundaries in pixels
     const printLeftPx = (calculation.leftBorderPercent / 100) * containerWidth;
     const printRightPx =
       ((100 - calculation.rightBorderPercent) / 100) * containerWidth;
@@ -58,84 +53,44 @@ export function BladeReadingsOverlay({
     const printWidth = printRightPx - printLeftPx;
     const printHeight = printBottomPx - printTopPx;
 
-    // Minimum space needed for text display (approximate)
-    const minTextWidth = 80; // Increased from 60 to provide more buffer
-    const minTextHeight = 40; // Increased from 30 to provide more buffer
-    const padding = 8; // Increased from 4 to provide more spacing
+    // Approximate label dimensions at current font size
+    const labelWidth = 85;
+    const labelHeight = 45;
+    const padding = 10;
 
-    // Determine if readings should be inside or outside print area
-    const leftCanFitInside = printWidth > +minTextWidth + (padding + 11) * 6;
-    const rightCanFitInside = printWidth > +minTextWidth + (padding + 11) * 6;
-    const topCanFitInside = printHeight > minTextHeight + (padding + 11) * 6;
-    const bottomCanFitInside = printHeight > minTextHeight + (padding + 11) * 6;
+    // Labels go inside only if BOTH opposing labels fit without overlapping
+    const hInside = printWidth > labelWidth * 2 + padding * 2;
+    const vInside = printHeight > labelHeight * 2 + padding * 2;
 
-    // Check if readings would fall outside container bounds when placed outside print area
-    const leftHasSpaceOutside = printLeftPx - padding - minTextWidth >= 0;
-    const rightHasSpaceOutside =
-      printRightPx + padding + minTextWidth <= containerWidth;
-    const topHasSpaceOutside = printTopPx - padding - minTextHeight >= 0;
-    const bottomHasSpaceOutside =
-      printBottomPx + padding + minTextHeight <= containerHeight;
+    const centerY = (printTopPx + printBottomPx) / 2;
+    const centerX = (printLeftPx + printRightPx) / 2;
 
-    const readings: BladeReading[] = [];
-
-    // Left blade reading - position at left blade boundary
-    const leftShouldBeInside = leftCanFitInside || !leftHasSpaceOutside;
-    readings.push({
-      label: 'Left',
-      value: formatWithUnit(calculation.leftBladeReading),
-      position: {
-        x: leftShouldBeInside ? printLeftPx + padding : printLeftPx - padding,
-        y: (printTopPx + printBottomPx) / 2,
+    return [
+      {
+        value: formatWithUnit(calculation.leftBladeReading),
+        position: { x: printLeftPx, y: centerY },
+        side: 'left' as const,
+        isInside: hInside,
       },
-      side: 'left',
-      isInside: leftShouldBeInside,
-    });
-
-    // Right blade reading - position at right blade boundary
-    const rightShouldBeInside = rightCanFitInside || !rightHasSpaceOutside;
-    readings.push({
-      label: 'Right',
-      value: formatWithUnit(calculation.rightBladeReading),
-      position: {
-        x: rightShouldBeInside
-          ? printRightPx - padding
-          : printRightPx + padding,
-        y: (printTopPx + printBottomPx) / 2,
+      {
+        value: formatWithUnit(calculation.rightBladeReading),
+        position: { x: printRightPx, y: centerY },
+        side: 'right' as const,
+        isInside: hInside,
       },
-      side: 'right',
-      isInside: rightShouldBeInside,
-    });
-
-    // Top blade reading - position at top blade boundary
-    const topShouldBeInside = topCanFitInside || !topHasSpaceOutside;
-    readings.push({
-      label: 'Top',
-      value: formatWithUnit(calculation.topBladeReading),
-      position: {
-        x: (printLeftPx + printRightPx) / 2,
-        y: topShouldBeInside ? printTopPx + padding : printTopPx - padding,
+      {
+        value: formatWithUnit(calculation.topBladeReading),
+        position: { x: centerX, y: printTopPx },
+        side: 'top' as const,
+        isInside: vInside,
       },
-      side: 'top',
-      isInside: topShouldBeInside,
-    });
-
-    // Bottom blade reading - position at bottom blade boundary
-    const bottomShouldBeInside = bottomCanFitInside || !bottomHasSpaceOutside;
-    readings.push({
-      label: 'Bottom',
-      value: formatWithUnit(calculation.bottomBladeReading),
-      position: {
-        x: (printLeftPx + printRightPx) / 2,
-        y: bottomShouldBeInside
-          ? printBottomPx - padding
-          : printBottomPx + padding,
+      {
+        value: formatWithUnit(calculation.bottomBladeReading),
+        position: { x: centerX, y: printBottomPx },
+        side: 'bottom' as const,
+        isInside: vInside,
       },
-      side: 'bottom',
-      isInside: bottomShouldBeInside,
-    });
-
-    return readings;
+    ];
   }, [calculation, containerWidth, containerHeight, formatWithUnit]);
 
   if (!showReadings || !calculation) {
@@ -159,85 +114,100 @@ export function BladeReadingsOverlay({
   );
 }
 
-interface BladeReadingIndicatorProps {
-  reading: BladeReading;
-}
-
-function BladeReadingIndicator({ reading }: BladeReadingIndicatorProps) {
+function BladeReadingIndicator({ reading }: { reading: BladeReading }) {
   const { position, side, value, isInside } = reading;
+  const isVertical = side === 'top' || side === 'bottom';
 
-  // Determine positioning and arrow direction based on side
-  const getLayoutProps = () => {
+  // Inside: label fully within print area, arrow points toward blade
+  // Straddling: label centered on blade boundary
+  const getTransformAndArrow = () => {
+    if (isInside) {
+      switch (side) {
+        case 'left':
+          return {
+            transform: 'translate(0, -50%)',
+            arrow: '←',
+            arrowFirst: true,
+          };
+        case 'right':
+          return {
+            transform: 'translate(-100%, -50%)',
+            arrow: '→',
+            arrowFirst: false,
+          };
+        case 'top':
+          return {
+            transform: 'translate(-50%, 0)',
+            arrow: '↑',
+            arrowFirst: true,
+          };
+        case 'bottom':
+          return {
+            transform: 'translate(-50%, -100%)',
+            arrow: '↓',
+            arrowFirst: false,
+          };
+      }
+    }
+    // Outside: label in the border area, arrow pointing at the blade edge
     switch (side) {
       case 'left':
         return {
-          transform: isInside ? 'translate(0, -50%)' : 'translate(-100%, -50%)',
-          arrow: isInside ? '←' : '→',
-          flexDirection: 'row' as const,
-          arrowFirst: !!isInside,
+          transform: 'translate(-100%, -50%)',
+          arrow: '→',
+          arrowFirst: false,
         };
       case 'right':
         return {
-          transform: isInside ? 'translate(-100%, -50%)' : 'translate(0, -50%)',
-          arrow: isInside ? '→' : '←',
-          flexDirection: 'row' as const,
-          arrowFirst: !isInside,
+          transform: 'translate(0, -50%)',
+          arrow: '←',
+          arrowFirst: true,
         };
       case 'top':
         return {
-          transform: isInside ? 'translate(-50%, 0)' : 'translate(-50%, -100%)',
-          arrow: isInside ? '↑' : '↓',
-          flexDirection: 'column' as const,
-          arrowFirst: !!isInside,
+          transform: 'translate(-50%, -100%)',
+          arrow: '↓',
+          arrowFirst: false,
         };
       case 'bottom':
         return {
-          transform: isInside ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
-          arrow: isInside ? '↓' : '↑',
-          flexDirection: 'column' as const,
-          arrowFirst: !isInside,
-        };
-      default:
-        return {
-          transform: 'translate(-50%, -50%)',
-          arrow: '•',
-          flexDirection: 'row' as const,
+          transform: 'translate(-50%, 0)',
+          arrow: '↑',
           arrowFirst: true,
         };
     }
   };
 
-  const { transform, arrow, flexDirection, arrowFirst } = getLayoutProps();
+  const { transform, arrow, arrowFirst } = getTransformAndArrow();
 
-  const baseStyle = {
-    position: 'absolute' as const,
-    left: position.x,
-    top: position.y,
-    transform,
-    transition: 'all 0.15s ease-in-out',
-  };
-
-  const containerClasses = `flex items-center gap-1 px-2 py-1 rounded text-xs font-medium shadow-lg backdrop-blur-sm`;
-  const containerStyle = {
-    backgroundColor: 'var(--color-visualization-overlay)',
-    color: 'var(--color-text-primary)',
-    border: '1px solid var(--color-border-secondary)',
-  };
-  const flexClasses = flexDirection === 'column' ? 'flex-col' : 'flex-row';
+  const arrowClasses = isVertical
+    ? 'text-xl leading-none'
+    : 'text-lg leading-none';
 
   return (
     <div
-      style={{ ...baseStyle, ...containerStyle }}
-      className={`${containerClasses} ${flexClasses}`}
+      className={`flex items-center gap-0.5 px-2.5 py-1 rounded text-sm font-medium shadow-lg backdrop-blur-sm ${
+        isVertical ? 'flex-col' : 'flex-row'
+      }`}
+      style={{
+        position: 'absolute',
+        left: position.x,
+        top: position.y,
+        transform,
+        transition: 'all 0.15s ease-in-out',
+        backgroundColor: 'var(--color-visualization-overlay)',
+        color: 'var(--color-text-primary)',
+        border: '1px solid var(--color-border-secondary)',
+      }}
     >
       {arrowFirst && (
-        <span className="text-sm" style={{ color: 'var(--color-accent)' }}>
+        <span className={arrowClasses} style={{ color: 'var(--color-accent)' }}>
           {arrow}
         </span>
       )}
       <span className="whitespace-nowrap">{value}</span>
       {!arrowFirst && (
-        <span className="text-sm" style={{ color: 'var(--color-accent)' }}>
+        <span className={arrowClasses} style={{ color: 'var(--color-accent)' }}>
           {arrow}
         </span>
       )}

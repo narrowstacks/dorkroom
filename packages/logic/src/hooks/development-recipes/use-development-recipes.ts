@@ -8,7 +8,11 @@ import { useCombinations } from '../api/use-combinations';
 import { useDevelopers } from '../api/use-developers';
 import { useFilms } from '../api/use-films';
 
-export type CustomRecipeFilter = 'all' | 'hide-custom' | 'only-custom';
+export type CustomRecipeFilter =
+  | 'all'
+  | 'hide-custom'
+  | 'only-custom'
+  | 'official';
 
 export interface DevelopmentRecipesState {
   developerTypeFilter: string;
@@ -310,7 +314,13 @@ export const useDevelopmentRecipes = (
   }[] => {
     if (!selectedFilm) return [];
 
-    const isos = [{ label: 'All ISOs', value: '' }];
+    const isos = [
+      { label: 'All ISOs', value: '' },
+      {
+        label: `Box speed (${selectedFilm.isoSpeed})`,
+        value: 'boxspeed',
+      },
+    ];
     const isoSet = new Set<number>();
 
     const combinations = allCombinations.filter(
@@ -378,11 +388,7 @@ export const useDevelopmentRecipes = (
     setIsoFilter('');
     setCustomRecipeFilter('all');
     setTagFilter('');
-    setSelectedFilm(null);
-    setSelectedDeveloper(null);
-    setSortBy('filmName');
-    setSortDirection('asc');
-  }, [setSelectedFilm, setSelectedDeveloper]);
+  }, []);
 
   const filteredCombinations = useMemo(() => {
     let combinations = [...allCombinations];
@@ -453,9 +459,15 @@ export const useDevelopmentRecipes = (
 
     // Filter by ISO
     if (isoFilter && selectedFilm) {
-      combinations = combinations.filter(
-        (combo) => combo.shootingIso.toString() === isoFilter
-      );
+      if (isoFilter === 'boxspeed') {
+        combinations = combinations.filter(
+          (combo) => combo.shootingIso === selectedFilm.isoSpeed
+        );
+      } else {
+        combinations = combinations.filter(
+          (combo) => combo.shootingIso.toString() === isoFilter
+        );
+      }
     }
 
     // Sort combinations

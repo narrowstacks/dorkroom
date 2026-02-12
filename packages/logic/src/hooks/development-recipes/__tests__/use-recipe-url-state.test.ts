@@ -68,6 +68,7 @@ describe('useRecipeUrlState', () => {
     selectedDeveloper: null,
     dilutionFilter: '',
     isoFilter: '',
+    developerTypeFilter: '',
     favoritesOnly: false,
     customRecipeFilter: '',
   };
@@ -125,12 +126,12 @@ describe('useRecipeUrlState', () => {
     expect(mockReplaceState).toHaveBeenCalled();
     const lastCall =
       mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
-    expect(lastCall[2]).toContain('view=favorites');
+    expect(lastCall[2]).toContain('favorites=true');
 
     vi.useRealTimers();
   });
 
-  it('should correctly sync view=favorites to URL', () => {
+  it('should correctly sync favorites=true to URL', () => {
     // We need to use fake timers for the debounce in updateUrl
     vi.useFakeTimers();
 
@@ -154,15 +155,15 @@ describe('useRecipeUrlState', () => {
       vi.runAllTimers();
     });
 
-    // Check if replaceState was called with view=favorites
+    // Check if replaceState was called with favorites=true
     const lastCall =
       mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
-    expect(lastCall[2]).toContain('view=favorites');
+    expect(lastCall[2]).toContain('favorites=true');
 
     vi.useRealTimers();
   });
 
-  it('should correctly sync view=custom to URL', () => {
+  it('should correctly sync recipeType=only-custom to URL', () => {
     vi.useFakeTimers();
 
     const { rerender } = renderHook(
@@ -185,10 +186,10 @@ describe('useRecipeUrlState', () => {
       vi.runAllTimers();
     });
 
-    // Check if replaceState was called with view=custom
+    // Check if replaceState was called with recipeType=only-custom
     const lastCall =
       mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
-    expect(lastCall[2]).toContain('view=custom');
+    expect(lastCall[2]).toContain('recipeType=only-custom');
 
     vi.useRealTimers();
   });

@@ -12,44 +12,46 @@ interface CalculatorStatProps {
   className?: string;
 }
 
-// Legacy - replaced with getToneStyle function
+interface ToneStyles {
+  container: React.CSSProperties;
+  label: string;
+  value: string;
+  helper: string;
+}
 
 // Theme-aware tone styles using predefined gradients
-const getToneStyle = (
-  tone: Exclude<StatTone, 'default'>
-): React.CSSProperties => {
+// Uses high-contrast text colors against gradient backgrounds
+const getToneStyle = (tone: Exclude<StatTone, 'default'>): ToneStyles => {
   switch (tone) {
     case 'emerald':
       return {
-        borderColor: colorMixOr(
-          'var(--color-semantic-success)',
-          30,
-          'transparent',
-          'var(--color-border-secondary)'
-        ),
-        background: 'var(--gradient-card-primary)',
-        color: colorMixOr(
-          'var(--color-semantic-success)',
-          90,
-          'var(--color-text-primary)',
-          'var(--color-text-primary)'
-        ),
+        container: {
+          borderColor: colorMixOr(
+            'var(--color-semantic-success)',
+            30,
+            'transparent',
+            'var(--color-border-secondary)'
+          ),
+          background: 'var(--gradient-card-primary)',
+        },
+        label: 'var(--color-text-primary)',
+        value: 'var(--color-text-primary)',
+        helper: 'var(--color-text-primary)',
       };
     case 'sky':
       return {
-        borderColor: colorMixOr(
-          'var(--color-semantic-info)',
-          30,
-          'transparent',
-          'var(--color-border-secondary)'
-        ),
-        background: 'var(--gradient-card-info)',
-        color: colorMixOr(
-          'var(--color-semantic-info)',
-          90,
-          'var(--color-text-primary)',
-          'var(--color-text-primary)'
-        ),
+        container: {
+          borderColor: colorMixOr(
+            'var(--color-semantic-info)',
+            30,
+            'transparent',
+            'var(--color-border-secondary)'
+          ),
+          background: 'var(--gradient-card-info)',
+        },
+        label: 'var(--color-text-primary)',
+        value: 'var(--color-text-primary)',
+        helper: 'var(--color-text-primary)',
       };
   }
 };
@@ -61,15 +63,17 @@ export const CalculatorStat = memo(function CalculatorStat({
   tone = 'default',
   className,
 }: CalculatorStatProps) {
+  const toneStyle = tone !== 'default' ? getToneStyle(tone) : null;
+
   return (
     <div
       className={cn(
-        'rounded-2xl border p-5 backdrop-blur-sm transition-colors',
+        'rounded-xl border p-3 backdrop-blur-sm transition-colors',
         className
       )}
       style={
-        tone !== 'default'
-          ? getToneStyle(tone)
+        toneStyle
+          ? toneStyle.container
           : {
               borderColor: 'var(--color-border-secondary)',
               backgroundColor: 'rgb(var(--color-background-rgb) / 0.15)',
@@ -77,27 +81,26 @@ export const CalculatorStat = memo(function CalculatorStat({
       }
     >
       <span
-        className="text-xs font-semibold uppercase tracking-[0.35em]"
+        className="text-[10px] font-semibold uppercase tracking-[0.3em]"
         style={{
-          color: tone !== 'default' ? 'inherit' : 'var(--color-text-primary)',
+          color: toneStyle ? toneStyle.label : 'var(--color-text-primary)',
         }}
       >
         {label}
       </span>
       <div
-        className="mt-3 text-3xl font-semibold tracking-tight"
+        className="mt-1 text-2xl font-semibold tracking-tight"
         style={{
-          color: tone !== 'default' ? 'inherit' : 'var(--color-text-primary)',
+          color: toneStyle ? toneStyle.value : 'var(--color-text-primary)',
         }}
       >
         {value}
       </div>
       {helperText && (
         <p
-          className="mt-2 text-xs"
+          className="mt-1 text-[11px]"
           style={{
-            color:
-              tone !== 'default' ? 'inherit' : 'var(--color-text-secondary)',
+            color: toneStyle ? toneStyle.helper : 'var(--color-text-secondary)',
           }}
         >
           {helperText}

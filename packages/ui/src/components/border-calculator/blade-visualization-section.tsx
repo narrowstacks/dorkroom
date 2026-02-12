@@ -15,7 +15,7 @@ export function BladeVisualizationSection({
   return (
     <CalculatorCard
       title="Blade Visualization"
-      description="Control the display of easel blades and measurements on the preview."
+      description="Show or hide blades and measurements in the preview."
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <form.Field name="showBlades">

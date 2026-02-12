@@ -18,7 +18,7 @@ interface FiltersSidebarProps {
   selectedDeveloper: string;
   onDeveloperChange: (value: string) => void;
   developerOptions: SelectItem[];
-  // Advanced filters
+  // Filters
   developerTypeFilter: string;
   onDeveloperTypeFilterChange: (value: string) => void;
   developerTypeOptions: SelectItem[];
@@ -30,9 +30,6 @@ interface FiltersSidebarProps {
   isoOptions: SelectItem[];
   customRecipeFilter: CustomRecipeFilter;
   onCustomRecipeFilterChange: (value: CustomRecipeFilter) => void;
-  tagFilter: string;
-  onTagFilterChange: (value: string) => void;
-  tagOptions: SelectItem[];
   favoritesOnly?: boolean;
   onFavoritesOnlyChange?: (value: boolean) => void;
   // Sorting (for cards view)
@@ -69,8 +66,9 @@ const sortingOptions: SelectItem[] = [
   },
 ];
 
-const customRecipeOptions: SelectItem[] = [
+const recipeTypeOptions: SelectItem[] = [
   { label: 'All recipes', value: 'all' },
+  { label: 'Official only', value: 'official' },
   { label: 'Hide custom recipes', value: 'hide-custom' },
   { label: 'Only custom recipes', value: 'only-custom' },
 ];
@@ -94,9 +92,6 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
   isoOptions,
   customRecipeFilter,
   onCustomRecipeFilterChange,
-  tagFilter,
-  onTagFilterChange,
-  tagOptions,
   favoritesOnly = false,
   onFavoritesOnlyChange,
   sorting = [],
@@ -117,7 +112,6 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
     dilutionFilter ||
     isoFilter ||
     customRecipeFilter !== 'all' ||
-    tagFilter ||
     favoritesOnly;
 
   // Count active filters (including selections)
@@ -128,7 +122,6 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
     dilutionFilter,
     isoFilter,
     customRecipeFilter !== 'all',
-    tagFilter,
     favoritesOnly,
   ].filter(Boolean).length;
 
@@ -148,6 +141,11 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
     onSortingChange?.([{ id, desc: direction === 'desc' }]);
   };
 
+  const handleClearAll = () => {
+    onClearSelections();
+    onClearFilters();
+  };
+
   return (
     <FilterPanelContainer
       className={className}
@@ -158,12 +156,10 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
     >
       <FilterPanelHeader />
 
-      {/* Film & Developer section */}
       <FilterPanelSection
-        title="Film & Developer"
-        onClear={onClearSelections}
-        showClear={!!hasSelections}
-        clearLabel="Clear"
+        title="Filters"
+        onClear={handleClearAll}
+        showClear={!!(hasSelections || hasActiveFilters)}
       >
         <SearchableSelect
           label="Film"
@@ -179,14 +175,30 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
           onValueChange={onDeveloperChange}
           items={developerOptions}
         />
-      </FilterPanelSection>
-
-      {/* Advanced Filters section */}
-      <FilterPanelSection
-        title="Advanced Filters"
-        onClear={onClearFilters}
-        showClear={!!hasActiveFilters}
-      >
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={onClearFilters}
+            className="self-start rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all duration-200"
+            style={{
+              color: 'var(--color-text-secondary)',
+              border: '1px solid var(--color-border-secondary)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-accent)';
+              e.currentTarget.style.color = 'var(--color-background)';
+              e.currentTarget.style.borderColor = 'var(--color-accent)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+              e.currentTarget.style.borderColor =
+                'var(--color-border-secondary)';
+            }}
+          >
+            Clear filters
+          </button>
+        )}
         {showDeveloperTypeFilter && (
           <Select
             label="Developer type"
@@ -217,13 +229,7 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
           onValueChange={(value) =>
             onCustomRecipeFilterChange(value as CustomRecipeFilter)
           }
-          items={customRecipeOptions}
-        />
-        <Select
-          label="Tag"
-          selectedValue={tagFilter}
-          onValueChange={onTagFilterChange}
-          items={tagOptions}
+          items={recipeTypeOptions}
         />
         {onFavoritesOnlyChange && (
           <label

@@ -22,10 +22,10 @@ export function Select({
   ariaLabel,
 }: SelectProps) {
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('space-y-1.5', className)}>
       {label && (
         <label
-          className="block text-sm font-medium"
+          className="block text-xs font-medium"
           style={{ color: 'var(--color-text-secondary)' }}
         >
           {label}
@@ -35,7 +35,7 @@ export function Select({
         <select
           value={selectedValue}
           onChange={(e) => onValueChange((e.target as HTMLSelectElement).value)}
-          className="w-full appearance-none rounded-lg border px-3 py-2 pr-8 focus:outline-none focus:ring-2"
+          className="w-full appearance-none rounded-lg border px-3 py-1.5 pr-8 text-sm focus:outline-none focus:ring-2"
           aria-label={ariaLabel}
           style={
             {
