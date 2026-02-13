@@ -85,7 +85,7 @@ export const SENSOR_FORMATS: SensorFormat[] = [
   ),
   createFormat(
     'medium-format-digital',
-    'Medium Format Digital (Fuji/Hasselblad) (43.8×32.9mm)',
+    'Medium Format Digital (Fuji/Hasselblad)',
     'MF Digital (Fuji/Hasselblad)',
     'digital',
     43.8,
@@ -93,7 +93,7 @@ export const SENSOR_FORMATS: SensorFormat[] = [
   ),
   createFormat(
     'medium-format-phaseone',
-    'Medium Format Digital (Phase One) (53.4×40mm)',
+    'Medium Format Digital (Phase One)',
     'MF Digital (Phase One)',
     'digital',
     53.4,
