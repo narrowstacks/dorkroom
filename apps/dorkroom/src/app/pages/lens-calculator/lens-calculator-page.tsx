@@ -32,9 +32,9 @@ const HOW_TO_USE = [
 ];
 
 const TIPS = [
-  'Smaller sensors crop the image, making lenses appear "longer". The crop factor describes this multiplier relative to 35mm.',
+  'Smaller sensors crop the image, making lenses appear "longer". The crop factor describes this multiplier relative to full frame.',
   'Equivalent focal lengths match the diagonal field of view, but depth of field and perspective compression still differ.',
-  'Larger formats like 6×7 have crop factors less than 1 — a 50mm lens shows a wider field of view than on 35mm.',
+  'Larger formats like 6×7 have crop factors less than 1 — a 50mm lens shows a wider field of view than on full frame.',
   'Use this when switching systems or shooting multiple formats to find lenses that give similar framing.',
 ];
 

@@ -50,7 +50,14 @@ const createFormat = (
  */
 export const SENSOR_FORMATS: SensorFormat[] = [
   // Digital formats
-  createFormat('full-frame', 'Full Frame (35mm)', '35mm', 'digital', 36, 24),
+  createFormat(
+    'full-frame',
+    'Full Frame (35mm)',
+    'Full Frame',
+    'digital',
+    36,
+    24
+  ),
   createFormat('aps-c-canon', 'APS-C (Canon)', 'APS-C', 'digital', 22.3, 14.9),
   createFormat(
     'aps-c-nikon',
@@ -69,16 +76,8 @@ export const SENSOR_FORMATS: SensorFormat[] = [
     13
   ),
   createFormat(
-    'medium-format-gfx',
-    'Medium Format (Fuji GFX)',
-    'MF Digital',
-    'digital',
-    43.8,
-    32.9
-  ),
-  createFormat(
-    'medium-format-hasselblad',
-    'Medium Format (Hasselblad)',
+    'medium-format-digital',
+    'Medium Format Digital (44×33)',
     'MF Digital',
     'digital',
     43.8,
@@ -94,7 +93,7 @@ export const SENSOR_FORMATS: SensorFormat[] = [
   ),
 
   // Film 35mm (same as digital full frame)
-  createFormat('film-35mm', '35mm Film', '35mm', 'film-35mm', 36, 24),
+  createFormat('film-35mm', '35mm Film', 'Full Frame', 'film-35mm', 36, 24),
 
   // Medium format film (landscape orientation)
   createFormat('film-645', '6×4.5 (645)', '645', 'film-medium', 56, 41.5),
