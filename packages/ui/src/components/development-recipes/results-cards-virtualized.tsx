@@ -362,28 +362,14 @@ export const DevelopmentResultsCardsVirtualized: FC<
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span
-                              className="text-sm font-semibold"
-                              style={{ color: 'var(--color-text-primary)' }}
-                            >
-                              {film
-                                ? `${film.brand} ${film.name}`
-                                : 'Unknown film'}
-                            </span>
-                            {rowData.source === 'custom' && (
-                              <CustomBadge showTooltip={false} />
-                            )}
-                            {combination.tags
-                              ?.filter(isOfficialTag)
-                              .map((tag: string) => (
-                                <OfficialBadge
-                                  key={tag}
-                                  tag={tag}
-                                  showTooltip={false}
-                                />
-                              ))}
-                          </div>
+                          <span
+                            className="text-sm font-semibold"
+                            style={{ color: 'var(--color-text-primary)' }}
+                          >
+                            {film
+                              ? `${film.brand} ${film.name}`
+                              : 'Unknown film'}
+                          </span>
                           <div
                             className="text-xs"
                             style={{ color: 'var(--color-text-tertiary)' }}
@@ -408,61 +394,75 @@ export const DevelopmentResultsCardsVirtualized: FC<
                               </div>
                             )}
                         </div>
-                        <button
-                          type="button"
-                          title={
-                            isFavorite?.(rowData)
-                              ? 'Remove from favorites'
-                              : 'Add to favorites'
-                          }
-                          aria-pressed={Boolean(isFavorite?.(rowData))}
-                          aria-label={
-                            isFavorite?.(rowData)
-                              ? 'Remove from favorites'
-                              : 'Add to favorites'
-                          }
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleFavorite?.(rowData);
-                          }}
-                          className="ml-2 inline-flex items-center justify-center rounded-md p-1.5 transition"
-                          style={{
-                            backgroundColor: 'var(--color-surface-muted)',
-                            borderWidth: 1,
-                            borderColor: 'var(--color-border-secondary)',
-                            color: isFavorite?.(rowData)
-                              ? 'var(--color-semantic-warning)'
-                              : 'var(--color-border-secondary)',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'var(--color-border-secondary)';
-                            setHoveredFavoriteId(id);
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'var(--color-surface-muted)';
-                            setHoveredFavoriteId(null);
-                          }}
-                        >
-                          <Star
-                            className="h-4 w-4"
-                            aria-hidden="true"
-                            fill={
+                        <div className="flex items-center gap-1.5 ml-2 shrink-0">
+                          {rowData.source === 'custom' && (
+                            <CustomBadge showTooltip={!isMobile} />
+                          )}
+                          {combination.tags
+                            ?.filter(isOfficialTag)
+                            .map((tag: string) => (
+                              <OfficialBadge
+                                key={tag}
+                                tag={tag}
+                                showTooltip={!isMobile}
+                              />
+                            ))}
+                          <button
+                            type="button"
+                            title={
                               isFavorite?.(rowData)
+                                ? 'Remove from favorites'
+                                : 'Add to favorites'
+                            }
+                            aria-pressed={Boolean(isFavorite?.(rowData))}
+                            aria-label={
+                              isFavorite?.(rowData)
+                                ? 'Remove from favorites'
+                                : 'Add to favorites'
+                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleFavorite?.(rowData);
+                            }}
+                            className="inline-flex items-center justify-center rounded-md p-1.5 transition"
+                            style={{
+                              backgroundColor: 'var(--color-surface-muted)',
+                              borderWidth: 1,
+                              borderColor: 'var(--color-border-secondary)',
+                              color: isFavorite?.(rowData)
                                 ? 'var(--color-semantic-warning)'
-                                : 'none'
-                            }
-                            stroke={
-                              hoveredFavoriteId === id
-                                ? 'var(--color-background)'
-                                : isFavorite?.(rowData)
+                                : 'var(--color-border-secondary)',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                'var(--color-border-secondary)';
+                              setHoveredFavoriteId(id);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                'var(--color-surface-muted)';
+                              setHoveredFavoriteId(null);
+                            }}
+                          >
+                            <Star
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                              fill={
+                                isFavorite?.(rowData)
                                   ? 'var(--color-semantic-warning)'
-                                  : 'var(--color-border-secondary)'
-                            }
-                            strokeWidth={2}
-                          />
-                        </button>
+                                  : 'none'
+                              }
+                              stroke={
+                                hoveredFavoriteId === id
+                                  ? 'var(--color-background)'
+                                  : isFavorite?.(rowData)
+                                    ? 'var(--color-semantic-warning)'
+                                    : 'var(--color-border-secondary)'
+                              }
+                              strokeWidth={2}
+                            />
+                          </button>
+                        </div>
                       </div>
 
                       <div

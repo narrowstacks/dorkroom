@@ -60,9 +60,7 @@ export { PaginationControls } from './components/development-recipes/pagination-
 export { DevelopmentRecipeDetail } from './components/development-recipes/recipe-detail';
 export type { RecipeDetailPanelProps } from './components/development-recipes/recipe-detail-panel';
 export { RecipeDetailPanel } from './components/development-recipes/recipe-detail-panel';
-export { DevelopmentResultsCards } from './components/development-recipes/results-cards';
 export { DevelopmentResultsCardsVirtualized } from './components/development-recipes/results-cards-virtualized';
-export { DevelopmentResultsTable } from './components/development-recipes/results-table';
 export { DevelopmentResultsTableVirtualized } from './components/development-recipes/results-table-virtualized';
 export { SharedRecipeModal } from './components/development-recipes/shared-recipe-modal';
 export type { TableColumnContext } from './components/development-recipes/table-columns';

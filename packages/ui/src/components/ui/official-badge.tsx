@@ -1,5 +1,5 @@
 import { Beaker, Check } from 'lucide-react';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { colorMixOr } from '../../lib/color';
 import { getTagThemeStyle } from '../../lib/tag-colors';
@@ -30,6 +30,7 @@ function getManufacturerFromTag(tag: string): string {
 function usePortalTooltip() {
   const ref = useRef<HTMLSpanElement>(null);
   const [pos, setPos] = useState<TooltipPosition | null>(null);
+  const tooltipId = useId();
 
   const show = useCallback(() => {
     if (!ref.current) return;
@@ -42,10 +43,18 @@ function usePortalTooltip() {
 
   const hide = useCallback(() => setPos(null), []);
 
-  return { ref, pos, show, hide };
+  return { ref, pos, show, hide, tooltipId };
 }
 
-function PortalTooltip({ pos, text }: { pos: TooltipPosition; text: string }) {
+function PortalTooltip({
+  id,
+  pos,
+  text,
+}: {
+  id: string;
+  pos: TooltipPosition;
+  text: string;
+}) {
   return createPortal(
     <span
       className="pointer-events-none fixed z-[9999] -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium shadow-lg"
@@ -55,6 +64,7 @@ function PortalTooltip({ pos, text }: { pos: TooltipPosition; text: string }) {
         backgroundColor: 'var(--color-text-primary)',
         color: 'var(--color-background)',
       }}
+      id={id}
       role="tooltip"
     >
       {text}
@@ -71,7 +81,7 @@ export function OfficialBadge({ tag, showTooltip = true }: OfficialBadgeProps) {
   const themeStyle = getTagThemeStyle(tag);
   const manufacturer = getManufacturerFromTag(tag);
   const tooltipText = `Official ${manufacturer} Recipe`;
-  const { ref, pos, show, hide } = usePortalTooltip();
+  const { ref, pos, show, hide, tooltipId } = usePortalTooltip();
 
   return (
     <span
@@ -89,17 +99,20 @@ export function OfficialBadge({ tag, showTooltip = true }: OfficialBadgeProps) {
           color: themeStyle.color,
         }}
         aria-label={tooltipText}
+        aria-describedby={showTooltip && pos ? tooltipId : undefined}
       >
         <Check className="h-3 w-3" strokeWidth={3} />
       </span>
-      {showTooltip && pos && <PortalTooltip pos={pos} text={tooltipText} />}
+      {showTooltip && pos && (
+        <PortalTooltip id={tooltipId} pos={pos} text={tooltipText} />
+      )}
     </span>
   );
 }
 
 export function CustomBadge({ showTooltip = true }: CustomBadgeProps) {
   const tooltipText = 'Custom Recipe';
-  const { ref, pos, show, hide } = usePortalTooltip();
+  const { ref, pos, show, hide, tooltipId } = usePortalTooltip();
 
   return (
     <span
@@ -132,10 +145,13 @@ export function CustomBadge({ showTooltip = true }: CustomBadgeProps) {
           ),
         }}
         aria-label={tooltipText}
+        aria-describedby={showTooltip && pos ? tooltipId : undefined}
       >
         <Beaker className="h-2.5 w-2.5" strokeWidth={2.5} />
       </span>
-      {showTooltip && pos && <PortalTooltip pos={pos} text={tooltipText} />}
+      {showTooltip && pos && (
+        <PortalTooltip id={tooltipId} pos={pos} text={tooltipText} />
+      )}
     </span>
   );
 }
