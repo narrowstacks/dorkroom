@@ -199,7 +199,10 @@ export default function LensCalculatorPage() {
               >
                 <ArrowRightLeft
                   className="w-4 h-4"
-                  style={{ color: 'var(--color-text-primary)' }}
+                  style={{
+                    color: 'var(--color-text-primary)',
+                    stroke: 'var(--color-text-primary)',
+                  }}
                 />
               </button>
             </div>
