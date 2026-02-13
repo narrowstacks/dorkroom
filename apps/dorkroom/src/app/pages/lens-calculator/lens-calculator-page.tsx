@@ -197,7 +197,10 @@ export default function LensCalculatorPage() {
                 className="p-2 rounded-lg border transition-colors themed-button hover:bg-surface-elevated"
                 aria-label="Swap source and target formats"
               >
-                <ArrowRightLeft className="w-4 h-4" />
+                <ArrowRightLeft
+                  className="w-4 h-4"
+                  style={{ color: 'var(--color-text-primary)' }}
+                />
               </button>
             </div>
 

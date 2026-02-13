@@ -84,11 +84,8 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
             width: outerWidth,
             height: outerHeight,
             borderColor: isSourceLarger
-              ? 'var(--color-accent-primary)'
-              : 'var(--color-accent-secondary)',
-            backgroundColor: isSourceLarger
-              ? 'var(--color-accent-primary-bg)'
-              : 'var(--color-accent-secondary-bg)',
+              ? 'var(--color-primary)'
+              : 'var(--color-secondary)',
           }}
         >
           {/* Inner (smaller) format */}
@@ -98,24 +95,18 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
               width: innerWidth,
               height: innerHeight,
               borderColor: isSourceLarger
-                ? 'var(--color-accent-secondary)'
-                : 'var(--color-accent-primary)',
-              backgroundColor: isSourceLarger
-                ? 'var(--color-accent-secondary-bg)'
-                : 'var(--color-accent-primary-bg)',
+                ? 'var(--color-secondary)'
+                : 'var(--color-primary)',
             }}
           />
 
           {/* Larger format label */}
           <span
-            className="absolute text-[10px] font-medium px-1 py-0.5 rounded"
+            className="absolute text-[10px] font-semibold px-1 py-0.5"
             style={{
               top: 3,
               left: 3,
-              backgroundColor: isSourceLarger
-                ? 'var(--color-accent-primary)'
-                : 'var(--color-accent-secondary)',
-              color: 'white',
+              color: 'var(--color-text-primary)',
             }}
           >
             {largerFormat.shortName}
@@ -123,14 +114,11 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
 
           {/* Smaller format label - positioned at bottom right of inner box */}
           <span
-            className="absolute text-[10px] font-medium px-1 py-0.5 rounded"
+            className="absolute text-[10px] font-semibold px-1 py-0.5"
             style={{
               bottom: (outerHeight - innerHeight) / 2 + 3,
               right: (outerWidth - innerWidth) / 2 + 3,
-              backgroundColor: isSourceLarger
-                ? 'var(--color-accent-secondary)'
-                : 'var(--color-accent-primary)',
-              color: 'white',
+              color: 'var(--color-text-primary)',
             }}
           >
             {smallerFormat.shortName}
@@ -143,10 +131,9 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <div
-              className="w-3 h-2 rounded-sm border"
+              className="w-3 h-2 rounded-sm border-2"
               style={{
-                borderColor: 'var(--color-accent-primary)',
-                backgroundColor: 'var(--color-accent-primary-bg)',
+                borderColor: 'var(--color-primary)',
               }}
             />
             <span className="text-secondary">{sourceFormat.shortName}</span>
@@ -156,10 +143,9 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
           </div>
           <div className="flex items-center gap-1.5">
             <div
-              className="w-3 h-2 rounded-sm border"
+              className="w-3 h-2 rounded-sm border-2"
               style={{
-                borderColor: 'var(--color-accent-secondary)',
-                backgroundColor: 'var(--color-accent-secondary-bg)',
+                borderColor: 'var(--color-secondary)',
               }}
             />
             <span className="text-secondary">{targetFormat.shortName}</span>
