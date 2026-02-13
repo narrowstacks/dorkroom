@@ -152,7 +152,7 @@ describe('useBorderCalculator', () => {
       const { result } = renderHook(() => useBorderCalculator());
       const paperSizes = [
         '5x7',
-        '4x6',
+        '3.875x5.875',
         '8x10',
         '11x14',
         '16x20',

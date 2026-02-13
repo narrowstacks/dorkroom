@@ -90,7 +90,12 @@ export const ASPECT_RATIOS: readonly AspectRatio[] = [
 
 export const PAPER_SIZES: readonly PaperSize[] = [
   { label: '5x7', width: 5, height: 7, value: '5x7' },
-  { label: '4x6 (postcard)', width: 4, height: 6, value: '4x6' },
+  {
+    label: '3⅞x5⅞ (postcard)',
+    width: 3.875,
+    height: 5.875,
+    value: '3.875x5.875',
+  },
   { label: '8x10', width: 8, height: 10, value: '8x10' },
   { label: '11x14', width: 11, height: 14, value: '11x14' },
   { label: '16x20', width: 16, height: 20, value: '16x20' },
