@@ -47,8 +47,9 @@ describe('navigation utilities', () => {
     });
 
     it('has correct camera items', () => {
-      expect(cameraItems).toHaveLength(1);
-      expect(cameraItems[0].label).toBe('Exposure');
+      expect(cameraItems).toHaveLength(2);
+      const labels = cameraItems.map((item) => item.label);
+      expect(labels).toEqual(['Lenses', 'Exposure']);
     });
 
     it('has correct reference items', () => {
@@ -139,7 +140,7 @@ describe('navigation utilities', () => {
         const normalizedLabel = item.label.toLowerCase();
 
         // Exclude items where label doesn't match title pattern
-        const exceptions = ['Home', 'Development', 'Films', 'Docs'];
+        const exceptions = ['Home', 'Development', 'Films', 'Docs', 'Lenses'];
         if (!exceptions.includes(item.label)) {
           // Most items should have their label in the title
           expect(normalizedTitle).toContain(normalizedLabel);
