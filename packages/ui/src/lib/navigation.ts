@@ -62,16 +62,16 @@ export const filmItems: NavigationItem[] = [
 
 export const cameraItems: NavigationItem[] = [
   {
+    label: 'Lenses',
+    to: '/lenses',
+    icon: asFunctionComponent(Focus),
+    summary: 'Equivalent focal lengths across formats.',
+  },
+  {
     label: 'Exposure',
     to: '/exposure',
     icon: asFunctionComponent(Aperture),
     summary: 'Balance aperture, shutter, and ISO on set.',
-  },
-  {
-    label: 'Lens',
-    to: '/lens',
-    icon: asFunctionComponent(Focus),
-    summary: 'Equivalent focal lengths across formats.',
   },
 ];
 
@@ -143,7 +143,7 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/reciprocity': 'Reciprocity Failure Calculator',
   '/stops': 'Stops Calculator',
   '/exposure': 'Exposure Calculator',
-  '/lens': 'Lens Equivalency Calculator',
+  '/lenses': 'Lens Equivalency Calculator',
   '/development': 'Development Recipes',
   '/films': 'Film Database',
   '/docs': 'Documentation',
@@ -162,7 +162,7 @@ export const ROUTE_DESCRIPTIONS: Record<string, string> = {
     'Convert between exposure stops and seconds. Translate f-stop or time adjustments into exposure values.',
   '/exposure':
     'Balance aperture, shutter speed, and ISO for correct exposure. Calculate equivalent exposures across different settings.',
-  '/lens':
+  '/lenses':
     'Calculate equivalent focal lengths between sensor and film formats. Compare APS-C, Full Frame, and Medium Format field of view.',
   '/development':
     'Browse film and developer combinations with development times. Find recipes for popular film stocks and chemistry.',
@@ -259,16 +259,16 @@ export const mobileNavItems: MobileNavItem[] = [
   },
   // Camera section
   {
-    label: 'Exposure',
-    to: '/exposure',
-    icon: asFunctionComponent(Aperture),
+    label: 'Lenses',
+    to: '/lenses',
+    icon: asFunctionComponent(Focus),
     type: 'route',
     category: 'camera',
   },
   {
-    label: 'Lens',
-    to: '/lens',
-    icon: asFunctionComponent(Focus),
+    label: 'Exposure',
+    to: '/exposure',
+    icon: asFunctionComponent(Aperture),
     type: 'route',
     category: 'camera',
   },

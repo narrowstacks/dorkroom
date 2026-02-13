@@ -74,7 +74,7 @@ const CALCULATORS = [
     category: 'In the Field',
     title: 'Lens Equivalency',
     description: 'Compare focal lengths across formats',
-    href: '/lens',
+    href: '/lenses',
     icon: Focus,
     iconColorKey: 'emerald' as const,
     color: 'text-emerald-400',

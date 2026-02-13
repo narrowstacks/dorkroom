@@ -7,13 +7,13 @@ const LensCalculatorPage = lazy(
   () => import('../app/pages/lens-calculator/lens-calculator-page')
 );
 
-export const Route = createFileRoute('/lens')({
+export const Route = createFileRoute('/lenses')({
   head: () => ({
     meta: [
-      { title: `${ROUTE_TITLES['/lens']} - Dorkroom` },
-      { name: 'description', content: ROUTE_DESCRIPTIONS['/lens'] },
-      { property: 'og:title', content: ROUTE_TITLES['/lens'] },
-      { property: 'og:description', content: ROUTE_DESCRIPTIONS['/lens'] },
+      { title: `${ROUTE_TITLES['/lenses']} - Dorkroom` },
+      { name: 'description', content: ROUTE_DESCRIPTIONS['/lenses'] },
+      { property: 'og:title', content: ROUTE_TITLES['/lenses'] },
+      { property: 'og:description', content: ROUTE_DESCRIPTIONS['/lenses'] },
     ],
   }),
   component: () => (
