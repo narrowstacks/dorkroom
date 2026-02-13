@@ -8,6 +8,15 @@
     },
     "@dorkroom/dorkroom#build": {
       "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "index.html",
+        "vite.config.ts",
+        "tsconfig*.json",
+        "../../packages/logic/src/**",
+        "../../packages/ui/src/**",
+        "../../packages/api/src/**"
+      ],
       "outputs": ["dist/**"],
       "env": ["SUPABASE_MASTER_API_KEY", "SUPABASE_ENDPOINT"]
     },

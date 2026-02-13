@@ -38,17 +38,23 @@ const TIPS = [
   'Use this when switching systems or shooting multiple formats to find lenses that give similar framing.',
 ];
 
-interface FormatOption {
-  value: string;
-  label: string;
-  group?: string;
-}
-
-const formatOptions: FormatOption[] = SENSOR_FORMATS.map((format) => ({
-  value: format.id,
-  label: `${format.name} (${format.width}×${format.height}mm)`,
-  group: format.category === 'digital' ? 'Digital' : 'Medium Format Film',
-}));
+const formatOptions = (() => {
+  const items: { value: string; label: string }[] = [];
+  let lastCategory = '';
+  for (const format of SENSOR_FORMATS) {
+    const category =
+      format.category === 'digital' ? 'Digital' : 'Medium Format Film';
+    if (category !== lastCategory) {
+      items.push({ value: '__divider__', label: `── ${category} ──` });
+      lastCategory = category;
+    }
+    items.push({
+      value: format.id,
+      label: `${format.name} (${format.width}×${format.height}mm)`,
+    });
+  }
+  return items;
+})();
 
 interface FocalLengthPresetButtonProps {
   value: number;
