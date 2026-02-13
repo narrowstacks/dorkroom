@@ -17,7 +17,6 @@ import {
   CalculatorStat,
   colorMixOr,
   createZodFormValidator,
-  InfoCardList,
   resizeCalculatorSchema,
   StatusAlert,
   ToggleSwitch,
@@ -37,7 +36,7 @@ interface ModeToggleProps {
 function ModeToggle({ isEnlargerHeightMode, onModeChange }: ModeToggleProps) {
   return (
     <div
-      className="rounded-2xl border p-5 shadow-subtle backdrop-blur"
+      className="flex items-center justify-between gap-4 rounded-2xl border px-5 py-3 shadow-subtle backdrop-blur"
       style={{
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: colorMixOr(
@@ -48,52 +47,42 @@ function ModeToggle({ isEnlargerHeightMode, onModeChange }: ModeToggleProps) {
         ),
       }}
     >
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <p
-            className="text-sm font-semibold uppercase tracking-[0.3em]"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            Calculation Method
-          </p>
-          <p
-            className="text-sm"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            Switch between sizing by print dimensions or by enlarger height.
-          </p>
-        </div>
-        <div
-          className="flex items-center gap-3 rounded-full px-4 py-2"
-          style={{
-            borderColor: 'var(--color-border-muted)',
-            backgroundColor: colorMixOr(
-              'var(--color-surface)',
-              20,
-              'transparent',
-              'var(--color-surface)'
-            ),
-            border: '1px solid',
-          }}
+      <p
+        className="text-sm font-semibold uppercase tracking-[0.3em]"
+        style={{ color: 'var(--color-text-muted)' }}
+      >
+        Method
+      </p>
+      <div
+        className="flex items-center gap-3 rounded-full px-4 py-2"
+        style={{
+          borderColor: 'var(--color-border-muted)',
+          backgroundColor: colorMixOr(
+            'var(--color-surface)',
+            20,
+            'transparent',
+            'var(--color-surface)'
+          ),
+          border: '1px solid',
+        }}
+      >
+        <span
+          className="text-xs font-medium uppercase tracking-[0.3em]"
+          style={{ color: 'var(--color-text-tertiary)' }}
         >
-          <span
-            className="text-xs font-medium uppercase tracking-[0.3em]"
-            style={{ color: 'var(--color-text-tertiary)' }}
-          >
-            Print Size
-          </span>
-          <ToggleSwitch
-            label=""
-            value={isEnlargerHeightMode}
-            onValueChange={onModeChange}
-          />
-          <span
-            className="text-xs font-medium uppercase tracking-[0.3em]"
-            style={{ color: 'var(--color-text-tertiary)' }}
-          >
-            Enlarger Height
-          </span>
-        </div>
+          Print Size
+        </span>
+        <ToggleSwitch
+          label=""
+          value={isEnlargerHeightMode}
+          onValueChange={onModeChange}
+        />
+        <span
+          className="text-xs font-medium uppercase tracking-[0.3em]"
+          style={{ color: 'var(--color-text-tertiary)' }}
+        >
+          Enlarger Height
+        </span>
       </div>
     </div>
   );
@@ -129,18 +118,21 @@ interface InfoSectionProps {
 }
 
 function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
+  const howToUse = isEnlargerHeightMode
+    ? HOW_TO_USE_ENLARGER
+    : HOW_TO_USE_PRINT;
+
   return (
     <CalculatorCard
       title="How this calculator works"
-      description="Get a quick refresher on what the inputs mean and how the math comes together."
       padding="normal"
       className="bg-surface-muted/80"
     >
-      <div
-        className="space-y-5 text-sm"
-        style={{ color: 'var(--color-text-secondary)' }}
-      >
-        <p>
+      <div className="space-y-6">
+        <p
+          className="text-[15px] leading-relaxed"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
           The resize calculator helps you predict new exposure times when you
           scale an existing darkroom print. It relies on the inverse-square law
           to figure out how light spreads across the paper at different sizes.
@@ -148,23 +140,28 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
 
         <div className="space-y-3">
           <h4
-            className="text-sm font-semibold uppercase tracking-[0.25em]"
-            style={{ color: 'var(--color-text-muted)' }}
+            className="text-sm font-semibold"
+            style={{ color: 'var(--color-text-primary)' }}
           >
             How to use
           </h4>
-          <InfoCardList
-            items={
-              isEnlargerHeightMode ? HOW_TO_USE_ENLARGER : HOW_TO_USE_PRINT
-            }
-            variant="default"
-          />
+          <ol className="ml-5 space-y-2 list-decimal">
+            {howToUse.map((item) => (
+              <li
+                key={item}
+                className="pl-2 text-[15px] leading-relaxed"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                {item}
+              </li>
+            ))}
+          </ol>
         </div>
 
         <div className="space-y-3">
           <h4
-            className="text-sm font-semibold uppercase tracking-[0.25em]"
-            style={{ color: 'var(--color-text-muted)' }}
+            className="text-sm font-semibold"
+            style={{ color: 'var(--color-text-primary)' }}
           >
             Formula
           </h4>
@@ -189,12 +186,22 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
 
         <div className="space-y-3">
           <h4
-            className="text-sm font-semibold uppercase tracking-[0.25em]"
-            style={{ color: 'var(--color-text-muted)' }}
+            className="text-sm font-semibold"
+            style={{ color: 'var(--color-text-primary)' }}
           >
             Tips
           </h4>
-          <InfoCardList items={TIPS} variant="default" />
+          <ul className="ml-5 space-y-2 list-disc">
+            {TIPS.map((tip) => (
+              <li
+                key={tip}
+                className="pl-2 text-[15px] leading-relaxed"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                {tip}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </CalculatorCard>
@@ -313,9 +320,70 @@ export default function ResizeCalculatorPage() {
 
   return (
     <CalculatorLayout
-      eyebrow="Exposure Math"
       title="Print Resize Calculator"
       description="Scale a print up or down and get a solid starting exposure without burning through paper."
+      results={
+        <form.Subscribe
+          selector={(state) => {
+            const isEnlargerMode = state.values.isEnlargerHeightMode as boolean;
+            const origTime = state.values.originalTime as number;
+            const origWidth = state.values.originalWidth as number;
+            const origLength = state.values.originalLength as number;
+            const newW = state.values.newWidth as number;
+            const newL = state.values.newLength as number;
+            const origHeight = state.values.originalHeight as number;
+            const newH = state.values.newHeight as number;
+
+            const { newTime, stopsDifference } = calculateExposureChanges(
+              isEnlargerMode,
+              origTime,
+              origWidth,
+              origLength,
+              newW,
+              newL,
+              origHeight,
+              newH
+            );
+
+            const stopsNumber = parseFloat(stopsDifference);
+            const stopsHelper = Number.isFinite(stopsNumber)
+              ? stopsNumber > 0
+                ? 'The new print is larger, add exposure.'
+                : stopsNumber < 0
+                  ? 'The new print is smaller, remove exposure.'
+                  : 'Same size print — keep your original exposure.'
+              : undefined;
+
+            return { newTime, stopsDifference, stopsHelper };
+          }}
+        >
+          {({ newTime, stopsDifference, stopsHelper }) =>
+            newTime ? (
+              <CalculatorCard
+                title="Exposure result"
+                description="Dial these in on your timer and make a quick test strip to confirm."
+                accent="emerald"
+                padding="compact"
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <CalculatorStat
+                    label="New time"
+                    value={`${newTime} seconds`}
+                    tone="emerald"
+                    helperText="Based on your original exposure and target size."
+                  />
+                  <CalculatorStat
+                    label="Stops difference"
+                    value={`${stopsDifference || '0.00'} stops`}
+                    tone="default"
+                    helperText={stopsHelper}
+                  />
+                </div>
+              </CalculatorCard>
+            ) : null
+          }
+        </form.Subscribe>
+      }
       sidebar={
         <InfoSection isEnlargerHeightMode={formValues.isEnlargerHeightMode} />
       }
@@ -567,67 +635,6 @@ export default function ResizeCalculatorPage() {
           </form.Field>
         </div>
       </CalculatorCard>
-
-      <form.Subscribe
-        selector={(state) => {
-          const isEnlargerMode = state.values.isEnlargerHeightMode as boolean;
-          const origTime = state.values.originalTime as number;
-          const origWidth = state.values.originalWidth as number;
-          const origLength = state.values.originalLength as number;
-          const newW = state.values.newWidth as number;
-          const newL = state.values.newLength as number;
-          const origHeight = state.values.originalHeight as number;
-          const newH = state.values.newHeight as number;
-
-          const { newTime, stopsDifference } = calculateExposureChanges(
-            isEnlargerMode,
-            origTime,
-            origWidth,
-            origLength,
-            newW,
-            newL,
-            origHeight,
-            newH
-          );
-
-          const stopsNumber = parseFloat(stopsDifference);
-          const stopsHelper = Number.isFinite(stopsNumber)
-            ? stopsNumber > 0
-              ? 'The new print is larger, add exposure.'
-              : stopsNumber < 0
-                ? 'The new print is smaller, remove exposure.'
-                : 'Same size print — keep your original exposure.'
-            : undefined;
-
-          return { newTime, stopsDifference, stopsHelper };
-        }}
-      >
-        {({ newTime, stopsDifference, stopsHelper }) =>
-          newTime ? (
-            <CalculatorCard
-              title="Exposure result"
-              description="Dial these in on your timer and make a quick test strip to confirm."
-              accent="emerald"
-              padding="compact"
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <CalculatorStat
-                  label="New time"
-                  value={`${newTime} seconds`}
-                  tone="default"
-                  helperText="Based on your original exposure and target size."
-                />
-                <CalculatorStat
-                  label="Stops difference"
-                  value={`${stopsDifference || '0.00'} stops`}
-                  tone="default"
-                  helperText={stopsHelper}
-                />
-              </div>
-            </CalculatorCard>
-          ) : null
-        }
-      </form.Subscribe>
     </CalculatorLayout>
   );
 }

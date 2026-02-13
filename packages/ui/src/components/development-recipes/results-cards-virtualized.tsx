@@ -8,7 +8,6 @@ import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import {
   ArrowDown,
   ArrowUp,
-  Beaker,
   Edit2,
   ExternalLink,
   Flame,
@@ -19,10 +18,14 @@ import {
 import { type FC, useEffect, useMemo, useRef, useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { cn } from '../../lib/cn';
-import { colorMixOr } from '../../lib/color';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import type { ShareResult } from '../share-button';
 import { ShareButton } from '../share-button';
+import {
+  CustomBadge,
+  isOfficialTag,
+  OfficialBadge,
+} from '../ui/official-badge';
 import { SkeletonCard } from '../ui/skeleton';
 import { Tag } from '../ui/tag';
 import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
@@ -359,14 +362,14 @@ export const DevelopmentResultsCardsVirtualized: FC<
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1 min-w-0">
-                          <div
+                          <span
                             className="text-sm font-semibold"
                             style={{ color: 'var(--color-text-primary)' }}
                           >
                             {film
                               ? `${film.brand} ${film.name}`
                               : 'Unknown film'}
-                          </div>
+                          </span>
                           <div
                             className="text-xs"
                             style={{ color: 'var(--color-text-tertiary)' }}
@@ -375,98 +378,91 @@ export const DevelopmentResultsCardsVirtualized: FC<
                               ? `${developer.manufacturer} ${developer.name}`
                               : 'Unknown developer'}
                           </div>
-                          {(rowData.source === 'custom' ||
-                            (combination.tags &&
-                              combination.tags.length > 0)) && (
-                            <div className="mt-2 flex flex-wrap items-center gap-2">
-                              {rowData.source === 'custom' && (
-                                <span
-                                  className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
-                                  style={{
-                                    backgroundColor: colorMixOr(
-                                      'var(--color-accent)',
-                                      10,
-                                      'transparent',
-                                      'var(--color-border-muted)'
-                                    ),
-                                    color: colorMixOr(
-                                      'var(--color-accent)',
-                                      80,
-                                      'var(--color-text-primary)',
-                                      'var(--color-text-primary)'
-                                    ),
-                                  }}
-                                >
-                                  <Beaker
-                                    className="h-3 w-3"
-                                    aria-hidden="true"
-                                  />{' '}
-                                  Custom Recipe
-                                </span>
-                              )}
-                              {combination.tags &&
-                                combination.tags.length > 0 &&
-                                combination.tags.map((tag: string) => (
-                                  <Tag key={tag}>{tag}</Tag>
-                                ))}
-                            </div>
-                          )}
+                          {combination.tags &&
+                            combination.tags.filter(
+                              (t: string) => !isOfficialTag(t) && t !== 'custom'
+                            ).length > 0 && (
+                              <div className="mt-2 flex flex-wrap items-center gap-2">
+                                {combination.tags
+                                  .filter(
+                                    (t: string) =>
+                                      !isOfficialTag(t) && t !== 'custom'
+                                  )
+                                  .map((tag: string) => (
+                                    <Tag key={tag}>{tag}</Tag>
+                                  ))}
+                              </div>
+                            )}
                         </div>
-                        <button
-                          type="button"
-                          title={
-                            isFavorite?.(rowData)
-                              ? 'Remove from favorites'
-                              : 'Add to favorites'
-                          }
-                          aria-pressed={Boolean(isFavorite?.(rowData))}
-                          aria-label={
-                            isFavorite?.(rowData)
-                              ? 'Remove from favorites'
-                              : 'Add to favorites'
-                          }
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleFavorite?.(rowData);
-                          }}
-                          className="ml-2 inline-flex items-center justify-center rounded-md p-1.5 transition"
-                          style={{
-                            backgroundColor: 'var(--color-surface-muted)',
-                            borderWidth: 1,
-                            borderColor: 'var(--color-border-secondary)',
-                            color: isFavorite?.(rowData)
-                              ? 'var(--color-semantic-warning)'
-                              : 'var(--color-border-secondary)',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'var(--color-border-secondary)';
-                            setHoveredFavoriteId(id);
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'var(--color-surface-muted)';
-                            setHoveredFavoriteId(null);
-                          }}
-                        >
-                          <Star
-                            className="h-4 w-4"
-                            aria-hidden="true"
-                            fill={
+                        <div className="flex items-center gap-1.5 ml-2 shrink-0">
+                          {rowData.source === 'custom' && (
+                            <CustomBadge showTooltip={!isMobile} />
+                          )}
+                          {combination.tags
+                            ?.filter(isOfficialTag)
+                            .map((tag: string) => (
+                              <OfficialBadge
+                                key={tag}
+                                tag={tag}
+                                showTooltip={!isMobile}
+                              />
+                            ))}
+                          <button
+                            type="button"
+                            title={
                               isFavorite?.(rowData)
+                                ? 'Remove from favorites'
+                                : 'Add to favorites'
+                            }
+                            aria-pressed={Boolean(isFavorite?.(rowData))}
+                            aria-label={
+                              isFavorite?.(rowData)
+                                ? 'Remove from favorites'
+                                : 'Add to favorites'
+                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleFavorite?.(rowData);
+                            }}
+                            className="inline-flex items-center justify-center rounded-md p-1.5 transition"
+                            style={{
+                              backgroundColor: 'var(--color-surface-muted)',
+                              borderWidth: 1,
+                              borderColor: 'var(--color-border-secondary)',
+                              color: isFavorite?.(rowData)
                                 ? 'var(--color-semantic-warning)'
-                                : 'none'
-                            }
-                            stroke={
-                              hoveredFavoriteId === id
-                                ? 'var(--color-background)'
-                                : isFavorite?.(rowData)
+                                : 'var(--color-border-secondary)',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                'var(--color-border-secondary)';
+                              setHoveredFavoriteId(id);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                'var(--color-surface-muted)';
+                              setHoveredFavoriteId(null);
+                            }}
+                          >
+                            <Star
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                              fill={
+                                isFavorite?.(rowData)
                                   ? 'var(--color-semantic-warning)'
-                                  : 'var(--color-border-secondary)'
-                            }
-                            strokeWidth={2}
-                          />
-                        </button>
+                                  : 'none'
+                              }
+                              stroke={
+                                hoveredFavoriteId === id
+                                  ? 'var(--color-background)'
+                                  : isFavorite?.(rowData)
+                                    ? 'var(--color-semantic-warning)'
+                                    : 'var(--color-border-secondary)'
+                              }
+                              strokeWidth={2}
+                            />
+                          </button>
+                        </div>
                       </div>
 
                       <div

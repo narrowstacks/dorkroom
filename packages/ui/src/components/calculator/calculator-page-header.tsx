@@ -5,7 +5,6 @@ import { colorMixOr } from '../../lib/color';
 interface CalculatorPageHeaderProps {
   title: string;
   description: ReactNode;
-  eyebrow?: string;
   align?: 'center' | 'start';
   children?: ReactNode;
 }
@@ -13,14 +12,13 @@ interface CalculatorPageHeaderProps {
 export function CalculatorPageHeader({
   title,
   description,
-  eyebrow,
   align = 'center',
   children,
 }: CalculatorPageHeaderProps) {
   return (
     <div
       className={cn(
-        'flex flex-col gap-4 rounded-3xl border px-6 py-6 shadow-subtle card-ring sm:px-10',
+        'flex flex-col gap-2 rounded-xl border px-4 py-3 shadow-subtle card-ring sm:px-6 sm:py-4',
         align === 'center'
           ? 'items-center text-center'
           : 'items-start text-left'
@@ -35,23 +33,15 @@ export function CalculatorPageHeader({
         ),
       }}
     >
-      <div className="flex max-w-2xl flex-col gap-3">
-        {eyebrow && (
-          <span
-            className="text-xs font-semibold uppercase tracking-[0.35em]"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            {eyebrow}
-          </span>
-        )}
+      <div className="flex max-w-2xl flex-col gap-1">
         <h1
-          className="text-3xl font-semibold tracking-tight sm:text-4xl"
+          className="text-xl font-semibold tracking-tight sm:text-2xl"
           style={{ color: 'var(--color-text-primary)' }}
         >
           {title}
         </h1>
         <div
-          className="text-base leading-relaxed"
+          className="text-xs leading-relaxed"
           style={{ color: 'var(--color-text-secondary)' }}
         >
           {description}

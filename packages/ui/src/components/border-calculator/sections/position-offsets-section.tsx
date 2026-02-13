@@ -108,8 +108,8 @@ export function PositionOffsetsSection({
         <div className="rounded-lg border border-white/10 bg-white/5 p-4">
           <h4 className="text-sm font-medium text-white mb-2">About Offsets</h4>
           <p className="text-xs text-white/70 leading-relaxed">
-            Offsets allow you to position your image off-center on the paper.
-            Negative values move left/up, positive values move right/down.
+            Shift the image away from center. Negative values go left/up,
+            positive go right/down.
           </p>
         </div>
       </div>

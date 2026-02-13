@@ -236,8 +236,8 @@ describe('useBorderCalculatorState', () => {
     it('should handle all preset paper sizes', () => {
       const { result } = renderHook(() => useBorderCalculatorState());
       const paperSizes: Array<
-        '5x7' | '4x6' | '8x10' | '11x14' | '16x20' | '20x24'
-      > = ['5x7', '4x6', '8x10', '11x14', '16x20', '20x24'];
+        '5x7' | '3.875x5.875' | '8x10' | '11x14' | '16x20' | '20x24'
+      > = ['5x7', '3.875x5.875', '8x10', '11x14', '16x20', '20x24'];
 
       paperSizes.forEach((size) => {
         act(() => {

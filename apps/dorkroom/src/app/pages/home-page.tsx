@@ -154,9 +154,8 @@ export function HomePage() {
                 className="max-w-md"
                 style={{ color: 'var(--color-hero-text)' }}
               >
-                Dorkroom.art is a collection of tools for the darkroom and
-                photography. Calculate borders, exposures, and manage your
-                development recipes in our easy to use interface.
+                Darkroom printing calculators, film development recipes, and
+                exposure tools. Free and open source.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -165,14 +164,14 @@ export function HomePage() {
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors hero-button-success"
               >
                 <Crop className="w-4 h-4" />
-                Try our darkroom easel border calculator
+                Calculate darkroom easel borders
               </Link>
               <Link
                 to="/development"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors hero-button-error"
               >
                 <FlaskConical className="w-4 h-4" />
-                Find the perfect film development recipe
+                Search film development recipes
               </Link>
             </div>
           </div>

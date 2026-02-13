@@ -111,7 +111,7 @@ describe('Border Calculator Constants', () => {
       const sizes = PAPER_SIZES.map((p) => p.value);
 
       // Common paper sizes in North America
-      expect(sizes).toContain('4x6'); // postcard
+      expect(sizes).toContain('3.875x5.875'); // postcard
       expect(sizes).toContain('5x7');
       expect(sizes).toContain('8x10'); // most common
       expect(sizes).toContain('11x14');
@@ -169,11 +169,13 @@ describe('Border Calculator Constants', () => {
       });
     });
 
-    it('should have minimum paper size reasonable for printing (>= 4 inches)', () => {
+    it('should have minimum paper size reasonable for printing (>= 3.5 inches)', () => {
       PAPER_SIZES.forEach((paper) => {
         if (paper.value !== 'custom') {
           // Smallest dimension should be practical
-          expect(Math.min(paper.width, paper.height)).toBeGreaterThanOrEqual(4);
+          expect(Math.min(paper.width, paper.height)).toBeGreaterThanOrEqual(
+            3.5
+          );
         }
       });
     });
@@ -454,7 +456,7 @@ describe('Border Calculator Constants', () => {
       expect(SLIDER_MAX_BORDER).toBeGreaterThanOrEqual(5);
       expect(SLIDER_MAX_BORDER).toBeLessThanOrEqual(10);
 
-      // For smallest standard paper (4x6), max border (6") would be too large
+      // For smallest standard paper (3.875x5.875), max border (6") would be too large
       // But that's okay - users can choose appropriate borders for their paper
       // Just verify the range is reasonable
       expect(SLIDER_MAX_BORDER).toBe(6); // Standard max border
@@ -465,7 +467,7 @@ describe('Border Calculator Constants', () => {
     it('should have paper sizes achievable with standard photographic paper', () => {
       // Standard paper sizes in inches
       const standardSizes = [
-        [4, 6],
+        [3.875, 5.875],
         [5, 7],
         [8, 10],
         [11, 14],

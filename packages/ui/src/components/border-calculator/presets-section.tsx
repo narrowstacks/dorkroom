@@ -41,10 +41,7 @@ export function PresetsSection({
   onDeletePreset,
 }: PresetsSectionProps) {
   return (
-    <CalculatorCard
-      title="Presets"
-      description="Save, recall, and share the setups you use most often."
-    >
+    <CalculatorCard title="Presets" description="Save and load border presets.">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
         <div className="flex-1">
           <Select

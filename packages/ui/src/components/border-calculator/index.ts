@@ -12,6 +12,7 @@ export { MobileBorderLayout } from './mobile-border-layout';
 export { PaperSetupSection } from './paper-setup-section';
 export { PresetsSection } from './presets-section';
 export { PreviewAndControlsSection } from './preview-and-controls-section';
+export { ResponsiveBorderLayout } from './responsive-border-layout';
 // Mobile Sections
 export * from './sections';
 export type { BorderCalculatorLayoutProps } from './types';

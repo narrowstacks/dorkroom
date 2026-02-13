@@ -1,4 +1,4 @@
-import { DesktopBorderLayout, MobileBorderLayout } from '@dorkroom/ui';
+import { MobileBorderLayout, ResponsiveBorderLayout } from '@dorkroom/ui';
 import { useBorderCalculatorController } from './hooks/use-border-calculator-controller';
 
 export default function BorderCalculatorPage() {
@@ -8,5 +8,5 @@ export default function BorderCalculatorPage() {
     return <MobileBorderLayout {...controller} />;
   }
 
-  return <DesktopBorderLayout {...controller} />;
+  return <ResponsiveBorderLayout {...controller} />;
 }
