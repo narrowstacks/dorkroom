@@ -12,7 +12,6 @@ import {
   CalculatorPageHeader,
   CalculatorStat,
   createZodFormValidator,
-  InfoCardList,
   lensCalculatorSchema,
   ResultRow,
   Select,
@@ -26,49 +25,17 @@ import type { FC } from 'react';
 const validateLensForm = createZodFormValidator(lensCalculatorSchema);
 
 const HOW_TO_USE = [
-  {
-    title: 'Select your source format',
-    description:
-      'Choose the sensor or film format where you know the focal length (e.g., Full Frame 50mm lens).',
-  },
-  {
-    title: 'Enter the focal length',
-    description:
-      'Type the focal length in millimeters for your lens on the source format.',
-  },
-  {
-    title: 'Select your target format',
-    description:
-      'Choose the format you want to find the equivalent focal length for.',
-  },
-  {
-    title: 'Read the equivalent',
-    description:
-      'The calculator shows what focal length on the target format gives the same field of view.',
-  },
+  'Select the source format — the sensor or film size you know the focal length for.',
+  'Enter the focal length in millimeters for your lens.',
+  'Select the target format you want to convert to.',
+  'Read the equivalent focal length that gives the same field of view on the target format.',
 ];
 
-const LENS_INSIGHTS = [
-  {
-    title: 'Crop factor explained',
-    description:
-      'Smaller sensors capture a narrower field of view, making lenses appear "longer". The crop factor multiplies the apparent focal length.',
-  },
-  {
-    title: 'Field of view matters',
-    description:
-      'Equivalent focal lengths give the same diagonal field of view, but depth of field and perspective compression differ based on actual focal length.',
-  },
-  {
-    title: 'Medium format advantage',
-    description:
-      'Larger formats like 6×7 have crop factors less than 1, meaning a 50mm lens shows a wider view than on 35mm.',
-  },
-  {
-    title: 'Planning lens purchases',
-    description:
-      'Use this calculator when switching systems or shooting multiple formats to know which lenses give similar results.',
-  },
+const TIPS = [
+  'Smaller sensors crop the image, making lenses appear "longer". The crop factor describes this multiplier relative to 35mm.',
+  'Equivalent focal lengths match the diagonal field of view, but depth of field and perspective compression still differ.',
+  'Larger formats like 6×7 have crop factors less than 1 — a 50mm lens shows a wider field of view than on 35mm.',
+  'Use this when switching systems or shooting multiple formats to find lenses that give similar framing.',
 ];
 
 interface FormatOption {
@@ -339,20 +306,63 @@ export default function LensCalculatorPage() {
         </form.Subscribe>
       </div>
 
-      {/* Footer info cards */}
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+      {/* Info section */}
+      <div className="mt-8">
         <CalculatorCard
-          title="How to use this calculator"
-          description="A quick guide to finding equivalent focal lengths across different sensor sizes."
+          title="How this calculator works"
+          padding="normal"
+          className="bg-surface-muted/80"
         >
-          <InfoCardList items={HOW_TO_USE} variant="default" />
-        </CalculatorCard>
+          <div className="space-y-6">
+            <p
+              className="text-[15px] leading-relaxed"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              Different sensor and film sizes capture different fields of view
+              with the same lens. This calculator converts focal lengths between
+              formats so you can find lenses that give equivalent framing.
+            </p>
 
-        <CalculatorCard
-          title="Understanding lens equivalency"
-          description="What crop factors mean and how they affect your photography."
-        >
-          <InfoCardList items={LENS_INSIGHTS} variant="insight" />
+            <div className="space-y-3">
+              <h4
+                className="text-sm font-semibold"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                How to use
+              </h4>
+              <ol className="ml-5 space-y-2 list-decimal">
+                {HOW_TO_USE.map((item) => (
+                  <li
+                    key={item}
+                    className="pl-2 text-[15px] leading-relaxed"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  >
+                    {item}
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="space-y-3">
+              <h4
+                className="text-sm font-semibold"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                Tips
+              </h4>
+              <ul className="ml-5 space-y-2 list-disc">
+                {TIPS.map((tip) => (
+                  <li
+                    key={tip}
+                    className="pl-2 text-[15px] leading-relaxed"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  >
+                    {tip}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </CalculatorCard>
       </div>
     </div>
