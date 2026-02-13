@@ -40,10 +40,10 @@ export function PaperSetupSection({
 
   return (
     <CalculatorCard
-      title="Paper Setup"
-      description="Match the paper size and aspect ratio you're printing on."
+      title="Print Setup"
+      description="Set your paper size and desired aspect ratio."
     >
-      <div className="space-y-5">
+      <div className="space-y-3.5">
         <form.Field name="aspectRatio">
           {(field: FieldApi<string>) => (
             <Select

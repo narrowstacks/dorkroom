@@ -19,6 +19,12 @@
       ), #09090b;
   }
 
+  @media (hover: hover) {
+    [data-theme="dark"] .backdrop-gradient {
+      background-attachment: fixed;
+    }
+  }
+
   [data-theme="light"] .backdrop-gradient {
     background:
       radial-gradient(
@@ -36,6 +42,12 @@
         rgba(122, 140, 31, 0.08),
         transparent 60%
       ), #ffffff;
+  }
+
+  @media (hover: hover) {
+    [data-theme="light"] .backdrop-gradient {
+      background-attachment: fixed;
+    }
   }
 
   [data-theme="darkroom"] .backdrop-gradient {

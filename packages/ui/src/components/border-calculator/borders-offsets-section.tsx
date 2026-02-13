@@ -42,9 +42,9 @@ export function BordersOffsetsSection({
   return (
     <CalculatorCard
       title="Borders & Offsets"
-      description="Control the border thickness and fine-tune print placement."
+      description="Set border width and nudge the print position."
     >
-      <div className="space-y-5">
+      <div className="space-y-3.5">
         <form.Field name="minBorder">
           {(field: FieldApi<number>) => (
             <LabeledSliderInput
@@ -72,7 +72,7 @@ export function BordersOffsetsSection({
             type="button"
             onClick={onRoundToQuarter}
             disabled={roundToQuarterDisabled}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
             style={{
               borderColor: 'var(--color-border-secondary)',
               backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
@@ -98,7 +98,7 @@ export function BordersOffsetsSection({
 
         {enableOffset && (
           <div
-            className="space-y-4 rounded-2xl p-4 border"
+            className="space-y-3 rounded-xl p-3 border"
             style={{
               borderColor: 'var(--color-border-secondary)',
               backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
@@ -124,7 +124,7 @@ export function BordersOffsetsSection({
               )}
             </form.Field>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <form.Field name="horizontalOffset">
                 {(field: FieldApi<number>) => (
                   <LabeledSliderInput

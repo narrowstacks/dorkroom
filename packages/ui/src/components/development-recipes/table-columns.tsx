@@ -20,6 +20,11 @@ import { cn } from '../../lib/cn';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import type { ShareResult } from '../share-button';
 import { ShareButton } from '../share-button';
+import {
+  CustomBadge,
+  isOfficialTag,
+  OfficialBadge,
+} from '../ui/official-badge';
 import { Tag } from '../ui/tag';
 
 /**
@@ -304,6 +309,12 @@ export const createTableColumns = (
     size: 280,
     cell: (context: CellContext<DevelopmentCombinationView, unknown>) => {
       const { combination, film } = context.row.original;
+      const isCustom = context.row.original.source === 'custom';
+      const officialTags = combination.tags?.filter(isOfficialTag) ?? [];
+      const otherTags =
+        combination.tags?.filter(
+          (t: string) => !isOfficialTag(t) && t !== 'custom'
+        ) ?? [];
       return (
         <div className="flex items-center gap-2">
           <span
@@ -312,13 +323,13 @@ export const createTableColumns = (
           >
             {film ? `${film.brand} ${film.name}` : 'Unknown film'}
           </span>
-          {combination.tags && combination.tags.length > 0 && (
-            <>
-              {combination.tags.map((tag: string) => (
-                <Tag key={tag}>{tag}</Tag>
-              ))}
-            </>
-          )}
+          {isCustom && <CustomBadge />}
+          {officialTags.map((tag: string) => (
+            <OfficialBadge key={tag} tag={tag} />
+          ))}
+          {otherTags.map((tag: string) => (
+            <Tag key={tag}>{tag}</Tag>
+          ))}
         </div>
       );
     },
@@ -421,6 +432,9 @@ export const createTableColumns = (
               }
               className="inline-flex items-center"
               style={{ color: 'var(--color-text-tertiary)' }}
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.color = 'var(--color-text-primary)';
               }}

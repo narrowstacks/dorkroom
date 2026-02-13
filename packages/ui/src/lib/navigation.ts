@@ -50,7 +50,7 @@ export const filmItems: NavigationItem[] = [
     label: 'Development',
     to: '/development',
     icon: asFunctionComponent(FlaskConical),
-    summary: 'Film chemistry pairings with proven results.',
+    summary: 'Film and developer pairings with times.',
   },
   {
     label: 'Reciprocity',
@@ -153,25 +153,23 @@ export const ROUTE_TITLES: Record<string, string> = {
 export const ROUTE_DESCRIPTIONS: Record<string, string> = {
   '/': 'Film photography calculators and resources for analog photographers. Development recipes, printing calculators, and exposure tools.',
   '/border':
-    'Calculate clean, precise borders for darkroom prints. Get precise measurements and visual guides for your easel.',
+    'Figure out where to set your easel blades for even borders. Punch in paper size and negative format, get blade positions.',
   '/resize':
     'Scale darkroom prints to new sizes. Calculate exposure adjustments when enlarging or reducing print dimensions.',
   '/reciprocity':
     'Compensate for reciprocity failure in long exposures. Get corrected exposure times for film stocks like Ilford HP5, Kodak Tri-X, and more.',
   '/stops':
-    'Convert between exposure stops and seconds. Quickly translate f-stop or time adjustments into precise exposure values.',
+    'Convert between exposure stops and seconds. Translate f-stop or time adjustments into exposure values.',
   '/exposure':
     'Balance aperture, shutter speed, and ISO for correct exposure. Calculate equivalent exposures across different settings.',
   '/lens':
     'Calculate equivalent focal lengths between sensor and film formats. Compare APS-C, Full Frame, and Medium Format field of view.',
   '/development':
-    'Browse film and developer combinations with proven development times. Find recipes for popular film stocks and chemistry.',
+    'Browse film and developer combinations with development times. Find recipes for popular film stocks and chemistry.',
   '/films':
-    'Browse and search the complete film stock database. Filter by brand, ISO, color type, and more.',
-  '/docs':
-    'Guides and documentation for analog photography. Learn techniques, understand concepts, and master your craft.',
-  '/settings':
-    'Customize your Dorkroom experience. Configure preferences for units, defaults, and display options.',
+    'Browse and search the film stock database. Filter by brand, ISO, and color type.',
+  '/docs': 'How-to guides and reference material for analog photography.',
+  '/settings': 'Set your preferred units, defaults, and display options.',
 };
 
 export interface MobileNavItem {

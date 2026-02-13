@@ -95,7 +95,7 @@ describe('CalculatorCard', () => {
       expect(section).toHaveClass(
         'relative',
         'overflow-hidden',
-        'rounded-3xl',
+        'rounded-2xl',
         'border'
       );
     });
@@ -119,7 +119,7 @@ describe('CalculatorCard', () => {
       );
 
       const section = container.querySelector('section');
-      expect(section).toHaveClass('p-6', 'sm:p-8');
+      expect(section).toHaveClass('p-4', 'sm:p-5');
     });
 
     it('applies compact padding when specified', () => {
@@ -130,7 +130,7 @@ describe('CalculatorCard', () => {
       );
 
       const section = container.querySelector('section');
-      expect(section).toHaveClass('p-5', 'sm:p-6');
+      expect(section).toHaveClass('p-3.5', 'sm:p-4');
     });
   });
 
@@ -213,7 +213,7 @@ describe('CalculatorCard', () => {
 
       const header = document.querySelector('header');
       expect(header).toBeInTheDocument();
-      expect(header).toHaveClass('flex', 'flex-col', 'gap-4');
+      expect(header).toHaveClass('flex', 'flex-col', 'gap-2');
     });
 
     it('renders header with proper responsive layout', () => {
@@ -287,7 +287,7 @@ describe('CalculatorCard', () => {
 
       // Content should be in a flex column with gap
       const contentContainer = screen.getByTestId('content-1').parentElement;
-      expect(contentContainer).toHaveClass('flex', 'flex-col', 'gap-5');
+      expect(contentContainer).toHaveClass('flex', 'flex-col', 'gap-3.5');
     });
 
     it('maintains z-index layering for accent overlays', () => {

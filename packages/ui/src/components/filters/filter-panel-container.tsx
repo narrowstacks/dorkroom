@@ -51,7 +51,7 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
       <FilterPanelContext.Provider value={contextValue}>
         <div
           className={cn(
-            'sticky top-6 flex flex-col items-center gap-3 rounded-2xl border p-3 shadow-lg animate-collapse-width',
+            'sticky top-3 flex flex-col items-center gap-3 rounded-2xl border p-3 shadow-lg animate-collapse-width',
             className
           )}
           style={{
@@ -135,7 +135,7 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
     <FilterPanelContext.Provider value={contextValue}>
       <div
         className={cn(
-          'sticky top-6 h-fit space-y-5 animate-expand-width',
+          'sticky top-3 h-fit space-y-3 animate-expand-width',
           className
         )}
         style={{ width: `${expandedWidth}px` }}
