@@ -105,6 +105,17 @@ export const SENSOR_FORMATS: SensorFormat[] = [
   createFormat('film-6x6', '6×6 (Square)', '6×6', 'film-medium', 56, 56),
   createFormat('film-6x7', '6×7', '6×7', 'film-medium', 70, 56),
   createFormat('film-6x9', '6×9', '6×9', 'film-medium', 84, 56),
+
+  // Large format sheet film (landscape orientation)
+  createFormat('film-4x5', '4×5 Sheet Film', '4×5', 'film-large', 127, 101.6),
+  createFormat(
+    'film-8x10',
+    '8×10 Sheet Film',
+    '8×10',
+    'film-large',
+    254,
+    203.2
+  ),
 ];
 
 /**

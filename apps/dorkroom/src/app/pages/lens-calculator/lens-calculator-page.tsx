@@ -43,7 +43,11 @@ const formatOptions = (() => {
   let lastCategory = '';
   for (const format of SENSOR_FORMATS) {
     const category =
-      format.category === 'digital' ? 'Digital' : 'Medium Format Film';
+      format.category === 'digital'
+        ? 'Common'
+        : format.category === 'film-medium'
+          ? 'Medium Format Film'
+          : 'Large Format Film';
     if (category !== lastCategory) {
       items.push({ value: '__divider__', label: `── ${category} ──` });
       lastCategory = category;
