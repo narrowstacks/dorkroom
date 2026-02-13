@@ -60,9 +60,9 @@ describe('CalculatorStat', () => {
 
       const container = screen.getByText('Test Stat').closest('div');
       expect(container).toHaveClass(
-        'rounded-2xl',
+        'rounded-xl',
         'border',
-        'p-5',
+        'p-3',
         'backdrop-blur-sm',
         'transition-colors'
       );
@@ -82,10 +82,10 @@ describe('CalculatorStat', () => {
 
       const label = screen.getByText('Test Stat');
       expect(label).toHaveClass(
-        'text-xs',
+        'text-[10px]',
         'font-semibold',
         'uppercase',
-        'tracking-[0.35em]'
+        'tracking-[0.3em]'
       );
     });
 
@@ -94,8 +94,8 @@ describe('CalculatorStat', () => {
 
       const value = screen.getByText('42');
       expect(value).toHaveClass(
-        'mt-3',
-        'text-3xl',
+        'mt-1',
+        'text-2xl',
         'font-semibold',
         'tracking-tight'
       );
@@ -105,7 +105,7 @@ describe('CalculatorStat', () => {
       render(<CalculatorStat {...defaultProps} helperText="Helper" />);
 
       const helper = screen.getByText('Helper');
-      expect(helper).toHaveClass('mt-2', 'text-xs');
+      expect(helper).toHaveClass('mt-1', 'text-[11px]');
     });
   });
 
@@ -115,14 +115,14 @@ describe('CalculatorStat', () => {
 
       // Default tone should not have special styling applied
       const container = screen.getByText('Test Stat').closest('div');
-      expect(container).toHaveClass('rounded-2xl', 'border');
+      expect(container).toHaveClass('rounded-xl', 'border');
     });
 
     it('applies emerald tone styling', () => {
       render(<CalculatorStat {...defaultProps} tone="emerald" />);
 
       const container = screen.getByText('Test Stat').closest('div');
-      expect(container).toHaveClass('rounded-2xl', 'border');
+      expect(container).toHaveClass('rounded-xl', 'border');
       // Tone-specific styles are applied via inline styles, tested indirectly
     });
 
@@ -130,14 +130,14 @@ describe('CalculatorStat', () => {
       render(<CalculatorStat {...defaultProps} tone="sky" />);
 
       const container = screen.getByText('Test Stat').closest('div');
-      expect(container).toHaveClass('rounded-2xl', 'border');
+      expect(container).toHaveClass('rounded-xl', 'border');
     });
 
     it('applies default tone styling explicitly', () => {
       render(<CalculatorStat {...defaultProps} tone="default" />);
 
       const container = screen.getByText('Test Stat').closest('div');
-      expect(container).toHaveClass('rounded-2xl', 'border');
+      expect(container).toHaveClass('rounded-xl', 'border');
     });
   });
 
@@ -151,9 +151,9 @@ describe('CalculatorStat', () => {
       const value = screen.getByText('42');
       const helper = screen.getByText('Small helper text');
 
-      expect(label).toHaveClass('text-xs');
-      expect(value).toHaveClass('text-3xl');
-      expect(helper).toHaveClass('text-xs');
+      expect(label).toHaveClass('text-[10px]');
+      expect(value).toHaveClass('text-2xl');
+      expect(helper).toHaveClass('text-[11px]');
     });
 
     it('applies uppercase transform to label', () => {
@@ -167,7 +167,7 @@ describe('CalculatorStat', () => {
       render(<CalculatorStat {...defaultProps} />);
 
       const label = screen.getByText('Test Stat');
-      expect(label).toHaveClass('tracking-[0.35em]');
+      expect(label).toHaveClass('tracking-[0.3em]');
     });
   });
 

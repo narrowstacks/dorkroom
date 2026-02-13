@@ -29,7 +29,7 @@ const aspectRatioOptions = [
 const paperSizeOptions = [
   'custom',
   '5x7',
-  '4x6',
+  '3.875x5.875',
   '8x10',
   '11x14',
   '16x20',

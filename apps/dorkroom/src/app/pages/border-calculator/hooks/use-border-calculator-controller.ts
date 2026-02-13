@@ -5,6 +5,7 @@ import {
   borderCalculatorSchema,
   CALC_STORAGE_KEY,
   calculateQuarterInchMinBorder,
+  DEBUG_LOG,
   DEFAULT_BORDER_PRESETS,
   DESKTOP_BREAKPOINT,
   debugError,

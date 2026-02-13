@@ -92,12 +92,12 @@ export function LabeledSliderInput({
   };
 
   return (
-    <div className={cn('space-y-3')}>
+    <div className={cn('space-y-2')}>
       <div className={cn('flex items-center justify-between', className)}>
         <label
           htmlFor={inputId}
           id={`${inputId}-label`}
-          className="text-sm font-medium"
+          className="text-xs font-medium"
           style={{ color: 'var(--color-text-primary)' }}
         >
           {label}
@@ -129,7 +129,7 @@ export function LabeledSliderInput({
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1">
         <input
           type="range"
           id={rangeId}

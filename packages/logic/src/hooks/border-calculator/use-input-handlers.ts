@@ -39,7 +39,7 @@ const VALID_ASPECT_RATIOS = new Set<AspectRatioValue>([
 const VALID_PAPER_SIZES = new Set<PaperSizeValue>([
   'custom',
   '5x7',
-  '4x6',
+  '3.875x5.875',
   '8x10',
   '11x14',
   '16x20',

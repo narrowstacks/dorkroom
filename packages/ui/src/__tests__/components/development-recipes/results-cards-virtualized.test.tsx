@@ -539,7 +539,7 @@ describe('DevelopmentResultsCardsVirtualized', () => {
         </TableWrapper>
       );
 
-      expect(screen.getByText('Custom Recipe')).toBeInTheDocument();
+      expect(screen.getByLabelText('Custom Recipe')).toBeInTheDocument();
     });
   });
 

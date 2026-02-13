@@ -27,7 +27,7 @@ export function DevelopmentActionsBar({
 }: DevelopmentActionsBarProps) {
   return (
     <div
-      className="flex flex-col gap-4 rounded-2xl border p-6 shadow-subtle md:flex-row md:items-center md:justify-between"
+      className="flex flex-col gap-3 rounded-2xl border p-4 shadow-subtle md:flex-row md:items-center md:justify-between"
       style={{
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',

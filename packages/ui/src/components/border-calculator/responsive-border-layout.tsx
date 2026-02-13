@@ -24,9 +24,17 @@ import { PreviewAndControlsSection } from './preview-and-controls-section';
 
 import type { BorderCalculatorLayoutProps } from './types';
 
-type DesktopBorderLayoutProps = BorderCalculatorLayoutProps;
+type ResponsiveBorderLayoutProps = BorderCalculatorLayoutProps;
 
-export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
+/**
+ * Unified responsive layout for the border calculator.
+ * Handles all screen sizes with CSS breakpoints:
+ * - Phone (< 640px): single column, compact spacing
+ * - Tablet (640-767px): single column, comfortable spacing
+ * - Desktop (768-1199px): two-column 7:5 split
+ * - Wide (1200px+): two-column with wider content area
+ */
+export const ResponsiveBorderLayout: FC<ResponsiveBorderLayoutProps> = ({
   form,
   formValues,
   calculation,
@@ -39,7 +47,6 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
   bladeWarning,
   minBorderWarning,
   paperSizeWarning,
-  presets: _presets,
   selectedPresetId,
   presetName,
   isEditingPreset,
@@ -48,7 +55,6 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
   isShareModalOpen,
   isSaveBeforeShareOpen,
   shareUrls,
-  canShareNatively: _canShareNatively,
   canCopyToClipboard,
   handlePaperWidthChange,
   handlePaperWidthBlur,
@@ -65,7 +71,6 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
   handleShareClick,
   handleSaveAndShare,
   handleCopyToClipboard,
-  handleNativeShare: _handleNativeShare,
   setIsShareModalOpen,
   setIsSaveBeforeShareOpen,
   formatWithUnit,
@@ -85,9 +90,10 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
   );
 
   return (
-    <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 sm:px-10">
-      <div className="mt-2 grid gap-2 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-        <div className="space-y-6">
+    <div className="mx-auto max-w-6xl px-4 pb-12 pt-6 sm:px-6 md:px-8 md:pt-8">
+      <div className="grid gap-4 md:gap-5 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        {/* Left column: Preview + Results (critical, always visible) */}
+        <div className="space-y-4">
           {calculation && (
             <>
               <PreviewAndControlsSection
@@ -109,7 +115,8 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
           )}
         </div>
 
-        <div className="space-y-6">
+        {/* Right column: Configuration (primary controls) */}
+        <div className="space-y-4">
           <PaperSetupSection
             form={form}
             displayPaperSizes={displayPaperSizes}
@@ -161,6 +168,7 @@ export const DesktopBorderLayout: FC<DesktopBorderLayoutProps> = ({
         </div>
       </div>
 
+      {/* Educational content */}
       <BorderInfoSection />
 
       {/* Sharing Modals */}

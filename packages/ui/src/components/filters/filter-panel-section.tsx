@@ -22,11 +22,10 @@ export const FilterPanelSection: FC<FilterPanelSectionProps> = ({
 }) => {
   return (
     <div
-      className="space-y-4 rounded-xl border p-4 shadow-md"
+      className="space-y-4 rounded-2xl border p-4 shadow-subtle"
       style={{
-        borderColor: 'var(--color-border-primary)',
-        backgroundColor: 'var(--color-surface)',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+        borderColor: 'var(--color-border-secondary)',
+        backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',
       }}
     >
       {title && (

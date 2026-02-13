@@ -28,36 +28,34 @@ export function useResultsPagination(props: UseResultsPaginationProps): void {
     virtualScrollContainerRef,
   } = props;
 
-  // Scroll virtualized container to top when page changes
+  // Scroll to top of results when page changes (not on initial render)
   const prevPageIndex = useRef(pageIndex);
   useEffect(() => {
-    // Only scroll if page actually changed (not initial render)
     if (prevPageIndex.current !== pageIndex) {
+      // Scroll virtualized container to top
       if (virtualScrollContainerRef.current) {
         virtualScrollContainerRef.current.scrollTo({
           top: 0,
           behavior: 'smooth',
         });
       }
+
+      // Scroll window to results container, accounting for floating navbar
+      if (resultsContainerRef.current) {
+        const element = resultsContainerRef.current;
+        const elementPosition =
+          element.getBoundingClientRect().top + window.scrollY;
+        const navbarHeight = 80; // Approximate navbar height + extra buffer
+        const targetPosition = elementPosition - navbarHeight;
+
+        window.scrollTo({
+          top: targetPosition,
+          behavior: 'smooth',
+        });
+      }
     }
     prevPageIndex.current = pageIndex;
-  }, [pageIndex, virtualScrollContainerRef]);
-
-  // Scroll window to results container when page changes, accounting for floating navbar
-  useEffect(() => {
-    if (resultsContainerRef.current) {
-      const element = resultsContainerRef.current;
-      const elementPosition =
-        element.getBoundingClientRect().top + window.scrollY;
-      const navbarHeight = 80; // Approximate navbar height + extra buffer
-      const targetPosition = elementPosition - navbarHeight;
-
-      window.scrollTo({
-        top: targetPosition,
-        behavior: 'smooth',
-      });
-    }
-  }, [resultsContainerRef]);
+  }, [pageIndex, virtualScrollContainerRef, resultsContainerRef]);
 
   // Prevent page index reset during favorite transitions
   const prevPageIndexRef = useRef(pageIndex);

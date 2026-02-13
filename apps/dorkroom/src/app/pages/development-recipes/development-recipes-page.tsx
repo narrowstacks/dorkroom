@@ -41,7 +41,6 @@ export default function DevelopmentRecipesPage() {
     dilutionFilter,
     isoFilter,
     customRecipeFilter,
-    tagFilter,
     selectedFilm,
     selectedDeveloper,
     isLoading,
@@ -54,7 +53,6 @@ export default function DevelopmentRecipesPage() {
     setDilutionFilter,
     setIsoFilter,
     setCustomRecipeFilter,
-    setTagFilter,
     setSelectedFilm,
     setSelectedDeveloper,
     forceRefresh,
@@ -63,7 +61,6 @@ export default function DevelopmentRecipesPage() {
     getDeveloperById,
     getAvailableDilutions,
     getAvailableISOs,
-    getAvailableTags,
   } = useDevelopmentRecipes();
 
   const {
@@ -168,8 +165,9 @@ export default function DevelopmentRecipesPage() {
       selectedDeveloper,
       dilutionFilter,
       isoFilter,
-      favoritesOnly,
+      developerTypeFilter,
       customRecipeFilter,
+      favoritesOnly,
       selectedRecipeId,
     },
     recipesByUuidState
@@ -194,7 +192,6 @@ export default function DevelopmentRecipesPage() {
     dilutionFilter,
     isoFilter,
     customRecipeFilter,
-    tagFilter,
     favoritesOnly,
     sharedCustomRecipe,
     flags,
@@ -288,6 +285,7 @@ export default function DevelopmentRecipesPage() {
     setSelectedDeveloper,
     setDilutionFilter,
     setIsoFilter,
+    setDeveloperTypeFilter,
     setFavoritesOnly,
     setCustomRecipeFilter,
     setSharedRecipeView,
@@ -369,7 +367,7 @@ export default function DevelopmentRecipesPage() {
   return (
     <TemperatureProvider>
       {/* Max-width of 1920px accommodates wider displays while maintaining content readability */}
-      <div className="mx-auto max-w-[1920px] space-y-6 py-6 px-4 pb-12 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1920px] space-y-3 py-3 px-4 pb-4 sm:px-6 lg:px-8">
         {error && (
           <div
             className="rounded-2xl px-4 py-3 text-sm"
@@ -436,9 +434,6 @@ export default function DevelopmentRecipesPage() {
               isoOptions={getAvailableISOs()}
               customRecipeFilter={customRecipeFilter}
               onCustomRecipeFilterChange={setCustomRecipeFilter}
-              tagFilter={tagFilter}
-              onTagFilterChange={setTagFilter}
-              tagOptions={getAvailableTags()}
               onClearFilters={clearFilters}
               showDeveloperTypeFilter={!selectedDeveloper}
               showDilutionFilter={!!selectedDeveloper}
@@ -480,7 +475,7 @@ export default function DevelopmentRecipesPage() {
             )}
           </>
         ) : (
-          <div className="flex gap-6">
+          <div className="flex gap-4">
             <aside
               className="flex-shrink-0 transition-all duration-300"
               style={{ width: isFiltersSidebarCollapsed ? '64px' : '304px' }}
@@ -513,9 +508,6 @@ export default function DevelopmentRecipesPage() {
                 isoOptions={getAvailableISOs()}
                 customRecipeFilter={customRecipeFilter}
                 onCustomRecipeFilterChange={setCustomRecipeFilter}
-                tagFilter={tagFilter}
-                onTagFilterChange={setTagFilter}
-                tagOptions={getAvailableTags()}
                 favoritesOnly={favoritesOnly}
                 onFavoritesOnlyChange={setFavoritesOnly}
                 sorting={sorting}
@@ -531,7 +523,7 @@ export default function DevelopmentRecipesPage() {
               />
             </aside>
 
-            <main className="flex-1 min-w-0 space-y-6">
+            <main className="flex-1 min-w-0 space-y-3">
               <RecipeResultsSection
                 isLoading={isLoading}
                 isRefreshingData={isRefreshingData}
