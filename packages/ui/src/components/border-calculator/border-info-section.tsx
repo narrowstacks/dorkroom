@@ -42,9 +42,9 @@ export function BorderInfoSection() {
               How to use
             </h4>
             <ol className="ml-5 space-y-2 list-decimal">
-              {INFO_HOW_TO_USE.map((item, index) => (
+              {INFO_HOW_TO_USE.map((item) => (
                 <li
-                  key={index}
+                  key={item}
                   className="pl-2 text-[15px] leading-relaxed"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
@@ -80,9 +80,9 @@ export function BorderInfoSection() {
               Tips
             </h4>
             <ul className="ml-5 space-y-2 list-disc">
-              {INFO_TIPS.map((tip, index) => (
+              {INFO_TIPS.map((tip) => (
                 <li
-                  key={index}
+                  key={tip}
                   className="pl-2 text-[15px] leading-relaxed"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >

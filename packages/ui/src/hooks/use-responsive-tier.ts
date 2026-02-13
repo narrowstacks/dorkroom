@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 /** Responsive tier corresponding to the 4-tier breakpoint system */
 export type ResponsiveTier = 'phone' | 'tablet' | 'desktop' | 'wide';
 
-/** Breakpoints aligned with Tailwind's defaults */
+/** Breakpoints for the project's 4-tier responsive system (xl differs from Tailwind's 1280px default) */
 const BREAKPOINTS = {
   /** sm – phone → tablet transition */
   sm: 640,
@@ -55,16 +55,32 @@ export function useResponsiveTier(): ResponsiveTierResult {
     const update = () => setTier(getTier(window.innerWidth));
 
     const queries = [smQuery, mdQuery, xlQuery];
-    for (const q of queries) {
-      q.addEventListener('change', update);
+
+    if (typeof smQuery.addEventListener === 'function') {
+      for (const q of queries) {
+        q.addEventListener('change', update);
+      }
+
+      // Initial sync after listeners are attached
+      update();
+
+      return () => {
+        for (const q of queries) {
+          q.removeEventListener('change', update);
+        }
+      };
     }
 
-    // Initial sync after listeners are attached
+    // Fallback for older browsers (Safari < 14)
+    for (const q of queries) {
+      q.addListener(update);
+    }
+
     update();
 
     return () => {
       for (const q of queries) {
-        q.removeEventListener('change', update);
+        q.removeListener(update);
       }
     };
   }, []);

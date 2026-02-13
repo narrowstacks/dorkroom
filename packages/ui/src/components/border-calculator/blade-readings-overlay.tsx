@@ -65,28 +65,44 @@ export function BladeReadingsOverlay({
     const centerY = (printTopPx + printBottomPx) / 2;
     const centerX = (printLeftPx + printRightPx) / 2;
 
+    // When labels are outside, clamp positions so they don't go off-canvas.
+    // For outside labels, ensure there's room for the label between the blade
+    // edge and the container edge.
+    const clampedLeftX = hInside
+      ? printLeftPx
+      : Math.max(labelWidth + padding, printLeftPx);
+    const clampedRightX = hInside
+      ? printRightPx
+      : Math.min(containerWidth - labelWidth - padding, printRightPx);
+    const clampedTopY = vInside
+      ? printTopPx
+      : Math.max(labelHeight + padding, printTopPx);
+    const clampedBottomY = vInside
+      ? printBottomPx
+      : Math.min(containerHeight - labelHeight - padding, printBottomPx);
+
     return [
       {
         value: formatWithUnit(calculation.leftBladeReading),
-        position: { x: printLeftPx, y: centerY },
+        position: { x: clampedLeftX, y: centerY },
         side: 'left' as const,
         isInside: hInside,
       },
       {
         value: formatWithUnit(calculation.rightBladeReading),
-        position: { x: printRightPx, y: centerY },
+        position: { x: clampedRightX, y: centerY },
         side: 'right' as const,
         isInside: hInside,
       },
       {
         value: formatWithUnit(calculation.topBladeReading),
-        position: { x: centerX, y: printTopPx },
+        position: { x: centerX, y: clampedTopY },
         side: 'top' as const,
         isInside: vInside,
       },
       {
         value: formatWithUnit(calculation.bottomBladeReading),
-        position: { x: centerX, y: printBottomPx },
+        position: { x: centerX, y: clampedBottomY },
         side: 'bottom' as const,
         isInside: vInside,
       },
