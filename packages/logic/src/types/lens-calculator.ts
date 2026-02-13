@@ -6,7 +6,7 @@
 /**
  * Sensor format categories
  */
-export type SensorCategory = 'digital' | 'film-35mm' | 'film-medium';
+export type SensorCategory = 'digital' | 'film-medium';
 
 /**
  * Represents a sensor or film format with its physical dimensions

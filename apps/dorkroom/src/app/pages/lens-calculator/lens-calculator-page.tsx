@@ -47,12 +47,7 @@ interface FormatOption {
 const formatOptions: FormatOption[] = SENSOR_FORMATS.map((format) => ({
   value: format.id,
   label: `${format.name} (${format.width}×${format.height}mm)`,
-  group:
-    format.category === 'digital'
-      ? 'Digital'
-      : format.category === 'film-35mm'
-        ? '35mm Film'
-        : 'Medium Format Film',
+  group: format.category === 'digital' ? 'Digital' : 'Medium Format Film',
 }));
 
 interface FocalLengthPresetButtonProps {
