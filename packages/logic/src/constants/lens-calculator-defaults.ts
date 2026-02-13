@@ -58,6 +58,14 @@ export const SENSOR_FORMATS: SensorFormat[] = [
     36,
     24
   ),
+  createFormat(
+    'half-frame',
+    'Half Frame 35mm',
+    'Half Frame',
+    'digital',
+    24,
+    18
+  ),
   createFormat('aps-c-canon', 'APS-C (Canon)', 'APS-C', 'digital', 22.3, 14.9),
   createFormat(
     'aps-c-nikon',
