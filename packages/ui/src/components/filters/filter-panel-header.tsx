@@ -14,11 +14,10 @@ export const FilterPanelHeader: FC<FilterPanelHeaderProps> = ({
 
   return (
     <div
-      className="flex items-center justify-between rounded-xl border px-4 py-3 shadow-md"
+      className="flex items-center justify-between rounded-2xl border px-4 py-3 shadow-subtle"
       style={{
-        borderColor: 'var(--color-border-primary)',
-        backgroundColor: 'var(--color-surface)',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+        borderColor: 'var(--color-border-secondary)',
+        backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',
       }}
     >
       <div className="flex items-center gap-2">

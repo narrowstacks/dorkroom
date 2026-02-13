@@ -143,7 +143,7 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 **Features:**
 
 - Film and developer selection dropdowns
-- Collapsible filters (developer type, dilution, ISO, tags, custom recipes)
+- Collapsible filters (developer type, dilution, ISO, recipe type, custom recipes)
 - Favorites filtering
 - Grid and table view modes
 - Pagination
@@ -156,13 +156,16 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 
 ```typescript
 {
-  film?: string;      // Film UUID
-  developer?: string; // Developer UUID
+  film?: string;           // Film slug
+  developer?: string;      // Developer slug
   dilution?: string;
-  iso?: string;
-  recipe?: string;    // Recipe UUID for direct link
-  source?: string;    // Shared recipe source
-  view?: 'favorites' | 'custom';
+  iso?: string;            // ISO value or 'boxspeed'
+  developerType?: string;  // 'powder' | 'concentrate'
+  recipeType?: string;     // 'all' | 'hide-custom' | 'only-custom' | 'official'
+  favorites?: string;      // 'true' to show favorites only
+  recipe?: string;         // Recipe UUID for direct link
+  source?: string;         // 'share' for shared recipes
+  view?: 'favorites' | 'custom'; // Legacy, use recipeType/favorites instead
 }
 ```
 

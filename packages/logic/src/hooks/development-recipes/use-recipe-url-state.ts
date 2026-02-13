@@ -20,16 +20,19 @@ const MANAGED_QUERY_KEYS: Array<keyof RecipeUrlParams> = [
   'developer',
   'dilution',
   'iso',
+  'developerType',
+  'recipeType',
+  'favorites',
   'recipe',
   'source',
   'view',
 ];
 
+const VALID_DEVELOPER_TYPES = ['powder', 'concentrate'];
+const VALID_RECIPE_TYPES = ['all', 'hide-custom', 'only-custom', 'official'];
+
 /**
  * Convert managed URL search parameters into a recipe parameter object.
- *
- * @param searchParams - Source URLSearchParams instance to inspect
- * @returns Object containing managed query keys and their values
  */
 const parseSearchParams = (searchParams: URLSearchParams): RecipeUrlParams => {
   const result: RecipeUrlParams = {};
@@ -45,9 +48,25 @@ const parseSearchParams = (searchParams: URLSearchParams): RecipeUrlParams => {
         if (value === 'favorites' || value === 'custom') {
           result.view = value;
         }
+      } else if (key === 'developerType') {
+        if (VALID_DEVELOPER_TYPES.includes(value)) {
+          result.developerType = value;
+        }
+      } else if (key === 'recipeType') {
+        if (VALID_RECIPE_TYPES.includes(value)) {
+          result.recipeType = value;
+        }
+      } else if (key === 'favorites') {
+        if (value === 'true') {
+          result.favorites = 'true';
+        }
       } else {
-        result[key as Exclude<keyof RecipeUrlParams, 'source' | 'view'>] =
-          value;
+        result[
+          key as Exclude<
+            keyof RecipeUrlParams,
+            'source' | 'view' | 'developerType' | 'recipeType' | 'favorites'
+          >
+        ] = value;
       }
     }
   });
@@ -57,8 +76,6 @@ const parseSearchParams = (searchParams: URLSearchParams): RecipeUrlParams => {
 
 /**
  * Read the current browser URL and extract managed query parameters.
- *
- * @returns Current recipe URL parameters or an empty object during SSR
  */
 const getCurrentParams = (): RecipeUrlParams => {
   if (typeof window === 'undefined') {
@@ -70,10 +87,6 @@ const getCurrentParams = (): RecipeUrlParams => {
 
 /**
  * Find a film entity by slug helper.
- *
- * @param slug - Film slug from the URL
- * @param films - Available film collection to search
- * @returns Matching film or null when not found
  */
 export const slugToFilm = (slug: string, films: Film[]): Film | null => {
   if (!slug || !films.length) return null;
@@ -82,18 +95,11 @@ export const slugToFilm = (slug: string, films: Film[]): Film | null => {
 
 /**
  * Convert a film entity to its slug string.
- *
- * @param film - Film entity to convert
- * @returns Slug string or empty string when no film is provided
  */
 export const filmToSlug = (film: Film | null): string => film?.slug || '';
 
 /**
  * Find a developer entity by slug helper.
- *
- * @param slug - Developer slug from the URL
- * @param developers - Available developer collection to search
- * @returns Matching developer or null when not found
  */
 export const slugToDeveloper = (
   slug: string,
@@ -105,18 +111,12 @@ export const slugToDeveloper = (
 
 /**
  * Convert a developer entity to its slug string.
- *
- * @param developer - Developer entity to convert
- * @returns Slug string or empty string when no developer is provided
  */
 export const developerToSlug = (developer: Developer | null): string =>
   developer?.slug || '';
 
 /**
  * Validate and sanitize recipe URL parameters against expected formats.
- *
- * @param params - Raw parameters extracted from the URL
- * @returns Validation result with sanitized values and error details
  */
 export const validateUrlParams = (
   params: RecipeUrlParams
@@ -145,15 +145,19 @@ export const validateUrlParams = (
   }
 
   if (params.iso) {
-    const isoNum = parseInt(params.iso, 10);
-    if (
-      Number.isNaN(isoNum) ||
-      isoNum < VALIDATION_CONFIG.isoRange.min ||
-      isoNum > VALIDATION_CONFIG.isoRange.max
-    ) {
-      errors.push('Invalid ISO value');
-    } else {
+    if (params.iso === 'boxspeed') {
       sanitized.iso = params.iso;
+    } else {
+      const isoNum = parseInt(params.iso, 10);
+      if (
+        Number.isNaN(isoNum) ||
+        isoNum < VALIDATION_CONFIG.isoRange.min ||
+        isoNum > VALIDATION_CONFIG.isoRange.max
+      ) {
+        errors.push('Invalid ISO value');
+      } else {
+        sanitized.iso = params.iso;
+      }
     }
   }
 
@@ -168,12 +172,32 @@ export const validateUrlParams = (
     }
   }
 
+  if (params.developerType) {
+    if (VALID_DEVELOPER_TYPES.includes(params.developerType)) {
+      sanitized.developerType = params.developerType;
+    } else {
+      errors.push('Invalid developer type');
+    }
+  }
+
+  if (params.recipeType) {
+    if (VALID_RECIPE_TYPES.includes(params.recipeType)) {
+      sanitized.recipeType = params.recipeType;
+    } else {
+      errors.push('Invalid recipe type');
+    }
+  }
+
+  if (params.favorites === 'true') {
+    sanitized.favorites = 'true';
+  }
+
   if (params.recipe) {
     if (
       params.recipe.match(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       ) ||
-      params.recipe.length > 20
+      params.recipe.match(/^[A-Za-z0-9_-]{20,}$/)
     ) {
       sanitized.recipe = params.recipe;
     } else {
@@ -185,6 +209,7 @@ export const validateUrlParams = (
     sanitized.source = 'share';
   }
 
+  // Legacy `view` param (backward compat)
   if (params.view) {
     if (params.view === 'favorites' || params.view === 'custom') {
       sanitized.view = params.view;
@@ -222,12 +247,6 @@ export interface UseRecipeUrlStateReturn {
 /**
  * Hook that keeps development recipe state synchronized with URL parameters.
  * Validates parameters, resolves shared recipes, and exposes helpers for updates.
- *
- * @param films - Available film list used to resolve slug selections
- * @param developers - Available developer list used to resolve slug selections
- * @param currentState - Current selection/filter state from the UI
- * @param recipesByUuid - Optional map of recipes for lookup when sharing
- * @returns URL-driven state values, helpers, and metadata about shared recipes
  */
 export const useRecipeUrlState = (
   films: Film[],
@@ -237,8 +256,9 @@ export const useRecipeUrlState = (
     selectedDeveloper: Developer | null;
     dilutionFilter: string;
     isoFilter: string;
-    favoritesOnly?: boolean;
-    customRecipeFilter?: string;
+    developerTypeFilter: string;
+    customRecipeFilter: string;
+    favoritesOnly: boolean;
     selectedRecipeId?: string | null;
   },
   recipesByUuid?: Map<string, Combination>
@@ -248,6 +268,11 @@ export const useRecipeUrlState = (
   );
   const isInitializedRef = useRef(false);
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const paramsRef = useRef(params);
+
+  useEffect(() => {
+    paramsRef.current = params;
+  }, [params]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -321,6 +346,26 @@ export const useRecipeUrlState = (
       state.isoFilter = validation.sanitized.iso;
     }
 
+    if (validation.sanitized.developerType) {
+      state.developerTypeFilter = validation.sanitized.developerType;
+    }
+
+    // New params take precedence over legacy `view`
+    if (validation.sanitized.favorites === 'true') {
+      state.favoritesOnly = true;
+    } else if (validation.sanitized.view === 'favorites') {
+      // Legacy backward compat
+      state.favoritesOnly = true;
+    }
+
+    if (validation.sanitized.recipeType) {
+      state.customRecipeFilter = validation.sanitized.recipeType;
+    } else if (validation.sanitized.view === 'custom') {
+      // Legacy backward compat
+      state.customRecipeFilter = 'only-custom';
+    }
+
+    // Legacy view field (for useUrlStateSync backward compat)
     if (validation.sanitized.view) {
       state.view = validation.sanitized.view;
     }
@@ -331,14 +376,12 @@ export const useRecipeUrlState = (
       const isFromShare = validation.sanitized.source === 'share';
 
       if (isFromShare) {
-        // Check if this is a shared API recipe (has film/developer params and source=share)
         const hasFilmDeveloper =
           validation.sanitized.film && validation.sanitized.developer;
         if (hasFilmDeveloper) {
           state.isSharedApiRecipe = true;
         }
       } else {
-        // Recipe in URL without source=share means direct selection (bookmark/link)
         state.isDirectSelection = true;
       }
     }
@@ -347,45 +390,44 @@ export const useRecipeUrlState = (
     return state;
   }, [params, films, developers]);
 
-  const updateUrl = useCallback(
-    (newParams: Partial<RecipeUrlParams>) => {
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-        updateTimeoutRef.current = null;
+  const updateUrl = useCallback((newParams: Partial<RecipeUrlParams>) => {
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+      updateTimeoutRef.current = null;
+    }
+
+    updateTimeoutRef.current = setTimeout(() => {
+      updateTimeoutRef.current = null;
+
+      if (!isInitializedRef.current || typeof window === 'undefined') {
+        return;
       }
 
-      updateTimeoutRef.current = setTimeout(() => {
-        // Clear the timeout ref immediately to prevent duplicate cleanup
-        updateTimeoutRef.current = null;
+      const searchParams = new URLSearchParams(window.location.search);
 
-        if (!isInitializedRef.current || typeof window === 'undefined') {
-          return;
+      MANAGED_QUERY_KEYS.forEach((key) => {
+        searchParams.delete(key);
+      });
+
+      const mergedParams: RecipeUrlParams = {
+        ...paramsRef.current,
+        ...newParams,
+      };
+
+      Object.entries(mergedParams).forEach(([key, value]) => {
+        if (value) {
+          searchParams.set(key, value as string);
         }
+      });
 
-        const searchParams = new URLSearchParams(window.location.search);
-
-        MANAGED_QUERY_KEYS.forEach((key) => {
-          searchParams.delete(key);
-        });
-
-        const mergedParams: RecipeUrlParams = { ...params, ...newParams };
-
-        Object.entries(mergedParams).forEach(([key, value]) => {
-          if (value) {
-            searchParams.set(key, value as string);
-          }
-        });
-
-        const searchString = searchParams.toString();
-        const newUrl = `${window.location.pathname}${
-          searchString ? `?${searchString}` : ''
-        }${window.location.hash ?? ''}`;
-        window.history.replaceState(null, '', newUrl);
-        setParams(parseSearchParams(searchParams));
-      }, 300);
-    },
-    [params]
-  );
+      const searchString = searchParams.toString();
+      const newUrl = `${window.location.pathname}${
+        searchString ? `?${searchString}` : ''
+      }${window.location.hash ?? ''}`;
+      window.history.replaceState(null, '', newUrl);
+      setParams(parseSearchParams(searchParams));
+    }, 300);
+  }, []);
 
   useEffect(() => {
     const handleSharedRecipeLookup = async () => {
@@ -402,7 +444,6 @@ export const useRecipeUrlState = (
         return;
       }
 
-      // Prevent infinite loop: don't process if we're already processing
       if (isProcessingSharedRecipeRef.current) {
         return;
       }
@@ -418,7 +459,6 @@ export const useRecipeUrlState = (
           if (importedRecipe?.isValid) {
             setSharedCustomRecipe(importedRecipe.recipe);
             setSharedRecipe(null);
-            // Remove recipe param from URL after successful load
             updateUrl({ recipe: '' });
           } else {
             setSharedRecipeError('Invalid custom recipe data');
@@ -426,16 +466,13 @@ export const useRecipeUrlState = (
             setSharedCustomRecipe(null);
           }
         } else {
-          // Standard recipe lookup
           if (!recipesByUuid || recipesByUuid.size === 0) {
-            // Wait for recipes to load - keep loading state true
             return;
           }
 
           if (recipesByUuid.has(recipeId)) {
             setSharedRecipe(recipesByUuid.get(recipeId) ?? null);
             setSharedCustomRecipe(null);
-            // Remove recipe param from URL after successful load
             updateUrl({ recipe: '' });
           } else {
             setSharedRecipeError(
@@ -454,9 +491,6 @@ export const useRecipeUrlState = (
         setSharedRecipe(null);
         setSharedCustomRecipe(null);
       } finally {
-        // Only turn off loading if we are NOT waiting for recipes
-        // If we are waiting for recipes (standard recipe ID but no recipes loaded yet),
-        // we want to keep the loading state active until the recipes load and this effect re-runs
         const isWaitingForRecipes =
           !isCustomRecipeUrl(recipeId) &&
           (!recipesByUuid || recipesByUuid.size === 0);
@@ -478,6 +512,7 @@ export const useRecipeUrlState = (
     updateUrl,
   ]);
 
+  // Sync current UI state → URL
   useEffect(() => {
     if (!isInitializedRef.current) {
       return;
@@ -485,49 +520,37 @@ export const useRecipeUrlState = (
 
     const urlParams: RecipeUrlParams = {};
 
-    if (currentState.selectedFilm) {
-      urlParams.film = filmToSlug(currentState.selectedFilm);
-    } else {
-      // Explicitly clear film from URL when unselected
-      urlParams.film = '';
-    }
+    // Film & developer
+    urlParams.film = currentState.selectedFilm
+      ? filmToSlug(currentState.selectedFilm)
+      : '';
+    urlParams.developer = currentState.selectedDeveloper
+      ? developerToSlug(currentState.selectedDeveloper)
+      : '';
 
-    if (currentState.selectedDeveloper) {
-      urlParams.developer = developerToSlug(currentState.selectedDeveloper);
-    } else {
-      // Explicitly clear developer from URL when unselected
-      urlParams.developer = '';
-    }
+    // Filters
+    urlParams.dilution = currentState.dilutionFilter || '';
+    urlParams.iso = currentState.isoFilter || '';
+    urlParams.developerType = currentState.developerTypeFilter || '';
 
-    if (currentState.dilutionFilter) {
-      urlParams.dilution = currentState.dilutionFilter;
-    } else {
-      // Explicitly clear dilution from URL when cleared
-      urlParams.dilution = '';
-    }
+    // Recipe type (only write non-default values)
+    urlParams.recipeType =
+      currentState.customRecipeFilter &&
+      currentState.customRecipeFilter !== 'all'
+        ? currentState.customRecipeFilter
+        : '';
 
-    if (currentState.isoFilter) {
-      urlParams.iso = currentState.isoFilter;
-    } else {
-      // Explicitly clear iso from URL when cleared
-      urlParams.iso = '';
-    }
+    // Favorites
+    urlParams.favorites = currentState.favoritesOnly ? 'true' : '';
 
-    if (currentState.favoritesOnly) {
-      urlParams.view = 'favorites';
-    } else if (currentState.customRecipeFilter === 'only-custom') {
-      urlParams.view = 'custom';
-    } else {
-      urlParams.view = undefined;
-    }
+    // Clear legacy view param (new params replace it)
+    urlParams.view = undefined;
 
-    // Sync selected recipe to URL (for direct viewing, not sharing)
+    // Selected recipe
     if (currentState.selectedRecipeId) {
       urlParams.recipe = currentState.selectedRecipeId;
-      // Clear source when it's a direct selection, not a share
       urlParams.source = undefined;
     } else {
-      // Clear recipe from URL when panel is closed
       urlParams.recipe = '';
       urlParams.source = undefined;
     }
@@ -538,8 +561,9 @@ export const useRecipeUrlState = (
     currentState.selectedDeveloper,
     currentState.dilutionFilter,
     currentState.isoFilter,
-    currentState.favoritesOnly,
+    currentState.developerTypeFilter,
     currentState.customRecipeFilter,
+    currentState.favoritesOnly,
     currentState.selectedRecipeId,
     updateUrl,
   ]);

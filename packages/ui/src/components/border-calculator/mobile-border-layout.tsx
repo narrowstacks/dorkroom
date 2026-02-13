@@ -19,8 +19,6 @@ import { StatusAlert } from '../../components/status-alert';
 // Hooks & Types
 import { useTheme } from '../../contexts/theme-context';
 import { AnimatedPreview } from './animated-preview';
-// Components
-import { BladeResultsDisplay } from './blade-results-display';
 // Sections
 import {
   BorderSizeSection,
@@ -225,32 +223,6 @@ export function MobileBorderLayout({
       }}
     >
       <div className="mx-auto max-w-md space-y-4">
-        {/* Hero Section - Blade Results */}
-        <div
-          className={`rounded-3xl p-[1px] ${
-            !isHighContrast
-              ? 'shadow-[0_30px_90px_-40px_var(--color-visualization-overlay)]'
-              : ''
-          } backdrop-blur-sm`}
-          style={{
-            background: 'var(--color-border-primary)',
-          }}
-        >
-          <div
-            className="rounded-[calc(1.5rem-1px)]"
-            style={{
-              backgroundColor:
-                resolvedTheme === 'light' ? '#ffffff' : 'var(--color-surface)',
-            }}
-          >
-            <BladeResultsDisplay
-              calculation={calculation}
-              paperSize={paperSizeDisplayValue}
-              aspectRatio={aspectRatioDisplayValue}
-            />
-          </div>
-        </div>
-
         {/* Animated Preview */}
         <div
           className={`rounded-3xl border p-6 ${
@@ -270,6 +242,20 @@ export function MobileBorderLayout({
             className={!isHighContrast ? 'shadow-2xl' : undefined}
             borderColor="var(--color-border-primary)"
           />
+
+          {/* Image Dimensions */}
+          <div className="mt-4 text-center">
+            <p
+              className="text-sm"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              {formatDimensions(
+                calculation.printWidth,
+                calculation.printHeight
+              )}{' '}
+              image on {paperSizeDisplayValue}
+            </p>
+          </div>
         </div>
 
         {/* Warnings */}

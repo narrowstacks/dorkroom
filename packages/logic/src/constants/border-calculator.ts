@@ -90,7 +90,12 @@ export const ASPECT_RATIOS: readonly AspectRatio[] = [
 
 export const PAPER_SIZES: readonly PaperSize[] = [
   { label: '5x7', width: 5, height: 7, value: '5x7' },
-  { label: '4x6 (postcard)', width: 4, height: 6, value: '4x6' },
+  {
+    label: '3⅞x5⅞ (postcard)',
+    width: 3.875,
+    height: 5.875,
+    value: '3.875x5.875',
+  },
   { label: '8x10', width: 8, height: 10, value: '8x10' },
   { label: '11x14', width: 11, height: 14, value: '11x14' },
   { label: '16x20', width: 16, height: 20, value: '16x20' },
@@ -120,6 +125,25 @@ export const EASEL_SIZE_MAP = new Map(
 );
 
 export const BLADE_THICKNESS = 15;
+
+/**
+ * Generates evenly-spaced slider labels from 0 to maxBorder.
+ * Returns 5 labels: 0, 25%, 50%, 75%, 100% of maxBorder.
+ * Values are formatted with 1 decimal place, omitting ".0" for whole numbers.
+ *
+ * @param maxBorder - The maximum border value in inches
+ * @returns Array of 5 formatted label strings
+ *
+ * @example
+ * generateBorderSliderLabels(6) // ['0', '1.5', '3', '4.5', '6']
+ * generateBorderSliderLabels(4) // ['0', '1', '2', '3', '4']
+ */
+export function generateBorderSliderLabels(maxBorder: number): string[] {
+  const step = maxBorder / 4;
+  return [0, step, step * 2, step * 3, maxBorder].map((v) =>
+    v === 0 ? '0' : v.toFixed(1).replace(/\.0$/, '')
+  );
+}
 
 export const DEFAULT_BORDER_PRESETS: BorderPreset[] = [
   {

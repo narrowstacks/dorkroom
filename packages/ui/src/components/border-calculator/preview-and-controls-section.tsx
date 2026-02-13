@@ -50,7 +50,7 @@ export function PreviewAndControlsSection({
           />
         </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-2 sm:grid-cols-2">
         <button
           type="button"
           onClick={() => {
@@ -90,7 +90,7 @@ export function PreviewAndControlsSection({
       <button
         type="button"
         onClick={onResetToDefaults}
-        className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 hover:brightness-110"
+        className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 hover:brightness-110"
         style={{
           color: 'var(--color-accent)',
           borderColor: 'var(--color-accent)',
@@ -115,7 +115,7 @@ export function PreviewAndControlsSection({
         return (
           shouldShow && (
             <div
-              className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
+              className="mt-2 rounded-xl px-3 py-2 text-center text-xs"
               style={{
                 borderWidth: 1,
                 borderColor: 'var(--color-border-secondary)',
@@ -134,7 +134,7 @@ export function PreviewAndControlsSection({
 
       {calculation.isNonStandardPaperSize && (
         <div
-          className="mt-4 rounded-2xl px-4 py-3 text-center text-sm"
+          className="mt-2 rounded-xl px-3 py-2 text-center text-xs"
           style={{
             borderWidth: 1,
             borderColor: 'var(--color-border-secondary)',
