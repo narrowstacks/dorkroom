@@ -55,8 +55,14 @@ export default defineConfig(() => ({
       transformMixedEsModules: true,
     },
     minify: true,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
+        minify: {
+          compress: {
+            dropConsole: true,
+            dropDebugger: true,
+          },
+        },
         manualChunks(id) {
           if (
             id.includes('node_modules/react/') ||
