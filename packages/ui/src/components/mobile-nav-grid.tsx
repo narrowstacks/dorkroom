@@ -179,16 +179,21 @@ export function MobileNavGrid({
         {referenceItems.length > 0 && renderSectionHeader('Reference')}
         {referenceItems.map(renderNavCell)}
 
-        {/* Theme & Settings at the bottom so the theme dropdown has room */}
-        {bottomItems.length > 0 && (
-          <>
-            <div
-              className="col-span-3 my-1 h-px"
-              style={{ backgroundColor: 'var(--color-border-muted)' }}
-            />
-            {bottomItems.map(renderNavCell)}
-          </>
-        )}
+        {/* Theme & Settings pinned to bottom-right so the theme dropdown has room */}
+        <div
+          className="col-span-3 my-1 h-px"
+          style={{ backgroundColor: 'var(--color-border-muted)' }}
+        />
+        <div className="col-start-3">
+          <ThemeToggle variant="grid" onSelect={onClose} />
+        </div>
+        {bottomItems
+          .filter((item) => item.type === 'settings')
+          .map((item) => (
+            <div key={item.to || item.label} className="col-start-3">
+              {renderNavCell(item)}
+            </div>
+          ))}
       </nav>
     </div>
   );
