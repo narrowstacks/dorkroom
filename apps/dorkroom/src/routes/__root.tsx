@@ -283,7 +283,6 @@ function RootComponent() {
             aria-modal={isMobileMenuOpen || undefined}
             aria-hidden={!isMobileMenuOpen}
             aria-label="Navigation menu"
-            inert={!isMobileMenuOpen}
           >
             <MobileSidebar
               pathname={pathname}
