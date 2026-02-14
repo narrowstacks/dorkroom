@@ -245,7 +245,7 @@ export function ThemeToggle({
 
         {isOpen && (
           <div
-            className="absolute bottom-full left-0 z-50 mb-2 min-w-48 rounded-2xl border p-2 shadow-xl"
+            className="absolute bottom-full left-0 z-[60] mb-2 min-w-48 rounded-2xl border p-2 shadow-xl"
             style={{
               backgroundColor: 'var(--color-background)',
               borderColor: 'var(--color-border-primary)',

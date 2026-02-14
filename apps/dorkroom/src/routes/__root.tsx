@@ -251,8 +251,10 @@ function RootComponent() {
               borderColor: 'var(--color-border-secondary)',
             }}
             role="dialog"
-            aria-modal={isMobileMenuOpen}
+            aria-modal={isMobileMenuOpen || undefined}
+            aria-hidden={!isMobileMenuOpen}
             aria-label="Navigation menu"
+            inert={!isMobileMenuOpen || undefined}
           >
             <MobileSidebar
               pathname={pathname}

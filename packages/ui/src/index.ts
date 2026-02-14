@@ -99,8 +99,6 @@ export { StatCard } from './components/marketing/stat-card';
 export type { ToolCardProps } from './components/marketing/tool-card';
 export { ToolCard } from './components/marketing/tool-card';
 export { MeasurementUnitToggle } from './components/measurement-unit-toggle';
-export type { MobileNavGridProps } from './components/mobile-nav-grid';
-export { MobileNavGrid } from './components/mobile-nav-grid';
 export type { MobileSidebarProps } from './components/mobile-sidebar';
 export { MobileSidebar } from './components/mobile-sidebar';
 export { Modal } from './components/modal';
