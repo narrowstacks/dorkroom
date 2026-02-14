@@ -78,15 +78,9 @@ export function MobileNavGrid({
   onNavigate,
   onClose,
 }: MobileNavGridProps) {
-  // Group items by category, separating theme/settings to render at bottom
+  // Group items by category
   const utilityItems = mobileNavItems.filter(
-    (item) =>
-      item.category === 'utility' &&
-      item.type !== 'theme' &&
-      item.type !== 'settings'
-  );
-  const bottomItems = mobileNavItems.filter(
-    (item) => item.type === 'theme' || item.type === 'settings'
+    (item) => item.category === 'utility'
   );
   const printingItems = mobileNavItems.filter(
     (item) => item.category === 'printing'
@@ -179,20 +173,6 @@ export function MobileNavGrid({
         {referenceItems.length > 0 && renderSectionHeader('Reference')}
         {referenceItems.map(renderNavCell)}
       </nav>
-
-      {/* Theme & Settings pinned to bottom-right so the theme dropdown has room */}
-      <div
-        className="mx-2 my-1 h-px"
-        style={{ backgroundColor: 'var(--color-border-muted)' }}
-      />
-      <div className="flex justify-end gap-2 px-2 pb-2">
-        <div className="flex flex-col gap-2">
-          <ThemeToggle variant="grid" onSelect={onClose} />
-          {bottomItems
-            .filter((item) => item.type === 'settings')
-            .map((item) => renderNavCell(item))}
-        </div>
-      </div>
     </div>
   );
 }
