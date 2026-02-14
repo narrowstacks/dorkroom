@@ -32,10 +32,6 @@
     "typecheck": {
       "dependsOn": ["^build"]
     },
-    "lint": {},
-    "test:e2e": {
-      "dependsOn": ["^build"],
-      "cache": false
-    }
+    "lint": {}
   }
 }
