@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Dorkroom are documented here.
+All notable changes to Dorkroom.art are documented here.
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
@@ -20,6 +20,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 ### Fixed
 
 - Resize calculator mobile overflow
+- Resize calculator now properly switches modes and allows for input number changes
 - Card badge alignment and tooltip accessibility
 - Console/debugger stripping restored for production builds
 - Resolved 150+ lint warnings across the codebase
