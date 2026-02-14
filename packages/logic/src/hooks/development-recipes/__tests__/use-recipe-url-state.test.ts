@@ -331,6 +331,11 @@ describe('useRecipeUrlState', () => {
     });
 
     it('should handle encoded custom recipe ID', () => {
+      // Suppress expected console.error from invalid base64 decode attempt
+      const errorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
       const encodedRecipe = 'a'.repeat(100); // Long base64-like string
       mockLocation.search = `?recipe=${encodedRecipe}&source=share`;
 
@@ -339,6 +344,8 @@ describe('useRecipeUrlState', () => {
       );
 
       expect(result.current.initialUrlState.recipeId).toBe(encodedRecipe);
+
+      errorSpy.mockRestore();
     });
 
     it('should handle invalid view parameter', () => {

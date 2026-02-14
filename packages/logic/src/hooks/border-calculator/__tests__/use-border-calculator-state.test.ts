@@ -770,6 +770,11 @@ describe('useBorderCalculatorState', () => {
     });
 
     it('should handle corrupted localStorage data gracefully', () => {
+      // Suppress expected console.warn from invalid JSON parse
+      const warnSpy = vi
+        .spyOn(console, 'warn')
+        .mockImplementation(() => undefined);
+
       // Set invalid JSON
       localStorageMock.setItem(
         BORDER_CALCULATOR_STORAGE_KEY,
@@ -781,6 +786,8 @@ describe('useBorderCalculatorState', () => {
 
       expect(result.current.state.aspectRatio).toBe('3:2');
       expect(result.current.state.paperSize).toBe('8x10');
+
+      warnSpy.mockRestore();
     });
 
     it('should handle missing localStorage gracefully', () => {

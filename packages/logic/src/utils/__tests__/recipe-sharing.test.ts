@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CustomRecipe } from '../../types/custom-recipes';
 import {
   createCustomRecipeFromEncoded,
@@ -10,6 +10,24 @@ import {
 } from '../recipe-sharing';
 
 describe('recipe-sharing', () => {
+  // Suppress expected console.error/warn from debugError/debugWarn in error-path tests
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+  let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    consoleWarnSpy = vi
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+    consoleWarnSpy.mockRestore();
+  });
+
   const mockCustomRecipe: CustomRecipe = {
     id: 'recipe-123',
     name: 'Test Recipe',
@@ -193,10 +211,6 @@ describe('recipe-sharing', () => {
     });
 
     it('warns about recipes from newer version', () => {
-      const consoleWarnSpy = vi
-        .spyOn(console, 'warn')
-        .mockImplementation(() => undefined);
-
       // Create a recipe with a future version
       const futureRecipe: EncodedCustomRecipe = {
         name: 'Future Recipe',
@@ -225,8 +239,6 @@ describe('recipe-sharing', () => {
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining('newer version')
       );
-
-      consoleWarnSpy.mockRestore();
     });
 
     it('returns null for recipe with invalid custom film data', () => {

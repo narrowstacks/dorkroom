@@ -9,7 +9,11 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  vi.runOnlyPendingTimers();
+  // Wrap in act() to prevent "not wrapped in act()" warnings
+  // from state updates triggered by pending timers (e.g. Drawer visibility timeout)
+  act(() => {
+    vi.runOnlyPendingTimers();
+  });
   vi.useRealTimers();
   cleanup();
   // Reset body overflow

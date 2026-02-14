@@ -14,7 +14,11 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  vi.runOnlyPendingTimers();
+  // Wrap in act() to prevent "not wrapped in act()" warnings
+  // from state updates triggered by pending timers (e.g. Toast animation timeout)
+  act(() => {
+    vi.runOnlyPendingTimers();
+  });
   vi.useRealTimers();
 });
 
