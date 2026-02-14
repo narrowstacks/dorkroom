@@ -49,6 +49,12 @@ bun run format
 4. **Avoid circular dependencies** between packages
 5. **Avoid using "warning" or "error" in file names** as this causes false warnings and errors flags in the build log.
 
+## Versioning
+
+- **CalVer** (`YYYY.MM.DD`) - all `package.json` versions use the date changes are pushed to main
+- When pushing to main, update all `package.json` versions and the README badge to the current date
+- Add a new entry to `CHANGELOG.md` summarizing what changed (use [Keep a Changelog](https://keepachangelog.com/) format)
+
 ## Git
 
 - Conventional commits, short messages
