@@ -402,107 +402,6 @@ export default function CameraExposureCalculatorPage() {
               ) : null
             }
           </form.Subscribe>
-
-          {/* Exposure Comparison */}
-          <form.Subscribe
-            selector={(state) => {
-              return compareExposures(
-                state.values.aperture,
-                state.values.shutterSpeed,
-                state.values.iso,
-                state.values.compareAperture,
-                state.values.compareShutterSpeed,
-                state.values.compareIso
-              );
-            }}
-          >
-            {(comparison) => (
-              <CalculatorCard
-                title="Exposure comparison"
-                description="Stops difference between exposure A (above) and exposure B"
-                accent="violet"
-                padding="compact"
-              >
-                {/* Comparison Inputs */}
-                <div className="space-y-3">
-                  <h4
-                    className="text-xs font-semibold uppercase tracking-[0.25em]"
-                    style={{ color: 'var(--color-text-muted)' }}
-                  >
-                    Exposure B
-                  </h4>
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <form.Field name="compareAperture">
-                      {(field) => (
-                        <Select
-                          label="Aperture"
-                          selectedValue={apertureToKey(field.state.value)}
-                          onValueChange={(v) =>
-                            field.handleChange(keyToAperture(v))
-                          }
-                          items={apertureOptions}
-                          ariaLabel="Compare aperture"
-                        />
-                      )}
-                    </form.Field>
-                    <form.Field name="compareShutterSpeed">
-                      {(field) => (
-                        <Select
-                          label="Shutter"
-                          selectedValue={shutterSpeedToKey(field.state.value)}
-                          onValueChange={(v) =>
-                            field.handleChange(keyToShutterSpeed(v))
-                          }
-                          items={shutterSpeedOptions}
-                          ariaLabel="Compare shutter speed"
-                        />
-                      )}
-                    </form.Field>
-                    <form.Field name="compareIso">
-                      {(field) => (
-                        <Select
-                          label="ISO"
-                          selectedValue={isoToKey(field.state.value)}
-                          onValueChange={(v) => field.handleChange(keyToISO(v))}
-                          items={isoOptions}
-                          ariaLabel="Compare ISO"
-                        />
-                      )}
-                    </form.Field>
-                  </div>
-                </div>
-
-                {comparison.isValid && (
-                  <div className="space-y-3 mt-4">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <CalculatorStat
-                        label="Stops difference"
-                        value={`${comparison.stopsDifference > 0 ? '+' : ''}${comparison.stopsDifference}`}
-                        helperText={
-                          comparison.stopsDifference > 0
-                            ? 'A is brighter than B'
-                            : comparison.stopsDifference < 0
-                              ? 'B is brighter than A'
-                              : 'Same exposure'
-                        }
-                        tone="default"
-                      />
-                      <div className="space-y-2">
-                        <ResultRow
-                          label="Exposure A"
-                          value={`EV ${comparison.evA}`}
-                        />
-                        <ResultRow
-                          label="Exposure B"
-                          value={`EV ${comparison.evB}`}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CalculatorCard>
-            )}
-          </form.Subscribe>
         </div>
       }
     >
@@ -553,6 +452,107 @@ export default function CameraExposureCalculatorPage() {
           </div>
         </div>
       </CalculatorCard>
+
+      {/* Exposure Comparison */}
+      <form.Subscribe
+        selector={(state) => {
+          return compareExposures(
+            state.values.aperture,
+            state.values.shutterSpeed,
+            state.values.iso,
+            state.values.compareAperture,
+            state.values.compareShutterSpeed,
+            state.values.compareIso
+          );
+        }}
+      >
+        {(comparison) => (
+          <CalculatorCard
+            title="Exposure comparison"
+            description="Stops difference between exposure A (above) and exposure B"
+            accent="violet"
+            padding="compact"
+          >
+            {/* Comparison Inputs */}
+            <div className="space-y-3">
+              <h4
+                className="text-xs font-semibold uppercase tracking-[0.25em]"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                Exposure B
+              </h4>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <form.Field name="compareAperture">
+                  {(field) => (
+                    <Select
+                      label="Aperture"
+                      selectedValue={apertureToKey(field.state.value)}
+                      onValueChange={(v) =>
+                        field.handleChange(keyToAperture(v))
+                      }
+                      items={apertureOptions}
+                      ariaLabel="Compare aperture"
+                    />
+                  )}
+                </form.Field>
+                <form.Field name="compareShutterSpeed">
+                  {(field) => (
+                    <Select
+                      label="Shutter"
+                      selectedValue={shutterSpeedToKey(field.state.value)}
+                      onValueChange={(v) =>
+                        field.handleChange(keyToShutterSpeed(v))
+                      }
+                      items={shutterSpeedOptions}
+                      ariaLabel="Compare shutter speed"
+                    />
+                  )}
+                </form.Field>
+                <form.Field name="compareIso">
+                  {(field) => (
+                    <Select
+                      label="ISO"
+                      selectedValue={isoToKey(field.state.value)}
+                      onValueChange={(v) => field.handleChange(keyToISO(v))}
+                      items={isoOptions}
+                      ariaLabel="Compare ISO"
+                    />
+                  )}
+                </form.Field>
+              </div>
+            </div>
+
+            {comparison.isValid && (
+              <div className="space-y-3 mt-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <CalculatorStat
+                    label="Stops difference"
+                    value={`${comparison.stopsDifference > 0 ? '+' : ''}${comparison.stopsDifference}`}
+                    helperText={
+                      comparison.stopsDifference > 0
+                        ? 'A is brighter than B'
+                        : comparison.stopsDifference < 0
+                          ? 'B is brighter than A'
+                          : 'Same exposure'
+                    }
+                    tone="default"
+                  />
+                  <div className="space-y-2">
+                    <ResultRow
+                      label="Exposure A"
+                      value={`EV ${comparison.evA}`}
+                    />
+                    <ResultRow
+                      label="Exposure B"
+                      value={`EV ${comparison.evB}`}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </CalculatorCard>
+        )}
+      </form.Subscribe>
 
       {/* EV Presets */}
       <CalculatorCard
