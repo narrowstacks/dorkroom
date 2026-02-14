@@ -72,6 +72,35 @@ function RootComponent() {
     }
   }, [isMobileMenuOpen]);
 
+  // Close mobile menu when viewport crosses the sm breakpoint (640px)
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const mq = window.matchMedia('(min-width: 640px)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (e.matches) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    mq.addEventListener('change', handleChange);
+    return () => mq.removeEventListener('change', handleChange);
+  }, []);
+
+  // Close mobile menu on Escape key
+  useEffect(() => {
+    if (!isMobileMenuOpen) return undefined;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsMobileMenuOpen(false);
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isMobileMenuOpen]);
+
   const handleNavigate = (path: string) => {
     router.navigate({ to: path });
   };
@@ -254,7 +283,7 @@ function RootComponent() {
             aria-modal={isMobileMenuOpen || undefined}
             aria-hidden={!isMobileMenuOpen}
             aria-label="Navigation menu"
-            inert={!isMobileMenuOpen || undefined}
+            inert={!isMobileMenuOpen}
           >
             <MobileSidebar
               pathname={pathname}
