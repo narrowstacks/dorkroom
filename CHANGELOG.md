@@ -15,28 +15,19 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 - Improved responsive layouts across all calculator pages
 - Updated postcard paper size to 3 7/8 x 5 7/8 in
+- Migrated to modern Rust-based toolchain (oxlint for type-aware linting)
+- Concise CLAUDE.md documentation replacing verbose version
 
 ### Fixed
 
 - Resize calculator mobile overflow
 - Card badge alignment and tooltip accessibility
 - Console/debugger stripping restored for production builds
+- Resolved 150+ lint warnings across the codebase
 
 ### Removed
 
 - E2E tests, Playwright, and Chromatic (simplified CI pipeline)
-
-## [2026.01.20]
-
-### Fixed
-
-- Resolved 150+ lint warnings across the codebase
-- Modern toolchain review feedback addressed
-
-### Changed
-
-- Migrated to modern Rust-based toolchain (oxlint for type-aware linting)
-- Concise CLAUDE.md documentation replacing verbose version
 
 ## [2025.12.23]
 
@@ -49,26 +40,16 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - URL sync for selected recipes
 - Confirmation modal for recipe deletes
 - CI optimizations: caching, path filtering, deploy skip for docs-only changes
-
-### Changed
-
-- Migrated from Nx to Turborepo
-- Extracted reusable calculator components and split oversized hooks
-- Renamed warning components to alert components
-
-## [2025.12.01]
-
-### Added
-
 - Enhanced SEO metadata across all routes
 - Navigation tooltips and new links
 - Open source collaboration files (Code of Conduct, Security Policy, PR templates)
 
-## [2025.11.30]
-
 ### Changed
 
+- Migrated from Nx to Turborepo
 - Migrated from ESLint/Prettier to Biome for linting and formatting
+- Extracted reusable calculator components and split oversized hooks
+- Renamed warning components to alert components
 - Enhanced Dorkroom API client and documentation
 
 ## [2025.11.25]
@@ -185,16 +166,13 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ---
 
-[2026.02.14]: https://github.com/narrowstacks/dorkroom/compare/2026.01.20...HEAD
-[2026.01.20]: https://github.com/narrowstacks/dorkroom/compare/2025.12.23...2026.01.20
-[2025.12.23]: https://github.com/narrowstacks/dorkroom/compare/2025.12.01...2025.12.23
-[2025.12.01]: https://github.com/narrowstacks/dorkroom/compare/2025.11.30...2025.12.01
-[2025.11.30]: https://github.com/narrowstacks/dorkroom/compare/2025.11.25...2025.11.30
-[2025.11.25]: https://github.com/narrowstacks/dorkroom/compare/2025.11.20...2025.11.25
-[2025.11.20]: https://github.com/narrowstacks/dorkroom/compare/2025.11.18...2025.11.20
-[2025.11.18]: https://github.com/narrowstacks/dorkroom/compare/2025.11.17...2025.11.18
-[2025.11.17]: https://github.com/narrowstacks/dorkroom/compare/2025.11.04...2025.11.17
-[2025.11.04]: https://github.com/narrowstacks/dorkroom/compare/2025.10.16...2025.11.04
-[2025.10.16]: https://github.com/narrowstacks/dorkroom/compare/2025.09.26...2025.10.16
-[2025.09.26]: https://github.com/narrowstacks/dorkroom/compare/2025.09.22...2025.09.26
-[2025.09.22]: https://github.com/narrowstacks/dorkroom/releases/tag/2025.09.22
+[2026.02.14]: https://github.com/narrowstacks/dorkroom/compare/8eaf60c...HEAD
+[2025.12.23]: https://github.com/narrowstacks/dorkroom/compare/c7b30ce...8eaf60c
+[2025.11.25]: https://github.com/narrowstacks/dorkroom/compare/668cb15...c7b30ce
+[2025.11.20]: https://github.com/narrowstacks/dorkroom/compare/373246c...668cb15
+[2025.11.18]: https://github.com/narrowstacks/dorkroom/compare/4369ceb...373246c
+[2025.11.17]: https://github.com/narrowstacks/dorkroom/compare/dab2258...4369ceb
+[2025.11.04]: https://github.com/narrowstacks/dorkroom/compare/4cea721...dab2258
+[2025.10.16]: https://github.com/narrowstacks/dorkroom/compare/e21f61d...4cea721
+[2025.09.26]: https://github.com/narrowstacks/dorkroom/compare/458cb60...e21f61d
+[2025.09.22]: https://github.com/narrowstacks/dorkroom/compare/e824485...458cb60
