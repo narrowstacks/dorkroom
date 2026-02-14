@@ -43,10 +43,12 @@ This security policy applies to:
 
 ## Supported Versions
 
+Dorkroom uses [CalVer](https://calver.org/) versioning (`YYYY.MM.DD`). Only the latest release is supported with security fixes.
+
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.9.x   | :white_check_mark: |
-| < 0.9   | :x:                |
+| Latest (`YYYY.MM.DD`) | :white_check_mark: |
+| Older releases | :x:                |
 
 ## Security Best Practices
 

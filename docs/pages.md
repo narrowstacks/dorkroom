@@ -6,18 +6,19 @@ Documentation for all pages in the Dorkroom application.
 
 Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 
-| Route | Page | Status |
-|-------|------|--------|
-| `/` | Home | Implemented |
-| `/border` | Border Calculator | Implemented |
-| `/stops` | Stops Calculator | Implemented |
-| `/resize` | Resize Calculator | Implemented |
-| `/reciprocity` | Reciprocity Calculator | Implemented |
-| `/development` | Film Development Recipes | Implemented |
-| `/films` | Film Database | Implemented |
-| `/settings` | Settings | Implemented |
-| `/exposure` | Camera Exposure | Placeholder |
-| `/infobase` | Infobase | Placeholder |
+| Route | Page | Category | Status |
+|-------|------|----------|--------|
+| `/` | Home | — | Implemented |
+| `/border` | Border Calculator | Printing | Implemented |
+| `/stops` | Stops Calculator | Printing | Implemented |
+| `/resize` | Resize Calculator | Printing | Implemented |
+| `/reciprocity` | Reciprocity Calculator | Film | Implemented |
+| `/development` | Film Development Recipes | Film | Implemented |
+| `/lenses` | Lens Equivalency Calculator | Camera | Implemented |
+| `/exposure` | Exposure Calculator | Camera | Placeholder |
+| `/films` | Film Database | Reference | Implemented |
+| `/docs` | Documentation | Reference | Placeholder |
+| `/settings` | Settings | — | Implemented |
 
 ---
 
@@ -134,6 +135,35 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 
 ---
 
+## Lens Equivalency Calculator (`/lenses`)
+
+**Purpose:** Calculate equivalent focal lengths between different sensor and film formats.
+
+**Location:** `apps/dorkroom/src/app/pages/lens-calculator/`
+
+**Features:**
+
+- Source and target format selection (digital sensors, medium format film, large format film)
+- Focal length input with preset buttons (24, 35, 50, 85, 135mm)
+- Swap button to quickly reverse source/target formats
+- Sensor size visualization comparing both formats
+- Calculated equivalent focal length and diagonal field of view
+- Source and target crop factor display
+- Formula display: `focalLength × (sourceCropFactor / targetCropFactor)`
+- State persistence to localStorage
+
+**Calculations:**
+
+- `equivalentFocalLength = focalLength × (sourceCropFactor / targetCropFactor)`
+- `fieldOfView = 2 × atan(sensorDiagonal / (2 × focalLength))` (in degrees)
+
+**Key components:**
+
+- `SensorSizeVisualization` - Visual comparison of sensor/film sizes
+- `useLocalStorageFormPersistence()` - Generic form state persistence hook
+
+---
+
 ## Film Development Recipes (`/development`)
 
 **Purpose:** Browse, filter, and manage B&W film development recipes.
@@ -178,6 +208,42 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 
 ---
 
+## Film Database (`/films`)
+
+**Purpose:** Browse and search the complete film stock database.
+
+**Location:** `apps/dorkroom/src/app/pages/films/`
+
+**Features:**
+
+- Full-text search across film names
+- Filters: color type (B&W, color, slide), ISO, brand, discontinued status
+- Collapsible filter panel (desktop) / mobile filter layout
+- Virtualized film results list (TanStack Virtual)
+- Film detail panel with expandable info
+- Direct-link support via URL `?film=slug` parameter
+- Debounced URL sync for all filter state (500ms)
+- Accessibility: skip-to-results link, ARIA live region for result counts
+
+**URL search params:**
+
+```typescript
+{
+  search?: string;         // Full-text search query
+  color?: 'bw' | 'color' | 'slide';
+  iso?: string;            // ISO filter
+  brand?: string;          // Brand filter
+  status?: 'all' | 'active' | 'discontinued';
+  film?: string;           // Film slug for direct link
+}
+```
+
+**Data dependencies:**
+
+- `useFilmDatabase()` - Main data hook with filtering logic
+
+---
+
 ## Settings (`/settings`)
 
 **Purpose:** User preferences and app configuration.
@@ -204,17 +270,17 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 
 ## Placeholder Pages
 
-### Camera Exposure (`/exposure`)
+### Exposure Calculator (`/exposure`)
 
 **Status:** Placeholder
 
-**Planned purpose:** Equivalent exposure calculator for balancing aperture, shutter, and ISO in the field.
+**Planned purpose:** Equivalent exposure calculator for balancing aperture, shutter speed, and ISO in the field.
 
-### Infobase (`/infobase`)
+### Documentation (`/docs`)
 
 **Status:** Placeholder
 
-**Planned purpose:** Reference tables, photography guides, and notes.
+**Planned purpose:** How-to guides and reference material for analog photography.
 
 ---
 
