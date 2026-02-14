@@ -76,13 +76,6 @@ export {
 } from './hooks/use-exposure-calculator';
 export { useFeatureFlags } from './hooks/use-feature-flags';
 export {
-  calculateEquivalentFocalLength,
-  calculateFieldOfView,
-  formatFocalLength,
-  type UseLensCalculatorReturn,
-  useLensCalculator,
-} from './hooks/use-lens-calculator';
-export {
   type FieldValidator,
   type LocalStorageFormPersistenceOptions,
   type LocalStorageFormPersistenceReturn,
@@ -127,6 +120,11 @@ export * from './utils/exposure-calculations';
 export * from './utils/filmdev-mapper';
 export * from './utils/fuzzy-search';
 export * from './utils/input-validation';
+export {
+  calculateEquivalentFocalLength,
+  calculateFieldOfView,
+  formatFocalLength,
+} from './utils/lens-calculations';
 export * from './utils/object-comparison';
 export * from './utils/precision';
 export * from './utils/preset-sharing';

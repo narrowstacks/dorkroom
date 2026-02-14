@@ -2,11 +2,7 @@
  * Default settings and sensor format definitions for the Lens Calculator
  */
 
-import type {
-  FocalLengthPreset,
-  LensCalculatorState,
-  SensorFormat,
-} from '../types/lens-calculator';
+import type { SensorFormat } from '../types/lens-calculator';
 
 // Full frame 35mm diagonal for reference (used to calculate crop factors)
 const FULL_FRAME_DIAGONAL = Math.sqrt(36 * 36 + 24 * 24); // ~43.27mm
@@ -123,42 +119,3 @@ export const SENSOR_FORMATS: SensorFormat[] = [
  */
 export const SENSOR_FORMAT_MAP: Record<string, SensorFormat> =
   Object.fromEntries(SENSOR_FORMATS.map((format) => [format.id, format]));
-
-/**
- * Common focal length presets
- */
-export const FOCAL_LENGTH_PRESETS: FocalLengthPreset[] = [
-  { label: '24mm', value: 24, description: 'Wide angle' },
-  { label: '35mm', value: 35, description: 'Wide/standard' },
-  { label: '50mm', value: 50, description: 'Standard' },
-  { label: '85mm', value: 85, description: 'Portrait' },
-  { label: '100mm', value: 100, description: 'Macro/Portrait' },
-  { label: '135mm', value: 135, description: 'Portrait' },
-  { label: '200mm', value: 200, description: 'Telephoto' },
-];
-
-/**
- * Default focal length in mm
- */
-export const DEFAULT_FOCAL_LENGTH = '50';
-
-/**
- * Default source format (full frame)
- */
-export const DEFAULT_SOURCE_FORMAT = 'full-frame';
-
-/**
- * Default target format (APS-C)
- */
-export const DEFAULT_TARGET_FORMAT = 'aps-c-nikon';
-
-/**
- * Complete default state for the lens calculator
- */
-export const LENS_CALCULATOR_DEFAULTS = {
-  focalLength: DEFAULT_FOCAL_LENGTH,
-  sourceFormat: DEFAULT_SOURCE_FORMAT,
-  targetFormat: DEFAULT_TARGET_FORMAT,
-} as const satisfies LensCalculatorState;
-
-export default LENS_CALCULATOR_DEFAULTS;
