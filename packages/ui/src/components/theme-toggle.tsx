@@ -26,7 +26,7 @@ const themeOptions: ThemeOption[] = [
 ];
 
 export interface ThemeToggleProps {
-  variant?: 'button' | 'icon' | 'grid';
+  variant?: 'button' | 'icon' | 'grid' | 'sidebar';
   className?: string;
   onSelect?: () => void;
 }
@@ -173,6 +173,79 @@ export function ThemeToggle({
         {isOpen && (
           <div
             className="absolute bottom-full left-1/2 z-50 mb-2 min-w-48 -translate-x-1/2 rounded-2xl border p-2 shadow-xl"
+            style={{
+              backgroundColor: 'var(--color-background)',
+              borderColor: 'var(--color-border-primary)',
+            }}
+            role="menu"
+          >
+            {themeOptions.map((option, index) => {
+              const OptionIcon = option.icon;
+              const isSelected = option.value === theme;
+
+              return (
+                <button
+                  key={option.value}
+                  ref={(el) => {
+                    menuItemRefs.current[index] = el;
+                  }}
+                  type="button"
+                  onClick={() => handleGridThemeChange(option.value)}
+                  onKeyDown={handleMenuKeyDown}
+                  className={cn(
+                    'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none',
+                    'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
+                    isSelected &&
+                      'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
+                  )}
+                  role="menuitem"
+                >
+                  <span
+                    className={cn(
+                      'flex h-8 w-8 items-center justify-center rounded-xl',
+                      isSelected
+                        ? 'theme-toggle-icon-bg-selected'
+                        : 'theme-toggle-icon-bg'
+                    )}
+                  >
+                    <OptionIcon className="h-4 w-4" />
+                  </span>
+                  <span className="flex-1">{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (variant === 'sidebar') {
+    return (
+      <div ref={dropdownRef} className={cn('relative flex-1', className)}>
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          onKeyDown={handleButtonKeyDown}
+          className={cn(
+            'flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium',
+            'transition focus-visible:outline-none focus-visible:ring-2',
+            'focus-visible:ring-[color:var(--color-border-primary)]',
+            'text-[color:var(--color-text-secondary)]',
+            'hover-surface-tint hover:text-[color:var(--nav-hover-text)]'
+          )}
+          aria-expanded={isOpen}
+          aria-haspopup="menu"
+          aria-label="Change theme"
+        >
+          <CurrentIcon className="h-4 w-4" />
+          <span>Theme</span>
+        </button>
+
+        {isOpen && (
+          <div
+            className="absolute bottom-full left-0 z-[60] mb-2 min-w-48 rounded-2xl border p-2 shadow-xl"
             style={{
               backgroundColor: 'var(--color-background)',
               borderColor: 'var(--color-border-primary)',
