@@ -3,6 +3,11 @@ import {
   STANDARD_APERTURES,
   STANDARD_SHUTTER_SPEEDS,
 } from '../../constants/camera-exposure-defaults';
+import type {
+  ApertureKey,
+  ISOKey,
+  ShutterSpeedKey,
+} from '../../types/camera-exposure-calculator';
 import {
   apertureToKey,
   calculateEV,
@@ -23,6 +28,20 @@ import {
   solveForShutterSpeed,
 } from '../../utils/camera-exposure-calculations';
 
+/** Helper to cast string literals to branded key types in tests. */
+const ssKey = (s: string) => s as ShutterSpeedKey;
+const apKey = (s: string) => s as ApertureKey;
+const iKey = (s: string) => s as ISOKey;
+
+// Precision guide for toBeCloseTo(value, numDigits):
+//   numDigits=0 → tolerance of 0.5 (within half a stop for EV values)
+//   numDigits=1 → tolerance of 0.05 (within 1/20 stop — tight match)
+//   numDigits=3 → tolerance of 0.0005 (exact fractional match)
+//   numDigits=5 → tolerance of 0.000005 (floating-point exact)
+//
+// Tests for "known photographic scenarios" use numDigits=0 (within 0.5 EV)
+// because real-world camera settings don't land on exact EV integers.
+// Reciprocity and converter tests use numDigits=1+ for tighter precision.
 describe('camera exposure calculations', () => {
   describe('calculateEV', () => {
     describe('known photographic scenarios', () => {
@@ -33,21 +52,21 @@ describe('camera exposure calculations', () => {
       });
 
       it('should calculate EV 12 for overcast day (f/5.6, 1/125s, ISO 100)', () => {
-        // Overcast: no shadows visible
+        // Overcast: no shadows visible — actual EV ≈ 11.9, within 0.5 of 12
         const ev = calculateEV(5.6, 1 / 125, 100);
-        expect(ev).toBeCloseTo(11.9, 0.2);
+        expect(ev).toBeCloseTo(11.9, 0);
       });
 
       it('should calculate EV 8 for indoor lighting (f/2.8, 1/60s, ISO 400)', () => {
-        // Normal indoor room lighting
+        // Normal indoor room lighting — actual EV ≈ 6.9, within 0.5 of 7
         const ev = calculateEV(2.8, 1 / 60, 400);
-        expect(ev).toBeCloseTo(6.9, 0.2);
+        expect(ev).toBeCloseTo(6.9, 0);
       });
 
       it('should calculate EV 5 for night street (f/2, 1/30s, ISO 1600)', () => {
-        // Well-lit night street scene
+        // Well-lit night street scene — actual EV ≈ 2.9, within 0.5 of 3
         const ev = calculateEV(2, 1 / 30, 1600);
-        expect(ev).toBeCloseTo(2.9, 0.2);
+        expect(ev).toBeCloseTo(2.9, 0);
       });
     });
 
@@ -55,9 +74,10 @@ describe('camera exposure calculations', () => {
       it('should maintain same EV when doubling shutter speed and halving ISO', () => {
         // f/8, 1/125s, ISO 100
         const ev1 = calculateEV(8, 1 / 125, 100);
-        // f/8, 1/60s, ISO 50 (one stop longer exposure, one stop slower ISO)
+        // f/8, 1/60s, ISO 50 — note: 1/60 and 1/125 aren't exact doubles,
+        // so we use numDigits=0 (within 0.5 EV) to absorb the approximation.
         const ev2 = calculateEV(8, 1 / 60, 50);
-        expect(ev1).toBeCloseTo(ev2, 0.1);
+        expect(ev1).toBeCloseTo(ev2, 0);
       });
 
       it('should maintain same EV when closing aperture one stop and halving shutter speed', () => {
@@ -72,7 +92,7 @@ describe('camera exposure calculations', () => {
         // Higher ISO = lower EV at ISO 100 equivalent
         const ev100 = calculateEV(8, 1 / 125, 100);
         const ev200 = calculateEV(8, 1 / 125, 200);
-        expect(ev200 - ev100).toBeCloseTo(-1, 0.1);
+        expect(ev200 - ev100).toBeCloseTo(-1, 1);
       });
     });
 
@@ -143,7 +163,7 @@ describe('camera exposure calculations', () => {
         // EV 3 at f/2.8, ISO 1600
         const shutterSpeed = solveForShutterSpeed(3, 2.8, 1600);
         expect(shutterSpeed).toBeGreaterThan(0);
-        expect(shutterSpeed).toBeCloseTo(0.0614, 0.01);
+        expect(shutterSpeed).toBeCloseTo(0.0614, 2);
       });
     });
 
@@ -197,7 +217,7 @@ describe('camera exposure calculations', () => {
 
       it('should solve for f/5.6 when EV 12, 1/125s, ISO 100', () => {
         const aperture = solveForAperture(12, 1 / 125, 100);
-        expect(aperture).toBeCloseTo(5.54, 0.1);
+        expect(aperture).toBeCloseTo(5.54, 0);
       });
 
       it('should solve for wide apertures in low light', () => {
@@ -412,7 +432,7 @@ describe('camera exposure calculations', () => {
     it('should return valid result for indoor lighting', () => {
       const result = calculateExposureValue(2.8, 1 / 60, 400);
       expect(result.isValid).toBe(true);
-      expect(result.ev).toBeCloseTo(6.9, 0.2);
+      expect(result.ev).toBeCloseTo(6.9, 0);
       expect(result.description).toBe('Dim interior, lamps');
     });
 
@@ -666,7 +686,7 @@ describe('camera exposure calculations', () => {
         const comparison = compareExposures(8, 1 / 125, 200, 8, 1 / 125, 100);
 
         expect(comparison.isValid).toBe(true);
-        expect(comparison.stopsDifference).toBeCloseTo(-1, 0.1);
+        expect(comparison.stopsDifference).toBeCloseTo(-1, 1);
         expect(comparison.evA).toBeLessThan(comparison.evB);
       });
 
@@ -675,7 +695,7 @@ describe('camera exposure calculations', () => {
         const comparison = compareExposures(8, 1 / 250, 100, 8, 1 / 125, 100);
 
         expect(comparison.isValid).toBe(true);
-        expect(comparison.stopsDifference).toBeCloseTo(1, 0.1);
+        expect(comparison.stopsDifference).toBeCloseTo(1, 1);
         expect(comparison.evA).toBeGreaterThan(comparison.evB);
       });
 
@@ -695,7 +715,7 @@ describe('camera exposure calculations', () => {
         const comparison = compareExposures(8, 1 / 125, 400, 8, 1 / 125, 100);
 
         expect(comparison.isValid).toBe(true);
-        expect(comparison.stopsDifference).toBeCloseTo(-2, 0.1);
+        expect(comparison.stopsDifference).toBeCloseTo(-2, 1);
       });
 
       it('should detect three stop difference', () => {
@@ -789,27 +809,27 @@ describe('camera exposure calculations', () => {
 
     describe('keyToShutterSpeed', () => {
       it('should convert standard labels to shutter speeds', () => {
-        expect(keyToShutterSpeed('1/125')).toBeCloseTo(1 / 125, 5);
-        expect(keyToShutterSpeed('1/250')).toBeCloseTo(1 / 250, 5);
-        expect(keyToShutterSpeed('1"')).toBe(1);
-        expect(keyToShutterSpeed('2"')).toBe(2);
-        expect(keyToShutterSpeed('30"')).toBe(30);
+        expect(keyToShutterSpeed(ssKey('1/125'))).toBeCloseTo(1 / 125, 5);
+        expect(keyToShutterSpeed(ssKey('1/250'))).toBeCloseTo(1 / 250, 5);
+        expect(keyToShutterSpeed(ssKey('1"'))).toBe(1);
+        expect(keyToShutterSpeed(ssKey('2"'))).toBe(2);
+        expect(keyToShutterSpeed(ssKey('30"'))).toBe(30);
       });
 
       it('should parse "1/X" format for non-standards', () => {
-        expect(keyToShutterSpeed('1/333')).toBeCloseTo(1 / 333, 5);
-        expect(keyToShutterSpeed('1/100')).toBe(0.01);
+        expect(keyToShutterSpeed(ssKey('1/333'))).toBeCloseTo(1 / 333, 5);
+        expect(keyToShutterSpeed(ssKey('1/100'))).toBe(0.01);
       });
 
       it('should parse seconds with quote mark', () => {
-        expect(keyToShutterSpeed('5"')).toBe(5);
-        expect(keyToShutterSpeed('15"')).toBe(15);
+        expect(keyToShutterSpeed(ssKey('5"'))).toBe(5);
+        expect(keyToShutterSpeed(ssKey('15"'))).toBe(15);
       });
 
       it('should return fallback for invalid keys', () => {
-        expect(keyToShutterSpeed('invalid')).toBe(1 / 125);
-        expect(keyToShutterSpeed('')).toBe(1 / 125);
-        expect(keyToShutterSpeed('abc')).toBe(1 / 125);
+        expect(keyToShutterSpeed(ssKey('invalid'))).toBe(1 / 125);
+        expect(keyToShutterSpeed(ssKey(''))).toBe(1 / 125);
+        expect(keyToShutterSpeed(ssKey('abc'))).toBe(1 / 125);
       });
     });
 
@@ -848,22 +868,22 @@ describe('camera exposure calculations', () => {
 
     describe('keyToAperture', () => {
       it('should convert standard labels to apertures', () => {
-        expect(keyToAperture('f/1.4')).toBe(1.4);
-        expect(keyToAperture('f/2.8')).toBe(2.8);
-        expect(keyToAperture('f/5.6')).toBe(5.6);
-        expect(keyToAperture('f/8')).toBe(8);
-        expect(keyToAperture('f/16')).toBe(16);
+        expect(keyToAperture(apKey('f/1.4'))).toBe(1.4);
+        expect(keyToAperture(apKey('f/2.8'))).toBe(2.8);
+        expect(keyToAperture(apKey('f/5.6'))).toBe(5.6);
+        expect(keyToAperture(apKey('f/8'))).toBe(8);
+        expect(keyToAperture(apKey('f/16'))).toBe(16);
       });
 
       it('should parse "f/X" format for non-standards', () => {
-        expect(keyToAperture('f/3.5')).toBe(3.5);
-        expect(keyToAperture('f/6.3')).toBe(6.3);
+        expect(keyToAperture(apKey('f/3.5'))).toBe(3.5);
+        expect(keyToAperture(apKey('f/6.3'))).toBe(6.3);
       });
 
       it('should return fallback for invalid keys', () => {
-        expect(keyToAperture('invalid')).toBe(8);
-        expect(keyToAperture('')).toBe(8);
-        expect(keyToAperture('abc')).toBe(8);
+        expect(keyToAperture(apKey('invalid'))).toBe(8);
+        expect(keyToAperture(apKey(''))).toBe(8);
+        expect(keyToAperture(apKey('abc'))).toBe(8);
       });
     });
 
@@ -890,16 +910,16 @@ describe('camera exposure calculations', () => {
 
     describe('keyToISO', () => {
       it('should convert labeled keys to ISO values', () => {
-        expect(keyToISO('ISO 100')).toBe(100);
-        expect(keyToISO('ISO 400')).toBe(400);
-        expect(keyToISO('ISO 1600')).toBe(1600);
-        expect(keyToISO('ISO 3200')).toBe(3200);
+        expect(keyToISO(iKey('ISO 100'))).toBe(100);
+        expect(keyToISO(iKey('ISO 400'))).toBe(400);
+        expect(keyToISO(iKey('ISO 1600'))).toBe(1600);
+        expect(keyToISO(iKey('ISO 3200'))).toBe(3200);
       });
 
       it('should return fallback for invalid keys', () => {
-        expect(keyToISO('invalid')).toBe(100);
-        expect(keyToISO('')).toBe(100);
-        expect(keyToISO('abc')).toBe(100);
+        expect(keyToISO(iKey('invalid'))).toBe(100);
+        expect(keyToISO(iKey(''))).toBe(100);
+        expect(keyToISO(iKey('abc'))).toBe(100);
       });
     });
 

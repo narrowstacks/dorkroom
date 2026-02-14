@@ -1,5 +1,10 @@
 export type SolveFor = 'shutterSpeed' | 'aperture' | 'iso';
 
+/** Branded string key types for Select component values. */
+export type ShutterSpeedKey = string & { readonly __brand: 'ShutterSpeedKey' };
+export type ApertureKey = string & { readonly __brand: 'ApertureKey' };
+export type ISOKey = string & { readonly __brand: 'ISOKey' };
+
 export interface CameraExposureFormState {
   aperture: number;
   shutterSpeed: number;

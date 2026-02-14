@@ -1,4 +1,5 @@
 import {
+  type ApertureKey,
   apertureToKey,
   CAMERA_EXPOSURE_STORAGE_KEY,
   type CameraExposureFormState,
@@ -12,10 +13,12 @@ import {
   formatAperture,
   formatShutterSpeed,
   getEquivalentExposures,
+  type ISOKey,
   isoToKey,
   keyToAperture,
   keyToISO,
   keyToShutterSpeed,
+  type ShutterSpeedKey,
   type SolveFor,
   STANDARD_APERTURES,
   STANDARD_ISOS,
@@ -34,6 +37,7 @@ import {
   createZodFormValidator,
   ResultRow,
   Select,
+  StatusAlert,
 } from '@dorkroom/ui';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
@@ -437,7 +441,9 @@ export default function CameraExposureCalculatorPage() {
                 <Select
                   label="Aperture"
                   selectedValue={apertureToKey(field.state.value)}
-                  onValueChange={(v) => field.handleChange(keyToAperture(v))}
+                  onValueChange={(v) =>
+                    field.handleChange(keyToAperture(v as ApertureKey))
+                  }
                   items={apertureOptions}
                   ariaLabel="Aperture"
                 />
@@ -450,7 +456,7 @@ export default function CameraExposureCalculatorPage() {
                   label="Shutter speed"
                   selectedValue={shutterSpeedToKey(field.state.value)}
                   onValueChange={(v) =>
-                    field.handleChange(keyToShutterSpeed(v))
+                    field.handleChange(keyToShutterSpeed(v as ShutterSpeedKey))
                   }
                   items={shutterSpeedOptions}
                   ariaLabel="Shutter speed"
@@ -463,13 +469,33 @@ export default function CameraExposureCalculatorPage() {
                 <Select
                   label="ISO"
                   selectedValue={isoToKey(field.state.value)}
-                  onValueChange={(v) => field.handleChange(keyToISO(v))}
+                  onValueChange={(v) =>
+                    field.handleChange(keyToISO(v as ISOKey))
+                  }
                   items={isoOptions}
                   ariaLabel="ISO"
                 />
               )}
             </form.Field>
           </div>
+
+          <form.Subscribe selector={(state) => state.errorMap}>
+            {(errorMap) => {
+              const errors = errorMap.onChange;
+              if (!errors) return null;
+              const messages = Array.isArray(errors)
+                ? errors.flatMap((e) =>
+                    typeof e === 'object' && e !== null
+                      ? Object.values(e as Record<string, string[]>).flat()
+                      : [String(e)]
+                  )
+                : [String(errors)];
+              if (messages.length === 0) return null;
+              return (
+                <StatusAlert message={messages.join('. ')} action="error" />
+              );
+            }}
+          </form.Subscribe>
         </div>
       </CalculatorCard>
 
@@ -521,7 +547,9 @@ export default function CameraExposureCalculatorPage() {
                       label="Shutter"
                       selectedValue={shutterSpeedToKey(field.state.value)}
                       onValueChange={(v) =>
-                        field.handleChange(keyToShutterSpeed(v))
+                        field.handleChange(
+                          keyToShutterSpeed(v as ShutterSpeedKey)
+                        )
                       }
                       items={shutterSpeedOptions}
                       ariaLabel="Compare shutter speed"
@@ -533,7 +561,9 @@ export default function CameraExposureCalculatorPage() {
                     <Select
                       label="ISO"
                       selectedValue={isoToKey(field.state.value)}
-                      onValueChange={(v) => field.handleChange(keyToISO(v))}
+                      onValueChange={(v) =>
+                        field.handleChange(keyToISO(v as ISOKey))
+                      }
                       items={isoOptions}
                       ariaLabel="Compare ISO"
                     />

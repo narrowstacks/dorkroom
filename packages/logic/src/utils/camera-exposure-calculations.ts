@@ -4,9 +4,12 @@ import {
   STANDARD_SHUTTER_SPEEDS,
 } from '../constants/camera-exposure-defaults';
 import type {
+  ApertureKey,
   EquivalentExposure,
   ExposureComparison,
   ExposureValueResult,
+  ISOKey,
+  ShutterSpeedKey,
   StandardValue,
 } from '../types/camera-exposure-calculator';
 import { debugWarn } from './debug-logger';
@@ -17,11 +20,12 @@ const MIN_SHUTTER_SPEED = 1 / 8000;
 const MAX_SHUTTER_SPEED = 30;
 
 // Logarithmic tolerances for comparing exposure values (in stops).
-// Modern cameras adjust in 1/3-stop increments. A 1/6-stop tolerance is half of
-// that step size, tight enough to avoid false matches between adjacent 1/3-stop
-// values while still absorbing floating-point rounding from conversions.
-const STANDARD_VALUE_TOLERANCE = 0.17; // ~1/6 stop — snap to nearest standard value
-const EXACT_MATCH_TOLERANCE = 0.01; // Near-zero — only matches essentially identical values
+// Modern cameras adjust in 1/3-stop increments (log2 ≈ 0.33). A 1/6-stop
+// tolerance is half that step size — tight enough to avoid false matches between
+// adjacent 1/3-stop values while still absorbing floating-point rounding.
+const ONE_SIXTH_STOP = 1 / 6;
+const STANDARD_VALUE_TOLERANCE = ONE_SIXTH_STOP; // ~0.167 stops — snap to nearest standard value
+const EXACT_MATCH_TOLERANCE = Math.log2(1.01); // ~0.014 stops — within 1% of target value
 
 // How far beyond min/max shutter speed to still include in equivalent exposure tables.
 // Uses a 30% multiplicative buffer so borderline values aren't clipped.
@@ -211,10 +215,11 @@ export const getEquivalentExposures = (
   for (const apertureEntry of STANDARD_APERTURES) {
     const shutterSpeed = solveForShutterSpeed(ev, apertureEntry.value, iso);
 
-    // Allow a multiplicative buffer beyond the practical range so borderline
-    // values (e.g. 1/9000s) aren't clipped from the table. This differs from
-    // the logarithmic STANDARD_VALUE_TOLERANCE used for snap-to-standard checks
-    // because range filtering needs a linear margin, not a perceptual one.
+    // Allow a 30% multiplicative buffer beyond the practical range so
+    // borderline values aren't clipped from the table.
+    //   Lower bound: 1/8000 * 0.7 = 1/11428 — accepts slightly faster than min
+    //   Upper bound: 30 * 1.3 = 39s — accepts slightly slower than max
+    // This is intentional: the buffer extends the range in both directions.
     if (
       shutterSpeed < MIN_SHUTTER_SPEED * (1 - SHUTTER_RANGE_TOLERANCE) ||
       shutterSpeed > MAX_SHUTTER_SPEED * (1 + SHUTTER_RANGE_TOLERANCE)
@@ -285,17 +290,23 @@ export const compareExposures = (
  * Uses the label from STANDARD_SHUTTER_SPEEDS if the value matches,
  * otherwise generates a label.
  */
-export const shutterSpeedToKey = (seconds: number): string => {
+export const shutterSpeedToKey = (seconds: number): ShutterSpeedKey => {
   const nearest = findNearestStandard(seconds, STANDARD_SHUTTER_SPEEDS);
   const stopsDiff = Math.abs(Math.log2(seconds / nearest.value));
-  if (stopsDiff < EXACT_MATCH_TOLERANCE) return nearest.label;
-  return formatShutterSpeed(seconds);
+  if (stopsDiff < EXACT_MATCH_TOLERANCE)
+    return nearest.label as ShutterSpeedKey;
+  return formatShutterSpeed(seconds) as ShutterSpeedKey;
 };
 
 /**
  * Converts a shutter speed Select key back to a numeric value.
+ *
+ * Fallback: returns 1/125s if the key can't be parsed. This is safe because
+ * keys only come from Select components with predefined options — an unparseable
+ * key indicates corrupted localStorage or a programming error, not user input.
+ * The debugWarn alerts developers during development without crashing the UI.
  */
-export const keyToShutterSpeed = (key: string): number => {
+export const keyToShutterSpeed = (key: ShutterSpeedKey): number => {
   const match = STANDARD_SHUTTER_SPEEDS.find((s) => s.label === key);
   if (match) return match.value;
 
@@ -319,17 +330,22 @@ export const keyToShutterSpeed = (key: string): number => {
 /**
  * Converts an aperture value to a Select-compatible string key.
  */
-export const apertureToKey = (fNumber: number): string => {
+export const apertureToKey = (fNumber: number): ApertureKey => {
   const nearest = findNearestStandard(fNumber, STANDARD_APERTURES);
   const stopsDiff = Math.abs(Math.log2(fNumber / nearest.value));
-  if (stopsDiff < EXACT_MATCH_TOLERANCE) return nearest.label;
-  return formatAperture(fNumber);
+  if (stopsDiff < EXACT_MATCH_TOLERANCE) return nearest.label as ApertureKey;
+  return formatAperture(fNumber) as ApertureKey;
 };
 
 /**
  * Converts an aperture Select key back to a numeric value.
+ *
+ * Fallback: returns f/8 if the key can't be parsed. This is safe because
+ * keys only come from Select components with predefined options — an unparseable
+ * key indicates corrupted localStorage or a programming error, not user input.
+ * The debugWarn alerts developers during development without crashing the UI.
  */
-export const keyToAperture = (key: string): number => {
+export const keyToAperture = (key: ApertureKey): number => {
   const match = STANDARD_APERTURES.find((a) => a.label === key);
   if (match) return match.value;
 
@@ -345,14 +361,19 @@ export const keyToAperture = (key: string): number => {
 /**
  * Converts an ISO value to a Select-compatible string key.
  */
-export const isoToKey = (iso: number): string => {
-  return `ISO ${iso}`;
+export const isoToKey = (iso: number): ISOKey => {
+  return `ISO ${iso}` as ISOKey;
 };
 
 /**
  * Converts an ISO Select key back to a numeric value.
+ *
+ * Fallback: returns ISO 100 if the key can't be parsed. This is safe because
+ * keys only come from Select components with predefined options — an unparseable
+ * key indicates corrupted localStorage or a programming error, not user input.
+ * The debugWarn alerts developers during development without crashing the UI.
  */
-export const keyToISO = (key: string): number => {
+export const keyToISO = (key: ISOKey): number => {
   const withoutISO = key.replace('ISO ', '');
   const parsed = Number(withoutISO);
   if (Number.isFinite(parsed) && parsed > 0) return parsed;
