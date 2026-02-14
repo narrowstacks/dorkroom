@@ -1,11 +1,14 @@
-import {
-  PlaceholderPage,
-  ROUTE_DESCRIPTIONS,
-  ROUTE_TITLES,
-} from '@dorkroom/ui';
+import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import { Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { LoadingSpinner } from '../components/loading-spinner';
+
+const CameraExposureCalculatorPage = lazy(
+  () =>
+    import(
+      '../app/pages/camera-exposure-calculator/camera-exposure-calculator-page'
+    )
+);
 
 export const Route = createFileRoute('/exposure')({
   head: () => ({
@@ -18,10 +21,7 @@ export const Route = createFileRoute('/exposure')({
   }),
   component: () => (
     <Suspense fallback={<LoadingSpinner />}>
-      <PlaceholderPage
-        title="Exposure"
-        summary="Balance aperture, shutter, and ISO on set."
-      />
+      <CameraExposureCalculatorPage />
     </Suspense>
   ),
 });

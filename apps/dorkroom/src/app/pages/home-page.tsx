@@ -82,6 +82,17 @@ const CALCULATORS = [
     border: 'group-hover:border-emerald-500/50',
   },
   {
+    category: 'In the Field',
+    title: 'Camera Exposure',
+    description: 'Equivalent exposure calculator',
+    href: '/exposure',
+    icon: Camera,
+    iconColorKey: 'sky' as const,
+    color: 'text-sky-400',
+    bg: 'from-sky-500/20 to-blue-500/20',
+    border: 'group-hover:border-sky-500/50',
+  },
+  {
     category: 'Film Dev',
     title: 'Film Development Recipes',
     description: 'B&W film development database',
@@ -117,12 +128,6 @@ const COMING_SOON = [
     title: 'Infobase',
     description: 'Photography & darkroom guides',
     icon: GraduationCap,
-  },
-  {
-    category: 'Tools',
-    title: 'Camera Exposure',
-    description: 'Equivalent exposure calculator',
-    icon: Camera,
   },
 ];
 
