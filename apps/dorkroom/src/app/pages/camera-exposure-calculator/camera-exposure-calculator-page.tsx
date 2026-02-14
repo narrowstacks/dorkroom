@@ -37,7 +37,8 @@ import {
 } from '@dorkroom/ui';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
-import type { FC } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { type FC, useState } from 'react';
 
 const validateCameraExposureForm = createZodFormValidator(
   cameraExposureCalculatorSchema
@@ -107,7 +108,61 @@ const EVPresetButton: FC<EVPresetButtonProps> = ({
   </button>
 );
 
+function EVResultCard({
+  form,
+  formValues,
+}: {
+  form: ReturnType<typeof useForm>;
+  formValues: CameraExposureFormState;
+}) {
+  return (
+    <form.Subscribe
+      selector={(state) => {
+        const { aperture, shutterSpeed, iso } = state.values;
+        return calculateExposureValue(aperture, shutterSpeed, iso);
+      }}
+    >
+      {(result) => (
+        <CalculatorCard
+          title="Exposure value"
+          description="Scene brightness at ISO 100"
+          accent="emerald"
+          padding="compact"
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <CalculatorStat
+              label="EV"
+              value={result.isValid ? `${result.ev}` : '—'}
+              helperText={result.description || 'Enter valid settings'}
+              tone="emerald"
+            />
+            <CalculatorStat
+              label="Settings"
+              value={result.isValid ? formatAperture(formValues.aperture) : '—'}
+              helperText={
+                result.isValid
+                  ? `${formatShutterSpeed(formValues.shutterSpeed)} · ISO ${formValues.iso}`
+                  : ''
+              }
+            />
+          </div>
+
+          <div className="rounded-2xl p-4 font-mono text-sm border border-secondary bg-background/20 text-primary text-center">
+            EV = log
+            <sub>2</sub>(N<sup>2</sup> &times; 100 / t &times; S) ={' '}
+            <span className="font-semibold">
+              {result.isValid ? result.ev : '—'}
+            </span>
+          </div>
+        </CalculatorCard>
+      )}
+    </form.Subscribe>
+  );
+}
+
 export default function CameraExposureCalculatorPage() {
+  const [presetsOpen, setPresetsOpen] = useState(false);
+
   const form = useForm({
     defaultValues: {
       aperture: DEFAULT_CAMERA_EXPOSURE_APERTURE,
@@ -260,50 +315,10 @@ export default function CameraExposureCalculatorPage() {
       }
       results={
         <div className="space-y-6">
-          {/* EV Result */}
-          <form.Subscribe
-            selector={(state) => {
-              const { aperture, shutterSpeed, iso } = state.values;
-              return calculateExposureValue(aperture, shutterSpeed, iso);
-            }}
-          >
-            {(result) => (
-              <CalculatorCard
-                title="Exposure value"
-                description="Scene brightness at ISO 100"
-                accent="emerald"
-                padding="compact"
-              >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <CalculatorStat
-                    label="EV"
-                    value={result.isValid ? `${result.ev}` : '—'}
-                    helperText={result.description || 'Enter valid settings'}
-                    tone="emerald"
-                  />
-                  <CalculatorStat
-                    label="Settings"
-                    value={
-                      result.isValid ? formatAperture(formValues.aperture) : '—'
-                    }
-                    helperText={
-                      result.isValid
-                        ? `${formatShutterSpeed(formValues.shutterSpeed)} · ISO ${formValues.iso}`
-                        : ''
-                    }
-                  />
-                </div>
-
-                <div className="rounded-2xl p-4 font-mono text-sm border border-secondary bg-background/20 text-primary text-center">
-                  EV = log
-                  <sub>2</sub>(N<sup>2</sup> &times; 100 / t &times; S) ={' '}
-                  <span className="font-semibold">
-                    {result.isValid ? result.ev : '—'}
-                  </span>
-                </div>
-              </CalculatorCard>
-            )}
-          </form.Subscribe>
+          {/* EV Result - desktop only (mobile instance is in children) */}
+          <div className="hidden md:block">
+            <EVResultCard form={form} formValues={formValues} />
+          </div>
 
           {/* Equivalent Exposures */}
           <form.Subscribe
@@ -554,36 +569,58 @@ export default function CameraExposureCalculatorPage() {
         )}
       </form.Subscribe>
 
-      {/* EV Presets */}
+      {/* EV Result - mobile only (desktop instance is in results) */}
+      <div className="md:hidden">
+        <EVResultCard form={form} formValues={formValues} />
+      </div>
+
+      {/* EV Presets - collapsible */}
       <CalculatorCard
         title="EV presets"
         description="Select a lighting condition. The calculator adjusts the selected value to match."
-      >
-        <div className="space-y-4">
-          <form.Field name="solveFor">
-            {(field) => (
-              <Select
-                label="When selecting a preset, adjust"
-                selectedValue={field.state.value}
-                onValueChange={(v) => field.handleChange(v as SolveFor)}
-                items={solveForOptions}
-                ariaLabel="Value to solve for"
-              />
+        actions={
+          <button
+            type="button"
+            onClick={() => setPresetsOpen((prev) => !prev)}
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--color-text-muted)' }}
+            aria-label={presetsOpen ? 'Collapse presets' : 'Expand presets'}
+          >
+            {presetsOpen ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
             )}
-          </form.Field>
+          </button>
+        }
+      >
+        {presetsOpen && (
+          <div className="space-y-4">
+            <form.Field name="solveFor">
+              {(field) => (
+                <Select
+                  label="When selecting a preset, adjust"
+                  selectedValue={field.state.value}
+                  onValueChange={(v) => field.handleChange(v as SolveFor)}
+                  items={solveForOptions}
+                  ariaLabel="Value to solve for"
+                />
+              )}
+            </form.Field>
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {EV_PRESETS.map((preset) => (
-              <EVPresetButton
-                key={preset.ev}
-                ev={preset.ev}
-                label={preset.label}
-                description={preset.description}
-                onClick={handlePresetClick}
-              />
-            ))}
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {EV_PRESETS.map((preset) => (
+                <EVPresetButton
+                  key={preset.ev}
+                  ev={preset.ev}
+                  label={preset.label}
+                  description={preset.description}
+                  onClick={handlePresetClick}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </CalculatorCard>
     </CalculatorLayout>
   );
