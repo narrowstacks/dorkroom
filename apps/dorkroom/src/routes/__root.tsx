@@ -1,6 +1,6 @@
 import {
   allNavItems,
-  MobileNavGrid,
+  MobileSidebar,
   NavigationDropdown,
   navigationCategories,
   ROUTE_TITLES,
@@ -224,42 +224,45 @@ function RootComponent() {
             )}
           </button>
 
-          {isMobileMenuOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-40 h-screen min-h-dvh backdrop-blur-sm transition-opacity"
-                style={{
-                  backgroundColor: 'rgba(var(--color-background-rgb), 0.6)',
-                }}
-                aria-hidden="true"
-                onClick={() => setIsMobileMenuOpen(false)}
-              />
-              <nav
-                id="mobile-navigation"
-                className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+5rem)] z-50"
-                role="dialog"
-                aria-modal="true"
-                aria-label="Navigation menu"
-              >
-                <div
-                  className="rounded-3xl border shadow-xl backdrop-blur"
-                  style={{
-                    backgroundColor: 'rgba(var(--color-background-rgb), 0.95)',
-                    borderColor: 'var(--color-border-secondary)',
-                  }}
-                >
-                  <MobileNavGrid
-                    pathname={pathname}
-                    onNavigate={(path) => {
-                      router.navigate({ to: path });
-                      setIsMobileMenuOpen(false);
-                    }}
-                    onClose={() => setIsMobileMenuOpen(false)}
-                  />
-                </div>
-              </nav>
-            </>
-          )}
+          {/* Backdrop */}
+          <div
+            className={cn(
+              'fixed inset-0 z-40 backdrop-blur-sm transition-opacity duration-300 sm:hidden',
+              isMobileMenuOpen
+                ? 'pointer-events-auto opacity-100'
+                : 'pointer-events-none opacity-0'
+            )}
+            style={{
+              backgroundColor: 'rgba(var(--color-background-rgb), 0.6)',
+            }}
+            aria-hidden="true"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+
+          {/* Right sidebar */}
+          <nav
+            id="mobile-navigation"
+            className={cn(
+              'fixed right-0 top-0 z-50 h-dvh w-72 border-l shadow-xl backdrop-blur transition-transform duration-300 ease-out sm:hidden',
+              isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+            )}
+            style={{
+              backgroundColor: 'rgba(var(--color-background-rgb), 0.95)',
+              borderColor: 'var(--color-border-secondary)',
+            }}
+            role="dialog"
+            aria-modal={isMobileMenuOpen}
+            aria-label="Navigation menu"
+          >
+            <MobileSidebar
+              pathname={pathname}
+              onNavigate={(path) => {
+                router.navigate({ to: path });
+                setIsMobileMenuOpen(false);
+              }}
+              onClose={() => setIsMobileMenuOpen(false)}
+            />
+          </nav>
 
           <main>
             <Outlet />
