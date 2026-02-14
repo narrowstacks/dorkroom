@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Added
 
+- Camera Exposure Calculator with EV calculation, equivalent exposures, and exposure comparison
 - Lens Equivalency Calculator for comparing focal lengths across formats
 - Right-side sidebar for mobile navigation
 
