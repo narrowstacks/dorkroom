@@ -545,9 +545,9 @@ export default function CameraExposureCalculatorPage() {
                     value={`${comparison.stopsDifference > 0 ? '+' : ''}${comparison.stopsDifference}`}
                     helperText={
                       comparison.stopsDifference > 0
-                        ? 'A is brighter than B'
+                        ? 'A is darker than B'
                         : comparison.stopsDifference < 0
-                          ? 'B is brighter than A'
+                          ? 'B is darker than A'
                           : 'Same exposure'
                     }
                     tone="default"

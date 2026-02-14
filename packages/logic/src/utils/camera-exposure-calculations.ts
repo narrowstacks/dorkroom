@@ -11,6 +11,18 @@ import type {
 } from '../types/camera-exposure-calculator';
 import { roundToPrecision } from './precision';
 
+// Practical shutter speed limits for camera bodies
+const MIN_SHUTTER_SPEED = 1 / 8000;
+const MAX_SHUTTER_SPEED = 30;
+
+// Logarithmic tolerances for comparing exposure values (in stops)
+const STANDARD_VALUE_TOLERANCE = 0.17; // ~1/6 stop — close enough to snap to a standard value
+const EXACT_MATCH_TOLERANCE = 0.01; // Near-zero — only matches essentially identical values
+
+// How far beyond min/max shutter speed to still include in equivalent exposure tables.
+// Uses a 30% multiplicative buffer so borderline values aren't clipped.
+const SHUTTER_RANGE_TOLERANCE = 0.3;
+
 /**
  * Calculates EV (Exposure Value) at ISO 100 from camera settings.
  *
@@ -28,7 +40,7 @@ export const calculateEV = (
   shutterSpeed: number,
   iso: number
 ): number => {
-  if (aperture <= 0 || shutterSpeed <= 0 || iso <= 0) return 0;
+  if (aperture <= 0 || shutterSpeed <= 0 || iso <= 0) return NaN;
   return Math.log2((aperture * aperture * 100) / (shutterSpeed * iso));
 };
 
@@ -42,7 +54,7 @@ export const solveForShutterSpeed = (
   aperture: number,
   iso: number
 ): number => {
-  if (aperture <= 0 || iso <= 0) return 0;
+  if (aperture <= 0 || iso <= 0) return NaN;
   return (aperture * aperture * 100) / (iso * 2 ** ev);
 };
 
@@ -56,9 +68,9 @@ export const solveForAperture = (
   shutterSpeed: number,
   iso: number
 ): number => {
-  if (shutterSpeed <= 0 || iso <= 0) return 0;
+  if (shutterSpeed <= 0 || iso <= 0) return NaN;
   const nSquared = (shutterSpeed * iso * 2 ** ev) / 100;
-  if (nSquared <= 0) return 0;
+  if (nSquared <= 0) return NaN;
   return Math.sqrt(nSquared);
 };
 
@@ -72,7 +84,7 @@ export const solveForISO = (
   aperture: number,
   shutterSpeed: number
 ): number => {
-  if (aperture <= 0 || shutterSpeed <= 0) return 0;
+  if (aperture <= 0 || shutterSpeed <= 0) return NaN;
   return (aperture * aperture * 100) / (shutterSpeed * 2 ** ev);
 };
 
@@ -149,7 +161,7 @@ export const formatShutterSpeed = (seconds: number): string => {
     return `${rounded}"`;
   }
 
-  const denominator = Math.round(1 / seconds);
+  const denominator = roundToPrecision(1 / seconds, 0);
   return `1/${denominator}`;
 };
 
@@ -172,7 +184,7 @@ export const formatAperture = (fNumber: number): string => {
 const isNearStandardShutterSpeed = (seconds: number): boolean => {
   for (const standard of STANDARD_SHUTTER_SPEEDS) {
     const stopsDiff = Math.abs(Math.log2(seconds / standard.value));
-    if (stopsDiff < 0.17) return true; // ~1/6 stop tolerance
+    if (stopsDiff < STANDARD_VALUE_TOLERANCE) return true;
   }
   return false;
 };
@@ -191,20 +203,27 @@ export const getEquivalentExposures = (
   if (iso <= 0) return [];
 
   const equivalents: EquivalentExposure[] = [];
-  const minShutter = 1 / 8000;
-  const maxShutter = 30;
 
   for (const apertureEntry of STANDARD_APERTURES) {
     const shutterSpeed = solveForShutterSpeed(ev, apertureEntry.value, iso);
 
-    if (shutterSpeed < minShutter * 0.7 || shutterSpeed > maxShutter * 1.3) {
+    // Allow a multiplicative buffer beyond the practical range so borderline
+    // values (e.g. 1/9000s) aren't clipped from the table. This differs from
+    // the logarithmic STANDARD_VALUE_TOLERANCE used for snap-to-standard checks
+    // because range filtering needs a linear margin, not a perceptual one.
+    if (
+      shutterSpeed < MIN_SHUTTER_SPEED * (1 - SHUTTER_RANGE_TOLERANCE) ||
+      shutterSpeed > MAX_SHUTTER_SPEED * (1 + SHUTTER_RANGE_TOLERANCE)
+    ) {
       continue;
     }
 
     const isStandard = isNearStandardShutterSpeed(shutterSpeed);
     const isCurrent =
-      Math.abs(Math.log2(apertureEntry.value / currentAperture)) < 0.17 &&
-      Math.abs(Math.log2(shutterSpeed / currentShutterSpeed)) < 0.17;
+      Math.abs(Math.log2(apertureEntry.value / currentAperture)) <
+        STANDARD_VALUE_TOLERANCE &&
+      Math.abs(Math.log2(shutterSpeed / currentShutterSpeed)) <
+        STANDARD_VALUE_TOLERANCE;
 
     equivalents.push({
       aperture: apertureEntry.value,
@@ -265,7 +284,7 @@ export const compareExposures = (
 export const shutterSpeedToKey = (seconds: number): string => {
   const nearest = findNearestStandard(seconds, STANDARD_SHUTTER_SPEEDS);
   const stopsDiff = Math.abs(Math.log2(seconds / nearest.value));
-  if (stopsDiff < 0.01) return nearest.label;
+  if (stopsDiff < EXACT_MATCH_TOLERANCE) return nearest.label;
   return formatShutterSpeed(seconds);
 };
 
@@ -283,11 +302,16 @@ export const keyToShutterSpeed = (key: string): number => {
   }
 
   // Try parsing seconds with quote mark
-  const withoutQuote = key.replace('"', '');
+  const withoutQuote = key.replaceAll('"', '');
   const parsed = Number(withoutQuote);
   if (Number.isFinite(parsed) && parsed > 0) return parsed;
 
-  return 1 / 125; // fallback
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(
+      `keyToShutterSpeed: unrecognized key "${key}", using fallback 1/125`
+    );
+  }
+  return 1 / 125;
 };
 
 /**
@@ -296,7 +320,7 @@ export const keyToShutterSpeed = (key: string): number => {
 export const apertureToKey = (fNumber: number): string => {
   const nearest = findNearestStandard(fNumber, STANDARD_APERTURES);
   const stopsDiff = Math.abs(Math.log2(fNumber / nearest.value));
-  if (stopsDiff < 0.01) return nearest.label;
+  if (stopsDiff < EXACT_MATCH_TOLERANCE) return nearest.label;
   return formatAperture(fNumber);
 };
 
@@ -312,7 +336,12 @@ export const keyToAperture = (key: string): number => {
   const parsed = Number(withoutF);
   if (Number.isFinite(parsed) && parsed > 0) return parsed;
 
-  return 8; // fallback
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(
+      `keyToAperture: unrecognized key "${key}", using fallback f/8`
+    );
+  }
+  return 8;
 };
 
 /**
@@ -329,5 +358,8 @@ export const keyToISO = (key: string): number => {
   const withoutISO = key.replace('ISO ', '');
   const parsed = Number(withoutISO);
   if (Number.isFinite(parsed) && parsed > 0) return parsed;
-  return 100; // fallback
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(`keyToISO: unrecognized key "${key}", using fallback ISO 100`);
+  }
+  return 100;
 };

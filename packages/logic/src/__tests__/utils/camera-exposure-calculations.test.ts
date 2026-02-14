@@ -107,22 +107,22 @@ describe('camera exposure calculations', () => {
         expect(Number.isFinite(ev)).toBe(true);
       });
 
-      it('should return 0 for invalid inputs (zero aperture)', () => {
-        expect(calculateEV(0, 1 / 125, 100)).toBe(0);
+      it('should return NaN for invalid inputs (zero aperture)', () => {
+        expect(calculateEV(0, 1 / 125, 100)).toBeNaN();
       });
 
-      it('should return 0 for invalid inputs (zero shutter speed)', () => {
-        expect(calculateEV(8, 0, 100)).toBe(0);
+      it('should return NaN for invalid inputs (zero shutter speed)', () => {
+        expect(calculateEV(8, 0, 100)).toBeNaN();
       });
 
-      it('should return 0 for invalid inputs (zero ISO)', () => {
-        expect(calculateEV(8, 1 / 125, 0)).toBe(0);
+      it('should return NaN for invalid inputs (zero ISO)', () => {
+        expect(calculateEV(8, 1 / 125, 0)).toBeNaN();
       });
 
-      it('should return 0 for invalid inputs (negative values)', () => {
-        expect(calculateEV(-8, 1 / 125, 100)).toBe(0);
-        expect(calculateEV(8, -1 / 125, 100)).toBe(0);
-        expect(calculateEV(8, 1 / 125, -100)).toBe(0);
+      it('should return NaN for invalid inputs (negative values)', () => {
+        expect(calculateEV(-8, 1 / 125, 100)).toBeNaN();
+        expect(calculateEV(8, -1 / 125, 100)).toBeNaN();
+        expect(calculateEV(8, 1 / 125, -100)).toBeNaN();
       });
     });
   });
@@ -167,14 +167,14 @@ describe('camera exposure calculations', () => {
     });
 
     describe('edge cases', () => {
-      it('should return 0 for invalid aperture', () => {
-        expect(solveForShutterSpeed(13, 0, 100)).toBe(0);
-        expect(solveForShutterSpeed(13, -8, 100)).toBe(0);
+      it('should return NaN for invalid aperture', () => {
+        expect(solveForShutterSpeed(13, 0, 100)).toBeNaN();
+        expect(solveForShutterSpeed(13, -8, 100)).toBeNaN();
       });
 
-      it('should return 0 for invalid ISO', () => {
-        expect(solveForShutterSpeed(13, 8, 0)).toBe(0);
-        expect(solveForShutterSpeed(13, 8, -100)).toBe(0);
+      it('should return NaN for invalid ISO', () => {
+        expect(solveForShutterSpeed(13, 8, 0)).toBeNaN();
+        expect(solveForShutterSpeed(13, 8, -100)).toBeNaN();
       });
 
       it('should handle extreme EV values', () => {
@@ -229,14 +229,14 @@ describe('camera exposure calculations', () => {
     });
 
     describe('edge cases', () => {
-      it('should return 0 for invalid shutter speed', () => {
-        expect(solveForAperture(13, 0, 100)).toBe(0);
-        expect(solveForAperture(13, -1 / 125, 100)).toBe(0);
+      it('should return NaN for invalid shutter speed', () => {
+        expect(solveForAperture(13, 0, 100)).toBeNaN();
+        expect(solveForAperture(13, -1 / 125, 100)).toBeNaN();
       });
 
-      it('should return 0 for invalid ISO', () => {
-        expect(solveForAperture(13, 1 / 125, 0)).toBe(0);
-        expect(solveForAperture(13, 1 / 125, -100)).toBe(0);
+      it('should return NaN for invalid ISO', () => {
+        expect(solveForAperture(13, 1 / 125, 0)).toBeNaN();
+        expect(solveForAperture(13, 1 / 125, -100)).toBeNaN();
       });
 
       it('should handle extreme EV values', () => {
@@ -290,14 +290,14 @@ describe('camera exposure calculations', () => {
     });
 
     describe('edge cases', () => {
-      it('should return 0 for invalid aperture', () => {
-        expect(solveForISO(13, 0, 1 / 125)).toBe(0);
-        expect(solveForISO(13, -8, 1 / 125)).toBe(0);
+      it('should return NaN for invalid aperture', () => {
+        expect(solveForISO(13, 0, 1 / 125)).toBeNaN();
+        expect(solveForISO(13, -8, 1 / 125)).toBeNaN();
       });
 
-      it('should return 0 for invalid shutter speed', () => {
-        expect(solveForISO(13, 8, 0)).toBe(0);
-        expect(solveForISO(13, 8, -1 / 125)).toBe(0);
+      it('should return NaN for invalid shutter speed', () => {
+        expect(solveForISO(13, 8, 0)).toBeNaN();
+        expect(solveForISO(13, 8, -1 / 125)).toBeNaN();
       });
 
       it('should handle extreme EV values', () => {
