@@ -15,7 +15,6 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 - Improved responsive layouts across all calculator pages
 - Updated postcard paper size to 3 7/8 x 5 7/8 in
-- Migrated to modern Rust-based toolchain (oxlint for type-aware linting)
 - Concise CLAUDE.md documentation replacing verbose version
 
 ### Fixed
