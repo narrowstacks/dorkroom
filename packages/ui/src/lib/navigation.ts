@@ -5,6 +5,7 @@ import {
   Crop,
   Film,
   FlaskConical,
+  Focus,
   Gauge,
   GitBranch,
   Home,
@@ -60,6 +61,12 @@ export const filmItems: NavigationItem[] = [
 ];
 
 export const cameraItems: NavigationItem[] = [
+  {
+    label: 'Lenses',
+    to: '/lenses',
+    icon: asFunctionComponent(Focus),
+    summary: 'Equivalent focal lengths across formats.',
+  },
   {
     label: 'Exposure',
     to: '/exposure',
@@ -136,6 +143,7 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/reciprocity': 'Reciprocity Failure Calculator',
   '/stops': 'Stops Calculator',
   '/exposure': 'Exposure Calculator',
+  '/lenses': 'Lens Equivalency Calculator',
   '/development': 'Development Recipes',
   '/films': 'Film Database',
   '/docs': 'Documentation',
@@ -154,6 +162,8 @@ export const ROUTE_DESCRIPTIONS: Record<string, string> = {
     'Convert between exposure stops and seconds. Translate f-stop or time adjustments into exposure values.',
   '/exposure':
     'Balance aperture, shutter speed, and ISO for correct exposure. Calculate equivalent exposures across different settings.',
+  '/lenses':
+    'Calculate equivalent focal lengths between sensor and film formats. Compare APS-C, Full Frame, and Medium Format field of view.',
   '/development':
     'Browse film and developer combinations with development times. Find recipes for popular film stocks and chemistry.',
   '/films':
@@ -248,6 +258,13 @@ export const mobileNavItems: MobileNavItem[] = [
     category: 'film',
   },
   // Camera section
+  {
+    label: 'Lenses',
+    to: '/lenses',
+    icon: asFunctionComponent(Focus),
+    type: 'route',
+    category: 'camera',
+  },
   {
     label: 'Exposure',
     to: '/exposure',

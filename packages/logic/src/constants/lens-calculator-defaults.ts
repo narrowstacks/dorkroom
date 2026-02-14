@@ -1,0 +1,121 @@
+/**
+ * Default settings and sensor format definitions for the Lens Calculator
+ */
+
+import type { SensorFormat } from '../types/lens-calculator';
+
+// Full frame 35mm diagonal for reference (used to calculate crop factors)
+const FULL_FRAME_DIAGONAL = Math.sqrt(36 * 36 + 24 * 24); // ~43.27mm
+
+/**
+ * Calculates the diagonal of a sensor from width and height
+ */
+const calculateDiagonal = (width: number, height: number): number =>
+  Math.sqrt(width * width + height * height);
+
+/**
+ * Calculates crop factor relative to full frame 35mm
+ */
+const calculateCropFactor = (width: number, height: number): number =>
+  FULL_FRAME_DIAGONAL / calculateDiagonal(width, height);
+
+/**
+ * Creates a sensor format object with calculated diagonal and crop factor
+ */
+const createFormat = (
+  id: string,
+  name: string,
+  shortName: string,
+  category: SensorFormat['category'],
+  width: number,
+  height: number
+): SensorFormat => ({
+  id,
+  name,
+  shortName,
+  category,
+  width,
+  height,
+  diagonal: calculateDiagonal(width, height),
+  cropFactor: calculateCropFactor(width, height),
+});
+
+/**
+ * All supported sensor and film formats
+ * Organized by category for display
+ */
+export const SENSOR_FORMATS: SensorFormat[] = [
+  // Digital formats
+  createFormat(
+    'full-frame',
+    'Full Frame (35mm)',
+    'Full Frame',
+    'digital',
+    36,
+    24
+  ),
+  createFormat(
+    'half-frame',
+    'Half Frame 35mm',
+    'Half Frame',
+    'digital',
+    24,
+    18
+  ),
+  createFormat('aps-c-canon', 'APS-C (Canon)', 'APS-C', 'digital', 22.3, 14.9),
+  createFormat(
+    'aps-c-nikon',
+    'APS-C (Nikon/Sony)',
+    'APS-C',
+    'digital',
+    23.5,
+    15.6
+  ),
+  createFormat(
+    'micro-four-thirds',
+    'Micro Four Thirds',
+    'MFT',
+    'digital',
+    17.3,
+    13
+  ),
+  createFormat(
+    'medium-format-digital',
+    'Medium Format Digital (Fuji/Hasselblad)',
+    'MF Digital (Fuji/Hasselblad)',
+    'digital',
+    43.8,
+    32.9
+  ),
+  createFormat(
+    'medium-format-phaseone',
+    'Medium Format Digital (Phase One)',
+    'MF Digital (Phase One)',
+    'digital',
+    53.4,
+    40
+  ),
+
+  // Medium format film (landscape orientation)
+  createFormat('film-645', '6×4.5 (645)', '645', 'film-medium', 56, 41.5),
+  createFormat('film-6x6', '6×6 (Square)', '6×6', 'film-medium', 56, 56),
+  createFormat('film-6x7', '6×7', '6×7', 'film-medium', 70, 56),
+  createFormat('film-6x9', '6×9', '6×9', 'film-medium', 84, 56),
+
+  // Large format sheet film (landscape orientation)
+  createFormat('film-4x5', '4×5 Sheet Film', '4×5', 'film-large', 127, 101.6),
+  createFormat(
+    'film-8x10',
+    '8×10 Sheet Film',
+    '8×10',
+    'film-large',
+    254,
+    203.2
+  ),
+];
+
+/**
+ * Map of format IDs to format objects for quick lookup
+ */
+export const SENSOR_FORMAT_MAP: Record<string, SensorFormat> =
+  Object.fromEntries(SENSOR_FORMATS.map((format) => [format.id, format]));

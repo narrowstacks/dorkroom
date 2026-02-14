@@ -118,6 +118,8 @@ export { ResultRow } from './components/result-row';
 export { SaveBeforeShareModal } from './components/save-before-share-modal';
 export { SearchableSelect } from './components/searchable-select';
 export { Select } from './components/select';
+export type { SensorSizeVisualizationProps } from './components/sensor-size-visualization';
+export { SensorSizeVisualization } from './components/sensor-size-visualization';
 export { SettingsButton } from './components/settings-button';
 // Sharing Components
 export { ShareButton, type ShareResult } from './components/share-button';

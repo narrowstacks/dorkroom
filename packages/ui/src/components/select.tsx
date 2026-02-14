@@ -66,13 +66,12 @@ export function Select({
             <option
               key={item.value}
               value={item.value}
-              disabled={item.value === '__divider__'}
+              disabled={item.value.startsWith('__divider')}
               style={{
                 backgroundColor: 'var(--color-surface)',
-                color:
-                  item.value === '__divider__'
-                    ? 'var(--color-text-tertiary)'
-                    : 'var(--color-text-primary)',
+                color: item.value.startsWith('__divider')
+                  ? 'var(--color-text-tertiary)'
+                  : 'var(--color-text-primary)',
               }}
             >
               {item.label}

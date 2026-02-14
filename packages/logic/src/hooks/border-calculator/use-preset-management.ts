@@ -64,7 +64,7 @@ export function usePresetManagement({
   );
 
   const handleSelectPreset = (id: string) => {
-    if (id === '__divider__') return;
+    if (id.startsWith('__divider')) return;
     setSelectedPresetId(id);
     const preset =
       presets.find((p) => p.id === id) ||
