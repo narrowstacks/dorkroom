@@ -36,7 +36,7 @@ interface ModeToggleProps {
 function ModeToggle({ isEnlargerHeightMode, onModeChange }: ModeToggleProps) {
   return (
     <div
-      className="flex items-center justify-between gap-4 rounded-2xl border px-5 py-3 shadow-subtle backdrop-blur"
+      className="flex flex-col items-stretch gap-2 rounded-2xl border px-5 py-3 shadow-subtle backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:gap-4"
       style={{
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: colorMixOr(
@@ -54,7 +54,7 @@ function ModeToggle({ isEnlargerHeightMode, onModeChange }: ModeToggleProps) {
         Method
       </p>
       <div
-        className="flex items-center gap-3 rounded-full px-4 py-2"
+        className="flex items-center justify-center gap-2 rounded-full px-3 py-2 sm:gap-3 sm:px-4"
         style={{
           borderColor: 'var(--color-border-muted)',
           backgroundColor: colorMixOr(
@@ -67,7 +67,7 @@ function ModeToggle({ isEnlargerHeightMode, onModeChange }: ModeToggleProps) {
         }}
       >
         <span
-          className="text-xs font-medium uppercase tracking-[0.3em]"
+          className="text-[10px] font-medium uppercase tracking-[0.15em] sm:text-xs sm:tracking-[0.3em]"
           style={{ color: 'var(--color-text-tertiary)' }}
         >
           Print Size
@@ -78,7 +78,7 @@ function ModeToggle({ isEnlargerHeightMode, onModeChange }: ModeToggleProps) {
           onValueChange={onModeChange}
         />
         <span
-          className="text-xs font-medium uppercase tracking-[0.3em]"
+          className="text-[10px] font-medium uppercase tracking-[0.15em] sm:text-xs sm:tracking-[0.3em]"
           style={{ color: 'var(--color-text-tertiary)' }}
         >
           Enlarger Height
@@ -166,7 +166,7 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
             Formula
           </h4>
           <div
-            className="rounded-2xl border p-4 font-mono text-xs"
+            className="overflow-x-auto rounded-2xl border p-4 font-mono text-xs"
             style={{
               borderColor: 'var(--color-border-secondary)',
               backgroundColor: colorMixOr(
