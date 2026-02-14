@@ -157,7 +157,7 @@ export function MobileSidebar({
 
       {/* Footer: Theme + Settings side by side */}
       <div
-        className="flex gap-2 border-t p-3"
+        className="flex shrink-0 gap-2 border-t p-3"
         style={{ borderColor: 'var(--color-border-muted)' }}
       >
         <ThemeToggle variant="sidebar" onSelect={onClose} />
