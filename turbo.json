@@ -11,6 +11,8 @@
       "inputs": [
         "src/**",
         "index.html",
+        "package.json",
+        "../../bun.lock",
         "vite.config.ts",
         "tsconfig*.json",
         "../../packages/logic/src/**",

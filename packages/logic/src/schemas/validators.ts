@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SENSOR_FORMAT_MAP } from '../constants/lens-calculator-defaults';
 
 /**
  * Shared Zod validators for form schemas across the application.
@@ -54,3 +55,20 @@ export const reciprocityFactorValidator = () =>
     .number()
     .min(0.1, 'Reciprocity factor must be at least 0.1')
     .max(10, 'Reciprocity factor cannot exceed 10');
+
+/**
+ * Creates a validator for focal length values (in mm).
+ */
+export const focalLengthValidator = () =>
+  z
+    .number()
+    .min(1, 'Focal length must be at least 1mm')
+    .max(2000, 'Focal length cannot exceed 2000mm');
+
+/**
+ * Creates a validator for sensor format selection.
+ */
+export const sensorFormatValidator = () =>
+  z.string().refine((val) => Object.hasOwn(SENSOR_FORMAT_MAP, val), {
+    message: 'Please select a valid format',
+  });

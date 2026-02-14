@@ -1,4 +1,6 @@
 import {
+  calculateEquivalentFocalLength,
+  calculateFieldOfView,
   formatFocalLength,
   LENS_STORAGE_KEY,
   type LensFormState,
@@ -49,7 +51,10 @@ const formatOptions = (() => {
           ? 'Medium Format Film'
           : 'Large Format Film';
     if (category !== lastCategory) {
-      items.push({ value: '__divider__', label: `── ${category} ──` });
+      items.push({
+        value: `__divider_${category}__`,
+        label: `── ${category} ──`,
+      });
       lastCategory = category;
     }
     items.push({
@@ -237,13 +242,14 @@ export default function LensCalculatorPage() {
               return null;
             }
 
+            const equivalentFocalLength = calculateEquivalentFocalLength(
+              focalLength,
+              sourceFormat,
+              targetFormat
+            );
+            const fieldOfView = calculateFieldOfView(focalLength, sourceFormat);
             const cropFactorRatio =
               sourceFormat.cropFactor / targetFormat.cropFactor;
-            const equivalentFocalLength = focalLength * cropFactorRatio;
-            const fieldOfView =
-              2 *
-              Math.atan(sourceFormat.diagonal / (2 * focalLength)) *
-              (180 / Math.PI);
 
             return {
               focalLength,

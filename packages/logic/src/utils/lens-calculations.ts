@@ -23,11 +23,14 @@ export const calculateEquivalentFocalLength = (
 /**
  * Calculates the diagonal field of view for a given focal length and format
  * Formula: 2 * atan(diagonal / (2 * focalLength)) * (180 / PI)
+ *
+ * @precondition focalLength must be > 0
  */
 export const calculateFieldOfView = (
   focalLength: number,
   format: SensorFormat
 ): number => {
+  if (focalLength <= 0) return 0;
   return 2 * Math.atan(format.diagonal / (2 * focalLength)) * (180 / Math.PI);
 };
 
