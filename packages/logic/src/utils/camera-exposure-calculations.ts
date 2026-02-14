@@ -9,14 +9,18 @@ import type {
   ExposureValueResult,
   StandardValue,
 } from '../types/camera-exposure-calculator';
+import { debugWarn } from './debug-logger';
 import { roundToPrecision } from './precision';
 
 // Practical shutter speed limits for camera bodies
 const MIN_SHUTTER_SPEED = 1 / 8000;
 const MAX_SHUTTER_SPEED = 30;
 
-// Logarithmic tolerances for comparing exposure values (in stops)
-const STANDARD_VALUE_TOLERANCE = 0.17; // ~1/6 stop — close enough to snap to a standard value
+// Logarithmic tolerances for comparing exposure values (in stops).
+// Modern cameras adjust in 1/3-stop increments. A 1/6-stop tolerance is half of
+// that step size, tight enough to avoid false matches between adjacent 1/3-stop
+// values while still absorbing floating-point rounding from conversions.
+const STANDARD_VALUE_TOLERANCE = 0.17; // ~1/6 stop — snap to nearest standard value
 const EXACT_MATCH_TOLERANCE = 0.01; // Near-zero — only matches essentially identical values
 
 // How far beyond min/max shutter speed to still include in equivalent exposure tables.
@@ -306,11 +310,9 @@ export const keyToShutterSpeed = (key: string): number => {
   const parsed = Number(withoutQuote);
   if (Number.isFinite(parsed) && parsed > 0) return parsed;
 
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn(
-      `keyToShutterSpeed: unrecognized key "${key}", using fallback 1/125`
-    );
-  }
+  debugWarn(
+    `keyToShutterSpeed: unrecognized key "${key}", using fallback 1/125`
+  );
   return 1 / 125;
 };
 
@@ -336,11 +338,7 @@ export const keyToAperture = (key: string): number => {
   const parsed = Number(withoutF);
   if (Number.isFinite(parsed) && parsed > 0) return parsed;
 
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn(
-      `keyToAperture: unrecognized key "${key}", using fallback f/8`
-    );
-  }
+  debugWarn(`keyToAperture: unrecognized key "${key}", using fallback f/8`);
   return 8;
 };
 
@@ -358,8 +356,6 @@ export const keyToISO = (key: string): number => {
   const withoutISO = key.replace('ISO ', '');
   const parsed = Number(withoutISO);
   if (Number.isFinite(parsed) && parsed > 0) return parsed;
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn(`keyToISO: unrecognized key "${key}", using fallback ISO 100`);
-  }
+  debugWarn(`keyToISO: unrecognized key "${key}", using fallback ISO 100`);
   return 100;
 };

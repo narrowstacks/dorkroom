@@ -91,28 +91,33 @@ const EVPresetButton: FC<EVPresetButtonProps> = ({
   label,
   description,
   onClick,
-}) => (
-  <button
-    type="button"
-    onClick={() => onClick(ev)}
-    className="rounded-lg px-3 py-2 text-left transition-colors border themed-button"
-    title={description}
-  >
-    <span className="block text-sm font-medium">{label}</span>
-    <span
-      className="block text-xs"
-      style={{ color: 'var(--color-text-tertiary)' }}
+}) => {
+  const descId = `ev-preset-desc-${ev}`;
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(ev)}
+      className="rounded-lg px-3 py-2 text-left transition-colors border themed-button"
+      title={description}
+      aria-describedby={descId}
     >
-      EV {ev}
-    </span>
-  </button>
-);
+      <span className="block text-sm font-medium">{label}</span>
+      <span
+        id={descId}
+        className="block text-xs"
+        style={{ color: 'var(--color-text-tertiary)' }}
+      >
+        EV {ev}
+      </span>
+    </button>
+  );
+};
 
 function EVResultCard({
   form,
   formValues,
 }: {
-  form: ReturnType<typeof useForm>;
+  form: ReturnType<typeof useForm<CameraExposureFormState>>;
   formValues: CameraExposureFormState;
 }) {
   return (
@@ -584,6 +589,7 @@ export default function CameraExposureCalculatorPage() {
             onClick={() => setPresetsOpen((prev) => !prev)}
             className="p-1.5 rounded-lg transition-colors"
             style={{ color: 'var(--color-text-muted)' }}
+            aria-expanded={presetsOpen}
             aria-label={presetsOpen ? 'Collapse presets' : 'Expand presets'}
           >
             {presetsOpen ? (
