@@ -65,7 +65,7 @@
     "autoprefixer": "^10.4.23",
     "baseline-browser-mapping": "^2.8.29",
     "jiti": "2.4.2",
-    "jsdom": "~22.1.0",
+    "jsdom": "~28.1.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "tslib": "^2.3.0",
