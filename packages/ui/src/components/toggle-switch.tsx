@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { cn } from '../lib/cn';
 
 interface ToggleSwitchProps {
@@ -13,9 +14,12 @@ export function ToggleSwitch({
   onValueChange,
   className,
 }: ToggleSwitchProps) {
+  const id = useId();
+
   return (
     <div className={cn('flex items-center gap-3', className)}>
       <button
+        id={id}
         type="button"
         onClick={() => onValueChange(!value)}
         className={cn(
@@ -47,9 +51,9 @@ export function ToggleSwitch({
         />
       </button>
       <label
+        htmlFor={id}
         className="text-sm font-medium cursor-pointer"
         style={{ color: 'var(--color-text-primary)' }}
-        onClick={() => onValueChange(!value)}
       >
         {label}
       </label>

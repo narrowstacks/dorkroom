@@ -17,6 +17,7 @@ export function Tooltip({
   const [isVisible, setIsVisible] = useState(false);
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: tooltip hover container
     <div
       className={cn('relative inline-flex', className)}
       onMouseEnter={() => setIsVisible(true)}

@@ -84,6 +84,7 @@ export function OfficialBadge({ tag, showTooltip = true }: OfficialBadgeProps) {
   const { ref, pos, show, hide, tooltipId } = usePortalTooltip();
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: tooltip hover container
     <span
       className="relative inline-flex shrink-0"
       ref={ref}
@@ -115,6 +116,7 @@ export function CustomBadge({ showTooltip = true }: CustomBadgeProps) {
   const { ref, pos, show, hide, tooltipId } = usePortalTooltip();
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: tooltip hover container
     <span
       className="relative inline-flex shrink-0"
       ref={ref}

@@ -105,6 +105,13 @@ function calculateTooltipWidth(annotation: string): number {
 }
 
 /**
+ * Helper to determine if container is in "wide" mode (used for layout mode detection)
+ */
+function isWideModeLayout(width: number): boolean {
+  return width > 768; // Typical md breakpoint for Tailwind
+}
+
+/**
  * ReciprocityChart displays a visual representation of reciprocity failure
  * showing how metered exposure times map to adjusted exposure times.
  *
@@ -308,11 +315,6 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
   // Flag to skip the initial resize observer callback (on mount)
   const isInitialMountRef = useRef(true);
 
-  // Helper to determine if container is in "wide" mode (used for layout mode detection)
-  const isWideModeLayout = (width: number): boolean => {
-    return width > 768; // Typical md breakpoint for Tailwind
-  };
-
   // Scroll chart into view only on intentional layout mode changes (not on initial render or generic window resizes)
   useEffect(() => {
     if (!chartContainerRef.current || !autoScrollOnResize) return;
@@ -370,7 +372,7 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
     return () => {
       resizeObserver.disconnect();
     };
-  }, [autoScrollOnResize, isWideModeLayout]);
+  }, [autoScrollOnResize]);
 
   return (
     <div className={className} ref={chartContainerRef}>
@@ -392,9 +394,9 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
         </desc>
         {/* Grid lines */}
         <g opacity="0.15">
-          {chartData.xGridLines.map((x, i) => (
+          {chartData.xGridLines.map((x) => (
             <line
-              key={`x-grid-${i}`}
+              key={`x-grid-${x}`}
               x1={x}
               y1={chartData.padding.top}
               x2={x}
@@ -404,9 +406,9 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
               strokeDasharray="4,4"
             />
           ))}
-          {chartData.yGridLines.map((y, i) => (
+          {chartData.yGridLines.map((y) => (
             <line
-              key={`y-grid-${i}`}
+              key={`y-grid-${y}`}
               x1={chartData.padding.left}
               y1={y}
               x2={chartData.width - chartData.padding.right}
@@ -443,9 +445,9 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
         {/* Axis labels */}
         <g>
           {/* X-axis labels */}
-          {chartData.xLabels.map((label, i) => (
+          {chartData.xLabels.map((label) => (
             <text
-              key={`x-label-${i}`}
+              key={`x-label-${label.x}`}
               x={label.x}
               y={
                 chartData.height -
@@ -474,9 +476,9 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
           </text>
 
           {/* Y-axis labels */}
-          {chartData.yLabels.map((label, i) => (
+          {chartData.yLabels.map((label) => (
             <text
-              key={`y-label-${i}`}
+              key={`y-label-${label.y}`}
               x={
                 chartData.padding.left -
                 CHART_CONFIG.labels.offsets.yLabelOffset
@@ -540,8 +542,9 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
 
         {/* Interactive hover points along the curve (15 second increments) */}
         {chartData.hoverPoints.map((point, i) => (
-          <g key={`hover-${i}`}>
+          <g key={`hover-${point.x}-${point.y}`}>
             {/* Invisible larger circle for hover detection */}
+            {/* biome-ignore lint/a11y/useSemanticElements: SVG element cannot use HTML button */}
             <circle
               cx={point.x}
               cy={point.y}

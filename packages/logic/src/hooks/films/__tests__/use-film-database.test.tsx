@@ -877,7 +877,7 @@ describe('useFilmDatabase', () => {
       expect(isos.some((i) => i.value === '3200')).toBe(true);
 
       // Should be sorted numerically (after "All ISOs")
-      const isoValues = isos.slice(1).map((i) => Number.parseInt(i.value));
+      const isoValues = isos.slice(1).map((i) => Number.parseInt(i.value, 10));
       const sortedValues = [...isoValues].sort((a, b) => a - b);
       expect(isoValues).toEqual(sortedValues);
     });

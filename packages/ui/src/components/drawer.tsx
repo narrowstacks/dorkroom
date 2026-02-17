@@ -63,7 +63,7 @@ export function Drawer({
 
   return (
     <div className="fixed inset-0 z-50" style={{ height: '100dvh' }}>
-      {/* Backdrop */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop overlay dismiss pattern */}
       <div
         className={cn(
           'absolute inset-0 transition-opacity duration-300 h-full',
@@ -72,7 +72,11 @@ export function Drawer({
           isOpen ? 'opacity-100' : 'opacity-0'
         )}
         style={{ height: '100dvh' }}
+        role="presentation"
         onClick={onClose}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onClose();
+        }}
       />
 
       {/* Drawer */}

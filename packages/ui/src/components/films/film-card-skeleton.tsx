@@ -7,13 +7,12 @@ interface FilmCardSkeletonProps {
 
 export const FilmCardSkeleton: FC<FilmCardSkeletonProps> = ({ className }) => {
   return (
-    <div
+    <output
       className={cn('rounded-2xl border p-4 shadow-subtle', className)}
       style={{
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: 'var(--color-background)',
       }}
-      role="status"
       aria-busy="true"
       aria-label="Loading film card"
     >
@@ -69,6 +68,6 @@ export const FilmCardSkeleton: FC<FilmCardSkeletonProps> = ({ className }) => {
           </div>
         </div>
       </div>
-    </div>
+    </output>
   );
 };

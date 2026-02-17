@@ -73,7 +73,6 @@ export function LabeledSliderInput({
   labels = [],
   className,
   warning = false,
-  continuousUpdate = false,
 }: LabeledSliderInputProps) {
   const [isFocused, setIsFocused] = useState(false);
   const inputId = useId();
@@ -150,8 +149,8 @@ export function LabeledSliderInput({
             className="flex justify-between text-xs"
             style={{ color: 'var(--color-text-muted)' }}
           >
-            {labels.map((label, index) => (
-              <span key={index}>{label}</span>
+            {labels.map((label) => (
+              <span key={label}>{label}</span>
             ))}
           </div>
         )}

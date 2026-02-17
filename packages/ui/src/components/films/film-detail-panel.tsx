@@ -190,9 +190,9 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
               Manufacturer Notes
             </h3>
             <ul className="list-disc list-inside space-y-1">
-              {film.manufacturerNotes.map((note, index) => (
+              {film.manufacturerNotes.map((note) => (
                 <li
-                  key={index}
+                  key={note}
                   className="text-sm"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
@@ -344,9 +344,9 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
             Manufacturer Notes
           </h3>
           <ul className="list-disc list-inside space-y-1">
-            {film.manufacturerNotes.map((note, index) => (
+            {film.manufacturerNotes.map((note) => (
               <li
-                key={index}
+                key={note}
                 className="text-sm"
                 style={{ color: 'var(--color-text-secondary)' }}
               >

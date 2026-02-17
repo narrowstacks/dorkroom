@@ -78,11 +78,15 @@ export function ShareModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:items-center sm:p-0">
-        {/* Backdrop */}
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop overlay dismiss pattern */}
         <div
           className="fixed inset-0 backdrop-blur-sm transition-opacity"
           style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
+          role="presentation"
           onClick={onClose}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') onClose();
+          }}
         />
 
         {/* Modal */}
@@ -120,6 +124,7 @@ export function ShareModal({
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -197,6 +202,7 @@ export function ShareModal({
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -218,6 +224,7 @@ export function ShareModal({
                       {canShareNatively && onNativeShare && (
                         <div className="space-y-2">
                           <button
+                            type="button"
                             onClick={handleNativeShare}
                             disabled={isSharing}
                             className={cn(
@@ -249,6 +256,7 @@ export function ShareModal({
                                   className="animate-spin -ml-1 mr-3 h-5 w-5"
                                   fill="none"
                                   viewBox="0 0 24 24"
+                                  aria-hidden="true"
                                 >
                                   <circle
                                     className="opacity-25"
@@ -273,6 +281,7 @@ export function ShareModal({
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
+                                  aria-hidden="true"
                                 >
                                   <path
                                     strokeLinecap="round"
@@ -291,6 +300,7 @@ export function ShareModal({
                       {/* Web URL Section */}
                       <div className="space-y-2">
                         <label
+                          htmlFor="share-web-link"
                           className="block text-sm font-medium"
                           style={{ color: 'var(--color-text-primary)' }}
                         >
@@ -304,6 +314,7 @@ export function ShareModal({
                         </p>
                         <div className="flex space-x-2">
                           <input
+                            id="share-web-link"
                             type="text"
                             value={displayUrl}
                             readOnly
@@ -317,6 +328,7 @@ export function ShareModal({
                           />
                           {canCopyToClipboard && (
                             <button
+                              type="button"
                               onClick={handleCopyWeb}
                               className={cn(
                                 'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2'
@@ -347,6 +359,7 @@ export function ShareModal({
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
+                                  aria-hidden="true"
                                 >
                                   <path
                                     strokeLinecap="round"
@@ -361,6 +374,7 @@ export function ShareModal({
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
+                                  aria-hidden="true"
                                 >
                                   <path
                                     strokeLinecap="round"

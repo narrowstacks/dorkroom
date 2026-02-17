@@ -84,6 +84,9 @@ export function Modal({
       role="dialog"
       aria-modal="true"
       onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') onClose();
+      }}
     >
       {/* biome-ignore lint/a11y/noStaticElementInteractions: modal content stops propagation to prevent closing when clicking inside */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard events handled by parent dialog */}

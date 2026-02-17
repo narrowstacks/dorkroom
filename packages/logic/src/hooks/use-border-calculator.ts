@@ -194,7 +194,6 @@ export function useBorderCalculator() {
     customPaperWidth,
     customPaperHeight,
     minBorder,
-    enableOffset,
     horizontalOffset,
     verticalOffset,
     isLandscape,

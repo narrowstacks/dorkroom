@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { cn } from '../lib/cn';
 
 interface TextInputProps {
@@ -26,10 +27,13 @@ export function TextInput({
   description,
   inputMode,
 }: TextInputProps) {
+  const id = useId();
+
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
         <label
+          htmlFor={id}
           className="block text-sm font-medium"
           style={{ color: 'var(--color-text-secondary)' }}
         >
@@ -38,6 +42,7 @@ export function TextInput({
       )}
       {description && <p className="text-sm text-gray-500">{description}</p>}
       <input
+        id={id}
         type="text"
         inputMode={inputMode}
         value={value}
@@ -53,12 +58,12 @@ export function TextInput({
             '--tw-ring-color': 'var(--color-border-primary)',
           } as React.CSSProperties
         }
-        onFocus={(e) =>
-          (e.target.style.borderColor = 'var(--color-border-primary)')
-        }
-        onBlur={(e) =>
-          (e.target.style.borderColor = 'var(--color-border-secondary)')
-        }
+        onFocus={(e) => {
+          e.target.style.borderColor = 'var(--color-border-primary)';
+        }}
+        onBlur={(e) => {
+          e.target.style.borderColor = 'var(--color-border-secondary)';
+        }}
       />
     </div>
   );

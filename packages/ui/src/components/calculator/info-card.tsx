@@ -118,12 +118,7 @@ export function InfoCardList({
   return (
     <ul className={cn('space-y-3', className)}>
       {normalizedItems.map((item, index) => (
-        <InfoCard
-          // biome-ignore lint/suspicious/noArrayIndexKey: Static list order
-          key={item.title || index}
-          item={item}
-          variant={variant}
-        />
+        <InfoCard key={item.title || index} item={item} variant={variant} />
       ))}
     </ul>
   );

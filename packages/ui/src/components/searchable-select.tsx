@@ -1,6 +1,6 @@
 import type { SelectItem } from '@dorkroom/logic';
 import { ChevronDown, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { cn } from '../lib/cn';
 
 interface SearchableSelectProps {
@@ -26,6 +26,7 @@ export function SearchableSelect({
   const [searchTerm, setSearchTerm] = useState('');
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [focused, setFocused] = useState(false);
+  const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
@@ -149,6 +150,7 @@ export function SearchableSelect({
     <div className={cn('relative space-y-2', className)}>
       {label && (
         <label
+          htmlFor={id}
           className="block text-sm font-medium"
           style={{ color: 'var(--color-text-secondary)' }}
         >
@@ -158,6 +160,7 @@ export function SearchableSelect({
 
       <div className="relative">
         <input
+          id={id}
           ref={inputRef}
           type="text"
           value={isOpen ? searchTerm : displayValue}
