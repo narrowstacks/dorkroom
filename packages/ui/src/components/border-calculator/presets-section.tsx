@@ -1,45 +1,29 @@
-import type { BorderPresetSettings, SelectItem } from '@dorkroom/logic';
+import type { BorderPresetSettings } from '@dorkroom/logic';
 import { Save, Share2, Trash2 } from 'lucide-react';
 import { CalculatorCard, Select, TextInput } from '../../index';
-
-interface PresetsSectionProps {
-  selectedPresetId: string | null;
-  presetName: string;
-  isEditingPreset: boolean;
-  presetItems: SelectItem[];
-  isSharing: boolean;
-  isGeneratingShareUrl: boolean;
-  onSelectPreset: (id: string) => void;
-  onPresetNameChange: (name: string) => void;
-  onEditingChange: (isEditing: boolean) => void;
-  onShareClick: () => void;
-  onSavePreset: (name: string) => void;
-  onUpdatePreset: (
-    id: string,
-    data: { name: string; settings: BorderPresetSettings }
-  ) => void;
-  onDeletePreset: (id: string) => void;
-}
+import { useBorderCalculator } from './border-calculator-context';
 
 /**
  * Section for managing border calculator presets
  * Allows saving, recalling, and sharing presets
  */
-export function PresetsSection({
-  selectedPresetId,
-  presetName,
-  isEditingPreset,
-  presetItems,
-  isSharing,
-  isGeneratingShareUrl,
-  onSelectPreset,
-  onPresetNameChange,
-  onEditingChange,
-  onShareClick,
-  onSavePreset,
-  onUpdatePreset,
-  onDeletePreset,
-}: PresetsSectionProps) {
+export function PresetsSection() {
+  const {
+    selectedPresetId,
+    presetName,
+    isEditingPreset,
+    presetItems,
+    isSharing,
+    isGeneratingShareUrl,
+    handleSelectPreset,
+    setPresetName,
+    setIsEditingPreset,
+    handleShareClick,
+    savePreset,
+    updatePresetHandler,
+    deletePresetHandler,
+  } = useBorderCalculator();
+
   return (
     <CalculatorCard title="Presets" description="Save and load border presets.">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
@@ -47,7 +31,7 @@ export function PresetsSection({
           <Select
             label="Presets"
             selectedValue={selectedPresetId || ''}
-            onValueChange={onSelectPreset}
+            onValueChange={handleSelectPreset}
             items={presetItems}
             placeholder="Select preset"
           />
@@ -55,7 +39,7 @@ export function PresetsSection({
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={onShareClick}
+            onClick={handleShareClick}
             disabled={isSharing || isGeneratingShareUrl}
             className="rounded-full border p-2 transition focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:cursor-not-allowed text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
             title="Share preset"
@@ -88,7 +72,7 @@ export function PresetsSection({
           </button>
           <button
             type="button"
-            onClick={() => onEditingChange(true)}
+            onClick={() => setIsEditingPreset(true)}
             className="rounded-full border p-2 transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
             title="Edit preset"
           >
@@ -101,14 +85,14 @@ export function PresetsSection({
         <div className="space-y-3">
           <TextInput
             value={presetName}
-            onValueChange={onPresetNameChange}
+            onValueChange={setPresetName}
             placeholder="Preset name"
             label="Preset name"
           />
           <div className="grid gap-2 sm:grid-cols-3">
             <button
               type="button"
-              onClick={() => onSavePreset(presetName)}
+              onClick={() => savePreset(presetName)}
               disabled={!presetName}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{
@@ -125,7 +109,7 @@ export function PresetsSection({
               type="button"
               onClick={() =>
                 selectedPresetId &&
-                onUpdatePreset(selectedPresetId, {
+                updatePresetHandler(selectedPresetId, {
                   name: presetName,
                   settings: {} as BorderPresetSettings,
                 })
@@ -145,7 +129,7 @@ export function PresetsSection({
             <button
               type="button"
               onClick={() =>
-                selectedPresetId && onDeletePreset(selectedPresetId)
+                selectedPresetId && deletePresetHandler(selectedPresetId)
               }
               disabled={!selectedPresetId}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"

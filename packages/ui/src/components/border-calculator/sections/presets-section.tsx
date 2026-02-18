@@ -3,28 +3,27 @@ import { DEFAULT_BORDER_PRESETS } from '@dorkroom/logic';
 import { Plus, Save, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 import { TextInput } from '../../../components/text-input';
+import { useBorderCalculator } from '../border-calculator-context';
 
 interface PresetsSectionProps {
   onClose: () => void;
-  presets: BorderPreset[];
   currentPreset: BorderPreset | null;
   onApplyPreset: (preset: BorderPreset) => void;
   onSavePreset: (name: string, settings: BorderSettings) => void;
   onUpdatePreset: (id: string, name: string, settings: BorderSettings) => void;
   onDeletePreset: (id: string) => void;
-  getCurrentSettings: () => BorderSettings;
 }
 
 export function PresetsSection({
   onClose,
-  presets,
   currentPreset,
   onApplyPreset,
   onSavePreset,
   onUpdatePreset,
   onDeletePreset,
-  getCurrentSettings,
 }: PresetsSectionProps) {
+  const { presets, currentSettings } = useBorderCalculator();
+
   const [isCreating, setIsCreating] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -32,14 +31,14 @@ export function PresetsSection({
 
   const handleSaveNew = () => {
     if (!newPresetName.trim()) return;
-    onSavePreset(newPresetName.trim(), getCurrentSettings());
+    onSavePreset(newPresetName.trim(), currentSettings);
     setNewPresetName('');
     setIsCreating(false);
   };
 
   const handleUpdate = (id: string) => {
     if (!editName.trim()) return;
-    onUpdatePreset(id, editName.trim(), getCurrentSettings());
+    onUpdatePreset(id, editName.trim(), currentSettings);
     setEditingId(null);
     setEditName('');
   };

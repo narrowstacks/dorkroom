@@ -1,44 +1,39 @@
-import type { FieldApi, FormInstance } from '../../index';
+import {
+  generateBorderSliderLabels,
+  OFFSET_SLIDER_LABELS,
+  OFFSET_SLIDER_MAX,
+  OFFSET_SLIDER_MIN,
+  OFFSET_SLIDER_STEP,
+  SLIDER_MIN_BORDER,
+  SLIDER_STEP_BORDER,
+} from '@dorkroom/logic';
+import { useMemo } from 'react';
+import type { FieldApi } from '../../index';
 import { LabeledSliderInput, StatusAlert, ToggleSwitch } from '../../index';
 import { CalculatorCard } from '../calculator/calculator-card';
-
-interface BordersOffsetsSectionProps {
-  form: FormInstance;
-  sliderMinBorder: number;
-  sliderMaxBorder: number;
-  sliderStepBorder: number;
-  borderSliderLabels: string[];
-  offsetSliderMin: number;
-  offsetSliderMax: number;
-  offsetSliderStep: number;
-  offsetSliderLabels: string[];
-  offsetWarning: string | null;
-  enableOffset: boolean;
-  ignoreMinBorder: boolean;
-  onRoundToQuarter?: () => void;
-  roundToQuarterDisabled?: boolean;
-}
+import { useBorderCalculator } from './border-calculator-context';
 
 /**
  * Section for controlling border thickness and offset adjustments
  * Allows setting minimum borders and fine-tuning print placement
  */
-export function BordersOffsetsSection({
-  form,
-  sliderMinBorder,
-  sliderMaxBorder,
-  sliderStepBorder,
-  borderSliderLabels,
-  offsetSliderMin,
-  offsetSliderMax,
-  offsetSliderStep,
-  offsetSliderLabels,
-  offsetWarning,
-  enableOffset,
-  ignoreMinBorder: _ignoreMinBorder,
-  onRoundToQuarter,
-  roundToQuarterDisabled,
-}: BordersOffsetsSectionProps) {
+export function BordersOffsetsSection() {
+  const {
+    form,
+    formValues,
+    maxAllowedMinBorder,
+    quarterRoundedMinBorder,
+    offsetWarning,
+    handleRoundMinBorderToQuarter,
+  } = useBorderCalculator();
+
+  const { enableOffset } = formValues;
+
+  const borderSliderLabels = useMemo(
+    () => generateBorderSliderLabels(maxAllowedMinBorder),
+    [maxAllowedMinBorder]
+  );
+
   return (
     <CalculatorCard
       title="Borders & Offsets"
@@ -58,31 +53,29 @@ export function BordersOffsetsSection({
                 field.handleChange(value);
                 form.setFieldValue('lastValidMinBorder', value);
               }}
-              min={sliderMinBorder}
-              max={sliderMaxBorder}
-              step={sliderStepBorder}
+              min={SLIDER_MIN_BORDER}
+              max={maxAllowedMinBorder}
+              step={SLIDER_STEP_BORDER}
               labels={borderSliderLabels}
               continuousUpdate
             />
           )}
         </form.Field>
 
-        {onRoundToQuarter && (
-          <button
-            type="button"
-            onClick={onRoundToQuarter}
-            disabled={roundToQuarterDisabled}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
-            style={{
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
-              color: 'var(--color-text-primary)',
-            }}
-            title="Round blade readings down to the nearest quarter inch"
-          >
-            Round to 1/4"
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={handleRoundMinBorderToQuarter}
+          disabled={quarterRoundedMinBorder === null}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
+          style={{
+            borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
+            color: 'var(--color-text-primary)',
+          }}
+          title="Round blade readings down to the nearest quarter inch"
+        >
+          Round to 1/4"
+        </button>
 
         <form.Field name="enableOffset">
           {(field: FieldApi<boolean>) => (
@@ -136,10 +129,10 @@ export function BordersOffsetsSection({
                     onSliderChange={(value: number) => {
                       field.handleChange(value);
                     }}
-                    min={offsetSliderMin}
-                    max={offsetSliderMax}
-                    step={offsetSliderStep}
-                    labels={offsetSliderLabels}
+                    min={OFFSET_SLIDER_MIN}
+                    max={OFFSET_SLIDER_MAX}
+                    step={OFFSET_SLIDER_STEP}
+                    labels={OFFSET_SLIDER_LABELS}
                     warning={!!offsetWarning}
                     continuousUpdate
                   />
@@ -156,10 +149,10 @@ export function BordersOffsetsSection({
                     onSliderChange={(value: number) => {
                       field.handleChange(value);
                     }}
-                    min={offsetSliderMin}
-                    max={offsetSliderMax}
-                    step={offsetSliderStep}
-                    labels={offsetSliderLabels}
+                    min={OFFSET_SLIDER_MIN}
+                    max={OFFSET_SLIDER_MAX}
+                    step={OFFSET_SLIDER_STEP}
+                    labels={OFFSET_SLIDER_LABELS}
                     warning={!!offsetWarning}
                     continuousUpdate
                   />

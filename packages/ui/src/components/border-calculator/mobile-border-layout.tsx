@@ -16,22 +16,18 @@ import { SaveBeforeShareModal } from '../../components/save-before-share-modal';
 import { SettingsButton } from '../../components/settings-button';
 import { ShareModal } from '../../components/share-modal';
 import { StatusAlert } from '../../components/status-alert';
-// Hooks & Types
 import { useTheme } from '../../contexts/theme-context';
 import { AnimatedPreview } from './animated-preview';
-// Sections
+import { useBorderCalculator } from './border-calculator-context';
 import {
   BorderSizeSection,
   PaperSizeSection,
   PositionOffsetsSection,
   PresetsSection,
 } from './sections';
-import type { BorderCalculatorLayoutProps } from './types';
 
 // Active section type
 type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
-
-type MobileBorderLayoutProps = BorderCalculatorLayoutProps;
 
 /**
  * Render the mobile UI for configuring border/calculation settings, managing presets, and sharing results.
@@ -39,57 +35,43 @@ type MobileBorderLayoutProps = BorderCalculatorLayoutProps;
  * Renders the calculator's hero results, animated preview, warnings, settings controls, presets management, and sharing flows
  * inside a bottom drawer and modals.
  */
-export function MobileBorderLayout({
-  form,
-  formValues,
-  calculation,
-  paperWidthInput: _paperWidthInput,
-  paperHeightInput: _paperHeightInput,
-  displayPaperSizes,
-  quarterRoundedMinBorder,
-  maxAllowedMinBorder,
-  offsetWarning,
-  bladeWarning,
-  minBorderWarning,
-  paperSizeWarning,
-  presets,
-  selectedPresetId,
-  presetName,
-  isShareModalOpen,
-  isSaveBeforeShareOpen,
-  shareUrls,
-  isSharing,
-  isGeneratingShareUrl,
-  canShareNatively: _canShareNatively,
-  canCopyToClipboard,
-  handlePaperWidthChange: _handlePaperWidthChange,
-  handlePaperWidthBlur: _handlePaperWidthBlur,
-  handlePaperHeightChange: _handlePaperHeightChange,
-  handlePaperHeightBlur: _handlePaperHeightBlur,
-  handleRoundMinBorderToQuarter,
-  resetToDefaults,
-  handleSelectPreset,
-  setPresetName: _setPresetName,
-  savePreset,
-  updatePresetHandler,
-  deletePresetHandler,
-  applyPresetSettings: _applyPresetSettings,
-  handleShareClick,
-  handleSaveAndShare,
-  handleCopyToClipboard,
-  handleNativeShare: _handleNativeShare,
-  setIsShareModalOpen,
-  setIsSaveBeforeShareOpen,
-  formatWithUnit,
-  formatDimensions,
-  currentSettings,
-}: MobileBorderLayoutProps) {
+export function MobileBorderLayout() {
+  const {
+    form,
+    formValues,
+    calculation,
+    displayPaperSizes,
+    presets,
+    selectedPresetId,
+    presetName,
+    isShareModalOpen,
+    isSaveBeforeShareOpen,
+    shareUrls,
+    isSharing,
+    isGeneratingShareUrl,
+    canCopyToClipboard,
+    offsetWarning,
+    bladeWarning,
+    minBorderWarning,
+    paperSizeWarning,
+    resetToDefaults,
+    handleSelectPreset,
+    savePreset,
+    updatePresetHandler,
+    deletePresetHandler,
+    handleShareClick,
+    handleSaveAndShare,
+    handleCopyToClipboard,
+    setIsShareModalOpen,
+    setIsSaveBeforeShareOpen,
+    formatWithUnit,
+    formatDimensions,
+    currentSettings,
+  } = useBorderCalculator();
+
   // Theme
   const { resolvedTheme } = useTheme();
   const isHighContrast = resolvedTheme === 'high-contrast';
-
-  // Measurement unit
-  // const { unit } = useMeasurement();
 
   // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -105,13 +87,10 @@ export function MobileBorderLayout({
     customPaperHeight,
     minBorder,
     enableOffset,
-    ignoreMinBorder,
     horizontalOffset,
     verticalOffset,
     showBlades,
     showBladeReadings,
-    isLandscape,
-    isRatioFlipped,
   } = formValues;
 
   // Derive current preset object for the UI that expects it
@@ -437,45 +416,25 @@ export function MobileBorderLayout({
           <DrawerContent>
             <DrawerBody>
               {activeSection === 'paperSize' && (
-                <PaperSizeSection
-                  onClose={closeDrawer}
-                  form={form}
-                  isLandscape={isLandscape}
-                  isRatioFlipped={isRatioFlipped}
-                />
+                <PaperSizeSection onClose={closeDrawer} />
               )}
 
               {activeSection === 'borderSize' && (
-                <BorderSizeSection
-                  onClose={closeDrawer}
-                  form={form}
-                  minBorderWarning={minBorderWarning || undefined}
-                  onRoundToQuarter={handleRoundMinBorderToQuarter}
-                  roundToQuarterDisabled={quarterRoundedMinBorder === null}
-                  maxAllowedMinBorder={maxAllowedMinBorder}
-                />
+                <BorderSizeSection onClose={closeDrawer} />
               )}
 
               {activeSection === 'positionOffsets' && (
-                <PositionOffsetsSection
-                  onClose={closeDrawer}
-                  form={form}
-                  enableOffset={enableOffset}
-                  ignoreMinBorder={ignoreMinBorder}
-                  offsetWarning={offsetWarning || undefined}
-                />
+                <PositionOffsetsSection onClose={closeDrawer} />
               )}
 
               {activeSection === 'presets' && (
                 <PresetsSection
                   onClose={closeDrawer}
-                  presets={presets}
                   currentPreset={currentPreset}
                   onApplyPreset={onApplyPreset}
                   onSavePreset={onSavePreset}
                   onUpdatePreset={onUpdatePreset}
                   onDeletePreset={deletePresetHandler}
-                  getCurrentSettings={() => currentSettings}
                 />
               )}
             </DrawerBody>

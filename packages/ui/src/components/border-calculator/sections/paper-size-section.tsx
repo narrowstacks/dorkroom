@@ -1,5 +1,4 @@
 import { ASPECT_RATIOS, PAPER_SIZES, type SelectItem } from '@dorkroom/logic';
-import type { AnyFormApi } from '@tanstack/react-form';
 import { RotateCw, Square, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { DimensionInputGroup } from '../../../components/dimension-input-group';
@@ -7,20 +6,16 @@ import { Select } from '../../../components/select';
 import { useMeasurement } from '../../../contexts/measurement-context';
 import { useMeasurementConverter } from '../../../hooks/use-measurement-conversion';
 import { formatDimensions } from '../../../lib/measurement';
+import { useBorderCalculator } from '../border-calculator-context';
 
 interface PaperSizeSectionProps {
   onClose: () => void;
-  form: AnyFormApi;
-  isLandscape: boolean;
-  isRatioFlipped: boolean;
 }
 
-export function PaperSizeSection({
-  onClose,
-  form,
-  isLandscape,
-  isRatioFlipped,
-}: PaperSizeSectionProps) {
+export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
+  const { form, formValues } = useBorderCalculator();
+  const { isLandscape, isRatioFlipped } = formValues;
+
   const aspectRatio = form.getFieldValue('aspectRatio');
   const isEvenBordersSelected = aspectRatio === 'even-borders';
   const customAspectWidth = form.getFieldValue('customAspectWidth');

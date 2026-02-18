@@ -1,17 +1,14 @@
-import type { FieldApi, FormInstance } from '../../index';
+import type { FieldApi } from '../../index';
 import { CalculatorCard, ToggleSwitch } from '../../index';
-
-interface BladeVisualizationSectionProps {
-  form: FormInstance;
-}
+import { useBorderCalculator } from './border-calculator-context';
 
 /**
  * Section for controlling blade and blade reading visibility in the preview
  * Allows toggling display of easel blades and measurement readings
  */
-export function BladeVisualizationSection({
-  form,
-}: BladeVisualizationSectionProps) {
+export function BladeVisualizationSection() {
+  const { form } = useBorderCalculator();
+
   return (
     <CalculatorCard
       title="Blade Visualization"

@@ -1,31 +1,16 @@
-import type { BorderCalculation } from '@dorkroom/logic';
 import { useStore } from '@tanstack/react-store';
 import { RotateCcw, RotateCw, Square } from 'lucide-react';
-import type { FormInstance } from '../../index';
 import { CalculatorCard } from '../calculator/calculator-card';
-
-interface PreviewAndControlsSectionProps {
-  form: FormInstance;
-  calculation: BorderCalculation;
-  AnimatedPreview: React.ComponentType<{
-    calculation: BorderCalculation;
-    showBlades: boolean;
-    showBladeReadings: boolean;
-    className?: string;
-  }>;
-  onResetToDefaults: () => void;
-}
+import { AnimatedPreview } from './animated-preview';
+import { useBorderCalculator } from './border-calculator-context';
 
 /**
  * Section for displaying the print preview and control buttons
  * Shows the animated preview with blade visualization and flip controls
  */
-export function PreviewAndControlsSection({
-  form,
-  calculation,
-  AnimatedPreview,
-  onResetToDefaults,
-}: PreviewAndControlsSectionProps) {
+export function PreviewAndControlsSection() {
+  const { form, calculation, resetToDefaults } = useBorderCalculator();
+
   const showBlades = useStore(form.store, (state) => state.values.showBlades);
   const showBladeReadings = useStore(
     form.store,
@@ -37,6 +22,8 @@ export function PreviewAndControlsSection({
     'flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)]';
   const enabledFlipClasses =
     'hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]';
+
+  if (!calculation) return null;
 
   return (
     <CalculatorCard accent="violet" padding="compact">
@@ -89,7 +76,7 @@ export function PreviewAndControlsSection({
       </div>
       <button
         type="button"
-        onClick={onResetToDefaults}
+        onClick={resetToDefaults}
         className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 hover:brightness-110"
         style={{
           color: 'var(--color-accent)',

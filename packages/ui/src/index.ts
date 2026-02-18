@@ -1,17 +1,17 @@
 // Core UI Components
 
 export type { DevelopmentCombinationView } from '@dorkroom/logic';
-export type { BorderCalculatorLayoutProps } from './components/border-calculator';
+export type { BorderCalculatorContextValue } from './components/border-calculator';
 export {
   AnimatedPreview,
   BladeReadingsOverlay,
   BladeReadingsSection,
   BladeResultsDisplay,
   BladeVisualizationSection,
+  BorderCalculatorProvider,
   BorderInfoSection,
   BorderSizeSection,
   BordersOffsetsSection,
-  DesktopBorderLayout,
   MobileBorderCalculator,
   MobileBorderLayout,
   PaperSetupSection,
@@ -20,6 +20,7 @@ export {
   PresetsSection,
   PreviewAndControlsSection,
   ResponsiveBorderLayout,
+  useBorderCalculator,
 } from './components/border-calculator';
 export type {
   CalculatorLayoutProps,

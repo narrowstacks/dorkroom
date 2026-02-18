@@ -4,27 +4,22 @@ import {
   OFFSET_SLIDER_MIN,
   OFFSET_SLIDER_STEP,
 } from '@dorkroom/logic';
-import type { AnyFormApi } from '@tanstack/react-form';
 import { X } from 'lucide-react';
 import { LabeledSliderInput } from '../../../components/labeled-slider-input';
 import { StatusAlert } from '../../../components/status-alert';
 import { ToggleSwitch } from '../../../components/toggle-switch';
+import { useBorderCalculator } from '../border-calculator-context';
 
 interface PositionOffsetsSectionProps {
   onClose: () => void;
-  form: AnyFormApi;
-  enableOffset: boolean;
-  ignoreMinBorder: boolean;
-  offsetWarning?: string;
 }
 
 export function PositionOffsetsSection({
   onClose,
-  form,
-  enableOffset,
-  ignoreMinBorder,
-  offsetWarning,
 }: PositionOffsetsSectionProps) {
+  const { form, formValues, offsetWarning } = useBorderCalculator();
+  const { enableOffset, ignoreMinBorder } = formValues;
+
   const horizontalOffset = form.getFieldValue('horizontalOffset');
   const verticalOffset = form.getFieldValue('verticalOffset');
   return (

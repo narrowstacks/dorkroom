@@ -1,40 +1,29 @@
-import type { SelectItem } from '@dorkroom/logic';
+import { ASPECT_RATIOS, type SelectItem } from '@dorkroom/logic';
 import { useStore } from '@tanstack/react-store';
-import type { FieldApi, FormInstance } from '../../index';
+import type { FieldApi } from '../../index';
 import { DimensionInputGroup, Select } from '../../index';
 import { CalculatorCard } from '../calculator/calculator-card';
-
-interface PaperSetupSectionProps {
-  form: FormInstance;
-  displayPaperSizes: SelectItem[];
-  paperWidthInput: string;
-  paperHeightInput: string;
-  onPaperWidthChange: (value: string) => void;
-  onPaperWidthBlur: () => void;
-  onPaperHeightChange: (value: string) => void;
-  onPaperHeightBlur: () => void;
-  aspectRatios: SelectItem[];
-  customAspectWidth: number;
-  customAspectHeight: number;
-}
+import { useBorderCalculator } from './border-calculator-context';
 
 /**
  * Section for selecting paper size and aspect ratio
  * Allows selection of preset sizes or custom dimensions
  */
-export function PaperSetupSection({
-  form,
-  displayPaperSizes,
-  paperWidthInput,
-  paperHeightInput,
-  onPaperWidthChange,
-  onPaperWidthBlur,
-  onPaperHeightChange,
-  onPaperHeightBlur,
-  aspectRatios,
-  customAspectWidth,
-  customAspectHeight,
-}: PaperSetupSectionProps) {
+export function PaperSetupSection() {
+  const {
+    form,
+    formValues,
+    displayPaperSizes,
+    paperWidthInput,
+    paperHeightInput,
+    handlePaperWidthChange,
+    handlePaperWidthBlur,
+    handlePaperHeightChange,
+    handlePaperHeightBlur,
+  } = useBorderCalculator();
+
+  const { customAspectWidth, customAspectHeight } = formValues;
+
   const aspectRatio = useStore(form.store, (state) => state.values.aspectRatio);
   const paperSize = useStore(form.store, (state) => state.values.paperSize);
 
@@ -53,7 +42,7 @@ export function PaperSetupSection({
                 field.handleChange(value);
                 form.setFieldValue('isRatioFlipped', false);
               }}
-              items={aspectRatios}
+              items={ASPECT_RATIOS as SelectItem[]}
               placeholder="Select"
             />
           )}
@@ -127,11 +116,11 @@ export function PaperSetupSection({
         {paperSize === 'custom' && (
           <DimensionInputGroup
             widthValue={paperWidthInput}
-            onWidthChange={onPaperWidthChange}
-            onWidthBlur={onPaperWidthBlur}
+            onWidthChange={handlePaperWidthChange}
+            onWidthBlur={handlePaperWidthBlur}
             heightValue={paperHeightInput}
-            onHeightChange={onPaperHeightChange}
-            onHeightBlur={onPaperHeightBlur}
+            onHeightChange={handlePaperHeightChange}
+            onHeightBlur={handlePaperHeightBlur}
             widthLabel="Width"
             heightLabel="Height"
             widthPlaceholder="Width"

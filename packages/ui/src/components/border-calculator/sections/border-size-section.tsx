@@ -3,29 +3,25 @@ import {
   SLIDER_MIN_BORDER,
   SLIDER_STEP_BORDER,
 } from '@dorkroom/logic';
-import type { AnyFormApi } from '@tanstack/react-form';
 import { X } from 'lucide-react';
 import { useMemo } from 'react';
 import { LabeledSliderInput } from '../../../components/labeled-slider-input';
 import { StatusAlert } from '../../../components/status-alert';
+import { useBorderCalculator } from '../border-calculator-context';
 
 interface BorderSizeSectionProps {
   onClose: () => void;
-  form: AnyFormApi;
-  minBorderWarning?: string;
-  onRoundToQuarter?: () => void;
-  roundToQuarterDisabled?: boolean;
-  maxAllowedMinBorder: number;
 }
 
-export function BorderSizeSection({
-  onClose,
-  form,
-  minBorderWarning,
-  onRoundToQuarter,
-  roundToQuarterDisabled,
-  maxAllowedMinBorder,
-}: BorderSizeSectionProps) {
+export function BorderSizeSection({ onClose }: BorderSizeSectionProps) {
+  const {
+    form,
+    maxAllowedMinBorder,
+    quarterRoundedMinBorder,
+    minBorderWarning,
+    handleRoundMinBorderToQuarter,
+  } = useBorderCalculator();
+
   const minBorder = form.getFieldValue('minBorder');
 
   const borderSliderLabels = useMemo(
@@ -62,16 +58,14 @@ export function BorderSizeSection({
           continuousUpdate={true}
         />
 
-        {onRoundToQuarter && (
-          <button
-            type="button"
-            onClick={onRoundToQuarter}
-            disabled={roundToQuarterDisabled}
-            className="w-full rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Round to 1/4"
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={handleRoundMinBorderToQuarter}
+          disabled={quarterRoundedMinBorder === null}
+          className="w-full rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Round to 1/4"
+        </button>
 
         {minBorderWarning && (
           <StatusAlert message={minBorderWarning} action="error" />

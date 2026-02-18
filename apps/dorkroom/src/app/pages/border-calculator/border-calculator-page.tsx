@@ -1,12 +1,16 @@
-import { MobileBorderLayout, ResponsiveBorderLayout } from '@dorkroom/ui';
+import {
+  BorderCalculatorProvider,
+  MobileBorderLayout,
+  ResponsiveBorderLayout,
+} from '@dorkroom/ui';
 import { useBorderCalculatorController } from './hooks/use-border-calculator-controller';
 
 export default function BorderCalculatorPage() {
-  const controller = useBorderCalculatorController();
+  const { isDesktop, ...contextValue } = useBorderCalculatorController();
 
-  if (!controller.isDesktop) {
-    return <MobileBorderLayout {...controller} />;
-  }
-
-  return <ResponsiveBorderLayout {...controller} />;
+  return (
+    <BorderCalculatorProvider value={contextValue}>
+      {isDesktop ? <ResponsiveBorderLayout /> : <MobileBorderLayout />}
+    </BorderCalculatorProvider>
+  );
 }

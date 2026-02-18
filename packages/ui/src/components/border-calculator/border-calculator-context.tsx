@@ -6,15 +6,15 @@ import type {
   SelectItem,
   useGeometryCalculations,
 } from '@dorkroom/logic';
+import { createContext, type ReactNode, useContext } from 'react';
 import type { FormInstance } from '../../forms/utils/form-api-types';
 
 type GeometryCalculationResult = ReturnType<
   typeof useGeometryCalculations
 >['calculation'];
 
-export interface BorderCalculatorLayoutProps {
-  isDesktop: boolean;
-  form: FormInstance<BorderCalculatorState>;
+export interface BorderCalculatorContextValue {
+  form: FormInstance;
   formValues: BorderCalculatorState;
   calculation: GeometryCalculationResult | null;
   paperWidthInput: string;
@@ -81,4 +81,34 @@ export interface BorderCalculatorLayoutProps {
   formatWithUnit: (value: number) => string;
   formatDimensions: (width: number, height: number) => string;
   currentSettings: BorderPresetSettings;
+}
+
+const BorderCalculatorContext = createContext<
+  BorderCalculatorContextValue | undefined
+>(undefined);
+
+interface BorderCalculatorProviderProps {
+  value: BorderCalculatorContextValue;
+  children: ReactNode;
+}
+
+export function BorderCalculatorProvider({
+  value,
+  children,
+}: BorderCalculatorProviderProps) {
+  return (
+    <BorderCalculatorContext.Provider value={value}>
+      {children}
+    </BorderCalculatorContext.Provider>
+  );
+}
+
+export function useBorderCalculator(): BorderCalculatorContextValue {
+  const context = useContext(BorderCalculatorContext);
+  if (context === undefined) {
+    throw new Error(
+      'useBorderCalculator must be used within a BorderCalculatorProvider'
+    );
+  }
+  return context;
 }

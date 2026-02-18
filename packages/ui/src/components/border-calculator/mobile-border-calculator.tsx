@@ -42,6 +42,10 @@ import { useMeasurementFormatter } from '../../hooks/use-measurement-conversion'
 import { AnimatedPreview } from './animated-preview';
 // Components
 import { BladeResultsDisplay } from './blade-results-display';
+import {
+  type BorderCalculatorContextValue,
+  BorderCalculatorProvider,
+} from './border-calculator-context';
 // Sections
 import {
   BorderSizeSection,
@@ -639,6 +643,85 @@ export function MobileBorderCalculator({
     form.reset();
   };
 
+  // Build context value for drawer sections that consume from BorderCalculatorContext
+  const contextValue = useMemo<BorderCalculatorContextValue>(
+    () => ({
+      form,
+      formValues,
+      calculation,
+      paperWidthInput: '',
+      paperHeightInput: '',
+      displayPaperSizes: [...PAPER_SIZES],
+      quarterRoundedMinBorder,
+      maxAllowedMinBorder,
+      offsetWarning,
+      bladeWarning,
+      minBorderWarning,
+      paperSizeWarning,
+      presets,
+      presetItems: [],
+      selectedPresetId: currentPreset?.id ?? null,
+      presetName: currentPreset?.name ?? '',
+      isEditingPreset: false,
+      isSharing,
+      isGeneratingShareUrl,
+      isShareModalOpen,
+      isSaveBeforeShareOpen,
+      shareUrls,
+      canShareNatively: false,
+      canCopyToClipboard,
+      handlePaperWidthChange: () => {},
+      handlePaperWidthBlur: () => {},
+      handlePaperHeightChange: () => {},
+      handlePaperHeightBlur: () => {},
+      handleRoundMinBorderToQuarter,
+      resetToDefaults,
+      handleSelectPreset: () => {},
+      setPresetName: () => {},
+      setIsEditingPreset: () => {},
+      savePreset: () => {},
+      updatePresetHandler: () => {},
+      deletePresetHandler: () => {},
+      applyPresetSettings,
+      handleShareClick: handleShare,
+      handleSaveAndShare,
+      handleCopyToClipboard,
+      handleNativeShare: async () => {},
+      setIsShareModalOpen,
+      setIsSaveBeforeShareOpen,
+      formatWithUnit,
+      formatDimensions,
+      currentSettings,
+    }),
+    [
+      form,
+      formValues,
+      calculation,
+      quarterRoundedMinBorder,
+      maxAllowedMinBorder,
+      offsetWarning,
+      bladeWarning,
+      minBorderWarning,
+      paperSizeWarning,
+      presets,
+      currentPreset,
+      isSharing,
+      isGeneratingShareUrl,
+      isShareModalOpen,
+      isSaveBeforeShareOpen,
+      shareUrls,
+      canCopyToClipboard,
+      handleRoundMinBorderToQuarter,
+      applyPresetSettings,
+      handleShare,
+      handleSaveAndShare,
+      handleCopyToClipboard,
+      formatWithUnit,
+      formatDimensions,
+      currentSettings,
+    ]
+  );
+
   return (
     <div
       className="min-h-dvh px-4 pb-24 pt-10"
@@ -873,48 +956,30 @@ export function MobileBorderCalculator({
         >
           <DrawerContent>
             <DrawerBody>
-              {activeSection === 'paperSize' && (
-                <PaperSizeSection
-                  onClose={closeDrawer}
-                  form={form}
-                  isLandscape={isLandscape}
-                  isRatioFlipped={isRatioFlipped}
-                />
-              )}
+              <BorderCalculatorProvider value={contextValue}>
+                {activeSection === 'paperSize' && (
+                  <PaperSizeSection onClose={closeDrawer} />
+                )}
 
-              {activeSection === 'borderSize' && (
-                <BorderSizeSection
-                  onClose={closeDrawer}
-                  form={form}
-                  minBorderWarning={minBorderWarning || undefined}
-                  onRoundToQuarter={handleRoundMinBorderToQuarter}
-                  roundToQuarterDisabled={quarterRoundedMinBorder === null}
-                  maxAllowedMinBorder={maxAllowedMinBorder}
-                />
-              )}
+                {activeSection === 'borderSize' && (
+                  <BorderSizeSection onClose={closeDrawer} />
+                )}
 
-              {activeSection === 'positionOffsets' && (
-                <PositionOffsetsSection
-                  onClose={closeDrawer}
-                  form={form}
-                  enableOffset={enableOffset}
-                  ignoreMinBorder={ignoreMinBorder}
-                  offsetWarning={offsetWarning || undefined}
-                />
-              )}
+                {activeSection === 'positionOffsets' && (
+                  <PositionOffsetsSection onClose={closeDrawer} />
+                )}
 
-              {activeSection === 'presets' && (
-                <PresetsSection
-                  onClose={closeDrawer}
-                  presets={presets}
-                  currentPreset={currentPreset}
-                  onApplyPreset={handleApplyPreset}
-                  onSavePreset={handleSavePreset}
-                  onUpdatePreset={handleUpdatePreset}
-                  onDeletePreset={handleDeletePreset}
-                  getCurrentSettings={() => currentSettings}
-                />
-              )}
+                {activeSection === 'presets' && (
+                  <PresetsSection
+                    onClose={closeDrawer}
+                    currentPreset={currentPreset}
+                    onApplyPreset={handleApplyPreset}
+                    onSavePreset={handleSavePreset}
+                    onUpdatePreset={handleUpdatePreset}
+                    onDeletePreset={handleDeletePreset}
+                  />
+                )}
+              </BorderCalculatorProvider>
             </DrawerBody>
           </DrawerContent>
         </Drawer>

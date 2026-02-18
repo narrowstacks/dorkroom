@@ -1,32 +1,22 @@
-import type { BorderCalculation } from '@dorkroom/logic';
 import { CalculatorCard, CalculatorStat, StatusAlert } from '../../index';
-import type { FormatDimensionsOptions } from '../../lib/measurement';
-
-interface BladeReadingsSectionProps {
-  calculation: BorderCalculation;
-  formatWithUnit: (value: number) => string;
-  formatDimensions: (
-    width: number,
-    height: number,
-    options?: FormatDimensionsOptions
-  ) => string;
-  bladeWarning: string | null;
-  minBorderWarning: string | null;
-  paperSizeWarning: string | null;
-}
+import { useBorderCalculator } from './border-calculator-context';
 
 /**
  * Section displaying blade readings and calculated dimensions
  * Shows the final image size and all blade measurements
  */
-export function BladeReadingsSection({
-  calculation,
-  formatWithUnit,
-  formatDimensions,
-  bladeWarning,
-  minBorderWarning,
-  paperSizeWarning,
-}: BladeReadingsSectionProps) {
+export function BladeReadingsSection() {
+  const {
+    calculation,
+    formatWithUnit,
+    formatDimensions,
+    bladeWarning,
+    minBorderWarning,
+    paperSizeWarning,
+  } = useBorderCalculator();
+
+  if (!calculation) return null;
+
   // Determine actual paper orientation from calculated dimensions
   // This correctly handles custom paper sizes where width > height (already landscape)
   const isPaperActuallyLandscape =
@@ -80,8 +70,7 @@ export function BladeReadingsSection({
           label="Image Size"
           value={formatDimensions(
             calculation.printWidth,
-            calculation.printHeight,
-            { maxPrecision: 3 }
+            calculation.printHeight
           )}
           helperText="Final image area within the borders."
           className="sm:col-span-2"
