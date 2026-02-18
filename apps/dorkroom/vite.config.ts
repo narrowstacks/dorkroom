@@ -12,7 +12,7 @@ export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/apps/dorkroom',
   server: {
-    port: 4200,
+    port: Number(process.env.PORT) || 4200,
     host: 'localhost',
     proxy: {
       '/api/filmdev': {
