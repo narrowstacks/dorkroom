@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { lazy, StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import '@fontsource-variable/montserrat/index.css';
@@ -57,6 +58,7 @@ const root = ReactDOM.createRoot(
 root.render(
   <StrictMode>
     <Analytics />
+    <SpeedInsights />
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
