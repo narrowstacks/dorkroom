@@ -7,63 +7,63 @@ text and should not be considered legal advice.
 
 PROJECT-SPECIFIC INTERPRETATION OF AGPLv3
 
-There is a strong belief within us that the license we have chosen provides
-not only the best solution for providing you with the essential freedom
-necessary to use Dorkroom within your projects, but also for maintaining
-enough copyleft strength for us to feel confident and secure with releasing
-our hard work to the public. For your convenience we've included our own
-interpretation of the license we chose, which can be seen below.
+Dorkroom is a collection of specialized calculators and tools designed for
+analog photographers and darkroom enthusiasts, available at https://dorkroom.art.
+We believe the AGPLv3 provides the best balance between giving you the freedom
+to use, study, and build upon Dorkroom while ensuring that improvements to the
+project remain available to the community.
+
+For your convenience, we have included our own interpretation of how the license
+applies to Dorkroom. Quoted words refer to terms defined within the license text
+to avoid ambiguity.
 
 Our interpretation of the GNU Affero General Public License version 3:
-(Quoted words are words in which there exists a definition within the license
-to avoid ambiguity.)
 
-1. You must always provide the source code, copyright and license information
-   of Dorkroom whenever you "convey" any part of Dorkroom; be it a verbatim
-   copy or a modified copy.
+1. You must always provide the source code, copyright, and license information
+   of Dorkroom whenever you "convey" any part of Dorkroom, whether it is a
+   verbatim copy or a modified copy.
 
-2. Dorkroom was developed as a library and has therefore been designed without
-   knowledge of your work; as such the following should be implied:
+2. If you deploy a modified version of Dorkroom on a network server, you must
+   make the complete corresponding source code of your modified version
+   available to users who interact with it remotely, as required by Section 13
+   of the AGPLv3. This is the key distinction between the AGPLv3 and the
+   standard GPLv3.
 
-   a) Dorkroom was developed without knowledge of your work; as such the
-   following should be implied:
+3. Dorkroom is a standalone web application. The following should be understood
+   about how its license interacts with other works:
 
-   i) Dorkroom should not fall under a work which is "based on" your work.
-   ii) You should be free to use Dorkroom in a work covered by the: - GNU General Public License version 2 - GNU Lesser General Public License version 2.1
-   This is due to those licenses classifying Dorkroom as a work which
-   would fall under an "aggregate" work by their terms and definitions;
-   as such it should not be covered by their terms and conditions. The
-   relevant passages start at: - Line 129 of the GNU General Public License version 2 - Line 206 of the GNU Lesser General Public License version 2.1
+   a) If you use Dorkroom's source code as part of a larger work without
+   modifying Dorkroom itself, and the two components remain separate and
+   independent works, your work may qualify as an "aggregate" under the
+   license and would not be bound by the AGPLv3 terms.
 
-   b) If you have not "modified", "adapted" or "extended" Dorkroom then your
-   work should not be bound by this license, as you are using Dorkroom
-   under the definition of an "aggregate" work.
+   b) If you have "modified", "adapted", or "extended" Dorkroom, then those
+   modifications, extensions, or adaptations are considered "based on"
+   Dorkroom and must be licensed under the AGPLv3.
 
-   c) If you have "modified", "adapted" or "extended" Dorkroom then any of
-   those modifications/extensions/adaptations which you have made should
-   indeed be bound by this license, as you are using Dorkroom under the
-   definition of a "based on" work.
+4. Film development data (recipes, development times, and related information)
+   displayed by Dorkroom may be freely reproduced in any form. The AGPLv3
+   applies to the software itself, not to factual data.
 
-Our hopes is that our own interpretation of license aligns perfectly with your
-own values and goals for using our work freely and securely. If you have any
-questions at all about the licensing chosen for Dorkroom you can email us
-directly at aaron@affords.art or you can get in touch with the license
-authors (the Free Software Foundation) at licensing@fsf.org to gain their
-opinion too.
+5. Dorkroom provides a public REST API for accessing film and developer data.
+   Simply consuming this API from your own application (i.e. making HTTP
+   requests to Dorkroom's endpoints and using the returned data) does not
+   make your application a "modified version" of or "based on" Dorkroom.
+   Your application's interaction with the API is at arm's length, so the
+   AGPLv3 obligations do not extend to your code. You are, however, still
+   bound by any applicable terms of service and rate limits for the API
+   itself.
 
-Alternatively you can provide feedback and acquire the support you need at our
-support forum. We'll definitely try and help you as soon as possible, and to
-the best of our ability; as we understand that user experience is everything,
-so we want to make you as happy as possible! So feel free to get in touch via
-our support forum and chat with other users of Dorkroom here at:
-https://github.com/narrowstacks/dorkroom
+We hope this interpretation aligns with your values and goals. If you have any
+questions about the licensing of Dorkroom, you can:
 
-Thanks, and we hope you enjoy using Dorkroom and that it's everything you ever
-hoped it could be.
+- Email us directly at aaron@affords.art
+- Open an issue on GitHub at https://github.com/narrowstacks/dorkroom
+- Contact the license authors (the Free Software Foundation) at
+  licensing@fsf.org for their opinion
 
 DISCLAIMER
 
 This interpretation is provided for informational purposes only and does not
-constitute legal advice. For definitive guidance on the AGPLv3, please
-consult with a qualified attorney or contact the Free Software Foundation
-directly.
+constitute legal advice. For definitive guidance on the AGPLv3, please consult
+with a qualified attorney or contact the Free Software Foundation directly.
