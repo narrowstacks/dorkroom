@@ -29,8 +29,8 @@ if [ -z "$CHANGED_FILES" ]; then
   exit $?
 fi
 
-# Skip if changes are ONLY in these paths
-NON_BUILD_PATTERNS="(^docs/|^\.github/|^\.cursor/|^\.vscode/|^\.claude/|\.md$)"
+# Skip if changes are ONLY in these paths/files
+NON_BUILD_PATTERNS="(^docs/|^\.github/|^\.cursor/|^\.vscode/|^\.claude/|\.md$|^LICENSE$|^NOTICE$|^\.gitignore$|^\.dockerignore$|^\.editorconfig$)"
 
 # Check if ANY changed file is NOT in the skip patterns
 if echo "$CHANGED_FILES" | grep -qvE "$NON_BUILD_PATTERNS"; then
