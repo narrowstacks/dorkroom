@@ -92,7 +92,7 @@ export const useDevelopmentRecipes = (
   const queryClient = useQueryClient();
 
   // Filter and sort API data
-  const allFilms = useMemo(() => {
+  const allFilmsUnfiltered = useMemo(() => {
     if (!filmsQuery.data) return [];
 
     // Filter for black & white films only
@@ -111,7 +111,7 @@ export const useDevelopmentRecipes = (
       );
   }, [filmsQuery.data]);
 
-  const allDevelopers = useMemo(() => {
+  const allDevelopersUnfiltered = useMemo(() => {
     if (!developersQuery.data) return [];
 
     // Filter for film developers only (filmOrPaper: true = film, false = paper)
@@ -132,6 +132,47 @@ export const useDevelopmentRecipes = (
   const allCombinations = useMemo(
     () => combinationsQuery.data || [],
     [combinationsQuery.data]
+  );
+
+  // Build sets of film/developer IDs that appear in at least one combination
+  // so we can exclude films/developers with no recipes from filter dropdowns
+  const filmIdsWithCombinations = useMemo(() => {
+    const ids = new Set<string>();
+    for (const combo of allCombinations) {
+      if (combo.filmStockId) ids.add(combo.filmStockId);
+      if (combo.filmSlug) ids.add(combo.filmSlug);
+    }
+    return ids;
+  }, [allCombinations]);
+
+  const developerIdsWithCombinations = useMemo(() => {
+    const ids = new Set<string>();
+    for (const combo of allCombinations) {
+      if (combo.developerId) ids.add(combo.developerId);
+      if (combo.developerSlug) ids.add(combo.developerSlug);
+    }
+    return ids;
+  }, [allCombinations]);
+
+  // Only include films/developers that have at least one combination
+  const allFilms = useMemo(
+    () =>
+      allFilmsUnfiltered.filter(
+        (film) =>
+          filmIdsWithCombinations.has(film.uuid) ||
+          filmIdsWithCombinations.has(film.slug)
+      ),
+    [allFilmsUnfiltered, filmIdsWithCombinations]
+  );
+
+  const allDevelopers = useMemo(
+    () =>
+      allDevelopersUnfiltered.filter(
+        (dev) =>
+          developerIdsWithCombinations.has(dev.uuid) ||
+          developerIdsWithCombinations.has(dev.slug)
+      ),
+    [allDevelopersUnfiltered, developerIdsWithCombinations]
   );
 
   // UI state
@@ -211,24 +252,26 @@ export const useDevelopmentRecipes = (
     (id?: string | null): Film | undefined => {
       if (!id) return undefined;
       const key = String(id);
-      return allFilms.find(
+      // Use unfiltered list so lookups work for custom recipes referencing any film
+      return allFilmsUnfiltered.find(
         (film) =>
           film.id.toString() === key || film.uuid === key || film.slug === key
       );
     },
-    [allFilms]
+    [allFilmsUnfiltered]
   );
 
   const getDeveloperById = useCallback(
     (id?: string | null): Developer | undefined => {
       if (!id) return undefined;
       const key = String(id);
-      return allDevelopers.find(
+      // Use unfiltered list so lookups work for custom recipes referencing any developer
+      return allDevelopersUnfiltered.find(
         (dev) =>
           dev.id.toString() === key || dev.uuid === key || dev.slug === key
       );
     },
-    [allDevelopers]
+    [allDevelopersUnfiltered]
   );
 
   const getCombinationsForFilm = useCallback(
