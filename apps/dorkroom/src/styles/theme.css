@@ -16,6 +16,93 @@
   --spacing-hero-blob-offset: -1rem;
 }
 
+/* Darkroom theme checkbox */
+[data-theme="darkroom"] input[type="checkbox"] {
+  accent-color: #ff0000;
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #ff0000;
+  border-radius: 3px;
+  background: #000000;
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+}
+
+[data-theme="darkroom"] input[type="checkbox"]::before {
+  content: "";
+  width: 0.6rem;
+  height: 0.6rem;
+  transform: scale(0);
+  background-color: #ff0000;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+[data-theme="darkroom"] input[type="checkbox"]:checked {
+  background: #000000;
+  border-color: #ff0000;
+}
+
+[data-theme="darkroom"] input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}
+
+/* High-contrast theme checkbox */
+[data-theme="high-contrast"] input[type="checkbox"] {
+  accent-color: #000000;
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #000000;
+  border-radius: 3px;
+  background: #ffffff;
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+}
+
+[data-theme="high-contrast"] input[type="checkbox"]::before {
+  content: "";
+  width: 0.6rem;
+  height: 0.6rem;
+  transform: scale(0);
+  background-color: #000000;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+[data-theme="high-contrast"] input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}
+
+/* Darkroom theme scrollbar */
+[data-theme="darkroom"] {
+  scrollbar-color: #ff0000 #000000;
+}
+
+[data-theme="darkroom"] ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+[data-theme="darkroom"] ::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+[data-theme="darkroom"] ::-webkit-scrollbar-thumb {
+  background: #ff0000;
+  border: 2px solid #000000;
+  border-radius: 5px;
+}
+
+[data-theme="darkroom"] ::-webkit-scrollbar-thumb:hover {
+  background: #ff0000;
+}
+
+[data-theme="darkroom"] ::-webkit-scrollbar-corner {
+  background: #000000;
+}
+
 /* Darkroom theme. All red or black. Mostly black. */
 [data-theme="darkroom"] {
   --color-background: #000000;
@@ -65,17 +152,20 @@
   --gradient-card-error: #000000;
   --gradient-card-ko-fi: #000000;
   --color-tag-official-ilford: #ff0000;
-  --color-tag-official-kodak: #e00000;
-  --color-tag-official-fuji: #c00000;
+  --color-tag-official-kodak: #ff0000;
+  --color-tag-official-fuji: #ff0000;
   --color-tag-official-cinestill: #ff0000;
-  --color-tag-official-rollei: #e00000;
-  --color-tag-official-lomography: #c00000;
-  --color-tag-official-jch: #a00000;
-  --color-tag-community: #a00000;
-  --color-tag-default: #800000;
-  --color-tag-bw: #800000;
+  --color-tag-official-rollei: #ff0000;
+  --color-tag-official-lomography: #ff0000;
+  --color-tag-official-jch: #ff0000;
+  --color-tag-community: #ff0000;
+  --color-tag-default: #ff0000;
+  --color-tag-bw: #ff0000;
   --color-tag-color: #ff0000;
-  --color-tag-slide: #e00000;
+  --color-tag-slide: #ff0000;
+  --color-official-badge-bg: #ff0000;
+  --color-official-badge-border: #ff0000;
+  --color-official-badge-icon: #000000;
   --toggle-pill-border: 1px solid #ff0000;
   --toggle-circle-border: 1px solid #ff0000;
   /* Ensure toggle knob is black in both states */
@@ -462,6 +552,9 @@
   --color-tag-bw: #000000;
   --color-tag-color: #000000;
   --color-tag-slide: #000000;
+  --color-official-badge-bg: #000000;
+  --color-official-badge-border: #000000;
+  --color-official-badge-icon: #ffffff;
   --toggle-pill-border: 1px solid #000000;
   --toggle-pill-border-active: 1px solid #000000;
   --toggle-circle-border: 1px solid #000000;
@@ -626,10 +719,35 @@
   background-image: none;
 }
 
+/* Official badge: solid fill in darkroom & high-contrast themes */
+[data-theme="darkroom"] .official-badge {
+  background-color: var(--color-official-badge-bg) !important;
+  border-color: var(--color-official-badge-border) !important;
+  color: var(--color-official-badge-icon) !important;
+}
+
+[data-theme="high-contrast"] .official-badge {
+  background-color: var(--color-official-badge-bg) !important;
+  border-color: var(--color-official-badge-border) !important;
+  color: var(--color-official-badge-icon) !important;
+}
+
 /* Ensure all icons use only black/red in darkroom theme (except coming soon section) */
 [data-theme="darkroom"] svg:not([data-coming-soon]) {
   color: var(--color-text-primary);
   stroke: var(--color-text-primary);
+}
+
+/* Override: elements with inverted color scheme (colored bg + contrasting icon) keep their icon color */
+[data-theme="darkroom"] .darkroom-invert-icon svg {
+  color: var(--color-background) !important;
+  stroke: var(--color-background) !important;
+}
+
+/* Override: official badge icon stays black in darkroom theme */
+[data-theme="darkroom"] .official-badge svg {
+  color: var(--color-official-badge-icon) !important;
+  stroke: var(--color-official-badge-icon) !important;
 }
 
 /* Ensure focus rings use only red/black in darkroom theme */
@@ -748,7 +866,7 @@
 }
 
 /* Make navigation icons black when nav item is active in darkroom mode (red bg needs black icons) */
-[data-theme="darkroom"] .shadow-subtle svg:not([data-coming-soon]) {
+[data-theme="darkroom"] nav .shadow-subtle svg:not([data-coming-soon]) {
   color: #000000;
   stroke: #000000;
 }

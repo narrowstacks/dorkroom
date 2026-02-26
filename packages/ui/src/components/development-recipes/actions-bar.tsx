@@ -56,7 +56,7 @@ export function DevelopmentActionsBar({
               onClick={() => onViewModeChange('table')}
               className={cn(
                 'flex items-center gap-2 px-3 py-2 transition',
-                viewMode === 'table' ? '' : ''
+                viewMode === 'table' && 'darkroom-invert-icon'
               )}
               style={
                 viewMode === 'table'
@@ -91,7 +91,7 @@ export function DevelopmentActionsBar({
               onClick={() => onViewModeChange('grid')}
               className={cn(
                 'flex items-center gap-2 px-3 py-2 transition',
-                viewMode === 'grid' ? '' : ''
+                viewMode === 'grid' && 'darkroom-invert-icon'
               )}
               style={
                 viewMode === 'grid'
@@ -185,7 +185,7 @@ export function DevelopmentActionsBar({
         <button
           type="button"
           onClick={onOpenCustomRecipeModal}
-          className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition"
+          className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition darkroom-invert-icon"
           style={{
             backgroundColor: 'var(--color-text-primary)',
             color: 'var(--color-background)',

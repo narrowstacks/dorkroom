@@ -36,7 +36,8 @@ export function ImportRecipeForm({
         e.stopPropagation();
         form.handleSubmit();
       }}
-      className="space-y-4 text-sm text-white/80"
+      className="space-y-4 text-sm"
+      style={{ color: 'var(--color-text-secondary)' }}
     >
       <form.Field name="encoded">
         {(field) => (
@@ -82,7 +83,20 @@ export function ImportRecipeForm({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white/70 transition hover:border-white/40 hover:text-white"
+            className="rounded-full border px-4 py-2 text-sm font-medium transition"
+            style={{
+              borderColor: 'var(--color-border-secondary)',
+              color: 'var(--color-text-secondary)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+              e.currentTarget.style.color = 'var(--color-text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor =
+                'var(--color-border-secondary)';
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+            }}
           >
             Cancel
           </button>
@@ -95,10 +109,20 @@ export function ImportRecipeForm({
               type="submit"
               disabled={!canSubmit || isProcessing || isSubmitting}
               className={cn(
-                'rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90',
+                'rounded-full px-4 py-2 text-sm font-semibold transition',
                 (!canSubmit || isProcessing || isSubmitting) &&
                   'cursor-not-allowed opacity-70'
               )}
+              style={{
+                backgroundColor: 'var(--color-text-primary)',
+                color: 'var(--color-background)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '0.9';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '1';
+              }}
             >
               {isProcessing || isSubmitting ? 'Importing…' : 'Import recipe'}
             </button>

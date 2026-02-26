@@ -92,7 +92,7 @@ export function OfficialBadge({ tag, showTooltip = true }: OfficialBadgeProps) {
       onMouseLeave={showTooltip ? hide : undefined}
     >
       <span
-        className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border"
+        className="official-badge inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border"
         role="img"
         style={{
           backgroundColor: themeStyle.backgroundColor,

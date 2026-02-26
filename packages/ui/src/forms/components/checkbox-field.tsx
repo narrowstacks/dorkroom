@@ -63,19 +63,29 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
           onBlur={field.handleBlur}
           disabled={disabled}
           className={cn(
-            'w-4 h-4 border border-gray-300 rounded',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500',
-            'disabled:bg-gray-100 disabled:cursor-not-allowed',
-            showErrors && 'border-red-500 focus:ring-red-500',
+            'w-4 h-4 rounded',
+            'focus:outline-none focus:ring-2',
+            'disabled:cursor-not-allowed disabled:opacity-50',
             className
           )}
+          style={{
+            accentColor: 'var(--color-primary)',
+            borderColor: showErrors
+              ? 'var(--color-semantic-error)'
+              : 'var(--color-border-primary)',
+          }}
         />
         {label && (
-          <span className="text-sm font-medium text-gray-700">{label}</span>
+          <span
+            className="text-sm font-medium"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            {label}
+          </span>
         )}
       </label>
       {showErrors && (
-        <p className="text-sm text-red-600">
+        <p className="text-sm" style={{ color: 'var(--color-semantic-error)' }}>
           {normalizeErrors(field.state.meta.errors)}
         </p>
       )}

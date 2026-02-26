@@ -209,6 +209,7 @@ export function CollapsibleFilters({
                     type="checkbox"
                     checked={favoritesOnly}
                     onChange={(e) => onFavoritesOnlyChange(e.target.checked)}
+                    style={{ accentColor: 'var(--color-primary)' }}
                   />
                   Favorites only
                 </label>
