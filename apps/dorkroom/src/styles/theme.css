@@ -67,6 +67,10 @@
   --color-tag-official-ilford: #ff0000;
   --color-tag-official-kodak: #e00000;
   --color-tag-official-fuji: #c00000;
+  --color-tag-official-cinestill: #ff0000;
+  --color-tag-official-rollei: #e00000;
+  --color-tag-official-lomography: #c00000;
+  --color-tag-official-jch: #a00000;
   --color-tag-community: #a00000;
   --color-tag-default: #800000;
   --color-tag-bw: #800000;
@@ -202,6 +206,10 @@
   --color-tag-official-ilford: #6ef3a4;
   --color-tag-official-kodak: #e5ff7d;
   --color-tag-official-fuji: #7dd6ff;
+  --color-tag-official-cinestill: #f87171;
+  --color-tag-official-rollei: #c4b5fd;
+  --color-tag-official-lomography: #f9a8d4;
+  --color-tag-official-jch: #5eead4;
   --color-tag-community: #f99f96;
   --color-tag-default: #a1a1aa;
   --color-tag-bw: #a1a1aa;
@@ -336,6 +344,10 @@
   --color-tag-official-ilford: #2d7a4a;
   --color-tag-official-kodak: #8b9c2e;
   --color-tag-official-fuji: #1e6091;
+  --color-tag-official-cinestill: #b91c1c;
+  --color-tag-official-rollei: #6d28d9;
+  --color-tag-official-lomography: #be185d;
+  --color-tag-official-jch: #0d9488;
   --color-tag-community: #c4524a;
   --color-tag-default: #52525b;
   --color-tag-bw: #52525b;
@@ -441,6 +453,10 @@
   --color-tag-official-ilford: #000000;
   --color-tag-official-kodak: #000000;
   --color-tag-official-fuji: #000000;
+  --color-tag-official-cinestill: #000000;
+  --color-tag-official-rollei: #000000;
+  --color-tag-official-lomography: #000000;
+  --color-tag-official-jch: #000000;
   --color-tag-community: #000000;
   --color-tag-default: #000000;
   --color-tag-bw: #000000;
