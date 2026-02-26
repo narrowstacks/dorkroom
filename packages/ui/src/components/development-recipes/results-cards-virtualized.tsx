@@ -480,7 +480,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
                                   combination.shootingIso,
                                   film.isoSpeed
                                 )
-                              : combination.pushPull;
+                              : (combination.pushPull ?? 0);
                             const isPushed = pushPull > 0;
                             const isNonBoxSpeed = pushPull !== 0;
                             const getIsoColor = () => {

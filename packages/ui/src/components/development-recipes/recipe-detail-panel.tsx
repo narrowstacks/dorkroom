@@ -111,7 +111,7 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
   // Calculate pushPull from film box speed if available, otherwise use stored value
   const pushPull = film?.isoSpeed
     ? calculatePushPull(combination.shootingIso, film.isoSpeed)
-    : combination.pushPull;
+    : (combination.pushPull ?? 0);
 
   const filmDatabaseUrl = film?.slug ? `/films?film=${film.slug}` : null;
 

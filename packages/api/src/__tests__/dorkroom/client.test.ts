@@ -289,6 +289,94 @@ describe('DorkroomApiClient', () => {
 
       expect(result[0].tags).toBeNull();
     });
+
+    it('should pass through null push_pull from API', async () => {
+      const mockRawCombinations: RawCombination[] = [
+        {
+          id: 1,
+          uuid: 'combo-uuid',
+          name: 'Test Combination',
+          film_stock: 'test-film',
+          developer: 'test-developer',
+          shooting_iso: 400,
+          dilution_id: null,
+          custom_dilution: null,
+          temperature_celsius: 20,
+          time_minutes: 10,
+          agitation_method: null,
+          push_pull: null,
+          tags: null,
+          notes: null,
+          info_source: null,
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z',
+        },
+      ];
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: mockRawCombinations }),
+      });
+
+      const result = await client.fetchCombinations();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].pushPull).toBeNull();
+    });
+
+    it('should filter out invalid combinations and return valid ones', async () => {
+      const validRaw: RawCombination = {
+        id: 1,
+        uuid: 'combo-uuid-valid',
+        name: 'Valid Combination',
+        film_stock: 'test-film',
+        developer: 'test-developer',
+        shooting_iso: 400,
+        dilution_id: null,
+        custom_dilution: null,
+        temperature_celsius: 20,
+        time_minutes: 10,
+        agitation_method: null,
+        push_pull: 0,
+        tags: null,
+        notes: null,
+        info_source: null,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+      };
+
+      // Invalid item: missing required fields
+      const invalidRaw = {
+        id: 2,
+        uuid: 'combo-uuid-invalid',
+        // Missing film_stock, developer, shooting_iso, etc.
+        temperature_celsius: 'not-a-number', // Wrong type
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [validRaw, invalidRaw] }),
+      });
+
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const result = await client.fetchCombinations();
+      warnSpy.mockRestore();
+
+      // Only the valid combination should be returned
+      expect(result).toHaveLength(1);
+      expect(result[0].uuid).toBe('combo-uuid-valid');
+    });
+
+    it('should throw when the response envelope is invalid', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ notData: [] }), // Missing 'data' array
+      });
+
+      await expect(client.fetchCombinations()).rejects.toThrow(
+        'Invalid API response format for combinations'
+      );
+    });
   });
 });
 

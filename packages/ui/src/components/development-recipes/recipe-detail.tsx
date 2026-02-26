@@ -76,7 +76,7 @@ export function DevelopmentRecipeDetail({
   // Calculate pushPull from film box speed if available, otherwise use stored value
   const pushPull = film?.isoSpeed
     ? calculatePushPull(combination.shootingIso, film.isoSpeed)
-    : combination.pushPull;
+    : (combination.pushPull ?? 0);
 
   // Get dilution label for volume mixer
   const dilutionLabel =

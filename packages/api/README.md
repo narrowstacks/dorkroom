@@ -178,7 +178,7 @@ interface Combination {
   timeMinutes: number;
   agitationMethod: string;
   agitationSchedule: string | null;
-  pushPull: number;
+  pushPull: number | null;
   tags: string[] | null;
   notes: string | null;
   infoSource: string;

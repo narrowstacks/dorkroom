@@ -66,7 +66,7 @@ export interface Combination {
   timeMinutes: number;
   agitationMethod: string;
   agitationSchedule: string | null;
-  pushPull: number;
+  pushPull: number | null;
   tags: string[] | null;
   notes: string | null;
   infoSource: string | null;
@@ -139,7 +139,7 @@ export interface RawCombination {
   temperature_celsius: number;
   time_minutes: number;
   agitation_method: string | null;
-  push_pull: number;
+  push_pull: number | null;
   tags: string[] | null; // Array, not string
   notes: string | null;
   info_source: string | null;

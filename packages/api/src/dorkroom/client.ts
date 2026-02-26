@@ -1,7 +1,8 @@
+import { z } from 'zod';
 import {
-  combinationsResponseSchema,
-  developersResponseSchema,
-  filmsResponseSchema,
+  rawCombinationSchema,
+  rawDeveloperSchema,
+  rawFilmSchema,
 } from './schemas';
 import type {
   Combination,
@@ -11,6 +12,15 @@ import type {
   RawDeveloper,
   RawFilm,
 } from './types';
+
+/**
+ * Minimal envelope schema - validates only that the response has a data array.
+ * Individual items are validated separately to allow graceful filtering.
+ */
+const envelopeSchema = z.object({
+  data: z.array(z.unknown()),
+  count: z.number().optional(),
+});
 
 /**
  * Default API base URL for production Dorkroom API
@@ -28,7 +38,8 @@ export class DorkroomApiClient {
   }
 
   /**
-   * Fetch films from the API with runtime validation
+   * Fetch films from the API with runtime validation.
+   * Invalid individual items are filtered out rather than failing the entire request.
    */
   async fetchFilms(options?: { signal?: AbortSignal }): Promise<Film[]> {
     const response = await fetch(`${this.baseUrl}/films`, {
@@ -40,21 +51,39 @@ export class DorkroomApiClient {
 
     const json: unknown = await response.json();
 
-    // Runtime validation of API response
-    const result = filmsResponseSchema.safeParse(json);
-    if (!result.success) {
+    // Validate the outer envelope structure
+    const envelope = envelopeSchema.safeParse(json);
+    if (!envelope.success) {
       console.error(
-        '[DorkroomApiClient] Films API response validation failed:',
-        result.error
+        '[DorkroomApiClient] Films API response envelope invalid:',
+        envelope.error
       );
       throw new Error('Invalid API response format for films');
     }
 
-    return result.data.data.map(this.transformFilm.bind(this));
+    // Validate each item individually, filter out invalid ones
+    const validItems: RawFilm[] = [];
+    let invalidCount = 0;
+    for (const item of envelope.data.data) {
+      const result = rawFilmSchema.safeParse(item);
+      if (result.success) {
+        validItems.push(result.data);
+      } else {
+        invalidCount++;
+      }
+    }
+    if (invalidCount > 0) {
+      console.warn(
+        `[DorkroomApiClient] Filtered out ${invalidCount} invalid film(s) from API response`
+      );
+    }
+
+    return validItems.map(this.transformFilm.bind(this));
   }
 
   /**
-   * Fetch developers from the API with runtime validation
+   * Fetch developers from the API with runtime validation.
+   * Invalid individual items are filtered out rather than failing the entire request.
    */
   async fetchDevelopers(options?: {
     signal?: AbortSignal;
@@ -68,21 +97,39 @@ export class DorkroomApiClient {
 
     const json: unknown = await response.json();
 
-    // Runtime validation of API response
-    const result = developersResponseSchema.safeParse(json);
-    if (!result.success) {
+    // Validate the outer envelope structure
+    const envelope = envelopeSchema.safeParse(json);
+    if (!envelope.success) {
       console.error(
-        '[DorkroomApiClient] Developers API response validation failed:',
-        result.error
+        '[DorkroomApiClient] Developers API response envelope invalid:',
+        envelope.error
       );
       throw new Error('Invalid API response format for developers');
     }
 
-    return result.data.data.map(this.transformDeveloper.bind(this));
+    // Validate each item individually, filter out invalid ones
+    const validItems: RawDeveloper[] = [];
+    let invalidCount = 0;
+    for (const item of envelope.data.data) {
+      const result = rawDeveloperSchema.safeParse(item);
+      if (result.success) {
+        validItems.push(result.data);
+      } else {
+        invalidCount++;
+      }
+    }
+    if (invalidCount > 0) {
+      console.warn(
+        `[DorkroomApiClient] Filtered out ${invalidCount} invalid developer(s) from API response`
+      );
+    }
+
+    return validItems.map(this.transformDeveloper.bind(this));
   }
 
   /**
-   * Fetch combinations from the API with runtime validation
+   * Fetch combinations from the API with runtime validation.
+   * Invalid individual items are filtered out rather than failing the entire request.
    */
   async fetchCombinations(options?: {
     signal?: AbortSignal;
@@ -96,17 +143,34 @@ export class DorkroomApiClient {
 
     const json: unknown = await response.json();
 
-    // Runtime validation of API response
-    const result = combinationsResponseSchema.safeParse(json);
-    if (!result.success) {
+    // Validate the outer envelope structure
+    const envelope = envelopeSchema.safeParse(json);
+    if (!envelope.success) {
       console.error(
-        '[DorkroomApiClient] Combinations API response validation failed:',
-        result.error
+        '[DorkroomApiClient] Combinations API response envelope invalid:',
+        envelope.error
       );
       throw new Error('Invalid API response format for combinations');
     }
 
-    return result.data.data.map(this.transformCombination.bind(this));
+    // Validate each item individually, filter out invalid ones
+    const validItems: RawCombination[] = [];
+    let invalidCount = 0;
+    for (const item of envelope.data.data) {
+      const result = rawCombinationSchema.safeParse(item);
+      if (result.success) {
+        validItems.push(result.data);
+      } else {
+        invalidCount++;
+      }
+    }
+    if (invalidCount > 0) {
+      console.warn(
+        `[DorkroomApiClient] Filtered out ${invalidCount} invalid combination(s) from API response`
+      );
+    }
+
+    return validItems.map(this.transformCombination.bind(this));
   }
 
   /**

@@ -255,6 +255,21 @@ describe('API Response Schemas', () => {
       const result = rawCombinationSchema.safeParse(invalidCombination);
       expect(result.success).toBe(false);
     });
+
+    it('should accept combination with null push_pull (DB column is nullable)', () => {
+      const combinationWithNullPushPull = {
+        ...validCombination,
+        push_pull: null,
+      };
+
+      const result = rawCombinationSchema.safeParse(
+        combinationWithNullPushPull
+      );
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.push_pull).toBeNull();
+      }
+    });
   });
 
   describe('filmsResponseSchema', () => {

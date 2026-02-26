@@ -75,7 +75,7 @@ export const rawCombinationSchema = z.object({
   temperature_celsius: z.number(),
   time_minutes: z.number(),
   agitation_method: z.string().nullable(),
-  push_pull: z.number(),
+  push_pull: z.number().nullable(),
   tags: z.array(z.string()).nullable(), // Array, not string
   notes: z.string().nullable(),
   info_source: z.string().nullable(),

@@ -249,7 +249,7 @@ function IsoCellRenderer({
   // Calculate pushPull from film box speed if available, otherwise use stored value
   const pushPull = film?.isoSpeed
     ? calculatePushPull(shootingIso, film.isoSpeed)
-    : combination.pushPull;
+    : (combination.pushPull ?? 0);
 
   const isPushed = pushPull > 0;
   const isNonBoxSpeed = pushPull !== 0;
