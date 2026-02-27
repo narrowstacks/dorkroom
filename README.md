@@ -162,6 +162,7 @@ Dorkroom provides a comprehensive API for accessing film development data, avail
 - **TypeScript Client**: `@dorkroom/api` package with fuzzy search and caching
 - **REST Endpoints**: `/api/films`, `/api/developers`, `/api/combinations`
 - **Features**: Query parameters, fuzzy search, request validation, CORS support
+- **API Key Access**: Contact [aaron+dorkroom@affords.art](mailto:aaron+dorkroom@affords.art) to request a key for `https://api.dorkroom.art`
 - **Authentication**: Supabase service role key (server-side only)
 
 ## Contributing
