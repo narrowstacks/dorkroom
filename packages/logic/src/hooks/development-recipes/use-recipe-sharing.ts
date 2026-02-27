@@ -132,7 +132,6 @@ export function useRecipeSharing() {
               title: `Development Recipe${
                 options.recipeName ? `: ${options.recipeName}` : ''
               }`,
-              text: `Check out this film development recipe: ${shareUrl}`,
               url: shareUrl,
             });
             return { success: true, method: 'webShare', url: shareUrl };
