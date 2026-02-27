@@ -5,6 +5,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
  * Edge Function: /films
  *
  * Query Parameters:
+ *   - slug: Exact match on film slug
  *   - query: Search term for film name or brand
  *   - fuzzy: Enable fuzzy search (true/false)
  *   - limit: Maximum number of results
@@ -72,6 +73,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   //  Parse query params
   // ────────────────────────────────────────
   const { searchParams } = new URL(req.url);
+  const slug = searchParams.get('slug');
   const query = searchParams.get('query');
   const fuzzy = searchParams.get('fuzzy') === 'true';
   const limit = parseInt(searchParams.get('limit') ?? '0', 10);
@@ -86,6 +88,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   });
 
   // Apply filters
+  if (slug) {
+    dbQuery = dbQuery.eq('slug', slug);
+  }
   if (colorType) {
     dbQuery = dbQuery.eq('color_type', colorType);
   }

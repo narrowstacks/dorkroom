@@ -11,7 +11,14 @@ import { withHandler } from '../utils/withHandler';
 
 const TIMEOUT_MS = 30_000;
 const MAX_RESPONSE_SIZE = 1024 * 1024;
-const ALLOWED_PARAMS = ['query', 'fuzzy', 'limit', 'type', 'manufacturer'];
+const ALLOWED_PARAMS = [
+  'query',
+  'fuzzy',
+  'limit',
+  'type',
+  'manufacturer',
+  'slug',
+];
 
 export default withHandler({
   name: 'developers',

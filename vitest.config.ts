@@ -8,6 +8,7 @@ export default defineConfig({
       'apps/*/vite.config.{mjs,js,ts,mts}',
       'packages/*/vite.config.{mjs,js,ts,mts}',
       {
+        esbuild: { jsx: 'automatic' },
         test: {
           name: 'serverless',
           watch: false,
@@ -17,6 +18,7 @@ export default defineConfig({
             'api/__tests__/**/*.{test,spec}.ts',
             'utils/__tests__/withHandler.{test,spec}.ts',
             'utils/__tests__/queryValidation.{test,spec}.ts',
+            'utils/__tests__/routeMetadata.{test,spec}.ts',
           ],
           exclude: ['utils/__tests__/presetSharing.{test,spec}.ts'],
           reporters: ['default'],

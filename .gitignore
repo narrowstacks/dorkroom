@@ -67,6 +67,9 @@ test-results/
 build-archive.log
 PR_BODY_THEMING.md
 
+# OG preview images (generated)
+og-previews/
+
 # Miscellaneous
 .vercel
 .letta

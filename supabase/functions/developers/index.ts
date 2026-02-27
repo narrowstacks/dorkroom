@@ -5,6 +5,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
  * Edge Function: /developers
  *
  * Query Parameters:
+ *   - slug: Exact match on developer slug
  *   - query: Search term for developer name
  *   - fuzzy: Enable fuzzy search (true/false)
  *   - limit: Maximum number of results
@@ -72,6 +73,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   //  Parse query params
   // ────────────────────────────────────────
   const { searchParams } = new URL(req.url);
+  const slug = searchParams.get('slug');
   const query = searchParams.get('query');
   const fuzzy = searchParams.get('fuzzy') === 'true';
   const limit = parseInt(searchParams.get('limit') ?? '0', 10);
@@ -86,6 +88,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   });
 
   // Apply filters
+  if (slug) {
+    dbQuery = dbQuery.eq('slug', slug);
+  }
   if (type) {
     dbQuery = dbQuery.eq('type', type);
   }
