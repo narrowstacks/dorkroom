@@ -1,9 +1,15 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [".env", "tsconfig.json"],
+  "globalDependencies": [
+    ".env",
+    "tsconfig.json",
+    "tsconfig.base.json",
+    "bun.lock"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "inputs": ["src/**", "package.json", "tsconfig*.json"],
       "outputs": ["dist/**"]
     },
     "@dorkroom/dorkroom#build": {
@@ -12,7 +18,6 @@
         "src/**",
         "index.html",
         "package.json",
-        "../../bun.lock",
         "vite.config.ts",
         "tsconfig*.json",
         "../../packages/logic/src/**",
