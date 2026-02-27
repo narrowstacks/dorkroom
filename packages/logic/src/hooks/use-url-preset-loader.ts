@@ -17,9 +17,11 @@ export interface UseUrlPresetLoaderOptions {
 }
 
 /**
- * Manage loading and decoding of border presets from URL hashes or encoded strings.
+ * Manage loading and decoding of border presets from URL query params or encoded strings.
  *
- * Loads a preset found in the URL (optionally automatically on mount and on hashchange), provides a manual loader for encoded preset strings, and exposes loading state, any load error, and helpers to apply or clear presets.
+ * Loads a preset found in the URL `?preset=` param (with hash fallback for old links).
+ * Optionally auto-loads on mount and on hashchange, provides a manual loader for encoded
+ * preset strings, and exposes loading state, any load error, and helpers to apply or clear presets.
  *
  * @param options - Configuration for preset loading behavior.
  *   - onPresetLoaded: called with the LoadedPreset after a successful load.
@@ -184,7 +186,7 @@ export function useUrlPresetLoader(options: UseUrlPresetLoaderOptions = {}) {
   }, [autoApply, checkAndLoadFromUrl]);
 
   /**
-   * Listen for hash changes (in case preset URLs are shared while app is running)
+   * Listen for hash changes (backwards compat for old #preset URLs shared while app is running)
    */
   useEffect(() => {
     if (!autoApply) {

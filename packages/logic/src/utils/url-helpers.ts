@@ -73,7 +73,7 @@ export function getDynamicShareUrl(
  * @example
  * ```typescript
  * const urls = generateSharingUrls('preset123abc');
- * console.log(urls.webUrl); // 'https://beta.dorkroom.art/border#preset123abc'
+ * console.log(urls.webUrl); // 'https://beta.dorkroom.art/border?preset=preset123abc'
  * ```
  */
 export function generateSharingUrls(encoded: string): {
@@ -87,14 +87,14 @@ export function generateSharingUrls(encoded: string): {
 }
 
 /**
- * Extracts encoded preset from current URL hash.
- * Safely handles SSR environments and invalid hash formats.
+ * Extracts encoded preset from the current URL.
+ * Checks `?preset=` query param first, falls back to URL hash for backwards compatibility.
  *
  * @public
- * @returns Encoded preset string from URL hash, or null if not found
+ * @returns Encoded preset string, or null if not found
  * @example
  * ```typescript
- * // URL: https://example.com/border#preset123abc
+ * // URL: https://example.com/border?preset=preset123abc
  * const preset = getPresetFromUrl();
  * console.log(preset); // 'preset123abc'
  *
@@ -124,16 +124,16 @@ export function getPresetFromUrl(): string | null {
 }
 
 /**
- * Updates the URL hash with an encoded preset without triggering page reload.
+ * Updates the URL with an encoded preset as a query param without triggering page reload.
  * Uses history.replaceState to maintain browser navigation without refresh.
  *
  * @public
- * @param encoded - Encoded preset string to add to URL hash
+ * @param encoded - Encoded preset string to add to URL query params
  * @returns void
  * @example
  * ```typescript
  * updateUrlWithPreset('preset123abc');
- * // URL changes to: https://example.com/border#preset123abc
+ * // URL changes to: https://example.com/border?preset=preset123abc
  * ```
  */
 export function updateUrlWithPreset(encoded: string): void {
@@ -148,16 +148,16 @@ export function updateUrlWithPreset(encoded: string): void {
 }
 
 /**
- * Clears the preset from the URL hash without page reload.
- * Removes hash portion while preserving path and query parameters.
+ * Clears the preset query param from the URL without page reload.
+ * Removes `preset` param while preserving path and other query parameters.
  *
  * @public
  * @returns void
  * @example
  * ```typescript
- * // URL: https://example.com/border?param=1#preset123abc
+ * // URL: https://example.com/border?preset=abc123&other=1
  * clearPresetFromUrl();
- * // URL becomes: https://example.com/border?param=1
+ * // URL becomes: https://example.com/border?other=1
  * ```
  */
 export function clearPresetFromUrl(): void {
@@ -225,8 +225,8 @@ export function isClipboardSupported(): boolean {
  * @returns URL without protocol, or original string if parsing fails
  * @example
  * ```typescript
- * const displayUrl = getDisplayUrl('https://beta.dorkroom.art/border#preset123');
- * console.log(displayUrl); // 'beta.dorkroom.art/border#preset123'
+ * const displayUrl = getDisplayUrl('https://beta.dorkroom.art/border?preset=abc123');
+ * console.log(displayUrl); // 'beta.dorkroom.art/border?preset=abc123'
  *
  * const invalid = getDisplayUrl('not-a-url');
  * console.log(invalid); // 'not-a-url'
