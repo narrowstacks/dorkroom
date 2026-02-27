@@ -65,34 +65,47 @@ export default async function handler(
     `<meta name="description" content="${meta.description}" />`
   );
 
-  // Replace existing OG tags
-  html = html.replace(
-    /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/,
-    `<meta property="og:title" content="${meta.title}" />`
-  );
-  html = html.replace(
-    /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/,
-    `<meta property="og:description" content="${meta.description}" />`
-  );
-  html = html.replace(
-    /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/,
-    `<meta property="og:url" content="${meta.url}" />`
-  );
+  // Replace existing OG and Twitter tags
+  const replacements: [RegExp, string][] = [
+    [
+      /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/,
+      `<meta property="og:title" content="${meta.title}" />`,
+    ],
+    [
+      /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/,
+      `<meta property="og:description" content="${meta.description}" />`,
+    ],
+    [
+      /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/,
+      `<meta property="og:url" content="${meta.url}" />`,
+    ],
+    [
+      /<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/,
+      `<meta property="og:image" content="${meta.ogImageUrl}" />`,
+    ],
+    [
+      /<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/,
+      `<meta name="twitter:title" content="${meta.title}" />`,
+    ],
+    [
+      /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/,
+      `<meta name="twitter:description" content="${meta.description}" />`,
+    ],
+    [
+      /<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/?>/,
+      `<meta name="twitter:image" content="${meta.ogImageUrl}" />`,
+    ],
+  ];
 
-  // Inject additional meta tags before </head>
-  const injectedTags = [
-    `<meta property="og:image" content="${meta.ogImageUrl}" />`,
-    '<meta property="og:image:width" content="1200" />',
-    '<meta property="og:image:height" content="630" />',
-    '<meta property="og:site_name" content="Dorkroom" />',
-    '<meta name="twitter:card" content="summary_large_image" />',
-    `<meta name="twitter:title" content="${meta.title}" />`,
-    `<meta name="twitter:description" content="${meta.description}" />`,
-    `<meta name="twitter:image" content="${meta.ogImageUrl}" />`,
-    `<link rel="canonical" href="${meta.url}" />`,
-  ].join('\n    ');
+  for (const [pattern, replacement] of replacements) {
+    html = html.replace(pattern, replacement);
+  }
 
-  html = html.replace('</head>', `    ${injectedTags}\n  </head>`);
+  // Inject canonical URL before </head>
+  html = html.replace(
+    '</head>',
+    `    <link rel="canonical" href="${meta.url}" />\n  </head>`
+  );
 
   res.setHeader('content-type', 'text/html; charset=utf-8');
   res.setHeader(
