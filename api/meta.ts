@@ -16,6 +16,8 @@ const STATUS_VALUES = new Set(['active', 'discontinued', 'all']);
 const ISO_RE = /^[1-9]\d{0,4}$/;
 /** Brand: alphanumeric with spaces/hyphens/dots, 1-50 chars */
 const BRAND_RE = /^[\w\s.'-]{1,50}$/;
+/** Preset: base64-safe chars (alphanumeric, -, _), 1-500 chars */
+const PRESET_RE = /^[A-Za-z0-9_-]{1,500}$/;
 
 function extractMetadataQuery(
   params: URLSearchParams
@@ -27,8 +29,18 @@ function extractMetadataQuery(
   const iso = params.get('iso');
   const brand = params.get('brand');
   const status = params.get('status');
+  const preset = params.get('preset');
 
-  if (!film && !developer && !recipe && !color && !iso && !brand && !status)
+  if (
+    !film &&
+    !developer &&
+    !recipe &&
+    !color &&
+    !iso &&
+    !brand &&
+    !status &&
+    !preset
+  )
     return undefined;
 
   const query: MetadataQuery = {};
@@ -39,6 +51,7 @@ function extractMetadataQuery(
   if (iso && ISO_RE.test(iso)) query.iso = iso;
   if (brand && BRAND_RE.test(brand)) query.brand = brand;
   if (status && STATUS_VALUES.has(status)) query.status = status;
+  if (preset && PRESET_RE.test(preset)) query.preset = preset;
 
   return Object.keys(query).length > 0 ? query : undefined;
 }
@@ -72,6 +85,8 @@ export default async function handler(
     url.searchParams.set('brand', req.query.brand);
   if (typeof req.query.status === 'string')
     url.searchParams.set('status', req.query.status);
+  if (typeof req.query.preset === 'string')
+    url.searchParams.set('preset', req.query.preset);
 
   const query = extractMetadataQuery(url.searchParams);
   const meta = getRouteMetadata(url.pathname, query);

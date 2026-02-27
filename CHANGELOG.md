@@ -8,6 +8,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Added
 
+- Dynamic OG images for shared border calculator presets showing preset name, paper size, and print area
+- Border preset sharing URLs now use query params (`?preset=`) instead of URL hash for bot/crawler visibility
 - Per-route accent colors for OG social preview images (green, cyan, coral, lime, purple)
 - Developer-only OG card variant showing developer name and dilution pills
 - Film + developer search OG card variant (clean title + subtitle, no recipe details)

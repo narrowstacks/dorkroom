@@ -299,3 +299,29 @@ describe('og handler - film filters', () => {
     expect(res.status).toBe(200);
   });
 });
+
+describe('og handler - border preset', () => {
+  // 35mm on 8x10, landscape, minBorder=0.5 → encodes to this string
+  const validPreset =
+    'MzVtbSUyMG9uJTIwOHgxMCUyQyUyMDZ4OWluLTAtMi01MC0wLTEwMDAwLTg';
+
+  it('renders custom card for valid encoded preset', async () => {
+    const res = await handler(
+      makeRequest({ route: '/border', preset: validPreset })
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it('falls through to generic card for invalid preset string', async () => {
+    const res = await handler(
+      makeRequest({ route: '/border', preset: 'AAAA' })
+    );
+    // Still returns 200 — just the generic /border card
+    expect(res.status).toBe(200);
+  });
+
+  it('renders generic card when no preset param', async () => {
+    const res = await handler(makeRequest({ route: '/border' }));
+    expect(res.status).toBe(200);
+  });
+});

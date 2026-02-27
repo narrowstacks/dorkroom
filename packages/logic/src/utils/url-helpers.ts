@@ -79,7 +79,7 @@ export function getDynamicShareUrl(
 export function generateSharingUrls(encoded: string): {
   webUrl: string;
 } {
-  const webUrl = `${getDynamicShareUrl()}#${encoded}`;
+  const webUrl = `${getDynamicShareUrl()}?preset=${encoded}`;
 
   return {
     webUrl,
@@ -108,12 +108,19 @@ export function getPresetFromUrl(): string | null {
     return null;
   }
 
-  const hash = window.location.hash;
-  if (!hash || !hash.startsWith('#')) {
-    return null;
+  // Prefer query param, fall back to hash for backwards compatibility
+  const params = new URLSearchParams(window.location.search);
+  const fromParam = params.get('preset');
+  if (fromParam) {
+    return fromParam;
   }
 
-  return hash.substring(1); // Remove the '#' prefix
+  const hash = window.location.hash;
+  if (hash?.startsWith('#')) {
+    return hash.substring(1);
+  }
+
+  return null;
 }
 
 /**
@@ -134,7 +141,9 @@ export function updateUrlWithPreset(encoded: string): void {
     return;
   }
 
-  const newUrl = `${window.location.pathname}${window.location.search}#${encoded}`;
+  const params = new URLSearchParams(window.location.search);
+  params.set('preset', encoded);
+  const newUrl = `${window.location.pathname}?${params.toString()}`;
   window.history.replaceState(null, '', newUrl);
 }
 
@@ -156,7 +165,12 @@ export function clearPresetFromUrl(): void {
     return;
   }
 
-  const newUrl = `${window.location.pathname}${window.location.search}`;
+  const params = new URLSearchParams(window.location.search);
+  params.delete('preset');
+  const qs = params.toString();
+  const newUrl = qs
+    ? `${window.location.pathname}?${qs}`
+    : window.location.pathname;
   window.history.replaceState(null, '', newUrl);
 }
 

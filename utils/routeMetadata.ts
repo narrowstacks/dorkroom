@@ -57,6 +57,7 @@ export interface MetadataQuery {
   iso?: string;
   brand?: string;
   status?: string;
+  preset?: string;
 }
 
 export const COLOR_LABELS: Record<string, string> = {
@@ -161,6 +162,172 @@ export function buildFilmFilterParts(
   return { title, titleLines, description, pills, subtitle };
 }
 
+// ---- Inline border preset decode (mirrors @dorkroom/logic, no dependency) ----
+
+/** Minimal paper size lookup for OG decode */
+const PAPER_SIZES_MINI: { label: string; w: number; h: number }[] = [
+  { label: '5×7', w: 5, h: 7 },
+  { label: '3⅞×5⅞', w: 3.875, h: 5.875 },
+  { label: '8×10', w: 8, h: 10 },
+  { label: '11×14', w: 11, h: 14 },
+  { label: '16×20', w: 16, h: 20 },
+  { label: '20×24', w: 20, h: 24 },
+  { label: 'Custom', w: 0, h: 0 },
+];
+
+/** Minimal aspect ratio lookup for OG decode */
+const ASPECT_RATIOS_MINI: {
+  label: string;
+  w: number;
+  h: number;
+}[] = [
+  { label: '35mm', w: 3, h: 2 },
+  { label: 'Even borders', w: 0, h: 0 },
+  { label: 'XPan', w: 65, h: 24 },
+  { label: '6×4.5', w: 4, h: 3 },
+  { label: 'Square', w: 1, h: 1 },
+  { label: '6×7', w: 7, h: 6 },
+  { label: '4×5', w: 5, h: 4 },
+  { label: '5×7', w: 7, h: 5 },
+  { label: 'HDTV', w: 16, h: 9 },
+  { label: 'Academy', w: 1.37, h: 1 },
+  { label: 'Widescreen', w: 1.85, h: 1 },
+  { label: 'Univisium', w: 2, h: 1 },
+  { label: 'CinemaScope', w: 2.39, h: 1 },
+  { label: 'Ultra Panavision', w: 2.76, h: 1 },
+  { label: 'Custom', w: 0, h: 0 },
+];
+
+/** Format a dimension as a clean fraction string (e.g. 6.25 → "6¼") */
+function formatDim(value: number): string {
+  const whole = Math.floor(value);
+  const frac = value - whole;
+  const FRACTIONS: [number, string][] = [
+    [0.125, '⅛'],
+    [0.25, '¼'],
+    [0.375, '⅜'],
+    [0.5, '½'],
+    [0.625, '⅝'],
+    [0.75, '¾'],
+    [0.875, '⅞'],
+  ];
+  for (const [threshold, symbol] of FRACTIONS) {
+    if (Math.abs(frac - threshold) < 0.01) {
+      return whole > 0 ? `${whole}${symbol}` : symbol;
+    }
+  }
+  if (frac < 0.01) return `${whole}`;
+  // Fall back to 1 decimal
+  return value.toFixed(1).replace(/\.0$/, '');
+}
+
+export interface DecodedBorderPreset {
+  name: string;
+  paperLabel: string;
+  aspectLabel: string;
+  printW: string;
+  printH: string;
+}
+
+/**
+ * Decode a border calculator preset from its URL-safe encoded string.
+ * Self-contained — does not depend on @dorkroom/logic.
+ */
+export function decodeBorderPreset(
+  encoded: string
+): DecodedBorderPreset | null {
+  try {
+    // Restore base64: - → +, _ → /, pad with =
+    let base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) base64 += '=';
+
+    const raw = atob(base64);
+    const stringParts = raw.split('-');
+    const name = decodeURIComponent(stringParts.shift() || '');
+    const parts = stringParts.map(Number);
+    if (parts.length < 6) return null;
+
+    let i = 0;
+    const aspectIdx = parts[i++];
+    const paperIdx = parts[i++];
+    const minBorder100 = parts[i++];
+    i++; // horizontalOffset — skip
+    i++; // verticalOffset — skip
+    const boolMask = parts[i++];
+
+    const paper = PAPER_SIZES_MINI[paperIdx];
+    const ratio = ASPECT_RATIOS_MINI[aspectIdx];
+    if (!paper || !ratio) return null;
+
+    const isLandscape = !!(boolMask & 8);
+    const isRatioFlipped = !!(boolMask & 16);
+
+    let paperW = paper.w;
+    let paperH = paper.h;
+    let ratioW = ratio.w;
+    let ratioH = ratio.h;
+
+    // Handle custom values
+    if (ratio.label === 'Custom' && parts.length > i + 1) {
+      ratioW = parts[i++] / 100;
+      ratioH = parts[i++] / 100;
+    }
+    if (paper.label === 'Custom' && parts.length > i + 1) {
+      paperW = parts[i++] / 100;
+      paperH = parts[i++] / 100;
+    }
+
+    // Apply orientation
+    if (isLandscape) [paperW, paperH] = [paperH, paperW];
+    if (isRatioFlipped) [ratioW, ratioH] = [ratioH, ratioW];
+
+    // Even borders: print fills available area equally
+    if (ratio.label === 'Even borders') {
+      ratioW = paperW;
+      ratioH = paperH;
+    }
+
+    const minBorder = minBorder100 / 100;
+    if (ratioH <= 0 || paperW <= 0 || paperH <= 0) return null;
+
+    // computePrintSize
+    const availW = paperW - 2 * minBorder;
+    const availH = paperH - 2 * minBorder;
+    if (availW <= 0 || availH <= 0) return null;
+
+    const targetRatio = ratioW / ratioH;
+    const availRatio = availW / availH;
+    let printW: number;
+    let printH: number;
+    if (availRatio > targetRatio) {
+      printH = availH;
+      printW = printH * targetRatio;
+    } else {
+      printW = availW;
+      printH = printW / targetRatio;
+    }
+
+    // Paper label: use the original (portrait) label, or build one for custom
+    const paperLabel =
+      paper.label === 'Custom'
+        ? `${formatDim(paper.w)}×${formatDim(paper.h)}`
+        : paper.label;
+
+    // Always show smaller dimension first (portrait convention)
+    const [dimA, dimB] = printW <= printH ? [printW, printH] : [printH, printW];
+
+    return {
+      name,
+      paperLabel,
+      aspectLabel: ratio.label,
+      printW: formatDim(dimA),
+      printH: formatDim(dimB),
+    };
+  } catch {
+    return null;
+  }
+}
+
 function normalizePath(pathname: string): string {
   const trimmed = pathname.replace(/\/+$/, '') || '/';
   return trimmed;
@@ -189,6 +356,7 @@ function appendFilterParams(
   if (query.iso) params.set('iso', query.iso);
   if (query.brand) params.set('brand', query.brand);
   if (query.status) params.set('status', query.status);
+  if (query.preset) params.set('preset', query.preset);
 }
 
 function buildOgImageUrl(normalized: string, query?: MetadataQuery): string {
@@ -218,6 +386,21 @@ export function getRouteMetadata(
   const normalized = normalizePath(pathname);
   const isHome = normalized === '/';
   const isKnownRoute = normalized in ROUTE_TITLES;
+
+  // Border preset card (e.g. /border?preset=encoded)
+  if (normalized === '/border' && query?.preset) {
+    const decoded = decodeBorderPreset(query.preset);
+    if (decoded) {
+      const title = `${decoded.name} | ${SITE_NAME}`;
+      const description = `${decoded.aspectLabel} on ${decoded.paperLabel} paper — ${decoded.printW}×${decoded.printH}in print area. Borders, blade readings, and easel setup.`;
+      return {
+        title,
+        description,
+        url: buildCanonicalUrl(normalized, query),
+        ogImageUrl: buildOgImageUrl(normalized, query),
+      };
+    }
+  }
 
   const filmSlug = query?.film && query.film.length > 0 ? query.film : null;
   const devSlug =

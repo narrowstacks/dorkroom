@@ -83,6 +83,23 @@ const previews = [
       status: 'active',
     },
   },
+  // Border preset cards
+  {
+    name: 'border-preset-default',
+    params: {
+      route: '/border',
+      // 35mm on 8x10, landscape, minBorder=0.5
+      preset: 'MzVtbSUyMG9uJTIwOHgxMCUyQyUyMDZ4OWluLTAtMi01MC0wLTEwMDAwLTg',
+    },
+  },
+  {
+    name: 'border-preset-square',
+    params: {
+      route: '/border',
+      // Square on 11x14, minBorder=0.5
+      preset: 'U3F1YXJlJTIwb24lMjAxMXgxNC00LTMtNTAtMC0xMDAwMC0w',
+    },
+  },
 ];
 
 await mkdir(outDir, { recursive: true });

@@ -106,11 +106,11 @@ describe('url helpers', () => {
       });
     });
 
-    it('should generate web URL', () => {
+    it('should generate web URL with query param', () => {
       const encoded = 'abc123';
       const urls = generateSharingUrls(encoded);
 
-      expect(urls.webUrl).toBe('http://localhost:4200/border#abc123');
+      expect(urls.webUrl).toBe('http://localhost:4200/border?preset=abc123');
     });
   });
 
@@ -122,19 +122,23 @@ describe('url helpers', () => {
       });
     });
 
-    it('should extract preset from URL hash', () => {
+    it('should prefer query param over hash', () => {
+      mockWindow.location.search = '?preset=from-param';
+      mockWindow.location.hash = '#from-hash';
+      const preset = getPresetFromUrl();
+      expect(preset).toBe('from-param');
+    });
+
+    it('should fall back to hash when no query param', () => {
+      mockWindow.location.search = '?test=1';
+      mockWindow.location.hash = '#encoded-preset';
       const preset = getPresetFromUrl();
       expect(preset).toBe('encoded-preset');
     });
 
-    it('should return null when no hash', () => {
+    it('should return null when no param or hash', () => {
+      mockWindow.location.search = '';
       mockWindow.location.hash = '';
-      const preset = getPresetFromUrl();
-      expect(preset).toBeNull();
-    });
-
-    it('should return null when hash does not start with #', () => {
-      mockWindow.location.hash = 'no-hash-prefix';
       const preset = getPresetFromUrl();
       expect(preset).toBeNull();
     });
@@ -146,6 +150,7 @@ describe('url helpers', () => {
     });
 
     it('should handle hash with only #', () => {
+      mockWindow.location.search = '';
       mockWindow.location.hash = '#';
       const preset = getPresetFromUrl();
       expect(preset).toBe('');
@@ -154,19 +159,20 @@ describe('url helpers', () => {
 
   describe('updateUrlWithPreset', () => {
     beforeEach(() => {
+      mockWindow.location.search = '?test=1';
       Object.defineProperty(global, 'window', {
         value: mockWindow,
         writable: true,
       });
     });
 
-    it('should update URL with encoded preset', () => {
+    it('should update URL with encoded preset as query param', () => {
       updateUrlWithPreset('new-preset');
 
       expect(mockWindow.history.replaceState).toHaveBeenCalledWith(
         null,
         '',
-        '/border?test=1#new-preset'
+        '/border?test=1&preset=new-preset'
       );
     });
 
@@ -184,7 +190,8 @@ describe('url helpers', () => {
       });
     });
 
-    it('should clear preset from URL', () => {
+    it('should remove preset query param from URL', () => {
+      mockWindow.location.search = '?test=1&preset=some-preset';
       clearPresetFromUrl();
 
       expect(mockWindow.history.replaceState).toHaveBeenCalledWith(

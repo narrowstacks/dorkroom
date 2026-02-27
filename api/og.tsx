@@ -2,6 +2,7 @@ import { ImageResponse } from '@vercel/og';
 import {
   BASE_URL,
   buildFilmFilterParts,
+  decodeBorderPreset,
   getRouteMetadata,
   prettifySlug,
   SITE_NAME,
@@ -643,6 +644,29 @@ export default async function handler(request: Request): Promise<Response> {
         iconChildren={getRouteIcon('/development') ?? undefined}
       />
     );
+  }
+
+  // Border preset card (e.g. /border?preset=encoded)
+  if (route === '/border') {
+    const presetParam = searchParams.get('preset');
+    if (presetParam) {
+      const decoded = decodeBorderPreset(presetParam);
+      if (decoded) {
+        const title = `${decoded.name}`;
+        return renderImage(
+          <OgCard
+            accent={getRouteAccent('/border')}
+            category="Border Calculator"
+            title={title}
+            iconChildren={getRouteIcon('/border') ?? undefined}
+            details={[
+              `${decoded.paperLabel} paper`,
+              `${decoded.printW}×${decoded.printH}in print`,
+            ]}
+          />
+        );
+      }
+    }
   }
 
   // Generic page card (static routes)
