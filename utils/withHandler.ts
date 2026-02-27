@@ -49,6 +49,46 @@ function getHeaderValue(value: string | string[] | undefined): string {
   return typeof value === 'string' ? value : '';
 }
 
+function normalizeHost(value: string): string {
+  const first = value.split(',')[0]?.trim().toLowerCase() ?? '';
+  if (!first) {
+    return '';
+  }
+
+  if (first.startsWith('[')) {
+    return first;
+  }
+
+  const separatorIndex = first.indexOf(':');
+  if (separatorIndex === -1) {
+    return first;
+  }
+
+  return first.slice(0, separatorIndex);
+}
+
+function isPublicApiRequest(req: VercelRequest, requestId: string): boolean {
+  const host = normalizeHost(getHeaderValue(req.headers.host));
+  const forwardedHost = normalizeHost(
+    getHeaderValue(req.headers['x-forwarded-host'])
+  );
+
+  if (host && forwardedHost && host !== forwardedHost) {
+    serverlessWarn('Host header mismatch detected', {
+      requestId,
+      host,
+      forwardedHost,
+    });
+  }
+
+  // Fail closed: if either host header resolves to the public API domain,
+  // enforce API-key auth.
+  return (
+    host.includes('api.dorkroom.art') ||
+    forwardedHost.includes('api.dorkroom.art')
+  );
+}
+
 function normalizeResetMs(reset: number): number {
   // Some responses use a reset duration, others a unix timestamp in ms.
   if (reset > 1_000_000_000_000) {
@@ -159,9 +199,25 @@ async function applyPublicApiKeyAuth(
     return false;
   }
 
+  const requiredPermission = process.env.UNKEY_API_KEY_PERMISSION?.trim();
+  if (!requiredPermission) {
+    serverlessError(
+      'UNKEY_API_KEY_PERMISSION environment variable is not set',
+      {
+        requestId,
+      }
+    );
+    res.status(500).json({
+      error: 'API configuration error',
+      message: 'Missing required API key verification permission config',
+      requestId,
+    });
+    return false;
+  }
+
   const verification = await unkey.keys.verifyKey({
     key: apiKey,
-    tags: [`api=${apiId}`],
+    permissions: requiredPermission,
   });
 
   const primaryRateLimit = verification.data.ratelimits?.[0];
@@ -345,11 +401,7 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
         return;
       }
 
-      const host =
-        getHeaderValue(req.headers['x-forwarded-host']) ||
-        getHeaderValue(req.headers.host);
-      const normalizedHost = host.toLowerCase();
-      const isPublicApi = normalizedHost.includes('api.dorkroom.art');
+      const isPublicApi = isPublicApiRequest(req, requestId);
 
       const passedChecks = isPublicApi
         ? await applyPublicApiKeyAuth(req, res, requestId)

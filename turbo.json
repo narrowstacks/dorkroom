@@ -25,6 +25,7 @@
         "SUPABASE_ENDPOINT",
         "UNKEY_ROOT_KEY",
         "UNKEY_API_ID",
+        "UNKEY_API_KEY_PERMISSION",
         "UNKEY_ANON_NAMESPACE"
       ]
     },

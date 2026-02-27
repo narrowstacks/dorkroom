@@ -21,6 +21,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - Added host-based Vercel route to serve docs on `api.dorkroom.art`
 - Bumped CalVer package versions to `2026.02.27`
 - Anonymous rate-limit handling now degrades gracefully if namespace auto-create permission is missing
+- Hardened host detection for auth mode selection and added required key permission verification (`UNKEY_API_KEY_PERMISSION`)
 
 ## [2026.02.14]
 
