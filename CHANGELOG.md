@@ -8,6 +8,11 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Added
 
+- Per-route accent colors for OG social preview images (green, cyan, coral, lime, purple)
+- Developer-only OG card variant showing developer name and dilution pills
+- Film + developer search OG card variant (clean title + subtitle, no recipe details)
+- Specific recipe OG card with full detail pills (time, temp, ISO, push/pull)
+- Dynamic metadata for developer-only URLs (`/development?developer=slug`)
 - Public API docs endpoint at `api.dorkroom.art/` via `api/docs.ts`
 - Shared API utilities: `utils/withHandler.ts` and `utils/timeoutSignal.ts`
 - Unkey integration for API key verification (`X-API-Key`) and anonymous rate limiting
@@ -17,6 +22,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Changed
 
+- Redesigned OG image layout: accent-colored icon circles with glow, colored category labels with divider bars, tinted detail pills, subtler site name
+- OG dilution display now uses `name` field with `ratio` fallback (fixes blank pills for developers with null ratios)
 - Refactored API handlers (`films`, `developers`, `combinations`, `filmdev`) to use shared wrapper logic
 - Updated CORS allow headers to include `X-API-Key`
 - Added host-based Vercel route to serve docs on `api.dorkroom.art`
