@@ -1,3 +1,4 @@
+import { isIP } from 'node:net';
 import { Unkey } from '@unkey/api';
 import type {
   VercelApiHandler,
@@ -23,6 +24,7 @@ export interface HandlerContext {
   requestId: string;
   startTime: number;
   userAgent: string;
+  isPublicApi: boolean;
 }
 
 export interface HandlerConfig {
@@ -37,6 +39,14 @@ export interface HandlerConfig {
 
 const ANONYMOUS_RATE_LIMIT = 30;
 const ANONYMOUS_RATE_WINDOW_MS = 60_000;
+const PUBLIC_API_HOST = 'api.dorkroom.art';
+const ALLOWED_ANONYMOUS_HOSTS = new Set([
+  'dorkroom.art',
+  'www.dorkroom.art',
+  'localhost',
+  '127.0.0.1',
+  '::1',
+]);
 
 let unkeyClient: Unkey | null = null;
 let unkeyInitialized = false;
@@ -72,6 +82,7 @@ function isPublicApiRequest(req: VercelRequest, requestId: string): boolean {
   const forwardedHost = normalizeHost(
     getHeaderValue(req.headers['x-forwarded-host'])
   );
+  const observedHosts = [host, forwardedHost].filter(Boolean);
 
   if (host && forwardedHost && host !== forwardedHost) {
     serverlessWarn('Host header mismatch detected', {
@@ -81,12 +92,33 @@ function isPublicApiRequest(req: VercelRequest, requestId: string): boolean {
     });
   }
 
-  // Fail closed: if either host header resolves to the public API domain,
-  // enforce API-key auth.
-  return (
-    host.includes('api.dorkroom.art') ||
-    forwardedHost.includes('api.dorkroom.art')
-  );
+  if (observedHosts.includes(PUBLIC_API_HOST)) {
+    return true;
+  }
+
+  if (observedHosts.length === 0) {
+    serverlessWarn('Missing host headers, enforcing API-key auth', {
+      requestId,
+    });
+    return true;
+  }
+
+  if (
+    observedHosts.every(
+      (observedHost) =>
+        ALLOWED_ANONYMOUS_HOSTS.has(observedHost) ||
+        observedHost.endsWith('.vercel.app')
+    )
+  ) {
+    return false;
+  }
+
+  serverlessWarn('Unknown host, enforcing API-key auth', {
+    requestId,
+    host,
+    forwardedHost,
+  });
+  return true;
 }
 
 function normalizeResetMs(reset: number): number {
@@ -118,19 +150,45 @@ function setRateLimitHeaders(
   }
 }
 
-function getClientIp(req: VercelRequest): string {
-  const forwardedFor = getHeaderValue(req.headers['x-forwarded-for']);
+function getTrustedForwardedIp(forwardedFor: string): string | null {
+  if (!forwardedFor) {
+    return null;
+  }
 
-  if (forwardedFor) {
-    const firstIp = forwardedFor.split(',')[0]?.trim();
-    if (firstIp) {
-      return firstIp;
+  const parts = forwardedFor
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  // Use the right-most valid IP to avoid trusting attacker-controlled leading
+  // values in appended X-Forwarded-For chains.
+  for (let index = parts.length - 1; index >= 0; index -= 1) {
+    const candidate = parts[index];
+    if (candidate && isIP(candidate)) {
+      return candidate;
     }
   }
 
+  return null;
+}
+
+function getClientIp(req: VercelRequest): string {
   const realIp = getHeaderValue(req.headers['x-real-ip']).trim();
-  if (realIp) {
+  if (realIp && isIP(realIp)) {
     return realIp;
+  }
+
+  const vercelForwardedFor = getHeaderValue(
+    req.headers['x-vercel-forwarded-for']
+  ).trim();
+  if (vercelForwardedFor && isIP(vercelForwardedFor)) {
+    return vercelForwardedFor;
+  }
+
+  const forwardedFor = getHeaderValue(req.headers['x-forwarded-for']);
+  const trustedForwardedIp = getTrustedForwardedIp(forwardedFor);
+  if (trustedForwardedIp) {
+    return trustedForwardedIp;
   }
 
   return 'anonymous';
@@ -295,16 +353,52 @@ async function applyAnonymousRateLimit(
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
+    const shouldFailOpen = process.env.NODE_ENV !== 'production';
 
     if (errorMessage.includes('create_namespace')) {
-      serverlessWarn(
-        'Anonymous rate limiting skipped due to missing create_namespace permission',
+      if (shouldFailOpen) {
+        serverlessWarn(
+          'Anonymous rate limiting skipped due to missing create_namespace permission',
+          {
+            requestId,
+            namespace,
+          }
+        );
+        return true;
+      }
+
+      serverlessError(
+        'Anonymous rate limiting misconfigured: missing create_namespace permission',
         {
           requestId,
           namespace,
         }
       );
-      return true;
+      res.status(500).json({
+        error: 'API configuration error',
+        message: 'Anonymous rate limiting is not configured',
+        requestId,
+      });
+      return false;
+    }
+
+    if (
+      errorMessage.includes('Insufficient Permissions') ||
+      errorMessage.includes('Missing permission')
+    ) {
+      serverlessError(
+        'Anonymous rate limiting misconfigured: insufficient Unkey permissions',
+        {
+          requestId,
+          namespace,
+        }
+      );
+      res.status(500).json({
+        error: 'API configuration error',
+        message: 'Anonymous rate limiting is not configured',
+        requestId,
+      });
+      return false;
     }
 
     throw error;
@@ -332,6 +426,25 @@ async function applyAnonymousRateLimit(
 
 function hasRequiredEnv(requiredEnv: string[]): string[] {
   return requiredEnv.filter((envVar) => !process.env[envVar]);
+}
+
+function setVaryHeader(res: VercelResponse, value: string): void {
+  const current = res.getHeader('Vary');
+  const existing = Array.isArray(current)
+    ? current.join(',')
+    : typeof current === 'string'
+      ? current
+      : '';
+
+  const values = new Set(
+    existing
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  );
+  values.add(value);
+
+  res.setHeader('Vary', Array.from(values).join(', '));
 }
 
 export function withHandler(config: HandlerConfig): VercelApiHandler {
@@ -402,6 +515,11 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
       }
 
       const isPublicApi = isPublicApiRequest(req, requestId);
+      setVaryHeader(res, 'Host');
+      if (isPublicApi) {
+        setVaryHeader(res, 'X-API-Key');
+        res.setHeader('Cache-Control', 'private, no-store');
+      }
 
       const passedChecks = isPublicApi
         ? await applyPublicApiKeyAuth(req, res, requestId)
@@ -415,6 +533,7 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
         requestId,
         startTime,
         userAgent,
+        isPublicApi,
       });
     } catch (error) {
       const responseTime = Date.now() - startTime;
@@ -449,7 +568,7 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
 
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        message: 'An unexpected error occurred',
         requestId,
       });
     }

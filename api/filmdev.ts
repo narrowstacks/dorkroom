@@ -1,5 +1,3 @@
-import { createTimeoutSignal } from '../utils/timeoutSignal';
-import { withHandler } from '../utils/withHandler';
 import {
   logApiResponse,
   logExternalApiCall,
@@ -7,6 +5,8 @@ import {
   serverlessError,
   serverlessWarn,
 } from '../utils/serverlessLogger';
+import { createTimeoutSignal } from '../utils/timeoutSignal';
+import { withHandler } from '../utils/withHandler';
 
 const FILMDEV_API_BASE = 'https://filmdev.org/api';
 const TIMEOUT_MS = 30_000;
@@ -77,7 +77,7 @@ export default withHandler({
       res.status(response.status).json({
         error: 'External API error',
         status: response.status,
-        statusText: response.statusText,
+        message: 'Upstream service returned an error',
         requestId: ctx.requestId,
       });
       return;
@@ -147,7 +147,9 @@ export default withHandler({
 
     res.setHeader(
       'Cache-Control',
-      'public, max-age=3600, stale-while-revalidate=7200'
+      ctx.isPublicApi
+        ? 'private, no-store'
+        : 'public, max-age=3600, stale-while-revalidate=7200'
     );
     res.status(200).json(data);
   },

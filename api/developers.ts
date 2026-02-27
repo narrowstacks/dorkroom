@@ -1,6 +1,4 @@
 import { validateAndSanitizeQuery } from '../utils/queryValidation';
-import { createTimeoutSignal } from '../utils/timeoutSignal';
-import { withHandler } from '../utils/withHandler';
 import {
   logApiResponse,
   logExternalApiCall,
@@ -8,6 +6,8 @@ import {
   serverlessError,
   serverlessWarn,
 } from '../utils/serverlessLogger';
+import { createTimeoutSignal } from '../utils/timeoutSignal';
+import { withHandler } from '../utils/withHandler';
 
 const TIMEOUT_MS = 30_000;
 const ALLOWED_PARAMS = ['query', 'fuzzy', 'limit', 'type', 'manufacturer'];
@@ -54,22 +54,15 @@ export default withHandler({
         responseTime,
         false
       );
-
-      let errorDetails: unknown = null;
-      try {
-        const errorText = await response.text();
-        errorDetails = errorText ? JSON.parse(errorText) : null;
-      } catch {
-        serverlessWarn('Could not parse error response', {
-          requestId: ctx.requestId,
-        });
-      }
+      serverlessWarn('Upstream API returned non-OK response', {
+        requestId: ctx.requestId,
+        status: response.status,
+      });
 
       res.status(response.status).json({
         error: 'External API error',
         status: response.status,
-        statusText: response.statusText,
-        details: errorDetails,
+        message: 'Upstream service returned an error',
         requestId: ctx.requestId,
       });
       return;
@@ -126,7 +119,9 @@ export default withHandler({
 
     res.setHeader(
       'Cache-Control',
-      'public, max-age=300, stale-while-revalidate=600'
+      ctx.isPublicApi
+        ? 'private, no-store'
+        : 'public, max-age=300, stale-while-revalidate=600'
     );
     res.status(200).json(data);
   },

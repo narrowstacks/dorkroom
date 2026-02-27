@@ -23,6 +23,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - Bumped CalVer package versions to `2026.02.27`
 - Anonymous rate-limit handling now degrades gracefully if namespace auto-create permission is missing
 - Hardened host detection for auth mode selection and added required key permission verification (`UNKEY_API_KEY_PERMISSION`)
+- Hardened API wrapper security: exact host allowlisting, safer client IP extraction, production fail-closed on Unkey anonymous rate-limit permission misconfiguration, and removed internal/upstream error detail leakage in responses
+- Added `Vary: Host, X-API-Key` and disabled caching for keyed public API responses to prevent cross-request cache replay on `api.dorkroom.art`
 
 ## [2026.02.14]
 
