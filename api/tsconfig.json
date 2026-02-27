@@ -21,7 +21,7 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "../utils/**/*.ts", "../middleware.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "../utils/**/*.ts"],
   "exclude": [
     "node_modules",
     "**/*.test.ts",

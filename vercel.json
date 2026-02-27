@@ -26,6 +26,17 @@
     },
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "handle": "filesystem" },
+    {
+      "src": "/((?!api/).*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(Twitterbot|facebookexternalhit|Facebot|Slackbot|Applebot|Discordbot|WhatsApp|Googlebot|LinkedInBot|Pinterestbot|TelegramBot|Baiduspider|bingbot|yandex|Embedly|Quora Link Preview|Showyoubot|outbrain|rogerbot|vkShare).*"
+        }
+      ],
+      "dest": "/api/meta?path=/$1"
+    },
     { "src": "/(.*)", "dest": "/" }
   ]
 }

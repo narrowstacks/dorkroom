@@ -1,9 +1,6 @@
-import { next } from '@vercel/functions';
-import type { MetadataQuery } from './utils/routeMetadata';
-import { getRouteMetadata } from './utils/routeMetadata';
-
-const BOT_UA =
-  /Twitterbot|facebookexternalhit|Facebot|Slackbot|Applebot|Discordbot|WhatsApp|Googlebot|LinkedInBot|Pinterestbot|TelegramBot|Baiduspider|bingbot|yandex|Embedly|Quora Link Preview|Showyoubot|outbrain|rogerbot|vkShare/i;
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { MetadataQuery } from '../utils/routeMetadata';
+import { getRouteMetadata } from '../utils/routeMetadata';
 
 /** Slug pattern: lowercase alphanumeric + hyphens, 1-100 chars */
 const SLUG_RE = /^[a-z0-9-]{1,100}$/;
@@ -28,25 +25,34 @@ function extractMetadataQuery(
   return Object.keys(query).length > 0 ? query : undefined;
 }
 
-export default async function middleware(request: Request): Promise<Response> {
-  const host = request.headers.get('host') ?? '';
-  if (host.startsWith('api.')) {
-    return next();
-  }
+/**
+ * Bot meta tag endpoint.
+ *
+ * Called via Vercel routing when a bot UA is detected.
+ * Fetches the static index.html, rewrites meta tags for the requested path,
+ * and returns the modified HTML.
+ */
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+): Promise<void> {
+  const path = (req.query.path as string) ?? '/';
+  const url = new URL(path, 'https://dorkroom.art');
 
-  const ua = request.headers.get('user-agent') ?? '';
-  if (!BOT_UA.test(ua)) {
-    return next();
-  }
+  // Merge any query params from the original URL
+  if (typeof req.query.film === 'string')
+    url.searchParams.set('film', req.query.film);
+  if (typeof req.query.developer === 'string')
+    url.searchParams.set('developer', req.query.developer);
+  if (typeof req.query.recipe === 'string')
+    url.searchParams.set('recipe', req.query.recipe);
 
-  const url = new URL(request.url);
   const query = extractMetadataQuery(url.searchParams);
   const meta = getRouteMetadata(url.pathname, query);
 
-  // Fetch the static index.html from origin, with a bypass header to avoid recursion
-  const originUrl = new URL('/', request.url);
-  const originResponse = await fetch(originUrl.toString(), {
-    headers: { 'x-middleware-bypass': '1' },
+  // Fetch the static index.html from origin
+  const originResponse = await fetch('https://dorkroom.art/', {
+    headers: { 'x-bypass-meta': '1' },
   });
   let html = await originResponse.text();
 
@@ -88,17 +94,10 @@ export default async function middleware(request: Request): Promise<Response> {
 
   html = html.replace('</head>', `    ${injectedTags}\n  </head>`);
 
-  return new Response(html, {
-    status: 200,
-    headers: {
-      'content-type': 'text/html; charset=utf-8',
-      'cache-control': 'public, s-maxage=86400, stale-while-revalidate=3600',
-    },
-  });
+  res.setHeader('content-type', 'text/html; charset=utf-8');
+  res.setHeader(
+    'cache-control',
+    'public, s-maxage=86400, stale-while-revalidate=3600'
+  );
+  res.status(200).send(html);
 }
-
-export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|assets|favicon|.*\\.(?:js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|webmanifest)).*)',
-  ],
-};
