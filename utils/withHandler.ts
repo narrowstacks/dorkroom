@@ -1,6 +1,6 @@
 import { Unkey } from '@unkey/api';
 import type {
-  VercelHandler,
+  VercelApiHandler,
   VercelRequest,
   VercelResponse,
 } from '@vercel/node';
@@ -278,8 +278,11 @@ function hasRequiredEnv(requiredEnv: string[]): string[] {
   return requiredEnv.filter((envVar) => !process.env[envVar]);
 }
 
-export function withHandler(config: HandlerConfig): VercelHandler {
-  return async function wrappedHandler(req, res) {
+export function withHandler(config: HandlerConfig): VercelApiHandler {
+  return async function wrappedHandler(
+    req: VercelRequest,
+    res: VercelResponse
+  ) {
     const startTime = Date.now();
     const requestId = Math.random().toString(36).substring(7);
     const userAgent =
