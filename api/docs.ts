@@ -193,6 +193,14 @@ export default function handler(req: VercelRequest, res: VercelResponse): void {
       </section>
 
       <section class="section">
+        <h2>Get an API Key</h2>
+        <p>
+          Contact <a href="mailto:aaron+dorkroom@affords.art">aaron+dorkroom@affords.art</a>
+          with your use case to request access.
+        </p>
+      </section>
+
+      <section class="section">
         <h2>Examples</h2>
         <p>All requests require your API key in the <code>X-API-Key</code> header.</p>
 
@@ -262,14 +270,6 @@ export default function handler(req: VercelRequest, res: VercelResponse): void {
         <p>
           Response headers: <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>,
           <code>X-RateLimit-Reset</code>, and <code>Retry-After</code> on <code>429</code>.
-        </p>
-      </section>
-
-      <section class="section">
-        <h2>Get an API Key</h2>
-        <p>
-          Contact <a href="mailto:aaron+dorkroom@affords.art">aaron+dorkroom@affords.art</a>
-          with your use case to request access.
         </p>
       </section>
 
