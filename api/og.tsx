@@ -24,9 +24,16 @@ interface FilmInfo {
   static_image_url?: string | null;
 }
 
+interface DilutionInfo {
+  id: string | number;
+  name: string;
+  dilution: string;
+}
+
 interface DeveloperInfo {
   name: string;
   manufacturer: string;
+  dilutions?: DilutionInfo[];
 }
 
 interface CombinationInfo {
@@ -161,8 +168,8 @@ function OgCard({ category, title, subtitle, details, imageUrl }: OgCardProps) {
         {imageUrl ? (
           <img
             src={imageUrl}
-            width={180}
-            height={180}
+            width={270}
+            height={270}
             style={{
               position: 'absolute',
               top: '48px',
@@ -307,7 +314,21 @@ export default async function handler(request: Request): Promise<Response> {
         : null;
 
     const title = filmName;
-    const subtitle = devName ? `in ${devName}` : null;
+
+    // Look up dilution name from developer's dilutions array
+    let dilutionLabel: string | null = null;
+    if (combo?.dilution_id && developer?.dilutions) {
+      const dil = developer.dilutions.find(
+        (d) => String(d.id) === combo.dilution_id
+      );
+      if (dil) dilutionLabel = dil.dilution;
+    }
+
+    const subtitle = devName
+      ? dilutionLabel
+        ? `in ${devName} ${dilutionLabel}`
+        : `in ${devName}`
+      : null;
 
     const details: string[] = [];
     if (combo) {
