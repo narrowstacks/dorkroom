@@ -104,12 +104,13 @@ export function getRouteMetadata(
   const isHome = normalized === '/';
   const isKnownRoute = normalized in ROUTE_TITLES;
 
-  const hasFilm = query?.film && query.film.length > 0;
-  const hasDeveloper = query?.developer && query.developer.length > 0;
+  const filmSlug = query?.film && query.film.length > 0 ? query.film : null;
+  const devSlug =
+    query?.developer && query.developer.length > 0 ? query.developer : null;
 
   // Dynamic titles for film/development pages with query params
-  if (normalized === '/films' && hasFilm) {
-    const filmName = prettifySlug(query.film);
+  if (normalized === '/films' && filmSlug) {
+    const filmName = prettifySlug(filmSlug);
     return {
       title: `${filmName} | ${SITE_NAME}`,
       description: `Details and specifications for ${filmName} film stock.`,
@@ -118,9 +119,9 @@ export function getRouteMetadata(
     };
   }
 
-  if (normalized === '/development' && hasFilm) {
-    const filmName = prettifySlug(query.film);
-    const devName = hasDeveloper ? prettifySlug(query.developer) : null;
+  if (normalized === '/development' && filmSlug) {
+    const filmName = prettifySlug(filmSlug);
+    const devName = devSlug ? prettifySlug(devSlug) : null;
     const title = devName ? `${filmName} in ${devName}` : `${filmName} Recipes`;
     const description = devName
       ? `Development recipe for ${filmName} in ${devName}. Times, temperatures, and dilutions.`

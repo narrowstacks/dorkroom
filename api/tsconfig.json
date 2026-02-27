@@ -14,13 +14,14 @@
     "declaration": true,
     "rootDir": "../",
     "baseUrl": "../",
+    "jsx": "react-jsx",
     "types": ["node"],
     "lib": ["es2020", "dom"],
     "paths": {
       "@/*": ["./*"]
     }
   },
-  "include": ["**/*.ts", "../utils/**/*.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "../utils/**/*.ts", "../middleware.ts"],
   "exclude": [
     "node_modules",
     "**/*.test.ts",
