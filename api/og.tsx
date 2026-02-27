@@ -507,7 +507,7 @@ export default async function handler(request: Request): Promise<Response> {
       const dil = developer.dilutions.find(
         (d) => String(d.id) === combo.dilution_id
       );
-      if (dil) dilutionLabel = dil.name ?? dil.ratio;
+      if (dil) dilutionLabel = dil.name ?? dil.ratio ?? null;
     }
 
     const subtitle = dilutionLabel
