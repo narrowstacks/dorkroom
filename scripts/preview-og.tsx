@@ -39,8 +39,17 @@ const previews = [
     name: 'recipe-film-and-developer',
     params: {
       route: '/development',
+      film: 'ilford-delta-100',
+      developer: 'kodak-hc-110',
+    },
+  },
+  {
+    name: 'recipe-specific',
+    params: {
+      route: '/development',
       film: 'cinestill-bwxx-double-x',
       developer: 'ilford-perceptol',
+      recipe: 'ece4fc48-24ba-4e16-813b-334e6e76a9b6',
     },
   },
 ];

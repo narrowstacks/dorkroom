@@ -26,8 +26,8 @@ interface FilmInfo {
 
 interface DilutionInfo {
   id: string | number;
-  name: string;
-  dilution: string;
+  name?: string;
+  ratio?: string;
 }
 
 interface DeveloperInfo {
@@ -486,14 +486,12 @@ export default async function handler(request: Request): Promise<Response> {
     );
   }
 
-  // Dynamic development recipe card (film + optional developer)
-  if (route === '/development' && filmSlug) {
+  // Specific recipe card (film + developer + recipe UUID)
+  if (route === '/development' && filmSlug && developerSlug && recipeUuid) {
     const [film, developer, combo] = await Promise.all([
       lookupFilm(filmSlug),
-      developerSlug ? lookupDeveloper(developerSlug) : Promise.resolve(null),
-      developerSlug
-        ? lookupCombination(filmSlug, developerSlug, recipeUuid ?? undefined)
-        : Promise.resolve(null),
+      lookupDeveloper(developerSlug),
+      lookupCombination(filmSlug, developerSlug, recipeUuid),
     ]);
 
     const filmName = film
@@ -501,11 +499,7 @@ export default async function handler(request: Request): Promise<Response> {
       : prettifySlug(filmSlug);
     const devName = developer
       ? `${developer.manufacturer} ${developer.name}`
-      : developerSlug
-        ? prettifySlug(developerSlug)
-        : null;
-
-    const title = filmName;
+      : prettifySlug(developerSlug);
 
     // Look up dilution name from developer's dilutions array
     let dilutionLabel: string | null = null;
@@ -513,14 +507,12 @@ export default async function handler(request: Request): Promise<Response> {
       const dil = developer.dilutions.find(
         (d) => String(d.id) === combo.dilution_id
       );
-      if (dil) dilutionLabel = dil.dilution;
+      if (dil) dilutionLabel = dil.name ?? dil.ratio;
     }
 
-    const subtitle = devName
-      ? dilutionLabel
-        ? `in ${devName} ${dilutionLabel}`
-        : `in ${devName}`
-      : null;
+    const subtitle = dilutionLabel
+      ? `in ${devName} ${dilutionLabel}`
+      : `in ${devName}`;
 
     const details: string[] = [];
     if (combo) {
@@ -540,9 +532,51 @@ export default async function handler(request: Request): Promise<Response> {
       <OgCard
         accent={getRouteAccent('/development')}
         category="Development Recipes"
-        title={title}
-        subtitle={subtitle ?? undefined}
+        title={filmName}
+        subtitle={subtitle}
         details={details}
+        iconChildren={getRouteIcon('/development') ?? undefined}
+      />
+    );
+  }
+
+  // Film + developer search card (no specific recipe)
+  if (route === '/development' && filmSlug && developerSlug) {
+    const [film, developer] = await Promise.all([
+      lookupFilm(filmSlug),
+      lookupDeveloper(developerSlug),
+    ]);
+
+    const filmName = film
+      ? `${film.brand} ${film.name}`
+      : prettifySlug(filmSlug);
+    const devName = developer
+      ? `${developer.manufacturer} ${developer.name}`
+      : prettifySlug(developerSlug);
+
+    return renderImage(
+      <OgCard
+        accent={getRouteAccent('/development')}
+        category="Development Recipes"
+        title={filmName}
+        subtitle={`in ${devName}`}
+        iconChildren={getRouteIcon('/development') ?? undefined}
+      />
+    );
+  }
+
+  // Film-only development search card
+  if (route === '/development' && filmSlug) {
+    const film = await lookupFilm(filmSlug);
+    const filmName = film
+      ? `${film.brand} ${film.name}`
+      : prettifySlug(filmSlug);
+
+    return renderImage(
+      <OgCard
+        accent={getRouteAccent('/development')}
+        category="Development Recipes"
+        title={filmName}
         iconChildren={getRouteIcon('/development') ?? undefined}
       />
     );
@@ -558,7 +592,8 @@ export default async function handler(request: Request): Promise<Response> {
     const details: string[] = [];
     if (developer?.dilutions?.length) {
       for (const dil of developer.dilutions) {
-        details.push(dil.dilution);
+        const label = dil.name ?? dil.ratio;
+        if (label) details.push(label);
       }
     }
 
