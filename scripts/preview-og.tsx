@@ -15,7 +15,14 @@ const { default: handler } = await import('../api/og');
 const previews = [
   { name: 'home', params: { route: '/' } },
   { name: 'border-calculator', params: { route: '/border' } },
+  { name: 'resize-calculator', params: { route: '/resize' } },
+  { name: 'reciprocity-calculator', params: { route: '/reciprocity' } },
+  { name: 'stops-calculator', params: { route: '/stops' } },
+  { name: 'exposure-calculator', params: { route: '/exposure' } },
+  { name: 'lens-equivalency', params: { route: '/lenses' } },
   { name: 'development-recipes', params: { route: '/development' } },
+  { name: 'film-database', params: { route: '/films' } },
+  { name: 'docs', params: { route: '/docs' } },
   {
     name: 'film-detail',
     params: { route: '/films', film: 'adox-chs-100-ii' },

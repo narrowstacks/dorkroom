@@ -49,6 +49,15 @@ bun run format
 4. **Avoid circular dependencies** between packages
 5. **Avoid using "warning" or "error" in file names** as this causes false warnings and errors flags in the build log.
 
+## OG Image Generation
+
+When adding new routes/pages, modifying existing routes, or changing API endpoints:
+
+1. **Update `utils/routeMetadata.ts`** — add/update `ROUTE_TITLES` and `ROUTE_DESCRIPTIONS` for new routes
+2. **Update `api/og.tsx`** — add a Lucide icon for the new route in `getRouteIcon()` (download the SVG from `unpkg.com/lucide-static@latest/icons/<name>.svg` to get exact element data)
+3. **Update `api/meta.ts`** if the route needs dynamic metadata (query params like `film`, `developer`)
+4. **Regenerate previews** — run `bun run scripts/preview-og.tsx` and visually verify the output in `og-previews/`
+
 ## Versioning
 
 - **CalVer** (`YYYY.MM.DD`) - all `package.json` versions use the date changes are pushed to main
