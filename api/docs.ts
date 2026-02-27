@@ -110,6 +110,40 @@ export default function handler(req: VercelRequest, res: VercelResponse): void {
       a {
         color: var(--accent);
       }
+
+      .example {
+        margin-top: 16px;
+      }
+
+      .example h3 {
+        margin: 0 0 8px;
+        font-size: 14px;
+        color: var(--text);
+      }
+
+      .example-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        margin: 12px 0 4px;
+      }
+
+      pre {
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid var(--panel-border);
+        border-radius: 8px;
+        padding: 14px 16px;
+        overflow-x: auto;
+        font-size: 13px;
+        line-height: 1.5;
+        margin: 0;
+        color: var(--text);
+      }
+
+      pre .comment {
+        color: var(--muted);
+      }
     </style>
   </head>
   <body>
@@ -156,6 +190,65 @@ export default function handler(req: VercelRequest, res: VercelResponse): void {
             </tr>
           </tbody>
         </table>
+      </section>
+
+      <section class="section">
+        <h2>Examples</h2>
+        <p>All requests require your API key in the <code>X-API-Key</code> header.</p>
+
+        <div class="example">
+          <h3>Search films</h3>
+          <p class="example-label">Request</p>
+          <pre>curl -H "X-API-Key: dk_..." "https://api.dorkroom.art/films?query=portra&amp;limit=2"</pre>
+          <p class="example-label">Response</p>
+          <pre>{ "count": 3, "data": [
+  { "slug": "kodak-portra-160", "brand": "Kodak", "name": "Portra 160",
+    "color_type": "color", "iso_speed": 160, "grain_structure": "very fine",
+    "reciprocity_failure": "1.3", "discontinued": false, "static_image_url": "https://..." },
+  <span class="comment">// ...</span>
+] }</pre>
+        </div>
+
+        <div class="example">
+          <h3>Search developers</h3>
+          <p class="example-label">Request</p>
+          <pre>curl -H "X-API-Key: dk_..." "https://api.dorkroom.art/developers?query=rodinal&amp;limit=1"</pre>
+          <p class="example-label">Response</p>
+          <pre>{ "count": 1, "data": [
+  { "slug": "agfa-rodinal", "name": "Rodinal", "manufacturer": "Agfa",
+    "type": "concentrate",
+    "dilutions": [{ "name": "1+25" }, { "name": "1+50" }] }
+] }</pre>
+        </div>
+
+        <div class="example">
+          <h3>Find development recipes</h3>
+          <p class="example-label">Request</p>
+          <pre>curl -H "X-API-Key: dk_..." \\
+  "https://api.dorkroom.art/combinations?film=kodak-tri-x-400&amp;developer=kodak-xtol&amp;limit=2"</pre>
+          <p class="example-label">Response</p>
+          <pre>{ "count": 5, "data": [
+  { "film_stock": "kodak-tri-x-400", "developer": "kodak-xtol",
+    "dilution_id": "2", "temperature_celsius": 24, "time_minutes": 7.25,
+    "shooting_iso": 400, "push_pull": 0, "tags": ["official-kodak"] },
+  <span class="comment">// ...</span>
+] }</pre>
+        </div>
+
+        <div class="example">
+          <h3>Look up a filmdev.org recipe</h3>
+          <p class="example-label">Request</p>
+          <pre>curl -H "X-API-Key: dk_..." "https://api.dorkroom.art/filmdev?id=12345"</pre>
+          <p class="example-label">Response</p>
+          <pre>{ "recipe": {
+  "id": 12345,
+  "recipe_name": "Kodak Tri-X 400 in Agfa Rodinal 1:50",
+  "film": "Kodak Tri-X 400", "developer": "Agfa Rodinal",
+  "dilution_ratio": "1:50", "duration_minutes": 13,
+  "celcius": "20.0", "format": "MF",
+  "recipe_link": "https://filmdev.org/recipe/show/12345"
+} }</pre>
+        </div>
       </section>
 
       <section class="section">
