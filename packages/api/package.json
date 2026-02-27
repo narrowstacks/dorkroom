@@ -1,6 +1,6 @@
 {
   "name": "@dorkroom/api",
-  "version": "2026.02.14",
+  "version": "2026.02.27",
   "license": "AGPL-3.0-only",
   "description": "API client and type definitions for the Dorkroom analog photography calculator",
   "keywords": [

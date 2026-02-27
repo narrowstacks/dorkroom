@@ -4,6 +4,23 @@ All notable changes to Dorkroom.art are documented here.
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.02.27]
+
+### Added
+
+- Public API docs endpoint at `api.dorkroom.art/` via `api/docs.ts`
+- Shared API utilities: `utils/withHandler.ts` and `utils/timeoutSignal.ts`
+- Unkey integration for API key verification (`X-API-Key`) and anonymous rate limiting
+- New environment variables for Unkey (`UNKEY_ROOT_KEY`, `UNKEY_API_ID`)
+- Programmatic Unkey key tier management CLI (`bun run keys:create`, `bun run keys:tier`)
+
+### Changed
+
+- Refactored API handlers (`films`, `developers`, `combinations`, `filmdev`) to use shared wrapper logic
+- Updated CORS allow headers to include `X-API-Key`
+- Added host-based Vercel route to serve docs on `api.dorkroom.art`
+- Bumped CalVer package versions to `2026.02.27`
+
 ## [2026.02.14]
 
 ### Added
@@ -167,7 +184,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ---
 
-[2026.02.14]: https://github.com/narrowstacks/dorkroom/compare/8eaf60c...HEAD
+[2026.02.27]: https://github.com/narrowstacks/dorkroom/compare/8eaf60c...HEAD
+[2026.02.14]: https://github.com/narrowstacks/dorkroom/compare/c7b30ce...8eaf60c
 [2025.12.23]: https://github.com/narrowstacks/dorkroom/compare/c7b30ce...8eaf60c
 [2025.11.25]: https://github.com/narrowstacks/dorkroom/compare/668cb15...c7b30ce
 [2025.11.20]: https://github.com/narrowstacks/dorkroom/compare/373246c...668cb15

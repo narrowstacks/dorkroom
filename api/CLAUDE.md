@@ -1,6 +1,6 @@
 # /api - Vercel Serverless Functions
 
-Serverless API endpoints deployed to Vercel that proxy requests to Supabase Edge Functions.
+Serverless API endpoints deployed to Vercel that proxy requests to Supabase Edge Functions and filmdev.org.
 
 ## Endpoints
 
@@ -8,30 +8,55 @@ Serverless API endpoints deployed to Vercel that proxy requests to Supabase Edge
 - `developers.ts` - Developer database queries
 - `combinations.ts` - Development recipe combinations
 - `filmdev.ts` - filmdev.org import endpoint
+- `docs.ts` - `api.dorkroom.art` landing page
 
-## Purpose
+## Core Pattern
 
-These functions act as a secure proxy layer:
+All API handlers should use `withHandler` from `utils/withHandler.ts`.
 
-- Hide Supabase master API key from client
-- Add CORS headers for browser requests
-- Validate/sanitize query parameters
-- Add request logging and error handling
-- Set cache headers for client caching
+`withHandler` centralizes:
+1. Request ID + user-agent normalization
+2. CORS headers and `OPTIONS` handling
+3. GET-only method guard
+4. Required env var validation
+5. Host-based Unkey auth and rate limiting
+6. Outer error mapping (`AbortError` => 504, fetch network => 502, generic => 500)
 
-## Environment Variables Required
+## Shared Utilities
 
-- `SUPABASE_MASTER_API_KEY` - Master API key for Supabase
-- `SUPABASE_ENDPOINT` - Base URL for Supabase functions
+- `utils/withHandler.ts` - common wrapper and Unkey integration
+- `utils/timeoutSignal.ts` - `createTimeoutSignal(timeoutMs)` helper
+- `utils/queryValidation.ts` - allowlist-based query sanitization
+- `utils/serverlessLogger.ts` - structured serverless logs
+
+## Authentication + Rate Limiting
+
+Two access modes are supported from one Vercel project:
+
+- `api.dorkroom.art/*`
+  - Requires `X-API-Key`
+  - Verifies key through Unkey
+  - Returns `401` on missing/invalid keys
+  - Returns `429` with `Retry-After` when key is rate-limited
+
+- `dorkroom.art/api/*`
+  - No API key required
+  - Anonymous rate limiting by client IP (30 req/min)
+
+When Unkey is not configured (`UNKEY_ROOT_KEY` missing), anonymous rate limiting is skipped with warning logs for local development.
+
+## Required Environment Variables
+
+Supabase proxy handlers (`films`, `developers`, `combinations`):
+- `SUPABASE_MASTER_API_KEY`
+- `SUPABASE_ENDPOINT`
+
+Unkey integration:
+- `UNKEY_ROOT_KEY` - root key used for verification and anonymous rate limits
+- `UNKEY_API_ID` - required for public API host configuration
 
 ## Request Flow
 
 ```
-Client → Vercel Serverless → Supabase Edge Functions → Database
+Client -> Vercel Serverless -> (Unkey auth/rate limit) -> Upstream API -> Response
 ```
-
-All endpoints:
-1. Validate request method (GET only)
-2. Sanitize query parameters
-3. Forward to Supabase with master API key
-4. Return JSON response with cache headers

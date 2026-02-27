@@ -14,6 +14,16 @@
     "NODE_OPTIONS": "--experimental-require-module"
   },
   "routes": [
+    {
+      "src": "/",
+      "has": [{ "type": "host", "value": "api.dorkroom.art" }],
+      "dest": "/api/docs"
+    },
+    {
+      "src": "/(films|developers|combinations|filmdev)/?",
+      "has": [{ "type": "host", "value": "api.dorkroom.art" }],
+      "dest": "/api/$1"
+    },
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/" }

@@ -1,6 +1,6 @@
 {
   "name": "@dorkroom/source",
-  "version": "2026.02.14",
+  "version": "2026.02.27",
   "license": "AGPL-3.0-only",
   "scripts": {
     "supabase:login": "bunx supabase login",
@@ -11,6 +11,8 @@
     "supabase:deploy:developers": "bunx supabase functions deploy developers --no-verify-jwt",
     "supabase:deploy:combinations": "bunx supabase functions deploy combinations --no-verify-jwt",
     "supabase:serve": "bunx supabase functions serve",
+    "keys:create": "bun run scripts/unkey-keys.ts create",
+    "keys:tier": "bun run scripts/unkey-keys.ts tier",
     "build": "turbo run build",
     "dev": "turbo run dev --filter=@dorkroom/dorkroom",
     "test": "turbo run lint test build typecheck --filter='@dorkroom/*'",
@@ -32,6 +34,7 @@
     "@tanstack/react-virtual": "^3.13.13",
     "@tanstack/router-devtools": "^1.139.3",
     "@tanstack/router-vite-plugin": "^1.136.8",
+    "@unkey/api": "^2.3.0",
     "@vercel/analytics": "^1.5.0",
     "@vercel/node": "^5.3.24",
     "clsx": "^2.1.1",

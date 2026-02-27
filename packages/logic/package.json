@@ -1,6 +1,6 @@
 {
   "name": "@dorkroom/logic",
-  "version": "2026.02.14",
+  "version": "2026.02.27",
   "license": "AGPL-3.0-only",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

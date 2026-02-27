@@ -1,6 +1,6 @@
 {
   "name": "@dorkroom/ui",
-  "version": "2026.02.14",
+  "version": "2026.02.27",
   "license": "AGPL-3.0-only",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
