@@ -16,8 +16,9 @@
     "keys:anon-bootstrap": "bun run scripts/unkey-keys.ts anon-bootstrap",
     "build": "turbo run build",
     "dev": "turbo run dev --filter=@dorkroom/dorkroom",
-    "test": "turbo run lint test build typecheck --filter='@dorkroom/*'",
+    "test": "turbo run lint test build typecheck --filter='@dorkroom/*' && vitest run --config vitest.config.ts",
     "test:unit": "turbo run test --filter='@dorkroom/*' -- --passWithNoTests",
+    "test:serverless": "vitest run --config vitest.config.ts",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write ."
