@@ -20,6 +20,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - Updated CORS allow headers to include `X-API-Key`
 - Added host-based Vercel route to serve docs on `api.dorkroom.art`
 - Bumped CalVer package versions to `2026.02.27`
+- Anonymous rate-limit handling now degrades gracefully if namespace auto-create permission is missing
 
 ## [2026.02.14]
 

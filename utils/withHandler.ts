@@ -220,18 +220,39 @@ async function applyAnonymousRateLimit(
     return true;
   }
 
-  const namespace = process.env.UNKEY_API_ID
-    ? `${process.env.UNKEY_API_ID}-anonymous`
-    : 'dorkroom-anonymous';
+  const configuredNamespace = process.env.UNKEY_ANON_NAMESPACE?.trim();
+  const namespace =
+    configuredNamespace ||
+    (process.env.UNKEY_API_ID
+      ? `${process.env.UNKEY_API_ID}-anonymous`
+      : 'dorkroom-anonymous');
 
   const identifier = getClientIp(req);
 
-  const result = await unkey.ratelimit.limit({
-    namespace,
-    identifier,
-    limit: ANONYMOUS_RATE_LIMIT,
-    duration: ANONYMOUS_RATE_WINDOW_MS,
-  });
+  let result: Awaited<ReturnType<typeof unkey.ratelimit.limit>>;
+  try {
+    result = await unkey.ratelimit.limit({
+      namespace,
+      identifier,
+      limit: ANONYMOUS_RATE_LIMIT,
+      duration: ANONYMOUS_RATE_WINDOW_MS,
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (errorMessage.includes('create_namespace')) {
+      serverlessWarn(
+        'Anonymous rate limiting skipped due to missing create_namespace permission',
+        {
+          requestId,
+          namespace,
+        }
+      );
+      return true;
+    }
+
+    throw error;
+  }
 
   const rateLimitData = result.data;
   setRateLimitHeaders(res, {

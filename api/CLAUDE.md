@@ -54,6 +54,7 @@ Supabase proxy handlers (`films`, `developers`, `combinations`):
 Unkey integration:
 - `UNKEY_ROOT_KEY` - root key used for verification and anonymous rate limits
 - `UNKEY_API_ID` - required for public API host configuration
+- `UNKEY_ANON_NAMESPACE` (optional) - explicit pre-created namespace for anonymous IP rate limiting
 
 ## Request Flow
 
