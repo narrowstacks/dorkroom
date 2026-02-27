@@ -1,7 +1,7 @@
 import { Unkey } from '@unkey/api';
 
 type Tier = 'free' | 'standard' | 'partner';
-type Command = 'create' | 'tier';
+type Command = 'create' | 'tier' | 'anon-bootstrap';
 
 interface TierConfig {
   limit: number;
@@ -18,9 +18,15 @@ function printUsage(): void {
   console.log(`Usage:
   bun run keys:create -- --customer-id <id> --tier <free|standard|partner> [--name <name>] [--external-id <id>] [--prefix <prefix>]
   bun run keys:tier -- --key-id <key_id> --tier <free|standard|partner>
+  bun run keys:anon-bootstrap -- [--namespace <name>] [--identifier <id>] [--limit <n>] [--duration <ms>]
 
 Required environment variables:
+  For keys:create and keys:tier:
   UNKEY_ADMIN_ROOT_KEY
+  UNKEY_API_ID
+  UNKEY_API_KEY_PERMISSION
+  For keys:anon-bootstrap:
+  UNKEY_ROOT_KEY
   UNKEY_API_ID
 `);
 }
@@ -75,8 +81,43 @@ function parseTier(value: string): Tier {
   );
 }
 
-function getUnkeyAdminClient(): { client: Unkey; apiId: string } {
+function parseOptionalPositiveInt(
+  options: Record<string, string>,
+  name: string
+): number | undefined {
+  const value = options[name];
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(
+      `Invalid --${name}: ${value}. Expected a positive integer.`
+    );
+  }
+
+  return parsed;
+}
+
+function getUnkeyAdminClient(): {
+  client: Unkey;
+  apiId: string;
+  keyPermission: string;
+} {
   const rootKey = requireEnv('UNKEY_ADMIN_ROOT_KEY');
+  const apiId = requireEnv('UNKEY_API_ID');
+  const keyPermission = requireEnv('UNKEY_API_KEY_PERMISSION');
+
+  return {
+    client: new Unkey({ rootKey }),
+    apiId,
+    keyPermission,
+  };
+}
+
+function getUnkeyRuntimeClient(): { client: Unkey; apiId: string } {
+  const rootKey = requireEnv('UNKEY_ROOT_KEY');
   const apiId = requireEnv('UNKEY_API_ID');
 
   return {
@@ -92,7 +133,7 @@ async function createKey(options: Record<string, string>): Promise<void> {
   const name = options.name ?? `customer-${customerId}`;
   const prefix = options.prefix;
   const { limit, duration } = TIER_CONFIG[tier];
-  const { client, apiId } = getUnkeyAdminClient();
+  const { client, apiId, keyPermission } = getUnkeyAdminClient();
 
   const response = await client.keys.createKey({
     apiId,
@@ -100,6 +141,7 @@ async function createKey(options: Record<string, string>): Promise<void> {
     externalId,
     prefix,
     meta: { tier },
+    permissions: [keyPermission],
     ratelimits: [
       {
         name: 'requests',
@@ -117,6 +159,7 @@ async function createKey(options: Record<string, string>): Promise<void> {
         key: response.data.key,
         tier,
         externalId,
+        permission: keyPermission,
         ratelimit: { name: 'requests', limit, duration, autoApply: true },
       },
       null,
@@ -158,6 +201,40 @@ async function updateTier(options: Record<string, string>): Promise<void> {
   );
 }
 
+async function bootstrapAnonymousNamespace(
+  options: Record<string, string>
+): Promise<void> {
+  const { client, apiId } = getUnkeyRuntimeClient();
+  const namespaceFromEnv = process.env.UNKEY_ANON_NAMESPACE?.trim();
+  const namespace =
+    options.namespace?.trim() || namespaceFromEnv || `${apiId}-anonymous`;
+  const identifier = options.identifier?.trim() || 'bootstrap-check';
+  const limit = parseOptionalPositiveInt(options, 'limit') ?? 30;
+  const duration = parseOptionalPositiveInt(options, 'duration') ?? 60_000;
+
+  const response = await client.ratelimit.limit({
+    namespace,
+    identifier,
+    limit,
+    duration,
+  });
+
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        namespace,
+        identifier,
+        limit,
+        duration,
+        ratelimit: response.data,
+      },
+      null,
+      2
+    )
+  );
+}
+
 async function main(): Promise<void> {
   const command = process.argv[2] as Command | undefined;
   const args = process.argv.slice(3);
@@ -167,7 +244,11 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  if (command !== 'create' && command !== 'tier') {
+  if (
+    command !== 'create' &&
+    command !== 'tier' &&
+    command !== 'anon-bootstrap'
+  ) {
     throw new Error(`Unknown command: ${command}`);
   }
 
@@ -183,12 +264,17 @@ async function main(): Promise<void> {
     return;
   }
 
-  await updateTier(options);
+  if (command === 'tier') {
+    await updateTier(options);
+    return;
+  }
+
+  await bootstrapAnonymousNamespace(options);
 }
 
 main().catch((cause: unknown) => {
   const message = cause instanceof Error ? cause.message : String(cause);
-  console.error(`Unkey key management failed: ${message}`);
+  console.error(`Unkey CLI failed: ${message}`);
   printUsage();
   process.exit(1);
 });

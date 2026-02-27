@@ -164,6 +164,7 @@ Dorkroom provides a comprehensive API for accessing film development data, avail
 - **Features**: Query parameters, fuzzy search, request validation, CORS support
 - **API Key Access**: Contact [aaron+dorkroom@affords.art](mailto:aaron+dorkroom@affords.art) to request a key for `https://api.dorkroom.art`
 - **Authentication**: Supabase service role key (server-side only)
+- **Anonymous Namespace Bootstrap**: `bun run keys:anon-bootstrap` (uses `UNKEY_ROOT_KEY`; requires `ratelimit.*.limit` and `ratelimit.*.create_namespace` on that key)
 
 ## Contributing
 
@@ -270,6 +271,7 @@ bun run lint:fix
 | `bun run dev`                              | Start development server     |
 | `bun run build`                            | Build all packages           |
 | `bun run test`                             | Run lint, test, build, typecheck |
+| `bun run keys:anon-bootstrap`              | Bootstrap/check anonymous Unkey namespace |
 | `turbo run test --filter=@dorkroom/logic`  | Test specific package        |
 | `bun run lint`                             | Run Biome linting            |
 | `bun run format`                           | Format code with Biome       |

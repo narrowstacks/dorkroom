@@ -57,6 +57,10 @@ Unkey integration:
 - `UNKEY_API_KEY_PERMISSION` - required permission expression checked for every API key verification
 - `UNKEY_ANON_NAMESPACE` (optional) - explicit pre-created namespace for anonymous IP rate limiting
 
+Operational note:
+- Use `bun run keys:anon-bootstrap` to create/check the anonymous ratelimit namespace.
+- This command uses `UNKEY_ROOT_KEY` (runtime key), not `UNKEY_ADMIN_ROOT_KEY`.
+
 ## Request Flow
 
 ```

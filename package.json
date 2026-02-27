@@ -13,6 +13,7 @@
     "supabase:serve": "bunx supabase functions serve",
     "keys:create": "bun run scripts/unkey-keys.ts create",
     "keys:tier": "bun run scripts/unkey-keys.ts tier",
+    "keys:anon-bootstrap": "bun run scripts/unkey-keys.ts anon-bootstrap",
     "build": "turbo run build",
     "dev": "turbo run dev --filter=@dorkroom/dorkroom",
     "test": "turbo run lint test build typecheck --filter='@dorkroom/*'",

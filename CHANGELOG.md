@@ -13,6 +13,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - Unkey integration for API key verification (`X-API-Key`) and anonymous rate limiting
 - New environment variables for Unkey (`UNKEY_ROOT_KEY`, `UNKEY_API_ID`)
 - Programmatic Unkey key tier management CLI (`bun run keys:create`, `bun run keys:tier`)
+- Programmatic anonymous namespace bootstrap/check CLI (`bun run keys:anon-bootstrap`) using `UNKEY_ROOT_KEY`
 
 ### Changed
 
