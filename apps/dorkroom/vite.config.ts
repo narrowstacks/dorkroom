@@ -26,6 +26,11 @@ export default defineConfig(() => ({
         },
         secure: true,
       },
+      '/api': {
+        target: 'https://dorkroom.art',
+        changeOrigin: true,
+        secure: true,
+      },
     },
   },
   preview: {

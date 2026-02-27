@@ -99,7 +99,25 @@ describe('withHandler', () => {
   });
 
   describe('CORS headers', () => {
-    it('should set CORS headers on all responses', async () => {
+    it('should set CORS headers for public API host (api.dorkroom.art)', async () => {
+      const withHandler = await getHandler();
+      const handler = withHandler({
+        name: 'test',
+        handler: async () => {},
+      });
+
+      const req = createMockRequest({
+        headers: { host: 'api.dorkroom.art' },
+      });
+      const res = createMockResponse();
+      await handler(req, res);
+
+      expect(res._headers['access-control-allow-origin']).toBe('*');
+      expect(res._headers['access-control-allow-methods']).toBe('GET, OPTIONS');
+      expect(res._headers['access-control-max-age']).toBe('86400');
+    });
+
+    it('should NOT set CORS headers for internal host (dorkroom.art)', async () => {
       const withHandler = await getHandler();
       const handler = withHandler({
         name: 'test',
@@ -112,9 +130,9 @@ describe('withHandler', () => {
       const res = createMockResponse();
       await handler(req, res);
 
-      expect(res._headers['access-control-allow-origin']).toBe('*');
-      expect(res._headers['access-control-allow-methods']).toBe('GET, OPTIONS');
-      expect(res._headers['access-control-max-age']).toBe('86400');
+      expect(res._headers['access-control-allow-origin']).toBeUndefined();
+      expect(res._headers['access-control-allow-methods']).toBeUndefined();
+      expect(res._headers['access-control-max-age']).toBeUndefined();
     });
 
     it('should handle OPTIONS preflight and return 200', async () => {

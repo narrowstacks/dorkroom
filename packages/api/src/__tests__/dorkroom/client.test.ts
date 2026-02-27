@@ -4,6 +4,8 @@ import {
   fetchCombinations,
   fetchDevelopers,
   fetchFilms,
+  INTERNAL_API_BASE_URL,
+  PUBLIC_API_BASE_URL,
 } from '../../dorkroom/client';
 import type {
   RawCombination,
@@ -20,18 +22,58 @@ describe('DorkroomApiClient', () => {
 
   beforeEach(() => {
     mockFetch.mockClear();
-    client = new DorkroomApiClient('https://test.api.com');
+    client = new DorkroomApiClient({ baseUrl: 'https://test.api.com' });
   });
 
   describe('Constructor', () => {
-    it('should use default base URL when none provided', () => {
+    it('should use public base URL when no config provided', async () => {
       const defaultClient = new DorkroomApiClient();
-      expect(defaultClient).toBeInstanceOf(DorkroomApiClient);
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+      await defaultClient.fetchFilms();
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${PUBLIC_API_BASE_URL}/films`,
+        expect.objectContaining({ signal: undefined })
+      );
     });
 
     it('should use custom base URL when provided', () => {
-      const customClient = new DorkroomApiClient('https://custom.api.com');
+      const customClient = new DorkroomApiClient({
+        baseUrl: 'https://custom.api.com',
+      });
       expect(customClient).toBeInstanceOf(DorkroomApiClient);
+    });
+
+    it('should send X-API-Key header when apiKey is set', async () => {
+      const authedClient = new DorkroomApiClient({
+        baseUrl: 'https://test.api.com',
+        apiKey: 'dk_test_123',
+      });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+      await authedClient.fetchFilms();
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://test.api.com/films',
+        expect.objectContaining({
+          headers: { 'X-API-Key': 'dk_test_123' },
+        })
+      );
+    });
+
+    it('should not send X-API-Key header when apiKey is not set', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+      await client.fetchFilms();
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://test.api.com/films',
+        expect.objectContaining({ headers: undefined })
+      );
     });
   });
 
@@ -67,6 +109,7 @@ describe('DorkroomApiClient', () => {
 
       expect(mockFetch).toHaveBeenCalledWith('https://test.api.com/films', {
         signal: undefined,
+        headers: undefined,
       });
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
@@ -145,6 +188,7 @@ describe('DorkroomApiClient', () => {
         'https://test.api.com/developers',
         {
           signal: undefined,
+          headers: undefined,
         }
       );
       expect(result).toHaveLength(1);
@@ -200,6 +244,7 @@ describe('DorkroomApiClient', () => {
         'https://test.api.com/combinations',
         {
           signal: undefined,
+          headers: undefined,
         }
       );
       expect(result).toHaveLength(1);
@@ -399,8 +444,9 @@ describe('Convenience Functions', () => {
 
     await fetchFilms();
 
-    expect(mockFetch).toHaveBeenCalledWith('https://dorkroom.art/api/films', {
+    expect(mockFetch).toHaveBeenCalledWith('/api/films', {
       signal: undefined,
+      headers: undefined,
     });
   });
 
@@ -412,12 +458,10 @@ describe('Convenience Functions', () => {
 
     await fetchDevelopers();
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      'https://dorkroom.art/api/developers',
-      {
-        signal: undefined,
-      }
-    );
+    expect(mockFetch).toHaveBeenCalledWith('/api/developers', {
+      signal: undefined,
+      headers: undefined,
+    });
   });
 
   it('fetchCombinations should use default client', async () => {
@@ -428,12 +472,10 @@ describe('Convenience Functions', () => {
 
     await fetchCombinations();
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      'https://dorkroom.art/api/combinations',
-      {
-        signal: undefined,
-      }
-    );
+    expect(mockFetch).toHaveBeenCalledWith('/api/combinations', {
+      signal: undefined,
+      headers: undefined,
+    });
   });
 
   it('should pass options to default client', async () => {
@@ -445,8 +487,9 @@ describe('Convenience Functions', () => {
 
     await fetchFilms({ signal: controller.signal });
 
-    expect(mockFetch).toHaveBeenCalledWith('https://dorkroom.art/api/films', {
+    expect(mockFetch).toHaveBeenCalledWith('/api/films', {
       signal: controller.signal,
+      headers: undefined,
     });
   });
 });
@@ -455,7 +498,7 @@ describe('Data Transformation', () => {
   let client: DorkroomApiClient;
 
   beforeEach(() => {
-    client = new DorkroomApiClient();
+    client = new DorkroomApiClient({ baseUrl: 'https://test.api.com' });
   });
 
   it('should transform temperature correctly', () => {

@@ -23,18 +23,49 @@ const envelopeSchema = z.object({
 });
 
 /**
- * Default API base URL for production Dorkroom API
+ * Public API base URL — use this when building external applications.
+ * Requires an API key via the `apiKey` config option.
  */
-export const DEFAULT_BASE_URL = 'https://dorkroom.art/api';
+export const PUBLIC_API_BASE_URL = 'https://api.dorkroom.art';
+
+/**
+ * Internal API base URL — same-origin relative path used by the dorkroom.art app.
+ * @internal
+ */
+export const INTERNAL_API_BASE_URL = '/api';
+
+/**
+ * @internal Alias kept for backwards compatibility within the monorepo.
+ */
+export const DEFAULT_BASE_URL = INTERNAL_API_BASE_URL;
+
+/**
+ * Configuration for DorkroomApiClient.
+ */
+export interface DorkroomApiClientConfig {
+  /** API base URL. Defaults to PUBLIC_API_BASE_URL for external consumers. */
+  baseUrl?: string;
+  /** API key sent as X-API-Key header. Required for api.dorkroom.art. */
+  apiKey?: string;
+}
 
 /**
  * API client for Dorkroom API
  */
 export class DorkroomApiClient {
   private baseUrl: string;
+  private apiKey: string | undefined;
 
-  constructor(baseUrl: string = DEFAULT_BASE_URL) {
-    this.baseUrl = baseUrl;
+  constructor(config: DorkroomApiClientConfig = {}) {
+    this.baseUrl = config.baseUrl ?? PUBLIC_API_BASE_URL;
+    this.apiKey = config.apiKey;
+  }
+
+  private buildHeaders(): Record<string, string> | undefined {
+    if (this.apiKey) {
+      return { 'X-API-Key': this.apiKey };
+    }
+    return undefined;
   }
 
   /**
@@ -44,6 +75,7 @@ export class DorkroomApiClient {
   async fetchFilms(options?: { signal?: AbortSignal }): Promise<Film[]> {
     const response = await fetch(`${this.baseUrl}/films`, {
       signal: options?.signal,
+      headers: this.buildHeaders(),
     });
     if (!response.ok) {
       throw new Error(`Failed to fetch films: ${response.statusText}`);
@@ -90,6 +122,7 @@ export class DorkroomApiClient {
   }): Promise<Developer[]> {
     const response = await fetch(`${this.baseUrl}/developers`, {
       signal: options?.signal,
+      headers: this.buildHeaders(),
     });
     if (!response.ok) {
       throw new Error(`Failed to fetch developers: ${response.statusText}`);
@@ -136,6 +169,7 @@ export class DorkroomApiClient {
   }): Promise<Combination[]> {
     const response = await fetch(`${this.baseUrl}/combinations`, {
       signal: options?.signal,
+      headers: this.buildHeaders(),
     });
     if (!response.ok) {
       throw new Error(`Failed to fetch combinations: ${response.statusText}`);
@@ -279,8 +313,10 @@ export class DorkroomApiClient {
   }
 }
 
-// Default API client instance
-export const apiClient = new DorkroomApiClient();
+// Default API client instance for internal (same-origin) use
+export const apiClient = new DorkroomApiClient({
+  baseUrl: INTERNAL_API_BASE_URL,
+});
 
 // Export convenience functions for external use
 export const fetchFilms = (options?: { signal?: AbortSignal }) =>

@@ -23,8 +23,9 @@ describe('TanStack Query Compatibility', () => {
 
     await fetchFilmsForQuery(mockContext);
 
-    expect(mockFetch).toHaveBeenCalledWith('https://dorkroom.art/api/films', {
+    expect(mockFetch).toHaveBeenCalledWith('/api/films', {
       signal: mockContext.signal,
+      headers: undefined,
     });
   });
 
@@ -38,12 +39,10 @@ describe('TanStack Query Compatibility', () => {
 
     await fetchDevelopersForQuery(mockContext);
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      'https://dorkroom.art/api/developers',
-      {
-        signal: mockContext.signal,
-      }
-    );
+    expect(mockFetch).toHaveBeenCalledWith('/api/developers', {
+      signal: mockContext.signal,
+      headers: undefined,
+    });
   });
 
   it('fetchCombinationsForQuery should handle QueryFunctionContext', async () => {
@@ -56,12 +55,10 @@ describe('TanStack Query Compatibility', () => {
 
     await fetchCombinationsForQuery(mockContext);
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      'https://dorkroom.art/api/combinations',
-      {
-        signal: mockContext.signal,
-      }
-    );
+    expect(mockFetch).toHaveBeenCalledWith('/api/combinations', {
+      signal: mockContext.signal,
+      headers: undefined,
+    });
   });
 
   it('should work without context', async () => {
@@ -72,8 +69,9 @@ describe('TanStack Query Compatibility', () => {
 
     await fetchFilmsForQuery();
 
-    expect(mockFetch).toHaveBeenCalledWith('https://dorkroom.art/api/films', {
+    expect(mockFetch).toHaveBeenCalledWith('/api/films', {
       signal: undefined,
+      headers: undefined,
     });
   });
 });

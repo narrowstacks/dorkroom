@@ -479,14 +479,22 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
       userAgent
     );
 
+    const isPublicApi = isPublicApiRequest(req, requestId);
+
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader(
-      'Access-Control-Allow-Headers',
-      'Content-Type, Authorization, X-Requested-With, X-API-Key'
-    );
-    res.setHeader('Access-Control-Max-Age', '86400');
+
+    // Only set permissive CORS on the public API (api.dorkroom.art).
+    // Internal same-origin requests (dorkroom.art) don't need CORS headers;
+    // omitting them blocks cross-origin reads from other sites.
+    if (isPublicApi) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'Content-Type, Authorization, X-Requested-With, X-API-Key'
+      );
+      res.setHeader('Access-Control-Max-Age', '86400');
+    }
 
     if (req.method === 'OPTIONS') {
       serverlessLog('CORS preflight request handled', {
@@ -529,8 +537,6 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
         });
         return;
       }
-
-      const isPublicApi = isPublicApiRequest(req, requestId);
       setVaryHeader(res, 'Host');
       if (isPublicApi) {
         setVaryHeader(res, 'X-API-Key');

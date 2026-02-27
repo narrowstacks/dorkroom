@@ -33,6 +33,14 @@ describe('API Package Exports', () => {
     expect(typeof apiExports.fetchCombinationsForQuery).toBe('function');
   });
 
+  it('should export PUBLIC_API_BASE_URL', () => {
+    expect(apiExports.PUBLIC_API_BASE_URL).toBe('https://api.dorkroom.art');
+  });
+
+  it('should export INTERNAL_API_BASE_URL', () => {
+    expect(apiExports.INTERNAL_API_BASE_URL).toBe('/api');
+  });
+
   it('should export types', () => {
     // TypeScript types are exported and can be used for type safety
     // Film, Developer, Combination, etc. are all available from the module

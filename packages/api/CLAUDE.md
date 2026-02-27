@@ -15,15 +15,39 @@ src/
 
 ## Usage
 
+### Internal (dorkroom.art app)
+
 ```typescript
-// Default client (production API)
+// Singleton client uses INTERNAL_API_BASE_URL ('/api') — same-origin
 import { apiClient, fetchFilmsForQuery } from '@dorkroom/api';
 
 // TanStack Query integration
 useQuery({ queryKey: ['films'], queryFn: fetchFilmsForQuery });
+```
 
-// Custom base URL
-const client = new DorkroomApiClient('http://localhost:3001/api');
+### External (npm consumers)
+
+```typescript
+import { DorkroomApiClient } from '@dorkroom/api';
+
+// Defaults to PUBLIC_API_BASE_URL ('https://api.dorkroom.art')
+const client = new DorkroomApiClient({ apiKey: 'dk_...' });
+const films = await client.fetchFilms();
+```
+
+### Base URL Constants
+
+- `PUBLIC_API_BASE_URL` — `https://api.dorkroom.art` (requires API key)
+- `INTERNAL_API_BASE_URL` — `/api` (same-origin, used by `apiClient` singleton)
+
+### Constructor
+
+```typescript
+interface DorkroomApiClientConfig {
+  baseUrl?: string;  // defaults to PUBLIC_API_BASE_URL
+  apiKey?: string;   // sent as X-API-Key header
+}
+new DorkroomApiClient(config?: DorkroomApiClientConfig)
 ```
 
 ## Type Conventions
