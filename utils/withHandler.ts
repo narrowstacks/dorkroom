@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { isIP } from 'node:net';
 import { Unkey } from '@unkey/api';
 import type {
@@ -273,10 +274,24 @@ async function applyPublicApiKeyAuth(
     return false;
   }
 
-  const verification = await unkey.keys.verifyKey({
-    key: apiKey,
-    permissions: requiredPermission,
-  });
+  let verification: Awaited<ReturnType<typeof unkey.keys.verifyKey>>;
+  try {
+    verification = await unkey.keys.verifyKey({
+      key: apiKey,
+      permissions: requiredPermission,
+    });
+  } catch (error) {
+    serverlessError('Unkey key verification failed', {
+      requestId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    res.status(500).json({
+      error: 'API configuration error',
+      message: 'Unable to verify API key',
+      requestId,
+    });
+    return false;
+  }
 
   const primaryRateLimit = verification.data.ratelimits?.[0];
   if (primaryRateLimit) {
@@ -453,7 +468,7 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
     res: VercelResponse
   ) {
     const startTime = Date.now();
-    const requestId = Math.random().toString(36).substring(7);
+    const requestId = randomUUID();
     const userAgent =
       getHeaderValue(req.headers['user-agent']) || 'DorkroomReact-API';
 
@@ -464,6 +479,7 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
       userAgent
     );
 
+    res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader(

@@ -10,6 +10,7 @@ import { createTimeoutSignal } from '../utils/timeoutSignal';
 import { withHandler } from '../utils/withHandler';
 
 const TIMEOUT_MS = 30_000;
+const MAX_RESPONSE_SIZE = 1024 * 1024;
 const ALLOWED_PARAMS = [
   'film',
   'developer',
@@ -68,9 +69,8 @@ export default withHandler({
         status: response.status,
       });
 
-      res.status(response.status).json({
+      res.status(502).json({
         error: 'External API error',
-        status: response.status,
         message: 'Upstream service returned an error',
         requestId: ctx.requestId,
       });
@@ -87,7 +87,25 @@ export default withHandler({
       res.status(502).json({
         error: 'Invalid response format',
         message: 'Expected JSON response from upstream API',
-        contentType,
+        requestId: ctx.requestId,
+      });
+      return;
+    }
+
+    const contentLength = response.headers.get('content-length');
+    if (
+      contentLength &&
+      Number.parseInt(contentLength, 10) > MAX_RESPONSE_SIZE
+    ) {
+      serverlessError('Response too large', {
+        requestId: ctx.requestId,
+        contentLength,
+        maxAllowed: MAX_RESPONSE_SIZE,
+      });
+
+      res.status(502).json({
+        error: 'Response too large',
+        message: 'Response from upstream API exceeds maximum allowed size',
         requestId: ctx.requestId,
       });
       return;

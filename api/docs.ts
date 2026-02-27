@@ -189,6 +189,8 @@ export default function handler(req: VercelRequest, res: VercelResponse): void {
 </html>`;
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader(
     'Cache-Control',
     'public, max-age=300, stale-while-revalidate=600'

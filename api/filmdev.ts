@@ -49,7 +49,7 @@ export default withHandler({
       method: 'GET',
       headers: {
         Accept: 'application/json',
-        'User-Agent': ctx.userAgent,
+        'User-Agent': 'Dorkroom-API/1.0',
       },
       signal: createTimeoutSignal(TIMEOUT_MS),
     });
@@ -74,9 +74,8 @@ export default withHandler({
         return;
       }
 
-      res.status(response.status).json({
+      res.status(502).json({
         error: 'External API error',
-        status: response.status,
         message: 'Upstream service returned an error',
         requestId: ctx.requestId,
       });
@@ -93,7 +92,6 @@ export default withHandler({
       res.status(502).json({
         error: 'Invalid response format',
         message: 'Expected JSON response from filmdev.org',
-        contentType,
         requestId: ctx.requestId,
       });
       return;

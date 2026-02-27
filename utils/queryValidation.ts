@@ -111,6 +111,7 @@ export function isValidNumericParam(
   max: number
 ): boolean {
   if (!value) return false;
+  if (!/^\d+$/.test(value)) return false;
   const num = parseInt(value, 10);
-  return !Number.isNaN(num) && num >= min && num <= max;
+  return num >= min && num <= max;
 }
