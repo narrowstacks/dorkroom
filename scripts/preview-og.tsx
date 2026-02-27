@@ -52,11 +52,52 @@ const previews = [
       recipe: 'ece4fc48-24ba-4e16-813b-334e6e76a9b6',
     },
   },
+  // Film filter cards
+  { name: 'filter-color-bw', params: { route: '/films', color: 'bw' } },
+  { name: 'filter-color-slide', params: { route: '/films', color: 'slide' } },
+  { name: 'filter-brand-kodak', params: { route: '/films', brand: 'Kodak' } },
+  { name: 'filter-iso-400', params: { route: '/films', iso: '400' } },
+  {
+    name: 'filter-bw-kodak',
+    params: { route: '/films', color: 'bw', brand: 'Kodak' },
+  },
+  {
+    name: 'filter-status-active',
+    params: { route: '/films', status: 'active' },
+  },
+  {
+    name: 'filter-status-discontinued',
+    params: { route: '/films', status: 'discontinued' },
+  },
+  {
+    name: 'filter-bw-active',
+    params: { route: '/films', color: 'bw', status: 'active' },
+  },
+  {
+    name: 'filter-full-combo',
+    params: {
+      route: '/films',
+      color: 'bw',
+      brand: 'Kodak',
+      iso: '400',
+      status: 'active',
+    },
+  },
 ];
 
 await mkdir(outDir, { recursive: true });
 
-for (const { name, params } of previews) {
+const args = process.argv.slice(2);
+const selected =
+  args.length > 0 ? previews.filter((p) => args.includes(p.name)) : previews;
+
+if (args.length > 0 && selected.length === 0) {
+  console.error(`No matching previews for: ${args.join(', ')}`);
+  console.error(`Available: ${previews.map((p) => p.name).join(', ')}`);
+  process.exit(1);
+}
+
+for (const { name, params } of selected) {
   const url = new URL('https://dorkroom.art/api/og');
   for (const [k, v] of Object.entries(params)) {
     url.searchParams.set(k, v);

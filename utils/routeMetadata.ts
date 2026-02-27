@@ -53,6 +53,112 @@ export interface MetadataQuery {
   film?: string;
   developer?: string;
   recipe?: string;
+  color?: string;
+  iso?: string;
+  brand?: string;
+  status?: string;
+}
+
+export const COLOR_LABELS: Record<string, string> = {
+  bw: 'Black & White',
+  color: 'Color Negative',
+  slide: 'Slide',
+};
+
+export const STATUS_LABELS: Record<
+  string,
+  { title: string; subtitle: string; standalone: string }
+> = {
+  active: {
+    title: 'In Production',
+    subtitle: 'Currently in production',
+    standalone: 'Film Stocks in Production',
+  },
+  discontinued: {
+    title: 'Discontinued',
+    subtitle: 'No longer manufactured',
+    standalone: 'Discontinued Film Stocks',
+  },
+};
+
+export interface FilmFilterParts {
+  title: string;
+  titleLines: string[];
+  description: string;
+  pills: string[];
+  subtitle?: string;
+}
+
+/**
+ * Build dynamic title/description/pills from film filter params.
+ * Returns null if no meaningful filters are present (falls through to static card).
+ */
+export function buildFilmFilterParts(
+  query: MetadataQuery
+): FilmFilterParts | null {
+  const { color, iso, brand, status } = query;
+  const hasColor = color != null && color in COLOR_LABELS;
+  const hasIso = iso != null && iso.length > 0;
+  const hasBrand = brand != null && brand.length > 0;
+  const hasStatus =
+    status != null && status in STATUS_LABELS && status !== 'all';
+
+  if (!hasColor && !hasIso && !hasBrand && !hasStatus) return null;
+
+  const statusOnly = hasStatus && !hasColor && !hasIso && !hasBrand;
+
+  // Status-only: use standalone title, no subtitle
+  // Combined: [Color] [Brand] ISO [N] Films + status subtitle
+  let title: string;
+  let titleLines: string[];
+  let subtitle: string | undefined;
+
+  if (statusOnly) {
+    title = STATUS_LABELS[status]!.standalone;
+    titleLines = [title];
+    subtitle = undefined;
+  } else {
+    const titleParts: string[] = [];
+    if (hasColor) titleParts.push(COLOR_LABELS[color]!);
+    if (hasBrand) titleParts.push(brand);
+    if (hasIso) titleParts.push(`ISO ${iso}`);
+    titleParts.push('Films');
+    title = titleParts.join(' ');
+
+    // Split color label onto its own line when brand/ISO follows
+    if (hasColor && (hasBrand || hasIso)) {
+      const rest = [
+        ...(hasBrand ? [brand] : []),
+        ...(hasIso ? [`ISO ${iso}`] : []),
+        'Films',
+      ];
+      titleLines = [COLOR_LABELS[color]!, rest.join(' ')];
+    } else {
+      titleLines = [title];
+    }
+
+    subtitle = hasStatus ? STATUS_LABELS[status]!.subtitle : undefined;
+  }
+
+  // Pills
+  const pills: string[] = [];
+  if (hasColor) pills.push(COLOR_LABELS[color]!);
+  if (hasBrand) pills.push(brand);
+  if (hasIso) pills.push(`ISO ${iso}`);
+  if (hasStatus) pills.push(STATUS_LABELS[status]!.title);
+
+  // Description
+  const descParts: string[] = ['Browse'];
+  if (hasColor) descParts.push(COLOR_LABELS[color]!.toLowerCase());
+  if (hasBrand) descParts.push(brand);
+  if (hasIso) descParts.push(`ISO ${iso}`);
+  descParts.push('film stocks');
+  if (hasStatus)
+    descParts.push(`— ${STATUS_LABELS[status]!.subtitle.toLowerCase()}`);
+  descParts.push('in the Dorkroom film database.');
+  const description = descParts.join(' ');
+
+  return { title, titleLines, description, pills, subtitle };
 }
 
 function normalizePath(pathname: string): string {
@@ -72,11 +178,22 @@ export function prettifySlug(slug: string): string {
     .join(' ');
 }
 
+function appendFilterParams(
+  params: URLSearchParams,
+  query: MetadataQuery
+): void {
+  if (query.film) params.set('film', query.film);
+  if (query.developer) params.set('developer', query.developer);
+  if (query.recipe) params.set('recipe', query.recipe);
+  if (query.color) params.set('color', query.color);
+  if (query.iso) params.set('iso', query.iso);
+  if (query.brand) params.set('brand', query.brand);
+  if (query.status) params.set('status', query.status);
+}
+
 function buildOgImageUrl(normalized: string, query?: MetadataQuery): string {
   const params = new URLSearchParams({ route: normalized });
-  if (query?.film) params.set('film', query.film);
-  if (query?.developer) params.set('developer', query.developer);
-  if (query?.recipe) params.set('recipe', query.recipe);
+  if (query) appendFilterParams(params, query);
   return `${BASE_URL}/api/og?${params.toString()}`;
 }
 
@@ -84,9 +201,7 @@ function buildCanonicalUrl(normalized: string, query?: MetadataQuery): string {
   const base = `${BASE_URL}${normalized === '/' ? '' : normalized}`;
   if (!query) return base;
   const params = new URLSearchParams();
-  if (query.film) params.set('film', query.film);
-  if (query.developer) params.set('developer', query.developer);
-  if (query.recipe) params.set('recipe', query.recipe);
+  appendFilterParams(params, query);
   const qs = params.toString();
   return qs ? `${base}?${qs}` : base;
 }
@@ -107,6 +222,20 @@ export function getRouteMetadata(
   const filmSlug = query?.film && query.film.length > 0 ? query.film : null;
   const devSlug =
     query?.developer && query.developer.length > 0 ? query.developer : null;
+
+  // Film filter card (e.g. /films?color=bw&brand=Kodak)
+  // Only when no specific film slug — individual film detail takes priority
+  if (normalized === '/films' && !filmSlug) {
+    const filterParts = buildFilmFilterParts(query ?? {});
+    if (filterParts) {
+      return {
+        title: `${filterParts.title} | ${SITE_NAME}`,
+        description: filterParts.description,
+        url: buildCanonicalUrl(normalized, query),
+        ogImageUrl: buildOgImageUrl(normalized, query),
+      };
+    }
+  }
 
   // Dynamic titles for film/development pages with query params
   if (normalized === '/films' && filmSlug) {

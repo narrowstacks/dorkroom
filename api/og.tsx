@@ -1,6 +1,7 @@
 import { ImageResponse } from '@vercel/og';
 import {
   BASE_URL,
+  buildFilmFilterParts,
   getRouteMetadata,
   prettifySlug,
   SITE_NAME,
@@ -226,7 +227,7 @@ const PILL_TEXT = '#d4d4d8';
 interface OgCardProps {
   accent: string;
   category?: string;
-  title: string;
+  title: string | string[];
   subtitle?: string;
   details?: string[];
   imageUrl?: string;
@@ -385,14 +386,24 @@ function OgCard({
         <div
           style={{
             display: 'flex',
-            fontSize: title.length > 30 ? '64px' : '76px',
+            flexDirection: 'column',
+            fontSize:
+              (Array.isArray(title) ? title.join(' ') : title).length > 30
+                ? '64px'
+                : '76px',
             fontWeight: 700,
             color: TEXT_PRIMARY,
             lineHeight: 1.15,
             marginBottom: subtitle ? '16px' : '20px',
           }}
         >
-          {title}
+          {Array.isArray(title)
+            ? title.map((line) => (
+                <div key={line} style={{ display: 'flex' }}>
+                  {line}
+                </div>
+              ))
+            : title}
         </div>
 
         {/* Subtitle */}
@@ -451,6 +462,32 @@ export default async function handler(request: Request): Promise<Response> {
   const filmSlug = searchParams.get('film');
   const developerSlug = searchParams.get('developer');
   const recipeUuid = searchParams.get('recipe');
+
+  // Film filter card (e.g. /films?color=bw&brand=Kodak)
+  if (route === '/films' && !filmSlug) {
+    const color = searchParams.get('color');
+    const iso = searchParams.get('iso');
+    const brand = searchParams.get('brand');
+    const status = searchParams.get('status');
+    const filterParts = buildFilmFilterParts({
+      color: color ?? undefined,
+      iso: iso ?? undefined,
+      brand: brand ?? undefined,
+      status: status ?? undefined,
+    });
+
+    if (filterParts) {
+      return renderImage(
+        <OgCard
+          accent={getRouteAccent('/films')}
+          category="Film Database"
+          title={filterParts.titleLines}
+          subtitle={filterParts.subtitle}
+          iconChildren={getRouteIcon('/films') ?? undefined}
+        />
+      );
+    }
+  }
 
   // Dynamic film detail card
   if (route === '/films' && filmSlug) {

@@ -190,6 +190,32 @@ describe('og handler - development recipe', () => {
     expect(res.status).toBe(200);
   });
 
+  it('renders developer-only card', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: [
+            {
+              slug: 'ilford-perceptol',
+              name: 'Perceptol',
+              manufacturer: 'Ilford',
+              dilutions: [
+                { id: 1, name: 'Stock', ratio: '1+0' },
+                { id: 2, name: '1+1', ratio: '1+1' },
+              ],
+            },
+          ],
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } }
+      )
+    );
+
+    const res = await handler(
+      makeRequest({ route: '/development', developer: 'ilford-perceptol' })
+    );
+    expect(res.status).toBe(200);
+  });
+
   it('handles API timeout gracefully', async () => {
     globalThis.fetch = vi
       .fn()
@@ -222,4 +248,54 @@ describe('og handler - development recipe', () => {
     );
     expect(res.status).toBe(200);
   }, 10_000);
+});
+
+describe('og handler - film filters', () => {
+  it('renders card for single color filter', async () => {
+    const res = await handler(makeRequest({ route: '/films', color: 'bw' }));
+    expect(res.status).toBe(200);
+  });
+
+  it('renders card for single brand filter', async () => {
+    const res = await handler(makeRequest({ route: '/films', brand: 'Kodak' }));
+    expect(res.status).toBe(200);
+  });
+
+  it('renders card for single iso filter', async () => {
+    const res = await handler(makeRequest({ route: '/films', iso: '400' }));
+    expect(res.status).toBe(200);
+  });
+
+  it('renders card for combined filters', async () => {
+    const res = await handler(
+      makeRequest({ route: '/films', color: 'bw', brand: 'Kodak', iso: '400' })
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it('renders card with status subtitle', async () => {
+    const res = await handler(
+      makeRequest({ route: '/films', color: 'bw', status: 'active' })
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it('falls through to generic card when status=all and no other filters', async () => {
+    const res = await handler(makeRequest({ route: '/films', status: 'all' }));
+    // Should still return 200 — just uses the generic /films card
+    expect(res.status).toBe(200);
+  });
+
+  it('film slug takes priority over filters', async () => {
+    const res = await handler(
+      makeRequest({
+        route: '/films',
+        film: 'kodak-tri-x-400',
+        color: 'bw',
+        brand: 'Kodak',
+      })
+    );
+    // film slug present → film detail card, not filter card
+    expect(res.status).toBe(200);
+  });
 });

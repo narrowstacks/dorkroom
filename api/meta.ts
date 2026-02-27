@@ -8,19 +8,37 @@ const SLUG_RE = /^[a-z0-9-]{1,100}$/;
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
+/** Valid color filter values */
+const COLOR_VALUES = new Set(['bw', 'color', 'slide']);
+/** Valid status filter values */
+const STATUS_VALUES = new Set(['active', 'discontinued', 'all']);
+/** ISO must be a positive integer up to 5 digits */
+const ISO_RE = /^[1-9]\d{0,4}$/;
+/** Brand: alphanumeric with spaces/hyphens/dots, 1-50 chars */
+const BRAND_RE = /^[\w\s.'-]{1,50}$/;
+
 function extractMetadataQuery(
   params: URLSearchParams
 ): MetadataQuery | undefined {
   const film = params.get('film');
   const developer = params.get('developer');
   const recipe = params.get('recipe');
+  const color = params.get('color');
+  const iso = params.get('iso');
+  const brand = params.get('brand');
+  const status = params.get('status');
 
-  if (!film && !developer && !recipe) return undefined;
+  if (!film && !developer && !recipe && !color && !iso && !brand && !status)
+    return undefined;
 
   const query: MetadataQuery = {};
   if (film && SLUG_RE.test(film)) query.film = film;
   if (developer && SLUG_RE.test(developer)) query.developer = developer;
   if (recipe && UUID_RE.test(recipe)) query.recipe = recipe;
+  if (color && COLOR_VALUES.has(color)) query.color = color;
+  if (iso && ISO_RE.test(iso)) query.iso = iso;
+  if (brand && BRAND_RE.test(brand)) query.brand = brand;
+  if (status && STATUS_VALUES.has(status)) query.status = status;
 
   return Object.keys(query).length > 0 ? query : undefined;
 }
@@ -46,6 +64,14 @@ export default async function handler(
     url.searchParams.set('developer', req.query.developer);
   if (typeof req.query.recipe === 'string')
     url.searchParams.set('recipe', req.query.recipe);
+  if (typeof req.query.color === 'string')
+    url.searchParams.set('color', req.query.color);
+  if (typeof req.query.iso === 'string')
+    url.searchParams.set('iso', req.query.iso);
+  if (typeof req.query.brand === 'string')
+    url.searchParams.set('brand', req.query.brand);
+  if (typeof req.query.status === 'string')
+    url.searchParams.set('status', req.query.status);
 
   const query = extractMetadataQuery(url.searchParams);
   const meta = getRouteMetadata(url.pathname, query);
