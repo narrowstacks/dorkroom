@@ -6,12 +6,13 @@ type Command = 'create' | 'tier' | 'anon-bootstrap';
 interface TierConfig {
   limit: number;
   duration: number;
+  defaultPrefix: string;
 }
 
 const TIER_CONFIG: Record<Tier, TierConfig> = {
-  free: { limit: 60, duration: 60_000 },
-  standard: { limit: 300, duration: 60_000 },
-  partner: { limit: 1_000_000_000, duration: 60_000 },
+  free: { limit: 60, duration: 60_000, defaultPrefix: 'dk_f' },
+  standard: { limit: 300, duration: 60_000, defaultPrefix: 'dk_s' },
+  partner: { limit: 1_000_000_000, duration: 60_000, defaultPrefix: 'dk_e' },
 };
 
 function printUsage(): void {
@@ -19,6 +20,11 @@ function printUsage(): void {
   bun run keys:create -- --customer-id <id> --tier <free|standard|partner> [--name <name>] [--external-id <id>] [--prefix <prefix>]
   bun run keys:tier -- --key-id <key_id> --tier <free|standard|partner>
   bun run keys:anon-bootstrap -- [--namespace <name>] [--identifier <id>] [--limit <n>] [--duration <ms>]
+
+Default key prefixes by tier:
+  free -> dk_f_
+  standard -> dk_s_
+  partner -> dk_e_
 
 Required environment variables:
   For keys:create and keys:tier:
@@ -131,8 +137,8 @@ async function createKey(options: Record<string, string>): Promise<void> {
   const tier = parseTier(requireOption(options, 'tier'));
   const externalId = options['external-id'] ?? customerId;
   const name = options.name ?? `customer-${customerId}`;
-  const prefix = options.prefix;
-  const { limit, duration } = TIER_CONFIG[tier];
+  const { limit, duration, defaultPrefix } = TIER_CONFIG[tier];
+  const prefix = options.prefix ?? defaultPrefix;
   const { client, apiId, keyPermission } = getUnkeyAdminClient();
 
   const response = await client.keys.createKey({
