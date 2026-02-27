@@ -32,6 +32,10 @@ const previews = [
     params: { route: '/development', film: 'kodak-tri-x-400' },
   },
   {
+    name: 'recipe-developer-only',
+    params: { route: '/development', developer: 'ilford-perceptol' },
+  },
+  {
     name: 'recipe-film-and-developer',
     params: {
       route: '/development',

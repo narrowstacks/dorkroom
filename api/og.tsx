@@ -105,6 +105,28 @@ function formatTime(minutes: number): string {
   return s > 0 ? `${m}m ${s}s` : `${m}m`;
 }
 
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function getRouteAccent(route: string): string {
+  switch (route) {
+    case '/':
+      return '#6ef3a4'; // green — app primary
+    case '/films':
+      return '#7dd6ff'; // cyan — app secondary
+    case '/development':
+      return '#f99f96'; // coral — app accent
+    case '/docs':
+      return '#c4b5fd'; // purple
+    default:
+      return '#e5ff7d'; // lime — calculators
+  }
+}
+
 /** Lucide icon SVG children keyed by route. Each entry is an array of SVG elements. */
 function getRouteIcon(route: string): React.JSX.Element[] | null {
   switch (route) {
@@ -199,10 +221,10 @@ const TEXT_PRIMARY = '#ffffff';
 const TEXT_SECONDARY = '#e4e4e7';
 const TEXT_TERTIARY = '#a1a1aa';
 const TEXT_MUTED = '#52525b';
-const PILL_BORDER = '#3f3f46';
 const PILL_TEXT = '#d4d4d8';
 
 interface OgCardProps {
+  accent: string;
   category?: string;
   title: string;
   subtitle?: string;
@@ -212,6 +234,7 @@ interface OgCardProps {
 }
 
 function OgCard({
+  accent,
   category,
   title,
   subtitle,
@@ -239,7 +262,7 @@ function OgCard({
           width: '100%',
           height: '100%',
           borderRadius: '10px',
-          background: `radial-gradient(circle at 20% 20%, rgba(243, 110, 110, 0.2), transparent 60%), radial-gradient(circle at 80% 20%, rgba(125, 214, 255, 0.16), transparent 55%), radial-gradient(circle at 40% 80%, rgba(246, 249, 150, 0.14), transparent 60%), ${BG}`,
+          background: `radial-gradient(circle at 75% 15%, ${hexToRgba(accent, 0.22)}, transparent 55%), radial-gradient(circle at 30% 75%, ${hexToRgba(accent, 0.08)}, transparent 60%), ${BG}`,
           padding: '56px 72px',
         }}
       >
@@ -250,9 +273,9 @@ function OgCard({
             top: '48px',
             left: '78px',
             display: 'flex',
-            fontSize: '42px',
+            fontSize: '36px',
             fontWeight: 700,
-            color: TEXT_SECONDARY,
+            color: TEXT_MUTED,
             letterSpacing: '0.04em',
           }}
         >
@@ -274,23 +297,55 @@ function OgCard({
             }}
           />
         ) : iconChildren ? (
-          <svg
-            viewBox="0 0 24 24"
-            width={160}
-            height={160}
+          <div
             style={{
+              display: 'flex',
               position: 'absolute',
               top: '48px',
               right: '78px',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '190px',
+              height: '190px',
             }}
-            fill="none"
-            stroke={TEXT_PRIMARY}
-            strokeWidth={1.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
           >
-            {iconChildren}
-          </svg>
+            {/* Glow behind icon */}
+            <div
+              style={{
+                display: 'flex',
+                position: 'absolute',
+                width: '250px',
+                height: '250px',
+                borderRadius: '9999px',
+                background: `radial-gradient(circle, ${hexToRgba(accent, 0.18)}, transparent 70%)`,
+              }}
+            />
+            {/* Circular container */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '190px',
+                height: '190px',
+                borderRadius: '9999px',
+                border: `5px solid ${hexToRgba(accent, 0.35)}`,
+              }}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width={130}
+                height={130}
+                fill="none"
+                stroke={accent}
+                strokeWidth={1.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                {iconChildren}
+              </svg>
+            </div>
+          </div>
         ) : null}
 
         {/* Category label */}
@@ -298,14 +353,31 @@ function OgCard({
           <div
             style={{
               display: 'flex',
-              fontSize: '26px',
-              color: TEXT_TERTIARY,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
+              flexDirection: 'column',
               marginBottom: '12px',
             }}
           >
-            {category}
+            <div
+              style={{
+                display: 'flex',
+                fontSize: '26px',
+                color: accent,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                marginBottom: '12px',
+              }}
+            >
+              {category}
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                width: '80px',
+                height: '3px',
+                backgroundColor: accent,
+                borderRadius: '2px',
+              }}
+            />
           </div>
         ) : null}
 
@@ -357,7 +429,8 @@ function OgCard({
                   display: 'flex',
                   padding: '10px 24px',
                   borderRadius: '999px',
-                  border: `1px solid ${PILL_BORDER}`,
+                  border: `1px solid ${hexToRgba(accent, 0.3)}`,
+                  backgroundColor: hexToRgba(accent, 0.08),
                   color: PILL_TEXT,
                   fontSize: '26px',
                 }}
@@ -399,6 +472,7 @@ export default async function handler(request: Request): Promise<Response> {
 
     return renderImage(
       <OgCard
+        accent={getRouteAccent('/films')}
         category="Film Database"
         title={filmName}
         details={details}
@@ -412,7 +486,7 @@ export default async function handler(request: Request): Promise<Response> {
     );
   }
 
-  // Dynamic development recipe card
+  // Dynamic development recipe card (film + optional developer)
   if (route === '/development' && filmSlug) {
     const [film, developer, combo] = await Promise.all([
       lookupFilm(filmSlug),
@@ -464,10 +538,36 @@ export default async function handler(request: Request): Promise<Response> {
 
     return renderImage(
       <OgCard
-        category="Development Recipe"
+        accent={getRouteAccent('/development')}
+        category="Development Recipes"
         title={title}
         subtitle={subtitle ?? undefined}
         details={details}
+        iconChildren={getRouteIcon('/development') ?? undefined}
+      />
+    );
+  }
+
+  // Dynamic development recipe card (developer only, no film)
+  if (route === '/development' && developerSlug) {
+    const developer = await lookupDeveloper(developerSlug);
+    const devName = developer
+      ? `${developer.manufacturer} ${developer.name}`
+      : prettifySlug(developerSlug);
+
+    const details: string[] = [];
+    if (developer?.dilutions?.length) {
+      for (const dil of developer.dilutions) {
+        details.push(dil.dilution);
+      }
+    }
+
+    return renderImage(
+      <OgCard
+        accent={getRouteAccent('/development')}
+        category="Development Recipes"
+        title={devName}
+        details={details.length > 0 ? details : undefined}
         iconChildren={getRouteIcon('/development') ?? undefined}
       />
     );
@@ -488,6 +588,7 @@ export default async function handler(request: Request): Promise<Response> {
 
   return renderImage(
     <OgCard
+      accent={getRouteAccent(route)}
       title={displayTitle}
       subtitle={description}
       iconChildren={getRouteIcon(route) ?? getRouteIcon('/') ?? undefined}
