@@ -134,6 +134,16 @@ export function getRouteMetadata(
     };
   }
 
+  if (normalized === '/development' && devSlug) {
+    const devName = prettifySlug(devSlug);
+    return {
+      title: `${devName} Recipes | ${SITE_NAME}`,
+      description: `Development recipes using ${devName}. Browse film pairings, times, and dilutions.`,
+      url: buildCanonicalUrl(normalized, query),
+      ogImageUrl: buildOgImageUrl(normalized, query),
+    };
+  }
+
   // Static route metadata
   const baseTitle = ROUTE_TITLES[normalized] ?? DEFAULT_TITLE;
   const description = ROUTE_DESCRIPTIONS[normalized] ?? DEFAULT_DESCRIPTION;
