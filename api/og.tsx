@@ -217,7 +217,6 @@ function getRouteIcon(route: string): React.JSX.Element[] | null {
 }
 
 // Dark theme colors from the site
-const BORDER_COLOR = '#f36e6e'; // red from dark theme gradient
 const BG = '#09090b';
 const TEXT_PRIMARY = '#ffffff';
 const TEXT_SECONDARY = '#e4e4e7';
@@ -250,9 +249,6 @@ function OgCard({
         display: 'flex',
         width: '100%',
         height: '100%',
-        backgroundColor: BORDER_COLOR,
-        padding: '12px',
-        borderRadius: '16px',
         fontFamily: 'Montserrat',
       }}
     >
@@ -263,7 +259,6 @@ function OgCard({
           justifyContent: 'flex-end',
           width: '100%',
           height: '100%',
-          borderRadius: '10px',
           background: `radial-gradient(circle at 75% 15%, ${hexToRgba(accent, 0.22)}, transparent 55%), radial-gradient(circle at 30% 75%, ${hexToRgba(accent, 0.08)}, transparent 60%), ${BG}`,
           padding: '56px 72px',
         }}

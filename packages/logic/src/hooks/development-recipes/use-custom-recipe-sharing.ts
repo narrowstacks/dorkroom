@@ -132,7 +132,6 @@ export const useCustomRecipeSharing = () => {
           try {
             await navigator.share({
               title: `Custom Development Recipe: ${options.recipe.name}`,
-              text: `Check out this custom film development recipe: ${shareUrl}`,
               url: shareUrl,
             });
             return { success: true, method: 'webShare', url: shareUrl };
