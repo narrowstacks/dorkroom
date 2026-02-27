@@ -124,7 +124,7 @@ function OgCard({ category, title, subtitle, details, imageUrl }: OgCardProps) {
         width: '100%',
         height: '100%',
         backgroundColor: BORDER_COLOR,
-        padding: '6px',
+        padding: '12px',
         borderRadius: '16px',
         fontFamily: 'Montserrat',
       }}
