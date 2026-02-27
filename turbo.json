@@ -20,7 +20,12 @@
         "../../packages/api/src/**"
       ],
       "outputs": ["dist/**"],
-      "env": ["SUPABASE_MASTER_API_KEY", "SUPABASE_ENDPOINT"]
+      "env": [
+        "SUPABASE_MASTER_API_KEY",
+        "SUPABASE_ENDPOINT",
+        "UNKEY_ROOT_KEY",
+        "UNKEY_API_ID"
+      ]
     },
     "dev": {
       "cache": false,
