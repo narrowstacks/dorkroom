@@ -26,7 +26,7 @@ import {
   useToast,
 } from '@dorkroom/ui';
 import type { SortingState } from '@tanstack/react-table';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RecipeModals } from './components/recipe-modals';
 import { RecipeResultsSection } from './components/recipe-results-section';
 import { useRecipeActions } from './hooks/useRecipeActions';
@@ -134,6 +134,10 @@ export default function DevelopmentRecipesPage() {
     useState(false);
   const resultsContainerRef = useRef<HTMLDivElement>(null);
   const virtualScrollContainerRef = useRef<HTMLDivElement>(null);
+  const mainContentRef = useRef<HTMLElement>(null);
+  const [mainContentHeight, setMainContentHeight] = useState<
+    number | undefined
+  >(undefined);
   const { animationsEnabled } = useTheme();
   const [favoriteTransitions, setFavoriteTransitions] = useState<
     Map<string, 'adding' | 'removing'>
@@ -266,6 +270,7 @@ export default function DevelopmentRecipesPage() {
     setFavoriteTransitions,
     forceRefresh,
     setIsRefreshingData,
+    setIsFiltersSidebarCollapsed,
     getFilmById,
     getDeveloperById,
     allFilms,
@@ -293,6 +298,7 @@ export default function DevelopmentRecipesPage() {
     setIsSharedRecipeModalOpen,
     setDetailView,
     setIsDetailOpen,
+    setIsFiltersSidebarCollapsed,
   });
 
   // Pagination and scroll management
@@ -358,6 +364,20 @@ export default function DevelopmentRecipesPage() {
   useEffect(() => {
     setPageIndex(0);
   }, [sortingKey]);
+
+  // Track main content height so the detail panel can match it
+  useEffect(() => {
+    const el = mainContentRef.current;
+    if (!el) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setMainContentHeight(entry.contentRect.height);
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const clearSelections = () => {
     setSelectedFilm(null);
@@ -519,11 +539,12 @@ export default function DevelopmentRecipesPage() {
                 showDilutionFilter={!!selectedDeveloper}
                 showIsoFilter={!!selectedFilm}
                 onCollapsedChange={setIsFiltersSidebarCollapsed}
+                collapsed={isFiltersSidebarCollapsed}
                 defaultCollapsed={false}
               />
             </aside>
 
-            <main className="flex-1 min-w-0 space-y-3">
+            <main ref={mainContentRef} className="flex-1 min-w-0 space-y-3">
               <RecipeResultsSection
                 isLoading={isLoading}
                 isRefreshingData={isRefreshingData}
@@ -569,6 +590,7 @@ export default function DevelopmentRecipesPage() {
               onDeleteCustomRecipe={handleDeleteCustomRecipe}
               onShareRecipe={handleShareCombination}
               customRecipeSharingEnabled={flags.CUSTOM_RECIPE_SHARING}
+              maxHeight={mainContentHeight}
             />
           </div>
         )}

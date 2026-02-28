@@ -12,7 +12,9 @@ interface FilterPanelContainerProps {
   hasActiveFilters: boolean;
   /** Callback when collapsed state changes */
   onCollapsedChange?: (collapsed: boolean) => void;
-  /** Initial collapsed state */
+  /** Controlled collapsed state (overrides defaultCollapsed) */
+  collapsed?: boolean;
+  /** Initial collapsed state (uncontrolled mode) */
   defaultCollapsed?: boolean;
   /** Fixed width when expanded (default: 304px) */
   expandedWidth?: number;
@@ -26,15 +28,20 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
   activeFilterCount,
   hasActiveFilters,
   onCollapsedChange,
+  collapsed,
   defaultCollapsed = false,
   expandedWidth = 304,
   collapsedWidth = 64,
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
+  const isControlled = collapsed !== undefined;
+  const isCollapsed = isControlled ? collapsed : internalCollapsed;
 
   const toggle = () => {
     const newCollapsed = !isCollapsed;
-    setIsCollapsed(newCollapsed);
+    if (!isControlled) {
+      setInternalCollapsed(newCollapsed);
+    }
     onCollapsedChange?.(newCollapsed);
   };
 

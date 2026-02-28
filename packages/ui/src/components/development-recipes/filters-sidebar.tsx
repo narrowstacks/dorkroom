@@ -44,6 +44,7 @@ interface FiltersSidebarProps {
   showIsoFilter?: boolean;
   // Collapse state
   onCollapsedChange?: (collapsed: boolean) => void;
+  collapsed?: boolean;
   defaultCollapsed?: boolean;
 }
 
@@ -103,6 +104,7 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
   showDilutionFilter = true,
   showIsoFilter = true,
   onCollapsedChange,
+  collapsed,
   defaultCollapsed = false,
 }) => {
   const hasSelections = selectedFilm || selectedDeveloper;
@@ -152,6 +154,7 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
       activeFilterCount={activeFilterCount}
       hasActiveFilters={!!(hasActiveFilters || hasSelections)}
       onCollapsedChange={onCollapsedChange}
+      collapsed={collapsed}
       defaultCollapsed={defaultCollapsed}
     >
       <FilterPanelHeader />

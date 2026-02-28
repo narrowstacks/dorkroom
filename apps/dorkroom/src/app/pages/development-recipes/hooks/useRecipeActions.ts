@@ -92,6 +92,9 @@ interface UseRecipeActionsProps {
   forceRefresh: () => Promise<void>;
   setIsRefreshingData: Dispatch<SetStateAction<boolean>>;
 
+  // Sidebar collapse
+  setIsFiltersSidebarCollapsed?: Dispatch<SetStateAction<boolean>>;
+
   // Film/Developer data
   getFilmById: (id: string) => Film | undefined;
   getDeveloperById: (id: string) => Developer | undefined;
@@ -155,12 +158,14 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     allFilms,
     allDevelopers,
     customRecipeSharingEnabled,
+    setIsFiltersSidebarCollapsed,
   } = props;
 
   // Detail drawer actions
   const { handleOpenDetail } = useRecipeDetailActions({
     setDetailView,
     setIsDetailOpen,
+    setIsFiltersSidebarCollapsed,
   });
 
   // Sharing actions

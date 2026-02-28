@@ -129,10 +129,6 @@ export function DevelopmentActionsBar({
         <button
           type="button"
           onClick={() => {
-            console.log(
-              '🖱️ Refresh button clicked, isRefreshing:',
-              isRefreshing
-            );
             onRefresh();
           }}
           disabled={isRefreshing}

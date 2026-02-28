@@ -13,6 +13,7 @@ import { PushPullAlert } from '../push-pull-alert';
 import { TemperatureAlert } from '../temperature-alert';
 import { CollapsibleSection } from '../ui/collapsible-section';
 import { Tag } from '../ui/tag';
+import { DetailRow, formatTime } from './recipe-detail-shared';
 import { VolumeMixer } from './volume-mixer';
 
 /**
@@ -39,35 +40,9 @@ export interface RecipeDetailPanelProps {
   onShareRecipe?: (view: DevelopmentCombinationView) => void;
   /** Whether custom recipe sharing is enabled */
   customRecipeSharingEnabled?: boolean;
+  /** Max height for the desktop sidebar */
+  maxHeight?: number;
 }
-
-/** Format time as "Xm XXs" instead of decimal minutes */
-const formatTime = (minutes: number): string => {
-  if (minutes < 1) {
-    return `${Math.round(minutes * 60)}s`;
-  }
-
-  const wholeMinutes = Math.floor(minutes);
-  const seconds = Math.round((minutes - wholeMinutes) * 60);
-  if (seconds === 0) {
-    return `${wholeMinutes}m`;
-  }
-  return `${wholeMinutes}m ${seconds.toString().padStart(2, '0')}s`;
-};
-
-/** Helper component for detail rows */
-const DetailRow = ({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) => (
-  <div className="flex justify-between gap-6 text-sm">
-    <span className="text-tertiary">{label}</span>
-    <span className="text-right text-primary">{value}</span>
-  </div>
-);
 
 /**
  * Render recipe details in a responsive panel: desktop sidebar or mobile bottom drawer.
@@ -89,16 +64,12 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
   onShareRecipe,
   // onCopyRecipe is available but not currently used in sidebar view
   customRecipeSharingEnabled = false,
+  maxHeight,
 }) => {
   const { unit } = useTemperature();
   const [isFilmExpanded, setIsFilmExpanded] = useState(false);
   const [isDeveloperExpanded, setIsDeveloperExpanded] = useState(false);
   const [isVolumeMixerExpanded, setIsVolumeMixerExpanded] = useState(true);
-  // State for expanded modal view collapsible sections
-  const [isExpandedFilmOpen, setIsExpandedFilmOpen] = useState(false);
-  const [isExpandedDeveloperOpen, setIsExpandedDeveloperOpen] = useState(false);
-  const [isExpandedVolumeMixerOpen, setIsExpandedVolumeMixerOpen] =
-    useState(true);
 
   if (!view) {
     return null;
@@ -189,7 +160,6 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
 
       {/* Main details box */}
       <div className="space-y-3 rounded-xl border border-secondary bg-border-muted p-4">
-        <DetailRow label="ISO" value={combination.shootingIso} />
         <DetailRow
           label="Development time"
           value={formatTime(combination.timeMinutes)}
@@ -209,6 +179,7 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
           label="Agitation"
           value={combination.agitationSchedule || 'Standard'}
         />
+        <DetailRow label="ISO" value={combination.shootingIso} />
         <DetailRow label="Push/Pull" value={pushPull} />
         {combination.tags && combination.tags.length > 0 && (
           <div className="flex flex-wrap justify-end gap-2 text-xs text-tertiary">
@@ -461,10 +432,8 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
         <CollapsibleSection
           title="Volume Mixer"
           subtitle={`Calculate for ${dilutionLabel}`}
-          isExpanded={isExpandedVolumeMixerOpen}
-          onToggle={() =>
-            setIsExpandedVolumeMixerOpen(!isExpandedVolumeMixerOpen)
-          }
+          isExpanded={isVolumeMixerExpanded}
+          onToggle={() => setIsVolumeMixerExpanded(!isVolumeMixerExpanded)}
         >
           <VolumeMixer dilutionString={dilutionLabel} />
         </CollapsibleSection>
@@ -473,8 +442,8 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
         <CollapsibleSection
           title="Film"
           subtitle={film ? `${film.brand} ${film.name}` : 'Unknown film'}
-          isExpanded={isExpandedFilmOpen}
-          onToggle={() => setIsExpandedFilmOpen(!isExpandedFilmOpen)}
+          isExpanded={isFilmExpanded}
+          onToggle={() => setIsFilmExpanded(!isFilmExpanded)}
         >
           <div className="space-y-3">
             {film?.description && (
@@ -499,8 +468,8 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
               ? `${developer.manufacturer} ${developer.name}`
               : 'Unknown developer'
           }
-          isExpanded={isExpandedDeveloperOpen}
-          onToggle={() => setIsExpandedDeveloperOpen(!isExpandedDeveloperOpen)}
+          isExpanded={isDeveloperExpanded}
+          onToggle={() => setIsDeveloperExpanded(!isDeveloperExpanded)}
         >
           {(developer?.description || developer?.notes) && (
             <p className="text-sm text-secondary">
@@ -546,6 +515,7 @@ export const RecipeDetailPanel: FC<RecipeDetailPanelProps> = ({
       isMobile={isMobile}
       ariaLabel={ariaLabel}
       expandedContent={expandedContent}
+      maxHeight={maxHeight}
     >
       {panelContent}
     </DetailPanel>

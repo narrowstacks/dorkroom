@@ -10,6 +10,7 @@ import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { PushPullAlert } from '../push-pull-alert';
 import { CollapsibleSection } from '../ui/collapsible-section';
 import { Tag } from '../ui/tag';
+import { DetailRow, formatTime } from './recipe-detail-shared';
 import { VolumeMixer } from './volume-mixer';
 
 interface DevelopmentRecipeDetailProps {
@@ -20,33 +21,6 @@ interface DevelopmentRecipeDetailProps {
   onToggleFavorite?: (view: DevelopmentCombinationView) => void;
   onShareRecipe?: (view: DevelopmentCombinationView) => void;
 }
-
-/** Format time as "Xm XXs" instead of decimal minutes */
-const formatTime = (minutes: number): string => {
-  if (minutes < 1) {
-    return `${Math.round(minutes * 60)}s`;
-  }
-
-  const wholeMinutes = Math.floor(minutes);
-  const seconds = Math.round((minutes - wholeMinutes) * 60);
-  if (seconds === 0) {
-    return `${wholeMinutes}m`;
-  }
-  return `${wholeMinutes}m ${seconds.toString().padStart(2, '0')}s`;
-};
-
-const DetailRow = ({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) => (
-  <div className="flex justify-between gap-6 text-sm">
-    <span className="text-tertiary">{label}</span>
-    <span className="text-right text-primary">{value}</span>
-  </div>
-);
 
 /**
  * Render detailed information for a development recipe, including combination, film, developer, notes, tags, and applicable action buttons.
@@ -134,7 +108,6 @@ export function DevelopmentRecipeDetail({
       />
 
       <div className="space-y-3 rounded-xl border border-secondary bg-border-muted p-4">
-        <DetailRow label="ISO" value={combination.shootingIso} />
         <DetailRow
           label="Development time"
           value={formatTime(combination.timeMinutes)}
@@ -154,6 +127,7 @@ export function DevelopmentRecipeDetail({
           label="Agitation"
           value={combination.agitationSchedule || 'Standard'}
         />
+        <DetailRow label="ISO" value={combination.shootingIso} />
         <DetailRow label="Push/Pull" value={pushPull} />
         {combination.tags && combination.tags.length > 0 && (
           <div className="flex flex-wrap justify-end gap-2 text-xs text-tertiary">

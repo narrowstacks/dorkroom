@@ -38,6 +38,7 @@ export interface UseUrlStateSyncProps {
   setIsSharedRecipeModalOpen: Dispatch<SetStateAction<boolean>>;
   setDetailView: Dispatch<SetStateAction<DevelopmentCombinationView | null>>;
   setIsDetailOpen: Dispatch<SetStateAction<boolean>>;
+  setIsFiltersSidebarCollapsed?: Dispatch<SetStateAction<boolean>>;
 }
 
 /**
@@ -64,6 +65,7 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
     setIsSharedRecipeModalOpen,
     setDetailView,
     setIsDetailOpen,
+    setIsFiltersSidebarCollapsed,
   } = props;
 
   const urlStateAppliedRef = useRef(false);
@@ -135,11 +137,13 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
         if (initialUrlState.isDirectSelection) {
           setDetailView(recipeView);
           setIsDetailOpen(true);
+          setIsFiltersSidebarCollapsed?.(true);
         }
         // Shared API recipe (has film/developer URL params) - open detail directly
         else if (initialUrlState.isSharedApiRecipe) {
           setDetailView(recipeView);
           setIsDetailOpen(true);
+          setIsFiltersSidebarCollapsed?.(true);
         }
         // Otherwise, show the shared recipe modal for potential import
         else {

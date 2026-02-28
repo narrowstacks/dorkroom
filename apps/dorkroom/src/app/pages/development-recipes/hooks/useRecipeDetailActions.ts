@@ -4,6 +4,7 @@ import { type Dispatch, type SetStateAction, useCallback } from 'react';
 export interface UseRecipeDetailActionsProps {
   setDetailView: Dispatch<SetStateAction<DevelopmentCombinationView | null>>;
   setIsDetailOpen: Dispatch<SetStateAction<boolean>>;
+  setIsFiltersSidebarCollapsed?: Dispatch<SetStateAction<boolean>>;
 }
 
 export interface UseRecipeDetailActionsReturn {
@@ -17,13 +18,15 @@ export interface UseRecipeDetailActionsReturn {
 export function useRecipeDetailActions({
   setDetailView,
   setIsDetailOpen,
+  setIsFiltersSidebarCollapsed,
 }: UseRecipeDetailActionsProps): UseRecipeDetailActionsReturn {
   const handleOpenDetail = useCallback(
     (view: DevelopmentCombinationView) => {
       setDetailView(view);
       setIsDetailOpen(true);
+      setIsFiltersSidebarCollapsed?.(true);
     },
-    [setDetailView, setIsDetailOpen]
+    [setDetailView, setIsDetailOpen, setIsFiltersSidebarCollapsed]
   );
 
   return { handleOpenDetail };

@@ -101,6 +101,8 @@ export interface DetailPanelProps {
   showExpandButton?: boolean;
   /** Additional header buttons to render alongside close/expand */
   headerButtons?: ReactNode;
+  /** Max height for the desktop sidebar (constrains to sibling content height) */
+  maxHeight?: number;
 }
 
 /**
@@ -121,6 +123,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
   sidebarWidth = 360,
   showExpandButton = true,
   headerButtons,
+  maxHeight,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartY, setDragStartY] = useState(0);
@@ -317,13 +320,13 @@ export const DetailPanel: FC<DetailPanelProps> = ({
   // Desktop sidebar
   return (
     <section
-      className="sticky top-4 flex-shrink-0 rounded-2xl border shadow-xl transition-transform duration-300 ease-out animate-slide-fade-right"
+      className="sticky top-3 self-start flex-shrink-0 rounded-2xl border shadow-xl transition-transform duration-300 ease-out animate-slide-fade-right"
       style={{
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: 'var(--color-surface)',
         color: 'var(--color-text-primary)',
-        maxHeight: 'calc(100vh - 2rem)',
         width: `${sidebarWidth}px`,
+        maxHeight: maxHeight ? `${maxHeight}px` : undefined,
       }}
       aria-label={ariaLabel}
     >
@@ -342,7 +345,9 @@ export const DetailPanel: FC<DetailPanelProps> = ({
       {/* Content */}
       <div
         className="overflow-y-auto p-6"
-        style={{ maxHeight: 'calc(100vh - 2rem)' }}
+        style={{
+          maxHeight: maxHeight ? `${maxHeight}px` : undefined,
+        }}
       >
         {children}
       </div>
