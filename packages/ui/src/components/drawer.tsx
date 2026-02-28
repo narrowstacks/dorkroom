@@ -23,13 +23,20 @@ export function Drawer({
   className,
 }: DrawerProps) {
   const [showContent, setShowContent] = useState(false);
+  const [animateOpen, setAnimateOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setShowContent(true);
+      // Delay the open transform by one frame so the browser renders
+      // the initial off-screen position first, enabling the slide-in transition.
+      const frame = requestAnimationFrame(() => {
+        setAnimateOpen(true);
+      });
       document.body.style.overflow = 'hidden';
-      return;
+      return () => cancelAnimationFrame(frame);
     }
+    setAnimateOpen(false);
     const timer = setTimeout(() => setShowContent(false), 300);
     document.body.style.overflow = 'unset';
     return () => clearTimeout(timer);
@@ -42,10 +49,10 @@ export function Drawer({
   };
 
   const transformClasses = {
-    bottom: isOpen ? 'translate-y-0' : 'translate-y-full',
-    top: isOpen ? 'translate-y-0' : '-translate-y-full',
-    left: isOpen ? 'translate-x-0' : '-translate-x-full',
-    right: isOpen ? 'translate-x-0' : 'translate-x-full',
+    bottom: animateOpen ? 'translate-y-0' : 'translate-y-full',
+    top: animateOpen ? 'translate-y-0' : '-translate-y-full',
+    left: animateOpen ? 'translate-x-0' : '-translate-x-full',
+    right: animateOpen ? 'translate-x-0' : 'translate-x-full',
   };
 
   const positionClasses = {
@@ -69,7 +76,7 @@ export function Drawer({
           'absolute inset-0 transition-opacity duration-300 h-full',
           enableBackgroundBlur && 'backdrop-blur-sm',
           enableBackgroundOverlay && 'bg-black/50',
-          isOpen ? 'opacity-100' : 'opacity-0'
+          animateOpen ? 'opacity-100' : 'opacity-0'
         )}
         style={{ height: '100dvh' }}
         role="presentation"
