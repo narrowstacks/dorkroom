@@ -10,7 +10,7 @@ echo "📌 Repo: $VERCEL_GIT_REPO_OWNER/$VERCEL_GIT_REPO_SLUG"
 # Check if we have a previous commit to compare against
 if [ -z "$VERCEL_GIT_PREVIOUS_SHA" ]; then
   echo "⚠️ No previous commit SHA, falling back to turbo-ignore"
-  bunx turbo-ignore
+  bunx turbo-ignore @dorkroom/dorkroom
   exit $?
 fi
 
@@ -25,7 +25,7 @@ echo "$CHANGED_FILES"
 
 if [ -z "$CHANGED_FILES" ]; then
   echo "⚠️ Could not determine changed files, falling back to turbo-ignore"
-  bunx turbo-ignore
+  bunx turbo-ignore @dorkroom/dorkroom
   exit $?
 fi
 
@@ -35,7 +35,7 @@ NON_BUILD_PATTERNS="(^docs/|^scripts/|^\.github/|^\.cursor/|^\.vscode/|^\.claude
 # Check if ANY changed file is NOT in the skip patterns
 if echo "$CHANGED_FILES" | grep -qvE "$NON_BUILD_PATTERNS"; then
   echo "🔨 App-related files changed, checking with turbo-ignore..."
-  bunx turbo-ignore
+  bunx turbo-ignore @dorkroom/dorkroom
   exit $?
 fi
 
