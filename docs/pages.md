@@ -15,7 +15,7 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 | `/reciprocity` | Reciprocity Calculator | Film | Implemented |
 | `/development` | Film Development Recipes | Film | Implemented |
 | `/lenses` | Lens Equivalency Calculator | Camera | Implemented |
-| `/exposure` | Exposure Calculator | Camera | Placeholder |
+| `/exposure` | Camera Exposure Calculator | Camera | Implemented |
 | `/films` | Film Database | Reference | Implemented |
 | `/docs` | Documentation | Reference | Placeholder |
 | `/settings` | Settings | — | Implemented |
@@ -164,6 +164,38 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 
 ---
 
+## Camera Exposure Calculator (`/exposure`)
+
+**Purpose:** Balance aperture, shutter speed, and ISO for correct exposure. Find equivalent exposures and compare settings across different lighting conditions.
+
+**Location:** `apps/dorkroom/src/app/pages/camera-exposure-calculator/`
+
+**Features:**
+
+- Aperture, shutter speed, and ISO selection from standard values
+- EV (Exposure Value) calculation with scene brightness description
+- Equivalent exposures table at the same EV and ISO
+- Exposure comparison section (stops difference between two settings)
+- Collapsible EV presets (lighting conditions like Sunny, Overcast, etc.)
+- "Solve for" selector: adjust shutter speed, aperture, or ISO when applying a preset
+- Formula display: `EV = log₂(N² × 100 / t × S)`
+- State persistence to localStorage
+
+**Calculations:**
+
+- `calculateExposureValue(aperture, shutterSpeed, iso)` → EV number + description
+- `getEquivalentExposures(ev, iso, aperture, shutterSpeed)` → table of aperture/shutter pairs
+- `compareExposures(apertureA, shutterA, isoA, apertureB, shutterB, isoB)` → stops difference
+- `solveForShutterSpeed(ev, aperture, iso)`, `solveForAperture(ev, shutterSpeed, iso)`, `solveForISO(ev, aperture, shutterSpeed)`
+
+**Key components:**
+
+- `EVResultCard` - EV display with formula
+- `EVPresetButton` - Lighting condition preset buttons
+- `useLocalStorageFormPersistence()` - Form state persistence
+
+---
+
 ## Film Development Recipes (`/development`)
 
 **Purpose:** Browse, filter, and manage B&W film development recipes.
@@ -270,12 +302,6 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 
 ## Placeholder Pages
 
-### Exposure Calculator (`/exposure`)
-
-**Status:** Placeholder
-
-**Planned purpose:** Equivalent exposure calculator for balancing aperture, shutter speed, and ISO in the field.
-
 ### Documentation (`/docs`)
 
 **Status:** Placeholder
@@ -290,29 +316,25 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 
 All calculator pages follow a consistent pattern:
 
-1. **Header:** `CalculatorPageHeader` with eyebrow, title, description
-2. **Two-column layout:** Inputs on left (7fr), info/help on right (5fr)
+1. **Layout:** `CalculatorLayout` with title, description, sidebar, and results slots
+2. **Two-column layout:** Main content + sidebar (info/help)
 3. **Input card:** `CalculatorCard` with form fields
 4. **Results card:** `CalculatorCard` with accent color showing calculations
-5. **Info cards:** How-to-use and educational content
-6. **State persistence:** localStorage via hydration pattern
+5. **Info cards:** How-to-use and educational content in sidebar
+6. **State persistence:** localStorage via `useLocalStorageFormPersistence()`
 
 ### State Persistence Pattern
 
 ```typescript
-const hydrationRef = useRef(false);
-
-// Hydrate on mount (once)
-useEffect(() => {
-  if (hydrationRef.current) return;
-  hydrationRef.current = true;
-  // Load from localStorage
-}, []);
-
-// Persist on change
-useEffect(() => {
-  localStorage.setItem(KEY, JSON.stringify(state));
-}, [state]);
+useLocalStorageFormPersistence({
+  storageKey: STORAGE_KEY,
+  form,
+  formValues,
+  persistKeys: ['field1', 'field2'],
+  validators: {
+    field1: { validate: (v) => typeof v === 'number' && Number.isFinite(v) },
+  },
+});
 ```
 
 ### Form Validation
