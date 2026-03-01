@@ -19,6 +19,7 @@ import { Route as ExposureRouteImport } from './routes/exposure'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DevelopmentRouteImport } from './routes/development'
 import { Route as BorderRouteImport } from './routes/border'
+import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
 
 const StopsRoute = StopsRouteImport.update({
@@ -71,6 +72,11 @@ const BorderRoute = BorderRouteImport.update({
   path: '/border',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SplatRoute = SplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -79,6 +85,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/border': typeof BorderRoute
   '/development': typeof DevelopmentRoute
   '/docs': typeof DocsRoute
@@ -92,6 +99,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/border': typeof BorderRoute
   '/development': typeof DevelopmentRoute
   '/docs': typeof DocsRoute
@@ -106,6 +114,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/border': typeof BorderRoute
   '/development': typeof DevelopmentRoute
   '/docs': typeof DocsRoute
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$'
     | '/border'
     | '/development'
     | '/docs'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$'
     | '/border'
     | '/development'
     | '/docs'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/$'
     | '/border'
     | '/development'
     | '/docs'
@@ -161,6 +173,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SplatRoute: typeof SplatRoute
   BorderRoute: typeof BorderRoute
   DevelopmentRoute: typeof DevelopmentRoute
   DocsRoute: typeof DocsRoute
@@ -245,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BorderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$': {
+      id: '/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof SplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -257,6 +277,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SplatRoute: SplatRoute,
   BorderRoute: BorderRoute,
   DevelopmentRoute: DevelopmentRoute,
   DocsRoute: DocsRoute,
