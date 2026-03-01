@@ -1,6 +1,19 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "WebSearch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/websearch-add-year.sh",
+            "statusMessage": "Adding year to search...",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
@@ -8,13 +21,14 @@
           {
             "type": "command",
             "command": ".claude/hooks/format-on-save.sh",
-            "statusMessage": "Formatting with Biome"
+            "statusMessage": "Formatting with Biome..."
           }
         ]
       }
     ]
   },
   "enabledPlugins": {
-    "commit-commands@claude-plugins-official": true
+    "commit-commands@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true
   }
 }
