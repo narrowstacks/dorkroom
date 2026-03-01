@@ -166,6 +166,11 @@ describe('Drawer', () => {
     it('applies transform classes based on open state', () => {
       const { rerender } = render(<Drawer {...defaultProps} isOpen={true} />);
 
+      // Flush the requestAnimationFrame used for the open animation
+      act(() => {
+        vi.advanceTimersByTime(16);
+      });
+
       let drawer = document.querySelector('.absolute.border');
       expect(drawer).toHaveClass('translate-y-0');
 
@@ -221,6 +226,11 @@ describe('Drawer', () => {
   describe('backdrop opacity animation', () => {
     it('applies opacity classes based on open state', () => {
       const { rerender } = render(<Drawer {...defaultProps} isOpen={true} />);
+
+      // Flush the requestAnimationFrame used for the open animation
+      act(() => {
+        vi.advanceTimersByTime(16);
+      });
 
       let backdrop = document.querySelector('.absolute.inset-0');
       expect(backdrop).toHaveClass('opacity-100');
