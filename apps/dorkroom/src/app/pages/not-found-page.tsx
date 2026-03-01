@@ -40,8 +40,9 @@ export function NotFoundPage() {
           className="mb-10 max-w-md text-lg"
           style={{ color: 'var(--color-text-secondary)' }}
         >
-          Looks like this page was never exposed. Check the URL or head back to
-          the darkroom.
+          Looks like this page was never exposed.
+          <br />
+          Check the URL or head back to the darkroom.
         </p>
 
         {/* Actions */}
