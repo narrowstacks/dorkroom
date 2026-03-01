@@ -1,8 +1,9 @@
 #!/bin/bash
 # PostToolUse hook: Format files with Biome after Edit/Write/MultiEdit
 
-# Read JSON from stdin and extract file path
-file_path=$(jq -r '.tool_input.file_path // .tool_input.filePath // empty')
+# Capture stdin then extract file path
+stdin=$(cat)
+file_path=$(echo "$stdin" | jq -r '.tool_input.file_path // .tool_input.filePath // empty')
 
 # Exit if no file path
 [ -z "$file_path" ] && exit 0
