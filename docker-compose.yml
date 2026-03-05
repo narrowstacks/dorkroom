@@ -1,0 +1,10 @@
+services:
+  dev:
+    build: .
+    ports:
+      - "4200:4200"
+    volumes:
+      - .:/app:ro
+      - /app/node_modules
+    cap_add:
+      - NET_ADMIN
