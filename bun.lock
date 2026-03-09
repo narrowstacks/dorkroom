@@ -57,7 +57,7 @@
         "tailwindcss": "^4.1.18",
         "tslib": "^2.3.0",
         "turbo": "^2.8.9",
-        "turbo-ignore": "^2.7.2",
+        "turbo-ignore": "^2.8.11",
         "typescript": "^5.9.3",
         "vite": "7.2.2",
         "vitest": "^3.0.0",
@@ -1524,7 +1524,7 @@
 
     "turbo-darwin-arm64": ["turbo-darwin-arm64@2.8.11", "", { "os": "darwin", "cpu": "arm64" }, "sha512-VvynLHGUNvQ9k7GZjRPSsRcK4VkioTfFb7O7liAk4nHKjEcMdls7GqxzjVWgJiKz3hWmQGaP9hRa9UUnhVWCxA=="],
 
-    "turbo-ignore": ["turbo-ignore@2.7.2", "", { "dependencies": { "json5": "2.2.3" }, "bin": { "turbo-ignore": "dist/cli.js" } }, "sha512-saPvYR30ntf3gxLsNOKr07C8U33pSfAB0sKK3XFXMbG1F8WtkaJ57DKaSI20XCkaB6FQ19F+e04DPGAum+g/Ug=="],
+    "turbo-ignore": ["turbo-ignore@2.8.11", "", { "dependencies": { "json5": "2.2.3" }, "bin": { "turbo-ignore": "dist/cli.js" } }, "sha512-k4XFDWrkchuFHJB5ioC4S/sanmye9AD6xEC8PFHEIhvGEKfcPBSUhGOXtSo+FGQJW/lBRyqB58eNIgUyUC5QeA=="],
 
     "turbo-linux-64": ["turbo-linux-64@2.8.11", "", { "os": "linux", "cpu": "x64" }, "sha512-cbSn37dcm+EmkQ7DD0euy7xV7o2el4GAOr1XujvkAyKjjNvQ+6QIUeDgQcwAx3D17zPpDvfDMJY2dLQadWnkmQ=="],
 
