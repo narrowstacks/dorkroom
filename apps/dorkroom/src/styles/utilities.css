@@ -256,6 +256,50 @@
     }
   }
 
+  /* CSS-based hover states to avoid JS style mutations and synchronous reflows */
+  @media (hover: hover) {
+    .hoverable-row:hover {
+      background-color: var(--row-bg-hover) !important;
+    }
+
+    .hoverable-card:hover {
+      background-color: var(--card-bg-hover) !important;
+      border-color: var(--card-border-hover) !important;
+    }
+
+    .hoverable-favorite:hover {
+      background-color: var(--color-border-secondary) !important;
+    }
+
+    .hoverable-action-btn:hover {
+      background-color: var(--color-border-secondary) !important;
+      color: var(--color-text-primary) !important;
+    }
+
+    .hoverable-delete-btn:hover {
+      background-color: var(--del-bg-hover) !important;
+      color: var(--del-color-hover) !important;
+    }
+
+    .hoverable-link:hover {
+      color: var(--color-text-primary) !important;
+    }
+
+    .hoverable-settings-btn:hover {
+      background-color: rgba(var(--color-background-rgb), 0.15) !important;
+    }
+    .hoverable-settings-btn:not(.settings-btn-selected):focus-visible {
+      outline: 2px solid var(--color-border-primary);
+    }
+    .hoverable-settings-btn:not(.settings-btn-selected):not(:focus-visible) {
+      outline: var(--settings-button-outline-inactive, none);
+    }
+
+    .hoverable-reset-btn:hover {
+      background-color: rgba(var(--color-background-rgb), 0.1) !important;
+    }
+  }
+
   /* Disable all animations and transitions helper */
   [data-theme="high-contrast"] *,
   [data-theme="high-contrast"] *::before,

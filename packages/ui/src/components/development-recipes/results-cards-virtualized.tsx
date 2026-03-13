@@ -333,32 +333,27 @@ export const DevelopmentResultsCardsVirtualized: FC<
                       }}
                       className={cn(
                         'cursor-pointer rounded-2xl border p-3 shadow-subtle transition-all duration-200 hover:scale-[1.02]',
-                        'animate-slide-fade-bottom'
+                        'animate-slide-fade-bottom',
+                        !isSelected && 'hoverable-card'
                       )}
-                      style={{
-                        borderColor: isSelected
-                          ? cardStyles.selected.borderColor
-                          : cardStyles.default.borderColor,
-                        backgroundColor: isSelected
-                          ? cardStyles.selected.backgroundColor
-                          : cardStyles.default.backgroundColor,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.borderColor =
-                            cardStyles.hover.borderColor;
-                          e.currentTarget.style.backgroundColor =
-                            cardStyles.hover.backgroundColor;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.borderColor =
-                            cardStyles.default.borderColor;
-                          e.currentTarget.style.backgroundColor =
-                            cardStyles.default.backgroundColor;
-                        }
-                      }}
+                      style={
+                        {
+                          '--card-bg': isSelected
+                            ? cardStyles.selected.backgroundColor
+                            : cardStyles.default.backgroundColor,
+                          '--card-bg-hover': cardStyles.hover.backgroundColor,
+                          '--card-border': isSelected
+                            ? cardStyles.selected.borderColor
+                            : cardStyles.default.borderColor,
+                          '--card-border-hover': cardStyles.hover.borderColor,
+                          borderColor: isSelected
+                            ? cardStyles.selected.borderColor
+                            : cardStyles.default.borderColor,
+                          backgroundColor: isSelected
+                            ? cardStyles.selected.backgroundColor
+                            : cardStyles.default.backgroundColor,
+                        } as React.CSSProperties
+                      }
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1 min-w-0">
@@ -424,7 +419,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
                               e.stopPropagation();
                               onToggleFavorite?.(rowData);
                             }}
-                            className="inline-flex items-center justify-center rounded-md p-1.5 transition"
+                            className="inline-flex items-center justify-center rounded-md p-1.5 transition hoverable-favorite"
                             style={{
                               backgroundColor: 'var(--color-surface-muted)',
                               borderWidth: 1,
@@ -433,14 +428,10 @@ export const DevelopmentResultsCardsVirtualized: FC<
                                 ? 'var(--color-semantic-warning)'
                                 : 'var(--color-border-secondary)',
                             }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor =
-                                'var(--color-border-secondary)';
+                            onMouseEnter={() => {
                               setHoveredFavoriteId(id);
                             }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor =
-                                'var(--color-surface-muted)';
+                            onMouseLeave={() => {
                               setHoveredFavoriteId(null);
                             }}
                           >
@@ -585,20 +576,12 @@ export const DevelopmentResultsCardsVirtualized: FC<
                                   href={combination.infoSource}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="inline-flex items-center gap-1 text-xs underline-offset-4 hover:underline"
+                                  className="inline-flex items-center gap-1 text-xs underline-offset-4 hover:underline hoverable-link"
                                   style={{
                                     color: 'var(--color-text-tertiary)',
                                   }}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.color =
-                                      'var(--color-text-primary)';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.color =
-                                      'var(--color-text-tertiary)';
                                   }}
                                 >
                                   <ExternalLink
@@ -641,22 +624,10 @@ export const DevelopmentResultsCardsVirtualized: FC<
                                   onEditCustomRecipe?.(rowData);
                                 }}
                                 aria-label="Edit"
-                                className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
+                                className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2 hoverable-action-btn"
                                 style={{
                                   backgroundColor: 'var(--color-border-muted)',
                                   color: 'var(--color-text-secondary)',
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor =
-                                    'var(--color-border-secondary)';
-                                  e.currentTarget.style.color =
-                                    'var(--color-text-primary)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor =
-                                    'var(--color-border-muted)';
-                                  e.currentTarget.style.color =
-                                    'var(--color-text-secondary)';
                                 }}
                                 title="Edit"
                               >
@@ -669,24 +640,24 @@ export const DevelopmentResultsCardsVirtualized: FC<
                                   onDeleteCustomRecipe?.(rowData);
                                 }}
                                 aria-label="Delete"
-                                className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2"
-                                style={{
-                                  backgroundColor:
-                                    deleteButtonStyles.default.backgroundColor,
-                                  color: deleteButtonStyles.default.color,
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor =
-                                    deleteButtonStyles.hover.backgroundColor;
-                                  e.currentTarget.style.color =
-                                    deleteButtonStyles.hover.color;
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor =
-                                    deleteButtonStyles.default.backgroundColor;
-                                  e.currentTarget.style.color =
-                                    deleteButtonStyles.default.color;
-                                }}
+                                className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2 hoverable-delete-btn"
+                                style={
+                                  {
+                                    '--del-bg':
+                                      deleteButtonStyles.default
+                                        .backgroundColor,
+                                    '--del-bg-hover':
+                                      deleteButtonStyles.hover.backgroundColor,
+                                    '--del-color':
+                                      deleteButtonStyles.default.color,
+                                    '--del-color-hover':
+                                      deleteButtonStyles.hover.color,
+                                    backgroundColor:
+                                      deleteButtonStyles.default
+                                        .backgroundColor,
+                                    color: deleteButtonStyles.default.color,
+                                  } as React.CSSProperties
+                                }
                                 title="Delete"
                               >
                                 <Trash2 className="h-3 w-3" />

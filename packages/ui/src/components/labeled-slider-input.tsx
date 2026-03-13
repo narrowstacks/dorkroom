@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import { useId, useState } from 'react';
+import { useCallback, useId, useRef, useState } from 'react';
 import { cn } from '../lib/cn';
 
 /**
@@ -78,12 +78,32 @@ export function LabeledSliderInput({
   const inputId = useId();
   const rangeId = `${inputId}-range`;
 
-  const handleSliderChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newValue = parseFloat((e.target as HTMLInputElement).value);
-    // For slider interactions, prefer the dedicated slider change handler
-    // to keep state strictly numeric during continuous updates.
-    onSliderChange?.(newValue);
-  };
+  // Track local slider value during drag so the slider visually updates
+  // immediately, while parent state updates are RAF-throttled.
+  const [localSliderValue, setLocalSliderValue] = useState<number | null>(null);
+  const rafRef = useRef<number>(0);
+
+  const handleSliderChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const newValue = parseFloat((e.target as HTMLInputElement).value);
+      // Update local value immediately so the slider thumb tracks the finger
+      setLocalSliderValue(newValue);
+
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      rafRef.current = requestAnimationFrame(() => {
+        onSliderChange?.(newValue);
+        rafRef.current = 0;
+      });
+    },
+    [onSliderChange]
+  );
+
+  // Clear local override when parent value catches up
+  if (localSliderValue !== null && localSliderValue === value) {
+    setLocalSliderValue(null);
+  }
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = parseFloat((e.target as HTMLInputElement).value) || 0;
@@ -135,7 +155,7 @@ export function LabeledSliderInput({
           min={min}
           max={max}
           step={step}
-          value={value}
+          value={localSliderValue ?? value}
           onChange={handleSliderChange}
           aria-labelledby={`${inputId}-label`}
           className={cn(

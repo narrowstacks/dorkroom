@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { LabeledSliderInput } from '../../components/labeled-slider-input';
 
@@ -45,7 +45,7 @@ describe('LabeledSliderInput', () => {
     expect(onChange).toHaveBeenCalledWith(7);
   });
 
-  it('calls onSliderChange when slider moves', () => {
+  it('calls onSliderChange when slider moves', async () => {
     const onSliderChange = vi.fn();
     render(
       <LabeledSliderInput {...defaultProps} onSliderChange={onSliderChange} />
@@ -53,6 +53,11 @@ describe('LabeledSliderInput', () => {
 
     const slider = screen.getByRole('slider');
     fireEvent.change(slider, { target: { value: '8' } });
+
+    // onSliderChange is RAF-throttled, so flush the frame
+    await act(async () => {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    });
 
     expect(onSliderChange).toHaveBeenCalledWith(8);
   });

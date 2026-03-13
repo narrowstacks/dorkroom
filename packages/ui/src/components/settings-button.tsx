@@ -29,7 +29,8 @@ export function SettingsButton({
       type="button"
       onClick={onPress}
       className={cn(
-        'w-full rounded-lg border p-4 text-left transition-colors focus:outline-none focus:ring-2',
+        'w-full rounded-lg border p-4 text-left transition-colors focus:outline-none focus:ring-2 hoverable-settings-btn',
+        isSelected && 'settings-btn-selected',
         className
       )}
       style={{
@@ -40,27 +41,6 @@ export function SettingsButton({
         outline: isSelected
           ? '2px solid var(--color-border-primary)'
           : 'var(--settings-button-outline-inactive, none)',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor =
-          'rgba(var(--color-background-rgb), 0.1)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = isSelected
-          ? 'rgba(var(--color-background-rgb), 0.1)'
-          : 'rgba(var(--color-background-rgb), 0.05)';
-      }}
-      onFocus={(e) => {
-        if (!isSelected) {
-          e.currentTarget.style.outline =
-            '2px solid var(--color-border-primary)';
-        }
-      }}
-      onBlur={(e) => {
-        if (!isSelected) {
-          e.currentTarget.style.outline =
-            'var(--settings-button-outline-inactive, none)';
-        }
       }}
     >
       <div className="flex items-center justify-between">

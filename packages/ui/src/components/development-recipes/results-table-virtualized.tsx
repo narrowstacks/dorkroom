@@ -234,28 +234,23 @@ export const DevelopmentResultsTableVirtualized: FC<
                       }}
                       className={cn(
                         'cursor-pointer transition-colors duration-200',
-                        'animate-slide-fade-bottom'
+                        'animate-slide-fade-bottom',
+                        !isSelected && 'hoverable-row'
                       )}
-                      style={{
-                        backgroundColor: isSelected
-                          ? rowStyles.selected.backgroundColor
-                          : rowStyles.default.backgroundColor,
-                        boxShadow: isSelected
-                          ? 'inset 3px 0 0 var(--color-primary)'
-                          : undefined,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.backgroundColor =
-                            rowStyles.hover.backgroundColor;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.backgroundColor =
-                            rowStyles.default.backgroundColor;
-                        }
-                      }}
+                      style={
+                        {
+                          '--row-bg': isSelected
+                            ? rowStyles.selected.backgroundColor
+                            : rowStyles.default.backgroundColor,
+                          '--row-bg-hover': rowStyles.hover.backgroundColor,
+                          backgroundColor: isSelected
+                            ? rowStyles.selected.backgroundColor
+                            : rowStyles.default.backgroundColor,
+                          boxShadow: isSelected
+                            ? 'inset 3px 0 0 var(--color-primary)'
+                            : undefined,
+                        } as React.CSSProperties
+                      }
                     >
                       {row
                         .getVisibleCells()

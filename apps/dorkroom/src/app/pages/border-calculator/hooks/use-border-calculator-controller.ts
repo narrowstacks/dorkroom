@@ -44,7 +44,7 @@ export function useBorderCalculatorController() {
   const form = useForm({
     defaultValues: borderCalculatorInitialState,
     validators: {
-      onChange: validateBorderCalculator,
+      onBlur: validateBorderCalculator,
     },
   });
 

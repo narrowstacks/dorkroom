@@ -112,7 +112,7 @@ export function MobileBorderCalculator({
   const form = useForm({
     defaultValues: borderCalculatorInitialState,
     validators: {
-      onChange: validateBorderCalculator,
+      onBlur: validateBorderCalculator,
     },
   });
 
@@ -234,14 +234,18 @@ export function MobileBorderCalculator({
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    try {
-      window.localStorage.setItem(
-        CALC_STORAGE_KEY,
-        JSON.stringify(persistableSnapshot)
-      );
-    } catch (error) {
-      console.warn('Failed to save calculator state', error);
-    }
+    const timer = setTimeout(() => {
+      try {
+        window.localStorage.setItem(
+          CALC_STORAGE_KEY,
+          JSON.stringify(persistableSnapshot)
+        );
+      } catch (error) {
+        console.warn('Failed to save calculator state', error);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
   }, [persistableSnapshot]);
 
   // Calculations
@@ -639,9 +643,9 @@ export function MobileBorderCalculator({
     [removePreset]
   );
 
-  const resetToDefaults = () => {
+  const resetToDefaults = useCallback(() => {
     form.reset();
-  };
+  }, [form]);
 
   // Build context value for drawer sections that consume from BorderCalculatorContext
   const contextValue = useMemo<BorderCalculatorContextValue>(
@@ -711,6 +715,7 @@ export function MobileBorderCalculator({
       isSaveBeforeShareOpen,
       shareUrls,
       canCopyToClipboard,
+      resetToDefaults,
       handleRoundMinBorderToQuarter,
       applyPresetSettings,
       handleShare,
@@ -737,7 +742,7 @@ export function MobileBorderCalculator({
             !isHighContrast
               ? 'shadow-[0_30px_90px_-40px_var(--color-visualization-overlay)]'
               : ''
-          } backdrop-blur-sm`}
+          }`}
           style={{
             background: 'var(--color-border-primary)',
           }}
@@ -763,7 +768,7 @@ export function MobileBorderCalculator({
             !isHighContrast
               ? 'shadow-[0_35px_110px_-50px_var(--color-visualization-overlay)]'
               : ''
-          } backdrop-blur-lg`}
+          }`}
           style={{
             borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-background)',
@@ -808,7 +813,7 @@ export function MobileBorderCalculator({
 
         {/* Settings Buttons */}
         <div
-          className="rounded-3xl border p-6 backdrop-blur-lg space-y-5"
+          className="rounded-3xl border p-6 space-y-5"
           style={{
             borderColor: 'var(--color-border-secondary)',
             background: 'var(--color-surface)',
@@ -823,11 +828,7 @@ export function MobileBorderCalculator({
               value={`${aspectRatioDisplayValue} on ${paperSizeDisplayValue}`}
               onPress={() => openDrawerSection('paperSize')}
               icon={Image}
-              className={
-                isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
-              }
+              className={isHighContrast ? '' : 'shadow-lg'}
             />
 
             <SettingsButton
@@ -835,11 +836,7 @@ export function MobileBorderCalculator({
               value={borderSizeDisplayValue}
               onPress={() => openDrawerSection('borderSize')}
               icon={Ruler}
-              className={
-                isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
-              }
+              className={isHighContrast ? '' : 'shadow-lg'}
             />
 
             <SettingsButton
@@ -847,11 +844,7 @@ export function MobileBorderCalculator({
               value={positionDisplayValue}
               onPress={() => openDrawerSection('positionOffsets')}
               icon={Move}
-              className={
-                isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
-              }
+              className={isHighContrast ? '' : 'shadow-lg'}
             />
           </div>
 
@@ -862,11 +855,7 @@ export function MobileBorderCalculator({
               icon={showBlades ? EyeOff : Crop}
               showChevron={false}
               centerLabel={true}
-              className={
-                isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
-              }
+              className={isHighContrast ? '' : 'shadow-lg'}
             />
 
             <SettingsButton
@@ -875,11 +864,7 @@ export function MobileBorderCalculator({
               icon={showBladeReadings ? EyeOff : Target}
               showChevron={false}
               centerLabel={true}
-              className={
-                isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
-              }
+              className={isHighContrast ? '' : 'shadow-lg'}
             />
           </div>
 
@@ -921,7 +906,7 @@ export function MobileBorderCalculator({
         <button
           type="button"
           onClick={resetToDefaults}
-          className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
+          className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 hoverable-reset-btn ${
             !isHighContrast ? 'shadow-lg' : ''
           }`}
           style={
@@ -932,14 +917,6 @@ export function MobileBorderCalculator({
               '--tw-ring-color': 'var(--color-semantic-error)',
             } as React.CSSProperties
           }
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor =
-              'rgba(var(--color-background-rgb), 0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor =
-              'rgba(var(--color-background-rgb), 0.05)';
-          }}
         >
           <RotateCcw className="h-4 w-4" />
           Reset to Defaults

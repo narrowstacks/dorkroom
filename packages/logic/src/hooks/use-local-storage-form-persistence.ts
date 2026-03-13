@@ -201,24 +201,29 @@ export function useLocalStorageFormPersistence<T extends object>(
     }
   }, [form.setFieldValue]);
 
-  // Persist form state to localStorage whenever it changes
+  // Persist form state to localStorage whenever it changes (debounced to avoid
+  // blocking the main thread during rapid slider drags)
   useEffect(() => {
     if (disablePersistence || typeof window === 'undefined') {
       return;
     }
 
-    try {
-      window.localStorage.setItem(
-        storageKey,
-        JSON.stringify(persistableSnapshot)
-      );
-      onPersisted?.(persistableSnapshot);
-    } catch (error) {
-      debugWarn(
-        `[useLocalStorageFormPersistence] Failed to save state to '${storageKey}':`,
-        error
-      );
-    }
+    const timer = setTimeout(() => {
+      try {
+        window.localStorage.setItem(
+          storageKey,
+          JSON.stringify(persistableSnapshot)
+        );
+        onPersisted?.(persistableSnapshot);
+      } catch (error) {
+        debugWarn(
+          `[useLocalStorageFormPersistence] Failed to save state to '${storageKey}':`,
+          error
+        );
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
   }, [storageKey, persistableSnapshot, disablePersistence, onPersisted]);
 
   const clearPersistedData = () => {
