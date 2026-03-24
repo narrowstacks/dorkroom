@@ -10,6 +10,31 @@
       "import": "./src/index.ts",
       "default": "./src/index.ts"
     },
+    "./forms": {
+      "types": "./src/forms/index.ts",
+      "import": "./src/forms/index.ts",
+      "default": "./src/forms/index.ts"
+    },
+    "./calculator": {
+      "types": "./src/calculator.ts",
+      "import": "./src/calculator.ts",
+      "default": "./src/calculator.ts"
+    },
+    "./border-calculator": {
+      "types": "./src/border-calculator.ts",
+      "import": "./src/border-calculator.ts",
+      "default": "./src/border-calculator.ts"
+    },
+    "./development-recipes": {
+      "types": "./src/development-recipes.ts",
+      "import": "./src/development-recipes.ts",
+      "default": "./src/development-recipes.ts"
+    },
+    "./films": {
+      "types": "./src/films.ts",
+      "import": "./src/films.ts",
+      "default": "./src/films.ts"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {

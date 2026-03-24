@@ -1,8 +1,9 @@
 import { ASPECT_RATIOS, type SelectItem } from '@dorkroom/logic';
 import { useStore } from '@tanstack/react-store';
-import type { FieldApi } from '../../index';
-import { DimensionInputGroup, Select } from '../../index';
+import type { FieldApi } from '../../forms/utils/form-api-types';
 import { CalculatorCard } from '../calculator/calculator-card';
+import { DimensionInputGroup } from '../dimension-input-group';
+import { Select } from '../select';
 import { useBorderCalculator } from './border-calculator-context';
 
 /**

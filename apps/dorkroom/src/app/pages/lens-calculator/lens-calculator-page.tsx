@@ -8,17 +8,17 @@ import {
   SENSOR_FORMATS,
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
+import { ResultRow, Select, SensorSizeVisualization } from '@dorkroom/ui';
 import {
   CalculatorCard,
   CalculatorNumberField,
   CalculatorPageHeader,
   CalculatorStat,
+} from '@dorkroom/ui/calculator';
+import {
   createZodFormValidator,
   lensCalculatorSchema,
-  ResultRow,
-  Select,
-  SensorSizeVisualization,
-} from '@dorkroom/ui';
+} from '@dorkroom/ui/forms';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { ArrowRightLeft } from 'lucide-react';

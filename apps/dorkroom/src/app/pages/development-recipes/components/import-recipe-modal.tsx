@@ -1,4 +1,5 @@
-import { ImportRecipeForm, ResponsiveModal } from '@dorkroom/ui';
+import { ResponsiveModal } from '@dorkroom/ui';
+import { ImportRecipeForm } from '@dorkroom/ui/development-recipes';
 import type { FC } from 'react';
 
 export interface ImportRecipeModalProps {

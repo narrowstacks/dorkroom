@@ -1,6 +1,8 @@
 import type { BorderPresetSettings } from '@dorkroom/logic';
 import { Save, Share2, Trash2 } from 'lucide-react';
-import { CalculatorCard, Select, TextInput } from '../../index';
+import { CalculatorCard } from '../calculator/calculator-card';
+import { Select } from '../select';
+import { TextInput } from '../text-input';
 import { useBorderCalculator } from './border-calculator-context';
 
 /**

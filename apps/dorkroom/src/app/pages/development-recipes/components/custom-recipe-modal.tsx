@@ -1,10 +1,10 @@
 import type { Developer, Film } from '@dorkroom/api';
 import type { CustomRecipeFormData } from '@dorkroom/logic';
+import { ResponsiveModal } from '@dorkroom/ui';
 import {
   CustomRecipeForm,
   type DevelopmentCombinationView,
-  ResponsiveModal,
-} from '@dorkroom/ui';
+} from '@dorkroom/ui/development-recipes';
 import type { FC } from 'react';
 import {
   CUSTOM_RECIPE_FORM_DEFAULT,

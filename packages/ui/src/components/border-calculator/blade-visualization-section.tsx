@@ -1,5 +1,6 @@
-import type { FieldApi } from '../../index';
-import { CalculatorCard, ToggleSwitch } from '../../index';
+import type { FieldApi } from '../../forms/utils/form-api-types';
+import { CalculatorCard } from '../calculator/calculator-card';
+import { ToggleSwitch } from '../toggle-switch';
 import { useBorderCalculator } from './border-calculator-context';
 
 /**

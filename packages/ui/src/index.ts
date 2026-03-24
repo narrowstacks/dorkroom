@@ -1,44 +1,8 @@
 // Core UI Components
 
+// DevelopmentCombinationView re-exported for backwards compat (type-only)
 export type { DevelopmentCombinationView } from '@dorkroom/logic';
-export type { BorderCalculatorContextValue } from './components/border-calculator';
-export {
-  AnimatedPreview,
-  BladeReadingsOverlay,
-  BladeReadingsSection,
-  BladeResultsDisplay,
-  BladeVisualizationSection,
-  BorderCalculatorProvider,
-  BorderInfoSection,
-  BorderSizeSection,
-  BordersOffsetsSection,
-  MobileBorderCalculator,
-  MobileBorderLayout,
-  PaperSetupSection,
-  PaperSizeSection,
-  PositionOffsetsSection,
-  PresetsSection,
-  PreviewAndControlsSection,
-  ResponsiveBorderLayout,
-  useBorderCalculator,
-} from './components/border-calculator';
-export type {
-  CalculatorLayoutProps,
-  InfoCardItem,
-  InfoCardListProps,
-  InfoCardProps,
-  InfoCardVariant,
-} from './components/calculator';
-// Calculator Components
-export {
-  CalculatorCard,
-  CalculatorLayout,
-  CalculatorNumberField,
-  CalculatorPageHeader,
-  CalculatorStat,
-  InfoCard,
-  InfoCardList,
-} from './components/calculator';
+
 export { ConfirmModal } from './components/confirm-modal';
 export type { DetailPanelProps } from './components/detail-panel';
 // Detail Panel Components
@@ -47,42 +11,9 @@ export {
   DetailPanelCloseButton,
   DetailPanelExpandButton,
 } from './components/detail-panel';
-export { DevelopmentActionsBar } from './components/development-recipes/actions-bar';
-export { CollapsibleFilters } from './components/development-recipes/collapsible-filters';
-export { CustomRecipeForm } from './components/development-recipes/custom-recipe-form';
-export { FavoriteMessageSkeleton } from './components/development-recipes/favorite-message-skeleton';
-export { FilmDeveloperSelection } from './components/development-recipes/film-developer-selection';
-export { FilmdevPreviewModal } from './components/development-recipes/filmdev-preview-modal';
-export { DevelopmentFiltersPanel } from './components/development-recipes/filters-panel';
-export { FiltersSidebar } from './components/development-recipes/filters-sidebar';
-export { ImportRecipeForm } from './components/development-recipes/import-recipe-form';
-export { MobileSortingControls } from './components/development-recipes/mobile-sorting-controls';
-export { PaginationControls } from './components/development-recipes/pagination-controls';
-export { DevelopmentRecipeDetail } from './components/development-recipes/recipe-detail';
-export type { RecipeDetailPanelProps } from './components/development-recipes/recipe-detail-panel';
-export { RecipeDetailPanel } from './components/development-recipes/recipe-detail-panel';
-export { DevelopmentResultsCardsVirtualized } from './components/development-recipes/results-cards-virtualized';
-export { DevelopmentResultsTableVirtualized } from './components/development-recipes/results-table-virtualized';
-export { SharedRecipeModal } from './components/development-recipes/shared-recipe-modal';
-export type { TableColumnContext } from './components/development-recipes/table-columns';
-export { createTableColumns } from './components/development-recipes/table-columns';
-export { TemperatureUnitToggle } from './components/development-recipes/temperature-unit-toggle';
-export { VirtualizedErrorBoundary } from './components/development-recipes/virtualized-error-boundary';
-export { VolumeMixer } from './components/development-recipes/volume-mixer';
 export { DimensionInputGroup } from './components/dimension-input-group';
 export { Drawer, DrawerBody, DrawerContent } from './components/drawer';
 export { ErrorBoundary } from './components/error-boundary';
-// Film Components
-export {
-  FilmCard,
-  FilmCardSkeleton,
-  FilmDetailPanel,
-  FilmDetailPanelSkeleton,
-  FilmFiltersMobile,
-  FilmFiltersPanel,
-  FilmImage,
-  FilmResultsVirtualized,
-} from './components/films';
 // Filter Panel Components
 export {
   FilterPanelClearButton,
@@ -167,8 +98,8 @@ export {
 export { ThemeProvider, useTheme } from './contexts/theme-context';
 // Volume
 export { useVolume, VolumeProvider } from './contexts/volume-context';
-// Forms (TanStack Form integration)
-export * from './forms';
+// Forms (utilities only — components and schemas via @dorkroom/ui/forms)
+export { createZodFormValidator } from './forms/utils/create-zod-form-validator';
 export type { FieldApi, FormInstance } from './forms/utils/form-api-types';
 export {
   useMeasurementConverter,

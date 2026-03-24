@@ -1,13 +1,15 @@
 import {
   cn,
-  type DevelopmentCombinationView,
-  DevelopmentResultsCardsVirtualized,
-  DevelopmentResultsTableVirtualized,
   type ShareResult,
   SkeletonCard,
   SkeletonTableRow,
-  VirtualizedErrorBoundary,
 } from '@dorkroom/ui';
+import {
+  type DevelopmentCombinationView,
+  DevelopmentResultsCardsVirtualized,
+  DevelopmentResultsTableVirtualized,
+  VirtualizedErrorBoundary,
+} from '@dorkroom/ui/development-recipes';
 import type { Table } from '@tanstack/react-table';
 import { Loader2 } from 'lucide-react';
 import type { FC } from 'react';

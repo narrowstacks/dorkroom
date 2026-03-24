@@ -82,6 +82,26 @@ export default defineConfig(() => ({
   plugins: [TanStackRouterVite(), react(), fontPreloadPlugin()],
   resolve: {
     alias: {
+      '@dorkroom/ui/forms': resolve(
+        __dirname,
+        '../../packages/ui/src/forms/index.ts'
+      ),
+      '@dorkroom/ui/calculator': resolve(
+        __dirname,
+        '../../packages/ui/src/calculator.ts'
+      ),
+      '@dorkroom/ui/border-calculator': resolve(
+        __dirname,
+        '../../packages/ui/src/border-calculator.ts'
+      ),
+      '@dorkroom/ui/development-recipes': resolve(
+        __dirname,
+        '../../packages/ui/src/development-recipes.ts'
+      ),
+      '@dorkroom/ui/films': resolve(
+        __dirname,
+        '../../packages/ui/src/films.ts'
+      ),
       '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src/index.ts'),
       '@dorkroom/logic': resolve(
         __dirname,

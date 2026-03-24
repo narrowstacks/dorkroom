@@ -2,7 +2,7 @@ import {
   BorderCalculatorProvider,
   MobileBorderLayout,
   ResponsiveBorderLayout,
-} from '@dorkroom/ui';
+} from '@dorkroom/ui/border-calculator';
 import { useBorderCalculatorController } from './hooks/use-border-calculator-controller';
 
 export default function BorderCalculatorPage() {

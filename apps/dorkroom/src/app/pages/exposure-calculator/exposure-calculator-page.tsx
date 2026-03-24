@@ -10,15 +10,17 @@ import {
   roundToStandardPrecision,
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
+import { ResultRow } from '@dorkroom/ui';
 import {
   CalculatorCard,
   CalculatorLayout,
   CalculatorNumberField,
   CalculatorStat,
+} from '@dorkroom/ui/calculator';
+import {
   createZodFormValidator,
   exposureCalculatorSchema,
-  ResultRow,
-} from '@dorkroom/ui';
+} from '@dorkroom/ui/forms';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import type { ChangeEvent, FC } from 'react';

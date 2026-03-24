@@ -8,9 +8,11 @@ import {
   SLIDER_STEP_BORDER,
 } from '@dorkroom/logic';
 import { useMemo } from 'react';
-import type { FieldApi } from '../../index';
-import { LabeledSliderInput, StatusAlert, ToggleSwitch } from '../../index';
+import type { FieldApi } from '../../forms/utils/form-api-types';
 import { CalculatorCard } from '../calculator/calculator-card';
+import { LabeledSliderInput } from '../labeled-slider-input';
+import { StatusAlert } from '../status-alert';
+import { ToggleSwitch } from '../toggle-switch';
 import { useBorderCalculator } from './border-calculator-context';
 
 /**

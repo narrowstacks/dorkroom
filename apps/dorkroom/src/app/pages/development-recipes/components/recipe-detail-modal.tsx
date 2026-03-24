@@ -1,8 +1,8 @@
+import { ResponsiveModal } from '@dorkroom/ui';
 import {
   type DevelopmentCombinationView,
   DevelopmentRecipeDetail,
-  ResponsiveModal,
-} from '@dorkroom/ui';
+} from '@dorkroom/ui/development-recipes';
 import type { FC } from 'react';
 
 export interface RecipeDetailModalProps {

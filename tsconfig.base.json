@@ -24,6 +24,15 @@
       "@dorkroom/logic": ["packages/logic/src/index.ts"],
       "@dorkroom/logic/*": ["packages/logic/src/*"],
       "@dorkroom/ui": ["packages/ui/src/index.ts"],
+      "@dorkroom/ui/forms": ["packages/ui/src/forms/index.ts"],
+      "@dorkroom/ui/calculator": ["packages/ui/src/calculator.ts"],
+      "@dorkroom/ui/border-calculator": [
+        "packages/ui/src/border-calculator.ts"
+      ],
+      "@dorkroom/ui/development-recipes": [
+        "packages/ui/src/development-recipes.ts"
+      ],
+      "@dorkroom/ui/films": ["packages/ui/src/films.ts"],
       "@dorkroom/ui/*": ["packages/ui/src/*"]
     }
   }

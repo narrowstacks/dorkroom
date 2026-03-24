@@ -7,7 +7,7 @@ import {
   type DevelopmentCombinationView,
   FilmdevPreviewModal,
   SharedRecipeModal,
-} from '@dorkroom/ui';
+} from '@dorkroom/ui/development-recipes';
 import type { FC } from 'react';
 import { CustomRecipeModal } from './custom-recipe-modal';
 import { ImportRecipeModal } from './import-recipe-modal';

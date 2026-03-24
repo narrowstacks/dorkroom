@@ -1,4 +1,6 @@
-import { CalculatorCard, CalculatorStat, StatusAlert } from '../../index';
+import { CalculatorCard } from '../calculator/calculator-card';
+import { CalculatorStat } from '../calculator/calculator-stat';
+import { StatusAlert } from '../status-alert';
 import { useBorderCalculator } from './border-calculator-context';
 
 /**
