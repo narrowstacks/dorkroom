@@ -4,7 +4,43 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TanStackRouterVite } from '@tanstack/router-vite-plugin';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+
+/** Injects a <link rel="preload"> for the Latin Montserrat woff2 so the browser
+ *  starts downloading it before CSS is parsed. Vite resolves the bare-module
+ *  path and rewrites it to the hashed output path during build. */
+function fontPreloadPlugin(): Plugin {
+  return {
+    name: 'font-preload',
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, ctx) {
+        // Only inject during build — dev server serves fonts on demand
+        if (!ctx.bundle) return [];
+        // Find the hashed Montserrat Latin font file in the bundle
+        const fontAsset = Object.keys(ctx.bundle).find(
+          (key) =>
+            key.includes('montserrat-latin-wght-normal') &&
+            key.endsWith('.woff2')
+        );
+        if (!fontAsset) return [];
+        return [
+          {
+            tag: 'link',
+            attrs: {
+              rel: 'preload',
+              href: `/${fontAsset}`,
+              as: 'font',
+              type: 'font/woff2',
+              crossorigin: '',
+            },
+            injectTo: 'head-prepend',
+          },
+        ];
+      },
+    },
+  };
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -40,7 +76,10 @@ export default defineConfig(() => ({
   optimizeDeps: {
     include: ['react', 'react-dom'],
   },
-  plugins: [TanStackRouterVite(), react()],
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
+  plugins: [TanStackRouterVite(), react(), fontPreloadPlugin()],
   resolve: {
     alias: {
       '@dorkroom/ui': resolve(__dirname, '../../packages/ui/src/index.ts'),
@@ -59,15 +98,9 @@ export default defineConfig(() => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
-    minify: true,
-    rolldownOptions: {
+    minify: 'esbuild',
+    rollupOptions: {
       output: {
-        minify: {
-          compress: {
-            dropConsole: true,
-            dropDebugger: true,
-          },
-        },
         manualChunks(id) {
           if (
             id.includes('node_modules/react/') ||
@@ -78,6 +111,18 @@ export default defineConfig(() => ({
           }
           if (id.includes('node_modules/lucide-react/')) {
             return 'lucide-icons';
+          }
+          if (id.includes('node_modules/@tanstack/react-form/')) {
+            return 'tanstack-form';
+          }
+          if (
+            id.includes('node_modules/@tanstack/react-table/') ||
+            id.includes('node_modules/@tanstack/react-virtual/')
+          ) {
+            return 'tanstack-table-virtual';
+          }
+          if (id.includes('node_modules/zod/')) {
+            return 'zod';
           }
         },
       },
