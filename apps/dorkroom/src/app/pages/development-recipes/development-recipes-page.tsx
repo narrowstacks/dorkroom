@@ -26,7 +26,7 @@ import {
   useToast,
 } from '@dorkroom/ui';
 import type { SortingState } from '@tanstack/react-table';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { RecipeModals } from './components/recipe-modals';
 import { RecipeResultsSection } from './components/recipe-results-section';
 import { useRecipeActions } from './hooks/useRecipeActions';
@@ -204,6 +204,11 @@ export default function DevelopmentRecipesPage() {
     getDeveloperById,
   });
 
+  // Defer expensive combined-row re-computation so filter interactions remain
+  // responsive. The table renders with the previous rows until React has idle
+  // time to commit the new filtered set, keeping INP low on filter changes.
+  const deferredCombinedRows = useDeferredValue(combinedRows);
+
   // Sync recipesByUuid to state for useRecipeUrlState (API recipe lookup)
   useEffect(() => {
     setRecipesByUuidState(recipesByUuid);
@@ -346,9 +351,10 @@ export default function DevelopmentRecipesPage() {
     []
   );
 
-  // Create TanStack table instance
+  // Create TanStack table instance — uses deferred rows to avoid blocking
+  // the main thread while filter memoization catches up
   const table = useDevelopmentTable({
-    rows: combinedRows,
+    rows: deferredCombinedRows,
     columns,
     sorting,
     onSortingChange: setSorting,
@@ -365,18 +371,33 @@ export default function DevelopmentRecipesPage() {
     setPageIndex(0);
   }, [sortingKey]);
 
-  // Track main content height so the detail panel can match it
+  // Track main content height so the detail panel can match it.
+  // RAF-debounced to avoid triggering setState on every layout shift during
+  // resize, which would cause unnecessary re-renders on the main thread.
   useEffect(() => {
     const el = mainContentRef.current;
     if (!el) return;
 
+    let rafId: number | undefined;
+
     const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setMainContentHeight(entry.contentRect.height);
+      if (rafId !== undefined) {
+        cancelAnimationFrame(rafId);
       }
+      rafId = requestAnimationFrame(() => {
+        rafId = undefined;
+        for (const entry of entries) {
+          setMainContentHeight(entry.contentRect.height);
+        }
+      });
     });
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      if (rafId !== undefined) {
+        cancelAnimationFrame(rafId);
+      }
+      observer.disconnect();
+    };
   }, []);
 
   const clearSelections = () => {
@@ -403,7 +424,7 @@ export default function DevelopmentRecipesPage() {
         )}
 
         <DevelopmentActionsBar
-          totalResults={combinedRows.length}
+          totalResults={deferredCombinedRows.length}
           viewMode={isMobile ? 'grid' : viewMode}
           onViewModeChange={(mode) => {
             if (!isMobile) {

@@ -9,7 +9,7 @@ import {
   type SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 
 export interface DevelopmentCombinationView {
   combination: Combination;
@@ -48,12 +48,19 @@ const compareNumbers = (a?: number | null, b?: number | null) => {
   return (a as number) - (b as number);
 };
 
+/**
+ * Build a favorites sorting function that does O(1) Set lookups instead of
+ * calling isFavorite() (which may traverse storage) for every row-pair
+ * comparison during the O(n log n) sort pass.
+ *
+ * @param favoriteIds - Pre-computed Set of favorited combination keys
+ */
 const createFavoriteAwareSortingFn = (
-  isFavorite: (id: string) => boolean
+  favoriteIds: Set<string>
 ): SortingFn<DevelopmentCombinationView> => {
   return (rowA, rowB, columnId) => {
-    const aIsFav = isFavorite(getCombinationKey(rowA.original));
-    const bIsFav = isFavorite(getCombinationKey(rowB.original));
+    const aIsFav = favoriteIds.has(getCombinationKey(rowA.original));
+    const bIsFav = favoriteIds.has(getCombinationKey(rowB.original));
 
     // Favorites always sort first
     if (aIsFav && !bIsFav) return -1;
@@ -126,9 +133,28 @@ export function useDevelopmentTable({
     [pageIndex]
   );
 
+  // Keep a ref to the latest isFavorite so the Set can be rebuilt when it changes
+  const isFavoriteRef = useRef(isFavorite);
+  isFavoriteRef.current = isFavorite;
+
+  // Pre-compute the full set of favorite IDs from the current rows.
+  // This is O(n) once per rows/isFavorite change, eliminating the repeated
+  // isFavorite() calls that made sorting O(n log n * k).
+  const favoriteIdsSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const row of rows) {
+      const key = getCombinationKey(row);
+      if (isFavoriteRef.current(key)) {
+        set.add(key);
+      }
+    }
+    return set;
+    // Re-compute when rows change OR when isFavorite identity changes (e.g., after toggle)
+  }, [rows, isFavorite]);
+
   const favoriteSortingFn = useMemo(
-    () => createFavoriteAwareSortingFn(isFavorite),
-    [isFavorite]
+    () => createFavoriteAwareSortingFn(favoriteIdsSet),
+    [favoriteIdsSet]
   );
 
   const table = useReactTable({

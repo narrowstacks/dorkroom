@@ -36,7 +36,7 @@ interface ModeToggleProps {
 function ModeToggle({ isEnlargerHeightMode, onModeChange }: ModeToggleProps) {
   return (
     <div
-      className="flex flex-col items-stretch gap-2 rounded-2xl border px-5 py-3 shadow-subtle backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+      className="flex flex-col items-stretch gap-2 rounded-2xl border px-5 py-3 shadow-subtle sm:flex-row sm:items-center sm:justify-between sm:gap-4"
       style={{
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: colorMixOr(

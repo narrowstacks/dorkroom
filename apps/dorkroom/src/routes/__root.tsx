@@ -15,6 +15,7 @@ import {
   useRouter,
   useRouterState,
 } from '@tanstack/react-router';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import {
   Beaker,
   GitBranch,
@@ -105,8 +106,13 @@ function RootComponent() {
     router.navigate({ to: path });
   };
 
+  // Get the deepest matched route's path pattern for Speed Insights tracking
+  const routePattern =
+    routerState.matches[routerState.matches.length - 1]?.fullPath ?? pathname;
+
   return (
     <>
+      <SpeedInsights route={routePattern} />
       <HeadContent />
       <div
         className="h-dvh"
