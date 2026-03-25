@@ -91,6 +91,19 @@ const FilmCardComponent: FC<FilmCardProps> = ({
             {film.brand} {film.name}
           </div>
 
+          {/* Rebrand / alias subtitle */}
+          {film.baseFilmSlug && (
+            <div
+              className="text-xs italic mt-0.5"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              Repackaged{' '}
+              {film.baseFilmSlug
+                .replace(/-/g, ' ')
+                .replace(/\b\w/g, (c) => c.toUpperCase())}
+            </div>
+          )}
+
           {/* Desktop: tags inline with name */}
           <div className="mt-1 hidden sm:flex flex-wrap items-center gap-2">
             {tagsContent}
