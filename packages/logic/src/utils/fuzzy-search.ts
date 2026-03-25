@@ -3,9 +3,25 @@ import type { FuseResult, FuseResultMatch, IFuseOptions } from 'fuse.js';
 import Fuse from 'fuse.js';
 
 /**
+ * Strip hyphens, slashes, and other punctuation so "tmax" matches "T-MAX",
+ * "Gc/Ultramax" matches "gcultramax", etc.
+ */
+function normalize(value: string): string {
+  return value.replace(/[-/_.]/g, '').toLowerCase();
+}
+
+/**
  * Configuration options for film search
  */
 const FILM_SEARCH_OPTIONS: IFuseOptions<Film> = {
+  // Normalize indexed values so punctuation doesn't block matches
+  getFn: (obj, path) => {
+    const value = Fuse.config.getFn(obj, path);
+    if (Array.isArray(value)) {
+      return value.map((v) => (typeof v === 'string' ? normalize(v) : v));
+    }
+    return typeof value === 'string' ? normalize(value) : value;
+  },
   // Search keys with weights (higher = more important)
   keys: [
     {
@@ -24,14 +40,10 @@ const FILM_SEARCH_OPTIONS: IFuseOptions<Film> = {
       name: 'aliases',
       weight: 1.5, // Former names should be findable
     },
-    {
-      name: 'description',
-      weight: 0.5, // Low priority - descriptive text
-    },
   ],
   // Fuzzy matching threshold (0.0 = exact, 1.0 = match anything)
-  // 0.4 provides good balance between precision and flexibility
-  threshold: 0.4,
+  // 0.2 keeps results relevant — avoids matching "Retro"/"Pro" for "Portra"
+  threshold: 0.2,
   // Include match info for highlighting
   includeMatches: true,
   // Include similarity score
@@ -40,9 +52,9 @@ const FILM_SEARCH_OPTIONS: IFuseOptions<Film> = {
   shouldSort: true,
   // Minimum characters to match
   minMatchCharLength: 2,
-  // Use extended search operators (=, ^, !, etc.)
-  useExtendedSearch: false,
-  // Ignore diacritics for better matching
+  // Extended search allows logical AND/OR operators for multi-word queries
+  useExtendedSearch: true,
+  // Allow matches anywhere in the string (not just near the start)
   ignoreLocation: true,
 };
 
@@ -123,10 +135,49 @@ export function getMatchHighlights(result: FilmSearchResult): MatchHighlight[] {
  * ```
  */
 export function searchFilms(films: Film[], query: string): FilmSearchResult[] {
-  if (!query.trim()) {
+  const trimmed = query.trim();
+  if (!trimmed) {
     return [];
   }
 
   const searcher = createFilmSearcher(films);
-  return searcher.search(query);
+  const normalized = normalize(trimmed);
+  const tokens = trimmed.split(/\s+/).map(normalize);
+
+  // Single word: search directly
+  if (tokens.length === 1) {
+    return searcher.search(normalized);
+  }
+
+  // Multi-word: search both the joined form ("tri x" -> "trix") and
+  // the tokenized AND form ("kodak portra" -> kodak AND portra),
+  // then merge results by best score
+  const joinedResults = searcher.search(tokens.join(''));
+
+  const keyNames = FILM_SEARCH_OPTIONS.keys!.map((key) =>
+    typeof key === 'string'
+      ? key
+      : Array.isArray(key)
+        ? key.join('.')
+        : (key as { name: string }).name
+  );
+
+  const expression = {
+    $and: tokens.map((token) => ({
+      $or: keyNames.map((name) => ({ [name]: token })),
+    })),
+  };
+  const tokenResults = searcher.search(expression);
+
+  // Merge and deduplicate, keeping the best score for each film
+  const seen = new Map<string, FilmSearchResult>();
+  for (const result of [...joinedResults, ...tokenResults]) {
+    const id = result.item.uuid;
+    const existing = seen.get(id);
+    if (!existing || (result.score ?? 1) < (existing.score ?? 1)) {
+      seen.set(id, result);
+    }
+  }
+
+  return [...seen.values()].sort((a, b) => (a.score ?? 1) - (b.score ?? 1));
 }
