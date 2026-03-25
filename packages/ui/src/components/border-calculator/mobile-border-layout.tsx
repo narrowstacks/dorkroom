@@ -230,7 +230,8 @@ export function MobileBorderLayout() {
             >
               {formatDimensions(
                 calculation.printWidth,
-                calculation.printHeight
+                calculation.printHeight,
+                { maxPrecision: 2 }
               )}{' '}
               image on {paperSizeDisplayValue}
             </p>
