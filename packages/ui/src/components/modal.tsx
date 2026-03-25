@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
-import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
 import { cn } from '../lib/cn';
 
 /**
@@ -58,17 +58,7 @@ export function Modal({
   footer,
   hideCloseButton,
 }: ModalProps) {
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [isOpen]);
+  useBodyScrollLock(isOpen);
 
   if (typeof document === 'undefined' || !isOpen) {
     return null;

@@ -8,6 +8,8 @@
  * - Precision-aware conversions
  */
 
+import { roundToPrecision } from './precision';
+
 export type MeasurementUnit = 'imperial' | 'metric';
 export type LengthUnit = 'in' | 'ft' | 'cm' | 'mm';
 
@@ -37,15 +39,6 @@ export function inchesToMm(inches: number): number {
  */
 export function cmToInches(cm: number): number {
   return cm / INCHES_TO_CM;
-}
-
-/**
- * Round a number to a maximum of 3 decimal places to avoid floating point precision errors
- * @param value - The number to round
- * @returns The rounded number
- */
-function roundToThreeDecimals(value: number): number {
-  return Math.round(value * 1000) / 1000;
 }
 
 /**
@@ -115,7 +108,7 @@ export function convertInchesToDisplay(
   }
   // For metric, round to 3 decimal places to avoid floating point precision errors
   // (e.g., 2.165 inches -> 5.5001... becomes 5.5)
-  return roundToThreeDecimals(inchesToCm(inches));
+  return roundToPrecision(inchesToCm(inches), 3);
 }
 
 /**
@@ -130,7 +123,7 @@ export function convertDisplayToInches(
   const inches = unit === 'imperial' ? value : cmToInches(value);
   // Round to 3 decimal places to avoid floating point precision errors
   // (e.g., 5.5cm -> 2.165354... becomes 2.165)
-  return roundToThreeDecimals(inches);
+  return roundToPrecision(inches, 3);
 }
 
 /**

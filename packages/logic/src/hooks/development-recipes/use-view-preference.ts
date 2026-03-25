@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
+import { isBrowser } from '../../utils/environment';
 
 export type ViewMode = 'table' | 'grid';
 
 const STORAGE_KEY = 'dorkroom-development-recipes-view-mode';
 const DEFAULT_VIEW_MODE: ViewMode = 'table';
-
-const isBrowser = () => typeof window !== 'undefined';
 
 export function useViewPreference() {
   const [viewMode, setViewModeState] = useState<ViewMode>(DEFAULT_VIEW_MODE);

@@ -32,7 +32,6 @@ const CALCULATORS = [
     description: 'Print borders & trim guides',
     href: '/border',
     icon: Crop,
-    iconColorKey: 'indigo' as const,
     color: 'text-indigo-400',
     bg: 'from-indigo-500/20 to-purple-500/20',
     border: 'group-hover:border-indigo-500/50',
@@ -43,7 +42,6 @@ const CALCULATORS = [
     description: 'F-stop & time math',
     href: '/stops',
     icon: Gauge,
-    iconColorKey: 'blue' as const,
     color: 'text-blue-400',
     bg: 'from-blue-500/20 to-cyan-500/20',
     border: 'group-hover:border-blue-500/50',
@@ -54,7 +52,6 @@ const CALCULATORS = [
     description: 'Scale prints, no wasting test strips',
     href: '/resize',
     icon: Ruler,
-    iconColorKey: 'violet' as const,
     color: 'text-violet-400',
     bg: 'from-violet-500/20 to-fuchsia-500/20',
     border: 'group-hover:border-violet-500/50',
@@ -65,7 +62,6 @@ const CALCULATORS = [
     description: 'Film long exposure correction',
     href: '/reciprocity',
     icon: Timer,
-    iconColorKey: 'amber' as const,
     color: 'text-amber-400',
     bg: 'from-amber-500/20 to-orange-500/20',
     border: 'group-hover:border-amber-500/50',
@@ -76,7 +72,6 @@ const CALCULATORS = [
     description: 'B&W film development database',
     href: '/development',
     icon: FlaskConical,
-    iconColorKey: 'rose' as const,
     color: 'text-rose-400',
     bg: 'from-rose-500/20 to-red-500/20',
     border: 'group-hover:border-rose-500/50',
@@ -87,7 +82,6 @@ const CALCULATORS = [
     description: 'Browse film stocks by brand & ISO',
     href: '/films',
     icon: Film,
-    iconColorKey: 'cyan' as const,
     color: 'text-cyan-400',
     bg: 'from-cyan-500/20 to-teal-500/20',
     border: 'group-hover:border-cyan-500/50',
@@ -98,7 +92,6 @@ const CALCULATORS = [
     description: 'Compare format lens differences',
     href: '/lenses',
     icon: Focus,
-    iconColorKey: 'emerald' as const,
     color: 'text-emerald-400',
     bg: 'from-emerald-500/20 to-teal-500/20',
     border: 'group-hover:border-emerald-500/50',
@@ -109,7 +102,6 @@ const CALCULATORS = [
     description: 'Equivalent exposure calculator',
     href: '/exposure',
     icon: Camera,
-    iconColorKey: 'sky' as const,
     color: 'text-sky-400',
     bg: 'from-sky-500/20 to-blue-500/20',
     border: 'group-hover:border-sky-500/50',
@@ -245,7 +237,7 @@ export function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {CALCULATORS.map(({ iconColorKey, ...tool }) => (
+          {CALCULATORS.map((tool) => (
             <ToolCard key={tool.title} {...tool} as={Link} href={tool.href} />
           ))}
         </div>

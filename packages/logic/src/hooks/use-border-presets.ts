@@ -3,9 +3,9 @@ import type {
   BorderPreset,
   BorderPresetSettings,
 } from '../types/border-calculator';
+import { isBrowser } from '../utils/environment';
 
 const STORAGE_KEY = 'borderPresets';
-const isBrowser = () => typeof window !== 'undefined';
 
 /**
  * Hook for managing border calculator presets stored in localStorage.

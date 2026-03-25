@@ -1,6 +1,6 @@
 import { AlertTriangle } from 'lucide-react';
-import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
 
 interface ConfirmModalProps {
   /** Whether the modal is currently visible */
@@ -41,14 +41,7 @@ export function ConfirmModal({
   isDestructive = false,
   isProcessing = false,
 }: ConfirmModalProps) {
-  useEffect(() => {
-    if (!isOpen) return;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [isOpen]);
+  useBodyScrollLock(isOpen);
 
   const handleConfirm = () => {
     if (!isProcessing) {

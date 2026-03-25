@@ -1,58 +1,13 @@
 import type { MeasurementUnit } from '@dorkroom/logic';
-import {
-  createContext,
-  type ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
 
-interface MeasurementContextValue {
-  unit: MeasurementUnit;
-  setUnit: (unit: MeasurementUnit) => void;
-  toggleUnit: () => void;
-}
+import { createUnitContext } from './create-unit-context';
 
-const MeasurementContext = createContext<MeasurementContextValue | undefined>(
-  undefined
-);
+const { Provider, useUnit } = createUnitContext<MeasurementUnit>({
+  name: 'Measurement',
+  storageKey: 'dorkroom-measurement-unit',
+  defaultUnit: 'imperial',
+  units: ['imperial', 'metric'] as const,
+});
 
-interface MeasurementProviderProps {
-  children: ReactNode;
-}
-
-const STORAGE_KEY = 'dorkroom-measurement-unit';
-
-export function MeasurementProvider({ children }: MeasurementProviderProps) {
-  const [unit, setUnitState] = useState<MeasurementUnit>('imperial');
-
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === 'imperial' || saved === 'metric') {
-      setUnitState(saved);
-    }
-  }, []);
-
-  const setUnit = (newUnit: MeasurementUnit) => {
-    setUnitState(newUnit);
-    localStorage.setItem(STORAGE_KEY, newUnit);
-  };
-
-  const toggleUnit = () => {
-    setUnit(unit === 'imperial' ? 'metric' : 'imperial');
-  };
-
-  return (
-    <MeasurementContext.Provider value={{ unit, setUnit, toggleUnit }}>
-      {children}
-    </MeasurementContext.Provider>
-  );
-}
-
-export function useMeasurement() {
-  const context = useContext(MeasurementContext);
-  if (context === undefined) {
-    throw new Error('useMeasurement must be used within a MeasurementProvider');
-  }
-  return context;
-}
+export const MeasurementProvider = Provider;
+export const useMeasurement = useUnit;

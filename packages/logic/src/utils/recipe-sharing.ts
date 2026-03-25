@@ -3,6 +3,7 @@ import type {
   CustomFilmData,
   CustomRecipe,
 } from '../types/custom-recipes';
+import { decodeBase64, encodeBase64, fromUrlSafe, toUrlSafe } from './base64';
 import { debugError } from './debug-logger';
 import {
   sanitizeCustomDeveloper,
@@ -39,46 +40,6 @@ export interface EncodedCustomRecipe {
   isPublic: boolean;
   version: number;
 }
-
-/**
- * Cross-environment base64 encoding function.
- * Works in both browser and Node.js environments.
- *
- * @param input - String to encode
- * @returns Base64 encoded string
- * @throws Error if base64 encoding is not available
- */
-const encodeBase64 = (input: string): string => {
-  if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
-    return window.btoa(input);
-  }
-
-  if (typeof Buffer !== 'undefined') {
-    return Buffer.from(input, 'utf8').toString('base64');
-  }
-
-  throw new Error('Base64 encoding not supported in this environment');
-};
-
-/**
- * Cross-environment base64 decoding function.
- * Works in both browser and Node.js environments.
- *
- * @param input - Base64 string to decode
- * @returns Decoded string
- * @throws Error if base64 decoding is not available
- */
-const decodeBase64 = (input: string): string => {
-  if (typeof window !== 'undefined' && typeof window.atob === 'function') {
-    return window.atob(input);
-  }
-
-  if (typeof Buffer !== 'undefined') {
-    return Buffer.from(input, 'base64').toString('utf8');
-  }
-
-  throw new Error('Base64 decoding not supported in this environment');
-};
 
 /**
  * Encodes a custom recipe into a URL-safe base64 string for sharing.
@@ -122,10 +83,7 @@ export const encodeCustomRecipe = (recipe: CustomRecipe): string => {
     };
 
     const jsonString = JSON.stringify(encodedRecipe);
-    const encoded = encodeBase64(jsonString)
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
+    const encoded = toUrlSafe(encodeBase64(jsonString));
 
     // Check URL length limit to prevent browser URL issues
     if (encoded.length > MAX_ENCODED_LENGTH) {
@@ -161,12 +119,7 @@ export const decodeCustomRecipe = (
   encoded: string
 ): EncodedCustomRecipe | null => {
   try {
-    let base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
-    while (base64.length % 4) {
-      base64 += '=';
-    }
-
-    const jsonString = decodeBase64(base64);
+    const jsonString = decodeBase64(fromUrlSafe(encoded));
     const recipe = JSON.parse(jsonString) as EncodedCustomRecipe;
 
     if (

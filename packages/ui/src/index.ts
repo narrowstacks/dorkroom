@@ -101,6 +101,8 @@ export { useVolume, VolumeProvider } from './contexts/volume-context';
 // Forms (utilities only — components and schemas via @dorkroom/ui/forms)
 export { createZodFormValidator } from './forms/utils/create-zod-form-validator';
 export type { FieldApi, FormInstance } from './forms/utils/form-api-types';
+// Hooks
+export { useBodyScrollLock } from './hooks/use-body-scroll-lock';
 export {
   useMeasurementConverter,
   useMeasurementFormatter,
@@ -111,7 +113,6 @@ export {
   type ResponsiveTierResult,
   useResponsiveTier,
 } from './hooks/use-responsive-tier';
-// Hooks
 export { useIsMobile } from './hooks/useIsMobile';
 // Utilities
 export { cn } from './lib/cn';

@@ -15,8 +15,7 @@ import type {
   BorderPresetSettings,
   PaperSizeValue,
 } from '../../types/border-calculator';
-
-const isBrowser = () => typeof window !== 'undefined';
+import { isBrowser } from '../../utils/environment';
 
 const createInitialState = (): BorderCalculatorState => {
   const aspectRatio = ASPECT_RATIOS[0];

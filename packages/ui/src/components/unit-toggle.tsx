@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 export interface UnitToggleOption {
   value: string;
   label: string;
@@ -29,7 +27,6 @@ export function UnitToggle({
   ariaLabel,
   className,
 }: UnitToggleProps): React.JSX.Element {
-  const [isHovered, setIsHovered] = useState(false);
   const [leftOption, rightOption] = options;
 
   return (
@@ -39,15 +36,10 @@ export function UnitToggle({
       aria-checked={currentUnit === rightOption.value}
       aria-label={ariaLabel}
       onClick={onToggle}
-      className={`rounded-full border px-3 py-1.5 text-sm font-medium transition flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${className ?? ''}`}
+      className={`rounded-full border px-3 py-1.5 text-sm font-medium transition flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 text-[color:var(--color-text-secondary)] hover:text-[color:var(--color-text-primary)] ${className ?? ''}`}
       style={{
         borderColor: 'var(--color-border-primary)',
-        color: isHovered
-          ? 'var(--color-text-primary)'
-          : 'var(--color-text-secondary)',
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       <span
         style={{

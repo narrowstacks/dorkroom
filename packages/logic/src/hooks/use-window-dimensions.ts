@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { isBrowser } from '../utils/environment';
 
 // Default dimensions for SSR environment
 const DEFAULT_WIDTH = 1024;
@@ -26,8 +27,8 @@ const RESIZE_DEBOUNCE_MS = 150;
  */
 export function useWindowDimensions() {
   const [windowDimensions, setWindowDimensions] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : DEFAULT_WIDTH,
-    height: typeof window !== 'undefined' ? window.innerHeight : DEFAULT_HEIGHT,
+    width: isBrowser() ? window.innerWidth : DEFAULT_WIDTH,
+    height: isBrowser() ? window.innerHeight : DEFAULT_HEIGHT,
   });
 
   useEffect(() => {

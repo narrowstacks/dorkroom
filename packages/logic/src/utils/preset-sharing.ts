@@ -4,6 +4,7 @@ import type {
   BorderPresetSettings,
   PaperSizeValue,
 } from '../types/border-calculator';
+import { decodeBase64, encodeBase64, fromUrlSafe, toUrlSafe } from './base64';
 import { debugError } from './debug-logger';
 
 /**
@@ -169,12 +170,7 @@ export function encodePreset(preset: PresetToShare): string {
 
     // Create the encoded string
     const rawString = parts.join('-');
-    const encoded = btoa(rawString)
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
-
-    return encoded;
+    return toUrlSafe(encodeBase64(rawString));
   } catch (error) {
     debugError('Failed to encode preset:', error);
     return '';
@@ -197,13 +193,7 @@ export function encodePreset(preset: PresetToShare): string {
  */
 export function decodePreset(encoded: string): SharedPreset | null {
   try {
-    // Restore base64 padding and characters
-    let base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
-    while (base64.length % 4) {
-      base64 += '=';
-    }
-
-    const rawString = atob(base64);
+    const rawString = decodeBase64(fromUrlSafe(encoded));
     const stringParts = rawString.split('-');
 
     const name = decodeURIComponent(stringParts.shift() || '');

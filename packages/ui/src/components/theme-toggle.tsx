@@ -25,6 +25,58 @@ const themeOptions: ThemeOption[] = [
   { value: 'system', label: 'System', icon: Monitor },
 ];
 
+function ThemeMenuItems({
+  currentTheme,
+  onSelect,
+  menuItemRefs,
+  onKeyDown,
+}: {
+  currentTheme: Theme;
+  onSelect: (theme: Theme) => void;
+  menuItemRefs: React.MutableRefObject<(HTMLButtonElement | null)[]>;
+  onKeyDown: (event: React.KeyboardEvent) => void;
+}) {
+  return (
+    <>
+      {themeOptions.map((option, index) => {
+        const OptionIcon = option.icon;
+        const isSelected = option.value === currentTheme;
+
+        return (
+          <button
+            key={option.value}
+            ref={(el) => {
+              menuItemRefs.current[index] = el;
+            }}
+            type="button"
+            onClick={() => onSelect(option.value)}
+            onKeyDown={onKeyDown}
+            className={cn(
+              'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none',
+              'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
+              isSelected &&
+                'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
+            )}
+            role="menuitem"
+          >
+            <span
+              className={cn(
+                'flex h-8 w-8 items-center justify-center rounded-xl',
+                isSelected
+                  ? 'theme-toggle-icon-bg-selected'
+                  : 'theme-toggle-icon-bg'
+              )}
+            >
+              <OptionIcon className="h-4 w-4" />
+            </span>
+            <span className="flex-1">{option.label}</span>
+          </button>
+        );
+      })}
+    </>
+  );
+}
+
 export interface ThemeToggleProps {
   variant?: 'button' | 'icon' | 'grid' | 'sidebar';
   className?: string;
@@ -46,14 +98,12 @@ export function ThemeToggle({
   const currentTheme = themeOptions.find((option) => option.value === theme);
   const CurrentIcon = currentTheme?.icon || Monitor;
 
-  // Reset focused index when menu opens
   useEffect(() => {
     if (isOpen) {
       setFocusedIndex(-1);
     }
   }, [isOpen]);
 
-  // Focus menu item when focused index changes
   useEffect(() => {
     if (focusedIndex >= 0 && focusedIndex < menuItemRefs.current.length) {
       menuItemRefs.current[focusedIndex]?.focus();
@@ -179,41 +229,12 @@ export function ThemeToggle({
             }}
             role="menu"
           >
-            {themeOptions.map((option, index) => {
-              const OptionIcon = option.icon;
-              const isSelected = option.value === theme;
-
-              return (
-                <button
-                  key={option.value}
-                  ref={(el) => {
-                    menuItemRefs.current[index] = el;
-                  }}
-                  type="button"
-                  onClick={() => handleGridThemeChange(option.value)}
-                  onKeyDown={handleMenuKeyDown}
-                  className={cn(
-                    'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none',
-                    'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
-                    isSelected &&
-                      'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
-                  )}
-                  role="menuitem"
-                >
-                  <span
-                    className={cn(
-                      'flex h-8 w-8 items-center justify-center rounded-xl',
-                      isSelected
-                        ? 'theme-toggle-icon-bg-selected'
-                        : 'theme-toggle-icon-bg'
-                    )}
-                  >
-                    <OptionIcon className="h-4 w-4" />
-                  </span>
-                  <span className="flex-1">{option.label}</span>
-                </button>
-              );
-            })}
+            <ThemeMenuItems
+              currentTheme={theme}
+              onSelect={handleGridThemeChange}
+              menuItemRefs={menuItemRefs}
+              onKeyDown={handleMenuKeyDown}
+            />
           </div>
         )}
       </div>
@@ -252,41 +273,12 @@ export function ThemeToggle({
             }}
             role="menu"
           >
-            {themeOptions.map((option, index) => {
-              const OptionIcon = option.icon;
-              const isSelected = option.value === theme;
-
-              return (
-                <button
-                  key={option.value}
-                  ref={(el) => {
-                    menuItemRefs.current[index] = el;
-                  }}
-                  type="button"
-                  onClick={() => handleGridThemeChange(option.value)}
-                  onKeyDown={handleMenuKeyDown}
-                  className={cn(
-                    'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none',
-                    'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
-                    isSelected &&
-                      'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
-                  )}
-                  role="menuitem"
-                >
-                  <span
-                    className={cn(
-                      'flex h-8 w-8 items-center justify-center rounded-xl',
-                      isSelected
-                        ? 'theme-toggle-icon-bg-selected'
-                        : 'theme-toggle-icon-bg'
-                    )}
-                  >
-                    <OptionIcon className="h-4 w-4" />
-                  </span>
-                  <span className="flex-1">{option.label}</span>
-                </button>
-              );
-            })}
+            <ThemeMenuItems
+              currentTheme={theme}
+              onSelect={handleGridThemeChange}
+              menuItemRefs={menuItemRefs}
+              onKeyDown={handleMenuKeyDown}
+            />
           </div>
         )}
       </div>
@@ -330,41 +322,12 @@ export function ThemeToggle({
             }}
             role="menu"
           >
-            {themeOptions.map((option, index) => {
-              const OptionIcon = option.icon;
-              const isSelected = option.value === theme;
-
-              return (
-                <button
-                  key={option.value}
-                  ref={(el) => {
-                    menuItemRefs.current[index] = el;
-                  }}
-                  type="button"
-                  onClick={() => handleThemeChange(option.value)}
-                  onKeyDown={handleMenuKeyDown}
-                  className={cn(
-                    'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none',
-                    'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
-                    isSelected &&
-                      'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
-                  )}
-                  role="menuitem"
-                >
-                  <span
-                    className={cn(
-                      'flex h-8 w-8 items-center justify-center rounded-xl',
-                      isSelected
-                        ? 'theme-toggle-icon-bg-selected'
-                        : 'theme-toggle-icon-bg'
-                    )}
-                  >
-                    <OptionIcon className="h-4 w-4" />
-                  </span>
-                  <span className="flex-1">{option.label}</span>
-                </button>
-              );
-            })}
+            <ThemeMenuItems
+              currentTheme={theme}
+              onSelect={handleThemeChange}
+              menuItemRefs={menuItemRefs}
+              onKeyDown={handleMenuKeyDown}
+            />
           </div>
         )}
       </div>
@@ -406,41 +369,12 @@ export function ThemeToggle({
           }}
           role="menu"
         >
-          {themeOptions.map((option, index) => {
-            const OptionIcon = option.icon;
-            const isSelected = option.value === theme;
-
-            return (
-              <button
-                key={option.value}
-                ref={(el) => {
-                  menuItemRefs.current[index] = el;
-                }}
-                type="button"
-                onClick={() => handleThemeChange(option.value)}
-                onKeyDown={handleMenuKeyDown}
-                className={cn(
-                  'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none',
-                  'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--color-text-primary)]',
-                  isSelected &&
-                    'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
-                )}
-                role="menuitem"
-              >
-                <span
-                  className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded-xl',
-                    isSelected
-                      ? 'theme-toggle-icon-bg-selected'
-                      : 'theme-toggle-icon-bg'
-                  )}
-                >
-                  <OptionIcon className="h-4 w-4" />
-                </span>
-                <span className="flex-1">{option.label}</span>
-              </button>
-            );
-          })}
+          <ThemeMenuItems
+            currentTheme={theme}
+            onSelect={handleThemeChange}
+            menuItemRefs={menuItemRefs}
+            onKeyDown={handleMenuKeyDown}
+          />
         </div>
       )}
     </div>
