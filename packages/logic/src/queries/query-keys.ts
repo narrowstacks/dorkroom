@@ -44,6 +44,12 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.customRecipes.details(), id] as const,
   },
 
+  // Stats
+  stats: {
+    all: () => ['stats'] as const,
+    list: () => [...queryKeys.stats.all(), 'list'] as const,
+  },
+
   // Filmdev Import
   filmdev: {
     all: () => ['filmdev'] as const,

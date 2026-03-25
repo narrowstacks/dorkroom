@@ -109,6 +109,15 @@ export const combinationsResponseSchema = z.object({
   count: z.number().optional(),
 });
 
+/**
+ * Schema for stats API response.
+ */
+export const statsSchema = z.object({
+  films: z.number(),
+  developers: z.number(),
+  combinations: z.number(),
+});
+
 // Export inferred types for use in client
 export type RawFilmFromSchema = z.infer<typeof rawFilmSchema>;
 export type RawDeveloperFromSchema = z.infer<typeof rawDeveloperSchema>;

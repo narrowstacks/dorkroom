@@ -1,8 +1,4 @@
-import {
-  useCombinations,
-  useCustomRecipes,
-  useFavorites,
-} from '@dorkroom/logic';
+import { useStats } from '@dorkroom/logic';
 import { Greeting, StatCard, ToolCard } from '@dorkroom/ui';
 import { Link } from '@tanstack/react-router';
 import {
@@ -18,9 +14,8 @@ import {
   GitBranch,
   GraduationCap,
   HandCoins,
-  Heart,
-  Library,
   Ruler,
+  TestTubes,
   Timer,
 } from 'lucide-react';
 
@@ -124,11 +119,7 @@ const COMING_SOON = [
 ];
 
 export function HomePage() {
-  const { favoriteIds, isInitialized: isFavoritesInitialized } = useFavorites();
-  const { customRecipes, isLoading: isCustomRecipesLoading } =
-    useCustomRecipes();
-  const { data: combinations, isPending: isCombinationsLoading } =
-    useCombinations();
+  const { data: stats, isPending: isStatsLoading } = useStats();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 pb-24 space-y-10">
@@ -190,35 +181,33 @@ export function HomePage() {
           <StatCard
             as={Link}
             to="/development"
-            label="Film Development Recipes"
-            value={combinations ? combinations.length.toLocaleString() : '-'}
+            label="Development Recipes"
+            value={stats ? stats.combinations.toLocaleString() : '-'}
             icon={FlaskConical}
             iconColorKey="emerald"
             variant="horizontal"
             className="col-span-2"
-            loading={isCombinationsLoading}
+            loading={isStatsLoading}
           />
 
           <StatCard
             as={Link}
-            to="/development"
-            search={{ view: 'favorites' }}
-            label="Favorite Recipes"
-            value={favoriteIds.length}
-            icon={Heart}
+            to="/films"
+            label="Film Stocks"
+            value={stats ? stats.films.toLocaleString() : '-'}
+            icon={Film}
             iconColorKey="rose"
-            loading={!isFavoritesInitialized}
+            loading={isStatsLoading}
           />
 
           <StatCard
             as={Link}
             to="/development"
-            search={{ view: 'custom' }}
-            label="Your Custom Recipes"
-            value={customRecipes.length}
-            icon={Library}
+            label="Developers"
+            value={stats ? stats.developers.toLocaleString() : '-'}
+            icon={TestTubes}
             iconColorKey="indigo"
-            loading={isCustomRecipesLoading}
+            loading={isStatsLoading}
           />
         </div>
       </div>

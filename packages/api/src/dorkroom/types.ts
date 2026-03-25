@@ -151,6 +151,12 @@ export interface RawCombination {
   updated_at: string;
 }
 
+export interface Stats {
+  films: number;
+  developers: number;
+  combinations: number;
+}
+
 // Error types
 export class DorkroomApiError extends Error {
   constructor(

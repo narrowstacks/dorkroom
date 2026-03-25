@@ -3,6 +3,7 @@ import {
   rawCombinationSchema,
   rawDeveloperSchema,
   rawFilmSchema,
+  statsSchema,
 } from './schemas';
 import type {
   Combination,
@@ -11,6 +12,7 @@ import type {
   RawCombination,
   RawDeveloper,
   RawFilm,
+  Stats,
 } from './types';
 
 /**
@@ -208,6 +210,27 @@ export class DorkroomApiClient {
   }
 
   /**
+   * Fetch aggregate stats (film, developer, combination counts) from the API.
+   */
+  async fetchStats(options?: { signal?: AbortSignal }): Promise<Stats> {
+    const response = await fetch(`${this.baseUrl}/stats`, {
+      signal: options?.signal,
+      headers: this.buildHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch stats: ${response.statusText}`);
+    }
+
+    const json: unknown = await response.json();
+    const result = statsSchema.safeParse(json);
+    if (!result.success) {
+      throw new Error('Invalid API response format for stats');
+    }
+
+    return result.data;
+  }
+
+  /**
    * Transform raw film data to camelCase format
    */
   private transformFilm(raw: RawFilm): Film {
@@ -339,3 +362,9 @@ export const fetchDevelopersForQuery = (context?: { signal?: AbortSignal }) =>
 
 export const fetchCombinationsForQuery = (context?: { signal?: AbortSignal }) =>
   apiClient.fetchCombinations(context);
+
+export const fetchStats = (options?: { signal?: AbortSignal }) =>
+  apiClient.fetchStats(options);
+
+export const fetchStatsForQuery = (context?: { signal?: AbortSignal }) =>
+  apiClient.fetchStats(context);
