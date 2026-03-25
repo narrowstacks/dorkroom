@@ -352,12 +352,17 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
       )}
 
       {/* Base film stock */}
-      {baseFilm && (
+      {(baseFilm || film.baseFilmSlug) && (
         <p
           className="text-sm italic"
           style={{ color: 'var(--color-text-muted)' }}
         >
-          Repackaged {baseFilm.brand} {baseFilm.name}
+          Repackaged{' '}
+          {baseFilm
+            ? `${baseFilm.brand} ${baseFilm.name}`
+            : film
+                .baseFilmSlug!.replace(/-/g, ' ')
+                .replace(/\b\w/g, (c) => c.toUpperCase())}
         </p>
       )}
 
