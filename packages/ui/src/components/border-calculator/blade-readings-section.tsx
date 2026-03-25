@@ -72,7 +72,8 @@ export function BladeReadingsSection() {
           label="Image Size"
           value={formatDimensions(
             calculation.printWidth,
-            calculation.printHeight
+            calculation.printHeight,
+            { maxPrecision: 2 }
           )}
           helperText="Final image area within the borders."
           className="sm:col-span-2"

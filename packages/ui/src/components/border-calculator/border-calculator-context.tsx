@@ -79,7 +79,11 @@ export interface BorderCalculatorContextValue {
 
   // Helpers
   formatWithUnit: (value: number) => string;
-  formatDimensions: (width: number, height: number) => string;
+  formatDimensions: (
+    width: number,
+    height: number,
+    options?: { precision?: number; maxPrecision?: number }
+  ) => string;
   currentSettings: BorderPresetSettings;
 }
 
