@@ -34,9 +34,9 @@ NON_BUILD_PATTERNS="(^docs/|^scripts/|^\.github/|^\.cursor/|^\.vscode/|^\.claude
 
 # Check if ANY changed file is NOT in the skip patterns
 if echo "$CHANGED_FILES" | grep -qvE "$NON_BUILD_PATTERNS"; then
-  echo "🔨 App-related files changed, checking with turbo-ignore..."
-  bunx turbo-ignore @dorkroom/dorkroom
-  exit $?
+  echo "🔨 App-related files changed, marking for cache-free build..."
+  touch .turbo-force
+  exit 1
 fi
 
 # Only docs/config changed - skip build
