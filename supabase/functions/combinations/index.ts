@@ -96,9 +96,20 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   if (id) {
     dbQuery = dbQuery.eq('id', id).limit(1);
   } else {
-    // Filter by film slug if provided
+    // Filter by film slug if provided (resolve aliases)
     if (filmSlug) {
-      dbQuery = dbQuery.eq('film_stock', filmSlug);
+      const { data: filmData } = await supabase
+        .from('films')
+        .select('slug, aliases')
+        .or(`slug.eq.${filmSlug},aliases.cs.{"${filmSlug}"}`)
+        .limit(1);
+
+      if (filmData && filmData.length > 0) {
+        const allSlugs = [filmData[0].slug, ...(filmData[0].aliases || [])];
+        dbQuery = dbQuery.in('film_stock', allSlugs);
+      } else {
+        dbQuery = dbQuery.eq('film_stock', filmSlug);
+      }
     }
     // Filter by developer slug if provided
     if (developerSlug) {

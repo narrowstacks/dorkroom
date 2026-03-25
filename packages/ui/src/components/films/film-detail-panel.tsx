@@ -14,6 +14,8 @@ import { FilmImage } from './film-image';
 interface FilmDetailPanelProps {
   /** The film to display, or null when closed */
   film: Film | null;
+  /** The base/OEM film if this film is a rebrand, or null */
+  baseFilm?: Film | null;
   /** Whether the panel is currently visible */
   isOpen: boolean;
   /** Callback function called when the panel should be closed */
@@ -40,6 +42,7 @@ interface FilmDetailPanelProps {
  */
 export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
   film,
+  baseFilm,
   isOpen,
   onClose,
   isMobile,
@@ -56,6 +59,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
   const panelContent = (
     <FilmDetailContent
       film={film}
+      baseFilm={baseFilm}
       developmentRecipesUrl={developmentRecipesUrl}
     />
   );
@@ -102,6 +106,33 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
             )}
           </div>
         </div>
+
+        {/* Formerly known as */}
+        {film.aliases.length > 0 && (
+          <p
+            className="text-sm italic"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            Formerly:{' '}
+            {film.aliases
+              .map((alias) =>
+                alias
+                  .replace(/-/g, ' ')
+                  .replace(/\b\w/g, (c) => c.toUpperCase())
+              )
+              .join(', ')}
+          </p>
+        )}
+
+        {/* Base film stock */}
+        {baseFilm && (
+          <p
+            className="text-sm italic"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            Repackaged {baseFilm.brand} {baseFilm.name}
+          </p>
+        )}
 
         {/* Description */}
         {film.description && (
@@ -242,6 +273,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
 /** Props for the internal FilmDetailContent component */
 interface FilmDetailContentProps {
   film: Film;
+  baseFilm?: Film | null;
   developmentRecipesUrl: string;
 }
 
@@ -251,6 +283,7 @@ interface FilmDetailContentProps {
  */
 const FilmDetailContent: FC<FilmDetailContentProps> = ({
   film,
+  baseFilm,
   developmentRecipesUrl,
 }) => {
   return (
@@ -297,6 +330,31 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
           </Tag>
         )}
       </div>
+
+      {/* Formerly known as */}
+      {film.aliases.length > 0 && (
+        <p
+          className="text-sm italic"
+          style={{ color: 'var(--color-text-muted)' }}
+        >
+          Formerly:{' '}
+          {film.aliases
+            .map((alias) =>
+              alias.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+            )
+            .join(', ')}
+        </p>
+      )}
+
+      {/* Base film stock */}
+      {baseFilm && (
+        <p
+          className="text-sm italic"
+          style={{ color: 'var(--color-text-muted)' }}
+        >
+          Repackaged {baseFilm.brand} {baseFilm.name}
+        </p>
+      )}
 
       {/* Description */}
       {film.description && (

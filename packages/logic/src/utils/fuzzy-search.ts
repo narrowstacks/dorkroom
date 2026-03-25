@@ -21,6 +21,10 @@ const FILM_SEARCH_OPTIONS: IFuseOptions<Film> = {
       weight: 1.0, // Medium priority - color/BW classification
     },
     {
+      name: 'aliases',
+      weight: 1.5, // Former names should be findable
+    },
+    {
       name: 'description',
       weight: 0.5, // Low priority - descriptive text
     },

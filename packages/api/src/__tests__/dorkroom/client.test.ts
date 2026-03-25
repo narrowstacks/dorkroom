@@ -94,6 +94,8 @@ describe('DorkroomApiClient', () => {
           reciprocity_failure: null,
           discontinued: false,
           static_image_url: null,
+          aliases: [],
+          base_film_slug: null,
           date_added: '2023-01-01',
           created_at: '2023-01-01T00:00:00Z',
           updated_at: '2023-01-01T00:00:00Z',

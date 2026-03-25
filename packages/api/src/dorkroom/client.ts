@@ -243,6 +243,8 @@ export class DorkroomApiClient {
       reciprocityFailure: raw.reciprocity_failure,
       discontinued: raw.discontinued,
       staticImageUrl: raw.static_image_url,
+      aliases: raw.aliases ?? [],
+      baseFilmSlug: raw.base_film_slug,
       dateAdded: raw.date_added,
       createdAt: raw.created_at,
       updatedAt: raw.updated_at,

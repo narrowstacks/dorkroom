@@ -89,7 +89,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   // Apply filters
   if (slug) {
-    dbQuery = dbQuery.eq('slug', slug);
+    dbQuery = dbQuery.or(`slug.eq.${slug},aliases.cs.{"${slug}"}`);
   }
   if (colorType) {
     dbQuery = dbQuery.eq('color_type', colorType);
@@ -100,13 +100,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   // Apply search
   if (query) {
-    if (fuzzy) {
-      // Fuzzy search: use ilike with wildcards for typo tolerance
-      dbQuery = dbQuery.or(`name.ilike.%${query}%,brand.ilike.%${query}%`);
-    } else {
-      // Exact search: case-insensitive partial match
-      dbQuery = dbQuery.or(`name.ilike.%${query}%,brand.ilike.%${query}%`);
-    }
+    // Search name, brand, and aliases (aliases uses array containment)
+    dbQuery = dbQuery.or(
+      `name.ilike.%${query}%,brand.ilike.%${query}%,aliases.cs.{"${query}"}`
+    );
   }
 
   // Apply limit

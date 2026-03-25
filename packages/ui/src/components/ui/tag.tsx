@@ -9,8 +9,9 @@ interface TagProps {
   /**
    * Variant style for the tag. When specified, overrides the default tag color mapping.
    * - 'discontinued': Uses semantic error colors with reduced opacity for discontinued items
+   * - 'info': Uses muted informational styling
    */
-  variant?: 'discontinued';
+  variant?: 'discontinued' | 'info';
 }
 
 export function Tag({ children, className, size = 'xs', variant }: TagProps) {
@@ -41,8 +42,15 @@ export function Tag({ children, className, size = 'xs', variant }: TagProps) {
  * Get theme-aware styles for tag variants.
  * Uses CSS custom properties to ensure proper theming across all themes.
  */
-function getVariantStyle(_variant: 'discontinued') {
-  // Currently only one variant exists; parameter kept for future extensibility
+function getVariantStyle(variant: 'discontinued' | 'info') {
+  if (variant === 'info') {
+    return {
+      backgroundColor: 'var(--color-surface-muted)',
+      color: 'var(--color-text-secondary)',
+      borderColor: 'var(--color-border-secondary)',
+    };
+  }
+
   return {
     backgroundColor: colorMixOr(
       'var(--color-semantic-error)',
