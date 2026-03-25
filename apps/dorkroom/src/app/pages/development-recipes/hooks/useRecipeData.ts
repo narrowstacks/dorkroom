@@ -132,6 +132,8 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
         reciprocityFailure: null,
         discontinued: false,
         staticImageUrl: null,
+        aliases: [],
+        baseFilmSlug: null,
         dateAdded: new Date().toISOString(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),

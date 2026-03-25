@@ -138,11 +138,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       dbQuery = dbQuery.range(from, to);
     }
 
-    // Apply limit or default range to avoid Supabase's 1000-row cap
+    // Apply limit
     if (limit > 0) {
       dbQuery = dbQuery.limit(limit);
-    } else if (perPage === 0) {
-      dbQuery = dbQuery.range(0, 1999);
     }
   }
 
@@ -167,7 +165,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     );
   }
 
-  // Format response body
   const body = {
     data,
     count,
