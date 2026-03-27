@@ -4,6 +4,7 @@ import type { FC } from 'react';
 import { DetailPanel } from '../detail-panel';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
+import { FilmRebrandInfo } from './film-rebrand-info';
 
 /**
  * Props for the FilmDetailPanel component.
@@ -107,37 +108,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
           </div>
         </div>
 
-        {/* Formerly known as */}
-        {film.aliases.length > 0 && (
-          <p
-            className="text-sm italic"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            Formerly:{' '}
-            {film.aliases
-              .map((alias) =>
-                alias
-                  .replace(/-/g, ' ')
-                  .replace(/\b\w/g, (c) => c.toUpperCase())
-              )
-              .join(', ')}
-          </p>
-        )}
-
-        {/* Base film stock */}
-        {(baseFilm || film.baseFilmSlug) && (
-          <p
-            className="text-sm italic"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            Repackaged{' '}
-            {baseFilm
-              ? `${baseFilm.brand} ${baseFilm.name}`
-              : film
-                  .baseFilmSlug!.replace(/-/g, ' ')
-                  .replace(/\b\w/g, (c) => c.toUpperCase())}
-          </p>
-        )}
+        <FilmRebrandInfo film={film} baseFilm={baseFilm} />
 
         {/* Description */}
         {film.description && (
@@ -336,35 +307,7 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
         )}
       </div>
 
-      {/* Formerly known as */}
-      {film.aliases.length > 0 && (
-        <p
-          className="text-sm italic"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
-          Formerly:{' '}
-          {film.aliases
-            .map((alias) =>
-              alias.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-            )
-            .join(', ')}
-        </p>
-      )}
-
-      {/* Base film stock */}
-      {(baseFilm || film.baseFilmSlug) && (
-        <p
-          className="text-sm italic"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
-          Repackaged{' '}
-          {baseFilm
-            ? `${baseFilm.brand} ${baseFilm.name}`
-            : film
-                .baseFilmSlug!.replace(/-/g, ' ')
-                .replace(/\b\w/g, (c) => c.toUpperCase())}
-        </p>
-      )}
+      <FilmRebrandInfo film={film} baseFilm={baseFilm} />
 
       {/* Description */}
       {film.description && (

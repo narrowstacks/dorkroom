@@ -1,5 +1,9 @@
 import type { Film } from '@dorkroom/api';
-import { useFilmDatabase } from '@dorkroom/logic';
+import {
+  buildFilmSlugIndex,
+  getBaseFilm,
+  useFilmDatabase,
+} from '@dorkroom/logic';
 import { useIsMobile } from '@dorkroom/ui';
 import { CalculatorPageHeader } from '@dorkroom/ui/calculator';
 import { VirtualizedErrorBoundary } from '@dorkroom/ui/development-recipes';
@@ -169,6 +173,13 @@ export default function FilmsPage() {
     }
   }, [filteredFilms.length, isLoading]);
 
+  const filmSlugIndex = useMemo(() => buildFilmSlugIndex(films), [films]);
+
+  const baseFilm = useMemo(
+    () => (selectedFilm ? getBaseFilm(selectedFilm, filmSlugIndex) : undefined),
+    [selectedFilm, filmSlugIndex]
+  );
+
   const handleSelectFilm = (film: Film) => {
     setSelectedFilm(film);
   };
@@ -260,6 +271,7 @@ export default function FilmsPage() {
           ) : (
             <FilmDetailPanel
               film={selectedFilm}
+              baseFilm={baseFilm}
               isOpen={!!selectedFilm}
               onClose={handleClosePanel}
               isMobile={isMobile}

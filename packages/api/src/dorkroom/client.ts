@@ -210,45 +210,6 @@ export class DorkroomApiClient {
   }
 
   /**
-   * Fetch a single page of combinations from the API.
-   */
-  async fetchCombinationsPage(options?: {
-    signal?: AbortSignal;
-    page?: number;
-    count?: number;
-  }): Promise<Combination[]> {
-    const params = new URLSearchParams();
-    if (options?.page) params.set('page', String(options.page));
-    if (options?.count) params.set('count', String(options.count));
-    const qs = params.toString();
-    const url = `${this.baseUrl}/combinations${qs ? `?${qs}` : ''}`;
-
-    const response = await fetch(url, {
-      signal: options?.signal,
-      headers: this.buildHeaders(),
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch combinations: ${response.statusText}`);
-    }
-
-    const json: unknown = await response.json();
-    const envelope = envelopeSchema.safeParse(json);
-    if (!envelope.success) {
-      throw new Error('Invalid API response format for combinations');
-    }
-
-    const validItems: RawCombination[] = [];
-    for (const item of envelope.data.data) {
-      const result = rawCombinationSchema.safeParse(item);
-      if (result.success) {
-        validItems.push(result.data);
-      }
-    }
-
-    return validItems.map(this.transformCombination.bind(this));
-  }
-
-  /**
    * Fetch aggregate stats (film, developer, combination counts) from the API.
    */
   async fetchStats(options?: { signal?: AbortSignal }): Promise<Stats> {
@@ -305,7 +266,7 @@ export class DorkroomApiClient {
       reciprocityFailure: raw.reciprocity_failure,
       discontinued: raw.discontinued,
       staticImageUrl: raw.static_image_url,
-      aliases: raw.aliases ?? [],
+      aliases: raw.aliases,
       baseFilmSlug: raw.base_film_slug,
       dateAdded: raw.date_added,
       createdAt: raw.created_at,
@@ -401,12 +362,6 @@ export const fetchDevelopersForQuery = (context?: { signal?: AbortSignal }) =>
 
 export const fetchCombinationsForQuery = (context?: { signal?: AbortSignal }) =>
   apiClient.fetchCombinations(context);
-
-export const fetchCombinationsPage = (options?: {
-  signal?: AbortSignal;
-  page?: number;
-  count?: number;
-}) => apiClient.fetchCombinationsPage(options);
 
 export const fetchStats = (options?: { signal?: AbortSignal }) =>
   apiClient.fetchStats(options);

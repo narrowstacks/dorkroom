@@ -107,7 +107,7 @@ export interface RawFilm {
   reciprocity_failure: string | null;
   discontinued: boolean;
   static_image_url: string | null;
-  aliases: string[] | null;
+  aliases: string[];
   base_film_slug: string | null;
   date_added: string;
   created_at: string;

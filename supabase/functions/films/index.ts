@@ -75,10 +75,13 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const { searchParams } = new URL(req.url);
   const slug = searchParams.get('slug');
   const query = searchParams.get('query');
-  const fuzzy = searchParams.get('fuzzy') === 'true';
   const limit = parseInt(searchParams.get('limit') ?? '0', 10);
   const colorType = searchParams.get('colorType');
   const brand = searchParams.get('brand');
+
+  // Sanitize inputs — allow only alphanumeric, hyphens, and spaces
+  const sanitizeSlug = (v: string) => v.replace(/[^a-zA-Z0-9-]/g, '');
+  const sanitizeQuery = (v: string) => v.replace(/[^a-zA-Z0-9 -]/g, '');
 
   // ────────────────────────────────────────
   //  Build query
@@ -89,20 +92,22 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   // Apply filters
   if (slug) {
-    dbQuery = dbQuery.or(`slug.eq.${slug},aliases.cs.{"${slug}"}`);
+    const safeSlug = sanitizeSlug(slug);
+    dbQuery = dbQuery.or(`slug.eq.${safeSlug},aliases.cs.{"${safeSlug}"}`);
   }
   if (colorType) {
     dbQuery = dbQuery.eq('color_type', colorType);
   }
   if (brand) {
-    dbQuery = dbQuery.ilike('brand', `%${brand}%`);
+    const safeBrand = sanitizeQuery(brand);
+    dbQuery = dbQuery.ilike('brand', `%${safeBrand}%`);
   }
 
   // Apply search
   if (query) {
-    // Search name, brand, and aliases (aliases uses array containment)
+    const safeQuery = sanitizeQuery(query);
     dbQuery = dbQuery.or(
-      `name.ilike.%${query}%,brand.ilike.%${query}%,aliases.cs.{"${query}"}`
+      `name.ilike.%${safeQuery}%,brand.ilike.%${safeQuery}%,aliases.cs.{"${safeQuery}"}`
     );
   }
 

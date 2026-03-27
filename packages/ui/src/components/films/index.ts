@@ -5,4 +5,5 @@ export { FilmDetailPanelSkeleton } from './film-detail-panel-skeleton';
 export { FilmFiltersMobile } from './film-filters-mobile';
 export { FilmFiltersPanel } from './film-filters-panel';
 export { FilmImage } from './film-image';
+export { FilmRebrandInfo } from './film-rebrand-info';
 export { FilmResultsVirtualized } from './film-results-virtualized';

@@ -27,7 +27,6 @@ export const queryKeys = {
     all: () => ['combinations'] as const,
     lists: () => [...queryKeys.combinations.all(), 'list'] as const,
     list: () => [...queryKeys.combinations.lists()] as const,
-    seed: () => [...queryKeys.combinations.all(), 'seed'] as const,
     listByFilm: (filmId: string) =>
       [...queryKeys.combinations.lists(), 'film', filmId] as const,
     listByDeveloper: (developerId: string) =>
@@ -48,7 +47,7 @@ export const queryKeys = {
   // Stats
   stats: {
     all: () => ['stats'] as const,
-    list: () => [...queryKeys.stats.all(), 'list'] as const,
+    counts: () => [...queryKeys.stats.all(), 'counts'] as const,
   },
 
   // Filmdev Import

@@ -10,13 +10,16 @@ function normalize(value: string): string {
   return value.replace(/[-/_.]/g, '').toLowerCase();
 }
 
+/** Snapshot of the default getFn to avoid depending on mutable global config */
+const defaultGetFn = Fuse.config.getFn;
+
 /**
  * Configuration options for film search
  */
 const FILM_SEARCH_OPTIONS: IFuseOptions<Film> = {
   // Normalize indexed values so punctuation doesn't block matches
   getFn: (obj, path) => {
-    const value = Fuse.config.getFn(obj, path);
+    const value = defaultGetFn(obj, path);
     if (Array.isArray(value)) {
       return value.map((v) => (typeof v === 'string' ? normalize(v) : v));
     }

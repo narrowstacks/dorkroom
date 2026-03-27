@@ -297,11 +297,10 @@ export const useDevelopmentRecipes = (
     (filmId: string): Combination[] => {
       const film = filmSlugIndex.get(filmId);
       if (film) {
-        const allSlugs = getAllSlugsForFilm(film);
+        const slugSet = new Set(getAllSlugsForFilm(film));
         return allCombinations.filter(
           (combo) =>
-            allSlugs.includes(combo.filmStockId) ||
-            allSlugs.includes(combo.filmSlug)
+            slugSet.has(combo.filmStockId) || slugSet.has(combo.filmSlug)
         );
       }
       return allCombinations.filter(
@@ -394,11 +393,9 @@ export const useDevelopmentRecipes = (
     ];
     const isoSet = new Set<number>();
 
-    const allSlugs = getAllSlugsForFilm(selectedFilm);
+    const slugSet = new Set(getAllSlugsForFilm(selectedFilm));
     const combinations = allCombinations.filter(
-      (combo) =>
-        allSlugs.includes(combo.filmStockId) ||
-        allSlugs.includes(combo.filmSlug)
+      (combo) => slugSet.has(combo.filmStockId) || slugSet.has(combo.filmSlug)
     );
 
     combinations.forEach((combo) => {
@@ -479,11 +476,13 @@ export const useDevelopmentRecipes = (
       );
       filmsToMatch.push(...rebrands);
 
-      const allMatchSlugs = filmsToMatch.flatMap((f) => getAllSlugsForFilm(f));
+      const allMatchSlugs = new Set(
+        filmsToMatch.flatMap((f) => getAllSlugsForFilm(f))
+      );
       combinations = combinations.filter(
         (combo) =>
-          allMatchSlugs.includes(combo.filmSlug) ||
-          allMatchSlugs.includes(combo.filmStockId)
+          allMatchSlugs.has(combo.filmSlug) ||
+          allMatchSlugs.has(combo.filmStockId)
       );
     }
 

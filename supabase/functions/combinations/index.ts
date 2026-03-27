@@ -80,10 +80,13 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const developerSlug = searchParams.get('developer');
   const id = searchParams.get('id');
   const query = searchParams.get('query');
-  const fuzzy = searchParams.get('fuzzy') === 'true';
   const limit = parseInt(searchParams.get('limit') ?? '0', 10);
   const perPage = parseInt(searchParams.get('count') ?? '0', 10);
   const page = Math.max(parseInt(searchParams.get('page') ?? '1', 10), 1);
+
+  // Sanitize inputs — allow only alphanumeric, hyphens, and spaces
+  const sanitizeSlug = (v: string) => v.replace(/[^a-zA-Z0-9-]/g, '');
+  const sanitizeQuery = (v: string) => v.replace(/[^a-zA-Z0-9 -]/g, '');
 
   // ────────────────────────────────────────
   //  Build query
@@ -98,37 +101,31 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   } else {
     // Filter by film slug if provided (resolve aliases)
     if (filmSlug) {
+      const safeFilmSlug = sanitizeSlug(filmSlug);
       const { data: filmData } = await supabase
         .from('films')
         .select('slug, aliases')
-        .or(`slug.eq.${filmSlug},aliases.cs.{"${filmSlug}"}`)
+        .or(`slug.eq.${safeFilmSlug},aliases.cs.{"${safeFilmSlug}"}`)
         .limit(1);
 
       if (filmData && filmData.length > 0) {
         const allSlugs = [filmData[0].slug, ...(filmData[0].aliases || [])];
         dbQuery = dbQuery.in('film_stock', allSlugs);
       } else {
-        dbQuery = dbQuery.eq('film_stock', filmSlug);
+        dbQuery = dbQuery.eq('film_stock', safeFilmSlug);
       }
     }
     // Filter by developer slug if provided
     if (developerSlug) {
-      dbQuery = dbQuery.eq('developer', developerSlug);
+      dbQuery = dbQuery.eq('developer', sanitizeSlug(developerSlug));
     }
 
     // Apply search
     if (query) {
-      if (fuzzy) {
-        // Fuzzy search: use ilike with wildcards for typo tolerance
-        dbQuery = dbQuery.or(
-          `name.ilike.%${query}%,film_stock.ilike.%${query}%,developer.ilike.%${query}%`
-        );
-      } else {
-        // Exact search: case-insensitive partial match
-        dbQuery = dbQuery.or(
-          `name.ilike.%${query}%,film_stock.ilike.%${query}%,developer.ilike.%${query}%`
-        );
-      }
+      const safeQuery = sanitizeQuery(query);
+      dbQuery = dbQuery.or(
+        `name.ilike.%${safeQuery}%,film_stock.ilike.%${safeQuery}%,developer.ilike.%${safeQuery}%`
+      );
     }
 
     // Apply pagination if specified

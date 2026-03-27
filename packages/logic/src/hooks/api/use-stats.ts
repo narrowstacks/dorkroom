@@ -8,7 +8,8 @@ import { queryKeys } from '../../queries/query-keys';
  */
 export function useStats() {
   return useQuery<Stats>({
-    queryKey: queryKeys.stats.list(),
+    queryKey: queryKeys.stats.counts(),
     queryFn: fetchStatsForQuery,
+    staleTime: 5 * 60 * 1000,
   });
 }
