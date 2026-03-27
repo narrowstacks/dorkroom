@@ -303,6 +303,8 @@ export const useDevelopmentRecipes = (
             slugSet.has(combo.filmStockId) || slugSet.has(combo.filmSlug)
         );
       }
+      // Fallback for custom films or IDs not in the slug index — match directly
+      // without alias resolution since we have no Film object to resolve from
       return allCombinations.filter(
         (combo) => combo.filmStockId === filmId || combo.filmSlug === filmId
       );

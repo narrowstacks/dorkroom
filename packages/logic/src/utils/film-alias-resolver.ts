@@ -1,4 +1,5 @@
 import type { Film } from '@dorkroom/api';
+import { debugWarn } from './debug-logger';
 
 /**
  * Build an index mapping all slugs (canonical + aliases) to their Film.
@@ -9,6 +10,11 @@ export function buildFilmSlugIndex(films: Film[]): Map<string, Film> {
   for (const film of films) {
     index.set(film.slug, film);
     for (const alias of film.aliases) {
+      if (index.has(alias) && index.get(alias)!.slug !== film.slug) {
+        debugWarn(
+          `[film-alias-resolver] Alias "${alias}" claimed by both "${index.get(alias)!.slug}" and "${film.slug}" — later film wins`
+        );
+      }
       index.set(alias, film);
     }
   }

@@ -363,8 +363,5 @@ export const fetchDevelopersForQuery = (context?: { signal?: AbortSignal }) =>
 export const fetchCombinationsForQuery = (context?: { signal?: AbortSignal }) =>
   apiClient.fetchCombinations(context);
 
-export const fetchStats = (options?: { signal?: AbortSignal }) =>
-  apiClient.fetchStats(options);
-
 export const fetchStatsForQuery = (context?: { signal?: AbortSignal }) =>
   apiClient.fetchStats(context);
