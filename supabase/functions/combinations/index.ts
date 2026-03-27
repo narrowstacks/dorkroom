@@ -1,14 +1,14 @@
 import { serve } from 'https://deno.land/std@0.203.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sanitizeQuery, sanitizeSlug } from '../_shared/sanitize.ts';
 
 /**
  * Edge Function: /combinations
  *
  * Query Parameters:
- *   - film: Filter by film stock slug
+ *   - film: Filter by film stock slug (alias-aware)
  *   - developer: Filter by developer slug
  *   - query: Search combinations
- *   - fuzzy: Enable fuzzy search (true/false)
  *   - limit: Maximum number of results
  *   - count: Limit results per page
  *   - page: Page number for pagination
@@ -20,7 +20,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
  *   GET /combinations?developer=kodak-hc-110&limit=3
  *   GET /combinations?id=179
  *   GET /combinations?count=20&page=2
- */ serve(async (req) => {
+ */
+serve(async (req) => {
   // ────────────────────────────────────────
   //  CORS pre-flight
   // ────────────────────────────────────────
@@ -83,10 +84,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const limit = parseInt(searchParams.get('limit') ?? '0', 10);
   const perPage = parseInt(searchParams.get('count') ?? '0', 10);
   const page = Math.max(parseInt(searchParams.get('page') ?? '1', 10), 1);
-
-  // Sanitize inputs — allow only alphanumeric, hyphens, and spaces
-  const sanitizeSlug = (v: string) => v.replace(/[^a-zA-Z0-9-]/g, '');
-  const sanitizeQuery = (v: string) => v.replace(/[^a-zA-Z0-9 -]/g, '');
 
   // ────────────────────────────────────────
   //  Build query

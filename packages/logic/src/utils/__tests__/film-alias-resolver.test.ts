@@ -4,7 +4,6 @@ import {
   buildFilmSlugIndex,
   getAllSlugsForFilm,
   getBaseFilm,
-  resolveFilmBySlug,
 } from '../film-alias-resolver';
 
 function makeFilm(overrides: Partial<Film> = {}): Film {
@@ -79,31 +78,6 @@ describe('film-alias-resolver', () => {
     it('handles empty film list', () => {
       const index = buildFilmSlugIndex([]);
       expect(index.size).toBe(0);
-    });
-  });
-
-  describe('resolveFilmBySlug', () => {
-    it('resolves canonical slug', () => {
-      const film = makeFilm();
-      const index = buildFilmSlugIndex([film]);
-
-      expect(resolveFilmBySlug('kodak-tri-x-400', index)).toBe(film);
-    });
-
-    it('resolves alias to the canonical film', () => {
-      const film = makeFilm({
-        slug: 'kodak-tmax-400',
-        aliases: ['kodak-t-max-400'],
-      });
-      const index = buildFilmSlugIndex([film]);
-
-      expect(resolveFilmBySlug('kodak-t-max-400', index)).toBe(film);
-    });
-
-    it('returns undefined for unknown slug', () => {
-      const index = buildFilmSlugIndex([makeFilm()]);
-
-      expect(resolveFilmBySlug('nonexistent', index)).toBeUndefined();
     });
   });
 

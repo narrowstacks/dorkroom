@@ -1,13 +1,13 @@
 import { serve } from 'https://deno.land/std@0.203.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sanitizeQuery, sanitizeSlug } from '../_shared/sanitize.ts';
 
 /**
  * Edge Function: /films
  *
  * Query Parameters:
- *   - slug: Exact match on film slug
- *   - query: Search term for film name or brand
- *   - fuzzy: Enable fuzzy search (true/false)
+ *   - slug: Match on film slug or alias
+ *   - query: Search term for film name, brand, or alias
  *   - limit: Maximum number of results
  *   - colorType: Filter by color type (bw/color/slide)
  *   - brand: Filter by brand/manufacturer
@@ -16,8 +16,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
  *   GET /films?limit=2
  *   GET /films?query=tri-x&brand=Kodak
  *   GET /films?colorType=color&limit=2
- *   GET /films?query=velvi&fuzzy=true
- */ serve(async (req) => {
+ *   GET /films?query=velvia
+ */
+serve(async (req) => {
   // ────────────────────────────────────────
   //  CORS pre-flight
   // ────────────────────────────────────────
@@ -78,10 +79,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const limit = parseInt(searchParams.get('limit') ?? '0', 10);
   const colorType = searchParams.get('colorType');
   const brand = searchParams.get('brand');
-
-  // Sanitize inputs — allow only alphanumeric, hyphens, and spaces
-  const sanitizeSlug = (v: string) => v.replace(/[^a-zA-Z0-9-]/g, '');
-  const sanitizeQuery = (v: string) => v.replace(/[^a-zA-Z0-9 -]/g, '');
 
   // ────────────────────────────────────────
   //  Build query

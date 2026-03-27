@@ -1,6 +1,6 @@
 import type { Film } from '@dorkroom/api';
 import { useCallback, useMemo, useState } from 'react';
-import { searchFilms } from '../../utils/fuzzy-search';
+import { createFilmSearcher, searchFilms } from '../../utils/fuzzy-search';
 import { useFilms } from '../api/use-films';
 import { useDebounce } from '../use-debounce';
 
@@ -142,14 +142,24 @@ export function useFilmDatabase(): UseFilmDatabaseReturn {
     discontinuedFilter,
   ]);
 
+  // Memoize Fuse instance to avoid rebuilding the index on every query change
+  const searcher = useMemo(
+    () => createFilmSearcher(preSearchFiltered),
+    [preSearchFiltered]
+  );
+
   // Apply fuzzy search with normalization and tokenization
   const filteredFilms = useMemo(() => {
     if (!debouncedSearchQuery) {
       return preSearchFiltered;
     }
-    const searchResults = searchFilms(preSearchFiltered, debouncedSearchQuery);
+    const searchResults = searchFilms(
+      preSearchFiltered,
+      debouncedSearchQuery,
+      searcher
+    );
     return searchResults.map((r) => r.item);
-  }, [preSearchFiltered, debouncedSearchQuery]);
+  }, [preSearchFiltered, debouncedSearchQuery, searcher]);
 
   // Derive brand options from actual data
   const brandOptions = useMemo(() => {

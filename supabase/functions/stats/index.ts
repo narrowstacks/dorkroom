@@ -11,7 +11,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
  *
  * Examples:
  *   GET /stats
- */ serve(async (req) => {
+ */
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       headers: {
@@ -80,6 +81,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
       },
     }
   );

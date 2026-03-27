@@ -22,16 +22,6 @@ export function buildFilmSlugIndex(films: Film[]): Map<string, Film> {
 }
 
 /**
- * Resolve a slug (canonical or alias) to a Film.
- */
-export function resolveFilmBySlug(
-  slug: string,
-  index: Map<string, Film>
-): Film | undefined {
-  return index.get(slug);
-}
-
-/**
  * Get the base/OEM film for a rebranded film.
  */
 export function getBaseFilm(

@@ -137,13 +137,17 @@ export function getMatchHighlights(result: FilmSearchResult): MatchHighlight[] {
  * const results = searchFilms(films, 'ilford hp5');
  * ```
  */
-export function searchFilms(films: Film[], query: string): FilmSearchResult[] {
+export function searchFilms(
+  films: Film[],
+  query: string,
+  existingSearcher?: Fuse<Film>
+): FilmSearchResult[] {
   const trimmed = query.trim();
   if (!trimmed) {
     return [];
   }
 
-  const searcher = createFilmSearcher(films);
+  const searcher = existingSearcher ?? createFilmSearcher(films);
   const normalized = normalize(trimmed);
   const tokens = trimmed.split(/\s+/).map(normalize);
 
