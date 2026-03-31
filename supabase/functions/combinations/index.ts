@@ -99,11 +99,36 @@ serve(async (req) => {
     // Filter by film slug if provided (resolve aliases)
     if (filmSlug) {
       const safeFilmSlug = sanitizeSlug(filmSlug);
-      const { data: filmData } = await supabase
+      if (!safeFilmSlug) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid film parameter' }),
+          {
+            status: 400,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
+          }
+        );
+      }
+      const { data: filmData, error: filmError } = await supabase
         .from('films')
         .select('slug, aliases')
         .or(`slug.eq.${safeFilmSlug},aliases.cs.{"${safeFilmSlug}"}`)
         .limit(1);
+
+      if (filmError) {
+        return new Response(
+          JSON.stringify({ error: `Film lookup failed: ${filmError.message}` }),
+          {
+            status: 500,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
+          }
+        );
+      }
 
       if (filmData && filmData.length > 0) {
         const allSlugs = [filmData[0].slug, ...(filmData[0].aliases || [])];
@@ -114,12 +139,37 @@ serve(async (req) => {
     }
     // Filter by developer slug if provided
     if (developerSlug) {
-      dbQuery = dbQuery.eq('developer', sanitizeSlug(developerSlug));
+      const safeDeveloperSlug = sanitizeSlug(developerSlug);
+      if (!safeDeveloperSlug) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid developer parameter' }),
+          {
+            status: 400,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
+          }
+        );
+      }
+      dbQuery = dbQuery.eq('developer', safeDeveloperSlug);
     }
 
     // Apply search
     if (query) {
       const safeQuery = sanitizeQuery(query);
+      if (!safeQuery) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid query parameter' }),
+          {
+            status: 400,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
+          }
+        );
+      }
       dbQuery = dbQuery.or(
         `name.ilike.%${safeQuery}%,film_stock.ilike.%${safeQuery}%,developer.ilike.%${safeQuery}%`
       );
@@ -130,11 +180,12 @@ serve(async (req) => {
       const from = (page - 1) * perPage;
       const to = from + perPage - 1;
       dbQuery = dbQuery.range(from, to);
-    }
-
-    // Apply limit
-    if (limit > 0) {
+    } else if (limit > 0) {
       dbQuery = dbQuery.limit(limit);
+    } else {
+      // Explicit range to avoid silent truncation at PostgREST max_rows (1000).
+      // The client currently fetches all combinations in one request.
+      dbQuery = dbQuery.range(0, 4999);
     }
   }
 

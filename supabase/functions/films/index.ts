@@ -90,6 +90,15 @@ serve(async (req) => {
   // Apply filters
   if (slug) {
     const safeSlug = sanitizeSlug(slug);
+    if (!safeSlug) {
+      return new Response(JSON.stringify({ error: 'Invalid slug parameter' }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    }
     dbQuery = dbQuery.or(`slug.eq.${safeSlug},aliases.cs.{"${safeSlug}"}`);
   }
   if (colorType) {
@@ -97,12 +106,36 @@ serve(async (req) => {
   }
   if (brand) {
     const safeBrand = sanitizeQuery(brand);
+    if (!safeBrand) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid brand parameter' }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
     dbQuery = dbQuery.ilike('brand', `%${safeBrand}%`);
   }
 
   // Apply search
   if (query) {
     const safeQuery = sanitizeQuery(query);
+    if (!safeQuery) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid query parameter' }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
     dbQuery = dbQuery.or(
       `name.ilike.%${safeQuery}%,brand.ilike.%${safeQuery}%,aliases.cs.{"${safeQuery}"}`
     );

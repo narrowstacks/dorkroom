@@ -7,6 +7,7 @@ import {
   rawDeveloperSchema,
   rawDilutionSchema,
   rawFilmSchema,
+  statsSchema,
 } from '../schemas';
 
 describe('API Response Schemas', () => {
@@ -411,6 +412,40 @@ describe('API Response Schemas', () => {
 
       const result = combinationsResponseSchema.safeParse(invalidResponse);
       expect(result.success).toBe(false);
+    });
+  });
+
+  describe('statsSchema', () => {
+    it('should accept valid stats data', () => {
+      const validStats = { films: 50, developers: 20, combinations: 1020 };
+      const result = statsSchema.safeParse(validStats);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept stats with zero values', () => {
+      const zeroStats = { films: 0, developers: 0, combinations: 0 };
+      const result = statsSchema.safeParse(zeroStats);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject stats with missing fields', () => {
+      const incomplete = { films: 50 };
+      const result = statsSchema.safeParse(incomplete);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject stats with string values', () => {
+      const wrongTypes = {
+        films: '50',
+        developers: '20',
+        combinations: '1020',
+      };
+      const result = statsSchema.safeParse(wrongTypes);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject null', () => {
+      expect(statsSchema.safeParse(null).success).toBe(false);
     });
   });
 

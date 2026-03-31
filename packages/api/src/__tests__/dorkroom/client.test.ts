@@ -4,6 +4,7 @@ import {
   fetchCombinations,
   fetchDevelopers,
   fetchFilms,
+  fetchStatsForQuery,
   INTERNAL_API_BASE_URL,
   PUBLIC_API_BASE_URL,
 } from '../../dorkroom/client';
@@ -425,6 +426,64 @@ describe('DorkroomApiClient', () => {
       );
     });
   });
+
+  describe('fetchStats', () => {
+    it('should fetch stats successfully', async () => {
+      const mockStats = { films: 50, developers: 20, combinations: 1020 };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockStats,
+      });
+
+      const result = await client.fetchStats();
+
+      expect(mockFetch).toHaveBeenCalledWith('https://test.api.com/stats', {
+        signal: undefined,
+        headers: undefined,
+      });
+      expect(result).toEqual(mockStats);
+    });
+
+    it('should handle HTTP errors', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        statusText: 'Internal Server Error',
+      });
+
+      await expect(client.fetchStats()).rejects.toThrow(
+        'Failed to fetch stats: Internal Server Error'
+      );
+    });
+
+    it('should throw on invalid response format', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ invalid: 'data' }),
+      });
+
+      await expect(client.fetchStats()).rejects.toThrow(
+        'Invalid API response format for stats'
+      );
+    });
+
+    it('should pass abort signal', async () => {
+      const controller = new AbortController();
+      const mockStats = { films: 50, developers: 20, combinations: 1020 };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockStats,
+      });
+
+      await client.fetchStats({ signal: controller.signal });
+
+      expect(mockFetch).toHaveBeenCalledWith('https://test.api.com/stats', {
+        signal: controller.signal,
+        headers: undefined,
+      });
+    });
+  });
 });
 
 describe('Default API Client', () => {
@@ -475,6 +534,20 @@ describe('Convenience Functions', () => {
     await fetchCombinations();
 
     expect(mockFetch).toHaveBeenCalledWith('/api/combinations', {
+      signal: undefined,
+      headers: undefined,
+    });
+  });
+
+  it('fetchStatsForQuery should use default client', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ films: 1, developers: 1, combinations: 1 }),
+    });
+
+    await fetchStatsForQuery();
+
+    expect(mockFetch).toHaveBeenCalledWith('/api/stats', {
       signal: undefined,
       headers: undefined,
     });

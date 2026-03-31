@@ -7,7 +7,7 @@
 ## Current State (as of 2026-03-25)
 
 - **1020 combinations** in the database
-- PostgREST `db_max_rows` set to 2000
+- PostgREST `max_rows` set to 1000 (see `supabase/config.toml`)
 - All combinations fetched in a single request, filtered/sorted in-memory
 - Two-phase loading: seed (24 items) for instant render, full dataset in background
 - Client-side features depend on having the full dataset:
