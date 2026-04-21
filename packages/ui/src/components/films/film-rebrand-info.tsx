@@ -10,10 +10,16 @@ interface FilmRebrandInfoProps {
  * Displays alias ("Formerly: ...") and rebrand ("Repackaged ...") info for a film.
  * Shared between film detail panel views to avoid duplication.
  */
+const slugToTitle = (slug: string): string =>
+  slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
 export const FilmRebrandInfo: FC<FilmRebrandInfoProps> = ({
   film,
   baseFilm,
 }) => {
+  const baseSlug = film.baseFilmSlug;
+  const hasRebrand = Boolean(baseFilm || baseSlug);
+
   return (
     <>
       {film.aliases.length > 0 && (
@@ -21,16 +27,11 @@ export const FilmRebrandInfo: FC<FilmRebrandInfoProps> = ({
           className="text-sm italic"
           style={{ color: 'var(--color-text-muted)' }}
         >
-          Formerly:{' '}
-          {film.aliases
-            .map((alias) =>
-              alias.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-            )
-            .join(', ')}
+          Formerly: {film.aliases.map(slugToTitle).join(', ')}
         </p>
       )}
 
-      {(baseFilm || film.baseFilmSlug) && (
+      {hasRebrand && (
         <p
           className="text-sm italic"
           style={{ color: 'var(--color-text-muted)' }}
@@ -38,9 +39,9 @@ export const FilmRebrandInfo: FC<FilmRebrandInfoProps> = ({
           Repackaged{' '}
           {baseFilm
             ? `${baseFilm.brand} ${baseFilm.name}`
-            : film
-                .baseFilmSlug!.replace(/-/g, ' ')
-                .replace(/\b\w/g, (c) => c.toUpperCase())}
+            : baseSlug
+              ? slugToTitle(baseSlug)
+              : ''}
         </p>
       )}
     </>

@@ -34,11 +34,13 @@ serve(async (req) => {
     });
   }
 
-  const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = Deno.env.toObject();
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  // Stats only returns aggregate counts over public tables, so the anon key
+  // is sufficient; avoid using the service role key on unauthenticated routes.
+  const { SUPABASE_URL, SUPABASE_ANON_KEY } = Deno.env.toObject();
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     return new Response(
       JSON.stringify({
-        error: 'Missing env vars SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY',
+        error: 'Missing env vars SUPABASE_URL or SUPABASE_ANON_KEY',
       }),
       {
         status: 500,
@@ -50,7 +52,7 @@ serve(async (req) => {
     );
   }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: false },
   });
 

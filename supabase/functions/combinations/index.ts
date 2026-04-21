@@ -3,6 +3,13 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { sanitizeQuery, sanitizeSlug } from '../_shared/sanitize.ts';
 
 /**
+ * Explicit ceiling for unpaginated combination fetches. PostgREST's default
+ * max_rows would silently truncate large responses; this range overrides that
+ * until server-side filtering lands (see docs/planning/server-side-recipe-filtering.md).
+ */
+const MAX_COMBINATIONS_PER_REQUEST = 5000;
+
+/**
  * Edge Function: /combinations
  *
  * Query Parameters:
@@ -183,9 +190,8 @@ serve(async (req) => {
     } else if (limit > 0) {
       dbQuery = dbQuery.limit(limit);
     } else {
-      // Explicit range to avoid silent truncation at PostgREST max_rows (1000).
       // The client currently fetches all combinations in one request.
-      dbQuery = dbQuery.range(0, 4999);
+      dbQuery = dbQuery.range(0, MAX_COMBINATIONS_PER_REQUEST - 1);
     }
   }
 

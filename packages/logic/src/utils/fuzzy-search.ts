@@ -4,10 +4,12 @@ import Fuse from 'fuse.js';
 
 /**
  * Strip hyphens, slashes, and other punctuation so "tmax" matches "T-MAX",
- * "Gc/Ultramax" matches "gcultramax", etc.
+ * "Gc/Ultramax" matches "gcultramax", etc. Also strips Fuse.js extended-search
+ * operators (`!`, `^`, `$`, `=`, `'`, `|`) so raw user input is matched
+ * literally rather than being interpreted as a query operator.
  */
 function normalize(value: string): string {
-  return value.replace(/[-/_.]/g, '').toLowerCase();
+  return value.replace(/[-/_.!^$='|]/g, '').toLowerCase();
 }
 
 /** Snapshot of the default getFn to avoid depending on mutable global config */
