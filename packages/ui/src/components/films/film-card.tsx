@@ -30,6 +30,7 @@ const FilmCardComponent: FC<FilmCardProps> = ({
       >
         ISO {film.isoSpeed}
       </span>
+      {film.baseFilmSlug && <Tag variant="info">Rebrand</Tag>}
       {film.discontinued && <Tag variant="discontinued">Discontinued</Tag>}
     </>
   );

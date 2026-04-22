@@ -4,6 +4,7 @@ import type { FC } from 'react';
 import { DetailPanel } from '../detail-panel';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
+import { FilmRebrandInfo } from './film-rebrand-info';
 
 /**
  * Props for the FilmDetailPanel component.
@@ -14,6 +15,8 @@ import { FilmImage } from './film-image';
 interface FilmDetailPanelProps {
   /** The film to display, or null when closed */
   film: Film | null;
+  /** The base/OEM film if this film is a rebrand, or null */
+  baseFilm?: Film | null;
   /** Whether the panel is currently visible */
   isOpen: boolean;
   /** Callback function called when the panel should be closed */
@@ -40,6 +43,7 @@ interface FilmDetailPanelProps {
  */
 export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
   film,
+  baseFilm,
   isOpen,
   onClose,
   isMobile,
@@ -56,6 +60,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
   const panelContent = (
     <FilmDetailContent
       film={film}
+      baseFilm={baseFilm}
       developmentRecipesUrl={developmentRecipesUrl}
     />
   );
@@ -102,6 +107,8 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
             )}
           </div>
         </div>
+
+        <FilmRebrandInfo film={film} baseFilm={baseFilm} />
 
         {/* Description */}
         {film.description && (
@@ -242,6 +249,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
 /** Props for the internal FilmDetailContent component */
 interface FilmDetailContentProps {
   film: Film;
+  baseFilm?: Film | null;
   developmentRecipesUrl: string;
 }
 
@@ -251,6 +259,7 @@ interface FilmDetailContentProps {
  */
 const FilmDetailContent: FC<FilmDetailContentProps> = ({
   film,
+  baseFilm,
   developmentRecipesUrl,
 }) => {
   return (
@@ -297,6 +306,8 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
           </Tag>
         )}
       </div>
+
+      <FilmRebrandInfo film={film} baseFilm={baseFilm} />
 
       {/* Description */}
       {film.description && (

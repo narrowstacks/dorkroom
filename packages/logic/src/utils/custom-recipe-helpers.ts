@@ -47,6 +47,8 @@ export const getCustomRecipeFilm = (
       reciprocityFailure: null,
       discontinued: false,
       staticImageUrl: null,
+      aliases: [],
+      baseFilmSlug: null,
       dateAdded: recipe.dateCreated,
       createdAt: now,
       updatedAt: now,

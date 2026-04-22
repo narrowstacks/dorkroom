@@ -1,11 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
-import type { Combination } from '@dorkroom/api';
-import {
-  useCombinations,
-  useCustomRecipes,
-  useFavorites,
-} from '@dorkroom/logic';
+import { useStats } from '@dorkroom/logic';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -16,9 +11,7 @@ vi.mock('@dorkroom/logic', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@dorkroom/logic')>();
   return {
     ...actual,
-    useFavorites: vi.fn(),
-    useCustomRecipes: vi.fn(),
-    useCombinations: vi.fn(),
+    useStats: vi.fn(),
   };
 });
 
@@ -52,72 +45,10 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
   };
 });
 
-const mockCombinations: Combination[] = [
-  {
-    id: 1,
-    uuid: 'combo-1',
-    filmId: 1,
-    developerId: 1,
-    dilution: '1:1',
-    iso: 400,
-    temperature: 20,
-    time: 8.5,
-    notes: null,
-    filmColor: 'bw',
-    filmName: 'HP5 Plus',
-    developerName: 'DD-X',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01',
-  },
-  {
-    id: 2,
-    uuid: 'combo-2',
-    filmId: 2,
-    developerId: 2,
-    dilution: '1:4',
-    iso: 100,
-    temperature: 20,
-    time: 12,
-    notes: null,
-    filmColor: 'bw',
-    filmName: 'FP4 Plus',
-    developerName: 'HC-110',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01',
-  },
-];
-
 // Default mock return values
 const defaultMocks = {
-  useFavorites: {
-    favoriteIds: ['combo-1'],
-    isInitialized: true,
-    addFavorite: vi.fn(),
-    removeFavorite: vi.fn(),
-    isFavorite: vi.fn(),
-  },
-  useCustomRecipes: {
-    customRecipes: [
-      {
-        id: 'custom-1',
-        name: 'My Custom Recipe',
-        filmId: 'film-1',
-        developerId: 'dev-1',
-        temperatureF: 68,
-        timeMinutes: 8,
-        shootingIso: 400,
-        pushPull: 0,
-        isCustomFilm: false,
-        isCustomDeveloper: false,
-        isPublic: false,
-        dateCreated: '2024-01-01',
-        dateModified: '2024-01-01',
-      },
-    ],
-    isLoading: false,
-  },
-  useCombinations: {
-    data: mockCombinations,
+  useStats: {
+    data: { films: 151, developers: 24, combinations: 1020 },
     isPending: false,
     error: null,
   },
@@ -140,9 +71,7 @@ describe('HomePage', () => {
 
   beforeEach(() => {
     // Reset mocks to default values using vi.mocked() for type safety
-    vi.mocked(useFavorites).mockReturnValue(defaultMocks.useFavorites);
-    vi.mocked(useCustomRecipes).mockReturnValue(defaultMocks.useCustomRecipes);
-    vi.mocked(useCombinations).mockReturnValue(defaultMocks.useCombinations);
+    vi.mocked(useStats).mockReturnValue(defaultMocks.useStats);
 
     // Create fresh wrapper with new QueryClient to prevent cache pollution
     Wrapper = createWrapper();
@@ -162,17 +91,7 @@ describe('HomePage', () => {
 
   describe('data states', () => {
     it('handles loading state when data is pending', () => {
-      vi.mocked(useFavorites).mockReturnValue({
-        ...defaultMocks.useFavorites,
-        favoriteIds: [],
-        isInitialized: false,
-      });
-      vi.mocked(useCustomRecipes).mockReturnValue({
-        ...defaultMocks.useCustomRecipes,
-        customRecipes: [],
-        isLoading: true,
-      });
-      vi.mocked(useCombinations).mockReturnValue({
+      vi.mocked(useStats).mockReturnValue({
         data: undefined,
         isPending: true,
         error: null,
@@ -188,7 +107,7 @@ describe('HomePage', () => {
     });
 
     it('handles API error gracefully with fallback content', () => {
-      vi.mocked(useCombinations).mockReturnValue({
+      vi.mocked(useStats).mockReturnValue({
         data: undefined,
         isPending: false,
         error: new Error('Failed to fetch'),
@@ -210,17 +129,9 @@ describe('HomePage', () => {
       ).toBeInTheDocument();
     });
 
-    it('handles empty state with no favorites or recipes', () => {
-      vi.mocked(useFavorites).mockReturnValue({
-        ...defaultMocks.useFavorites,
-        favoriteIds: [],
-      });
-      vi.mocked(useCustomRecipes).mockReturnValue({
-        ...defaultMocks.useCustomRecipes,
-        customRecipes: [],
-      });
-      vi.mocked(useCombinations).mockReturnValue({
-        data: [],
+    it('handles empty stats gracefully', () => {
+      vi.mocked(useStats).mockReturnValue({
+        data: { films: 0, developers: 0, combinations: 0 },
         isPending: false,
         error: null,
       });

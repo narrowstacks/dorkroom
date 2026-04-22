@@ -1,13 +1,13 @@
 import { serve } from 'https://deno.land/std@0.203.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sanitizeQuery, sanitizeSlug } from '../_shared/sanitize.ts';
 
 /**
  * Edge Function: /films
  *
  * Query Parameters:
- *   - slug: Exact match on film slug
- *   - query: Search term for film name or brand
- *   - fuzzy: Enable fuzzy search (true/false)
+ *   - slug: Match on film slug or alias
+ *   - query: Search term for film name, brand, or alias
  *   - limit: Maximum number of results
  *   - colorType: Filter by color type (bw/color/slide)
  *   - brand: Filter by brand/manufacturer
@@ -16,8 +16,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
  *   GET /films?limit=2
  *   GET /films?query=tri-x&brand=Kodak
  *   GET /films?colorType=color&limit=2
- *   GET /films?query=velvi&fuzzy=true
- */ serve(async (req) => {
+ *   GET /films?query=velvia
+ */
+serve(async (req) => {
   // ────────────────────────────────────────
   //  CORS pre-flight
   // ────────────────────────────────────────
@@ -75,7 +76,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const { searchParams } = new URL(req.url);
   const slug = searchParams.get('slug');
   const query = searchParams.get('query');
-  const fuzzy = searchParams.get('fuzzy') === 'true';
   const limit = parseInt(searchParams.get('limit') ?? '0', 10);
   const colorType = searchParams.get('colorType');
   const brand = searchParams.get('brand');
@@ -89,24 +89,59 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   // Apply filters
   if (slug) {
-    dbQuery = dbQuery.eq('slug', slug);
+    const safeSlug = sanitizeSlug(slug);
+    if (!safeSlug) {
+      return new Response(JSON.stringify({ error: 'Invalid slug parameter' }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    }
+    // aliases is jsonb of {slug,name} pairs; cs checks array containment
+    dbQuery = dbQuery.or(
+      `slug.eq.${safeSlug},aliases.cs.[{"slug":"${safeSlug}"}]`
+    );
   }
   if (colorType) {
     dbQuery = dbQuery.eq('color_type', colorType);
   }
   if (brand) {
-    dbQuery = dbQuery.ilike('brand', `%${brand}%`);
+    const safeBrand = sanitizeQuery(brand);
+    if (!safeBrand) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid brand parameter' }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
+    dbQuery = dbQuery.ilike('brand', `%${safeBrand}%`);
   }
 
   // Apply search
   if (query) {
-    if (fuzzy) {
-      // Fuzzy search: use ilike with wildcards for typo tolerance
-      dbQuery = dbQuery.or(`name.ilike.%${query}%,brand.ilike.%${query}%`);
-    } else {
-      // Exact search: case-insensitive partial match
-      dbQuery = dbQuery.or(`name.ilike.%${query}%,brand.ilike.%${query}%`);
+    const safeQuery = sanitizeQuery(query);
+    if (!safeQuery) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid query parameter' }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
     }
+    dbQuery = dbQuery.or(
+      `name.ilike.%${safeQuery}%,brand.ilike.%${safeQuery}%,aliases.cs.[{"slug":"${safeQuery}"}]`
+    );
   }
 
   // Apply limit

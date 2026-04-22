@@ -4,6 +4,10 @@ import { useCallback, useMemo, useState } from 'react';
 import { queryKeys } from '../../queries/query-keys';
 import type { InitialUrlState } from '../../types/development-recipes-url';
 import { debugError, debugLog } from '../../utils/debug-logger';
+import {
+  buildFilmSlugIndex,
+  getAllSlugsForFilm,
+} from '../../utils/film-alias-resolver';
 import { useCombinations } from '../api/use-combinations';
 import { useDevelopers } from '../api/use-developers';
 import { useFilms } from '../api/use-films';
@@ -134,16 +138,29 @@ export const useDevelopmentRecipes = (
     [combinationsQuery.data]
   );
 
+  // Build slug index for alias-aware film lookups
+  const filmSlugIndex = useMemo(
+    () => buildFilmSlugIndex(allFilmsUnfiltered),
+    [allFilmsUnfiltered]
+  );
+
   // Build sets of film/developer IDs that appear in at least one combination
-  // so we can exclude films/developers with no recipes from filter dropdowns
+  // so we can exclude films/developers with no recipes from filter dropdowns.
+  // Resolves aliases so renamed films still appear when recipes reference old slugs.
   const filmIdsWithCombinations = useMemo(() => {
     const ids = new Set<string>();
     for (const combo of allCombinations) {
-      if (combo.filmStockId) ids.add(combo.filmStockId);
-      if (combo.filmSlug) ids.add(combo.filmSlug);
+      const slug = combo.filmSlug || combo.filmStockId;
+      const film = slug ? filmSlugIndex.get(slug) : undefined;
+      if (film) {
+        ids.add(film.slug); // Always use canonical slug
+      } else {
+        if (combo.filmStockId) ids.add(combo.filmStockId);
+        if (combo.filmSlug) ids.add(combo.filmSlug);
+      }
     }
     return ids;
-  }, [allCombinations]);
+  }, [allCombinations, filmSlugIndex]);
 
   const developerIdsWithCombinations = useMemo(() => {
     const ids = new Set<string>();
@@ -252,13 +269,15 @@ export const useDevelopmentRecipes = (
     (id?: string | null): Film | undefined => {
       if (!id) return undefined;
       const key = String(id);
-      // Use unfiltered list so lookups work for custom recipes referencing any film
+      // Check slug index first (covers canonical slugs and aliases)
+      const fromIndex = filmSlugIndex.get(key);
+      if (fromIndex) return fromIndex;
+      // Fallback to id/uuid lookup
       return allFilmsUnfiltered.find(
-        (film) =>
-          film.id.toString() === key || film.uuid === key || film.slug === key
+        (film) => film.id.toString() === key || film.uuid === key
       );
     },
-    [allFilmsUnfiltered]
+    [allFilmsUnfiltered, filmSlugIndex]
   );
 
   const getDeveloperById = useCallback(
@@ -276,11 +295,21 @@ export const useDevelopmentRecipes = (
 
   const getCombinationsForFilm = useCallback(
     (filmId: string): Combination[] => {
+      const film = filmSlugIndex.get(filmId);
+      if (film) {
+        const slugSet = new Set(getAllSlugsForFilm(film));
+        return allCombinations.filter(
+          (combo) =>
+            slugSet.has(combo.filmStockId) || slugSet.has(combo.filmSlug)
+        );
+      }
+      // Fallback for custom films or IDs not in the slug index — match directly
+      // without alias resolution since we have no Film object to resolve from
       return allCombinations.filter(
         (combo) => combo.filmStockId === filmId || combo.filmSlug === filmId
       );
     },
-    [allCombinations]
+    [allCombinations, filmSlugIndex]
   );
 
   const getCombinationsForDeveloper = useCallback(
@@ -366,10 +395,9 @@ export const useDevelopmentRecipes = (
     ];
     const isoSet = new Set<number>();
 
+    const slugSet = new Set(getAllSlugsForFilm(selectedFilm));
     const combinations = allCombinations.filter(
-      (combo) =>
-        combo.filmStockId === selectedFilm.uuid ||
-        combo.filmSlug === selectedFilm.slug
+      (combo) => slugSet.has(combo.filmStockId) || slugSet.has(combo.filmSlug)
     );
 
     combinations.forEach((combo) => {
@@ -436,12 +464,27 @@ export const useDevelopmentRecipes = (
   const filteredCombinations = useMemo(() => {
     let combinations = [...allCombinations];
 
-    // Filter by selected film
+    // Filter by selected film (alias-aware + base film recipe sharing)
     if (selectedFilm) {
+      const filmsToMatch = [selectedFilm];
+      // Include base film's recipes if this is a rebrand
+      if (selectedFilm.baseFilmSlug) {
+        const baseFilm = filmSlugIndex.get(selectedFilm.baseFilmSlug);
+        if (baseFilm) filmsToMatch.push(baseFilm);
+      }
+      // Include rebrand recipes that point to this film as base
+      const rebrands = allFilmsUnfiltered.filter(
+        (f) => f.baseFilmSlug === selectedFilm.slug
+      );
+      filmsToMatch.push(...rebrands);
+
+      const allMatchSlugs = new Set(
+        filmsToMatch.flatMap((f) => getAllSlugsForFilm(f))
+      );
       combinations = combinations.filter(
         (combo) =>
-          combo.filmStockId === selectedFilm.uuid ||
-          combo.filmSlug === selectedFilm.slug
+          allMatchSlugs.has(combo.filmSlug) ||
+          allMatchSlugs.has(combo.filmStockId)
       );
     }
 
@@ -554,8 +597,10 @@ export const useDevelopmentRecipes = (
   }, [
     allCombinations,
     allDevelopers,
+    allFilmsUnfiltered,
     developerTypeFilter,
     dilutionFilter,
+    filmSlugIndex,
     isoFilter,
     selectedFilm,
     selectedDeveloper,

@@ -8,7 +8,6 @@
    - Inside positioning when print area is large enough
    - Boundary-straddling when labels don't fit inside
    - Arrow indicators pointing towards blade positions
-   - Smooth transitions for show/hide
    - Responsive text sizing
 \* ------------------------------------------------------------------ */
 
@@ -115,11 +114,8 @@ export function BladeReadingsOverlay({
 
   return (
     <div
-      className={`absolute inset-0 pointer-events-none transition-opacity ease-in-out ${
-        showReadings ? 'opacity-100' : 'opacity-0'
-      } ${className}`}
+      className={`absolute inset-0 pointer-events-none ${className}`}
       style={{
-        transitionDuration: '0.15s',
         zIndex: 20,
       }}
     >
@@ -210,7 +206,6 @@ function BladeReadingIndicator({ reading }: { reading: BladeReading }) {
         left: position.x,
         top: position.y,
         transform,
-        transition: 'all 0.15s ease-in-out',
         backgroundColor: 'var(--color-visualization-overlay)',
         color: 'var(--color-text-primary)',
         border: '1px solid var(--color-border-secondary)',

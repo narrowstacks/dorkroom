@@ -4,6 +4,29 @@ All notable changes to Dorkroom.art are documented here.
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.03.27]
+
+### Added
+
+- Film alias resolver for mapping legacy slugs to current films with O(1) lookups
+- Rebrand tracking: films now display their base/OEM film in the detail panel
+- Stats API endpoint for database counts (films, developers, combinations)
+- Input sanitization (`sanitizeSlug`, `sanitizeQuery`) on Vercel edge functions
+- Planning doc for server-side recipe filtering (`docs/planning/server-side-recipe-filtering.md`)
+
+### Changed
+
+- Film search now normalizes punctuation and tightens matching for better results
+- Removed dead `fuzzy` parameter branches from edge functions
+- Overrode Supabase default 1000-row limit on combinations endpoint
+- Development recipe hook uses alias-aware slug resolution for film lookups
+
+### Fixed
+
+- Removed fragile slug-to-title formatting from film cards (rebrand info shown only in detail panel where proper film data is available)
+- Added dev-mode warning for alias conflicts in `buildFilmSlugIndex`
+- Removed redundant `fetchStats` export from API client
+
 ## [2026.02.27]
 
 ### Added

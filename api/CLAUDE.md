@@ -48,8 +48,8 @@ When Unkey is not configured (`UNKEY_ROOT_KEY` missing), anonymous rate limiting
 ## Required Environment Variables
 
 Supabase proxy handlers (`films`, `developers`, `combinations`):
-- `SUPABASE_MASTER_API_KEY`
-- `SUPABASE_ENDPOINT`
+- `SUPABASE_MASTER_API_KEY` — Supabase secret API key (`sb_secret_...`) used as the `Bearer` token when calling Edge Functions
+- `SUPABASE_ENDPOINT` — Project URL, e.g. `https://<ref>.supabase.co`
 
 Unkey integration:
 - `UNKEY_ROOT_KEY` - root key used for verification and anonymous rate limits

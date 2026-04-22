@@ -120,6 +120,7 @@ export { debugError, debugLog, debugWarn } from './utils/debug-logger';
 export * from './utils/device-detection';
 export * from './utils/dilution-parser';
 export * from './utils/exposure-calculations';
+export * from './utils/film-alias-resolver';
 export * from './utils/filmdev-mapper';
 export * from './utils/fuzzy-search';
 export * from './utils/input-validation';

@@ -199,37 +199,18 @@ describe('fuzzy-search', () => {
       });
     });
 
-    describe('Description search', () => {
-      it('should find films by description keyword', () => {
-        const results = searchFilms(mockFilms, 'portrait');
-
-        expect(results.length).toBeGreaterThan(0);
-        // Should find Portra (portrait film)
-        const hasPortra = results.some((r) => r.item.name === 'Portra 400');
-        expect(hasPortra).toBe(true);
-      });
-
-      it('should find films by technical description', () => {
-        const results = searchFilms(mockFilms, 'high speed');
-
-        expect(results.length).toBeGreaterThan(0);
-        // Should match "high-speed" or "ultra-high speed" in descriptions
-      });
-    });
-
     describe('Color type search', () => {
       it('should find black and white films', () => {
-        const results = searchFilms(mockFilms, 'black and white');
+        const results = searchFilms(mockFilms, 'bw');
 
         expect(results.length).toBeGreaterThan(0);
-        // Results should include B&W films
         results.forEach((result) => {
           expect(['bw', 'b&w']).toContain(result.item.colorType.toLowerCase());
         });
       });
 
       it('should find color films', () => {
-        const results = searchFilms(mockFilms, 'color negative');
+        const results = searchFilms(mockFilms, 'color');
 
         expect(results.length).toBeGreaterThan(0);
       });
@@ -323,11 +304,11 @@ describe('fuzzy-search', () => {
         expect(hasTrix).toBe(true);
       });
 
-      it('should handle multi-word searches (fine grain)', () => {
-        const results = searchFilms(mockFilms, 'fine grain');
+      it('should handle multi-word searches (ilford hp5)', () => {
+        const results = searchFilms(mockFilms, 'ilford hp5');
 
         expect(results.length).toBeGreaterThan(0);
-        // Should match films with fine grain
+        expect(results[0].item.name).toBe('HP5 Plus');
       });
     });
   });
@@ -343,7 +324,7 @@ describe('fuzzy-search', () => {
       // Should have highlighted the brand field
       const brandHighlight = highlights.find((h) => h.key === 'brand');
       expect(brandHighlight).toBeDefined();
-      expect(brandHighlight?.value).toBe('Kodak');
+      expect(brandHighlight?.value).toBe('kodak');
       expect(brandHighlight?.indices).toBeDefined();
       expect(brandHighlight?.indices.length).toBeGreaterThan(0);
     });

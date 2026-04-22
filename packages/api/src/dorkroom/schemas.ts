@@ -34,6 +34,10 @@ export const rawFilmSchema = z.object({
   reciprocity_failure: z.string().nullable(),
   discontinued: z.boolean(),
   static_image_url: z.string().nullable(),
+  aliases: z
+    .array(z.object({ slug: z.string(), name: z.string() }))
+    .default([]),
+  base_film_slug: z.string().nullable(),
   date_added: z.string(),
   created_at: z.string(),
   updated_at: z.string(),
@@ -105,6 +109,15 @@ export const developersResponseSchema = z.object({
 export const combinationsResponseSchema = z.object({
   data: z.array(rawCombinationSchema),
   count: z.number().optional(),
+});
+
+/**
+ * Schema for stats API response.
+ */
+export const statsSchema = z.object({
+  films: z.number(),
+  developers: z.number(),
+  combinations: z.number(),
 });
 
 // Export inferred types for use in client

@@ -47,6 +47,8 @@ const mockFilms: Film[] = [
     reciprocityFailure: null,
     discontinued: false,
     staticImageUrl: null,
+    aliases: [],
+    baseFilmSlug: null,
     dateAdded: '2023-01-01',
     createdAt: '2023-01-01',
     updatedAt: '2023-01-01',
@@ -65,6 +67,8 @@ const mockFilms: Film[] = [
     reciprocityFailure: null,
     discontinued: false,
     staticImageUrl: null,
+    aliases: [],
+    baseFilmSlug: null,
     dateAdded: '2023-01-01',
     createdAt: '2023-01-01',
     updatedAt: '2023-01-01',
@@ -83,6 +87,8 @@ const mockFilms: Film[] = [
     reciprocityFailure: null,
     discontinued: false,
     staticImageUrl: null,
+    aliases: [],
+    baseFilmSlug: null,
     dateAdded: '2023-01-01',
     createdAt: '2023-01-01',
     updatedAt: '2023-01-01',
@@ -101,6 +107,8 @@ const mockFilms: Film[] = [
     reciprocityFailure: null,
     discontinued: false,
     staticImageUrl: null,
+    aliases: [],
+    baseFilmSlug: null,
     dateAdded: '2023-01-01',
     createdAt: '2023-01-01',
     updatedAt: '2023-01-01',
@@ -119,6 +127,8 @@ const mockFilms: Film[] = [
     reciprocityFailure: null,
     discontinued: false,
     staticImageUrl: null,
+    aliases: [],
+    baseFilmSlug: null,
     dateAdded: '2023-01-01',
     createdAt: '2023-01-01',
     updatedAt: '2023-01-01',
@@ -137,6 +147,8 @@ const mockFilms: Film[] = [
     reciprocityFailure: null,
     discontinued: false,
     staticImageUrl: null,
+    aliases: [],
+    baseFilmSlug: null,
     dateAdded: '2023-01-01',
     createdAt: '2023-01-01',
     updatedAt: '2023-01-01',
@@ -155,6 +167,8 @@ const mockFilms: Film[] = [
     reciprocityFailure: null,
     discontinued: false,
     staticImageUrl: null,
+    aliases: [],
+    baseFilmSlug: null,
     dateAdded: '2023-01-01',
     createdAt: '2023-01-01',
     updatedAt: '2023-01-01',
@@ -173,6 +187,8 @@ const mockFilms: Film[] = [
     reciprocityFailure: null,
     discontinued: true, // Discontinued film
     staticImageUrl: null,
+    aliases: [],
+    baseFilmSlug: null,
     dateAdded: '2023-01-01',
     createdAt: '2023-01-01',
     updatedAt: '2023-01-01',
@@ -191,6 +207,8 @@ const mockFilms: Film[] = [
     reciprocityFailure: null,
     discontinued: false,
     staticImageUrl: null,
+    aliases: [],
+    baseFilmSlug: null,
     dateAdded: '2023-01-01',
     createdAt: '2023-01-01',
     updatedAt: '2023-01-01',
@@ -209,6 +227,8 @@ const mockFilms: Film[] = [
     reciprocityFailure: null,
     discontinued: true, // Discontinued film
     staticImageUrl: null,
+    aliases: [],
+    baseFilmSlug: null,
     dateAdded: '2023-01-01',
     createdAt: '2023-01-01',
     updatedAt: '2023-01-01',
@@ -606,20 +626,8 @@ describe('useFilmDatabase', () => {
       });
     });
 
-    it('should search by description keywords', async () => {
-      const { result } = renderHook(() => useFilmDatabase(), { wrapper });
-
-      act(() => {
-        result.current.setSearchQuery('portrait');
-      });
-
-      await waitFor(() => {
-        const filtered = result.current.filteredFilms;
-        expect(filtered.length).toBeGreaterThan(0);
-        // Should find Portra (portrait film)
-        expect(filtered.some((f) => f.name === 'Portra 400')).toBe(true);
-      });
-    });
+    // Description-based search intentionally removed — search keys now cover
+    // name, brand, colorType, and aliases for tighter relevance.
 
     it('should return no results for non-matching query', async () => {
       const { result } = renderHook(() => useFilmDatabase(), { wrapper });
