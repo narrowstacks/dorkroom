@@ -34,7 +34,9 @@ export const rawFilmSchema = z.object({
   reciprocity_failure: z.string().nullable(),
   discontinued: z.boolean(),
   static_image_url: z.string().nullable(),
-  aliases: z.array(z.string()).default([]),
+  aliases: z
+    .array(z.object({ slug: z.string(), name: z.string() }))
+    .default([]),
   base_film_slug: z.string().nullable(),
   date_added: z.string(),
   created_at: z.string(),

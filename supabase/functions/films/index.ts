@@ -99,7 +99,10 @@ serve(async (req) => {
         },
       });
     }
-    dbQuery = dbQuery.or(`slug.eq.${safeSlug},aliases.cs.{"${safeSlug}"}`);
+    // aliases is jsonb of {slug,name} pairs; cs checks array containment
+    dbQuery = dbQuery.or(
+      `slug.eq.${safeSlug},aliases.cs.[{"slug":"${safeSlug}"}]`
+    );
   }
   if (colorType) {
     dbQuery = dbQuery.eq('color_type', colorType);
@@ -137,7 +140,7 @@ serve(async (req) => {
       );
     }
     dbQuery = dbQuery.or(
-      `name.ilike.%${safeQuery}%,brand.ilike.%${safeQuery}%,aliases.cs.{"${safeQuery}"}`
+      `name.ilike.%${safeQuery}%,brand.ilike.%${safeQuery}%,aliases.cs.[{"slug":"${safeQuery}"}]`
     );
   }
 

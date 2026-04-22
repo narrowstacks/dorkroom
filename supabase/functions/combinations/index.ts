@@ -121,7 +121,7 @@ serve(async (req) => {
       const { data: filmData, error: filmError } = await supabase
         .from('films')
         .select('slug, aliases')
-        .or(`slug.eq.${safeFilmSlug},aliases.cs.{"${safeFilmSlug}"}`)
+        .or(`slug.eq.${safeFilmSlug},aliases.cs.[{"slug":"${safeFilmSlug}"}]`)
         .limit(1);
 
       if (filmError) {
@@ -138,7 +138,8 @@ serve(async (req) => {
       }
 
       if (filmData && filmData.length > 0) {
-        const allSlugs = [filmData[0].slug, ...(filmData[0].aliases || [])];
+        const aliases = (filmData[0].aliases || []) as Array<{ slug: string }>;
+        const allSlugs = [filmData[0].slug, ...aliases.map((a) => a.slug)];
         dbQuery = dbQuery.in('film_stock', allSlugs);
       } else {
         dbQuery = dbQuery.eq('film_stock', safeFilmSlug);

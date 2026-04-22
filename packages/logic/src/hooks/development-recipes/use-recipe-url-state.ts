@@ -91,8 +91,9 @@ const getCurrentParams = (): RecipeUrlParams => {
 export const slugToFilm = (slug: string, films: Film[]): Film | null => {
   if (!slug || !films.length) return null;
   return (
-    films.find((film) => film.slug === slug || film.aliases.includes(slug)) ||
-    null
+    films.find(
+      (film) => film.slug === slug || film.aliases.some((a) => a.slug === slug)
+    ) || null
   );
 };
 

@@ -42,7 +42,10 @@ describe('film-alias-resolver', () => {
     it('indexes films by aliases', () => {
       const film = makeFilm({
         slug: 'kodak-tmax-400',
-        aliases: ['kodak-t-max-400', 'kodak-tmx-400'],
+        aliases: [
+          { slug: 'kodak-t-max-400', name: 'Kodak T-MAX 400' },
+          { slug: 'kodak-tmx-400', name: 'Kodak TMX 400' },
+        ],
       });
       const index = buildFilmSlugIndex([film]);
 
@@ -63,12 +66,12 @@ describe('film-alias-resolver', () => {
       const filmA = makeFilm({
         slug: 'film-a',
         uuid: 'uuid-a',
-        aliases: ['shared-alias'],
+        aliases: [{ slug: 'shared-alias', name: 'Shared Alias' }],
       });
       const filmB = makeFilm({
         slug: 'film-b',
         uuid: 'uuid-b',
-        aliases: ['shared-alias'],
+        aliases: [{ slug: 'shared-alias', name: 'Shared Alias' }],
       });
       const index = buildFilmSlugIndex([filmA, filmB]);
 
@@ -122,7 +125,10 @@ describe('film-alias-resolver', () => {
     it('returns canonical slug and all aliases', () => {
       const film = makeFilm({
         slug: 'kodak-tmax-400',
-        aliases: ['kodak-t-max-400', 'kodak-tmx-400'],
+        aliases: [
+          { slug: 'kodak-t-max-400', name: 'Kodak T-MAX 400' },
+          { slug: 'kodak-tmx-400', name: 'Kodak TMX 400' },
+        ],
       });
 
       expect(getAllSlugsForFilm(film)).toEqual([

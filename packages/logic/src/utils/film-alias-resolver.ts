@@ -9,13 +9,14 @@ export function buildFilmSlugIndex(films: Film[]): Map<string, Film> {
   const index = new Map<string, Film>();
   for (const film of films) {
     index.set(film.slug, film);
-    for (const alias of film.aliases) {
-      if (index.has(alias) && index.get(alias)!.slug !== film.slug) {
+    for (const { slug: aliasSlug } of film.aliases) {
+      const prior = index.get(aliasSlug);
+      if (prior && prior.slug !== film.slug) {
         debugWarn(
-          `[film-alias-resolver] Alias "${alias}" claimed by both "${index.get(alias)!.slug}" and "${film.slug}" — later film wins`
+          `[film-alias-resolver] Alias "${aliasSlug}" claimed by both "${prior.slug}" and "${film.slug}" — later film wins`
         );
       }
-      index.set(alias, film);
+      index.set(aliasSlug, film);
     }
   }
   return index;
@@ -36,5 +37,5 @@ export function getBaseFilm(
  * Get all slugs for a film (canonical slug + aliases).
  */
 export function getAllSlugsForFilm(film: Film): string[] {
-  return [film.slug, ...film.aliases];
+  return [film.slug, ...film.aliases.map((alias) => alias.slug)];
 }

@@ -1,5 +1,15 @@
 // Core data types for the Dorkroom API
 
+/**
+ * A former slug + display name for a film that was renamed or rebranded.
+ * Carrying the display name alongside the slug avoids lossy slug→title
+ * heuristics in the UI (e.g. "Tri-X" vs "Tri X").
+ */
+export interface FilmAlias {
+  slug: string;
+  name: string;
+}
+
 export interface Film {
   id: number;
   uuid: string;
@@ -14,7 +24,7 @@ export interface Film {
   reciprocityFailure: string | null;
   discontinued: boolean;
   staticImageUrl: string | null;
-  aliases: string[];
+  aliases: FilmAlias[];
   baseFilmSlug: string | null;
   dateAdded: string;
   createdAt: string;
@@ -107,7 +117,7 @@ export interface RawFilm {
   reciprocity_failure: string | null;
   discontinued: boolean;
   static_image_url: string | null;
-  aliases: string[];
+  aliases: FilmAlias[];
   base_film_slug: string | null;
   date_added: string;
   created_at: string;

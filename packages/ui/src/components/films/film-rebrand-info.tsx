@@ -10,6 +10,9 @@ interface FilmRebrandInfoProps {
  * Displays alias ("Formerly: ...") and rebrand ("Repackaged ...") info for a film.
  * Shared between film detail panel views to avoid duplication.
  */
+// Kept only for the rare case that a film row references a baseFilmSlug
+// whose Film isn't in the current slug index (e.g. filtered out). Alias
+// display names come straight from the DB now.
 const slugToTitle = (slug: string): string =>
   slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -27,7 +30,7 @@ export const FilmRebrandInfo: FC<FilmRebrandInfoProps> = ({
           className="text-sm italic"
           style={{ color: 'var(--color-text-muted)' }}
         >
-          Formerly: {film.aliases.map(slugToTitle).join(', ')}
+          Formerly: {film.aliases.map((alias) => alias.name).join(', ')}
         </p>
       )}
 
