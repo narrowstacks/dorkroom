@@ -3,6 +3,16 @@ import { useCallback, useId, useRef, useState } from 'react';
 import { cn } from '../lib/cn';
 
 /**
+ * A label entry for the slider. Strings are spaced evenly across the track
+ * (legacy behavior). Objects with `value` are positioned at the percentage
+ * corresponding to that value, so the label sits directly under the thumb
+ * when the slider is set to that value.
+ *
+ * @public
+ */
+export type SliderLabel = string | { text: string; value: number };
+
+/**
  * Props for the LabeledSliderInput component.
  * Provides configuration for a dual-input component with both slider and number input.
  *
@@ -24,7 +34,7 @@ interface LabeledSliderInputProps {
   /** Step increment for the slider */
   step: number;
   /** Optional labels to display below the slider for reference points */
-  labels?: string[];
+  labels?: SliderLabel[];
   /** Optional CSS class name for styling customization */
   className?: string;
   /** Whether to display warning styling (yellow border/background) */
@@ -32,6 +42,10 @@ interface LabeledSliderInputProps {
   /** Whether to enable continuous updates during slider drag */
   continuousUpdate?: boolean;
 }
+
+// Native range thumb is 16px (8px radius). Compensating shifts label centers
+// to align with the thumb center rather than the track edges.
+const SLIDER_THUMB_RADIUS_PX = 8;
 
 /**
  * A dual-input component combining a range slider with a number input field.
@@ -164,16 +178,39 @@ export function LabeledSliderInput({
           )}
         />
 
-        {labels.length > 0 && (
-          <div
-            className="flex justify-between text-xs"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            {labels.map((label) => (
-              <span key={label}>{label}</span>
-            ))}
-          </div>
-        )}
+        {labels.length > 0 &&
+          (typeof labels[0] === 'string' ? (
+            <div
+              className="flex justify-between text-xs"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              {(labels as string[]).map((label) => (
+                <span key={label}>{label}</span>
+              ))}
+            </div>
+          ) : (
+            <div
+              className="relative h-4 text-xs"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              {(labels as Array<{ text: string; value: number }>).map(
+                ({ text, value: labelValue }) => {
+                  const pct =
+                    max === min ? 0 : (labelValue - min) / (max - min);
+                  const offsetPx = (1 - 2 * pct) * SLIDER_THUMB_RADIUS_PX;
+                  return (
+                    <span
+                      key={text}
+                      className="absolute -translate-x-1/2"
+                      style={{ left: `calc(${pct * 100}% + ${offsetPx}px)` }}
+                    >
+                      {text}
+                    </span>
+                  );
+                }
+              )}
+            </div>
+          ))}
       </div>
     </div>
   );

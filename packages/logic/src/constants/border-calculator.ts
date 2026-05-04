@@ -127,22 +127,46 @@ export const EASEL_SIZE_MAP = new Map(
 export const BLADE_THICKNESS = 15;
 
 /**
- * Generates evenly-spaced slider labels from 0 to maxBorder.
- * Returns 5 labels: 0, 25%, 50%, 75%, 100% of maxBorder.
- * Values are formatted with 1 decimal place, omitting ".0" for whole numbers.
+ * Generates slider labels at "nice" round values from 0 to maxBorder.
+ * Each label includes its numeric value so the slider can place it at the
+ * correct percentage (rather than evenly spacing labels and lying about
+ * which value they correspond to).
  *
  * @param maxBorder - The maximum border value in inches
- * @returns Array of 5 formatted label strings
+ * @returns Array of labels with display text and underlying value
  *
  * @example
- * generateBorderSliderLabels(6) // ['0', '1.5', '3', '4.5', '6']
- * generateBorderSliderLabels(4) // ['0', '1', '2', '3', '4']
+ * generateBorderSliderLabels(6)   // [{text:'0',value:0},{text:'2',value:2},{text:'4',value:4},{text:'6',value:6}]
+ * generateBorderSliderLabels(3.9) // [{text:'0',value:0},{text:'1',value:1},{text:'2',value:2},{text:'3',value:3},{text:'3.9',value:3.9}]
  */
-export function generateBorderSliderLabels(maxBorder: number): string[] {
-  const step = maxBorder / 4;
-  return [0, step, step * 2, step * 3, maxBorder].map((v) =>
-    v === 0 ? '0' : v.toFixed(1).replace(/\.0$/, '')
-  );
+export function generateBorderSliderLabels(
+  maxBorder: number
+): Array<{ text: string; value: number }> {
+  const formatLabel = (value: number): string =>
+    value === 0 ? '0' : value.toFixed(1).replace(/\.0$/, '');
+
+  if (maxBorder <= 0) {
+    return [{ text: '0', value: 0 }];
+  }
+
+  const niceSteps = [0.5, 1, 2, 2.5, 5, 10];
+  const targetIntervals = 4;
+  const rawStep = maxBorder / targetIntervals;
+  const step =
+    niceSteps.find((s) => s >= rawStep) ?? niceSteps[niceSteps.length - 1];
+
+  const labels: Array<{ text: string; value: number }> = [];
+  for (let v = 0; v <= maxBorder + 1e-9; v += step) {
+    const rounded = Math.round(v * 1000) / 1000;
+    labels.push({ text: formatLabel(rounded), value: rounded });
+  }
+
+  const last = labels[labels.length - 1];
+  if (Math.abs(last.value - maxBorder) > 1e-6) {
+    labels.push({ text: formatLabel(maxBorder), value: maxBorder });
+  }
+
+  return labels;
 }
 
 export const DEFAULT_BORDER_PRESETS: BorderPreset[] = [
