@@ -178,7 +178,9 @@ describe('DevelopmentResultsCardsVirtualized', () => {
 
     // Setup ResizeObserver mock
     mockResizeObserverInstance = null;
-    global.ResizeObserver = vi.fn((callback) => {
+    // Use a regular function (not an arrow) so vitest 4 can invoke the mock
+    // as a constructor — react-virtual calls `new ResizeObserver(...)`.
+    global.ResizeObserver = vi.fn(function (callback: ResizeObserverCallback) {
       mockResizeObserverInstance = new MockResizeObserver(callback);
       return mockResizeObserverInstance;
     }) as unknown as typeof ResizeObserver;

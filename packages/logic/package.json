@@ -30,8 +30,8 @@
   "devDependencies": {
     "@types/react": "^19.2.7",
     "@testing-library/jest-dom": "^6.8.0",
-    "@vitest/ui": "^3.0.0",
+    "@vitest/ui": "4.1.7",
     "jsdom": "29.1.1",
-    "vitest": "^3.0.0"
+    "vitest": "4.1.7"
   }
 }
