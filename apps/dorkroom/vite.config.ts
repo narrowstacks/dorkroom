@@ -115,11 +115,8 @@ export default defineConfig(() => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
-    // Vite 8 uses the Oxc minifier (default). Vite 8 dropped esbuild's `drop`
-    // option, so console/debugger stripping moves to Rolldown's output.minify
-    // compress options (https://vite.dev/guide/migration). A user-provided
-    // output.minify object overrides Vite's default, so we spell out the full
-    // minify config to keep compression + mangling on.
+    // A user-provided output.minify object overrides Vite 8's default, so the
+    // full config is spelled out; compress.drop* replaces the removed esbuild.drop.
     minify: 'oxc',
     rollupOptions: {
       output: {
