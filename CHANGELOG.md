@@ -16,6 +16,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 ### Changed
 
 - Upgraded the build/test toolchain to latest stable (>7-day-old) releases: Vite 8.0.14 (Rolldown/Oxc bundler), Vitest 4.1.7 (with `@vitest/ui` and `@vitest/coverage-v8`), jsdom 29.1.1, `@vitejs/plugin-react` 6.0.2, Tailwind CSS 4.3.0, `@babel/core` 7.29.0, `turbo-ignore` 2.9.14, and `@types/jsdom` 28.0.3
+- Adopted the TypeScript 7 beta (`@typescript/native-preview`, the native `tsgo` compiler) for package typecheck and build — ~3.5× faster full-repo typecheck. TS 7 removed `baseUrl`, so `tsconfig.base.json` now uses relative path mappings; the `typescript` package is retained for editor/Vite/Vitest type services
+- Switched the test DOM environment from jsdom to happy-dom 20.9.0 — ~30% faster full suite (jsdom 29 environment init was the bottleneck; pool/isolation tuning had no effect). jsdom is retained for two logic tests that construct `JSDOM` directly
 - Migrated console/debugger stripping from the removed `esbuild.drop` option to Rolldown's `build.rollupOptions.output.minify.compress` options (Vite 8)
 - Moved `pool`/`reporters` to the root Vitest config (now root-only in Vitest 4) and renamed the deprecated `TanStackRouterVite` plugin import to `tanstackRouter`
 
