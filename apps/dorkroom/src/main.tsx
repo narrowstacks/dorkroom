@@ -50,6 +50,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+// Recover from stale chunk hashes after a new deploy (or a failed HMR fetch in
+// dev): when a lazy route's module can't be fetched, reload once to pick up the
+// current index.html. The timestamp guard prevents an infinite reload loop if
+// the chunk is genuinely unreachable (e.g. offline), while still allowing
+// recovery from a future deploy.
+window.addEventListener('vite:preloadError', (event) => {
+  event.preventDefault();
+  const now = Date.now();
+  const lastReload = Number(
+    sessionStorage.getItem('vite-preload-reload-at') ?? 0
+  );
+  if (now - lastReload > 10_000) {
+    sessionStorage.setItem('vite-preload-reload-at', String(now));
+    window.location.reload();
+  }
+});
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );

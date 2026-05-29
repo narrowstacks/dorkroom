@@ -13,6 +13,11 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - To-scale mat layout diagram with dimensioned borders, window, and artwork footprint
 - Tests for the mat calculator logic, the fraction input field, and the page
 
+### Fixed
+
+- Film database page (and any page with a text input) failing to load in the dev server after the Vite 7.3.2 bump — a dev-only regression in Vite's bundled `postcss-modules` loader; converted the lone CSS module to Tailwind classes to remove the affected code path
+- "Failed to fetch dynamically imported module" errors after a deploy — added a `vite:preloadError` handler that reloads once to pick up the current chunk hashes, plus `Cache-Control` headers in `vercel.json` (immutable for hashed `/assets/*`, revalidate-always for the HTML shell) so returning visitors get current chunk references
+
 ### Security
 
 - Bumped Vite to 7.3.2 to resolve three dev-server advisories (GHSA-p9ff-h696-f583, GHSA-v2wj-q39q-566r, GHSA-4w7w-66w2-5vf9); added a `vite` override to dedupe the transitive test-only copy
