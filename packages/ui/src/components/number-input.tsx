@@ -26,6 +26,7 @@ export function NumberInput({
   return (
     <input
       type="number"
+      aria-label={inputTitle ?? placeholder ?? 'Number input'}
       value={value}
       onChange={(e) => onChangeText((e.target as HTMLInputElement).value)}
       placeholder={placeholder}

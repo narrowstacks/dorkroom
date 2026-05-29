@@ -61,19 +61,57 @@ function ThemeMenuItems({
           >
             <span
               className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-xl',
+                'flex size-8 items-center justify-center rounded-xl',
                 isSelected
                   ? 'theme-toggle-icon-bg-selected'
                   : 'theme-toggle-icon-bg'
               )}
             >
-              <OptionIcon className="h-4 w-4" />
+              <OptionIcon className="size-4" />
             </span>
             <span className="flex-1">{option.label}</span>
           </button>
         );
       })}
     </>
+  );
+}
+
+function ThemeMenuPanel({
+  isOpen,
+  className,
+  currentTheme,
+  onSelect,
+  menuItemRefs,
+  onKeyDown,
+}: {
+  isOpen: boolean;
+  className: string;
+  currentTheme: Theme;
+  onSelect: (theme: Theme) => void;
+  menuItemRefs: React.MutableRefObject<(HTMLButtonElement | null)[]>;
+  onKeyDown: (event: React.KeyboardEvent) => void;
+}) {
+  if (!isOpen) {
+    return null;
+  }
+
+  return (
+    <div
+      className={className}
+      style={{
+        backgroundColor: 'var(--color-background)',
+        borderColor: 'var(--color-border-primary)',
+      }}
+      role="menu"
+    >
+      <ThemeMenuItems
+        currentTheme={currentTheme}
+        onSelect={onSelect}
+        menuItemRefs={menuItemRefs}
+        onKeyDown={onKeyDown}
+      />
+    </div>
   );
 }
 
@@ -90,7 +128,9 @@ export function ThemeToggle({
 }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
-  const [focusedIndex, setFocusedIndex] = useState(-1);
+  // Tracks the active menu item index. It only ever drives imperative focus
+  // (never the rendered output), so a ref avoids needless re-renders.
+  const focusedIndexRef = useRef(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -98,17 +138,18 @@ export function ThemeToggle({
   const currentTheme = themeOptions.find((option) => option.value === theme);
   const CurrentIcon = currentTheme?.icon || Monitor;
 
-  useEffect(() => {
-    if (isOpen) {
-      setFocusedIndex(-1);
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (focusedIndex >= 0 && focusedIndex < menuItemRefs.current.length) {
-      menuItemRefs.current[focusedIndex]?.focus();
-    }
-  }, [focusedIndex]);
+  // Move focus to a menu item by index, deferring to the next frame so the
+  // menu has rendered when opening. Keeps focus management in the handlers
+  // that originate it instead of chaining effects.
+  const focusMenuItem = (index: number) => {
+    focusedIndexRef.current = index;
+    if (index < 0) return;
+    requestAnimationFrame(() => {
+      if (index >= 0 && index < menuItemRefs.current.length) {
+        menuItemRefs.current[index]?.focus();
+      }
+    });
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -139,6 +180,17 @@ export function ThemeToggle({
     return undefined;
   }, [isOpen]);
 
+  // Toggle the dropdown via pointer. Reset focus tracking when opening to
+  // match the previous reset-on-open behavior.
+  const toggleOpen = () => {
+    setIsOpen((prev) => {
+      if (!prev) {
+        focusedIndexRef.current = -1;
+      }
+      return !prev;
+    });
+  };
+
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
     setIsOpen(false);
@@ -149,21 +201,20 @@ export function ThemeToggle({
   const handleButtonKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      setIsOpen(!isOpen);
-      if (!isOpen) {
-        setFocusedIndex(0);
-      }
+      const willOpen = !isOpen;
+      setIsOpen(willOpen);
+      focusMenuItem(willOpen ? 0 : -1);
     } else if (event.key === 'ArrowDown') {
       event.preventDefault();
       if (!isOpen) {
         setIsOpen(true);
-        setFocusedIndex(0);
+        focusMenuItem(0);
       }
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
       if (!isOpen) {
         setIsOpen(true);
-        setFocusedIndex(themeOptions.length - 1);
+        focusMenuItem(themeOptions.length - 1);
       }
     }
   };
@@ -171,20 +222,18 @@ export function ThemeToggle({
   const handleMenuKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      setFocusedIndex((prev) =>
-        prev < themeOptions.length - 1 ? prev + 1 : 0
-      );
+      const prev = focusedIndexRef.current;
+      focusMenuItem(prev < themeOptions.length - 1 ? prev + 1 : 0);
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      setFocusedIndex((prev) =>
-        prev > 0 ? prev - 1 : themeOptions.length - 1
-      );
+      const prev = focusedIndexRef.current;
+      focusMenuItem(prev > 0 ? prev - 1 : themeOptions.length - 1);
     } else if (event.key === 'Home') {
       event.preventDefault();
-      setFocusedIndex(0);
+      focusMenuItem(0);
     } else if (event.key === 'End') {
       event.preventDefault();
-      setFocusedIndex(themeOptions.length - 1);
+      focusMenuItem(themeOptions.length - 1);
     }
   };
 
@@ -200,7 +249,7 @@ export function ThemeToggle({
         <button
           ref={buttonRef}
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={toggleOpen}
           onKeyDown={handleButtonKeyDown}
           className={cn(
             'flex w-full flex-col items-center justify-center gap-1.5 rounded-xl p-3',
@@ -214,29 +263,20 @@ export function ThemeToggle({
           aria-haspopup="menu"
           aria-label="Change theme"
         >
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[rgba(var(--color-background-rgb),0.08)]">
-            <CurrentIcon className="h-5 w-5" />
+          <span className="flex size-10 items-center justify-center rounded-xl bg-[rgba(var(--color-background-rgb),0.08)]">
+            <CurrentIcon className="size-5" />
           </span>
           <span className="text-[11px] font-medium">Theme</span>
         </button>
 
-        {isOpen && (
-          <div
-            className="absolute bottom-full left-1/2 z-50 mb-2 min-w-48 -translate-x-1/2 rounded-2xl border p-2 shadow-xl"
-            style={{
-              backgroundColor: 'var(--color-background)',
-              borderColor: 'var(--color-border-primary)',
-            }}
-            role="menu"
-          >
-            <ThemeMenuItems
-              currentTheme={theme}
-              onSelect={handleGridThemeChange}
-              menuItemRefs={menuItemRefs}
-              onKeyDown={handleMenuKeyDown}
-            />
-          </div>
-        )}
+        <ThemeMenuPanel
+          isOpen={isOpen}
+          className="absolute bottom-full left-1/2 z-50 mb-2 min-w-48 -translate-x-1/2 rounded-2xl border p-2 shadow-xl"
+          currentTheme={theme}
+          onSelect={handleGridThemeChange}
+          menuItemRefs={menuItemRefs}
+          onKeyDown={handleMenuKeyDown}
+        />
       </div>
     );
   }
@@ -247,7 +287,7 @@ export function ThemeToggle({
         <button
           ref={buttonRef}
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={toggleOpen}
           onKeyDown={handleButtonKeyDown}
           className={cn(
             'flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium',
@@ -260,27 +300,18 @@ export function ThemeToggle({
           aria-haspopup="menu"
           aria-label="Change theme"
         >
-          <CurrentIcon className="h-4 w-4" />
+          <CurrentIcon className="size-4" />
           <span>Theme</span>
         </button>
 
-        {isOpen && (
-          <div
-            className="absolute bottom-full left-0 z-[60] mb-2 min-w-48 rounded-2xl border p-2 shadow-xl"
-            style={{
-              backgroundColor: 'var(--color-background)',
-              borderColor: 'var(--color-border-primary)',
-            }}
-            role="menu"
-          >
-            <ThemeMenuItems
-              currentTheme={theme}
-              onSelect={handleGridThemeChange}
-              menuItemRefs={menuItemRefs}
-              onKeyDown={handleMenuKeyDown}
-            />
-          </div>
-        )}
+        <ThemeMenuPanel
+          isOpen={isOpen}
+          className="absolute bottom-full left-0 z-[60] mb-2 min-w-48 rounded-2xl border p-2 shadow-xl"
+          currentTheme={theme}
+          onSelect={handleGridThemeChange}
+          menuItemRefs={menuItemRefs}
+          onKeyDown={handleMenuKeyDown}
+        />
       </div>
     );
   }
@@ -291,7 +322,7 @@ export function ThemeToggle({
         <button
           ref={buttonRef}
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={toggleOpen}
           onKeyDown={handleButtonKeyDown}
           className={cn(
             'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none',
@@ -301,35 +332,26 @@ export function ThemeToggle({
           aria-haspopup="menu"
           aria-label="Theme"
         >
-          <span className="theme-toggle-icon-bg flex h-9 w-9 items-center justify-center rounded-2xl">
-            <CurrentIcon className="h-4 w-4" />
+          <span className="theme-toggle-icon-bg flex size-9 items-center justify-center rounded-2xl">
+            <CurrentIcon className="size-4" />
           </span>
           <span className="flex-1 text-left">Theme</span>
           <ChevronDown
             className={cn(
-              'h-4 w-4 transition-transform',
+              'size-4 transition-transform',
               isOpen && 'rotate-180'
             )}
           />
         </button>
 
-        {isOpen && (
-          <div
-            className="absolute bottom-full left-0 z-50 mb-2 min-w-56 rounded-2xl border p-2 shadow-xl"
-            style={{
-              backgroundColor: 'var(--color-background)',
-              borderColor: 'var(--color-border-primary)',
-            }}
-            role="menu"
-          >
-            <ThemeMenuItems
-              currentTheme={theme}
-              onSelect={handleThemeChange}
-              menuItemRefs={menuItemRefs}
-              onKeyDown={handleMenuKeyDown}
-            />
-          </div>
-        )}
+        <ThemeMenuPanel
+          isOpen={isOpen}
+          className="absolute bottom-full left-0 z-50 mb-2 min-w-56 rounded-2xl border p-2 shadow-xl"
+          currentTheme={theme}
+          onSelect={handleThemeChange}
+          menuItemRefs={menuItemRefs}
+          onKeyDown={handleMenuKeyDown}
+        />
       </div>
     );
   }
@@ -340,10 +362,10 @@ export function ThemeToggle({
       <button
         ref={buttonRef}
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleOpen}
         onKeyDown={handleButtonKeyDown}
         className={cn(
-          'nav-button flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none',
+          'nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none',
           'focus-visible:ring-2',
           'focus-visible:ring-[color:var(--color-border-primary)]',
           'text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-border-muted)]'
@@ -357,26 +379,17 @@ export function ThemeToggle({
         aria-haspopup="menu"
         aria-label="Theme"
       >
-        <CurrentIcon className="h-4 w-4" />
+        <CurrentIcon className="size-4" />
       </button>
 
-      {isOpen && (
-        <div
-          className="absolute right-0 top-full z-50 mt-2 min-w-56 rounded-2xl border p-2 shadow-xl"
-          style={{
-            backgroundColor: 'var(--color-background)',
-            borderColor: 'var(--color-border-primary)',
-          }}
-          role="menu"
-        >
-          <ThemeMenuItems
-            currentTheme={theme}
-            onSelect={handleThemeChange}
-            menuItemRefs={menuItemRefs}
-            onKeyDown={handleMenuKeyDown}
-          />
-        </div>
-      )}
+      <ThemeMenuPanel
+        isOpen={isOpen}
+        className="absolute right-0 top-full z-50 mt-2 min-w-56 rounded-2xl border p-2 shadow-xl"
+        currentTheme={theme}
+        onSelect={handleThemeChange}
+        menuItemRefs={menuItemRefs}
+        onKeyDown={handleMenuKeyDown}
+      />
     </div>
   );
 }

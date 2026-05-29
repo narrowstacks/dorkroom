@@ -37,6 +37,7 @@ import { useRecipeModals } from './hooks/useRecipeModals';
 import { useResultsPagination } from './hooks/useResultsPagination';
 import { useUrlStateSync } from './hooks/useUrlStateSync';
 
+// eslint-disable-next-line react-doctor/no-giant-component, react-doctor/prefer-useReducer -- top-level page that wires together many independent feature hooks; splitting/reducer-izing was attempted but regressed behavior, so it is kept as the composition root (tracked as follow-up)
 export default function DevelopmentRecipesPage() {
   const {
     developerTypeFilter,
@@ -212,6 +213,7 @@ export default function DevelopmentRecipesPage() {
   const deferredCombinedRows = useDeferredValue(combinedRows);
 
   // Sync recipesByUuid to state for useRecipeUrlState (API recipe lookup)
+  // eslint-disable-next-line react-doctor/no-derived-state-effect -- bridges an external data source into state consumed by useRecipeUrlState; not a render-derivable value
   useEffect(() => {
     setRecipesByUuidState(recipesByUuid);
   }, [recipesByUuid]);
@@ -369,6 +371,7 @@ export default function DevelopmentRecipesPage() {
   // Memoize the stringified sorting to avoid recreating on every render
   const sortingKey = useMemo(() => JSON.stringify(sorting), [sorting]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: sortingKey is intentionally used to trigger page reset when sorting changes
+  // eslint-disable-next-line react-doctor/no-derived-state-effect -- intentional "reset page index when sorting changes" side effect, not derived state
   useEffect(() => {
     setPageIndex(0);
   }, [sortingKey]);

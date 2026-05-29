@@ -188,5 +188,5 @@ export function searchFilms(
     }
   }
 
-  return [...seen.values()].sort((a, b) => (a.score ?? 1) - (b.score ?? 1));
+  return [...seen.values()].toSorted((a, b) => (a.score ?? 1) - (b.score ?? 1));
 }

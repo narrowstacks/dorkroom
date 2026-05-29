@@ -19,6 +19,7 @@ import {
   TestTubes,
   Timer,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 // Calculator tools configuration - module level to prevent recreation on each render
 const CALCULATORS = [
@@ -131,6 +132,12 @@ const COMING_SOON = [
 
 export function HomePage() {
   const { data: stats, isPending: isStatsLoading } = useStats();
+  // Compute the year client-only to avoid a render-time new Date() value.
+  const [currentYear, setCurrentYear] = useState<number | null>(null);
+  // eslint-disable-next-line react-doctor/rendering-hydration-no-flicker -- CSR-only SPA (no SSR); the footer year is intentionally computed client-side
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 pb-24 space-y-10">
@@ -156,7 +163,7 @@ export function HomePage() {
           <div className="relative z-10 flex flex-col justify-between h-full gap-6">
             <div>
               <h2
-                className="text-2xl font-bold mb-2"
+                className="text-2xl font-semibold mb-2"
                 style={{ color: 'var(--color-hero-title)' }}
               >
                 Skip the math. Make prints!
@@ -174,14 +181,14 @@ export function HomePage() {
                 to="/border"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors hero-button-success"
               >
-                <Crop className="w-4 h-4" />
+                <Crop className="size-4" />
                 Calculate darkroom easel borders
               </Link>
               <Link
                 to="/development"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors hero-button-error"
               >
-                <FlaskConical className="w-4 h-4" />
+                <FlaskConical className="size-4" />
                 Search film development recipes
               </Link>
             </div>
@@ -226,8 +233,8 @@ export function HomePage() {
       {/* Tools Grid */}
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-[color:var(--color-text-primary)] flex items-center gap-2">
-            <CalculatorIcon className="w-5 h-5 text-[color:var(--color-text-tertiary)]" />
+          <h2 className="text-xl font-semibold text-[color:var(--color-text-primary)] flex items-center gap-2">
+            <CalculatorIcon className="size-5 text-[color:var(--color-text-tertiary)]" />
             Calculators
           </h2>
           <div
@@ -249,9 +256,9 @@ export function HomePage() {
           className="flex items-center justify-between mb-6"
           data-coming-soon-section
         >
-          <h2 className="text-xl font-bold text-[color:var(--color-text-primary)] flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-[color:var(--color-text-primary)] flex items-center gap-2">
             <Construction
-              className="w-5 h-5 text-[color:var(--color-text-tertiary)]"
+              className="size-5 text-[color:var(--color-text-tertiary)]"
               data-coming-soon
             />
             Coming Soon
@@ -284,7 +291,7 @@ export function HomePage() {
                     color: 'var(--color-text-tertiary)',
                   }}
                 >
-                  <item.icon className="h-6 w-6" data-coming-soon />
+                  <item.icon className="size-6" data-coming-soon />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-text-tertiary)] mb-1">
@@ -312,7 +319,7 @@ export function HomePage() {
         }}
       >
         <p>
-          © {new Date().getFullYear()} Dorkroom.{' '}
+          © {currentYear ?? ''} Dorkroom.{' '}
           <a
             href="https://github.com/narrowstacks/dorkroom/blob/main/LICENSE"
             className="underline transition-colors footer-link"
@@ -329,7 +336,7 @@ export function HomePage() {
             rel="noreferrer"
             className="flex items-center gap-2 transition-colors footer-link"
           >
-            <GitBranch className="h-4 w-4" />
+            <GitBranch className="size-4" />
             <span>Contribute</span>
           </a>
           <a
@@ -338,7 +345,7 @@ export function HomePage() {
             rel="noreferrer"
             className="flex items-center gap-2 transition-colors footer-link"
           >
-            <HandCoins className="h-4 w-4" />
+            <HandCoins className="size-4" />
             <span>Donate</span>
           </a>
         </div>

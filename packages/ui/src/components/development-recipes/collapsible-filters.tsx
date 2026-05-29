@@ -2,6 +2,7 @@ import type { CustomRecipeFilter, SelectItem } from '@dorkroom/logic';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '../../lib/cn';
+import { setStyles } from '../../lib/dom';
 import { Select } from '../select';
 
 interface CollapsibleFiltersProps {
@@ -54,7 +55,7 @@ export function CollapsibleFilters({
   favoritesOnly = false,
   onFavoritesOnlyChange,
 }: CollapsibleFiltersProps) {
-  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const [isCollapsed, setIsCollapsed] = useState(() => defaultCollapsed);
 
   // Check if any filters are active
   const hasActiveFilters =
@@ -151,14 +152,16 @@ export function CollapsibleFilters({
                   color: 'var(--color-text-secondary)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor =
-                    'var(--color-border-primary)';
-                  e.currentTarget.style.color = 'var(--color-text-primary)';
+                  setStyles(e.currentTarget, {
+                    borderColor: 'var(--color-border-primary)',
+                    color: 'var(--color-text-primary)',
+                  });
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor =
-                    'var(--color-border-secondary)';
-                  e.currentTarget.style.color = 'var(--color-text-secondary)';
+                  setStyles(e.currentTarget, {
+                    borderColor: 'var(--color-border-secondary)',
+                    color: 'var(--color-text-secondary)',
+                  });
                 }}
               >
                 Clear all filters
@@ -207,6 +210,7 @@ export function CollapsibleFilters({
                 >
                   <input
                     type="checkbox"
+                    aria-label="Favorites only"
                     checked={favoritesOnly}
                     onChange={(e) => onFavoritesOnlyChange(e.target.checked)}
                     style={{ accentColor: 'var(--color-primary)' }}

@@ -29,6 +29,7 @@ interface ConfirmModalProps {
  * A confirmation modal for actions that require user confirmation.
  * Use this instead of browser's native confirm() dialog.
  */
+// eslint-disable-next-line react-doctor/no-many-boolean-props -- isOpen/isProcessing are modal lifecycle state and showWarningIcon/isDestructive are an intentional, well-understood confirm-dialog API
 export function ConfirmModal({
   isOpen,
   onClose,
@@ -54,27 +55,29 @@ export function ConfirmModal({
   }
 
   return createPortal(
-    // biome-ignore lint/a11y/useKeyWithClickEvents: backdrop click closes modal, keyboard Escape handled separately
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center px-4 backdrop-blur"
-      style={{
-        backgroundColor: 'var(--color-visualization-overlay)',
-        height: '100dvh',
-      }}
-      role="dialog"
-      aria-modal="true"
-      onClick={onClose}
+      className="fixed inset-0 z-[100] flex items-center justify-center px-4"
+      style={{ height: '100dvh' }}
     >
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: modal content stops propagation */}
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard events handled by parent */}
-      <div
-        className="relative w-full max-w-sm rounded-2xl border p-5 shadow-xl backdrop-blur-lg animate-scale-fade-in"
+      {/* Backdrop: a real button so click-to-close is keyboard-accessible */}
+      <button
+        type="button"
+        aria-label={`Dismiss ${title}`}
+        tabIndex={-1}
+        className="absolute inset-0 cursor-default backdrop-blur"
+        style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
+        onClick={onClose}
+      />
+      <dialog
+        open
+        aria-modal="true"
+        aria-label={title}
+        className="relative z-10 m-0 max-h-none w-full max-w-sm rounded-2xl border p-5 shadow-xl backdrop-blur-lg animate-scale-fade-in"
         style={{
           borderColor: 'var(--color-border-secondary)',
           backgroundColor: 'var(--color-surface)',
           color: 'var(--color-text-primary)',
         }}
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <h2
@@ -96,7 +99,7 @@ export function ConfirmModal({
               }}
             >
               <AlertTriangle
-                className="h-4 w-4"
+                className="size-4"
                 style={{
                   color: isDestructive
                     ? 'var(--color-semantic-error)'
@@ -163,10 +166,10 @@ export function ConfirmModal({
               e.currentTarget.style.opacity = '1';
             }}
           >
-            {isProcessing ? 'Deleting...' : confirmText}
+            {isProcessing ? 'Deleting…' : confirmText}
           </button>
         </div>
-      </div>
+      </dialog>
     </div>,
     document.body
   );

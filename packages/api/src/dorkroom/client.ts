@@ -242,10 +242,10 @@ export class DorkroomApiClient {
         // Remove curly braces and split by comma, handling quoted strings
         const notesStr = raw.manufacturer_notes.slice(1, -1); // Remove { }
         if (notesStr) {
-          manufacturerNotes = notesStr
-            .split('","')
-            .map((note) => note.replace(/^"|"$/g, '').trim())
-            .filter(Boolean);
+          manufacturerNotes = notesStr.split('","').flatMap((note) => {
+            const cleaned = note.replace(/^"|"$/g, '').trim();
+            return cleaned ? [cleaned] : [];
+          });
         }
       } catch {
         manufacturerNotes = null;

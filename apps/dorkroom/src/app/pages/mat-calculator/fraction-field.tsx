@@ -72,6 +72,7 @@ export function FractionField({
         <input
           type="text"
           inputMode="decimal"
+          aria-label={label}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={(e) => {
@@ -109,13 +110,13 @@ export function FractionField({
             label={`Increase ${label} by 1/16 inch`}
             onTap={() => nudge(1)}
           >
-            <ChevronUp className="h-3.5 w-3.5" />
+            <ChevronUp className="size-3.5" />
           </StepperButton>
           <StepperButton
             label={`Decrease ${label} by 1/16 inch`}
             onTap={() => nudge(-1)}
           >
-            <ChevronDown className="h-3.5 w-3.5" />
+            <ChevronDown className="size-3.5" />
           </StepperButton>
         </div>
       </div>

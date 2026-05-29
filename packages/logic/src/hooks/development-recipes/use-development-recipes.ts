@@ -502,9 +502,9 @@ export const useDevelopmentRecipes = (
       const matchingDevelopers = allDevelopers.filter(
         (dev) => dev.type === developerTypeFilter
       );
-      const developerKeys = matchingDevelopers
-        .flatMap((dev) => [dev.uuid, dev.slug])
-        .filter(Boolean);
+      const developerKeys = matchingDevelopers.flatMap((dev) =>
+        [dev.uuid, dev.slug].filter(Boolean)
+      );
       combinations = combinations.filter(
         (combo) =>
           developerKeys.includes(combo.developerId) ||

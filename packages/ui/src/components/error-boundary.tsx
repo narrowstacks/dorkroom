@@ -44,9 +44,8 @@ export class ErrorBoundary extends Component<Props, State> {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="h-8 w-8 text-[color:var(--color-semantic-error)]"
-              aria-label="Error"
-              role="img"
+              className="size-8 text-[color:var(--color-semantic-error)]"
+              aria-hidden="true"
             >
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />

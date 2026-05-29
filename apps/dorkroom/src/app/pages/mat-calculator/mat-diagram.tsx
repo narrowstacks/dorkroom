@@ -21,6 +21,295 @@ const SOFT = 'var(--color-text-tertiary)';
 const ACCENT = 'var(--color-primary)';
 const PANEL = 'var(--color-surface)';
 
+interface MatGeometry {
+  pad: number;
+  drawW: number;
+  drawH: number;
+  winLeft: number;
+  winTop: number;
+  winWpx: number;
+  winHpx: number;
+}
+
+function MatDefs() {
+  return (
+    <defs>
+      <pattern
+        id="hatch-mat"
+        patternUnits="userSpaceOnUse"
+        width="6"
+        height="6"
+        patternTransform="rotate(45)"
+      >
+        <line
+          x1="0"
+          y1="0"
+          x2="0"
+          y2="6"
+          style={{ stroke: SOFT }}
+          strokeWidth="0.5"
+          opacity="0.35"
+        />
+      </pattern>
+      <marker
+        id="arrow-end-mat"
+        viewBox="0 0 10 10"
+        refX="9"
+        refY="5"
+        markerWidth="7"
+        markerHeight="7"
+        orient="auto-start-reverse"
+      >
+        <path d="M 0 0 L 10 5 L 0 10 Z" style={{ fill: ACCENT }} />
+      </marker>
+    </defs>
+  );
+}
+
+function MatWindowTicks({ geometry }: { geometry: MatGeometry }) {
+  const { pad, drawH, drawW, winLeft, winTop, winWpx, winHpx } = geometry;
+  return (
+    <g style={{ stroke: ACCENT }} strokeWidth="2" strokeLinecap="round">
+      {[winLeft, winLeft + winWpx].map((x) => (
+        <line key={`top-${x}`} x1={x} y1={pad - 6} x2={x} y2={winTop + 4} />
+      ))}
+      {[winLeft, winLeft + winWpx].map((x) => (
+        <line
+          key={`bot-${x}`}
+          x1={x}
+          y1={winTop + winHpx - 4}
+          x2={x}
+          y2={pad + drawH + 6}
+        />
+      ))}
+      {[winTop, winTop + winHpx].map((y) => (
+        <line key={`left-${y}`} x1={pad - 6} y1={y} x2={winLeft + 4} y2={y} />
+      ))}
+      {[winTop, winTop + winHpx].map((y) => (
+        <line
+          key={`right-${y}`}
+          x1={winLeft + winWpx - 4}
+          y1={y}
+          x2={pad + drawW + 6}
+          y2={y}
+        />
+      ))}
+    </g>
+  );
+}
+
+function MatOuterLabels({
+  geometry,
+  ow,
+  oh,
+  fmt,
+}: {
+  geometry: MatGeometry;
+  ow: number;
+  oh: number;
+  fmt: (v: number) => string;
+}) {
+  const { pad, drawW, drawH } = geometry;
+  return (
+    <>
+      <text
+        x={pad + drawW / 2}
+        y={pad - 14}
+        textAnchor="middle"
+        fontSize="12"
+        fontWeight="500"
+        className="font-mono"
+        style={{ fill: ACCENT }}
+      >
+        {fmt(ow)}
+      </text>
+      <text
+        x={pad + drawW / 2}
+        y={pad - 26}
+        textAnchor="middle"
+        fontSize="8.5"
+        letterSpacing="0.12em"
+        className="font-mono"
+        style={{ fill: SOFT }}
+      >
+        OUTER WIDTH
+      </text>
+
+      <g
+        transform={`translate(${pad + drawW + 14}, ${pad + drawH / 2}) rotate(90)`}
+      >
+        <text
+          textAnchor="middle"
+          fontSize="12"
+          fontWeight="500"
+          className="font-mono"
+          style={{ fill: ACCENT }}
+        >
+          {fmt(oh)}
+        </text>
+        <text
+          textAnchor="middle"
+          fontSize="8.5"
+          letterSpacing="0.12em"
+          y={-14}
+          className="font-mono"
+          style={{ fill: SOFT }}
+        >
+          OUTER HEIGHT
+        </text>
+      </g>
+    </>
+  );
+}
+
+function MatBorderArrows({
+  geometry,
+  bt,
+  bb,
+  bl,
+  br,
+  fmt,
+}: {
+  geometry: MatGeometry;
+  bt: number;
+  bb: number;
+  bl: number;
+  br: number;
+  fmt: (v: number) => string;
+}) {
+  const { pad, drawW, drawH, winLeft, winTop, winWpx, winHpx } = geometry;
+  const labelW = 44;
+  const labelH = 14;
+  const winCx = winLeft + winWpx / 2;
+  const winCy = winTop + winHpx / 2;
+  const topCy = (pad + winTop) / 2;
+  const botCy = (winTop + winHpx + pad + drawH) / 2;
+  const leftCx = (pad + winLeft) / 2;
+  const rightCx = (winLeft + winWpx + pad + drawW) / 2;
+  const arrows = [
+    {
+      key: 'top',
+      line: { x1: winCx, y1: pad + 2, x2: winCx, y2: winTop - 2 },
+      tx: winCx,
+      ty: topCy,
+      value: fmt(bt),
+    },
+    {
+      key: 'bot',
+      line: {
+        x1: winCx,
+        y1: winTop + winHpx + 2,
+        x2: winCx,
+        y2: pad + drawH - 2,
+      },
+      tx: winCx,
+      ty: botCy,
+      value: fmt(bb),
+    },
+    {
+      key: 'left',
+      line: { x1: pad + 2, y1: winCy, x2: winLeft - 2, y2: winCy },
+      tx: leftCx,
+      ty: winCy,
+      value: fmt(bl),
+    },
+    {
+      key: 'right',
+      line: {
+        x1: winLeft + winWpx + 2,
+        y1: winCy,
+        x2: pad + drawW - 2,
+        y2: winCy,
+      },
+      tx: rightCx,
+      ty: winCy,
+      value: fmt(br),
+    },
+  ];
+  return (
+    <g>
+      {arrows.map((a) => (
+        <line
+          key={`l-${a.key}`}
+          x1={a.line.x1}
+          y1={a.line.y1}
+          x2={a.line.x2}
+          y2={a.line.y2}
+          style={{ stroke: ACCENT }}
+          strokeWidth="0.9"
+          markerStart="url(#arrow-end-mat)"
+          markerEnd="url(#arrow-end-mat)"
+        />
+      ))}
+      {arrows.map((a) => (
+        <rect
+          key={`r-${a.key}`}
+          x={a.tx - labelW / 2}
+          y={a.ty - labelH / 2}
+          width={labelW}
+          height={labelH}
+          style={{ fill: PANEL }}
+        />
+      ))}
+      {arrows.map((a) => (
+        <text
+          key={`t-${a.key}`}
+          x={a.tx}
+          y={a.ty}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize="10"
+          fontWeight="500"
+          className="font-mono"
+          style={{ fill: ACCENT }}
+        >
+          {a.value}
+        </text>
+      ))}
+    </g>
+  );
+}
+
+function MatWindowLabel({
+  geometry,
+  windowW,
+  windowH,
+  fmt,
+}: {
+  geometry: MatGeometry;
+  windowW: number;
+  windowH: number;
+  fmt: (v: number) => string;
+}) {
+  const { winLeft, winTop, winWpx, winHpx } = geometry;
+  return (
+    <>
+      <text
+        x={winLeft + winWpx / 2}
+        y={winTop + winHpx / 2 - 4}
+        textAnchor="middle"
+        fontSize="9"
+        letterSpacing="0.18em"
+        className="font-mono"
+        style={{ fill: SOFT }}
+      >
+        WINDOW
+      </text>
+      <text
+        x={winLeft + winWpx / 2}
+        y={winTop + winHpx / 2 + 12}
+        textAnchor="middle"
+        fontSize="12"
+        fontWeight="500"
+        className="font-mono"
+        style={{ fill: ACCENT }}
+      >
+        {fmt(windowW)} × {fmt(windowH)}
+      </text>
+    </>
+  );
+}
+
 /**
  * To-scale plan of the mat: outer board (hatched), window opening, artwork
  * footprint, and dimensioned borders. Mirrors the layout drawing from the
@@ -57,6 +346,16 @@ export function MatDiagram({
   const artWpx = revealMode ? aw * pxPerInch : 0;
   const artHpx = revealMode ? ah * pxPerInch : 0;
 
+  const geometry: MatGeometry = {
+    pad,
+    drawW,
+    drawH,
+    winLeft,
+    winTop,
+    winWpx,
+    winHpx,
+  };
+
   return (
     <div
       className="rounded-xl border p-3"
@@ -69,36 +368,7 @@ export function MatDiagram({
         viewBox={`0 0 ${vbW} ${vbH}`}
         className="block h-auto max-h-[460px] w-full"
       >
-        <defs>
-          <pattern
-            id="hatch-mat"
-            patternUnits="userSpaceOnUse"
-            width="6"
-            height="6"
-            patternTransform="rotate(45)"
-          >
-            <line
-              x1="0"
-              y1="0"
-              x2="0"
-              y2="6"
-              style={{ stroke: SOFT }}
-              strokeWidth="0.5"
-              opacity="0.35"
-            />
-          </pattern>
-          <marker
-            id="arrow-end-mat"
-            viewBox="0 0 10 10"
-            refX="9"
-            refY="5"
-            markerWidth="7"
-            markerHeight="7"
-            orient="auto-start-reverse"
-          >
-            <path d="M 0 0 L 10 5 L 0 10 Z" style={{ fill: ACCENT }} />
-          </marker>
-        </defs>
+        <MatDefs />
 
         {revealMode && valid && (
           <rect
@@ -144,210 +414,27 @@ export function MatDiagram({
           strokeWidth="1.2"
         />
 
+        {valid && <MatWindowTicks geometry={geometry} />}
+
+        <MatOuterLabels geometry={geometry} ow={ow} oh={oh} fmt={fmt} />
+
         {valid && (
-          <g style={{ stroke: ACCENT }} strokeWidth="2" strokeLinecap="round">
-            {[winLeft, winLeft + winWpx].map((x) => (
-              <line
-                key={`top-${x}`}
-                x1={x}
-                y1={pad - 6}
-                x2={x}
-                y2={winTop + 4}
-              />
-            ))}
-            {[winLeft, winLeft + winWpx].map((x) => (
-              <line
-                key={`bot-${x}`}
-                x1={x}
-                y1={winTop + winHpx - 4}
-                x2={x}
-                y2={pad + drawH + 6}
-              />
-            ))}
-            {[winTop, winTop + winHpx].map((y) => (
-              <line
-                key={`left-${y}`}
-                x1={pad - 6}
-                y1={y}
-                x2={winLeft + 4}
-                y2={y}
-              />
-            ))}
-            {[winTop, winTop + winHpx].map((y) => (
-              <line
-                key={`right-${y}`}
-                x1={winLeft + winWpx - 4}
-                y1={y}
-                x2={pad + drawW + 6}
-                y2={y}
-              />
-            ))}
-          </g>
+          <MatBorderArrows
+            geometry={geometry}
+            bt={bt}
+            bb={bb}
+            bl={bl}
+            br={br}
+            fmt={fmt}
+          />
         )}
 
-        <text
-          x={pad + drawW / 2}
-          y={pad - 14}
-          textAnchor="middle"
-          fontSize="12"
-          fontWeight="500"
-          className="font-mono"
-          style={{ fill: ACCENT }}
-        >
-          {fmt(ow)}
-        </text>
-        <text
-          x={pad + drawW / 2}
-          y={pad - 26}
-          textAnchor="middle"
-          fontSize="8.5"
-          letterSpacing="0.12em"
-          className="font-mono"
-          style={{ fill: SOFT }}
-        >
-          OUTER WIDTH
-        </text>
-
-        <g
-          transform={`translate(${pad + drawW + 14}, ${pad + drawH / 2}) rotate(90)`}
-        >
-          <text
-            textAnchor="middle"
-            fontSize="12"
-            fontWeight="500"
-            className="font-mono"
-            style={{ fill: ACCENT }}
-          >
-            {fmt(oh)}
-          </text>
-          <text
-            textAnchor="middle"
-            fontSize="8.5"
-            letterSpacing="0.12em"
-            y={-14}
-            className="font-mono"
-            style={{ fill: SOFT }}
-          >
-            OUTER HEIGHT
-          </text>
-        </g>
-
-        {valid &&
-          (() => {
-            const labelW = 44;
-            const labelH = 14;
-            const winCx = winLeft + winWpx / 2;
-            const winCy = winTop + winHpx / 2;
-            const topCy = (pad + winTop) / 2;
-            const botCy = (winTop + winHpx + pad + drawH) / 2;
-            const leftCx = (pad + winLeft) / 2;
-            const rightCx = (winLeft + winWpx + pad + drawW) / 2;
-            const arrows = [
-              {
-                key: 'top',
-                line: { x1: winCx, y1: pad + 2, x2: winCx, y2: winTop - 2 },
-                tx: winCx,
-                ty: topCy,
-                value: fmt(bt),
-              },
-              {
-                key: 'bot',
-                line: {
-                  x1: winCx,
-                  y1: winTop + winHpx + 2,
-                  x2: winCx,
-                  y2: pad + drawH - 2,
-                },
-                tx: winCx,
-                ty: botCy,
-                value: fmt(bb),
-              },
-              {
-                key: 'left',
-                line: { x1: pad + 2, y1: winCy, x2: winLeft - 2, y2: winCy },
-                tx: leftCx,
-                ty: winCy,
-                value: fmt(bl),
-              },
-              {
-                key: 'right',
-                line: {
-                  x1: winLeft + winWpx + 2,
-                  y1: winCy,
-                  x2: pad + drawW - 2,
-                  y2: winCy,
-                },
-                tx: rightCx,
-                ty: winCy,
-                value: fmt(br),
-              },
-            ];
-            return (
-              <g>
-                {arrows.map((a) => (
-                  <line
-                    key={`l-${a.key}`}
-                    x1={a.line.x1}
-                    y1={a.line.y1}
-                    x2={a.line.x2}
-                    y2={a.line.y2}
-                    style={{ stroke: ACCENT }}
-                    strokeWidth="0.9"
-                    markerStart="url(#arrow-end-mat)"
-                    markerEnd="url(#arrow-end-mat)"
-                  />
-                ))}
-                {arrows.map((a) => (
-                  <rect
-                    key={`r-${a.key}`}
-                    x={a.tx - labelW / 2}
-                    y={a.ty - labelH / 2}
-                    width={labelW}
-                    height={labelH}
-                    style={{ fill: PANEL }}
-                  />
-                ))}
-                {arrows.map((a) => (
-                  <text
-                    key={`t-${a.key}`}
-                    x={a.tx}
-                    y={a.ty}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fontSize="10"
-                    fontWeight="500"
-                    className="font-mono"
-                    style={{ fill: ACCENT }}
-                  >
-                    {a.value}
-                  </text>
-                ))}
-              </g>
-            );
-          })()}
-
-        <text
-          x={winLeft + winWpx / 2}
-          y={winTop + winHpx / 2 - 4}
-          textAnchor="middle"
-          fontSize="9"
-          letterSpacing="0.18em"
-          className="font-mono"
-          style={{ fill: SOFT }}
-        >
-          WINDOW
-        </text>
-        <text
-          x={winLeft + winWpx / 2}
-          y={winTop + winHpx / 2 + 12}
-          textAnchor="middle"
-          fontSize="12"
-          fontWeight="500"
-          className="font-mono"
-          style={{ fill: ACCENT }}
-        >
-          {fmt(windowW)} × {fmt(windowH)}
-        </text>
+        <MatWindowLabel
+          geometry={geometry}
+          windowW={windowW}
+          windowH={windowH}
+          fmt={fmt}
+        />
       </svg>
     </div>
   );

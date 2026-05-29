@@ -47,7 +47,7 @@ export function PreviewAndControlsSection() {
           }}
           className={`${flipControlBaseClasses} ${enabledFlipClasses}`}
         >
-          <RotateCw className="h-4 w-4" />
+          <RotateCw className="size-4" />
           Flip Paper
         </button>
         <button
@@ -70,7 +70,7 @@ export function PreviewAndControlsSection() {
               : undefined
           }
         >
-          <Square className="h-4 w-4" />
+          <Square className="size-4" />
           Flip Ratio
         </button>
       </div>
@@ -85,7 +85,7 @@ export function PreviewAndControlsSection() {
           backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
         }}
       >
-        <RotateCcw className="h-4 w-4" />
+        <RotateCcw className="size-4" />
         Reset to defaults
       </button>
 

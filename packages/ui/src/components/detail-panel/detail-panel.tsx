@@ -1,6 +1,7 @@
 import { GripVertical, Maximize2, Minimize2, X } from 'lucide-react';
 import { type FC, type ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { setStyles } from '../../lib/dom';
 
 /** Props for the reusable CloseButton component */
 interface CloseButtonProps {
@@ -24,16 +25,20 @@ export const DetailPanelCloseButton: FC<CloseButtonProps> = ({
       } as React.CSSProperties
     }
     onMouseEnter={(e) => {
-      e.currentTarget.style.backgroundColor = 'var(--color-border-muted)';
-      e.currentTarget.style.color = 'var(--color-text-primary)';
+      setStyles(e.currentTarget, {
+        backgroundColor: 'var(--color-border-muted)',
+        color: 'var(--color-text-primary)',
+      });
     }}
     onMouseLeave={(e) => {
-      e.currentTarget.style.backgroundColor = 'transparent';
-      e.currentTarget.style.color = 'var(--color-text-muted)';
+      setStyles(e.currentTarget, {
+        backgroundColor: 'transparent',
+        color: 'var(--color-text-muted)',
+      });
     }}
     aria-label={ariaLabel}
   >
-    <X className="h-4 w-4" />
+    <X className="size-4" />
   </button>
 );
 
@@ -61,19 +66,23 @@ export const DetailPanelExpandButton: FC<ExpandButtonProps> = ({
       } as React.CSSProperties
     }
     onMouseEnter={(e) => {
-      e.currentTarget.style.backgroundColor = 'var(--color-border-muted)';
-      e.currentTarget.style.color = 'var(--color-text-primary)';
+      setStyles(e.currentTarget, {
+        backgroundColor: 'var(--color-border-muted)',
+        color: 'var(--color-text-primary)',
+      });
     }}
     onMouseLeave={(e) => {
-      e.currentTarget.style.backgroundColor = 'transparent';
-      e.currentTarget.style.color = 'var(--color-text-muted)';
+      setStyles(e.currentTarget, {
+        backgroundColor: 'transparent',
+        color: 'var(--color-text-muted)',
+      });
     }}
     aria-label={isExpanded ? 'Collapse to panel' : 'Expand to full screen'}
   >
     {isExpanded ? (
-      <Minimize2 className="h-4 w-4" />
+      <Minimize2 className="size-4" />
     ) : (
-      <Maximize2 className="h-4 w-4" />
+      <Maximize2 className="size-4" />
     )}
   </button>
 );
@@ -125,11 +134,10 @@ export const DetailPanel: FC<DetailPanelProps> = ({
   headerButtons,
   maxHeight,
 }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartY, setDragStartY] = useState(0);
+  const isDraggingRef = useRef(false);
+  const dragStartYRef = useRef(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
 
   // Reset expanded state when panel closes
   useEffect(() => {
@@ -167,26 +175,27 @@ export const DetailPanel: FC<DetailPanelProps> = ({
 
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
+    // eslint-disable-next-line react-doctor/prefer-use-effect-event -- a plain keydown listener with intentional deps; useEffectEvent adds no real benefit here
   }, [isOpen, isExpanded, onClose]);
 
   // Mobile drag handlers
   const handleDragStart = (clientY: number) => {
-    setIsDragging(true);
-    setDragStartY(clientY);
+    isDraggingRef.current = true;
+    dragStartYRef.current = clientY;
     setDragOffset(0);
   };
 
   const handleDragMove = (clientY: number) => {
-    if (!isDragging) return;
+    if (!isDraggingRef.current) return;
 
-    const offset = Math.max(0, clientY - dragStartY);
+    const offset = Math.max(0, clientY - dragStartYRef.current);
     setDragOffset(offset);
   };
 
   const handleDragEnd = () => {
-    if (!isDragging) return;
+    if (!isDraggingRef.current) return;
 
-    setIsDragging(false);
+    isDraggingRef.current = false;
 
     // Close if dragged down more than 100px
     if (dragOffset > 100) {
@@ -206,29 +215,30 @@ export const DetailPanel: FC<DetailPanelProps> = ({
   // Expanded full-screen modal view
   if (isExpanded) {
     return createPortal(
-      // biome-ignore lint/a11y/useKeyWithClickEvents: Escape key handled via useEffect hook
       <div
         className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8"
-        style={{
-          backgroundColor: 'var(--color-visualization-overlay)',
-          height: '100dvh',
-        }}
-        role="dialog"
-        aria-modal="true"
-        aria-label={ariaLabel}
-        onClick={handleCollapseModal}
+        style={{ height: '100dvh' }}
       >
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: modal content stops propagation */}
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard events handled by parent */}
-        <div
-          className="relative w-full max-w-4xl rounded-2xl border shadow-xl animate-scale-fade-in"
+        {/* Backdrop: a real button so click-to-collapse is keyboard-accessible */}
+        <button
+          type="button"
+          aria-label="Collapse to panel"
+          tabIndex={-1}
+          className="absolute inset-0 cursor-default"
+          style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
+          onClick={handleCollapseModal}
+        />
+        <dialog
+          open
+          aria-modal="true"
+          aria-label={ariaLabel}
+          className="relative z-10 m-0 max-h-none w-full max-w-4xl rounded-2xl border shadow-xl animate-scale-fade-in"
           style={{
             borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-surface)',
             color: 'var(--color-text-primary)',
             maxHeight: 'calc(100dvh - 4rem)',
           }}
-          onClick={(e) => e.stopPropagation()}
         >
           {/* Header with collapse button only (no need for two close buttons) */}
           <div className="absolute right-4 top-4 flex items-center gap-1 z-10">
@@ -246,7 +256,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
           >
             {expandedContent || children}
           </div>
-        </div>
+        </dialog>
       </div>,
       document.body
     );
@@ -255,22 +265,24 @@ export const DetailPanel: FC<DetailPanelProps> = ({
   // Mobile bottom drawer
   if (isMobile) {
     return createPortal(
-      // biome-ignore lint/a11y/useKeyWithClickEvents: Escape key handled via useEffect hook
       <div
         className="fixed inset-0 z-[100] flex items-end"
-        style={{
-          backgroundColor: 'var(--color-visualization-overlay)',
-          height: '100dvh',
-        }}
-        role="dialog"
-        aria-modal="true"
-        onClick={onClose}
+        style={{ height: '100dvh' }}
       >
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: panel content stops propagation to prevent closing when clicking inside */}
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard events handled by parent dialog */}
-        <div
-          ref={panelRef}
-          className="relative w-full rounded-t-3xl border border-b-0 shadow-xl transition-transform duration-300 ease-out"
+        {/* Backdrop: a real button so click-to-close is keyboard-accessible */}
+        <button
+          type="button"
+          aria-label="Close"
+          tabIndex={-1}
+          className="absolute inset-0 cursor-default"
+          style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
+          onClick={onClose}
+        />
+        <dialog
+          open
+          aria-modal="true"
+          aria-label={ariaLabel}
+          className="relative z-10 m-0 max-h-none w-full rounded-t-3xl border border-b-0 shadow-xl transition-transform duration-300 ease-out"
           style={{
             borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-surface)',
@@ -278,25 +290,35 @@ export const DetailPanel: FC<DetailPanelProps> = ({
             maxHeight: '80vh',
             transform: `translateY(${dragOffset}px)`,
           }}
-          onClick={(e) => e.stopPropagation()}
-          onTouchStart={(e) => handleDragStart(e.touches[0].clientY)}
-          onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
-          onTouchEnd={handleDragEnd}
-          onMouseDown={(e) => handleDragStart(e.clientY)}
-          onMouseMove={(e) => {
-            if (isDragging) {
-              handleDragMove(e.clientY);
-            }
-          }}
-          onMouseUp={handleDragEnd}
-          onMouseLeave={handleDragEnd}
         >
-          {/* Drag handle */}
-          <div className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing">
-            <GripVertical
-              className="h-5 w-5"
-              style={{ color: 'var(--color-text-muted)' }}
-            />
+          {/* Drag handle (carries drag-to-dismiss interactions) */}
+          <div className="flex justify-center pt-3 pb-2">
+            <button
+              type="button"
+              aria-label="Drag handle — swipe down to dismiss"
+              className="flex cursor-grab justify-center active:cursor-grabbing"
+              onTouchStart={(e) => handleDragStart(e.touches[0].clientY)}
+              onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
+              onTouchEnd={handleDragEnd}
+              onMouseDown={(e) => handleDragStart(e.clientY)}
+              onMouseMove={(e) => {
+                if (isDraggingRef.current) {
+                  handleDragMove(e.clientY);
+                }
+              }}
+              onMouseUp={handleDragEnd}
+              onMouseLeave={handleDragEnd}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape' || e.key === 'Enter') {
+                  onClose();
+                }
+              }}
+            >
+              <GripVertical
+                className="size-5"
+                style={{ color: 'var(--color-text-muted)' }}
+              />
+            </button>
           </div>
 
           {/* Close button */}
@@ -311,7 +333,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
           >
             {children}
           </div>
-        </div>
+        </dialog>
       </div>,
       document.body
     );

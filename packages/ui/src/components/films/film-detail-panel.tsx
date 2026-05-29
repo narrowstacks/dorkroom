@@ -1,7 +1,7 @@
 import type { Film } from '@dorkroom/api';
 import { ExternalLink } from 'lucide-react';
-import type { FC } from 'react';
-import { DetailPanel } from '../detail-panel';
+import { type FC, useEffect, useState } from 'react';
+import { DetailPanel } from '../detail-panel/detail-panel';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
 import { FilmRebrandInfo } from './film-rebrand-info';
@@ -24,6 +24,26 @@ interface FilmDetailPanelProps {
   /** Whether to render in mobile mode (bottom drawer) vs desktop mode (sidebar) */
   isMobile: boolean;
 }
+
+/**
+ * Renders a localized "date added" string. The date is computed in an effect
+ * (client-only) so it is not evaluated during the initial render.
+ */
+const FormattedDateAdded: FC<{ dateAdded: string }> = ({ dateAdded }) => {
+  const [formatted, setFormatted] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFormatted(
+      new Date(dateAdded).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    );
+  }, [dateAdded]);
+
+  return <>{formatted}</>;
+};
 
 /**
  * Render film details in a responsive panel: desktop sidebar or mobile bottom drawer.
@@ -83,7 +103,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
         {/* Title and badges */}
         <div>
           <h2
-            className="text-2xl md:text-3xl font-bold mb-2"
+            className="text-2xl md:text-3xl font-semibold mb-2"
             style={{ color: 'var(--color-text-primary)' }}
           >
             {film.brand} {film.name}
@@ -178,11 +198,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
               className="text-sm"
               style={{ color: 'var(--color-text-secondary)' }}
             >
-              {new Date(film.dateAdded).toLocaleDateString(undefined, {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              <FormattedDateAdded dateAdded={film.dateAdded} />
             </p>
           </div>
         </div>
@@ -226,7 +242,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
             e.currentTarget.style.backgroundColor = 'var(--color-border-muted)';
           }}
         >
-          <ExternalLink className="h-4 w-4" />
+          <ExternalLink className="size-4" />
           View Development Recipes
         </a>
       </div>
@@ -277,7 +293,7 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
       {/* Title */}
       <div>
         <h2
-          className="text-xl font-bold mb-1"
+          className="text-xl font-semibold mb-1"
           style={{ color: 'var(--color-text-primary)' }}
         >
           {film.brand} {film.name}
@@ -395,11 +411,7 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
           Date Added
         </h3>
         <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-          {new Date(film.dateAdded).toLocaleDateString(undefined, {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
+          <FormattedDateAdded dateAdded={film.dateAdded} />
         </p>
       </div>
 
@@ -418,7 +430,7 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
           e.currentTarget.style.backgroundColor = 'var(--color-border-muted)';
         }}
       >
-        <ExternalLink className="h-4 w-4" />
+        <ExternalLink className="size-4" />
         View Development Recipes
       </a>
     </div>

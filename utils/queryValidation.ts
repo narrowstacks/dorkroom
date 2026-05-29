@@ -11,7 +11,7 @@ export const MIN_LIMIT = 1;
 export const MAX_LIMIT = 1000;
 
 // Numeric parameters that need special validation
-const NUMERIC_PARAMS = ['limit', 'count', 'page'];
+const NUMERIC_PARAMS = new Set(['limit', 'count', 'page']);
 
 export interface QueryValidationOptions {
   /** Maximum length for string parameters (default: 200) */
@@ -49,10 +49,11 @@ export function validateAndSanitizeQuery(
   } = options;
 
   const params = new URLSearchParams();
+  const allowedParamSet = new Set(allowedParams);
 
   for (const [key, value] of Object.entries(query)) {
     // Skip parameters not in allowlist
-    if (!allowedParams.includes(key)) continue;
+    if (!allowedParamSet.has(key)) continue;
 
     // Extract string value from potential array
     let stringValue: string | undefined;
@@ -74,7 +75,7 @@ export function validateAndSanitizeQuery(
     if (trimmed.length > maxParamLength) continue;
 
     // Special validation for numeric parameters
-    if (NUMERIC_PARAMS.includes(key)) {
+    if (NUMERIC_PARAMS.has(key)) {
       const numValue = parseInt(trimmed, 10);
 
       // Skip non-numeric values

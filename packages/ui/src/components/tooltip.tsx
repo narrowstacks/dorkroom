@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { cn } from '../lib/cn';
 
 export interface TooltipProps {
@@ -14,24 +13,16 @@ export function Tooltip({
   position = 'bottom',
   className,
 }: TooltipProps) {
-  const [isVisible, setIsVisible] = useState(false);
-
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: tooltip hover container
-    <div
-      className={cn('relative inline-flex', className)}
-      onMouseEnter={() => setIsVisible(true)}
-      onMouseLeave={() => setIsVisible(false)}
-      onMouseDown={() => setIsVisible(false)}
-    >
+    <div className={cn('group relative inline-flex', className)}>
       {children}
       <div
         className={cn(
           'pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium shadow-lg transition-all duration-150',
           position === 'bottom' ? 'top-full mt-2' : 'bottom-full mb-2',
-          isVisible
-            ? 'visible translate-y-0 opacity-100'
-            : 'invisible translate-y-1 opacity-0'
+          'invisible translate-y-1 opacity-0',
+          'group-hover:visible group-hover:translate-y-0 group-hover:opacity-100',
+          'group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100'
         )}
         style={{
           backgroundColor: 'var(--color-text-primary)',

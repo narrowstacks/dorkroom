@@ -44,8 +44,10 @@ const copyToClipboard = async (text: string) => {
   if (typeof document !== 'undefined') {
     const textarea = document.createElement('textarea');
     textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
+    Object.assign(textarea.style, {
+      position: 'fixed',
+      opacity: '0',
+    });
     document.body.appendChild(textarea);
     textarea.select();
     document.execCommand('copy');

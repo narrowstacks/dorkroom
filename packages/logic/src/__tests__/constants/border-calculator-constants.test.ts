@@ -496,9 +496,12 @@ describe('Border Calculator Constants', () => {
         65 / 24, // XPan
       ];
 
-      const calculatedRatios = ASPECT_RATIOS.filter(
-        (r) => r.value !== 'custom' && r.width && r.height
-      ).map((r) => (r.width || 1) / (r.height || 1));
+      const calculatedRatios = ASPECT_RATIOS.reduce<number[]>((acc, r) => {
+        if (r.value !== 'custom' && r.width && r.height) {
+          acc.push((r.width || 1) / (r.height || 1));
+        }
+        return acc;
+      }, []);
 
       filmRatios.forEach((filmRatio) => {
         const hasMatch = calculatedRatios.some(

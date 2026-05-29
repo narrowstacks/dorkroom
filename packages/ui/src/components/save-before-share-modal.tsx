@@ -80,11 +80,12 @@ export function SaveBeforeShareModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:items-center sm:p-0">
-        {/* Backdrop */}
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop closes modal on click */}
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard close handled by Escape key in parent */}
-        <div
-          className="fixed inset-0 backdrop-blur-sm transition-opacity"
+        {/* Backdrop: a real button so click-to-close is keyboard-accessible */}
+        <button
+          type="button"
+          aria-label="Close"
+          tabIndex={-1}
+          className="fixed inset-0 cursor-default backdrop-blur-sm transition-opacity"
           style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
           onClick={handleClose}
         />
@@ -105,7 +106,7 @@ export function SaveBeforeShareModal({
             >
               <div className="sm:flex sm:items-start">
                 <div
-                  className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10"
+                  className="mx-auto flex size-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10"
                   style={{
                     backgroundColor: colorMixOr(
                       'var(--color-semantic-info)',
@@ -116,7 +117,7 @@ export function SaveBeforeShareModal({
                   }}
                 >
                   <svg
-                    className="h-6 w-6"
+                    className="size-6"
                     style={{ color: 'var(--color-semantic-info)' }}
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -160,6 +161,7 @@ export function SaveBeforeShareModal({
                         <input
                           type="text"
                           id="preset-name"
+                          aria-label="Preset Name"
                           value={presetName}
                           onChange={handleInputChange}
                           disabled={isLoading}
@@ -239,7 +241,7 @@ export function SaveBeforeShareModal({
                 {isLoading ? (
                   <>
                     <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5"
+                      className="animate-spin -ml-1 mr-3 size-5"
                       fill="none"
                       viewBox="0 0 24 24"
                       aria-hidden="true"
@@ -258,7 +260,7 @@ export function SaveBeforeShareModal({
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    Saving...
+                    Saving…
                   </>
                 ) : (
                   'Save and Share'

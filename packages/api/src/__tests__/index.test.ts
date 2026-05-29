@@ -1,49 +1,60 @@
-import * as apiExports from '../index';
+import {
+  apiClient,
+  DorkroomApiClient,
+  fetchCombinations,
+  fetchCombinationsForQuery,
+  fetchDevelopers,
+  fetchDevelopersForQuery,
+  fetchFilms,
+  fetchFilmsForQuery,
+  INTERNAL_API_BASE_URL,
+  PUBLIC_API_BASE_URL,
+} from '../dorkroom/client.js';
 
 describe('API Package Exports', () => {
   it('should export DorkroomApiClient', () => {
-    expect(apiExports.DorkroomApiClient).toBeDefined();
-    expect(typeof apiExports.DorkroomApiClient).toBe('function');
+    expect(DorkroomApiClient).toBeDefined();
+    expect(typeof DorkroomApiClient).toBe('function');
   });
 
   it('should export apiClient instance', () => {
-    expect(apiExports.apiClient).toBeDefined();
-    expect(apiExports.apiClient).toBeInstanceOf(apiExports.DorkroomApiClient);
+    expect(apiClient).toBeDefined();
+    expect(apiClient).toBeInstanceOf(DorkroomApiClient);
   });
 
   it('should export convenience functions', () => {
-    expect(apiExports.fetchFilms).toBeDefined();
-    expect(typeof apiExports.fetchFilms).toBe('function');
+    expect(fetchFilms).toBeDefined();
+    expect(typeof fetchFilms).toBe('function');
 
-    expect(apiExports.fetchDevelopers).toBeDefined();
-    expect(typeof apiExports.fetchDevelopers).toBe('function');
+    expect(fetchDevelopers).toBeDefined();
+    expect(typeof fetchDevelopers).toBe('function');
 
-    expect(apiExports.fetchCombinations).toBeDefined();
-    expect(typeof apiExports.fetchCombinations).toBe('function');
+    expect(fetchCombinations).toBeDefined();
+    expect(typeof fetchCombinations).toBe('function');
   });
 
   it('should export TanStack Query compatible functions', () => {
-    expect(apiExports.fetchFilmsForQuery).toBeDefined();
-    expect(typeof apiExports.fetchFilmsForQuery).toBe('function');
+    expect(fetchFilmsForQuery).toBeDefined();
+    expect(typeof fetchFilmsForQuery).toBe('function');
 
-    expect(apiExports.fetchDevelopersForQuery).toBeDefined();
-    expect(typeof apiExports.fetchDevelopersForQuery).toBe('function');
+    expect(fetchDevelopersForQuery).toBeDefined();
+    expect(typeof fetchDevelopersForQuery).toBe('function');
 
-    expect(apiExports.fetchCombinationsForQuery).toBeDefined();
-    expect(typeof apiExports.fetchCombinationsForQuery).toBe('function');
+    expect(fetchCombinationsForQuery).toBeDefined();
+    expect(typeof fetchCombinationsForQuery).toBe('function');
   });
 
   it('should export PUBLIC_API_BASE_URL', () => {
-    expect(apiExports.PUBLIC_API_BASE_URL).toBe('https://api.dorkroom.art');
+    expect(PUBLIC_API_BASE_URL).toBe('https://api.dorkroom.art');
   });
 
   it('should export INTERNAL_API_BASE_URL', () => {
-    expect(apiExports.INTERNAL_API_BASE_URL).toBe('/api');
+    expect(INTERNAL_API_BASE_URL).toBe('/api');
   });
 
   it('should export types', () => {
     // TypeScript types are exported and can be used for type safety
     // Film, Developer, Combination, etc. are all available from the module
-    expect(apiExports).toBeDefined();
+    expect(DorkroomApiClient).toBeDefined();
   });
 });

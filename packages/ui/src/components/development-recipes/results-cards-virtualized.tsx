@@ -58,13 +58,10 @@ function useResponsiveColumnCount(
   containerRef: React.RefObject<HTMLDivElement | null>,
   isMobile: boolean
 ): number {
-  const [columnCount, setColumnCount] = useState(isMobile ? 2 : 3);
+  const [observedColumnCount, setColumnCount] = useState(3);
 
   useEffect(() => {
-    if (isMobile) {
-      setColumnCount(2);
-      return;
-    }
+    if (isMobile) return;
 
     const container = containerRef.current;
     if (!container) return;
@@ -125,7 +122,7 @@ function useResponsiveColumnCount(
     };
   }, [containerRef, isMobile]);
 
-  return columnCount;
+  return isMobile ? 2 : observedColumnCount;
 }
 
 interface DevelopmentResultsCardsVirtualizedProps {
@@ -181,6 +178,369 @@ const formatDilution = (view: DevelopmentCombinationView): string => {
 
   return 'Stock';
 };
+
+/** Filter a recipe's tags into official badges and other display tags in one pass. */
+function partitionTags(tags: string[] | undefined): {
+  officialTags: string[];
+  otherTags: string[];
+} {
+  const officialTags: string[] = [];
+  const otherTags: string[] = [];
+  if (tags) {
+    for (const tag of tags) {
+      if (isOfficialTag(tag)) {
+        officialTags.push(tag);
+      } else if (tag !== 'custom') {
+        otherTags.push(tag);
+      }
+    }
+  }
+  return { officialTags, otherTags };
+}
+
+/** ISO stat for a recipe card; highlights non-box-speed (push/pull) values. */
+function IsoStat({
+  combination,
+  film,
+}: {
+  combination: DevelopmentCombinationView['combination'];
+  film: DevelopmentCombinationView['film'];
+}) {
+  // Calculate pushPull from film box speed if available
+  const pushPull = film?.isoSpeed
+    ? calculatePushPull(combination.shootingIso, film.isoSpeed)
+    : (combination.pushPull ?? 0);
+  const isPushed = pushPull > 0;
+  const isNonBoxSpeed = pushPull !== 0;
+  const getIsoColor = () => {
+    if (!isNonBoxSpeed) return 'var(--color-text-primary)';
+    return isPushed
+      ? 'var(--color-semantic-warning)'
+      : 'var(--color-semantic-info, #3b82f6)';
+  };
+  const IsoIcon = isPushed ? ArrowUp : ArrowDown;
+  return (
+    <div
+      className={cn(
+        'text-sm inline-flex items-center gap-1',
+        isNonBoxSpeed && 'font-medium'
+      )}
+      style={{ color: getIsoColor() }}
+    >
+      {isNonBoxSpeed && (
+        <IsoIcon className="size-3.5 shrink-0" aria-hidden="true" />
+      )}
+      {combination.shootingIso}
+    </div>
+  );
+}
+
+/** Temperature stat for a recipe card; highlights non-standard temperatures. */
+function TempStat({
+  combination,
+  unit,
+}: {
+  combination: DevelopmentCombinationView['combination'];
+  unit: ReturnType<typeof useTemperature>['unit'];
+}) {
+  const temp = formatTemperatureWithUnit(
+    combination.temperatureF,
+    combination.temperatureC,
+    unit
+  );
+  const getTempColor = () => {
+    if (!temp.isNonStandard) return 'var(--color-text-primary)';
+    return temp.isHigher
+      ? 'var(--color-semantic-warning)'
+      : 'var(--color-semantic-info, #3b82f6)';
+  };
+  const TempIcon = temp.isHigher ? Flame : Snowflake;
+  return (
+    <div
+      className={cn(
+        'text-sm inline-flex items-center gap-1',
+        temp.isNonStandard && 'font-medium'
+      )}
+      style={{ color: getTempColor() }}
+    >
+      {temp.isNonStandard && (
+        <TempIcon className="size-3.5 shrink-0" aria-hidden="true" />
+      )}
+      {temp.text}
+    </div>
+  );
+}
+
+interface RecipeCardProps {
+  rowData: DevelopmentCombinationView;
+  unit: ReturnType<typeof useTemperature>['unit'];
+  cardStyles: ReturnType<typeof useRecipeHoverStyles>['custom'];
+  deleteButtonStyles: ReturnType<typeof useDeleteButtonStyles>;
+  isSelected: boolean;
+  isMobile: boolean;
+  isFavoriteRecipe: boolean;
+  isFavoriteHovered: boolean;
+  onSelect: () => void;
+  onToggleFavorite: () => void;
+  onFavoriteHoverChange: (hovered: boolean) => void;
+  onShare?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  canShare: boolean;
+  canCopy: boolean;
+}
+
+/**
+ * A single development-recipe card. A transparent overlay button covers the
+ * card to make the whole surface a keyboard-accessible "select" control, while
+ * the nested action buttons (favorite/share/edit/delete) sit above it.
+ */
+// eslint-disable-next-line react-doctor/no-many-boolean-props -- internal card row; its boolean inputs are independent display states, not a variant axis
+function RecipeCard({
+  rowData,
+  unit,
+  cardStyles,
+  deleteButtonStyles,
+  isSelected,
+  isMobile,
+  isFavoriteRecipe,
+  isFavoriteHovered,
+  onSelect,
+  onToggleFavorite,
+  onFavoriteHoverChange,
+  onShare,
+  onEdit,
+  onDelete,
+  canShare,
+  canCopy,
+}: RecipeCardProps) {
+  const { combination, film, developer } = rowData;
+  const isCustom = rowData.source === 'custom';
+  const { officialTags, otherTags } = partitionTags(
+    combination.tags ?? undefined
+  );
+  const favoriteLabel = isFavoriteRecipe
+    ? 'Remove from favorites'
+    : 'Add to favorites';
+
+  return (
+    <div
+      className={cn(
+        'relative cursor-pointer rounded-2xl border p-3 shadow-subtle transition-all duration-200 hover:scale-[1.02]',
+        'animate-slide-fade-bottom',
+        !isSelected && 'hoverable-card'
+      )}
+      style={
+        {
+          '--card-bg': isSelected
+            ? cardStyles.selected.backgroundColor
+            : cardStyles.default.backgroundColor,
+          '--card-bg-hover': cardStyles.hover.backgroundColor,
+          '--card-border': isSelected
+            ? cardStyles.selected.borderColor
+            : cardStyles.default.borderColor,
+          '--card-border-hover': cardStyles.hover.borderColor,
+          borderColor: isSelected
+            ? cardStyles.selected.borderColor
+            : cardStyles.default.borderColor,
+          backgroundColor: isSelected
+            ? cardStyles.selected.backgroundColor
+            : cardStyles.default.backgroundColor,
+        } as React.CSSProperties
+      }
+    >
+      {/* Full-card overlay button provides the click/keyboard select target */}
+      <button
+        type="button"
+        aria-pressed={isSelected}
+        aria-label={
+          film ? `Select ${film.brand} ${film.name} recipe` : 'Select recipe'
+        }
+        onClick={onSelect}
+        className="absolute inset-0 z-0 size-full cursor-pointer rounded-2xl"
+      />
+
+      <div className="relative z-10 flex justify-between items-start pointer-events-none">
+        <div className="flex-1 min-w-0">
+          <span
+            className="text-sm font-semibold"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            {film ? `${film.brand} ${film.name}` : 'Unknown film'}
+          </span>
+          <div
+            className="text-xs"
+            style={{ color: 'var(--color-text-tertiary)' }}
+          >
+            {developer
+              ? `${developer.manufacturer} ${developer.name}`
+              : 'Unknown developer'}
+          </div>
+          {otherTags.length > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {otherTags.map((tag: string) => (
+                <Tag key={tag}>{tag}</Tag>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 ml-2 shrink-0 pointer-events-auto">
+          {isCustom && <CustomBadge showTooltip={!isMobile} />}
+          {officialTags.map((tag: string) => (
+            <OfficialBadge key={tag} tag={tag} showTooltip={!isMobile} />
+          ))}
+          <button
+            type="button"
+            title={favoriteLabel}
+            aria-pressed={isFavoriteRecipe}
+            aria-label={favoriteLabel}
+            onClick={onToggleFavorite}
+            className="inline-flex items-center justify-center rounded-md p-1.5 transition hoverable-favorite"
+            style={{
+              backgroundColor: 'var(--color-surface-muted)',
+              borderWidth: 1,
+              borderColor: 'var(--color-border-secondary)',
+              color: isFavoriteRecipe
+                ? 'var(--color-semantic-warning)'
+                : 'var(--color-border-secondary)',
+            }}
+            onMouseEnter={() => {
+              onFavoriteHoverChange(true);
+            }}
+            onMouseLeave={() => {
+              onFavoriteHoverChange(false);
+            }}
+          >
+            <Star
+              className="size-4"
+              aria-hidden="true"
+              fill={isFavoriteRecipe ? 'var(--color-semantic-warning)' : 'none'}
+              stroke={
+                isFavoriteHovered
+                  ? 'var(--color-background)'
+                  : isFavoriteRecipe
+                    ? 'var(--color-semantic-warning)'
+                    : 'var(--color-border-secondary)'
+              }
+              strokeWidth={2}
+            />
+          </button>
+        </div>
+      </div>
+
+      <div
+        className="relative z-10 mt-3 grid grid-cols-2 gap-1 text-xs pointer-events-none"
+        style={{ color: 'var(--color-text-secondary)' }}
+      >
+        <div>
+          <div style={{ color: 'var(--color-text-muted)' }}>ISO</div>
+          <IsoStat combination={combination} film={film} />
+        </div>
+        <div>
+          <div style={{ color: 'var(--color-text-muted)' }}>Time</div>
+          <div
+            className="text-sm"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            {formatTime(combination.timeMinutes)}
+          </div>
+        </div>
+        <div>
+          <div style={{ color: 'var(--color-text-muted)' }}>Temperature</div>
+          <TempStat combination={combination} unit={unit} />
+        </div>
+        <div>
+          <div style={{ color: 'var(--color-text-muted)' }}>Dilution</div>
+          <div
+            className="text-sm"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            {formatDilution(rowData)}
+          </div>
+        </div>
+      </div>
+
+      {(combination.notes ||
+        combination.infoSource ||
+        (!isCustom && (canShare || canCopy))) && (
+        <div className="relative z-10 mt-3 space-y-1.5 pointer-events-auto">
+          {(combination.infoSource || (!isCustom && (canShare || canCopy))) && (
+            <div className="flex justify-between items-center">
+              {combination.infoSource && (
+                <a
+                  href={combination.infoSource}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs underline-offset-4 hover:underline hoverable-link"
+                  style={{ color: 'var(--color-text-tertiary)' }}
+                >
+                  <ExternalLink className="size-3" aria-hidden="true" /> Source
+                </a>
+              )}
+              {!isCustom && (canShare || canCopy) && onShare && (
+                <ShareButton
+                  onClick={onShare}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                />
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {isCustom && (
+        <div className="relative z-10 mt-3 space-y-1.5 pointer-events-auto">
+          <div className="flex justify-between items-center">
+            <div className="flex gap-1.5">
+              <button
+                type="button"
+                onClick={onEdit}
+                aria-label="Edit"
+                className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2 hoverable-action-btn"
+                style={{
+                  backgroundColor: 'var(--color-border-muted)',
+                  color: 'var(--color-text-secondary)',
+                }}
+                title="Edit"
+              >
+                <Edit2 className="size-3" />
+              </button>
+              <button
+                type="button"
+                onClick={onDelete}
+                aria-label="Delete"
+                className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2 hoverable-delete-btn"
+                style={
+                  {
+                    '--del-bg': deleteButtonStyles.default.backgroundColor,
+                    '--del-bg-hover': deleteButtonStyles.hover.backgroundColor,
+                    '--del-color': deleteButtonStyles.default.color,
+                    '--del-color-hover': deleteButtonStyles.hover.color,
+                    backgroundColor: deleteButtonStyles.default.backgroundColor,
+                    color: deleteButtonStyles.default.color,
+                  } as React.CSSProperties
+                }
+                title="Delete"
+              >
+                <Trash2 className="size-3" />
+              </button>
+            </div>
+            {onShare && (
+              <ShareButton
+                onClick={onShare}
+                variant="outline"
+                size="sm"
+                className="text-xs"
+              />
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export const DevelopmentResultsCardsVirtualized: FC<
   DevelopmentResultsCardsVirtualizedProps
@@ -239,22 +599,16 @@ export const DevelopmentResultsCardsVirtualized: FC<
 
   const virtualRows = rowVirtualizer.getVirtualItems();
 
-  // Padding to prevent hover scale effect from being clipped at container edges
-  const HOVER_OVERFLOW_PADDING = 8;
-
   return (
     <div
       ref={parentRef}
+      // p-2 (8px) adds padding so the card hover scale effect isn't clipped
+      // at the scroll container edges; overflow-auto enables virtualized scroll.
+      className="overflow-auto p-2"
       style={{
         height,
         minHeight: MIN_CONTAINER_HEIGHT,
         maxHeight: MAX_CONTAINER_HEIGHT,
-        overflow: 'auto',
-        // Add padding to accommodate hover scale effect overflow
-        paddingTop: HOVER_OVERFLOW_PADDING,
-        paddingBottom: HOVER_OVERFLOW_PADDING,
-        paddingLeft: HOVER_OVERFLOW_PADDING,
-        paddingRight: HOVER_OVERFLOW_PADDING,
       }}
     >
       <div
@@ -291,7 +645,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
               >
                 {rowItems.map((row: Row<DevelopmentCombinationView>) => {
                   const rowData = row.original;
-                  const { combination, film, developer } = rowData;
+                  const { combination } = rowData;
                   const id = String(combination.uuid || combination.id);
                   const transitionState = favoriteTransitions.get(id);
 
@@ -318,369 +672,39 @@ export const DevelopmentResultsCardsVirtualized: FC<
                   const isSelected = id === selectedRecipeId;
 
                   return (
-                    // biome-ignore lint/a11y/useSemanticElements: Card uses ARIA role with keyboard support instead of button to avoid resetting button styles
-                    <div
+                    <RecipeCard
                       key={combination.uuid || combination.id}
-                      role="button"
-                      tabIndex={0}
-                      aria-pressed={isSelected}
-                      onClick={() => onSelectCombination?.(rowData)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          onSelectCombination?.(rowData);
-                        }
+                      rowData={rowData}
+                      unit={unit}
+                      cardStyles={cardStyles}
+                      deleteButtonStyles={deleteButtonStyles}
+                      isSelected={isSelected}
+                      isMobile={isMobile}
+                      isFavoriteRecipe={Boolean(isFavorite?.(rowData))}
+                      isFavoriteHovered={hoveredFavoriteId === id}
+                      onSelect={() => onSelectCombination?.(rowData)}
+                      onToggleFavorite={() => onToggleFavorite?.(rowData)}
+                      onFavoriteHoverChange={(hovered) => {
+                        setHoveredFavoriteId(hovered ? id : null);
                       }}
-                      className={cn(
-                        'cursor-pointer rounded-2xl border p-3 shadow-subtle transition-all duration-200 hover:scale-[1.02]',
-                        'animate-slide-fade-bottom',
-                        !isSelected && 'hoverable-card'
-                      )}
-                      style={
-                        {
-                          '--card-bg': isSelected
-                            ? cardStyles.selected.backgroundColor
-                            : cardStyles.default.backgroundColor,
-                          '--card-bg-hover': cardStyles.hover.backgroundColor,
-                          '--card-border': isSelected
-                            ? cardStyles.selected.borderColor
-                            : cardStyles.default.borderColor,
-                          '--card-border-hover': cardStyles.hover.borderColor,
-                          borderColor: isSelected
-                            ? cardStyles.selected.borderColor
-                            : cardStyles.default.borderColor,
-                          backgroundColor: isSelected
-                            ? cardStyles.selected.backgroundColor
-                            : cardStyles.default.backgroundColor,
-                        } as React.CSSProperties
+                      onShare={
+                        onShareCombination
+                          ? () => onShareCombination(rowData)
+                          : undefined
                       }
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1 min-w-0">
-                          <span
-                            className="text-sm font-semibold"
-                            style={{ color: 'var(--color-text-primary)' }}
-                          >
-                            {film
-                              ? `${film.brand} ${film.name}`
-                              : 'Unknown film'}
-                          </span>
-                          <div
-                            className="text-xs"
-                            style={{ color: 'var(--color-text-tertiary)' }}
-                          >
-                            {developer
-                              ? `${developer.manufacturer} ${developer.name}`
-                              : 'Unknown developer'}
-                          </div>
-                          {combination.tags &&
-                            combination.tags.filter(
-                              (t: string) => !isOfficialTag(t) && t !== 'custom'
-                            ).length > 0 && (
-                              <div className="mt-2 flex flex-wrap items-center gap-2">
-                                {combination.tags
-                                  .filter(
-                                    (t: string) =>
-                                      !isOfficialTag(t) && t !== 'custom'
-                                  )
-                                  .map((tag: string) => (
-                                    <Tag key={tag}>{tag}</Tag>
-                                  ))}
-                              </div>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-1.5 ml-2 shrink-0">
-                          {rowData.source === 'custom' && (
-                            <CustomBadge showTooltip={!isMobile} />
-                          )}
-                          {combination.tags
-                            ?.filter(isOfficialTag)
-                            .map((tag: string) => (
-                              <OfficialBadge
-                                key={tag}
-                                tag={tag}
-                                showTooltip={!isMobile}
-                              />
-                            ))}
-                          <button
-                            type="button"
-                            title={
-                              isFavorite?.(rowData)
-                                ? 'Remove from favorites'
-                                : 'Add to favorites'
-                            }
-                            aria-pressed={Boolean(isFavorite?.(rowData))}
-                            aria-label={
-                              isFavorite?.(rowData)
-                                ? 'Remove from favorites'
-                                : 'Add to favorites'
-                            }
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onToggleFavorite?.(rowData);
-                            }}
-                            className="inline-flex items-center justify-center rounded-md p-1.5 transition hoverable-favorite"
-                            style={{
-                              backgroundColor: 'var(--color-surface-muted)',
-                              borderWidth: 1,
-                              borderColor: 'var(--color-border-secondary)',
-                              color: isFavorite?.(rowData)
-                                ? 'var(--color-semantic-warning)'
-                                : 'var(--color-border-secondary)',
-                            }}
-                            onMouseEnter={() => {
-                              setHoveredFavoriteId(id);
-                            }}
-                            onMouseLeave={() => {
-                              setHoveredFavoriteId(null);
-                            }}
-                          >
-                            <Star
-                              className="h-4 w-4"
-                              aria-hidden="true"
-                              fill={
-                                isFavorite?.(rowData)
-                                  ? 'var(--color-semantic-warning)'
-                                  : 'none'
-                              }
-                              stroke={
-                                hoveredFavoriteId === id
-                                  ? 'var(--color-background)'
-                                  : isFavorite?.(rowData)
-                                    ? 'var(--color-semantic-warning)'
-                                    : 'var(--color-border-secondary)'
-                              }
-                              strokeWidth={2}
-                            />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div
-                        className="mt-3 grid grid-cols-2 gap-1 text-xs"
-                        style={{ color: 'var(--color-text-secondary)' }}
-                      >
-                        <div>
-                          <div style={{ color: 'var(--color-text-muted)' }}>
-                            ISO
-                          </div>
-                          {(() => {
-                            // Calculate pushPull from film box speed if available
-                            const pushPull = film?.isoSpeed
-                              ? calculatePushPull(
-                                  combination.shootingIso,
-                                  film.isoSpeed
-                                )
-                              : (combination.pushPull ?? 0);
-                            const isPushed = pushPull > 0;
-                            const isNonBoxSpeed = pushPull !== 0;
-                            const getIsoColor = () => {
-                              if (!isNonBoxSpeed)
-                                return 'var(--color-text-primary)';
-                              return isPushed
-                                ? 'var(--color-semantic-warning)'
-                                : 'var(--color-semantic-info, #3b82f6)';
-                            };
-                            const IsoIcon = isPushed ? ArrowUp : ArrowDown;
-                            return (
-                              <div
-                                className={cn(
-                                  'text-sm inline-flex items-center gap-1',
-                                  isNonBoxSpeed && 'font-medium'
-                                )}
-                                style={{ color: getIsoColor() }}
-                              >
-                                {isNonBoxSpeed && (
-                                  <IsoIcon
-                                    className="h-3.5 w-3.5 shrink-0"
-                                    aria-hidden="true"
-                                  />
-                                )}
-                                {combination.shootingIso}
-                              </div>
-                            );
-                          })()}
-                        </div>
-                        <div>
-                          <div style={{ color: 'var(--color-text-muted)' }}>
-                            Time
-                          </div>
-                          <div
-                            className="text-sm"
-                            style={{ color: 'var(--color-text-primary)' }}
-                          >
-                            {formatTime(combination.timeMinutes)}
-                          </div>
-                        </div>
-                        <div>
-                          <div style={{ color: 'var(--color-text-muted)' }}>
-                            Temperature
-                          </div>
-                          {(() => {
-                            const temp = formatTemperatureWithUnit(
-                              combination.temperatureF,
-                              combination.temperatureC,
-                              unit
-                            );
-                            const getTempColor = () => {
-                              if (!temp.isNonStandard)
-                                return 'var(--color-text-primary)';
-                              return temp.isHigher
-                                ? 'var(--color-semantic-warning)'
-                                : 'var(--color-semantic-info, #3b82f6)';
-                            };
-                            const TempIcon = temp.isHigher ? Flame : Snowflake;
-                            return (
-                              <div
-                                className={cn(
-                                  'text-sm inline-flex items-center gap-1',
-                                  temp.isNonStandard && 'font-medium'
-                                )}
-                                style={{ color: getTempColor() }}
-                              >
-                                {temp.isNonStandard && (
-                                  <TempIcon
-                                    className="h-3.5 w-3.5 shrink-0"
-                                    aria-hidden="true"
-                                  />
-                                )}
-                                {temp.text}
-                              </div>
-                            );
-                          })()}
-                        </div>
-                        <div>
-                          <div style={{ color: 'var(--color-text-muted)' }}>
-                            Dilution
-                          </div>
-                          <div
-                            className="text-sm"
-                            style={{ color: 'var(--color-text-primary)' }}
-                          >
-                            {formatDilution(rowData)}
-                          </div>
-                        </div>
-                      </div>
-
-                      {(combination.notes ||
-                        combination.infoSource ||
-                        (rowData.source !== 'custom' &&
-                          (onShareCombination || onCopyCombination))) && (
-                        <div className="mt-3 space-y-1.5">
-                          {(combination.infoSource ||
-                            (rowData.source !== 'custom' &&
-                              (onShareCombination || onCopyCombination))) && (
-                            <div className="flex justify-between items-center">
-                              {combination.infoSource && (
-                                <a
-                                  href={combination.infoSource}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1 text-xs underline-offset-4 hover:underline hoverable-link"
-                                  style={{
-                                    color: 'var(--color-text-tertiary)',
-                                  }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                  }}
-                                >
-                                  <ExternalLink
-                                    className="h-3 w-3"
-                                    aria-hidden="true"
-                                  />{' '}
-                                  Source
-                                </a>
-                              )}
-                              {rowData.source !== 'custom' &&
-                                (onShareCombination || onCopyCombination) && (
-                                  // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent card
-                                  <span
-                                    onClick={(e) => e.stopPropagation()}
-                                    onKeyDown={(e) => e.stopPropagation()}
-                                  >
-                                    <ShareButton
-                                      onClick={() =>
-                                        onShareCombination?.(rowData)
-                                      }
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-xs"
-                                    />
-                                  </span>
-                                )}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {rowData.source === 'custom' && (
-                        <div className="mt-3 space-y-1.5">
-                          <div className="flex justify-between items-center">
-                            <div className="flex gap-1.5">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onEditCustomRecipe?.(rowData);
-                                }}
-                                aria-label="Edit"
-                                className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2 hoverable-action-btn"
-                                style={{
-                                  backgroundColor: 'var(--color-border-muted)',
-                                  color: 'var(--color-text-secondary)',
-                                }}
-                                title="Edit"
-                              >
-                                <Edit2 className="h-3 w-3" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onDeleteCustomRecipe?.(rowData);
-                                }}
-                                aria-label="Delete"
-                                className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2 hoverable-delete-btn"
-                                style={
-                                  {
-                                    '--del-bg':
-                                      deleteButtonStyles.default
-                                        .backgroundColor,
-                                    '--del-bg-hover':
-                                      deleteButtonStyles.hover.backgroundColor,
-                                    '--del-color':
-                                      deleteButtonStyles.default.color,
-                                    '--del-color-hover':
-                                      deleteButtonStyles.hover.color,
-                                    backgroundColor:
-                                      deleteButtonStyles.default
-                                        .backgroundColor,
-                                    color: deleteButtonStyles.default.color,
-                                  } as React.CSSProperties
-                                }
-                                title="Delete"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </button>
-                            </div>
-                            {onShareCombination && (
-                              // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent card
-                              <span
-                                onClick={(e) => e.stopPropagation()}
-                                onKeyDown={(e) => e.stopPropagation()}
-                              >
-                                <ShareButton
-                                  onClick={() => onShareCombination?.(rowData)}
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-xs"
-                                />
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                      onEdit={
+                        onEditCustomRecipe
+                          ? () => onEditCustomRecipe(rowData)
+                          : undefined
+                      }
+                      onDelete={
+                        onDeleteCustomRecipe
+                          ? () => onDeleteCustomRecipe(rowData)
+                          : undefined
+                      }
+                      canShare={Boolean(onShareCombination)}
+                      canCopy={Boolean(onCopyCombination)}
+                    />
                   );
                 })}
               </div>

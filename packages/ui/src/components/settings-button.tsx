@@ -52,7 +52,7 @@ export function SettingsButton({
         >
           {Icon && (
             <Icon
-              className={cn('h-5 w-5 shrink-0', iconClassName)}
+              className={cn('size-5 shrink-0', iconClassName)}
               style={{ color: 'var(--color-text-tertiary)' }}
             />
           )}
@@ -81,7 +81,7 @@ export function SettingsButton({
         </div>
         {showChevron && !centerLabel && (
           <ChevronRight
-            className="h-4 w-4"
+            className="size-4"
             style={{ color: 'var(--color-text-muted)' }}
           />
         )}

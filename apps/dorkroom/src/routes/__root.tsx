@@ -49,11 +49,6 @@ function RootComponent() {
       pageTitle === 'Dorkroom' ? 'Dorkroom' : `${pageTitle} - Dorkroom`;
   }, [pathname]);
 
-  // Close mobile menu on navigation
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, []);
-
   // Handle body overflow for mobile menu
   useEffect(() => {
     if (typeof document === 'undefined') {
@@ -133,12 +128,12 @@ function RootComponent() {
                 style={{ color: 'var(--color-text-primary)' }}
               >
                 <span
-                  className="flex h-9 w-9 items-center justify-center rounded-2xl"
+                  className="flex size-9 items-center justify-center rounded-2xl"
                   style={{
                     backgroundColor: 'rgba(var(--color-background-rgb), 0.1)',
                   }}
                 >
-                  <Beaker className="h-10 w-10" />
+                  <Beaker className="size-10" />
                 </span>
                 <span className="hidden text-lg font-semibold tracking-tight sm:block">
                   Dorkroom
@@ -163,7 +158,7 @@ function RootComponent() {
                         'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
                     )}
                   >
-                    <Home className="h-4 w-4" />
+                    <Home className="size-4" />
                     Home
                   </Link>
                   {navigationCategories.map((category) => (
@@ -184,7 +179,7 @@ function RootComponent() {
                     href="https://github.com/narrowstacks/dorkroom"
                     target="_blank"
                     rel="noreferrer"
-                    className="nav-button flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none"
+                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none"
                     style={{
                       color: 'var(--color-text-primary)',
                       borderColor: 'var(--color-border-secondary)',
@@ -193,7 +188,7 @@ function RootComponent() {
                     }}
                     aria-label="Contribute on GitHub"
                   >
-                    <GitBranch className="h-4 w-4" />
+                    <GitBranch className="size-4" />
                   </a>
                 </Tooltip>
                 <Tooltip label="Newsletter">
@@ -201,7 +196,7 @@ function RootComponent() {
                     href="https://news.dorkroom.art"
                     target="_blank"
                     rel="noreferrer"
-                    className="nav-button flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none"
+                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none"
                     style={{
                       color: 'var(--color-text-primary)',
                       borderColor: 'var(--color-border-secondary)',
@@ -210,7 +205,7 @@ function RootComponent() {
                     }}
                     aria-label="Newsletter"
                   >
-                    <Newspaper className="h-4 w-4" />
+                    <Newspaper className="size-4" />
                   </a>
                 </Tooltip>
                 <Tooltip label="Themes">
@@ -219,7 +214,7 @@ function RootComponent() {
                 <Tooltip label="Settings">
                   <Link
                     to="/settings"
-                    className="nav-button flex h-9 w-9 items-center justify-center rounded-full transition focus-visible:outline-none"
+                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none"
                     style={{
                       color: 'var(--color-text-primary)',
                       borderColor: 'var(--color-border-secondary)',
@@ -228,7 +223,7 @@ function RootComponent() {
                     }}
                     aria-label="Settings"
                   >
-                    <Settings className="h-4 w-4" />
+                    <Settings className="size-4" />
                   </Link>
                 </Tooltip>
               </div>
@@ -237,7 +232,7 @@ function RootComponent() {
 
           <button
             type="button"
-            className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex h-12 w-12 items-center justify-center rounded-full shadow-lg backdrop-blur transition focus-visible:outline-none sm:hidden"
+            className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex size-12 items-center justify-center rounded-full shadow-lg backdrop-blur transition focus-visible:outline-none sm:hidden"
             style={{
               color: 'var(--color-background)',
               borderColor: 'var(--color-background)',
@@ -253,9 +248,9 @@ function RootComponent() {
             onClick={() => setIsMobileMenuOpen((open) => !open)}
           >
             {isMobileMenuOpen ? (
-              <X className="h-5 w-5" />
+              <X className="size-5" />
             ) : (
-              <Menu className="h-5 w-5" />
+              <Menu className="size-5" />
             )}
           </button>
 
@@ -274,7 +269,8 @@ function RootComponent() {
             onClick={() => setIsMobileMenuOpen(false)}
           />
 
-          {/* Right sidebar */}
+          {/* Right sidebar — a navigation region (a native <dialog> would be
+              display:none when closed, breaking the persistent slide transition) */}
           <nav
             id="mobile-navigation"
             className={cn(
@@ -285,8 +281,6 @@ function RootComponent() {
               backgroundColor: 'rgba(var(--color-background-rgb), 0.95)',
               borderColor: 'var(--color-border-secondary)',
             }}
-            role="dialog"
-            aria-modal={isMobileMenuOpen || undefined}
             aria-hidden={!isMobileMenuOpen}
             aria-label="Navigation menu"
           >

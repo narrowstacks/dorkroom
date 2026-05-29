@@ -275,14 +275,16 @@ export default function ExposureCalculatorPage() {
             {/* All adjustment buttons and input on same line */}
             <div className="flex flex-wrap items-center gap-3 justify-center">
               {/* Negative adjustment buttons */}
-              {EXPOSURE_PRESETS.filter((preset) => preset.stops < 0).map(
-                (preset) => (
-                  <StopButton
-                    key={preset.label}
-                    preset={preset}
-                    onPress={handleAdjustStops}
-                  />
-                )
+              {EXPOSURE_PRESETS.flatMap((preset) =>
+                preset.stops < 0
+                  ? [
+                      <StopButton
+                        key={preset.label}
+                        preset={preset}
+                        onPress={handleAdjustStops}
+                      />,
+                    ]
+                  : []
               )}
 
               {/* Custom stop value input */}
@@ -310,14 +312,16 @@ export default function ExposureCalculatorPage() {
               </form.Field>
 
               {/* Positive adjustment buttons */}
-              {EXPOSURE_PRESETS.filter((preset) => preset.stops > 0).map(
-                (preset) => (
-                  <StopButton
-                    key={preset.label}
-                    preset={preset}
-                    onPress={handleAdjustStops}
-                  />
-                )
+              {EXPOSURE_PRESETS.flatMap((preset) =>
+                preset.stops > 0
+                  ? [
+                      <StopButton
+                        key={preset.label}
+                        preset={preset}
+                        onPress={handleAdjustStops}
+                      />,
+                    ]
+                  : []
               )}
             </div>
 

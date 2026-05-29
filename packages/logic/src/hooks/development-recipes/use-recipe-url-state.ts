@@ -296,14 +296,25 @@ export const useRecipeUrlState = (
   const { decodeSharedCustomRecipe, isCustomRecipeUrl } =
     useCustomRecipeSharing();
 
-  const [sharedRecipe, setSharedRecipe] = useState<Combination | null>(null);
-  const [sharedCustomRecipe, setSharedCustomRecipe] = useState<
-    ImportedCustomRecipe['recipe'] | null
-  >(null);
-  const [isLoadingSharedRecipe, setIsLoadingSharedRecipe] = useState(false);
-  const [sharedRecipeError, setSharedRecipeError] = useState<string | null>(
-    null
-  );
+  // Related shared-recipe state grouped into a single object so each branch of
+  // the lookup effect performs exactly one consolidated state update.
+  const [sharedRecipeState, setSharedRecipeState] = useState<{
+    recipe: Combination | null;
+    customRecipe: ImportedCustomRecipe['recipe'] | null;
+    isLoading: boolean;
+    error: string | null;
+  }>({
+    recipe: null,
+    customRecipe: null,
+    isLoading: false,
+    error: null,
+  });
+  const {
+    recipe: sharedRecipe,
+    customRecipe: sharedCustomRecipe,
+    isLoading: isLoadingSharedRecipe,
+    error: sharedRecipeError,
+  } = sharedRecipeState;
   const isProcessingSharedRecipeRef = useRef(false);
 
   const initialUrlState = useMemo<InitialUrlState>(() => {
@@ -433,81 +444,93 @@ export const useRecipeUrlState = (
     }, 300);
   }, []);
 
-  useEffect(() => {
-    const handleSharedRecipeLookup = async () => {
-      const validation = validateUrlParams(params);
-      const recipeId = validation.sanitized.recipe;
-      const isFromShare = validation.sanitized.source === 'share';
+  const handleSharedRecipeLookup = useCallback(async () => {
+    const validation = validateUrlParams(params);
+    const recipeId = validation.sanitized.recipe;
+    const isFromShare = validation.sanitized.source === 'share';
 
-      if (!recipeId || !isFromShare) {
-        setSharedRecipe(null);
-        setSharedCustomRecipe(null);
-        setIsLoadingSharedRecipe(false);
-        setSharedRecipeError(null);
-        isProcessingSharedRecipeRef.current = false;
-        return;
-      }
+    if (!recipeId || !isFromShare) {
+      setSharedRecipeState({
+        recipe: null,
+        customRecipe: null,
+        isLoading: false,
+        error: null,
+      });
+      isProcessingSharedRecipeRef.current = false;
+      return;
+    }
 
-      if (isProcessingSharedRecipeRef.current) {
-        return;
-      }
+    if (isProcessingSharedRecipeRef.current) {
+      return;
+    }
 
-      isProcessingSharedRecipeRef.current = true;
-      setIsLoadingSharedRecipe(true);
-      setSharedRecipeError(null);
+    isProcessingSharedRecipeRef.current = true;
+    setSharedRecipeState((prev) => ({
+      ...prev,
+      isLoading: true,
+      error: null,
+    }));
 
-      try {
-        if (isCustomRecipeUrl(recipeId)) {
-          const importedRecipe = decodeSharedCustomRecipe(recipeId);
+    try {
+      if (isCustomRecipeUrl(recipeId)) {
+        const importedRecipe = decodeSharedCustomRecipe(recipeId);
 
-          if (importedRecipe?.isValid) {
-            setSharedCustomRecipe(importedRecipe.recipe);
-            setSharedRecipe(null);
-            updateUrl({ recipe: '' });
-          } else {
-            setSharedRecipeError('Invalid custom recipe data');
-            setSharedRecipe(null);
-            setSharedCustomRecipe(null);
-          }
+        if (importedRecipe?.isValid) {
+          setSharedRecipeState((prev) => ({
+            ...prev,
+            customRecipe: importedRecipe.recipe,
+            recipe: null,
+          }));
+          updateUrl({ recipe: '' });
         } else {
-          if (!recipesByUuid || recipesByUuid.size === 0) {
-            return;
-          }
-
-          if (recipesByUuid.has(recipeId)) {
-            setSharedRecipe(recipesByUuid.get(recipeId) ?? null);
-            setSharedCustomRecipe(null);
-            updateUrl({ recipe: '' });
-          } else {
-            setSharedRecipeError(
-              `Recipe with ID ${recipeId.substring(0, 20)}... not found`
-            );
-            setSharedRecipe(null);
-            setSharedCustomRecipe(null);
-          }
+          setSharedRecipeState((prev) => ({
+            ...prev,
+            error: 'Invalid custom recipe data',
+            recipe: null,
+            customRecipe: null,
+          }));
         }
-      } catch (error) {
-        setSharedRecipeError(
+      } else {
+        if (!recipesByUuid || recipesByUuid.size === 0) {
+          return;
+        }
+
+        if (recipesByUuid.has(recipeId)) {
+          setSharedRecipeState((prev) => ({
+            ...prev,
+            recipe: recipesByUuid.get(recipeId) ?? null,
+            customRecipe: null,
+          }));
+          updateUrl({ recipe: '' });
+        } else {
+          setSharedRecipeState((prev) => ({
+            ...prev,
+            error: `Recipe with ID ${recipeId.substring(0, 20)}... not found`,
+            recipe: null,
+            customRecipe: null,
+          }));
+        }
+      }
+    } catch (error) {
+      setSharedRecipeState((prev) => ({
+        ...prev,
+        error:
           error instanceof Error
             ? error.message
-            : 'Failed to load shared recipe'
-        );
-        setSharedRecipe(null);
-        setSharedCustomRecipe(null);
-      } finally {
-        const isWaitingForRecipes =
-          !isCustomRecipeUrl(recipeId) &&
-          (!recipesByUuid || recipesByUuid.size === 0);
+            : 'Failed to load shared recipe',
+        recipe: null,
+        customRecipe: null,
+      }));
+    } finally {
+      const isWaitingForRecipes =
+        !isCustomRecipeUrl(recipeId) &&
+        (!recipesByUuid || recipesByUuid.size === 0);
 
-        if (!isWaitingForRecipes) {
-          setIsLoadingSharedRecipe(false);
-        }
-        isProcessingSharedRecipeRef.current = false;
+      if (!isWaitingForRecipes) {
+        setSharedRecipeState((prev) => ({ ...prev, isLoading: false }));
       }
-    };
-
-    void handleSharedRecipeLookup();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      isProcessingSharedRecipeRef.current = false;
+    }
   }, [
     params,
     recipesByUuid,
@@ -515,6 +538,10 @@ export const useRecipeUrlState = (
     decodeSharedCustomRecipe,
     updateUrl,
   ]);
+
+  useEffect(() => {
+    void handleSharedRecipeLookup();
+  }, [handleSharedRecipeLookup]);
 
   // Sync current UI state → URL
   useEffect(() => {

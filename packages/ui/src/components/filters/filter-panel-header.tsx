@@ -1,5 +1,6 @@
 import { ChevronLeft, Filter } from 'lucide-react';
 import type { FC } from 'react';
+import { setStyles } from '../../lib/dom';
 import { useFilterPanel } from './filter-panel-context';
 
 interface FilterPanelHeaderProps {
@@ -22,23 +23,23 @@ export const FilterPanelHeader: FC<FilterPanelHeaderProps> = ({
     >
       <div className="flex items-center gap-2">
         <div
-          className="flex h-8 w-8 items-center justify-center rounded-lg darkroom-invert-icon"
+          className="flex size-8 items-center justify-center rounded-lg darkroom-invert-icon"
           style={{
             backgroundColor: 'var(--color-primary)',
             color: 'var(--color-background)',
           }}
         >
-          <Filter className="h-4 w-4" />
+          <Filter className="size-4" />
         </div>
         <h2
-          className="text-lg font-bold"
+          className="text-lg font-semibold"
           style={{ color: 'var(--color-text-primary)' }}
         >
           {title}
         </h2>
         {activeFilterCount > 0 && (
           <span
-            className="ml-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
+            className="ml-1 flex size-6 items-center justify-center rounded-full text-xs font-bold"
             style={{
               backgroundColor: 'var(--color-accent)',
               color: 'var(--color-background)',
@@ -51,25 +52,29 @@ export const FilterPanelHeader: FC<FilterPanelHeaderProps> = ({
       <button
         type="button"
         onClick={toggle}
-        className="flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200"
+        className="flex size-8 items-center justify-center rounded-lg transition-all duration-200"
         style={{
           color: 'var(--color-text-muted)',
           border: '1px solid transparent',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'var(--color-surface-muted)';
-          e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
-          e.currentTarget.style.color = 'var(--color-text-primary)';
+          setStyles(e.currentTarget, {
+            backgroundColor: 'var(--color-surface-muted)',
+            borderColor: 'var(--color-border-secondary)',
+            color: 'var(--color-text-primary)',
+          });
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'transparent';
-          e.currentTarget.style.borderColor = 'transparent';
-          e.currentTarget.style.color = 'var(--color-text-muted)';
+          setStyles(e.currentTarget, {
+            backgroundColor: 'transparent',
+            borderColor: 'transparent',
+            color: 'var(--color-text-muted)',
+          });
         }}
         aria-label="Collapse filters"
         title="Collapse filters"
       >
-        <ChevronLeft className="h-5 w-5" />
+        <ChevronLeft className="size-5" />
       </button>
     </div>
   );

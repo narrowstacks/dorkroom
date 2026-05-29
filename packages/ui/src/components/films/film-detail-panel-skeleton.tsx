@@ -34,12 +34,12 @@ export const FilmDetailPanelSkeleton: FC<FilmDetailPanelSkeletonProps> = ({
           backgroundColor: 'var(--color-visualization-overlay)',
           height: '100dvh',
         }}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Loading film details"
       >
-        <div
-          className="relative w-full rounded-t-3xl border border-b-0 shadow-xl"
+        <dialog
+          open
+          aria-modal="true"
+          aria-label="Loading film details"
+          className="relative m-0 max-h-none w-full rounded-t-3xl border border-b-0 shadow-xl"
           style={{
             borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-surface)',
@@ -48,12 +48,12 @@ export const FilmDetailPanelSkeleton: FC<FilmDetailPanelSkeletonProps> = ({
         >
           {/* Content */}
           <div
-            className="overflow-y-auto px-6 py-6"
+            className="overflow-y-auto p-6"
             style={{ maxHeight: 'calc(80vh - 3rem)' }}
           >
             <SkeletonContent />
           </div>
-        </div>
+        </dialog>
       </div>,
       document.body
     );
@@ -98,7 +98,7 @@ const SkeletonContent: FC = () => {
             background:
               'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmer 1.5s ease-in-out infinite',
+            animation: 'shimmer 0.9s ease-in-out infinite',
           }}
         />
       </div>
@@ -112,7 +112,7 @@ const SkeletonContent: FC = () => {
             background:
               'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmer 1.5s ease-in-out infinite',
+            animation: 'shimmer 0.9s ease-in-out infinite',
           }}
         />
         <div
@@ -122,7 +122,7 @@ const SkeletonContent: FC = () => {
             background:
               'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmer 1.5s ease-in-out infinite',
+            animation: 'shimmer 0.9s ease-in-out infinite',
           }}
         />
       </div>
@@ -136,7 +136,7 @@ const SkeletonContent: FC = () => {
             background:
               'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmer 1.5s ease-in-out infinite',
+            animation: 'shimmer 0.9s ease-in-out infinite',
           }}
         />
         <div
@@ -146,7 +146,7 @@ const SkeletonContent: FC = () => {
             background:
               'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmer 1.5s ease-in-out infinite',
+            animation: 'shimmer 0.9s ease-in-out infinite',
           }}
         />
       </div>
@@ -160,7 +160,7 @@ const SkeletonContent: FC = () => {
             background:
               'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmer 1.5s ease-in-out infinite',
+            animation: 'shimmer 0.9s ease-in-out infinite',
           }}
         />
         <div className="space-y-2">
@@ -171,7 +171,7 @@ const SkeletonContent: FC = () => {
               background:
                 'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
               backgroundSize: '200% 100%',
-              animation: 'shimmer 1.5s ease-in-out infinite',
+              animation: 'shimmer 0.9s ease-in-out infinite',
             }}
           />
           <div
@@ -181,7 +181,7 @@ const SkeletonContent: FC = () => {
               background:
                 'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
               backgroundSize: '200% 100%',
-              animation: 'shimmer 1.5s ease-in-out infinite',
+              animation: 'shimmer 0.9s ease-in-out infinite',
             }}
           />
           <div
@@ -191,7 +191,7 @@ const SkeletonContent: FC = () => {
               background:
                 'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
               backgroundSize: '200% 100%',
-              animation: 'shimmer 1.5s ease-in-out infinite',
+              animation: 'shimmer 0.9s ease-in-out infinite',
             }}
           />
         </div>
@@ -206,7 +206,7 @@ const SkeletonContent: FC = () => {
             background:
               'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmer 1.5s ease-in-out infinite',
+            animation: 'shimmer 0.9s ease-in-out infinite',
           }}
         />
         <div
@@ -216,7 +216,7 @@ const SkeletonContent: FC = () => {
             background:
               'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmer 1.5s ease-in-out infinite',
+            animation: 'shimmer 0.9s ease-in-out infinite',
           }}
         />
       </div>
@@ -229,7 +229,7 @@ const SkeletonContent: FC = () => {
           background:
             'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
           backgroundSize: '200% 100%',
-          animation: 'shimmer 1.5s ease-in-out infinite',
+          animation: 'shimmer 0.9s ease-in-out infinite',
         }}
       />
     </div>

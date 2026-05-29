@@ -156,10 +156,10 @@ function getTrustedForwardedIp(forwardedFor: string): string | null {
     return null;
   }
 
-  const parts = forwardedFor
-    .split(',')
-    .map((part) => part.trim())
-    .filter(Boolean);
+  const parts = forwardedFor.split(',').flatMap((part) => {
+    const trimmed = part.trim();
+    return trimmed ? [trimmed] : [];
+  });
 
   // Use the right-most valid IP to avoid trusting attacker-controlled leading
   // values in appended X-Forwarded-For chains.
@@ -452,10 +452,10 @@ function setVaryHeader(res: VercelResponse, value: string): void {
       : '';
 
   const values = new Set(
-    existing
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean)
+    existing.split(',').flatMap((item) => {
+      const trimmed = item.trim();
+      return trimmed ? [trimmed] : [];
+    })
   );
   values.add(value);
 

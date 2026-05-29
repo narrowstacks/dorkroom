@@ -57,6 +57,7 @@ export const NumberField: React.FC<NumberFieldProps> = ({
         id={field.name}
         name={field.name}
         type="number"
+        aria-label={label ?? placeholder ?? field.name}
         value={field.state.value}
         onChange={(e) => field.handleChange(e.target.valueAsNumber)}
         onBlur={field.handleBlur}

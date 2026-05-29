@@ -1,6 +1,7 @@
 import { ChevronRight, Filter } from 'lucide-react';
 import { type FC, type ReactNode, useState } from 'react';
 import { cn } from '../../lib/cn';
+import { setStyles } from '../../lib/dom';
 import { FilterPanelContext } from './filter-panel-context';
 
 interface FilterPanelContainerProps {
@@ -33,7 +34,9 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
   expandedWidth = 304,
   collapsedWidth = 64,
 }) => {
-  const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
+  const [internalCollapsed, setInternalCollapsed] = useState(
+    () => defaultCollapsed
+  );
   const isControlled = collapsed !== undefined;
   const isCollapsed = isControlled ? collapsed : internalCollapsed;
 
@@ -71,35 +74,37 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
           <button
             type="button"
             onClick={toggle}
-            className="flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-200"
+            className="flex size-11 items-center justify-center rounded-xl transition-all duration-200"
             style={{
               backgroundColor: 'var(--color-surface-muted)',
               color: 'var(--color-text-secondary)',
               border: '1px solid var(--color-border-secondary)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-primary)';
-              e.currentTarget.style.color = 'var(--color-background)';
-              e.currentTarget.style.borderColor = 'var(--color-primary)';
-              e.currentTarget.style.transform = 'scale(1.05)';
+              setStyles(e.currentTarget, {
+                backgroundColor: 'var(--color-primary)',
+                color: 'var(--color-background)',
+                borderColor: 'var(--color-primary)',
+                transform: 'scale(1.05)',
+              });
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor =
-                'var(--color-surface-muted)';
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
-              e.currentTarget.style.borderColor =
-                'var(--color-border-secondary)';
-              e.currentTarget.style.transform = 'scale(1)';
+              setStyles(e.currentTarget, {
+                backgroundColor: 'var(--color-surface-muted)',
+                color: 'var(--color-text-secondary)',
+                borderColor: 'var(--color-border-secondary)',
+                transform: 'scale(1)',
+              });
             }}
             aria-label="Expand filters"
             title="Expand filters"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="size-5" />
           </button>
 
-          <div className="relative flex h-11 w-11 items-center justify-center">
+          <div className="relative flex size-11 items-center justify-center">
             <div
-              className="flex h-full w-full items-center justify-center rounded-xl transition-all duration-200"
+              className="flex size-full items-center justify-center rounded-xl transition-all duration-200"
               style={{
                 backgroundColor: hasActiveFilters
                   ? 'var(--color-primary)'
@@ -117,11 +122,11 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
                   : 'No filters'
               }
             >
-              <Filter className="h-5 w-5" />
+              <Filter className="size-5" />
             </div>
             {activeFilterCount > 0 && (
               <span
-                className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold"
+                className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full text-[11px] font-bold"
                 style={{
                   backgroundColor: 'var(--color-accent)',
                   color: 'var(--color-background)',

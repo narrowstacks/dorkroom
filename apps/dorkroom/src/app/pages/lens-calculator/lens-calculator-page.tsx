@@ -208,7 +208,7 @@ export default function LensCalculatorPage() {
                 aria-label="Swap source and target formats"
               >
                 <ArrowRightLeft
-                  className="w-4 h-4"
+                  className="size-4"
                   style={{
                     color: 'var(--color-text-primary)',
                     stroke: 'var(--color-text-primary)',

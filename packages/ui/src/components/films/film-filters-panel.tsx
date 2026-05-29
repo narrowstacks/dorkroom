@@ -1,11 +1,10 @@
 import type { SelectItem } from '@dorkroom/logic';
 import { Search } from 'lucide-react';
 import { type FC, useRef } from 'react';
-import {
-  FilterPanelContainer,
-  FilterPanelHeader,
-  FilterPanelSection,
-} from '../filters';
+import { setStyles } from '../../lib/dom';
+import { FilterPanelContainer } from '../filters/filter-panel-container';
+import { FilterPanelHeader } from '../filters/filter-panel-header';
+import { FilterPanelSection } from '../filters/filter-panel-section';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
 
@@ -112,12 +111,13 @@ export const FilmFiltersPanel: FC<FilmFiltersPanelProps> = ({
         <div className="relative">
           <Search
             ref={searchIconRef}
-            className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors"
+            className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 transition-colors"
             style={{ color: 'var(--color-text-muted)' }}
           />
           <input
             id="film-search"
             type="text"
+            aria-label="Search Films"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Type to search..."
@@ -131,15 +131,19 @@ export const FilmFiltersPanel: FC<FilmFiltersPanelProps> = ({
               } as React.CSSProperties
             }
             onFocus={(e) => {
-              e.target.style.borderColor = 'var(--color-primary)';
-              e.target.style.backgroundColor = 'var(--color-background)';
+              setStyles(e.target, {
+                borderColor: 'var(--color-primary)',
+                backgroundColor: 'var(--color-background)',
+              });
               if (searchIconRef.current) {
                 searchIconRef.current.style.color = 'var(--color-primary)';
               }
             }}
             onBlur={(e) => {
-              e.target.style.borderColor = 'var(--color-border-secondary)';
-              e.target.style.backgroundColor = 'var(--color-surface-muted)';
+              setStyles(e.target, {
+                borderColor: 'var(--color-border-secondary)',
+                backgroundColor: 'var(--color-surface-muted)',
+              });
               if (searchIconRef.current) {
                 searchIconRef.current.style.color = 'var(--color-text-muted)';
               }

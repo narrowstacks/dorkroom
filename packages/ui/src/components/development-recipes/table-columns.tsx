@@ -14,7 +14,7 @@ import {
   Star,
   Trash2,
 } from 'lucide-react';
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { cn } from '../../lib/cn';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
@@ -68,7 +68,7 @@ const ActionIconButton = memo(function ActionIconButton({
           'hover:bg-[var(--color-semantic-info)]'
         ),
         iconClassName:
-          'pointer-events-none h-4 w-4 transition-colors stroke-[var(--color-semantic-info)] group-hover:stroke-black',
+          'pointer-events-none size-4 transition-colors stroke-[var(--color-semantic-info)] group-hover:stroke-black',
         iconStyle:
           variant === 'favorite-active'
             ? { fill: 'var(--color-semantic-info)' }
@@ -88,7 +88,7 @@ const ActionIconButton = memo(function ActionIconButton({
             'hover:bg-[var(--color-border-secondary)]'
           ),
           iconClassName:
-            'pointer-events-none h-4 w-4 transition-colors stroke-[var(--color-border-primary)] group-hover:stroke-white',
+            'pointer-events-none size-4 transition-colors stroke-[var(--color-border-primary)] group-hover:stroke-white',
         };
       case 'favorite-active':
         return {
@@ -99,7 +99,7 @@ const ActionIconButton = memo(function ActionIconButton({
             'hover:bg-[var(--color-border-secondary)]'
           ),
           iconClassName:
-            'pointer-events-none h-4 w-4 transition-colors stroke-[var(--color-semantic-warning)] group-hover:stroke-white',
+            'pointer-events-none size-4 transition-colors stroke-[var(--color-semantic-warning)] group-hover:stroke-white',
           iconStyle: { fill: 'var(--color-semantic-warning)' },
         };
       case 'edit':
@@ -111,7 +111,7 @@ const ActionIconButton = memo(function ActionIconButton({
             'hover:bg-[var(--color-border-secondary)]'
           ),
           iconClassName:
-            'pointer-events-none h-4 w-4 transition-colors stroke-[var(--color-text-secondary)] group-hover:stroke-white',
+            'pointer-events-none size-4 transition-colors stroke-[var(--color-text-secondary)] group-hover:stroke-white',
         };
       case 'delete':
         return {
@@ -124,14 +124,14 @@ const ActionIconButton = memo(function ActionIconButton({
             'hover:[background-color:color-mix(in_srgb,var(--color-semantic-error)_20%,transparent)]'
           ),
           iconClassName: cn(
-            'pointer-events-none h-4 w-4 transition-colors',
+            'pointer-events-none size-4 transition-colors',
             // Error color stroke
             '[stroke:color-mix(in_srgb,var(--color-semantic-error)_80%,var(--color-text-primary))]',
             'group-hover:[stroke:color-mix(in_srgb,var(--color-semantic-error)_90%,var(--color-text-primary))]'
           ),
         };
       default:
-        return { className: baseClasses, iconClassName: 'h-4 w-4' };
+        return { className: baseClasses, iconClassName: 'size-4' };
     }
   };
 
@@ -224,7 +224,7 @@ function TemperatureCellRenderer({
       style={{ color: getTempColor() }}
     >
       {temp.isNonStandard && (
-        <TempIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <TempIcon className="size-3.5 shrink-0" aria-hidden="true" />
       )}
       {temp.text}
     </span>
@@ -274,13 +274,126 @@ function IsoCellRenderer({
       {shootingIso}
       {isNonBoxSpeed && (
         <>
-          <IsoIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <IsoIcon className="size-3.5 shrink-0" aria-hidden="true" />
           <span className="text-xs">
             {pushPull > 0 ? `+${pushPull}` : pushPull}
           </span>
         </>
       )}
     </span>
+  );
+}
+
+/**
+ * Wrapper that stops click/keyboard events from bubbling to a clickable
+ * ancestor (e.g. a selectable table row). Rendered as a presentational
+ * container so it isn't exposed as an interactive element itself; the child
+ * (a real button) remains the focusable control.
+ */
+function StopPropagationWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      role="presentation"
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
+ * Actions column cell — favorite/share plus edit/delete for custom recipes.
+ * Extracted into a component so the handlers passed to the memoized
+ * ActionIconButton can be stabilized with useCallback.
+ */
+function ActionsCell({
+  view,
+  context,
+}: {
+  view: DevelopmentCombinationView;
+  context: TableColumnContext;
+}) {
+  const isFav = context.isFavorite?.(view);
+  const isCustom = view.source === 'custom';
+  const isDarkroom =
+    document.documentElement.getAttribute('data-theme') === 'darkroom';
+
+  const { onToggleFavorite, onEditCustomRecipe, onDeleteCustomRecipe } =
+    context;
+
+  const handleToggleFavorite = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onToggleFavorite?.(view);
+    },
+    [onToggleFavorite, view]
+  );
+
+  const handleEdit = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onEditCustomRecipe?.(view);
+    },
+    [onEditCustomRecipe, view]
+  );
+
+  const handleDelete = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onDeleteCustomRecipe?.(view);
+    },
+    [onDeleteCustomRecipe, view]
+  );
+
+  return (
+    // Vertical stack: favorite+share on top, edit+delete below (if custom)
+    // This prevents column width changes when custom recipes virtualize in/out
+    <div className="flex flex-col gap-1.5">
+      {/* Primary actions row - always same width */}
+      <div className="flex items-center gap-2">
+        <ActionIconButton
+          icon={Star}
+          onClick={handleToggleFavorite}
+          title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+          ariaLabel={isFav ? 'Remove from favorites' : 'Add to favorites'}
+          ariaPressed={Boolean(isFav)}
+          variant={isFav ? 'favorite-active' : 'favorite'}
+          isDarkroom={isDarkroom}
+        />
+        {context.onShareCombination && (
+          <StopPropagationWrapper>
+            <ShareButton
+              onClick={() => context.onShareCombination?.(view)}
+              variant="outline"
+              size="sm"
+              iconOnly
+            />
+          </StopPropagationWrapper>
+        )}
+      </div>
+      {/* Custom recipe actions row - only adds height, not width */}
+      {isCustom && (
+        <div className="flex items-center gap-2">
+          <ActionIconButton
+            icon={Edit2}
+            onClick={handleEdit}
+            title="Edit"
+            ariaLabel="Edit"
+            variant="edit"
+            isDarkroom={isDarkroom}
+          />
+          <ActionIconButton
+            icon={Trash2}
+            onClick={handleDelete}
+            title="Delete"
+            ariaLabel="Delete"
+            variant="delete"
+            isDarkroom={isDarkroom}
+          />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -442,7 +555,7 @@ export const createTableColumns = (
                 e.currentTarget.style.color = 'var(--color-text-tertiary)';
               }}
             >
-              <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              <ExternalLink className="size-4" aria-hidden="true" />
             </a>
           )}
         </div>
@@ -454,76 +567,9 @@ export const createTableColumns = (
     id: 'actions',
     header: 'Actions',
     size: 100,
-    cell: (cellCtx: CellContext<DevelopmentCombinationView, unknown>) => {
-      const view = cellCtx.row.original;
-      const isFav = context.isFavorite?.(view);
-      const isCustom = view.source === 'custom';
-      const isDarkroom =
-        document.documentElement.getAttribute('data-theme') === 'darkroom';
-
-      return (
-        // Vertical stack: favorite+share on top, edit+delete below (if custom)
-        // This prevents column width changes when custom recipes virtualize in/out
-        <div className="flex flex-col gap-1.5">
-          {/* Primary actions row - always same width */}
-          <div className="flex items-center gap-2">
-            <ActionIconButton
-              icon={Star}
-              onClick={(e) => {
-                e.stopPropagation();
-                context.onToggleFavorite?.(view);
-              }}
-              title={isFav ? 'Remove from favorites' : 'Add to favorites'}
-              ariaLabel={isFav ? 'Remove from favorites' : 'Add to favorites'}
-              ariaPressed={Boolean(isFav)}
-              variant={isFav ? 'favorite-active' : 'favorite'}
-              isDarkroom={isDarkroom}
-            />
-            {context.onShareCombination && (
-              // biome-ignore lint/a11y/noStaticElementInteractions: wrapper to stop event propagation to parent row
-              <span
-                onClick={(e) => e.stopPropagation()}
-                onKeyDown={(e) => e.stopPropagation()}
-              >
-                <ShareButton
-                  onClick={() => context.onShareCombination?.(view)}
-                  variant="outline"
-                  size="sm"
-                  iconOnly
-                />
-              </span>
-            )}
-          </div>
-          {/* Custom recipe actions row - only adds height, not width */}
-          {isCustom && (
-            <div className="flex items-center gap-2">
-              <ActionIconButton
-                icon={Edit2}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  context.onEditCustomRecipe?.(view);
-                }}
-                title="Edit"
-                ariaLabel="Edit"
-                variant="edit"
-                isDarkroom={isDarkroom}
-              />
-              <ActionIconButton
-                icon={Trash2}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  context.onDeleteCustomRecipe?.(view);
-                }}
-                title="Delete"
-                ariaLabel="Delete"
-                variant="delete"
-                isDarkroom={isDarkroom}
-              />
-            </div>
-          )}
-        </div>
-      );
-    },
+    cell: (cellCtx: CellContext<DevelopmentCombinationView, unknown>) => (
+      <ActionsCell view={cellCtx.row.original} context={context} />
+    ),
     enableSorting: false,
   },
 ];

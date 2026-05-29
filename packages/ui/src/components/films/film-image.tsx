@@ -1,5 +1,5 @@
 import { Film } from 'lucide-react';
-import { type FC, useEffect, useState } from 'react';
+import { type FC, useEffect, useRef, useState } from 'react';
 import { cn } from '../../lib/cn';
 
 interface FilmImageProps {
@@ -37,37 +37,49 @@ function isImageCached(src: string): boolean {
   return false;
 }
 
+interface ImageState {
+  hasError: boolean;
+  isLoading: boolean;
+  hasTimedOut: boolean;
+}
+
+function getInitialState(src: string | null): ImageState {
+  return {
+    hasError: false,
+    hasTimedOut: false,
+    // Only show loading state if we have a src to load and it's not cached
+    isLoading: !!src && !isImageCached(src),
+  };
+}
+
 export const FilmImage: FC<FilmImageProps> = ({
   src,
   alt,
   size = 'md',
   className,
 }) => {
-  const [hasError, setHasError] = useState(false);
-  // Check cache first - skip loading state if image is already cached
-  const [isLoading, setIsLoading] = useState(
-    () => !!src && !isImageCached(src)
-  );
-  const [hasTimedOut, setHasTimedOut] = useState(false);
-  const dimension = sizeMap[size];
+  // Single consolidated state so the per-src reset is one update.
+  const [state, setState] = useState<ImageState>(() => getInitialState(src));
+  // Track the previous src in a ref and reset state during render when it
+  // changes, instead of in an effect. See
+  // https://react.dev/learn/you-might-not-need-an-effect
+  const prevSrcRef = useRef(src);
+  if (src !== prevSrcRef.current) {
+    prevSrcRef.current = src;
+    setState(getInitialState(src));
+  }
 
-  // Reset state when src changes to ensure correct display for new film
-  useEffect(() => {
-    setHasError(false);
-    setHasTimedOut(false);
-    // Only show loading state if we have a src to load and it's not cached
-    setIsLoading(!!src && !isImageCached(src));
-  }, [src]);
+  const { hasError, isLoading, hasTimedOut } = state;
+  const dimension = sizeMap[size];
 
   // Timeout after 5 seconds - show fallback icon instead of loading animation
   useEffect(() => {
     if (!src || !isLoading) return;
 
     const timeoutId = setTimeout(() => {
-      if (isLoading) {
-        setHasTimedOut(true);
-        setIsLoading(false);
-      }
+      setState((prev) =>
+        prev.isLoading ? { ...prev, hasTimedOut: true, isLoading: false } : prev
+      );
     }, 5000);
 
     return () => clearTimeout(timeoutId);
@@ -110,7 +122,7 @@ export const FilmImage: FC<FilmImageProps> = ({
                 background:
                   'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
                 backgroundSize: '200% 100%',
-                animation: 'shimmer 1.5s ease-in-out infinite',
+                animation: 'shimmer 0.9s ease-in-out infinite',
               }}
             />
           )}
@@ -119,12 +131,15 @@ export const FilmImage: FC<FilmImageProps> = ({
             alt={alt}
             loading="lazy"
             onError={() => {
-              setHasError(true);
-              setIsLoading(false);
+              setState((prev) => ({
+                ...prev,
+                hasError: true,
+                isLoading: false,
+              }));
             }}
             onLoad={() => {
               if (src) loadedImageCache.add(src);
-              setIsLoading(false);
+              setState((prev) => ({ ...prev, isLoading: false }));
             }}
             className={cn(
               'w-full h-full object-cover transition-opacity duration-300',

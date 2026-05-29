@@ -26,7 +26,7 @@ export const FilmCardSkeleton: FC<FilmCardSkeletonProps> = ({ className }) => {
             background:
               'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmer 1.5s ease-in-out infinite',
+            animation: 'shimmer 0.9s ease-in-out infinite',
           }}
         />
 
@@ -39,7 +39,7 @@ export const FilmCardSkeleton: FC<FilmCardSkeletonProps> = ({ className }) => {
               background:
                 'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
               backgroundSize: '200% 100%',
-              animation: 'shimmer 1.5s ease-in-out infinite',
+              animation: 'shimmer 0.9s ease-in-out infinite',
             }}
           />
 
@@ -52,7 +52,7 @@ export const FilmCardSkeleton: FC<FilmCardSkeletonProps> = ({ className }) => {
                 background:
                   'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
                 backgroundSize: '200% 100%',
-                animation: 'shimmer 1.5s ease-in-out infinite',
+                animation: 'shimmer 0.9s ease-in-out infinite',
               }}
             />
             <div
@@ -62,7 +62,7 @@ export const FilmCardSkeleton: FC<FilmCardSkeletonProps> = ({ className }) => {
                 background:
                   'linear-gradient(90deg, var(--color-surface-muted) 0%, var(--color-border-muted) 50%, var(--color-surface-muted) 100%)',
                 backgroundSize: '200% 100%',
-                animation: 'shimmer 1.5s ease-in-out infinite',
+                animation: 'shimmer 0.9s ease-in-out infinite',
               }}
             />
           </div>

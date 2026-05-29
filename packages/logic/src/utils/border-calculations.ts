@@ -17,7 +17,7 @@ const { BORDER_OPTIMIZATION, CACHE, PAPER } = CALCULATION_CONSTANTS;
    Easel fitting helpers
  * ------------------------------------------------------------------ */
 
-const SORTED_EASEL_SIZES = [...EASEL_SIZES].sort(
+const SORTED_EASEL_SIZES = EASEL_SIZES.toSorted(
   (a, b) => a.width * a.height - b.width * b.height
 );
 

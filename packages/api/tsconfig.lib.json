@@ -5,7 +5,7 @@
     "types": ["node"],
     "rootDir": "src",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
-    "lib": ["es2022"],
+    "lib": ["es2023"],
     "emitDeclarationOnly": false,
     "declaration": true
   },

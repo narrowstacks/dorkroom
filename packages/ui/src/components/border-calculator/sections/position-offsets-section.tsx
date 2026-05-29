@@ -31,7 +31,7 @@ export function PositionOffsetsSection({
           onClick={onClose}
           className="rounded-lg border border-white/20 bg-white/5 p-2 text-white transition hover:bg-white/10"
         >
-          <X className="h-5 w-5" />
+          <X className="size-5" />
         </button>
       </div>
 

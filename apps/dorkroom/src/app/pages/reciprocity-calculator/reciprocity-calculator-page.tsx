@@ -82,22 +82,348 @@ function selectReciprocityCalculation(
   };
 }
 
-/**
- * Render the Reciprocity Failure Calculator page with inputs, results, and an interactive reciprocity curve.
- *
- * The component provides controls to select or define a film profile, enter a metered exposure time (including presets),
- * and view calculated adjusted exposure and added exposure. It also includes controls to show an inline reciprocity curve
- * and expand it to a full-width view.
- *
- * @returns The JSX element representing the reciprocity calculator UI.
- */
-export default function ReciprocityCalculatorPage() {
-  // Use formatReciprocityTime directly for formatting calculations
-  const formatTime = formatReciprocityTime;
-  const filmTypes = RECIPROCITY_FILM_TYPES;
+type ReciprocityCalculation = NonNullable<
+  ReturnType<typeof selectReciprocityCalculation>
+>;
 
-  const [showChart, setShowChart] = useState(false);
-  const [isWideChart, setIsWideChart] = useState(false);
+function ReciprocitySidebar() {
+  return (
+    <CalculatorCard
+      title="How this calculator works"
+      padding="normal"
+      className="bg-surface-muted/80"
+    >
+      <div className="space-y-6">
+        <p
+          className="text-[15px] leading-relaxed"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
+          Film loses sensitivity during long exposures: silver halide crystals
+          respond less efficiently when photons arrive slowly. This calculator
+          figures out how much extra time you need to get the same density on
+          film.
+        </p>
+
+        <div className="space-y-3">
+          <h4
+            className="text-sm font-semibold"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            How to use
+          </h4>
+          <ol className="ml-5 space-y-2 list-decimal">
+            {HOW_TO_USE.map((item) => (
+              <li
+                key={item}
+                className="pl-2 text-[15px] leading-relaxed"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                {item}
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <div className="space-y-3">
+          <h4
+            className="text-sm font-semibold"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            Tips
+          </h4>
+          <ul className="ml-5 space-y-2 list-disc">
+            {TIPS.map((tip) => (
+              <li
+                key={tip}
+                className="pl-2 text-[15px] leading-relaxed"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                {tip}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </CalculatorCard>
+  );
+}
+
+function ReciprocityResults({
+  calculation,
+  showChart,
+  isWideChart,
+  onToggleChart,
+  onExpandChart,
+}: {
+  calculation: ReciprocityCalculation;
+  showChart: boolean;
+  isWideChart: boolean;
+  onToggleChart: () => void;
+  onExpandChart: () => void;
+}) {
+  return (
+    <CalculatorCard
+      title="Reciprocity results"
+      description="Your exposure time corrected for reciprocity failure"
+      accent="emerald"
+      padding="compact"
+      actions={
+        <button
+          type="button"
+          onClick={onToggleChart}
+          className="flex items-center gap-2 rounded-full px-3 py-2 transition-colors hover:bg-white/10"
+          aria-label={showChart ? 'Hide chart' : 'Show chart'}
+          title={showChart ? 'Hide chart' : 'Show chart'}
+        >
+          <ChartLine
+            className="size-5"
+            style={{
+              color: showChart
+                ? 'var(--color-primary)'
+                : 'var(--color-text-secondary)',
+            }}
+          />
+          <span
+            className="text-sm font-medium"
+            style={{
+              color: showChart
+                ? 'var(--color-primary)'
+                : 'var(--color-text-secondary)',
+            }}
+          >
+            {showChart ? 'Hide chart' : 'View chart'}
+          </span>
+        </button>
+      }
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
+        <CalculatorStat
+          label="Adjusted exposure"
+          value={formatReciprocityTime(calculation.adjustedTime)}
+          helperText={`Recommended for ${calculation.filmName}`}
+          tone="emerald"
+        />
+        <CalculatorStat
+          label="Added exposure"
+          value={formatReciprocityTime(
+            Math.max(calculation.adjustedTime - calculation.originalTime, 0)
+          )}
+          helperText={`${Math.round(
+            calculation.percentageIncrease
+          )}% more time needed`}
+        />
+      </div>
+
+      <div
+        className="rounded-2xl p-4 font-mono text-sm"
+        style={{
+          borderWidth: 1,
+          borderColor: 'var(--color-border-secondary)',
+          backgroundColor: 'rgba(var(--color-background-rgb), 0.18)',
+          color: 'var(--color-text-primary)',
+        }}
+      >
+        {`${formatReciprocityTime(calculation.originalTime)} `}
+        <span
+          className="align-super text-xs font-semibold"
+          style={{
+            color: 'var(--color-primary)',
+          }}
+        >
+          {calculation.factor.toFixed(2)}
+        </span>
+        <span>{' = '}</span>
+        <span className="font-semibold text-[color:var(--color-text-primary)]">
+          {formatReciprocityTime(calculation.adjustedTime)}
+        </span>
+      </div>
+
+      <div className="space-y-2">
+        <ResultRow
+          label="Film selection"
+          value={calculation.filmName || 'Custom profile'}
+        />
+        <ResultRow
+          label="Original time"
+          value={formatReciprocityTime(calculation.originalTime)}
+        />
+        <ResultRow
+          label="Adjustment factor"
+          value={calculation.factor.toFixed(2)}
+        />
+      </div>
+
+      {showChart && !isWideChart && (
+        <div className="mt-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-sm font-medium text-[color:var(--color-text-primary)]">
+              {`Reciprocity curve for ${calculation.filmName}`}
+            </h3>
+            <button
+              type="button"
+              onClick={onExpandChart}
+              className="rounded-full p-2 transition-colors hover:bg-white/10"
+              aria-label="Expand chart"
+              title="Expand chart to full width"
+            >
+              <Maximize2
+                className="size-4"
+                style={{
+                  color: 'var(--color-text-secondary)',
+                }}
+              />
+            </button>
+          </div>
+          <ReciprocityChart
+            originalTime={calculation.originalTime}
+            adjustedTime={calculation.adjustedTime}
+            factor={calculation.factor}
+            filmName={calculation.filmName}
+          />
+        </div>
+      )}
+    </CalculatorCard>
+  );
+}
+
+function ReciprocityWideChart({
+  calculation,
+  onCollapse,
+}: {
+  calculation: ReciprocityCalculation;
+  onCollapse: () => void;
+}) {
+  return (
+    <div className="mt-8">
+      <CalculatorCard
+        title={`Reciprocity curve for ${calculation.filmName}`}
+        description="Hover over the curve to explore reciprocity calculations for different exposure times."
+        accent="emerald"
+        padding="normal"
+        actions={
+          <button
+            type="button"
+            onClick={onCollapse}
+            className="rounded-full p-2 transition-colors hover:bg-white/10"
+            aria-label="Collapse chart"
+            title="Collapse chart to inline view"
+          >
+            <Minimize2
+              className="size-5"
+              style={{
+                color: 'var(--color-primary)',
+              }}
+            />
+          </button>
+        }
+      >
+        <ReciprocityChart
+          originalTime={calculation.originalTime}
+          adjustedTime={calculation.adjustedTime}
+          factor={calculation.factor}
+          filmName={calculation.filmName}
+        />
+      </CalculatorCard>
+    </div>
+  );
+}
+
+function ReciprocityInputs({
+  form,
+  filmOptions,
+  exposurePresets,
+  parsedDisplay,
+}: {
+  form: ReturnType<typeof useReciprocityForm>['form'];
+  filmOptions: SelectItem[];
+  exposurePresets: typeof RECIPROCITY_EXPOSURE_PRESETS;
+  parsedDisplay: string | null;
+}) {
+  return (
+    <CalculatorCard
+      title="Reciprocity inputs"
+      description="Choose a film stock, adjust the reciprocity factor if needed, and enter your metered time."
+    >
+      <form.Field name="filmType">
+        {(field) => (
+          <Select
+            label="Film stock"
+            selectedValue={field.state.value}
+            onValueChange={(value: string) => field.handleChange(value)}
+            items={filmOptions}
+          />
+        )}
+      </form.Field>
+
+      {form.getFieldValue('filmType') === 'custom' && (
+        <form.Field name="customFactor">
+          {(field) => (
+            <CalculatorNumberField
+              label="Reciprocity factor"
+              value={String(field.state.value)}
+              onChange={(value: string) => {
+                const next = Number.parseFloat(value);
+                if (Number.isNaN(next)) return;
+                field.handleChange(next);
+              }}
+              placeholder="1.3"
+              step={0.1}
+              helperText="Higher values mean longer corrected times."
+            />
+          )}
+        </form.Field>
+      )}
+
+      <form.Field name="meteredTime">
+        {(field) => (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm text-[color:var(--color-text-primary)]">
+              <span className="font-medium">Metered exposure time</span>
+            </div>
+            <TextInput
+              value={field.state.value}
+              onValueChange={(value: string) => field.handleChange(value)}
+              placeholder="Try 30s, 1m30s, or 2h"
+            />
+            <div className="flex flex-wrap gap-2">
+              {exposurePresets.map((seconds: number) => (
+                <button
+                  key={seconds}
+                  type="button"
+                  onClick={() => field.handleChange(`${seconds}s`)}
+                  className="rounded-full px-3 py-1 text-xs font-medium transition"
+                  style={{
+                    color: 'var(--color-text-secondary)',
+                    borderColor: 'var(--color-border-secondary)',
+                    borderWidth: 1,
+                  }}
+                >
+                  {formatReciprocityTime(seconds)}
+                </button>
+              ))}
+            </div>
+            {field.state.meta.errors.length > 0 && (
+              <p
+                className="text-xs font-medium"
+                style={{ color: 'var(--color-accent)' }}
+              >
+                {field.state.meta.errors.join(', ')}
+              </p>
+            )}
+            {field.state.meta.errors.length === 0 && parsedDisplay && (
+              <p className="text-xs italic text-[color:var(--color-text-tertiary)]">
+                {parsedDisplay}
+              </p>
+            )}
+          </div>
+        )}
+      </form.Field>
+    </CalculatorCard>
+  );
+}
+
+function useReciprocityForm() {
+  const filmTypes = RECIPROCITY_FILM_TYPES;
 
   // TanStack Form for input state
   const form = useForm({
@@ -126,25 +452,37 @@ export default function ReciprocityCalculatorPage() {
   });
 
   // Calculate derived values from form state
-  const { parsedDisplay } = (() => {
-    const meteredTime = form.getFieldValue('meteredTime');
-    const parsedSeconds = parseReciprocityTime(meteredTime);
-    const formattedTime =
-      parsedSeconds !== null ? formatReciprocityTime(parsedSeconds) : null;
-    const parsedDisplayText =
-      formattedTime && formattedTime !== meteredTime
-        ? `Parsed as: ${formattedTime}`
-        : null;
-
-    return {
-      parsedDisplay: parsedDisplayText,
-    };
-  })();
+  const meteredTime = form.getFieldValue('meteredTime');
+  const parsedSeconds = parseReciprocityTime(meteredTime);
+  const formattedTime =
+    parsedSeconds !== null ? formatReciprocityTime(parsedSeconds) : null;
+  const parsedDisplay =
+    formattedTime && formattedTime !== meteredTime
+      ? `Parsed as: ${formattedTime}`
+      : null;
 
   const filmOptions = useMemo<SelectItem[]>(
     () => filmTypes.map(({ label, value }: SelectItem) => ({ label, value })),
     [filmTypes]
   );
+
+  return { form, filmTypes, filmOptions, parsedDisplay };
+}
+
+/**
+ * Render the Reciprocity Failure Calculator page with inputs, results, and an interactive reciprocity curve.
+ *
+ * The component provides controls to select or define a film profile, enter a metered exposure time (including presets),
+ * and view calculated adjusted exposure and added exposure. It also includes controls to show an inline reciprocity curve
+ * and expand it to a full-width view.
+ *
+ * @returns The JSX element representing the reciprocity calculator UI.
+ */
+export default function ReciprocityCalculatorPage() {
+  const { form, filmTypes, filmOptions, parsedDisplay } = useReciprocityForm();
+
+  const [showChart, setShowChart] = useState(false);
+  const [isWideChart, setIsWideChart] = useState(false);
 
   const exposurePresets = RECIPROCITY_EXPOSURE_PRESETS;
 
@@ -157,37 +495,10 @@ export default function ReciprocityCalculatorPage() {
     >
       {(calculation) =>
         calculation ? (
-          <div className="mt-8">
-            <CalculatorCard
-              title={`Reciprocity curve for ${calculation.filmName}`}
-              description="Hover over the curve to explore reciprocity calculations for different exposure times."
-              accent="emerald"
-              padding="normal"
-              actions={
-                <button
-                  type="button"
-                  onClick={() => setIsWideChart(false)}
-                  className="rounded-full p-2 transition-colors hover:bg-white/10"
-                  aria-label="Collapse chart"
-                  title="Collapse chart to inline view"
-                >
-                  <Minimize2
-                    className="h-5 w-5"
-                    style={{
-                      color: 'var(--color-primary)',
-                    }}
-                  />
-                </button>
-              }
-            >
-              <ReciprocityChart
-                originalTime={calculation.originalTime}
-                adjustedTime={calculation.adjustedTime}
-                factor={calculation.factor}
-                filmName={calculation.filmName}
-              />
-            </CalculatorCard>
-          </div>
+          <ReciprocityWideChart
+            calculation={calculation}
+            onCollapse={() => setIsWideChart(false)}
+          />
         ) : null
       }
     </form.Subscribe>
@@ -203,65 +514,7 @@ export default function ReciprocityCalculatorPage() {
           Pick a film, enter the metered time, and get the corrected exposure.
         </>
       }
-      sidebar={
-        <CalculatorCard
-          title="How this calculator works"
-          padding="normal"
-          className="bg-surface-muted/80"
-        >
-          <div className="space-y-6">
-            <p
-              className="text-[15px] leading-relaxed"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              Film loses sensitivity during long exposures — silver halide
-              crystals respond less efficiently when photons arrive slowly. This
-              calculator figures out how much extra time you need to get the
-              same density on film.
-            </p>
-
-            <div className="space-y-3">
-              <h4
-                className="text-sm font-semibold"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                How to use
-              </h4>
-              <ol className="ml-5 space-y-2 list-decimal">
-                {HOW_TO_USE.map((item) => (
-                  <li
-                    key={item}
-                    className="pl-2 text-[15px] leading-relaxed"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ol>
-            </div>
-
-            <div className="space-y-3">
-              <h4
-                className="text-sm font-semibold"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                Tips
-              </h4>
-              <ul className="ml-5 space-y-2 list-disc">
-                {TIPS.map((tip) => (
-                  <li
-                    key={tip}
-                    className="pl-2 text-[15px] leading-relaxed"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                  >
-                    {tip}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </CalculatorCard>
-      }
+      sidebar={<ReciprocitySidebar />}
       results={
         <form.Subscribe
           selector={(state) =>
@@ -270,215 +523,25 @@ export default function ReciprocityCalculatorPage() {
         >
           {(calculation) =>
             calculation ? (
-              <CalculatorCard
-                title="Reciprocity results"
-                description="Your exposure time corrected for reciprocity failure"
-                accent="emerald"
-                padding="compact"
-                actions={
-                  <button
-                    type="button"
-                    onClick={() => setShowChart((prev) => !prev)}
-                    className="flex items-center gap-2 rounded-full px-3 py-2 transition-colors hover:bg-white/10"
-                    aria-label={showChart ? 'Hide chart' : 'Show chart'}
-                    title={showChart ? 'Hide chart' : 'Show chart'}
-                  >
-                    <ChartLine
-                      className="h-5 w-5"
-                      style={{
-                        color: showChart
-                          ? 'var(--color-primary)'
-                          : 'var(--color-text-secondary)',
-                      }}
-                    />
-                    <span
-                      className="text-sm font-medium"
-                      style={{
-                        color: showChart
-                          ? 'var(--color-primary)'
-                          : 'var(--color-text-secondary)',
-                      }}
-                    >
-                      {showChart ? 'Hide chart' : 'View chart'}
-                    </span>
-                  </button>
-                }
-              >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <CalculatorStat
-                    label="Adjusted exposure"
-                    value={formatTime(calculation.adjustedTime)}
-                    helperText={`Recommended for ${calculation.filmName}`}
-                    tone="emerald"
-                  />
-                  <CalculatorStat
-                    label="Added exposure"
-                    value={formatTime(
-                      Math.max(
-                        calculation.adjustedTime - calculation.originalTime,
-                        0
-                      )
-                    )}
-                    helperText={`${Math.round(
-                      calculation.percentageIncrease
-                    )}% more time needed`}
-                  />
-                </div>
-
-                <div
-                  className="rounded-2xl p-4 font-mono text-sm"
-                  style={{
-                    borderWidth: 1,
-                    borderColor: 'var(--color-border-secondary)',
-                    backgroundColor: 'rgba(var(--color-background-rgb), 0.18)',
-                    color: 'var(--color-text-primary)',
-                  }}
-                >
-                  {`${formatReciprocityTime(calculation.originalTime)} `}
-                  <span
-                    className="align-super text-xs font-semibold"
-                    style={{
-                      color: 'var(--color-primary)',
-                    }}
-                  >
-                    {calculation.factor.toFixed(2)}
-                  </span>
-                  <span>{' = '}</span>
-                  <span className="font-semibold text-[color:var(--color-text-primary)]">
-                    {formatTime(calculation.adjustedTime)}
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  <ResultRow
-                    label="Film selection"
-                    value={calculation.filmName || 'Custom profile'}
-                  />
-                  <ResultRow
-                    label="Original time"
-                    value={formatReciprocityTime(calculation.originalTime)}
-                  />
-                  <ResultRow
-                    label="Adjustment factor"
-                    value={calculation.factor.toFixed(2)}
-                  />
-                </div>
-
-                {showChart && !isWideChart && (
-                  <div className="mt-6">
-                    <div className="mb-4 flex items-center justify-between">
-                      <h3 className="text-sm font-medium text-[color:var(--color-text-primary)]">
-                        {`Reciprocity curve for ${calculation.filmName}`}
-                      </h3>
-                      <button
-                        type="button"
-                        onClick={() => setIsWideChart(true)}
-                        className="rounded-full p-2 transition-colors hover:bg-white/10"
-                        aria-label="Expand chart"
-                        title="Expand chart to full width"
-                      >
-                        <Maximize2
-                          className="h-4 w-4"
-                          style={{
-                            color: 'var(--color-text-secondary)',
-                          }}
-                        />
-                      </button>
-                    </div>
-                    <ReciprocityChart
-                      originalTime={calculation.originalTime}
-                      adjustedTime={calculation.adjustedTime}
-                      factor={calculation.factor}
-                      filmName={calculation.filmName}
-                    />
-                  </div>
-                )}
-              </CalculatorCard>
+              <ReciprocityResults
+                calculation={calculation}
+                showChart={showChart}
+                isWideChart={isWideChart}
+                onToggleChart={() => setShowChart((prev) => !prev)}
+                onExpandChart={() => setIsWideChart(true)}
+              />
             ) : null
           }
         </form.Subscribe>
       }
       footer={wideChartFooter || undefined}
     >
-      <CalculatorCard
-        title="Reciprocity inputs"
-        description="Choose a film stock, adjust the reciprocity factor if needed, and enter your metered time."
-      >
-        <form.Field name="filmType">
-          {(field) => (
-            <Select
-              label="Film stock"
-              selectedValue={field.state.value}
-              onValueChange={(value: string) => field.handleChange(value)}
-              items={filmOptions}
-            />
-          )}
-        </form.Field>
-
-        {form.getFieldValue('filmType') === 'custom' && (
-          <form.Field name="customFactor">
-            {(field) => (
-              <CalculatorNumberField
-                label="Reciprocity factor"
-                value={String(field.state.value)}
-                onChange={(value: string) => {
-                  const next = Number.parseFloat(value);
-                  if (Number.isNaN(next)) return;
-                  field.handleChange(next);
-                }}
-                placeholder="1.3"
-                step={0.1}
-                helperText="Higher values mean longer corrected times."
-              />
-            )}
-          </form.Field>
-        )}
-
-        <form.Field name="meteredTime">
-          {(field) => (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm text-[color:var(--color-text-primary)]">
-                <span className="font-medium">Metered exposure time</span>
-              </div>
-              <TextInput
-                value={field.state.value}
-                onValueChange={(value: string) => field.handleChange(value)}
-                placeholder="Try 30s, 1m30s, or 2h"
-              />
-              <div className="flex flex-wrap gap-2">
-                {exposurePresets.map((seconds: number) => (
-                  <button
-                    key={seconds}
-                    type="button"
-                    onClick={() => field.handleChange(`${seconds}s`)}
-                    className="rounded-full px-3 py-1 text-xs font-medium transition"
-                    style={{
-                      color: 'var(--color-text-secondary)',
-                      borderColor: 'var(--color-border-secondary)',
-                      borderWidth: 1,
-                    }}
-                  >
-                    {formatReciprocityTime(seconds)}
-                  </button>
-                ))}
-              </div>
-              {field.state.meta.errors.length > 0 && (
-                <p
-                  className="text-xs font-medium"
-                  style={{ color: 'var(--color-accent)' }}
-                >
-                  {field.state.meta.errors.join(', ')}
-                </p>
-              )}
-              {field.state.meta.errors.length === 0 && parsedDisplay && (
-                <p className="text-xs italic text-[color:var(--color-text-tertiary)]">
-                  {parsedDisplay}
-                </p>
-              )}
-            </div>
-          )}
-        </form.Field>
-      </CalculatorCard>
+      <ReciprocityInputs
+        form={form}
+        filmOptions={filmOptions}
+        exposurePresets={exposurePresets}
+        parsedDisplay={parsedDisplay}
+      />
     </CalculatorLayout>
   );
 }

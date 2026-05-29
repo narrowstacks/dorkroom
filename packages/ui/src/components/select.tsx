@@ -79,7 +79,7 @@ export function Select({
           ))}
         </select>
         <ChevronDown
-          className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 pointer-events-none"
+          className="absolute right-2 top-1/2 size-4 -translate-y-1/2 pointer-events-none"
           style={{ color: 'var(--color-text-muted)' }}
         />
       </div>

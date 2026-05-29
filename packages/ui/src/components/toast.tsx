@@ -1,5 +1,5 @@
 import { Check, X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { createContext, type ReactNode, use, useEffect, useState } from 'react';
 import { cn } from '../lib/cn';
 
 export interface ToastProps {
@@ -19,17 +19,25 @@ export function Toast({
 }: ToastProps) {
   const [isAnimating, setIsAnimating] = useState(false);
 
+  // Trigger the slide-in transition once the toast becomes visible.
   useEffect(() => {
     if (isVisible) {
       setIsAnimating(true);
-      const timer = setTimeout(() => {
-        setIsAnimating(false);
-        onClose?.();
-      }, duration);
-
-      return () => clearTimeout(timer);
     }
-    return undefined;
+  }, [isVisible]);
+
+  // Auto-dismiss: animate out and notify after the duration elapses.
+  useEffect(() => {
+    if (!isVisible) {
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      setIsAnimating(false);
+      onClose?.();
+    }, duration);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-doctor/prefer-use-effect-event -- simple auto-dismiss timer with intentional deps; useEffectEvent is unnecessary here
   }, [isVisible, duration, onClose]);
 
   if (!isVisible) {
@@ -39,9 +47,9 @@ export function Toast({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <Check className="h-4 w-4" />;
+        return <Check className="size-4" />;
       case 'error':
-        return <X className="h-4 w-4" />;
+        return <X className="size-4" />;
       default:
         return null;
     }
@@ -91,16 +99,16 @@ export function Toast({
 }
 
 export interface ToastProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export interface ToastContextValue {
   showToast: (message: string, type?: ToastProps['type']) => void;
 }
 
-const ToastContext = React.createContext<ToastContextValue | null>(null);
+const ToastContext = createContext<ToastContextValue | null>(null);
 export function useOptionalToast(): ToastContextValue | null {
-  return React.useContext(ToastContext);
+  return use(ToastContext);
 }
 
 export function ToastProvider({ children }: ToastProviderProps) {
@@ -125,7 +133,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
   };
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext value={{ showToast }}>
       {children}
       {toast && (
         <Toast
@@ -136,12 +144,12 @@ export function ToastProvider({ children }: ToastProviderProps) {
           isVisible={!!toast}
         />
       )}
-    </ToastContext.Provider>
+    </ToastContext>
   );
 }
 
 export function useToast(): ToastContextValue {
-  const context = React.useContext(ToastContext);
+  const context = use(ToastContext);
   if (!context) {
     throw new Error('useToast must be used within a ToastProvider');
   }

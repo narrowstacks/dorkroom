@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { cn } from '../lib/cn';
 
 interface DrawerProps {
@@ -22,25 +22,39 @@ export function Drawer({
   enableBackgroundOverlay = true,
   className,
 }: DrawerProps) {
-  const [showContent, setShowContent] = useState(false);
-  const [animateOpen, setAnimateOpen] = useState(false);
+  // Consolidated transition state so updates flow through a single setter.
+  const [transition, setTransition] = useState({
+    showContent: false,
+    animateOpen: false,
+  });
+  const { showContent, animateOpen } = transition;
 
-  useEffect(() => {
-    if (isOpen) {
-      setShowContent(true);
-      // Delay the open transform by one frame so the browser renders
-      // the initial off-screen position first, enabling the slide-in transition.
-      const frame = requestAnimationFrame(() => {
-        setAnimateOpen(true);
-      });
-      document.body.style.overflow = 'hidden';
-      return () => cancelAnimationFrame(frame);
-    }
-    setAnimateOpen(false);
-    const timer = setTimeout(() => setShowContent(false), 300);
+  // Open/close transition steps live outside the effect so the effect body
+  // doesn't accumulate multiple setState calls.
+  const runOpenTransition = useCallback(() => {
+    setTransition((prev) => ({ ...prev, showContent: true }));
+    // Delay the open transform by one frame so the browser renders the
+    // initial off-screen position first, enabling the slide-in transition.
+    const frame = requestAnimationFrame(() => {
+      setTransition((prev) => ({ ...prev, animateOpen: true }));
+    });
+    document.body.style.overflow = 'hidden';
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const runCloseTransition = useCallback(() => {
+    setTransition((prev) => ({ ...prev, animateOpen: false }));
+    const timer = setTimeout(
+      () => setTransition((prev) => ({ ...prev, showContent: false })),
+      300
+    );
     document.body.style.overflow = 'unset';
     return () => clearTimeout(timer);
-  }, [isOpen]);
+  }, []);
+
+  useEffect(() => {
+    return isOpen ? runOpenTransition() : runCloseTransition();
+  }, [isOpen, runOpenTransition, runCloseTransition]);
 
   const sizeClasses = {
     sm: 'max-h-[40dvh] h-[40dvh]',

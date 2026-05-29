@@ -39,6 +39,18 @@ export function SearchableSelect({
     item.label.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Open the dropdown with a cleared search term and focus the selected item.
+  // Opening always clears the search term, so the relevant list is the full
+  // `items` array — compute the focus index against it directly.
+  const openAndFocusSelected = () => {
+    setIsOpen(true);
+    setSearchTerm('');
+    const selectedIndex = selectedValue
+      ? items.findIndex((item) => item.value === selectedValue)
+      : -1;
+    setFocusedIndex(selectedIndex);
+  };
+
   // Handle input change
   const handleInputChange = (value: string) => {
     setSearchTerm(value);
@@ -65,8 +77,7 @@ export function SearchableSelect({
 
   // Handle input focus
   const handleInputFocus = () => {
-    setIsOpen(true);
-    setSearchTerm('');
+    openAndFocusSelected();
   };
 
   // Handle input blur
@@ -84,8 +95,7 @@ export function SearchableSelect({
     if (!isOpen) {
       if (e.key === 'Enter' || e.key === 'ArrowDown') {
         e.preventDefault();
-        setIsOpen(true);
-        setSearchTerm('');
+        openAndFocusSelected();
       }
       return;
     }
@@ -118,21 +128,6 @@ export function SearchableSelect({
         break;
     }
   };
-
-  // Auto-focus selected item when dropdown opens
-  useEffect(() => {
-    if (isOpen && selectedValue) {
-      const selectedIndex = filteredItems.findIndex(
-        (item) => item.value === selectedValue
-      );
-      if (selectedIndex >= 0) {
-        setFocusedIndex(selectedIndex);
-      } else {
-        // Selected item not in filtered results, reset focus
-        setFocusedIndex(-1);
-      }
-    }
-  }, [isOpen, filteredItems, selectedValue]);
 
   // Scroll focused item into view
   useEffect(() => {
@@ -175,6 +170,7 @@ export function SearchableSelect({
           }}
           onKeyDown={handleKeyDown}
           placeholder={selectedValue ? displayValue : placeholder}
+          aria-label={label ?? placeholder}
           className="w-full rounded-lg border px-3 py-2 pr-16 focus:outline-none focus:ring-2"
           style={
             {
@@ -193,7 +189,8 @@ export function SearchableSelect({
             <button
               type="button"
               onClick={handleClear}
-              className="flex h-4 w-4 items-center justify-center transition"
+              aria-label="Clear selection"
+              className="flex size-4 items-center justify-center transition"
               style={{
                 color: 'var(--color-text-muted)',
               }}
@@ -204,12 +201,12 @@ export function SearchableSelect({
                 e.currentTarget.style.color = 'var(--color-text-muted)';
               }}
             >
-              <X className="h-3 w-3" />
+              <X className="size-3" />
             </button>
           )}
           <ChevronDown
             className={cn(
-              'h-4 w-4 transition-transform',
+              'size-4 transition-transform',
               isOpen && 'rotate-180'
             )}
             style={{ color: 'var(--color-text-muted)' }}
@@ -219,6 +216,7 @@ export function SearchableSelect({
         {isOpen && (
           <div
             ref={listRef}
+            // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox listbox pattern; a native <select>/<datalist> cannot provide the type-to-filter UX
             role="listbox"
             aria-label={label ?? placeholder}
             className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg border backdrop-blur-sm"
@@ -238,6 +236,7 @@ export function SearchableSelect({
               filteredItems.map((item, index) => (
                 <div
                   key={item.value}
+                  // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox option pattern; native <option> cannot host custom filtered markup
                   role="option"
                   aria-selected={item.value === selectedValue}
                   onClick={() => handleSelectItem(item)}

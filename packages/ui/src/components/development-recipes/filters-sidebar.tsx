@@ -1,11 +1,10 @@
 import type { CustomRecipeFilter, SelectItem } from '@dorkroom/logic';
 import type { SortingState } from '@tanstack/react-table';
 import type { FC } from 'react';
-import {
-  FilterPanelContainer,
-  FilterPanelHeader,
-  FilterPanelSection,
-} from '../filters';
+import { setStyles } from '../../lib/dom';
+import { FilterPanelContainer } from '../filters/filter-panel-container';
+import { FilterPanelHeader } from '../filters/filter-panel-header';
+import { FilterPanelSection } from '../filters/filter-panel-section';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
 
@@ -48,6 +47,8 @@ interface FiltersSidebarProps {
   defaultCollapsed?: boolean;
 }
 
+const EMPTY_SORTING: SortingState = [];
+
 const sortingOptions: SelectItem[] = [
   { label: 'Film (A-Z)', value: 'film-asc' },
   { label: 'Film (Z-A)', value: 'film-desc' },
@@ -74,6 +75,7 @@ const recipeTypeOptions: SelectItem[] = [
   { label: 'Only custom recipes', value: 'only-custom' },
 ];
 
+// eslint-disable-next-line react-doctor/no-many-boolean-props -- flags toggle independent optional filter sections, not a single variant axis
 export const FiltersSidebar: FC<FiltersSidebarProps> = ({
   className,
   selectedFilm,
@@ -95,7 +97,7 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
   onCustomRecipeFilterChange,
   favoritesOnly = false,
   onFavoritesOnlyChange,
-  sorting = [],
+  sorting = EMPTY_SORTING,
   onSortingChange,
   showSortingControls = false,
   onClearFilters,
@@ -188,15 +190,18 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
               border: '1px solid var(--color-border-secondary)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-accent)';
-              e.currentTarget.style.color = 'var(--color-background)';
-              e.currentTarget.style.borderColor = 'var(--color-accent)';
+              setStyles(e.currentTarget, {
+                backgroundColor: 'var(--color-accent)',
+                color: 'var(--color-background)',
+                borderColor: 'var(--color-accent)',
+              });
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
-              e.currentTarget.style.borderColor =
-                'var(--color-border-secondary)';
+              setStyles(e.currentTarget, {
+                backgroundColor: 'transparent',
+                color: 'var(--color-text-secondary)',
+                borderColor: 'var(--color-border-secondary)',
+              });
             }}
           >
             Clear filters
@@ -236,14 +241,15 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
         />
         {onFavoritesOnlyChange && (
           <label
-            className="flex cursor-pointer items-center gap-2.5 rounded-lg px-1 py-1 text-sm transition-colors"
+            className="flex cursor-pointer items-center gap-2.5 rounded-lg p-1 text-sm transition-colors"
             style={{ color: 'var(--color-text-secondary)' }}
           >
             <input
               type="checkbox"
+              aria-label="Favorites only"
               checked={favoritesOnly}
               onChange={(e) => onFavoritesOnlyChange(e.target.checked)}
-              className="h-4 w-4 rounded border-2 transition-colors"
+              className="size-4 rounded border-2 transition-colors"
               style={{
                 borderColor: favoritesOnly
                   ? 'var(--color-primary)'

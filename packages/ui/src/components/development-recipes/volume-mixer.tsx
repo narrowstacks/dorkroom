@@ -26,14 +26,16 @@ interface VolumeMixerProps {
  */
 export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
   const { unit } = useVolume();
-  const [totalVolumeMl, setTotalVolumeMl] = useState(getDefaultVolumeMl());
+  const [totalVolumeMl, setTotalVolumeMl] = useState(() =>
+    getDefaultVolumeMl()
+  );
 
   // Check if this is a stock dilution (no mixing needed)
   if (isStockDilution(dilutionString)) {
     return (
       <div className="space-y-3">
         <p className="text-sm text-secondary">
-          No mixing needed — use developer stock (undiluted).
+          No mixing needed: use developer stock (undiluted).
         </p>
       </div>
     );

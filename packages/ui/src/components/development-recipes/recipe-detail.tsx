@@ -72,7 +72,7 @@ export function DevelopmentRecipeDetail({
             onClick={() => onShareRecipe(view)}
             className="inline-flex items-center gap-2 rounded-full bg-border-muted px-3 py-1 text-xs font-medium text-secondary transition hover:bg-border-secondary hover:text-primary"
           >
-            <Share2 className="h-4 w-4" />
+            <Share2 className="size-4" />
             Share
           </button>
         )}
@@ -86,7 +86,7 @@ export function DevelopmentRecipeDetail({
             className="inline-flex items-center gap-2 rounded-full bg-border-muted px-3 py-1 text-xs font-medium text-secondary transition hover:bg-border-secondary hover:text-primary"
           >
             <Star
-              className="h-4 w-4"
+              className="size-4"
               style={{
                 color: isFavorite?.(view)
                   ? 'var(--color-semantic-warning)'
@@ -154,7 +154,7 @@ export function DevelopmentRecipeDetail({
           rel="noreferrer"
           className="inline-flex items-center gap-2 text-xs text-tertiary underline-offset-4 hover:text-primary hover:underline"
         >
-          <ExternalLink className="h-3 w-3" />{' '}
+          <ExternalLink className="size-3" />{' '}
           {combination.infoSource.includes('filmdev.org')
             ? 'View on FilmDev.org'
             : 'View source'}
@@ -172,7 +172,7 @@ export function DevelopmentRecipeDetail({
                 aria-label="Edit"
                 title="Edit"
               >
-                <Edit2 className="h-4 w-4" />
+                <Edit2 className="size-4" />
               </button>
             )}
             {onDeleteCustomRecipe && (
@@ -183,7 +183,7 @@ export function DevelopmentRecipeDetail({
                 aria-label="Delete"
                 title="Delete"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="size-4" />
               </button>
             )}
           </div>
@@ -214,7 +214,7 @@ export function DevelopmentRecipeDetail({
               href={`/films?film=${film.slug}`}
               className="inline-flex items-center gap-2 text-xs text-tertiary underline-offset-4 hover:text-primary hover:underline"
             >
-              <ExternalLink className="h-3 w-3" /> View in Film Database
+              <ExternalLink className="size-3" /> View in Film Database
             </a>
           )}
         </div>

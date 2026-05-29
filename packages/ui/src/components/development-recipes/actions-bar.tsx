@@ -1,5 +1,6 @@
 import { Grid, Plus, Rows, Upload } from 'lucide-react';
 import { cn } from '../../lib/cn';
+import { setStyles } from '../../lib/dom';
 import { TemperatureUnitToggle } from './temperature-unit-toggle';
 
 interface DevelopmentActionsBarProps {
@@ -70,20 +71,23 @@ export function DevelopmentActionsBar({
               }
               onMouseEnter={(e) => {
                 if (viewMode !== 'table') {
-                  e.currentTarget.style.backgroundColor =
-                    'rgba(var(--color-background-rgb), 0.15)';
-                  e.currentTarget.style.color = 'var(--color-text-primary)';
+                  setStyles(e.currentTarget, {
+                    backgroundColor: 'rgba(var(--color-background-rgb), 0.15)',
+                    color: 'var(--color-text-primary)',
+                  });
                 }
               }}
               onMouseLeave={(e) => {
                 if (viewMode !== 'table') {
-                  e.currentTarget.style.backgroundColor =
-                    'var(--actions-bar-table-bg-hover-leave, transparent)';
-                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                  setStyles(e.currentTarget, {
+                    backgroundColor:
+                      'var(--actions-bar-table-bg-hover-leave, transparent)',
+                    color: 'var(--color-text-tertiary)',
+                  });
                 }
               }}
             >
-              <Rows className="h-4 w-4" />
+              <Rows className="size-4" />
               Table
             </button>
             <button
@@ -105,20 +109,23 @@ export function DevelopmentActionsBar({
               }
               onMouseEnter={(e) => {
                 if (viewMode !== 'grid') {
-                  e.currentTarget.style.backgroundColor =
-                    'rgba(var(--color-background-rgb), 0.15)';
-                  e.currentTarget.style.color = 'var(--color-text-primary)';
+                  setStyles(e.currentTarget, {
+                    backgroundColor: 'rgba(var(--color-background-rgb), 0.15)',
+                    color: 'var(--color-text-primary)',
+                  });
                 }
               }}
               onMouseLeave={(e) => {
                 if (viewMode !== 'grid') {
-                  e.currentTarget.style.backgroundColor =
-                    'var(--actions-bar-grid-bg-hover-leave, transparent)';
-                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                  setStyles(e.currentTarget, {
+                    backgroundColor:
+                      'var(--actions-bar-grid-bg-hover-leave, transparent)',
+                    color: 'var(--color-text-tertiary)',
+                  });
                 }
               }}
             >
-              <Grid className="h-4 w-4" />
+              <Grid className="size-4" />
               Cards
             </button>
           </div>
@@ -142,14 +149,18 @@ export function DevelopmentActionsBar({
           }}
           onMouseEnter={(e) => {
             if (!isRefreshing) {
-              e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-              e.currentTarget.style.color = 'var(--color-text-primary)';
+              setStyles(e.currentTarget, {
+                borderColor: 'var(--color-border-primary)',
+                color: 'var(--color-text-primary)',
+              });
             }
           }}
           onMouseLeave={(e) => {
             if (!isRefreshing) {
-              e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
+              setStyles(e.currentTarget, {
+                borderColor: 'var(--color-border-primary)',
+                color: 'var(--color-text-secondary)',
+              });
             }
           }}
         >
@@ -166,15 +177,19 @@ export function DevelopmentActionsBar({
               color: 'var(--color-text-secondary)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-              e.currentTarget.style.color = 'var(--color-text-primary)';
+              setStyles(e.currentTarget, {
+                borderColor: 'var(--color-border-primary)',
+                color: 'var(--color-text-primary)',
+              });
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
+              setStyles(e.currentTarget, {
+                borderColor: 'var(--color-border-primary)',
+                color: 'var(--color-text-secondary)',
+              });
             }}
           >
-            <Upload className="h-4 w-4" />
+            <Upload className="size-4" />
             Import recipe
           </button>
         )}
@@ -193,7 +208,7 @@ export function DevelopmentActionsBar({
             e.currentTarget.style.opacity = '1';
           }}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="size-4" />
           Add custom recipe
         </button>
       </div>

@@ -7,7 +7,7 @@ export function PlaceholderPage({ title, summary }: PlaceholderPageProps) {
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 px-6 py-24 text-center sm:px-10">
       <div
-        className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-dashed text-lg font-semibold"
+        className="mx-auto flex size-16 items-center justify-center rounded-2xl border border-dashed text-lg font-semibold"
         style={{
           borderColor: 'var(--color-border-secondary)',
           backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',

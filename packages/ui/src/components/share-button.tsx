@@ -16,7 +16,11 @@ export interface ShareResult {
 }
 
 export interface ShareButtonProps {
-  onClick: () => undefined | ShareResult | Promise<undefined | ShareResult>;
+  onClick: () =>
+    | void
+    | undefined
+    | ShareResult
+    | Promise<undefined | ShareResult>;
   isLoading?: boolean;
   disabled?: boolean;
   variant?: 'primary' | 'secondary' | 'outline';
@@ -137,7 +141,7 @@ export function ShareButton({
     className
   );
 
-  const handleClick = async () => {
+  const handleShare = async () => {
     const isWebShare = shouldUseWebShare();
 
     let shouldShowToast = !isWebShare;
@@ -178,7 +182,7 @@ export function ShareButton({
       <button
         ref={buttonRef}
         type="button"
-        onClick={handleClick}
+        onClick={handleShare}
         disabled={disabled || isLoading}
         className={baseClasses}
         aria-label={
@@ -191,7 +195,7 @@ export function ShareButton({
         {isLoading ? (
           <Loader2
             className={cn(
-              'pointer-events-none h-4 w-4 animate-spin',
+              'pointer-events-none size-4 animate-spin',
               !iconOnly && 'mr-2'
             )}
             aria-hidden="true"
@@ -199,7 +203,7 @@ export function ShareButton({
         ) : (
           <Share2
             className={cn(
-              'pointer-events-none h-4 w-4 transition-colors',
+              'pointer-events-none size-4 transition-colors',
               iconClasses,
               !iconOnly && 'mr-2'
             )}
@@ -233,7 +237,7 @@ export function ShareButton({
           }}
         >
           <svg
-            className="h-4 w-4"
+            className="size-4"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

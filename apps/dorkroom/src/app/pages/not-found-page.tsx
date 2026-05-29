@@ -7,14 +7,14 @@ export function NotFoundPage() {
       <div className="flex flex-col items-center text-center">
         {/* Icon */}
         <div
-          className="mb-8 flex h-24 w-24 items-center justify-center rounded-3xl border"
+          className="mb-8 flex size-24 items-center justify-center rounded-3xl border"
           style={{
             backgroundColor: 'var(--color-surface)',
             borderColor: 'var(--color-border-secondary)',
           }}
         >
           <Aperture
-            className="h-12 w-12"
+            className="size-12"
             style={{ color: 'var(--color-text-tertiary)' }}
           />
         </div>
@@ -29,7 +29,7 @@ export function NotFoundPage() {
 
         {/* Heading */}
         <h1
-          className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl"
+          className="mb-3 text-3xl font-semibold tracking-tight sm:text-4xl"
           style={{ color: 'var(--color-text-primary)' }}
         >
           Nothing on this frame
@@ -51,7 +51,7 @@ export function NotFoundPage() {
             to="/"
             className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-colors hero-button-success"
           >
-            <Home className="h-4 w-4" />
+            <Home className="size-4" />
             Back to Home
           </Link>
           <button
@@ -64,7 +64,7 @@ export function NotFoundPage() {
               backgroundColor: 'var(--color-surface)',
             }}
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="size-4" />
             Go Back
           </button>
         </div>

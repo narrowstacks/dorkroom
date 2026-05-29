@@ -183,8 +183,11 @@ export const DevelopmentResultsTableVirtualized: FC<
               }
             >
               {paddingTop > 0 && (
-                <tr>
-                  <td style={{ height: `${paddingTop}px` }} />
+                <tr aria-hidden="true">
+                  <td
+                    aria-hidden="true"
+                    style={{ height: `${paddingTop}px` }}
+                  />
                 </tr>
               )}
               {virtualRows.length > 0 ? (
@@ -219,12 +222,10 @@ export const DevelopmentResultsTableVirtualized: FC<
                   const isSelected = id === selectedRecipeId;
 
                   return (
-                    // biome-ignore lint/a11y/useSemanticElements: Table row uses ARIA role with keyboard support for clickable behavior
                     <tr
                       key={row.id}
-                      role="button"
                       tabIndex={0}
-                      aria-pressed={isSelected}
+                      aria-selected={isSelected}
                       onClick={() => onSelectCombination?.(rowData)}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
@@ -289,8 +290,11 @@ export const DevelopmentResultsTableVirtualized: FC<
                 </tr>
               )}
               {paddingBottom > 0 && (
-                <tr>
-                  <td style={{ height: `${paddingBottom}px` }} />
+                <tr aria-hidden="true">
+                  <td
+                    aria-hidden="true"
+                    style={{ height: `${paddingBottom}px` }}
+                  />
                 </tr>
               )}
             </tbody>

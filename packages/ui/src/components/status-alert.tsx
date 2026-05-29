@@ -64,7 +64,7 @@ export function StatusAlert({
               ),
       }}
     >
-      <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+      <Icon className="size-4 flex-shrink-0" aria-hidden="true" />
       <span className="text-sm">{message}</span>
     </div>
   );

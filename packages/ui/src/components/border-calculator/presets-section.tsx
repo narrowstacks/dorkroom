@@ -48,11 +48,10 @@ export function PresetsSection() {
           >
             {isGeneratingShareUrl ? (
               <svg
-                className="animate-spin h-4 w-4"
+                className="animate-spin size-4"
                 fill="none"
                 viewBox="0 0 24 24"
-                aria-label="Loading"
-                role="img"
+                aria-hidden="true"
               >
                 <circle
                   className="opacity-25"
@@ -69,7 +68,7 @@ export function PresetsSection() {
                 />
               </svg>
             ) : (
-              <Share2 className="h-4 w-4" />
+              <Share2 className="size-4" />
             )}
           </button>
           <button
@@ -78,7 +77,7 @@ export function PresetsSection() {
             className="rounded-full border p-2 transition focus-visible:outline-none focus-visible:ring-2 text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)] hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-[color:var(--color-border-primary)]"
             title="Edit preset"
           >
-            <Save className="h-4 w-4" />
+            <Save className="size-4" />
           </button>
         </div>
       </div>
@@ -104,7 +103,7 @@ export function PresetsSection() {
                 backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
               }}
             >
-              <Save className="h-4 w-4" />
+              <Save className="size-4" />
               Save
             </button>
             <button
@@ -125,7 +124,7 @@ export function PresetsSection() {
                 backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
               }}
             >
-              <Save className="h-4 w-4" />
+              <Save className="size-4" />
               Update
             </button>
             <button
@@ -142,7 +141,7 @@ export function PresetsSection() {
                 backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
               }}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="size-4" />
               Delete
             </button>
           </div>

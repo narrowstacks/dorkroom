@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
 import { cn } from '../lib/cn';
+import { setStyles } from '../lib/dom';
 
 /**
  * Props for the Modal component.
@@ -66,23 +67,24 @@ export function Modal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center px-4 backdrop-blur"
-      style={{
-        backgroundColor: 'var(--color-visualization-overlay)',
-        height: '100dvh',
-      }}
-      role="dialog"
-      aria-modal="true"
-      onClick={onClose}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') onClose();
-      }}
+      className="fixed inset-0 z-[100] flex items-center justify-center px-4"
+      style={{ height: '100dvh' }}
     >
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: modal content stops propagation to prevent closing when clicking inside */}
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard events handled by parent dialog */}
-      <div
+      {/* Backdrop: a real button so click-to-close is keyboard-accessible */}
+      <button
+        type="button"
+        aria-label="Close modal"
+        tabIndex={-1}
+        className="absolute inset-0 cursor-default backdrop-blur"
+        style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
+        onClick={onClose}
+      />
+      <dialog
+        open
+        aria-modal="true"
+        aria-label={title}
         className={cn(
-          'relative w-full rounded-2xl border p-6 shadow-xl backdrop-blur-lg animate-scale-fade-in',
+          'relative z-10 m-0 max-h-none w-full rounded-2xl border p-6 shadow-xl backdrop-blur-lg animate-scale-fade-in',
           SIZE_CLASSES[size]
         )}
         style={{
@@ -90,7 +92,6 @@ export function Modal({
           backgroundColor: 'var(--color-surface)',
           color: 'var(--color-text-primary)',
         }}
-        onClick={(e) => e.stopPropagation()}
       >
         {!hideCloseButton && (
           <button
@@ -104,18 +105,21 @@ export function Modal({
               } as React.CSSProperties
             }
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor =
-                'var(--color-border-muted)';
-              e.currentTarget.style.color = 'var(--color-text-primary)';
+              setStyles(e.currentTarget, {
+                backgroundColor: 'var(--color-border-muted)',
+                color: 'var(--color-text-primary)',
+              });
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor =
-                'var(--modal-close-bg-hover-leave, transparent)';
-              e.currentTarget.style.color = 'var(--color-text-muted)';
+              setStyles(e.currentTarget, {
+                backgroundColor:
+                  'var(--modal-close-bg-hover-leave, transparent)',
+                color: 'var(--color-text-muted)',
+              });
             }}
             aria-label="Close"
           >
-            <X className="h-4 w-4" />
+            <X className="size-4" />
           </button>
         )}
         {title && (
@@ -137,7 +141,7 @@ export function Modal({
         {footer && (
           <div className="mt-6 flex flex-col gap-2 pb-20">{footer}</div>
         )}
-      </div>
+      </dialog>
     </div>,
     document.body
   );

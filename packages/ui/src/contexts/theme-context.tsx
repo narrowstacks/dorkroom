@@ -1,10 +1,4 @@
-import {
-  createContext,
-  type ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { createContext, type ReactNode, use, useEffect, useState } from 'react';
 import type { Theme } from '../lib/themes';
 import { resolveTheme } from '../lib/themes';
 
@@ -32,9 +26,12 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   >('dark');
   const [animationsEnabled, setAnimationsEnabledState] = useState(true);
 
-  // Initialize theme from localStorage or default to system
+  // Initialize theme + animations from localStorage. Compute both values
+  // first, then apply a single update per state so the effect doesn't
+  // cascade multiple setState calls.
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
+    let initialTheme: Theme;
     if (
       saved === 'light' ||
       saved === 'dark' ||
@@ -42,20 +39,25 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       saved === 'high-contrast' ||
       saved === 'system'
     ) {
-      setThemeState(saved);
+      initialTheme = saved;
     } else {
       // First time visitor - default to system preference and save it
-      setThemeState('system');
+      initialTheme = 'system';
       localStorage.setItem(STORAGE_KEY, 'system');
     }
 
     // Initialize animations preference from localStorage or default to true
     const savedAnimations = localStorage.getItem(ANIMATIONS_STORAGE_KEY);
+    let initialAnimations: boolean;
     if (savedAnimations === 'true' || savedAnimations === 'false') {
-      setAnimationsEnabledState(savedAnimations === 'true');
+      initialAnimations = savedAnimations === 'true';
     } else {
+      initialAnimations = true;
       localStorage.setItem(ANIMATIONS_STORAGE_KEY, 'true');
     }
+
+    setThemeState(initialTheme);
+    setAnimationsEnabledState(initialAnimations);
   }, []);
 
   // Update resolved theme when theme changes or system preference changes
@@ -104,7 +106,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   };
 
   return (
-    <ThemeContext.Provider
+    <ThemeContext
       value={{
         theme,
         resolvedTheme,
@@ -114,12 +116,12 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       }}
     >
       {children}
-    </ThemeContext.Provider>
+    </ThemeContext>
   );
 }
 
 export function useTheme() {
-  const context = useContext(ThemeContext);
+  const context = use(ThemeContext);
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }

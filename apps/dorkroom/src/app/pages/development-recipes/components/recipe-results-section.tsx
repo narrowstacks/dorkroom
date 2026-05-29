@@ -72,7 +72,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
               color: 'var(--color-text-secondary)',
             }}
           >
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Loader2 className="size-5 animate-spin" />
             <div>
               <div className="font-medium text-[color:var(--color-text-primary)]">
                 {!isLoaded

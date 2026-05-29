@@ -2,6 +2,7 @@ import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import { X } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
+import { setStyles } from '../../lib/dom';
 import { Drawer, DrawerBody, DrawerContent } from '../drawer';
 import { Modal } from '../modal';
 import { DevelopmentRecipeDetail } from './recipe-detail';
@@ -19,6 +20,7 @@ interface SharedRecipeModalProps {
   onToggleFavorite?: (view: DevelopmentCombinationView) => void;
 }
 
+// eslint-disable-next-line react-doctor/no-many-boolean-props -- isOpen/isLoading are modal lifecycle state plus optional favorite affordances; not a variant axis
 export function SharedRecipeModal({
   isOpen,
   onClose,
@@ -75,16 +77,20 @@ export function SharedRecipeModal({
               'var(--color-text-primary)'
             );
           } else {
-            e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
-            e.currentTarget.style.color = 'var(--color-text-primary)';
+            setStyles(e.currentTarget, {
+              borderColor: 'var(--color-border-secondary)',
+              color: 'var(--color-text-primary)',
+            });
           }
         }}
         onMouseLeave={(e) => {
           if (hideAddToCollection) {
             e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
           } else {
-            e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-            e.currentTarget.style.color = 'var(--color-text-secondary)';
+            setStyles(e.currentTarget, {
+              borderColor: 'var(--color-border-primary)',
+              color: 'var(--color-text-secondary)',
+            });
           }
         }}
       >
@@ -215,18 +221,20 @@ export function SharedRecipeModal({
                 color: 'var(--color-text-secondary)',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor =
-                  'var(--color-border-secondary)';
-                e.currentTarget.style.color = 'var(--color-text-primary)';
+                setStyles(e.currentTarget, {
+                  borderColor: 'var(--color-border-secondary)',
+                  color: 'var(--color-text-primary)',
+                });
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor =
-                  'var(--color-border-primary)';
-                e.currentTarget.style.color = 'var(--color-text-secondary)';
+                setStyles(e.currentTarget, {
+                  borderColor: 'var(--color-border-primary)',
+                  color: 'var(--color-text-secondary)',
+                });
               }}
             >
               <span className="sr-only">Close</span>
-              <X className="h-5 w-5" />
+              <X className="size-5" />
             </button>
           </div>
           <DrawerBody className="px-4 pb-6 pt-4">{body}</DrawerBody>

@@ -19,19 +19,20 @@ describe('ToggleSwitch', () => {
     expect(screen.getByText('Enable feature')).toBeInTheDocument();
   });
 
-  it('renders button with correct initial state', () => {
+  it('renders switch with correct initial state', () => {
     render(<ToggleSwitch {...defaultProps} />);
 
-    const button = screen.getByRole('button');
-    expect(button).toBeInTheDocument();
+    const toggle = screen.getByRole('switch');
+    expect(toggle).toBeInTheDocument();
+    expect(toggle).toHaveAttribute('aria-checked', 'false');
   });
 
-  it('calls onValueChange when button is clicked', () => {
+  it('calls onValueChange when switch is clicked', () => {
     const onValueChange = vi.fn();
     render(<ToggleSwitch {...defaultProps} onValueChange={onValueChange} />);
 
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
+    const toggle = screen.getByRole('switch');
+    fireEvent.click(toggle);
 
     expect(onValueChange).toHaveBeenCalledWith(true);
   });
@@ -56,8 +57,8 @@ describe('ToggleSwitch', () => {
       />
     );
 
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
+    const toggle = screen.getByRole('switch');
+    fireEvent.click(toggle);
 
     expect(onValueChange).toHaveBeenCalledWith(false);
   });
@@ -67,8 +68,8 @@ describe('ToggleSwitch', () => {
       <ToggleSwitch {...defaultProps} value={false} />
     );
 
-    const button = screen.getByRole('button');
-    const circle = button.querySelector('span');
+    const toggle = screen.getByRole('switch');
+    const circle = toggle.querySelector('span');
 
     // Off state
     expect(circle).toHaveClass('translate-x-1');
@@ -85,18 +86,19 @@ describe('ToggleSwitch', () => {
     expect(container).toHaveClass('custom-class');
   });
 
-  it('has proper button attributes', () => {
+  it('has proper switch attributes', () => {
     render(<ToggleSwitch {...defaultProps} />);
 
-    const button = screen.getByRole('button');
-    expect(button).toHaveAttribute('type', 'button');
+    const toggle = screen.getByRole('switch');
+    expect(toggle).toHaveAttribute('type', 'button');
+    expect(toggle).toHaveAttribute('role', 'switch');
   });
 
   it('has proper focus styling classes', () => {
     render(<ToggleSwitch {...defaultProps} />);
 
-    const button = screen.getByRole('button');
-    expect(button).toHaveClass(
+    const toggle = screen.getByRole('switch');
+    expect(toggle).toHaveClass(
       'focus:outline-none',
       'focus:ring-2',
       'focus:ring-offset-2'
@@ -108,9 +110,9 @@ describe('ToggleSwitch', () => {
       const onValueChange = vi.fn();
       render(<ToggleSwitch {...defaultProps} onValueChange={onValueChange} />);
 
-      const button = screen.getByRole('button');
-      fireEvent.keyDown(button, { key: 'Enter' });
-      fireEvent.click(button); // Space or Enter would trigger click
+      const toggle = screen.getByRole('switch');
+      fireEvent.keyDown(toggle, { key: 'Enter' });
+      fireEvent.click(toggle); // Space or Enter would trigger click
 
       expect(onValueChange).toHaveBeenCalled();
     });
@@ -118,10 +120,10 @@ describe('ToggleSwitch', () => {
     it('is properly labeled', () => {
       render(<ToggleSwitch {...defaultProps} />);
 
-      const button = screen.getByRole('button');
+      const toggle = screen.getByRole('switch');
       const label = screen.getByText('Enable feature');
 
-      expect(button).toBeInTheDocument();
+      expect(toggle).toHaveAttribute('aria-label', 'Enable feature');
       expect(label).toBeInTheDocument();
       expect(label).toHaveClass('cursor-pointer'); // Clickable label
     });
@@ -131,18 +133,20 @@ describe('ToggleSwitch', () => {
     it('shows correct visual state when enabled', () => {
       render(<ToggleSwitch {...defaultProps} value={true} />);
 
-      const button = screen.getByRole('button');
-      const circle = button.querySelector('span');
+      const toggle = screen.getByRole('switch');
+      const circle = toggle.querySelector('span');
 
+      expect(toggle).toHaveAttribute('aria-checked', 'true');
       expect(circle).toHaveClass('translate-x-6'); // Moved to right
     });
 
     it('shows correct visual state when disabled', () => {
       render(<ToggleSwitch {...defaultProps} value={false} />);
 
-      const button = screen.getByRole('button');
-      const circle = button.querySelector('span');
+      const toggle = screen.getByRole('switch');
+      const circle = toggle.querySelector('span');
 
+      expect(toggle).toHaveAttribute('aria-checked', 'false');
       expect(circle).toHaveClass('translate-x-1'); // Moved to left
     });
   });
@@ -152,11 +156,11 @@ describe('ToggleSwitch', () => {
       const onValueChange = vi.fn();
       render(<ToggleSwitch {...defaultProps} onValueChange={onValueChange} />);
 
-      const button = screen.getByRole('button');
+      const toggle = screen.getByRole('switch');
 
-      fireEvent.click(button);
-      fireEvent.click(button);
-      fireEvent.click(button);
+      fireEvent.click(toggle);
+      fireEvent.click(toggle);
+      fireEvent.click(toggle);
 
       expect(onValueChange).toHaveBeenCalledTimes(3);
       expect(onValueChange).toHaveBeenNthCalledWith(1, true);

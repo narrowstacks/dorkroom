@@ -62,9 +62,8 @@ export class VirtualizedErrorBoundary extends Component<Props, State> {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="h-6 w-6 text-[color:var(--color-semantic-error)]"
-              aria-label="Error"
-              role="img"
+              className="size-6 text-[color:var(--color-semantic-error)]"
+              aria-hidden="true"
             >
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />

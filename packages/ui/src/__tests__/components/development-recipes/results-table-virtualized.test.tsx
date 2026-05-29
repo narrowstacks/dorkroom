@@ -216,9 +216,11 @@ describe('DevelopmentResultsTableVirtualized', () => {
   });
 
   describe('row interactions', () => {
-    // Helper to get table row and ensure it exists
+    // Helper to get the selectable table row and ensure it exists.
+    // Rows are <tr> elements (which can't take role="button"); they are
+    // focusable (tabIndex) and selectable (aria-selected).
     const getTableRow = (container: HTMLElement): Element => {
-      const tableRow = container.querySelector('tbody tr[role="button"]');
+      const tableRow = container.querySelector('tbody tr[tabindex]');
       if (!tableRow) throw new Error('Table row not found');
       return tableRow;
     };
@@ -408,7 +410,7 @@ describe('DevelopmentResultsTableVirtualized', () => {
   });
 
   describe('accessibility', () => {
-    it('rows have role="button" and tabIndex', () => {
+    it('rows are focusable and selectable', () => {
       const rows = createMockRows(1);
 
       const { container } = render(
@@ -417,9 +419,12 @@ describe('DevelopmentResultsTableVirtualized', () => {
         </TableWrapper>
       );
 
-      const tableRow = container.querySelector('tbody tr[role="button"]');
+      // A <tr> can't be a semantic button, so the row exposes focusability
+      // via tabIndex and selection state via aria-selected.
+      const tableRow = container.querySelector('tbody tr[tabindex]');
       expect(tableRow).toBeInTheDocument();
       expect(tableRow).toHaveAttribute('tabindex', '0');
+      expect(tableRow).toHaveAttribute('aria-selected', 'false');
     });
 
     it('table has proper semantic structure', () => {
@@ -487,9 +492,9 @@ describe('DevelopmentResultsTableVirtualized', () => {
   });
 
   describe('custom recipe styling', () => {
-    // Helper to get table row and ensure it exists
+    // Helper to get the selectable table row and ensure it exists.
     const getTableRow = (container: HTMLElement): Element => {
-      const tableRow = container.querySelector('tbody tr[role="button"]');
+      const tableRow = container.querySelector('tbody tr[tabindex]');
       if (!tableRow) throw new Error('Table row not found');
       return tableRow;
     };

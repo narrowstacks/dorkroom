@@ -70,7 +70,7 @@ export function StatCard({
             className
           )}
         >
-          <Skeleton className="w-8 h-8 rounded-xl bg-[color:var(--color-surface-muted)]" />
+          <Skeleton className="size-8 rounded-xl bg-[color:var(--color-surface-muted)]" />
           <div className="flex-1">
             <Skeleton className="h-3 w-24 mb-2 bg-[color:var(--color-surface-muted)]" />
             <Skeleton className="h-6 w-16 bg-[color:var(--color-surface-muted)]" />
@@ -90,7 +90,7 @@ export function StatCard({
       >
         <Skeleton className="h-3 w-24 bg-[color:var(--color-surface-muted)]" />
         <div className="flex items-center gap-3">
-          <Skeleton className="w-9 h-9 rounded-lg bg-[color:var(--color-surface-muted)]" />
+          <Skeleton className="size-9 rounded-lg bg-[color:var(--color-surface-muted)]" />
           <Skeleton className="h-6 w-16 bg-[color:var(--color-surface-muted)]" />
         </div>
       </div>
@@ -137,7 +137,7 @@ export function StatCard({
               color: iconColorVar,
             }}
           >
-            <Icon className="w-4 h-4" data-statcard-icon />
+            <Icon className="size-4" data-statcard-icon />
           </div>
           <div>
             <span className="text-[color:var(--color-text-tertiary)] text-sm font-medium">
@@ -175,7 +175,7 @@ export function StatCard({
               color: iconColorVar,
             }}
           >
-            <Icon className="w-5 h-5" data-statcard-icon />
+            <Icon className="size-5" data-statcard-icon />
           </div>
           <span className="text-2xl font-bold text-[color:var(--color-text-primary)] leading-none">
             {value}

@@ -17,11 +17,145 @@ import {
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+type FilmDatabase = ReturnType<typeof useFilmDatabase>;
+
+interface FilmLayoutProps {
+  db: FilmDatabase;
+  isMobile: boolean;
+  selectedFilm: Film | null;
+  baseFilm: Film | undefined;
+  shouldShowDetailSkeleton: boolean;
+  onSelectFilm: (film: Film) => void;
+  onClosePanel: () => void;
+}
+
+function FilmsMobileLayout({
+  db,
+  isMobile,
+  selectedFilm,
+  baseFilm,
+  shouldShowDetailSkeleton,
+  onSelectFilm,
+  onClosePanel,
+}: FilmLayoutProps) {
+  return (
+    <div className="space-y-4">
+      <FilmFiltersMobile
+        searchQuery={db.searchQuery}
+        onSearchChange={db.setSearchQuery}
+        colorTypeFilter={db.colorTypeFilter}
+        onColorTypeChange={db.setColorTypeFilter}
+        isoSpeedFilter={db.isoSpeedFilter}
+        onIsoSpeedChange={db.setIsoSpeedFilter}
+        brandFilter={db.brandFilter}
+        onBrandChange={db.setBrandFilter}
+        discontinuedFilter={db.discontinuedFilter}
+        onDiscontinuedChange={db.setDiscontinuedFilter}
+        brandOptions={db.brandOptions}
+        isoOptions={db.isoOptions}
+        onClearFilters={db.clearFilters}
+        hasActiveFilters={db.hasActiveFilters}
+        resultCount={db.filteredFilms.length}
+      />
+
+      <VirtualizedErrorBoundary>
+        <FilmResultsVirtualized
+          films={db.filteredFilms}
+          selectedFilmId={selectedFilm?.uuid ?? null}
+          onSelectFilm={onSelectFilm}
+          isMobile={isMobile}
+          isLoading={db.isLoading}
+          isDetailOpen={!!selectedFilm || shouldShowDetailSkeleton}
+          isFiltersCollapsed={false}
+        />
+      </VirtualizedErrorBoundary>
+
+      {shouldShowDetailSkeleton ? (
+        <FilmDetailPanelSkeleton isMobile={isMobile} />
+      ) : (
+        <FilmDetailPanel
+          film={selectedFilm}
+          baseFilm={baseFilm}
+          isOpen={!!selectedFilm}
+          onClose={onClosePanel}
+          isMobile={isMobile}
+        />
+      )}
+    </div>
+  );
+}
+
+function FilmsDesktopLayout({
+  db,
+  isMobile,
+  selectedFilm,
+  shouldShowDetailSkeleton,
+  onSelectFilm,
+  onClosePanel,
+  isFiltersCollapsed,
+  onCollapsedChange,
+}: FilmLayoutProps & {
+  isFiltersCollapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
+}) {
+  return (
+    <div className="mt-6 flex gap-6">
+      <aside className="flex-shrink-0 transition-all duration-300">
+        <FilmFiltersPanel
+          onCollapsedChange={onCollapsedChange}
+          searchQuery={db.searchQuery}
+          onSearchChange={db.setSearchQuery}
+          colorTypeFilter={db.colorTypeFilter}
+          onColorTypeChange={db.setColorTypeFilter}
+          isoSpeedFilter={db.isoSpeedFilter}
+          onIsoSpeedChange={db.setIsoSpeedFilter}
+          brandFilter={db.brandFilter}
+          onBrandChange={db.setBrandFilter}
+          discontinuedFilter={db.discontinuedFilter}
+          onDiscontinuedChange={db.setDiscontinuedFilter}
+          brandOptions={db.brandOptions}
+          isoOptions={db.isoOptions}
+          onClearFilters={db.clearFilters}
+          hasActiveFilters={db.hasActiveFilters}
+        />
+      </aside>
+
+      <main id="film-results" className="flex-1 min-w-0">
+        <VirtualizedErrorBoundary>
+          <FilmResultsVirtualized
+            films={db.filteredFilms}
+            selectedFilmId={selectedFilm?.uuid ?? null}
+            onSelectFilm={onSelectFilm}
+            isMobile={isMobile}
+            isLoading={db.isLoading}
+            isDetailOpen={!!selectedFilm || shouldShowDetailSkeleton}
+            isFiltersCollapsed={isFiltersCollapsed}
+          />
+        </VirtualizedErrorBoundary>
+      </main>
+
+      {shouldShowDetailSkeleton ? (
+        <FilmDetailPanelSkeleton isMobile={isMobile} />
+      ) : (
+        selectedFilm && (
+          <FilmDetailPanel
+            film={selectedFilm}
+            isOpen={!!selectedFilm}
+            onClose={onClosePanel}
+            isMobile={isMobile}
+          />
+        )
+      )}
+    </div>
+  );
+}
+
 export default function FilmsPage() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const searchParams = useSearch({ from: '/films' });
 
+  const db = useFilmDatabase();
   const {
     films,
     filteredFilms,
@@ -37,11 +171,7 @@ export default function FilmsPage() {
     setBrandFilter,
     discontinuedFilter,
     setDiscontinuedFilter,
-    brandOptions,
-    isoOptions,
-    clearFilters,
-    hasActiveFilters,
-  } = useFilmDatabase();
+  } = db;
 
   const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
   const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false);
@@ -61,52 +191,63 @@ export default function FilmsPage() {
     return films.find((f) => f.slug === urlFilmSlug) ?? null;
   }, [films, urlFilmSlug]);
 
-  // Sync URL params to filter state when URL changes (back/forward navigation, bookmarks)
-  // Only runs when URL params change - does NOT include state values in deps to avoid
-  // clearing user input before the debounced URL sync fires
-  // biome-ignore lint/correctness/useExhaustiveDependencies: setters are stable refs, state values intentionally excluded
+  // Sync URL params to filter state when URL changes (back/forward navigation, bookmarks).
+  // Each param syncs in its own effect so a single effect never performs multiple state
+  // updates. Effects only run when their URL param changes - they do NOT include the
+  // matching state value in deps, to avoid clearing user input before the debounced
+  // state→URL sync fires. We don't clear state when a URL param is undefined; the
+  // debounced state→URL sync handles that.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
   useEffect(() => {
-    // Only sync FROM URL when URL has a value and differs from current state
-    // We don't clear state when URL is undefined - the debounced state→URL sync handles that
     if (
       searchParams.search !== undefined &&
       searchParams.search !== searchQuery
     ) {
       setSearchQuery(searchParams.search);
     }
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
+  }, [searchParams.search]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
+  useEffect(() => {
     if (
       searchParams.color !== undefined &&
       searchParams.color !== colorTypeFilter
     ) {
       setColorTypeFilter(searchParams.color);
     }
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
+  }, [searchParams.color]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
+  useEffect(() => {
     if (searchParams.iso !== undefined && searchParams.iso !== isoSpeedFilter) {
       setIsoSpeedFilter(searchParams.iso);
     }
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
+  }, [searchParams.iso]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
+  useEffect(() => {
     if (
       searchParams.brand !== undefined &&
       searchParams.brand !== brandFilter
     ) {
       setBrandFilter(searchParams.brand);
     }
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
+  }, [searchParams.brand]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
+  useEffect(() => {
     if (
       searchParams.status !== undefined &&
       searchParams.status !== discontinuedFilter
     ) {
       setDiscontinuedFilter(searchParams.status);
     }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setters are stable refs; state values intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [
-    searchParams.search,
-    searchParams.color,
-    searchParams.iso,
-    searchParams.brand,
-    searchParams.status,
-  ]);
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
+  }, [searchParams.status]);
 
   // Select film from URL param when data loads or URL changes
   useEffect(() => {
@@ -237,98 +378,27 @@ export default function FilmsPage() {
       )}
 
       {isMobile ? (
-        <div className="space-y-4">
-          <FilmFiltersMobile
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            colorTypeFilter={colorTypeFilter}
-            onColorTypeChange={setColorTypeFilter}
-            isoSpeedFilter={isoSpeedFilter}
-            onIsoSpeedChange={setIsoSpeedFilter}
-            brandFilter={brandFilter}
-            onBrandChange={setBrandFilter}
-            discontinuedFilter={discontinuedFilter}
-            onDiscontinuedChange={setDiscontinuedFilter}
-            brandOptions={brandOptions}
-            isoOptions={isoOptions}
-            onClearFilters={clearFilters}
-            hasActiveFilters={hasActiveFilters}
-            resultCount={filteredFilms.length}
-          />
-
-          <VirtualizedErrorBoundary>
-            <FilmResultsVirtualized
-              films={filteredFilms}
-              selectedFilmId={selectedFilm?.uuid ?? null}
-              onSelectFilm={handleSelectFilm}
-              isMobile={isMobile}
-              isLoading={isLoading}
-              isDetailOpen={!!selectedFilm || shouldShowDetailSkeleton}
-              isFiltersCollapsed={false}
-            />
-          </VirtualizedErrorBoundary>
-
-          {shouldShowDetailSkeleton ? (
-            <FilmDetailPanelSkeleton isMobile={isMobile} />
-          ) : (
-            <FilmDetailPanel
-              film={selectedFilm}
-              baseFilm={baseFilm}
-              isOpen={!!selectedFilm}
-              onClose={handleClosePanel}
-              isMobile={isMobile}
-            />
-          )}
-        </div>
+        <FilmsMobileLayout
+          db={db}
+          isMobile={isMobile}
+          selectedFilm={selectedFilm}
+          baseFilm={baseFilm}
+          shouldShowDetailSkeleton={shouldShowDetailSkeleton}
+          onSelectFilm={handleSelectFilm}
+          onClosePanel={handleClosePanel}
+        />
       ) : (
-        <div className="mt-6 flex gap-6">
-          <aside className="flex-shrink-0 transition-all duration-300">
-            <FilmFiltersPanel
-              onCollapsedChange={setIsFiltersCollapsed}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              colorTypeFilter={colorTypeFilter}
-              onColorTypeChange={setColorTypeFilter}
-              isoSpeedFilter={isoSpeedFilter}
-              onIsoSpeedChange={setIsoSpeedFilter}
-              brandFilter={brandFilter}
-              onBrandChange={setBrandFilter}
-              discontinuedFilter={discontinuedFilter}
-              onDiscontinuedChange={setDiscontinuedFilter}
-              brandOptions={brandOptions}
-              isoOptions={isoOptions}
-              onClearFilters={clearFilters}
-              hasActiveFilters={hasActiveFilters}
-            />
-          </aside>
-
-          <main id="film-results" className="flex-1 min-w-0">
-            <VirtualizedErrorBoundary>
-              <FilmResultsVirtualized
-                films={filteredFilms}
-                selectedFilmId={selectedFilm?.uuid ?? null}
-                onSelectFilm={handleSelectFilm}
-                isMobile={isMobile}
-                isLoading={isLoading}
-                isDetailOpen={!!selectedFilm || shouldShowDetailSkeleton}
-                isFiltersCollapsed={isFiltersCollapsed}
-              />
-            </VirtualizedErrorBoundary>
-          </main>
-
-          {shouldShowDetailSkeleton ? (
-            <FilmDetailPanelSkeleton isMobile={isMobile} />
-          ) : (
-            selectedFilm && (
-              <FilmDetailPanel
-                film={selectedFilm}
-                isOpen={!!selectedFilm}
-                onClose={handleClosePanel}
-                isMobile={isMobile}
-              />
-            )
-          )}
-        </div>
+        <FilmsDesktopLayout
+          db={db}
+          isMobile={isMobile}
+          selectedFilm={selectedFilm}
+          baseFilm={baseFilm}
+          shouldShowDetailSkeleton={shouldShowDetailSkeleton}
+          onSelectFilm={handleSelectFilm}
+          onClosePanel={handleClosePanel}
+          isFiltersCollapsed={isFiltersCollapsed}
+          onCollapsedChange={setIsFiltersCollapsed}
+        />
       )}
     </div>
   );

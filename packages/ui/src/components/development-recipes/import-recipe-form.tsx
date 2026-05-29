@@ -3,6 +3,7 @@ import { TanStackTextInput } from '../../forms/components/tanstack-text-input';
 import { importRecipeSchema } from '../../forms/schemas/import-recipe.schema';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
+import { setStyles } from '../../lib/dom';
 
 interface ImportRecipeFormProps {
   onImport: (encoded: string) => void;
@@ -89,13 +90,16 @@ export function ImportRecipeForm({
               color: 'var(--color-text-secondary)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-              e.currentTarget.style.color = 'var(--color-text-primary)';
+              setStyles(e.currentTarget, {
+                borderColor: 'var(--color-border-primary)',
+                color: 'var(--color-text-primary)',
+              });
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor =
-                'var(--color-border-secondary)';
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
+              setStyles(e.currentTarget, {
+                borderColor: 'var(--color-border-secondary)',
+                color: 'var(--color-text-secondary)',
+              });
             }}
           >
             Cancel

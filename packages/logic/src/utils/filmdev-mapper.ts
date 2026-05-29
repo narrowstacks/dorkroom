@@ -19,6 +19,13 @@ function extractIsoFromString(str: string): number | null {
 }
 
 /**
+ * Returns true when either word contains the other as a substring.
+ */
+function wordsOverlap(a: string, b: string): boolean {
+  return a.includes(b) || b.includes(a);
+}
+
+/**
  * Scores how well a film matches a search string.
  * Higher score = better match.
  */
@@ -62,7 +69,7 @@ function scoreFilmMatch(film: Film, searchString: string): number {
   const filmWords = fullName.split(/[\s-]+/).filter((w) => w.length > 1);
   for (const searchWord of searchWords) {
     for (const filmWord of filmWords) {
-      if (filmWord.includes(searchWord) || searchWord.includes(filmWord)) {
+      if (wordsOverlap(filmWord, searchWord)) {
         score += 10;
       }
     }
