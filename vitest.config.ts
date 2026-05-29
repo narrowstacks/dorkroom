@@ -4,14 +4,16 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    // Vitest 4 moved `pool`, `reporters`, and `watch` to root-only options;
+    // they can no longer live inside a per-project `test` config.
+    pool: 'forks',
+    reporters: ['default'],
     projects: [
       'apps/*/vite.config.{mjs,js,ts,mts}',
       'packages/*/vite.config.{mjs,js,ts,mts}',
       {
-        esbuild: { jsx: 'automatic' },
         test: {
           name: 'serverless',
-          watch: false,
           globals: true,
           environment: 'node',
           include: [
@@ -21,8 +23,6 @@ export default defineConfig({
             'utils/__tests__/routeMetadata.{test,spec}.ts',
           ],
           exclude: ['utils/__tests__/presetSharing.{test,spec}.ts'],
-          reporters: ['default'],
-          pool: 'forks',
           mockReset: true,
         },
       },

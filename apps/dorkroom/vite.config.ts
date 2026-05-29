@@ -76,9 +76,6 @@ export default defineConfig(() => ({
   optimizeDeps: {
     include: ['react', 'react-dom'],
   },
-  esbuild: {
-    drop: ['console', 'debugger'],
-  },
   plugins: [TanStackRouterVite(), react(), fontPreloadPlugin()],
   resolve: {
     alias: {
@@ -118,9 +115,19 @@ export default defineConfig(() => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
-    minify: 'esbuild',
+    // Vite 8 uses the Oxc minifier (default). Vite 8 dropped esbuild's `drop`
+    // option, so console/debugger stripping moves to Rolldown's output.minify
+    // compress options (https://vite.dev/guide/migration). A user-provided
+    // output.minify object overrides Vite's default, so we spell out the full
+    // minify config to keep compression + mangling on.
+    minify: 'oxc',
     rollupOptions: {
       output: {
+        minify: {
+          mangle: true,
+          codegen: true,
+          compress: { dropConsole: true, dropDebugger: true },
+        },
         manualChunks(id) {
           if (
             id.includes('node_modules/react/') ||
