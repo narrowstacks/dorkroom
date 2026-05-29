@@ -55,7 +55,7 @@ const CALCULATORS = [
   {
     category: 'Darkroom Printing',
     title: 'Mat Cut Calculator',
-    description: 'Window openings & cutter settings',
+    description: 'Window openings & cut guides',
     href: '/mat',
     icon: Frame,
     color: 'text-teal-400',
