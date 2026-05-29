@@ -18,6 +18,7 @@ const previews = [
   { name: 'resize-calculator', params: { route: '/resize' } },
   { name: 'reciprocity-calculator', params: { route: '/reciprocity' } },
   { name: 'stops-calculator', params: { route: '/stops' } },
+  { name: 'mat-calculator', params: { route: '/mat' } },
   { name: 'exposure-calculator', params: { route: '/exposure' } },
   { name: 'lens-equivalency', params: { route: '/lenses' } },
   { name: 'development-recipes', params: { route: '/development' } },

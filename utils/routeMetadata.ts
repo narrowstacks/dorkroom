@@ -7,6 +7,7 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/resize': 'Print Resize Calculator',
   '/reciprocity': 'Reciprocity Failure Calculator',
   '/stops': 'Stops Calculator',
+  '/mat': 'Mat Cut Calculator',
   '/exposure': 'Exposure Calculator',
   '/lenses': 'Lens Equivalency Calculator',
   '/development': 'Development Recipes',
@@ -25,6 +26,8 @@ export const ROUTE_DESCRIPTIONS: Record<string, string> = {
     'Compensate for reciprocity failure in long exposures. Get corrected exposure times for film stocks like Ilford HP5, Kodak Tri-X, and more.',
   '/stops':
     'Convert between exposure stops and seconds. Translate f-stop or time adjustments into exposure values.',
+  '/mat':
+    'Plan single-window mats with independent borders. Get exact window openings and mat cutter guide-bar settings, with best-fit borders for your artwork.',
   '/exposure':
     'Balance aperture, shutter speed, and ISO for correct exposure. Calculate equivalent exposures across different settings.',
   '/lenses':

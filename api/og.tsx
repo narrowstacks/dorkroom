@@ -168,6 +168,13 @@ function getRouteIcon(route: string): React.JSX.Element[] | null {
         <path key="1" d="m12 14 4-4" />,
         <path key="2" d="M3.34 19a10 10 0 1 1 17.32 0" />,
       ];
+    case '/mat': // Frame
+      return [
+        <line key="1" x1={22} x2={2} y1={6} y2={6} />,
+        <line key="2" x1={22} x2={2} y1={18} y2={18} />,
+        <line key="3" x1={6} x2={6} y1={2} y2={22} />,
+        <line key="4" x1={18} x2={18} y1={2} y2={22} />,
+      ];
     case '/reciprocity': // Timer
       return [
         <line key="1" x1={10} x2={14} y1={2} y2={2} />,

@@ -9,6 +9,7 @@ export * from './constants/development-recipes';
 export * from './constants/exposure-calculator-defaults';
 export * from './constants/feature-flags';
 export * from './constants/lens-calculator-defaults';
+export * from './constants/mat-calculator';
 export * from './constants/reciprocity';
 export * from './constants/reciprocity-calculator-defaults';
 export * from './constants/resize-calculator';

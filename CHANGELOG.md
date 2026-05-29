@@ -4,6 +4,15 @@ All notable changes to Dorkroom.art are documented here.
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.05.28]
+
+### Added
+
+- Mat Cut Calculator (`/mat`): plan single-window mats with independent borders, get exact window openings, best-fit borders for artwork, and mat cutter guide-bar settings
+- Fraction-aware inputs that accept decimals or fractions and step by 1/16" via arrow keys or tap steppers (mobile-friendly)
+- To-scale mat layout diagram with dimensioned borders, window, and artwork footprint
+- Tests for the mat calculator logic, the fraction input field, and the page
+
 ## [2026.03.27]
 
 ### Added

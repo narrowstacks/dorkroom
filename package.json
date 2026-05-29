@@ -1,6 +1,6 @@
 {
   "name": "@dorkroom/source",
-  "version": "2026.02.27",
+  "version": "2026.05.28",
   "license": "AGPL-3.0-only",
   "scripts": {
     "supabase:login": "bunx supabase login",

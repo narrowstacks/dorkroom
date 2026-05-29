@@ -35,9 +35,9 @@ describe('navigation utilities', () => {
 
   describe('navigation item arrays', () => {
     it('has correct printing items', () => {
-      expect(printingItems).toHaveLength(3);
+      expect(printingItems).toHaveLength(4);
       const labels = printingItems.map((item) => item.label);
-      expect(labels).toEqual(['Border', 'Resize', 'Stops']);
+      expect(labels).toEqual(['Border', 'Resize', 'Stops', 'Mat']);
     });
 
     it('has correct film items', () => {
