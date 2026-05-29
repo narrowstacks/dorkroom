@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host=0.0.0.0",
     "build": "vite build",
-    "lint": "biome check .",
+    "lint": "oxlint && biome check --linter-enabled=false .",
     "test": "vitest run",
     "typecheck": "tsgo --noEmit"
   }

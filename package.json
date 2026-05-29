@@ -20,9 +20,8 @@
     "test": "turbo run lint test build typecheck --filter='@dorkroom/*' && vitest run --config vitest.config.ts",
     "test:unit": "turbo run test --filter='@dorkroom/*' -- --passWithNoTests",
     "test:serverless": "vitest run --config vitest.config.ts",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "lint:oxc": "oxlint",
+    "lint": "oxlint && biome check --linter-enabled=false .",
+    "lint:fix": "oxlint --fix && biome check --linter-enabled=false --write .",
     "format": "biome format --write ."
   },
   "private": true,
