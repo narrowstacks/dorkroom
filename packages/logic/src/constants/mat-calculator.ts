@@ -42,7 +42,7 @@ export const MAT_CALCULATOR_DEFAULTS = {
   artW: '11',
   artH: '14',
   reveal: '1/4',
-  bottomWeight: true,
+  bottomWeight: false,
 };
 
 export type MatCalculatorState = typeof MAT_CALCULATOR_DEFAULTS;
