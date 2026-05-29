@@ -1,0 +1,6 @@
+[install]
+# Refuse to install npm package versions published less than 7 days ago.
+# Mitigates supply-chain attacks that rely on freshly-published malicious
+# versions being pulled in before anyone notices. See:
+# https://bun.sh/docs/runtime/bunfig#install-minimumreleaseage
+minimumReleaseAge = 604800 # 7 days, in seconds
