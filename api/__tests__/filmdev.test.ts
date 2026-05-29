@@ -28,6 +28,8 @@ function createMockCtx() {
   };
 }
 
+type MockReq = { query: Record<string, string | string[] | undefined> };
+
 function createJsonResponse(
   data: unknown,
   overrides: {
@@ -87,7 +89,7 @@ describe('filmdev endpoint', () => {
   describe('recipe ID validation', () => {
     it('should reject missing recipe ID', async () => {
       const res = createRes();
-      await handler({ query: {} } as any, res, createMockCtx());
+      await handler({ query: {} } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(400);
       expect((res._json as Record<string, unknown>).error).toBe(
@@ -97,28 +99,28 @@ describe('filmdev endpoint', () => {
 
     it('should reject non-numeric recipe ID', async () => {
       const res = createRes();
-      await handler({ query: { id: 'abc' } } as any, res, createMockCtx());
+      await handler({ query: { id: 'abc' } } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(400);
     });
 
     it('should reject zero', async () => {
       const res = createRes();
-      await handler({ query: { id: '0' } } as any, res, createMockCtx());
+      await handler({ query: { id: '0' } } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(400);
     });
 
     it('should reject negative numbers', async () => {
       const res = createRes();
-      await handler({ query: { id: '-1' } } as any, res, createMockCtx());
+      await handler({ query: { id: '-1' } } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(400);
     });
 
     it('should reject IDs exceeding max', async () => {
       const res = createRes();
-      await handler({ query: { id: '10000000' } } as any, res, createMockCtx());
+      await handler({ query: { id: '10000000' } } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(400);
     });
@@ -130,7 +132,7 @@ describe('filmdev endpoint', () => {
       );
 
       const res = createRes();
-      await handler({ query: { id: '12345' } } as any, res, createMockCtx());
+      await handler({ query: { id: '12345' } } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(200);
     });
@@ -148,7 +150,7 @@ describe('filmdev endpoint', () => {
       );
 
       const res = createRes();
-      await handler({ query: { id: '123' } } as any, res, createMockCtx());
+      await handler({ query: { id: '123' } } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(502);
       const body = res._json as Record<string, unknown>;
@@ -167,7 +169,7 @@ describe('filmdev endpoint', () => {
       );
 
       const res = createRes();
-      await handler({ query: { id: '123' } } as any, res, createMockCtx());
+      await handler({ query: { id: '123' } } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(404);
       expect((res._json as Record<string, unknown>).error).toBe(
@@ -190,7 +192,7 @@ describe('filmdev endpoint', () => {
       );
 
       const res = createRes();
-      await handler({ query: { id: '123' } } as any, res, createMockCtx());
+      await handler({ query: { id: '123' } } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(502);
       const body = res._json as Record<string, unknown>;
@@ -207,7 +209,7 @@ describe('filmdev endpoint', () => {
       vi.stubGlobal('fetch', fetchMock);
 
       const res = createRes();
-      await handler({ query: { id: '123' } } as any, res, createMockCtx());
+      await handler({ query: { id: '123' } } as MockReq, res, createMockCtx());
 
       const fetchCall = fetchMock.mock.calls[0];
       const headers = fetchCall[1].headers as Record<string, string>;
@@ -233,7 +235,7 @@ describe('filmdev endpoint', () => {
       );
 
       const res = createRes();
-      await handler({ query: { id: '123' } } as any, res, createMockCtx());
+      await handler({ query: { id: '123' } } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(502);
       expect((res._json as Record<string, unknown>).error).toBe(

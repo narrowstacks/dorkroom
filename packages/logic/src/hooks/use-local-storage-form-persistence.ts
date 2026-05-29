@@ -141,6 +141,7 @@ export function useLocalStorageFormPersistence<T extends object>(
       return snapshot;
     },
     // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally using dynamic deps array to track form value changes
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- dynamic deps array intentionally tracks each persisted form value
     keysToUse.map((key) => formValues[key])
   );
 
@@ -199,6 +200,7 @@ export function useLocalStorageFormPersistence<T extends object>(
       );
       isHydratedRef.current = true;
     }
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- mount-only hydration; deps intentionally limited to avoid re-hydrating
   }, [form.setFieldValue]);
 
   // Persist form state to localStorage whenever it changes (debounced to avoid

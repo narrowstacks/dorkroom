@@ -131,13 +131,13 @@ export default function ReciprocityCalculatorPage() {
     const parsedSeconds = parseReciprocityTime(meteredTime);
     const formattedTime =
       parsedSeconds !== null ? formatReciprocityTime(parsedSeconds) : null;
-    const parsedDisplay =
+    const parsedDisplayText =
       formattedTime && formattedTime !== meteredTime
         ? `Parsed as: ${formattedTime}`
         : null;
 
     return {
-      parsedDisplay,
+      parsedDisplay: parsedDisplayText,
     };
   })();
 

@@ -16,6 +16,7 @@
   "rules": {
     "no-control-regex": "off",
     "no-underscore-dangle": "off",
+    "no-shadow": "error",
     "no-unused-vars": "error",
     "preserve-caught-error": "error",
     "typescript/no-explicit-any": "warn",
