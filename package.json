@@ -73,6 +73,7 @@
     "@vitest/ui": "4.1.7",
     "autoprefixer": "^10.4.23",
     "baseline-browser-mapping": "^2.8.29",
+    "happy-dom": "20.9.0",
     "jiti": "2.4.2",
     "jsdom": "29.1.1",
     "postcss": "^8.5.6",

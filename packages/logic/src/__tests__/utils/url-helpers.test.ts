@@ -219,6 +219,11 @@ describe('url helpers', () => {
     });
 
     it('should return false when navigator does not exist', () => {
+      Object.defineProperty(global, 'navigator', {
+        value: undefined,
+        writable: true,
+      });
+
       expect(isWebShareSupported()).toBe(false);
     });
 
@@ -247,6 +252,11 @@ describe('url helpers', () => {
     });
 
     it('should return false when navigator does not exist', () => {
+      Object.defineProperty(global, 'navigator', {
+        value: undefined,
+        writable: true,
+      });
+
       expect(isClipboardSupported()).toBe(false);
     });
 
