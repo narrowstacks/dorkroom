@@ -2,7 +2,7 @@
 
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TanStackRouterVite } from '@tanstack/router-vite-plugin';
+import { tanstackRouter } from '@tanstack/router-vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 
@@ -76,7 +76,7 @@ export default defineConfig(() => ({
   optimizeDeps: {
     include: ['react', 'react-dom'],
   },
-  plugins: [TanStackRouterVite(), react(), fontPreloadPlugin()],
+  plugins: [tanstackRouter(), react(), fontPreloadPlugin()],
   resolve: {
     alias: {
       '@dorkroom/ui/forms': resolve(

@@ -8,7 +8,7 @@
 
 ![Version](https://img.shields.io/badge/Version-2026.05.28-red) [![License](https://img.shields.io/badge/License-AGPL_V3.0-blue)](https://github.com/narrowstacks/dorkroom/blob/main/LICENSE)
 
-![React 19](https://img.shields.io/badge/React-19-61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.13-06B6D4) ![TanStack Query](https://img.shields.io/badge/-TanStack%20Query-red?style=flat-square&logo=react-query&logoColor=white) ![Biome](https://img.shields.io/badge/Biome-60A5FA?logo=biome&logoColor=fff)
+![React 19](https://img.shields.io/badge/React-19-61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.3.0-06B6D4) ![TanStack Query](https://img.shields.io/badge/-TanStack%20Query-red?style=flat-square&logo=react-query&logoColor=white) ![Biome](https://img.shields.io/badge/Biome-60A5FA?logo=biome&logoColor=fff)
 
 [![Uptime Robot status](https://img.shields.io/uptimerobot/status/m801823706-109991125954deb52b9281b8?logo=vercel&link=https%3A%2F%2Fstats.uptimerobot.com%2FL75VVTPwtz)](https://stats.uptimerobot.com/L75VVTPwtz) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/narrowstacks/dorkroom/ci.yml?logo=github&label=CI)](https://github.com/narrowstacks/dorkroom/actions/workflows/ci.yml) [![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-pr/narrowstacks/dorkroom)](https://github.com/narrowstacks/dorkroom/pulls) [![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/narrowstacks/dorkroom)](https://github.com/narrowstacks/dorkroom/issues)
 
