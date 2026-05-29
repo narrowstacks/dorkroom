@@ -42,29 +42,18 @@ const mockWindow: MockWindow = {
 };
 
 describe('url helpers', () => {
-  type MutableGlobal = typeof globalThis & {
-    window?: Window & typeof globalThis;
-    navigator?: Navigator;
-  };
-  const g = globalThis as unknown as MutableGlobal;
-  const originalWindow = g.window;
-  const originalNavigator = g.navigator;
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   afterEach(() => {
-    g.window = originalWindow;
-    g.navigator = originalNavigator;
+    // Auto-restores window/navigator stubbed via vi.stubGlobal below.
+    vi.unstubAllGlobals();
   });
 
   describe('getDynamicShareUrl', () => {
     beforeEach(() => {
-      Object.defineProperty(global, 'window', {
-        value: mockWindow,
-        writable: true,
-      });
+      vi.stubGlobal('window', mockWindow);
     });
 
     it('should generate localhost URL in development', () => {
@@ -87,7 +76,7 @@ describe('url helpers', () => {
     });
 
     it('should handle SSR (no window)', () => {
-      g.window = undefined as unknown as Window & typeof globalThis;
+      vi.stubGlobal('window', undefined);
       const url = getDynamicShareUrl();
       expect(url).toBe('https://beta.dorkroom.art/border');
     });
@@ -100,10 +89,7 @@ describe('url helpers', () => {
       mockWindow.location.port = '4200';
       mockWindow.location.protocol = 'http:';
 
-      Object.defineProperty(global, 'window', {
-        value: mockWindow,
-        writable: true,
-      });
+      vi.stubGlobal('window', mockWindow);
     });
 
     it('should generate web URL with query param', () => {
@@ -116,10 +102,7 @@ describe('url helpers', () => {
 
   describe('getPresetFromUrl', () => {
     beforeEach(() => {
-      Object.defineProperty(global, 'window', {
-        value: mockWindow,
-        writable: true,
-      });
+      vi.stubGlobal('window', mockWindow);
     });
 
     it('should prefer query param over hash', () => {
@@ -144,7 +127,7 @@ describe('url helpers', () => {
     });
 
     it('should return null in SSR environment', () => {
-      g.window = undefined as unknown as Window & typeof globalThis;
+      vi.stubGlobal('window', undefined);
       const preset = getPresetFromUrl();
       expect(preset).toBeNull();
     });
@@ -160,10 +143,7 @@ describe('url helpers', () => {
   describe('updateUrlWithPreset', () => {
     beforeEach(() => {
       mockWindow.location.search = '?test=1';
-      Object.defineProperty(global, 'window', {
-        value: mockWindow,
-        writable: true,
-      });
+      vi.stubGlobal('window', mockWindow);
     });
 
     it('should update URL with encoded preset as query param', () => {
@@ -177,17 +157,14 @@ describe('url helpers', () => {
     });
 
     it('should handle SSR environment gracefully', () => {
-      g.window = undefined as unknown as Window & typeof globalThis;
+      vi.stubGlobal('window', undefined);
       expect(() => updateUrlWithPreset('preset')).not.toThrow();
     });
   });
 
   describe('clearPresetFromUrl', () => {
     beforeEach(() => {
-      Object.defineProperty(global, 'window', {
-        value: mockWindow,
-        writable: true,
-      });
+      vi.stubGlobal('window', mockWindow);
     });
 
     it('should remove preset query param from URL', () => {
@@ -202,31 +179,26 @@ describe('url helpers', () => {
     });
 
     it('should handle SSR environment gracefully', () => {
-      const g = globalThis as { window?: unknown };
-      g.window = undefined;
+      vi.stubGlobal('window', undefined);
       expect(() => clearPresetFromUrl()).not.toThrow();
     });
   });
 
   describe('isWebShareSupported', () => {
     it('should return true when navigator.share exists', () => {
-      Object.defineProperty(global, 'navigator', {
-        value: { share: vi.fn() },
-        writable: true,
-      });
+      vi.stubGlobal('navigator', { share: vi.fn() });
 
       expect(isWebShareSupported()).toBe(true);
     });
 
     it('should return false when navigator does not exist', () => {
+      vi.stubGlobal('navigator', undefined);
+
       expect(isWebShareSupported()).toBe(false);
     });
 
     it('should return false when navigator.share does not exist', () => {
-      Object.defineProperty(global, 'navigator', {
-        value: {},
-        writable: true,
-      });
+      vi.stubGlobal('navigator', {});
 
       expect(isWebShareSupported()).toBe(false);
     });
@@ -234,38 +206,25 @@ describe('url helpers', () => {
 
   describe('isClipboardSupported', () => {
     it('should return true when navigator.clipboard.writeText exists', () => {
-      Object.defineProperty(global, 'navigator', {
-        value: {
-          clipboard: {
-            writeText: vi.fn(),
-          },
-        },
-        writable: true,
-      });
+      vi.stubGlobal('navigator', { clipboard: { writeText: vi.fn() } });
 
       expect(isClipboardSupported()).toBe(true);
     });
 
     it('should return false when navigator does not exist', () => {
+      vi.stubGlobal('navigator', undefined);
+
       expect(isClipboardSupported()).toBe(false);
     });
 
     it('should return false when clipboard does not exist', () => {
-      Object.defineProperty(global, 'navigator', {
-        value: {},
-        writable: true,
-      });
+      vi.stubGlobal('navigator', {});
 
       expect(isClipboardSupported()).toBe(false);
     });
 
     it('should return false when writeText does not exist', () => {
-      Object.defineProperty(global, 'navigator', {
-        value: {
-          clipboard: {},
-        },
-        writable: true,
-      });
+      vi.stubGlobal('navigator', { clipboard: {} });
 
       expect(isClipboardSupported()).toBe(false);
     });

@@ -64,6 +64,12 @@ When adding new routes/pages, modifying existing routes, or changing API endpoin
 - When pushing to main, update all `package.json` versions and the README badge to the current date
 - Add a new entry to `CHANGELOG.md` summarizing what changed (use [Keep a Changelog](https://keepachangelog.com/) format)
 
+## Toolchain
+
+- **Typecheck/build use `tsgo`** (`@typescript/native-preview`, the TypeScript 7 beta). The `typescript` 5.x package is retained for editor, Vite, and Vitest type services. Migrate to stable TypeScript 7 once it ships and drop the preview pin.
+- **`@typescript/native-preview` is an exact dev snapshot that never auto-updates.** Re-evaluate it periodically (e.g. monthly) against newer snapshots for interim fixes — the feed is the `@beta`/`@latest` tags at <https://www.npmjs.com/package/@typescript/native-preview?activeTab=versions> (`bun pm view @typescript/native-preview`).
+- **Dependency pinning is two-tier:** toolchain that shapes the production bundle (vite, vitest, tailwindcss, jsdom, etc.) is pinned exact; everything else uses `^` ranges. Babel (`@babel/*`) stays on ranges — Vite 8/Oxc does the actual transforms, so Babel is dev-only tooling here. The `bunfig.toml` `minimumReleaseAge` gate (7 days) backstops the ranges. To install something published in the last week (e.g. an urgent CVE patch), run `bun install --minimum-release-age 0` or add the package to `minimumReleaseAgeExcludes`.
+
 ## Git
 
 - Conventional commits, short messages

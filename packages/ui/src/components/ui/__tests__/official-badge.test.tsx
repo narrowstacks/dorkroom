@@ -23,7 +23,7 @@ vi.mock('lucide-react', () => ({
 
 // Mock utility functions
 vi.mock('../../../lib/color', () => ({
-  colorMixOr: () => 'mocked-color',
+  colorMixOr: () => 'rgb(1, 2, 3)',
 }));
 
 vi.mock('../../../lib/tag-colors', () => ({
@@ -289,9 +289,9 @@ describe('CustomBadge', () => {
 
       const styledElement = container.querySelector('[aria-label]');
       expect(styledElement).toHaveStyle({
-        backgroundColor: 'mocked-color',
-        borderColor: 'mocked-color',
-        color: 'mocked-color',
+        backgroundColor: 'rgb(1, 2, 3)',
+        borderColor: 'rgb(1, 2, 3)',
+        color: 'rgb(1, 2, 3)',
       });
     });
   });

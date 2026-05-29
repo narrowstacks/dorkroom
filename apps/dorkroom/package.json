@@ -8,6 +8,6 @@
     "build": "vite build",
     "lint": "biome check .",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsgo --noEmit"
   }
 }

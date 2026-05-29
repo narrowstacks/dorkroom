@@ -3,13 +3,10 @@ import '@testing-library/jest-dom';
 // Mock fetch globally
 global.fetch = vi.fn();
 
-// Mock AbortController
-global.AbortController = class AbortController {
-  signal: AbortSignal = {} as AbortSignal;
-  abort() {
-    // Mock implementation
-  }
-} as unknown as typeof AbortController;
+// NOTE: AbortController is intentionally NOT mocked — the jsdom/node
+// environment provides a spec-compliant native one. Vitest 4 attaches an
+// abort listener to each test's signal, so a stubbed AbortController whose
+// `signal` lacks `addEventListener` crashes the runner.
 
 // Set up global timeout for tests
 beforeEach(() => {

@@ -13,6 +13,14 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - To-scale mat layout diagram with dimensioned borders, window, and artwork footprint
 - Tests for the mat calculator logic, the fraction input field, and the page
 
+### Changed
+
+- Upgraded the build/test toolchain to latest stable (>7-day-old) releases: Vite 8.0.14 (Rolldown/Oxc bundler), Vitest 4.1.7 (with `@vitest/ui` and `@vitest/coverage-v8`), jsdom 29.1.1, `@vitejs/plugin-react` 6.0.2, Tailwind CSS 4.3.0, `@babel/core` 7.29.0, `turbo-ignore` 2.9.14, and `@types/jsdom` 28.0.3
+- Adopted the TypeScript 7 beta (`@typescript/native-preview`, the native `tsgo` compiler) for package typecheck and build — ~3.5× faster full-repo typecheck. TS 7 removed `baseUrl`, so `tsconfig.base.json` now uses relative path mappings; the `typescript` package is retained for editor/Vite/Vitest type services
+- Switched the test DOM environment from jsdom to happy-dom 20.9.0 — ~30% faster full suite (jsdom 29 environment init was the bottleneck; pool/isolation tuning had no effect). jsdom is retained for two logic tests that construct `JSDOM` directly
+- Migrated console/debugger stripping from the removed `esbuild.drop` option to Rolldown's `build.rollupOptions.output.minify.compress` options (Vite 8)
+- Moved `pool`/`reporters` to the root Vitest config (now root-only in Vitest 4) and renamed the deprecated `TanStackRouterVite` plugin import to `tanstackRouter`
+
 ### Fixed
 
 - Film database page (and any page with a text input) failing to load in the dev server after the Vite 7.3.2 bump — a dev-only regression in Vite's bundled `postcss-modules` loader; converted the lone CSS module to Tailwind classes to remove the affected code path
@@ -20,7 +28,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Security
 
-- Bumped Vite to 7.3.2 to resolve three dev-server advisories (GHSA-p9ff-h696-f583, GHSA-v2wj-q39q-566r, GHSA-4w7w-66w2-5vf9); added a `vite` override to dedupe the transitive test-only copy
+- Bumped Vite to 7.3.2 to resolve three dev-server advisories (GHSA-p9ff-h696-f583, GHSA-v2wj-q39q-566r, GHSA-4w7w-66w2-5vf9); added a `vite` override to dedupe the transitive test-only copy (subsequently bumped to Vite 8.0.14, see Changed)
+- Added a `bunfig.toml` `install.minimumReleaseAge` gate (7 days) so Bun refuses npm versions published in the last week, reducing exposure to freshly-published malicious releases
 
 ## [2026.03.27]
 

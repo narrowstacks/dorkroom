@@ -2,7 +2,7 @@
 
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TanStackRouterVite } from '@tanstack/router-vite-plugin';
+import { tanstackRouter } from '@tanstack/router-vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 
@@ -76,10 +76,7 @@ export default defineConfig(() => ({
   optimizeDeps: {
     include: ['react', 'react-dom'],
   },
-  esbuild: {
-    drop: ['console', 'debugger'],
-  },
-  plugins: [TanStackRouterVite(), react(), fontPreloadPlugin()],
+  plugins: [tanstackRouter(), react(), fontPreloadPlugin()],
   resolve: {
     alias: {
       '@dorkroom/ui/forms': resolve(
@@ -118,9 +115,16 @@ export default defineConfig(() => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
-    minify: 'esbuild',
+    // A user-provided output.minify object overrides Vite 8's default, so the
+    // full config is spelled out; compress.drop* replaces the removed esbuild.drop.
+    minify: 'oxc',
     rollupOptions: {
       output: {
+        minify: {
+          mangle: true,
+          codegen: true,
+          compress: { dropConsole: true, dropDebugger: true },
+        },
         manualChunks(id) {
           if (
             id.includes('node_modules/react/') ||
@@ -153,7 +157,7 @@ export default defineConfig(() => ({
     name: '@dorkroom/dorkroom',
     watch: false,
     globals: true,
-    environment: 'jsdom',
+    environment: 'happy-dom',
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     setupFiles: ['./src/test-setup.ts'],
     reporters: ['default'],
