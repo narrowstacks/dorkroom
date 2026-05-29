@@ -261,7 +261,7 @@ export const useDevelopmentRecipes = (
           ? err.message
           : 'Failed to refresh development data';
       debugError('❌ Refetch failed:', errorMessage, err);
-      throw new Error(errorMessage);
+      throw new Error(errorMessage, { cause: err });
     }
   }, [queryClient]);
 

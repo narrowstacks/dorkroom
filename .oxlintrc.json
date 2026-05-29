@@ -16,7 +16,8 @@
   "rules": {
     "no-control-regex": "off",
     "no-underscore-dangle": "off",
-    "no-unused-vars": "warn",
+    "no-unused-vars": "error",
+    "preserve-caught-error": "error",
     "typescript/no-explicit-any": "warn",
     "react/react-in-jsx-scope": "off",
     "react/rules-of-hooks": "error",

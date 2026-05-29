@@ -117,7 +117,7 @@ describe('presetSharing', () => {
       let encoded = '';
       try {
         encoded = encodePreset(preset);
-      } catch (_error) {
+      } catch {
         encoded = '';
       }
 
@@ -134,7 +134,7 @@ describe('presetSharing', () => {
       let encoded = '';
       try {
         encoded = encodePreset(preset);
-      } catch (_error) {
+      } catch {
         encoded = '';
       }
 

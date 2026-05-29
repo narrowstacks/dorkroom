@@ -35,7 +35,7 @@ const normalizeErrors = (errors: unknown[]): string => {
       if (error instanceof Error) {
         return error.message;
       }
-      return String(error);
+      return typeof error === 'object' ? JSON.stringify(error) : String(error);
     });
 
   return errorStrings.join(', ');

@@ -81,7 +81,7 @@ function validateNumericInputs(
   } catch (error) {
     if (error instanceof z.ZodError) {
       // Return the first error message
-      throw new Error(error.issues[0].message);
+      throw new Error(error.issues[0].message, { cause: error });
     }
     throw error;
   }

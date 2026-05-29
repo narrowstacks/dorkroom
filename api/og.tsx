@@ -227,7 +227,6 @@ function getRouteIcon(route: string): React.JSX.Element[] | null {
 const BG = '#09090b';
 const TEXT_PRIMARY = '#ffffff';
 const TEXT_SECONDARY = '#e4e4e7';
-const TEXT_TERTIARY = '#a1a1aa';
 const TEXT_MUTED = '#52525b';
 const PILL_TEXT = '#d4d4d8';
 

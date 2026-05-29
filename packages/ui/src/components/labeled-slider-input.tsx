@@ -184,8 +184,8 @@ export function LabeledSliderInput({
               className="flex justify-between text-xs"
               style={{ color: 'var(--color-text-muted)' }}
             >
-              {(labels as string[]).map((label) => (
-                <span key={label}>{label}</span>
+              {(labels as string[]).map((optionLabel) => (
+                <span key={optionLabel}>{optionLabel}</span>
               ))}
             </div>
           ) : (
