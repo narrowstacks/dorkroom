@@ -13,6 +13,10 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - To-scale mat layout diagram with dimensioned borders, window, and artwork footprint
 - Tests for the mat calculator logic, the fraction input field, and the page
 
+### Security
+
+- Bumped Vite to 7.3.2 to resolve three dev-server advisories (GHSA-p9ff-h696-f583, GHSA-v2wj-q39q-566r, GHSA-4w7w-66w2-5vf9); added a `vite` override to dedupe the transitive test-only copy
+
 ## [2026.03.27]
 
 ### Added
