@@ -269,8 +269,10 @@ function RootComponent() {
             onClick={() => setIsMobileMenuOpen(false)}
           />
 
-          {/* Right sidebar — a navigation region (a native <dialog> would be
-              display:none when closed, breaking the persistent slide transition) */}
+          {/* Slide-in mobile menu. role="dialog" + aria-modal mark it as a modal
+              so AT does not roam the page behind the overlay while it is open. A
+              native <dialog> can't be used here: it would be display:none when
+              closed, breaking the persistent slide transition. */}
           <nav
             id="mobile-navigation"
             className={cn(
@@ -281,7 +283,10 @@ function RootComponent() {
               backgroundColor: 'rgba(var(--color-background-rgb), 0.95)',
               borderColor: 'var(--color-border-secondary)',
             }}
+            // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a native <dialog> is display:none when closed and breaks the slide transition; role="dialog" is required so aria-modal is valid here
+            role="dialog"
             aria-hidden={!isMobileMenuOpen}
+            aria-modal={isMobileMenuOpen || undefined}
             aria-label="Navigation menu"
           >
             <MobileSidebar

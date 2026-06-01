@@ -2,9 +2,11 @@ import type { SelectItem } from '@dorkroom/logic';
 import { Search } from 'lucide-react';
 import { type FC, useRef } from 'react';
 import { setStyles } from '../../lib/dom';
-import { FilterPanelContainer } from '../filters/filter-panel-container';
-import { FilterPanelHeader } from '../filters/filter-panel-header';
-import { FilterPanelSection } from '../filters/filter-panel-section';
+import {
+  FilterPanelContainer,
+  FilterPanelHeader,
+  FilterPanelSection,
+} from '../filters';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
 

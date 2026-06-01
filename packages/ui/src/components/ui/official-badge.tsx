@@ -98,10 +98,12 @@ export function OfficialBadge({ tag, showTooltip = true }: OfficialBadgeProps) {
           borderColor: themeStyle.borderColor,
           color: themeStyle.color,
         }}
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- styled icon badge (SVG inside a span); a native <img> cannot render this, and role="img" makes the aria-label reliably announced
+        role="img"
         aria-label={tooltipText}
         aria-describedby={showTooltip && pos ? tooltipId : undefined}
       >
-        <Check className="size-3" strokeWidth={3} />
+        <Check className="size-3" strokeWidth={3} aria-hidden="true" />
       </span>
       {showTooltip && pos && (
         <PortalTooltip id={tooltipId} pos={pos} text={tooltipText} />
@@ -144,10 +146,12 @@ export function CustomBadge({ showTooltip = true }: CustomBadgeProps) {
             'var(--color-text-primary)'
           ),
         }}
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- styled icon badge (SVG inside a span); a native <img> cannot render this, and role="img" makes the aria-label reliably announced
+        role="img"
         aria-label={tooltipText}
         aria-describedby={showTooltip && pos ? tooltipId : undefined}
       >
-        <Beaker className="size-2.5" strokeWidth={2.5} />
+        <Beaker className="size-2.5" strokeWidth={2.5} aria-hidden="true" />
       </span>
       {showTooltip && pos && (
         <PortalTooltip id={tooltipId} pos={pos} text={tooltipText} />

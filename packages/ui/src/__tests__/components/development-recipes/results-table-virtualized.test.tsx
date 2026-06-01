@@ -436,7 +436,7 @@ describe('DevelopmentResultsTableVirtualized', () => {
         </TableWrapper>
       );
 
-      expect(screen.getByRole('table')).toBeInTheDocument();
+      expect(screen.getByRole('grid')).toBeInTheDocument();
       // Table has both thead and tbody
       expect(container.querySelector('thead')).toBeInTheDocument();
       expect(container.querySelector('tbody')).toBeInTheDocument();
@@ -487,7 +487,7 @@ describe('DevelopmentResultsTableVirtualized', () => {
       );
 
       // Component should render without error
-      expect(screen.getByRole('table')).toBeInTheDocument();
+      expect(screen.getByRole('grid')).toBeInTheDocument();
     });
   });
 

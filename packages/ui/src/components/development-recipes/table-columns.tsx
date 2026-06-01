@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { memo, useCallback } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
+import { useTheme } from '../../contexts/theme-context';
 import { cn } from '../../lib/cn';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import type { ShareResult } from '../share-button';
@@ -316,8 +317,8 @@ function ActionsCell({
 }) {
   const isFav = context.isFavorite?.(view);
   const isCustom = view.source === 'custom';
-  const isDarkroom =
-    document.documentElement.getAttribute('data-theme') === 'darkroom';
+  const { resolvedTheme } = useTheme();
+  const isDarkroom = resolvedTheme === 'darkroom';
 
   const { onToggleFavorite, onEditCustomRecipe, onDeleteCustomRecipe } =
     context;

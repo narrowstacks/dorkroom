@@ -70,11 +70,13 @@ export function Modal({
       className="fixed inset-0 z-[100] flex items-center justify-center px-4"
       style={{ height: '100dvh' }}
     >
-      {/* Backdrop: a real button so click-to-close is keyboard-accessible */}
+      {/* Backdrop: a real button so click-to-close works; hidden from AT and
+          the tab sequence since the header X button already covers keyboard close. */}
       <button
         type="button"
-        aria-label="Close modal"
+        aria-hidden="true"
         tabIndex={-1}
+        data-testid="modal-backdrop"
         className="absolute inset-0 cursor-default backdrop-blur"
         style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
         onClick={onClose}

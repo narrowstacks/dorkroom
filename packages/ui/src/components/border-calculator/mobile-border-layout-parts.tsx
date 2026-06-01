@@ -236,8 +236,9 @@ export function MobileSettingsCard({
             } as React.CSSProperties
           }
           title="Share preset"
+          aria-label="Share preset"
         >
-          <Share className="size-5" />
+          <Share className="size-5" aria-hidden="true" />
         </button>
       </div>
     </div>

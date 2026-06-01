@@ -136,6 +136,11 @@ export const DetailPanel: FC<DetailPanelProps> = ({
 }) => {
   const isDraggingRef = useRef(false);
   const dragStartYRef = useRef(0);
+  // Mirror the latest offset in a ref so the document-level mouse listeners
+  // (attached imperatively on drag start) always read the current value rather
+  // than the value captured when the listener closure was created.
+  const dragOffsetRef = useRef(0);
+  const dragCleanupRef = useRef<(() => void) | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -182,6 +187,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
   const handleDragStart = (clientY: number) => {
     isDraggingRef.current = true;
     dragStartYRef.current = clientY;
+    dragOffsetRef.current = 0;
     setDragOffset(0);
   };
 
@@ -189,6 +195,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
     if (!isDraggingRef.current) return;
 
     const offset = Math.max(0, clientY - dragStartYRef.current);
+    dragOffsetRef.current = offset;
     setDragOffset(offset);
   };
 
@@ -198,12 +205,41 @@ export const DetailPanel: FC<DetailPanelProps> = ({
     isDraggingRef.current = false;
 
     // Close if dragged down more than 100px
-    if (dragOffset > 100) {
+    if (dragOffsetRef.current > 100) {
       onClose();
     }
 
+    dragOffsetRef.current = 0;
     setDragOffset(0);
   };
+
+  // Track the pointer on `document` for the duration of a mouse drag so the
+  // gesture continues even when the cursor moves faster than the small drag
+  // handle and leaves it mid-drag. Touch drags don't need this — touch events
+  // are implicitly captured by the element where the gesture started.
+  const handleMouseDragStart = (clientY: number) => {
+    handleDragStart(clientY);
+
+    const onMove = (e: MouseEvent) => handleDragMove(e.clientY);
+    const cleanup = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      dragCleanupRef.current = null;
+    };
+    const onUp = () => {
+      cleanup();
+      handleDragEnd();
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    dragCleanupRef.current = cleanup;
+  };
+
+  // Detach any in-flight drag listeners if the panel unmounts mid-gesture.
+  useEffect(() => {
+    return () => dragCleanupRef.current?.();
+  }, []);
 
   if (typeof document === 'undefined' || !isOpen) {
     return null;
@@ -300,14 +336,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
               onTouchStart={(e) => handleDragStart(e.touches[0].clientY)}
               onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
               onTouchEnd={handleDragEnd}
-              onMouseDown={(e) => handleDragStart(e.clientY)}
-              onMouseMove={(e) => {
-                if (isDraggingRef.current) {
-                  handleDragMove(e.clientY);
-                }
-              }}
-              onMouseUp={handleDragEnd}
-              onMouseLeave={handleDragEnd}
+              onMouseDown={(e) => handleMouseDragStart(e.clientY)}
               onKeyDown={(e) => {
                 if (e.key === 'Escape' || e.key === 'Enter') {
                   onClose();

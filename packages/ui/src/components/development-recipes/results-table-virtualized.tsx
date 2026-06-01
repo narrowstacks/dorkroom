@@ -90,6 +90,8 @@ export const DevelopmentResultsTableVirtualized: FC<
           }}
         >
           <table
+            // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role -- genuinely an interactive grid: rows are focusable (tabIndex) and selectable (aria-selected) and column headers are sortable buttons; role="grid" is required for aria-selected on <tr> to be valid
+            role="grid"
             className="min-w-full divide-y text-sm"
             style={
               {

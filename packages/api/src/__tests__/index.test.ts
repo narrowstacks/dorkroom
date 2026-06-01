@@ -9,7 +9,7 @@ import {
   fetchFilmsForQuery,
   INTERNAL_API_BASE_URL,
   PUBLIC_API_BASE_URL,
-} from '../dorkroom/client.js';
+} from '../index.js';
 
 describe('API Package Exports', () => {
   it('should export DorkroomApiClient', () => {

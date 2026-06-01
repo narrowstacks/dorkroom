@@ -1,7 +1,7 @@
 import type { Film } from '@dorkroom/api';
 import { ExternalLink } from 'lucide-react';
-import { type FC, useEffect, useState } from 'react';
-import { DetailPanel } from '../detail-panel/detail-panel';
+import type { FC } from 'react';
+import { DetailPanel } from '../detail-panel';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
 import { FilmRebrandInfo } from './film-rebrand-info';
@@ -26,21 +26,18 @@ interface FilmDetailPanelProps {
 }
 
 /**
- * Renders a localized "date added" string. The date is computed in an effect
- * (client-only) so it is not evaluated during the initial render.
+ * Renders a localized "date added" string. Computed directly in render: this is
+ * a CSR-only SPA (no SSR/hydration), so there is no flash-of-mismatched-content
+ * risk, and the previous useState/useEffect round-trip only added a one-frame
+ * empty flash before the date appeared.
  */
 const FormattedDateAdded: FC<{ dateAdded: string }> = ({ dateAdded }) => {
-  const [formatted, setFormatted] = useState<string | null>(null);
-
-  useEffect(() => {
-    setFormatted(
-      new Date(dateAdded).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    );
-  }, [dateAdded]);
+  // eslint-disable-next-line react-doctor/rendering-hydration-no-flicker -- CSR-only SPA (no SSR); formatting the date in render avoids a one-frame empty flash
+  const formatted = new Date(dateAdded).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return <>{formatted}</>;
 };

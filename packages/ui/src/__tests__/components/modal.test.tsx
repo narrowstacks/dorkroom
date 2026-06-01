@@ -80,7 +80,7 @@ describe('Modal', () => {
     const onClose = vi.fn();
     render(<Modal {...defaultProps} onClose={onClose} />);
 
-    const backdrop = screen.getByRole('button', { name: 'Close modal' });
+    const backdrop = screen.getByTestId('modal-backdrop');
     fireEvent.click(backdrop);
 
     expect(onClose).toHaveBeenCalledTimes(1);
