@@ -17,7 +17,7 @@
         "@tanstack/router-devtools": "^1.139.3",
         "@tanstack/router-vite-plugin": "^1.136.8",
         "@unkey/api": "^2.3.0",
-        "@vercel/analytics": "^1.5.0",
+        "@vercel/analytics": "^2.0.1",
         "@vercel/node": "^5.3.24",
         "@vercel/og": "^0.9.0",
         "clsx": "^2.1.1",
@@ -708,7 +708,7 @@
 
     "@unkey/api": ["@unkey/api@2.3.0", "", { "dependencies": { "zod": "^3.25.0 || ^4.0.0" } }, "sha512-c+4eeitN75DR0dLsJo0CFJR1rEgQ1IFlN1pKFhVxCzjI6idn8yJT8/8x6MsRjYI+NiTAWDbHRxof44pVHmCDLw=="],
 
-    "@vercel/analytics": ["@vercel/analytics@1.6.1", "", { "peerDependencies": { "@remix-run/react": "^2", "@sveltejs/kit": "^1 || ^2", "next": ">= 13", "react": "^18 || ^19 || ^19.0.0-rc", "svelte": ">= 4", "vue": "^3", "vue-router": "^4" }, "optionalPeers": ["@remix-run/react", "@sveltejs/kit", "next", "react", "svelte", "vue", "vue-router"] }, "sha512-oH9He/bEM+6oKlv3chWuOOcp8Y6fo6/PSro8hEkgCW3pu9/OiCXiUpRUogDh3Fs3LH2sosDrx8CxeOLBEE+afg=="],
+    "@vercel/analytics": ["@vercel/analytics@2.0.1", "", { "peerDependencies": { "@remix-run/react": "^2", "@sveltejs/kit": "^1 || ^2", "next": ">= 13", "nuxt": ">= 3", "react": "^18 || ^19 || ^19.0.0-rc", "svelte": ">= 4", "vue": "^3", "vue-router": "^4" }, "optionalPeers": ["@remix-run/react", "@sveltejs/kit", "next", "nuxt", "react", "svelte", "vue", "vue-router"] }, "sha512-MTQG6V9qQrt1tsDeF+2Uoo5aPjqbVPys1xvnIftXSJYG2SrwXRHnqEvVoYID7BTruDz4lCd2Z7rM1BdkUehk2g=="],
 
     "@vercel/build-utils": ["@vercel/build-utils@13.2.4", "", {}, "sha512-12m+8Z+wsxJUoWZ+JQqRk8v1O0ioJhGYWz+yStW8abuzfNz75QW2rRcbn0hSHuF8c7b3D2papmMdh94kSSYQEw=="],
 
