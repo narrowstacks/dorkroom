@@ -22,6 +22,13 @@ try {
   const page = await browser.newPage({
     viewport: { width: WIDTH, height: HEIGHT },
     deviceScaleFactor: 1,
+    colorScheme: 'dark',
+  });
+  // Force the app's dark theme regardless of the headless browser's
+  // prefers-color-scheme. The app persists the choice under this localStorage
+  // key and applies it via the <html data-theme="..."> attribute.
+  await page.addInitScript(() => {
+    localStorage.setItem('dorkroom-theme', 'dark');
   });
   console.log(`Navigating to ${url} ...`);
   await page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 });
