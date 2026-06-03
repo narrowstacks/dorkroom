@@ -1,0 +1,73 @@
+name: Homepage Screenshot
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/dorkroom/src/app/pages/home-page.tsx
+      - apps/dorkroom/src/routes/index.tsx
+      - packages/ui/**
+      - scripts/screenshot-homepage.ts
+      - .github/workflows/homepage-screenshot.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: homepage-screenshot-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  screenshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build app
+        run: bun run build
+
+      - name: Install Chromium
+        run: bunx playwright install --with-deps chromium
+
+      - name: Capture homepage screenshot
+        env:
+          SCREENSHOT_URL: http://localhost:4300/
+        run: |
+          # Serve the build and capture in the same step so the background
+          # server's lifetime is scoped to this shell.
+          (cd apps/dorkroom && bunx vite preview) &
+          for _ in $(seq 1 60); do
+            curl -sf http://localhost:4300/ >/dev/null && break
+            sleep 1
+          done
+          curl -sf http://localhost:4300/ >/dev/null || {
+            echo "Preview server did not start on :4300"; exit 1;
+          }
+          bun run scripts/screenshot-homepage.ts
+
+      - name: Commit updated screenshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain resources/dorkroom-homepage.webp)" ]; then
+            git add resources/dorkroom-homepage.webp
+            git commit -m "chore: update homepage screenshot [skip ci]"
+            git push
+          else
+            echo "Screenshot unchanged; nothing to commit."
+          fi
