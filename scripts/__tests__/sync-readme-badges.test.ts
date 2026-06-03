@@ -35,6 +35,38 @@ describe('deriveBadgeValues', () => {
       typescript: '7.1_beta',
     });
   });
+
+  it('throws when react is missing', () => {
+    expect(() =>
+      deriveBadgeValues({
+        version: '2026.06.03',
+        devDependencies: {
+          tailwindcss: '4.3.0',
+          '@typescript/native-preview': '7.0.0-dev.1',
+        },
+      })
+    ).toThrow(/react/i);
+  });
+
+  it('throws when tailwindcss is missing', () => {
+    expect(() =>
+      deriveBadgeValues({
+        version: '2026.06.03',
+        dependencies: { react: '19.2.3' },
+        devDependencies: { '@typescript/native-preview': '7.0.0-dev.1' },
+      })
+    ).toThrow(/tailwind/i);
+  });
+
+  it('throws when @typescript/native-preview is missing or malformed', () => {
+    expect(() =>
+      deriveBadgeValues({
+        version: '2026.06.03',
+        dependencies: { react: '19.2.3' },
+        devDependencies: { tailwindcss: '4.3.0' },
+      })
+    ).toThrow(/typescript|native-preview/i);
+  });
 });
 
 describe('applyBadgeUpdates', () => {

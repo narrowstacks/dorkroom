@@ -28,7 +28,16 @@ export function deriveBadgeValues(pkg: PackageJson): BadgeValues {
     pkg.devDependencies?.['@typescript/native-preview'] ?? ''
   );
   // '7.0.0-dev.20260421.2' -> base '7.0.0' -> major.minor '7.0' -> '7.0_beta'
-  const [tsMajor, tsMinor] = tsRaw.split('-')[0].split('.');
+  const tsBase = tsRaw.split('-')[0];
+  const [tsMajor, tsMinor] = tsBase.split('.');
+  if (!react) throw new Error('Missing dependencies.react in package.json');
+  if (!tailwind)
+    throw new Error('Missing devDependencies.tailwindcss in package.json');
+  if (!tsMajor || !tsMinor) {
+    throw new Error(
+      `Unexpected @typescript/native-preview version: "${tsRaw}"`
+    );
+  }
   return {
     version: pkg.version,
     react: react.split('.')[0],
