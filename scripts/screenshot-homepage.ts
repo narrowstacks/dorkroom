@@ -1,5 +1,5 @@
 /**
- * Capture the homepage screenshot used in README.md.
+ * Capture the homepage screenshot used in README.md (written as WebP).
  * Usage: SCREENSHOT_URL=http://localhost:4300/ bun run scripts/screenshot-homepage.ts
  * Requires a running server (vite preview or dev) at SCREENSHOT_URL.
  */
@@ -7,13 +7,17 @@ import { mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import sharp from 'sharp';
 
 const WIDTH = 1280;
 const HEIGHT = 918;
+// WebP quality 90 keeps UI text and gradients crisp while cutting the file to
+// roughly a tenth of the equivalent PNG.
+const WEBP_QUALITY = 90;
 const url = process.env.SCREENSHOT_URL ?? 'http://localhost:4300/';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const outPath = join(root, 'resources', 'dorkroom-homepage.png');
+const outPath = join(root, 'resources', 'dorkroom-homepage.webp');
 
 await mkdir(dirname(outPath), { recursive: true });
 
@@ -38,7 +42,8 @@ try {
     .first()
     .waitFor({ state: 'visible', timeout: 30_000 });
   await page.evaluate(() => document.fonts.ready);
-  await page.screenshot({ path: outPath }); // viewport-only, not full page
+  const png = await page.screenshot(); // viewport-only PNG buffer, not full page
+  await sharp(png).webp({ quality: WEBP_QUALITY }).toFile(outPath);
   console.log(`Saved ${outPath}`);
 } finally {
   await browser.close();

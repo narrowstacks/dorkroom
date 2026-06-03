@@ -44,23 +44,28 @@ jobs:
       - name: Install Chromium
         run: bunx playwright install --with-deps chromium
 
-      - name: Start preview server
-        run: |
-          (cd apps/dorkroom && bunx vite preview) &
-          until curl -sf http://localhost:4300/ >/dev/null; do sleep 1; done
-          echo "preview up"
-
       - name: Capture homepage screenshot
         env:
           SCREENSHOT_URL: http://localhost:4300/
-        run: bun run scripts/screenshot-homepage.ts
+        run: |
+          # Serve the build and capture in the same step so the background
+          # server's lifetime is scoped to this shell.
+          (cd apps/dorkroom && bunx vite preview) &
+          for _ in $(seq 1 60); do
+            curl -sf http://localhost:4300/ >/dev/null && break
+            sleep 1
+          done
+          curl -sf http://localhost:4300/ >/dev/null || {
+            echo "Preview server did not start on :4300"; exit 1;
+          }
+          bun run scripts/screenshot-homepage.ts
 
       - name: Commit updated screenshot
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain resources/dorkroom-homepage.png)" ]; then
-            git add resources/dorkroom-homepage.png
+          if [ -n "$(git status --porcelain resources/dorkroom-homepage.webp)" ]; then
+            git add resources/dorkroom-homepage.webp
             git commit -m "chore: update homepage screenshot [skip ci]"
             git push
           else
