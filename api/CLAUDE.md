@@ -9,6 +9,25 @@ Serverless API endpoints deployed to Vercel that proxy requests to Supabase Edge
 - `combinations.ts` - Development recipe combinations
 - `filmdev.ts` - filmdev.org import endpoint
 - `docs.ts` - `api.dorkroom.art` landing page
+- `openapi.ts` - serves the OpenAPI 3.1 spec (`/openapi.json`)
+- `reference.ts` - interactive API reference (Scalar) at `/reference`
+
+## OpenAPI Spec
+
+The OpenAPI 3.1 document (`api/openapi.json`) is **generated** from the Zod
+schemas in `packages/api` by `scripts/generate-openapi.ts`. The builder lives at
+`packages/api/src/dorkroom/openapi.ts` (exported from `@dorkroom/api` as
+`buildOpenApiDocument`).
+
+After changing any request/response schema or endpoint, regenerate it:
+
+```bash
+bun run openapi:generate
+```
+
+A vitest drift guard (`packages/api/src/dorkroom/__tests__/openapi.test.ts`)
+fails if the committed JSON is stale. `openapi.json` is excluded from Biome
+formatting (it is a generated artifact).
 
 ## Core Pattern
 

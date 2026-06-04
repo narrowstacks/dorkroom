@@ -21,7 +21,7 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "../utils/**/*.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "openapi.json", "../utils/**/*.ts"],
   "exclude": [
     "node_modules",
     "**/*.test.ts",

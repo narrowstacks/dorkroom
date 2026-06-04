@@ -193,6 +193,19 @@ export default function handler(req: VercelRequest, res: VercelResponse): void {
       </section>
 
       <section class="section">
+        <h2>Interactive Reference</h2>
+        <p>
+          Explore every endpoint, parameter, and response shape in the
+          <a href="/reference">interactive API reference</a>.
+        </p>
+        <p>
+          Machine-readable spec (OpenAPI 3.1):
+          <a href="/openapi.json"><code>/openapi.json</code></a> — drop it into
+          Swagger UI, Postman, or a code generator.
+        </p>
+      </section>
+
+      <section class="section">
         <h2>Get an API Key</h2>
         <p>
           Contact <a href="mailto:aaron+dorkroom@affords.art">aaron+dorkroom@affords.art</a>

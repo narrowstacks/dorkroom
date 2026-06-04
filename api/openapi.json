@@ -1,0 +1,1143 @@
+{
+  "openapi": "3.1.0",
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "info": {
+    "title": "Dorkroom Developer API",
+    "version": "1.0.0",
+    "description": "Read-only access to the Dorkroom analog photography database: film stocks, developers, and development recipe combinations, plus a proxy to filmdev.org recipes.\n\nRequests to `https://api.dorkroom.art` require an API key in the `X-API-Key` header. Email aaron+dorkroom@affords.art to request access.",
+    "license": {
+      "name": "AGPL-3.0-only"
+    },
+    "contact": {
+      "name": "Dorkroom",
+      "url": "https://dorkroom.art",
+      "email": "aaron+dorkroom@affords.art"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.dorkroom.art",
+      "description": "Public API (API key required)"
+    },
+    {
+      "url": "/api",
+      "description": "Same-origin (dorkroom.art, anonymous rate-limited)"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "films",
+      "description": "Film stock database."
+    },
+    {
+      "name": "developers",
+      "description": "Developer / chemistry database."
+    },
+    {
+      "name": "combinations",
+      "description": "Film + developer development recipes."
+    },
+    {
+      "name": "stats",
+      "description": "Database record counts."
+    },
+    {
+      "name": "filmdev",
+      "description": "Proxy to filmdev.org recipes."
+    }
+  ],
+  "paths": {
+    "/films": {
+      "get": {
+        "tags": [
+          "films"
+        ],
+        "operationId": "getFilms",
+        "summary": "Search and filter film stocks",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Query"
+          },
+          {
+            "$ref": "#/components/parameters/Fuzzy"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Slug"
+          },
+          {
+            "name": "colorType",
+            "in": "query",
+            "description": "Filter by color type (e.g. \"bw\", \"color\", \"slide\").",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "brand",
+            "in": "query",
+            "description": "Filter by manufacturer brand.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching film stocks.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilmsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key (public host only).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Inspect `Retry-After` and `X-RateLimit-*` response headers.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server or configuration error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream service returned an error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream service timed out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/developers": {
+      "get": {
+        "tags": [
+          "developers"
+        ],
+        "operationId": "getDevelopers",
+        "summary": "Search and filter developers",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Query"
+          },
+          {
+            "$ref": "#/components/parameters/Fuzzy"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Slug"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filter by developer type (e.g. \"concentrate\", \"powder\").",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "manufacturer",
+            "in": "query",
+            "description": "Filter by manufacturer.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching developers.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DevelopersResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key (public host only).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Inspect `Retry-After` and `X-RateLimit-*` response headers.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server or configuration error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream service returned an error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream service timed out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/combinations": {
+      "get": {
+        "tags": [
+          "combinations"
+        ],
+        "operationId": "getCombinations",
+        "summary": "Search development recipe combinations",
+        "parameters": [
+          {
+            "name": "film",
+            "in": "query",
+            "description": "Filter by film stock slug.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "developer",
+            "in": "query",
+            "description": "Filter by developer slug.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "Return the single combination with this id.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Page size for pagination (1–1000).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination (1-based).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Query"
+          },
+          {
+            "$ref": "#/components/parameters/Fuzzy"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching development recipe combinations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CombinationsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key (public host only).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Inspect `Retry-After` and `X-RateLimit-*` response headers.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server or configuration error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream service returned an error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream service timed out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stats": {
+      "get": {
+        "tags": [
+          "stats"
+        ],
+        "operationId": "getStats",
+        "summary": "Database record counts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Total record counts per collection.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stats"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key (public host only).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Inspect `Retry-After` and `X-RateLimit-*` response headers.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server or configuration error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream service returned an error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream service timed out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/filmdev": {
+      "get": {
+        "tags": [
+          "filmdev"
+        ],
+        "operationId": "getFilmdevRecipe",
+        "summary": "Look up a filmdev.org recipe",
+        "description": "Proxies the filmdev.org recipe detail endpoint. The response shape is passed through from filmdev.org and is not validated by Dorkroom.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "filmdev.org recipe id (positive integer).",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "exclusiveMaximum": 10000000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The filmdev.org recipe payload (passed through).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Opaque filmdev.org recipe object.",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key (public host only).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Inspect `Retry-After` and `X-RateLimit-*` response headers.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server or configuration error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream service returned an error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream service timed out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key required on `https://api.dorkroom.art`. Same-origin requests via `dorkroom.art/api` are anonymously rate-limited and do not need a key."
+      }
+    },
+    "parameters": {
+      "Query": {
+        "name": "query",
+        "in": "query",
+        "description": "Free-text search term matched against names and metadata.",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "maxLength": 200
+        }
+      },
+      "Fuzzy": {
+        "name": "fuzzy",
+        "in": "query",
+        "description": "Enable fuzzy matching for `query` (\"true\" or \"false\").",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "true",
+            "false"
+          ]
+        }
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "description": "Maximum number of records to return (1–1000).",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      },
+      "Slug": {
+        "name": "slug",
+        "in": "query",
+        "description": "Return the single record with this exact slug.",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "schemas": {
+      "RawFilm": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "uuid": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "color_type": {
+            "type": "string"
+          },
+          "iso_speed": {
+            "type": "number"
+          },
+          "grain_structure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "manufacturer_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reciprocity_failure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "discontinued": {
+            "type": "boolean"
+          },
+          "static_image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "aliases": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "slug": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slug",
+                "name"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "base_film_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "date_added": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "uuid",
+          "slug",
+          "brand",
+          "name",
+          "color_type",
+          "iso_speed",
+          "grain_structure",
+          "description",
+          "manufacturer_notes",
+          "reciprocity_failure",
+          "discontinued",
+          "static_image_url",
+          "aliases",
+          "base_film_slug",
+          "date_added",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false
+      },
+      "RawDeveloper": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "uuid": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "manufacturer": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "film_or_paper": {
+            "type": "boolean"
+          },
+          "dilutions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "dilution": {
+                  "type": "string"
+                },
+                "ratio": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "mixing_instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "storage_requirements": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "safety_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "uuid",
+          "slug",
+          "name",
+          "manufacturer",
+          "type",
+          "description",
+          "film_or_paper",
+          "dilutions",
+          "mixing_instructions",
+          "storage_requirements",
+          "safety_notes",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false
+      },
+      "RawCombination": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "uuid": {
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "film_stock": {
+            "type": "string"
+          },
+          "developer": {
+            "type": "string"
+          },
+          "shooting_iso": {
+            "type": "number"
+          },
+          "dilution_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "custom_dilution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "temperature_celsius": {
+            "type": "number"
+          },
+          "time_minutes": {
+            "type": "number"
+          },
+          "agitation_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "push_pull": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "info_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "uuid",
+          "name",
+          "film_stock",
+          "developer",
+          "shooting_iso",
+          "dilution_id",
+          "custom_dilution",
+          "temperature_celsius",
+          "time_minutes",
+          "agitation_method",
+          "push_pull",
+          "tags",
+          "notes",
+          "info_source",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false
+      },
+      "Stats": {
+        "type": "object",
+        "properties": {
+          "films": {
+            "type": "number"
+          },
+          "developers": {
+            "type": "number"
+          },
+          "combinations": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "films",
+          "developers",
+          "combinations"
+        ],
+        "additionalProperties": false
+      },
+      "FilmsResponse": {
+        "type": "object",
+        "description": "A page of film stocks.",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RawFilm"
+            }
+          },
+          "count": {
+            "type": "integer",
+            "description": "Total number of matching records (when available)."
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "DevelopersResponse": {
+        "type": "object",
+        "description": "A page of developers.",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RawDeveloper"
+            }
+          },
+          "count": {
+            "type": "integer",
+            "description": "Total number of matching records (when available)."
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "CombinationsResponse": {
+        "type": "object",
+        "description": "A page of development recipe combinations.",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RawCombination"
+            }
+          },
+          "count": {
+            "type": "integer",
+            "description": "Total number of matching records (when available)."
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "description": "Standard error envelope. `requestId` is always present and should be quoted when reporting issues.",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Short, stable error label."
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable explanation (omitted for some errors)."
+          },
+          "code": {
+            "type": "string",
+            "description": "Machine-readable code for auth/rate-limit failures."
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for this request, echoed in server logs."
+          }
+        },
+        "required": [
+          "error",
+          "requestId"
+        ]
+      }
+    }
+  }
+}

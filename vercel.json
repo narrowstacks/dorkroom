@@ -20,7 +20,17 @@
       "dest": "/api/docs"
     },
     {
-      "src": "/(films|developers|combinations|filmdev)/?",
+      "src": "/openapi(.json)?",
+      "has": [{ "type": "host", "value": "api.dorkroom.art" }],
+      "dest": "/api/openapi"
+    },
+    {
+      "src": "/reference/?",
+      "has": [{ "type": "host", "value": "api.dorkroom.art" }],
+      "dest": "/api/reference"
+    },
+    {
+      "src": "/(films|developers|combinations|stats|filmdev)/?",
       "has": [{ "type": "host", "value": "api.dorkroom.art" }],
       "dest": "/api/$1"
     },
