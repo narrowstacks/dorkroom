@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { buildOpenApiDocument, OPENAPI_API_VERSION } from '../openapi';
 
 const here = dirname(fileURLToPath(import.meta.url));
-// packages/api/src/dorkroom/__tests__ -> repo root -> api/openapi.json
+// packages/api/src/dorkroom/__tests__ -> repo root -> api/openapi-spec.json
 const committedSpecPath = join(
   here,
   '..',
@@ -14,7 +14,7 @@ const committedSpecPath = join(
   '..',
   '..',
   'api',
-  'openapi.json'
+  'openapi-spec.json'
 );
 
 describe('buildOpenApiDocument', () => {
@@ -41,7 +41,7 @@ describe('buildOpenApiDocument', () => {
     expect(components.schemas.FilmsResponse.properties).toHaveProperty('data');
   });
 
-  it('matches the committed api/openapi.json (run `bun run openapi:generate`)', () => {
+  it('matches the committed api/openapi-spec.json (run `bun run openapi:generate`)', () => {
     const committed = JSON.parse(readFileSync(committedSpecPath, 'utf8'));
     expect(buildOpenApiDocument()).toEqual(committed);
   });

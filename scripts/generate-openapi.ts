@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { buildOpenApiDocument } from '../packages/api/src/dorkroom/openapi';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const outFile = join(__dirname, '..', 'api', 'openapi.json');
+const outFile = join(__dirname, '..', 'api', 'openapi-spec.json');
 
 const document = buildOpenApiDocument();
 await writeFile(outFile, `${JSON.stringify(document, null, 2)}\n`, 'utf8');

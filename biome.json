@@ -10,7 +10,7 @@
       "!**/.nx",
       "!**/node_modules",
       "!**/routeTree.gen.ts",
-      "!api/openapi.json",
+      "!api/openapi-spec.json",
       "!**/*.tsbuildinfo"
     ]
   },

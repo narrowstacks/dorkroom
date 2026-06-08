@@ -7,7 +7,7 @@
  * 2020-12, which is exactly what `z.toJSONSchema` emits, so the converted
  * schemas drop straight into `components.schemas`.
  *
- * The emitted document is serialized to `api/openapi.json` by
+ * The emitted document is serialized to `api/openapi-spec.json` by
  * `scripts/generate-openapi.ts` and served by the `/openapi.json` endpoint.
  * Run `bun run openapi:generate` after changing any schema or endpoint.
  */

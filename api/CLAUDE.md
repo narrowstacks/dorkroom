@@ -14,7 +14,7 @@ Serverless API endpoints deployed to Vercel that proxy requests to Supabase Edge
 
 ## OpenAPI Spec
 
-The OpenAPI 3.1 document (`api/openapi.json`) is **generated** from the Zod
+The OpenAPI 3.1 document (`api/openapi-spec.json`) is **generated** from the Zod
 schemas in `packages/api` by `scripts/generate-openapi.ts`. The builder lives at
 `packages/api/src/dorkroom/openapi.ts` (exported from `@dorkroom/api` as
 `buildOpenApiDocument`).
@@ -26,8 +26,10 @@ bun run openapi:generate
 ```
 
 A vitest drift guard (`packages/api/src/dorkroom/__tests__/openapi.test.ts`)
-fails if the committed JSON is stale. `openapi.json` is excluded from Biome
-formatting (it is a generated artifact).
+fails if the committed JSON is stale. `openapi-spec.json` is excluded from
+Biome formatting (it is a generated artifact). It is named distinctly from
+`openapi.ts` because Vercel derives a function path from each file's basename —
+`openapi.json` would collide with the `openapi.ts` handler.
 
 ## Core Pattern
 

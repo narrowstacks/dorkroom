@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import spec from './openapi.json';
+import spec from './openapi-spec.json';
 
 /**
  * Serves the OpenAPI 3.1 description of the public Dorkroom API.
