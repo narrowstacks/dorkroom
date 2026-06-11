@@ -3,6 +3,7 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tanstackRouter } from '@tanstack/router-vite-plugin';
+import legacy from '@vitejs/plugin-legacy';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 
@@ -79,7 +80,23 @@ export default defineConfig(() => ({
   optimizeDeps: {
     include: ['react', 'react-dom'],
   },
-  plugins: [tanstackRouter(), react(), fontPreloadPlugin()],
+  plugins: [
+    tanstackRouter(),
+    react(),
+    // Legacy bundle for the Kindle Experimental Browser, which is WebKit ~2009
+    // (Safari 4–5 era): ES5-only, no Promise/async. The `ie >= 11` floor forces
+    // Babel to fully down-level the legacy chunks to ES5 and inject the core-js
+    // polyfills the Kindle lacks (Promise, etc.); `safari >= 5` documents the
+    // real-world target. Modern browsers never load this — it sits behind
+    // `nomodule`, so there is zero impact on the modern ES-module bundle.
+    legacy({
+      targets: ['ie >= 11', 'safari >= 5'],
+      // Polyfill the bare globals the Kindle's ancient engine is missing even
+      // before app code runs (the usage scan covers the rest).
+      additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
+    }),
+    fontPreloadPlugin(),
+  ],
   resolve: {
     alias: {
       '@dorkroom/ui/forms': resolve(
@@ -120,6 +137,8 @@ export default defineConfig(() => ({
     },
     // A user-provided output.minify object overrides Vite 8's default, so the
     // full config is spelled out; compress.drop* replaces the removed esbuild.drop.
+    // The modern bundle keeps oxc minify (fast, unchanged from before); the
+    // legacy plugin minifies its separate legacy chunks with terser automatically.
     minify: 'oxc',
     rollupOptions: {
       output: {
