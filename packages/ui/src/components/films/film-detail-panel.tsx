@@ -1,7 +1,7 @@
 import type { Film } from '@dorkroom/api';
 import { ExternalLink } from 'lucide-react';
 import type { FC } from 'react';
-import { DetailPanel } from '../detail-panel';
+import { DetailPanel } from '../detail-panel/detail-panel';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
 import { FilmRebrandInfo } from './film-rebrand-info';
