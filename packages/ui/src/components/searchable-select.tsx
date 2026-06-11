@@ -28,7 +28,7 @@ export function SearchableSelect({
   const [focused, setFocused] = useState(false);
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   // Find the selected item to display its label
   const selectedItem = items.find((item) => item.value === selectedValue);
@@ -217,8 +217,10 @@ export function SearchableSelect({
         </div>
 
         {isOpen && (
-          <ul
+          <div
             ref={listRef}
+            role="listbox"
+            aria-label={label ?? placeholder}
             className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg border backdrop-blur-sm"
             style={{
               borderColor: 'var(--color-border-secondary)',
@@ -226,17 +228,18 @@ export function SearchableSelect({
             }}
           >
             {filteredItems.length === 0 ? (
-              <li
-                aria-disabled
+              <div
                 className="px-3 py-2 text-sm"
                 style={{ color: 'var(--color-text-muted)' }}
               >
                 No results found
-              </li>
+              </div>
             ) : (
               filteredItems.map((item, index) => (
-                <li
+                <div
                   key={item.value}
+                  role="option"
+                  aria-selected={item.value === selectedValue}
                   onClick={() => handleSelectItem(item)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -269,10 +272,10 @@ export function SearchableSelect({
                   }}
                 >
                   {item.label}
-                </li>
+                </div>
               ))
             )}
-          </ul>
+          </div>
         )}
       </div>
     </div>

@@ -506,7 +506,7 @@ export const useRecipeUrlState = (
       }
     };
 
-    handleSharedRecipeLookup();
+    void handleSharedRecipeLookup();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     params,

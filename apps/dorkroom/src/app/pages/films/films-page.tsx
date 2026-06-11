@@ -99,6 +99,7 @@ export default function FilmsPage() {
     ) {
       setDiscontinuedFilter(searchParams.status);
     }
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setters are stable refs; state values intentionally excluded to avoid clearing user input before debounced URL sync
   }, [
     searchParams.search,
     searchParams.color,
@@ -154,6 +155,7 @@ export default function FilmsPage() {
     }, 500);
 
     return () => clearTimeout(timeout);
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- navigate is stable from TanStack Router
   }, [
     searchQuery,
     colorTypeFilter,

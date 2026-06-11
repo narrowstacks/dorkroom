@@ -7,8 +7,6 @@ export interface StatCardProps extends ComponentProps<'a'> {
   label: string;
   value: string | number;
   icon: LucideIcon;
-  iconColor?: string;
-  iconBg?: string;
   iconColorKey?: 'emerald' | 'rose' | 'indigo';
   variant?: 'horizontal' | 'vertical';
   as?: ElementType;
@@ -38,8 +36,6 @@ export function StatCard({
   label,
   value,
   icon: Icon,
-  iconColor,
-  iconBg,
   iconColorKey,
   variant = 'vertical',
   as: Component = 'a',

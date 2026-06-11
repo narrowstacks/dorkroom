@@ -307,9 +307,9 @@ export const createTableColumns = (
     accessorKey: 'film',
     header: 'Film',
     size: 280,
-    cell: (context: CellContext<DevelopmentCombinationView, unknown>) => {
-      const { combination, film } = context.row.original;
-      const isCustom = context.row.original.source === 'custom';
+    cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => {
+      const { combination, film } = cellContext.row.original;
+      const isCustom = cellContext.row.original.source === 'custom';
       const officialTags = combination.tags?.filter(isOfficialTag) ?? [];
       const otherTags =
         combination.tags?.filter(
@@ -340,8 +340,8 @@ export const createTableColumns = (
     accessorKey: 'developer',
     header: 'Developer',
     size: 180,
-    cell: (context: CellContext<DevelopmentCombinationView, unknown>) => {
-      const { developer } = context.row.original;
+    cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => {
+      const { developer } = cellContext.row.original;
       return (
         <div>
           <div
@@ -376,10 +376,10 @@ export const createTableColumns = (
     accessorFn: (row) => row.combination.timeMinutes,
     header: 'Time',
     size: 90,
-    cell: (context: CellContext<DevelopmentCombinationView, unknown>) => {
+    cell: (cellContext: CellContext<DevelopmentCombinationView, unknown>) => {
       return (
         <div style={{ color: 'var(--color-text-primary)' }}>
-          {formatTime(context.row.original.combination.timeMinutes)}
+          {formatTime(cellContext.row.original.combination.timeMinutes)}
         </div>
       );
     },

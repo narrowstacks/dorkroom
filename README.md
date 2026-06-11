@@ -106,7 +106,7 @@ turbo run test --filter=@dorkroom/logic
 - **Styling**: Tailwind CSS 4.3 with custom darkroom theme
 - **Build Tool**: Vite 8 (Rolldown/Oxc) with Turborepo
 - **Testing**: Vitest 4 with Testing Library (happy-dom environment)
-- **Linting & Formatting**: Biome (single quotes, semicolons, trailing commas)
+- **Linting**: oxlint (Rust) · **Formatting**: Biome (single quotes, semicolons, trailing commas)
 - **State Management**: TanStack Query v5 for server state
 - **Routing**: TanStack Router v1 with file-based routing
 - **Forms**: TanStack Form v1 with Zod validation
@@ -194,7 +194,7 @@ We welcome contributions from the analog photography community! Please read our 
 5. Run quality checks on affected packages:
 
    ```bash
-   # Lint specific packages (Biome)
+   # Lint specific packages (oxlint + Biome format check)
    turbo run lint --filter=@dorkroom/logic
    turbo run lint --filter=@dorkroom/ui
    turbo run lint --filter=@dorkroom/dorkroom
@@ -246,9 +246,9 @@ turbo run test --filter=@dorkroom/logic        # Test business logic
 turbo run test --filter=@dorkroom/ui           # Test UI components
 turbo run test --filter=@dorkroom/dorkroom     # Test main application
 
-turbo run lint --filter=@dorkroom/logic        # Lint business logic (Biome)
-turbo run lint --filter=@dorkroom/ui           # Lint UI components (Biome)
-turbo run lint --filter=@dorkroom/dorkroom     # Lint main application (Biome)
+turbo run lint --filter=@dorkroom/logic        # Lint business logic (oxlint)
+turbo run lint --filter=@dorkroom/ui           # Lint UI components (oxlint)
+turbo run lint --filter=@dorkroom/dorkroom     # Lint main application (oxlint)
 
 turbo run typecheck --filter=@dorkroom/logic   # Type check business logic
 turbo run typecheck --filter=@dorkroom/ui      # Type check UI components
@@ -260,7 +260,7 @@ bun run test
 # Format code with Biome (single quotes, semicolons, trailing commas)
 bun run format
 
-# Lint and auto-fix issues with Biome
+# Lint --fix (oxlint) and format (Biome)
 bun run lint:fix
 ```
 
@@ -273,9 +273,9 @@ bun run lint:fix
 | `bun run test`                             | Run lint, test, build, typecheck |
 | `bun run keys:anon-bootstrap`              | Bootstrap/check anonymous Unkey namespace |
 | `turbo run test --filter=@dorkroom/logic`  | Test specific package        |
-| `bun run lint`                             | Run Biome linting            |
+| `bun run lint`                             | Run oxlint + Biome format check |
 | `bun run format`                           | Format code with Biome       |
-| `bun run lint:fix`                         | Lint and auto-fix with Biome |
+| `bun run lint:fix`                         | oxlint --fix + Biome format  |
 
 ## Changelog
 

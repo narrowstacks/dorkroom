@@ -150,6 +150,7 @@ export function useDevelopmentTable({
     }
     return set;
     // Re-compute when rows change OR when isFavorite identity changes (e.g., after toggle)
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- isFavorite kept intentionally to trigger rebuild on identity change (read via ref inside)
   }, [rows, isFavorite]);
 
   const favoriteSortingFn = useMemo(

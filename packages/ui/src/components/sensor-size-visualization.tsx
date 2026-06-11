@@ -20,12 +20,12 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
   const { largerFormat, smallerFormat, isSourceLarger } = useMemo(() => {
     const sourceArea = sourceFormat.width * sourceFormat.height;
     const targetArea = targetFormat.width * targetFormat.height;
-    const isSourceLarger = sourceArea >= targetArea;
+    const sourceIsLarger = sourceArea >= targetArea;
 
     return {
-      largerFormat: isSourceLarger ? sourceFormat : targetFormat,
-      smallerFormat: isSourceLarger ? targetFormat : sourceFormat,
-      isSourceLarger,
+      largerFormat: sourceIsLarger ? sourceFormat : targetFormat,
+      smallerFormat: sourceIsLarger ? targetFormat : sourceFormat,
+      isSourceLarger: sourceIsLarger,
     };
   }, [sourceFormat, targetFormat]);
 

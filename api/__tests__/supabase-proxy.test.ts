@@ -28,6 +28,8 @@ function createMockCtx() {
   };
 }
 
+type MockReq = { query: Record<string, string | string[] | undefined> };
+
 function createJsonResponse(
   data: unknown,
   overrides: {
@@ -109,7 +111,7 @@ describe.each([
           )
       );
 
-      const req = { query: {} } as any;
+      const req = { query: {} } as MockReq;
       const res = {
         _status: 0,
         _json: undefined as unknown,
@@ -165,7 +167,7 @@ describe.each([
           },
         };
 
-        await handler({ query: {} } as any, res, createMockCtx());
+        await handler({ query: {} } as MockReq, res, createMockCtx());
 
         expect(res._status).toBe(502);
         const body = res._json as Record<string, unknown>;
@@ -205,7 +207,7 @@ describe.each([
         },
       };
 
-      await handler({ query: {} } as any, res, createMockCtx());
+      await handler({ query: {} } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(502);
       const body = res._json as Record<string, unknown>;
@@ -250,7 +252,7 @@ describe.each([
         },
       };
 
-      await handler({ query: {} } as any, res, createMockCtx());
+      await handler({ query: {} } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(502);
       expect((res._json as Record<string, unknown>).error).toBe(
@@ -293,7 +295,7 @@ describe.each([
         },
       };
 
-      await handler({ query: {} } as any, res, createMockCtx());
+      await handler({ query: {} } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(200);
     });
@@ -331,7 +333,7 @@ describe.each([
         },
       };
 
-      await handler({ query: {} } as any, res, createMockCtx());
+      await handler({ query: {} } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(200);
     });
@@ -367,7 +369,7 @@ describe.each([
         },
       };
 
-      await handler({ query: {} } as any, res, createMockCtx());
+      await handler({ query: {} } as MockReq, res, createMockCtx());
 
       expect(res._status).toBe(200);
       expect(res._json).toEqual(mockData);

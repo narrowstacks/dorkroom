@@ -44,7 +44,7 @@
   "type": "module",
   "scripts": {
     "build": "tsgo --project tsconfig.lib.json",
-    "lint": "biome check .",
+    "lint": "oxlint && biome check --linter-enabled=false .",
     "test": "vitest run",
     "typecheck": "tsgo --noEmit --project tsconfig.json"
   },
