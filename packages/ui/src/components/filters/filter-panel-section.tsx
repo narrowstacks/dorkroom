@@ -35,7 +35,7 @@ export const FilterPanelSection: FC<FilterPanelSectionProps> = ({
             style={{ color: 'var(--color-text-primary)' }}
           >
             <div
-              className="h-1 w-1 rounded-full"
+              className="size-1 rounded-full"
               style={{ backgroundColor: 'var(--color-primary)' }}
             />
             {title}

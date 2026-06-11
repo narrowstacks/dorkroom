@@ -53,10 +53,7 @@ export function PushPullAlert({ shootingIso, pushPull }: PushPullAlertProps) {
         backgroundColor: colors.background,
       }}
     >
-      <Icon
-        className="mt-0.5 h-4 w-4 shrink-0"
-        style={{ color: colors.icon }}
-      />
+      <Icon className="mt-0.5 size-4 shrink-0" style={{ color: colors.icon }} />
       <div style={{ color: 'var(--color-text-secondary)' }}>
         <div className="font-semibold">
           For {actionWord} film: ISO {shootingIso}

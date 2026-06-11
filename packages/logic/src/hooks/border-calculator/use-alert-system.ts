@@ -12,7 +12,6 @@ import { CALCULATION_CONSTANTS } from '../../constants/calculations';
 import type {
   BorderCalculatorAction,
   BorderCalculatorState,
-  WarningTimeouts,
 } from '../../types/border-calculator';
 
 interface WarningUpdateData {
@@ -50,55 +49,39 @@ export const useAlertSystem = (
   dispatch: (action: BorderCalculatorAction) => void,
   warningData: WarningUpdateData
 ) => {
-  const timeouts = useRef<WarningTimeouts>({
-    offset: null,
-    blade: null,
-    minBorder: null,
-    paperSize: null,
-  });
+  const warningTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounced warning updates to prevent flashing
   useEffect(() => {
-    const currentTimeouts = timeouts.current;
-    // Clear existing timeouts
-    Object.values(currentTimeouts).forEach((timeout) => {
-      if (timeout) clearTimeout(timeout);
-    });
+    // Clear existing timeout
+    if (warningTimeout.current) clearTimeout(warningTimeout.current);
 
-    // Set new debounced updates
-    timeouts.current.offset = setTimeout(() => {
+    // Batch all debounced warning updates into a single delayed dispatch so the
+    // effect performs one consolidated state update once the debounce elapses.
+    warningTimeout.current = setTimeout(() => {
+      const payload: Partial<
+        Pick<
+          BorderCalculatorState,
+          | 'offsetWarning'
+          | 'bladeWarning'
+          | 'minBorderWarning'
+          | 'paperSizeWarning'
+        >
+      > = {};
       if (state.offsetWarning !== warningData.offsetWarning) {
-        dispatch({
-          type: 'INTERNAL_UPDATE',
-          payload: { offsetWarning: warningData.offsetWarning },
-        });
+        payload.offsetWarning = warningData.offsetWarning;
       }
-    }, WARNING_DELAY);
-
-    timeouts.current.blade = setTimeout(() => {
       if (state.bladeWarning !== warningData.bladeWarning) {
-        dispatch({
-          type: 'INTERNAL_UPDATE',
-          payload: { bladeWarning: warningData.bladeWarning },
-        });
+        payload.bladeWarning = warningData.bladeWarning;
       }
-    }, WARNING_DELAY);
-
-    timeouts.current.minBorder = setTimeout(() => {
       if (state.minBorderWarning !== warningData.minBorderWarning) {
-        dispatch({
-          type: 'INTERNAL_UPDATE',
-          payload: { minBorderWarning: warningData.minBorderWarning },
-        });
+        payload.minBorderWarning = warningData.minBorderWarning;
       }
-    }, WARNING_DELAY);
-
-    timeouts.current.paperSize = setTimeout(() => {
       if (state.paperSizeWarning !== warningData.paperSizeWarning) {
-        dispatch({
-          type: 'INTERNAL_UPDATE',
-          payload: { paperSizeWarning: warningData.paperSizeWarning },
-        });
+        payload.paperSizeWarning = warningData.paperSizeWarning;
+      }
+      if (Object.keys(payload).length > 0) {
+        dispatch({ type: 'INTERNAL_UPDATE', payload });
       }
     }, WARNING_DELAY);
 
@@ -112,9 +95,7 @@ export const useAlertSystem = (
 
     // Cleanup function
     return () => {
-      Object.values(currentTimeouts).forEach((timeout) => {
-        if (timeout) clearTimeout(timeout);
-      });
+      if (warningTimeout.current) clearTimeout(warningTimeout.current);
     };
   }, [
     warningData.offsetWarning,
@@ -132,11 +113,8 @@ export const useAlertSystem = (
 
   // Cleanup on unmount
   useEffect(() => {
-    const currentTimeouts = timeouts.current;
     return () => {
-      Object.values(currentTimeouts).forEach((timeout) => {
-        if (timeout) clearTimeout(timeout);
-      });
+      if (warningTimeout.current) clearTimeout(warningTimeout.current);
     };
   }, []);
 };

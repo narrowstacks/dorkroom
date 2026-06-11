@@ -95,10 +95,10 @@ export function NavigationDropdown({
         aria-expanded={isOpen}
         aria-haspopup="menu"
       >
-        <Icon className="h-4 w-4" />
+        <Icon className="size-4" />
         {label}
         <ChevronDown
-          className={cn('h-3 w-3 transition-transform', isOpen && 'rotate-180')}
+          className={cn('size-3 transition-transform', isOpen && 'rotate-180')}
         />
       </button>
 
@@ -133,14 +133,14 @@ export function NavigationDropdown({
                 role="menuitem"
               >
                 <span
-                  className="flex h-8 w-8 items-center justify-center rounded-xl"
+                  className="flex size-8 items-center justify-center rounded-xl"
                   style={{
                     backgroundColor: isItemActive
                       ? 'rgba(var(--color-background-rgb), 0.2)'
                       : 'rgba(var(--color-background-rgb), 0.08)',
                   }}
                 >
-                  <ItemIcon className="h-4 w-4" />
+                  <ItemIcon className="size-4" />
                 </span>
                 {/* label */}
                 <div className="flex-1">

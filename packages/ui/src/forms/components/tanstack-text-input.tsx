@@ -69,6 +69,7 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
         id={field.name}
         name={field.name}
         type={type}
+        aria-label={label ?? placeholder ?? field.name}
         value={field.state.value}
         onChange={(e) => field.handleChange(e.target.value)}
         onBlur={field.handleBlur}

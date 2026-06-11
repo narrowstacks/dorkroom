@@ -92,17 +92,18 @@ export function OfficialBadge({ tag, showTooltip = true }: OfficialBadgeProps) {
       onMouseLeave={showTooltip ? hide : undefined}
     >
       <span
-        className="official-badge inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border"
-        role="img"
+        className="official-badge inline-flex size-[18px] items-center justify-center rounded-full border"
         style={{
           backgroundColor: themeStyle.backgroundColor,
           borderColor: themeStyle.borderColor,
           color: themeStyle.color,
         }}
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- styled icon badge (SVG inside a span); a native <img> cannot render this, and role="img" makes the aria-label reliably announced
+        role="img"
         aria-label={tooltipText}
         aria-describedby={showTooltip && pos ? tooltipId : undefined}
       >
-        <Check className="h-3 w-3" strokeWidth={3} />
+        <Check className="size-3" strokeWidth={3} aria-hidden="true" />
       </span>
       {showTooltip && pos && (
         <PortalTooltip id={tooltipId} pos={pos} text={tooltipText} />
@@ -124,8 +125,7 @@ export function CustomBadge({ showTooltip = true }: CustomBadgeProps) {
       onMouseLeave={showTooltip ? hide : undefined}
     >
       <span
-        className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border"
-        role="img"
+        className="inline-flex size-[18px] items-center justify-center rounded-full border"
         style={{
           backgroundColor: colorMixOr(
             'var(--color-accent)',
@@ -146,10 +146,12 @@ export function CustomBadge({ showTooltip = true }: CustomBadgeProps) {
             'var(--color-text-primary)'
           ),
         }}
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- styled icon badge (SVG inside a span); a native <img> cannot render this, and role="img" makes the aria-label reliably announced
+        role="img"
         aria-label={tooltipText}
         aria-describedby={showTooltip && pos ? tooltipId : undefined}
       >
-        <Beaker className="h-2.5 w-2.5" strokeWidth={2.5} />
+        <Beaker className="size-2.5" strokeWidth={2.5} aria-hidden="true" />
       </span>
       {showTooltip && pos && (
         <PortalTooltip id={tooltipId} pos={pos} text={tooltipText} />

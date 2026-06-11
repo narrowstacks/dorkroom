@@ -86,7 +86,7 @@ export function useFilmDatabase(): UseFilmDatabaseReturn {
 
   // Sort films alphabetically by brand and name
   const sortedFilms = useMemo(() => {
-    return [...films].sort((a, b) => {
+    return films.toSorted((a, b) => {
       const brandCompare = a.brand.localeCompare(b.brand);
       if (brandCompare !== 0) return brandCompare;
       return a.name.localeCompare(b.name);

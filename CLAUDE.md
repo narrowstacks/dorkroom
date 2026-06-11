@@ -22,10 +22,35 @@ bun run build                             # Build all packages
 # Verification (run before considering done)
 bun run test                              # Runs lint, test, build, typecheck
 bun run test:unit "pattern"               # Run only tests matching pattern
+npx react-doctor@0.2.1 --score            # Health score — must stay 100/100 (see below)
 
 # Formatting (run after verification passes)
 bun run format
 ```
+
+## Health Score (React Doctor) — run when finishing a task
+
+After completing a feature, fixing a bug, or before committing React code, run
+React Doctor and make sure the score has **not regressed** — the target is
+**100/100 for every project**:
+
+```bash
+npx react-doctor@0.2.1 --verbose          # pin the version; @latest can add rules and move the goal
+```
+
+- It scans **three** projects and prints **three** scores: `@dorkroom/source`
+  (the app), `@dorkroom/logic`, `@dorkroom/ui`. All three must be 100.
+- The app scan resolves `@dorkroom/*` to package source, so the same physical
+  file is reported under both `packages/.../src/...` and bare `src/...` — fix it
+  once; verify it's gone from both.
+- It **respects inline disables**. Prefer a real fix; only suppress a genuinely
+  subjective/false-positive finding, always with a justifying comment:
+  `// eslint-disable-next-line react-doctor/<rule> -- why` for native rules, or
+  `jsx-a11y/<rule>` for a11y rules. Use `--explain <file:line>` to confirm a
+  suppression applies.
+- React Doctor's checks are separate from the gate: a 100 score does **not**
+  mean `bun run test` passes (and the gate's typecheck is a no-op on the
+  solution tsconfigs). Always run **both** `bun run test` and React Doctor.
 
 ## Documentation
 

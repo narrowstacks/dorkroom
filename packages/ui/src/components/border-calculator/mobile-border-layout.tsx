@@ -1,33 +1,16 @@
 import type { BorderPreset } from '@dorkroom/logic';
-import {
-  BookOpen,
-  Crop,
-  EyeOff,
-  Image,
-  Move,
-  RotateCcw,
-  Ruler,
-  Share,
-  Target,
-} from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { Drawer, DrawerBody, DrawerContent } from '../../components/drawer';
-import { SaveBeforeShareModal } from '../../components/save-before-share-modal';
-import { SettingsButton } from '../../components/settings-button';
-import { ShareModal } from '../../components/share-modal';
-import { StatusAlert } from '../../components/status-alert';
 import { useTheme } from '../../contexts/theme-context';
-import { AnimatedPreview } from './animated-preview';
 import { useBorderCalculator } from './border-calculator-context';
 import {
-  BorderSizeSection,
-  PaperSizeSection,
-  PositionOffsetsSection,
-  PresetsSection,
-} from './sections';
-
-// Active section type
-type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
+  type ActiveSection,
+  MobilePreviewCard,
+  MobileResetButton,
+  MobileSettingsCard,
+  MobileSettingsDrawer,
+  MobileSharingModals,
+  MobileWarningsCard,
+} from './mobile-border-layout-parts';
 
 /**
  * Render the mobile UI for configuring border/calculation settings, managing presets, and sharing results.
@@ -127,11 +110,10 @@ export function MobileBorderLayout() {
     formatDimensions,
   ]);
 
-  const aspectRatioDisplayValue = useMemo(() => {
-    return aspectRatio === 'custom'
+  const aspectRatioDisplayValue =
+    aspectRatio === 'custom'
       ? `${customAspectWidth}:${customAspectHeight}`
       : aspectRatio;
-  }, [aspectRatio, customAspectWidth, customAspectHeight]);
 
   const borderSizeDisplayValue = useMemo(() => {
     return formatWithUnit(minBorder);
@@ -202,262 +184,71 @@ export function MobileBorderLayout() {
       }}
     >
       <div className="mx-auto max-w-md space-y-4">
-        {/* Animated Preview */}
-        <div
-          className={`rounded-3xl border p-6 ${
-            !isHighContrast
-              ? 'shadow-[0_35px_110px_-50px_var(--color-visualization-overlay)]'
-              : ''
-          } backdrop-blur-lg`}
-          style={{
-            borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'var(--color-background)',
-          }}
-        >
-          <AnimatedPreview
-            calculation={calculation}
-            showBlades={showBlades}
-            showBladeReadings={showBladeReadings}
-            className={!isHighContrast ? 'shadow-2xl' : undefined}
-            borderColor="var(--color-border-primary)"
-          />
-
-          {/* Image Dimensions */}
-          <div className="mt-4 text-center">
-            <p
-              className="text-sm"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              {formatDimensions(
-                calculation.printWidth,
-                calculation.printHeight,
-                { maxPrecision: 2 }
-              )}{' '}
-              image on {paperSizeDisplayValue}
-            </p>
-          </div>
-        </div>
-
-        {/* Warnings */}
-        {hasWarnings && (
-          <div
-            className="rounded-3xl border p-5 space-y-2"
-            style={{
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-surface-muted)',
-              background: 'var(--gradient-card-warning)',
-              boxShadow: isHighContrast
-                ? 'none'
-                : '0 25px 80px -45px var(--color-visualization-overlay)',
-            }}
-          >
-            {bladeWarning && (
-              <StatusAlert message={bladeWarning} action="error" />
-            )}
-            {minBorderWarning && (
-              <StatusAlert message={minBorderWarning} action="error" />
-            )}
-            {paperSizeWarning && (
-              <StatusAlert message={paperSizeWarning} action="warning" />
-            )}
-            {offsetWarning && (
-              <StatusAlert message={offsetWarning} action="warning" />
-            )}
-          </div>
-        )}
-
-        {/* Settings Buttons */}
-        <div
-          className="rounded-3xl border p-6 backdrop-blur-lg space-y-5"
-          style={{
-            borderColor: 'var(--color-border-secondary)',
-            background: 'var(--color-surface)',
-            boxShadow: isHighContrast
-              ? 'none'
-              : '0 40px 120px -60px var(--color-visualization-overlay)',
-          }}
-        >
-          <div className="space-y-3">
-            <SettingsButton
-              label="Paper and Image Size"
-              value={`${aspectRatioDisplayValue} on ${paperSizeDisplayValue}`}
-              onPress={() => openDrawerSection('paperSize')}
-              icon={Image}
-              className={
-                isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
-              }
-            />
-
-            <SettingsButton
-              label="Border Size"
-              value={borderSizeDisplayValue}
-              onPress={() => openDrawerSection('borderSize')}
-              icon={Ruler}
-              className={
-                isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
-              }
-            />
-
-            <SettingsButton
-              label="Position & Offsets"
-              value={positionDisplayValue}
-              onPress={() => openDrawerSection('positionOffsets')}
-              icon={Move}
-              className={
-                isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
-              }
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <SettingsButton
-              label="Blades"
-              onPress={toggleBlades}
-              icon={showBlades ? EyeOff : Crop}
-              showChevron={false}
-              centerLabel={true}
-              className={
-                isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
-              }
-            />
-
-            <SettingsButton
-              label="Readings"
-              onPress={toggleBladeReadings}
-              icon={showBladeReadings ? EyeOff : Target}
-              showChevron={false}
-              centerLabel={true}
-              className={
-                isHighContrast
-                  ? 'backdrop-blur-sm'
-                  : 'backdrop-blur-sm shadow-lg'
-              }
-            />
-          </div>
-
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <SettingsButton
-                value={presetsDisplayValue}
-                onPress={() => openDrawerSection('presets')}
-                icon={BookOpen}
-                className={
-                  isHighContrast
-                    ? 'backdrop-blur-sm'
-                    : 'backdrop-blur-sm shadow-lg'
-                }
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={handleShareClick}
-              className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
-                !isHighContrast ? 'shadow-lg' : ''
-              }`}
-              style={
-                {
-                  background: 'var(--gradient-card-primary)',
-                  color: 'var(--color-text-primary)',
-                  '--tw-ring-color': 'var(--color-semantic-success)',
-                } as React.CSSProperties
-              }
-              title="Share preset"
-            >
-              <Share className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Reset Button */}
-        <button
-          type="button"
-          onClick={resetToDefaults}
-          className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
-            !isHighContrast ? 'shadow-lg' : ''
-          }`}
-          style={
-            {
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
-              color: 'var(--color-semantic-error)',
-              '--tw-ring-color': 'var(--color-semantic-error)',
-            } as React.CSSProperties
-          }
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor =
-              'rgba(var(--color-background-rgb), 0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor =
-              'rgba(var(--color-background-rgb), 0.05)';
-          }}
-        >
-          <RotateCcw className="h-4 w-4" />
-          Reset to Defaults
-        </button>
-
-        {/* Bottom Drawer */}
-        <Drawer
-          isOpen={isDrawerOpen}
-          onClose={closeDrawer}
-          size="md"
-          anchor="bottom"
-          enableBackgroundBlur={false}
-          enableBackgroundOverlay={false}
-        >
-          <DrawerContent>
-            <DrawerBody>
-              {activeSection === 'paperSize' && (
-                <PaperSizeSection onClose={closeDrawer} />
-              )}
-
-              {activeSection === 'borderSize' && (
-                <BorderSizeSection onClose={closeDrawer} />
-              )}
-
-              {activeSection === 'positionOffsets' && (
-                <PositionOffsetsSection onClose={closeDrawer} />
-              )}
-
-              {activeSection === 'presets' && (
-                <PresetsSection
-                  onClose={closeDrawer}
-                  currentPreset={currentPreset}
-                  onApplyPreset={onApplyPreset}
-                  onSavePreset={onSavePreset}
-                  onUpdatePreset={onUpdatePreset}
-                  onDeletePreset={deletePresetHandler}
-                />
-              )}
-            </DrawerBody>
-          </DrawerContent>
-        </Drawer>
-
-        {/* Sharing Modals */}
-        <ShareModal
-          isOpen={isShareModalOpen}
-          onClose={() => setIsShareModalOpen(false)}
-          presetName={currentPreset?.name || 'Border Calculator Settings'}
-          webUrl={shareUrls?.webUrl || ''}
-          onCopyToClipboard={handleCopyToClipboard}
-          canShareNatively={false}
-          canCopyToClipboard={canCopyToClipboard}
+        <MobilePreviewCard
+          calculation={calculation}
+          showBlades={showBlades}
+          showBladeReadings={showBladeReadings}
+          isHighContrast={isHighContrast}
+          paperSizeDisplayValue={paperSizeDisplayValue}
+          formatDimensions={formatDimensions}
         />
 
-        <SaveBeforeShareModal
-          isOpen={isSaveBeforeShareOpen}
-          onClose={() => setIsSaveBeforeShareOpen(false)}
-          onSaveAndShare={handleSaveAndShare}
-          isLoading={isSharing || isGeneratingShareUrl}
+        {hasWarnings && (
+          <MobileWarningsCard
+            isHighContrast={isHighContrast}
+            bladeWarning={bladeWarning}
+            minBorderWarning={minBorderWarning}
+            paperSizeWarning={paperSizeWarning}
+            offsetWarning={offsetWarning}
+          />
+        )}
+
+        <MobileSettingsCard
+          isHighContrast={isHighContrast}
+          aspectRatioDisplayValue={aspectRatioDisplayValue}
+          paperSizeDisplayValue={paperSizeDisplayValue}
+          borderSizeDisplayValue={borderSizeDisplayValue}
+          positionDisplayValue={positionDisplayValue}
+          presetsDisplayValue={presetsDisplayValue}
+          showBlades={showBlades}
+          showBladeReadings={showBladeReadings}
+          onOpenSection={openDrawerSection}
+          onToggleBlades={toggleBlades}
+          onToggleBladeReadings={toggleBladeReadings}
+          onShareClick={handleShareClick}
+        />
+
+        <MobileResetButton
+          isHighContrast={isHighContrast}
+          onReset={resetToDefaults}
+        />
+
+        <MobileSettingsDrawer
+          isOpen={isDrawerOpen}
+          onClose={closeDrawer}
+          activeSection={activeSection}
+          currentPreset={currentPreset}
+          onApplyPreset={onApplyPreset}
+          onSavePreset={onSavePreset}
+          onUpdatePreset={onUpdatePreset}
+          onDeletePreset={deletePresetHandler}
+        />
+
+        <MobileSharingModals
+          share={{
+            isOpen: isShareModalOpen,
+            onClose: () => setIsShareModalOpen(false),
+            presetName: currentPreset?.name || 'Border Calculator Settings',
+            webUrl: shareUrls?.webUrl || '',
+            onCopyToClipboard: handleCopyToClipboard,
+            canCopyToClipboard,
+          }}
+          saveBeforeShare={{
+            isOpen: isSaveBeforeShareOpen,
+            onClose: () => setIsSaveBeforeShareOpen(false),
+            onSaveAndShare: handleSaveAndShare,
+            isLoading: isSharing || isGeneratingShareUrl,
+          }}
         />
       </div>
     </div>

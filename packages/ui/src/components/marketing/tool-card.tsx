@@ -64,7 +64,7 @@ export const ToolCard = memo(function ToolCard({
             color
           )}
         >
-          <Icon className="h-6 w-6" />
+          <Icon className="size-6" />
         </div>
 
         <div className="flex-1 min-w-0">
@@ -72,7 +72,7 @@ export const ToolCard = memo(function ToolCard({
             <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-tool-card-category)] group-hover:text-[color:var(--color-tool-card-category-hover)]">
               {category}
             </p>
-            <ArrowRight className="h-3.5 w-3.5 text-[color:var(--color-tool-card-arrow)] opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
+            <ArrowRight className="size-3.5 text-[color:var(--color-tool-card-arrow)] opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
           </div>
           <h3 className="font-semibold text-[color:var(--color-tool-card-title)] truncate pr-4">
             {title}

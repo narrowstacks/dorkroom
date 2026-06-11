@@ -1,6 +1,7 @@
 import type { Film } from '@dorkroom/api';
 import { type FC, memo } from 'react';
 import { cn } from '../../lib/cn';
+import { setStyles } from '../../lib/dom';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
 
@@ -36,19 +37,12 @@ const FilmCardComponent: FC<FilmCardProps> = ({
   );
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: Card uses ARIA role with keyboard support instead of button to avoid resetting button styles
-    <div
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
       aria-pressed={isSelected}
       onClick={() => onClick(film)}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          onClick(film);
-        }
-      }}
       className={cn(
+        'block w-full appearance-none bg-transparent text-left',
         'cursor-pointer rounded-2xl border p-4 shadow-subtle transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
         className
@@ -65,14 +59,18 @@ const FilmCardComponent: FC<FilmCardProps> = ({
       }}
       onMouseEnter={(e) => {
         if (!isSelected) {
-          e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-          e.currentTarget.style.backgroundColor = 'var(--color-surface-muted)';
+          setStyles(e.currentTarget, {
+            borderColor: 'var(--color-border-primary)',
+            backgroundColor: 'var(--color-surface-muted)',
+          });
         }
       }}
       onMouseLeave={(e) => {
         if (!isSelected) {
-          e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
-          e.currentTarget.style.backgroundColor = 'var(--color-background)';
+          setStyles(e.currentTarget, {
+            borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'var(--color-background)',
+          });
         }
       }}
     >
@@ -102,7 +100,7 @@ const FilmCardComponent: FC<FilmCardProps> = ({
       <div className="mt-2 flex sm:hidden flex-wrap items-center gap-1.5">
         {tagsContent}
       </div>
-    </div>
+    </button>
   );
 };
 

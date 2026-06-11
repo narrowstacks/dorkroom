@@ -48,6 +48,7 @@ export const TextareaField: React.FC<TextareaFieldProps> = ({
       <textarea
         id={field.name}
         name={field.name}
+        aria-label={label ?? placeholder ?? field.name}
         value={field.state.value}
         onChange={(e) => field.handleChange(e.target.value)}
         onBlur={field.handleBlur}

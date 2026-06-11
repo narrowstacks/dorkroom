@@ -44,6 +44,7 @@ export function TextInput({
       <input
         id={id}
         type="text"
+        aria-label={label ?? placeholder ?? 'Text input'}
         inputMode={inputMode}
         value={value}
         onChange={(e) => onValueChange((e.target as HTMLInputElement).value)}

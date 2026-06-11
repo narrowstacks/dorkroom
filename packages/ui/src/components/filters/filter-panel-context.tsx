@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, use } from 'react';
 
 interface FilterPanelContextValue {
   isCollapsed: boolean;
@@ -12,7 +12,7 @@ export const FilterPanelContext = createContext<FilterPanelContextValue | null>(
 );
 
 export function useFilterPanel() {
-  const context = useContext(FilterPanelContext);
+  const context = use(FilterPanelContext);
   if (!context) {
     throw new Error(
       'useFilterPanel must be used within a FilterPanelContainer'

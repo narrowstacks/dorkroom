@@ -4,10 +4,101 @@
  */
 
 import type {
+  AnyFormApi,
+  FormApi,
   FormAsyncValidateOrFn,
   FormValidateOrFn,
-  ReactFormExtendedApi,
+  ReactFormApi,
 } from '@tanstack/react-form';
+
+/**
+ * The React-augmented form API for a fully-specified set of generics.
+ *
+ * This mirrors TanStack's own `ReactFormExtendedApi` (`FormApi & ReactFormApi`)
+ * but is declared locally so {@link FormInstance} can compose it conditionally.
+ */
+type ReactFormApiFor<
+  TFormData,
+  TOnMount extends undefined | FormValidateOrFn<TFormData>,
+  TOnChange extends undefined | FormValidateOrFn<TFormData>,
+  TOnChangeAsync extends undefined | FormAsyncValidateOrFn<TFormData>,
+  TOnBlur extends undefined | FormValidateOrFn<TFormData>,
+  TOnBlurAsync extends undefined | FormAsyncValidateOrFn<TFormData>,
+  TOnSubmit extends undefined | FormValidateOrFn<TFormData>,
+  TOnSubmitAsync extends undefined | FormAsyncValidateOrFn<TFormData>,
+  TOnDynamic extends undefined | FormValidateOrFn<TFormData>,
+  TOnDynamicAsync extends undefined | FormAsyncValidateOrFn<TFormData>,
+  TOnServer extends undefined | FormAsyncValidateOrFn<TFormData>,
+  TSubmitMeta,
+> = FormApi<
+  TFormData,
+  TOnMount,
+  TOnChange,
+  TOnChangeAsync,
+  TOnBlur,
+  TOnBlurAsync,
+  TOnSubmit,
+  TOnSubmitAsync,
+  TOnDynamic,
+  TOnDynamicAsync,
+  TOnServer,
+  TSubmitMeta
+> &
+  ReactFormApi<
+    TFormData,
+    TOnMount,
+    TOnChange,
+    TOnChangeAsync,
+    TOnBlur,
+    TOnBlurAsync,
+    TOnSubmit,
+    TOnSubmitAsync,
+    TOnDynamic,
+    TOnDynamicAsync,
+    TOnServer,
+    TSubmitMeta
+  >;
+
+/**
+ * The fully-permissive React form API.
+ *
+ * @remarks
+ * TanStack's exported {@link AnyFormApi} is `FormApi<any, ...>` - the `any`s live
+ * in TanStack's declaration, not ours. We re-derive those loose validator generics
+ * with `infer` and re-attach the React-only members (`Field`, `Subscribe`) so the
+ * result accepts a form of *any* data shape while still exposing the React API.
+ * This is what a bare `FormInstance` (no explicit `TFormData`) resolves to.
+ */
+type AnyReactFormApi =
+  AnyFormApi extends FormApi<
+    infer TFormData,
+    infer TOnMount,
+    infer TOnChange,
+    infer TOnChangeAsync,
+    infer TOnBlur,
+    infer TOnBlurAsync,
+    infer TOnSubmit,
+    infer TOnSubmitAsync,
+    infer TOnDynamic,
+    infer TOnDynamicAsync,
+    infer TOnServer,
+    infer TSubmitMeta
+  >
+    ? ReactFormApiFor<
+        TFormData,
+        TOnMount,
+        TOnChange,
+        TOnChangeAsync,
+        TOnBlur,
+        TOnBlurAsync,
+        TOnSubmit,
+        TOnSubmitAsync,
+        TOnDynamic,
+        TOnDynamicAsync,
+        TOnServer,
+        TSubmitMeta
+      >
+    : never;
 
 /**
  * FieldApi type for form field render props
@@ -49,13 +140,17 @@ export interface FieldApi<TValue = unknown> {
  * FormInstance type for components that accept a TanStack React Form instance
  *
  * @remarks
- * This is a fully generic type alias for ReactFormExtendedApi that accepts a TFormData shape
- * as the primary type parameter. The remaining 11 validator/event handler generics default to
- * permissive unions that accept any compatible type.
+ * This is a fully generic type alias for TanStack's React form API
+ * (`FormApi & ReactFormApi`) that accepts a `TFormData` shape as the primary type
+ * parameter. The remaining 11 validator/event-handler generics default to the
+ * permissive `undefined | FormValidateOrFn<TFormData>` (or async) constraint union,
+ * so callers never need to specify them.
  *
- * This pattern is officially recommended by TanStack Form. Similar to their AnyFieldApi type
- * which defaults all 23 generics to `any`, we use permissive defaults here to allow components
- * to accept form instances without needing to specify all generic parameters.
+ * This mirrors the intent of TanStack Form's own `AnyFieldApi`/`AnyFormApi` helpers
+ * (which default their generics to `any`) without using `any` ourselves: a bare
+ * `FormInstance` resolves to {@link AnyReactFormApi}, and a typed
+ * `FormInstance<TFormData>` keeps the data shape precise while leaving the validator
+ * generics bivariant so any concrete form is assignable.
  *
  * When a component accepts `form: FormInstance<{ name: string }>`, it can receive any form
  * instance with that shape, regardless of what validators were passed to useForm. This avoids
@@ -75,55 +170,86 @@ export interface FieldApi<TValue = unknown> {
  * }
  * ```
  *
- * @template TFormData - The shape of the form's data
- * @template TOnMount - Mount validator (defaults to any compatible type)
- * @template TOnChange - Change validator (defaults to any compatible type)
- * @template TOnChangeAsync - Async change validator (defaults to any compatible type)
- * @template TOnBlur - Blur validator (defaults to any compatible type)
- * @template TOnBlurAsync - Async blur validator (defaults to any compatible type)
- * @template TOnSubmit - Submit validator (defaults to any compatible type)
- * @template TOnSubmitAsync - Async submit validator (defaults to any compatible type)
- * @template TOnDynamic - Dynamic validator (defaults to any compatible type)
- * @template TOnDynamicAsync - Async dynamic validator (defaults to any compatible type)
- * @template TOnServer - Server validator (defaults to any compatible type)
- * @template TSubmitMeta - Submit metadata type (defaults to any compatible type)
+ * @template TFormData - The shape of the form's data (defaults to `unknown` → any form)
+ * @template TOnMount - Mount validator (defaults to the permissive constraint union)
+ * @template TOnChange - Change validator (defaults to the permissive constraint union)
+ * @template TOnChangeAsync - Async change validator (defaults to the permissive constraint union)
+ * @template TOnBlur - Blur validator (defaults to the permissive constraint union)
+ * @template TOnBlurAsync - Async blur validator (defaults to the permissive constraint union)
+ * @template TOnSubmit - Submit validator (defaults to the permissive constraint union)
+ * @template TOnSubmitAsync - Async submit validator (defaults to the permissive constraint union)
+ * @template TOnDynamic - Dynamic validator (defaults to the permissive constraint union)
+ * @template TOnDynamicAsync - Async dynamic validator (defaults to the permissive constraint union)
+ * @template TOnServer - Server validator (defaults to the permissive constraint union)
+ * @template TSubmitMeta - Submit metadata type (defaults to `unknown`)
  */
 export type FormInstance<
-  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
-  TFormData = any,
-  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
-  TOnMount extends undefined | FormValidateOrFn<TFormData> = any,
-  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
-  TOnChange extends undefined | FormValidateOrFn<TFormData> = any,
-  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
-  TOnChangeAsync extends undefined | FormAsyncValidateOrFn<TFormData> = any,
-  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
-  TOnBlur extends undefined | FormValidateOrFn<TFormData> = any,
-  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
-  TOnBlurAsync extends undefined | FormAsyncValidateOrFn<TFormData> = any,
-  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
-  TOnSubmit extends undefined | FormValidateOrFn<TFormData> = any,
-  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
-  TOnSubmitAsync extends undefined | FormAsyncValidateOrFn<TFormData> = any,
-  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
-  TOnDynamic extends undefined | FormValidateOrFn<TFormData> = any,
-  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
-  TOnDynamicAsync extends undefined | FormAsyncValidateOrFn<TFormData> = any,
-  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
-  TOnServer extends undefined | FormAsyncValidateOrFn<TFormData> = any,
-  // biome-ignore lint/suspicious/noExplicitAny: Generic type defaults require any for TanStack Form API compatibility
-  TSubmitMeta = any,
-> = ReactFormExtendedApi<
-  TFormData,
-  TOnMount,
-  TOnChange,
-  TOnChangeAsync,
-  TOnBlur,
-  TOnBlurAsync,
-  TOnSubmit,
-  TOnSubmitAsync,
-  TOnDynamic,
-  TOnDynamicAsync,
-  TOnServer,
-  TSubmitMeta
->;
+  TFormData = unknown,
+  TOnMount extends undefined | FormValidateOrFn<TFormData> =
+    | undefined
+    | FormValidateOrFn<TFormData>,
+  TOnChange extends undefined | FormValidateOrFn<TFormData> =
+    | undefined
+    | FormValidateOrFn<TFormData>,
+  TOnChangeAsync extends undefined | FormAsyncValidateOrFn<TFormData> =
+    | undefined
+    | FormAsyncValidateOrFn<TFormData>,
+  TOnBlur extends undefined | FormValidateOrFn<TFormData> =
+    | undefined
+    | FormValidateOrFn<TFormData>,
+  TOnBlurAsync extends undefined | FormAsyncValidateOrFn<TFormData> =
+    | undefined
+    | FormAsyncValidateOrFn<TFormData>,
+  TOnSubmit extends undefined | FormValidateOrFn<TFormData> =
+    | undefined
+    | FormValidateOrFn<TFormData>,
+  TOnSubmitAsync extends undefined | FormAsyncValidateOrFn<TFormData> =
+    | undefined
+    | FormAsyncValidateOrFn<TFormData>,
+  TOnDynamic extends undefined | FormValidateOrFn<TFormData> =
+    | undefined
+    | FormValidateOrFn<TFormData>,
+  TOnDynamicAsync extends undefined | FormAsyncValidateOrFn<TFormData> =
+    | undefined
+    | FormAsyncValidateOrFn<TFormData>,
+  TOnServer extends undefined | FormAsyncValidateOrFn<TFormData> =
+    | undefined
+    | FormAsyncValidateOrFn<TFormData>,
+  TSubmitMeta = unknown,
+> = unknown extends TFormData
+  ? // Bare usage (`FormInstance` with no explicit data shape): accept any form,
+    // mirroring TanStack's own `AnyFormApi` but with the React API attached.
+    AnyReactFormApi
+  : // Typed usage (`FormInstance<MyData>`): keep `TFormData`/`TSubmitMeta` precise
+    // while leaving the validator generics bivariant (intersecting the caller's
+    // generic with the loose validator type that TanStack's `AnyFormApi` carries),
+    // so a concrete form is assignable regardless of which validators it declared.
+    AnyFormApi extends FormApi<
+        infer _TFormData,
+        infer TLooseOnMount,
+        infer TLooseOnChange,
+        infer TLooseOnChangeAsync,
+        infer TLooseOnBlur,
+        infer TLooseOnBlurAsync,
+        infer TLooseOnSubmit,
+        infer TLooseOnSubmitAsync,
+        infer TLooseOnDynamic,
+        infer TLooseOnDynamicAsync,
+        infer TLooseOnServer,
+        infer _TSubmitMeta
+      >
+    ? ReactFormApiFor<
+        TFormData,
+        TOnMount & TLooseOnMount,
+        TOnChange & TLooseOnChange,
+        TOnChangeAsync & TLooseOnChangeAsync,
+        TOnBlur & TLooseOnBlur,
+        TOnBlurAsync & TLooseOnBlurAsync,
+        TOnSubmit & TLooseOnSubmit,
+        TOnSubmitAsync & TLooseOnSubmitAsync,
+        TOnDynamic & TLooseOnDynamic,
+        TOnDynamicAsync & TLooseOnDynamicAsync,
+        TOnServer & TLooseOnServer,
+        TSubmitMeta
+      >
+    : never;

@@ -169,6 +169,405 @@ function EVResultCard({
   );
 }
 
+type CameraExposureForm = ReturnType<typeof useForm<CameraExposureFormState>>;
+
+function CameraExposureSidebar() {
+  return (
+    <CalculatorCard
+      title="How this calculator works"
+      padding="normal"
+      className="bg-surface-muted/80"
+    >
+      <div className="space-y-6">
+        <p
+          className="text-[15px] leading-relaxed"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
+          The exposure triangle links aperture, shutter speed, and ISO. Changing
+          one requires adjusting another to maintain the same exposure. This
+          calculator helps you find those relationships and compare different
+          settings.
+        </p>
+
+        <div className="space-y-3">
+          <h4
+            className="text-sm font-semibold"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            How to use
+          </h4>
+          <ol className="ml-5 space-y-2 list-decimal">
+            {HOW_TO_USE.map((item) => (
+              <li
+                key={item}
+                className="pl-2 text-[15px] leading-relaxed"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                {item}
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <div className="space-y-3">
+          <h4
+            className="text-sm font-semibold"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            Tips
+          </h4>
+          <ul className="ml-5 space-y-2 list-disc">
+            {TIPS.map((tip) => (
+              <li
+                key={tip}
+                className="pl-2 text-[15px] leading-relaxed"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                {tip}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </CalculatorCard>
+  );
+}
+
+function EquivalentExposuresCard({ form }: { form: CameraExposureForm }) {
+  return (
+    <form.Subscribe
+      selector={(state) => {
+        const { aperture, shutterSpeed, iso } = state.values;
+        const evResult = calculateExposureValue(aperture, shutterSpeed, iso);
+        if (!evResult.isValid) return null;
+        return {
+          equivalents: getEquivalentExposures(
+            evResult.ev,
+            iso,
+            aperture,
+            shutterSpeed
+          ),
+          ev: evResult.ev,
+          iso,
+        };
+      }}
+    >
+      {(data) =>
+        data && data.equivalents.length > 0 ? (
+          <CalculatorCard
+            title="Equivalent exposures"
+            description={`Same EV ${data.ev} at ISO ${data.iso}`}
+            accent="sky"
+            padding="compact"
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr
+                    className="border-b"
+                    style={{
+                      borderColor: 'var(--color-border-secondary)',
+                    }}
+                  >
+                    <th
+                      className="py-2 px-3 text-left font-medium"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    >
+                      Aperture
+                    </th>
+                    <th
+                      className="py-2 px-3 text-left font-medium"
+                      style={{ color: 'var(--color-text-tertiary)' }}
+                    >
+                      Shutter Speed
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.equivalents.map((eq) => (
+                    <tr
+                      key={eq.apertureLabel}
+                      className={`border-b ${eq.isCurrentSetting ? 'font-semibold' : ''}`}
+                      style={{
+                        borderColor: 'var(--color-border-muted)',
+                        backgroundColor: eq.isCurrentSetting
+                          ? 'var(--color-surface-elevated)'
+                          : undefined,
+                        color: eq.isStandardShutterSpeed
+                          ? 'var(--color-text-primary)'
+                          : 'var(--color-text-tertiary)',
+                      }}
+                    >
+                      <td className="py-2 px-3">{eq.apertureLabel}</td>
+                      <td className="py-2 px-3">
+                        {eq.shutterSpeedLabel}
+                        {eq.isCurrentSetting && (
+                          <span
+                            className="ml-2 text-xs"
+                            style={{
+                              color: 'var(--color-primary)',
+                            }}
+                          >
+                            current
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p
+              className="text-xs mt-2"
+              style={{ color: 'var(--color-text-tertiary)' }}
+            >
+              Non-standard shutter speeds shown in muted text
+            </p>
+          </CalculatorCard>
+        ) : null
+      }
+    </form.Subscribe>
+  );
+}
+
+function ExposureSettingsCard({ form }: { form: CameraExposureForm }) {
+  return (
+    <CalculatorCard
+      title="Exposure settings"
+      description="Set aperture, shutter speed, and ISO."
+    >
+      <div className="space-y-4">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <form.Field name="aperture">
+            {(field) => (
+              <Select
+                label="Aperture"
+                selectedValue={apertureToKey(field.state.value)}
+                onValueChange={(v) =>
+                  field.handleChange(keyToAperture(v as ApertureKey))
+                }
+                items={apertureOptions}
+                ariaLabel="Aperture"
+              />
+            )}
+          </form.Field>
+
+          <form.Field name="shutterSpeed">
+            {(field) => (
+              <Select
+                label="Shutter speed"
+                selectedValue={shutterSpeedToKey(field.state.value)}
+                onValueChange={(v) =>
+                  field.handleChange(keyToShutterSpeed(v as ShutterSpeedKey))
+                }
+                items={shutterSpeedOptions}
+                ariaLabel="Shutter speed"
+              />
+            )}
+          </form.Field>
+
+          <form.Field name="iso">
+            {(field) => (
+              <Select
+                label="ISO"
+                selectedValue={isoToKey(field.state.value)}
+                onValueChange={(v) => field.handleChange(keyToISO(v as ISOKey))}
+                items={isoOptions}
+                ariaLabel="ISO"
+              />
+            )}
+          </form.Field>
+        </div>
+
+        <form.Subscribe selector={(state) => state.errorMap}>
+          {(errorMap) => {
+            const errors = errorMap.onChange;
+            if (!errors) return null;
+            const messages = Array.isArray(errors)
+              ? errors.flatMap((e) =>
+                  typeof e === 'object' && e !== null
+                    ? Object.values(e as Record<string, string[]>).flat()
+                    : [String(e)]
+                )
+              : [String(errors)];
+            if (messages.length === 0) return null;
+            return <StatusAlert message={messages.join('. ')} action="error" />;
+          }}
+        </form.Subscribe>
+      </div>
+    </CalculatorCard>
+  );
+}
+
+function ExposureComparisonCard({ form }: { form: CameraExposureForm }) {
+  return (
+    <form.Subscribe
+      selector={(state) => {
+        return compareExposures(
+          state.values.aperture,
+          state.values.shutterSpeed,
+          state.values.iso,
+          state.values.compareAperture,
+          state.values.compareShutterSpeed,
+          state.values.compareIso
+        );
+      }}
+    >
+      {(comparison) => (
+        <CalculatorCard
+          title="Exposure comparison"
+          description="Stops difference between exposure A (above) and exposure B"
+          accent="violet"
+          padding="compact"
+        >
+          {/* Comparison Inputs */}
+          <div className="space-y-3">
+            <h4
+              className="text-xs font-semibold uppercase tracking-[0.25em]"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              Exposure B
+            </h4>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <form.Field name="compareAperture">
+                {(field) => (
+                  <Select
+                    label="Aperture"
+                    selectedValue={apertureToKey(field.state.value)}
+                    onValueChange={(v) => field.handleChange(keyToAperture(v))}
+                    items={apertureOptions}
+                    ariaLabel="Compare aperture"
+                  />
+                )}
+              </form.Field>
+              <form.Field name="compareShutterSpeed">
+                {(field) => (
+                  <Select
+                    label="Shutter"
+                    selectedValue={shutterSpeedToKey(field.state.value)}
+                    onValueChange={(v) =>
+                      field.handleChange(
+                        keyToShutterSpeed(v as ShutterSpeedKey)
+                      )
+                    }
+                    items={shutterSpeedOptions}
+                    ariaLabel="Compare shutter speed"
+                  />
+                )}
+              </form.Field>
+              <form.Field name="compareIso">
+                {(field) => (
+                  <Select
+                    label="ISO"
+                    selectedValue={isoToKey(field.state.value)}
+                    onValueChange={(v) =>
+                      field.handleChange(keyToISO(v as ISOKey))
+                    }
+                    items={isoOptions}
+                    ariaLabel="Compare ISO"
+                  />
+                )}
+              </form.Field>
+            </div>
+          </div>
+
+          {comparison.isValid && (
+            <div className="space-y-3 mt-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <CalculatorStat
+                  label="Stops difference"
+                  value={`${comparison.stopsDifference > 0 ? '+' : ''}${comparison.stopsDifference}`}
+                  helperText={
+                    comparison.stopsDifference > 0
+                      ? 'A is darker than B'
+                      : comparison.stopsDifference < 0
+                        ? 'B is darker than A'
+                        : 'Same exposure'
+                  }
+                  tone="default"
+                />
+                <div className="space-y-2">
+                  <ResultRow
+                    label="Exposure A"
+                    value={`EV ${comparison.evA}`}
+                  />
+                  <ResultRow
+                    label="Exposure B"
+                    value={`EV ${comparison.evB}`}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </CalculatorCard>
+      )}
+    </form.Subscribe>
+  );
+}
+
+function EVPresetsCard({
+  form,
+  presetsOpen,
+  onToggle,
+  onPresetClick,
+}: {
+  form: CameraExposureForm;
+  presetsOpen: boolean;
+  onToggle: () => void;
+  onPresetClick: (ev: number) => void;
+}) {
+  return (
+    <CalculatorCard
+      title="EV presets"
+      description="Select a lighting condition. The calculator adjusts the selected value to match."
+      actions={
+        <button
+          type="button"
+          onClick={onToggle}
+          className="p-1.5 rounded-lg transition-colors"
+          style={{ color: 'var(--color-text-muted)' }}
+          aria-expanded={presetsOpen}
+          aria-label={presetsOpen ? 'Collapse presets' : 'Expand presets'}
+        >
+          {presetsOpen ? (
+            <ChevronUp className="size-4" />
+          ) : (
+            <ChevronDown className="size-4" />
+          )}
+        </button>
+      }
+    >
+      {presetsOpen && (
+        <div className="space-y-4">
+          <form.Field name="solveFor">
+            {(field) => (
+              <Select
+                label="When selecting a preset, adjust"
+                selectedValue={field.state.value}
+                onValueChange={(v) => field.handleChange(v as SolveFor)}
+                items={solveForOptions}
+                ariaLabel="Value to solve for"
+              />
+            )}
+          </form.Field>
+
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {EV_PRESETS.map((preset) => (
+              <EVPresetButton
+                key={preset.ev}
+                ev={preset.ev}
+                label={preset.label}
+                description={preset.description}
+                onClick={onPresetClick}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </CalculatorCard>
+  );
+}
+
 export default function CameraExposureCalculatorPage() {
   const [presetsOpen, setPresetsOpen] = useState(false);
 
@@ -263,65 +662,7 @@ export default function CameraExposureCalculatorPage() {
           lighting conditions.
         </>
       }
-      sidebar={
-        <CalculatorCard
-          title="How this calculator works"
-          padding="normal"
-          className="bg-surface-muted/80"
-        >
-          <div className="space-y-6">
-            <p
-              className="text-[15px] leading-relaxed"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              The exposure triangle links aperture, shutter speed, and ISO.
-              Changing one requires adjusting another to maintain the same
-              exposure. This calculator helps you find those relationships and
-              compare different settings.
-            </p>
-
-            <div className="space-y-3">
-              <h4
-                className="text-sm font-semibold"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                How to use
-              </h4>
-              <ol className="ml-5 space-y-2 list-decimal">
-                {HOW_TO_USE.map((item) => (
-                  <li
-                    key={item}
-                    className="pl-2 text-[15px] leading-relaxed"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ol>
-            </div>
-
-            <div className="space-y-3">
-              <h4
-                className="text-sm font-semibold"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                Tips
-              </h4>
-              <ul className="ml-5 space-y-2 list-disc">
-                {TIPS.map((tip) => (
-                  <li
-                    key={tip}
-                    className="pl-2 text-[15px] leading-relaxed"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                  >
-                    {tip}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </CalculatorCard>
-      }
+      sidebar={<CameraExposureSidebar />}
       results={
         <div className="space-y-6">
           {/* EV Result - desktop only (mobile instance is in children) */}
@@ -330,279 +671,15 @@ export default function CameraExposureCalculatorPage() {
           </div>
 
           {/* Equivalent Exposures */}
-          <form.Subscribe
-            selector={(state) => {
-              const { aperture, shutterSpeed, iso } = state.values;
-              const evResult = calculateExposureValue(
-                aperture,
-                shutterSpeed,
-                iso
-              );
-              if (!evResult.isValid) return null;
-              return {
-                equivalents: getEquivalentExposures(
-                  evResult.ev,
-                  iso,
-                  aperture,
-                  shutterSpeed
-                ),
-                ev: evResult.ev,
-                iso,
-              };
-            }}
-          >
-            {(data) =>
-              data && data.equivalents.length > 0 ? (
-                <CalculatorCard
-                  title="Equivalent exposures"
-                  description={`Same EV ${data.ev} at ISO ${data.iso}`}
-                  accent="sky"
-                  padding="compact"
-                >
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr
-                          className="border-b"
-                          style={{
-                            borderColor: 'var(--color-border-secondary)',
-                          }}
-                        >
-                          <th
-                            className="py-2 px-3 text-left font-medium"
-                            style={{ color: 'var(--color-text-tertiary)' }}
-                          >
-                            Aperture
-                          </th>
-                          <th
-                            className="py-2 px-3 text-left font-medium"
-                            style={{ color: 'var(--color-text-tertiary)' }}
-                          >
-                            Shutter Speed
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {data.equivalents.map((eq) => (
-                          <tr
-                            key={eq.apertureLabel}
-                            className={`border-b ${eq.isCurrentSetting ? 'font-semibold' : ''}`}
-                            style={{
-                              borderColor: 'var(--color-border-muted)',
-                              backgroundColor: eq.isCurrentSetting
-                                ? 'var(--color-surface-elevated)'
-                                : undefined,
-                              color: eq.isStandardShutterSpeed
-                                ? 'var(--color-text-primary)'
-                                : 'var(--color-text-tertiary)',
-                            }}
-                          >
-                            <td className="py-2 px-3">{eq.apertureLabel}</td>
-                            <td className="py-2 px-3">
-                              {eq.shutterSpeedLabel}
-                              {eq.isCurrentSetting && (
-                                <span
-                                  className="ml-2 text-xs"
-                                  style={{
-                                    color: 'var(--color-primary)',
-                                  }}
-                                >
-                                  current
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <p
-                    className="text-xs mt-2"
-                    style={{ color: 'var(--color-text-tertiary)' }}
-                  >
-                    Non-standard shutter speeds shown in muted text
-                  </p>
-                </CalculatorCard>
-              ) : null
-            }
-          </form.Subscribe>
+          <EquivalentExposuresCard form={form} />
         </div>
       }
     >
       {/* Exposure Settings */}
-      <CalculatorCard
-        title="Exposure settings"
-        description="Set aperture, shutter speed, and ISO."
-      >
-        <div className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <form.Field name="aperture">
-              {(field) => (
-                <Select
-                  label="Aperture"
-                  selectedValue={apertureToKey(field.state.value)}
-                  onValueChange={(v) =>
-                    field.handleChange(keyToAperture(v as ApertureKey))
-                  }
-                  items={apertureOptions}
-                  ariaLabel="Aperture"
-                />
-              )}
-            </form.Field>
-
-            <form.Field name="shutterSpeed">
-              {(field) => (
-                <Select
-                  label="Shutter speed"
-                  selectedValue={shutterSpeedToKey(field.state.value)}
-                  onValueChange={(v) =>
-                    field.handleChange(keyToShutterSpeed(v as ShutterSpeedKey))
-                  }
-                  items={shutterSpeedOptions}
-                  ariaLabel="Shutter speed"
-                />
-              )}
-            </form.Field>
-
-            <form.Field name="iso">
-              {(field) => (
-                <Select
-                  label="ISO"
-                  selectedValue={isoToKey(field.state.value)}
-                  onValueChange={(v) =>
-                    field.handleChange(keyToISO(v as ISOKey))
-                  }
-                  items={isoOptions}
-                  ariaLabel="ISO"
-                />
-              )}
-            </form.Field>
-          </div>
-
-          <form.Subscribe selector={(state) => state.errorMap}>
-            {(errorMap) => {
-              const errors = errorMap.onChange;
-              if (!errors) return null;
-              const messages = Array.isArray(errors)
-                ? errors.flatMap((e) =>
-                    typeof e === 'object' && e !== null
-                      ? Object.values(e as Record<string, string[]>).flat()
-                      : [String(e)]
-                  )
-                : [String(errors)];
-              if (messages.length === 0) return null;
-              return (
-                <StatusAlert message={messages.join('. ')} action="error" />
-              );
-            }}
-          </form.Subscribe>
-        </div>
-      </CalculatorCard>
+      <ExposureSettingsCard form={form} />
 
       {/* Exposure Comparison */}
-      <form.Subscribe
-        selector={(state) => {
-          return compareExposures(
-            state.values.aperture,
-            state.values.shutterSpeed,
-            state.values.iso,
-            state.values.compareAperture,
-            state.values.compareShutterSpeed,
-            state.values.compareIso
-          );
-        }}
-      >
-        {(comparison) => (
-          <CalculatorCard
-            title="Exposure comparison"
-            description="Stops difference between exposure A (above) and exposure B"
-            accent="violet"
-            padding="compact"
-          >
-            {/* Comparison Inputs */}
-            <div className="space-y-3">
-              <h4
-                className="text-xs font-semibold uppercase tracking-[0.25em]"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                Exposure B
-              </h4>
-              <div className="grid gap-3 sm:grid-cols-3">
-                <form.Field name="compareAperture">
-                  {(field) => (
-                    <Select
-                      label="Aperture"
-                      selectedValue={apertureToKey(field.state.value)}
-                      onValueChange={(v) =>
-                        field.handleChange(keyToAperture(v))
-                      }
-                      items={apertureOptions}
-                      ariaLabel="Compare aperture"
-                    />
-                  )}
-                </form.Field>
-                <form.Field name="compareShutterSpeed">
-                  {(field) => (
-                    <Select
-                      label="Shutter"
-                      selectedValue={shutterSpeedToKey(field.state.value)}
-                      onValueChange={(v) =>
-                        field.handleChange(
-                          keyToShutterSpeed(v as ShutterSpeedKey)
-                        )
-                      }
-                      items={shutterSpeedOptions}
-                      ariaLabel="Compare shutter speed"
-                    />
-                  )}
-                </form.Field>
-                <form.Field name="compareIso">
-                  {(field) => (
-                    <Select
-                      label="ISO"
-                      selectedValue={isoToKey(field.state.value)}
-                      onValueChange={(v) =>
-                        field.handleChange(keyToISO(v as ISOKey))
-                      }
-                      items={isoOptions}
-                      ariaLabel="Compare ISO"
-                    />
-                  )}
-                </form.Field>
-              </div>
-            </div>
-
-            {comparison.isValid && (
-              <div className="space-y-3 mt-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <CalculatorStat
-                    label="Stops difference"
-                    value={`${comparison.stopsDifference > 0 ? '+' : ''}${comparison.stopsDifference}`}
-                    helperText={
-                      comparison.stopsDifference > 0
-                        ? 'A is darker than B'
-                        : comparison.stopsDifference < 0
-                          ? 'B is darker than A'
-                          : 'Same exposure'
-                    }
-                    tone="default"
-                  />
-                  <div className="space-y-2">
-                    <ResultRow
-                      label="Exposure A"
-                      value={`EV ${comparison.evA}`}
-                    />
-                    <ResultRow
-                      label="Exposure B"
-                      value={`EV ${comparison.evB}`}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </CalculatorCard>
-        )}
-      </form.Subscribe>
+      <ExposureComparisonCard form={form} />
 
       {/* EV Result - mobile only (desktop instance is in results) */}
       <div className="md:hidden">
@@ -610,54 +687,12 @@ export default function CameraExposureCalculatorPage() {
       </div>
 
       {/* EV Presets - collapsible */}
-      <CalculatorCard
-        title="EV presets"
-        description="Select a lighting condition. The calculator adjusts the selected value to match."
-        actions={
-          <button
-            type="button"
-            onClick={() => setPresetsOpen((prev) => !prev)}
-            className="p-1.5 rounded-lg transition-colors"
-            style={{ color: 'var(--color-text-muted)' }}
-            aria-expanded={presetsOpen}
-            aria-label={presetsOpen ? 'Collapse presets' : 'Expand presets'}
-          >
-            {presetsOpen ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </button>
-        }
-      >
-        {presetsOpen && (
-          <div className="space-y-4">
-            <form.Field name="solveFor">
-              {(field) => (
-                <Select
-                  label="When selecting a preset, adjust"
-                  selectedValue={field.state.value}
-                  onValueChange={(v) => field.handleChange(v as SolveFor)}
-                  items={solveForOptions}
-                  ariaLabel="Value to solve for"
-                />
-              )}
-            </form.Field>
-
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {EV_PRESETS.map((preset) => (
-                <EVPresetButton
-                  key={preset.ev}
-                  ev={preset.ev}
-                  label={preset.label}
-                  description={preset.description}
-                  onClick={handlePresetClick}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-      </CalculatorCard>
+      <EVPresetsCard
+        form={form}
+        presetsOpen={presetsOpen}
+        onToggle={() => setPresetsOpen((prev) => !prev)}
+        onPresetClick={handlePresetClick}
+      />
     </CalculatorLayout>
   );
 }

@@ -70,6 +70,7 @@ function useResponsiveColumnCount(
   const { useState, useEffect } = require('react');
   const [columnCount, setColumnCount] = useState(isMobile ? 2 : 3);
 
+  // eslint-disable-next-line react-doctor/no-cascading-set-state -- test fixture hook reproducing responsive behavior; not production code
   useEffect(() => {
     if (isMobile) {
       setColumnCount(2);

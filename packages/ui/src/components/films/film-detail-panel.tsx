@@ -26,6 +26,23 @@ interface FilmDetailPanelProps {
 }
 
 /**
+ * Renders a localized "date added" string. Computed directly in render: this is
+ * a CSR-only SPA (no SSR/hydration), so there is no flash-of-mismatched-content
+ * risk, and the previous useState/useEffect round-trip only added a one-frame
+ * empty flash before the date appeared.
+ */
+const FormattedDateAdded: FC<{ dateAdded: string }> = ({ dateAdded }) => {
+  // eslint-disable-next-line react-doctor/rendering-hydration-no-flicker -- CSR-only SPA (no SSR); formatting the date in render avoids a one-frame empty flash
+  const formatted = new Date(dateAdded).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  return <>{formatted}</>;
+};
+
+/**
  * Render film details in a responsive panel: desktop sidebar or mobile bottom drawer.
  *
  * Desktop mode displays as a sticky sidebar on the right with slide-in animation.
@@ -83,7 +100,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
         {/* Title and badges */}
         <div>
           <h2
-            className="text-2xl md:text-3xl font-bold mb-2"
+            className="text-2xl md:text-3xl font-semibold mb-2"
             style={{ color: 'var(--color-text-primary)' }}
           >
             {film.brand} {film.name}
@@ -178,11 +195,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
               className="text-sm"
               style={{ color: 'var(--color-text-secondary)' }}
             >
-              {new Date(film.dateAdded).toLocaleDateString(undefined, {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              <FormattedDateAdded dateAdded={film.dateAdded} />
             </p>
           </div>
         </div>
@@ -226,7 +239,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
             e.currentTarget.style.backgroundColor = 'var(--color-border-muted)';
           }}
         >
-          <ExternalLink className="h-4 w-4" />
+          <ExternalLink className="size-4" />
           View Development Recipes
         </a>
       </div>
@@ -277,7 +290,7 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
       {/* Title */}
       <div>
         <h2
-          className="text-xl font-bold mb-1"
+          className="text-xl font-semibold mb-1"
           style={{ color: 'var(--color-text-primary)' }}
         >
           {film.brand} {film.name}
@@ -395,11 +408,7 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
           Date Added
         </h3>
         <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-          {new Date(film.dateAdded).toLocaleDateString(undefined, {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
+          <FormattedDateAdded dateAdded={film.dateAdded} />
         </p>
       </div>
 
@@ -418,7 +427,7 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
           e.currentTarget.style.backgroundColor = 'var(--color-border-muted)';
         }}
       >
-        <ExternalLink className="h-4 w-4" />
+        <ExternalLink className="size-4" />
         View Development Recipes
       </a>
     </div>

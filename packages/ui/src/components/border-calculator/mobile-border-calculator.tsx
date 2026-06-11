@@ -47,12 +47,10 @@ import {
   BorderCalculatorProvider,
 } from './border-calculator-context';
 // Sections
-import {
-  BorderSizeSection,
-  PaperSizeSection,
-  PositionOffsetsSection,
-  PresetsSection,
-} from './sections';
+import { BorderSizeSection } from './sections/border-size-section';
+import { PaperSizeSection } from './sections/paper-size-section';
+import { PositionOffsetsSection } from './sections/position-offsets-section';
+import { PresetsSection } from './sections/presets-section';
 
 // Active section type
 type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
@@ -79,6 +77,7 @@ const validateBorderCalculator = createZodFormValidator(borderCalculatorSchema);
  * @param clearLoadedPreset - Optional callback invoked after a loaded preset from URL has been applied to clear the source.
  * @returns The React element tree for the mobile border calculator UI.
  */
+/* eslint-disable react-doctor/no-giant-component, react-doctor/prefer-useReducer -- coordinates many tightly-coupled border-calculator hooks/sections; a full split/reducer rewrite was attempted but regressed behavior, so it is kept cohesive (tracked as follow-up) */
 export function MobileBorderCalculator({
   loadedPresetFromUrl,
   clearLoadedPreset,
@@ -405,6 +404,7 @@ export function MobileBorderCalculator({
     });
 
     if (clearLoadedPreset) {
+      // eslint-disable-next-line react-doctor/no-prop-callback-in-effect -- the parent owns URL-preset lifecycle; this clears it after a one-shot apply triggered by the prop changing, which is the correct place to call it
       clearLoadedPreset();
     }
   }, [loadedPresetFromUrl, applyPresetSettings, clearLoadedPreset]);
@@ -427,11 +427,10 @@ export function MobileBorderCalculator({
     return size.label;
   }, [paperSize, customPaperWidth, customPaperHeight, unit, formatDimensions]);
 
-  const aspectRatioDisplayValue = useMemo(() => {
-    return aspectRatio === 'custom'
+  const aspectRatioDisplayValue =
+    aspectRatio === 'custom'
       ? `${customAspectWidth}:${customAspectHeight}`
       : aspectRatio;
-  }, [aspectRatio, customAspectWidth, customAspectHeight]);
 
   const borderSizeDisplayValue = useMemo(() => {
     return formatWithUnit(minBorder);
@@ -897,7 +896,7 @@ export function MobileBorderCalculator({
               }
               title="Share preset"
             >
-              <Share className="h-5 w-5" />
+              <Share className="size-5" />
             </button>
           </div>
         </div>
@@ -918,7 +917,7 @@ export function MobileBorderCalculator({
             } as React.CSSProperties
           }
         >
-          <RotateCcw className="h-4 w-4" />
+          <RotateCcw className="size-4" />
           Reset to Defaults
         </button>
 

@@ -41,12 +41,12 @@ export function CollapsibleSection({
           </div>
           {isExpanded ? (
             <ChevronDown
-              className="h-4 w-4"
+              className="size-4"
               style={{ color: 'var(--color-text-muted)' }}
             />
           ) : (
             <ChevronRight
-              className="h-4 w-4"
+              className="size-4"
               style={{ color: 'var(--color-text-muted)' }}
             />
           )}

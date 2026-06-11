@@ -39,6 +39,7 @@ export interface UseUrlPresetLoaderOptions {
  */
 export function useUrlPresetLoader(options: UseUrlPresetLoaderOptions = {}) {
   const [loadedPreset, setLoadedPreset] = useState<LoadedPreset | null>(null);
+  // eslint-disable-next-line react-doctor/rendering-usetransition-loading -- guards an async URL-preset decode/load, not a synchronous state transition
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 

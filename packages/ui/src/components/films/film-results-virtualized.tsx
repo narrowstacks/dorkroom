@@ -23,6 +23,16 @@ const CARD_ROW_ESTIMATED_HEIGHT = 110; // Card height + small gap
 const CARD_OVERSCAN = 3; // Number of rows to render above/below viewport
 
 /**
+ * Stable keys for loading skeleton placeholders. The count varies with the
+ * column layout (max 4 columns × 3 rows), so we pre-generate a fixed pool of
+ * unique keys and slice it instead of using the array index as a key.
+ */
+const SKELETON_KEYS = Array.from(
+  { length: 12 },
+  (_, index) => `film-skeleton-${index}`
+);
+
+/**
  * Hook to calculate responsive column count based on container width
  * Matches Tailwind breakpoints: sm:640px, lg:1024px, xl:1280px
  *
@@ -32,13 +42,10 @@ function useResponsiveColumnCount(
   containerRef: React.RefObject<HTMLDivElement | null>,
   isMobile: boolean
 ): number {
-  const [columnCount, setColumnCount] = useState(isMobile ? 2 : 3);
+  const [observedColumnCount, setColumnCount] = useState(3);
 
   useEffect(() => {
-    if (isMobile) {
-      setColumnCount(2);
-      return;
-    }
+    if (isMobile) return;
 
     const container = containerRef.current;
     if (!container) return;
@@ -99,7 +106,7 @@ function useResponsiveColumnCount(
     };
   }, [containerRef, isMobile]);
 
-  return columnCount;
+  return isMobile ? 2 : observedColumnCount;
 }
 
 interface FilmResultsVirtualizedProps {
@@ -117,6 +124,7 @@ interface FilmResultsVirtualizedProps {
   className?: string;
 }
 
+// eslint-disable-next-line react-doctor/no-many-boolean-props -- independent display/state flags for the virtualized list, not a single variant axis
 export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
   films,
   selectedFilmId,
@@ -164,9 +172,6 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
 
   const virtualRows = rowVirtualizer.getVirtualItems();
 
-  // Padding to prevent hover scale effect from being clipped at container edges
-  const HOVER_OVERFLOW_PADDING = 8;
-
   // Show loading skeletons
   if (isLoading) {
     // When detail panel is open on desktop, show fewer skeleton columns
@@ -178,9 +183,8 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
           gridTemplateColumns: `repeat(${skeletonColumns}, minmax(0, 1fr))`,
         }}
       >
-        {Array.from({ length: skeletonColumns * 3 }, (_, index) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton cards are temporary and order doesn't change
-          <FilmCardSkeleton key={`skeleton-${index}`} />
+        {SKELETON_KEYS.slice(0, skeletonColumns * 3).map((key) => (
+          <FilmCardSkeleton key={key} />
         ))}
       </div>
     );
@@ -200,14 +204,14 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
         }}
       >
         <div
-          className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed"
+          className="mb-4 flex size-16 items-center justify-center rounded-full border-2 border-dashed"
           style={{
             borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'rgba(var(--color-background-rgb), 0.3)',
           }}
         >
           <FilmIcon
-            className="h-8 w-8"
+            className="size-8"
             style={{ color: 'var(--color-text-tertiary)' }}
           />
         </div>
@@ -227,17 +231,13 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
   return (
     <div
       ref={parentRef}
-      className={className}
+      // p-2 (8px) adds padding so the card hover scale effect isn't clipped
+      // at the scroll container edges; overflow-auto enables virtualized scroll.
+      className={cn('overflow-auto p-2', className)}
       style={{
         height,
         minHeight: MIN_CONTAINER_HEIGHT,
         maxHeight: MAX_CONTAINER_HEIGHT,
-        overflow: 'auto',
-        // Add padding to accommodate hover scale effect overflow
-        paddingTop: HOVER_OVERFLOW_PADDING,
-        paddingBottom: HOVER_OVERFLOW_PADDING,
-        paddingLeft: HOVER_OVERFLOW_PADDING,
-        paddingRight: HOVER_OVERFLOW_PADDING,
       }}
     >
       <div

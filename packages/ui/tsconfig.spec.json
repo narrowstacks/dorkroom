@@ -10,7 +10,7 @@
       "vitest",
       "@testing-library/jest-dom"
     ],
-    "lib": ["dom", "dom.iterable", "es2022"],
+    "lib": ["dom", "dom.iterable", "es2023"],
     "jsx": "react-jsx"
   },
   "include": [

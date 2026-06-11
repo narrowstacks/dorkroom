@@ -1,6 +1,6 @@
 import { ASPECT_RATIOS, PAPER_SIZES, type SelectItem } from '@dorkroom/logic';
 import { RotateCw, Square, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DimensionInputGroup } from '../../../components/dimension-input-group';
 import { Select } from '../../../components/select';
 import { useMeasurement } from '../../../contexts/measurement-context';
@@ -33,25 +33,27 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
   const [paperHeightInput, setPaperHeightInput] = useState(
     String(toDisplay(customPaperHeight))
   );
-  const [isEditingWidth, setIsEditingWidth] = useState(false);
-  const [isEditingHeight, setIsEditingHeight] = useState(false);
+  // Edit-in-progress flags are only read inside effects/handlers, never in JSX,
+  // so they live in refs to avoid unnecessary re-renders.
+  const isEditingWidthRef = useRef(false);
+  const isEditingHeightRef = useRef(false);
 
   // Sync local state when parent state or unit changes (but not while editing)
   useEffect(() => {
-    if (!isEditingWidth) {
+    if (!isEditingWidthRef.current) {
       const displayValue = toDisplay(customPaperWidth);
       // Round to 3 decimals to avoid floating point artifacts
       setPaperWidthInput(String(Math.round(displayValue * 1000) / 1000));
     }
-  }, [customPaperWidth, toDisplay, isEditingWidth]);
+  }, [customPaperWidth, toDisplay]);
 
   useEffect(() => {
-    if (!isEditingHeight) {
+    if (!isEditingHeightRef.current) {
       const displayValue = toDisplay(customPaperHeight);
       // Round to 3 decimals to avoid floating point artifacts
       setPaperHeightInput(String(Math.round(displayValue * 1000) / 1000));
     }
-  }, [customPaperHeight, toDisplay, isEditingHeight]);
+  }, [customPaperHeight, toDisplay]);
 
   // Helper to validate and convert input to inches
   const validateAndConvert = (value: string): number | null => {
@@ -70,7 +72,7 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
 
   // Handle width input change
   const handleWidthChange = (value: string) => {
-    setIsEditingWidth(true);
+    isEditingWidthRef.current = true;
     setPaperWidthInput(value);
 
     // Push valid changes to parent state immediately for live recomputation
@@ -83,7 +85,7 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
 
   // Handle width blur - convert to inches when stable
   const handleWidthBlur = () => {
-    setIsEditingWidth(false);
+    isEditingWidthRef.current = false;
     const inches = validateAndConvert(paperWidthInput);
     if (inches !== null) {
       form.setFieldValue('customPaperWidth', inches);
@@ -102,7 +104,7 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
 
   // Handle height input change
   const handleHeightChange = (value: string) => {
-    setIsEditingHeight(true);
+    isEditingHeightRef.current = true;
     setPaperHeightInput(value);
 
     // Push valid changes to parent state immediately for live recomputation
@@ -115,7 +117,7 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
 
   // Handle height blur - convert to inches when stable
   const handleHeightBlur = () => {
-    setIsEditingHeight(false);
+    isEditingHeightRef.current = false;
     const inches = validateAndConvert(paperHeightInput);
     if (inches !== null) {
       form.setFieldValue('customPaperHeight', inches);
@@ -164,7 +166,7 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
           onClick={onClose}
           className="rounded-lg border border-white/20 bg-white/5 p-2 text-white transition hover:bg-white/10"
         >
-          <X className="h-5 w-5" />
+          <X className="size-5" />
         </button>
       </div>
 
@@ -243,7 +245,7 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
             onClick={() => form.setFieldValue('isLandscape', !isLandscape)}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
           >
-            <RotateCw className="h-4 w-4" />
+            <RotateCw className="size-4" />
             Flip Paper
           </button>
           <button
@@ -265,7 +267,7 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
                 : undefined
             }
           >
-            <Square className="h-4 w-4" />
+            <Square className="size-4" />
             Flip Ratio
           </button>
         </div>

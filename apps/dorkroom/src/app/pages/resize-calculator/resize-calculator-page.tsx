@@ -15,7 +15,7 @@ import {
   StatusAlert,
   ToggleSwitch,
   useMeasurement,
-  useMeasurementConverter,
+  type useMeasurementConverter,
 } from '@dorkroom/ui';
 import {
   CalculatorCard,
@@ -278,11 +278,337 @@ function calculateExposureChanges(
   };
 }
 
-export default function ResizeCalculatorPage() {
-  const { unit } = useMeasurement();
-  const unitLabel = unit === 'imperial' ? 'in' : 'cm';
-  const { toInches, toDisplay } = useMeasurementConverter();
+type ResizeForm = ReturnType<typeof useResizeForm>['form'];
+type MeasurementConverter = ReturnType<typeof useMeasurementConverter>;
 
+interface ResizeFieldHelpers {
+  form: ResizeForm;
+  unitLabel: string;
+  toDisplay: MeasurementConverter['toDisplay'];
+  toInches: MeasurementConverter['toInches'];
+}
+
+function ResizeResults({ form }: { form: ResizeForm }) {
+  return (
+    <form.Subscribe
+      selector={(state) => {
+        const isEnlargerMode = state.values.isEnlargerHeightMode as boolean;
+        const origTime = state.values.originalTime as number;
+        const origWidth = state.values.originalWidth as number;
+        const origLength = state.values.originalLength as number;
+        const newW = state.values.newWidth as number;
+        const newL = state.values.newLength as number;
+        const origHeight = state.values.originalHeight as number;
+        const newH = state.values.newHeight as number;
+
+        const { newTime, stopsDifference } = calculateExposureChanges(
+          isEnlargerMode,
+          origTime,
+          origWidth,
+          origLength,
+          newW,
+          newL,
+          origHeight,
+          newH
+        );
+
+        const stopsNumber = parseFloat(stopsDifference);
+        const stopsHelper = Number.isFinite(stopsNumber)
+          ? stopsNumber > 0
+            ? 'The new print is larger, add exposure.'
+            : stopsNumber < 0
+              ? 'The new print is smaller, remove exposure.'
+              : 'Same size print — keep your original exposure.'
+          : undefined;
+
+        return { newTime, stopsDifference, stopsHelper };
+      }}
+    >
+      {({ newTime, stopsDifference, stopsHelper }) =>
+        newTime ? (
+          <CalculatorCard
+            title="Exposure result"
+            description="Dial these in on your timer and make a quick test strip to confirm."
+            accent="emerald"
+            padding="compact"
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <CalculatorStat
+                label="New time"
+                value={`${newTime} seconds`}
+                tone="emerald"
+                helperText="Based on your original exposure and target size."
+              />
+              <CalculatorStat
+                label="Stops difference"
+                value={`${stopsDifference || '0.00'} stops`}
+                tone="default"
+                helperText={stopsHelper}
+              />
+            </div>
+          </CalculatorCard>
+        ) : null
+      }
+    </form.Subscribe>
+  );
+}
+
+function PrintSizeInputs({
+  form,
+  unitLabel,
+  toDisplay,
+  toInches,
+  hidden,
+}: ResizeFieldHelpers & { hidden: boolean }) {
+  return (
+    <div className={hidden ? 'hidden' : 'space-y-6'}>
+      <div className="space-y-3">
+        <h3
+          className="text-sm font-semibold uppercase tracking-[0.25em]"
+          style={{ color: 'var(--color-text-muted)' }}
+        >
+          Original print
+        </h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <form.Field name="originalWidth">
+            {(field) => (
+              <CalculatorNumberField
+                label="Width"
+                value={String(toDisplay(field.state.value))}
+                onChange={(value: string) => {
+                  const parsed = parseFloat(value);
+                  const finiteValue =
+                    Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+                  field.handleChange(
+                    parseFloat(toInches(finiteValue).toFixed(3))
+                  );
+                }}
+                onBlur={field.handleBlur}
+                placeholder={String(toDisplay(Number(DEFAULT_ORIGINAL_WIDTH)))}
+                step={0.1}
+                unit={unitLabel}
+              />
+            )}
+          </form.Field>
+          <form.Field name="originalLength">
+            {(field) => (
+              <CalculatorNumberField
+                label="Height"
+                value={String(toDisplay(field.state.value))}
+                onChange={(value) => {
+                  const parsed = parseFloat(value);
+                  const finiteValue =
+                    Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+                  field.handleChange(
+                    parseFloat(toInches(finiteValue).toFixed(3))
+                  );
+                }}
+                onBlur={field.handleBlur}
+                placeholder={String(toDisplay(Number(DEFAULT_ORIGINAL_LENGTH)))}
+                step={0.1}
+                unit={unitLabel}
+              />
+            )}
+          </form.Field>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h3
+          className="text-sm font-semibold uppercase tracking-[0.25em]"
+          style={{ color: 'var(--color-text-muted)' }}
+        >
+          Target print
+        </h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <form.Field name="newWidth">
+            {(field) => (
+              <CalculatorNumberField
+                label="Width"
+                value={String(toDisplay(field.state.value))}
+                onChange={(value) => {
+                  const parsed = parseFloat(value);
+                  const finiteValue =
+                    Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+                  field.handleChange(
+                    parseFloat(toInches(finiteValue).toFixed(3))
+                  );
+                }}
+                onBlur={field.handleBlur}
+                placeholder={String(toDisplay(Number(DEFAULT_NEW_WIDTH)))}
+                step={0.1}
+                unit={unitLabel}
+              />
+            )}
+          </form.Field>
+          <form.Field name="newLength">
+            {(field) => (
+              <CalculatorNumberField
+                label="Height"
+                value={String(toDisplay(field.state.value))}
+                onChange={(value) => {
+                  const parsed = parseFloat(value);
+                  const finiteValue =
+                    Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+                  field.handleChange(
+                    parseFloat(toInches(finiteValue).toFixed(3))
+                  );
+                }}
+                onBlur={field.handleBlur}
+                placeholder={String(toDisplay(Number(DEFAULT_NEW_LENGTH)))}
+                step={0.1}
+                unit={unitLabel}
+              />
+            )}
+          </form.Field>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EnlargerHeightInputs({
+  form,
+  unitLabel,
+  toDisplay,
+  toInches,
+  hidden,
+}: ResizeFieldHelpers & { hidden: boolean }) {
+  return (
+    <div className={hidden ? 'hidden' : 'space-y-3'}>
+      <h3
+        className="text-sm font-semibold uppercase tracking-[0.25em]"
+        style={{ color: 'var(--color-text-muted)' }}
+      >
+        Enlarger heights
+      </h3>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <form.Field name="originalHeight">
+          {(field) => (
+            <CalculatorNumberField
+              label="Original height"
+              value={String(toDisplay(field.state.value))}
+              onChange={(value) => {
+                const parsed = parseFloat(value);
+                const finiteValue =
+                  Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+                field.handleChange(
+                  parseFloat(toInches(finiteValue).toFixed(3))
+                );
+              }}
+              onBlur={field.handleBlur}
+              placeholder={String(toDisplay(Number(DEFAULT_ORIGINAL_HEIGHT)))}
+              step={1}
+              unit={unitLabel}
+            />
+          )}
+        </form.Field>
+        <form.Field name="newHeight">
+          {(field) => (
+            <CalculatorNumberField
+              label="New height"
+              value={String(toDisplay(field.state.value))}
+              onChange={(value) => {
+                const parsed = parseFloat(value);
+                const finiteValue =
+                  Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+                field.handleChange(
+                  parseFloat(toInches(finiteValue).toFixed(3))
+                );
+              }}
+              onBlur={field.handleBlur}
+              placeholder={String(toDisplay(Number(DEFAULT_NEW_HEIGHT)))}
+              step={1}
+              unit={unitLabel}
+            />
+          )}
+        </form.Field>
+      </div>
+    </div>
+  );
+}
+
+function ResizeInputs({
+  form,
+  unitLabel,
+  toDisplay,
+  toInches,
+  formValues,
+}: ResizeFieldHelpers & { formValues: ResizeCalculatorState }) {
+  return (
+    <CalculatorCard
+      title="Resize inputs"
+      description="Provide either print dimensions or enlarger heights so we can work out the exposure change."
+    >
+      <ModeToggle
+        isEnlargerHeightMode={formValues.isEnlargerHeightMode}
+        onModeChange={(value: boolean) =>
+          form.setFieldValue('isEnlargerHeightMode', value)
+        }
+      />
+
+      <PrintSizeInputs
+        form={form}
+        unitLabel={unitLabel}
+        toDisplay={toDisplay}
+        toInches={toInches}
+        hidden={formValues.isEnlargerHeightMode}
+      />
+
+      <EnlargerHeightInputs
+        form={form}
+        unitLabel={unitLabel}
+        toDisplay={toDisplay}
+        toInches={toInches}
+        hidden={!formValues.isEnlargerHeightMode}
+      />
+
+      {!formValues.isEnlargerHeightMode &&
+        !calculateAspectRatioMatch(
+          false,
+          formValues.originalWidth,
+          formValues.originalLength,
+          formValues.newWidth,
+          formValues.newLength
+        ) && (
+          <StatusAlert
+            message="The aspect ratios of the original and target prints do not match. Try to match the aspect ratio of the original print to the target print as close as possible."
+            action="warning"
+          />
+        )}
+
+      <div className="space-y-3">
+        <h3
+          className="text-sm font-semibold uppercase tracking-[0.25em]"
+          style={{ color: 'var(--color-text-muted)' }}
+        >
+          Original exposure
+        </h3>
+        <form.Field name="originalTime">
+          {(field) => (
+            <CalculatorNumberField
+              label="Time"
+              value={String(field.state.value)}
+              onChange={(value) => {
+                const parsed = parseFloat(value);
+                const finiteValue =
+                  Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+                field.handleChange(finiteValue);
+              }}
+              onBlur={field.handleBlur}
+              placeholder={DEFAULT_ORIGINAL_TIME}
+              step={0.5}
+              unit="seconds"
+              helperText="This is the exposure that worked for your original print."
+            />
+          )}
+        </form.Field>
+      </div>
+    </CalculatorCard>
+  );
+}
+
+function useResizeForm() {
   const form = useForm({
     defaultValues: {
       isEnlargerHeightMode: false,
@@ -322,294 +648,31 @@ export default function ResizeCalculatorPage() {
     ],
   });
 
+  return { form, formValues };
+}
+
+export default function ResizeCalculatorPage() {
+  const { unit } = useMeasurement();
+  const unitLabel = unit === 'imperial' ? 'in' : 'cm';
+  const { toInches, toDisplay } = useMeasurementConverter();
+  const { form, formValues } = useResizeForm();
+
   return (
     <CalculatorLayout
       title="Print Resize Calculator"
       description="Scale a print up or down and get a solid starting exposure without burning through paper."
-      results={
-        <form.Subscribe
-          selector={(state) => {
-            const isEnlargerMode = state.values.isEnlargerHeightMode as boolean;
-            const origTime = state.values.originalTime as number;
-            const origWidth = state.values.originalWidth as number;
-            const origLength = state.values.originalLength as number;
-            const newW = state.values.newWidth as number;
-            const newL = state.values.newLength as number;
-            const origHeight = state.values.originalHeight as number;
-            const newH = state.values.newHeight as number;
-
-            const { newTime, stopsDifference } = calculateExposureChanges(
-              isEnlargerMode,
-              origTime,
-              origWidth,
-              origLength,
-              newW,
-              newL,
-              origHeight,
-              newH
-            );
-
-            const stopsNumber = parseFloat(stopsDifference);
-            const stopsHelper = Number.isFinite(stopsNumber)
-              ? stopsNumber > 0
-                ? 'The new print is larger, add exposure.'
-                : stopsNumber < 0
-                  ? 'The new print is smaller, remove exposure.'
-                  : 'Same size print — keep your original exposure.'
-              : undefined;
-
-            return { newTime, stopsDifference, stopsHelper };
-          }}
-        >
-          {({ newTime, stopsDifference, stopsHelper }) =>
-            newTime ? (
-              <CalculatorCard
-                title="Exposure result"
-                description="Dial these in on your timer and make a quick test strip to confirm."
-                accent="emerald"
-                padding="compact"
-              >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <CalculatorStat
-                    label="New time"
-                    value={`${newTime} seconds`}
-                    tone="emerald"
-                    helperText="Based on your original exposure and target size."
-                  />
-                  <CalculatorStat
-                    label="Stops difference"
-                    value={`${stopsDifference || '0.00'} stops`}
-                    tone="default"
-                    helperText={stopsHelper}
-                  />
-                </div>
-              </CalculatorCard>
-            ) : null
-          }
-        </form.Subscribe>
-      }
+      results={<ResizeResults form={form} />}
       sidebar={
         <InfoSection isEnlargerHeightMode={formValues.isEnlargerHeightMode} />
       }
     >
-      <CalculatorCard
-        title="Resize inputs"
-        description="Provide either print dimensions or enlarger heights so we can work out the exposure change."
-      >
-        <ModeToggle
-          isEnlargerHeightMode={formValues.isEnlargerHeightMode}
-          onModeChange={(value: boolean) =>
-            form.setFieldValue('isEnlargerHeightMode', value)
-          }
-        />
-
-        <div
-          className={formValues.isEnlargerHeightMode ? 'hidden' : 'space-y-6'}
-        >
-          <div className="space-y-3">
-            <h3
-              className="text-sm font-semibold uppercase tracking-[0.25em]"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              Original print
-            </h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <form.Field name="originalWidth">
-                {(field) => (
-                  <CalculatorNumberField
-                    label="Width"
-                    value={String(toDisplay(field.state.value))}
-                    onChange={(value: string) => {
-                      const parsed = parseFloat(value);
-                      const finiteValue =
-                        Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                      field.handleChange(
-                        parseFloat(toInches(finiteValue).toFixed(3))
-                      );
-                    }}
-                    onBlur={field.handleBlur}
-                    placeholder={String(
-                      toDisplay(Number(DEFAULT_ORIGINAL_WIDTH))
-                    )}
-                    step={0.1}
-                    unit={unitLabel}
-                  />
-                )}
-              </form.Field>
-              <form.Field name="originalLength">
-                {(field) => (
-                  <CalculatorNumberField
-                    label="Height"
-                    value={String(toDisplay(field.state.value))}
-                    onChange={(value) => {
-                      const parsed = parseFloat(value);
-                      const finiteValue =
-                        Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                      field.handleChange(
-                        parseFloat(toInches(finiteValue).toFixed(3))
-                      );
-                    }}
-                    onBlur={field.handleBlur}
-                    placeholder={String(
-                      toDisplay(Number(DEFAULT_ORIGINAL_LENGTH))
-                    )}
-                    step={0.1}
-                    unit={unitLabel}
-                  />
-                )}
-              </form.Field>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h3
-              className="text-sm font-semibold uppercase tracking-[0.25em]"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              Target print
-            </h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <form.Field name="newWidth">
-                {(field) => (
-                  <CalculatorNumberField
-                    label="Width"
-                    value={String(toDisplay(field.state.value))}
-                    onChange={(value) => {
-                      const parsed = parseFloat(value);
-                      const finiteValue =
-                        Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                      field.handleChange(
-                        parseFloat(toInches(finiteValue).toFixed(3))
-                      );
-                    }}
-                    onBlur={field.handleBlur}
-                    placeholder={String(toDisplay(Number(DEFAULT_NEW_WIDTH)))}
-                    step={0.1}
-                    unit={unitLabel}
-                  />
-                )}
-              </form.Field>
-              <form.Field name="newLength">
-                {(field) => (
-                  <CalculatorNumberField
-                    label="Height"
-                    value={String(toDisplay(field.state.value))}
-                    onChange={(value) => {
-                      const parsed = parseFloat(value);
-                      const finiteValue =
-                        Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                      field.handleChange(
-                        parseFloat(toInches(finiteValue).toFixed(3))
-                      );
-                    }}
-                    onBlur={field.handleBlur}
-                    placeholder={String(toDisplay(Number(DEFAULT_NEW_LENGTH)))}
-                    step={0.1}
-                    unit={unitLabel}
-                  />
-                )}
-              </form.Field>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className={formValues.isEnlargerHeightMode ? 'space-y-3' : 'hidden'}
-        >
-          <h3
-            className="text-sm font-semibold uppercase tracking-[0.25em]"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            Enlarger heights
-          </h3>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <form.Field name="originalHeight">
-              {(field) => (
-                <CalculatorNumberField
-                  label="Original height"
-                  value={String(toDisplay(field.state.value))}
-                  onChange={(value) => {
-                    const parsed = parseFloat(value);
-                    const finiteValue =
-                      Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                    field.handleChange(
-                      parseFloat(toInches(finiteValue).toFixed(3))
-                    );
-                  }}
-                  onBlur={field.handleBlur}
-                  placeholder={String(
-                    toDisplay(Number(DEFAULT_ORIGINAL_HEIGHT))
-                  )}
-                  step={1}
-                  unit={unitLabel}
-                />
-              )}
-            </form.Field>
-            <form.Field name="newHeight">
-              {(field) => (
-                <CalculatorNumberField
-                  label="New height"
-                  value={String(toDisplay(field.state.value))}
-                  onChange={(value) => {
-                    const parsed = parseFloat(value);
-                    const finiteValue =
-                      Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                    field.handleChange(
-                      parseFloat(toInches(finiteValue).toFixed(3))
-                    );
-                  }}
-                  onBlur={field.handleBlur}
-                  placeholder={String(toDisplay(Number(DEFAULT_NEW_HEIGHT)))}
-                  step={1}
-                  unit={unitLabel}
-                />
-              )}
-            </form.Field>
-          </div>
-        </div>
-
-        {!formValues.isEnlargerHeightMode &&
-          !calculateAspectRatioMatch(
-            false,
-            formValues.originalWidth,
-            formValues.originalLength,
-            formValues.newWidth,
-            formValues.newLength
-          ) && (
-            <StatusAlert
-              message="The aspect ratios of the original and target prints do not match. Try to match the aspect ratio of the original print to the target print as close as possible."
-              action="warning"
-            />
-          )}
-
-        <div className="space-y-3">
-          <h3
-            className="text-sm font-semibold uppercase tracking-[0.25em]"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            Original exposure
-          </h3>
-          <form.Field name="originalTime">
-            {(field) => (
-              <CalculatorNumberField
-                label="Time"
-                value={String(field.state.value)}
-                onChange={(value) => {
-                  const parsed = parseFloat(value);
-                  const finiteValue =
-                    Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                  field.handleChange(finiteValue);
-                }}
-                onBlur={field.handleBlur}
-                placeholder={DEFAULT_ORIGINAL_TIME}
-                step={0.5}
-                unit="seconds"
-                helperText="This is the exposure that worked for your original print."
-              />
-            )}
-          </form.Field>
-        </div>
-      </CalculatorCard>
+      <ResizeInputs
+        form={form}
+        unitLabel={unitLabel}
+        toDisplay={toDisplay}
+        toInches={toInches}
+        formValues={formValues}
+      />
     </CalculatorLayout>
   );
 }

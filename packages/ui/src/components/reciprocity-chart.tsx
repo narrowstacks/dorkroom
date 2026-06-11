@@ -112,6 +112,515 @@ function isWideModeLayout(width: number): boolean {
 }
 
 /**
+ * Compute the geometry, scales, grid lines, axis labels, and hover points for
+ * the reciprocity chart given the current calculation inputs.
+ */
+function computeChartData(
+  originalTime: number,
+  adjustedTime: number,
+  factor: number
+): ChartData {
+  // Chart dimensions
+  const width = CHART_CONFIG.dimensions.width;
+  const height = CHART_CONFIG.dimensions.height;
+  const padding = CHART_CONFIG.dimensions.padding;
+  const plotWidth = width - padding.left - padding.right;
+  const plotHeight = height - padding.top - padding.bottom;
+
+  // Dynamic range based on current calculation with some headroom
+  const maxMetered = Math.max(300, originalTime * 1.5);
+  const maxAdjusted = Math.max(adjustedTime * 1.3, maxMetered ** factor);
+
+  // Scale functions
+  const scaleX = (x: number) => (x / maxMetered) * plotWidth + padding.left;
+  const scaleY = (y: number) =>
+    height - padding.bottom - (y / maxAdjusted) * plotHeight;
+
+  // Generate curve points
+  const curvePoints: Point[] = [];
+  const steps = 100;
+  for (let i = 0; i <= steps; i++) {
+    const x = (i / steps) * maxMetered;
+    const y = x ** factor;
+    curvePoints.push({ x: scaleX(x), y: scaleY(y) });
+  }
+
+  // Current point
+  const currentPoint = {
+    x: scaleX(originalTime),
+    y: scaleY(adjustedTime),
+  };
+
+  // Grid lines
+  const xGridLines: number[] = [];
+  const xStep =
+    maxMetered > CHART_CONFIG.grid.xStepThreshold
+      ? CHART_CONFIG.grid.xStepLarge
+      : CHART_CONFIG.grid.xStepSmall;
+  for (let i = xStep; i < maxMetered; i += xStep) {
+    xGridLines.push(scaleX(i));
+  }
+
+  const yGridLines: number[] = [];
+  let yStep = maxAdjusted > 800 ? 200 : 100;
+  // Dynamically increase yStep if it would create too many lines
+  while (maxAdjusted / yStep > CHART_CONFIG.grid.maxGridLines) {
+    yStep *= 2;
+  }
+  for (let i = yStep; i < maxAdjusted; i += yStep) {
+    yGridLines.push(scaleY(i));
+  }
+
+  // Axis labels
+  // Generate X-axis labels dynamically
+  const xLabels: AxisLabel[] = [];
+  for (let x = 0; x <= maxMetered; x += CHART_CONFIG.labels.xLabelStep) {
+    xLabels.push({
+      x: scaleX(x),
+      label: `${x}`,
+    });
+  }
+
+  // Generate Y-axis labels dynamically, capped to prevent performance issues
+  const yLabels: AxisLabel[] = [];
+  let yLabelStep = CHART_CONFIG.labels.yLabelStepDefault;
+  // Dynamically increase label step if it would create too many labels
+  while (maxAdjusted / yLabelStep > CHART_CONFIG.labels.maxLabels) {
+    yLabelStep *= 2;
+  }
+  for (let y = 0; y <= maxAdjusted; y += yLabelStep) {
+    yLabels.push({
+      y: scaleY(y),
+      label: `${y}`,
+    });
+  }
+
+  // Generate hover points along the curve with dynamic interval to limit total points
+  const hoverPoints: HoverPoint[] = [];
+
+  const interval = CHART_CONFIG.hover.interval;
+  const maxPoints = CHART_CONFIG.hover.maxPoints;
+
+  // Calculate total points that would be generated at the default interval
+  const totalPoints = Math.ceil(maxMetered / interval);
+
+  // Compute effective interval to limit points if necessary
+  let effectiveInterval = interval;
+  if (totalPoints > maxPoints) {
+    const multiplier = Math.ceil(totalPoints / maxPoints);
+    effectiveInterval = interval * multiplier;
+  }
+
+  for (let t = effectiveInterval; t <= maxMetered; t += effectiveInterval) {
+    const adjustedT = t ** factor;
+    hoverPoints.push({
+      meteredTime: t,
+      adjustedTime: adjustedT,
+      x: scaleX(t),
+      y: scaleY(adjustedT),
+      annotation: `${formatSeconds(t)} → ${formatSeconds(adjustedT)}`,
+    });
+  }
+
+  // Always include the final maxMetered point if it's not already included
+  const lastHoverPoint = hoverPoints[hoverPoints.length - 1];
+  if (!lastHoverPoint || lastHoverPoint.meteredTime < maxMetered) {
+    const adjustedMaxMetered = maxMetered ** factor;
+    hoverPoints.push({
+      meteredTime: maxMetered,
+      adjustedTime: adjustedMaxMetered,
+      x: scaleX(maxMetered),
+      y: scaleY(adjustedMaxMetered),
+      annotation: `${formatSeconds(maxMetered)} → ${formatSeconds(
+        adjustedMaxMetered
+      )}`,
+    });
+  }
+
+  // Always include the current calculated point as a hover point so users can see their values
+  // Check if it's not already included (i.e., not a multiple of 15)
+  if (originalTime % 15 !== 0) {
+    hoverPoints.push({
+      meteredTime: originalTime,
+      adjustedTime: adjustedTime,
+      x: scaleX(originalTime),
+      y: scaleY(adjustedTime),
+      annotation: `${formatSeconds(originalTime)} → ${formatSeconds(
+        adjustedTime
+      )}`,
+    });
+    // Sort by metered time to maintain order
+    hoverPoints.sort((a, b) => a.meteredTime - b.meteredTime);
+  }
+
+  return {
+    width,
+    height,
+    padding,
+    plotWidth,
+    plotHeight,
+    curvePoints,
+    currentPoint,
+    xGridLines,
+    yGridLines,
+    xLabels,
+    yLabels,
+    maxMetered,
+    maxAdjusted,
+    hoverPoints,
+    scaleX,
+    scaleY,
+  };
+}
+
+interface HoverPoint {
+  meteredTime: number;
+  adjustedTime: number;
+  x: number;
+  y: number;
+  annotation: string;
+}
+
+interface AxisLabel {
+  x?: number;
+  y?: number;
+  label: string;
+}
+
+interface ChartData {
+  width: number;
+  height: number;
+  padding: { top: number; right: number; bottom: number; left: number };
+  plotWidth: number;
+  plotHeight: number;
+  curvePoints: Point[];
+  currentPoint: Point;
+  xGridLines: number[];
+  yGridLines: number[];
+  xLabels: AxisLabel[];
+  yLabels: AxisLabel[];
+  maxMetered: number;
+  maxAdjusted: number;
+  hoverPoints: HoverPoint[];
+  scaleX: (x: number) => number;
+  scaleY: (y: number) => number;
+}
+
+/**
+ * Dashed background grid lines for both axes.
+ */
+function ChartGrid({ chartData }: { chartData: ChartData }) {
+  return (
+    <g opacity="0.15">
+      {chartData.xGridLines.map((x) => (
+        <line
+          key={`x-grid-${x}`}
+          x1={x}
+          y1={chartData.padding.top}
+          x2={x}
+          y2={chartData.height - chartData.padding.bottom}
+          stroke="var(--color-text-secondary)"
+          strokeWidth="1"
+          strokeDasharray="4,4"
+        />
+      ))}
+      {chartData.yGridLines.map((y) => (
+        <line
+          key={`y-grid-${y}`}
+          x1={chartData.padding.left}
+          y1={y}
+          x2={chartData.width - chartData.padding.right}
+          y2={y}
+          stroke="var(--color-text-secondary)"
+          strokeWidth="1"
+          strokeDasharray="4,4"
+        />
+      ))}
+    </g>
+  );
+}
+
+/**
+ * The X and Y axis lines.
+ */
+function ChartAxes({ chartData }: { chartData: ChartData }) {
+  return (
+    <g>
+      {/* X-axis */}
+      <line
+        x1={chartData.padding.left}
+        y1={chartData.height - chartData.padding.bottom}
+        x2={chartData.width - chartData.padding.right}
+        y2={chartData.height - chartData.padding.bottom}
+        stroke="var(--color-text-secondary)"
+        strokeWidth="2"
+      />
+      {/* Y-axis */}
+      <line
+        x1={chartData.padding.left}
+        y1={chartData.padding.top}
+        x2={chartData.padding.left}
+        y2={chartData.height - chartData.padding.bottom}
+        stroke="var(--color-text-secondary)"
+        strokeWidth="2"
+      />
+    </g>
+  );
+}
+
+/**
+ * Tick labels and axis titles for both axes.
+ */
+function ChartLabels({ chartData }: { chartData: ChartData }) {
+  return (
+    <g>
+      {/* X-axis labels */}
+      {chartData.xLabels.map((label) => (
+        <text
+          key={`x-label-${label.x}`}
+          x={label.x}
+          y={
+            chartData.height -
+            chartData.padding.bottom +
+            CHART_CONFIG.labels.offsets.xLabelOffset
+          }
+          textAnchor="middle"
+          fontSize={CHART_CONFIG.labels.fontSize.label}
+          fill="var(--color-text-secondary)"
+          fontFamily="system-ui, -apple-system, sans-serif"
+        >
+          {label.label}
+        </text>
+      ))}
+      {/* X-axis title */}
+      <text
+        x={chartData.width / 2}
+        y={chartData.height - CHART_CONFIG.labels.offsets.xTitleOffset}
+        textAnchor="middle"
+        fontSize={CHART_CONFIG.labels.fontSize.title}
+        fill="var(--color-text-primary)"
+        fontWeight="500"
+        fontFamily="system-ui, -apple-system, sans-serif"
+      >
+        Metered exposure in seconds
+      </text>
+
+      {/* Y-axis labels */}
+      {chartData.yLabels.map((label) => (
+        <text
+          key={`y-label-${label.y}`}
+          x={chartData.padding.left - CHART_CONFIG.labels.offsets.yLabelOffset}
+          y={(label.y ?? 0) + 6}
+          textAnchor="end"
+          fontSize={CHART_CONFIG.labels.fontSize.label}
+          fill="var(--color-text-secondary)"
+          fontFamily="system-ui, -apple-system, sans-serif"
+        >
+          {label.label}
+        </text>
+      ))}
+      {/* Y-axis title */}
+      <text
+        x={16}
+        y={chartData.height / CHART_CONFIG.labels.offsets.yTitleScale}
+        textAnchor="middle"
+        fontSize={CHART_CONFIG.labels.fontSize.title}
+        fill="var(--color-text-primary)"
+        fontWeight="500"
+        fontFamily="system-ui, -apple-system, sans-serif"
+        transform={`rotate(-90, 12, ${chartData.height / 2})`}
+      >
+        Adjusted exposure in seconds
+      </text>
+    </g>
+  );
+}
+
+/**
+ * The always-visible marker for the current calculated point.
+ */
+function CurrentPointMarker({ chartData }: { chartData: ChartData }) {
+  return (
+    <g>
+      <line
+        x1={chartData.currentPoint.x}
+        y1={chartData.currentPoint.y}
+        x2={chartData.currentPoint.x}
+        y2={chartData.height - chartData.padding.bottom}
+        stroke="var(--color-text-tertiary)"
+        strokeWidth="2"
+        strokeDasharray="6,4"
+        opacity="0.3"
+      />
+      <circle
+        cx={chartData.currentPoint.x}
+        cy={chartData.currentPoint.y}
+        r={CHART_CONFIG.hover.currentPointRadius}
+        fill={CHART_CONFIG.colors.curve}
+        stroke="var(--color-background)"
+        strokeWidth="2"
+        opacity="0.6"
+      />
+    </g>
+  );
+}
+
+/**
+ * Interactive hover/focus targets along the curve plus their visible markers.
+ */
+function HoverLayer({
+  chartData,
+  hoveredPointIndex,
+  focusedPointIndex,
+  setHoveredPointIndex,
+  setFocusedPointIndex,
+}: {
+  chartData: ChartData;
+  hoveredPointIndex: number | null;
+  focusedPointIndex: number | null;
+  setHoveredPointIndex: (index: number | null) => void;
+  setFocusedPointIndex: (index: number | null) => void;
+}) {
+  return (
+    <>
+      {chartData.hoverPoints.map((point, i) => (
+        <g key={`hover-${point.x}-${point.y}`}>
+          {/* Invisible larger circle for hover detection */}
+          {/* biome-ignore lint/a11y/useSemanticElements: SVG element cannot use HTML button */}
+          <circle
+            cx={point.x}
+            cy={point.y}
+            r={CHART_CONFIG.hover.radius}
+            fill="transparent"
+            style={{ cursor: 'pointer' }}
+            onMouseEnter={() => setHoveredPointIndex(i)}
+            onMouseLeave={() => setHoveredPointIndex(null)}
+            tabIndex={0}
+            aria-label={point.annotation}
+            onFocus={() => {
+              setHoveredPointIndex(i);
+              setFocusedPointIndex(i);
+            }}
+            onBlur={() => {
+              setHoveredPointIndex(null);
+              setFocusedPointIndex(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setHoveredPointIndex(hoveredPointIndex === i ? null : i);
+              }
+            }}
+          />
+          {/* Visible point marker - only show on hover */}
+          {hoveredPointIndex === i && (
+            <g style={{ pointerEvents: 'none' }}>
+              {/* Vertical line from point to x-axis */}
+              <line
+                x1={point.x}
+                y1={point.y}
+                x2={point.x}
+                y2={chartData.height - chartData.padding.bottom}
+                stroke="var(--color-text-tertiary)"
+                strokeWidth="2"
+                strokeDasharray="6,4"
+                opacity="0.7"
+              />
+              {/* Point marker */}
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r={CHART_CONFIG.hover.markerRadius}
+                fill={CHART_CONFIG.colors.curve}
+                stroke="var(--color-background)"
+                strokeWidth="3"
+              />
+            </g>
+          )}
+          {/* Visual focus indicator ring for keyboard navigation */}
+          {focusedPointIndex === i && (
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r={CHART_CONFIG.hover.markerRadius + 3}
+              fill="none"
+              stroke="var(--color-primary)"
+              strokeWidth="2"
+              style={{ pointerEvents: 'none' }}
+            />
+          )}
+        </g>
+      ))}
+    </>
+  );
+}
+
+/**
+ * Tooltip callout for the currently hovered point, positioned left or right
+ * depending on available horizontal space.
+ */
+function HoverTooltip({
+  chartData,
+  hoveredPoint,
+}: {
+  chartData: ChartData;
+  hoveredPoint: HoverPoint;
+}) {
+  const tooltipWidth = calculateTooltipWidth(hoveredPoint.annotation);
+  const showRight =
+    hoveredPoint.x + CHART_CONFIG.tooltip.offset + tooltipWidth <
+    chartData.width;
+
+  // Calculate vertical position with bounds checking
+  const tooltipHeight = CHART_CONFIG.tooltip.height;
+  let tooltipY = hoveredPoint.y - 30;
+  // Ensure tooltip doesn't overflow top
+  if (tooltipY < chartData.padding.top) {
+    tooltipY = chartData.padding.top;
+  }
+  // Ensure tooltip doesn't overflow bottom
+  else if (
+    tooltipY + tooltipHeight >
+    chartData.height - chartData.padding.bottom
+  ) {
+    tooltipY = chartData.height - chartData.padding.bottom - tooltipHeight;
+  }
+
+  const rectX = showRight
+    ? hoveredPoint.x + CHART_CONFIG.tooltip.offset
+    : hoveredPoint.x - CHART_CONFIG.tooltip.offset - tooltipWidth;
+  const textX = showRight
+    ? hoveredPoint.x + CHART_CONFIG.tooltip.offset + tooltipWidth / 2
+    : hoveredPoint.x - CHART_CONFIG.tooltip.offset - tooltipWidth / 2;
+
+  return (
+    <g style={{ pointerEvents: 'none' }}>
+      <rect
+        x={rectX}
+        y={tooltipY}
+        width={tooltipWidth}
+        height={CHART_CONFIG.tooltip.height}
+        rx={CHART_CONFIG.tooltip.radius}
+        fill={CHART_CONFIG.colors.tooltipBg}
+        stroke={CHART_CONFIG.colors.tooltipBorder}
+        strokeWidth="1"
+      />
+      <text
+        x={textX}
+        y={tooltipY + 35}
+        textAnchor="middle"
+        fontSize={CHART_CONFIG.labels.fontSize.tooltip}
+        fontWeight="600"
+        fill={CHART_CONFIG.colors.tooltipText}
+        fontFamily="system-ui, -apple-system, sans-serif"
+      >
+        {hoveredPoint.annotation}
+      </text>
+    </g>
+  );
+}
+
+/**
  * ReciprocityChart displays a visual representation of reciprocity failure
  * showing how metered exposure times map to adjusted exposure times.
  *
@@ -126,165 +635,10 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
   className = '',
   autoScrollOnResize = false,
 }) => {
-  const chartData = useMemo(() => {
-    // Chart dimensions
-    const width = CHART_CONFIG.dimensions.width;
-    const height = CHART_CONFIG.dimensions.height;
-    const padding = CHART_CONFIG.dimensions.padding;
-    const plotWidth = width - padding.left - padding.right;
-    const plotHeight = height - padding.top - padding.bottom;
-
-    // Dynamic range based on current calculation with some headroom
-    const maxMetered = Math.max(300, originalTime * 1.5);
-    const maxAdjusted = Math.max(adjustedTime * 1.3, maxMetered ** factor);
-
-    // Scale functions
-    const scaleX = (x: number) => (x / maxMetered) * plotWidth + padding.left;
-    const scaleY = (y: number) =>
-      height - padding.bottom - (y / maxAdjusted) * plotHeight;
-
-    // Generate curve points
-    const curvePoints: Point[] = [];
-    const steps = 100;
-    for (let i = 0; i <= steps; i++) {
-      const x = (i / steps) * maxMetered;
-      const y = x ** factor;
-      curvePoints.push({ x: scaleX(x), y: scaleY(y) });
-    }
-
-    // Current point
-    const currentPoint = {
-      x: scaleX(originalTime),
-      y: scaleY(adjustedTime),
-    };
-
-    // Grid lines
-    const xGridLines: number[] = [];
-    const xStep =
-      maxMetered > CHART_CONFIG.grid.xStepThreshold
-        ? CHART_CONFIG.grid.xStepLarge
-        : CHART_CONFIG.grid.xStepSmall;
-    for (let i = xStep; i < maxMetered; i += xStep) {
-      xGridLines.push(scaleX(i));
-    }
-
-    const yGridLines: number[] = [];
-    let yStep = maxAdjusted > 800 ? 200 : 100;
-    // Dynamically increase yStep if it would create too many lines
-    while (maxAdjusted / yStep > CHART_CONFIG.grid.maxGridLines) {
-      yStep *= 2;
-    }
-    for (let i = yStep; i < maxAdjusted; i += yStep) {
-      yGridLines.push(scaleY(i));
-    }
-
-    // Axis labels
-    // Generate X-axis labels dynamically
-    const xLabels = [];
-    for (let x = 0; x <= maxMetered; x += CHART_CONFIG.labels.xLabelStep) {
-      xLabels.push({
-        x: scaleX(x),
-        label: `${x}`,
-      });
-    }
-
-    // Generate Y-axis labels dynamically, capped to prevent performance issues
-    const yLabels = [];
-    let yLabelStep = CHART_CONFIG.labels.yLabelStepDefault;
-    // Dynamically increase label step if it would create too many labels
-    while (maxAdjusted / yLabelStep > CHART_CONFIG.labels.maxLabels) {
-      yLabelStep *= 2;
-    }
-    for (let y = 0; y <= maxAdjusted; y += yLabelStep) {
-      yLabels.push({
-        y: scaleY(y),
-        label: `${y}`,
-      });
-    }
-
-    // Generate hover points along the curve with dynamic interval to limit total points
-    const hoverPoints: Array<{
-      meteredTime: number;
-      adjustedTime: number;
-      x: number;
-      y: number;
-      annotation: string;
-    }> = [];
-
-    const interval = CHART_CONFIG.hover.interval;
-    const maxPoints = CHART_CONFIG.hover.maxPoints;
-
-    // Calculate total points that would be generated at the default interval
-    const totalPoints = Math.ceil(maxMetered / interval);
-
-    // Compute effective interval to limit points if necessary
-    let effectiveInterval = interval;
-    if (totalPoints > maxPoints) {
-      const multiplier = Math.ceil(totalPoints / maxPoints);
-      effectiveInterval = interval * multiplier;
-    }
-
-    for (let t = effectiveInterval; t <= maxMetered; t += effectiveInterval) {
-      const adjustedT = t ** factor;
-      hoverPoints.push({
-        meteredTime: t,
-        adjustedTime: adjustedT,
-        x: scaleX(t),
-        y: scaleY(adjustedT),
-        annotation: `${formatSeconds(t)} → ${formatSeconds(adjustedT)}`,
-      });
-    }
-
-    // Always include the final maxMetered point if it's not already included
-    const lastHoverPoint = hoverPoints[hoverPoints.length - 1];
-    if (!lastHoverPoint || lastHoverPoint.meteredTime < maxMetered) {
-      const adjustedMaxMetered = maxMetered ** factor;
-      hoverPoints.push({
-        meteredTime: maxMetered,
-        adjustedTime: adjustedMaxMetered,
-        x: scaleX(maxMetered),
-        y: scaleY(adjustedMaxMetered),
-        annotation: `${formatSeconds(maxMetered)} → ${formatSeconds(
-          adjustedMaxMetered
-        )}`,
-      });
-    }
-
-    // Always include the current calculated point as a hover point so users can see their values
-    // Check if it's not already included (i.e., not a multiple of 15)
-    if (originalTime % 15 !== 0) {
-      hoverPoints.push({
-        meteredTime: originalTime,
-        adjustedTime: adjustedTime,
-        x: scaleX(originalTime),
-        y: scaleY(adjustedTime),
-        annotation: `${formatSeconds(originalTime)} → ${formatSeconds(
-          adjustedTime
-        )}`,
-      });
-      // Sort by metered time to maintain order
-      hoverPoints.sort((a, b) => a.meteredTime - b.meteredTime);
-    }
-
-    return {
-      width,
-      height,
-      padding,
-      plotWidth,
-      plotHeight,
-      curvePoints,
-      currentPoint,
-      xGridLines,
-      yGridLines,
-      xLabels,
-      yLabels,
-      maxMetered,
-      maxAdjusted,
-      hoverPoints,
-      scaleX,
-      scaleY,
-    };
-  }, [originalTime, adjustedTime, factor]);
+  const chartData = useMemo(
+    () => computeChartData(originalTime, adjustedTime, factor),
+    [originalTime, adjustedTime, factor]
+  );
 
   // Generate SVG path for curve
   const curvePath = useMemo(() => {
@@ -382,7 +736,6 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
         style={{
           maxHeight: '500px',
         }}
-        role="img"
         aria-label={`Reciprocity curve for ${filmName}`}
       >
         <title>Reciprocity failure chart for {filmName}</title>
@@ -393,119 +746,13 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
           {formatSeconds(adjustedTime)} adjusted.
         </desc>
         {/* Grid lines */}
-        <g opacity="0.15">
-          {chartData.xGridLines.map((x) => (
-            <line
-              key={`x-grid-${x}`}
-              x1={x}
-              y1={chartData.padding.top}
-              x2={x}
-              y2={chartData.height - chartData.padding.bottom}
-              stroke="var(--color-text-secondary)"
-              strokeWidth="1"
-              strokeDasharray="4,4"
-            />
-          ))}
-          {chartData.yGridLines.map((y) => (
-            <line
-              key={`y-grid-${y}`}
-              x1={chartData.padding.left}
-              y1={y}
-              x2={chartData.width - chartData.padding.right}
-              y2={y}
-              stroke="var(--color-text-secondary)"
-              strokeWidth="1"
-              strokeDasharray="4,4"
-            />
-          ))}
-        </g>
+        <ChartGrid chartData={chartData} />
 
         {/* Axes */}
-        <g>
-          {/* X-axis */}
-          <line
-            x1={chartData.padding.left}
-            y1={chartData.height - chartData.padding.bottom}
-            x2={chartData.width - chartData.padding.right}
-            y2={chartData.height - chartData.padding.bottom}
-            stroke="var(--color-text-secondary)"
-            strokeWidth="2"
-          />
-          {/* Y-axis */}
-          <line
-            x1={chartData.padding.left}
-            y1={chartData.padding.top}
-            x2={chartData.padding.left}
-            y2={chartData.height - chartData.padding.bottom}
-            stroke="var(--color-text-secondary)"
-            strokeWidth="2"
-          />
-        </g>
+        <ChartAxes chartData={chartData} />
 
         {/* Axis labels */}
-        <g>
-          {/* X-axis labels */}
-          {chartData.xLabels.map((label) => (
-            <text
-              key={`x-label-${label.x}`}
-              x={label.x}
-              y={
-                chartData.height -
-                chartData.padding.bottom +
-                CHART_CONFIG.labels.offsets.xLabelOffset
-              }
-              textAnchor="middle"
-              fontSize={CHART_CONFIG.labels.fontSize.label}
-              fill="var(--color-text-secondary)"
-              fontFamily="system-ui, -apple-system, sans-serif"
-            >
-              {label.label}
-            </text>
-          ))}
-          {/* X-axis title */}
-          <text
-            x={chartData.width / 2}
-            y={chartData.height - CHART_CONFIG.labels.offsets.xTitleOffset}
-            textAnchor="middle"
-            fontSize={CHART_CONFIG.labels.fontSize.title}
-            fill="var(--color-text-primary)"
-            fontWeight="500"
-            fontFamily="system-ui, -apple-system, sans-serif"
-          >
-            Metered exposure in seconds
-          </text>
-
-          {/* Y-axis labels */}
-          {chartData.yLabels.map((label) => (
-            <text
-              key={`y-label-${label.y}`}
-              x={
-                chartData.padding.left -
-                CHART_CONFIG.labels.offsets.yLabelOffset
-              }
-              y={label.y + 6}
-              textAnchor="end"
-              fontSize={CHART_CONFIG.labels.fontSize.label}
-              fill="var(--color-text-secondary)"
-              fontFamily="system-ui, -apple-system, sans-serif"
-            >
-              {label.label}
-            </text>
-          ))}
-          {/* Y-axis title */}
-          <text
-            x={16}
-            y={chartData.height / CHART_CONFIG.labels.offsets.yTitleScale}
-            textAnchor="middle"
-            fontSize={CHART_CONFIG.labels.fontSize.title}
-            fill="var(--color-text-primary)"
-            fontWeight="500"
-            fontFamily="system-ui, -apple-system, sans-serif"
-            transform={`rotate(-90, 12, ${chartData.height / 2})`}
-          >
-            Adjusted exposure in seconds
-          </text>
-        </g>
+        <ChartLabels chartData={chartData} />
 
         {/* Reciprocity curve */}
         <path
@@ -518,191 +765,21 @@ export const ReciprocityChart: React.FC<ReciprocityChartProps> = ({
         />
 
         {/* Calculated result point - always visible */}
-        <g>
-          <line
-            x1={chartData.currentPoint.x}
-            y1={chartData.currentPoint.y}
-            x2={chartData.currentPoint.x}
-            y2={chartData.height - chartData.padding.bottom}
-            stroke="var(--color-text-tertiary)"
-            strokeWidth="2"
-            strokeDasharray="6,4"
-            opacity="0.3"
-          />
-          <circle
-            cx={chartData.currentPoint.x}
-            cy={chartData.currentPoint.y}
-            r={CHART_CONFIG.hover.currentPointRadius}
-            fill={CHART_CONFIG.colors.curve}
-            stroke="var(--color-background)"
-            strokeWidth="2"
-            opacity="0.6"
-          />
-        </g>
+        <CurrentPointMarker chartData={chartData} />
 
         {/* Interactive hover points along the curve (15 second increments) */}
-        {chartData.hoverPoints.map((point, i) => (
-          <g key={`hover-${point.x}-${point.y}`}>
-            {/* Invisible larger circle for hover detection */}
-            {/* biome-ignore lint/a11y/useSemanticElements: SVG element cannot use HTML button */}
-            <circle
-              cx={point.x}
-              cy={point.y}
-              r={CHART_CONFIG.hover.radius}
-              fill="transparent"
-              style={{ cursor: 'pointer' }}
-              onMouseEnter={() => setHoveredPointIndex(i)}
-              onMouseLeave={() => setHoveredPointIndex(null)}
-              tabIndex={0}
-              role="button"
-              aria-label={point.annotation}
-              onFocus={() => {
-                setHoveredPointIndex(i);
-                setFocusedPointIndex(i);
-              }}
-              onBlur={() => {
-                setHoveredPointIndex(null);
-                setFocusedPointIndex(null);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setHoveredPointIndex(hoveredPointIndex === i ? null : i);
-                }
-              }}
-            />
-            {/* Visible point marker - only show on hover */}
-            {hoveredPointIndex === i && (
-              <g style={{ pointerEvents: 'none' }}>
-                {/* Vertical line from point to x-axis */}
-                <line
-                  x1={point.x}
-                  y1={point.y}
-                  x2={point.x}
-                  y2={chartData.height - chartData.padding.bottom}
-                  stroke="var(--color-text-tertiary)"
-                  strokeWidth="2"
-                  strokeDasharray="6,4"
-                  opacity="0.7"
-                />
-                {/* Point marker */}
-                <circle
-                  cx={point.x}
-                  cy={point.y}
-                  r={CHART_CONFIG.hover.markerRadius}
-                  fill={CHART_CONFIG.colors.curve}
-                  stroke="var(--color-background)"
-                  strokeWidth="3"
-                />
-              </g>
-            )}
-            {/* Visual focus indicator ring for keyboard navigation */}
-            {focusedPointIndex === i && (
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r={CHART_CONFIG.hover.markerRadius + 3}
-                fill="none"
-                stroke="var(--color-primary)"
-                strokeWidth="2"
-                style={{ pointerEvents: 'none' }}
-              />
-            )}
-          </g>
-        ))}
+        <HoverLayer
+          chartData={chartData}
+          hoveredPointIndex={hoveredPointIndex}
+          focusedPointIndex={focusedPointIndex}
+          setHoveredPointIndex={setHoveredPointIndex}
+          setFocusedPointIndex={setFocusedPointIndex}
+        />
 
         {/* Annotation callout - only show on hover */}
-        {hoveredPoint &&
-          (() => {
-            const tooltipWidth = calculateTooltipWidth(hoveredPoint.annotation);
-            const showRight =
-              hoveredPoint.x + CHART_CONFIG.tooltip.offset + tooltipWidth <
-              chartData.width;
-
-            // Calculate vertical position with bounds checking
-            const tooltipHeight = CHART_CONFIG.tooltip.height;
-            let tooltipY = hoveredPoint.y - 30;
-            // Ensure tooltip doesn't overflow top
-            if (tooltipY < chartData.padding.top) {
-              tooltipY = chartData.padding.top;
-            }
-            // Ensure tooltip doesn't overflow bottom
-            else if (
-              tooltipY + tooltipHeight >
-              chartData.height - chartData.padding.bottom
-            ) {
-              tooltipY =
-                chartData.height - chartData.padding.bottom - tooltipHeight;
-            }
-
-            return (
-              <g style={{ pointerEvents: 'none' }}>
-                {showRight ? (
-                  // Show callout to the right if there's space
-                  <>
-                    <rect
-                      x={hoveredPoint.x + CHART_CONFIG.tooltip.offset}
-                      y={tooltipY}
-                      width={tooltipWidth}
-                      height={CHART_CONFIG.tooltip.height}
-                      rx={CHART_CONFIG.tooltip.radius}
-                      fill={CHART_CONFIG.colors.tooltipBg}
-                      stroke={CHART_CONFIG.colors.tooltipBorder}
-                      strokeWidth="1"
-                    />
-                    <text
-                      x={
-                        hoveredPoint.x +
-                        CHART_CONFIG.tooltip.offset +
-                        tooltipWidth / 2
-                      }
-                      y={tooltipY + 35}
-                      textAnchor="middle"
-                      fontSize={CHART_CONFIG.labels.fontSize.tooltip}
-                      fontWeight="600"
-                      fill={CHART_CONFIG.colors.tooltipText}
-                      fontFamily="system-ui, -apple-system, sans-serif"
-                    >
-                      {hoveredPoint.annotation}
-                    </text>
-                  </>
-                ) : (
-                  // Show callout to the left if not enough space on right
-                  <>
-                    <rect
-                      x={
-                        hoveredPoint.x -
-                        CHART_CONFIG.tooltip.offset -
-                        tooltipWidth
-                      }
-                      y={tooltipY}
-                      width={tooltipWidth}
-                      height={CHART_CONFIG.tooltip.height}
-                      rx={CHART_CONFIG.tooltip.radius}
-                      fill={CHART_CONFIG.colors.tooltipBg}
-                      stroke={CHART_CONFIG.colors.tooltipBorder}
-                      strokeWidth="1"
-                    />
-                    <text
-                      x={
-                        hoveredPoint.x -
-                        CHART_CONFIG.tooltip.offset -
-                        tooltipWidth / 2
-                      }
-                      y={tooltipY + 35}
-                      textAnchor="middle"
-                      fontSize={CHART_CONFIG.labels.fontSize.tooltip}
-                      fontWeight="600"
-                      fill={CHART_CONFIG.colors.tooltipText}
-                      fontFamily="system-ui, -apple-system, sans-serif"
-                    >
-                      {hoveredPoint.annotation}
-                    </text>
-                  </>
-                )}
-              </g>
-            );
-          })()}
+        {hoveredPoint && (
+          <HoverTooltip chartData={chartData} hoveredPoint={hoveredPoint} />
+        )}
       </svg>
     </div>
   );

@@ -115,7 +115,13 @@ if (args.length > 0 && selected.length === 0) {
   process.exit(1);
 }
 
-for (const { name, params } of selected) {
+async function generatePreview({
+  name,
+  params,
+}: {
+  name: string;
+  params: Record<string, string>;
+}): Promise<void> {
   const url = new URL('https://dorkroom.art/api/og');
   for (const [k, v] of Object.entries(params)) {
     url.searchParams.set(k, v);
@@ -128,5 +134,8 @@ for (const { name, params } of selected) {
   await writeFile(filePath, buffer);
   console.log(`  → ${filePath}`);
 }
+
+// Previews are independent (each writes a distinct file); run concurrently.
+await Promise.all(selected.map(generatePreview));
 
 console.log('\nDone! Preview images saved to og-previews/');

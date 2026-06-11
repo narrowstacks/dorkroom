@@ -15,12 +15,13 @@ export function FavoriteMessageSkeleton({
   if (variant === 'row') {
     return (
       <tr
+        aria-label={message}
         className="border-b"
         style={{ borderColor: 'var(--color-border-secondary)' }}
       >
         <td colSpan={8} className={cn('px-4 py-4', className)}>
           <div className="flex items-center justify-center gap-3">
-            <Skeleton className="h-4 w-4 rounded-full" />
+            <Skeleton className="size-4 rounded-full" />
             <div
               className="text-sm"
               style={{ color: 'var(--color-text-secondary)' }}
@@ -45,7 +46,7 @@ export function FavoriteMessageSkeleton({
       }}
     >
       <div className="flex flex-col items-center justify-center gap-2 py-4">
-        <Skeleton className="h-4 w-4 rounded-full" />
+        <Skeleton className="size-4 rounded-full" />
         <div
           className="text-sm text-center"
           style={{ color: 'var(--color-text-secondary)' }}

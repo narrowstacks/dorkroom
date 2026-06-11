@@ -161,11 +161,16 @@ describe('withHandler', () => {
         handler: async () => {},
       });
 
-      for (const method of ['POST', 'PUT', 'DELETE', 'PATCH']) {
-        const req = createMockRequest({ method });
-        const res = createMockResponse();
-        await handler(req, res);
+      const results = await Promise.all(
+        ['POST', 'PUT', 'DELETE', 'PATCH'].map(async (method) => {
+          const req = createMockRequest({ method });
+          const res = createMockResponse();
+          await handler(req, res);
+          return res;
+        })
+      );
 
+      for (const res of results) {
         expect(res._status).toBe(405);
         expect((res._json as Record<string, unknown>).error).toBe(
           'Method not allowed'

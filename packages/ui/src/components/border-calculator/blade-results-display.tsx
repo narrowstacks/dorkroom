@@ -73,7 +73,7 @@ export function BladeResultsDisplay({
             className="flex items-center justify-center mb-1"
             style={{ color: 'var(--color-text-secondary)' }}
           >
-            <ArrowLeft className="h-4 w-4 mr-1" />
+            <ArrowLeft className="size-4 mr-1" />
             <span className="text-sm font-medium">L</span>
           </div>
           <div
@@ -95,7 +95,7 @@ export function BladeResultsDisplay({
             className="flex items-center justify-center mb-1"
             style={{ color: 'var(--color-text-secondary)' }}
           >
-            <ArrowUp className="h-4 w-4 mr-1" />
+            <ArrowUp className="size-4 mr-1" />
             <span className="text-sm font-medium">T</span>
           </div>
           <div
@@ -118,7 +118,7 @@ export function BladeResultsDisplay({
             style={{ color: 'var(--color-text-secondary)' }}
           >
             <span className="text-sm font-medium mr-1">B</span>
-            <ArrowDown className="h-4 w-4" />
+            <ArrowDown className="size-4" />
           </div>
           <div
             className="text-lg font-bold"
@@ -140,7 +140,7 @@ export function BladeResultsDisplay({
             style={{ color: 'var(--color-text-secondary)' }}
           >
             <span className="text-sm font-medium mr-1">R</span>
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="size-4" />
           </div>
           <div
             className="text-lg font-bold"

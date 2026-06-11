@@ -39,8 +39,6 @@ class MockResizeObserver {
   }
 }
 
-let mockResizeObserverInstance: MockResizeObserver | null = null;
-
 // Mock useVirtualizer from @tanstack/react-virtual
 vi.mock('@tanstack/react-virtual', () => ({
   useVirtualizer: vi.fn(({ count }) => ({
@@ -176,19 +174,16 @@ describe('DevelopmentResultsCardsVirtualized', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Setup ResizeObserver mock
-    mockResizeObserverInstance = null;
-    // Use a regular function (not an arrow) so vitest 4 can invoke the mock
-    // as a constructor — react-virtual calls `new ResizeObserver(...)`.
-    global.ResizeObserver = vi.fn(function (callback: ResizeObserverCallback) {
-      mockResizeObserverInstance = new MockResizeObserver(callback);
-      return mockResizeObserverInstance;
-    }) as unknown as typeof ResizeObserver;
+    // Setup ResizeObserver mock. Assign the class directly (a class is a real
+    // constructor, unlike an arrow function) — react-virtual calls
+    // `new ResizeObserver(...)`, and MockResizeObserver's constructor records
+    // react-virtual calls `new ResizeObserver(...)`.
+    global.ResizeObserver =
+      MockResizeObserver as unknown as typeof ResizeObserver;
   });
 
   afterEach(() => {
     cleanup();
-    mockResizeObserverInstance = null;
   });
 
   describe('rendering', () => {
@@ -266,14 +261,18 @@ describe('DevelopmentResultsCardsVirtualized', () => {
         </TableWrapper>
       );
 
-      const card = screen.getByRole('button', { name: /ilford hp5 plus/i });
-      fireEvent.click(card);
+      // The whole card is selected via a transparent overlay <button> whose
+      // accessible name describes the recipe.
+      const selectButton = screen.getByRole('button', {
+        name: /select ilford hp5 plus recipe/i,
+      });
+      fireEvent.click(selectButton);
 
       expect(onSelectCombination).toHaveBeenCalledTimes(1);
       expect(onSelectCombination).toHaveBeenCalledWith(rows[0]);
     });
 
-    it('calls onSelectCombination when Enter is pressed', () => {
+    it('selects via the native button when activated by Enter', () => {
       const rows = createMockRows(1);
       const onSelectCombination = vi.fn();
 
@@ -289,13 +288,20 @@ describe('DevelopmentResultsCardsVirtualized', () => {
         </TableWrapper>
       );
 
-      const card = screen.getByRole('button', { name: /ilford hp5 plus/i });
-      fireEvent.keyDown(card, { key: 'Enter' });
+      // The select target is a native <button>, so the browser turns an Enter
+      // keypress into a click for free. We assert it is a real button (which
+      // guarantees that keyboard activation) and that the resulting click
+      // selects the combination.
+      const selectButton = screen.getByRole('button', {
+        name: /select ilford hp5 plus recipe/i,
+      });
+      expect(selectButton.tagName.toLowerCase()).toBe('button');
 
+      fireEvent.click(selectButton);
       expect(onSelectCombination).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onSelectCombination when Space is pressed', () => {
+    it('selects via the native button when activated by Space', () => {
       const rows = createMockRows(1);
       const onSelectCombination = vi.fn();
 
@@ -311,9 +317,15 @@ describe('DevelopmentResultsCardsVirtualized', () => {
         </TableWrapper>
       );
 
-      const card = screen.getByRole('button', { name: /ilford hp5 plus/i });
-      fireEvent.keyDown(card, { key: ' ' });
+      // Native buttons are also activated by Space (browser-provided), which
+      // dispatches a click. Verify the select target is a button and that the
+      // click path invokes selection.
+      const selectButton = screen.getByRole('button', {
+        name: /select ilford hp5 plus recipe/i,
+      });
+      expect(selectButton.tagName.toLowerCase()).toBe('button');
 
+      fireEvent.click(selectButton);
       expect(onSelectCombination).toHaveBeenCalledTimes(1);
     });
   });

@@ -120,7 +120,11 @@ describe('filmdev endpoint', () => {
 
     it('should reject IDs exceeding max', async () => {
       const res = createRes();
-      await handler({ query: { id: '10000000' } } as MockReq, res, createMockCtx());
+      await handler(
+        { query: { id: '10000000' } } as MockReq,
+        res,
+        createMockCtx()
+      );
 
       expect(res._status).toBe(400);
     });
@@ -132,7 +136,11 @@ describe('filmdev endpoint', () => {
       );
 
       const res = createRes();
-      await handler({ query: { id: '12345' } } as MockReq, res, createMockCtx());
+      await handler(
+        { query: { id: '12345' } } as MockReq,
+        res,
+        createMockCtx()
+      );
 
       expect(res._status).toBe(200);
     });

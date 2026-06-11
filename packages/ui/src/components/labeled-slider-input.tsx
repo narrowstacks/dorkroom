@@ -47,6 +47,9 @@ interface LabeledSliderInputProps {
 // to align with the thumb center rather than the track edges.
 const SLIDER_THUMB_RADIUS_PX = 8;
 
+// Stable default so the optional `labels` prop doesn't create a new array each render.
+const EMPTY_LABELS: SliderLabel[] = [];
+
 /**
  * A dual-input component combining a range slider with a number input field.
  * Provides both precise numeric input and intuitive slider-based value selection.
@@ -84,7 +87,7 @@ export function LabeledSliderInput({
   min,
   max,
   step,
-  labels = [],
+  labels = EMPTY_LABELS,
   className,
   warning = false,
 }: LabeledSliderInputProps) {
@@ -138,6 +141,7 @@ export function LabeledSliderInput({
         <input
           type="number"
           id={inputId}
+          aria-label={label}
           value={value}
           onChange={handleInputChange}
           min={min}

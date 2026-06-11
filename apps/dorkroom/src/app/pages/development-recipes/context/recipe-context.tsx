@@ -5,7 +5,7 @@ import type {
   FilmdevMappingResult,
 } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
-import { createContext, type ReactNode, useContext } from 'react';
+import { createContext, type ReactNode, use } from 'react';
 
 /**
  * Modal state for the development recipes page.
@@ -162,7 +162,7 @@ export const RecipeUIContext = createContext<RecipeUIState | null>(null);
  * Must be used within a RecipeProvider.
  */
 export function useRecipeModalsContext() {
-  const context = useContext(RecipeModalsContext);
+  const context = use(RecipeModalsContext);
   if (!context) {
     throw new Error(
       'useRecipeModalsContext must be used within a RecipeProvider'
@@ -176,7 +176,7 @@ export function useRecipeModalsContext() {
  * Must be used within a RecipeProvider.
  */
 export function useRecipeDataContext() {
-  const context = useContext(RecipeDataContext);
+  const context = use(RecipeDataContext);
   if (!context) {
     throw new Error(
       'useRecipeDataContext must be used within a RecipeProvider'
@@ -190,7 +190,7 @@ export function useRecipeDataContext() {
  * Must be used within a RecipeProvider.
  */
 export function useRecipeActionsContext() {
-  const context = useContext(RecipeActionsContext);
+  const context = use(RecipeActionsContext);
   if (!context) {
     throw new Error(
       'useRecipeActionsContext must be used within a RecipeProvider'
@@ -204,7 +204,7 @@ export function useRecipeActionsContext() {
  * Must be used within a RecipeProvider.
  */
 export function useRecipeUIContext() {
-  const context = useContext(RecipeUIContext);
+  const context = use(RecipeUIContext);
   if (!context) {
     throw new Error('useRecipeUIContext must be used within a RecipeProvider');
   }
@@ -244,14 +244,12 @@ export function RecipeProvider({
   ui,
 }: RecipeProviderProps) {
   return (
-    <RecipeModalsContext.Provider value={modals}>
-      <RecipeDataContext.Provider value={data}>
-        <RecipeActionsContext.Provider value={actions}>
-          <RecipeUIContext.Provider value={ui}>
-            {children}
-          </RecipeUIContext.Provider>
-        </RecipeActionsContext.Provider>
-      </RecipeDataContext.Provider>
-    </RecipeModalsContext.Provider>
+    <RecipeModalsContext value={modals}>
+      <RecipeDataContext value={data}>
+        <RecipeActionsContext value={actions}>
+          <RecipeUIContext value={ui}>{children}</RecipeUIContext>
+        </RecipeActionsContext>
+      </RecipeDataContext>
+    </RecipeModalsContext>
   );
 }

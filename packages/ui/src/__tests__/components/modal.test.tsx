@@ -80,7 +80,7 @@ describe('Modal', () => {
     const onClose = vi.fn();
     render(<Modal {...defaultProps} onClose={onClose} />);
 
-    const backdrop = screen.getByRole('dialog');
+    const backdrop = screen.getByTestId('modal-backdrop');
     fireEvent.click(backdrop);
 
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -107,29 +107,25 @@ describe('Modal', () => {
     it('applies correct size class for sm', () => {
       render(<Modal {...defaultProps} size="sm" />);
 
-      const modalContent = screen.getByRole('dialog').firstChild as HTMLElement;
-      expect(modalContent).toHaveClass('max-w-md');
+      expect(screen.getByRole('dialog')).toHaveClass('max-w-md');
     });
 
     it('applies correct size class for md (default)', () => {
       render(<Modal {...defaultProps} />);
 
-      const modalContent = screen.getByRole('dialog').firstChild as HTMLElement;
-      expect(modalContent).toHaveClass('max-w-2xl');
+      expect(screen.getByRole('dialog')).toHaveClass('max-w-2xl');
     });
 
     it('applies correct size class for lg', () => {
       render(<Modal {...defaultProps} size="lg" />);
 
-      const modalContent = screen.getByRole('dialog').firstChild as HTMLElement;
-      expect(modalContent).toHaveClass('max-w-4xl');
+      expect(screen.getByRole('dialog')).toHaveClass('max-w-4xl');
     });
 
     it('applies correct size class for xl', () => {
       render(<Modal {...defaultProps} size="xl" />);
 
-      const modalContent = screen.getByRole('dialog').firstChild as HTMLElement;
-      expect(modalContent).toHaveClass('max-w-5xl');
+      expect(screen.getByRole('dialog')).toHaveClass('max-w-5xl');
     });
   });
 

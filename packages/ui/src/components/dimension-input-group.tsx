@@ -50,6 +50,7 @@ export function DimensionInputGroup({
         <input
           id="dimension-width-input"
           type="number"
+          aria-label={widthLabel}
           value={widthValue}
           onChange={(e) => onWidthChange((e.target as HTMLInputElement).value)}
           placeholder={widthPlaceholder}
@@ -85,6 +86,7 @@ export function DimensionInputGroup({
         <input
           id="dimension-height-input"
           type="number"
+          aria-label={heightLabel}
           value={heightValue}
           onChange={(e) => onHeightChange((e.target as HTMLInputElement).value)}
           placeholder={heightPlaceholder}

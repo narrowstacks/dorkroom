@@ -1,10 +1,4 @@
-import {
-  createContext,
-  type ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { createContext, type ReactNode, use, useEffect, useState } from 'react';
 
 export interface UnitContextValue<T extends string> {
   unit: T;
@@ -51,15 +45,11 @@ export function createUnitContext<T extends string>(
       setUnit(unit === unitA ? unitB : unitA);
     }
 
-    return (
-      <Context.Provider value={{ unit, setUnit, toggleUnit }}>
-        {children}
-      </Context.Provider>
-    );
+    return <Context value={{ unit, setUnit, toggleUnit }}>{children}</Context>;
   }
 
   function useUnit(): UnitContextValue<T> {
-    const context = useContext(Context);
+    const context = use(Context);
     if (context === undefined) {
       throw new Error(
         `use${config.name} must be used within a ${config.name}Provider`

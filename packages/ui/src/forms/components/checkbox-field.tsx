@@ -26,17 +26,21 @@ const normalizeErrors = (errors: unknown[]): string => {
     return '';
   }
 
-  const errorStrings = errors
-    .filter((e) => e !== null && e !== undefined)
-    .map((error) => {
-      if (typeof error === 'string') {
-        return error;
-      }
-      if (error instanceof Error) {
-        return error.message;
-      }
-      return typeof error === 'object' ? JSON.stringify(error) : String(error);
-    });
+  const errorStrings: string[] = [];
+  for (const error of errors) {
+    if (error === null || error === undefined) {
+      continue;
+    }
+    if (typeof error === 'string') {
+      errorStrings.push(error);
+    } else if (error instanceof Error) {
+      errorStrings.push(error.message);
+    } else {
+      errorStrings.push(
+        typeof error === 'object' ? JSON.stringify(error) : String(error)
+      );
+    }
+  }
 
   return errorStrings.join(', ');
 };
@@ -58,6 +62,7 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
           id={field.name}
           name={field.name}
           type="checkbox"
+          aria-label={label ?? field.name}
           checked={field.state.value}
           onChange={(e) => field.handleChange(e.target.checked)}
           onBlur={field.handleBlur}

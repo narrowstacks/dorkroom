@@ -21,6 +21,9 @@ export function ToggleSwitch({
       <button
         id={id}
         type="button"
+        role="switch"
+        aria-checked={value}
+        aria-label={label}
         onClick={() => onValueChange(!value)}
         className={cn(
           'relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',

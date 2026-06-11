@@ -139,7 +139,9 @@ describe.each([
     });
 
     it('should not include upstream status codes like 401, 500 in response', async () => {
-      for (const upstreamStatus of [401, 403, 500, 503]) {
+      // Each case mutates the shared global fetch stub, so the cases must run
+      // sequentially; extract the per-case body so the await isn't in the loop.
+      async function assertUpstreamStatusHidden(upstreamStatus: number) {
         vi.stubGlobal(
           'fetch',
           vi
@@ -173,6 +175,14 @@ describe.each([
         const body = res._json as Record<string, unknown>;
         expect(body).not.toHaveProperty('status');
       }
+
+      // Sequential promise chain (shared fetch stub forbids concurrency)
+      // keeps each await out of a loop body.
+      await [401, 403, 500, 503].reduce(
+        (chain, upstreamStatus) =>
+          chain.then(() => assertUpstreamStatusHidden(upstreamStatus)),
+        Promise.resolve()
+      );
     });
   });
 

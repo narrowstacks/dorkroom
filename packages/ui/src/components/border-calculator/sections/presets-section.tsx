@@ -81,7 +81,7 @@ export function PresetsSection({
             e.currentTarget.style.backgroundColor = 'var(--color-border-muted)';
           }}
         >
-          <X className="h-5 w-5" />
+          <X className="size-5" />
         </button>
       </div>
 
@@ -117,7 +117,7 @@ export function PresetsSection({
                   e.currentTarget.style.filter = 'brightness(1)';
                 }}
               >
-                <Save className="h-4 w-4" />
+                <Save className="size-4" />
                 Save
               </button>
               <button
@@ -156,7 +156,7 @@ export function PresetsSection({
               color: 'var(--color-text-primary)',
             }}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="size-4" />
             Create New Preset
           </button>
         )}
@@ -190,7 +190,7 @@ export function PresetsSection({
                         onClick={() => handleUpdate(preset.id)}
                         className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-blue-700"
                       >
-                        <Save className="h-3 w-3" />
+                        <Save className="size-3" />
                         Update
                       </button>
                       <button
@@ -223,14 +223,14 @@ export function PresetsSection({
                           onClick={() => startEdit(preset)}
                           className="rounded p-1 text-white/70 transition hover:bg-white/10 hover:text-white"
                         >
-                          <Save className="h-4 w-4" />
+                          <Save className="size-4" />
                         </button>
                         <button
                           type="button"
                           onClick={() => onDeletePreset(preset.id)}
                           className="rounded p-1 text-red-400 transition hover:bg-red-500/10 hover:text-red-300"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="size-4" />
                         </button>
                       </div>
                     )}

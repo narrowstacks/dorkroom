@@ -89,14 +89,24 @@ describe('VirtualizedErrorBoundary', () => {
     });
 
     it('renders error icon with proper accessibility attributes', () => {
-      render(
+      const { container } = render(
         <VirtualizedErrorBoundary>
           <ThrowingComponent shouldThrow={true} />
         </VirtualizedErrorBoundary>
       );
 
-      const errorIcon = screen.getByRole('img', { name: 'Error' });
+      // The icon is purely decorative: the error heading conveys the state to
+      // assistive tech, so the SVG is hidden from the accessibility tree and
+      // must NOT expose an image role/label.
+      const errorIcon = container.querySelector('svg');
       expect(errorIcon).toBeInTheDocument();
+      expect(errorIcon).toHaveAttribute('aria-hidden', 'true');
+      expect(screen.queryByRole('img')).not.toBeInTheDocument();
+
+      // The accessible error state comes from the visible message text.
+      expect(
+        screen.getByText('Something went wrong loading the results')
+      ).toBeInTheDocument();
     });
   });
 

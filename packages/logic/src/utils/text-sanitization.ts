@@ -177,7 +177,9 @@ export function sanitizeTags(
   tags: string[] | undefined | null
 ): string[] | undefined {
   if (!tags) return undefined;
-  return tags
-    .map((tag) => sanitizeText(tag, 50))
-    .filter((tag): tag is string => Boolean(tag));
+  return tags.reduce<string[]>((acc, tag) => {
+    const sanitized = sanitizeText(tag, 50);
+    if (sanitized) acc.push(sanitized);
+    return acc;
+  }, []);
 }

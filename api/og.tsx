@@ -230,6 +230,29 @@ const TEXT_SECONDARY = '#e4e4e7';
 const TEXT_MUTED = '#52525b';
 const PILL_TEXT = '#d4d4d8';
 
+// Static style objects (hoisted so satori-only inline styles stay maintainable)
+const SITE_NAME_STYLE = {
+  position: 'absolute',
+  top: '48px',
+  left: '78px',
+  display: 'flex',
+  fontSize: '36px',
+  fontWeight: 700,
+  color: TEXT_MUTED,
+  letterSpacing: '0.04em',
+} as const;
+
+const ICON_CONTAINER_STYLE = {
+  display: 'flex',
+  position: 'absolute',
+  top: '48px',
+  right: '78px',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '190px',
+  height: '190px',
+} as const;
+
 interface OgCardProps {
   accent: string;
   category?: string;
@@ -270,25 +293,13 @@ function OgCard({
         }}
       >
         {/* Site name — upper left */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '48px',
-            left: '78px',
-            display: 'flex',
-            fontSize: '36px',
-            fontWeight: 700,
-            color: TEXT_MUTED,
-            letterSpacing: '0.04em',
-          }}
-        >
-          dorkroom.art
-        </div>
+        <div style={SITE_NAME_STYLE}>dorkroom.art</div>
 
         {/* Upper right visual — film image or page icon */}
         {imageUrl ? (
           <img
             src={imageUrl}
+            alt={Array.isArray(title) ? title.join(' ') : title}
             width={270}
             height={270}
             style={{
@@ -300,18 +311,7 @@ function OgCard({
             }}
           />
         ) : iconChildren ? (
-          <div
-            style={{
-              display: 'flex',
-              position: 'absolute',
-              top: '48px',
-              right: '78px',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '190px',
-              height: '190px',
-            }}
-          >
+          <div style={ICON_CONTAINER_STYLE}>
             {/* Glow behind icon */}
             <div
               style={{

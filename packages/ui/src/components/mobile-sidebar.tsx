@@ -24,7 +24,7 @@ function SidebarNavItem({ item, isActive, onClick }: SidebarNavItemProps) {
   );
 
   const iconClasses = cn(
-    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+    'flex size-8 shrink-0 items-center justify-center rounded-lg',
     !isActive && 'bg-[rgba(var(--color-background-rgb),0.08)]'
   );
 
@@ -39,7 +39,7 @@ function SidebarNavItem({ item, isActive, onClick }: SidebarNavItemProps) {
         onClick={onClick}
       >
         <span className={iconClasses}>
-          <Icon className="h-4 w-4" />
+          <Icon className="size-4" />
         </span>
         <span className="truncate">{item.label}</span>
       </a>
@@ -55,7 +55,7 @@ function SidebarNavItem({ item, isActive, onClick }: SidebarNavItemProps) {
       aria-label={item.ariaLabel || item.label}
     >
       <span className={iconClasses}>
-        <Icon className="h-4 w-4" />
+        <Icon className="size-4" />
       </span>
       <span className="truncate">{item.label}</span>
     </button>
@@ -186,7 +186,7 @@ export function MobileSidebar({
             }
             aria-label="Settings"
           >
-            <Settings className="h-4 w-4" />
+            <Settings className="size-4" />
             <span>Settings</span>
           </button>
         )}

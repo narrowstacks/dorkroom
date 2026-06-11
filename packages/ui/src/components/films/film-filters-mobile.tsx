@@ -2,6 +2,7 @@ import type { SelectItem } from '@dorkroom/logic';
 import { ChevronDown, Search } from 'lucide-react';
 import { type FC, useState } from 'react';
 import { cn } from '../../lib/cn';
+import { setStyles } from '../../lib/dom';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
 
@@ -132,7 +133,7 @@ export const FilmFiltersMobile: FC<FilmFiltersMobileProps> = ({
         </div>
         <ChevronDown
           className={cn(
-            'h-5 w-5 transition-transform',
+            'size-5 transition-transform',
             !isCollapsed && 'rotate-180'
           )}
           style={{ color: 'var(--color-text-tertiary)' }}
@@ -155,12 +156,13 @@ export const FilmFiltersMobile: FC<FilmFiltersMobileProps> = ({
             </label>
             <div className="relative">
               <Search
-                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                className="absolute left-3 top-1/2 size-4 -translate-y-1/2"
                 style={{ color: 'var(--color-text-muted)' }}
               />
               <input
                 id="film-search-mobile"
                 type="text"
+                aria-label="Search films"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 placeholder="Search films..."
@@ -195,14 +197,16 @@ export const FilmFiltersMobile: FC<FilmFiltersMobileProps> = ({
                   color: 'var(--color-text-secondary)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor =
-                    'var(--color-border-primary)';
-                  e.currentTarget.style.color = 'var(--color-text-primary)';
+                  setStyles(e.currentTarget, {
+                    borderColor: 'var(--color-border-primary)',
+                    color: 'var(--color-text-primary)',
+                  });
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor =
-                    'var(--color-border-secondary)';
-                  e.currentTarget.style.color = 'var(--color-text-secondary)';
+                  setStyles(e.currentTarget, {
+                    borderColor: 'var(--color-border-secondary)',
+                    color: 'var(--color-text-secondary)',
+                  });
                 }}
               >
                 Clear all filters
