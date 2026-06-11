@@ -4,6 +4,12 @@ All notable changes to Dorkroom.art are documented here.
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.06.11]
+
+### Changed
+
+- Coordinated TanStack Store/Form bump: upgraded `@tanstack/react-store` `^0.8.0` → `^0.11.0` and `@tanstack/react-form` `^1.27.7` → `^1.33.0` together so a single `@tanstack/store@0.11.0` resolves across both. The standalone Dependabot bump of `@tanstack/react-store` to 0.11 (PR #89) did not compile: 0.11 ships a newer `@tanstack/store` whose `Store`/`Derived` interface requires a `get()` method, while the older `@tanstack/react-form` pinned an older `@tanstack/store` whose `Derived` (e.g. `form.store`) lacked it — two incompatible `@tanstack/store` interfaces typed `useStore(form.store, selector)` state as `unknown` and produced ~40 build errors in the border-calculator components. `react-form@1.33.0` depends on `react-store@^0.11.0` and `form-core@1.33.0` (`@tanstack/store@^0.11.0`), so the coordinated bump resolves a single compatible store with no `overrides` and no consuming-code changes
+
 ## [2026.05.28]
 
 ### Added
