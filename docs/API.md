@@ -16,6 +16,13 @@ To request an API key, email [aaron+dorkroom@affords.art](mailto:aaron+dorkroom@
 
 All endpoints are **GET only**.
 
+## Machine-Readable Spec
+
+- **OpenAPI 3.1:** [`https://api.dorkroom.art/openapi.json`](https://api.dorkroom.art/openapi.json) — import into Swagger UI, Postman, or a code generator.
+- **Interactive reference:** [`https://api.dorkroom.art/reference`](https://api.dorkroom.art/reference)
+
+The spec is generated from the same Zod schemas used for runtime validation, so it always matches the live response shapes.
+
 ## Rate Limits
 
 Per-key rate limits are configured when your key is issued (e.g. 60/min free, 300/min standard).
