@@ -1,6 +1,6 @@
 {
   "name": "@dorkroom/source",
-  "version": "2026.05.28",
+  "version": "2026.06.11",
   "license": "AGPL-3.0-only",
   "scripts": {
     "supabase:login": "bunx supabase login",
@@ -31,10 +31,10 @@
     "@fontsource-variable/montserrat": "^5.2.8",
     "@fontsource/vt323": "^5.2.7",
     "@tailwindcss/postcss": "4.3.0",
-    "@tanstack/react-form": "^1.27.7",
+    "@tanstack/react-form": "^1.33.0",
     "@tanstack/react-query": "^5.90.14",
     "@tanstack/react-router": "^1.144.0",
-    "@tanstack/react-store": "^0.8.0",
+    "@tanstack/react-store": "^0.11.0",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.13",
     "@tanstack/router-devtools": "^1.139.3",
