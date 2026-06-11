@@ -1,3 +1,4 @@
+// eslint-disable-next-line react-doctor/no-barrel-import -- this suite verifies the package barrel ('../index.js') re-exports everything; importing from source modules would defeat its purpose
 import {
   apiClient,
   DorkroomApiClient,
