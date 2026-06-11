@@ -21,6 +21,7 @@ export default defineConfig({
             'utils/__tests__/withHandler.{test,spec}.ts',
             'utils/__tests__/queryValidation.{test,spec}.ts',
             'utils/__tests__/routeMetadata.{test,spec}.ts',
+            'scripts/__tests__/*.{test,spec}.ts',
           ],
           exclude: ['utils/__tests__/presetSharing.{test,spec}.ts'],
           mockReset: true,
