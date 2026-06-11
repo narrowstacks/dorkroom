@@ -1,0 +1,43 @@
+name: Sync README Badges
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/package.json"
+      - scripts/sync-readme-badges.ts
+      - .github/workflows/sync-readme-badges.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-readme-badges-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  badges:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Sync badges
+        run: bun run scripts/sync-readme-badges.ts
+
+      - name: Commit updated README
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain README.md)" ]; then
+            git add README.md
+            git commit -m "chore: sync README version badges [skip ci]"
+            git push
+          else
+            echo "Badges unchanged; nothing to commit."
+          fi

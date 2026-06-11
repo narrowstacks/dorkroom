@@ -1,0 +1,12 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "dorkroom",
+  "compatibility_date": "2026-06-07",
+  // Static-asset-only Worker (no `main` script): serves the Vite SPA build.
+  // `directory` is resolved relative to this config file → apps/dorkroom/dist.
+  "assets": {
+    "directory": "./dist",
+    // Client-side routing: serve index.html for unmatched paths instead of 404.
+    "not_found_handling": "single-page-application"
+  }
+}

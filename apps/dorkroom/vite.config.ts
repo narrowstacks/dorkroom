@@ -72,6 +72,9 @@ export default defineConfig(() => ({
   preview: {
     port: 4300,
     host: 'localhost',
+    // Fail fast instead of silently falling back to another port — the
+    // screenshot workflow probes this exact port.
+    strictPort: true,
   },
   optimizeDeps: {
     include: ['react', 'react-dom'],
