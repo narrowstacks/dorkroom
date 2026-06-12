@@ -8,8 +8,7 @@ describe('StatCard', () => {
     label: 'Test Stat',
     value: '123',
     icon: Heart,
-    iconColor: 'text-red-500',
-    iconBg: 'bg-red-100',
+    iconColorKey: 'rose' as const,
     href: '/stats',
   };
 

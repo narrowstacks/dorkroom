@@ -179,7 +179,7 @@ function RootComponent() {
                     href="https://github.com/narrowstacks/dorkroom"
                     target="_blank"
                     rel="noreferrer"
-                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none"
+                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
                     style={{
                       color: 'var(--color-text-primary)',
                       borderColor: 'var(--color-border-secondary)',
@@ -196,7 +196,7 @@ function RootComponent() {
                     href="https://news.dorkroom.art"
                     target="_blank"
                     rel="noreferrer"
-                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none"
+                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
                     style={{
                       color: 'var(--color-text-primary)',
                       borderColor: 'var(--color-border-secondary)',
@@ -214,7 +214,7 @@ function RootComponent() {
                 <Tooltip label="Settings">
                   <Link
                     to="/settings"
-                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none"
+                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
                     style={{
                       color: 'var(--color-text-primary)',
                       borderColor: 'var(--color-border-secondary)',
@@ -232,7 +232,7 @@ function RootComponent() {
 
           <button
             type="button"
-            className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex size-12 items-center justify-center rounded-full shadow-lg backdrop-blur transition focus-visible:outline-none sm:hidden"
+            className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex size-12 items-center justify-center rounded-full shadow-lg backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)] sm:hidden"
             style={{
               color: 'var(--color-background)',
               borderColor: 'var(--color-background)',

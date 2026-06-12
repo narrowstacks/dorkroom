@@ -1,8 +1,9 @@
 import { memo, type ReactNode } from 'react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
+import type { AccentTone } from './accent-tone';
 
-type AccentTone = 'emerald' | 'sky' | 'violet' | 'none';
+type CardAccent = AccentTone | 'none';
 
 interface CalculatorCardProps {
   title?: string;
@@ -10,31 +11,14 @@ interface CalculatorCardProps {
   actions?: ReactNode;
   children: ReactNode;
   className?: string;
-  accent?: AccentTone;
+  accent?: CardAccent;
   padding?: 'normal' | 'compact';
 }
 
-// Legacy - replaced with getAccentStyle function
-
-// Theme-aware accent styles using predefined gradients
-const getAccentStyle = (
-  accent: Exclude<AccentTone, 'none'>
-): React.CSSProperties => {
-  switch (accent) {
-    case 'emerald':
-      return {
-        background: 'var(--gradient-card-primary)',
-      };
-    case 'sky':
-      return {
-        background: 'var(--gradient-card-info)',
-      };
-    case 'violet':
-      return {
-        background: 'var(--gradient-card-accent)',
-      };
-  }
-};
+// Theme-aware accent surface backed by the plan-003 `--accent-<tone>-*` vars.
+const getAccentStyle = (accent: AccentTone): React.CSSProperties => ({
+  background: `var(--accent-${accent}-gradient)`,
+});
 
 export const CalculatorCard = memo(function CalculatorCard({
   title,
@@ -53,7 +37,10 @@ export const CalculatorCard = memo(function CalculatorCard({
         className
       )}
       style={{
-        borderColor: 'var(--color-border-secondary)',
+        borderColor:
+          accent !== 'none'
+            ? `var(--accent-${accent}-border, var(--color-border-secondary))`
+            : 'var(--color-border-secondary)',
         backgroundColor: colorMixOr(
           'var(--color-surface)',
           80,

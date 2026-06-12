@@ -1,5 +1,6 @@
 // Shared calculator components subpath export
 export type {
+  AccentTone,
   CalculatorLayoutProps,
   InfoCardItem,
   InfoCardListProps,
