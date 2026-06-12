@@ -9,7 +9,7 @@ import {
   toFractionInput,
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
-import { StatusAlert } from '@dorkroom/ui';
+import { getRouteIcon, StatusAlert } from '@dorkroom/ui';
 import {
   CalculatorCard,
   CalculatorLayout,
@@ -431,12 +431,12 @@ function MatResults({
       <CalculatorCard
         title="Window opening"
         description="Sight opening, short point to short point."
-        accent="emerald"
+        accent="cyan"
         padding="compact"
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <CalculatorStat label="Width" value={fmt(windowW)} tone="emerald" />
-          <CalculatorStat label="Height" value={fmt(windowH)} tone="emerald" />
+          <CalculatorStat label="Width" value={fmt(windowW)} tone="cyan" />
+          <CalculatorStat label="Height" value={fmt(windowH)} tone="cyan" />
         </div>
       </CalculatorCard>
     </>
@@ -701,6 +701,8 @@ export default function MatCalculatorPage() {
   return (
     <CalculatorLayout
       title="Mat Cut Calculator"
+      icon={getRouteIcon('/mat')}
+      accentTone="cyan"
       description="Plan single-window mats with independent borders and get exact window openings and cutter guide-bar settings."
       results={
         <MatResults

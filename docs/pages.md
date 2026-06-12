@@ -316,12 +316,25 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 
 All calculator pages follow a consistent pattern:
 
-1. **Layout:** `CalculatorLayout` with title, description, sidebar, and results slots
-2. **Two-column layout:** Main content + sidebar (info/help)
-3. **Input card:** `CalculatorCard` with form fields
-4. **Results card:** `CalculatorCard` with accent color showing calculations
-5. **Info cards:** How-to-use and educational content in sidebar
-6. **State persistence:** localStorage via `useLocalStorageFormPersistence()`
+1. **Layout:** `CalculatorLayout` with title, description, sidebar, and results
+   slots. The border calculator also uses `CalculatorLayout` on desktop
+   (`ResponsiveBorderLayout`); its mobile drawer layout keeps its bespoke
+   structure but gets the same accent header.
+2. **Per-calculator accent identity:** each page passes an `icon` +
+   `accentTone` to its header (the `--accent-<tone>-*` family from plan 003,
+   aligned with nav categories so color = category, shade = tool). The same
+   tone backs the primary results `CalculatorCard accent` and any toned
+   `CalculatorStat`. Tones collapse to monochrome in high-contrast/darkroom.
+   Mapping: border=indigo, stops=blue, resize=teal, mat=cyan,
+   reciprocity=amber, development=rose (header only), lenses=emerald,
+   exposure=teal (EV card; violet/sky secondaries), films=cyan (Reference).
+   The mat diagram (`mat-diagram.tsx`) also uses the cyan accent token instead
+   of the brand green so the page reads as its own tool.
+3. **Two-column layout:** Main content + sidebar (info/help)
+4. **Input card:** `CalculatorCard` with form fields
+5. **Results card:** `CalculatorCard` with the page's accent tone
+6. **Info cards:** How-to-use and educational content in sidebar
+7. **State persistence:** localStorage via `useLocalStorageFormPersistence()`
 
 ### State Persistence Pattern
 

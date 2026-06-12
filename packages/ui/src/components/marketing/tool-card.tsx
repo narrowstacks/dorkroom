@@ -120,21 +120,21 @@ export const ToolCard = memo(function ToolCard({
         <div className="flex-1 min-w-0">
           {category ? (
             <div className="flex items-center justify-between mb-1">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-tool-card-category)] group-hover:text-[color:var(--color-tool-card-category-hover)]">
+              <p className="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-tertiary)] group-hover:text-[color:var(--color-text-secondary)]">
                 {category}
               </p>
-              <ArrowRight className="size-3.5 text-[color:var(--color-tool-card-arrow)] opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
+              <ArrowRight className="size-3.5 shrink-0 text-[color:var(--color-tool-card-arrow)] opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
             </div>
           ) : null}
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-[color:var(--color-tool-card-title)] truncate pr-4">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-semibold text-[color:var(--color-text-primary)]">
               {title}
             </h3>
             {category ? null : (
-              <ArrowRight className="size-3.5 shrink-0 text-[color:var(--color-tool-card-arrow)] opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
+              <ArrowRight className="mt-1 size-3.5 shrink-0 text-[color:var(--color-tool-card-arrow)] opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
             )}
           </div>
-          <p className="text-sm text-[color:var(--color-tool-card-description)] line-clamp-1 group-hover:text-[color:var(--color-tool-card-description-hover)]">
+          <p className="text-sm text-[color:var(--color-tool-card-description)] group-hover:text-[color:var(--color-tool-card-description-hover)]">
             {description}
           </p>
         </div>
