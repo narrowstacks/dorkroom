@@ -15,6 +15,8 @@ interface DevelopmentActionsBarProps {
   onOpenCustomRecipeModal: () => void;
   onRefresh: () => void;
   isRefreshing?: boolean;
+  /** Whether the initial data load is still in flight; suppresses the "0 pairings" subtitle. */
+  isLoading?: boolean;
   showImportButton?: boolean;
   isMobile?: boolean;
 }
@@ -27,6 +29,7 @@ export function DevelopmentActionsBar({
   onOpenCustomRecipeModal,
   onRefresh,
   isRefreshing,
+  isLoading = false,
   showImportButton = true,
   isMobile = false,
 }: DevelopmentActionsBarProps) {
@@ -64,7 +67,9 @@ export function DevelopmentActionsBar({
             className="text-sm"
             style={{ color: 'var(--color-text-tertiary)' }}
           >
-            {totalResults.toLocaleString()} film and developer pairings.
+            {isLoading
+              ? 'Loading recipes…'
+              : `${totalResults.toLocaleString()} film and developer pairings.`}
           </p>
         </div>
       </div>
