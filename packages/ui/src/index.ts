@@ -122,6 +122,7 @@ export * from './lib/measurement';
 export type { MobileNavItem, NavigationCategory } from './lib/navigation';
 export {
   allNavItems,
+  CATEGORY_LABELS,
   cameraItems,
   filmItems,
   mobileNavItems,

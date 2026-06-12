@@ -112,24 +112,31 @@ export interface NavigationCategory {
   items: NavigationItem[];
 }
 
+export const CATEGORY_LABELS = {
+  printing: 'Printing',
+  film: 'Film',
+  camera: 'Camera',
+  reference: 'Reference',
+} as const;
+
 export const navigationCategories: NavigationCategory[] = [
   {
-    label: 'Printing',
+    label: CATEGORY_LABELS.printing,
     icon: asFunctionComponent(Printer),
     items: printingItems,
   },
   {
-    label: 'Film',
+    label: CATEGORY_LABELS.film,
     icon: asFunctionComponent(Film),
     items: filmItems,
   },
   {
-    label: 'Camera',
+    label: CATEGORY_LABELS.camera,
     icon: asFunctionComponent(Camera),
     items: cameraItems,
   },
   {
-    label: 'Reference',
+    label: CATEGORY_LABELS.reference,
     icon: asFunctionComponent(BookOpen),
     items: referenceItems,
   },

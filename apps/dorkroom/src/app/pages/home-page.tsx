@@ -1,5 +1,5 @@
 import { useStats } from '@dorkroom/logic';
-import { Greeting, StatCard, ToolCard } from '@dorkroom/ui';
+import { CATEGORY_LABELS, Greeting, StatCard, ToolCard } from '@dorkroom/ui';
 import { Link } from '@tanstack/react-router';
 import {
   BookOpen,
@@ -24,7 +24,7 @@ import { useEffect, useState } from 'react';
 // Calculator tools configuration - module level to prevent recreation on each render
 const CALCULATORS = [
   {
-    category: 'Darkroom Printing',
+    category: CATEGORY_LABELS.printing,
     title: 'Border Calculator',
     description: 'Print borders & trim guides',
     href: '/border',
@@ -34,7 +34,7 @@ const CALCULATORS = [
     border: 'group-hover:border-indigo-500/50',
   },
   {
-    category: 'Darkroom Printing',
+    category: CATEGORY_LABELS.printing,
     title: 'Stops Calculator',
     description: 'F-stop & time math',
     href: '/stops',
@@ -44,7 +44,7 @@ const CALCULATORS = [
     border: 'group-hover:border-blue-500/50',
   },
   {
-    category: 'Darkroom Printing',
+    category: CATEGORY_LABELS.printing,
     title: 'Resize Calculator',
     description: 'Scale prints, no wasting test strips',
     href: '/resize',
@@ -54,7 +54,7 @@ const CALCULATORS = [
     border: 'group-hover:border-violet-500/50',
   },
   {
-    category: 'Darkroom Printing',
+    category: CATEGORY_LABELS.printing,
     title: 'Mat Cut Calculator',
     description: 'Window openings & cut guides',
     href: '/mat',
@@ -64,7 +64,7 @@ const CALCULATORS = [
     border: 'group-hover:border-teal-500/50',
   },
   {
-    category: 'Film',
+    category: CATEGORY_LABELS.film,
     title: 'Reciprocity',
     description: 'Film long exposure correction',
     href: '/reciprocity',
@@ -74,7 +74,7 @@ const CALCULATORS = [
     border: 'group-hover:border-amber-500/50',
   },
   {
-    category: 'Film',
+    category: CATEGORY_LABELS.film,
     title: 'Film Development Recipes',
     description: 'B&W film development database',
     href: '/development',
@@ -84,7 +84,7 @@ const CALCULATORS = [
     border: 'group-hover:border-rose-500/50',
   },
   {
-    category: 'Film Reference',
+    category: CATEGORY_LABELS.reference,
     title: 'Film Database',
     description: 'Browse film stocks by brand & ISO',
     href: '/films',
@@ -94,7 +94,7 @@ const CALCULATORS = [
     border: 'group-hover:border-cyan-500/50',
   },
   {
-    category: 'Film & Digital',
+    category: CATEGORY_LABELS.camera,
     title: 'Lens Equivalency',
     description: 'Compare format lens differences',
     href: '/lenses',
@@ -104,7 +104,7 @@ const CALCULATORS = [
     border: 'group-hover:border-emerald-500/50',
   },
   {
-    category: 'Film & Digital',
+    category: CATEGORY_LABELS.camera,
     title: 'Camera Exposure',
     description: 'Equivalent exposure calculator',
     href: '/exposure',
