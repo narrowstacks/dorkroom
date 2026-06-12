@@ -8,7 +8,12 @@ import {
   SENSOR_FORMATS,
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
-import { ResultRow, Select, SensorSizeVisualization } from '@dorkroom/ui';
+import {
+  getRouteIcon,
+  ResultRow,
+  Select,
+  SensorSizeVisualization,
+} from '@dorkroom/ui';
 import {
   CalculatorCard,
   CalculatorNumberField,
@@ -93,7 +98,7 @@ const FOCAL_LENGTH_PRESETS = [
   { value: 135, label: '135' },
 ];
 
-// eslint-disable-next-line react-doctor/no-giant-component -- component size pre-dates this plan; will be split in plan 007
+// eslint-disable-next-line react-doctor/no-giant-component -- size pre-dates plan 007, which only added the accent header here; a results-card extraction (needs threading `form` to a child) stays deferred to avoid regression risk on this flagship page
 export default function LensCalculatorPage() {
   const form = useForm({
     defaultValues: {
@@ -149,6 +154,8 @@ export default function LensCalculatorPage() {
     <div className="mx-auto max-w-7xl px-6 pb-16 pt-12 sm:px-10">
       <CalculatorPageHeader
         eyebrow="Format Comparison"
+        icon={getRouteIcon('/lenses')}
+        accentTone="emerald"
         title="Lens Equivalency Calculator"
         description="Calculate equivalent focal lengths between different sensor and film formats. Find out what lens gives you the same field of view when switching between cameras or formats."
       />

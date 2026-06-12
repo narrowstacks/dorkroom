@@ -150,6 +150,17 @@ export const allNavItems = [
   ...referenceItems,
 ];
 
+/**
+ * Resolve the lucide icon for a route from the nav metadata, so calculator
+ * page headers render the same icon as home/nav without re-importing icons
+ * per page. Returns `undefined` for routes without a nav entry.
+ */
+export function getRouteIcon(
+  to: string
+): ComponentType<{ className?: string }> | undefined {
+  return allNavItems.find((item) => item.to === to)?.icon;
+}
+
 export const ROUTE_TITLES: Record<string, string> = {
   '/': 'Home',
   '/border': 'Border Calculator',

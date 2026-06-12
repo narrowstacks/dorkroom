@@ -10,7 +10,7 @@ import {
   roundToStandardPrecision,
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
-import { ResultRow } from '@dorkroom/ui';
+import { getRouteIcon, ResultRow } from '@dorkroom/ui';
 import {
   CalculatorCard,
   CalculatorLayout,
@@ -98,6 +98,8 @@ export default function ExposureCalculatorPage() {
   return (
     <CalculatorLayout
       title="Exposure Stop Calculator"
+      icon={getRouteIcon('/stops')}
+      accentTone="blue"
       description={
         <>
           Adjust exposure times by stops for darkroom printing.
@@ -188,7 +190,7 @@ export default function ExposureCalculatorPage() {
             <CalculatorCard
               title="Exposure results"
               description={`Adjusted exposure time for ${calculation.stopsValue >= 0 ? 'increased' : 'decreased'} amount of stops`}
-              accent="emerald"
+              accent="blue"
               padding="compact"
             >
               <div className="grid gap-4 sm:grid-cols-2">
@@ -198,7 +200,7 @@ export default function ExposureCalculatorPage() {
                   helperText={`${calculation.stopsValue > 0 ? '+' : ''}${
                     calculation.stopsValue
                   } stops`}
-                  tone="emerald"
+                  tone="blue"
                 />
                 <CalculatorStat
                   label={`${
@@ -213,7 +215,7 @@ export default function ExposureCalculatorPage() {
 
               <div className="rounded-2xl p-4 font-mono text-sm border border-secondary bg-background/20 text-primary">
                 {`${formatExposureTime(calculation.originalTimeValue)} `}
-                <span className="align-super text-xs font-semibold text-[color:var(--color-primary)]">
+                <span className="align-super text-xs font-semibold text-[color:var(--color-on-accent)]">
                   ×2^
                   {calculation.stopsValue}
                 </span>

@@ -1,5 +1,5 @@
 import { useStats } from '@dorkroom/logic';
-import { CATEGORY_LABELS, Greeting, StatCard, ToolCard } from '@dorkroom/ui';
+import { CATEGORY_LABELS, Greeting, ToolCard } from '@dorkroom/ui';
 import { Link } from '@tanstack/react-router';
 import {
   BookOpen,
@@ -16,12 +16,13 @@ import {
   GraduationCap,
   HandCoins,
   Ruler,
-  TestTubes,
   Timer,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { HomeHeroPreview } from './home-hero-preview';
 
-// Calculator tools configuration - module level to prevent recreation on each render
+// Calculator tools configuration - module level to prevent recreation on each
+// render. Accents match each target page's tone (see plan 007).
 const CALCULATORS = [
   {
     category: CATEGORY_LABELS.printing,
@@ -45,7 +46,7 @@ const CALCULATORS = [
     description: 'Scale prints, no wasting test strips',
     href: '/resize',
     icon: Ruler,
-    accent: 'violet',
+    accent: 'teal',
   },
   {
     category: CATEGORY_LABELS.printing,
@@ -53,7 +54,7 @@ const CALCULATORS = [
     description: 'Window openings & cut guides',
     href: '/mat',
     icon: Frame,
-    accent: 'teal',
+    accent: 'cyan',
   },
   {
     category: CATEGORY_LABELS.film,
@@ -72,14 +73,6 @@ const CALCULATORS = [
     accent: 'rose',
   },
   {
-    category: CATEGORY_LABELS.reference,
-    title: 'Film Database',
-    description: 'Browse film stocks by brand & ISO',
-    href: '/films',
-    icon: Film,
-    accent: 'cyan',
-  },
-  {
     category: CATEGORY_LABELS.camera,
     title: 'Lens Equivalency',
     description: 'Compare format lens differences',
@@ -93,7 +86,15 @@ const CALCULATORS = [
     description: 'Equivalent exposure calculator',
     href: '/exposure',
     icon: Camera,
-    accent: 'sky',
+    accent: 'teal',
+  },
+  {
+    category: CATEGORY_LABELS.reference,
+    title: 'Film Database',
+    description: 'Browse film stocks by brand & ISO',
+    href: '/films',
+    icon: Film,
+    accent: 'cyan',
   },
 ] as const;
 
@@ -110,28 +111,6 @@ const COMING_SOON = [
   },
 ];
 
-const CALCULATOR_CATEGORIES = [
-  CATEGORY_LABELS.printing,
-  CATEGORY_LABELS.film,
-  CATEGORY_LABELS.camera,
-  CATEGORY_LABELS.reference,
-] as const;
-
-// Group calculators by category in a single pass, preserving the order above.
-type CalculatorCard = Omit<(typeof CALCULATORS)[number], 'category'>;
-const CALCULATORS_BY_CATEGORY = (() => {
-  const groups = new Map<string, CalculatorCard[]>(
-    CALCULATOR_CATEGORIES.map((label) => [label, []])
-  );
-  for (const { category, ...tool } of CALCULATORS) {
-    groups.get(category)?.push(tool);
-  }
-  return CALCULATOR_CATEGORIES.map((label) => ({
-    label,
-    tools: groups.get(label) ?? [],
-  }));
-})();
-
 export function HomePage() {
   const { data: stats, isPending: isStatsLoading } = useStats();
   // Compute the year client-only to avoid a render-time new Date() value.
@@ -141,12 +120,18 @@ export function HomePage() {
     setCurrentYear(new Date().getFullYear());
   }, []);
 
+  const heroStats = [
+    { value: stats?.combinations, label: 'development recipes' },
+    { value: stats?.films, label: 'film stocks' },
+    { value: stats?.developers, label: 'developers' },
+  ];
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 pb-24 space-y-10">
-      {/* Hero Section */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6">
-        {/* Hero copy + CTAs - unboxed */}
-        <div className="md:col-span-8 flex flex-col justify-between gap-6">
+      {/* Hero: one grain-textured panel - copy + CTAs on the left, live
+          border preview on the right */}
+      <div className="hero-grain rounded-3xl border border-[color:var(--color-border-secondary)] p-6 sm:p-8 shadow-subtle grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-10 md:items-center">
+        <div className="md:col-span-7 flex flex-col gap-5">
           <div>
             <Greeting />
             <p className="text-lg sm:text-xl mt-2 text-[color:var(--color-text-secondary)]">
@@ -157,6 +142,21 @@ export function HomePage() {
               exposure tools. Free and open source.
             </p>
           </div>
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[color:var(--color-text-tertiary)]">
+            {heroStats.map(({ value, label }, index) => (
+              <span key={label} className="inline-flex items-center gap-x-2">
+                {index > 0 ? <span aria-hidden>·</span> : null}
+                <span>
+                  <span className="font-bold text-[color:var(--color-text-secondary)]">
+                    {isStatsLoading || value === undefined
+                      ? '-'
+                      : value.toLocaleString()}
+                  </span>{' '}
+                  {label}
+                </span>
+              </span>
+            ))}
+          </p>
           <div className="flex flex-wrap gap-2">
             <Link
               to="/border"
@@ -174,39 +174,8 @@ export function HomePage() {
             </Link>
           </div>
         </div>
-        {/* Quick Stats / Actions */}
-        <div className="md:col-span-4 grid grid-cols-2 gap-3">
-          <StatCard
-            as={Link}
-            to="/development"
-            label="Development Recipes"
-            value={stats ? stats.combinations.toLocaleString() : '-'}
-            icon={FlaskConical}
-            iconColorKey="emerald"
-            variant="horizontal"
-            className="col-span-2"
-            loading={isStatsLoading}
-          />
-
-          <StatCard
-            as={Link}
-            to="/films"
-            label="Film Stocks"
-            value={stats ? stats.films.toLocaleString() : '-'}
-            icon={Film}
-            iconColorKey="rose"
-            loading={isStatsLoading}
-          />
-
-          <StatCard
-            as={Link}
-            to="/development"
-            label="Developers"
-            value={stats ? stats.developers.toLocaleString() : '-'}
-            icon={TestTubes}
-            iconColorKey="indigo"
-            loading={isStatsLoading}
-          />
+        <div className="hidden md:block md:col-span-5">
+          <HomeHeroPreview />
         </div>
       </div>
 
@@ -223,69 +192,50 @@ export function HomePage() {
           />
         </div>
 
-        <div className="space-y-6">
-          {CALCULATORS_BY_CATEGORY.map(({ label, tools }) => (
-            <div key={label}>
-              <h3 className="text-sm font-medium text-[color:var(--color-text-tertiary)] uppercase tracking-wider mb-3">
-                {label}
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {tools.map((tool) => (
-                  <ToolCard
-                    key={tool.title}
-                    {...tool}
-                    as={Link}
-                    href={tool.href}
-                  />
-                ))}
-              </div>
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr">
+          {CALCULATORS.map((tool, index) => (
+            <ToolCard
+              key={tool.title}
+              {...tool}
+              as={Link}
+              href={tool.href}
+              className={
+                index === CALCULATORS.length - 1
+                  ? 'sm:col-span-2 lg:col-span-1'
+                  : undefined
+              }
+            />
           ))}
         </div>
       </div>
 
-      {/* Coming Soon Section */}
-      <div>
-        <div
-          className="flex items-center justify-between mb-6"
-          data-coming-soon-section
-        >
-          <h2 className="text-xl font-semibold text-[color:var(--color-text-primary)] flex items-center gap-2">
-            <Construction
-              className="size-5 text-[color:var(--color-text-tertiary)]"
+      {/* Coming Soon - quiet strip below the grid */}
+      <div
+        className="rounded-2xl border border-dashed px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-x-8 gap-y-2"
+        style={{
+          borderColor: 'var(--color-border-secondary)',
+          backgroundColor: 'var(--color-surface-muted)',
+        }}
+        data-coming-soon-section
+      >
+        <span className="flex shrink-0 items-center gap-2 text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-tertiary)]">
+          <Construction className="size-4" data-coming-soon />
+          Coming soon
+        </span>
+        {COMING_SOON.map((item) => (
+          <div key={item.title} className="flex items-center gap-2 min-w-0">
+            <item.icon
+              className="size-4 shrink-0 text-[color:var(--color-text-tertiary)]"
               data-coming-soon
             />
-            Coming Soon
-          </h2>
-          <div
-            className="h-px flex-1 ml-4"
-            style={{ backgroundColor: 'var(--color-border-primary)' }}
-          />
-        </div>
-
-        <div
-          className="rounded-2xl border border-dashed p-4 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8"
-          style={{
-            borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'var(--color-surface-muted)',
-          }}
-          data-coming-soon-section
-        >
-          {COMING_SOON.map((item) => (
-            <div key={item.title} className="flex items-center gap-2 min-w-0">
-              <item.icon
-                className="size-4 shrink-0 text-[color:var(--color-text-tertiary)]"
-                data-coming-soon
-              />
-              <span className="font-medium text-[color:var(--color-text-secondary)]">
-                {item.title}
-              </span>
-              <span className="text-sm text-[color:var(--color-text-tertiary)] truncate">
-                {item.description}
-              </span>
-            </div>
-          ))}
-        </div>
+            <span className="font-medium text-[color:var(--color-text-secondary)]">
+              {item.title}
+            </span>
+            <span className="text-sm text-[color:var(--color-text-tertiary)] truncate">
+              {item.description}
+            </span>
+          </div>
+        ))}
       </div>
 
       {/* Footer Links - Minimal */}
