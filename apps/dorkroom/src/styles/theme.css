@@ -12,8 +12,6 @@
   --color-highlight: #e5ff7d;
   --spacing-18: 4.5rem;
   --border-radius-hero: 36px;
-  --size-hero-blob: 8rem;
-  --spacing-hero-blob-offset: -1rem;
 }
 
 /* Darkroom theme checkbox */
@@ -194,13 +192,6 @@
   --color-button-error: #ff0000;
   --color-button-error-hover: #ff0000;
   --color-button-text: #000000;
-  /* Home page hero section colors for darkroom theme */
-  --color-hero-border: #ff0000;
-  --color-hero-border-hover: #ff0000;
-  --color-hero-bg: #000000;
-  --color-hero-title: #ff0000;
-  --color-hero-text: #a90000;
-  --gradient-hero-accent: none;
   /* Tool card colors for darkroom theme */
   --color-tool-card-bg: #000000;
   --color-tool-card-icon-bg: #000000;
@@ -357,17 +348,6 @@
   --color-button-error: #991b1b;
   --color-button-error-hover: #b91c1c;
   --color-button-text: #ffffff;
-  /* Home page hero section colors for dark theme (original: border-zinc-800, bg-zinc-900/50) */
-  --color-hero-border: #27272a;
-  --color-hero-border-hover: #3f3f46;
-  --color-hero-bg: rgba(24, 24, 27, 0.5);
-  --color-hero-title: #ffffff;
-  --color-hero-text: #a1a1aa;
-  --gradient-hero-accent: linear-gradient(
-    to bottom right,
-    rgba(99, 102, 241, 0.2),
-    rgba(168, 85, 247, 0.2)
-  );
   /* Tool card colors for dark theme (original: border-zinc-800, bg-zinc-900/30) */
   --color-tool-card-bg: rgba(24, 24, 27, 0.6);
   --color-tool-card-icon-bg: rgba(39, 39, 42, 0.8);
@@ -598,17 +578,6 @@
   --color-button-error: #991b1b;
   --color-button-error-hover: #b91c1c;
   --color-button-text: #ffffff;
-  /* Home page hero section colors for light theme */
-  --color-hero-border: rgba(9, 9, 11, 0.18);
-  --color-hero-border-hover: rgba(9, 9, 11, 0.3);
-  --color-hero-bg: #f8f9fa;
-  --color-hero-title: #09090b;
-  --color-hero-text: #52525b;
-  --gradient-hero-accent: linear-gradient(
-    to bottom right,
-    rgba(99, 102, 241, 0.1),
-    rgba(168, 85, 247, 0.1)
-  );
   /* Tool card colors for light theme */
   --color-tool-card-bg: #f8f9fa;
   --color-tool-card-icon-bg: rgba(9, 9, 11, 0.06);
@@ -729,13 +698,6 @@
   --color-button-error: #000000;
   --color-button-error-hover: #000000;
   --color-button-text: #ffffff;
-  /* Home page hero section colors for high-contrast theme */
-  --color-hero-border: #000000;
-  --color-hero-border-hover: #000000;
-  --color-hero-bg: #ffffff;
-  --color-hero-title: #000000;
-  --color-hero-text: #000000;
-  --gradient-hero-accent: none;
   /* Tool card colors for high-contrast theme */
   --color-tool-card-bg: #ffffff;
   --color-tool-card-icon-bg: #ffffff;

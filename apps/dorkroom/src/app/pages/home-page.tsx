@@ -99,18 +99,38 @@ const CALCULATORS = [
 
 const COMING_SOON = [
   {
-    category: 'Resources',
     title: 'Docs',
     description: 'Documentation for Dorkroom',
     icon: BookOpen,
   },
   {
-    category: 'Knowledge',
     title: 'Infobase',
     description: 'Photography & darkroom guides',
     icon: GraduationCap,
   },
 ];
+
+const CALCULATOR_CATEGORIES = [
+  CATEGORY_LABELS.printing,
+  CATEGORY_LABELS.film,
+  CATEGORY_LABELS.camera,
+  CATEGORY_LABELS.reference,
+] as const;
+
+// Group calculators by category in a single pass, preserving the order above.
+type CalculatorCard = Omit<(typeof CALCULATORS)[number], 'category'>;
+const CALCULATORS_BY_CATEGORY = (() => {
+  const groups = new Map<string, CalculatorCard[]>(
+    CALCULATOR_CATEGORIES.map((label) => [label, []])
+  );
+  for (const { category, ...tool } of CALCULATORS) {
+    groups.get(category)?.push(tool);
+  }
+  return CALCULATOR_CATEGORIES.map((label) => ({
+    label,
+    tools: groups.get(label) ?? [],
+  }));
+})();
 
 export function HomePage() {
   const { data: stats, isPending: isStatsLoading } = useStats();
@@ -123,57 +143,35 @@ export function HomePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 pb-24 space-y-10">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-        <Greeting />
-      </div>
-
-      {/* Featured Dashboard Grid */}
+      {/* Hero Section */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6">
-        {/* Main Hero - Compact */}
-        <div className="md:col-span-8 relative overflow-hidden rounded-3xl border p-6 sm:p-8 transition-all group hero-card">
-          <div
-            className="absolute top-0 right-0 blur-3xl rounded-full"
-            style={{
-              backgroundImage: 'var(--gradient-hero-accent)',
-              width: 'var(--size-hero-blob)',
-              height: 'var(--size-hero-blob)',
-              marginTop: 'var(--spacing-hero-blob-offset)',
-              marginRight: 'var(--spacing-hero-blob-offset)',
-            }}
-          />
-          <div className="relative z-10 flex flex-col justify-between h-full gap-6">
-            <div>
-              <h2
-                className="text-2xl font-semibold mb-2"
-                style={{ color: 'var(--color-hero-title)' }}
-              >
-                Skip the math. Make prints!
-              </h2>
-              <p
-                className="max-w-md"
-                style={{ color: 'var(--color-hero-text)' }}
-              >
-                Darkroom printing calculators, film development recipes, and
-                exposure tools. Free and open source.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                to="/border"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors hero-button-success"
-              >
-                <Crop className="size-4" />
-                Calculate darkroom easel borders
-              </Link>
-              <Link
-                to="/development"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors hero-button-error"
-              >
-                <FlaskConical className="size-4" />
-                Search film development recipes
-              </Link>
-            </div>
+        {/* Hero copy + CTAs - unboxed */}
+        <div className="md:col-span-8 flex flex-col justify-between gap-6">
+          <div>
+            <Greeting />
+            <p className="text-lg sm:text-xl mt-2 text-[color:var(--color-text-secondary)]">
+              Skip the math. Make prints!
+            </p>
+            <p className="max-w-md mt-2 text-[color:var(--color-text-tertiary)]">
+              Darkroom printing calculators, film development recipes, and
+              exposure tools. Free and open source.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              to="/border"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm button-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
+            >
+              <Crop className="size-4" />
+              Calculate darkroom easel borders
+            </Link>
+            <Link
+              to="/development"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm button-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
+            >
+              <FlaskConical className="size-4" />
+              Search film development recipes
+            </Link>
           </div>
         </div>
         {/* Quick Stats / Actions */}
@@ -225,9 +223,23 @@ export function HomePage() {
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {CALCULATORS.map((tool) => (
-            <ToolCard key={tool.title} {...tool} as={Link} href={tool.href} />
+        <div className="space-y-6">
+          {CALCULATORS_BY_CATEGORY.map(({ label, tools }) => (
+            <div key={label}>
+              <h3 className="text-sm font-medium text-[color:var(--color-text-tertiary)] uppercase tracking-wider mb-3">
+                {label}
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {tools.map((tool) => (
+                  <ToolCard
+                    key={tool.title}
+                    {...tool}
+                    as={Link}
+                    href={tool.href}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -252,41 +264,25 @@ export function HomePage() {
         </div>
 
         <div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          className="rounded-2xl border border-dashed p-4 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8"
+          style={{
+            borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'var(--color-surface-muted)',
+          }}
           data-coming-soon-section
         >
           {COMING_SOON.map((item) => (
-            <div
-              key={item.title}
-              className="relative overflow-hidden rounded-2xl border border-dashed p-5"
-              style={{
-                borderColor: 'var(--color-border-secondary)',
-                backgroundColor: 'var(--color-surface-muted)',
-              }}
-            >
-              <div className="flex items-start gap-4">
-                <div
-                  className="p-3 rounded-xl border"
-                  style={{
-                    backgroundColor: 'var(--color-surface)',
-                    borderColor: 'var(--color-border-secondary)',
-                    color: 'var(--color-text-tertiary)',
-                  }}
-                >
-                  <item.icon className="size-6" data-coming-soon />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-text-tertiary)] mb-1">
-                    {item.category}
-                  </p>
-                  <h3 className="font-semibold text-[color:var(--color-text-secondary)] truncate pr-4">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm text-[color:var(--color-text-tertiary)] line-clamp-1">
-                    {item.description}
-                  </p>
-                </div>
-              </div>
+            <div key={item.title} className="flex items-center gap-2 min-w-0">
+              <item.icon
+                className="size-4 shrink-0 text-[color:var(--color-text-tertiary)]"
+                data-coming-soon
+              />
+              <span className="font-medium text-[color:var(--color-text-secondary)]">
+                {item.title}
+              </span>
+              <span className="text-sm text-[color:var(--color-text-tertiary)] truncate">
+                {item.description}
+              </span>
             </div>
           ))}
         </div>

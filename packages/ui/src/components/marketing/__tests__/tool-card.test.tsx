@@ -21,6 +21,14 @@ describe('ToolCard', () => {
     expect(screen.getByText('Category')).toBeInTheDocument();
   });
 
+  it('omits the category eyebrow when category is not provided', () => {
+    const { category: _category, ...withoutCategory } = defaultProps;
+    render(<ToolCard {...withoutCategory} />);
+
+    expect(screen.getByText('Test Tool')).toBeInTheDocument();
+    expect(screen.queryByText('Category')).not.toBeInTheDocument();
+  });
+
   it('has accessible name via aria-label', () => {
     render(<ToolCard {...defaultProps} />);
     expect(screen.getByRole('link')).toHaveAttribute('aria-label', 'Test Tool');
