@@ -19,6 +19,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
+- Mobile Safari: opening the floating navigation menu no longer leaves a frozen background-colored block over the bottom (and top) of the page that persisted until reload. The menu's backdrop and drawer now unmount when closed (via a new `usePresence` hook, extracted with the FAB into a `MobileNav` component) so iOS WebKit can't retain a stale composited tile behind the dynamic toolbar. The `theme-color` meta now tracks the active theme, so the status-bar/toolbar bands match the page background instead of a hardcoded near-black
 - Darkroom theme: the home hero box renders as plain black (film-grain texture removed), and the stray red stroke framing the border-calculator preview (and its caption) is gone in both darkroom and high-contrast — it came from the `main a[href*="/border"]` button-border rule catching the preview link. The primary "Calculate darkroom easel borders" CTA icon is now black instead of blending into the red button
 - Homepage Screenshot CI workflow: the capture script waited on a `.hero-card` element that the home-UX refresh removed, timing out on every run — updated to the current `.hero-grain` hero panel
 

@@ -78,6 +78,24 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
           'data-animations-disabled',
           shouldDisableAnimations ? 'true' : 'false'
         );
+
+        // Sync iOS Safari's browser-chrome color (status bar + toolbar
+        // background-extension bands) to the active theme's background. The
+        // static meta in index.html is near-black (#09090b); without this it
+        // shows as a black band in light/high-contrast themes — most visibly
+        // at the top and behind the bottom toolbar while the mobile menu is
+        // open (the page is dimmed, so the chrome bands stand out).
+        const themeColorMeta = document.querySelector<HTMLMetaElement>(
+          'meta[name="theme-color"]'
+        );
+        if (themeColorMeta) {
+          const background = getComputedStyle(document.documentElement)
+            .getPropertyValue('--color-background')
+            .trim();
+          if (background) {
+            themeColorMeta.setAttribute('content', background);
+          }
+        }
       }
     };
 

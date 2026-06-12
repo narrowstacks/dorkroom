@@ -1,6 +1,5 @@
 import {
   allNavItems,
-  MobileSidebar,
   NavigationDropdown,
   navigationCategories,
   ROUTE_TITLES,
@@ -16,22 +15,14 @@ import {
   useRouterState,
 } from '@tanstack/react-router';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-import {
-  Beaker,
-  GitBranch,
-  Home,
-  Menu,
-  Newspaper,
-  Settings,
-  X,
-} from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Beaker, GitBranch, Home, Newspaper, Settings } from 'lucide-react';
+import { useEffect } from 'react';
 import { cn } from '../app/lib/cn';
+import { MobileNav } from '../components/mobile-nav';
 
 function RootComponent() {
   const router = useRouter();
   const routerState = useRouterState();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = routerState.location.pathname;
 
   // Update document title based on route
@@ -48,54 +39,6 @@ function RootComponent() {
     document.title =
       pageTitle === 'Dorkroom' ? 'Dorkroom' : `${pageTitle} - Dorkroom`;
   }, [pathname]);
-
-  // Handle body overflow for mobile menu
-  useEffect(() => {
-    if (typeof document === 'undefined') {
-      return undefined;
-    }
-
-    if (isMobileMenuOpen) {
-      const previousOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-
-      return () => {
-        document.body.style.overflow = previousOverflow;
-      };
-    } else {
-      document.body.style.removeProperty('overflow');
-      return undefined;
-    }
-  }, [isMobileMenuOpen]);
-
-  // Close mobile menu when viewport crosses the sm breakpoint (640px)
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return undefined;
-    }
-
-    const mq = window.matchMedia('(min-width: 640px)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      if (e.matches) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    mq.addEventListener('change', handleChange);
-    return () => mq.removeEventListener('change', handleChange);
-  }, []);
-
-  // Close mobile menu on Escape key
-  useEffect(() => {
-    if (!isMobileMenuOpen) return undefined;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsMobileMenuOpen(false);
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isMobileMenuOpen]);
 
   const handleNavigate = (path: string) => {
     router.navigate({ to: path });
@@ -233,74 +176,7 @@ function RootComponent() {
             </div>
           </header>
 
-          <button
-            type="button"
-            className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex size-12 items-center justify-center rounded-full shadow-lg backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)] sm:hidden"
-            style={{
-              color: 'var(--color-background)',
-              borderColor: 'var(--color-background)',
-              borderWidth: 1,
-              backgroundColor: 'var(--color-text-primary)',
-              opacity: 0.9,
-            }}
-            aria-label={
-              isMobileMenuOpen ? 'Close navigation' : 'Open navigation'
-            }
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="mobile-navigation"
-            onClick={() => setIsMobileMenuOpen((open) => !open)}
-          >
-            {isMobileMenuOpen ? (
-              <X className="size-5" />
-            ) : (
-              <Menu className="size-5" />
-            )}
-          </button>
-
-          {/* Backdrop */}
-          <div
-            className={cn(
-              'fixed inset-0 z-40 backdrop-blur-sm transition-opacity duration-300 sm:hidden',
-              isMobileMenuOpen
-                ? 'pointer-events-auto opacity-100'
-                : 'pointer-events-none opacity-0'
-            )}
-            style={{
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.6)',
-            }}
-            aria-hidden="true"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-
-          {/* Slide-in mobile menu. role="dialog" + aria-modal mark it as a modal
-              so AT does not roam the page behind the overlay while it is open. A
-              native <dialog> can't be used here: it would be display:none when
-              closed, breaking the persistent slide transition. */}
-          <nav
-            id="mobile-navigation"
-            className={cn(
-              'fixed right-0 top-0 z-50 h-dvh w-72 border-l shadow-xl backdrop-blur transition-transform duration-300 ease-out sm:hidden',
-              isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-            )}
-            style={{
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.95)',
-              borderColor: 'var(--color-border-secondary)',
-            }}
-            // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a native <dialog> is display:none when closed and breaks the slide transition; role="dialog" is required so aria-modal is valid here
-            role="dialog"
-            aria-hidden={!isMobileMenuOpen}
-            aria-modal={isMobileMenuOpen || undefined}
-            aria-label="Navigation menu"
-          >
-            <MobileSidebar
-              pathname={pathname}
-              onNavigate={(path) => {
-                router.navigate({ to: path });
-                setIsMobileMenuOpen(false);
-              }}
-              onClose={() => setIsMobileMenuOpen(false)}
-            />
-          </nav>
+          <MobileNav pathname={pathname} onNavigate={handleNavigate} />
 
           <main>
             <Outlet />
