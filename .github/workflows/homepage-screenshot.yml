@@ -64,10 +64,22 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain resources/dorkroom-homepage.webp)" ]; then
-            git add resources/dorkroom-homepage.webp
-            git commit -m "chore: update homepage screenshot [skip ci]"
-            git push
-          else
+          if [ -z "$(git status --porcelain resources/dorkroom-homepage.webp)" ]; then
             echo "Screenshot unchanged; nothing to commit."
+            exit 0
           fi
+          git add resources/dorkroom-homepage.webp
+          git commit -m "chore: update homepage screenshot [skip ci]"
+          # Other push-triggered workflows (e.g. the README badge sync) can land
+          # on main first, rejecting our push. The screenshot commit only touches
+          # one binary file, so a rebase is conflict-free — retry a few times.
+          for attempt in 1 2 3 4 5; do
+            if git push; then
+              echo "Pushed on attempt ${attempt}."
+              exit 0
+            fi
+            echo "Push rejected (attempt ${attempt}); rebasing onto latest main..."
+            git pull --rebase origin main
+          done
+          echo "Failed to push screenshot after 5 attempts." >&2
+          exit 1
