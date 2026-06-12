@@ -90,7 +90,7 @@ export const FilmImage: FC<FilmImageProps> = ({
   return (
     <div
       className={cn(
-        'aspect-square flex items-center justify-center rounded-lg overflow-hidden flex-shrink-0',
+        'relative aspect-square flex items-center justify-center rounded-lg overflow-hidden flex-shrink-0',
         className
       )}
       style={{
