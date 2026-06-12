@@ -29,9 +29,7 @@ const CALCULATORS = [
     description: 'Print borders & trim guides',
     href: '/border',
     icon: Crop,
-    color: 'text-indigo-400',
-    bg: 'from-indigo-500/20 to-purple-500/20',
-    border: 'group-hover:border-indigo-500/50',
+    accent: 'indigo',
   },
   {
     category: CATEGORY_LABELS.printing,
@@ -39,9 +37,7 @@ const CALCULATORS = [
     description: 'F-stop & time math',
     href: '/stops',
     icon: Gauge,
-    color: 'text-blue-400',
-    bg: 'from-blue-500/20 to-cyan-500/20',
-    border: 'group-hover:border-blue-500/50',
+    accent: 'blue',
   },
   {
     category: CATEGORY_LABELS.printing,
@@ -49,9 +45,7 @@ const CALCULATORS = [
     description: 'Scale prints, no wasting test strips',
     href: '/resize',
     icon: Ruler,
-    color: 'text-violet-400',
-    bg: 'from-violet-500/20 to-fuchsia-500/20',
-    border: 'group-hover:border-violet-500/50',
+    accent: 'violet',
   },
   {
     category: CATEGORY_LABELS.printing,
@@ -59,9 +53,7 @@ const CALCULATORS = [
     description: 'Window openings & cut guides',
     href: '/mat',
     icon: Frame,
-    color: 'text-teal-400',
-    bg: 'from-teal-500/20 to-emerald-500/20',
-    border: 'group-hover:border-teal-500/50',
+    accent: 'teal',
   },
   {
     category: CATEGORY_LABELS.film,
@@ -69,9 +61,7 @@ const CALCULATORS = [
     description: 'Film long exposure correction',
     href: '/reciprocity',
     icon: Timer,
-    color: 'text-amber-400',
-    bg: 'from-amber-500/20 to-orange-500/20',
-    border: 'group-hover:border-amber-500/50',
+    accent: 'amber',
   },
   {
     category: CATEGORY_LABELS.film,
@@ -79,9 +69,7 @@ const CALCULATORS = [
     description: 'B&W film development database',
     href: '/development',
     icon: FlaskConical,
-    color: 'text-rose-400',
-    bg: 'from-rose-500/20 to-red-500/20',
-    border: 'group-hover:border-rose-500/50',
+    accent: 'rose',
   },
   {
     category: CATEGORY_LABELS.reference,
@@ -89,9 +77,7 @@ const CALCULATORS = [
     description: 'Browse film stocks by brand & ISO',
     href: '/films',
     icon: Film,
-    color: 'text-cyan-400',
-    bg: 'from-cyan-500/20 to-teal-500/20',
-    border: 'group-hover:border-cyan-500/50',
+    accent: 'cyan',
   },
   {
     category: CATEGORY_LABELS.camera,
@@ -99,9 +85,7 @@ const CALCULATORS = [
     description: 'Compare format lens differences',
     href: '/lenses',
     icon: Focus,
-    color: 'text-emerald-400',
-    bg: 'from-emerald-500/20 to-teal-500/20',
-    border: 'group-hover:border-emerald-500/50',
+    accent: 'emerald',
   },
   {
     category: CATEGORY_LABELS.camera,
@@ -109,9 +93,7 @@ const CALCULATORS = [
     description: 'Equivalent exposure calculator',
     href: '/exposure',
     icon: Camera,
-    color: 'text-sky-400',
-    bg: 'from-sky-500/20 to-blue-500/20',
-    border: 'group-hover:border-sky-500/50',
+    accent: 'sky',
   },
 ] as const;
 

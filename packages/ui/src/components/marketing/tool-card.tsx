@@ -2,14 +2,67 @@ import { ArrowRight, type LucideIcon } from 'lucide-react';
 import { type ComponentProps, type ElementType, memo } from 'react';
 import { cn } from '../../lib/cn';
 
+export type AccentColor =
+  | 'indigo'
+  | 'blue'
+  | 'violet'
+  | 'teal'
+  | 'amber'
+  | 'rose'
+  | 'cyan'
+  | 'emerald'
+  | 'sky';
+
+/**
+ * Literal Tailwind class strings per accent. Tailwind must see the full class
+ * string in source, so these are never built by interpolation. The CSS custom
+ * properties resolve per-theme (see theme.css `--accent-*` variables).
+ */
+const ACCENT_CLASSES: Record<AccentColor, { text: string; border: string }> = {
+  indigo: {
+    text: 'text-[color:var(--accent-indigo-text)]',
+    border: 'group-hover:border-[color:var(--accent-indigo-border)]',
+  },
+  blue: {
+    text: 'text-[color:var(--accent-blue-text)]',
+    border: 'group-hover:border-[color:var(--accent-blue-border)]',
+  },
+  violet: {
+    text: 'text-[color:var(--accent-violet-text)]',
+    border: 'group-hover:border-[color:var(--accent-violet-border)]',
+  },
+  teal: {
+    text: 'text-[color:var(--accent-teal-text)]',
+    border: 'group-hover:border-[color:var(--accent-teal-border)]',
+  },
+  amber: {
+    text: 'text-[color:var(--accent-amber-text)]',
+    border: 'group-hover:border-[color:var(--accent-amber-border)]',
+  },
+  rose: {
+    text: 'text-[color:var(--accent-rose-text)]',
+    border: 'group-hover:border-[color:var(--accent-rose-border)]',
+  },
+  cyan: {
+    text: 'text-[color:var(--accent-cyan-text)]',
+    border: 'group-hover:border-[color:var(--accent-cyan-border)]',
+  },
+  emerald: {
+    text: 'text-[color:var(--accent-emerald-text)]',
+    border: 'group-hover:border-[color:var(--accent-emerald-border)]',
+  },
+  sky: {
+    text: 'text-[color:var(--accent-sky-text)]',
+    border: 'group-hover:border-[color:var(--accent-sky-border)]',
+  },
+};
+
 export interface ToolCardProps extends ComponentProps<'a'> {
   title: string;
   description: string;
   category: string;
   icon: LucideIcon;
-  color: string;
-  bg: string;
-  border: string;
+  accent: AccentColor;
   href: string;
   as?: ElementType;
 }
@@ -19,14 +72,13 @@ export const ToolCard = memo(function ToolCard({
   description,
   category,
   icon: Icon,
-  color,
-  bg,
-  border,
+  accent,
   href,
   as: Component = 'a',
   className,
   ...props
 }: ToolCardProps) {
+  const accentClasses = ACCENT_CLASSES[accent];
   const componentProps = Component === 'a' ? { href } : { to: href, ...props };
 
   return (
@@ -40,7 +92,7 @@ export const ToolCard = memo(function ToolCard({
         'focus-visible:ring-[color:var(--color-border-primary)]',
         '[&:not([data-theme="high-contrast"])]:hover:-translate-y-0.5',
         '[&:not([data-theme="high-contrast"])]:hover:shadow-lg',
-        border,
+        accentClasses.border,
         className
       )}
       style={{
@@ -48,10 +100,8 @@ export const ToolCard = memo(function ToolCard({
       }}
     >
       <div
-        className={cn(
-          'absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity group-hover:opacity-100',
-          bg
-        )}
+        className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"
+        style={{ backgroundImage: `var(--accent-${accent}-gradient)` }}
       />
 
       <div className="relative z-10 flex items-start gap-4">
@@ -61,7 +111,7 @@ export const ToolCard = memo(function ToolCard({
             'bg-[var(--color-tool-card-icon-bg)]',
             'ring-1 ring-[color:var(--color-tool-card-icon-ring)]',
             'group-hover:bg-[var(--color-tool-card-icon-hover)]',
-            color
+            accentClasses.text
           )}
         >
           <Icon className="size-6" />
