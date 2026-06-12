@@ -667,34 +667,53 @@ export default function CameraExposureCalculatorPage() {
       sidebar={<CameraExposureSidebar />}
       results={
         <div className="space-y-6">
-          {/* EV Result - desktop only (mobile instance is in children) */}
+          {/* EV Result — desktop right column only */}
           <div className="hidden md:block">
             <EVResultCard form={form} formValues={formValues} />
           </div>
 
-          {/* Equivalent Exposures */}
-          <EquivalentExposuresCard form={form} />
+          {/* Equivalent Exposures — desktop right column only */}
+          <div className="hidden md:block">
+            <EquivalentExposuresCard form={form} />
+          </div>
+
+          {/* EV Presets — desktop right column only */}
+          <div className="hidden md:block">
+            <EVPresetsCard
+              form={form}
+              presetsOpen={presetsOpen}
+              onToggle={() => setPresetsOpen((prev) => !prev)}
+              onPresetClick={handlePresetClick}
+            />
+          </div>
         </div>
       }
     >
-      {/* Exposure Settings */}
+      {/* Exposure Settings — always visible */}
       <ExposureSettingsCard form={form} />
 
-      {/* Exposure Comparison */}
-      <ExposureComparisonCard form={form} />
-
-      {/* EV Result - mobile only (desktop instance is in results) */}
+      {/* EV Result — mobile only; on desktop this lives in the results column */}
       <div className="md:hidden">
         <EVResultCard form={form} formValues={formValues} />
       </div>
 
-      {/* EV Presets - collapsible */}
-      <EVPresetsCard
-        form={form}
-        presetsOpen={presetsOpen}
-        onToggle={() => setPresetsOpen((prev) => !prev)}
-        onPresetClick={handlePresetClick}
-      />
+      {/* Equivalent Exposures — mobile only; on desktop this lives in the results column */}
+      <div className="md:hidden">
+        <EquivalentExposuresCard form={form} />
+      </div>
+
+      {/* Exposure Comparison — always visible */}
+      <ExposureComparisonCard form={form} />
+
+      {/* EV Presets — mobile only; on desktop this lives in the results column */}
+      <div className="md:hidden">
+        <EVPresetsCard
+          form={form}
+          presetsOpen={presetsOpen}
+          onToggle={() => setPresetsOpen((prev) => !prev)}
+          onPresetClick={handlePresetClick}
+        />
+      </div>
     </CalculatorLayout>
   );
 }

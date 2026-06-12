@@ -215,7 +215,7 @@ export default function ExposureCalculatorPage() {
 
               <div className="rounded-2xl p-4 font-mono text-sm border border-secondary bg-background/20 text-primary">
                 {`${formatExposureTime(calculation.originalTimeValue)} `}
-                <span className="align-super text-xs font-semibold text-[color:var(--color-primary)]">
+                <span className="align-super text-xs font-semibold text-[color:var(--color-on-accent)]">
                   ×2^
                   {calculation.stopsValue}
                 </span>

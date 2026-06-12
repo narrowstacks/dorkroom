@@ -56,7 +56,7 @@ export function CalculatorPageHeader({
       >
         {Icon && (
           <div
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border"
+            className="flex size-11 shrink-0 items-center justify-center rounded-xl border"
             style={{
               background: accentTone
                 ? `var(--accent-${accentTone}-gradient)`
@@ -72,7 +72,7 @@ export function CalculatorPageHeader({
                 : 'var(--color-text-primary)',
             }}
           >
-            <Icon className="h-5 w-5" />
+            <Icon className="size-5" />
           </div>
         )}
         <div className="flex max-w-2xl flex-col gap-1">
