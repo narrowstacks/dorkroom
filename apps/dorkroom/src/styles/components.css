@@ -411,16 +411,92 @@
     border: 2px solid var(--color-primary);
   }
 
-  /* Hero Card Styles */
-  .hero-card {
-    border-color: var(--color-hero-border);
-    background-color: var(--color-hero-bg);
-    transition: border-color 0.2s;
+  /* Home page CTA buttons */
+  .button-primary {
+    background-color: var(--color-text-primary);
+    color: var(--color-background);
+    transition:
+      background-color 0.2s,
+      opacity 0.2s;
   }
 
-  /* .hero-card:hover {
-    border-color: var(--color-hero-border-hover);
-  } */
+  .button-primary:hover {
+    opacity: 0.85;
+  }
+
+  .button-secondary {
+    border: 1px solid var(--color-border-primary);
+    color: var(--color-text-primary);
+    background-color: transparent;
+    transition: background-color 0.2s;
+  }
+
+  .button-secondary:hover {
+    background-color: var(--color-surface-muted);
+  }
+
+  /* Home hero panel: subtle red movie-grain texture over the surface color
+     (SVG fractal noise tinted red, tiled). The grain jumps position in hard
+     steps like projected film; the global animation kill-switch covers
+     darkroom/high-contrast and the user's animations toggle. High-contrast
+     also drops the texture entirely. */
+  .hero-grain {
+    background-color: var(--color-surface);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.07 0 0 0 0 0.07 0 0 0 0.14 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-size: 320px 320px;
+  }
+
+  @keyframes hero-grain-flicker {
+    0% {
+      background-position: 0 0;
+    }
+    10% {
+      background-position: -32px 24px;
+    }
+    20% {
+      background-position: 48px -16px;
+    }
+    30% {
+      background-position: -24px -48px;
+    }
+    40% {
+      background-position: 56px 40px;
+    }
+    50% {
+      background-position: -48px 8px;
+    }
+    60% {
+      background-position: 16px 64px;
+    }
+    70% {
+      background-position: -64px -32px;
+    }
+    80% {
+      background-position: 40px -56px;
+    }
+    90% {
+      background-position: -8px 48px;
+    }
+    100% {
+      background-position: 0 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-grain {
+      animation: hero-grain-flicker 0.9s step-end infinite;
+    }
+  }
+
+  /* On light surfaces the same tint reads as a pink wash; use a darker red
+     at lower alpha so it stays a faint speckle. */
+  [data-theme="light"] .hero-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.55 0 0 0 0 0.05 0 0 0 0 0.05 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E");
+  }
+
+  [data-theme="high-contrast"] .hero-grain {
+    background-image: none;
+  }
 
   /* Hero Button Styles */
   .hero-button-success {

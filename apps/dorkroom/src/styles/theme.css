@@ -12,8 +12,6 @@
   --color-highlight: #e5ff7d;
   --spacing-18: 4.5rem;
   --border-radius-hero: 36px;
-  --size-hero-blob: 8rem;
-  --spacing-hero-blob-offset: -1rem;
 }
 
 /* Darkroom theme checkbox */
@@ -121,6 +119,10 @@
   --color-text-muted: #ff0000;
   --color-text-warning: #ff0000;
   --color-text-link: #ff0000;
+  /* on-accent: gradient cards are black in darkroom; use red text to match */
+  --color-on-accent: #ff0000;
+  --color-on-accent-soft: #ff0000;
+  --color-on-accent-muted: #ff0000;
   --color-background-muted: #000000;
   --color-background-tag: #000000;
   --color-text-tag: #ff0000;
@@ -194,24 +196,43 @@
   --color-button-error: #ff0000;
   --color-button-error-hover: #ff0000;
   --color-button-text: #000000;
-  /* Home page hero section colors for darkroom theme */
-  --color-hero-border: #ff0000;
-  --color-hero-border-hover: #ff0000;
-  --color-hero-bg: #000000;
-  --color-hero-title: #ff0000;
-  --color-hero-text: #a90000;
-  --gradient-hero-accent: none;
   /* Tool card colors for darkroom theme */
   --color-tool-card-bg: #000000;
   --color-tool-card-icon-bg: #000000;
   --color-tool-card-icon-ring: #ff0000;
   --color-tool-card-icon-hover: #ff0000;
-  --color-tool-card-category: #ff0000;
-  --color-tool-card-category-hover: #ff0000;
-  --color-tool-card-title: #ff0000;
   --color-tool-card-description: #a90000;
   --color-tool-card-description-hover: #ff0000;
   --color-tool-card-arrow: #ff0000;
+
+  /* Accent variants forced to red, no gradients (darkroom) */
+  --accent-indigo-text: #ff0000;
+  --accent-indigo-border: #ff0000;
+  --accent-indigo-gradient: none;
+  --accent-blue-text: #ff0000;
+  --accent-blue-border: #ff0000;
+  --accent-blue-gradient: none;
+  --accent-violet-text: #ff0000;
+  --accent-violet-border: #ff0000;
+  --accent-violet-gradient: none;
+  --accent-teal-text: #ff0000;
+  --accent-teal-border: #ff0000;
+  --accent-teal-gradient: none;
+  --accent-amber-text: #ff0000;
+  --accent-amber-border: #ff0000;
+  --accent-amber-gradient: none;
+  --accent-rose-text: #ff0000;
+  --accent-rose-border: #ff0000;
+  --accent-rose-gradient: none;
+  --accent-cyan-text: #ff0000;
+  --accent-cyan-border: #ff0000;
+  --accent-cyan-gradient: none;
+  --accent-emerald-text: #ff0000;
+  --accent-emerald-border: #ff0000;
+  --accent-emerald-gradient: none;
+  --accent-sky-text: #ff0000;
+  --accent-sky-border: #ff0000;
+  --accent-sky-gradient: none;
 }
 
 /* Dark theme (default) */
@@ -230,6 +251,10 @@
   --color-text-secondary: #e4e4e7;
   --color-text-tertiary: #a1a1aa;
   --color-text-muted: #9595a3;
+  /* text colors guaranteed readable on gradient-card / accent surfaces */
+  --color-on-accent: #ffffff;
+  --color-on-accent-soft: rgba(255, 255, 255, 0.92);
+  --color-on-accent-muted: rgba(255, 255, 255, 0.78);
   --color-border-primary: rgba(255, 255, 255, 0.2);
   --color-border-secondary: rgba(255, 255, 255, 0.1);
   --color-border-muted: rgba(255, 255, 255, 0.05);
@@ -250,8 +275,8 @@
   --blade-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   --gradient-card-primary: linear-gradient(
     135deg,
-    rgba(110, 243, 164, 0.45),
-    rgba(36, 146, 88, 0.34)
+    rgba(110, 243, 164, 0.32),
+    rgba(36, 146, 88, 0.26)
   );
   --gradient-card-secondary: linear-gradient(
     135deg,
@@ -270,8 +295,8 @@
   );
   --gradient-card-neutral: linear-gradient(
     135deg,
-    rgba(47, 211, 107, 0.56),
-    rgba(14, 85, 49, 0.44)
+    rgba(47, 211, 107, 0.34),
+    rgba(14, 85, 49, 0.3)
   );
   --gradient-card-info: linear-gradient(
     135deg,
@@ -328,28 +353,116 @@
   --color-button-error: #991b1b;
   --color-button-error-hover: #b91c1c;
   --color-button-text: #ffffff;
-  /* Home page hero section colors for dark theme (original: border-zinc-800, bg-zinc-900/50) */
-  --color-hero-border: #27272a;
-  --color-hero-border-hover: #3f3f46;
-  --color-hero-bg: rgba(24, 24, 27, 0.5);
-  --color-hero-title: #ffffff;
-  --color-hero-text: #a1a1aa;
-  --gradient-hero-accent: linear-gradient(
-    to bottom right,
-    rgba(99, 102, 241, 0.2),
-    rgba(168, 85, 247, 0.2)
-  );
   /* Tool card colors for dark theme (original: border-zinc-800, bg-zinc-900/30) */
   --color-tool-card-bg: rgba(24, 24, 27, 0.6);
   --color-tool-card-icon-bg: rgba(39, 39, 42, 0.8);
   --color-tool-card-icon-ring: rgba(255, 255, 255, 0.12);
   --color-tool-card-icon-hover: rgba(255, 255, 255, 0.18);
-  --color-tool-card-category: #71717a;
-  --color-tool-card-category-hover: #d4d4d8;
-  --color-tool-card-title: #ffffff;
   --color-tool-card-description: #a1a1aa;
   --color-tool-card-description-hover: #d4d4d8;
   --color-tool-card-arrow: #52525b;
+
+  /* Accent variants (base/dark) — text=400, border=500/50%, gradient=500/20% pair.
+     Values copied verbatim from node_modules/tailwindcss/theme.css. */
+  --accent-indigo-text: oklch(67.3% 0.182 276.935);
+  --accent-indigo-border: color-mix(
+    in oklab,
+    oklch(58.5% 0.233 277.117) 50%,
+    transparent
+  );
+  --accent-indigo-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(58.5% 0.233 277.117) 20%, transparent),
+    color-mix(in oklab, oklch(62.7% 0.265 303.9) 20%, transparent)
+  );
+  --accent-blue-text: oklch(70.7% 0.165 254.624);
+  --accent-blue-border: color-mix(
+    in oklab,
+    oklch(62.3% 0.214 259.815) 50%,
+    transparent
+  );
+  --accent-blue-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(62.3% 0.214 259.815) 20%, transparent),
+    color-mix(in oklab, oklch(71.5% 0.143 215.221) 20%, transparent)
+  );
+  --accent-violet-text: oklch(70.2% 0.183 293.541);
+  --accent-violet-border: color-mix(
+    in oklab,
+    oklch(60.6% 0.25 292.717) 50%,
+    transparent
+  );
+  --accent-violet-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(60.6% 0.25 292.717) 20%, transparent),
+    color-mix(in oklab, oklch(66.7% 0.295 322.15) 20%, transparent)
+  );
+  --accent-teal-text: oklch(77.7% 0.152 181.912);
+  --accent-teal-border: color-mix(
+    in oklab,
+    oklch(70.4% 0.14 182.503) 50%,
+    transparent
+  );
+  --accent-teal-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(70.4% 0.14 182.503) 20%, transparent),
+    color-mix(in oklab, oklch(69.6% 0.17 162.48) 20%, transparent)
+  );
+  --accent-amber-text: oklch(82.8% 0.189 84.429);
+  --accent-amber-border: color-mix(
+    in oklab,
+    oklch(76.9% 0.188 70.08) 50%,
+    transparent
+  );
+  --accent-amber-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(76.9% 0.188 70.08) 20%, transparent),
+    color-mix(in oklab, oklch(70.5% 0.213 47.604) 20%, transparent)
+  );
+  --accent-rose-text: oklch(71.2% 0.194 13.428);
+  --accent-rose-border: color-mix(
+    in oklab,
+    oklch(64.5% 0.246 16.439) 50%,
+    transparent
+  );
+  --accent-rose-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(64.5% 0.246 16.439) 20%, transparent),
+    color-mix(in oklab, oklch(63.7% 0.237 25.331) 20%, transparent)
+  );
+  --accent-cyan-text: oklch(78.9% 0.154 211.53);
+  --accent-cyan-border: color-mix(
+    in oklab,
+    oklch(71.5% 0.143 215.221) 50%,
+    transparent
+  );
+  --accent-cyan-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(71.5% 0.143 215.221) 20%, transparent),
+    color-mix(in oklab, oklch(70.4% 0.14 182.503) 20%, transparent)
+  );
+  --accent-emerald-text: oklch(76.5% 0.177 163.223);
+  --accent-emerald-border: color-mix(
+    in oklab,
+    oklch(69.6% 0.17 162.48) 50%,
+    transparent
+  );
+  --accent-emerald-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(69.6% 0.17 162.48) 20%, transparent),
+    color-mix(in oklab, oklch(70.4% 0.14 182.503) 20%, transparent)
+  );
+  --accent-sky-text: oklch(74.6% 0.16 232.661);
+  --accent-sky-border: color-mix(
+    in oklab,
+    oklch(68.5% 0.169 237.323) 50%,
+    transparent
+  );
+  --accent-sky-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(68.5% 0.169 237.323) 20%, transparent),
+    color-mix(in oklab, oklch(62.3% 0.214 259.815) 20%, transparent)
+  );
 }
 
 /* Light theme */
@@ -360,7 +473,7 @@
   --settings-container-border: rgba(0, 0, 0, 0.1);
   --color-surface: #f8f9fa;
   --color-surface-muted: #f1f3f4;
-  --color-primary: #2d7a4a; /* deep green for accessible accents */
+  --color-primary: #256b40; /* deep green — ≥4.5:1 on white */
   --color-secondary: #1e6091; /* deep blue for links/secondary accents */
   --color-accent: #c4524a; /* warm accent for warnings/highlights */
   --color-highlight: #7a8c1f; /* slightly cooler olive for better contrast */
@@ -368,11 +481,15 @@
   --color-text-secondary: #27272a;
   --color-text-tertiary: #52525b;
   --color-text-muted: #71717a;
+  /* text colors guaranteed readable on gradient-card / accent surfaces */
+  --color-on-accent: #09090b;
+  --color-on-accent-soft: rgba(9, 9, 11, 0.85);
+  --color-on-accent-muted: rgba(9, 9, 11, 0.72);
   --color-border-primary: rgba(9, 9, 11, 0.18);
   --color-border-secondary: rgba(9, 9, 11, 0.1);
   --color-border-muted: rgba(9, 9, 11, 0.06);
   --color-semantic-success: #2d7a4a;
-  --color-semantic-warning: #de4e1e;
+  --color-semantic-warning: #b83f16; /* 4.6:1 on white */
   --color-semantic-error: #d32323;
   --color-semantic-info: #1e6091;
   --color-visualization-preview: #d4d4d8;
@@ -467,28 +584,121 @@
   --color-button-error: #991b1b;
   --color-button-error-hover: #b91c1c;
   --color-button-text: #ffffff;
-  /* Home page hero section colors for light theme */
-  --color-hero-border: rgba(9, 9, 11, 0.18);
-  --color-hero-border-hover: rgba(9, 9, 11, 0.3);
-  --color-hero-bg: #f8f9fa;
-  --color-hero-title: #09090b;
-  --color-hero-text: #52525b;
-  --gradient-hero-accent: linear-gradient(
-    to bottom right,
-    rgba(99, 102, 241, 0.1),
-    rgba(168, 85, 247, 0.1)
-  );
   /* Tool card colors for light theme */
   --color-tool-card-bg: #f8f9fa;
   --color-tool-card-icon-bg: rgba(9, 9, 11, 0.06);
   --color-tool-card-icon-ring: rgba(9, 9, 11, 0.12);
   --color-tool-card-icon-hover: rgba(9, 9, 11, 0.1);
-  --color-tool-card-category: #71717a;
-  --color-tool-card-category-hover: #52525b;
-  --color-tool-card-title: #09090b;
   --color-tool-card-description: #52525b;
   --color-tool-card-description-hover: #09090b;
   --color-tool-card-arrow: #a1a1aa;
+
+  /* Accent text uses -600 variants for contrast on light backgrounds. */
+  --accent-indigo-text: oklch(51.1% 0.262 276.966);
+  --accent-blue-text: oklch(54.6% 0.245 262.881);
+  --accent-violet-text: oklch(54.1% 0.281 293.009);
+  --accent-teal-text: oklch(60% 0.118 184.704);
+  --accent-amber-text: oklch(66.6% 0.179 58.318);
+  --accent-rose-text: oklch(58.6% 0.253 17.585);
+  --accent-cyan-text: oklch(60.9% 0.126 221.723);
+  --accent-emerald-text: oklch(59.6% 0.145 163.225);
+  --accent-sky-text: oklch(58.8% 0.158 241.966);
+
+  /* Accent gradient/border for light theme: low-opacity tints that keep the
+     dark on-accent text (#09090b) readable while still reading as the tool's
+     color. Borders are stronger so the accent card reads as bounded on white.
+     (The dark theme defines these over transparent; light needs its own so
+     calculator accent surfaces don't wash out — plan 007.) */
+  --accent-indigo-border: color-mix(
+    in oklab,
+    oklch(58.5% 0.233 277.117) 45%,
+    transparent
+  );
+  --accent-indigo-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(58.5% 0.233 277.117) 14%, transparent),
+    color-mix(in oklab, oklch(62.7% 0.265 303.9) 14%, transparent)
+  );
+  --accent-blue-border: color-mix(
+    in oklab,
+    oklch(62.3% 0.214 259.815) 45%,
+    transparent
+  );
+  --accent-blue-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(62.3% 0.214 259.815) 14%, transparent),
+    color-mix(in oklab, oklch(71.5% 0.143 215.221) 14%, transparent)
+  );
+  --accent-violet-border: color-mix(
+    in oklab,
+    oklch(60.6% 0.25 292.717) 45%,
+    transparent
+  );
+  --accent-violet-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(60.6% 0.25 292.717) 14%, transparent),
+    color-mix(in oklab, oklch(66.7% 0.295 322.15) 14%, transparent)
+  );
+  --accent-teal-border: color-mix(
+    in oklab,
+    oklch(70.4% 0.14 182.503) 45%,
+    transparent
+  );
+  --accent-teal-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(70.4% 0.14 182.503) 14%, transparent),
+    color-mix(in oklab, oklch(69.6% 0.17 162.48) 14%, transparent)
+  );
+  --accent-amber-border: color-mix(
+    in oklab,
+    oklch(76.9% 0.188 70.08) 45%,
+    transparent
+  );
+  --accent-amber-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(76.9% 0.188 70.08) 14%, transparent),
+    color-mix(in oklab, oklch(70.5% 0.213 47.604) 14%, transparent)
+  );
+  --accent-rose-border: color-mix(
+    in oklab,
+    oklch(64.5% 0.246 16.439) 45%,
+    transparent
+  );
+  --accent-rose-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(64.5% 0.246 16.439) 14%, transparent),
+    color-mix(in oklab, oklch(63.7% 0.237 25.331) 14%, transparent)
+  );
+  --accent-cyan-border: color-mix(
+    in oklab,
+    oklch(71.5% 0.143 215.221) 45%,
+    transparent
+  );
+  --accent-cyan-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(71.5% 0.143 215.221) 14%, transparent),
+    color-mix(in oklab, oklch(70.4% 0.14 182.503) 14%, transparent)
+  );
+  --accent-emerald-border: color-mix(
+    in oklab,
+    oklch(69.6% 0.17 162.48) 45%,
+    transparent
+  );
+  --accent-emerald-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(69.6% 0.17 162.48) 14%, transparent),
+    color-mix(in oklab, oklch(70.4% 0.14 182.503) 14%, transparent)
+  );
+  --accent-sky-border: color-mix(
+    in oklab,
+    oklch(68.5% 0.169 237.323) 45%,
+    transparent
+  );
+  --accent-sky-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(68.5% 0.169 237.323) 14%, transparent),
+    color-mix(in oklab, oklch(62.3% 0.214 259.815) 14%, transparent)
+  );
 }
 
 /* High-contrast theme: black on white, no gradients, no animations */
@@ -509,6 +719,10 @@
   --color-text-muted: #000000;
   --color-text-warning: #000000;
   --color-text-link: #000000;
+  /* on-accent: gradient cards are white in high-contrast; use black text to match */
+  --color-on-accent: #000000;
+  --color-on-accent-soft: #000000;
+  --color-on-accent-muted: #000000;
   --color-background-muted: #ffffff;
   --color-background-tag: #ffffff;
   --color-text-tag: #000000;
@@ -586,24 +800,43 @@
   --color-button-error: #000000;
   --color-button-error-hover: #000000;
   --color-button-text: #ffffff;
-  /* Home page hero section colors for high-contrast theme */
-  --color-hero-border: #000000;
-  --color-hero-border-hover: #000000;
-  --color-hero-bg: #ffffff;
-  --color-hero-title: #000000;
-  --color-hero-text: #000000;
-  --gradient-hero-accent: none;
   /* Tool card colors for high-contrast theme */
   --color-tool-card-bg: #ffffff;
   --color-tool-card-icon-bg: #ffffff;
   --color-tool-card-icon-ring: #000000;
   --color-tool-card-icon-hover: #ffffff;
-  --color-tool-card-category: #000000;
-  --color-tool-card-category-hover: #000000;
-  --color-tool-card-title: #000000;
   --color-tool-card-description: #000000;
   --color-tool-card-description-hover: #000000;
   --color-tool-card-arrow: #000000;
+
+  /* Accent variants forced to black, no gradients (high-contrast) */
+  --accent-indigo-text: #000000;
+  --accent-indigo-border: #000000;
+  --accent-indigo-gradient: none;
+  --accent-blue-text: #000000;
+  --accent-blue-border: #000000;
+  --accent-blue-gradient: none;
+  --accent-violet-text: #000000;
+  --accent-violet-border: #000000;
+  --accent-violet-gradient: none;
+  --accent-teal-text: #000000;
+  --accent-teal-border: #000000;
+  --accent-teal-gradient: none;
+  --accent-amber-text: #000000;
+  --accent-amber-border: #000000;
+  --accent-amber-gradient: none;
+  --accent-rose-text: #000000;
+  --accent-rose-border: #000000;
+  --accent-rose-gradient: none;
+  --accent-cyan-text: #000000;
+  --accent-cyan-border: #000000;
+  --accent-cyan-gradient: none;
+  --accent-emerald-text: #000000;
+  --accent-emerald-border: #000000;
+  --accent-emerald-gradient: none;
+  --accent-sky-text: #000000;
+  --accent-sky-border: #000000;
+  --accent-sky-gradient: none;
 }
 
 /* Default to dark theme if no data-theme attribute */
@@ -622,6 +855,10 @@
   --color-text-secondary: #e4e4e7;
   --color-text-tertiary: #a1a1aa;
   --color-text-muted: #71717a;
+  /* text colors guaranteed readable on gradient-card / accent surfaces */
+  --color-on-accent: #ffffff;
+  --color-on-accent-soft: rgba(255, 255, 255, 0.92);
+  --color-on-accent-muted: rgba(255, 255, 255, 0.78);
   --color-border-primary: rgba(255, 255, 255, 0.2);
   --color-border-secondary: rgba(255, 255, 255, 0.1);
   --color-border-muted: rgba(255, 255, 255, 0.05);
@@ -642,8 +879,8 @@
   --blade-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   --gradient-card-primary: linear-gradient(
     135deg,
-    rgba(110, 243, 164, 0.45),
-    rgba(36, 146, 88, 0.34)
+    rgba(110, 243, 164, 0.32),
+    rgba(36, 146, 88, 0.26)
   );
   --gradient-card-secondary: linear-gradient(
     135deg,
@@ -662,8 +899,8 @@
   );
   --gradient-card-neutral: linear-gradient(
     135deg,
-    rgba(47, 211, 107, 0.56),
-    rgba(14, 85, 49, 0.44)
+    rgba(47, 211, 107, 0.34),
+    rgba(14, 85, 49, 0.3)
   );
   --gradient-card-info: linear-gradient(
     135deg,
@@ -757,96 +994,6 @@
 
 [data-theme="darkroom"] *:focus-visible {
   --tw-ring-color: var(--color-border-primary);
-}
-
-/* Override Tailwind color classes in light theme - use -600 variants for contrast */
-[data-theme="light"] .text-indigo-400 {
-  color: #4f46e5;
-}
-[data-theme="light"] .text-blue-400 {
-  color: #2563eb;
-}
-[data-theme="light"] .text-violet-400 {
-  color: #7c3aed;
-}
-[data-theme="light"] .text-amber-400 {
-  color: #d97706;
-}
-[data-theme="light"] .text-rose-400 {
-  color: #e11d48;
-}
-[data-theme="light"] .text-cyan-400 {
-  color: #0891b2;
-}
-
-/* Override Tailwind color classes in high-contrast theme - force black */
-[data-theme="high-contrast"] .text-indigo-400,
-[data-theme="high-contrast"] .text-blue-400,
-[data-theme="high-contrast"] .text-violet-400,
-[data-theme="high-contrast"] .text-amber-400,
-[data-theme="high-contrast"] .text-rose-400,
-[data-theme="high-contrast"] .text-emerald-400 {
-  color: #000000;
-}
-
-/* Override Tailwind color classes in darkroom theme - force red */
-[data-theme="darkroom"] .text-indigo-400,
-[data-theme="darkroom"] .text-blue-400,
-[data-theme="darkroom"] .text-violet-400,
-[data-theme="darkroom"] .text-amber-400,
-[data-theme="darkroom"] .text-rose-400,
-[data-theme="darkroom"] .text-emerald-400 {
-  color: #ff0000;
-}
-
-/* Override gradient backgrounds in high-contrast theme - no color on hover */
-[data-theme="high-contrast"] .bg-gradient-to-br,
-[data-theme="high-contrast"] .from-indigo-500\/20,
-[data-theme="high-contrast"] .from-blue-500\/20,
-[data-theme="high-contrast"] .from-violet-500\/20,
-[data-theme="high-contrast"] .from-amber-500\/20,
-[data-theme="high-contrast"] .from-rose-500\/20,
-[data-theme="high-contrast"] .to-purple-500\/20,
-[data-theme="high-contrast"] .to-cyan-500\/20,
-[data-theme="high-contrast"] .to-fuchsia-500\/20,
-[data-theme="high-contrast"] .to-orange-500\/20,
-[data-theme="high-contrast"] .to-red-500\/20 {
-  background-image: none;
-  background-color: transparent;
-}
-
-/* Override gradient backgrounds in darkroom theme - no color on hover */
-[data-theme="darkroom"] .bg-gradient-to-br,
-[data-theme="darkroom"] .from-indigo-500\/20,
-[data-theme="darkroom"] .from-blue-500\/20,
-[data-theme="darkroom"] .from-violet-500\/20,
-[data-theme="darkroom"] .from-amber-500\/20,
-[data-theme="darkroom"] .from-rose-500\/20,
-[data-theme="darkroom"] .to-purple-500\/20,
-[data-theme="darkroom"] .to-cyan-500\/20,
-[data-theme="darkroom"] .to-fuchsia-500\/20,
-[data-theme="darkroom"] .to-orange-500\/20,
-[data-theme="darkroom"] .to-red-500\/20 {
-  background-image: none;
-  background-color: transparent;
-}
-
-/* Override border hover colors in high-contrast theme - force black */
-[data-theme="high-contrast"] .group-hover\:border-indigo-500\/50,
-[data-theme="high-contrast"] .group-hover\:border-blue-500\/50,
-[data-theme="high-contrast"] .group-hover\:border-violet-500\/50,
-[data-theme="high-contrast"] .group-hover\:border-amber-500\/50,
-[data-theme="high-contrast"] .group-hover\:border-rose-500\/50 {
-  border-color: #000000;
-}
-
-/* Override border hover colors in darkroom theme - force red */
-[data-theme="darkroom"] .group-hover\:border-indigo-500\/50,
-[data-theme="darkroom"] .group-hover\:border-blue-500\/50,
-[data-theme="darkroom"] .group-hover\:border-violet-500\/50,
-[data-theme="darkroom"] .group-hover\:border-amber-500\/50,
-[data-theme="darkroom"] .group-hover\:border-rose-500\/50 {
-  border-color: #ff0000;
 }
 
 /* Make tool card icons black on hover in darkroom mode (so they're visible against red bg) */
