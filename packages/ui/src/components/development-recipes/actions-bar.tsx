@@ -21,6 +21,7 @@ interface DevelopmentActionsBarProps {
   isMobile?: boolean;
 }
 
+// eslint-disable-next-line react-doctor/no-many-boolean-props -- isRefreshing / isLoading / showImportButton / isMobile are independent display/state flags on a toolbar, not a variant axis; compound-component split would add more indirection than value here
 export function DevelopmentActionsBar({
   totalResults,
   viewMode,
@@ -44,7 +45,7 @@ export function DevelopmentActionsBar({
       <div className="flex items-center gap-4">
         {RecipeIcon && (
           <div
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border"
+            className="flex size-11 shrink-0 items-center justify-center rounded-xl border"
             style={{
               background: 'var(--accent-rose-gradient)',
               borderColor:
@@ -53,7 +54,7 @@ export function DevelopmentActionsBar({
               color: 'var(--color-on-accent)',
             }}
           >
-            <RecipeIcon className="h-5 w-5" />
+            <RecipeIcon className="size-5" />
           </div>
         )}
         <div>
