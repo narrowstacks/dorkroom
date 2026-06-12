@@ -14,7 +14,6 @@ import {
   colorMixOr,
   getRouteIcon,
   StatusAlert,
-  ToggleSwitch,
   useMeasurement,
   useMeasurementConverter,
 } from '@dorkroom/ui';
@@ -38,6 +37,11 @@ interface ModeToggleProps {
   onModeChange: (value: boolean) => void;
 }
 
+const MODE_OPTIONS = [
+  { label: 'Print Size', isEnlargerHeight: false },
+  { label: 'Enlarger Height', isEnlargerHeight: true },
+] as const;
+
 function ModeToggle({ isEnlargerHeightMode, onModeChange }: ModeToggleProps) {
   return (
     <div
@@ -53,52 +57,42 @@ function ModeToggle({ isEnlargerHeightMode, onModeChange }: ModeToggleProps) {
       }}
     >
       <p
-        className="text-sm font-semibold uppercase tracking-[0.3em]"
+        className="text-xs font-semibold uppercase tracking-[0.2em]"
         style={{ color: 'var(--color-text-muted)' }}
       >
         Method
       </p>
-      <div
-        className="flex items-center justify-center gap-2 rounded-full px-3 py-2 sm:gap-3 sm:px-4"
+      <fieldset
+        className="grid grid-cols-2 gap-1 rounded-full border p-1"
         style={{
           borderColor: 'var(--color-border-muted)',
-          backgroundColor: colorMixOr(
-            'var(--color-surface)',
-            20,
-            'transparent',
-            'var(--color-surface)'
-          ),
-          border: '1px solid',
+          backgroundColor: 'rgb(var(--color-background-rgb) / 0.3)',
         }}
       >
-        <span
-          className="text-[10px] uppercase tracking-[0.15em] transition-colors sm:text-xs sm:tracking-[0.3em]"
-          style={{
-            color: isEnlargerHeightMode
-              ? 'var(--color-text-muted)'
-              : 'var(--color-text-primary)',
-            fontWeight: isEnlargerHeightMode ? 500 : 600,
-          }}
-        >
-          Print Size
-        </span>
-        <ToggleSwitch
-          label="Toggle between Print Size and Enlarger Height mode"
-          value={isEnlargerHeightMode}
-          onValueChange={onModeChange}
-        />
-        <span
-          className="text-[10px] uppercase tracking-[0.15em] transition-colors sm:text-xs sm:tracking-[0.3em]"
-          style={{
-            color: isEnlargerHeightMode
-              ? 'var(--color-text-primary)'
-              : 'var(--color-text-muted)',
-            fontWeight: isEnlargerHeightMode ? 600 : 500,
-          }}
-        >
-          Enlarger Height
-        </span>
-      </div>
+        <legend className="sr-only">Calculation method</legend>
+        {MODE_OPTIONS.map((option) => {
+          const active = option.isEnlargerHeight === isEnlargerHeightMode;
+          return (
+            <button
+              key={option.label}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onModeChange(option.isEnlargerHeight)}
+              className="rounded-full px-4 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
+              style={
+                active
+                  ? {
+                      backgroundColor: 'var(--color-text-primary)',
+                      color: 'var(--color-background)',
+                    }
+                  : { color: 'var(--color-text-muted)' }
+              }
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </fieldset>
     </div>
   );
 }
