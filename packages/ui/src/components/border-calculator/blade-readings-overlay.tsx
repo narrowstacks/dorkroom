@@ -212,13 +212,19 @@ function BladeReadingIndicator({ reading }: { reading: BladeReading }) {
       }}
     >
       {arrowFirst && (
-        <span className={arrowClasses} style={{ color: 'var(--color-accent)' }}>
+        <span
+          className={arrowClasses}
+          style={{ color: 'var(--color-text-primary)' }}
+        >
           {arrow}
         </span>
       )}
       <span className="whitespace-nowrap">{value}</span>
       {!arrowFirst && (
-        <span className={arrowClasses} style={{ color: 'var(--color-accent)' }}>
+        <span
+          className={arrowClasses}
+          style={{ color: 'var(--color-text-primary)' }}
+        >
           {arrow}
         </span>
       )}

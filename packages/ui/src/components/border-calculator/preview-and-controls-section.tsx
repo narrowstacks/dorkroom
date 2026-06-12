@@ -79,8 +79,8 @@ export function PreviewAndControlsSection() {
         onClick={resetToDefaults}
         className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 hover:brightness-110"
         style={{
-          color: 'var(--color-accent)',
-          borderColor: 'var(--color-accent)',
+          color: 'var(--color-on-accent)',
+          borderColor: 'var(--color-on-accent-muted)',
           borderWidth: 1,
           backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
         }}

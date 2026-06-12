@@ -82,10 +82,10 @@ describe('CalculatorStat', () => {
 
       const label = screen.getByText('Test Stat');
       expect(label).toHaveClass(
-        'text-[10px]',
+        'text-xs',
         'font-semibold',
         'uppercase',
-        'tracking-[0.3em]'
+        'tracking-[0.2em]'
       );
     });
 
@@ -151,7 +151,7 @@ describe('CalculatorStat', () => {
       const value = screen.getByText('42');
       const helper = screen.getByText('Small helper text');
 
-      expect(label).toHaveClass('text-[10px]');
+      expect(label).toHaveClass('text-xs');
       expect(value).toHaveClass('text-2xl');
       expect(helper).toHaveClass('text-[11px]');
     });
@@ -167,7 +167,7 @@ describe('CalculatorStat', () => {
       render(<CalculatorStat {...defaultProps} />);
 
       const label = screen.getByText('Test Stat');
-      expect(label).toHaveClass('tracking-[0.3em]');
+      expect(label).toHaveClass('tracking-[0.2em]');
     });
   });
 

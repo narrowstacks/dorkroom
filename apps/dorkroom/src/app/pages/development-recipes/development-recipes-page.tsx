@@ -443,6 +443,7 @@ export default function DevelopmentRecipesPage() {
           }}
           onRefresh={handleRefreshAll}
           isRefreshing={isRefreshingData}
+          isLoading={isLoading}
           showImportButton={flags.RECIPE_IMPORT}
           isMobile={isMobile}
         />

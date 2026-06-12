@@ -136,8 +136,10 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
                 borderColor: 'var(--color-primary)',
               }}
             />
-            <span className="text-secondary">{sourceFormat.shortName}</span>
-            <span className="text-tertiary">
+            <span style={{ color: 'var(--color-on-accent-soft)' }}>
+              {sourceFormat.shortName}
+            </span>
+            <span style={{ color: 'var(--color-on-accent-muted)' }}>
               ({sourceFormat.width}×{sourceFormat.height})
             </span>
           </div>
@@ -148,15 +150,20 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
                 borderColor: 'var(--color-secondary)',
               }}
             />
-            <span className="text-secondary">{targetFormat.shortName}</span>
-            <span className="text-tertiary">
+            <span style={{ color: 'var(--color-on-accent-soft)' }}>
+              {targetFormat.shortName}
+            </span>
+            <span style={{ color: 'var(--color-on-accent-muted)' }}>
               ({targetFormat.width}×{targetFormat.height})
             </span>
           </div>
         </div>
-        <p className="text-tertiary">
+        <p style={{ color: 'var(--color-on-accent-muted)' }}>
           Target is{' '}
-          <span className="font-medium text-secondary">
+          <span
+            className="font-medium"
+            style={{ color: 'var(--color-on-accent-soft)' }}
+          >
             {areaRatio > 1 ? areaRatio.toFixed(2) : (1 / areaRatio).toFixed(2)}×
           </span>{' '}
           {areaRatio > 1 ? 'larger' : 'smaller'}

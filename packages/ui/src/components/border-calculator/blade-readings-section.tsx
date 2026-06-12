@@ -32,7 +32,7 @@ export function BladeReadingsSection() {
     <CalculatorCard
       title="Blade Readings"
       description="Set your easel blades to these positions."
-      accent="emerald"
+      accent="indigo"
       padding="compact"
     >
       <div className="grid gap-2 sm:grid-cols-2">

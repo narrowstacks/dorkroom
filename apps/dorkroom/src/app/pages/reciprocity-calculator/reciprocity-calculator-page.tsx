@@ -8,7 +8,13 @@ import {
   type SelectItem,
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
-import { ReciprocityChart, ResultRow, Select, TextInput } from '@dorkroom/ui';
+import {
+  getRouteIcon,
+  ReciprocityChart,
+  ResultRow,
+  Select,
+  TextInput,
+} from '@dorkroom/ui';
 import {
   CalculatorCard,
   CalculatorLayout,
@@ -165,7 +171,7 @@ function ReciprocityResults({
     <CalculatorCard
       title="Reciprocity results"
       description="Your exposure time corrected for reciprocity failure"
-      accent="emerald"
+      accent="amber"
       padding="compact"
       actions={
         <button
@@ -201,7 +207,7 @@ function ReciprocityResults({
           label="Adjusted exposure"
           value={formatReciprocityTime(calculation.adjustedTime)}
           helperText={`Recommended for ${calculation.filmName}`}
-          tone="emerald"
+          tone="amber"
         />
         <CalculatorStat
           label="Added exposure"
@@ -298,7 +304,7 @@ function ReciprocityWideChart({
       <CalculatorCard
         title={`Reciprocity curve for ${calculation.filmName}`}
         description="Hover over the curve to explore reciprocity calculations for different exposure times."
-        accent="emerald"
+        accent="amber"
         padding="normal"
         actions={
           <button
@@ -507,6 +513,8 @@ export default function ReciprocityCalculatorPage() {
   return (
     <CalculatorLayout
       title="Reciprocity Failure Calculator"
+      icon={getRouteIcon('/reciprocity')}
+      accentTone="amber"
       description={
         <>
           Long exposures need more time than your meter says.

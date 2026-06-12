@@ -29,7 +29,7 @@ import {
   solveForShutterSpeed,
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
-import { ResultRow, Select, StatusAlert } from '@dorkroom/ui';
+import { getRouteIcon, ResultRow, Select, StatusAlert } from '@dorkroom/ui';
 import {
   CalculatorCard,
   CalculatorLayout,
@@ -135,7 +135,7 @@ function EVResultCard({
         <CalculatorCard
           title="Exposure value"
           description="Scene brightness at ISO 100"
-          accent="emerald"
+          accent="teal"
           padding="compact"
         >
           <div className="grid gap-4 sm:grid-cols-2">
@@ -143,7 +143,7 @@ function EVResultCard({
               label="EV"
               value={result.isValid ? `${result.ev}` : '—'}
               helperText={result.description || 'Enter valid settings'}
-              tone="emerald"
+              tone="teal"
             />
             <CalculatorStat
               label="Settings"
@@ -271,13 +271,13 @@ function EquivalentExposuresCard({ form }: { form: CameraExposureForm }) {
                   >
                     <th
                       className="py-2 px-3 text-left font-medium"
-                      style={{ color: 'var(--color-text-tertiary)' }}
+                      style={{ color: 'var(--color-on-accent-muted)' }}
                     >
                       Aperture
                     </th>
                     <th
                       className="py-2 px-3 text-left font-medium"
-                      style={{ color: 'var(--color-text-tertiary)' }}
+                      style={{ color: 'var(--color-on-accent-muted)' }}
                     >
                       Shutter Speed
                     </th>
@@ -294,8 +294,8 @@ function EquivalentExposuresCard({ form }: { form: CameraExposureForm }) {
                           ? 'var(--color-surface-elevated)'
                           : undefined,
                         color: eq.isStandardShutterSpeed
-                          ? 'var(--color-text-primary)'
-                          : 'var(--color-text-tertiary)',
+                          ? 'var(--color-on-accent)'
+                          : 'var(--color-on-accent-muted)',
                       }}
                     >
                       <td className="py-2 px-3">{eq.apertureLabel}</td>
@@ -303,9 +303,9 @@ function EquivalentExposuresCard({ form }: { form: CameraExposureForm }) {
                         {eq.shutterSpeedLabel}
                         {eq.isCurrentSetting && (
                           <span
-                            className="ml-2 text-xs"
+                            className="ml-2 text-xs font-semibold"
                             style={{
-                              color: 'var(--color-primary)',
+                              color: 'var(--color-on-accent)',
                             }}
                           >
                             current
@@ -319,7 +319,7 @@ function EquivalentExposuresCard({ form }: { form: CameraExposureForm }) {
             </div>
             <p
               className="text-xs mt-2"
-              style={{ color: 'var(--color-text-tertiary)' }}
+              style={{ color: 'var(--color-on-accent-muted)' }}
             >
               Non-standard shutter speeds shown in muted text
             </p>
@@ -424,7 +424,7 @@ function ExposureComparisonCard({ form }: { form: CameraExposureForm }) {
           <div className="space-y-3">
             <h4
               className="text-xs font-semibold uppercase tracking-[0.25em]"
-              style={{ color: 'var(--color-text-muted)' }}
+              style={{ color: 'var(--color-on-accent-soft)' }}
             >
               Exposure B
             </h4>
@@ -654,6 +654,8 @@ export default function CameraExposureCalculatorPage() {
   return (
     <CalculatorLayout
       title="Camera Exposure Calculator"
+      icon={getRouteIcon('/exposure')}
+      accentTone="teal"
       description={
         <>
           Balance aperture, shutter speed, and ISO for correct exposure.
@@ -665,34 +667,53 @@ export default function CameraExposureCalculatorPage() {
       sidebar={<CameraExposureSidebar />}
       results={
         <div className="space-y-6">
-          {/* EV Result - desktop only (mobile instance is in children) */}
+          {/* EV Result — desktop right column only */}
           <div className="hidden md:block">
             <EVResultCard form={form} formValues={formValues} />
           </div>
 
-          {/* Equivalent Exposures */}
-          <EquivalentExposuresCard form={form} />
+          {/* Equivalent Exposures — desktop right column only */}
+          <div className="hidden md:block">
+            <EquivalentExposuresCard form={form} />
+          </div>
+
+          {/* EV Presets — desktop right column only */}
+          <div className="hidden md:block">
+            <EVPresetsCard
+              form={form}
+              presetsOpen={presetsOpen}
+              onToggle={() => setPresetsOpen((prev) => !prev)}
+              onPresetClick={handlePresetClick}
+            />
+          </div>
         </div>
       }
     >
-      {/* Exposure Settings */}
+      {/* Exposure Settings — always visible */}
       <ExposureSettingsCard form={form} />
 
-      {/* Exposure Comparison */}
-      <ExposureComparisonCard form={form} />
-
-      {/* EV Result - mobile only (desktop instance is in results) */}
+      {/* EV Result — mobile only; on desktop this lives in the results column */}
       <div className="md:hidden">
         <EVResultCard form={form} formValues={formValues} />
       </div>
 
-      {/* EV Presets - collapsible */}
-      <EVPresetsCard
-        form={form}
-        presetsOpen={presetsOpen}
-        onToggle={() => setPresetsOpen((prev) => !prev)}
-        onPresetClick={handlePresetClick}
-      />
+      {/* Equivalent Exposures — mobile only; on desktop this lives in the results column */}
+      <div className="md:hidden">
+        <EquivalentExposuresCard form={form} />
+      </div>
+
+      {/* Exposure Comparison — always visible */}
+      <ExposureComparisonCard form={form} />
+
+      {/* EV Presets — mobile only; on desktop this lives in the results column */}
+      <div className="md:hidden">
+        <EVPresetsCard
+          form={form}
+          presetsOpen={presetsOpen}
+          onToggle={() => setPresetsOpen((prev) => !prev)}
+          onPresetClick={handlePresetClick}
+        />
+      </div>
     </CalculatorLayout>
   );
 }
