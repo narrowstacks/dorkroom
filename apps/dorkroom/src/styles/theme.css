@@ -3,6 +3,7 @@
     "Montserrat Variable", "Montserrat Sans", ui-sans-serif, system-ui,
     sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
     "Noto Color Emoji";
+  --font-family-display: "Fraunces Variable", "Fraunces", Georgia, serif;
   --color-background: #09090b;
   --color-surface: #121214;
   --color-surface-muted: #1c1c1f;
@@ -265,12 +266,12 @@
   --color-visualization-preview: #666666;
   --color-visualization-border: #353535;
   --color-visualization-overlay: rgba(0, 0, 0, 0.5);
-  --color-paper-background: #ffffff;
-  --color-paper-border: rgba(255, 255, 255, 0.2);
-  --color-print-background: #666666;
+  --color-paper-background: #6a6868;
+  --color-paper-border: rgba(255, 255, 255, 0.14);
+  --color-print-background: #353535;
   --color-print-border: transparent;
   --print-border-style: none;
-  --blade-background: #353535;
+  --blade-background: #1b1b1d;
   --blade-border: none;
   --blade-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   --gradient-card-primary: linear-gradient(
@@ -869,12 +870,12 @@
   --color-visualization-preview: #666666;
   --color-visualization-border: #353535;
   --color-visualization-overlay: rgba(0, 0, 0, 0.5);
-  --color-paper-background: #ffffff;
-  --color-paper-border: rgba(255, 255, 255, 0.2);
-  --color-print-background: #666666;
+  --color-paper-background: #6a6868;
+  --color-paper-border: rgba(255, 255, 255, 0.14);
+  --color-print-background: #353535;
   --color-print-border: transparent;
   --print-border-style: none;
-  --blade-background: #353535;
+  --blade-background: #1b1b1d;
   --blade-border: none;
   --blade-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   --gradient-card-primary: linear-gradient(

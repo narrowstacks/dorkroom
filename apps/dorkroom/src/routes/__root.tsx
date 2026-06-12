@@ -135,7 +135,10 @@ function RootComponent() {
                 >
                   <Beaker className="size-10" />
                 </span>
-                <span className="hidden text-lg font-semibold tracking-tight sm:block">
+                <span
+                  className="hidden text-2xl font-semibold tracking-tight sm:block"
+                  style={{ fontFamily: 'var(--font-family-display)' }}
+                >
                   Dorkroom
                 </span>
               </Link>

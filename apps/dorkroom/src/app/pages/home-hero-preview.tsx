@@ -1,5 +1,6 @@
 import {
   bladeReadings,
+  bordersFromGaps,
   calculateBladeThickness,
   computePrintSize,
 } from '@dorkroom/logic';
@@ -47,17 +48,21 @@ interface BorderSetup {
   label: string;
   printW: number;
   printH: number;
-  borderX: number;
-  borderY: number;
+  leftBorder: number;
+  topBorder: number;
   readout: string;
 }
 
 // Min borders are chosen so every blade reading lands on a quarter inch.
+// offsetH/offsetV (multiples of 0.125) shift the print off-center while
+// keeping the blade readings on the quarter-inch grid.
 function makeSetup(
   label: string,
   ratioW: number,
   ratioH: number,
-  minBorder: number
+  minBorder: number,
+  offsetH = 0,
+  offsetV = 0
 ): BorderSetup {
   const { printW, printH } = computePrintSize(
     PAPER.width,
@@ -66,13 +71,16 @@ function makeSetup(
     ratioH,
     minBorder
   );
-  const readings = bladeReadings(printW, printH, 0, 0);
+  const halfW = (PAPER.width - printW) / 2;
+  const halfH = (PAPER.height - printH) / 2;
+  const borders = bordersFromGaps(halfW, halfH, offsetH, offsetV);
+  const readings = bladeReadings(printW, printH, offsetH, offsetV);
   return {
     label,
     printW,
     printH,
-    borderX: (PAPER.width - printW) / 2,
-    borderY: (PAPER.height - printH) / 2,
+    leftBorder: borders.left,
+    topBorder: borders.top,
     // Non-breaking spaces keep the readout on one line in the caption.
     readout: `${formatInches(readings.left)} × ${formatInches(readings.top)}`,
   };
@@ -80,11 +88,13 @@ function makeSetup(
 
 const SETUPS: readonly BorderSetup[] = [
   makeSetup('35mm', 3, 2, 1.25),
+  makeSetup('6×6 offset', 1, 1, 1, 0.75, 0),
+  makeSetup('4×5 offset', 5, 4, 1, -0.5, 0.5),
   makeSetup('6×6', 1, 1, 1.5),
   makeSetup('4×5', 5, 4, 1),
 ];
 
-const CYCLE_MS = 5000;
+const CYCLE_MS = 4000;
 
 const bladeStyle = {
   background: 'var(--blade-background)',
@@ -93,7 +103,7 @@ const bladeStyle = {
 } as const;
 
 // Slow position/size easing for the print and blades when a new setup lands.
-const easeClass = 'transition-all duration-1000 ease-in-out';
+const easeClass = 'transition-all duration-700 ease-in-out';
 
 function animationsDisabled(): boolean {
   if (typeof document === 'undefined') return true;
@@ -122,8 +132,11 @@ export function HomeHeroPreview() {
     return () => window.clearInterval(id);
   }, []);
 
-  const { label, printW, printH, borderX, borderY, readout } =
+  const { label, printW, printH, leftBorder, topBorder, readout } =
     SETUPS[setupIndex];
+  // Print edges drive the inner blade positions (asymmetric once offset).
+  const printRight = leftBorder + printW;
+  const printBottom = topBorder + printH;
 
   return (
     <Link
@@ -133,19 +146,18 @@ export function HomeHeroPreview() {
     >
       {/* The paper, with the print area and four easel blades */}
       <div
-        className="relative w-full overflow-hidden rounded-sm shadow-subtle transition-all group-hover/hero:-translate-y-0.5 group-hover/hero:shadow-lg"
+        className="hero-preview-paper relative w-full overflow-hidden rounded-sm shadow-subtle transition-all group-hover/hero:-translate-y-0.5 group-hover/hero:shadow-lg"
         style={{
           aspectRatio: `${PAPER.width} / ${PAPER.height}`,
           backgroundColor: 'var(--color-paper-background)',
-          border: '1px solid var(--color-paper-border)',
         }}
       >
         {/* Print area */}
         <div
           className={`absolute ${easeClass}`}
           style={{
-            left: pctX(borderX),
-            top: pctY(borderY),
+            left: pctX(leftBorder),
+            top: pctY(topBorder),
             width: pctX(printW),
             height: pctY(printH),
             backgroundColor: 'var(--color-print-background)',
@@ -158,7 +170,7 @@ export function HomeHeroPreview() {
           style={{
             ...bladeStyle,
             width: pctX(BLADE_IN),
-            left: pctX(borderX),
+            left: pctX(leftBorder),
           }}
         />
         <div
@@ -166,7 +178,7 @@ export function HomeHeroPreview() {
           style={{
             ...bladeStyle,
             width: pctX(BLADE_IN),
-            left: pctX(PAPER.width - borderX),
+            left: pctX(printRight),
           }}
         />
         <div
@@ -174,7 +186,7 @@ export function HomeHeroPreview() {
           style={{
             ...bladeStyle,
             height: pctY(BLADE_IN),
-            top: pctY(borderY),
+            top: pctY(topBorder),
           }}
         />
         <div
@@ -182,7 +194,7 @@ export function HomeHeroPreview() {
           style={{
             ...bladeStyle,
             height: pctY(BLADE_IN),
-            top: pctY(PAPER.height - borderY),
+            top: pctY(printBottom),
           }}
         />
       </div>

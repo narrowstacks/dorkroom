@@ -4,6 +4,24 @@ All notable changes to Dorkroom.art are documented here.
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.06.12]
+
+### Added
+
+- Fraunces display typeface (`@fontsource-variable/fraunces`) for the "Dorkroom.art" hero wordmark and the nav title, exposed via a new `--font-family-display` theme token
+- Two off-center setups in the home-page border-calculator preview (6×6 shifted, 4×5 shifted), demonstrating asymmetric easel-blade positioning via the same `bordersFromGaps`/`bladeReadings` helpers the calculator uses (offsets are 0.125″ multiples, so blade readings stay on the quarter-inch grid). Preview transitions tightened: morph `1000ms → 700ms`, dwell `5000ms → 4000ms`
+
+### Changed
+
+- Dark-theme home backdrop is now a "darkroom safelight": warm red/peach light bleeding from the edges into near-black (`#070708`) with a fine SVG film-grain overlay
+- Border-calculator paper/print/blade colors retuned for the dark theme — muted grey paper (`#6a6868`), darker print area (`#353535`), near-black easel blades (`#1b1b1d`)
+- Hero "Dorkroom.art" wordmark restyled: white grain fill with a grainy red glow behind the letters, set in Fraunces at a larger scale. Theme-aware — dark grain + soft warm glow on light, solid two-tone (no grain/glow) on darkroom and high-contrast. Nav "Dorkroom" now uses Fraunces as well
+
+### Fixed
+
+- Darkroom theme: the home hero box renders as plain black (film-grain texture removed), and the stray red stroke framing the border-calculator preview (and its caption) is gone in both darkroom and high-contrast — it came from the `main a[href*="/border"]` button-border rule catching the preview link. The primary "Calculate darkroom easel borders" CTA icon is now black instead of blending into the red button
+- Homepage Screenshot CI workflow: the capture script waited on a `.hero-card` element that the home-UX refresh removed, timing out on every run — updated to the current `.hero-grain` hero panel
+
 ## [2026.06.11]
 
 ### Added

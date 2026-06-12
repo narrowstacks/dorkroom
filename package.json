@@ -1,6 +1,6 @@
 {
   "name": "@dorkroom/source",
-  "version": "2026.06.11",
+  "version": "2026.06.12",
   "license": "AGPL-3.0-only",
   "scripts": {
     "supabase:login": "bunx supabase login",
@@ -29,6 +29,7 @@
   },
   "private": true,
   "dependencies": {
+    "@fontsource-variable/fraunces": "^5.2.9",
     "@fontsource-variable/montserrat": "^5.2.8",
     "@fontsource/vt323": "^5.2.7",
     "@tailwindcss/postcss": "4.3.0",

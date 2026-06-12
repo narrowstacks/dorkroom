@@ -36,9 +36,9 @@ try {
   });
   console.log(`Navigating to ${url} ...`);
   await page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 });
-  // Wait for the hero card (stable homepage element) and web fonts.
+  // Wait for the hero panel (stable homepage element) and web fonts.
   await page
-    .locator('.hero-card')
+    .locator('.hero-grain')
     .first()
     .waitFor({ state: 'visible', timeout: 30_000 });
   await page.evaluate(() => document.fonts.ready);

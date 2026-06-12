@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { lazy, StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import '@fontsource-variable/montserrat/index.css';
+import '@fontsource-variable/fraunces/index.css';
 import './styles.css';
 import {
   ErrorBoundary,

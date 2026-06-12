@@ -160,7 +160,7 @@ export function HomePage() {
           <div className="flex flex-wrap gap-2">
             <Link
               to="/border"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm button-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
+              className="darkroom-invert-icon inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm button-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
             >
               <Crop className="size-4" />
               Calculate darkroom easel borders
