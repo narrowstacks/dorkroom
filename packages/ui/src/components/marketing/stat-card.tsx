@@ -98,10 +98,10 @@ export function StatCard({
   }
 
   const commonClasses = cn(
-    'relative overflow-hidden rounded-2xl border transition-all focus:outline-none focus:ring-2',
+    'relative overflow-hidden rounded-2xl border transition-all focus-visible:outline-none focus-visible:ring-2',
     'border-[color:var(--color-border-primary)]',
     'hover:bg-[color:var(--color-surface-muted)]',
-    'focus:ring-[color:var(--color-border-primary)]',
+    'focus-visible:ring-[color:var(--color-border-primary)]',
     '[&:not([data-theme="high-contrast"])]:hover:-translate-y-0.5',
     '[&:not([data-theme="high-contrast"])]:hover:shadow-lg',
     border,

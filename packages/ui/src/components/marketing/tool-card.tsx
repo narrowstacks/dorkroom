@@ -34,10 +34,10 @@ export const ToolCard = memo(function ToolCard({
       {...componentProps}
       aria-label={title}
       className={cn(
-        'group relative overflow-hidden rounded-2xl border p-5 transition-all focus:outline-none focus:ring-2',
+        'group relative overflow-hidden rounded-2xl border p-5 transition-all focus-visible:outline-none focus-visible:ring-2',
         'border-[color:var(--color-border-primary)]',
         'hover:bg-[color:var(--color-surface-muted)]',
-        'focus:ring-[color:var(--color-border-primary)]',
+        'focus-visible:ring-[color:var(--color-border-primary)]',
         '[&:not([data-theme="high-contrast"])]:hover:-translate-y-0.5',
         '[&:not([data-theme="high-contrast"])]:hover:shadow-lg',
         border,
