@@ -72,19 +72,29 @@ function ModeToggle({ isEnlargerHeightMode, onModeChange }: ModeToggleProps) {
         }}
       >
         <span
-          className="text-[10px] font-medium uppercase tracking-[0.15em] sm:text-xs sm:tracking-[0.3em]"
-          style={{ color: 'var(--color-text-tertiary)' }}
+          className="text-[10px] uppercase tracking-[0.15em] transition-colors sm:text-xs sm:tracking-[0.3em]"
+          style={{
+            color: isEnlargerHeightMode
+              ? 'var(--color-text-muted)'
+              : 'var(--color-text-primary)',
+            fontWeight: isEnlargerHeightMode ? 500 : 600,
+          }}
         >
           Print Size
         </span>
         <ToggleSwitch
-          label=""
+          label="Toggle between Print Size and Enlarger Height mode"
           value={isEnlargerHeightMode}
           onValueChange={onModeChange}
         />
         <span
-          className="text-[10px] font-medium uppercase tracking-[0.15em] sm:text-xs sm:tracking-[0.3em]"
-          style={{ color: 'var(--color-text-tertiary)' }}
+          className="text-[10px] uppercase tracking-[0.15em] transition-colors sm:text-xs sm:tracking-[0.3em]"
+          style={{
+            color: isEnlargerHeightMode
+              ? 'var(--color-text-primary)'
+              : 'var(--color-text-muted)',
+            fontWeight: isEnlargerHeightMode ? 600 : 500,
+          }}
         >
           Enlarger Height
         </span>
