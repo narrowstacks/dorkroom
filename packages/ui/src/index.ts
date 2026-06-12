@@ -28,7 +28,10 @@ export { LabeledSliderInput } from './components/labeled-slider-input';
 export { Greeting } from './components/marketing/greeting';
 export type { StatCardProps } from './components/marketing/stat-card';
 export { StatCard } from './components/marketing/stat-card';
-export type { ToolCardProps } from './components/marketing/tool-card';
+export type {
+  AccentColor,
+  ToolCardProps,
+} from './components/marketing/tool-card';
 export { ToolCard } from './components/marketing/tool-card';
 export { MeasurementUnitToggle } from './components/measurement-unit-toggle';
 export type { MobileSidebarProps } from './components/mobile-sidebar';
@@ -122,8 +125,10 @@ export * from './lib/measurement';
 export type { MobileNavItem, NavigationCategory } from './lib/navigation';
 export {
   allNavItems,
+  CATEGORY_LABELS,
   cameraItems,
   filmItems,
+  getRouteIcon,
   mobileNavItems,
   navItems,
   navigationCategories,

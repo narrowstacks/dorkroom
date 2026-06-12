@@ -3,33 +3,30 @@ import type { ComponentProps, ElementType } from 'react';
 import { cn } from '../../lib/cn';
 import { Skeleton } from '../ui/skeleton';
 
+export type StatCardColorKey = 'emerald' | 'rose' | 'indigo';
+
 export interface StatCardProps extends ComponentProps<'a'> {
   label: string;
   value: string | number;
   icon: LucideIcon;
-  iconColorKey?: 'emerald' | 'rose' | 'indigo';
+  iconColorKey?: StatCardColorKey;
   variant?: 'horizontal' | 'vertical';
   as?: ElementType;
   to?: string;
   search?: Record<string, unknown>;
   loading?: boolean;
-  bg?: string;
-  border?: string;
 }
 
-const COLOR_VARIANTS = {
-  emerald: {
-    bg: 'from-emerald-500/20 to-teal-500/20',
-    border: 'group-hover:border-emerald-500/50',
-  },
-  rose: {
-    bg: 'from-rose-500/20 to-red-500/20',
-    border: 'group-hover:border-rose-500/50',
-  },
-  indigo: {
-    bg: 'from-indigo-500/20 to-purple-500/20',
-    border: 'group-hover:border-indigo-500/50',
-  },
+/**
+ * Literal Tailwind hover-border class per accent (subset of AccentColor).
+ * Tailwind must see the full class string in source, so these are not built
+ * by interpolation. The gradient overlay uses an inline `--accent-*-gradient`
+ * custom property instead.
+ */
+const HOVER_BORDER_CLASSES: Record<StatCardColorKey, string> = {
+  emerald: 'group-hover:border-[color:var(--accent-emerald-border)]',
+  rose: 'group-hover:border-[color:var(--accent-rose-border)]',
+  indigo: 'group-hover:border-[color:var(--accent-indigo-border)]',
 };
 
 export function StatCard({
@@ -44,17 +41,13 @@ export function StatCard({
   to,
   search,
   loading = false,
-  bg: propBg,
-  border: propBorder,
   ...props
 }: StatCardProps) {
   const iconColorVar = iconColorKey
     ? `var(--color-icon-stat-${iconColorKey})`
     : 'var(--color-text-primary)';
 
-  const variantStyles = iconColorKey ? COLOR_VARIANTS[iconColorKey] : undefined;
-  const bg = propBg || variantStyles?.bg;
-  const border = propBorder || variantStyles?.border;
+  const border = iconColorKey ? HOVER_BORDER_CLASSES[iconColorKey] : undefined;
 
   const componentProps =
     Component === 'a' ? { href } : { to: href || to, search, ...props };
@@ -98,24 +91,22 @@ export function StatCard({
   }
 
   const commonClasses = cn(
-    'relative overflow-hidden rounded-2xl border transition-all focus:outline-none focus:ring-2',
+    'relative overflow-hidden rounded-2xl border transition-all focus-visible:outline-none focus-visible:ring-2',
     'border-[color:var(--color-border-primary)]',
     'hover:bg-[color:var(--color-surface-muted)]',
-    'focus:ring-[color:var(--color-border-primary)]',
+    'focus-visible:ring-[color:var(--color-border-primary)]',
     '[&:not([data-theme="high-contrast"])]:hover:-translate-y-0.5',
     '[&:not([data-theme="high-contrast"])]:hover:shadow-lg',
     border,
     className
   );
 
-  const gradientOverlay = (
+  const gradientOverlay = iconColorKey ? (
     <div
-      className={cn(
-        'absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity group-hover:opacity-100',
-        bg
-      )}
+      className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"
+      style={{ backgroundImage: `var(--accent-${iconColorKey}-gradient)` }}
     />
-  );
+  ) : null;
 
   if (variant === 'horizontal') {
     return (

@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { cn } from '../../lib/cn';
+import type { AccentTone } from './accent-tone';
 import { CalculatorPageHeader } from './calculator-page-header';
 
 export interface CalculatorLayoutProps {
@@ -7,6 +8,10 @@ export interface CalculatorLayoutProps {
   title: string;
   /** Description text below the title */
   description: ReactNode;
+  /** Tool icon for the accent-tinted header tile (same icon as home/nav). */
+  icon?: ComponentType<{ className?: string }>;
+  /** Per-calculator accent identity (see theme.css `--accent-*`). */
+  accentTone?: AccentTone;
   /** Optional children to render in the header (e.g., toggle buttons) */
   headerChildren?: ReactNode;
   /** Main content (inputs) */
@@ -28,6 +33,8 @@ export interface CalculatorLayoutProps {
 export function CalculatorLayout({
   title,
   description,
+  icon,
+  accentTone,
   headerChildren,
   children,
   results,
@@ -42,15 +49,22 @@ export function CalculatorLayout({
         className
       )}
     >
-      <CalculatorPageHeader title={title} description={description}>
+      <CalculatorPageHeader
+        title={title}
+        description={description}
+        icon={icon}
+        accentTone={accentTone}
+      >
         {headerChildren}
       </CalculatorPageHeader>
 
       {results ? (
         <>
-          <div className="mt-6 grid gap-4 md:mt-8 md:gap-5 md:grid-cols-2">
+          <div className="mt-6 grid gap-4 md:mt-8 md:gap-5 md:grid-cols-2 md:items-start">
             <div className="space-y-4">{children}</div>
-            <div className="space-y-4">{results}</div>
+            <div className="space-y-4 md:sticky md:top-20 md:self-start">
+              {results}
+            </div>
           </div>
           {sidebar && <div className="mt-4 space-y-4 md:mt-5">{sidebar}</div>}
         </>
