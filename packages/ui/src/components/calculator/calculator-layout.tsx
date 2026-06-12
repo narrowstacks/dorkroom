@@ -60,9 +60,11 @@ export function CalculatorLayout({
 
       {results ? (
         <>
-          <div className="mt-6 grid gap-4 md:mt-8 md:gap-5 md:grid-cols-2">
+          <div className="mt-6 grid gap-4 md:mt-8 md:gap-5 md:grid-cols-2 md:items-start">
             <div className="space-y-4">{children}</div>
-            <div className="space-y-4">{results}</div>
+            <div className="space-y-4 md:sticky md:top-20 md:self-start">
+              {results}
+            </div>
           </div>
           {sidebar && <div className="mt-4 space-y-4 md:mt-5">{sidebar}</div>}
         </>

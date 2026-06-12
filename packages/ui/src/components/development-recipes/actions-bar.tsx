@@ -15,10 +15,13 @@ interface DevelopmentActionsBarProps {
   onOpenCustomRecipeModal: () => void;
   onRefresh: () => void;
   isRefreshing?: boolean;
+  /** Whether the initial data load is still in flight; suppresses the "0 pairings" subtitle. */
+  isLoading?: boolean;
   showImportButton?: boolean;
   isMobile?: boolean;
 }
 
+// eslint-disable-next-line react-doctor/no-many-boolean-props -- isRefreshing / isLoading / showImportButton / isMobile are independent display/state flags on a toolbar, not a variant axis; compound-component split would add more indirection than value here
 export function DevelopmentActionsBar({
   totalResults,
   viewMode,
@@ -27,6 +30,7 @@ export function DevelopmentActionsBar({
   onOpenCustomRecipeModal,
   onRefresh,
   isRefreshing,
+  isLoading = false,
   showImportButton = true,
   isMobile = false,
 }: DevelopmentActionsBarProps) {
@@ -41,7 +45,7 @@ export function DevelopmentActionsBar({
       <div className="flex items-center gap-4">
         {RecipeIcon && (
           <div
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border"
+            className="flex size-11 shrink-0 items-center justify-center rounded-xl border"
             style={{
               background: 'var(--accent-rose-gradient)',
               borderColor:
@@ -50,7 +54,7 @@ export function DevelopmentActionsBar({
               color: 'var(--color-on-accent)',
             }}
           >
-            <RecipeIcon className="h-5 w-5" />
+            <RecipeIcon className="size-5" />
           </div>
         )}
         <div>
@@ -64,7 +68,9 @@ export function DevelopmentActionsBar({
             className="text-sm"
             style={{ color: 'var(--color-text-tertiary)' }}
           >
-            {totalResults.toLocaleString()} film and developer pairings.
+            {isLoading
+              ? 'Loading recipes…'
+              : `${totalResults.toLocaleString()} film and developer pairings.`}
           </p>
         </div>
       </div>
