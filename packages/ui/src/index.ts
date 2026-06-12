@@ -128,6 +128,7 @@ export {
   CATEGORY_LABELS,
   cameraItems,
   filmItems,
+  getRouteIcon,
   mobileNavItems,
   navItems,
   navigationCategories,

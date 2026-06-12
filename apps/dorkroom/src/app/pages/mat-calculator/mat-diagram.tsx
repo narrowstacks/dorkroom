@@ -18,7 +18,10 @@ interface MatDiagramProps {
 // var() resolves — presentation attributes do not).
 const INK = 'var(--color-text-primary)';
 const SOFT = 'var(--color-text-tertiary)';
-const ACCENT = 'var(--color-primary)';
+// Mat calculator carries the cyan accent (plan 007). The diagram uses the
+// solid cyan token rather than the brand green so the page reads as its own
+// tool; collapses to red/black in darkroom/high-contrast like other accents.
+const ACCENT = 'var(--accent-cyan-text)';
 const PANEL = 'var(--color-surface)';
 
 interface MatGeometry {
