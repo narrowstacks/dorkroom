@@ -271,13 +271,13 @@ function EquivalentExposuresCard({ form }: { form: CameraExposureForm }) {
                   >
                     <th
                       className="py-2 px-3 text-left font-medium"
-                      style={{ color: 'var(--color-text-tertiary)' }}
+                      style={{ color: 'var(--color-on-accent-muted)' }}
                     >
                       Aperture
                     </th>
                     <th
                       className="py-2 px-3 text-left font-medium"
-                      style={{ color: 'var(--color-text-tertiary)' }}
+                      style={{ color: 'var(--color-on-accent-muted)' }}
                     >
                       Shutter Speed
                     </th>
@@ -294,8 +294,8 @@ function EquivalentExposuresCard({ form }: { form: CameraExposureForm }) {
                           ? 'var(--color-surface-elevated)'
                           : undefined,
                         color: eq.isStandardShutterSpeed
-                          ? 'var(--color-text-primary)'
-                          : 'var(--color-text-tertiary)',
+                          ? 'var(--color-on-accent)'
+                          : 'var(--color-on-accent-muted)',
                       }}
                     >
                       <td className="py-2 px-3">{eq.apertureLabel}</td>
@@ -303,9 +303,9 @@ function EquivalentExposuresCard({ form }: { form: CameraExposureForm }) {
                         {eq.shutterSpeedLabel}
                         {eq.isCurrentSetting && (
                           <span
-                            className="ml-2 text-xs"
+                            className="ml-2 text-xs font-semibold"
                             style={{
-                              color: 'var(--color-primary)',
+                              color: 'var(--color-on-accent)',
                             }}
                           >
                             current
@@ -319,7 +319,7 @@ function EquivalentExposuresCard({ form }: { form: CameraExposureForm }) {
             </div>
             <p
               className="text-xs mt-2"
-              style={{ color: 'var(--color-text-tertiary)' }}
+              style={{ color: 'var(--color-on-accent-muted)' }}
             >
               Non-standard shutter speeds shown in muted text
             </p>
@@ -424,7 +424,7 @@ function ExposureComparisonCard({ form }: { form: CameraExposureForm }) {
           <div className="space-y-3">
             <h4
               className="text-xs font-semibold uppercase tracking-[0.25em]"
-              style={{ color: 'var(--color-text-muted)' }}
+              style={{ color: 'var(--color-on-accent-soft)' }}
             >
               Exposure B
             </h4>

@@ -20,7 +20,7 @@ interface ToneStyles {
 }
 
 // Theme-aware tone styles using predefined gradients
-// Uses high-contrast text colors against gradient backgrounds
+// Uses on-accent tokens for readable text against gradient backgrounds
 const getToneStyle = (tone: Exclude<StatTone, 'default'>): ToneStyles => {
   switch (tone) {
     case 'emerald':
@@ -34,9 +34,9 @@ const getToneStyle = (tone: Exclude<StatTone, 'default'>): ToneStyles => {
           ),
           background: 'var(--gradient-card-primary)',
         },
-        label: 'var(--color-text-primary)',
-        value: 'var(--color-text-primary)',
-        helper: 'var(--color-text-primary)',
+        label: 'var(--color-on-accent-soft)',
+        value: 'var(--color-on-accent)',
+        helper: 'var(--color-on-accent-muted)',
       };
     case 'sky':
       return {
@@ -49,9 +49,9 @@ const getToneStyle = (tone: Exclude<StatTone, 'default'>): ToneStyles => {
           ),
           background: 'var(--gradient-card-info)',
         },
-        label: 'var(--color-text-primary)',
-        value: 'var(--color-text-primary)',
-        helper: 'var(--color-text-primary)',
+        label: 'var(--color-on-accent-soft)',
+        value: 'var(--color-on-accent)',
+        helper: 'var(--color-on-accent-muted)',
       };
   }
 };
@@ -81,7 +81,7 @@ export const CalculatorStat = memo(function CalculatorStat({
       }
     >
       <span
-        className="text-[10px] font-semibold uppercase tracking-[0.3em]"
+        className="text-xs font-semibold uppercase tracking-[0.2em]"
         style={{
           color: toneStyle ? toneStyle.label : 'var(--color-text-primary)',
         }}

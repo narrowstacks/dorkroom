@@ -93,6 +93,7 @@ const FOCAL_LENGTH_PRESETS = [
   { value: 135, label: '135' },
 ];
 
+// eslint-disable-next-line react-doctor/no-giant-component -- component size pre-dates this plan; will be split in plan 007
 export default function LensCalculatorPage() {
   const form = useForm({
     defaultValues: {
@@ -291,17 +292,29 @@ export default function LensCalculatorPage() {
                   />
                 </div>
 
-                <div className="rounded-xl p-3 font-mono text-sm border border-secondary bg-background/20 text-primary text-center">
+                <div
+                  className="rounded-xl p-3 font-mono text-sm border border-secondary bg-background/20 text-center"
+                  style={{ color: 'var(--color-on-accent)' }}
+                >
                   {formatFocalLength(calculation.focalLength)}
-                  <span className="text-tertiary"> on </span>
+                  <span style={{ color: 'var(--color-on-accent-muted)' }}>
+                    {' '}
+                    on{' '}
+                  </span>
                   <span className="font-medium">
                     {calculation.sourceFormat.shortName}
                   </span>
-                  <span className="text-tertiary"> = </span>
+                  <span style={{ color: 'var(--color-on-accent-muted)' }}>
+                    {' '}
+                    ={' '}
+                  </span>
                   <span className="font-semibold">
                     {formatFocalLength(calculation.equivalentFocalLength)}
                   </span>
-                  <span className="text-tertiary"> on </span>
+                  <span style={{ color: 'var(--color-on-accent-muted)' }}>
+                    {' '}
+                    on{' '}
+                  </span>
                   <span className="font-medium">
                     {calculation.targetFormat.shortName}
                   </span>

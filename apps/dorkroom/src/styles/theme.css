@@ -119,6 +119,10 @@
   --color-text-muted: #ff0000;
   --color-text-warning: #ff0000;
   --color-text-link: #ff0000;
+  /* on-accent: gradient cards are black in darkroom; use red text to match */
+  --color-on-accent: #ff0000;
+  --color-on-accent-soft: #ff0000;
+  --color-on-accent-muted: #ff0000;
   --color-background-muted: #000000;
   --color-background-tag: #000000;
   --color-text-tag: #ff0000;
@@ -250,6 +254,10 @@
   --color-text-secondary: #e4e4e7;
   --color-text-tertiary: #a1a1aa;
   --color-text-muted: #9595a3;
+  /* text colors guaranteed readable on gradient-card / accent surfaces */
+  --color-on-accent: #ffffff;
+  --color-on-accent-soft: rgba(255, 255, 255, 0.92);
+  --color-on-accent-muted: rgba(255, 255, 255, 0.78);
   --color-border-primary: rgba(255, 255, 255, 0.2);
   --color-border-secondary: rgba(255, 255, 255, 0.1);
   --color-border-muted: rgba(255, 255, 255, 0.05);
@@ -270,8 +278,8 @@
   --blade-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   --gradient-card-primary: linear-gradient(
     135deg,
-    rgba(110, 243, 164, 0.45),
-    rgba(36, 146, 88, 0.34)
+    rgba(110, 243, 164, 0.32),
+    rgba(36, 146, 88, 0.26)
   );
   --gradient-card-secondary: linear-gradient(
     135deg,
@@ -290,8 +298,8 @@
   );
   --gradient-card-neutral: linear-gradient(
     135deg,
-    rgba(47, 211, 107, 0.56),
-    rgba(14, 85, 49, 0.44)
+    rgba(47, 211, 107, 0.34),
+    rgba(14, 85, 49, 0.3)
   );
   --gradient-card-info: linear-gradient(
     135deg,
@@ -471,7 +479,7 @@
   --settings-container-border: rgba(0, 0, 0, 0.1);
   --color-surface: #f8f9fa;
   --color-surface-muted: #f1f3f4;
-  --color-primary: #2d7a4a; /* deep green for accessible accents */
+  --color-primary: #256b40; /* deep green — ≥4.5:1 on white */
   --color-secondary: #1e6091; /* deep blue for links/secondary accents */
   --color-accent: #c4524a; /* warm accent for warnings/highlights */
   --color-highlight: #7a8c1f; /* slightly cooler olive for better contrast */
@@ -479,11 +487,15 @@
   --color-text-secondary: #27272a;
   --color-text-tertiary: #52525b;
   --color-text-muted: #71717a;
+  /* text colors guaranteed readable on gradient-card / accent surfaces */
+  --color-on-accent: #09090b;
+  --color-on-accent-soft: rgba(9, 9, 11, 0.85);
+  --color-on-accent-muted: rgba(9, 9, 11, 0.72);
   --color-border-primary: rgba(9, 9, 11, 0.18);
   --color-border-secondary: rgba(9, 9, 11, 0.1);
   --color-border-muted: rgba(9, 9, 11, 0.06);
   --color-semantic-success: #2d7a4a;
-  --color-semantic-warning: #de4e1e;
+  --color-semantic-warning: #b83f16; /* 4.6:1 on white */
   --color-semantic-error: #d32323;
   --color-semantic-info: #1e6091;
   --color-visualization-preview: #d4d4d8;
@@ -621,6 +633,10 @@
   --color-text-muted: #000000;
   --color-text-warning: #000000;
   --color-text-link: #000000;
+  /* on-accent: gradient cards are white in high-contrast; use black text to match */
+  --color-on-accent: #000000;
+  --color-on-accent-soft: #000000;
+  --color-on-accent-muted: #000000;
   --color-background-muted: #ffffff;
   --color-background-tag: #ffffff;
   --color-text-tag: #000000;
@@ -756,6 +772,10 @@
   --color-text-secondary: #e4e4e7;
   --color-text-tertiary: #a1a1aa;
   --color-text-muted: #71717a;
+  /* text colors guaranteed readable on gradient-card / accent surfaces */
+  --color-on-accent: #ffffff;
+  --color-on-accent-soft: rgba(255, 255, 255, 0.92);
+  --color-on-accent-muted: rgba(255, 255, 255, 0.78);
   --color-border-primary: rgba(255, 255, 255, 0.2);
   --color-border-secondary: rgba(255, 255, 255, 0.1);
   --color-border-muted: rgba(255, 255, 255, 0.05);
@@ -776,8 +796,8 @@
   --blade-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   --gradient-card-primary: linear-gradient(
     135deg,
-    rgba(110, 243, 164, 0.45),
-    rgba(36, 146, 88, 0.34)
+    rgba(110, 243, 164, 0.32),
+    rgba(36, 146, 88, 0.26)
   );
   --gradient-card-secondary: linear-gradient(
     135deg,
@@ -796,8 +816,8 @@
   );
   --gradient-card-neutral: linear-gradient(
     135deg,
-    rgba(47, 211, 107, 0.56),
-    rgba(14, 85, 49, 0.44)
+    rgba(47, 211, 107, 0.34),
+    rgba(14, 85, 49, 0.3)
   );
   --gradient-card-info: linear-gradient(
     135deg,
