@@ -1,8 +1,8 @@
 import { memo, type ReactNode } from 'react';
 import { cn } from '../../lib/cn';
-import { colorMixOr } from '../../lib/color';
+import type { AccentTone } from './accent-tone';
 
-type StatTone = 'default' | 'emerald' | 'sky';
+type StatTone = 'default' | AccentTone;
 
 interface CalculatorStatProps {
   label: string;
@@ -19,42 +19,17 @@ interface ToneStyles {
   helper: string;
 }
 
-// Theme-aware tone styles using predefined gradients
-// Uses on-accent tokens for readable text against gradient backgrounds
-const getToneStyle = (tone: Exclude<StatTone, 'default'>): ToneStyles => {
-  switch (tone) {
-    case 'emerald':
-      return {
-        container: {
-          borderColor: colorMixOr(
-            'var(--color-semantic-success)',
-            30,
-            'transparent',
-            'var(--color-border-secondary)'
-          ),
-          background: 'var(--gradient-card-primary)',
-        },
-        label: 'var(--color-on-accent-soft)',
-        value: 'var(--color-on-accent)',
-        helper: 'var(--color-on-accent-muted)',
-      };
-    case 'sky':
-      return {
-        container: {
-          borderColor: colorMixOr(
-            'var(--color-semantic-info)',
-            30,
-            'transparent',
-            'var(--color-border-secondary)'
-          ),
-          background: 'var(--gradient-card-info)',
-        },
-        label: 'var(--color-on-accent-soft)',
-        value: 'var(--color-on-accent)',
-        helper: 'var(--color-on-accent-muted)',
-      };
-  }
-};
+// Theme-aware tone styles backed by the plan-003 `--accent-<tone>-*` vars.
+// Text uses the 006 on-accent tokens so it stays readable on the gradient.
+const getToneStyle = (tone: Exclude<StatTone, 'default'>): ToneStyles => ({
+  container: {
+    borderColor: `var(--accent-${tone}-border, var(--color-border-secondary))`,
+    background: `var(--accent-${tone}-gradient)`,
+  },
+  label: 'var(--color-on-accent-soft)',
+  value: 'var(--color-on-accent)',
+  helper: 'var(--color-on-accent-muted)',
+});
 
 export const CalculatorStat = memo(function CalculatorStat({
   label,

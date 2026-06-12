@@ -1,3 +1,4 @@
+export type { AccentTone } from './accent-tone';
 export * from './calculator-card';
 export * from './calculator-layout';
 export * from './calculator-number-field';

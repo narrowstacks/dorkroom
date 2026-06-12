@@ -29,7 +29,7 @@ import {
   solveForShutterSpeed,
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
-import { ResultRow, Select, StatusAlert } from '@dorkroom/ui';
+import { getRouteIcon, ResultRow, Select, StatusAlert } from '@dorkroom/ui';
 import {
   CalculatorCard,
   CalculatorLayout,
@@ -135,7 +135,7 @@ function EVResultCard({
         <CalculatorCard
           title="Exposure value"
           description="Scene brightness at ISO 100"
-          accent="emerald"
+          accent="teal"
           padding="compact"
         >
           <div className="grid gap-4 sm:grid-cols-2">
@@ -143,7 +143,7 @@ function EVResultCard({
               label="EV"
               value={result.isValid ? `${result.ev}` : '—'}
               helperText={result.description || 'Enter valid settings'}
-              tone="emerald"
+              tone="teal"
             />
             <CalculatorStat
               label="Settings"
@@ -654,6 +654,8 @@ export default function CameraExposureCalculatorPage() {
   return (
     <CalculatorLayout
       title="Camera Exposure Calculator"
+      icon={getRouteIcon('/exposure')}
+      accentTone="teal"
       description={
         <>
           Balance aperture, shutter speed, and ISO for correct exposure.

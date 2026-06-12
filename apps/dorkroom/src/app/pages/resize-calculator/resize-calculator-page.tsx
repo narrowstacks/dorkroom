@@ -12,6 +12,7 @@ import {
 } from '@dorkroom/logic';
 import {
   colorMixOr,
+  getRouteIcon,
   StatusAlert,
   ToggleSwitch,
   useMeasurement,
@@ -329,14 +330,14 @@ function ResizeResults({ form }: { form: ResizeForm }) {
           <CalculatorCard
             title="Exposure result"
             description="Dial these in on your timer and make a quick test strip to confirm."
-            accent="emerald"
+            accent="teal"
             padding="compact"
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <CalculatorStat
                 label="New time"
                 value={`${newTime} seconds`}
-                tone="emerald"
+                tone="teal"
                 helperText="Based on your original exposure and target size."
               />
               <CalculatorStat
@@ -660,6 +661,8 @@ export default function ResizeCalculatorPage() {
   return (
     <CalculatorLayout
       title="Print Resize Calculator"
+      icon={getRouteIcon('/resize')}
+      accentTone="teal"
       description="Scale a print up or down and get a solid starting exposure without burning through paper."
       results={<ResizeResults form={form} />}
       sidebar={

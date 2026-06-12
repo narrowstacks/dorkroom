@@ -1,7 +1,11 @@
 import { Grid, Plus, Rows, Upload } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { setStyles } from '../../lib/dom';
+import { getRouteIcon } from '../../lib/navigation';
 import { TemperatureUnitToggle } from './temperature-unit-toggle';
+
+// Development recipes carry the Film category's rose accent (plan 007).
+const RecipeIcon = getRouteIcon('/development');
 
 interface DevelopmentActionsBarProps {
   totalResults: number;
@@ -34,16 +38,35 @@ export function DevelopmentActionsBar({
         backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',
       }}
     >
-      <div>
-        <h2
-          className="text-lg font-semibold"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
-          Development Recipes
-        </h2>
-        <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
-          {totalResults.toLocaleString()} film and developer pairings.
-        </p>
+      <div className="flex items-center gap-4">
+        {RecipeIcon && (
+          <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border"
+            style={{
+              background: 'var(--accent-rose-gradient)',
+              borderColor:
+                'var(--accent-rose-border, var(--color-border-secondary))',
+              // RecipeIcon inherits this via currentColor.
+              color: 'var(--color-on-accent)',
+            }}
+          >
+            <RecipeIcon className="h-5 w-5" />
+          </div>
+        )}
+        <div>
+          <h2
+            className="text-lg font-semibold"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            Development Recipes
+          </h2>
+          <p
+            className="text-sm"
+            style={{ color: 'var(--color-text-tertiary)' }}
+          >
+            {totalResults.toLocaleString()} film and developer pairings.
+          </p>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

@@ -602,8 +602,7 @@
   --color-tool-card-description-hover: #09090b;
   --color-tool-card-arrow: #a1a1aa;
 
-  /* Accent text uses -600 variants for contrast on light backgrounds.
-     Border/gradient inherit from the base block. */
+  /* Accent text uses -600 variants for contrast on light backgrounds. */
   --accent-indigo-text: oklch(51.1% 0.262 276.966);
   --accent-blue-text: oklch(54.6% 0.245 262.881);
   --accent-violet-text: oklch(54.1% 0.281 293.009);
@@ -613,6 +612,102 @@
   --accent-cyan-text: oklch(60.9% 0.126 221.723);
   --accent-emerald-text: oklch(59.6% 0.145 163.225);
   --accent-sky-text: oklch(58.8% 0.158 241.966);
+
+  /* Accent gradient/border for light theme: low-opacity tints that keep the
+     dark on-accent text (#09090b) readable while still reading as the tool's
+     color. Borders are stronger so the accent card reads as bounded on white.
+     (The dark theme defines these over transparent; light needs its own so
+     calculator accent surfaces don't wash out — plan 007.) */
+  --accent-indigo-border: color-mix(
+    in oklab,
+    oklch(58.5% 0.233 277.117) 45%,
+    transparent
+  );
+  --accent-indigo-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(58.5% 0.233 277.117) 14%, transparent),
+    color-mix(in oklab, oklch(62.7% 0.265 303.9) 14%, transparent)
+  );
+  --accent-blue-border: color-mix(
+    in oklab,
+    oklch(62.3% 0.214 259.815) 45%,
+    transparent
+  );
+  --accent-blue-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(62.3% 0.214 259.815) 14%, transparent),
+    color-mix(in oklab, oklch(71.5% 0.143 215.221) 14%, transparent)
+  );
+  --accent-violet-border: color-mix(
+    in oklab,
+    oklch(60.6% 0.25 292.717) 45%,
+    transparent
+  );
+  --accent-violet-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(60.6% 0.25 292.717) 14%, transparent),
+    color-mix(in oklab, oklch(66.7% 0.295 322.15) 14%, transparent)
+  );
+  --accent-teal-border: color-mix(
+    in oklab,
+    oklch(70.4% 0.14 182.503) 45%,
+    transparent
+  );
+  --accent-teal-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(70.4% 0.14 182.503) 14%, transparent),
+    color-mix(in oklab, oklch(69.6% 0.17 162.48) 14%, transparent)
+  );
+  --accent-amber-border: color-mix(
+    in oklab,
+    oklch(76.9% 0.188 70.08) 45%,
+    transparent
+  );
+  --accent-amber-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(76.9% 0.188 70.08) 14%, transparent),
+    color-mix(in oklab, oklch(70.5% 0.213 47.604) 14%, transparent)
+  );
+  --accent-rose-border: color-mix(
+    in oklab,
+    oklch(64.5% 0.246 16.439) 45%,
+    transparent
+  );
+  --accent-rose-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(64.5% 0.246 16.439) 14%, transparent),
+    color-mix(in oklab, oklch(63.7% 0.237 25.331) 14%, transparent)
+  );
+  --accent-cyan-border: color-mix(
+    in oklab,
+    oklch(71.5% 0.143 215.221) 45%,
+    transparent
+  );
+  --accent-cyan-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(71.5% 0.143 215.221) 14%, transparent),
+    color-mix(in oklab, oklch(70.4% 0.14 182.503) 14%, transparent)
+  );
+  --accent-emerald-border: color-mix(
+    in oklab,
+    oklch(69.6% 0.17 162.48) 45%,
+    transparent
+  );
+  --accent-emerald-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(69.6% 0.17 162.48) 14%, transparent),
+    color-mix(in oklab, oklch(70.4% 0.14 182.503) 14%, transparent)
+  );
+  --accent-sky-border: color-mix(
+    in oklab,
+    oklch(68.5% 0.169 237.323) 45%,
+    transparent
+  );
+  --accent-sky-gradient: linear-gradient(
+    to bottom right,
+    color-mix(in oklab, oklch(68.5% 0.169 237.323) 14%, transparent),
+    color-mix(in oklab, oklch(62.3% 0.214 259.815) 14%, transparent)
+  );
 }
 
 /* High-contrast theme: black on white, no gradients, no animations */
