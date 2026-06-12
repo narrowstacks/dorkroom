@@ -369,8 +369,8 @@ function RecipeCard({
             {film ? `${film.brand} ${film.name}` : 'Unknown film'}
           </span>
           <div
-            className="text-xs"
-            style={{ color: 'var(--color-text-tertiary)' }}
+            className="text-sm font-medium"
+            style={{ color: 'var(--color-text-secondary)' }}
           >
             {developer
               ? `${developer.manufacturer} ${developer.name}`
