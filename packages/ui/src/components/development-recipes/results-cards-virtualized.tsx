@@ -47,10 +47,14 @@ import {
 const BREAKPOINT_XL = 1280;
 const BREAKPOINT_LG = 1024;
 const BREAKPOINT_SM = 640;
+/** Below this width the mobile grid collapses to 1 column (plan 009 item 5). */
+const BREAKPOINT_MOBILE_2COL = 480;
 
 /**
- * Hook to calculate responsive column count based on container width
- * Matches Tailwind breakpoints: sm:640px, lg:1024px, xl:1280px
+ * Hook to calculate responsive column count based on container width.
+ *
+ * Desktop: matches Tailwind breakpoints sm:640px, lg:1024px, xl:1280px.
+ * Mobile: 1 column below 480px, 2 columns at 480px and above.
  *
  * Uses debounced ResizeObserver to prevent browser lockups during rapid resizing.
  */
@@ -58,15 +62,17 @@ function useResponsiveColumnCount(
   containerRef: React.RefObject<HTMLDivElement | null>,
   isMobile: boolean
 ): number {
-  const [observedColumnCount, setColumnCount] = useState(3);
+  const [observedColumnCount, setColumnCount] = useState(isMobile ? 2 : 3);
 
   useEffect(() => {
-    if (isMobile) return;
-
     const container = containerRef.current;
     if (!container) return;
 
     const calculateColumns = (width: number): number => {
+      if (isMobile) {
+        // 1-col below 480px, 2-col at 480px+ (plan 009 item 5)
+        return width >= BREAKPOINT_MOBILE_2COL ? 2 : 1;
+      }
       // Match Tailwind breakpoints for grid-cols
       if (width >= BREAKPOINT_XL) return 4; // xl
       if (width >= BREAKPOINT_LG) return 3; // lg
@@ -122,7 +128,7 @@ function useResponsiveColumnCount(
     };
   }, [containerRef, isMobile]);
 
-  return isMobile ? 2 : observedColumnCount;
+  return observedColumnCount;
 }
 
 interface DevelopmentResultsCardsVirtualizedProps {
