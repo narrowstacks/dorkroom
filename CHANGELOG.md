@@ -17,6 +17,10 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - Restored React Doctor health to 100/100 across all projects: replaced barrel-file imports with direct module imports in `film-filters-panel` (`../filters/*`) and `film-detail-panel` (`../detail-panel/detail-panel`) for better tree-shaking, and suppressed the `no-barrel-import` finding in `@dorkroom/api`'s `index.test.ts` (the barrel re-export is that suite's subject under test)
 - Bumped the TypeScript 7 native preview (`tsgo`) compiler from `7.0.0-dev.20260421.2` to `7.0.0-dev.20260604.1` (the typecheck/build toolchain). Chose a snapshot ≥7 days old so it clears the `bunfig.toml` `minimumReleaseAge` soak gate; full gate (typecheck + build + test) passes clean. Stable TypeScript 7 has not shipped yet, so the preview pin remains
 
+### Fixed
+
+- Print Resize Calculator (`/resize`) crashed on load with `useMeasurementConverter is not defined`: the hook was imported as `type`-only but called at runtime, so the import was erased from the compiled page. Made it a value import
+
 ## [2026.05.28]
 
 ### Added
