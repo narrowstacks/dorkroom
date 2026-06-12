@@ -201,9 +201,6 @@
   --color-tool-card-icon-bg: #000000;
   --color-tool-card-icon-ring: #ff0000;
   --color-tool-card-icon-hover: #ff0000;
-  --color-tool-card-category: #ff0000;
-  --color-tool-card-category-hover: #ff0000;
-  --color-tool-card-title: #ff0000;
   --color-tool-card-description: #a90000;
   --color-tool-card-description-hover: #ff0000;
   --color-tool-card-arrow: #ff0000;
@@ -361,9 +358,6 @@
   --color-tool-card-icon-bg: rgba(39, 39, 42, 0.8);
   --color-tool-card-icon-ring: rgba(255, 255, 255, 0.12);
   --color-tool-card-icon-hover: rgba(255, 255, 255, 0.18);
-  --color-tool-card-category: #71717a;
-  --color-tool-card-category-hover: #d4d4d8;
-  --color-tool-card-title: #ffffff;
   --color-tool-card-description: #a1a1aa;
   --color-tool-card-description-hover: #d4d4d8;
   --color-tool-card-arrow: #52525b;
@@ -595,9 +589,6 @@
   --color-tool-card-icon-bg: rgba(9, 9, 11, 0.06);
   --color-tool-card-icon-ring: rgba(9, 9, 11, 0.12);
   --color-tool-card-icon-hover: rgba(9, 9, 11, 0.1);
-  --color-tool-card-category: #71717a;
-  --color-tool-card-category-hover: #52525b;
-  --color-tool-card-title: #09090b;
   --color-tool-card-description: #52525b;
   --color-tool-card-description-hover: #09090b;
   --color-tool-card-arrow: #a1a1aa;
@@ -814,9 +805,6 @@
   --color-tool-card-icon-bg: #ffffff;
   --color-tool-card-icon-ring: #000000;
   --color-tool-card-icon-hover: #ffffff;
-  --color-tool-card-category: #000000;
-  --color-tool-card-category-hover: #000000;
-  --color-tool-card-title: #000000;
   --color-tool-card-description: #000000;
   --color-tool-card-description-hover: #000000;
   --color-tool-card-arrow: #000000;
