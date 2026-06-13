@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/microfrontends.json",
+  "applications": {
+    "dorkroom": {
+      "packageName": "@dorkroom/dorkroom",
+      "development": {
+        "fallback": "dorkroom.art"
+      }
+    },
+    "dorkroom-docs": {
+      "packageName": "dorkroom-docs",
+      "routing": [
+        {
+          "paths": ["/docs/:path*"]
+        }
+      ]
+    }
+  }
+}

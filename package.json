@@ -43,6 +43,7 @@
     "@tanstack/router-vite-plugin": "^1.136.8",
     "@unkey/api": "^2.3.0",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/microfrontends": "^2.3.6",
     "@vercel/node": "^5.3.24",
     "@vercel/og": "^0.11.1",
     "clsx": "^2.1.1",

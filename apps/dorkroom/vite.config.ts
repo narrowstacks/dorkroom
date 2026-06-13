@@ -3,6 +3,7 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tanstackRouter } from '@tanstack/router-vite-plugin';
+import { microfrontends } from '@vercel/microfrontends/experimental/vite';
 import legacy from '@vitejs/plugin-legacy';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
@@ -83,6 +84,12 @@ export default defineConfig(() => ({
   plugins: [
     tanstackRouter(),
     react(),
+    // Scopes this (default) app's static assets under the microfrontends group
+    // so the edge can keep `/docs/*` asset requests routed to the docs child app
+    // rather than this app swallowing them. Reads the co-located microfrontends.json
+    // in this package dir (Turborepo's MFE integration requires it here, not the
+    // repo root — a root config makes turbo self-extend `//` and the build fails).
+    microfrontends(),
     // Legacy bundle for the Kindle Experimental Browser, which is WebKit ~2009
     // (Safari 4–5 era): ES5-only, no Promise/async. The `ie >= 11` floor forces
     // Babel to fully down-level the legacy chunks to ES5 and inject the core-js
