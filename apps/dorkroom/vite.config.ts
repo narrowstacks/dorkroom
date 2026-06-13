@@ -89,7 +89,9 @@ export default defineConfig(() => ({
     // rather than this app swallowing them. Reads the co-located microfrontends.json
     // in this package dir (Turborepo's MFE integration requires it here, not the
     // repo root — a root config makes turbo self-extend `//` and the build fails).
-    microfrontends(),
+    // Build-only: the root vitest.config loads this file from the repo root, where
+    // the plugin would resolve the wrong package name (@dorkroom/source) and throw.
+    process.env.VITEST ? undefined : microfrontends(),
     // Legacy bundle for the Kindle Experimental Browser, which is WebKit ~2009
     // (Safari 4–5 era): ES5-only, no Promise/async. The `ie >= 11` floor forces
     // Babel to fully down-level the legacy chunks to ES5 and inject the core-js

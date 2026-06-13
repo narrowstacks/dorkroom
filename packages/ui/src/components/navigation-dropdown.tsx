@@ -7,6 +7,10 @@ export interface NavigationItem {
   to: string;
   icon: React.ComponentType<{ className?: string }>;
   summary: string;
+  /** When true, navigate with a full document load instead of client routing.
+   *  Required for paths served by a different microfrontend (e.g. /docs), which
+   *  the edge can only route on a real browser request, not a client transition. */
+  reload?: boolean;
 }
 
 export interface NavigationDropdownProps {
@@ -118,20 +122,15 @@ export function NavigationDropdown({
             const ItemIcon = item.icon;
             const isItemActive = item.to === currentPath;
 
-            return (
-              // dropdown item
-              <button
-                key={item.to}
-                type="button"
-                onClick={() => handleItemClick(item.to)}
-                className={cn(
-                  'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none',
-                  'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--nav-hover-text)]',
-                  isItemActive &&
-                    'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
-                )}
-                role="menuitem"
-              >
+            const itemClassName = cn(
+              'group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none',
+              'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-border-muted)] hover:text-[color:var(--nav-hover-text)]',
+              isItemActive &&
+                'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle'
+            );
+
+            const itemContent = (
+              <>
                 <span
                   className="flex size-8 items-center justify-center rounded-xl"
                   style={{
@@ -164,6 +163,33 @@ export function NavigationDropdown({
                     {item.summary}
                   </div>
                 </div>
+              </>
+            );
+
+            // Items served by another microfrontend (item.reload) must navigate
+            // with a real document request so the edge can route them; client
+            // routing would render this app's not-found page instead.
+            return item.reload ? (
+              // dropdown item (cross-app)
+              <a
+                key={item.to}
+                href={item.to}
+                onClick={() => setIsOpen(false)}
+                className={itemClassName}
+                role="menuitem"
+              >
+                {itemContent}
+              </a>
+            ) : (
+              // dropdown item
+              <button
+                key={item.to}
+                type="button"
+                onClick={() => handleItemClick(item.to)}
+                className={itemClassName}
+                role="menuitem"
+              >
+                {itemContent}
               </button>
             );
           })}

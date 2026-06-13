@@ -46,6 +46,25 @@ function SidebarNavItem({ item, isActive, onClick }: SidebarNavItemProps) {
     );
   }
 
+  // Cross-microfrontend route (item.reload): a same-tab <a> so the navigation is
+  // a real document request the edge can route, not a client-side transition.
+  if (item.reload && item.to) {
+    return (
+      <a
+        href={item.to}
+        className={itemClasses}
+        aria-current={isActive ? 'page' : undefined}
+        aria-label={item.ariaLabel || item.label}
+        onClick={onClick}
+      >
+        <span className={iconClasses}>
+          <Icon className="size-4" />
+        </span>
+        <span className="truncate">{item.label}</span>
+      </a>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -101,11 +120,10 @@ export function MobileSidebar({
         item={item}
         isActive={isActive}
         onClick={() => {
-          if (item.type === 'route' && item.to) {
+          // External and reload items navigate via their own <a> tag; only
+          // in-app routes go through the client router.
+          if (item.type === 'route' && item.to && !item.reload) {
             onNavigate(item.to);
-          }
-          if (item.type === 'external') {
-            // External links handle their own navigation via <a> tag
           }
           onClose();
         }}

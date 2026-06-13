@@ -94,6 +94,9 @@ export const referenceItems: NavigationItem[] = [
     to: '/docs',
     icon: asFunctionComponent(BookOpen),
     summary: 'Guides and documentation for analog photography.',
+    // Served by the docs microfrontend, not this SPA — force a full document
+    // navigation so the edge routes /docs to the docs app. See navigation-dropdown.
+    reload: true,
   },
 ];
 
@@ -208,6 +211,10 @@ export interface MobileNavItem {
   ariaLabel?: string;
   type: 'route' | 'external' | 'theme' | 'settings';
   category?: 'utility' | 'printing' | 'film' | 'camera' | 'reference';
+  /** When true, a `type: 'route'` item navigates with a full document load
+   *  instead of client routing — required for paths owned by another
+   *  microfrontend (e.g. /docs) so the edge can route the real request. */
+  reload?: boolean;
 }
 
 export const mobileNavItems: MobileNavItem[] = [
@@ -321,5 +328,7 @@ export const mobileNavItems: MobileNavItem[] = [
     icon: asFunctionComponent(BookOpen),
     type: 'route',
     category: 'reference',
+    // Served by the docs microfrontend — full document load, not client routing.
+    reload: true,
   },
 ];

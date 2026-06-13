@@ -17,7 +17,6 @@ import { Route as MatRouteImport } from './routes/mat'
 import { Route as LensesRouteImport } from './routes/lenses'
 import { Route as FilmsRouteImport } from './routes/films'
 import { Route as ExposureRouteImport } from './routes/exposure'
-import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DevelopmentRouteImport } from './routes/development'
 import { Route as BorderRouteImport } from './routes/border'
 import { Route as SplatRouteImport } from './routes/$'
@@ -63,11 +62,6 @@ const ExposureRoute = ExposureRouteImport.update({
   path: '/exposure',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DocsRoute = DocsRouteImport.update({
-  id: '/docs',
-  path: '/docs',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DevelopmentRoute = DevelopmentRouteImport.update({
   id: '/development',
   path: '/development',
@@ -94,7 +88,6 @@ export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/border': typeof BorderRoute
   '/development': typeof DevelopmentRoute
-  '/docs': typeof DocsRoute
   '/exposure': typeof ExposureRoute
   '/films': typeof FilmsRoute
   '/lenses': typeof LensesRoute
@@ -109,7 +102,6 @@ export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/border': typeof BorderRoute
   '/development': typeof DevelopmentRoute
-  '/docs': typeof DocsRoute
   '/exposure': typeof ExposureRoute
   '/films': typeof FilmsRoute
   '/lenses': typeof LensesRoute
@@ -125,7 +117,6 @@ export interface FileRoutesById {
   '/$': typeof SplatRoute
   '/border': typeof BorderRoute
   '/development': typeof DevelopmentRoute
-  '/docs': typeof DocsRoute
   '/exposure': typeof ExposureRoute
   '/films': typeof FilmsRoute
   '/lenses': typeof LensesRoute
@@ -142,7 +133,6 @@ export interface FileRouteTypes {
     | '/$'
     | '/border'
     | '/development'
-    | '/docs'
     | '/exposure'
     | '/films'
     | '/lenses'
@@ -157,7 +147,6 @@ export interface FileRouteTypes {
     | '/$'
     | '/border'
     | '/development'
-    | '/docs'
     | '/exposure'
     | '/films'
     | '/lenses'
@@ -172,7 +161,6 @@ export interface FileRouteTypes {
     | '/$'
     | '/border'
     | '/development'
-    | '/docs'
     | '/exposure'
     | '/films'
     | '/lenses'
@@ -188,7 +176,6 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   BorderRoute: typeof BorderRoute
   DevelopmentRoute: typeof DevelopmentRoute
-  DocsRoute: typeof DocsRoute
   ExposureRoute: typeof ExposureRoute
   FilmsRoute: typeof FilmsRoute
   LensesRoute: typeof LensesRoute
@@ -257,13 +244,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExposureRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/docs': {
-      id: '/docs'
-      path: '/docs'
-      fullPath: '/docs'
-      preLoaderRoute: typeof DocsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/development': {
       id: '/development'
       path: '/development'
@@ -300,7 +280,6 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   BorderRoute: BorderRoute,
   DevelopmentRoute: DevelopmentRoute,
-  DocsRoute: DocsRoute,
   ExposureRoute: ExposureRoute,
   FilmsRoute: FilmsRoute,
   LensesRoute: LensesRoute,
