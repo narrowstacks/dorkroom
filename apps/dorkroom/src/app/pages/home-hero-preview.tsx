@@ -199,11 +199,14 @@ export function HomeHeroPreview() {
         />
       </div>
 
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <span className="text-xs text-[color:var(--color-text-tertiary)]">
+      <div className="mt-3 space-y-1.5">
+        {/* Caption gets its own full-width line and `truncate` so its height is
+            locked to a single line - the setup label/readout vary in length and
+            would otherwise wrap 1<->2 lines between cycles, shifting the layout. */}
+        <p className="truncate text-xs text-[color:var(--color-text-tertiary)]">
           {label} on 8×10 paper · blades at {readout}
-        </span>
-        <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-[color:var(--color-text-secondary)] transition-colors group-hover/hero:text-[color:var(--color-text-primary)]">
+        </p>
+        <span className="inline-flex items-center gap-1 text-sm font-medium text-[color:var(--color-text-secondary)] transition-colors group-hover/hero:text-[color:var(--color-text-primary)]">
           Border calculator
           <ArrowRight className="size-3.5 transition-transform group-hover/hero:translate-x-0.5" />
         </span>

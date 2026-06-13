@@ -142,10 +142,16 @@ export function HomePage() {
               exposure tools. Free and open source.
             </p>
           </div>
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[color:var(--color-text-tertiary)]">
+          {/* Stack one stat per line on mobile (bullets hidden) so a stat never
+              orphans onto a second line; inline with bullets from sm up. */}
+          <p className="flex flex-col gap-y-1 text-sm text-[color:var(--color-text-tertiary)] sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-2">
             {heroStats.map(({ value, label }, index) => (
               <span key={label} className="inline-flex items-center gap-x-2">
-                {index > 0 ? <span aria-hidden>·</span> : null}
+                {index > 0 ? (
+                  <span aria-hidden className="hidden sm:inline">
+                    ·
+                  </span>
+                ) : null}
                 <span>
                   <span className="font-bold text-[color:var(--color-text-secondary)]">
                     {isStatsLoading || value === undefined
