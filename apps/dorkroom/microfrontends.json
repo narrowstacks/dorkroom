@@ -11,7 +11,12 @@
       "packageName": "dorkroom-docs",
       "routing": [
         {
-          "paths": ["/docs/:path*"]
+          "paths": [
+            "/docs/:path*",
+            "/api/search",
+            "/og/docs/:path*",
+            "/llms-full.txt"
+          ]
         }
       ]
     }
