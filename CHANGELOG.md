@@ -4,6 +4,20 @@ All notable changes to Dorkroom.art are documented here.
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.06.13]
+
+### Added
+
+- The Fumadocs documentation site is now served at `dorkroom.art/docs` (same origin as the app) via Vercel Microfrontends. The docs project (`dorkroom-docs`) is a child app that owns `/docs/*`, plus its supporting paths `/api/search` (Fumadocs search), `/og/docs/*` (social images), and `/llms-full.txt`; the SPA remains the default app. Routing lives in `apps/dorkroom/microfrontends.json`, and the `@vercel/microfrontends` Vite plugin scopes the default app's assets under the group. The plugin is build-only (skipped under Vitest)
+
+### Changed
+
+- The `Docs` nav entry (desktop dropdown and mobile sidebar) now performs a full-document navigation instead of client-side routing, so the edge can route `/docs` to the docs microfrontend instead of the SPA rendering a not-found page
+
+### Removed
+
+- The placeholder SPA `/docs` route (`apps/dorkroom/src/routes/docs.tsx`) — `/docs` is now served by the docs app at the edge
+
 ## [2026.06.12]
 
 ### Added
