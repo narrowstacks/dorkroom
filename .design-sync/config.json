@@ -1,0 +1,37 @@
+{
+  "projectId": "66b5be48-c524-47a9-a36f-da0157032914",
+  "pkg": "@dorkroom/ui",
+  "shape": "package",
+  "globalName": "DorkroomUI",
+  "buildCmd": "bun run build && node .design-sync/build-ds-css.mjs",
+  "tsconfig": "tsconfig.json",
+  "cssEntry": "dist/ds.css",
+  "readmeHeader": ".design-sync/conventions.md",
+  "extraFonts": [
+    "../../node_modules/@fontsource-variable/montserrat/index.css",
+    "../../node_modules/@fontsource-variable/fraunces/index.css"
+  ],
+  "extraEntries": ["../../.design-sync/preview-provider.mjs"],
+  "provider": {
+    "component": "DesignSyncPreviewRoot"
+  },
+  "overrides": {
+    "DetailPanel": { "cardMode": "column" },
+    "DetailPanelCloseButton": { "cardMode": "column" },
+    "DetailPanelExpandButton": { "cardMode": "column" },
+    "ShareButton": { "cardMode": "column" },
+    "ToolCard": { "cardMode": "column" },
+    "SkeletonCard": { "cardMode": "column" },
+    "SkeletonTableRow": { "cardMode": "column" },
+    "StatCard": { "cardMode": "column" },
+    "ConfirmModal": { "cardMode": "single", "primaryStory": "Destructive" },
+    "Drawer": { "cardMode": "single", "primaryStory": "BottomSheet" },
+    "DrawerBody": { "cardMode": "single", "primaryStory": "ScrollableList" },
+    "DrawerContent": { "cardMode": "single", "primaryStory": "InBottomDrawer" },
+    "Modal": { "cardMode": "single", "primaryStory": "Default" },
+    "ResponsiveModal": { "cardMode": "single", "primaryStory": "Desktop" },
+    "Toast": { "cardMode": "single", "primaryStory": "Success" },
+    "ShareModal": { "cardMode": "column" },
+    "SaveBeforeShareModal": { "cardMode": "column" }
+  }
+}
