@@ -20,7 +20,12 @@ const input = resolve(repoRoot, 'apps/dorkroom/src/styles.css');
 const output = resolve(repoRoot, 'packages/ui/dist/ds.css');
 
 const css = readFileSync(input, 'utf8');
-const result = await postcss([tailwind()]).process(css, { from: input, to: output });
+const result = await postcss([tailwind()]).process(css, {
+  from: input,
+  to: output,
+});
 mkdirSync(dirname(output), { recursive: true });
 writeFileSync(output, result.css);
-console.error(`build-ds-css: wrote ${output} (${(result.css.length / 1024).toFixed(0)} KB)`);
+console.error(
+  `build-ds-css: wrote ${output} (${(result.css.length / 1024).toFixed(0)} KB)`
+);

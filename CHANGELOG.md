@@ -4,6 +4,14 @@ All notable changes to Dorkroom.art are documented here.
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.06.21]
+
+### Added
+
+- `@dorkroom/mobile`: iOS app scaffold (Expo Router, NativeWind v4, iOS 26
+  Liquid Glass) with native border, exposure, reciprocity, and resize
+  calculators reusing `@dorkroom/logic` and `@dorkroom/api`.
+
 ## [2026.06.13]
 
 ### Added

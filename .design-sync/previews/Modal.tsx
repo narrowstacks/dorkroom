@@ -9,9 +9,7 @@ const footerButton = (primary: boolean) =>
     fontWeight: 500,
     borderRadius: 12,
     cursor: 'pointer',
-    border: primary
-      ? 'none'
-      : '1px solid var(--color-border-secondary)',
+    border: primary ? 'none' : '1px solid var(--color-border-secondary)',
     backgroundColor: primary
       ? 'var(--color-primary)'
       : 'var(--color-surface-muted)',
