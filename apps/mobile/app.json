@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Dorkroom",
+    "slug": "dorkroom",
+    "scheme": "dorkroom",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "art.dorkroom.mobile",
+      "deploymentTarget": "26.0"
+    },
+    "plugins": [
+      "expo-router",
+      ["expo-build-properties", { "ios": { "deploymentTarget": "26.0" } }]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
