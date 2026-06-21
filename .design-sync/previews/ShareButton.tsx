@@ -4,9 +4,7 @@ const noop = () => {};
 
 // The three button variants, each with a recipe-sharing label.
 export const Variants = () => (
-  <div
-    style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 240 }}
-  >
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 240 }}>
     <ShareButton variant="primary" onClick={noop}>
       Share recipe
     </ShareButton>
@@ -21,9 +19,7 @@ export const Variants = () => (
 
 // Size scale, primary variant.
 export const Sizes = () => (
-  <div
-    style={{ display: 'flex', alignItems: 'center', gap: 12, maxWidth: 360 }}
-  >
+  <div style={{ display: 'flex', alignItems: 'center', gap: 12, maxWidth: 360 }}>
     <ShareButton size="sm" onClick={noop}>
       Share
     </ShareButton>
@@ -47,9 +43,7 @@ export const IconOnly = () => (
 
 // Loading and disabled states.
 export const States = () => (
-  <div
-    style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 240 }}
-  >
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 240 }}>
     <ShareButton isLoading onClick={noop}>
       Share recipe
     </ShareButton>

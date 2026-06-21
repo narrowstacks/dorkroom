@@ -29,6 +29,10 @@ export const Error = () => (
 // Info — neutral border, no icon.
 export const Info = () => (
   <div style={{ maxWidth: 380, position: 'relative', minHeight: 64 }}>
-    <Toast message="Link copied to clipboard" type="info" duration={600000} />
+    <Toast
+      message="Link copied to clipboard"
+      type="info"
+      duration={600000}
+    />
   </div>
 );

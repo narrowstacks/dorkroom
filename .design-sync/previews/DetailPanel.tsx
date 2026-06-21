@@ -15,10 +15,7 @@ const FilmDetail = () => (
       >
         Tri-X 400
       </h2>
-      <p
-        className="mt-1 text-sm"
-        style={{ color: 'var(--color-text-secondary)' }}
-      >
+      <p className="mt-1 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
         A classic high-speed black & white negative film with a distinctive
         grain structure and wide exposure latitude.
       </p>

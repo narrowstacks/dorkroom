@@ -7,12 +7,7 @@ export const InBottomDrawer = () => {
   const [open, setOpen] = useState(true);
   return (
     <div style={{ maxWidth: 440 }}>
-      <Drawer
-        isOpen={open}
-        onClose={() => setOpen(false)}
-        size="md"
-        anchor="bottom"
-      >
+      <Drawer isOpen={open} onClose={() => setOpen(false)} size="md" anchor="bottom">
         <DrawerContent>
           <div
             style={{

@@ -43,7 +43,12 @@ export const Accents = () => (
       value="1,240"
       iconColorKey="emerald"
     />
-    <StatCard icon={Film} label="Developers" value="86" iconColorKey="rose" />
+    <StatCard
+      icon={Film}
+      label="Developers"
+      value="86"
+      iconColorKey="rose"
+    />
     <StatCard
       icon={Users}
       label="Contributors"

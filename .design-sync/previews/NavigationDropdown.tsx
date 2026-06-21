@@ -1,8 +1,4 @@
-import {
-  NavigationDropdown,
-  printingItems,
-  referenceItems,
-} from '@dorkroom/ui';
+import { NavigationDropdown, printingItems, referenceItems } from '@dorkroom/ui';
 import { BookOpen, Printer } from 'lucide-react';
 import { useState } from 'react';
 
