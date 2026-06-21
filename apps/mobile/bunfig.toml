@@ -1,5 +1,0 @@
-[install]
-# Use isolated linker so nativewind and its deps resolve from apps/mobile,
-# keeping nativewind's internal `require("tailwindcss")` on Tailwind v3
-# (not the root workspace's Tailwind v4 used by the web app).
-linker = "isolated"

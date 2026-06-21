@@ -10,14 +10,30 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "art.dorkroom.mobile",
-      "deploymentTarget": "26.0"
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "plugins": [
       "expo-router",
-      ["expo-build-properties", { "ios": { "deploymentTarget": "26.0" } }]
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "26.0"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e81d817d-4794-41d4-a2da-e1564e7147be"
+      }
+    },
+    "owner": "narrowstacks-org"
   }
 }
