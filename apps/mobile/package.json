@@ -18,6 +18,7 @@
     "@dorkroom/logic": "workspace:*",
     "@tanstack/react-query": "^5.90.14",
     "expo": "^54.0.0",
+    "expo-build-properties": "~1.0.10",
     "expo-glass-effect": "^0.1.0",
     "expo-router": "^6.0.0",
     "expo-status-bar": "^3.0.0",
