@@ -19,6 +19,9 @@ function glassAvailable(): boolean {
   }
 }
 
+// Stable for the app's lifetime — compute once at import rather than per render.
+const USE_GLASS = glassAvailable();
+
 interface GlassCardProps {
   children: ReactNode;
   className?: string;
@@ -26,7 +29,7 @@ interface GlassCardProps {
 
 /** A Liquid Glass card on iOS 26; a translucent NativeWind card elsewhere. */
 export function GlassCard({ children, className }: GlassCardProps) {
-  if (glassAvailable()) {
+  if (USE_GLASS) {
     return (
       <GlassView
         glassEffectStyle="regular"

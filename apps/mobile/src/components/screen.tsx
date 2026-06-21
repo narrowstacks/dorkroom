@@ -10,6 +10,7 @@ export function Screen({ children }: { children: ReactNode }) {
         contentContainerStyle={{
           padding: 16,
           paddingTop: insets.top + 16,
+          paddingBottom: insets.bottom + 16,
           gap: 16,
         }}
       >

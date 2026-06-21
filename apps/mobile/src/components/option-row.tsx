@@ -24,6 +24,8 @@ export function OptionRow<T extends string | number>({
               <Pressable
                 key={String(option.value)}
                 onPress={() => onChange(option.value)}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
                 className={`rounded-full px-4 py-2 ${
                   selected ? 'bg-rose-600' : 'bg-white/10'
                 }`}
