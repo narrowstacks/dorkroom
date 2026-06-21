@@ -1,6 +1,7 @@
 // Learn more: https://docs.expo.dev/guides/monorepos/
 const { getDefaultConfig } = require('expo/metro-config');
 const { withNativeWind } = require('nativewind/metro');
+const fs = require('node:fs');
 const path = require('node:path');
 
 const projectRoot = __dirname;
@@ -17,11 +18,21 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
-// 3. Force a single React/React Native instance (avoid duplicate copies).
+// 3. Force a single React instance. extraNodeModules is only a *fallback*, so
+// it doesn't help when a workspace package (e.g. @dorkroom/logic, bundled from
+// packages/) successfully resolves the repo-root React 19.2.3 — which mismatches
+// react-native-renderer 19.1.0. The hard redirect in resolveRequest below pins
+// react/react-dom to the app's copy (Expo's 19.1.0) for every importer.
 config.resolver.extraNodeModules = {
-  react: path.resolve(projectRoot, 'node_modules/react'),
   'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
 };
+
+const pinnedPackages = ['react', 'react-dom']
+  .map((name) => ({
+    name,
+    dir: path.resolve(projectRoot, 'node_modules', name),
+  }))
+  .filter(({ dir }) => fs.existsSync(dir));
 
 // 4. Resolve @dorkroom/* to their TypeScript SOURCE, not the built dist.
 // The packages' package.json `main` points at ./dist, which only exists after
@@ -46,6 +57,16 @@ function resolve(context, moduleName, platform) {
 }
 
 withNW.resolver.resolveRequest = (context, moduleName, platform) => {
+  // Hard-pin react/react-dom to the app's copy for every importer.
+  for (const { name, dir } of pinnedPackages) {
+    if (moduleName === name) {
+      return resolve(context, dir, platform);
+    }
+    if (moduleName.startsWith(`${name}/`)) {
+      return resolve(context, dir + moduleName.slice(name.length), platform);
+    }
+  }
+
   const entry = sourceEntrypoints[moduleName];
   if (entry) {
     return { type: 'sourceFile', filePath: entry };

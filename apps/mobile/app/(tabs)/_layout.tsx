@@ -3,7 +3,7 @@ import { Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 export default function TabsLayout() {
   return (
     <NativeTabs>
-      <NativeTabs.Trigger name="border">
+      <NativeTabs.Trigger name="index">
         <Label>Border</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="exposure">
