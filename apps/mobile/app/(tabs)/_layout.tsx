@@ -15,6 +15,9 @@ export default function TabsLayout() {
       <NativeTabs.Trigger name="resize">
         <Label>Resize</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="meter">
+        <Label>Meter</Label>
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }

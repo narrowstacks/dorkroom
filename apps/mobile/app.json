@@ -23,6 +23,12 @@
             "deploymentTarget": "26.0"
           }
         }
+      ],
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "Dorkroom uses the camera to meter the light in your scene."
+        }
       ]
     ],
     "experiments": {
