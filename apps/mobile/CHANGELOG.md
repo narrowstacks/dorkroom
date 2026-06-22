@@ -26,6 +26,11 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
   `@react-native-community/slider`.
 - iOS home screen quick actions: long-pressing the app icon now shows shortcuts
   that jump straight to the Light Meter, Border, Exposure, and Reciprocity pages.
+- iOS Siri / Spotlight / Shortcuts-app support (App Intents): "Open Light Meter
+  in Dorkroom" and the equivalent for Border, Exposure, and Reciprocity now work
+  by voice, in Spotlight, and as Shortcuts-app actions. A "Calculate Reciprocity"
+  action is present as a placeholder ("coming soon") ahead of functional
+  calculator intents.
 
 ### Changed
 
