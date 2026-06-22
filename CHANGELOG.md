@@ -1,31 +1,9 @@
 # Changelog
 
-All notable changes to Dorkroom.art are documented here.
+All notable changes to the Dorkroom.art **web app** are documented here.
+The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
-
-## [2026.06.21]
-
-### Added
-
-- `@dorkroom/mobile`: full native iOS border calculator screen — a visual
-  print/border preview (light-grey paper, dark-grey image area, easel blades
-  with the web-matched `#1b1b1d` color and drop shadow, and blade-reading
-  labels) plus controls for aspect ratio, paper size, minimum border,
-  landscape/ratio-flip, H/V offsets (with an "ignore min border" toggle), and
-  blade/reading visibility, via a summary-row → bottom-sheet layout. Preview
-  geometry, blade-reading positioning, and formatting are pure, unit-tested
-  modules; sliders use `@react-native-community/slider`.
-- `@dorkroom/mobile`: iOS app scaffold (Expo Router, NativeWind v4, iOS 26
-  Liquid Glass) with native border, exposure, reciprocity, and resize
-  calculators reusing `@dorkroom/logic` and `@dorkroom/api`.
-- `@dorkroom/mobile`: local EAS build pipeline (`eas build --local`) that builds
-  and installs a standalone iOS app on-device. Uses an App Store Connect API key
-  for Apple auth (no 2FA), `react-native-nitro-modules` (MMKV 3.x peer), a Metro
-  resolver that bundles `@dorkroom/*` from source with a single pinned React, a
-  Hermes `Array.prototype.toSorted` polyfill, and an install hook that keeps
-  NativeWind v4 on Tailwind v3 alongside the web app's Tailwind v4. See
-  `apps/mobile/README.md`.
 
 ## [2026.06.13]
 

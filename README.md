@@ -279,7 +279,8 @@ bun run lint:fix
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
+See [CHANGELOG.md](CHANGELOG.md) for the web app's history of changes. The iOS
+app is tracked separately in [apps/mobile/CHANGELOG.md](apps/mobile/CHANGELOG.md).
 
 ## Security
 
