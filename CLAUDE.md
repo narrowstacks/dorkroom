@@ -7,6 +7,7 @@ Dorkroom is an analog photography calculator app. Turborepo monorepo with React 
 **Structure:**
 
 - `apps/dorkroom/` - Main React application
+- `apps/mobile/` - iOS app (Expo, React Native) reusing @dorkroom/logic and @dorkroom/api
 - `packages/ui/` - Shared UI components (@dorkroom/ui)
 - `packages/logic/` - Business logic, hooks, schemas (@dorkroom/logic)
 - `packages/api/` - API client and types (@dorkroom/api)
