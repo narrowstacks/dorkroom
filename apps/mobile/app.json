@@ -55,7 +55,8 @@
             }
           ]
         }
-      ]
+      ],
+      "./plugins/with-app-intents"
     ],
     "experiments": {
       "typedRoutes": true
