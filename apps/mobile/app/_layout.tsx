@@ -20,6 +20,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={DarkTheme}>
         <Stack screenOptions={{ headerShown: false }} />
+        {/* oxlint-disable-next-line react/style-prop-object -- expo-status-bar's `style` is a preset string ('auto' | 'light' | 'dark'), not a React style object */}
         <StatusBar style="light" />
       </ThemeProvider>
     </QueryClientProvider>
