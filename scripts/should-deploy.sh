@@ -29,8 +29,10 @@ if [ -z "$CHANGED_FILES" ]; then
   exit $?
 fi
 
-# Skip if changes are ONLY in these paths/files
-NON_BUILD_PATTERNS="(^docs/|^scripts/|^\.github/|^\.cursor/|^\.vscode/|^\.claude/|\.md$|^LICENSE$|^NOTICE$|^\.gitignore$|^\.dockerignore$|^\.editorconfig$)"
+# Skip if changes are ONLY in these paths/files.
+# apps/mobile is the React Native (Expo) app — Vercel builds the web app only,
+# so commits touching only the mobile app must not trigger a web deployment.
+NON_BUILD_PATTERNS="(^docs/|^scripts/|^\.github/|^\.cursor/|^\.vscode/|^\.claude/|^apps/mobile/|\.md$|^LICENSE$|^NOTICE$|^\.gitignore$|^\.dockerignore$|^\.editorconfig$)"
 
 # Check if ANY changed file is NOT in the skip patterns
 if echo "$CHANGED_FILES" | grep -qvE "$NON_BUILD_PATTERNS"; then
