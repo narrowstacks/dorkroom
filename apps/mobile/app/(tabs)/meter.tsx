@@ -5,12 +5,22 @@ import {
   useLightMeterSolver,
 } from '@dorkroom/logic';
 import { useIsFocused } from '@react-navigation/native';
-import { useCallback, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  type LayoutChangeEvent,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Camera } from 'react-native-vision-camera';
 import { MeterReadout } from '@/components/meter/meter-readout';
 import { MeterStepper } from '@/components/meter/meter-stepper';
+import {
+  type MeteringMode,
+  MeteringModeToggle,
+} from '@/components/meter/metering-mode-toggle';
 import { PermissionFallback } from '@/components/meter/permission-fallback';
 import { PriorityToggle } from '@/components/meter/priority-toggle';
 import { RETICLE_SIZE, Reticle } from '@/components/meter/reticle';
@@ -23,6 +33,7 @@ import {
 
 // Clearance for the translucent native tab bar so bottom controls stay tappable.
 const TAB_BAR_CLEARANCE = 64;
+const CALIBRATION_STEP = 0.1;
 const MONO = { fontFamily: 'Menlo' } as const;
 const SHADOW = {
   textShadowColor: 'rgba(0,0,0,0.85)',
@@ -44,7 +55,8 @@ export default function MeterScreen() {
     useState(getCalibrationOffset);
   const handleCalibrationChange = useCallback((delta: number) => {
     setCalibrationState((prev) => {
-      const next = Math.round((prev + delta) * 100) / 100;
+      // Step in tenths from an integer count of steps so it never float-drifts.
+      const next = Math.round((prev + delta) * 10) / 10;
       setCalibrationOffset(next);
       return next;
     });
@@ -53,13 +65,52 @@ export default function MeterScreen() {
   const { hasPermission, requestPermission } = meter;
   const solver = useLightMeterSolver(meter.ev);
   const isFocused = useIsFocused();
+  const [meteringMode, setMeteringMode] = useState<MeteringMode>('center');
   const [meterPoint, setMeterPoint] = useState<{ x: number; y: number } | null>(
     null
   );
+  // Frame size is only read inside handlers (to spot-meter center), so a ref
+  // keeps layout updates from triggering re-renders.
+  const sizeRef = useRef<{ width: number; height: number } | null>(null);
 
   useEffect(() => {
     if (!hasPermission) void requestPermission();
   }, [hasPermission, requestPermission]);
+
+  const onLayout = useCallback((e: LayoutChangeEvent) => {
+    sizeRef.current = {
+      width: e.nativeEvent.layout.width,
+      height: e.nativeEvent.layout.height,
+    };
+  }, []);
+
+  const enterCenter = useCallback(() => {
+    setMeteringMode('center');
+    setMeterPoint(null);
+    void meter.unlock();
+  }, [meter]);
+
+  const enterSpot = useCallback(
+    (point: { x: number; y: number }) => {
+      setMeteringMode('spot');
+      setMeterPoint(point);
+      void meter.meterAtPoint(point);
+    },
+    [meter]
+  );
+
+  const handleModeChange = useCallback(
+    (mode: MeteringMode) => {
+      if (mode === 'center') {
+        enterCenter();
+      } else {
+        // Spot from the button meters the center of the frame.
+        const frame = sizeRef.current;
+        enterSpot({ x: (frame?.width ?? 0) / 2, y: (frame?.height ?? 0) / 2 });
+      }
+    },
+    [enterCenter, enterSpot]
+  );
 
   if (!meter.hasPermission) {
     return (
@@ -75,6 +126,7 @@ export default function MeterScreen() {
   }
 
   const isAperture = solver.priority === 'aperture';
+  const isSpot = meteringMode === 'spot';
   const wheelOptions = isAperture
     ? STANDARD_APERTURES
     : STANDARD_SHUTTER_SPEEDS;
@@ -82,20 +134,15 @@ export default function MeterScreen() {
   const onWheelChange = isAperture
     ? solver.setAperture
     : solver.setShutterSpeed;
-  const calLabel = `CAL ${calibrationOffset > 0 ? '+' : ''}${calibrationOffset.toFixed(2)}`;
+  const calLabel = `CAL ${calibrationOffset > 0 ? '+' : ''}${calibrationOffset.toFixed(1)}`;
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} onLayout={onLayout}>
       <Pressable
         style={StyleSheet.absoluteFill}
-        onPress={(e) => {
-          const point = {
-            x: e.nativeEvent.locationX,
-            y: e.nativeEvent.locationY,
-          };
-          setMeterPoint(point);
-          void meter.meterAtPoint(point);
-        }}
+        onPress={(e) =>
+          enterSpot({ x: e.nativeEvent.locationX, y: e.nativeEvent.locationY })
+        }
       >
         <Camera
           ref={meter.cameraRef}
@@ -106,12 +153,12 @@ export default function MeterScreen() {
         />
       </Pressable>
 
-      {/* Reticle on the metered point (screen center until the first tap). */}
+      {/* Reticle: centered in center-weighted mode, on the tapped point in spot. */}
       <View
         pointerEvents="none"
         style={[
           styles.reticle,
-          meterPoint
+          isSpot && meterPoint
             ? {
                 left: meterPoint.x - RETICLE_SIZE / 2,
                 top: meterPoint.y - RETICLE_SIZE / 2,
@@ -119,44 +166,26 @@ export default function MeterScreen() {
             : styles.reticleCenter,
         ]}
       >
-        <Reticle locked={meter.isLocked} />
+        <Reticle locked={isSpot} />
       </View>
 
-      {/* Unlock control: prominent while exposure is locked. */}
-      {meter.isLocked ? (
-        <View
-          pointerEvents="box-none"
-          style={[styles.lockBar, { top: insets.top + 48 }]}
-        >
-          <Pressable
-            onPress={() => {
-              setMeterPoint(null);
-              void meter.unlock();
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Unlock exposure and resume live metering"
-            className="flex-row items-center rounded-full bg-rose-600/90 px-4 py-2"
-            style={{ gap: 8 }}
-          >
-            <Text
-              style={[MONO, SHADOW]}
-              className="text-sm font-bold text-white"
-            >
-              ● AE LOCKED — tap to resume
-            </Text>
-          </Pressable>
-        </View>
-      ) : null}
+      {/* Metering-mode switch, top-center. */}
+      <View
+        pointerEvents="box-none"
+        style={[styles.modeBar, { top: insets.top + 8 }]}
+      >
+        <MeteringModeToggle value={meteringMode} onChange={handleModeChange} />
+      </View>
 
-      {/* Top strip: calibration (right). */}
+      {/* Calibration, top-right. */}
       <View
         pointerEvents="box-none"
         style={[styles.topStrip, { top: insets.top + 8 }]}
       >
         <MeterStepper
           label={calLabel}
-          onDecrement={() => handleCalibrationChange(-1 / 3)}
-          onIncrement={() => handleCalibrationChange(1 / 3)}
+          onDecrement={() => handleCalibrationChange(-CALIBRATION_STEP)}
+          onIncrement={() => handleCalibrationChange(CALIBRATION_STEP)}
           decrementLabel="Lower calibration"
           incrementLabel="Raise calibration"
         />
@@ -232,7 +261,7 @@ const styles = StyleSheet.create({
     marginLeft: -RETICLE_SIZE / 2,
     marginTop: -RETICLE_SIZE / 2,
   },
-  lockBar: {
+  modeBar: {
     position: 'absolute',
     left: 0,
     right: 0,

@@ -25,7 +25,6 @@ export interface CameraMeter {
   requestPermission: () => Promise<boolean>;
   cameraRef: RefObject<CameraRef | null>;
   ev: number | null;
-  isLocked: boolean;
   meterAtPoint: (point: { x: number; y: number }) => Promise<void>;
   unlock: () => Promise<void>;
   onInitialized: () => void;
@@ -42,7 +41,6 @@ export const useCameraMeter = (calibrationOffset: number): CameraMeter => {
   const samplesRef = useRef<number[]>([]);
   const initializedRef = useRef(false);
   const [ev, setEv] = useState<number | null>(null);
-  const [isLocked, setIsLocked] = useState(false);
 
   const readEv = useCallback((): number => {
     const controller = cameraRef.current?.controller;
@@ -76,13 +74,12 @@ export const useCameraMeter = (calibrationOffset: number): CameraMeter => {
     const camera = cameraRef.current;
     if (camera == null) return;
     try {
-      // AE-only metering at the tapped point, locked until the next tap.
+      // AE-only spot metering at the tapped point, locked (frozen) until reset.
       await camera.focusTo(point, {
         modes: ['AE'],
         adaptiveness: 'locked',
         autoResetAfter: null,
       });
-      setIsLocked(true);
     } catch {
       // Metering not supported here; leave the reading live.
     }
@@ -90,9 +87,8 @@ export const useCameraMeter = (calibrationOffset: number): CameraMeter => {
 
   const unlock = useCallback(async () => {
     const camera = cameraRef.current;
-    setIsLocked(false);
     try {
-      // Reset to continuous auto-exposure so the EV tracks the scene again.
+      // Reset to continuous (center-weighted) auto-exposure so EV tracks live.
       await camera?.controller?.resetFocus();
     } catch {
       // resetFocus unsupported; the next tap will re-meter regardless.
@@ -105,7 +101,6 @@ export const useCameraMeter = (calibrationOffset: number): CameraMeter => {
     requestPermission,
     cameraRef,
     ev,
-    isLocked,
     meterAtPoint,
     unlock,
     onInitialized,
