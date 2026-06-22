@@ -59,7 +59,7 @@ function Stat({
           style={[MONO, SHADOW]}
           className={
             calculated
-              ? 'text-2xl font-bold text-rose-300'
+              ? 'text-2xl font-bold text-yellow-300'
               : 'text-2xl font-normal text-white'
           }
         >
