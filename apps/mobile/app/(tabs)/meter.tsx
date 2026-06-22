@@ -1,16 +1,27 @@
 import { useLightMeterSolver } from '@dorkroom/logic';
 import { useIsFocused } from '@react-navigation/native';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
 import { MeterControls } from '@/components/meter/meter-controls';
 import { PermissionFallback } from '@/components/meter/permission-fallback';
 import { Reticle } from '@/components/meter/reticle';
 import { useCameraMeter } from '@/hooks/use-camera-meter';
-import { getCalibrationOffset } from '@/lib/meter-calibration';
+import {
+  getCalibrationOffset,
+  setCalibrationOffset,
+} from '@/lib/meter-calibration';
 
 export default function MeterScreen() {
-  const [calibrationOffset] = useState(getCalibrationOffset);
+  const [calibrationOffset, setCalibrationState] =
+    useState(getCalibrationOffset);
+  const handleCalibrationChange = useCallback((delta: number) => {
+    setCalibrationState((prev) => {
+      const next = Math.round((prev + delta) * 100) / 100;
+      setCalibrationOffset(next);
+      return next;
+    });
+  }, []);
   const meter = useCameraMeter(calibrationOffset);
   const { hasPermission, requestPermission } = meter;
   const solver = useLightMeterSolver(meter.ev);
@@ -65,6 +76,8 @@ export default function MeterScreen() {
           shutterSpeed={solver.shutterSpeed}
           onShutterSpeedChange={solver.setShutterSpeed}
           solution={solver.solution}
+          calibrationOffset={calibrationOffset}
+          onCalibrationChange={handleCalibrationChange}
         />
       </View>
     </View>

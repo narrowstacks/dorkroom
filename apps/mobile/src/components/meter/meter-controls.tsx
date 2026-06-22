@@ -8,6 +8,7 @@ import { Text } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
 import { OptionRow } from '@/components/option-row';
 import { ResultRow } from '@/components/result-row';
+import { CalibrationRow } from './calibration-row';
 import { EvReadout } from './ev-readout';
 import { IsoStepper } from './iso-stepper';
 
@@ -22,6 +23,8 @@ export interface MeterControlsProps {
   shutterSpeed: number;
   onShutterSpeedChange: (shutterSpeed: number) => void;
   solution: LightMeterSolution;
+  calibrationOffset: number;
+  onCalibrationChange: (delta: number) => void;
 }
 
 const PRIORITY_OPTIONS: { label: string; value: MeterPriority }[] = [
@@ -74,6 +77,10 @@ export function MeterControls(props: MeterControlsProps) {
           Solved shutter is outside 1/8000s–30s.
         </Text>
       ) : null}
+      <CalibrationRow
+        offset={props.calibrationOffset}
+        onChange={props.onCalibrationChange}
+      />
     </GlassCard>
   );
 }
