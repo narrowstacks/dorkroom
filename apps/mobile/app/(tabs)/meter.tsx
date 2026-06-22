@@ -25,7 +25,6 @@ import { SegmentedPill } from '@/components/meter/segmented-pill';
 import { ValueWheel } from '@/components/meter/value-wheel';
 import { useCalibration } from '@/hooks/use-calibration';
 import { useCameraMeter } from '@/hooks/use-camera-meter';
-import { useToast } from '@/hooks/use-toast';
 
 // Clearance for the translucent native tab bar so bottom controls stay tappable.
 const TAB_BAR_CLEARANCE = 64;
@@ -64,7 +63,6 @@ export default function MeterScreen() {
   const { hasPermission, requestPermission } = meter;
   const solver = useLightMeterSolver(meter.ev);
   const isFocused = useIsFocused();
-  const { toast, showToast } = useToast();
   const [meteringMode, setMeteringMode] = useState<MeteringMode>('matrix');
   const [meterPoint, setMeterPoint] = useState<{ x: number; y: number } | null>(
     null
@@ -231,20 +229,6 @@ export default function MeterScreen() {
         />
       </View>
 
-      {/* Hint toast for a plain tap on a value. */}
-      {toast ? (
-        <View
-          pointerEvents="none"
-          style={[styles.toastWrap, { bottom: insets.bottom + 220 }]}
-        >
-          <View className="rounded-full bg-black/75 px-4 py-2">
-            <Text style={[MONO, SHADOW]} className="text-sm text-white">
-              {toast}
-            </Text>
-          </View>
-        </View>
-      ) : null}
-
       {/* Bottom: selector (when open) or mode toggle, above the results. */}
       <View
         pointerEvents="box-none"
@@ -303,7 +287,6 @@ export default function MeterScreen() {
             onSelectAperture={() => setActiveSelector('aperture')}
             onSelectShutter={() => setActiveSelector('shutter')}
             onSelectIso={() => setActiveSelector('iso')}
-            onHint={() => showToast('Hold to select a value')}
           />
         </BlurPanel>
       </View>
@@ -327,12 +310,6 @@ const styles = StyleSheet.create({
     right: 20,
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  toastWrap: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
     alignItems: 'center',
   },
   bottomStack: {

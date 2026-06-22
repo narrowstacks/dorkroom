@@ -21,12 +21,10 @@ interface MeterReadoutProps {
   aperture: number;
   shutterSpeed: number;
   solution: LightMeterSolution;
-  /** Long-press a setting to open its selector. */
+  /** Tap a setting to open its selector. */
   onSelectAperture: () => void;
   onSelectShutter: () => void;
   onSelectIso: () => void;
-  /** Plain tap on a selectable setting (used to hint "hold to pick"). */
-  onHint: () => void;
 }
 
 /** Formats the snap error in stops: "+0.4" over, "−0.3" under, "✓" if exact. */
@@ -41,9 +39,9 @@ function formatStopError(stops: number): { text: string; tone: string } {
 }
 
 /**
- * One exposure setting as a labelled column. Hold a selectable setting to pick a
+ * One exposure setting as a labelled column. Tap a selectable setting to pick a
  * value (▾ marks it); the locked (priority) setting shows a lock; the calculated
- * one is yellow. Tapping without holding fires onPress (a hint).
+ * one is yellow.
  */
 function Stat({
   caption,
@@ -52,7 +50,6 @@ function Stat({
   locked = false,
   stopError,
   onPress,
-  onLongPress,
 }: {
   caption: string;
   value: string;
@@ -60,10 +57,9 @@ function Stat({
   locked?: boolean;
   stopError?: number;
   onPress?: () => void;
-  onLongPress?: () => void;
 }) {
   const error = stopError === undefined ? null : formatStopError(stopError);
-  const selectable = onLongPress !== undefined;
+  const selectable = onPress !== undefined;
   const body = (
     <View className="items-center" style={{ gap: 3 }}>
       <View className="flex-row items-center" style={{ gap: 4 }}>
@@ -108,13 +104,7 @@ function Stat({
 
   if (!selectable) return body;
   return (
-    <Pressable
-      onPress={onPress}
-      onLongPress={onLongPress}
-      delayLongPress={250}
-      accessibilityRole="button"
-      hitSlop={8}
-    >
+    <Pressable onPress={onPress} accessibilityRole="button" hitSlop={8}>
       {body}
     </Pressable>
   );
@@ -135,7 +125,6 @@ export function MeterReadout({
   onSelectAperture,
   onSelectShutter,
   onSelectIso,
-  onHint,
 }: MeterReadoutProps) {
   const apertureLocked = priority === 'aperture';
   const shutterLocked = priority === 'shutter';
@@ -166,8 +155,7 @@ export function MeterReadout({
               ? solution.solvedStopError
               : undefined
           }
-          onPress={onHint}
-          onLongPress={onSelectAperture}
+          onPress={onSelectAperture}
         />
         <Stat
           caption="shutter"
@@ -179,15 +167,9 @@ export function MeterReadout({
               ? solution.solvedStopError
               : undefined
           }
-          onPress={onHint}
-          onLongPress={onSelectShutter}
+          onPress={onSelectShutter}
         />
-        <Stat
-          caption="ISO"
-          value={String(iso)}
-          onPress={onHint}
-          onLongPress={onSelectIso}
-        />
+        <Stat caption="ISO" value={String(iso)} onPress={onSelectIso} />
       </View>
       {solution.outOfRange ? (
         <Text
