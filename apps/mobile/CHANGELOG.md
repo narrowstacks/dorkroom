@@ -31,6 +31,9 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
   by voice, in Spotlight, and as Shortcuts-app actions. A "Calculate Reciprocity"
   action is present as a placeholder ("coming soon") ahead of functional
   calculator intents.
+- A dedicated "Open Light Meter" Shortcuts/Siri action (separate from the generic
+  open-page shortcuts) so the light meter can be assigned to the iPhone Action
+  Button for one-press access.
 
 ### Changed
 
