@@ -36,10 +36,12 @@ and feature set, rebuilt on React Native / Expo primitives.
 
 ## Data layer
 
-Keep the already-wired **`useBorderCalculator`** (the monolithic hook in
-`@dorkroom/logic`). It is marked deprecated in favor of modular hooks, but it
-already exposes everything Full-controls needs and is what the mobile screen
-currently imports:
+Keep the already-wired **`useBorderCalculator`** imported from
+`@dorkroom/logic`. Note: this public export resolves to the **modular**
+composed hook (`hooks/border-calculator`), not the deprecated monolith (the
+monolith is exported separately as `useLegacyBorderCalculator`). The mobile
+screen already imports the modular one; its public API exposes everything
+Full-controls needs:
 
 - State + setters: `aspectRatio`, `paperSize`, `minBorder`/`setMinBorderSlider`,
   `enableOffset`, `horizontalOffset`/`setHorizontalOffsetSlider`,
