@@ -51,6 +51,7 @@ export const useLightMeterSolver = (ev: number | null): UseLightMeterSolver => {
         aperture,
         shutterSpeed,
         solvedLabel: '—',
+        solvedStopError: 0,
         outOfRange: false,
         isValid: false,
       };
@@ -62,14 +63,17 @@ export const useLightMeterSolver = (ev: number | null): UseLightMeterSolver => {
       const outOfRange =
         solvedShutter < METER_MIN_SHUTTER_SPEED ||
         solvedShutter > METER_MAX_SHUTTER_SPEED;
+      // A longer shutter time lets in more light, so ties round slower (brighter).
+      const snapped = snapToStandardStop(
+        solvedShutter,
+        STANDARD_SHUTTER_SPEEDS,
+        true
+      );
       return {
         aperture,
         shutterSpeed: solvedShutter,
-        // A longer shutter time lets in more light, so ties round slower (brighter).
-        solvedLabel: valid
-          ? snapToStandardStop(solvedShutter, STANDARD_SHUTTER_SPEEDS, true)
-              .label
-          : '—',
+        solvedLabel: valid ? snapped.standard.label : '—',
+        solvedStopError: valid ? snapped.stopError : 0,
         outOfRange,
         isValid: valid,
       };
@@ -77,13 +81,17 @@ export const useLightMeterSolver = (ev: number | null): UseLightMeterSolver => {
 
     const solvedAperture = solveForAperture(ev, shutterSpeed, iso);
     const valid = Number.isFinite(solvedAperture);
+    // A smaller f-number lets in more light, so ties round wider (brighter).
+    const snapped = snapToStandardStop(
+      solvedAperture,
+      STANDARD_APERTURES,
+      false
+    );
     return {
       aperture: solvedAperture,
       shutterSpeed,
-      // A smaller f-number lets in more light, so ties round wider (brighter).
-      solvedLabel: valid
-        ? snapToStandardStop(solvedAperture, STANDARD_APERTURES, false).label
-        : '—',
+      solvedLabel: valid ? snapped.standard.label : '—',
+      solvedStopError: valid ? snapped.stopError : 0,
       outOfRange: false,
       isValid: valid,
     };

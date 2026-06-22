@@ -51,10 +51,21 @@ export const smoothEv = (samples: readonly number[]): number => {
     : sorted[mid];
 };
 
+export interface SnappedStop {
+  /** The dial value the exact setting was snapped to. */
+  standard: StandardValue;
+  /**
+   * Exposure error from snapping, in stops: positive = the dial value lets in
+   * MORE light than ideal (over-exposed), negative = less (under-exposed).
+   */
+  stopError: number;
+}
+
 /**
  * Snaps an exact exposure setting to the nearest value a lens/camera dial can
  * actually be set to, measured in stops, rounding a true half-stop tie toward
- * MORE exposure (over- rather than under-exposing).
+ * MORE exposure (over- rather than under-exposing). Also reports how far the
+ * snapped value is from the ideal, in stops.
  *
  * `largerIsMoreExposure` describes the setting's direction:
  * - shutter time: `true`  (a longer time lets in more light)
@@ -62,13 +73,16 @@ export const smoothEv = (samples: readonly number[]): number => {
  *
  * @example
  * // 1/247s is essentially 1/250s, so it snaps there (nearest, not the tie rule):
- * snapToStandardStop(1 / 247, STANDARD_SHUTTER_SPEEDS, true).label // "1/250"
+ * snapToStandardStop(1 / 247, STANDARD_SHUTTER_SPEEDS, true).standard.label // "1/250"
  */
 export const snapToStandardStop = (
   exact: number,
   standards: readonly StandardValue[],
   largerIsMoreExposure: boolean
-): StandardValue => {
+): SnappedStop => {
+  if (!Number.isFinite(exact) || exact <= 0) {
+    return { standard: standards[0], stopError: 0 };
+  }
   // Position of a value on a log2 "stops of light" axis (sign so that a higher
   // number always means more exposure, regardless of setting direction).
   const exposureStops = (v: number) =>
@@ -91,5 +105,5 @@ export const snapToStandardStop = (
       bestDelta = delta;
     }
   }
-  return best;
+  return { standard: best, stopError: bestDelta };
 };

@@ -8,6 +8,11 @@ export interface LightMeterSolution {
   shutterSpeed: number;
   /** Formatted label for the solved (non-locked) value, e.g. "1/125" or "f/5.6". */
   solvedLabel: string;
+  /**
+   * Exposure error from snapping the solved value to a dial stop, in stops:
+   * positive = over-exposed, negative = under-exposed, 0 when invalid.
+   */
+  solvedStopError: number;
   /** True when the solved shutter falls outside the practical range. */
   outOfRange: boolean;
   /** False when the EV input or settings are invalid. */

@@ -22,16 +22,31 @@ interface MeterReadoutProps {
   solution: LightMeterSolution;
 }
 
+/** Formats the snap error in stops: "+0.4" over, "−0.3" under, "✓" if exact. */
+function formatStopError(stops: number): { text: string; tone: string } {
+  const rounded = Math.round(stops * 10) / 10;
+  if (Math.abs(rounded) < 0.05) return { text: '✓', tone: 'text-white/45' };
+  const sign = rounded > 0 ? '+' : '−';
+  return {
+    text: `${sign}${Math.abs(rounded).toFixed(1)}`,
+    tone: rounded > 0 ? 'text-amber-400' : 'text-sky-400',
+  };
+}
+
 /** One exposure setting on its own fixed line; the calculated one is emphasized. */
 function SettingRow({
   label,
   value,
   calculated,
+  stopError,
 }: {
   label: string;
   value: string;
   calculated: boolean;
+  /** Snap error in stops; shown only on the calculated row. */
+  stopError?: number;
 }) {
+  const error = stopError === undefined ? null : formatStopError(stopError);
   return (
     <View className="flex-row items-baseline" style={{ gap: 10 }}>
       <Text
@@ -50,6 +65,11 @@ function SettingRow({
       >
         {value}
       </Text>
+      {error ? (
+        <Text style={[MONO, SHADOW]} className={`text-sm ${error.tone}`}>
+          {error.text}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -94,11 +114,21 @@ export function MeterReadout({
         label="f"
         value={apertureLabel}
         calculated={apertureCalculated}
+        stopError={
+          apertureCalculated && solution.isValid
+            ? solution.solvedStopError
+            : undefined
+        }
       />
       <SettingRow
         label="sec"
         value={shutterLabel}
         calculated={shutterCalculated}
+        stopError={
+          shutterCalculated && solution.isValid
+            ? solution.solvedStopError
+            : undefined
+        }
       />
       <SettingRow label="iso" value={String(iso)} calculated={false} />
       {solution.outOfRange ? (
