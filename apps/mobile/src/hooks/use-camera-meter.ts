@@ -27,6 +27,7 @@ export interface CameraMeter {
   ev: number | null;
   isLocked: boolean;
   meterAtPoint: (point: { x: number; y: number }) => Promise<void>;
+  unlock: () => Promise<void>;
   onInitialized: () => void;
 }
 
@@ -87,6 +88,17 @@ export const useCameraMeter = (calibrationOffset: number): CameraMeter => {
     }
   }, []);
 
+  const unlock = useCallback(async () => {
+    const camera = cameraRef.current;
+    setIsLocked(false);
+    try {
+      // Reset to continuous auto-exposure so the EV tracks the scene again.
+      await camera?.controller?.resetFocus();
+    } catch {
+      // resetFocus unsupported; the next tap will re-meter regardless.
+    }
+  }, []);
+
   return {
     device,
     hasPermission,
@@ -95,6 +107,7 @@ export const useCameraMeter = (calibrationOffset: number): CameraMeter => {
     ev,
     isLocked,
     meterAtPoint,
+    unlock,
     onInitialized,
   };
 };

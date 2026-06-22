@@ -15,7 +15,6 @@ const SHADOW = {
 
 interface MeterReadoutProps {
   ev: number | null;
-  isLocked: boolean;
   priority: MeterPriority;
   iso: number;
   aperture: number;
@@ -62,7 +61,6 @@ function SettingRow({
  */
 export function MeterReadout({
   ev,
-  isLocked,
   priority,
   iso,
   aperture,
@@ -86,23 +84,12 @@ export function MeterReadout({
 
   return (
     <View style={{ gap: 6 }}>
-      <View className="flex-row items-center" style={{ gap: 8 }}>
-        <Text
-          style={[MONO, SHADOW]}
-          className="text-sm tracking-widest text-white/70"
-        >
-          EV {evLabel}
-        </Text>
-        {isLocked ? (
-          <Text style={[MONO, SHADOW]} className="text-xs text-rose-400">
-            ● LOCKED
-          </Text>
-        ) : (
-          <Text style={[MONO, SHADOW]} className="text-xs text-white/50">
-            metering
-          </Text>
-        )}
-      </View>
+      <Text
+        style={[MONO, SHADOW]}
+        className="text-sm tracking-widest text-white/70"
+      >
+        EV {evLabel}
+      </Text>
       <SettingRow
         label="f"
         value={apertureLabel}

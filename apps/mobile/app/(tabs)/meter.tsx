@@ -13,7 +13,7 @@ import { MeterReadout } from '@/components/meter/meter-readout';
 import { MeterStepper } from '@/components/meter/meter-stepper';
 import { PermissionFallback } from '@/components/meter/permission-fallback';
 import { PriorityToggle } from '@/components/meter/priority-toggle';
-import { Reticle } from '@/components/meter/reticle';
+import { RETICLE_SIZE, Reticle } from '@/components/meter/reticle';
 import { ValueWheel } from '@/components/meter/value-wheel';
 import { useCameraMeter } from '@/hooks/use-camera-meter';
 import {
@@ -53,6 +53,9 @@ export default function MeterScreen() {
   const { hasPermission, requestPermission } = meter;
   const solver = useLightMeterSolver(meter.ev);
   const isFocused = useIsFocused();
+  const [meterPoint, setMeterPoint] = useState<{ x: number; y: number } | null>(
+    null
+  );
 
   useEffect(() => {
     if (!hasPermission) void requestPermission();
@@ -85,12 +88,14 @@ export default function MeterScreen() {
     <View style={styles.container}>
       <Pressable
         style={StyleSheet.absoluteFill}
-        onPress={(e) =>
-          void meter.meterAtPoint({
+        onPress={(e) => {
+          const point = {
             x: e.nativeEvent.locationX,
             y: e.nativeEvent.locationY,
-          })
-        }
+          };
+          setMeterPoint(point);
+          void meter.meterAtPoint(point);
+        }}
       >
         <Camera
           ref={meter.cameraRef}
@@ -99,8 +104,49 @@ export default function MeterScreen() {
           isActive={isFocused}
           onPreviewStarted={meter.onInitialized}
         />
-        <Reticle />
       </Pressable>
+
+      {/* Reticle on the metered point (screen center until the first tap). */}
+      <View
+        pointerEvents="none"
+        style={[
+          styles.reticle,
+          meterPoint
+            ? {
+                left: meterPoint.x - RETICLE_SIZE / 2,
+                top: meterPoint.y - RETICLE_SIZE / 2,
+              }
+            : styles.reticleCenter,
+        ]}
+      >
+        <Reticle locked={meter.isLocked} />
+      </View>
+
+      {/* Unlock control: prominent while exposure is locked. */}
+      {meter.isLocked ? (
+        <View
+          pointerEvents="box-none"
+          style={[styles.lockBar, { top: insets.top + 48 }]}
+        >
+          <Pressable
+            onPress={() => {
+              setMeterPoint(null);
+              void meter.unlock();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Unlock exposure and resume live metering"
+            className="flex-row items-center rounded-full bg-rose-600/90 px-4 py-2"
+            style={{ gap: 8 }}
+          >
+            <Text
+              style={[MONO, SHADOW]}
+              className="text-sm font-bold text-white"
+            >
+              ● AE LOCKED — tap to resume
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
 
       {/* Top strip: calibration (right). */}
       <View
@@ -120,7 +166,6 @@ export default function MeterScreen() {
       <View pointerEvents="none" style={styles.readout}>
         <MeterReadout
           ev={meter.ev}
-          isLocked={meter.isLocked}
           priority={solver.priority}
           iso={solver.iso}
           aperture={solver.aperture}
@@ -180,6 +225,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#0b0b0c',
   },
   text: { color: '#f5f5f4' },
+  reticle: { position: 'absolute' },
+  reticleCenter: {
+    left: '50%',
+    top: '50%',
+    marginLeft: -RETICLE_SIZE / 2,
+    marginTop: -RETICLE_SIZE / 2,
+  },
+  lockBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
   topStrip: {
     position: 'absolute',
     left: 20,
