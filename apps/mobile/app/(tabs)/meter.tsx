@@ -51,10 +51,10 @@ const MODE_OPTIONS = [
   { label: 'Matrix', value: 'matrix' as const },
   { label: 'Spot', value: 'spot' as const },
 ];
-// Av = aperture-priority (you set the f-stop), Tv = shutter/time-priority.
+// Which setting you fix; the meter solves the other.
 const PRIORITY_OPTIONS = [
-  { label: 'Av', value: 'aperture' as const },
-  { label: 'Tv', value: 'shutter' as const },
+  { label: 'Aperture', value: 'aperture' as const },
+  { label: 'Shutter', value: 'shutter' as const },
 ];
 
 export default function MeterScreen() {
@@ -191,21 +191,7 @@ export default function MeterScreen() {
         />
       </View>
 
-      {/* Results LCD: mid-left, display-only so taps meter the scene. */}
-      <View pointerEvents="none" style={styles.readout}>
-        <BlurPanel style={styles.readoutPanel}>
-          <MeterReadout
-            ev={meter.ev}
-            priority={solver.priority}
-            iso={solver.iso}
-            aperture={solver.aperture}
-            shutterSpeed={solver.shutterSpeed}
-            solution={solver.solution}
-          />
-        </BlurPanel>
-      </View>
-
-      {/* Stacked command-dials on the right: ISO above the exposure value. */}
+      {/* Command-dials on the right: ISO, exposure value, then priority. */}
       <View pointerEvents="box-none" style={styles.wheelColumn}>
         <BlurPanel style={styles.wheelPanel}>
           <View style={styles.wheelGroup}>
@@ -235,20 +221,24 @@ export default function MeterScreen() {
               visibleCount={5}
             />
           </View>
-          {/* Priority toggle at the bottom of the right sidebar. */}
+          {/* Priority toggle: vertical, full words, bottom of the sidebar. */}
           <SegmentedPill
             options={PRIORITY_OPTIONS}
             value={solver.priority}
             onChange={solver.setPriority}
+            orientation="vertical"
             accessibilityLabel="Aperture or shutter priority"
           />
         </BlurPanel>
       </View>
 
-      {/* Center / spot metering switch, bottom-center, clear of the tab bar. */}
+      {/* Bottom: metering-mode switch above the results strip, clear of the tabs. */}
       <View
         pointerEvents="box-none"
-        style={[styles.bottom, { bottom: insets.bottom + TAB_BAR_CLEARANCE }]}
+        style={[
+          styles.bottomStack,
+          { bottom: insets.bottom + TAB_BAR_CLEARANCE },
+        ]}
       >
         <SegmentedPill
           options={MODE_OPTIONS}
@@ -256,6 +246,16 @@ export default function MeterScreen() {
           onChange={handleModeChange}
           accessibilityLabel="Matrix or spot metering"
         />
+        <BlurPanel style={styles.resultsPanel}>
+          <MeterReadout
+            ev={meter.ev}
+            priority={solver.priority}
+            iso={solver.iso}
+            aperture={solver.aperture}
+            shutterSpeed={solver.shutterSpeed}
+            solution={solver.solution}
+          />
+        </BlurPanel>
       </View>
     </View>
   );
@@ -279,8 +279,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
-  readout: { position: 'absolute', left: 16, top: '28%' },
-  readoutPanel: { padding: 14 },
   wheelColumn: {
     position: 'absolute',
     right: 8,
@@ -288,8 +286,21 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'flex-end',
+    // Keep the centered dials clear of the bottom results strip.
+    paddingBottom: 150,
   },
   wheelPanel: { padding: 10, gap: 14, alignItems: 'center' },
   wheelGroup: { alignItems: 'flex-end', gap: 2 },
-  bottom: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+  bottomStack: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    alignItems: 'center',
+    gap: 10,
+  },
+  resultsPanel: {
+    alignSelf: 'stretch',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
 });

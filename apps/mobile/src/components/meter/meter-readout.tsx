@@ -33,51 +33,52 @@ function formatStopError(stops: number): { text: string; tone: string } {
   };
 }
 
-/** One exposure setting on its own fixed line; the calculated one is emphasized. */
-function SettingRow({
-  label,
+/** One exposure setting as a labelled column; the calculated one is emphasized. */
+function Stat({
+  caption,
   value,
-  calculated,
+  calculated = false,
   stopError,
 }: {
-  label: string;
+  caption: string;
   value: string;
-  calculated: boolean;
-  /** Snap error in stops; shown only on the calculated row. */
+  calculated?: boolean;
   stopError?: number;
 }) {
   const error = stopError === undefined ? null : formatStopError(stopError);
   return (
-    <View className="flex-row items-baseline" style={{ gap: 10 }}>
+    <View className="items-center" style={{ gap: 3 }}>
       <Text
         style={[MONO, SHADOW]}
-        className="w-14 text-xs uppercase tracking-widest text-white/55"
+        className="text-[10px] uppercase tracking-widest text-white/55"
       >
-        {label}
+        {caption}
       </Text>
-      <Text
-        style={[MONO, SHADOW]}
-        className={
-          calculated
-            ? 'text-2xl font-bold text-rose-300'
-            : 'text-2xl font-normal text-white'
-        }
-      >
-        {value}
-      </Text>
-      {error ? (
-        <Text style={[MONO, SHADOW]} className={`text-sm ${error.tone}`}>
-          {error.text}
+      <View className="flex-row items-baseline" style={{ gap: 4 }}>
+        <Text
+          style={[MONO, SHADOW]}
+          className={
+            calculated
+              ? 'text-xl font-bold text-rose-300'
+              : 'text-xl font-normal text-white'
+          }
+        >
+          {value}
         </Text>
-      ) : null}
+        {error ? (
+          <Text style={[MONO, SHADOW]} className={`text-xs ${error.tone}`}>
+            {error.text}
+          </Text>
+        ) : null}
+      </View>
     </View>
   );
 }
 
 /**
- * The metered result, drawn on the feed (no card): the scene EV, then each
- * exposure setting on a fixed line. The setting the meter calculates (shutter in
- * aperture-priority, aperture in shutter-priority) is bolded and accented.
+ * The metered result as a horizontal strip: scene EV plus each exposure setting.
+ * The setting the meter calculates (shutter in aperture-priority, aperture in
+ * shutter-priority) is bolded and accented, with its snap error in stops.
  */
 export function MeterReadout({
   ev,
@@ -103,36 +104,36 @@ export function MeterReadout({
   const evLabel = ev === null ? '——' : ev.toFixed(1);
 
   return (
-    <View style={{ gap: 6 }}>
-      <Text
-        style={[MONO, SHADOW]}
-        className="text-sm tracking-widest text-white/70"
-      >
-        EV {evLabel}
-      </Text>
-      <SettingRow
-        label="f"
-        value={apertureLabel}
-        calculated={apertureCalculated}
-        stopError={
-          apertureCalculated && solution.isValid
-            ? solution.solvedStopError
-            : undefined
-        }
-      />
-      <SettingRow
-        label="sec"
-        value={shutterLabel}
-        calculated={shutterCalculated}
-        stopError={
-          shutterCalculated && solution.isValid
-            ? solution.solvedStopError
-            : undefined
-        }
-      />
-      <SettingRow label="iso" value={String(iso)} calculated={false} />
+    <View style={{ gap: 4 }}>
+      <View className="flex-row items-end justify-between">
+        <Stat caption="EV" value={evLabel} />
+        <Stat
+          caption="aperture"
+          value={apertureLabel}
+          calculated={apertureCalculated}
+          stopError={
+            apertureCalculated && solution.isValid
+              ? solution.solvedStopError
+              : undefined
+          }
+        />
+        <Stat
+          caption="shutter"
+          value={shutterLabel}
+          calculated={shutterCalculated}
+          stopError={
+            shutterCalculated && solution.isValid
+              ? solution.solvedStopError
+              : undefined
+          }
+        />
+        <Stat caption="ISO" value={String(iso)} />
+      </View>
       {solution.outOfRange ? (
-        <Text style={[MONO, SHADOW]} className="text-xs text-amber-400">
+        <Text
+          style={[MONO, SHADOW]}
+          className="text-center text-xs text-amber-400"
+        >
           out of range (1/8000s–30s)
         </Text>
       ) : null}
