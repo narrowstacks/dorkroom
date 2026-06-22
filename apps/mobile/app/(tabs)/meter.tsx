@@ -191,54 +191,7 @@ export default function MeterScreen() {
         />
       </View>
 
-      {/* Right sidebar: metering mode on top, then dials, then priority. */}
-      <View pointerEvents="box-none" style={styles.wheelColumn}>
-        <BlurPanel style={styles.wheelPanel}>
-          <SegmentedPill
-            options={MODE_OPTIONS}
-            value={meteringMode}
-            onChange={handleModeChange}
-            accessibilityLabel="Matrix or spot metering"
-          />
-          <View style={styles.wheelGroup}>
-            <Text style={[MONO, SHADOW]} className={CAPTION}>
-              ISO
-            </Text>
-            <ValueWheel
-              options={ISO_OPTIONS}
-              value={solver.iso}
-              onChange={solver.setIso}
-              accessibilityLabel="ISO selector"
-              visibleCount={3}
-            />
-          </View>
-          <View style={styles.wheelGroup}>
-            <Text style={[MONO, SHADOW]} className={CAPTION}>
-              {isAperture ? 'f-stop' : 'shutter'}
-            </Text>
-            <ValueWheel
-              key={solver.priority}
-              options={wheelOptions}
-              value={wheelValue}
-              onChange={onWheelChange}
-              accessibilityLabel={
-                isAperture ? 'Aperture selector' : 'Shutter speed selector'
-              }
-              visibleCount={5}
-            />
-          </View>
-          {/* Priority toggle: vertical, full words, bottom of the sidebar. */}
-          <SegmentedPill
-            options={PRIORITY_OPTIONS}
-            value={solver.priority}
-            onChange={solver.setPriority}
-            orientation="vertical"
-            accessibilityLabel="Aperture or shutter priority"
-          />
-        </BlurPanel>
-      </View>
-
-      {/* Results strip along the bottom, clear of the tab bar. */}
+      {/* Bottom deck: results, then a horizontal settings menu. Sides stay clear. */}
       <View
         pointerEvents="box-none"
         style={[
@@ -254,6 +207,51 @@ export default function MeterScreen() {
             aperture={solver.aperture}
             shutterSpeed={solver.shutterSpeed}
             solution={solver.solution}
+          />
+        </BlurPanel>
+        <BlurPanel style={styles.settingsPanel}>
+          <SegmentedPill
+            options={MODE_OPTIONS}
+            value={meteringMode}
+            onChange={handleModeChange}
+            orientation="vertical"
+            accessibilityLabel="Matrix or spot metering"
+          />
+          <View style={styles.wheelGroup}>
+            <Text style={[MONO, SHADOW]} className={CAPTION}>
+              ISO
+            </Text>
+            <ValueWheel
+              options={ISO_OPTIONS}
+              value={solver.iso}
+              onChange={solver.setIso}
+              accessibilityLabel="ISO selector"
+              visibleCount={3}
+              width={88}
+            />
+          </View>
+          <View style={styles.wheelGroup}>
+            <Text style={[MONO, SHADOW]} className={CAPTION}>
+              {isAperture ? 'f-stop' : 'shutter'}
+            </Text>
+            <ValueWheel
+              key={solver.priority}
+              options={wheelOptions}
+              value={wheelValue}
+              onChange={onWheelChange}
+              accessibilityLabel={
+                isAperture ? 'Aperture selector' : 'Shutter speed selector'
+              }
+              visibleCount={3}
+              width={88}
+            />
+          </View>
+          <SegmentedPill
+            options={PRIORITY_OPTIONS}
+            value={solver.priority}
+            onChange={solver.setPriority}
+            orientation="vertical"
+            accessibilityLabel="Aperture or shutter priority"
           />
         </BlurPanel>
       </View>
@@ -279,18 +277,15 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
-  wheelColumn: {
-    position: 'absolute',
-    right: 8,
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    // Keep the centered dials clear of the bottom results strip.
-    paddingBottom: 150,
+  wheelGroup: { alignItems: 'center', gap: 2 },
+  settingsPanel: {
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
-  wheelPanel: { padding: 10, gap: 14, alignItems: 'center' },
-  wheelGroup: { alignItems: 'flex-end', gap: 2 },
   bottomStack: {
     position: 'absolute',
     left: 16,
