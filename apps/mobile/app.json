@@ -11,7 +11,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "art.dorkroom.mobile",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Dorkroom uses the camera to meter the light in your scene."
       }
     },
     "plugins": [
@@ -22,12 +23,6 @@
           "ios": {
             "deploymentTarget": "26.0"
           }
-        }
-      ],
-      [
-        "react-native-vision-camera",
-        {
-          "cameraPermissionText": "Dorkroom uses the camera to meter the light in your scene."
         }
       ]
     ],
