@@ -72,11 +72,15 @@ export const useCameraMeter = (calibrationOffset: number): CameraMeter => {
   }, [readEv]);
 
   const meterAtPoint = useCallback(async (point: { x: number; y: number }) => {
-    const controller = cameraRef.current;
-    if (controller == null) return;
+    const camera = cameraRef.current;
+    if (camera == null) return;
     try {
-      // AE-only metering at the tapped point via the CameraRef's view-coordinate focusTo.
-      await controller.focusTo(point, { modes: ['AE'] });
+      // AE-only metering at the tapped point, locked until the next tap.
+      await camera.focusTo(point, {
+        modes: ['AE'],
+        adaptiveness: 'locked',
+        autoResetAfter: null,
+      });
       setIsLocked(true);
     } catch {
       // Metering not supported here; leave the reading live.
