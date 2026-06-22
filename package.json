@@ -99,7 +99,7 @@
   "packageManager": "bun@1.3.3",
   "workspaces": ["apps/*", "packages/*"],
   "optionalDependencies": {
-    "supabase": "^2.67.3"
+    "supabase": "^2.107.0"
   },
   "overrides": {
     "vite": "8.0.14"
