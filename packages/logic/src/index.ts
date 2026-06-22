@@ -79,6 +79,10 @@ export {
 } from './hooks/use-exposure-calculator';
 export { useFeatureFlags } from './hooks/use-feature-flags';
 export {
+  type UseLightMeterSolver,
+  useLightMeterSolver,
+} from './hooks/use-light-meter-solver';
+export {
   type FieldValidator,
   type LocalStorageFormPersistenceOptions,
   type LocalStorageFormPersistenceReturn,
