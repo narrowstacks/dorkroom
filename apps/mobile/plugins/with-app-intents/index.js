@@ -34,17 +34,19 @@ function withAppIntentsBuildPhase(config) {
   return withXcodeProject(config, (cfg) => {
     const project = cfg.modResults;
     const target = project.getFirstTarget().uuid;
-
-    if (!project.pbxGroupByName(GROUP)) {
-      project.addPbxGroup([], GROUP, GROUP);
-    }
+    // addSourceFile's 3rd arg is a group KEY (uuid), not a name. Add the files
+    // to the project's existing main group with their `AppIntents/<file>` path
+    // (sourceTree '<group>' resolves it under SOURCE_ROOT → ios/AppIntents/…).
+    const mainGroup = project.getFirstProject().firstProject.mainGroup;
 
     for (const file of SWIFT_FILES) {
       const relPath = `${GROUP}/${file}`;
+      // hasFile matches the stored PBXFileReference path, which is this same
+      // `AppIntents/<file>` string — so re-running prebuild stays idempotent.
       if (project.hasFile(relPath)) {
-        continue; // already referenced — keep prebuild idempotent
+        continue;
       }
-      project.addSourceFile(relPath, { target }, GROUP);
+      project.addSourceFile(relPath, { target }, mainGroup);
     }
     return cfg;
   });
