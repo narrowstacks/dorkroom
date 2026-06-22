@@ -29,6 +29,15 @@ export interface UseLightMeterSolver {
   solution: LightMeterSolution;
 }
 
+/** Starting values for the solver's controls, e.g. restored from storage.
+ * Each falls back to its default when omitted. Read once on mount. */
+export interface LightMeterSolverInitialState {
+  iso?: number;
+  priority?: MeterPriority;
+  aperture?: number;
+  shutterSpeed?: number;
+}
+
 /**
  * Solves for the missing exposure setting from a metered EV (at ISO 100).
  *
@@ -36,13 +45,21 @@ export interface UseLightMeterSolver {
  * Shutter-priority: the user fixes the shutter, the hook solves the aperture.
  *
  * @param ev - Metered scene EV at ISO 100, or null/NaN when unavailable
+ * @param initial - Optional starting controls (e.g. persisted); read once on mount
  */
-export const useLightMeterSolver = (ev: number | null): UseLightMeterSolver => {
-  const [iso, setIso] = useState(DEFAULT_CAMERA_EXPOSURE_ISO);
-  const [priority, setPriority] = useState<MeterPriority>('aperture');
-  const [aperture, setAperture] = useState(DEFAULT_CAMERA_EXPOSURE_APERTURE);
+export const useLightMeterSolver = (
+  ev: number | null,
+  initial?: LightMeterSolverInitialState
+): UseLightMeterSolver => {
+  const [iso, setIso] = useState(initial?.iso ?? DEFAULT_CAMERA_EXPOSURE_ISO);
+  const [priority, setPriority] = useState<MeterPriority>(
+    initial?.priority ?? 'aperture'
+  );
+  const [aperture, setAperture] = useState(
+    initial?.aperture ?? DEFAULT_CAMERA_EXPOSURE_APERTURE
+  );
   const [shutterSpeed, setShutterSpeed] = useState(
-    DEFAULT_CAMERA_EXPOSURE_SHUTTER_SPEED
+    initial?.shutterSpeed ?? DEFAULT_CAMERA_EXPOSURE_SHUTTER_SPEED
   );
 
   const solution = useMemo<LightMeterSolution>(() => {

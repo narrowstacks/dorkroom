@@ -27,6 +27,14 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Changed
 
+- Light meter: aperture / shutter / ISO are now adjusted by touch-and-hold and
+  dragging up (brighter) or down (darker) directly on the readout, instead of
+  tapping to open a separate picker. A floating wheel glides smoothly between the
+  stops as you drag (with a haptic tick as each one crosses center) and wraps
+  around at the ends (functionally infinite). The centered value is committed on
+  release; releasing on a calculated setting locks it (flips aperture/shutter
+  priority). The locked setting (priority + value) and ISO now persist across
+  tab changes and app restarts.
 - Force dark appearance app-wide (`Appearance.setColorScheme('dark')` +
   `userInterfaceStyle: "dark"`) so native glass surfaces render dark glass
   under a light system appearance instead of leaving light text on light cards.

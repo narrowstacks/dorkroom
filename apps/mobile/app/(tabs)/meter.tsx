@@ -1,4 +1,6 @@
 import {
+  formatAperture,
+  formatShutterSpeed,
   STANDARD_APERTURES,
   STANDARD_ISOS,
   STANDARD_SHUTTER_SPEEDS,
@@ -17,24 +19,22 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Camera } from 'react-native-vision-camera';
 import { BlurPanel } from '@/components/meter/blur-panel';
-import { MeterReadout } from '@/components/meter/meter-readout';
+import {
+  MeterReadout,
+  type ScrubField,
+} from '@/components/meter/meter-readout';
 import { MeterStepper } from '@/components/meter/meter-stepper';
 import { PermissionFallback } from '@/components/meter/permission-fallback';
 import { RETICLE_SIZE, Reticle } from '@/components/meter/reticle';
+import { ScrubOverlay, useDragOffset } from '@/components/meter/scrub-overlay';
 import { SegmentedPill } from '@/components/meter/segmented-pill';
-import { ValueWheel } from '@/components/meter/value-wheel';
 import { useCalibration } from '@/hooks/use-calibration';
 import { useCameraMeter } from '@/hooks/use-camera-meter';
+import { getMeterSettings, setMeterSettings } from '@/lib/meter-settings';
 
 // Clearance for the translucent native tab bar so bottom controls stay tappable.
 const TAB_BAR_CLEARANCE = 64;
 const CALIBRATION_STEP = 0.1;
-const MONO = { fontFamily: 'Menlo' } as const;
-const SHADOW = {
-  textShadowColor: 'rgba(0,0,0,0.85)',
-  textShadowOffset: { width: 0, height: 1 },
-  textShadowRadius: 4,
-} as const;
 
 type MeteringMode = 'matrix' | 'spot';
 const MODE_OPTIONS = [
@@ -48,12 +48,6 @@ const ISO_OPTIONS = STANDARD_ISOS.map((o) => ({
 }));
 
 type SelectorTarget = 'aperture' | 'shutter' | 'iso';
-interface SelectorConfig {
-  title: string;
-  options: { label: string; value: number }[];
-  value: number;
-  onChange: (value: number) => void;
-}
 
 export default function MeterScreen() {
   const insets = useSafeAreaInsets();
@@ -61,15 +55,23 @@ export default function MeterScreen() {
     useCalibration();
   const meter = useCameraMeter(calibrationOffset);
   const { hasPermission, requestPermission } = meter;
-  const solver = useLightMeterSolver(meter.ev);
+  // Seed the solver from the last persisted locked setting + ISO (read once).
+  const initialSettings = useMemo(() => getMeterSettings(), []);
+  const solver = useLightMeterSolver(meter.ev, initialSettings);
   const isFocused = useIsFocused();
   const [meteringMode, setMeteringMode] = useState<MeteringMode>('matrix');
   const [meterPoint, setMeterPoint] = useState<{ x: number; y: number } | null>(
     null
   );
-  const [activeSelector, setActiveSelector] = useState<SelectorTarget | null>(
-    null
-  );
+  // The active scrub: which setting and the option index the drag started from.
+  // Set on grab, cleared on release — drives the floating wheel.
+  const [scrub, setScrub] = useState<{
+    target: SelectorTarget;
+    baseIndex: number;
+  } | null>(null);
+  // Live drag offset (px) the active scrubber writes and the wheel reads, so it
+  // glides on the native side without re-rendering this screen each frame.
+  const dragY = useDragOffset();
   // Frame size is only read inside handlers (to spot-meter center), so a ref
   // keeps layout updates from triggering re-renders.
   const sizeRef = useRef<{ width: number; height: number } | null>(null);
@@ -77,6 +79,17 @@ export default function MeterScreen() {
   useEffect(() => {
     if (!hasPermission) void requestPermission();
   }, [hasPermission, requestPermission]);
+
+  // Persist the locked setting (priority + both values) and ISO so they survive
+  // tab changes and app restarts.
+  useEffect(() => {
+    setMeterSettings({
+      priority: solver.priority,
+      aperture: solver.aperture,
+      shutterSpeed: solver.shutterSpeed,
+      iso: solver.iso,
+    });
+  }, [solver.priority, solver.aperture, solver.shutterSpeed, solver.iso]);
 
   const onLayout = useCallback((e: LayoutChangeEvent) => {
     sizeRef.current = {
@@ -112,54 +125,73 @@ export default function MeterScreen() {
     [enterMatrix, enterSpot]
   );
 
-  // Picking an aperture/shutter value also locks it (sets that priority);
-  // ISO is always selectable and never changes priority.
-  const selector = useMemo<SelectorConfig | null>(() => {
-    if (activeSelector === 'iso') {
-      return {
-        title: 'ISO',
-        options: ISO_OPTIONS,
-        value: solver.iso,
-        onChange: solver.setIso,
-      };
-    }
-    if (activeSelector === 'aperture') {
-      const start =
-        solver.priority === 'aperture'
-          ? solver.aperture
-          : snapToStandardStop(solver.aperture, STANDARD_APERTURES, false)
-              .standard.value;
-      return {
-        title: 'Aperture',
+  // Each setting is drag-scrubbable. Dragging aperture/shutter commits a value
+  // and locks it (sets that priority); ISO never changes priority. A calculated
+  // setting starts the scrub from its displayed (solved + snapped) value.
+  const fields = useMemo<Record<SelectorTarget, ScrubField>>(() => {
+    const sol = solver.solution;
+    const apertureLocked = solver.priority === 'aperture';
+    const shutterLocked = solver.priority === 'shutter';
+    return {
+      aperture: {
+        caption: 'aperture',
+        accessibilityLabel: 'Aperture',
         options: STANDARD_APERTURES,
-        value: start,
+        value: apertureLocked
+          ? solver.aperture
+          : snapToStandardStop(sol.aperture, STANDARD_APERTURES, false).standard
+              .value,
+        displayLabel: apertureLocked
+          ? formatAperture(solver.aperture)
+          : sol.isValid
+            ? sol.solvedLabel
+            : '—',
         onChange: (v) => {
           solver.setAperture(v);
           solver.setPriority('aperture');
         },
-      };
-    }
-    if (activeSelector === 'shutter') {
-      const start =
-        solver.priority === 'shutter'
-          ? solver.shutterSpeed
-          : snapToStandardStop(
-              solver.shutterSpeed,
-              STANDARD_SHUTTER_SPEEDS,
-              true
-            ).standard.value;
-      return {
-        title: 'Shutter',
+        brighterIsHigherIndex: false,
+        locked: apertureLocked,
+        calculated: !apertureLocked,
+        stopError:
+          !apertureLocked && sol.isValid ? sol.solvedStopError : undefined,
+      },
+      shutter: {
+        caption: 'shutter',
+        accessibilityLabel: 'Shutter',
         options: STANDARD_SHUTTER_SPEEDS,
-        value: start,
+        value: shutterLocked
+          ? solver.shutterSpeed
+          : snapToStandardStop(sol.shutterSpeed, STANDARD_SHUTTER_SPEEDS, true)
+              .standard.value,
+        displayLabel: shutterLocked
+          ? formatShutterSpeed(solver.shutterSpeed)
+          : sol.isValid
+            ? sol.solvedLabel
+            : '—',
         onChange: (v) => {
           solver.setShutterSpeed(v);
           solver.setPriority('shutter');
         },
-      };
-    }
-    return null;
-  }, [activeSelector, solver]);
+        brighterIsHigherIndex: false,
+        locked: shutterLocked,
+        calculated: !shutterLocked,
+        stopError:
+          !shutterLocked && sol.isValid ? sol.solvedStopError : undefined,
+      },
+      iso: {
+        caption: 'ISO',
+        accessibilityLabel: 'ISO',
+        options: ISO_OPTIONS,
+        value: solver.iso,
+        displayLabel: String(solver.iso),
+        onChange: solver.setIso,
+        brighterIsHigherIndex: true,
+        locked: false,
+        calculated: false,
+      },
+    };
+  }, [solver]);
 
   if (!meter.hasPermission) {
     return (
@@ -182,11 +214,6 @@ export default function MeterScreen() {
       <Pressable
         style={StyleSheet.absoluteFill}
         onPress={(e) => {
-          // While a selector is open, a background tap dismisses it.
-          if (activeSelector) {
-            setActiveSelector(null);
-            return;
-          }
           enterSpot({ x: e.nativeEvent.locationX, y: e.nativeEvent.locationY });
         }}
       >
@@ -229,7 +256,8 @@ export default function MeterScreen() {
         />
       </View>
 
-      {/* Bottom: selector (when open) or mode toggle, above the results. */}
+      {/* Bottom: the live scrub value (while dragging) or the mode toggle,
+          above the results readout. */}
       <View
         pointerEvents="box-none"
         style={[
@@ -237,37 +265,12 @@ export default function MeterScreen() {
           { bottom: insets.bottom + TAB_BAR_CLEARANCE },
         ]}
       >
-        {selector ? (
-          <BlurPanel style={styles.selectorPanel}>
-            <View style={styles.selectorHeader}>
-              <Text
-                style={[MONO, SHADOW]}
-                className="text-xs uppercase tracking-widest text-white/55"
-              >
-                {selector.title}
-              </Text>
-              <Pressable
-                onPress={() => setActiveSelector(null)}
-                accessibilityRole="button"
-                hitSlop={8}
-              >
-                <Text
-                  style={[MONO, SHADOW]}
-                  className="text-sm font-bold uppercase tracking-widest text-rose-400"
-                >
-                  Done
-                </Text>
-              </Pressable>
-            </View>
-            <ValueWheel
-              options={selector.options}
-              value={selector.value}
-              onChange={selector.onChange}
-              visibleCount={5}
-              width={180}
-              accessibilityLabel={`${selector.title} selector`}
-            />
-          </BlurPanel>
+        {scrub ? (
+          <ScrubOverlay
+            field={fields[scrub.target]}
+            baseIndex={scrub.baseIndex}
+            dragY={dragY}
+          />
         ) : (
           <SegmentedPill
             options={MODE_OPTIONS}
@@ -279,14 +282,15 @@ export default function MeterScreen() {
         <BlurPanel style={styles.resultsPanel}>
           <MeterReadout
             ev={meter.ev}
-            priority={solver.priority}
-            iso={solver.iso}
-            aperture={solver.aperture}
-            shutterSpeed={solver.shutterSpeed}
-            solution={solver.solution}
-            onSelectAperture={() => setActiveSelector('aperture')}
-            onSelectShutter={() => setActiveSelector('shutter')}
-            onSelectIso={() => setActiveSelector('iso')}
+            aperture={fields.aperture}
+            shutter={fields.shutter}
+            iso={fields.iso}
+            outOfRange={solver.solution.outOfRange}
+            dragY={dragY}
+            onScrubStart={(target, baseIndex) =>
+              setScrub({ target, baseIndex })
+            }
+            onScrubEnd={() => setScrub(null)}
           />
         </BlurPanel>
       </View>
@@ -318,18 +322,6 @@ const styles = StyleSheet.create({
     right: 16,
     alignItems: 'flex-end',
     gap: 10,
-  },
-  selectorPanel: {
-    alignSelf: 'stretch',
-    padding: 14,
-    alignItems: 'center',
-    gap: 8,
-  },
-  selectorHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    alignSelf: 'stretch',
   },
   resultsPanel: {
     alignSelf: 'stretch',
