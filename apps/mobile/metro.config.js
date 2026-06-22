@@ -27,12 +27,11 @@ config.resolver.extraNodeModules = {
   'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
 };
 
-const pinnedPackages = ['react', 'react-dom']
-  .map((name) => ({
-    name,
-    dir: path.resolve(projectRoot, 'node_modules', name),
-  }))
-  .filter(({ dir }) => fs.existsSync(dir));
+const pinnedPackages = ['react', 'react-dom'].reduce((acc, name) => {
+  const dir = path.resolve(projectRoot, 'node_modules', name);
+  if (fs.existsSync(dir)) acc.push({ name, dir });
+  return acc;
+}, []);
 
 // 4. Resolve @dorkroom/* to their TypeScript SOURCE, not the built dist.
 // The packages' package.json `main` points at ./dist, which only exists after

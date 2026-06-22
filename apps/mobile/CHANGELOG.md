@@ -5,10 +5,17 @@ Web app changes live in the [root CHANGELOG](../../CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
-## [Unreleased]
+## [2026.06.22]
 
 ### Added
 
+- Native light meter screen ("Meter" tab): a full-screen camera preview that reads
+  the scene's exposure value from the device's auto-exposure, with a center reticle
+  and tap-to-spot-meter (locks the reading). The overlay solves camera settings
+  against a chosen film ISO in aperture- or shutter-priority, flags out-of-range
+  shutter speeds, and supports a persisted calibration offset. EV/solver/smoothing
+  math is a pure, unit-tested module in `@dorkroom/logic`; the camera wiring uses
+  `react-native-vision-camera`.
 - Full native iOS border calculator screen — a visual print/border preview
   (light-grey paper, dark-grey image area, easel blades with the web-matched
   `#1b1b1d` color and drop shadow, and blade-reading labels) plus controls for
@@ -20,6 +27,14 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Changed
 
+- Light meter: aperture / shutter / ISO are now adjusted by touch-and-hold and
+  dragging up (brighter) or down (darker) directly on the readout, instead of
+  tapping to open a separate picker. A floating wheel glides smoothly between the
+  stops as you drag (with a haptic tick as each one crosses center) and wraps
+  around at the ends (functionally infinite). The centered value is committed on
+  release; releasing on a calculated setting locks it (flips aperture/shutter
+  priority). The locked setting (priority + value) and ISO now persist across
+  tab changes and app restarts.
 - Force dark appearance app-wide (`Appearance.setColorScheme('dark')` +
   `userInterfaceStyle: "dark"`) so native glass surfaces render dark glass
   under a light system appearance instead of leaving light text on light cards.

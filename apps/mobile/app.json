@@ -11,7 +11,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "art.dorkroom.mobile",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Dorkroom uses the camera to meter the light in your scene."
       }
     },
     "plugins": [

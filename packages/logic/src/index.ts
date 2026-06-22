@@ -9,6 +9,7 @@ export * from './constants/development-recipes';
 export * from './constants/exposure-calculator-defaults';
 export * from './constants/feature-flags';
 export * from './constants/lens-calculator-defaults';
+export * from './constants/light-meter-defaults';
 export * from './constants/mat-calculator';
 export * from './constants/reciprocity';
 export * from './constants/reciprocity-calculator-defaults';
@@ -78,6 +79,10 @@ export {
 } from './hooks/use-exposure-calculator';
 export { useFeatureFlags } from './hooks/use-feature-flags';
 export {
+  type UseLightMeterSolver,
+  useLightMeterSolver,
+} from './hooks/use-light-meter-solver';
+export {
   type FieldValidator,
   type LocalStorageFormPersistenceOptions,
   type LocalStorageFormPersistenceReturn,
@@ -111,6 +116,7 @@ export * from './types/custom-recipes';
 export * from './types/development-recipes-url';
 export * from './types/exposure-calculator';
 export * from './types/lens-calculator';
+export * from './types/light-meter';
 export * from './types/reciprocity';
 // Utils exports
 export * from './utils/border-calculations';
@@ -130,6 +136,7 @@ export {
   calculateFieldOfView,
   formatFocalLength,
 } from './utils/lens-calculations';
+export * from './utils/light-meter';
 export * from './utils/object-comparison';
 export * from './utils/precision';
 export * from './utils/preset-sharing';
