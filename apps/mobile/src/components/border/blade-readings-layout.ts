@@ -5,13 +5,12 @@ export type BladeSide = 'left' | 'right' | 'top' | 'bottom';
 export interface BladeReadingLayout {
   side: BladeSide;
   reading: number;
+  /** Anchor position within the paper box (pixels). */
   x: number;
   y: number;
   isInside: boolean;
   arrow: '←' | '→' | '↑' | '↓';
   arrowFirst: boolean;
-  translateX: number;
-  translateY: number;
 }
 
 export interface BladeReadingOptions {
@@ -70,42 +69,10 @@ export function computeBladeReadings(
     : Math.min(boxHeight - labelHeight - padding, printBottom);
 
   return [
-    layoutFor(
-      'left',
-      c.leftBladeReading,
-      leftX,
-      centerY,
-      hInside,
-      labelWidth,
-      labelHeight
-    ),
-    layoutFor(
-      'right',
-      c.rightBladeReading,
-      rightX,
-      centerY,
-      hInside,
-      labelWidth,
-      labelHeight
-    ),
-    layoutFor(
-      'top',
-      c.topBladeReading,
-      centerX,
-      topY,
-      vInside,
-      labelWidth,
-      labelHeight
-    ),
-    layoutFor(
-      'bottom',
-      c.bottomBladeReading,
-      centerX,
-      bottomY,
-      vInside,
-      labelWidth,
-      labelHeight
-    ),
+    layoutFor('left', c.leftBladeReading, leftX, centerY, hInside),
+    layoutFor('right', c.rightBladeReading, rightX, centerY, hInside),
+    layoutFor('top', c.topBladeReading, centerX, topY, vInside),
+    layoutFor('bottom', c.bottomBladeReading, centerX, bottomY, vInside),
   ];
 }
 
@@ -114,82 +81,59 @@ function layoutFor(
   reading: number,
   x: number,
   y: number,
-  isInside: boolean,
-  labelWidth: number,
-  labelHeight: number
+  isInside: boolean
 ): BladeReadingLayout {
-  const halfW = labelWidth / 2;
-  const halfH = labelHeight / 2;
   const base = { side, reading, x, y, isInside };
 
   if (isInside) {
     switch (side) {
       case 'left':
-        return {
-          ...base,
-          arrow: '←',
-          arrowFirst: true,
-          translateX: 0,
-          translateY: -halfH,
-        };
+        return { ...base, arrow: '←', arrowFirst: true };
       case 'right':
-        return {
-          ...base,
-          arrow: '→',
-          arrowFirst: false,
-          translateX: -labelWidth,
-          translateY: -halfH,
-        };
+        return { ...base, arrow: '→', arrowFirst: false };
       case 'top':
-        return {
-          ...base,
-          arrow: '↑',
-          arrowFirst: true,
-          translateX: -halfW,
-          translateY: 0,
-        };
+        return { ...base, arrow: '↑', arrowFirst: true };
       case 'bottom':
-        return {
-          ...base,
-          arrow: '↓',
-          arrowFirst: false,
-          translateX: -halfW,
-          translateY: -labelHeight,
-        };
+        return { ...base, arrow: '↓', arrowFirst: false };
     }
   }
   switch (side) {
     case 'left':
-      return {
-        ...base,
-        arrow: '→',
-        arrowFirst: false,
-        translateX: -labelWidth,
-        translateY: -halfH,
-      };
+      return { ...base, arrow: '→', arrowFirst: false };
     case 'right':
-      return {
-        ...base,
-        arrow: '←',
-        arrowFirst: true,
-        translateX: 0,
-        translateY: -halfH,
-      };
+      return { ...base, arrow: '←', arrowFirst: true };
     case 'top':
-      return {
-        ...base,
-        arrow: '↓',
-        arrowFirst: false,
-        translateX: -halfW,
-        translateY: -labelHeight,
-      };
+      return { ...base, arrow: '↓', arrowFirst: false };
     case 'bottom':
-      return {
-        ...base,
-        arrow: '↑',
-        arrowFirst: true,
-        translateX: -halfW,
-        translateY: 0,
-      };
+      return { ...base, arrow: '↑', arrowFirst: true };
   }
+}
+
+/**
+ * Pixel transform that anchors a label at its blade-reading position using the
+ * label's MEASURED size. RN has no `translate(-50%)`, so the caller measures
+ * each label and passes its real width/height — this keeps opposing labels
+ * (e.g. top and bottom, both anchored at the print center) aligned regardless
+ * of differing text widths.
+ *
+ * - Parallel axis (where the label spans the print edge): inside labels grow
+ *   into the print interior; the perpendicular axis is centered on the anchor.
+ */
+export function bladeLabelOffset(
+  side: BladeSide,
+  isInside: boolean,
+  width: number,
+  height: number
+): { translateX: number; translateY: number } {
+  const halfW = width / 2;
+  const halfH = height / 2;
+
+  if (side === 'left' || side === 'right') {
+    // Vertical centering on the anchor; horizontal grows toward the interior.
+    const towardInterior = side === 'left' ? isInside : !isInside;
+    return { translateX: towardInterior ? 0 : -width, translateY: -halfH };
+  }
+  // top / bottom: horizontal centering on the anchor (this is what aligns them).
+  const towardInterior = side === 'top' ? isInside : !isInside;
+  return { translateX: -halfW, translateY: towardInterior ? 0 : -height };
 }

@@ -54,11 +54,13 @@ export function BorderPreview({
             }}
           />
           {showBlades && (
+            // Blades sit in the border, inner edge flush with the print edge
+            // (they mask the paper down to the image — they don't cover it).
             <>
               <View
                 className="absolute bg-rose-500"
                 style={{
-                  left: print.left,
+                  left: print.left - bladeThickness,
                   top: 0,
                   width: bladeThickness,
                   height: box.height,
@@ -67,7 +69,7 @@ export function BorderPreview({
               <View
                 className="absolute bg-rose-500"
                 style={{
-                  left: print.left + print.width - bladeThickness,
+                  left: print.left + print.width,
                   top: 0,
                   width: bladeThickness,
                   height: box.height,
@@ -77,7 +79,7 @@ export function BorderPreview({
                 className="absolute bg-rose-500"
                 style={{
                   left: 0,
-                  top: print.top,
+                  top: print.top - bladeThickness,
                   width: box.width,
                   height: bladeThickness,
                 }}
@@ -86,7 +88,7 @@ export function BorderPreview({
                 className="absolute bg-rose-500"
                 style={{
                   left: 0,
-                  top: print.top + print.height - bladeThickness,
+                  top: print.top + print.height,
                   width: box.width,
                   height: bladeThickness,
                 }}

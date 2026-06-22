@@ -11,18 +11,22 @@ interface PositionSectionProps {
   enableOffset: boolean;
   horizontalOffset: number;
   verticalOffset: number;
+  ignoreMinBorder: boolean;
   onToggleOffset: (value: boolean) => void;
   onHorizontalChange: (value: number) => void;
   onVerticalChange: (value: number) => void;
+  onToggleIgnoreMinBorder: (value: boolean) => void;
 }
 
 export function PositionSection({
   enableOffset,
   horizontalOffset,
   verticalOffset,
+  ignoreMinBorder,
   onToggleOffset,
   onHorizontalChange,
   onVerticalChange,
+  onToggleIgnoreMinBorder,
 }: PositionSectionProps) {
   return (
     <View className="gap-4">
@@ -33,6 +37,12 @@ export function PositionSection({
       />
       {enableOffset && (
         <>
+          {/* Lets offsets push past the minimum border into the print margins. */}
+          <ToggleRow
+            label="Ignore min border"
+            value={ignoreMinBorder}
+            onChange={onToggleIgnoreMinBorder}
+          />
           <SliderRow
             label="Horizontal"
             value={horizontalOffset}

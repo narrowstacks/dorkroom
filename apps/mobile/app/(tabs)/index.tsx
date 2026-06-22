@@ -149,9 +149,11 @@ export default function BorderScreen() {
           enableOffset={calc.enableOffset}
           horizontalOffset={calc.horizontalOffset}
           verticalOffset={calc.verticalOffset}
+          ignoreMinBorder={calc.ignoreMinBorder}
           onToggleOffset={calc.setEnableOffset}
           onHorizontalChange={calc.setHorizontalOffsetSlider}
           onVerticalChange={calc.setVerticalOffsetSlider}
+          onToggleIgnoreMinBorder={calc.setIgnoreMinBorder}
         />
       </BottomSheet>
     </Screen>

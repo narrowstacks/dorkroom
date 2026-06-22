@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { computeBladeReadings } from './blade-readings-layout';
+import {
+  bladeLabelOffset,
+  computeBladeReadings,
+} from './blade-readings-layout';
 
 // Border 25% each side -> print is the middle 50% of a 400x400 box (200x200).
 const largePrint = {
@@ -36,18 +39,22 @@ describe('computeBladeReadings', () => {
   });
 
   it('places labels inside when the print area is large enough', () => {
-    const [left, , top] = computeBladeReadings(largePrint, 400, 400, opts);
+    const [left, , top, bottom] = computeBladeReadings(
+      largePrint,
+      400,
+      400,
+      opts
+    );
     // print spans 100..300 in both axes; centers at 200
     expect(left.isInside).toBe(true);
     expect(left.x).toBe(100); // printLeft
     expect(left.y).toBe(200); // centerY
     expect(left.arrow).toBe('←');
     expect(left.arrowFirst).toBe(true);
-    expect(left.translateX).toBe(0);
-    expect(left.translateY).toBe(-18); // -labelHeight/2
     expect(top.arrow).toBe('↑');
-    expect(top.translateX).toBe(-32); // -labelWidth/2
-    expect(top.translateY).toBe(0);
+    // top and bottom share the same x anchor (print center) so they align
+    expect(top.x).toBe(200);
+    expect(bottom.x).toBe(200);
   });
 
   it('pushes labels outside and flips arrows when the print area is small', () => {
@@ -57,6 +64,45 @@ describe('computeBladeReadings', () => {
     expect(left.x).toBe(180);
     expect(left.arrow).toBe('→');
     expect(left.arrowFirst).toBe(false);
-    expect(left.translateX).toBe(-64); // -labelWidth
+  });
+});
+
+describe('bladeLabelOffset', () => {
+  // Centers each label on its anchor using the label's measured size, so
+  // top/bottom (both anchored at print center x) line up regardless of width.
+  it('offsets inside labels toward the print interior', () => {
+    expect(bladeLabelOffset('left', true, 64, 36)).toEqual({
+      translateX: 0,
+      translateY: -18,
+    });
+    expect(bladeLabelOffset('right', true, 64, 36)).toEqual({
+      translateX: -64,
+      translateY: -18,
+    });
+    expect(bladeLabelOffset('top', true, 64, 36)).toEqual({
+      translateX: -32,
+      translateY: 0,
+    });
+    expect(bladeLabelOffset('bottom', true, 64, 36)).toEqual({
+      translateX: -32,
+      translateY: -36,
+    });
+  });
+
+  it('flips the perpendicular offset for outside labels', () => {
+    expect(bladeLabelOffset('left', false, 64, 36)).toEqual({
+      translateX: -64,
+      translateY: -18,
+    });
+    expect(bladeLabelOffset('top', false, 64, 36)).toEqual({
+      translateX: -32,
+      translateY: -36,
+    });
+  });
+
+  it('centers top/bottom on the anchor using the actual width', () => {
+    // Different widths still center on the same anchor x.
+    expect(bladeLabelOffset('top', true, 40, 30).translateX).toBe(-20);
+    expect(bladeLabelOffset('bottom', true, 80, 30).translateX).toBe(-40);
   });
 });
