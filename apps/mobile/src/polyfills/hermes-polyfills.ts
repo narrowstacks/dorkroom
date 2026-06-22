@@ -13,6 +13,7 @@ const arr = Array.prototype as unknown as {
 
 if (typeof arr.toSorted !== 'function') {
   arr.toSorted = function toSorted<T>(compare?: Comparator<T>): T[] {
+    // eslint-disable-next-line react-doctor/js-tosorted-immutable -- this IS the toSorted polyfill; can't call itself
     return [...(this as T[])].sort(compare);
   };
 }

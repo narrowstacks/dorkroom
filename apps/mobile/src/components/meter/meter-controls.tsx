@@ -4,7 +4,7 @@ import {
   STANDARD_APERTURES,
   STANDARD_SHUTTER_SPEEDS,
 } from '@dorkroom/logic';
-import { Text, View } from 'react-native';
+import { Text } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
 import { OptionRow } from '@/components/option-row';
 import { ResultRow } from '@/components/result-row';

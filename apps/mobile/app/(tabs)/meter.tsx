@@ -12,12 +12,13 @@ import { getCalibrationOffset } from '@/lib/meter-calibration';
 export default function MeterScreen() {
   const [calibrationOffset] = useState(getCalibrationOffset);
   const meter = useCameraMeter(calibrationOffset);
+  const { hasPermission, requestPermission } = meter;
   const solver = useLightMeterSolver(meter.ev);
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    if (!meter.hasPermission) void meter.requestPermission();
-  }, [meter.hasPermission, meter.requestPermission]);
+    if (!hasPermission) void requestPermission();
+  }, [hasPermission, requestPermission]);
 
   if (!meter.hasPermission) {
     return (

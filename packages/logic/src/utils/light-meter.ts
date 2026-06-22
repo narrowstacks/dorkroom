@@ -40,7 +40,7 @@ export const evFromCameraReading = (
 export const smoothEv = (samples: readonly number[]): number => {
   const valid = samples.filter((s) => Number.isFinite(s));
   if (valid.length === 0) return Number.NaN;
-  const sorted = [...valid].sort((a, b) => a - b);
+  const sorted = valid.toSorted((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 === 0
     ? (sorted[mid - 1] + sorted[mid]) / 2
