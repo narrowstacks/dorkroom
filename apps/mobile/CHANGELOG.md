@@ -24,6 +24,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
   summary-row → bottom-sheet layout. Preview geometry, blade-reading
   positioning, and formatting are pure, unit-tested modules; sliders use
   `@react-native-community/slider`.
+- iOS home screen quick actions: long-pressing the app icon now shows shortcuts
+  that jump straight to the Light Meter, Border, Exposure, and Reciprocity pages.
 
 ### Changed
 
