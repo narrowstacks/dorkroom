@@ -41,7 +41,7 @@ export function BorderPreview({
     <View onLayout={onLayout} className="items-center">
       {box.width > 0 && (
         <View
-          className="overflow-hidden rounded-lg bg-neutral-300"
+          className="overflow-hidden rounded-lg bg-neutral-400"
           style={{ width: box.width, height: box.height }}
         >
           <View
