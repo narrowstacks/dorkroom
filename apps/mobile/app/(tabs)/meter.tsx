@@ -15,15 +15,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Camera } from 'react-native-vision-camera';
+import { BlurPanel } from '@/components/meter/blur-panel';
 import { MeterReadout } from '@/components/meter/meter-readout';
 import { MeterStepper } from '@/components/meter/meter-stepper';
-import {
-  type MeteringMode,
-  MeteringModeToggle,
-} from '@/components/meter/metering-mode-toggle';
 import { PermissionFallback } from '@/components/meter/permission-fallback';
-import { PriorityToggle } from '@/components/meter/priority-toggle';
 import { RETICLE_SIZE, Reticle } from '@/components/meter/reticle';
+import { SegmentedPill } from '@/components/meter/segmented-pill';
 import { ValueWheel } from '@/components/meter/value-wheel';
 import { useCameraMeter } from '@/hooks/use-camera-meter';
 import {
@@ -49,6 +46,17 @@ const ISO_OPTIONS = STANDARD_ISOS.map((o) => ({
 
 const CAPTION = 'pr-2 text-xs uppercase tracking-widest text-white/55';
 
+type MeteringMode = 'matrix' | 'spot';
+const MODE_OPTIONS = [
+  { label: 'Matrix', value: 'matrix' as const },
+  { label: 'Spot', value: 'spot' as const },
+];
+// Av = aperture-priority (you set the f-stop), Tv = shutter/time-priority.
+const PRIORITY_OPTIONS = [
+  { label: 'Av', value: 'aperture' as const },
+  { label: 'Tv', value: 'shutter' as const },
+];
+
 export default function MeterScreen() {
   const insets = useSafeAreaInsets();
   const [calibrationOffset, setCalibrationState] =
@@ -65,7 +73,7 @@ export default function MeterScreen() {
   const { hasPermission, requestPermission } = meter;
   const solver = useLightMeterSolver(meter.ev);
   const isFocused = useIsFocused();
-  const [meteringMode, setMeteringMode] = useState<MeteringMode>('center');
+  const [meteringMode, setMeteringMode] = useState<MeteringMode>('matrix');
   const [meterPoint, setMeterPoint] = useState<{ x: number; y: number } | null>(
     null
   );
@@ -84,8 +92,8 @@ export default function MeterScreen() {
     };
   }, []);
 
-  const enterCenter = useCallback(() => {
-    setMeteringMode('center');
+  const enterMatrix = useCallback(() => {
+    setMeteringMode('matrix');
     setMeterPoint(null);
     void meter.unlock();
   }, [meter]);
@@ -101,15 +109,15 @@ export default function MeterScreen() {
 
   const handleModeChange = useCallback(
     (mode: MeteringMode) => {
-      if (mode === 'center') {
-        enterCenter();
+      if (mode === 'matrix') {
+        enterMatrix();
       } else {
         // Spot from the button meters the center of the frame.
         const frame = sizeRef.current;
         enterSpot({ x: (frame?.width ?? 0) / 2, y: (frame?.height ?? 0) / 2 });
       }
     },
-    [enterCenter, enterSpot]
+    [enterMatrix, enterSpot]
   );
 
   if (!meter.hasPermission) {
@@ -153,29 +161,21 @@ export default function MeterScreen() {
         />
       </Pressable>
 
-      {/* Reticle: centered in center-weighted mode, on the tapped point in spot. */}
-      <View
-        pointerEvents="none"
-        style={[
-          styles.reticle,
-          isSpot && meterPoint
-            ? {
-                left: meterPoint.x - RETICLE_SIZE / 2,
-                top: meterPoint.y - RETICLE_SIZE / 2,
-              }
-            : styles.reticleCenter,
-        ]}
-      >
-        <Reticle locked={isSpot} />
-      </View>
-
-      {/* Metering-mode switch, top-center. */}
-      <View
-        pointerEvents="box-none"
-        style={[styles.modeBar, { top: insets.top + 8 }]}
-      >
-        <MeteringModeToggle value={meteringMode} onChange={handleModeChange} />
-      </View>
+      {/* Spot reticle: only shown in spot mode, on the metered point. */}
+      {isSpot && meterPoint ? (
+        <View
+          pointerEvents="none"
+          style={[
+            styles.reticle,
+            {
+              left: meterPoint.x - RETICLE_SIZE / 2,
+              top: meterPoint.y - RETICLE_SIZE / 2,
+            },
+          ]}
+        >
+          <Reticle />
+        </View>
+      ) : null}
 
       {/* Calibration, top-right. */}
       <View
@@ -193,53 +193,69 @@ export default function MeterScreen() {
 
       {/* Results LCD: mid-left, display-only so taps meter the scene. */}
       <View pointerEvents="none" style={styles.readout}>
-        <MeterReadout
-          ev={meter.ev}
-          priority={solver.priority}
-          iso={solver.iso}
-          aperture={solver.aperture}
-          shutterSpeed={solver.shutterSpeed}
-          solution={solver.solution}
-        />
+        <BlurPanel style={styles.readoutPanel}>
+          <MeterReadout
+            ev={meter.ev}
+            priority={solver.priority}
+            iso={solver.iso}
+            aperture={solver.aperture}
+            shutterSpeed={solver.shutterSpeed}
+            solution={solver.solution}
+          />
+        </BlurPanel>
       </View>
 
       {/* Stacked command-dials on the right: ISO above the exposure value. */}
       <View pointerEvents="box-none" style={styles.wheelColumn}>
-        <View style={styles.wheelGroup}>
-          <Text style={[MONO, SHADOW]} className={CAPTION}>
-            ISO
-          </Text>
-          <ValueWheel
-            options={ISO_OPTIONS}
-            value={solver.iso}
-            onChange={solver.setIso}
-            accessibilityLabel="ISO selector"
-            visibleCount={3}
+        <BlurPanel style={styles.wheelPanel}>
+          <View style={styles.wheelGroup}>
+            <Text style={[MONO, SHADOW]} className={CAPTION}>
+              ISO
+            </Text>
+            <ValueWheel
+              options={ISO_OPTIONS}
+              value={solver.iso}
+              onChange={solver.setIso}
+              accessibilityLabel="ISO selector"
+              visibleCount={3}
+            />
+          </View>
+          <View style={styles.wheelGroup}>
+            <Text style={[MONO, SHADOW]} className={CAPTION}>
+              {isAperture ? 'f-stop' : 'shutter'}
+            </Text>
+            <ValueWheel
+              key={solver.priority}
+              options={wheelOptions}
+              value={wheelValue}
+              onChange={onWheelChange}
+              accessibilityLabel={
+                isAperture ? 'Aperture selector' : 'Shutter speed selector'
+              }
+              visibleCount={5}
+            />
+          </View>
+          {/* Priority toggle at the bottom of the right sidebar. */}
+          <SegmentedPill
+            options={PRIORITY_OPTIONS}
+            value={solver.priority}
+            onChange={solver.setPriority}
+            accessibilityLabel="Aperture or shutter priority"
           />
-        </View>
-        <View style={styles.wheelGroup}>
-          <Text style={[MONO, SHADOW]} className={CAPTION}>
-            {isAperture ? 'f-stop' : 'shutter'}
-          </Text>
-          <ValueWheel
-            key={solver.priority}
-            options={wheelOptions}
-            value={wheelValue}
-            onChange={onWheelChange}
-            accessibilityLabel={
-              isAperture ? 'Aperture selector' : 'Shutter speed selector'
-            }
-            visibleCount={5}
-          />
-        </View>
+        </BlurPanel>
       </View>
 
-      {/* Priority toggle, lifted clear of the tab bar. */}
+      {/* Center / spot metering switch, bottom-center, clear of the tab bar. */}
       <View
         pointerEvents="box-none"
         style={[styles.bottom, { bottom: insets.bottom + TAB_BAR_CLEARANCE }]}
       >
-        <PriorityToggle value={solver.priority} onChange={solver.setPriority} />
+        <SegmentedPill
+          options={MODE_OPTIONS}
+          value={meteringMode}
+          onChange={handleModeChange}
+          accessibilityLabel="Matrix or spot metering"
+        />
       </View>
     </View>
   );
@@ -255,18 +271,6 @@ const styles = StyleSheet.create({
   },
   text: { color: '#f5f5f4' },
   reticle: { position: 'absolute' },
-  reticleCenter: {
-    left: '50%',
-    top: '50%',
-    marginLeft: -RETICLE_SIZE / 2,
-    marginTop: -RETICLE_SIZE / 2,
-  },
-  modeBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
   topStrip: {
     position: 'absolute',
     left: 20,
@@ -275,7 +279,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
-  readout: { position: 'absolute', left: 20, top: '30%' },
+  readout: { position: 'absolute', left: 16, top: '28%' },
+  readoutPanel: { padding: 14 },
   wheelColumn: {
     position: 'absolute',
     right: 8,
@@ -283,8 +288,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'flex-end',
-    gap: 16,
   },
+  wheelPanel: { padding: 10, gap: 14, alignItems: 'center' },
   wheelGroup: { alignItems: 'flex-end', gap: 2 },
   bottom: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
 });

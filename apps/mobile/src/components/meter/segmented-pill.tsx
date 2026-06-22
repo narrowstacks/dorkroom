@@ -1,4 +1,3 @@
-import type { MeterPriority } from '@dorkroom/logic';
 import { Pressable, Text, View } from 'react-native';
 
 const MONO = { fontFamily: 'Menlo' } as const;
@@ -8,22 +7,30 @@ const SHADOW = {
   textShadowRadius: 4,
 } as const;
 
-const OPTIONS: { label: string; value: MeterPriority }[] = [
-  { label: 'Aperture', value: 'aperture' },
-  { label: 'Shutter', value: 'shutter' },
-];
+export interface SegmentedOption<T extends string> {
+  label: string;
+  value: T;
+}
 
-/** Chooses which setting the wheel drives; the meter solves the other. */
-export function PriorityToggle({
+/** A compact two-or-more option pill toggle, drawn over the camera feed. */
+export function SegmentedPill<T extends string>({
+  options,
   value,
   onChange,
+  accessibilityLabel,
 }: {
-  value: MeterPriority;
-  onChange: (value: MeterPriority) => void;
+  options: SegmentedOption<T>[];
+  value: T;
+  onChange: (value: T) => void;
+  accessibilityLabel?: string;
 }) {
   return (
-    <View className="flex-row items-center" style={{ gap: 20 }}>
-      {OPTIONS.map((option) => {
+    <View
+      accessibilityLabel={accessibilityLabel}
+      className="flex-row items-center rounded-full bg-black/35 p-1"
+      style={{ gap: 2 }}
+    >
+      {options.map((option) => {
         const active = option.value === value;
         return (
           <Pressable
@@ -31,14 +38,14 @@ export function PriorityToggle({
             onPress={() => onChange(option.value)}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
-            hitSlop={10}
+            className={`rounded-full px-3 py-1 ${active ? 'bg-rose-600' : ''}`}
           >
             <Text
               style={[MONO, SHADOW]}
               className={
                 active
-                  ? 'text-base font-bold uppercase tracking-widest text-rose-400'
-                  : 'text-base uppercase tracking-widest text-white/50'
+                  ? 'text-sm font-bold uppercase tracking-widest text-white'
+                  : 'text-sm uppercase tracking-widest text-white/60'
               }
             >
               {option.label}

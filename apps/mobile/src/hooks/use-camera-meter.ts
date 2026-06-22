@@ -88,7 +88,8 @@ export const useCameraMeter = (calibrationOffset: number): CameraMeter => {
   const unlock = useCallback(async () => {
     const camera = cameraRef.current;
     try {
-      // Reset to continuous (center-weighted) auto-exposure so EV tracks live.
+      // Reset to continuous whole-frame (matrix/evaluative) auto-exposure so EV
+      // tracks the scene live again.
       await camera?.controller?.resetFocus();
     } catch {
       // resetFocus unsupported; the next tap will re-meter regardless.
