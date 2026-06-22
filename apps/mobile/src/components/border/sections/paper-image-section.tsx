@@ -3,18 +3,17 @@ import { View } from 'react-native';
 import { OptionRow } from '@/components/option-row';
 import { ToggleRow } from '@/components/toggle-row';
 
-const aspectOptions = ASPECT_RATIOS.filter((r) => r.value !== 'custom').map(
-  (r) => ({
-    label: r.value,
-    value: r.value,
-  })
-);
-const paperOptions = PAPER_SIZES.filter((p) => p.value !== 'custom').map(
-  (p) => ({
-    label: p.label,
-    value: p.value,
-  })
-);
+type Option = { label: string; value: string };
+
+// Single pass (filter + map combined) — drops the unsupported 'custom' entry.
+const aspectOptions = ASPECT_RATIOS.reduce<Option[]>((acc, r) => {
+  if (r.value !== 'custom') acc.push({ label: r.value, value: r.value });
+  return acc;
+}, []);
+const paperOptions = PAPER_SIZES.reduce<Option[]>((acc, p) => {
+  if (p.value !== 'custom') acc.push({ label: p.label, value: p.value });
+  return acc;
+}, []);
 
 interface PaperImageSectionProps {
   aspectRatio: string;

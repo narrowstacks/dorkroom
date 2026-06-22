@@ -1,87 +1,159 @@
-import {
-  ASPECT_RATIOS,
-  PAPER_SIZES,
-  useBorderCalculator,
-} from '@dorkroom/logic';
+import { useBorderCalculator } from '@dorkroom/logic';
+import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { BorderPreview } from '@/components/border/border-preview';
+import {
+  formatInches,
+  formatPosition,
+  formatPreviewCaption,
+} from '@/components/border/format';
+import { NavRow } from '@/components/border/nav-row';
+import { BorderSizeSection } from '@/components/border/sections/border-size-section';
+import { PaperImageSection } from '@/components/border/sections/paper-image-section';
+import { PositionSection } from '@/components/border/sections/position-section';
+import { WarningsCard } from '@/components/border/warnings-card';
+import { BottomSheet } from '@/components/bottom-sheet';
 import { GlassCard } from '@/components/glass-card';
-import { OptionRow } from '@/components/option-row';
-import { ResultRow } from '@/components/result-row';
 import { Screen } from '@/components/screen';
 
-const MIN_BORDER_STEPS = [0.25, 0.5, 0.75, 1, 1.5];
+type SheetId = 'paperImage' | 'borderSize' | 'position' | null;
+
+function ToggleButton({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      className={`flex-1 items-center rounded-xl py-3 ${active ? 'bg-rose-600' : 'bg-white/10'}`}
+    >
+      <Text className={active ? 'font-semibold text-white' : 'text-white/70'}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
 
 export default function BorderScreen() {
-  const {
-    aspectRatio,
-    setAspectRatio,
-    paperSize,
-    setPaperSize,
-    minBorder,
-    setMinBorderSlider,
-    calculation,
-  } = useBorderCalculator();
+  const calc = useBorderCalculator();
+  const { calculation } = calc;
+  const [sheet, setSheet] = useState<SheetId>(null);
+  const closeSheet = () => setSheet(null);
 
-  const aspectOptions = ASPECT_RATIOS.map((r) => ({
-    label: r.label,
-    value: r.value,
-  }));
-  const paperOptions = PAPER_SIZES.map((p) => ({
-    label: p.label,
-    value: p.value,
-  }));
+  const paperLabel = `${calculation.paperWidth}×${calculation.paperHeight}`;
+  const warnings = [
+    calc.bladeWarning,
+    calc.minBorderWarning,
+    calc.paperSizeWarning,
+    calc.offsetWarning,
+  ].filter((w): w is string => Boolean(w));
 
   return (
     <Screen>
-      <Text className="text-2xl font-bold text-white">Border</Text>
-
       <GlassCard className="gap-4">
-        <OptionRow
-          label="Aspect ratio"
-          options={aspectOptions}
-          value={aspectRatio}
-          onChange={setAspectRatio}
+        <BorderPreview
+          calculation={calculation}
+          showBlades={calc.showBlades}
+          showBladeReadings={calc.showBladeReadings}
         />
-        <OptionRow
-          label="Paper size"
-          options={paperOptions}
-          value={paperSize}
-          onChange={setPaperSize}
+        <Text className="text-center text-sm text-white/60">
+          {formatPreviewCaption(calculation, paperLabel)}
+        </Text>
+      </GlassCard>
+
+      <WarningsCard warnings={warnings} />
+
+      <GlassCard className="gap-3">
+        <NavRow
+          label="Paper & image size"
+          value={`${calc.aspectRatio} on ${paperLabel}`}
+          onPress={() => setSheet('paperImage')}
         />
-        <View className="gap-2">
-          <Text className="text-sm text-white/60">
-            Min border: {minBorder}"
-          </Text>
-          <View className="flex-row gap-2">
-            {MIN_BORDER_STEPS.map((step) => (
-              <Pressable
-                key={step}
-                onPress={() => setMinBorderSlider(step)}
-                className={`rounded-full px-3 py-2 ${
-                  minBorder === step ? 'bg-rose-600' : 'bg-white/10'
-                }`}
-              >
-                <Text className="text-white/80">{step}"</Text>
-              </Pressable>
-            ))}
-          </View>
+        <NavRow
+          label="Border size"
+          value={formatInches(calc.minBorder)}
+          onPress={() => setSheet('borderSize')}
+        />
+        <NavRow
+          label="Position & offsets"
+          value={formatPosition(
+            calc.enableOffset,
+            calc.horizontalOffset,
+            calc.verticalOffset
+          )}
+          onPress={() => setSheet('position')}
+        />
+        <View className="flex-row gap-3">
+          <ToggleButton
+            label={calc.showBlades ? 'Hide blades' : 'Show blades'}
+            active={calc.showBlades}
+            onPress={() => calc.setShowBlades(!calc.showBlades)}
+          />
+          <ToggleButton
+            label={calc.showBladeReadings ? 'Hide readings' : 'Show readings'}
+            active={calc.showBladeReadings}
+            onPress={() => calc.setShowBladeReadings(!calc.showBladeReadings)}
+          />
         </View>
       </GlassCard>
 
-      <GlassCard>
-        <ResultRow
-          label="Print size"
-          value={`${calculation.printWidth.toFixed(2)}" × ${calculation.printHeight.toFixed(2)}"`}
+      <Pressable
+        onPress={calc.resetToDefaults}
+        accessibilityRole="button"
+        className="items-center rounded-full border border-white/15 py-3"
+      >
+        <Text className="font-semibold text-rose-400">Reset to defaults</Text>
+      </Pressable>
+
+      <BottomSheet
+        visible={sheet === 'paperImage'}
+        title="Paper & image size"
+        onClose={closeSheet}
+      >
+        <PaperImageSection
+          aspectRatio={calc.aspectRatio}
+          paperSize={calc.paperSize}
+          isLandscape={calc.isLandscape}
+          isRatioFlipped={calc.isRatioFlipped}
+          onAspectChange={calc.setAspectRatio}
+          onPaperChange={calc.setPaperSize}
+          onToggleLandscape={calc.setIsLandscape}
+          onToggleFlip={calc.setIsRatioFlipped}
         />
-        <ResultRow
-          label="Left / Right border"
-          value={`${calculation.leftBorder.toFixed(2)}" / ${calculation.rightBorder.toFixed(2)}"`}
+      </BottomSheet>
+
+      <BottomSheet
+        visible={sheet === 'borderSize'}
+        title="Border size"
+        onClose={closeSheet}
+      >
+        <BorderSizeSection
+          minBorder={calc.minBorder}
+          onChange={calc.setMinBorderSlider}
         />
-        <ResultRow
-          label="Top / Bottom border"
-          value={`${calculation.topBorder.toFixed(2)}" / ${calculation.bottomBorder.toFixed(2)}"`}
+      </BottomSheet>
+
+      <BottomSheet
+        visible={sheet === 'position'}
+        title="Position & offsets"
+        onClose={closeSheet}
+      >
+        <PositionSection
+          enableOffset={calc.enableOffset}
+          horizontalOffset={calc.horizontalOffset}
+          verticalOffset={calc.verticalOffset}
+          onToggleOffset={calc.setEnableOffset}
+          onHorizontalChange={calc.setHorizontalOffsetSlider}
+          onVerticalChange={calc.setVerticalOffsetSlider}
         />
-      </GlassCard>
+      </BottomSheet>
     </Screen>
   );
 }
