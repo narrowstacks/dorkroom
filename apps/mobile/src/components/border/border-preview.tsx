@@ -1,6 +1,6 @@
 import type { BorderCalculation } from '@dorkroom/logic';
 import { useState } from 'react';
-import { type LayoutChangeEvent, View } from 'react-native';
+import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { BladeReadings } from './blade-readings';
 import { computePaperBox, computePrintRect } from './geometry';
 
@@ -58,40 +58,48 @@ export function BorderPreview({
             // (they mask the paper down to the image — they don't cover it).
             <>
               <View
-                className="absolute bg-neutral-950"
-                style={{
-                  left: print.left - bladeThickness,
-                  top: 0,
-                  width: bladeThickness,
-                  height: box.height,
-                }}
+                style={[
+                  styles.blade,
+                  {
+                    left: print.left - bladeThickness,
+                    top: 0,
+                    width: bladeThickness,
+                    height: box.height,
+                  },
+                ]}
               />
               <View
-                className="absolute bg-neutral-950"
-                style={{
-                  left: print.left + print.width,
-                  top: 0,
-                  width: bladeThickness,
-                  height: box.height,
-                }}
+                style={[
+                  styles.blade,
+                  {
+                    left: print.left + print.width,
+                    top: 0,
+                    width: bladeThickness,
+                    height: box.height,
+                  },
+                ]}
               />
               <View
-                className="absolute bg-neutral-950"
-                style={{
-                  left: 0,
-                  top: print.top - bladeThickness,
-                  width: box.width,
-                  height: bladeThickness,
-                }}
+                style={[
+                  styles.blade,
+                  {
+                    left: 0,
+                    top: print.top - bladeThickness,
+                    width: box.width,
+                    height: bladeThickness,
+                  },
+                ]}
               />
               <View
-                className="absolute bg-neutral-950"
-                style={{
-                  left: 0,
-                  top: print.top + print.height,
-                  width: box.width,
-                  height: bladeThickness,
-                }}
+                style={[
+                  styles.blade,
+                  {
+                    left: 0,
+                    top: print.top + print.height,
+                    width: box.width,
+                    height: bladeThickness,
+                  },
+                ]}
               />
             </>
           )}
@@ -107,3 +115,14 @@ export function BorderPreview({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  // Matches the web preview's dark-theme blade: a brighter-than-black grey
+  // with a soft drop shadow (--blade-background #1b1b1d, --blade-shadow
+  // 0 2px 4px rgba(0,0,0,0.3)).
+  blade: {
+    position: 'absolute',
+    backgroundColor: '#1b1b1d',
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.3)',
+  },
+});
