@@ -6,6 +6,16 @@ import AppIntents
 struct DorkroomShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
+            intent: OpenLightMeterIntent(),
+            phrases: [
+                "Open the light meter in \(.applicationName)",
+                "Start \(.applicationName) light meter",
+                "Meter the light with \(.applicationName)",
+            ],
+            shortTitle: "Light Meter",
+            systemImageName: "camera.aperture"
+        )
+        AppShortcut(
             intent: OpenPageIntent(page: .meter),
             phrases: [
                 "Open Light Meter in \(.applicationName)",

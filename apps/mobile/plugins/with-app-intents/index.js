@@ -6,6 +6,7 @@ const path = require('node:path');
 // compiled into the app target. Order is irrelevant; all go to the same target.
 const SWIFT_FILES = [
   'OpenPageIntent.swift',
+  'OpenLightMeterIntent.swift',
   'DorkroomShortcuts.swift',
   'CalculateReciprocityIntent.swift',
 ];
