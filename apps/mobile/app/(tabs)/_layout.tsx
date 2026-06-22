@@ -1,6 +1,12 @@
+import { useQuickActionRouting } from 'expo-quick-actions/router';
 import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 
 export default function TabsLayout() {
+  // Route home-screen quick action taps to the action's `params.href`. The
+  // library requires this in a sub-layout (not the root layout) so the target
+  // navigator is mounted before the cold-launch action navigates.
+  useQuickActionRouting();
+
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
