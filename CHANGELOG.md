@@ -8,6 +8,14 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Added
 
+- `@dorkroom/mobile`: full native iOS border calculator screen — a visual
+  print/border preview (light-grey paper, dark-grey image area, easel blades
+  with the web-matched `#1b1b1d` color and drop shadow, and blade-reading
+  labels) plus controls for aspect ratio, paper size, minimum border,
+  landscape/ratio-flip, H/V offsets (with an "ignore min border" toggle), and
+  blade/reading visibility, via a summary-row → bottom-sheet layout. Preview
+  geometry, blade-reading positioning, and formatting are pure, unit-tested
+  modules; sliders use `@react-native-community/slider`.
 - `@dorkroom/mobile`: iOS app scaffold (Expo Router, NativeWind v4, iOS 26
   Liquid Glass) with native border, exposure, reciprocity, and resize
   calculators reusing `@dorkroom/logic` and `@dorkroom/api`.
