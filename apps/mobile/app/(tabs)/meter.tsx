@@ -119,7 +119,10 @@ export default function MeterScreen() {
         enterMatrix();
       } else {
         const frame = sizeRef.current;
-        enterSpot({ x: (frame?.width ?? 0) / 2, y: (frame?.height ?? 0) / 2 });
+        // Wait until we know the frame size; otherwise spot-metering would
+        // target the top-left corner (0,0) instead of the center.
+        if (!frame) return;
+        enterSpot({ x: frame.width / 2, y: frame.height / 2 });
       }
     },
     [enterMatrix, enterSpot]

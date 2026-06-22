@@ -38,20 +38,28 @@ export const useCameraMeter = (calibrationOffset: number): CameraMeter => {
   const { hasPermission, requestPermission } = useCameraPermission();
   const device = useCameraDevice('back');
   const cameraRef = useRef<CameraRef | null>(null);
+  // Raw (uncalibrated) EV samples; the offset is applied at display time so a
+  // calibration change takes effect immediately without mixing samples that were
+  // computed under the old offset.
   const samplesRef = useRef<number[]>([]);
+  const offsetRef = useRef(calibrationOffset);
   const initializedRef = useRef(false);
   const [ev, setEv] = useState<number | null>(null);
 
-  const readEv = useCallback((): number => {
+  useEffect(() => {
+    offsetRef.current = calibrationOffset;
+  }, [calibrationOffset]);
+
+  const readRawEv = useCallback((): number => {
     const controller = cameraRef.current?.controller;
     if (controller == null) return Number.NaN;
     return evFromCameraReading(
       controller.exposureDuration,
       controller.iso,
       DEFAULT_METER_APERTURE,
-      calibrationOffset
+      0
     );
-  }, [calibrationOffset]);
+  }, []);
 
   const onInitialized = useCallback(() => {
     initializedRef.current = true;
@@ -60,15 +68,14 @@ export const useCameraMeter = (calibrationOffset: number): CameraMeter => {
   useEffect(() => {
     const id = setInterval(() => {
       if (!initializedRef.current) return;
-      const sample = readEv();
       const buffer = samplesRef.current;
-      buffer.push(sample);
+      buffer.push(readRawEv());
       if (buffer.length > METER_EV_SAMPLE_WINDOW) buffer.shift();
       const smoothed = smoothEv(buffer);
-      setEv(Number.isFinite(smoothed) ? smoothed : null);
+      setEv(Number.isFinite(smoothed) ? smoothed + offsetRef.current : null);
     }, POLL_MS);
     return () => clearInterval(id);
-  }, [readEv]);
+  }, [readRawEv]);
 
   const meterAtPoint = useCallback(async (point: { x: number; y: number }) => {
     const camera = cameraRef.current;

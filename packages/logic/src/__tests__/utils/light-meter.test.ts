@@ -34,6 +34,14 @@ describe('evFromCameraReading', () => {
       evFromCameraReading(1 / 60, Number.POSITIVE_INFINITY, 1.8, 0)
     ).toBeNaN();
   });
+
+  it('returns NaN for an invalid aperture or calibration offset', () => {
+    expect(evFromCameraReading(1 / 60, 100, 0, 0)).toBeNaN();
+    expect(evFromCameraReading(1 / 60, 100, Number.NaN, 0)).toBeNaN();
+    expect(
+      evFromCameraReading(1 / 60, 100, 1.8, Number.POSITIVE_INFINITY)
+    ).toBeNaN();
+  });
 });
 
 describe('smoothEv', () => {

@@ -27,8 +27,11 @@ export const evFromCameraReading = (
   if (
     !Number.isFinite(exposureDuration) ||
     !Number.isFinite(iso) ||
+    !Number.isFinite(aperture) ||
+    !Number.isFinite(calibrationOffset) ||
     exposureDuration <= 0 ||
-    iso <= 0
+    iso <= 0 ||
+    aperture <= 0
   ) {
     return Number.NaN;
   }
