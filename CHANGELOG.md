@@ -1,23 +1,9 @@
 # Changelog
 
-All notable changes to Dorkroom.art are documented here.
+All notable changes to the Dorkroom.art **web app** are documented here.
+The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
-
-## [2026.06.21]
-
-### Added
-
-- `@dorkroom/mobile`: iOS app scaffold (Expo Router, NativeWind v4, iOS 26
-  Liquid Glass) with native border, exposure, reciprocity, and resize
-  calculators reusing `@dorkroom/logic` and `@dorkroom/api`.
-- `@dorkroom/mobile`: local EAS build pipeline (`eas build --local`) that builds
-  and installs a standalone iOS app on-device. Uses an App Store Connect API key
-  for Apple auth (no 2FA), `react-native-nitro-modules` (MMKV 3.x peer), a Metro
-  resolver that bundles `@dorkroom/*` from source with a single pinned React, a
-  Hermes `Array.prototype.toSorted` polyfill, and an install hook that keeps
-  NativeWind v4 on Tailwind v3 alongside the web app's Tailwind v4. See
-  `apps/mobile/README.md`.
 
 ## [2026.06.13]
 
