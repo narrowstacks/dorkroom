@@ -17,38 +17,81 @@ interface MeterReadoutProps {
   ev: number | null;
   isLocked: boolean;
   priority: MeterPriority;
+  iso: number;
   aperture: number;
   shutterSpeed: number;
   solution: LightMeterSolution;
 }
 
+/** One exposure setting on its own fixed line; the calculated one is emphasized. */
+function SettingRow({
+  label,
+  value,
+  calculated,
+}: {
+  label: string;
+  value: string;
+  calculated: boolean;
+}) {
+  return (
+    <View className="flex-row items-baseline" style={{ gap: 10 }}>
+      <Text
+        style={[MONO, SHADOW]}
+        className="w-14 text-xs uppercase tracking-widest text-white/55"
+      >
+        {label}
+      </Text>
+      <Text
+        style={[MONO, SHADOW]}
+        className={
+          calculated
+            ? 'text-2xl font-bold text-rose-300'
+            : 'text-2xl font-normal text-white'
+        }
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
+
 /**
- * The metered result, drawn straight on the feed (no card): the scene EV as an
- * instrument-style readout, then the locked setting and the value it solves to.
+ * The metered result, drawn on the feed (no card): the scene EV, then each
+ * exposure setting on a fixed line. The setting the meter calculates (shutter in
+ * aperture-priority, aperture in shutter-priority) is bolded and accented.
  */
 export function MeterReadout({
   ev,
   isLocked,
   priority,
+  iso,
   aperture,
   shutterSpeed,
   solution,
 }: MeterReadoutProps) {
-  const lockedLabel =
-    priority === 'aperture'
-      ? formatAperture(aperture)
-      : formatShutterSpeed(shutterSpeed);
-  const solvedLabel = solution.isValid ? solution.solvedLabel : '—';
+  const apertureCalculated = priority === 'shutter';
+  const shutterCalculated = priority === 'aperture';
+
+  const apertureLabel = apertureCalculated
+    ? solution.isValid
+      ? solution.solvedLabel
+      : '—'
+    : formatAperture(aperture);
+  const shutterLabel = shutterCalculated
+    ? solution.isValid
+      ? solution.solvedLabel
+      : '—'
+    : formatShutterSpeed(shutterSpeed);
   const evLabel = ev === null ? '——' : ev.toFixed(1);
 
   return (
-    <View style={{ gap: 4 }}>
+    <View style={{ gap: 6 }}>
       <View className="flex-row items-center" style={{ gap: 8 }}>
         <Text
           style={[MONO, SHADOW]}
           className="text-sm tracking-widest text-white/70"
         >
-          EV
+          EV {evLabel}
         </Text>
         {isLocked ? (
           <Text style={[MONO, SHADOW]} className="text-xs text-rose-400">
@@ -60,26 +103,17 @@ export function MeterReadout({
           </Text>
         )}
       </View>
-      <Text style={[MONO, SHADOW]} className="text-6xl font-bold text-white">
-        {evLabel}
-      </Text>
-      <View className="flex-row items-end" style={{ gap: 8 }}>
-        <Text
-          style={[MONO, SHADOW]}
-          className="text-2xl font-semibold text-white"
-        >
-          {lockedLabel}
-        </Text>
-        <Text style={[MONO, SHADOW]} className="pb-1 text-lg text-rose-400">
-          →
-        </Text>
-        <Text
-          style={[MONO, SHADOW]}
-          className="text-2xl font-semibold text-white"
-        >
-          {solvedLabel}
-        </Text>
-      </View>
+      <SettingRow
+        label="f"
+        value={apertureLabel}
+        calculated={apertureCalculated}
+      />
+      <SettingRow
+        label="sec"
+        value={shutterLabel}
+        calculated={shutterCalculated}
+      />
+      <SettingRow label="iso" value={String(iso)} calculated={false} />
       {solution.outOfRange ? (
         <Text style={[MONO, SHADOW]} className="text-xs text-amber-400">
           out of range (1/8000s–30s)

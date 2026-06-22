@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics';
 import { useCallback, useRef } from 'react';
 import {
   type NativeScrollEvent,
@@ -8,10 +9,13 @@ import {
 } from 'react-native';
 
 const ITEM_HEIGHT = 40;
-const VISIBLE = 5; // odd, so one item sits dead-center
-const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE;
-const PAD = (WHEEL_HEIGHT - ITEM_HEIGHT) / 2;
+const WHEEL_WIDTH = 120;
 const MONO = { fontFamily: 'Menlo' } as const;
+const SHADOW = {
+  textShadowColor: 'rgba(0,0,0,0.85)',
+  textShadowOffset: { width: 0, height: 1 },
+  textShadowRadius: 4,
+} as const;
 
 interface WheelOption<T extends string | number> {
   label: string;
@@ -23,36 +27,62 @@ interface ValueWheelProps<T extends string | number> {
   value: T;
   onChange: (value: T) => void;
   accessibilityLabel: string;
+  /** Odd number of rows shown; the center row is the selection. Default 5. */
+  visibleCount?: number;
 }
 
 /**
- * A vertical command-dial: drag up/down to snap the centered tick to a value.
- * Built on a snapping ScrollView so it needs no gesture-handler dependency.
- * Remount it (via a `key`) when the option set changes so it re-centers.
+ * A vertical command-dial: drag up/down to snap the centered tick to a value,
+ * with a haptic tick each time a new row crosses center. Built on a snapping
+ * ScrollView (no gesture-handler dep). Remount via `key` when options change.
  */
 export function ValueWheel<T extends string | number>({
   options,
   value,
   onChange,
   accessibilityLabel,
+  visibleCount = 5,
 }: ValueWheelProps<T>) {
   const scrollRef = useRef<ScrollView>(null);
   const selectedIndex = Math.max(
     0,
     options.findIndex((o) => o.value === value)
   );
+  const lastTickIndex = useRef(selectedIndex);
+
+  const wheelHeight = ITEM_HEIGHT * visibleCount;
+  const pad = (wheelHeight - ITEM_HEIGHT) / 2;
+
+  const indexAt = useCallback(
+    (offsetY: number) =>
+      Math.min(
+        Math.max(Math.round(offsetY / ITEM_HEIGHT), 0),
+        options.length - 1
+      ),
+    [options.length]
+  );
+
+  const handleScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const index = indexAt(e.nativeEvent.contentOffset.y);
+      if (index !== lastTickIndex.current) {
+        lastTickIndex.current = index;
+        void Haptics.selectionAsync();
+      }
+    },
+    [indexAt]
+  );
 
   const commit = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const raw = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
-      const index = Math.min(Math.max(raw, 0), options.length - 1);
-      const next = options[index];
+      const next = options[indexAt(e.nativeEvent.contentOffset.y)];
       if (next && next.value !== value) onChange(next.value);
     },
-    [options, value, onChange]
+    [options, value, onChange, indexAt]
   );
 
   const alignToSelection = useCallback(() => {
+    lastTickIndex.current = selectedIndex;
     scrollRef.current?.scrollTo({
       y: selectedIndex * ITEM_HEIGHT,
       animated: false,
@@ -62,21 +92,21 @@ export function ValueWheel<T extends string | number>({
   return (
     <View
       accessibilityLabel={accessibilityLabel}
-      style={{ height: WHEEL_HEIGHT, width: 104 }}
+      style={{ height: wheelHeight, width: WHEEL_WIDTH }}
     >
       {/* Fixed center selection band + caret pointing at the live feed. */}
       <View
         pointerEvents="none"
         style={{
           position: 'absolute',
-          top: PAD,
+          top: pad,
           height: ITEM_HEIGHT,
           left: 0,
           right: 0,
         }}
         className="flex-row items-center"
       >
-        <Text style={MONO} className="pr-1 text-base text-rose-500">
+        <Text style={[MONO, SHADOW]} className="pr-1 text-base text-rose-500">
           ▶
         </Text>
         <View className="h-9 flex-1 rounded-md border border-rose-500/70 bg-rose-500/15" />
@@ -86,12 +116,14 @@ export function ValueWheel<T extends string | number>({
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_HEIGHT}
         decelerationRate="fast"
+        scrollEventThrottle={16}
         onLayout={alignToSelection}
+        onScroll={handleScroll}
         onMomentumScrollEnd={commit}
         onScrollEndDrag={commit}
-        contentContainerStyle={{ paddingVertical: PAD }}
+        contentContainerStyle={{ paddingVertical: pad }}
       >
-        {/* eslint-disable-next-line react-doctor/rn-no-scrollview-mapped-list -- bounded static value set (≤19 standard f-stops/shutter speeds); snap-to-center needs all rows laid out contiguously, and virtualization would break the centering math with no perf benefit at this size */}
+        {/* eslint-disable-next-line react-doctor/rn-no-scrollview-mapped-list -- bounded static value set (≤19 standard f-stops/shutter speeds/ISOs); snap-to-center needs all rows laid out contiguously, and virtualization would break the centering math with no perf benefit at this size */}
         {options.map((option, i) => {
           const selected = i === selectedIndex;
           return (
@@ -101,7 +133,7 @@ export function ValueWheel<T extends string | number>({
               className="items-center justify-center"
             >
               <Text
-                style={MONO}
+                style={[MONO, SHADOW]}
                 className={
                   selected
                     ? 'text-xl font-bold text-white'

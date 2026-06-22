@@ -23,6 +23,20 @@ import {
 
 // Clearance for the translucent native tab bar so bottom controls stay tappable.
 const TAB_BAR_CLEARANCE = 64;
+const MONO = { fontFamily: 'Menlo' } as const;
+const SHADOW = {
+  textShadowColor: 'rgba(0,0,0,0.85)',
+  textShadowOffset: { width: 0, height: 1 },
+  textShadowRadius: 4,
+} as const;
+
+// ISO wheel shows the bare number; the caption labels it.
+const ISO_OPTIONS = STANDARD_ISOS.map((o) => ({
+  value: o.value,
+  label: String(o.value),
+}));
+
+const CAPTION = 'pr-2 text-xs uppercase tracking-widest text-white/55';
 
 export default function MeterScreen() {
   const insets = useSafeAreaInsets();
@@ -43,19 +57,6 @@ export default function MeterScreen() {
   useEffect(() => {
     if (!hasPermission) void requestPermission();
   }, [hasPermission, requestPermission]);
-
-  const stepIso = useCallback(
-    (direction: number) => {
-      const current = STANDARD_ISOS.findIndex((o) => o.value === solver.iso);
-      const index = Math.min(
-        Math.max(current + direction, 0),
-        STANDARD_ISOS.length - 1
-      );
-      const next = STANDARD_ISOS[index];
-      if (next) solver.setIso(next.value);
-    },
-    [solver]
-  );
 
   if (!meter.hasPermission) {
     return (
@@ -101,18 +102,11 @@ export default function MeterScreen() {
         <Reticle />
       </Pressable>
 
-      {/* Top strip: ISO (left), calibration (right). */}
+      {/* Top strip: calibration (right). */}
       <View
         pointerEvents="box-none"
         style={[styles.topStrip, { top: insets.top + 8 }]}
       >
-        <MeterStepper
-          label={`ISO ${solver.iso}`}
-          onDecrement={() => stepIso(-1)}
-          onIncrement={() => stepIso(1)}
-          decrementLabel="Lower film speed"
-          incrementLabel="Raise film speed"
-        />
         <MeterStepper
           label={calLabel}
           onDecrement={() => handleCalibrationChange(-1 / 3)}
@@ -128,23 +122,42 @@ export default function MeterScreen() {
           ev={meter.ev}
           isLocked={meter.isLocked}
           priority={solver.priority}
+          iso={solver.iso}
           aperture={solver.aperture}
           shutterSpeed={solver.shutterSpeed}
           solution={solver.solution}
         />
       </View>
 
-      {/* Vertical command-dial: right edge, vertically centered. */}
-      <View pointerEvents="box-none" style={styles.wheel}>
-        <ValueWheel
-          key={solver.priority}
-          options={wheelOptions}
-          value={wheelValue}
-          onChange={onWheelChange}
-          accessibilityLabel={
-            isAperture ? 'Aperture selector' : 'Shutter speed selector'
-          }
-        />
+      {/* Stacked command-dials on the right: ISO above the exposure value. */}
+      <View pointerEvents="box-none" style={styles.wheelColumn}>
+        <View style={styles.wheelGroup}>
+          <Text style={[MONO, SHADOW]} className={CAPTION}>
+            ISO
+          </Text>
+          <ValueWheel
+            options={ISO_OPTIONS}
+            value={solver.iso}
+            onChange={solver.setIso}
+            accessibilityLabel="ISO selector"
+            visibleCount={3}
+          />
+        </View>
+        <View style={styles.wheelGroup}>
+          <Text style={[MONO, SHADOW]} className={CAPTION}>
+            {isAperture ? 'f-stop' : 'shutter'}
+          </Text>
+          <ValueWheel
+            key={solver.priority}
+            options={wheelOptions}
+            value={wheelValue}
+            onChange={onWheelChange}
+            accessibilityLabel={
+              isAperture ? 'Aperture selector' : 'Shutter speed selector'
+            }
+            visibleCount={5}
+          />
+        </View>
       </View>
 
       {/* Priority toggle, lifted clear of the tab bar. */}
@@ -172,16 +185,19 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
-  readout: { position: 'absolute', left: 20, top: '34%' },
-  wheel: {
+  readout: { position: 'absolute', left: 20, top: '30%' },
+  wheelColumn: {
     position: 'absolute',
     right: 8,
     top: 0,
     bottom: 0,
     justifyContent: 'center',
+    alignItems: 'flex-end',
+    gap: 16,
   },
+  wheelGroup: { alignItems: 'flex-end', gap: 2 },
   bottom: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
 });
