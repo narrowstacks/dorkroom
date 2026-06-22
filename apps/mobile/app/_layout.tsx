@@ -5,6 +5,7 @@ installLocalStorage();
 
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { useQuickActionRouting } from 'expo-quick-actions/router';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Appearance } from 'react-native';
@@ -17,6 +18,9 @@ import { queryClient } from '@/providers/query-client';
 Appearance.setColorScheme('dark');
 
 export default function RootLayout() {
+  // Route home-screen quick action taps to the action's `params.href`.
+  useQuickActionRouting();
+
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
