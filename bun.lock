@@ -82,7 +82,7 @@
     },
     "apps/mobile": {
       "name": "@dorkroom/mobile",
-      "version": "2026.6.21",
+      "version": "2026.6.22",
       "dependencies": {
         "@dorkroom/api": "workspace:*",
         "@dorkroom/logic": "workspace:*",
@@ -96,7 +96,7 @@
         "expo-dev-client": "~6.0.21",
         "expo-glass-effect": "^0.1.0",
         "expo-haptics": "~15.0.8",
-        "expo-linear-gradient": "~15.0.8",
+        "expo-linear-gradient": "~56.0.4",
         "expo-router": "^6.0.0",
         "expo-status-bar": "^3.0.0",
         "expo-symbols": "~1.0.8",
@@ -1753,7 +1753,7 @@
 
     "expo-keep-awake": ["expo-keep-awake@15.0.8", "", { "peerDependencies": { "expo": "*", "react": "*" } }, "sha512-YK9M1VrnoH1vLJiQzChZgzDvVimVoriibiDIFLbQMpjYBnvyfUeHJcin/Gx1a+XgupNXy92EQJLgI/9ZuXajYQ=="],
 
-    "expo-linear-gradient": ["expo-linear-gradient@15.0.8", "", { "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-V2d8Wjn0VzhPHO+rrSBtcl+Fo+jUUccdlmQ6OoL9/XQB7Qk3d9lYrqKDJyccwDxmQT10JdST3Tmf2K52NLc3kw=="],
+    "expo-linear-gradient": ["expo-linear-gradient@56.0.4", "", { "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-KUp1dNSRtuMyiExhf6FJf5YUtmw2cRaPytl10HQi7isj5Yac38udmD55T2tglNYTZlvgT5+oflpyFoH15hmOcw=="],
 
     "expo-linking": ["expo-linking@8.0.12", "", { "dependencies": { "expo-constants": "~18.0.13", "invariant": "^2.2.4" }, "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-FpXeIpFgZuxihwT9lBo86YD3y6LphBuAhN680MMxm/Y7fmsc57vimn2d3vFu68VI0+Z9w457t494mu2wvlgWTQ=="],
 
