@@ -9,6 +9,13 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Added
 
+- Native light meter screen ("Meter" tab): a full-screen camera preview that reads
+  the scene's exposure value from the device's auto-exposure, with a center reticle
+  and tap-to-spot-meter (locks the reading). The overlay solves camera settings
+  against a chosen film ISO in aperture- or shutter-priority, flags out-of-range
+  shutter speeds, and supports a persisted calibration offset. EV/solver/smoothing
+  math is a pure, unit-tested module in `@dorkroom/logic`; the camera wiring uses
+  `react-native-vision-camera`.
 - Full native iOS border calculator screen — a visual print/border preview
   (light-grey paper, dark-grey image area, easel blades with the web-matched
   `#1b1b1d` color and drop shadow, and blade-reading labels) plus controls for
