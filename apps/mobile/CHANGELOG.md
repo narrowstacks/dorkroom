@@ -5,7 +5,7 @@ Web app changes live in the [root CHANGELOG](../../CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
-## [Unreleased]
+## [2026.06.22]
 
 ### Added
 
