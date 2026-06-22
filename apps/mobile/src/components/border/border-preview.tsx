@@ -41,11 +41,11 @@ export function BorderPreview({
     <View onLayout={onLayout} className="items-center">
       {box.width > 0 && (
         <View
-          className="overflow-hidden rounded-lg bg-white/5"
+          className="overflow-hidden rounded-lg bg-white"
           style={{ width: box.width, height: box.height }}
         >
           <View
-            className="absolute bg-white/90"
+            className="absolute bg-neutral-700"
             style={{
               left: print.left,
               top: print.top,
@@ -58,7 +58,7 @@ export function BorderPreview({
             // (they mask the paper down to the image — they don't cover it).
             <>
               <View
-                className="absolute bg-rose-500"
+                className="absolute bg-neutral-950"
                 style={{
                   left: print.left - bladeThickness,
                   top: 0,
@@ -67,7 +67,7 @@ export function BorderPreview({
                 }}
               />
               <View
-                className="absolute bg-rose-500"
+                className="absolute bg-neutral-950"
                 style={{
                   left: print.left + print.width,
                   top: 0,
@@ -76,7 +76,7 @@ export function BorderPreview({
                 }}
               />
               <View
-                className="absolute bg-rose-500"
+                className="absolute bg-neutral-950"
                 style={{
                   left: 0,
                   top: print.top - bladeThickness,
@@ -85,7 +85,7 @@ export function BorderPreview({
                 }}
               />
               <View
-                className="absolute bg-rose-500"
+                className="absolute bg-neutral-950"
                 style={{
                   left: 0,
                   top: print.top + print.height,
