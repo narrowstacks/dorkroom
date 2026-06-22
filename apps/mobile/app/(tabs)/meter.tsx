@@ -2,10 +2,11 @@ import {
   STANDARD_APERTURES,
   STANDARD_ISOS,
   STANDARD_SHUTTER_SPEEDS,
+  snapToStandardStop,
   useLightMeterSolver,
 } from '@dorkroom/logic';
 import { useIsFocused } from '@react-navigation/native';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   type LayoutChangeEvent,
   Pressable,
@@ -22,11 +23,9 @@ import { PermissionFallback } from '@/components/meter/permission-fallback';
 import { RETICLE_SIZE, Reticle } from '@/components/meter/reticle';
 import { SegmentedPill } from '@/components/meter/segmented-pill';
 import { ValueWheel } from '@/components/meter/value-wheel';
+import { useCalibration } from '@/hooks/use-calibration';
 import { useCameraMeter } from '@/hooks/use-camera-meter';
-import {
-  getCalibrationOffset,
-  setCalibrationOffset,
-} from '@/lib/meter-calibration';
+import { useToast } from '@/hooks/use-toast';
 
 // Clearance for the translucent native tab bar so bottom controls stay tappable.
 const TAB_BAR_CLEARANCE = 64;
@@ -38,43 +37,39 @@ const SHADOW = {
   textShadowRadius: 4,
 } as const;
 
-// ISO wheel shows the bare number; the caption labels it.
-const ISO_OPTIONS = STANDARD_ISOS.map((o) => ({
-  value: o.value,
-  label: String(o.value),
-}));
-
-const CAPTION = 'pr-2 text-xs uppercase tracking-widest text-white/55';
-
 type MeteringMode = 'matrix' | 'spot';
 const MODE_OPTIONS = [
   { label: 'Matrix', value: 'matrix' as const },
   { label: 'Spot', value: 'spot' as const },
 ];
-// Which setting you fix; the meter solves the other.
-const PRIORITY_OPTIONS = [
-  { label: 'Aperture', value: 'aperture' as const },
-  { label: 'Shutter', value: 'shutter' as const },
-];
+
+const ISO_OPTIONS = STANDARD_ISOS.map((o) => ({
+  value: o.value,
+  label: String(o.value),
+}));
+
+type SelectorTarget = 'aperture' | 'shutter' | 'iso';
+interface SelectorConfig {
+  title: string;
+  options: { label: string; value: number }[];
+  value: number;
+  onChange: (value: number) => void;
+}
 
 export default function MeterScreen() {
   const insets = useSafeAreaInsets();
-  const [calibrationOffset, setCalibrationState] =
-    useState(getCalibrationOffset);
-  const handleCalibrationChange = useCallback((delta: number) => {
-    setCalibrationState((prev) => {
-      // Step in tenths from an integer count of steps so it never float-drifts.
-      const next = Math.round((prev + delta) * 10) / 10;
-      setCalibrationOffset(next);
-      return next;
-    });
-  }, []);
+  const { offset: calibrationOffset, adjust: handleCalibrationChange } =
+    useCalibration();
   const meter = useCameraMeter(calibrationOffset);
   const { hasPermission, requestPermission } = meter;
   const solver = useLightMeterSolver(meter.ev);
   const isFocused = useIsFocused();
+  const { toast, showToast } = useToast();
   const [meteringMode, setMeteringMode] = useState<MeteringMode>('matrix');
   const [meterPoint, setMeterPoint] = useState<{ x: number; y: number } | null>(
+    null
+  );
+  const [activeSelector, setActiveSelector] = useState<SelectorTarget | null>(
     null
   );
   // Frame size is only read inside handlers (to spot-meter center), so a ref
@@ -112,13 +107,61 @@ export default function MeterScreen() {
       if (mode === 'matrix') {
         enterMatrix();
       } else {
-        // Spot from the button meters the center of the frame.
         const frame = sizeRef.current;
         enterSpot({ x: (frame?.width ?? 0) / 2, y: (frame?.height ?? 0) / 2 });
       }
     },
     [enterMatrix, enterSpot]
   );
+
+  // Picking an aperture/shutter value also locks it (sets that priority);
+  // ISO is always selectable and never changes priority.
+  const selector = useMemo<SelectorConfig | null>(() => {
+    if (activeSelector === 'iso') {
+      return {
+        title: 'ISO',
+        options: ISO_OPTIONS,
+        value: solver.iso,
+        onChange: solver.setIso,
+      };
+    }
+    if (activeSelector === 'aperture') {
+      const start =
+        solver.priority === 'aperture'
+          ? solver.aperture
+          : snapToStandardStop(solver.aperture, STANDARD_APERTURES, false)
+              .standard.value;
+      return {
+        title: 'Aperture',
+        options: STANDARD_APERTURES,
+        value: start,
+        onChange: (v) => {
+          solver.setAperture(v);
+          solver.setPriority('aperture');
+        },
+      };
+    }
+    if (activeSelector === 'shutter') {
+      const start =
+        solver.priority === 'shutter'
+          ? solver.shutterSpeed
+          : snapToStandardStop(
+              solver.shutterSpeed,
+              STANDARD_SHUTTER_SPEEDS,
+              true
+            ).standard.value;
+      return {
+        title: 'Shutter',
+        options: STANDARD_SHUTTER_SPEEDS,
+        value: start,
+        onChange: (v) => {
+          solver.setShutterSpeed(v);
+          solver.setPriority('shutter');
+        },
+      };
+    }
+    return null;
+  }, [activeSelector, solver]);
 
   if (!meter.hasPermission) {
     return (
@@ -133,24 +176,21 @@ export default function MeterScreen() {
     );
   }
 
-  const isAperture = solver.priority === 'aperture';
   const isSpot = meteringMode === 'spot';
-  const wheelOptions = isAperture
-    ? STANDARD_APERTURES
-    : STANDARD_SHUTTER_SPEEDS;
-  const wheelValue = isAperture ? solver.aperture : solver.shutterSpeed;
-  const onWheelChange = isAperture
-    ? solver.setAperture
-    : solver.setShutterSpeed;
   const calLabel = `CAL ${calibrationOffset > 0 ? '+' : ''}${calibrationOffset.toFixed(1)}`;
 
   return (
     <View style={styles.container} onLayout={onLayout}>
       <Pressable
         style={StyleSheet.absoluteFill}
-        onPress={(e) =>
-          enterSpot({ x: e.nativeEvent.locationX, y: e.nativeEvent.locationY })
-        }
+        onPress={(e) => {
+          // While a selector is open, a background tap dismisses it.
+          if (activeSelector) {
+            setActiveSelector(null);
+            return;
+          }
+          enterSpot({ x: e.nativeEvent.locationX, y: e.nativeEvent.locationY });
+        }}
       >
         <Camera
           ref={meter.cameraRef}
@@ -191,7 +231,21 @@ export default function MeterScreen() {
         />
       </View>
 
-      {/* Bottom deck: results, then a horizontal settings menu. Sides stay clear. */}
+      {/* Hint toast for a plain tap on a value. */}
+      {toast ? (
+        <View
+          pointerEvents="none"
+          style={[styles.toastWrap, { bottom: insets.bottom + 220 }]}
+        >
+          <View className="rounded-full bg-black/75 px-4 py-2">
+            <Text style={[MONO, SHADOW]} className="text-sm text-white">
+              {toast}
+            </Text>
+          </View>
+        </View>
+      ) : null}
+
+      {/* Bottom: selector (when open) or mode toggle, above the results. */}
       <View
         pointerEvents="box-none"
         style={[
@@ -199,6 +253,45 @@ export default function MeterScreen() {
           { bottom: insets.bottom + TAB_BAR_CLEARANCE },
         ]}
       >
+        {selector ? (
+          <BlurPanel style={styles.selectorPanel}>
+            <View style={styles.selectorHeader}>
+              <Text
+                style={[MONO, SHADOW]}
+                className="text-xs uppercase tracking-widest text-white/55"
+              >
+                {selector.title}
+              </Text>
+              <Pressable
+                onPress={() => setActiveSelector(null)}
+                accessibilityRole="button"
+                hitSlop={8}
+              >
+                <Text
+                  style={[MONO, SHADOW]}
+                  className="text-sm font-bold uppercase tracking-widest text-rose-400"
+                >
+                  Done
+                </Text>
+              </Pressable>
+            </View>
+            <ValueWheel
+              options={selector.options}
+              value={selector.value}
+              onChange={selector.onChange}
+              visibleCount={5}
+              width={180}
+              accessibilityLabel={`${selector.title} selector`}
+            />
+          </BlurPanel>
+        ) : (
+          <SegmentedPill
+            options={MODE_OPTIONS}
+            value={meteringMode}
+            onChange={handleModeChange}
+            accessibilityLabel="Matrix or spot metering"
+          />
+        )}
         <BlurPanel style={styles.resultsPanel}>
           <MeterReadout
             ev={meter.ev}
@@ -207,51 +300,10 @@ export default function MeterScreen() {
             aperture={solver.aperture}
             shutterSpeed={solver.shutterSpeed}
             solution={solver.solution}
-          />
-        </BlurPanel>
-        <BlurPanel style={styles.settingsPanel}>
-          <SegmentedPill
-            options={MODE_OPTIONS}
-            value={meteringMode}
-            onChange={handleModeChange}
-            orientation="vertical"
-            accessibilityLabel="Matrix or spot metering"
-          />
-          <View style={styles.wheelGroup}>
-            <Text style={[MONO, SHADOW]} className={CAPTION}>
-              ISO
-            </Text>
-            <ValueWheel
-              options={ISO_OPTIONS}
-              value={solver.iso}
-              onChange={solver.setIso}
-              accessibilityLabel="ISO selector"
-              visibleCount={3}
-              width={88}
-            />
-          </View>
-          <View style={styles.wheelGroup}>
-            <Text style={[MONO, SHADOW]} className={CAPTION}>
-              {isAperture ? 'f-stop' : 'shutter'}
-            </Text>
-            <ValueWheel
-              key={solver.priority}
-              options={wheelOptions}
-              value={wheelValue}
-              onChange={onWheelChange}
-              accessibilityLabel={
-                isAperture ? 'Aperture selector' : 'Shutter speed selector'
-              }
-              visibleCount={3}
-              width={88}
-            />
-          </View>
-          <SegmentedPill
-            options={PRIORITY_OPTIONS}
-            value={solver.priority}
-            onChange={solver.setPriority}
-            orientation="vertical"
-            accessibilityLabel="Aperture or shutter priority"
+            onSelectAperture={() => setActiveSelector('aperture')}
+            onSelectShutter={() => setActiveSelector('shutter')}
+            onSelectIso={() => setActiveSelector('iso')}
+            onHint={() => showToast('Hold to select a value')}
           />
         </BlurPanel>
       </View>
@@ -277,21 +329,30 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
-  wheelGroup: { alignItems: 'center', gap: 2 },
-  settingsPanel: {
-    alignSelf: 'stretch',
-    flexDirection: 'row',
+  toastWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
   },
   bottomStack: {
     position: 'absolute',
     left: 16,
     right: 16,
-    alignItems: 'center',
+    alignItems: 'flex-end',
     gap: 10,
+  },
+  selectorPanel: {
+    alignSelf: 'stretch',
+    padding: 14,
+    alignItems: 'center',
+    gap: 8,
+  },
+  selectorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    alignSelf: 'stretch',
   },
   resultsPanel: {
     alignSelf: 'stretch',

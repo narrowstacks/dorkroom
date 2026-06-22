@@ -4,7 +4,8 @@ import {
   type LightMeterSolution,
   type MeterPriority,
 } from '@dorkroom/logic';
-import { Text, View } from 'react-native';
+import { SymbolView } from 'expo-symbols';
+import { Pressable, Text, View } from 'react-native';
 
 const MONO = { fontFamily: 'Menlo' } as const;
 const SHADOW = {
@@ -20,6 +21,12 @@ interface MeterReadoutProps {
   aperture: number;
   shutterSpeed: number;
   solution: LightMeterSolution;
+  /** Long-press a setting to open its selector. */
+  onSelectAperture: () => void;
+  onSelectShutter: () => void;
+  onSelectIso: () => void;
+  /** Plain tap on a selectable setting (used to hint "hold to pick"). */
+  onHint: () => void;
 }
 
 /** Formats the snap error in stops: "+0.4" over, "−0.3" under, "✓" if exact. */
@@ -33,28 +40,48 @@ function formatStopError(stops: number): { text: string; tone: string } {
   };
 }
 
-/** One exposure setting as a labelled column; the calculated one is emphasized. */
+/**
+ * One exposure setting as a labelled column. Hold a selectable setting to pick a
+ * value (▾ marks it); the locked (priority) setting shows a lock; the calculated
+ * one is yellow. Tapping without holding fires onPress (a hint).
+ */
 function Stat({
   caption,
   value,
   calculated = false,
+  locked = false,
   stopError,
+  onPress,
+  onLongPress,
 }: {
   caption: string;
   value: string;
   calculated?: boolean;
+  locked?: boolean;
   stopError?: number;
+  onPress?: () => void;
+  onLongPress?: () => void;
 }) {
   const error = stopError === undefined ? null : formatStopError(stopError);
-  return (
-    <View className="items-center" style={{ gap: 4 }}>
-      <Text
-        style={[MONO, SHADOW]}
-        className="text-xs uppercase tracking-widest text-white/55"
-      >
-        {caption}
-      </Text>
-      <View className="flex-row items-baseline" style={{ gap: 4 }}>
+  const selectable = onLongPress !== undefined;
+  const body = (
+    <View className="items-center" style={{ gap: 3 }}>
+      <View className="flex-row items-center" style={{ gap: 4 }}>
+        <Text
+          style={[MONO, SHADOW]}
+          className="text-xs uppercase tracking-widest text-white/55"
+        >
+          {caption}
+        </Text>
+        {locked ? (
+          <SymbolView
+            name="lock.fill"
+            size={12}
+            tintColor="rgba(255,255,255,0.75)"
+          />
+        ) : null}
+      </View>
+      <View className="flex-row items-baseline" style={{ gap: 3 }}>
         <Text
           style={[MONO, SHADOW]}
           className={
@@ -65,6 +92,11 @@ function Stat({
         >
           {value}
         </Text>
+        {selectable ? (
+          <Text style={[MONO, SHADOW]} className="text-xs text-white/50">
+            ▾
+          </Text>
+        ) : null}
         {error ? (
           <Text style={[MONO, SHADOW]} className={`text-sm ${error.tone}`}>
             {error.text}
@@ -73,12 +105,25 @@ function Stat({
       </View>
     </View>
   );
+
+  if (!selectable) return body;
+  return (
+    <Pressable
+      onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={250}
+      accessibilityRole="button"
+      hitSlop={8}
+    >
+      {body}
+    </Pressable>
+  );
 }
 
 /**
- * The metered result as a horizontal strip: scene EV plus each exposure setting.
- * The setting the meter calculates (shutter in aperture-priority, aperture in
- * shutter-priority) is bolded and accented, with its snap error in stops.
+ * The metered result strip and the meter's control surface: scene EV (display
+ * only) plus hold-to-pick aperture / shutter / ISO. Holding aperture or shutter
+ * locks it (sets priority); the calculated one is yellow.
  */
 export function MeterReadout({
   ev,
@@ -87,20 +132,24 @@ export function MeterReadout({
   aperture,
   shutterSpeed,
   solution,
+  onSelectAperture,
+  onSelectShutter,
+  onSelectIso,
+  onHint,
 }: MeterReadoutProps) {
-  const apertureCalculated = priority === 'shutter';
-  const shutterCalculated = priority === 'aperture';
+  const apertureLocked = priority === 'aperture';
+  const shutterLocked = priority === 'shutter';
 
-  const apertureLabel = apertureCalculated
-    ? solution.isValid
+  const apertureLabel = apertureLocked
+    ? formatAperture(aperture)
+    : solution.isValid
       ? solution.solvedLabel
-      : '—'
-    : formatAperture(aperture);
-  const shutterLabel = shutterCalculated
-    ? solution.isValid
+      : '—';
+  const shutterLabel = shutterLocked
+    ? formatShutterSpeed(shutterSpeed)
+    : solution.isValid
       ? solution.solvedLabel
-      : '—'
-    : formatShutterSpeed(shutterSpeed);
+      : '—';
   const evLabel = ev === null ? '——' : ev.toFixed(1);
 
   return (
@@ -110,24 +159,35 @@ export function MeterReadout({
         <Stat
           caption="aperture"
           value={apertureLabel}
-          calculated={apertureCalculated}
+          calculated={!apertureLocked}
+          locked={apertureLocked}
           stopError={
-            apertureCalculated && solution.isValid
+            !apertureLocked && solution.isValid
               ? solution.solvedStopError
               : undefined
           }
+          onPress={onHint}
+          onLongPress={onSelectAperture}
         />
         <Stat
           caption="shutter"
           value={shutterLabel}
-          calculated={shutterCalculated}
+          calculated={!shutterLocked}
+          locked={shutterLocked}
           stopError={
-            shutterCalculated && solution.isValid
+            !shutterLocked && solution.isValid
               ? solution.solvedStopError
               : undefined
           }
+          onPress={onHint}
+          onLongPress={onSelectShutter}
         />
-        <Stat caption="ISO" value={String(iso)} />
+        <Stat
+          caption="ISO"
+          value={String(iso)}
+          onPress={onHint}
+          onLongPress={onSelectIso}
+        />
       </View>
       {solution.outOfRange ? (
         <Text
