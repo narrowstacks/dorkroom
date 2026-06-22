@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import {
+  STANDARD_APERTURES,
+  STANDARD_SHUTTER_SPEEDS,
+} from '../../constants/camera-exposure-defaults';
 import { calculateEV } from '../../utils/camera-exposure-calculations';
-import { evFromCameraReading, smoothEv } from '../../utils/light-meter';
+import {
+  evFromCameraReading,
+  smoothEv,
+  snapToStandardStop,
+} from '../../utils/light-meter';
 
 describe('evFromCameraReading', () => {
   it('matches calculateEV plus the calibration offset', () => {
@@ -46,5 +54,44 @@ describe('smoothEv', () => {
   it('returns NaN when there are no finite samples', () => {
     expect(smoothEv([])).toBeNaN();
     expect(smoothEv([Number.NaN])).toBeNaN();
+  });
+});
+
+describe('snapToStandardStop', () => {
+  it('snaps a near-standard shutter to the obvious nearest value', () => {
+    // 1/247s is essentially 1/250s — nearest wins, not 1/125.
+    expect(
+      snapToStandardStop(1 / 247, STANDARD_SHUTTER_SPEEDS, true).label
+    ).toBe('1/250');
+  });
+
+  it('returns an exact standard shutter unchanged', () => {
+    expect(
+      snapToStandardStop(1 / 125, STANDARD_SHUTTER_SPEEDS, true).label
+    ).toBe('1/125');
+  });
+
+  it('rounds a half-stop shutter tie toward more exposure (slower)', () => {
+    // Geometric mean of 1/125 and 1/250 is the exact half-stop midpoint;
+    // the brighter choice is the slower 1/125.
+    const midpoint = 1 / Math.sqrt(125 * 250);
+    expect(
+      snapToStandardStop(midpoint, STANDARD_SHUTTER_SPEEDS, true).label
+    ).toBe('1/125');
+  });
+
+  it('snaps a near-standard aperture to the nearest value', () => {
+    expect(snapToStandardStop(7.8, STANDARD_APERTURES, false).label).toBe(
+      'f/8'
+    );
+  });
+
+  it('rounds a half-stop aperture tie toward more exposure (wider)', () => {
+    // Geometric mean of f/5.6 and f/8 is the half-stop midpoint;
+    // the brighter choice is the wider f/5.6.
+    const midpoint = Math.sqrt(5.6 * 8);
+    expect(snapToStandardStop(midpoint, STANDARD_APERTURES, false).label).toBe(
+      'f/5.6'
+    );
   });
 });

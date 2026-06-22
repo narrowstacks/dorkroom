@@ -3,6 +3,8 @@ import {
   DEFAULT_CAMERA_EXPOSURE_APERTURE,
   DEFAULT_CAMERA_EXPOSURE_ISO,
   DEFAULT_CAMERA_EXPOSURE_SHUTTER_SPEED,
+  STANDARD_APERTURES,
+  STANDARD_SHUTTER_SPEEDS,
 } from '../constants/camera-exposure-defaults';
 import {
   METER_MAX_SHUTTER_SPEED,
@@ -10,12 +12,10 @@ import {
 } from '../constants/light-meter-defaults';
 import type { LightMeterSolution, MeterPriority } from '../types/light-meter';
 import {
-  formatAperture,
-  formatShutterSpeed,
   solveForAperture,
   solveForShutterSpeed,
 } from '../utils/camera-exposure-calculations';
-import { roundToPrecision } from '../utils/precision';
+import { snapToStandardStop } from '../utils/light-meter';
 
 export interface UseLightMeterSolver {
   iso: number;
@@ -58,25 +58,34 @@ export const useLightMeterSolver = (ev: number | null): UseLightMeterSolver => {
 
     if (priority === 'aperture') {
       const solvedShutter = solveForShutterSpeed(ev, aperture, iso);
+      const valid = Number.isFinite(solvedShutter);
       const outOfRange =
         solvedShutter < METER_MIN_SHUTTER_SPEED ||
         solvedShutter > METER_MAX_SHUTTER_SPEED;
       return {
         aperture,
         shutterSpeed: solvedShutter,
-        solvedLabel: formatShutterSpeed(solvedShutter),
+        // A longer shutter time lets in more light, so ties round slower (brighter).
+        solvedLabel: valid
+          ? snapToStandardStop(solvedShutter, STANDARD_SHUTTER_SPEEDS, true)
+              .label
+          : '—',
         outOfRange,
-        isValid: Number.isFinite(solvedShutter),
+        isValid: valid,
       };
     }
 
     const solvedAperture = solveForAperture(ev, shutterSpeed, iso);
+    const valid = Number.isFinite(solvedAperture);
     return {
       aperture: solvedAperture,
       shutterSpeed,
-      solvedLabel: formatAperture(roundToPrecision(solvedAperture, 1)),
+      // A smaller f-number lets in more light, so ties round wider (brighter).
+      solvedLabel: valid
+        ? snapToStandardStop(solvedAperture, STANDARD_APERTURES, false).label
+        : '—',
       outOfRange: false,
-      isValid: Number.isFinite(solvedAperture),
+      isValid: valid,
     };
   }, [ev, priority, aperture, shutterSpeed, iso]);
 
