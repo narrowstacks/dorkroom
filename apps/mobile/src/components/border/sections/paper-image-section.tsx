@@ -5,9 +5,15 @@ import { ToggleRow } from '@/components/toggle-row';
 
 type Option = { label: string; value: string };
 
+// The raw ratio value is a compact pill label (e.g. "3:2"); spell out the one
+// slug value that reads awkwardly.
+const aspectPillLabel = (value: string) =>
+  value === 'even-borders' ? 'Even' : value;
+
 // Single pass (filter + map combined) — drops the unsupported 'custom' entry.
 const aspectOptions = ASPECT_RATIOS.reduce<Option[]>((acc, r) => {
-  if (r.value !== 'custom') acc.push({ label: r.value, value: r.value });
+  if (r.value !== 'custom')
+    acc.push({ label: aspectPillLabel(r.value), value: r.value });
   return acc;
 }, []);
 const paperOptions = PAPER_SIZES.reduce<Option[]>((acc, p) => {
