@@ -47,10 +47,10 @@ function Stat({
 }) {
   const error = stopError === undefined ? null : formatStopError(stopError);
   return (
-    <View className="items-center" style={{ gap: 3 }}>
+    <View className="items-center" style={{ gap: 4 }}>
       <Text
         style={[MONO, SHADOW]}
-        className="text-[10px] uppercase tracking-widest text-white/55"
+        className="text-xs uppercase tracking-widest text-white/55"
       >
         {caption}
       </Text>
@@ -59,14 +59,14 @@ function Stat({
           style={[MONO, SHADOW]}
           className={
             calculated
-              ? 'text-xl font-bold text-rose-300'
-              : 'text-xl font-normal text-white'
+              ? 'text-2xl font-bold text-rose-300'
+              : 'text-2xl font-normal text-white'
           }
         >
           {value}
         </Text>
         {error ? (
-          <Text style={[MONO, SHADOW]} className={`text-xs ${error.tone}`}>
+          <Text style={[MONO, SHADOW]} className={`text-sm ${error.tone}`}>
             {error.text}
           </Text>
         ) : null}

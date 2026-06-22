@@ -191,9 +191,15 @@ export default function MeterScreen() {
         />
       </View>
 
-      {/* Command-dials on the right: ISO, exposure value, then priority. */}
+      {/* Right sidebar: metering mode on top, then dials, then priority. */}
       <View pointerEvents="box-none" style={styles.wheelColumn}>
         <BlurPanel style={styles.wheelPanel}>
+          <SegmentedPill
+            options={MODE_OPTIONS}
+            value={meteringMode}
+            onChange={handleModeChange}
+            accessibilityLabel="Matrix or spot metering"
+          />
           <View style={styles.wheelGroup}>
             <Text style={[MONO, SHADOW]} className={CAPTION}>
               ISO
@@ -232,7 +238,7 @@ export default function MeterScreen() {
         </BlurPanel>
       </View>
 
-      {/* Bottom: metering-mode switch above the results strip, clear of the tabs. */}
+      {/* Results strip along the bottom, clear of the tab bar. */}
       <View
         pointerEvents="box-none"
         style={[
@@ -240,12 +246,6 @@ export default function MeterScreen() {
           { bottom: insets.bottom + TAB_BAR_CLEARANCE },
         ]}
       >
-        <SegmentedPill
-          options={MODE_OPTIONS}
-          value={meteringMode}
-          onChange={handleModeChange}
-          accessibilityLabel="Matrix or spot metering"
-        />
         <BlurPanel style={styles.resultsPanel}>
           <MeterReadout
             ev={meter.ev}
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   },
   resultsPanel: {
     alignSelf: 'stretch',
-    paddingVertical: 10,
+    paddingVertical: 16,
     paddingHorizontal: 16,
   },
 });
