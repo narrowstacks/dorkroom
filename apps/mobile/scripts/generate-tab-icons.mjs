@@ -1,13 +1,21 @@
 // Rasterizes Lucide SVGs into white template PNGs for the native tab bar.
 // Keep ICON_NAMES in sync with src/lib/tools.ts (+ the 'more' tab).
-import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const OUT = join(here, '..', 'assets', 'tab-icons');
-const LUCIDE = join(here, '..', '..', '..', 'node_modules', 'lucide-static', 'icons');
+const LUCIDE = join(
+  here,
+  '..',
+  '..',
+  '..',
+  'node_modules',
+  'lucide-static',
+  'icons'
+);
 
 // id -> lucide kebab name (mirror src/lib/tools.ts + 'more')
 const ICON_NAMES = {

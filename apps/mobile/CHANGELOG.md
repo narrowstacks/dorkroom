@@ -5,6 +5,18 @@ Web app changes live in the [root CHANGELOG](../../CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.06.23]
+
+### Added
+
+- Lucide icons across the navigation — shared with the web app — on the More/Edit rows and the native tab bar (generated PNG assets via `scripts/generate-tab-icons.mjs`).
+
+### Changed
+
+- More page redesigned as inset glass cards, searchable.
+- Tab-bar customization now uses hold-to-drag reordering (replacing up/down buttons).
+- `@dorkroom/mobile` React Doctor score raised to 100/100.
+
 ## [2026.06.22]
 
 ### Added
