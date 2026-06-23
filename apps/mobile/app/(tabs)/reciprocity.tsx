@@ -5,6 +5,7 @@ import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { PresetChipRow } from '@/components/preset-chip-row';
 import { FilmPicker } from '@/components/reciprocity/film-picker';
+import { ReciprocityChart } from '@/components/reciprocity/reciprocity-chart';
 import { ResultCard } from '@/components/result-card';
 import { ResultRow } from '@/components/result-row';
 import { ResultStat } from '@/components/result-stat';
@@ -65,40 +66,50 @@ export default function ReciprocityScreen() {
       </GlassCard>
 
       {calculation ? (
-        <ResultCard accent="amber" className="gap-3">
-          <ResultStat
-            accent="amber"
-            label="Adjusted exposure"
-            value={formatTime(calculation.adjustedTime)}
-            helper={calculation.filmName}
-          />
-          <FormulaRow
-            formula={`${formatTime(calculation.originalTime)} ^ ${calculation.factor.toFixed(
-              2
-            )} = ${formatTime(calculation.adjustedTime)}`}
-          />
-          <View>
-            <ResultRow
-              label="Added exposure"
-              value={`${formatTime(
-                calculation.adjustedTime - calculation.originalTime
-              )} (${calculation.percentageIncrease.toFixed(0)}%)`}
+        <>
+          <ResultCard accent="amber" className="gap-3">
+            <ResultStat
+              accent="amber"
+              label="Adjusted exposure"
+              value={formatTime(calculation.adjustedTime)}
+              helper={calculation.filmName}
             />
-            <ResultRow
-              label="Metered time"
-              value={formatTime(calculation.originalTime)}
+            <FormulaRow
+              formula={`${formatTime(calculation.originalTime)} ^ ${calculation.factor.toFixed(
+                2
+              )} = ${formatTime(calculation.adjustedTime)}`}
             />
-            <ResultRow label="Factor" value={calculation.factor.toFixed(2)} />
-          </View>
-          <ShareButton
-            message={buildReciprocityShare({
-              filmName: calculation.filmName,
-              meteredTime: formatTime(calculation.originalTime),
-              adjustedTime: formatTime(calculation.adjustedTime),
-              factor: calculation.factor,
-            })}
-          />
-        </ResultCard>
+            <View>
+              <ResultRow
+                label="Added exposure"
+                value={`${formatTime(
+                  calculation.adjustedTime - calculation.originalTime
+                )} (${calculation.percentageIncrease.toFixed(0)}%)`}
+              />
+              <ResultRow
+                label="Metered time"
+                value={formatTime(calculation.originalTime)}
+              />
+              <ResultRow label="Factor" value={calculation.factor.toFixed(2)} />
+            </View>
+            <ShareButton
+              message={buildReciprocityShare({
+                filmName: calculation.filmName,
+                meteredTime: formatTime(calculation.originalTime),
+                adjustedTime: formatTime(calculation.adjustedTime),
+                factor: calculation.factor,
+              })}
+            />
+          </ResultCard>
+          <GlassCard>
+            <ReciprocityChart
+              originalTime={calculation.originalTime}
+              adjustedTime={calculation.adjustedTime}
+              factor={calculation.factor}
+              filmName={calculation.filmName}
+            />
+          </GlassCard>
+        </>
       ) : (
         <GlassCard>
           <Text className="text-white/60">Enter a valid metered time.</Text>
