@@ -16,7 +16,10 @@ export function PresetChipRow<T extends string | number>({
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
       <View className="flex-row gap-2">
         {options.map((option) => {
-          const selected = option.value === value;
+          const selected =
+            typeof option.value === 'number' && typeof value === 'number'
+              ? Math.abs(option.value - value) < 0.01
+              : option.value === value;
           return (
             <Pressable
               key={String(option.value)}

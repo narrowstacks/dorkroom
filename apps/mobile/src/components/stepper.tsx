@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 interface StepperProps {
@@ -22,6 +22,15 @@ export function Stepper({ value, onDecrement, onIncrement }: StepperProps) {
       repeat.current = null;
     }
   };
+
+  // Clear any live timers if the component unmounts mid-hold
+  useEffect(
+    () => () => {
+      if (delay.current) clearTimeout(delay.current);
+      if (repeat.current) clearInterval(repeat.current);
+    },
+    []
+  );
 
   const start = (fn: () => void) => () => {
     Haptics.selectionAsync();
