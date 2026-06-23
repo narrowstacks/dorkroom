@@ -1,11 +1,15 @@
-import { useCallback, useState } from 'react';
-import { getPinnedIds, setPinnedIds } from '@/lib/tab-bar-settings';
+import { useCallback, useMemo } from 'react';
+import { useMMKVString } from 'react-native-mmkv';
+import {
+  KEY,
+  normalizePinnedIds,
+  setPinnedIds,
+  storage,
+} from '@/lib/tab-bar-settings';
 
 export function usePinnedTabs() {
-  const [pinned, setPinnedState] = useState(getPinnedIds);
-  const setPinned = useCallback((ids: string[]) => {
-    setPinnedIds(ids);
-    setPinnedState(getPinnedIds());
-  }, []);
+  const [raw] = useMMKVString(KEY, storage);
+  const pinned = useMemo(() => normalizePinnedIds(raw), [raw]);
+  const setPinned = useCallback((ids: string[]) => setPinnedIds(ids), []);
   return { pinned, setPinned };
 }

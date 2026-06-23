@@ -14,9 +14,15 @@ vi.mock('react-native-mmkv', () => ({
       store.delete(k);
     }
   },
+  useMMKVString: (key: string) => [store.get(key), vi.fn()],
 }));
 
-import { getPinnedIds, MAX_PINNED, setPinnedIds } from './tab-bar-settings';
+import {
+  getPinnedIds,
+  MAX_PINNED,
+  normalizePinnedIds,
+  setPinnedIds,
+} from './tab-bar-settings';
 import { DEFAULT_PINNED_IDS } from './tools';
 
 describe('tab-bar-settings', () => {
@@ -41,5 +47,40 @@ describe('tab-bar-settings', () => {
   it('falls back to defaults when the saved set is empty', () => {
     setPinnedIds([]);
     expect(getPinnedIds()).toEqual([...DEFAULT_PINNED_IDS]);
+  });
+});
+
+describe('normalizePinnedIds', () => {
+  it('returns defaults when value is undefined', () => {
+    expect(normalizePinnedIds(undefined)).toEqual([...DEFAULT_PINNED_IDS]);
+  });
+
+  it('returns valid ids from a well-formed JSON array', () => {
+    const ids = ['border', 'resize'];
+    expect(normalizePinnedIds(JSON.stringify(ids))).toEqual(ids);
+  });
+
+  it('returns defaults when value is malformed JSON', () => {
+    expect(normalizePinnedIds('not json')).toEqual([...DEFAULT_PINNED_IDS]);
+  });
+
+  it('drops unknown ids from a mixed array', () => {
+    const raw = JSON.stringify(['border', 'unknown-tool', 'resize']);
+    const result = normalizePinnedIds(raw);
+    expect(result).toContain('border');
+    expect(result).toContain('resize');
+    expect(result).not.toContain('unknown-tool');
+  });
+
+  it('caps results at MAX_PINNED when more than 4 valid ids are provided', () => {
+    const raw = JSON.stringify([
+      'border',
+      'resize',
+      'meter',
+      'exposure',
+      'reciprocity',
+    ]);
+    const result = normalizePinnedIds(raw);
+    expect(result.length).toBeLessThanOrEqual(MAX_PINNED);
   });
 });

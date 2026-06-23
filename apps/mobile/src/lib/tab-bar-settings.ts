@@ -1,13 +1,14 @@
 import { MMKV } from 'react-native-mmkv';
 import { DEFAULT_PINNED_IDS, getTool } from './tools';
 
-const storage = new MMKV({ id: 'dorkroom-tab-bar' });
-const KEY = 'pinnedToolIds';
+export const storage = new MMKV({ id: 'dorkroom-tab-bar' });
+export const KEY = 'pinnedToolIds';
 
 export const MAX_PINNED = 4;
 
-export function getPinnedIds(): string[] {
-  const raw = storage.getString(KEY);
+/** Normalizes a raw stored value into a valid, capped pinned-id list,
+ * falling back to defaults when unset/malformed/empty. */
+export function normalizePinnedIds(raw: string | undefined): string[] {
   if (!raw) return [...DEFAULT_PINNED_IDS];
   let parsed: unknown;
   try {
@@ -22,6 +23,10 @@ export function getPinnedIds(): string[] {
     )
     .slice(0, MAX_PINNED);
   return valid.length > 0 ? valid : [...DEFAULT_PINNED_IDS];
+}
+
+export function getPinnedIds(): string[] {
+  return normalizePinnedIds(storage.getString(KEY));
 }
 
 export function setPinnedIds(ids: string[]): void {
