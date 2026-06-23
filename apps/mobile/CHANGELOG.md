@@ -5,6 +5,18 @@ Web app changes live in the [root CHANGELOG](../../CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.06.23]
+
+### Added
+
+- Lucide icons across the navigation — shared with the web app — on the More/Edit rows and the native tab bar (generated PNG assets via `scripts/generate-tab-icons.mjs`).
+
+### Changed
+
+- More page redesigned as inset glass cards, searchable.
+- Tab-bar customization now uses hold-to-drag reordering (replacing up/down buttons).
+- `@dorkroom/mobile` React Doctor score raised to 100/100.
+
 ## [2026.06.22]
 
 ### Added
@@ -44,6 +56,15 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
   full-screen, drag-to-read chart with axes and grid, closed with an X.
 - Resize: print-size and enlarger-height segmented controls for inch/cm unit
   switching, plus an aspect-ratio preview.
+- Customizable bottom tab bar: pin up to 4 tools; reorder or swap them via a
+  new "Edit Tabs" screen; the selection persists across restarts.
+- New categorized, searchable "More" hub that lists every tool under five
+  headings (Printing, Film, Camera, Reference, System) and is always reachable
+  from the tab bar.
+- New Settings screen with links to Edit Tabs, GitHub, and the newsletter, plus
+  the running app version.
+- Mat Cut, Lens Equivalency, and Camera Exposure added to the More hub as
+  "coming soon" placeholders ahead of their full implementations.
 
 ### Changed
 

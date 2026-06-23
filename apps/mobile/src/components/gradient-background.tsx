@@ -1,3 +1,4 @@
+// eslint-disable-next-line react-doctor/rn-prefer-expo-image -- expo-image is not installed; this grain tile uses resizeMode="repeat" which expo-image does not support
 import { Image, StyleSheet, View } from 'react-native';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import grainTile from '@/assets/grain.png';

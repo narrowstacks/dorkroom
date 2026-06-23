@@ -41,7 +41,8 @@ Path alias: `@/*` → `src/*` (see `tsconfig.json`).
 
 - **expo-router v6** with file-based, **typed routes** (`experiments.typedRoutes`).
   Tabs use `expo-router/unstable-native-tabs` (`NativeTabs`), each `Trigger` with
-  an `<Icon sf="…">` SF Symbol and `<Label>`.
+  a Lucide-generated PNG asset rendered via `<Icon src={...}>` (icons are generated
+  by `scripts/generate-tab-icons.mjs`) and `<Label>`.
 - **Dark only.** Don't add light-mode branches. `app/_layout.tsx` forces
   `Appearance.setColorScheme('dark')`, uses `DarkTheme`, `StatusBar style="light"`,
   and `headerShown: false`. `app.json` sets `userInterfaceStyle: "dark"`.
