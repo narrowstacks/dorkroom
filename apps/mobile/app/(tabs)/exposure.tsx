@@ -1,9 +1,17 @@
 import { useExposureCalculator } from '@dorkroom/logic';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { FormulaRow } from '@/components/formula-row';
 import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
+import { PresetChipRow } from '@/components/preset-chip-row';
+import { ResultCard } from '@/components/result-card';
 import { ResultRow } from '@/components/result-row';
+import { ResultStat } from '@/components/result-stat';
 import { Screen } from '@/components/screen';
+import { SectionLabel } from '@/components/section-label';
+import { ShareButton } from '@/components/share-button';
+import { Stepper } from '@/components/stepper';
+import { buildExposureShare } from '@/lib/share-text';
 
 export default function ExposureScreen() {
   const {
@@ -14,12 +22,14 @@ export default function ExposureScreen() {
     adjustStops,
     calculation,
     formatTime,
+    presets,
   } = useExposureCalculator();
+
+  const stopsValue = calculation?.stopsValue ?? (Number.parseFloat(stops) || 0);
+  const signed = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(2)}`;
 
   return (
     <Screen>
-      <Text className="text-2xl font-bold text-white">Exposure</Text>
-
       <GlassCard className="gap-4">
         <LabeledTextField
           label="Original time (s)"
@@ -27,48 +37,76 @@ export default function ExposureScreen() {
           onChangeText={setOriginalTime}
           keyboardType="decimal-pad"
         />
+        <View className="gap-2">
+          <SectionLabel>Stop adjustment</SectionLabel>
+          <PresetChipRow
+            options={presets.map((p) => ({ label: p.label, value: p.stops }))}
+            value={stopsValue}
+            onSelect={(v) => setStops(String(v))}
+          />
+        </View>
         <LabeledTextField
-          label="Stops"
+          label="Custom stops"
           value={stops}
           onChangeText={setStops}
           keyboardType="default"
         />
-        <View className="flex-row gap-2">
-          <Pressable
-            onPress={() => adjustStops(-1 / 3)}
-            className="flex-1 items-center rounded-xl bg-white/10 py-3"
-          >
-            <Text className="text-white">- ⅓</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => adjustStops(1 / 3)}
-            className="flex-1 items-center rounded-xl bg-white/10 py-3"
-          >
-            <Text className="text-white">+ ⅓</Text>
-          </Pressable>
-        </View>
+        <Stepper
+          value={`${signed(stopsValue)} stops`}
+          onDecrement={() => adjustStops(-1 / 3)}
+          onIncrement={() => adjustStops(1 / 3)}
+        />
       </GlassCard>
 
-      <GlassCard>
-        {calculation ? (
-          <>
+      {calculation ? (
+        <ResultCard accent="blue" className="gap-3">
+          <ResultStat
+            accent="blue"
+            label="New time"
+            value={formatTime(calculation.newTimeValue)}
+            helper={`${signed(calculation.stopsValue)} stops`}
+          />
+          <FormulaRow
+            formula={`${originalTime} × 2^${calculation.stopsValue.toFixed(2)} = ${formatTime(
+              calculation.newTimeValue
+            )}`}
+          />
+          <View>
             <ResultRow
-              label="New time"
-              value={formatTime(calculation.newTimeValue)}
-            />
-            <ResultRow
-              label="Added time"
+              label={
+                calculation.addedTime >= 0
+                  ? 'Added exposure'
+                  : 'Removed exposure'
+              }
               value={formatTime(Math.abs(calculation.addedTime))}
             />
             <ResultRow
               label="Change"
               value={`${calculation.percentageIncrease.toFixed(0)}%`}
             />
-          </>
-        ) : (
+            <ResultRow
+              label="Multiplier"
+              value={`×${(2 ** calculation.stopsValue).toFixed(3)}`}
+            />
+            <ResultRow
+              label="Original time"
+              value={formatTime(calculation.originalTimeValue)}
+            />
+          </View>
+          <ShareButton
+            message={buildExposureShare({
+              originalTime,
+              newTime: formatTime(calculation.newTimeValue),
+              stops: calculation.stopsValue,
+              percentageIncrease: calculation.percentageIncrease,
+            })}
+          />
+        </ResultCard>
+      ) : (
+        <GlassCard>
           <Text className="text-white/60">Enter a valid time and stops.</Text>
-        )}
-      </GlassCard>
+        </GlassCard>
+      )}
     </Screen>
   );
 }
