@@ -72,12 +72,21 @@ export { type UseFilmDatabaseReturn, useFilmDatabase } from './hooks/films';
  */
 export { useBorderCalculator as useLegacyBorderCalculator } from './hooks/use-border-calculator';
 export { useBorderPresets } from './hooks/use-border-presets';
+export {
+  type UseCameraExposureCalculatorReturn,
+  useCameraExposureCalculator,
+} from './hooks/use-camera-exposure-calculator';
 export { useDebounce, useDebouncedCallback } from './hooks/use-debounce';
 export {
   type UseExposureCalculatorReturn,
   useExposureCalculator,
 } from './hooks/use-exposure-calculator';
 export { useFeatureFlags } from './hooks/use-feature-flags';
+export {
+  type LensCalculatorResult,
+  type UseLensCalculatorReturn,
+  useLensCalculator,
+} from './hooks/use-lens-calculator';
 export {
   type UseLightMeterSolver,
   useLightMeterSolver,
@@ -88,6 +97,12 @@ export {
   type LocalStorageFormPersistenceReturn,
   useLocalStorageFormPersistence,
 } from './hooks/use-local-storage-form-persistence';
+export {
+  type MatDimensionRow,
+  type MatGuideBarCut,
+  type UseMatCalculatorReturn,
+  useMatCalculator,
+} from './hooks/use-mat-calculator';
 export { usePresetSharing } from './hooks/use-preset-sharing';
 export {
   formatReciprocityTime,
