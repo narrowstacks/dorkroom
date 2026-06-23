@@ -18,10 +18,11 @@ function ToolRow({ tool }: { tool: Tool }) {
     () => router.push(tool.route as never),
     [tool.route]
   );
+  const leading = useMemo(() => <ToolIcon name={tool.icon} />, [tool.icon]);
   return (
     <ToolListRow
       label={tool.label}
-      leading={<ToolIcon name={tool.icon} />}
+      leading={leading}
       accessory={chevron}
       onPress={handlePress}
     />

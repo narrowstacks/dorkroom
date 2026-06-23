@@ -50,6 +50,7 @@ interface ExpandButtonProps {
 }
 
 /** Reusable expand/collapse button with hover styling */
+// eslint-disable-next-line react-doctor/no-multi-comp -- small presentational helper exported as part of the detail-panel public surface; intentionally co-located with DetailPanel
 export const DetailPanelExpandButton: FC<ExpandButtonProps> = ({
   isExpanded,
   onClick,
@@ -122,6 +123,7 @@ export interface DetailPanelProps {
  *
  * @public
  */
+// eslint-disable-next-line react-doctor/no-multi-comp -- primary component co-located with its small CloseButton/ExpandButton helpers, which are part of the detail-panel public surface
 export const DetailPanel: FC<DetailPanelProps> = ({
   isOpen,
   onClose,
@@ -144,9 +146,14 @@ export const DetailPanel: FC<DetailPanelProps> = ({
   const [dragOffset, setDragOffset] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Reset expanded state when panel closes
+  // Reset expanded state when the panel closes. isExpanded is independent UI
+  // state (also toggled by the expand button and Escape); closing is driven by
+  // the parent-owned isOpen prop, so resetting it here in response to that prop
+  // change is the correct place — there is no local user event to hook into.
   useEffect(() => {
+    // eslint-disable-next-line react-doctor/no-event-handler -- reacts to the parent-owned isOpen prop, not a local user event
     if (!isOpen) {
+      // eslint-disable-next-line react-doctor/no-adjust-state-on-prop-change -- isExpanded is independent state; only reset (not derived) when the panel closes
       setIsExpanded(false);
     }
   }, [isOpen]);
@@ -237,6 +244,9 @@ export const DetailPanel: FC<DetailPanelProps> = ({
   };
 
   // Detach any in-flight drag listeners if the panel unmounts mid-gesture.
+  // The cleanup intentionally reads the *latest* dragCleanupRef.current at
+  // unmount; capturing it into a local would freeze the mount-time value (null).
+  // eslint-disable-next-line react-doctor/exhaustive-deps -- must read the current ref at unmount, not a snapshot
   useEffect(() => {
     return () => dragCleanupRef.current?.();
   }, []);

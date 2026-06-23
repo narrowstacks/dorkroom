@@ -42,6 +42,7 @@ interface ActionIconButtonProps {
   isDarkroom: boolean;
 }
 
+// eslint-disable-next-line react-doctor/only-export-components -- cell-renderer colocated with createTableColumns; the column factory references it directly and extracting fragments a cohesive module
 const ActionIconButton = memo(function ActionIconButton({
   icon: Icon,
   onClick,
@@ -198,6 +199,7 @@ const formatDilution = (row: DevelopmentCombinationView): string => {
  * Temperature cell renderer component - uses hook to get current temperature unit
  * Color coding: yellow (warning) + AlertTriangle for higher temps, blue (info) + Snowflake for lower temps
  */
+// eslint-disable-next-line react-doctor/no-multi-comp, react-doctor/only-export-components -- cell-renderer colocated with createTableColumns; the column factory references it directly and extracting fragments a cohesive module
 function TemperatureCellRenderer({
   cellContext,
 }: {
@@ -239,6 +241,7 @@ function TemperatureCellRenderer({
  * For custom recipes, calculates pushPull from film.isoSpeed and shootingIso
  * to ensure accurate display regardless of the stored pushPull value.
  */
+// eslint-disable-next-line react-doctor/no-multi-comp, react-doctor/only-export-components -- cell-renderer colocated with createTableColumns; the column factory references it directly and extracting fragments a cohesive module
 function IsoCellRenderer({
   cellContext,
 }: {
@@ -291,6 +294,7 @@ function IsoCellRenderer({
  * container so it isn't exposed as an interactive element itself; the child
  * (a real button) remains the focusable control.
  */
+// eslint-disable-next-line react-doctor/no-multi-comp, react-doctor/only-export-components -- cell-renderer colocated with createTableColumns; the column factory references it directly and extracting fragments a cohesive module
 function StopPropagationWrapper({ children }: { children: React.ReactNode }) {
   return (
     <div
@@ -308,6 +312,7 @@ function StopPropagationWrapper({ children }: { children: React.ReactNode }) {
  * Extracted into a component so the handlers passed to the memoized
  * ActionIconButton can be stabilized with useCallback.
  */
+// eslint-disable-next-line react-doctor/no-multi-comp, react-doctor/only-export-components -- cell-renderer colocated with createTableColumns; the column factory references it directly and extracting fragments a cohesive module
 function ActionsCell({
   view,
   context,

@@ -70,6 +70,8 @@ export const DevelopmentResultsTableVirtualized: FC<
     virtualRows.length > 0
       ? totalSize - (virtualRows[virtualRows.length - 1]?.end || 0)
       : 0;
+  const topSpacerStyle = { height: `${paddingTop}px` };
+  const bottomSpacerStyle = { height: `${paddingBottom}px` };
 
   return (
     <div
@@ -91,6 +93,7 @@ export const DevelopmentResultsTableVirtualized: FC<
         >
           <table
             // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role -- genuinely an interactive grid: rows are focusable (tabIndex) and selectable (aria-selected) and column headers are sortable buttons; role="grid" is required for aria-selected on <tr> to be valid
+            // eslint-disable-next-line react-doctor/no-noninteractive-element-to-interactive-role -- genuinely an interactive grid: rows are focusable (tabIndex) and selectable (aria-selected); role="grid" is required for aria-selected on <tr> to be valid
             role="grid"
             className="min-w-full divide-y text-sm"
             style={
@@ -185,11 +188,10 @@ export const DevelopmentResultsTableVirtualized: FC<
               }
             >
               {paddingTop > 0 && (
+                // eslint-disable-next-line react-doctor/no-aria-hidden-on-focusable -- virtualization spacer row: not focusable (no tabIndex); aria-hidden keeps the empty padding out of the AT row count
                 <tr aria-hidden="true">
-                  <td
-                    aria-hidden="true"
-                    style={{ height: `${paddingTop}px` }}
-                  />
+                  {/* eslint-disable-next-line react-doctor/no-aria-hidden-on-focusable -- presentational virtualization spacer cell: not focusable; aria-hidden keeps the empty padding out of the AT tree */}
+                  <td aria-hidden="true" style={topSpacerStyle} />
                 </tr>
               )}
               {virtualRows.length > 0 ? (
@@ -292,11 +294,10 @@ export const DevelopmentResultsTableVirtualized: FC<
                 </tr>
               )}
               {paddingBottom > 0 && (
+                // eslint-disable-next-line react-doctor/no-aria-hidden-on-focusable -- virtualization spacer row: not focusable (no tabIndex); aria-hidden keeps the empty padding out of the AT row count
                 <tr aria-hidden="true">
-                  <td
-                    aria-hidden="true"
-                    style={{ height: `${paddingBottom}px` }}
-                  />
+                  {/* eslint-disable-next-line react-doctor/no-aria-hidden-on-focusable -- presentational virtualization spacer cell: not focusable; aria-hidden keeps the empty padding out of the AT tree */}
+                  <td aria-hidden="true" style={bottomSpacerStyle} />
                 </tr>
               )}
             </tbody>

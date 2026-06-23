@@ -9,7 +9,9 @@ import type { ScrubField } from './meter-readout';
  * (writer) and the overlay wheel (reader). Lives here so the screen needn't
  * import Animated directly. */
 export function useDragOffset() {
-  return useRef(new Animated.Value(0)).current;
+  const ref = useRef<Animated.Value>(null);
+  ref.current ??= new Animated.Value(0);
+  return ref.current;
 }
 
 const MONO = { fontFamily: 'Menlo' } as const;

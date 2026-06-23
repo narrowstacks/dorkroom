@@ -129,15 +129,16 @@ export function SearchableSelect({
     }
   };
 
-  // Scroll focused item into view
+  // Scroll focused item into view. This must stay in an effect rather than the
+  // `focusedIndex` is also set by `openAndFocusSelected` in the same render
+  // that mounts the listbox (it only renders when `isOpen`), so the target
+  // child does not exist in the DOM until after that render commits — the
+  // scroll-into-view must run in an effect, not the keydown handler.
   useEffect(() => {
-    if (focusedIndex >= 0 && listRef.current) {
-      const focusedElement = listRef.current.children[
-        focusedIndex
-      ] as HTMLElement;
-      if (focusedElement) {
-        focusedElement.scrollIntoView({ block: 'start' });
-      }
+    const focusedElement = listRef.current?.children[focusedIndex];
+    // eslint-disable-next-line react-doctor/no-event-handler -- the focused option element only exists after the listbox mounts (post-commit), so scrollIntoView can't run in the keydown handler that sets focusedIndex
+    if (focusedIndex >= 0 && focusedElement instanceof HTMLElement) {
+      focusedElement.scrollIntoView({ block: 'start' });
     }
   }, [focusedIndex]);
 
@@ -217,6 +218,7 @@ export function SearchableSelect({
           <div
             ref={listRef}
             // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox listbox pattern; a native <select>/<datalist> cannot provide the type-to-filter UX
+            // eslint-disable-next-line react-doctor/prefer-tag-over-role -- combobox listbox pattern; <datalist> cannot provide the type-to-filter UX or custom option markup
             role="listbox"
             aria-label={label ?? placeholder}
             className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg border backdrop-blur-sm"
@@ -237,6 +239,7 @@ export function SearchableSelect({
                 <div
                   key={item.value}
                   // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- combobox option pattern; native <option> cannot host custom filtered markup
+                  // eslint-disable-next-line react-doctor/prefer-tag-over-role -- combobox option pattern; native <option> cannot host custom filtered markup
                   role="option"
                   aria-selected={item.value === selectedValue}
                   onClick={() => handleSelectItem(item)}

@@ -17,6 +17,7 @@ import {
 } from '@dorkroom/ui/calculator';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
+import { useMemo } from 'react';
 import { FractionField } from './fraction-field';
 import { MatDiagram } from './mat-diagram';
 
@@ -698,29 +699,34 @@ function ArtworkBestFitCard({
 export default function MatCalculatorPage() {
   const calc = useMatCalculation();
 
+  const results = useMemo(
+    () => (
+      <MatResults
+        fmt={calc.fmt}
+        valid={calc.valid}
+        revealMode={calc.revealMode}
+        ow={calc.ow}
+        oh={calc.oh}
+        bt={calc.bt}
+        bb={calc.bb}
+        bl={calc.bl}
+        br={calc.br}
+        aw={calc.aw}
+        ah={calc.ah}
+        windowW={calc.windowW}
+        windowH={calc.windowH}
+      />
+    ),
+    [calc]
+  );
+
   return (
     <CalculatorLayout
       title="Mat Cut Calculator"
       icon={getRouteIcon('/mat')}
       accentTone="cyan"
       description="Plan single-window mats with independent borders and get exact window openings and cutter guide-bar settings."
-      results={
-        <MatResults
-          fmt={calc.fmt}
-          valid={calc.valid}
-          revealMode={calc.revealMode}
-          ow={calc.ow}
-          oh={calc.oh}
-          bt={calc.bt}
-          bb={calc.bb}
-          bl={calc.bl}
-          br={calc.br}
-          aw={calc.aw}
-          ah={calc.ah}
-          windowW={calc.windowW}
-          windowH={calc.windowH}
-        />
-      }
+      results={results}
       sidebar={
         <MatSidebar
           guideBarCuts={calc.guideBarCuts}

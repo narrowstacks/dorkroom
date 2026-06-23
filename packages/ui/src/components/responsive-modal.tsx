@@ -69,6 +69,16 @@ export interface ResponsiveModalProps {
  * </ResponsiveModal>
  * ```
  */
+// Default max-heights based on mobile size
+const defaultMaxHeights: Record<
+  NonNullable<ResponsiveModalProps['mobileSize']>,
+  string
+> = {
+  sm: '50vh',
+  md: '70vh',
+  lg: '85vh',
+};
+
 export const ResponsiveModal: FC<ResponsiveModalProps> = ({
   isOpen,
   onClose,
@@ -86,16 +96,6 @@ export const ResponsiveModal: FC<ResponsiveModalProps> = ({
   // Use prop if provided, otherwise use hook
   const isMobileHook = useIsMobile();
   const isMobile = isMobileProp ?? isMobileHook;
-
-  // Default max-heights based on mobile size
-  const defaultMaxHeights: Record<
-    NonNullable<ResponsiveModalProps['mobileSize']>,
-    string
-  > = {
-    sm: '50vh',
-    md: '70vh',
-    lg: '85vh',
-  };
 
   const maxHeight = mobileMaxHeight ?? defaultMaxHeights[mobileSize];
 

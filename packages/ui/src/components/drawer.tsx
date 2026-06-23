@@ -1,6 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import { cn } from '../lib/cn';
 
+const sizeClasses = {
+  sm: 'max-h-[40dvh] h-[40dvh]',
+  md: 'max-h-[60dvh] h-[60dvh]',
+  lg: 'max-h-[80dvh] h-[80dvh]',
+};
+
+const positionClasses = {
+  bottom: 'bottom-0 left-0 right-0',
+  top: 'top-0 left-0 right-0',
+  left: 'left-0 top-0 bottom-0',
+  right: 'right-0 top-0 bottom-0',
+};
+
 interface DrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -53,27 +66,15 @@ export function Drawer({
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-doctor/no-adjust-state-on-prop-change, react-doctor/no-derived-state -- the transition state is not derivable from isOpen: it is a timed animation sequence (rAF-delayed slide-in, 300ms slide-out before unmounting) that also locks body scroll
     return isOpen ? runOpenTransition() : runCloseTransition();
   }, [isOpen, runOpenTransition, runCloseTransition]);
-
-  const sizeClasses = {
-    sm: 'max-h-[40dvh] h-[40dvh]',
-    md: 'max-h-[60dvh] h-[60dvh]',
-    lg: 'max-h-[80dvh] h-[80dvh]',
-  };
 
   const transformClasses = {
     bottom: animateOpen ? 'translate-y-0' : 'translate-y-full',
     top: animateOpen ? 'translate-y-0' : '-translate-y-full',
     left: animateOpen ? 'translate-x-0' : '-translate-x-full',
     right: animateOpen ? 'translate-x-0' : 'translate-x-full',
-  };
-
-  const positionClasses = {
-    bottom: 'bottom-0 left-0 right-0',
-    top: 'top-0 left-0 right-0',
-    left: 'left-0 top-0 bottom-0',
-    right: 'right-0 top-0 bottom-0',
   };
 
   // Do not render the overlay container at all when closed
@@ -128,6 +129,7 @@ interface DrawerContentProps {
   style?: React.CSSProperties;
 }
 
+// eslint-disable-next-line react-doctor/no-multi-comp -- compound-component sibling of Drawer; intentionally co-located in the same module
 export function DrawerContent({
   children,
   className,
@@ -145,6 +147,7 @@ interface DrawerBodyProps {
   className?: string;
 }
 
+// eslint-disable-next-line react-doctor/no-multi-comp -- compound-component sibling of Drawer; intentionally co-located in the same module
 export function DrawerBody({ children, className }: DrawerBodyProps) {
   return (
     <div className={cn('flex-1 overflow-y-auto', className)}>{children}</div>

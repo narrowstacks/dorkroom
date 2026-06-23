@@ -23,7 +23,7 @@ bun run build                             # Build all packages
 # Verification (run before considering done)
 bun run test                              # Runs lint, test, build, typecheck
 bun run test:unit "pattern"               # Run only tests matching pattern
-npx react-doctor@0.2.1 --score            # Health score — must stay 100/100 (see below)
+npx react-doctor@latest --score           # Health score — must stay 100/100 (see below)
 
 # Formatting (run after verification passes)
 bun run format
@@ -36,11 +36,11 @@ React Doctor and make sure the score has **not regressed** — the target is
 **100/100 for every project**:
 
 ```bash
-npx react-doctor@0.2.1 --verbose          # pin the version; @latest can add rules and move the goal
+npx react-doctor@latest --verbose         # unpinned; track the latest ruleset
 ```
 
-- It scans **three** projects and prints **three** scores: `@dorkroom/source`
-  (the app), `@dorkroom/logic`, `@dorkroom/ui`. All three must be 100.
+- It scans **four** projects and prints **four** scores: `@dorkroom/source`
+  (the app), `@dorkroom/mobile`, `@dorkroom/logic`, `@dorkroom/ui`. All four must be 100.
 - The app scan resolves `@dorkroom/*` to package source, so the same physical
   file is reported under both `packages/.../src/...` and bare `src/...` — fix it
   once; verify it's gone from both.
@@ -52,6 +52,15 @@ npx react-doctor@0.2.1 --verbose          # pin the version; @latest can add rul
 - React Doctor's checks are separate from the gate: a 100 score does **not**
   mean `bun run test` passes (and the gate's typecheck is a no-op on the
   solution tsconfigs). Always run **both** `bun run test` and React Doctor.
+- Config lives in **`doctor.config.json`** at the repo root. It ignores
+  generated/vendored/non-React trees (`.design-sync`, `.ds-sync`, `ds-bundle`,
+  `supabase/functions`) and the `deslop/unused-*` dead-code rules. Those
+  dead-code rules are disabled because react-doctor's import analysis cannot
+  resolve this repo's `@/` path alias, Vercel `api/` serverless entrypoints,
+  Vitest manual mocks (`__mocks__`), `.mjs` build scripts, or shell-script CLI
+  usage (e.g. `turbo-ignore` in `scripts/should-deploy.sh`, `lucide-static` in
+  `apps/mobile/scripts/generate-tab-icons.mjs`) — so it reports those as
+  "unused" false-positives. Circular-import detection stays on.
 
 ## Documentation
 

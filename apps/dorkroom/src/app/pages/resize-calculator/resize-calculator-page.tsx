@@ -29,6 +29,7 @@ import {
 } from '@dorkroom/ui/forms';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
+import { useMemo } from 'react';
 
 const validateResizeForm = createZodFormValidator(resizeCalculatorSchema);
 
@@ -662,13 +663,15 @@ export default function ResizeCalculatorPage() {
   const { toInches, toDisplay } = useMeasurementConverter();
   const { form, formValues } = useResizeForm();
 
+  const results = useMemo(() => <ResizeResults form={form} />, [form]);
+
   return (
     <CalculatorLayout
       title="Print Resize Calculator"
       icon={getRouteIcon('/resize')}
       accentTone="teal"
       description="Scale a print up or down and get a solid starting exposure without burning through paper."
-      results={<ResizeResults form={form} />}
+      results={results}
       sidebar={
         <InfoSection isEnlargerHeightMode={formValues.isEnlargerHeightMode} />
       }

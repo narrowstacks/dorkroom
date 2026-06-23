@@ -1,6 +1,6 @@
-import type { JSX } from 'react';
+import type { ReactNode } from 'react';
 
-export function LoadingSpinner(): JSX.Element {
+export function LoadingSpinner(): ReactNode {
   return (
     // <output> has an implicit ARIA role of "status", so it announces as a
     // polite live region exactly like role="status" — and the linter's

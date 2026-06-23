@@ -263,6 +263,7 @@ interface OgCardProps {
   iconChildren?: React.JSX.Element[];
 }
 
+// eslint-disable-next-line react-doctor/only-export-components -- Vercel OG serverless function: JSX is rendered server-side to an image, not a Fast Refresh component module
 function OgCard({
   accent,
   category,

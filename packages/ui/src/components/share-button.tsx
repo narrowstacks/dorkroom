@@ -102,7 +102,10 @@ export function ShareButton({
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toast = useOptionalToast();
 
-  // Cleanup timeout on component unmount
+  // Cleanup timeout on component unmount. The cleanup intentionally reads the
+  // *latest* toastTimeoutRef.current at unmount; capturing it into a local would
+  // freeze the mount-time value (null) and leak whatever timer is in flight.
+  // eslint-disable-next-line react-doctor/exhaustive-deps -- must read the current ref at unmount, not a snapshot
   useEffect(() => {
     return () => {
       if (toastTimeoutRef.current) {

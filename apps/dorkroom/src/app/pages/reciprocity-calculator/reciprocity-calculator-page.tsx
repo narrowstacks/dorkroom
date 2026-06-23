@@ -510,6 +510,29 @@ export default function ReciprocityCalculatorPage() {
     </form.Subscribe>
   );
 
+  const results = useMemo(
+    () => (
+      <form.Subscribe
+        selector={(state) =>
+          selectReciprocityCalculation(state.values, filmTypes)
+        }
+      >
+        {(calculation) =>
+          calculation ? (
+            <ReciprocityResults
+              calculation={calculation}
+              showChart={showChart}
+              isWideChart={isWideChart}
+              onToggleChart={() => setShowChart((prev) => !prev)}
+              onExpandChart={() => setIsWideChart(true)}
+            />
+          ) : null
+        }
+      </form.Subscribe>
+    ),
+    [form, filmTypes, showChart, isWideChart]
+  );
+
   return (
     <CalculatorLayout
       title="Reciprocity Failure Calculator"
@@ -523,25 +546,7 @@ export default function ReciprocityCalculatorPage() {
         </>
       }
       sidebar={<ReciprocitySidebar />}
-      results={
-        <form.Subscribe
-          selector={(state) =>
-            selectReciprocityCalculation(state.values, filmTypes)
-          }
-        >
-          {(calculation) =>
-            calculation ? (
-              <ReciprocityResults
-                calculation={calculation}
-                showChart={showChart}
-                isWideChart={isWideChart}
-                onToggleChart={() => setShowChart((prev) => !prev)}
-                onExpandChart={() => setIsWideChart(true)}
-              />
-            ) : null
-          }
-        </form.Subscribe>
-      }
+      results={results}
       footer={wideChartFooter || undefined}
     >
       <ReciprocityInputs

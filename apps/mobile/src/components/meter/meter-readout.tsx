@@ -1,7 +1,8 @@
 import * as Haptics from 'expo-haptics';
 import { SymbolView } from 'expo-symbols';
 import { useEffect, useRef } from 'react';
-// eslint-disable-next-line react-doctor/rn-prefer-reanimated -- type-only import (erased at runtime); the drag-offset handle is written via setValue from a JS-thread PanResponder, so there's no UI-thread animation that reanimated would improve.
+// PanResponder is intentional here: the scrubber deliberately avoids a react-native-gesture-handler dependency, commits the value only on release (no React re-renders during the drag), and writes the live offset to an Animated.Value the overlay wheel binds to for a smooth glide. Migrating to Gesture.Pan() would be an invasive, behavior-changing rewrite of the gesture/animation pipeline for no functional gain. The type-only Animated import is erased at runtime, so there's no UI-thread animation that reanimated would improve.
+// eslint-disable-next-line react-doctor/rn-prefer-reanimated, react-doctor/rn-no-panresponder
 import { type Animated, PanResponder, Text, View } from 'react-native';
 import { SCRUB_ROW_HEIGHT } from './scrub-overlay';
 
@@ -208,17 +209,17 @@ function ValueScrubber({
     };
   });
 
-  const pan = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderTerminationRequest: () => false,
-      onPanResponderGrant: () => controller.current.grant(),
-      onPanResponderMove: (_e, g) => controller.current.move(g),
-      onPanResponderRelease: () => controller.current.end(),
-      onPanResponderTerminate: () => controller.current.end(),
-    })
-  ).current;
+  const panRef = useRef<ReturnType<typeof PanResponder.create>>(null);
+  panRef.current ??= PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderGrant: () => controller.current.grant(),
+    onPanResponderMove: (_e, g) => controller.current.move(g),
+    onPanResponderRelease: () => controller.current.end(),
+    onPanResponderTerminate: () => controller.current.end(),
+  });
+  const pan = panRef.current;
 
   return (
     <View

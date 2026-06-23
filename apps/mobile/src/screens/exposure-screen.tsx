@@ -13,6 +13,8 @@ import { ShareButton } from '@/components/share-button';
 import { Stepper } from '@/components/stepper';
 import { buildExposureShare } from '@/lib/share-text';
 
+const signed = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(2)}`;
+
 export function ExposureScreen() {
   const {
     originalTime,
@@ -26,7 +28,6 @@ export function ExposureScreen() {
   } = useExposureCalculator();
 
   const stopsValue = calculation?.stopsValue ?? (Number.parseFloat(stops) || 0);
-  const signed = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(2)}`;
 
   return (
     <Screen>

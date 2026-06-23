@@ -135,6 +135,7 @@ export interface RecipeContextValue {
  * Context for recipe modals state and actions.
  * Separated to allow independent updates.
  */
+// eslint-disable-next-line react-doctor/only-export-components -- dedicated context module: contexts/hooks/provider co-located by design, not a component file with stray exports
 export const RecipeModalsContext = createContext<
   (RecipeModalsState & RecipeModalsActions) | null
 >(null);
@@ -143,18 +144,21 @@ export const RecipeModalsContext = createContext<
  * Context for recipe data.
  * Separated to allow independent updates.
  */
+// eslint-disable-next-line react-doctor/only-export-components -- dedicated context module: contexts/hooks/provider co-located by design, not a component file with stray exports
 export const RecipeDataContext = createContext<RecipeDataState | null>(null);
 
 /**
  * Context for recipe actions.
  * Actions are stable references that don't change often.
  */
+// eslint-disable-next-line react-doctor/only-export-components -- dedicated context module: contexts/hooks/provider co-located by design, not a component file with stray exports
 export const RecipeActionsContext = createContext<RecipeActions | null>(null);
 
 /**
  * Context for UI state.
  * Contains mobile detection, animations, etc.
  */
+// eslint-disable-next-line react-doctor/only-export-components -- dedicated context module: contexts/hooks/provider co-located by design, not a component file with stray exports
 export const RecipeUIContext = createContext<RecipeUIState | null>(null);
 
 /**
