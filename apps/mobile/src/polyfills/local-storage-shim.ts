@@ -1,11 +1,12 @@
 /**
  * Minimal key-value backend, structurally satisfied by a react-native-mmkv
- * instance (getString / set / delete / getAllKeys).
+ * instance (getString / set / remove / getAllKeys). MMKV 4 renamed the
+ * single-key deleter from `delete` to `remove`.
  */
 export interface KVBackend {
   getString(key: string): string | undefined;
   set(key: string, value: string): void;
-  delete(key: string): void;
+  remove(key: string): void;
   getAllKeys(): string[];
 }
 
@@ -21,7 +22,7 @@ export function createWebStorageShim(backend: KVBackend): Storage {
     },
     clear(): void {
       for (const key of backend.getAllKeys()) {
-        backend.delete(key);
+        backend.remove(key);
       }
     },
     getItem(key: string): string | null {
@@ -31,7 +32,7 @@ export function createWebStorageShim(backend: KVBackend): Storage {
       return backend.getAllKeys()[index] ?? null;
     },
     removeItem(key: string): void {
-      backend.delete(key);
+      backend.remove(key);
     },
     setItem(key: string, value: string): void {
       backend.set(key, String(value));

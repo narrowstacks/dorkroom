@@ -33,30 +33,39 @@
               "id": "meter",
               "title": "Light Meter",
               "icon": "symbol:camera.aperture",
-              "params": { "href": "/meter" }
+              "params": {
+                "href": "/meter"
+              }
             },
             {
               "id": "border",
               "title": "Border",
               "icon": "symbol:square.dashed",
-              "params": { "href": "/" }
+              "params": {
+                "href": "/"
+              }
             },
             {
               "id": "exposure",
               "title": "Exposure",
               "icon": "symbol:plusminus",
-              "params": { "href": "/exposure" }
+              "params": {
+                "href": "/exposure"
+              }
             },
             {
               "id": "reciprocity",
               "title": "Reciprocity",
               "icon": "symbol:timer",
-              "params": { "href": "/reciprocity" }
+              "params": {
+                "href": "/reciprocity"
+              }
             }
           ]
         }
       ],
-      "./plugins/with-app-intents"
+      "./plugins/with-app-intents",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true

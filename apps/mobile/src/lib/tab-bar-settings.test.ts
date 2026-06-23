@@ -3,17 +3,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const store = new Map<string, string>();
 vi.mock('react-native-mmkv', () => ({
-  MMKV: class {
+  createMMKV: () => ({
     getString(k: string) {
       return store.get(k);
-    }
+    },
     set(k: string, v: string) {
       store.set(k, v);
-    }
-    delete(k: string) {
+    },
+    remove(k: string) {
       store.delete(k);
-    }
-  },
+    },
+  }),
   useMMKVString: (key: string) => [store.get(key), vi.fn()],
 }));
 

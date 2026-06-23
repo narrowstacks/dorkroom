@@ -16,6 +16,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - More page redesigned as inset glass cards, searchable.
 - Tab-bar customization now uses hold-to-drag reordering (replacing up/down buttons).
 - `@dorkroom/mobile` React Doctor score raised to 100/100.
+- Upgraded to **Expo SDK 56** (React Native 0.85, React 19.2). Aligned every `expo-*` package and native module to the SDK, and migrated the breaking APIs: `react-native-mmkv` v4 (`new MMKV()` → `createMMKV()`, `delete` → `remove`), the `expo-router/unstable-native-tabs` namespaced `NativeTabs.Trigger.Icon`/`.Label` API, and the expo-router/React Navigation split (focus + theme hooks now import from `expo-router`; dropped the direct `@react-navigation/native` dependency).
 
 ## [2026.06.22]
 

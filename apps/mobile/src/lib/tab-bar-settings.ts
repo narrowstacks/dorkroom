@@ -1,7 +1,7 @@
-import { MMKV } from 'react-native-mmkv';
+import { createMMKV } from 'react-native-mmkv';
 import { DEFAULT_PINNED_IDS, getTool } from './tools';
 
-export const storage = new MMKV({ id: 'dorkroom-tab-bar' });
+export const storage = createMMKV({ id: 'dorkroom-tab-bar' });
 export const KEY = 'pinnedToolIds';
 
 export const MAX_PINNED = 4;

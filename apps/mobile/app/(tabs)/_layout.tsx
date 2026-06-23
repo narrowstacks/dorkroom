@@ -1,5 +1,5 @@
 import { useQuickActionRouting } from 'expo-quick-actions/router';
-import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { usePinnedTabs } from '@/hooks/use-pinned-tabs';
 import { getTool } from '@/lib/tools';
 
@@ -39,14 +39,14 @@ export default function TabsLayout() {
         if (!tool) return null;
         return (
           <NativeTabs.Trigger key={id} name={ROUTE_NAME[id]}>
-            <Icon src={TAB_ICON[id]} />
-            <Label>{tool.label}</Label>
+            <NativeTabs.Trigger.Icon src={TAB_ICON[id]} />
+            <NativeTabs.Trigger.Label>{tool.label}</NativeTabs.Trigger.Label>
           </NativeTabs.Trigger>
         );
       })}
       <NativeTabs.Trigger name="more">
-        <Icon src={MORE_ICON} />
-        <Label>More</Label>
+        <NativeTabs.Trigger.Icon src={MORE_ICON} />
+        <NativeTabs.Trigger.Label>More</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
