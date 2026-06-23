@@ -1,5 +1,5 @@
-import { chromium } from 'playwright';
 import fs from 'node:fs';
+import { chromium } from 'playwright';
 
 const OUT = '/tmp/dorkroom-shots';
 fs.mkdirSync(OUT, { recursive: true });
@@ -132,9 +132,9 @@ for (const theme of ['dark', 'light']) {
     const sampler = await ctx.newPage();
     await sampler.goto('about:blank');
     const sampled = await sampler.evaluate(
-      async ({ b64, items }) => {
+      async ({ b64: pngB64, items: boxes }) => {
         const img = new Image();
-        img.src = 'data:image/png;base64,' + b64;
+        img.src = 'data:image/png;base64,' + pngB64;
         await img.decode();
         const canvas = document.createElement('canvas');
         canvas.width = img.width;
@@ -146,7 +146,7 @@ for (const theme of ['dark', 'light']) {
           y = Math.max(0, Math.min(img.height - 1, Math.round(y)));
           return Array.from(cx.getImageData(x, y, 1, 1).data.slice(0, 3));
         };
-        return items.map((it) => {
+        return boxes.map((it) => {
           const pts = [
             px(it.x - 4, it.y + it.h / 2),
             px(it.x + it.w + 4, it.y + it.h / 2),

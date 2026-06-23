@@ -15,7 +15,12 @@ export const BottomSheet = () => {
   const [open, setOpen] = useState(true);
   return (
     <div style={{ maxWidth: 420 }}>
-      <Drawer isOpen={open} onClose={() => setOpen(false)} size="md" anchor="bottom">
+      <Drawer
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        size="md"
+        anchor="bottom"
+      >
         <DrawerContent>
           <div style={headerStyle}>
             <h2

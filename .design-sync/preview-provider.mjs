@@ -60,9 +60,9 @@ export function DesignSyncPreviewRoot({ children }) {
         React.createElement(
           VolumeProvider,
           null,
-          React.createElement(ToastProvider, null, children),
-        ),
-      ),
-    ),
+          React.createElement(ToastProvider, null, children)
+        )
+      )
+    )
   );
 }
