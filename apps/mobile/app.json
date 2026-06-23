@@ -24,7 +24,39 @@
             "deploymentTarget": "26.0"
           }
         }
-      ]
+      ],
+      [
+        "expo-quick-actions",
+        {
+          "iosActions": [
+            {
+              "id": "meter",
+              "title": "Light Meter",
+              "icon": "symbol:camera.aperture",
+              "params": { "href": "/meter" }
+            },
+            {
+              "id": "border",
+              "title": "Border",
+              "icon": "symbol:square.dashed",
+              "params": { "href": "/" }
+            },
+            {
+              "id": "exposure",
+              "title": "Exposure",
+              "icon": "symbol:plusminus",
+              "params": { "href": "/exposure" }
+            },
+            {
+              "id": "reciprocity",
+              "title": "Reciprocity",
+              "icon": "symbol:timer",
+              "params": { "href": "/reciprocity" }
+            }
+          ]
+        }
+      ],
+      "./plugins/with-app-intents"
     ],
     "experiments": {
       "typedRoutes": true
