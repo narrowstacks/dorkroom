@@ -44,6 +44,15 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
   full-screen, drag-to-read chart with axes and grid, closed with an X.
 - Resize: print-size and enlarger-height segmented controls for inch/cm unit
   switching, plus an aspect-ratio preview.
+- Customizable bottom tab bar: pin up to 4 tools; reorder or swap them via a
+  new "Edit Tabs" screen; the selection persists across restarts.
+- New categorized, searchable "More" hub that lists every tool under five
+  headings (Printing, Film, Camera, Reference, System) and is always reachable
+  from the tab bar.
+- New Settings screen with links to Edit Tabs, GitHub, and the newsletter, plus
+  the running app version.
+- Mat Cut, Lens Equivalency, and Camera Exposure added to the More hub as
+  "coming soon" placeholders ahead of their full implementations.
 
 ### Changed
 
