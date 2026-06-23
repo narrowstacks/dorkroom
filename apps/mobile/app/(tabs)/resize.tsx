@@ -151,7 +151,18 @@ export default function ResizeScreen() {
             <Text className="text-amber-500">Aspect ratios do not match.</Text>
           ) : null}
           <ShareButton
-            message={buildResizeShare({ newTime, stopsDifference })}
+            message={buildResizeShare({
+              title: isEnlargerHeightMode ? 'Enlarger Resize' : 'Print Resize',
+              original: isEnlargerHeightMode
+                ? `${originalHeight} ${unit} column`
+                : `${originalWidth}×${originalLength} ${unit}`,
+              target: isEnlargerHeightMode
+                ? `${newHeight} ${unit} column`
+                : `${newWidth}×${newLength} ${unit}`,
+              originalTime,
+              newTime,
+              stopsDifference,
+            })}
           />
         </ResultCard>
       ) : (

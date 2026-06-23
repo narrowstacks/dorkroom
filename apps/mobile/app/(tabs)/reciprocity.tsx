@@ -97,6 +97,10 @@ export default function ReciprocityScreen() {
                 filmName: calculation.filmName,
                 meteredTime: formatTime(calculation.originalTime),
                 adjustedTime: formatTime(calculation.adjustedTime),
+                addedTime: formatTime(
+                  calculation.adjustedTime - calculation.originalTime
+                ),
+                percentageIncrease: calculation.percentageIncrease,
                 factor: calculation.factor,
               })}
             />

@@ -98,6 +98,9 @@ export default function ExposureScreen() {
               originalTime,
               newTime: formatTime(calculation.newTimeValue),
               stops: calculation.stopsValue,
+              multiplier: 2 ** calculation.stopsValue,
+              addedTime: formatTime(Math.abs(calculation.addedTime)),
+              addedLabel: calculation.addedTime >= 0 ? 'Added' : 'Removed',
               percentageIncrease: calculation.percentageIncrease,
             })}
           />
