@@ -8,7 +8,7 @@ export type ToolCategory =
 export interface Tool {
   id: string;
   label: string;
-  sfSymbol: string;
+  icon: string; // Lucide kebab icon name (e.g. 'crop', 'ruler')
   route: string; // expo-router pathname for the More-stack detail route
   category: ToolCategory;
 }
@@ -17,63 +17,63 @@ export const TOOLS: readonly Tool[] = [
   {
     id: 'border',
     label: 'Border',
-    sfSymbol: 'square.dashed',
+    icon: 'crop',
     route: '/more/border',
     category: 'printing',
   },
   {
     id: 'resize',
     label: 'Resize',
-    sfSymbol: 'aspectratio',
+    icon: 'ruler',
     route: '/more/resize',
     category: 'printing',
   },
   {
     id: 'exposure',
     label: 'Exposure',
-    sfSymbol: 'plusminus',
+    icon: 'gauge',
     route: '/more/exposure',
     category: 'printing',
   },
   {
     id: 'mat',
     label: 'Mat Cut',
-    sfSymbol: 'rectangle.inset.filled',
+    icon: 'frame',
     route: '/more/mat',
     category: 'printing',
   },
   {
     id: 'reciprocity',
     label: 'Reciprocity',
-    sfSymbol: 'timer',
+    icon: 'timer',
     route: '/more/reciprocity',
     category: 'film',
   },
   {
     id: 'lens',
     label: 'Lenses',
-    sfSymbol: 'camera.metering.matrix',
+    icon: 'focus',
     route: '/more/lens',
     category: 'camera',
   },
   {
     id: 'camera-exposure',
     label: 'Camera Exposure',
-    sfSymbol: 'sun.max',
+    icon: 'aperture',
     route: '/more/camera-exposure',
     category: 'camera',
   },
   {
     id: 'meter',
     label: 'Meter',
-    sfSymbol: 'camera.aperture',
+    icon: 'sun-medium',
     route: '/more/meter',
     category: 'camera',
   },
   {
     id: 'settings',
     label: 'Settings',
-    sfSymbol: 'gearshape',
+    icon: 'settings',
     route: '/more/settings',
     category: 'system',
   },

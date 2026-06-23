@@ -1,10 +1,8 @@
 import { useQuickActionRouting } from 'expo-quick-actions/router';
 import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
-import type { SFSymbol } from 'sf-symbols-typescript';
 import { usePinnedTabs } from '@/hooks/use-pinned-tabs';
 import { getTool } from '@/lib/tools';
 
-// Maps a tool id to its (tabs) route name. 'border' is the index route.
 const ROUTE_NAME: Record<string, string> = {
   border: 'index',
   exposure: 'exposure',
@@ -17,6 +15,19 @@ const ROUTE_NAME: Record<string, string> = {
   settings: 'settings',
 };
 
+const TAB_ICON: Record<string, number> = {
+  border: require('../../assets/tab-icons/border.png'),
+  exposure: require('../../assets/tab-icons/exposure.png'),
+  reciprocity: require('../../assets/tab-icons/reciprocity.png'),
+  resize: require('../../assets/tab-icons/resize.png'),
+  meter: require('../../assets/tab-icons/meter.png'),
+  mat: require('../../assets/tab-icons/mat.png'),
+  lens: require('../../assets/tab-icons/lens.png'),
+  'camera-exposure': require('../../assets/tab-icons/camera-exposure.png'),
+  settings: require('../../assets/tab-icons/settings.png'),
+};
+const MORE_ICON: number = require('../../assets/tab-icons/more.png');
+
 export default function TabsLayout() {
   useQuickActionRouting();
   const { pinned } = usePinnedTabs();
@@ -28,13 +39,13 @@ export default function TabsLayout() {
         if (!tool) return null;
         return (
           <NativeTabs.Trigger key={id} name={ROUTE_NAME[id]}>
-            <Icon sf={tool.sfSymbol as SFSymbol} />
+            <Icon src={TAB_ICON[id]} />
             <Label>{tool.label}</Label>
           </NativeTabs.Trigger>
         );
       })}
       <NativeTabs.Trigger name="more">
-        <Icon sf="ellipsis" />
+        <Icon src={MORE_ICON} />
         <Label>More</Label>
       </NativeTabs.Trigger>
     </NativeTabs>

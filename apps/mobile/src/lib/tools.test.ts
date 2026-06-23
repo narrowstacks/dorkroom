@@ -23,4 +23,11 @@ describe('tool registry', () => {
   it('getTool returns undefined for unknown ids', () => {
     expect(getTool('nope')).toBeUndefined();
   });
+
+  it('every tool has a non-empty Lucide icon name', () => {
+    for (const tool of TOOLS) {
+      expect(typeof tool.icon).toBe('string');
+      expect(tool.icon.length).toBeGreaterThan(0);
+    }
+  });
 });
