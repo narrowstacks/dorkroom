@@ -1,33 +1,41 @@
 import { useQuickActionRouting } from 'expo-quick-actions/router';
 import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
+import type { SFSymbol } from 'sf-symbols-typescript';
+import { usePinnedTabs } from '@/hooks/use-pinned-tabs';
+import { getTool } from '@/lib/tools';
+
+// Maps a tool id to its (tabs) route name. 'border' is the index route.
+const ROUTE_NAME: Record<string, string> = {
+  border: 'index',
+  exposure: 'exposure',
+  reciprocity: 'reciprocity',
+  resize: 'resize',
+  meter: 'meter',
+  mat: 'mat',
+  lens: 'lenses',
+  'camera-exposure': 'camera-exposure',
+  settings: 'settings',
+};
 
 export default function TabsLayout() {
-  // Route home-screen quick action taps to the action's `params.href`. The
-  // library requires this in a sub-layout (not the root layout) so the target
-  // navigator is mounted before the cold-launch action navigates.
   useQuickActionRouting();
+  const { pinned } = usePinnedTabs();
 
   return (
     <NativeTabs>
-      <NativeTabs.Trigger name="index">
-        <Icon sf="square.dashed" />
-        <Label>Border</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="exposure">
-        <Icon sf="plusminus" />
-        <Label>Exposure</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="reciprocity">
-        <Icon sf="timer" />
-        <Label>Reciprocity</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="resize">
-        <Icon sf="aspectratio" />
-        <Label>Resize</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="meter">
-        <Icon sf="camera.aperture" />
-        <Label>Meter</Label>
+      {pinned.map((id) => {
+        const tool = getTool(id);
+        if (!tool) return null;
+        return (
+          <NativeTabs.Trigger key={id} name={ROUTE_NAME[id]}>
+            <Icon sf={tool.sfSymbol as SFSymbol} />
+            <Label>{tool.label}</Label>
+          </NativeTabs.Trigger>
+        );
+      })}
+      <NativeTabs.Trigger name="more">
+        <Icon sf="ellipsis" />
+        <Label>More</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
