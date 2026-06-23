@@ -122,23 +122,31 @@ large-title header with a back button — there is no tab labeling them, and thi
 standard iOS. This does not conflict with the no-page-headers rule, which targets
 duplicate in-page titles on tab screens.
 
-### 5. Easy ports (included in this spec)
+### 5. Calculator destinations (stubbed) + Settings (real)
 
-UI-only ports of calculators whose logic already exists in `@dorkroom/logic`,
-following established mobile screen patterns (`ResultCard`, `ShareButton`,
-`PresetChipRow`, etc.):
+`@dorkroom/logic` exposes only pure calc *utilities* for Mat / Lens / Camera
+Exposure (`calculateEquivalentFocalLength`, the `mat-calculator` constants,
+`camera-exposure-calculations`), not ready-made hooks — the web pages assemble
+their own local hooks from those utils. Rather than build throwaway mobile-local
+wrappers, these three ship in this spec as **"Coming soon" stub screens** that are
+fully wired into the navigation (registry entry, categorized in the More hub,
+pinnable to the tab bar). Their real UI is deferred to a follow-up spec (see §6).
 
-- **Mat Cut** — mat/border logic.
-- **Lens Equivalency** — `useLensCalculator`.
-- **Camera Exposure** — `useCameraExposureCalculator` (distinct from Meter, which
-  uses the lower-level `useLightMeterSolver` + camera).
+- **Mat Cut** — stub.
+- **Lens Equivalency** — stub.
+- **Camera Exposure** — stub (distinct from Meter, which uses the lower-level
+  `useLightMeterSolver` + camera).
 
-**Settings** screen wired to whatever `@dorkroom/logic` exposes for units. Theme
-is currently force-dark on mobile, so Settings ships with units controls, the
-Edit-Tabs entry point, and external links (GitHub / newsletter) mirroring web.
+**Settings** ships as a real screen: theme is force-dark on mobile, so Settings
+carries the Edit-Tabs entry point, external links (GitHub / newsletter) mirroring
+web, and an app-version footer. No global units control (`@dorkroom/logic` has no
+units store; per-calculator toggles already exist — YAGNI).
 
 ### 6. Deferred to follow-up specs
 
+- **Extract calculator hooks** — `useMatCalculator` / `useLensCalculator` /
+  `useCameraExposureCalculator` into `@dorkroom/logic`, shared by web + mobile,
+  then swap the three mobile stubs (§5) for real screens.
 - **Development Recipes** — search, filters, favorites, custom recipes, share params.
 - **Films database** — search, filter, detail.
 - **Docs** — external microfrontend on web; mobile approach TBD in its own spec.
@@ -168,6 +176,6 @@ Run this as the first implementation spike before committing the routing file la
 - Every tool — including Mat, Lens, Camera Exposure, Settings — is reachable from
   the categorized More hub and searchable there.
 - Edit Tabs lets the user reorder and swap pinned tools; changes apply live and persist.
-- Mat, Lens, and Camera Exposure produce correct results (logic already covered by
-  `@dorkroom/logic` tests; mobile adds screen-level coverage per project patterns).
+- Mat, Lens, and Camera Exposure show a "Coming soon" placeholder (real UI deferred
+  to the hook-extraction follow-up); Settings is fully functional.
 - `bun run test` passes and React Doctor stays 100/100 across all three projects.
