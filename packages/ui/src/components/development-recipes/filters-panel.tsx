@@ -3,6 +3,12 @@ import { cn } from '../../lib/cn';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
 
+const customRecipeOptions: SelectItem[] = [
+  { label: 'All recipes', value: 'all' },
+  { label: 'Hide custom recipes', value: 'hide-custom' },
+  { label: 'Only custom recipes', value: 'only-custom' },
+];
+
 interface DevelopmentFiltersProps {
   className?: string;
   selectedFilm: string;
@@ -54,12 +60,6 @@ export function DevelopmentFiltersPanel({
   onClearFilters,
   showDeveloperTypeFilter = true,
 }: DevelopmentFiltersProps) {
-  const customRecipeOptions: SelectItem[] = [
-    { label: 'All recipes', value: 'all' },
-    { label: 'Hide custom recipes', value: 'hide-custom' },
-    { label: 'Only custom recipes', value: 'only-custom' },
-  ];
-
   return (
     <div
       className={cn(

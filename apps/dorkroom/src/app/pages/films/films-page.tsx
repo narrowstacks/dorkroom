@@ -206,6 +206,7 @@ export default function FilmsPage() {
       setSearchQuery(searchParams.search);
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
+    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
   }, [searchParams.search]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
@@ -217,6 +218,7 @@ export default function FilmsPage() {
       setColorTypeFilter(searchParams.color);
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
+    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
   }, [searchParams.color]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
@@ -225,6 +227,7 @@ export default function FilmsPage() {
       setIsoSpeedFilter(searchParams.iso);
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
+    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
   }, [searchParams.iso]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
@@ -236,6 +239,7 @@ export default function FilmsPage() {
       setBrandFilter(searchParams.brand);
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
+    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
   }, [searchParams.brand]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
@@ -247,6 +251,7 @@ export default function FilmsPage() {
       setDiscontinuedFilter(searchParams.status);
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
+    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
   }, [searchParams.status]);
 
   // Select film from URL param when data loads or URL changes
@@ -297,6 +302,7 @@ export default function FilmsPage() {
 
     return () => clearTimeout(timeout);
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- navigate is stable from TanStack Router
+    // eslint-disable-next-line react-doctor/exhaustive-deps -- navigate is stable from TanStack Router
   }, [
     searchQuery,
     colorTypeFilter,

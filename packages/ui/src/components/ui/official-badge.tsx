@@ -18,6 +18,7 @@ interface TooltipPosition {
   left: number;
 }
 
+// eslint-disable-next-line react-doctor/only-export-components -- tag-classification helper colocated with the badge it gates; consumers import it from this module and moving it is out of scope here
 export function isOfficialTag(tag: string): boolean {
   return tag.startsWith('official-');
 }
@@ -99,6 +100,7 @@ export function OfficialBadge({ tag, showTooltip = true }: OfficialBadgeProps) {
           color: themeStyle.color,
         }}
         // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- styled icon badge (SVG inside a span); a native <img> cannot render this, and role="img" makes the aria-label reliably announced
+        // eslint-disable-next-line react-doctor/prefer-tag-over-role -- styled icon badge (SVG inside a span); a native <img> cannot render this, and role="img" makes the aria-label reliably announced
         role="img"
         aria-label={tooltipText}
         aria-describedby={showTooltip && pos ? tooltipId : undefined}
@@ -147,6 +149,7 @@ export function CustomBadge({ showTooltip = true }: CustomBadgeProps) {
           ),
         }}
         // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- styled icon badge (SVG inside a span); a native <img> cannot render this, and role="img" makes the aria-label reliably announced
+        // eslint-disable-next-line react-doctor/prefer-tag-over-role -- styled icon badge (SVG inside a span); a native <img> cannot render this, and role="img" makes the aria-label reliably announced
         role="img"
         aria-label={tooltipText}
         aria-describedby={showTooltip && pos ? tooltipId : undefined}

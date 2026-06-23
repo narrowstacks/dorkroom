@@ -117,6 +117,7 @@ export function HomePage() {
   const [currentYear, setCurrentYear] = useState<number | null>(null);
   // eslint-disable-next-line react-doctor/rendering-hydration-no-flicker -- CSR-only SPA (no SSR); the footer year is intentionally computed client-side
   useEffect(() => {
+    // eslint-disable-next-line react-doctor/no-initialize-state -- intentionally deferred: keeps new Date() out of render so build-time prerender snapshots stay deterministic
     setCurrentYear(new Date().getFullYear());
   }, []);
 

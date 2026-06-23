@@ -1,5 +1,13 @@
 import { Check, X } from 'lucide-react';
-import { createContext, type ReactNode, use, useEffect, useState } from 'react';
+import {
+  createContext,
+  type ReactNode,
+  use,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { cn } from '../lib/cn';
 
 export interface ToastProps {
@@ -19,14 +27,22 @@ export function Toast({
 }: ToastProps) {
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // Trigger the slide-in transition once the toast becomes visible.
+  // Trigger the slide-in transition once the toast becomes visible. isAnimating
+  // intentionally starts false (off-screen) and flips true in an effect so the
+  // browser paints the initial off-screen frame first, enabling the CSS enter
+  // transition — it is animation timing, not a derivable/adjustable value.
   useEffect(() => {
+    // eslint-disable-next-line react-doctor/no-event-handler -- two-commit CSS enter transition; there is no originating user event to move this into
     if (isVisible) {
+      // eslint-disable-next-line react-doctor/no-adjust-state-on-prop-change -- two-commit CSS enter transition, not a derivable value (see comment above)
       setIsAnimating(true);
     }
   }, [isVisible]);
 
-  // Auto-dismiss: animate out and notify after the duration elapses.
+  // Auto-dismiss: animate out and notify after the duration elapses. This is a
+  // setTimeout side effect, not a state reset; the early return when !isVisible
+  // just skips arming the timer.
+  // eslint-disable-next-line react-doctor/no-reset-all-state-on-prop-change -- timer-driven side effect, not a prop-change state reset (the provider already keys Toast by id)
   useEffect(() => {
     if (!isVisible) {
       return undefined;
@@ -118,22 +134,27 @@ export function ToastProvider({ children }: ToastProviderProps) {
     id: string;
   } | null>(null);
 
-  const showToast = (message: string, type: ToastProps['type'] = 'success') => {
-    // Use crypto.randomUUID() if available, otherwise fall back to a timestamp-based ID
-    const id =
-      typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : `toast-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  const showToast = useCallback(
+    (message: string, type: ToastProps['type'] = 'success') => {
+      // Use crypto.randomUUID() if available, otherwise fall back to a timestamp-based ID
+      const id =
+        typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `toast-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-    setToast({ message, type, id });
-  };
+      setToast({ message, type, id });
+    },
+    []
+  );
 
   const hideToast = () => {
     setToast(null);
   };
 
+  const contextValue = useMemo(() => ({ showToast }), [showToast]);
+
   return (
-    <ToastContext value={{ showToast }}>
+    <ToastContext value={contextValue}>
       {children}
       {toast && (
         <Toast

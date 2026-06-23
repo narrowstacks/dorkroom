@@ -1,6 +1,7 @@
 import type { FC, ReactNode } from 'react';
 
 /** Format time as "Xm XXs" instead of decimal minutes */
+// eslint-disable-next-line react-doctor/only-export-components -- intentional shared helper module for recipe-detail views; consumers import formatTime alongside DetailRow from here
 export const formatTime = (minutes: number): string => {
   if (minutes < 1) {
     return `${Math.round(minutes * 60)}s`;

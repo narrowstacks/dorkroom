@@ -397,12 +397,19 @@ export function MobileBorderCalculator({
 
     applyPresetSettings(loadedPresetFromUrl.settings);
 
+    // currentPreset is independent state also driven by user events (select,
+    // save, update, delete); here it is merely seeded once from the URL-supplied
+    // preset, so it is not derivable from loadedPresetFromUrl during render.
+    // eslint-disable-next-line react-doctor/no-derived-state -- independent state seeded from a prop, not a render-derivable value
     setCurrentPreset({
       id: `loaded-${Date.now()}`,
       name: loadedPresetFromUrl.name,
       settings: loadedPresetFromUrl.settings,
     });
 
+    // Reacting to a URL-navigation prop change (not a user event); the parent
+    // owns the URL-preset lifecycle and this clears it after the one-shot apply.
+    // eslint-disable-next-line react-doctor/no-event-handler -- prop-change reaction, there is no originating user event to move this into
     if (clearLoadedPreset) {
       // eslint-disable-next-line react-doctor/no-prop-callback-in-effect -- the parent owns URL-preset lifecycle; this clears it after a one-shot apply triggered by the prop changing, which is the correct place to call it
       clearLoadedPreset();

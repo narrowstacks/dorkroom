@@ -13,6 +13,8 @@ import { SegmentedControl } from '@/components/segmented-control';
 import { ShareButton } from '@/components/share-button';
 import { buildResizeShare } from '@/lib/share-text';
 
+const num = (s: string) => Number.parseFloat(s) || 0;
+
 export function ResizeScreen() {
   const {
     isEnlargerHeightMode,
@@ -37,7 +39,6 @@ export function ResizeScreen() {
   } = useResizeCalculator();
 
   const [unit, setUnit] = useState<'in' | 'cm'>('in');
-  const num = (s: string) => Number.parseFloat(s) || 0;
 
   const stopsHelper = (() => {
     const diff = Number.parseFloat(stopsDifference);

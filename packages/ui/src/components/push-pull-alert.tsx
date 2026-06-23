@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowUp } from 'lucide-react';
 
 /** Color tokens for push/pull warnings */
-export const PUSH_PULL_WARNING_COLORS = {
+const PUSH_PULL_WARNING_COLORS = {
   push: {
     border: 'var(--color-semantic-warning)',
     background: 'rgba(234, 179, 8, 0.1)',

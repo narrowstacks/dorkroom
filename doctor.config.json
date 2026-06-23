@@ -1,0 +1,17 @@
+{
+  "$schema": "https://react.doctor/schema/config.json",
+  "ignore": {
+    "files": [
+      ".design-sync/**",
+      ".ds-sync/**",
+      "ds-bundle/**",
+      "**/supabase/functions/**"
+    ],
+    "rules": [
+      "deslop/unused-file",
+      "deslop/unused-export",
+      "deslop/unused-dependency",
+      "deslop/unused-dev-dependency"
+    ]
+  }
+}

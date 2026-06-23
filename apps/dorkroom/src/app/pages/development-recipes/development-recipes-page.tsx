@@ -213,8 +213,12 @@ export default function DevelopmentRecipesPage() {
   const deferredCombinedRows = useDeferredValue(combinedRows);
 
   // Sync recipesByUuid to state for useRecipeUrlState (API recipe lookup)
-  // eslint-disable-next-line react-doctor/no-derived-state-effect -- bridges an external data source into state consumed by useRecipeUrlState; not a render-derivable value
+  // recipesByUuid is produced by useRecipeData (below), but its value feeds
+  // useRecipeUrlState (above) — a forward reference that can't be resolved with
+  // useMemo, so the effect bridges the later-computed value back into state.
+  // eslint-disable-next-line react-doctor/no-derived-state-effect -- forward-reference cycle: value is computed by a hook ordered after its consumer, not render-derivable here
   useEffect(() => {
+    // eslint-disable-next-line react-doctor/no-derived-state -- forward-reference cycle: value is computed by a hook ordered after its consumer, not render-derivable here
     setRecipesByUuidState(recipesByUuid);
   }, [recipesByUuid]);
 
@@ -373,6 +377,7 @@ export default function DevelopmentRecipesPage() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: sortingKey is intentionally used to trigger page reset when sorting changes
   // eslint-disable-next-line react-doctor/no-derived-state-effect -- intentional "reset page index when sorting changes" side effect, not derived state
   useEffect(() => {
+    // eslint-disable-next-line react-doctor/no-chain-state-updates -- intentional "reset page index when sorting changes" side effect; sorting originates inside the TanStack table, not a single event handler we own
     setPageIndex(0);
   }, [sortingKey]);
 
@@ -396,6 +401,7 @@ export default function DevelopmentRecipesPage() {
         }
       });
     });
+    // eslint-disable-next-line react-doctor/no-initialize-state -- ResizeObserver measurement: the height is read from the live DOM after mount and on every resize, not knowable at useState() init time
     observer.observe(el);
     return () => {
       if (rafId !== undefined) {

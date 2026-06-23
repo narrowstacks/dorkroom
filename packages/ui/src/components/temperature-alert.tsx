@@ -3,13 +3,12 @@ import { useTemperature } from '../contexts/temperature-context';
 import { formatTemperatureWithUnit } from '../lib/temperature';
 
 /** Standard development temperature is 68°F / 20°C */
-export const STANDARD_TEMP_F = 68;
-export const STANDARD_TEMP_C = 20;
+const STANDARD_TEMP_F = 68;
 
 /**
  * Check if temperature differs from standard 68°F/20°C and return warning info.
  */
-export function getTemperatureWarning(
+function getTemperatureWarning(
   tempF?: number | null,
   tempC?: number | null
 ): { show: boolean; isHigher: boolean } {
@@ -27,7 +26,7 @@ export function getTemperatureWarning(
 }
 
 /** Color tokens for temperature warnings */
-export const TEMP_WARNING_COLORS = {
+const TEMP_WARNING_COLORS = {
   higher: {
     border: 'var(--color-semantic-warning)',
     background: 'rgba(234, 179, 8, 0.1)',

@@ -87,6 +87,16 @@ export interface MobileSidebarProps {
   onClose: () => void;
 }
 
+const renderSectionHeader = (label: string) => (
+  <div
+    key={`header-${label}`}
+    className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-wider"
+    style={{ color: 'var(--color-text-tertiary)' }}
+  >
+    {label}
+  </div>
+);
+
 export function MobileSidebar({
   pathname,
   onNavigate,
@@ -130,16 +140,6 @@ export function MobileSidebar({
       />
     );
   };
-
-  const renderSectionHeader = (label: string) => (
-    <div
-      key={`header-${label}`}
-      className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-wider"
-      style={{ color: 'var(--color-text-tertiary)' }}
-    >
-      {label}
-    </div>
-  );
 
   return (
     <div className="flex h-full flex-col">

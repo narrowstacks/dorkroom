@@ -42,7 +42,7 @@ import {
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { type FC, useState } from 'react';
+import { type FC, useCallback, useMemo, useState } from 'react';
 
 const validateCameraExposureForm = createZodFormValidator(
   cameraExposureCalculatorSchema
@@ -630,26 +630,56 @@ export default function CameraExposureCalculatorPage() {
     },
   });
 
-  const handlePresetClick = (ev: number) => {
-    const solveFor = form.getFieldValue('solveFor');
-    const aperture = form.getFieldValue('aperture');
-    const shutterSpeed = form.getFieldValue('shutterSpeed');
-    const iso = form.getFieldValue('iso');
+  const handlePresetClick = useCallback(
+    (ev: number) => {
+      const solveFor = form.getFieldValue('solveFor');
+      const aperture = form.getFieldValue('aperture');
+      const shutterSpeed = form.getFieldValue('shutterSpeed');
+      const iso = form.getFieldValue('iso');
 
-    if (solveFor === 'shutterSpeed') {
-      const solved = solveForShutterSpeed(ev, aperture, iso);
-      const nearest = findNearestStandard(solved, STANDARD_SHUTTER_SPEEDS);
-      form.setFieldValue('shutterSpeed', nearest.value);
-    } else if (solveFor === 'aperture') {
-      const solved = solveForAperture(ev, shutterSpeed, iso);
-      const nearest = findNearestStandard(solved, STANDARD_APERTURES);
-      form.setFieldValue('aperture', nearest.value);
-    } else {
-      const solved = solveForISO(ev, aperture, shutterSpeed);
-      const nearest = findNearestStandard(solved, STANDARD_ISOS);
-      form.setFieldValue('iso', nearest.value);
-    }
-  };
+      if (solveFor === 'shutterSpeed') {
+        const solved = solveForShutterSpeed(ev, aperture, iso);
+        const nearest = findNearestStandard(solved, STANDARD_SHUTTER_SPEEDS);
+        form.setFieldValue('shutterSpeed', nearest.value);
+      } else if (solveFor === 'aperture') {
+        const solved = solveForAperture(ev, shutterSpeed, iso);
+        const nearest = findNearestStandard(solved, STANDARD_APERTURES);
+        form.setFieldValue('aperture', nearest.value);
+      } else {
+        const solved = solveForISO(ev, aperture, shutterSpeed);
+        const nearest = findNearestStandard(solved, STANDARD_ISOS);
+        form.setFieldValue('iso', nearest.value);
+      }
+    },
+    [form]
+  );
+
+  const results = useMemo(
+    () => (
+      <div className="space-y-6">
+        {/* EV Result — desktop right column only */}
+        <div className="hidden md:block">
+          <EVResultCard form={form} formValues={formValues} />
+        </div>
+
+        {/* Equivalent Exposures — desktop right column only */}
+        <div className="hidden md:block">
+          <EquivalentExposuresCard form={form} />
+        </div>
+
+        {/* EV Presets — desktop right column only */}
+        <div className="hidden md:block">
+          <EVPresetsCard
+            form={form}
+            presetsOpen={presetsOpen}
+            onToggle={() => setPresetsOpen((prev) => !prev)}
+            onPresetClick={handlePresetClick}
+          />
+        </div>
+      </div>
+    ),
+    [form, formValues, presetsOpen, handlePresetClick]
+  );
 
   return (
     <CalculatorLayout
@@ -665,29 +695,7 @@ export default function CameraExposureCalculatorPage() {
         </>
       }
       sidebar={<CameraExposureSidebar />}
-      results={
-        <div className="space-y-6">
-          {/* EV Result — desktop right column only */}
-          <div className="hidden md:block">
-            <EVResultCard form={form} formValues={formValues} />
-          </div>
-
-          {/* Equivalent Exposures — desktop right column only */}
-          <div className="hidden md:block">
-            <EquivalentExposuresCard form={form} />
-          </div>
-
-          {/* EV Presets — desktop right column only */}
-          <div className="hidden md:block">
-            <EVPresetsCard
-              form={form}
-              presetsOpen={presetsOpen}
-              onToggle={() => setPresetsOpen((prev) => !prev)}
-              onPresetClick={handlePresetClick}
-            />
-          </div>
-        </div>
-      }
+      results={results}
     >
       {/* Exposure Settings — always visible */}
       <ExposureSettingsCard form={form} />

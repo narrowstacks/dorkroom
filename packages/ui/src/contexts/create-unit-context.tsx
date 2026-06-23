@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, use, useEffect, useState } from 'react';
+import { createContext, type ReactNode, use, useState } from 'react';
 
 export interface UnitContextValue<T extends string> {
   unit: T;
@@ -26,15 +26,19 @@ export function createUnitContext<T extends string>(
   const { storageKey, defaultUnit, units } = config;
   const [unitA, unitB] = units;
 
-  function Provider({ children }: { children: ReactNode }) {
-    const [unit, setUnitState] = useState<T>(defaultUnit);
+  function getInitialUnit(): T {
+    if (typeof localStorage === 'undefined') {
+      return defaultUnit;
+    }
+    const saved = localStorage.getItem(storageKey);
+    if (saved === unitA || saved === unitB) {
+      return saved as T;
+    }
+    return defaultUnit;
+  }
 
-    useEffect(() => {
-      const saved = localStorage.getItem(storageKey);
-      if (saved === unitA || saved === unitB) {
-        setUnitState(saved as T);
-      }
-    }, []);
+  function Provider({ children }: { children: ReactNode }) {
+    const [unit, setUnitState] = useState<T>(getInitialUnit);
 
     function setUnit(newUnit: T): void {
       setUnitState(newUnit);

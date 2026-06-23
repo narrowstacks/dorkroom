@@ -123,6 +123,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
               borderColor: 'var(--color-border-secondary)',
             }}
             // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a native <dialog> is display:none when closed and breaks the slide transition; role="dialog" is required so aria-modal is valid here
+            // eslint-disable-next-line react-doctor/prefer-html-dialog, react-doctor/prefer-tag-over-role -- native <dialog> is display:none when closed, which breaks the slide-in transition; this is an intentional custom modal
             role="dialog"
             aria-hidden={!isMobileMenuOpen}
             aria-modal={isMobileMenuOpen || undefined}

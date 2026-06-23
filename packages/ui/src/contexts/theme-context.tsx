@@ -1,4 +1,11 @@
-import { createContext, type ReactNode, use, useEffect, useState } from 'react';
+import {
+  createContext,
+  type ReactNode,
+  use,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import type { Theme } from '../lib/themes';
 import { resolveTheme } from '../lib/themes';
 
@@ -19,46 +26,48 @@ interface ThemeProviderProps {
 const STORAGE_KEY = 'dorkroom-theme';
 const ANIMATIONS_STORAGE_KEY = 'dorkroom-animations-enabled';
 
+// Read the persisted theme on first render. On the server (no localStorage) or
+// for a first-time visitor, default to 'system' and persist that default.
+function getInitialTheme(): Theme {
+  if (typeof localStorage === 'undefined') {
+    return 'system';
+  }
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (
+    saved === 'light' ||
+    saved === 'dark' ||
+    saved === 'darkroom' ||
+    saved === 'high-contrast' ||
+    saved === 'system'
+  ) {
+    return saved;
+  }
+  // First time visitor - default to system preference and save it
+  localStorage.setItem(STORAGE_KEY, 'system');
+  return 'system';
+}
+
+// Read the persisted animations preference on first render, defaulting to true.
+function getInitialAnimationsEnabled(): boolean {
+  if (typeof localStorage === 'undefined') {
+    return true;
+  }
+  const savedAnimations = localStorage.getItem(ANIMATIONS_STORAGE_KEY);
+  if (savedAnimations === 'true' || savedAnimations === 'false') {
+    return savedAnimations === 'true';
+  }
+  localStorage.setItem(ANIMATIONS_STORAGE_KEY, 'true');
+  return true;
+}
+
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>('system');
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
   const [resolvedTheme, setResolvedTheme] = useState<
     'light' | 'dark' | 'darkroom' | 'high-contrast'
   >('dark');
-  const [animationsEnabled, setAnimationsEnabledState] = useState(true);
-
-  // Initialize theme + animations from localStorage. Compute both values
-  // first, then apply a single update per state so the effect doesn't
-  // cascade multiple setState calls.
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    let initialTheme: Theme;
-    if (
-      saved === 'light' ||
-      saved === 'dark' ||
-      saved === 'darkroom' ||
-      saved === 'high-contrast' ||
-      saved === 'system'
-    ) {
-      initialTheme = saved;
-    } else {
-      // First time visitor - default to system preference and save it
-      initialTheme = 'system';
-      localStorage.setItem(STORAGE_KEY, 'system');
-    }
-
-    // Initialize animations preference from localStorage or default to true
-    const savedAnimations = localStorage.getItem(ANIMATIONS_STORAGE_KEY);
-    let initialAnimations: boolean;
-    if (savedAnimations === 'true' || savedAnimations === 'false') {
-      initialAnimations = savedAnimations === 'true';
-    } else {
-      initialAnimations = true;
-      localStorage.setItem(ANIMATIONS_STORAGE_KEY, 'true');
-    }
-
-    setThemeState(initialTheme);
-    setAnimationsEnabledState(initialAnimations);
-  }, []);
+  const [animationsEnabled, setAnimationsEnabledState] = useState(
+    getInitialAnimationsEnabled
+  );
 
   // Update resolved theme when theme changes or system preference changes
   useEffect(() => {
@@ -113,29 +122,27 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     return undefined;
   }, [theme, animationsEnabled]);
 
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-    localStorage.setItem(STORAGE_KEY, newTheme);
-  };
+  const contextValue = useMemo<ThemeContextValue>(() => {
+    const setTheme = (newTheme: Theme) => {
+      setThemeState(newTheme);
+      localStorage.setItem(STORAGE_KEY, newTheme);
+    };
 
-  const setAnimationsEnabled = (enabled: boolean) => {
-    setAnimationsEnabledState(enabled);
-    localStorage.setItem(ANIMATIONS_STORAGE_KEY, String(enabled));
-  };
+    const setAnimationsEnabled = (enabled: boolean) => {
+      setAnimationsEnabledState(enabled);
+      localStorage.setItem(ANIMATIONS_STORAGE_KEY, String(enabled));
+    };
 
-  return (
-    <ThemeContext
-      value={{
-        theme,
-        resolvedTheme,
-        setTheme,
-        animationsEnabled,
-        setAnimationsEnabled,
-      }}
-    >
-      {children}
-    </ThemeContext>
-  );
+    return {
+      theme,
+      resolvedTheme,
+      setTheme,
+      animationsEnabled,
+      setAnimationsEnabled,
+    };
+  }, [theme, resolvedTheme, animationsEnabled]);
+
+  return <ThemeContext value={contextValue}>{children}</ThemeContext>;
 }
 
 export function useTheme() {
