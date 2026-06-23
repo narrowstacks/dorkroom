@@ -254,9 +254,7 @@ function EquivalentExposuresCard({
                   backgroundColor: eq.isCurrentSetting
                     ? 'var(--color-surface-elevated)'
                     : undefined,
-                  color: eq.isStandardShutterSpeed
-                    ? 'var(--color-on-accent)'
-                    : 'var(--color-on-accent-muted)',
+                  color: 'var(--color-on-accent)',
                 }}
               >
                 <td className="py-2 px-3">{eq.apertureLabel}</td>
@@ -282,7 +280,7 @@ function EquivalentExposuresCard({
         className="text-xs mt-2"
         style={{ color: 'var(--color-on-accent-muted)' }}
       >
-        Non-standard shutter speeds shown in muted text
+        Shutter speeds rounded to the nearest dial setting
       </p>
     </CalculatorCard>
   );

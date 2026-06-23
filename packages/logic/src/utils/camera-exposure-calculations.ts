@@ -187,20 +187,12 @@ export const formatAperture = (fNumber: number): string => {
 };
 
 /**
- * Checks if a shutter speed value is close to a standard value (within 1/6 stop).
- */
-const isNearStandardShutterSpeed = (seconds: number): boolean => {
-  for (const standard of STANDARD_SHUTTER_SPEEDS) {
-    const stopsDiff = Math.abs(Math.log2(seconds / standard.value));
-    if (stopsDiff < STANDARD_VALUE_TOLERANCE) return true;
-  }
-  return false;
-};
-
-/**
  * Generates a table of equivalent exposures for a given EV and ISO.
- * For each standard aperture, calculates the required shutter speed.
- * Only includes pairs where the shutter speed is within practical range.
+ *
+ * For each standard aperture, calculates the required shutter speed and snaps
+ * it to the nearest real shutter-dial value (e.g. a computed 1/512s is shown
+ * as 1/500), so every row is a setting a film camera can actually be dialled
+ * to. Only includes pairs whose shutter speed falls within practical range.
  */
 export const getEquivalentExposures = (
   ev: number,
@@ -213,7 +205,11 @@ export const getEquivalentExposures = (
   const equivalents: EquivalentExposure[] = [];
 
   for (const apertureEntry of STANDARD_APERTURES) {
-    const shutterSpeed = solveForShutterSpeed(ev, apertureEntry.value, iso);
+    const exactShutterSpeed = solveForShutterSpeed(
+      ev,
+      apertureEntry.value,
+      iso
+    );
 
     // Allow a 30% multiplicative buffer beyond the practical range so
     // borderline values aren't clipped from the table.
@@ -221,25 +217,29 @@ export const getEquivalentExposures = (
     //   Upper bound: 30 * 1.3 = 39s — accepts slightly slower than max
     // This is intentional: the buffer extends the range in both directions.
     if (
-      shutterSpeed < MIN_SHUTTER_SPEED * (1 - SHUTTER_RANGE_TOLERANCE) ||
-      shutterSpeed > MAX_SHUTTER_SPEED * (1 + SHUTTER_RANGE_TOLERANCE)
+      exactShutterSpeed < MIN_SHUTTER_SPEED * (1 - SHUTTER_RANGE_TOLERANCE) ||
+      exactShutterSpeed > MAX_SHUTTER_SPEED * (1 + SHUTTER_RANGE_TOLERANCE)
     ) {
       continue;
     }
 
-    const isStandard = isNearStandardShutterSpeed(shutterSpeed);
+    // Round to the nearest dial value so the table only shows real film speeds.
+    const dialShutter = findNearestStandard(
+      exactShutterSpeed,
+      STANDARD_SHUTTER_SPEEDS
+    );
+
     const isCurrent =
       Math.abs(Math.log2(apertureEntry.value / currentAperture)) <
         STANDARD_VALUE_TOLERANCE &&
-      Math.abs(Math.log2(shutterSpeed / currentShutterSpeed)) <
+      Math.abs(Math.log2(dialShutter.value / currentShutterSpeed)) <
         STANDARD_VALUE_TOLERANCE;
 
     equivalents.push({
       aperture: apertureEntry.value,
-      shutterSpeed,
+      shutterSpeed: dialShutter.value,
       apertureLabel: apertureEntry.label,
-      shutterSpeedLabel: formatShutterSpeed(shutterSpeed),
-      isStandardShutterSpeed: isStandard,
+      shutterSpeedLabel: dialShutter.label,
       isCurrentSetting: isCurrent,
     });
   }
