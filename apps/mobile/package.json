@@ -51,5 +51,15 @@
     "tailwindcss": "^3.4.17",
     "typescript": "~5.9.0",
     "vitest": "4.1.7"
+  },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": ["react-native-nitro-image"]
+      }
+    },
+    "install": {
+      "exclude": ["@react-navigation/native"]
+    }
   }
 }

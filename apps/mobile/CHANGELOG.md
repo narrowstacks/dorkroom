@@ -37,9 +37,11 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - Gradient backdrop with film-grain overlay on every screen, ported from the web
   dark theme.
 - Native share sheet, haptic steppers, and preset chips across the Exposure,
-  Resize, and Reciprocity calculators.
-- Reciprocity: full film picker (14 stocks + custom factor), time presets, and a
-  native SVG reciprocity curve chart.
+  Resize, and Reciprocity calculators. Share text includes the full inputs,
+  multiplier/factor, and added exposure with percentage.
+- Reciprocity: full film picker (14 stocks + custom factor), time presets, and an
+  interactive SVG reciprocity curve — a compact inline preview that expands to a
+  full-screen, drag-to-read chart with axes and grid, closed with an X.
 - Resize: print-size and enlarger-height segmented controls for inch/cm unit
   switching, plus an aspect-ratio preview.
 
@@ -59,6 +61,10 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - Rebuilt the Exposure, Resize, and Reciprocity screens to web feature parity:
   richer results rows (formula lines, multiplier, % change, contextual helpers)
   and removed the redundant in-page title headings.
+- Reworked the bottom-sheet drawer backdrop: a full-screen scrim that fades in on
+  the same timeline as the panel slide (no more backdrop scroll-up or scrim
+  appearing ahead of the panel). The border calculator opts out of the scrim so
+  the print preview stays visible while editing.
 
 ## [2026.06.21]
 
