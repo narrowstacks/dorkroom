@@ -116,6 +116,7 @@ export default function BorderScreen() {
         visible={sheet === 'paperImage'}
         title="Paper & image size"
         onClose={closeSheet}
+        showScrim={false}
       >
         <PaperImageSection
           aspectRatio={calc.aspectRatio}
@@ -133,6 +134,7 @@ export default function BorderScreen() {
         visible={sheet === 'borderSize'}
         title="Border size"
         onClose={closeSheet}
+        showScrim={false}
       >
         <BorderSizeSection
           minBorder={calc.minBorder}
@@ -144,6 +146,7 @@ export default function BorderScreen() {
         visible={sheet === 'position'}
         title="Position & offsets"
         onClose={closeSheet}
+        showScrim={false}
       >
         <PositionSection
           enableOffset={calc.enableOffset}

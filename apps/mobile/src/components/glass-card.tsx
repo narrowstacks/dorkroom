@@ -40,7 +40,9 @@ export function GlassCard({ children, className }: GlassCardProps) {
     );
   }
   return (
-    <View className={`rounded-2xl bg-white/10 p-5 ${className ?? ''}`}>
+    <View
+      className={`rounded-2xl border border-white/10 bg-white/10 p-5 ${className ?? ''}`}
+    >
       {children}
     </View>
   );
