@@ -107,6 +107,7 @@ export default function ReciprocityScreen() {
               adjustedTime={calculation.adjustedTime}
               factor={calculation.factor}
               filmName={calculation.filmName}
+              formatTime={formatTime}
             />
           </GlassCard>
         </>
