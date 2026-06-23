@@ -34,6 +34,14 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - A dedicated "Open Light Meter" Shortcuts/Siri action (separate from the generic
   open-page shortcuts) so the light meter can be assigned to the iPhone Action
   Button for one-press access.
+- Gradient backdrop with film-grain overlay on every screen, ported from the web
+  dark theme.
+- Native share sheet, haptic steppers, and preset chips across the Exposure,
+  Resize, and Reciprocity calculators.
+- Reciprocity: full film picker (14 stocks + custom factor), time presets, and a
+  native SVG reciprocity curve chart.
+- Resize: print-size and enlarger-height segmented controls for inch/cm unit
+  switching, plus an aspect-ratio preview.
 
 ### Changed
 
@@ -48,6 +56,9 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - Force dark appearance app-wide (`Appearance.setColorScheme('dark')` +
   `userInterfaceStyle: "dark"`) so native glass surfaces render dark glass
   under a light system appearance instead of leaving light text on light cards.
+- Rebuilt the Exposure, Resize, and Reciprocity screens to web feature parity:
+  richer results rows (formula lines, multiplier, % change, contextual helpers)
+  and removed the redundant in-page title headings.
 
 ## [2026.06.21]
 
