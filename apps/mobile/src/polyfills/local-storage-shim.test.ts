@@ -8,7 +8,7 @@ function makeMemoryBackend(): KVBackend {
     set: (k, v) => {
       store.set(k, v);
     },
-    delete: (k) => {
+    remove: (k) => {
       store.delete(k);
     },
     getAllKeys: () => [...store.keys()],

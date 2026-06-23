@@ -18,11 +18,15 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
-// 3. Force a single React instance. extraNodeModules is only a *fallback*, so
-// it doesn't help when a workspace package (e.g. @dorkroom/logic, bundled from
-// packages/) successfully resolves the repo-root React 19.2.3 — which mismatches
-// react-native-renderer 19.1.0. The hard redirect in resolveRequest below pins
-// react/react-dom to the app's copy (Expo's 19.1.0) for every importer.
+// 3. Force a single React instance. As of SDK 56 the app and the repo root both
+// use React 19.2.3, so React normally hoists to one copy at the workspace root
+// and the redirect below is inert (no nested apps/mobile/node_modules/react to
+// point at). It stays as a guard: if a future version divergence ever
+// reintroduces a nested app-level React, the hard redirect in resolveRequest
+// pins react/react-dom to a single copy for every importer, avoiding the
+// "Incompatible React versions" renderer mismatch. extraNodeModules is only a
+// *fallback* and does not cover workspace packages (e.g. @dorkroom/logic,
+// bundled from packages/), which is why the redirect is explicit.
 config.resolver.extraNodeModules = {
   'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
 };

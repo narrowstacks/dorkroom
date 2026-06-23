@@ -4,10 +4,10 @@ import {
   DEFAULT_CAMERA_EXPOSURE_SHUTTER_SPEED,
   type MeterPriority,
 } from '@dorkroom/logic';
-import { MMKV } from 'react-native-mmkv';
+import { createMMKV } from 'react-native-mmkv';
 
 // Shares the light-meter store with the calibration offset.
-const storage = new MMKV({ id: 'dorkroom-light-meter' });
+const storage = createMMKV({ id: 'dorkroom-light-meter' });
 const KEYS = {
   priority: 'priority',
   aperture: 'apertureValue',

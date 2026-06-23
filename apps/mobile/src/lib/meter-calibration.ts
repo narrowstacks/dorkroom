@@ -1,7 +1,7 @@
 import { DEFAULT_METER_CALIBRATION_OFFSET } from '@dorkroom/logic';
-import { MMKV } from 'react-native-mmkv';
+import { createMMKV } from 'react-native-mmkv';
 
-const storage = new MMKV({ id: 'dorkroom-light-meter' });
+const storage = createMMKV({ id: 'dorkroom-light-meter' });
 const KEY = 'calibrationOffsetStops';
 
 /** Reads the persisted calibration offset in stops, defaulting when unset/invalid. */
