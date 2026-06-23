@@ -58,6 +58,7 @@ export default function EditTabs() {
   const addPin = useCallback(
     (id: string) => {
       if (!canAdd) return;
+      // eslint-disable-next-line react-doctor/rerender-functional-setstate -- setPinned is a MMKV-backed setter, not React.Dispatch; it does not accept a callback updater
       setPinned([...pinned, id]);
     },
     [canAdd, pinned, setPinned]

@@ -85,7 +85,7 @@ export function ReciprocityChartModal({
             onPress={close}
             accessibilityRole="button"
             accessibilityLabel="Close chart"
-            className="h-9 w-9 items-center justify-center rounded-full bg-white/10"
+            className="size-9 items-center justify-center rounded-full bg-white/10"
           >
             <Text className="text-lg text-white">✕</Text>
           </Pressable>
@@ -215,7 +215,7 @@ export function ReciprocityChartModal({
             />
           </View>
           <Text className="mt-2 text-center text-xs text-white/40">
-            Metered seconds — drag to read any exposure
+            Metered seconds: drag to read any exposure
           </Text>
         </View>
       </View>

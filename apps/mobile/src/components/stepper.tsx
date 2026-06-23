@@ -44,7 +44,7 @@ export function Stepper({ value, onDecrement, onIncrement }: StepperProps) {
   };
 
   return (
-    <View className="flex-row items-center justify-between rounded-xl bg-white/10 px-2 py-2">
+    <View className="flex-row items-center justify-between rounded-xl bg-white/10 p-2">
       <Pressable
         onPressIn={start(onDecrement)}
         onPressOut={stop}
