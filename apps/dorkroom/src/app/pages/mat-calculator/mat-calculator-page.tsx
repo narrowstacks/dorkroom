@@ -1,13 +1,10 @@
 import {
-  bestFitBorders,
-  MAT_CALCULATOR_DEFAULTS,
-  MAT_CALCULATOR_STORAGE_KEY,
   MAT_PRESETS,
   type MatCalculatorState,
-  makeMatFormatter,
   parseMatInput,
   toFractionInput,
-  useLocalStorageFormPersistence,
+  type UseMatCalculatorReturn,
+  useMatCalculator,
 } from '@dorkroom/logic';
 import { getRouteIcon, StatusAlert } from '@dorkroom/ui';
 import {
@@ -15,8 +12,6 @@ import {
   CalculatorLayout,
   CalculatorStat,
 } from '@dorkroom/ui/calculator';
-import { useForm } from '@tanstack/react-form';
-import { useStore } from '@tanstack/react-store';
 import { useMemo } from 'react';
 import { FractionField } from './fraction-field';
 import { MatDiagram } from './mat-diagram';
@@ -210,173 +205,7 @@ function GuideBarCard({
   );
 }
 
-function useMatCalculation() {
-  const form = useForm({
-    defaultValues: MAT_CALCULATOR_DEFAULTS,
-  });
-
-  const values = useStore(
-    form.store,
-    (state) => state.values as MatCalculatorState
-  );
-
-  useLocalStorageFormPersistence({
-    storageKey: MAT_CALCULATOR_STORAGE_KEY,
-    form,
-    formValues: values,
-    persistKeys: [
-      'outerW',
-      'outerH',
-      'borderTop',
-      'borderBottom',
-      'borderLeft',
-      'borderRight',
-      'artW',
-      'artH',
-      'reveal',
-      'bottomWeight',
-    ],
-  });
-
-  const ow = parseMatInput(values.outerW);
-  const oh = parseMatInput(values.outerH);
-  const bt = parseMatInput(values.borderTop);
-  const bb = parseMatInput(values.borderBottom);
-  const bl = parseMatInput(values.borderLeft);
-  const br = parseMatInput(values.borderRight);
-  const aw = parseMatInput(values.artW);
-  const ah = parseMatInput(values.artH);
-  const rev = parseMatInput(values.reveal);
-  const revVal = isNaN(rev) ? 0 : rev;
-
-  const bordersValid =
-    !isNaN(bt) &&
-    !isNaN(bb) &&
-    !isNaN(bl) &&
-    !isNaN(br) &&
-    bt >= 0 &&
-    bb >= 0 &&
-    bl >= 0 &&
-    br >= 0;
-  const outerValid = !isNaN(ow) && !isNaN(oh) && ow > 0 && oh > 0;
-  const windowW = ow - bl - br;
-  const windowH = oh - bt - bb;
-  const valid = outerValid && bordersValid && windowW > 0 && windowH > 0;
-
-  const fmt = makeMatFormatter(valid);
-
-  const artValid = !isNaN(aw) && !isNaN(ah) && aw > 0 && ah > 0;
-  const revealMode = artValid;
-  const bestFitPreview =
-    artValid && outerValid
-      ? bestFitBorders(ow, oh, aw, ah, revVal, values.bottomWeight)
-      : null;
-  const targetWindowW = revealMode ? aw - 2 * revVal : windowW;
-  const targetWindowH = revealMode ? ah - 2 * revVal : windowH;
-  const windowMismatchW = revealMode ? windowW - targetWindowW : 0;
-  const windowMismatchH = revealMode ? windowH - targetWindowH : 0;
-  const overlapLeft = revealMode ? (aw - windowW) / 2 : NaN;
-  const overlapTop = revealMode ? (ah - windowH) / 2 : NaN;
-  const hasRevealMismatch =
-    valid &&
-    revealMode &&
-    (Math.abs(windowMismatchW) > 1e-3 || Math.abs(windowMismatchH) > 1e-3);
-
-  const set = (key: keyof MatCalculatorState, value: string | boolean) =>
-    form.setFieldValue(key, value);
-
-  const applyBestFit = () => {
-    const fit = bestFitBorders(ow, oh, aw, ah, revVal, values.bottomWeight);
-    if (!fit) return;
-    set('borderTop', toFractionInput(fit.top));
-    set('borderBottom', toFractionInput(fit.bottom));
-    set('borderLeft', toFractionInput(fit.left));
-    set('borderRight', toFractionInput(fit.right));
-  };
-
-  const guideBarCuts = [
-    {
-      title: 'Cut 01 · Top window edge',
-      offset: fmt(bt),
-      plunge: fmt(bl),
-      stop: fmt(ow - br),
-      setup: 'Face down · top edge against guide bar',
-    },
-    {
-      title: 'Cut 02 · Bottom window edge',
-      offset: fmt(bb),
-      plunge: fmt(bl),
-      stop: fmt(ow - br),
-      setup: 'Face down · bottom edge against guide bar',
-    },
-    {
-      title: 'Cut 03 · Left window edge',
-      offset: fmt(bl),
-      plunge: fmt(bt),
-      stop: fmt(oh - bb),
-      setup: 'Face down · left edge against guide bar',
-    },
-    {
-      title: 'Cut 04 · Right window edge',
-      offset: fmt(br),
-      plunge: fmt(bt),
-      stop: fmt(oh - bb),
-      setup: 'Face down · right edge against guide bar',
-    },
-  ];
-
-  const dimensionRows: [string, string, string][] = [
-    ['Outer mat', `${fmt(ow)} × ${fmt(oh)}`, 'matches frame rabbet'],
-    [
-      'Window (sight opening)',
-      `${fmt(windowW)} × ${fmt(windowH)}`,
-      'cut from the face side, short point to short point',
-    ],
-    [
-      'Borders',
-      `${fmt(bt)} top · ${fmt(bb)} bot · ${fmt(bl)} L · ${fmt(br)} R`,
-      'distance from outer edge to window edge',
-    ],
-    ...(revealMode
-      ? ([
-          ['Artwork', `${fmt(aw)} × ${fmt(ah)}`, 'as specified'],
-          [
-            'Actual reveal',
-            `${fmt(overlapLeft)} L/R · ${fmt(overlapTop)} T/B`,
-            'mat coverage onto the artwork edge',
-          ],
-        ] as [string, string, string][])
-      : []),
-  ];
-
-  return {
-    values,
-    set,
-    applyBestFit,
-    bestFitPreview,
-    fmt,
-    valid,
-    revealMode,
-    ow,
-    oh,
-    bt,
-    bb,
-    bl,
-    br,
-    aw,
-    ah,
-    windowW,
-    windowH,
-    revVal,
-    overlapLeft,
-    overlapTop,
-    hasRevealMismatch,
-    guideBarCuts,
-    dimensionRows,
-  };
-}
-
-type MatCalculation = ReturnType<typeof useMatCalculation>;
+type MatCalculation = UseMatCalculatorReturn;
 type MatSetter = MatCalculation['set'];
 
 function MatResults({
@@ -697,7 +526,7 @@ function ArtworkBestFitCard({
 }
 
 export default function MatCalculatorPage() {
-  const calc = useMatCalculation();
+  const calc = useMatCalculator();
 
   const results = useMemo(
     () => (

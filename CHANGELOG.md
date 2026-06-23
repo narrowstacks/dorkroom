@@ -5,6 +5,20 @@ The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHAN
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.06.23]
+
+### Changed
+
+- Extracted the mat, lens, and camera-exposure calculator logic out of their page components into reusable `@dorkroom/logic` hooks (`useMatCalculator`, `useLensCalculator`, `useCameraExposureCalculator`). The hooks own their input state, localStorage persistence, and derived results, so the pages are now presentation-only. No user-facing behavior change
+
+### Fixed
+
+- The camera exposure calculator's "Equivalent exposures" table now rounds each computed shutter speed to the nearest real shutter-dial setting (e.g. 1/512s → 1/500s) instead of showing arbitrary mechanical values like 1/8359s, so every row is a speed a film camera can actually be set to
+
+### Removed
+
+- The unused `lensCalculatorSchema` and `cameraExposureCalculatorSchema` form schemas (and their orphaned `@dorkroom/logic` Zod validators), superseded by the validity checks inside the new calculator hooks
+
 ## [2026.06.13]
 
 ### Added

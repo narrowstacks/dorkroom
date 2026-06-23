@@ -26,7 +26,6 @@ export interface EquivalentExposure {
   shutterSpeed: number;
   apertureLabel: string;
   shutterSpeedLabel: string;
-  isStandardShutterSpeed: boolean;
   isCurrentSetting: boolean;
 }
 

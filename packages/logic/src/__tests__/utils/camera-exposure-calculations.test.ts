@@ -586,13 +586,18 @@ describe('camera exposure calculations', () => {
         }
       });
 
-      it('should identify standard shutter speeds', () => {
-        const equivalents = getEquivalentExposures(15, 100, 16, 1 / 125);
+      it('rounds every shutter speed to a real dial value', () => {
+        // Computed speeds (e.g. 1/512s) must be snapped to dial settings the
+        // camera can actually be set to (1/500s).
+        const equivalents = getEquivalentExposures(14, 400, 16, 1 / 250);
+        const dialLabels = new Set(STANDARD_SHUTTER_SPEEDS.map((s) => s.label));
+        const dialValues = STANDARD_SHUTTER_SPEEDS.map((s) => s.value);
 
-        const standardEntries = equivalents.filter(
-          (e) => e.isStandardShutterSpeed
-        );
-        expect(standardEntries.length).toBeGreaterThan(0);
+        expect(equivalents.length).toBeGreaterThan(0);
+        for (const e of equivalents) {
+          expect(dialLabels.has(e.shutterSpeedLabel)).toBe(true);
+          expect(dialValues).toContain(e.shutterSpeed);
+        }
       });
     });
 

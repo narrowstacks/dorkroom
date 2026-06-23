@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { SENSOR_FORMAT_MAP } from '../constants/lens-calculator-defaults';
 
 /**
  * Shared Zod validators for form schemas across the application.
@@ -55,56 +54,3 @@ export const reciprocityFactorValidator = () =>
     .number()
     .min(0.1, 'Reciprocity factor must be at least 0.1')
     .max(10, 'Reciprocity factor cannot exceed 10');
-
-/**
- * Creates a validator for focal length values (in mm).
- */
-export const focalLengthValidator = () =>
-  z
-    .number()
-    .min(1, 'Focal length must be at least 1mm')
-    .max(2000, 'Focal length cannot exceed 2000mm');
-
-/**
- * Creates a validator for sensor format selection.
- */
-export const sensorFormatValidator = () =>
-  z.string().refine((val) => Object.hasOwn(SENSOR_FORMAT_MAP, val), {
-    message: 'Please select a valid format',
-  });
-
-/**
- * Creates a validator for camera aperture (f-number).
- * Standard range is f/1 to f/64.
- */
-export const apertureValidator = () =>
-  z
-    .number()
-    .min(0.7, 'Aperture must be at least f/0.7')
-    .max(128, 'Aperture cannot exceed f/128');
-
-/**
- * Creates a validator for camera shutter speed in seconds.
- * Range covers 1/8000 to 30 seconds.
- */
-export const shutterSpeedValidator = () =>
-  z
-    .number()
-    .min(1 / 16000, 'Shutter speed is too fast')
-    .max(60, 'Shutter speed cannot exceed 60 seconds');
-
-/**
- * Creates a validator for ISO sensitivity.
- * Standard range is 6 to 102400.
- */
-export const isoValidator = () =>
-  z
-    .number()
-    .min(6, 'ISO must be at least 6')
-    .max(102400, 'ISO cannot exceed 102400');
-
-/**
- * Creates a validator for the "solve for" field.
- */
-export const solveForValidator = () =>
-  z.enum(['shutterSpeed', 'aperture', 'iso']);
