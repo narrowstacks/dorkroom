@@ -42,12 +42,14 @@ multiple photos per shot, and exporting the photo *files* are explicitly deferre
 | Persist on device | `expo-file-system` | Copy into `documentDirectory/film-log/<id>.jpg` (app-owned source of truth). |
 | Import from library | `expo-image-picker` | `launchImageLibraryAsync` for manual shots. |
 | Optional "save to Photos" | `expo-media-library` | `createAssetAsync`; add-only permission; only called when the toggle is on. |
+| Grayscale (B&W rolls) | `@shopify/react-native-skia` | Apply a luminance `ColorMatrix`, snapshot, re-encode, and persist desaturated. Same dep the later databack imprint needs (pulled forward). |
 | Display | `expo-image` | Cached `Image`; also satisfies React Doctor `rn-prefer-expo-image`. |
 
-**Build impact:** every library except vision-camera is a **new native dependency**,
-so this ships as a **development build** (workflow #2 in `apps/mobile/CLAUDE.md`),
-not a Metro reload. Pin versions to Expo SDK 56; install with the repo's
-`minimumReleaseAge` gate in mind.
+**Build impact:** every library except vision-camera is a **new native dependency**
+(Skia is the heaviest — it adds meaningful bundle size), so this ships as a
+**development build** (workflow #2 in `apps/mobile/CLAUDE.md`), not a Metro reload.
+Pin versions to Expo SDK 56; install with the repo's `minimumReleaseAge` gate in
+mind.
 
 **Permissions / `app.json`:** add `NSPhotoLibraryUsageDescription` (pick) and
 `NSPhotoLibraryAddUsageDescription` (save) usage strings via the relevant config
@@ -66,6 +68,7 @@ export interface ShotPhoto {
   height: number;
   capturedAt: string; // ISO
   source: 'meter' | 'library';
+  grayscale?: boolean; // true when the stored file was desaturated for a B&W roll
 }
 
 export interface Shot {
@@ -89,10 +92,19 @@ the FS calls are thin wrappers.
 
 - `PHOTO_DIR = documentDirectory + 'film-log/'`; `ensurePhotoDir()` (idempotent `makeDirectoryAsync`).
 - `photoUri(fileName)` → absolute URI for display/export (pure given the dir).
-- `savePhoto(sourceUri, { source, width, height }): Promise<ShotPhoto>` — generate
-  an id-based filename (reuse `generateId()` from `film-log-storage`), copy the
-  source file into `PHOTO_DIR`, return the `ShotPhoto`.
+- `savePhoto(sourceUri, { source, width, height, grayscale }): Promise<ShotPhoto>` —
+  generate an id-based filename (reuse `generateId()` from `film-log-storage`).
+  When `grayscale` is false, copy the source file into `PHOTO_DIR`. When true, run
+  the desaturation pass (below) and write the result into `PHOTO_DIR`. Return the
+  `ShotPhoto` (with `grayscale` recorded).
+- `toGrayscale(sourceUri): Promise<{ uri }>` — load the image into Skia, draw it
+  through a luminance `ColorMatrix`, `makeImageSnapshot`, encode (JPEG), and write
+  to a temp/destination file. Isolated here so the rest of the module stays
+  Skia-free and the databack imprint can reuse the same Skia plumbing later.
 - `deletePhotoFile(fileName)` — best-effort delete (ignore missing).
+
+A tiny pure helper decides desaturation: `shouldGrayscale(process) => process === 'bw'`
+(unit-testable), used by callers to set the `grayscale` option from the roll.
 
 **Lifecycle hooks in `film-log-storage.ts`:** when a shot is removed
 (`removeShot`), or a roll is deleted (`deleteRoll`), or a shot's photo is replaced,
@@ -107,8 +119,8 @@ data mutation.
   `components/meter/shutter-button.tsx`. The Matrix/Spot toggle moves into the
   readout area to make room (it currently sits just above the readout panel).
   The ISO-lock pill stays near the top.
-- Press → `cameraRef.takePhoto()` → `savePhoto(...)` → open a **quick-confirm
-  bottom sheet** (`components/film-log/capture-confirm-sheet.tsx`, built on the
+- Press → `cameraRef.takePhoto()` → `savePhoto(..., grayscale: active roll is B&W)`
+  → open a **quick-confirm bottom sheet** (`components/film-log/capture-confirm-sheet.tsx`, built on the
   existing `BottomSheet`): photo thumbnail (`expo-image`), `f/8 · 1/125 · EI 400`,
   the active roll's name, and **Save** / **Edit…**.
   - **Save** → `addShot` to the active roll (settings from the solver, auto
@@ -133,8 +145,9 @@ data mutation.
 
 - Add a **photo row**: when no photo, a "Choose from library" button
   (`expo-image-picker`); when present, the thumbnail + **Remove**. Picking copies
-  the chosen asset into app storage via `savePhoto(..., source: 'library')`;
-  Remove deletes the file and clears `photo`.
+  the chosen asset into app storage via
+  `savePhoto(..., source: 'library', grayscale: roll is B&W)`; Remove deletes the
+  file and clears `photo`.
 - On save, persist the `photo` metadata with the shot. If the user replaced an
   existing photo, delete the old file.
 - The meter "Edit…" path lands here with the photo already saved and shown.
@@ -148,7 +161,17 @@ data mutation.
   (`components/film-log/photo-viewer.tsx`) — dark backdrop, the image, a close
   control. A modal/route is fine; keep it minimal.
 
-## Settings — `settings-screen.tsx`
+## Black & white rolls
+
+When a photo is attached to a roll whose `process === 'bw'`, the stored file is
+**saved desaturated** (so the on-disk image — and any future export — is B&W, not
+just the on-screen rendering). Applies to both meter captures and library imports;
+`color` and `slide` rolls keep full color. Callers derive the flag with
+`shouldGrayscale(roll.process)` and pass it to `savePhoto`; the Skia `toGrayscale`
+pass produces the desaturated bytes. The color original is not retained (a B&W
+roll is B&W); a "keep original too" option is a possible later refinement. If the
+roll's process is edited after a photo is attached, the existing file is left
+as-is (no retroactive re-conversion in v1).
 
 - Add a **"Also save meter photos to Photos"** toggle (default **off**),
   persisted in MMKV (reuse the meter store or a small dedicated key). When off, no
@@ -164,23 +187,24 @@ data mutation.
 - `src/hooks/use-meter-capture.ts`
 
 **Modified**
-- `src/types/film-log.ts`, `src/schemas/film-log.schema.ts` — `ShotPhoto`.
+- `src/types/film-log.ts`, `src/schemas/film-log.schema.ts` — `ShotPhoto` (incl. `grayscale`).
 - `src/lib/film-log-storage.ts` — orphan-file cleanup on shot/roll delete & photo replace.
 - `src/screens/meter-screen.tsx` — shutter button + capture flow (logic in the hook).
 - `src/screens/film-log/shot-form-screen.tsx` — photo row.
 - `src/screens/film-log/roll-detail-screen.tsx` — row thumbnails + open viewer.
 - `src/screens/settings-screen.tsx` — save-to-Photos toggle.
 - `app.json` — photo-library usage strings / plugins.
-- `package.json` — new expo-* deps.
+- `package.json` — new expo-* deps + `@shopify/react-native-skia`.
 - `apps/mobile/CHANGELOG.md` — entry.
 
 ## Testing & verification
 
 - **Unit (vitest, pure modules only):** `film-log-photos` path/filename helpers
-  (`photoUri`, filename generation); storage cleanup logic (mock FS) — assert a
-  removed shot / deleted roll / replaced photo triggers `deletePhotoFile` for the
-  right filenames. Mock `expo-file-system`/`react-native` like the existing
-  MMKV-mocked tests.
+  (`photoUri`, filename generation) and `shouldGrayscale(process)`; storage
+  cleanup logic (mock FS) — assert a removed shot / deleted roll / replaced photo
+  triggers `deletePhotoFile` for the right filenames. Mock
+  `expo-file-system`/`react-native`/Skia like the existing MMKV-mocked tests. The
+  Skia pixel pass itself is not unit-tested (native) — verify visually on device.
 - **Gate:** `bun run typecheck`, `bun run lint`, `bun run test`; then
   `npx react-doctor@latest` must stay **100/100** across all four projects
   (use `expo-image`, keep `meter-screen` under the giant-component budget via the
@@ -198,3 +222,6 @@ data mutation.
   on device; if capture disrupts metering, fall back to a brief capture pause.
 - Document-directory URIs differ across installs — always store the bare filename
   and resolve at read time, including in export.
+- Skia must coexist with the live vision-camera session and adds bundle size;
+  validate the grayscale pass on a real device and confirm app start/meter aren't
+  affected. The `toGrayscale` op runs once per capture/import, not per frame.
