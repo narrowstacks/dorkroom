@@ -1,13 +1,11 @@
 import type { ReactNode } from 'react';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  FadeIn,
+  SlideInDown,
+  useAnimatedKeyboard,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface BottomSheetProps {
@@ -31,7 +29,9 @@ const ENTER_MS = 260;
  * A bottom-anchored sheet on RN Modal. The Modal itself does no animation
  * (`animationType="none"`); the scrim fades and the panel slides via Reanimated
  * on one shared timeline. The scrim is a full-screen layer behind everything,
- * so it covers the page under the panel too.
+ * so it covers the page under the panel too. The panel tracks the keyboard via
+ * `useAnimatedKeyboard`, so it glides up/down in sync with the native keyboard
+ * animation to keep focused text fields visible.
  */
 export function BottomSheet({
   visible,
@@ -41,6 +41,12 @@ export function BottomSheet({
   showScrim = true,
 }: BottomSheetProps) {
   const insets = useSafeAreaInsets();
+  const keyboard = useAnimatedKeyboard();
+  // Lift the panel by the keyboard's height; reading the shared value here means
+  // the movement follows the keyboard's own animation curve (smooth + quick).
+  const liftStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: -keyboard.height.value }],
+  }));
   return (
     <Modal
       visible={visible}
@@ -58,13 +64,13 @@ export function BottomSheet({
           ]}
         />
       ) : null}
-      {/* Lifts the panel above the keyboard so text fields stay visible. */}
-      <KeyboardAvoidingView style={styles.fill} behavior="padding">
-        <Pressable
-          className="flex-1"
-          onPress={onClose}
-          accessibilityRole="button"
-        />
+      <Pressable
+        className="flex-1"
+        onPress={onClose}
+        accessibilityRole="button"
+      />
+      {/* Outer view tracks the keyboard; inner keeps the slide-in entrance. */}
+      <Animated.View style={liftStyle}>
         <Animated.View
           entering={SlideInDown.duration(ENTER_MS)}
           className="rounded-t-3xl bg-[#161618] px-5 pt-4"
@@ -80,11 +86,7 @@ export function BottomSheet({
           </View>
           {children}
         </Animated.View>
-      </KeyboardAvoidingView>
+      </Animated.View>
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  fill: { flex: 1 },
-});
