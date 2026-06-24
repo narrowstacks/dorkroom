@@ -18,9 +18,13 @@ export function normalizePinnedIds(raw: string | undefined): string[] {
   }
   if (!Array.isArray(parsed)) return [...DEFAULT_PINNED_IDS];
   const valid = parsed
-    .filter(
-      (id): id is string => typeof id === 'string' && getTool(id) !== undefined
-    )
+    .filter((id): id is string => {
+      if (typeof id !== 'string') return false;
+      const tool = getTool(id);
+      // Drop unknown tools and ones that can't be tabs (e.g. film-log, which now
+      // lives in a root stack) so a stale pin can't render a broken trigger.
+      return tool !== undefined && tool.pinnable !== false;
+    })
     .slice(0, MAX_PINNED);
   return valid.length > 0 ? valid : [...DEFAULT_PINNED_IDS];
 }
