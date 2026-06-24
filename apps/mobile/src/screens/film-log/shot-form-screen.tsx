@@ -6,12 +6,12 @@ import {
   sanitizeText,
   snapToStandardStop,
 } from '@dorkroom/logic';
-import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { SelectField } from '@/components/film-log/select-field';
+import { ShotPhotoRow } from '@/components/film-log/shot-photo-row';
 import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { Screen } from '@/components/screen';
@@ -26,7 +26,6 @@ import { useFormState } from '@/hooks/use-form-state';
 import { cameraUsesBacks } from '@/lib/film-log-options';
 import {
   deletePhotoFile,
-  photoUri,
   savePhoto,
   shouldGrayscale,
 } from '@/lib/film-log-photos';
@@ -304,33 +303,11 @@ export function ShotFormScreen() {
           onChangeText={(v) => set('notes', v)}
           placeholder="Subject, filter, reminders…"
         />
-        <View className="gap-2">
-          <Text className="text-sm text-white/60">Photo</Text>
-          {form.photo ? (
-            <View className="flex-row items-center gap-3">
-              <Image
-                source={{ uri: photoUri(form.photo.fileName) }}
-                style={{ width: 64, height: 84, borderRadius: 8 }}
-                contentFit="cover"
-              />
-              <Pressable
-                onPress={onRemovePhoto}
-                accessibilityRole="button"
-                className="rounded-xl bg-white/10 px-4 py-3"
-              >
-                <Text className="text-base text-rose-400">Remove</Text>
-              </Pressable>
-            </View>
-          ) : (
-            <Pressable
-              onPress={() => void onChoosePhoto()}
-              accessibilityRole="button"
-              className="items-center rounded-xl bg-white/10 px-4 py-3"
-            >
-              <Text className="text-base text-white">Choose from library</Text>
-            </Pressable>
-          )}
-        </View>
+        <ShotPhotoRow
+          photo={form.photo}
+          onChoose={() => void onChoosePhoto()}
+          onRemove={onRemovePhoto}
+        />
       </GlassCard>
 
       <Pressable

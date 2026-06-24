@@ -12,6 +12,8 @@ interface MeterCaptureControlsProps {
   iso: number;
   /** Bottom offset (px) for the absolute shutter, clearing the readout/tab bar. */
   bottom: number;
+  /** Fired the instant the shutter is pressed (for the screen flash). */
+  onShutter: () => void;
 }
 
 /**
@@ -24,12 +26,16 @@ export function MeterCaptureControls({
   shutterSpeed,
   iso,
   bottom,
+  onShutter,
 }: MeterCaptureControlsProps) {
   return (
     <>
       <View pointerEvents="box-none" style={[styles.shutterWrap, { bottom }]}>
         <ShutterButton
-          onPress={() => void capture.capture({ aperture, shutterSpeed, iso })}
+          onPress={() => {
+            onShutter();
+            void capture.capture({ aperture, shutterSpeed, iso });
+          }}
         />
       </View>
 

@@ -16,6 +16,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { CameraPhotoOutput } from 'react-native-vision-camera';
 import { Camera, usePhotoOutput } from 'react-native-vision-camera';
@@ -34,6 +35,7 @@ import { useCalibration } from '@/hooks/use-calibration';
 import { useCameraMeter } from '@/hooks/use-camera-meter';
 import { useMeterCapture } from '@/hooks/use-meter-capture';
 import { useMeterIsoLock } from '@/hooks/use-meter-iso-lock';
+import { useShutterFlash } from '@/hooks/use-shutter-flash';
 import { getMeterSettings, setMeterSettings } from '@/lib/meter-settings';
 
 // Clearance for the translucent native tab bar so bottom controls stay tappable.
@@ -66,6 +68,7 @@ export function MeterScreen() {
   const photoOutputRef = useRef<CameraPhotoOutput | null>(photoOutput);
   photoOutputRef.current = photoOutput;
   const capture = useMeterCapture(photoOutputRef);
+  const { flashStyle, triggerFlash } = useShutterFlash();
   // Seed the solver from the last persisted locked setting + ISO (read once).
   const initialSettings = useMemo(() => getMeterSettings(), []);
   const solver = useLightMeterSolver(meter.ev, initialSettings);
@@ -342,6 +345,12 @@ export function MeterScreen() {
         shutterSpeed={fields.shutter.value}
         iso={solver.iso}
         bottom={insets.bottom + TAB_BAR_CLEARANCE + 96}
+        onShutter={triggerFlash}
+      />
+
+      <Animated.View
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, styles.flash, flashStyle]}
       />
     </View>
   );
@@ -349,6 +358,7 @@ export function MeterScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0b0b0c' },
+  flash: { backgroundColor: '#ffffff' },
   center: {
     flex: 1,
     alignItems: 'center',
