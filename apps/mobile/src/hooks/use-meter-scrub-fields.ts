@@ -16,15 +16,26 @@ type Solver = ReturnType<typeof useLightMeterSolver>;
 
 // Common film speeds between the standard stops (third-stop box speeds).
 const EXTRA_FILM_ISOS = [80, 125, 160, 250, 320, 500];
+// Sentinel option value: landing on it opens a number input instead of setting ISO.
+const CUSTOM_ISO = -1;
 
-/** Standard + common film ISOs, plus the roll's rated EI, sorted ascending. */
-function buildIsoOptions(rollIso: number | undefined): ScrubOption[] {
+/**
+ * Standard + common film ISOs, the roll's rated EI, and the current value, sorted
+ * ascending — then a trailing "Custom" entry for off-list speeds.
+ */
+function buildIsoOptions(
+  rollIso: number | undefined,
+  currentIso: number
+): ScrubOption[] {
   const values = new Set<number>(STANDARD_ISOS.map((o) => o.value));
   for (const v of EXTRA_FILM_ISOS) values.add(v);
   if (rollIso != null) values.add(rollIso);
-  return [...values]
+  if (currentIso > 0) values.add(currentIso);
+  const options = [...values]
     .sort((a, b) => a - b)
     .map((value) => ({ value, label: String(value) }));
+  options.push({ value: CUSTOM_ISO, label: 'Custom' });
+  return options;
 }
 
 /**
@@ -37,11 +48,12 @@ export function useMeterScrubFields(
   solver: Solver,
   rollIso: number | undefined,
   isoLocked: boolean,
-  onIsoBlocked: () => void
+  onIsoBlocked: () => void,
+  onCustomIso: () => void
 ): Record<SelectorTarget, ScrubField> {
   return useMemo(() => {
     const sol = solver.solution;
-    const isoOptions = buildIsoOptions(rollIso);
+    const isoOptions = buildIsoOptions(rollIso, solver.iso);
     const apertureLocked = solver.priority === 'aperture';
     const shutterLocked = solver.priority === 'shutter';
     return {
@@ -97,7 +109,10 @@ export function useMeterScrubFields(
         options: isoOptions,
         value: solver.iso,
         displayLabel: String(solver.iso),
-        onChange: solver.setIso,
+        onChange: (v) => {
+          if (v === CUSTOM_ISO) onCustomIso();
+          else solver.setIso(v);
+        },
         brighterIsHigherIndex: true,
         // Show the lock icon (like the aperture/shutter priority lock) and make
         // the wheel non-scrubbable while ISO is locked to the roll's EI.
@@ -109,5 +124,5 @@ export function useMeterScrubFields(
         onBlocked: onIsoBlocked,
       },
     };
-  }, [solver, rollIso, isoLocked, onIsoBlocked]);
+  }, [solver, rollIso, isoLocked, onIsoBlocked, onCustomIso]);
 }

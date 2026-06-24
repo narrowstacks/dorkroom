@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { CameraPhotoOutput } from 'react-native-vision-camera';
 import { Camera, usePhotoOutput } from 'react-native-vision-camera';
 import { BlurPanel } from '@/components/meter/blur-panel';
+import { CustomIsoSheet } from '@/components/meter/custom-iso-sheet';
 import { MeterCaptureControls } from '@/components/meter/meter-capture-controls';
 import { MeterReadout } from '@/components/meter/meter-readout';
 import { MeterRollPill } from '@/components/meter/meter-roll-pill';
@@ -72,6 +73,8 @@ export function MeterScreen() {
     () => showToast('Unlock EI in the upper left to pick an ISO'),
     [showToast]
   );
+  const [customIsoOpen, setCustomIsoOpen] = useState(false);
+  const onCustomIso = useCallback(() => setCustomIsoOpen(true), []);
   const [meteringMode, setMeteringMode] = useState<MeteringMode>('matrix');
   const [meterPoint, setMeterPoint] = useState<{ x: number; y: number } | null>(
     null
@@ -143,7 +146,13 @@ export function MeterScreen() {
 
   // Each setting (aperture / shutter / ISO) as a drag-scrubbable field. The
   // roll's rated EI is injected into the ISO options and accented.
-  const fields = useMeterScrubFields(solver, rollIso, isoLocked, onIsoBlocked);
+  const fields = useMeterScrubFields(
+    solver,
+    rollIso,
+    isoLocked,
+    onIsoBlocked,
+    onCustomIso
+  );
 
   if (!meter.hasPermission) {
     return (
@@ -292,6 +301,14 @@ export function MeterScreen() {
       />
 
       {toastMessage ? <MeterToast message={toastMessage} /> : null}
+
+      {customIsoOpen ? (
+        <CustomIsoSheet
+          visible
+          onClose={() => setCustomIsoOpen(false)}
+          onSubmit={solver.setIso}
+        />
+      ) : null}
     </View>
   );
 }
