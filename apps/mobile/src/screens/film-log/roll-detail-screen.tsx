@@ -1,11 +1,14 @@
 import { formatAperture, formatShutterSpeed } from '@dorkroom/logic';
+import { Image } from 'expo-image';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable, Text, View } from 'react-native';
+import { PhotoViewer } from '@/components/film-log/photo-viewer';
 import { GlassCard } from '@/components/glass-card';
 import { GradientBackground } from '@/components/gradient-background';
 import { useCameras, useLenses, useRoll } from '@/hooks/use-film-log';
 import { formatProcess } from '@/lib/film-log-options';
+import { photoUri } from '@/lib/film-log-photos';
 import { deleteRoll } from '@/lib/film-log-storage';
 import type { Shot } from '@/types/film-log';
 
@@ -23,6 +26,7 @@ export function RollDetailScreen() {
   const roll = useRoll(rollId);
   const cameras = useCameras();
   const lenses = useLenses();
+  const [viewerFile, setViewerFile] = useState<string | null>(null);
 
   const lensName = useMemo(() => {
     const map = new Map(lenses.map((lens) => [lens.id, lens.name]));
@@ -57,12 +61,28 @@ export function RollDetailScreen() {
           accessibilityLabel={`Edit frame ${item.frameNumber}`}
         >
           <GlassCard className="flex-row items-center gap-3">
-            <Text className="w-10 text-lg font-semibold text-rose-400">
-              #{item.frameNumber}
-            </Text>
+            {item.photo ? (
+              <Pressable
+                onPress={() => setViewerFile(item.photo!.fileName)}
+                accessibilityRole="imagebutton"
+                accessibilityLabel="View photo"
+              >
+                <Image
+                  source={{ uri: photoUri(item.photo.fileName) }}
+                  style={{ width: 40, height: 54, borderRadius: 6 }}
+                  contentFit="cover"
+                />
+              </Pressable>
+            ) : (
+              <Text className="w-10 text-lg font-semibold text-rose-400">
+                #{item.frameNumber}
+              </Text>
+            )}
             <View className="flex-1 gap-0.5">
               <Text className="text-base text-white">
-                {exposureSummary(item, roll?.iso)}
+                {item.photo
+                  ? `#${item.frameNumber} · ${exposureSummary(item, roll?.iso)}`
+                  : exposureSummary(item, roll?.iso)}
               </Text>
               {meta ? (
                 <Text className="text-sm text-white/50">{meta}</Text>
@@ -80,7 +100,7 @@ export function RollDetailScreen() {
         </Pressable>
       );
     },
-    [lensName, roll?.id, roll?.iso]
+    [lensName, roll?.id, roll?.iso, setViewerFile]
   );
 
   if (!roll) {
@@ -152,6 +172,11 @@ export function RollDetailScreen() {
           </Text>
         }
         renderItem={renderShot}
+      />
+      <PhotoViewer
+        visible={!!viewerFile}
+        fileName={viewerFile}
+        onClose={() => setViewerFile(null)}
       />
     </View>
   );
