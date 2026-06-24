@@ -7,7 +7,7 @@ import {
   snapToStandardStop,
   useLightMeterSolver,
 } from '@dorkroom/logic';
-import { router, useIsFocused } from 'expo-router';
+import { useIsFocused } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   type LayoutChangeEvent,
@@ -17,8 +17,10 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Camera } from 'react-native-vision-camera';
+import type { CameraPhotoOutput } from 'react-native-vision-camera';
+import { Camera, usePhotoOutput } from 'react-native-vision-camera';
 import { BlurPanel } from '@/components/meter/blur-panel';
+import { MeterCaptureControls } from '@/components/meter/meter-capture-controls';
 import {
   MeterReadout,
   type ScrubField,
@@ -30,6 +32,7 @@ import { ScrubOverlay, useDragOffset } from '@/components/meter/scrub-overlay';
 import { SegmentedPill } from '@/components/meter/segmented-pill';
 import { useCalibration } from '@/hooks/use-calibration';
 import { useCameraMeter } from '@/hooks/use-camera-meter';
+import { useMeterCapture } from '@/hooks/use-meter-capture';
 import { useMeterIsoLock } from '@/hooks/use-meter-iso-lock';
 import { getMeterSettings, setMeterSettings } from '@/lib/meter-settings';
 
@@ -56,6 +59,12 @@ export function MeterScreen() {
     useCalibration();
   const meter = useCameraMeter(calibrationOffset);
   const { hasPermission, requestPermission } = meter;
+  // Still-photo output for the shutter; kept in a ref so the capture hook reads
+  // the latest instance without re-subscribing each render.
+  const photoOutput = usePhotoOutput();
+  const photoOutputRef = useRef<CameraPhotoOutput | null>(photoOutput);
+  photoOutputRef.current = photoOutput;
+  const capture = useMeterCapture(photoOutputRef);
   // Seed the solver from the last persisted locked setting + ISO (read once).
   const initialSettings = useMemo(() => getMeterSettings(), []);
   const solver = useLightMeterSolver(meter.ev, initialSettings);
@@ -232,6 +241,7 @@ export function MeterScreen() {
           device={meter.device}
           isActive={isFocused}
           onPreviewStarted={meter.onInitialized}
+          outputs={[photoOutput]}
         />
       </Pressable>
 
@@ -251,26 +261,12 @@ export function MeterScreen() {
         </View>
       ) : null}
 
-      {/* Log shot + ISO lock (left) + calibration (right). */}
+      {/* ISO lock (left) + calibration (right). */}
       <View
         pointerEvents="box-none"
         style={[styles.topStrip, { top: insets.top + 8 }]}
       >
         <View style={styles.topLeftGroup}>
-          <Pressable
-            onPress={() => {
-              const a = fields.aperture.value;
-              const s = fields.shutter.value;
-              router.push(
-                `/film-log/shot?source=meter&aperture=${a}&shutter=${s}&meteredIso=${solver.iso}`
-              );
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Log this reading to a film roll"
-            style={styles.logButton}
-          >
-            <Text style={styles.logButtonText}>＋ Log</Text>
-          </Pressable>
           {rollIso != null ? (
             <Pressable
               onPress={toggleLock}
@@ -336,6 +332,16 @@ export function MeterScreen() {
           />
         </BlurPanel>
       </View>
+
+      {/* Bottom-center shutter + confirm sheet (extracted to keep the screen
+          lean; capture state lives in useMeterCapture). */}
+      <MeterCaptureControls
+        capture={capture}
+        aperture={fields.aperture.value}
+        shutterSpeed={fields.shutter.value}
+        iso={solver.iso}
+        bottom={insets.bottom + TAB_BAR_CLEARANCE + 96}
+      />
     </View>
   );
 }
@@ -370,7 +376,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     right: 16,
-    alignItems: 'flex-end',
+    // Left-align the mode toggle / scrub overlay so the bottom-center shutter
+    // (rendered separately, absolute) sits clear of them. The readout panel
+    // below is alignSelf:'stretch', so it stays full-width regardless.
+    alignItems: 'flex-start',
     gap: 10,
   },
   resultsPanel: {
