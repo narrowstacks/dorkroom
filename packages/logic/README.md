@@ -29,13 +29,20 @@ src/
 │   ├── api/         # TanStack Query hooks (films, developers, combinations)
 │   ├── border-calculator/  # Modular border calculator hooks
 │   ├── custom-recipes/     # Custom recipe management
-│   └── development-recipes/ # Recipe filtering and state
+│   ├── development-recipes/ # Recipe filtering and state
+│   ├── films/              # Film database hooks
+│   └── use-*-calculator.ts # Top-level calculator hooks (border, exposure,
+│                           #   camera-exposure, lens, mat, reciprocity, resize,
+│                           #   light-meter-solver)
 ├── queries/         # Query key factories
 ├── schemas/         # Zod validation schemas
-├── services/        # External API integrations
+├── services/        # Pure business logic / external API integrations
 ├── types/           # TypeScript definitions
 └── utils/           # Pure utility functions
 ```
+
+> `use-window-dimensions.native.ts` overrides the web hook for React Native
+> (the iOS app consumes these same hooks).
 
 ## Calculator Hooks
 
@@ -108,6 +115,15 @@ function ReciprocityCalculatorPage() {
   } = useReciprocityCalculator();
 }
 ```
+
+### Other Calculators
+
+The same hook pattern backs the remaining tools (shared by the web and iOS apps):
+
+- `useCameraExposureCalculator` — balance aperture / shutter / ISO; equivalent exposures
+- `useLensCalculator` — equivalent focal length & field of view across formats
+- `useMatCalculator` — single-window mat planning (window opening + cutter guide-bar)
+- `useLightMeterSolver` — pure EV/solver math behind the iOS camera light meter
 
 ## API Hooks
 

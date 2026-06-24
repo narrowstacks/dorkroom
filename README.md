@@ -23,19 +23,30 @@ Dorkroom provides useful calculators for darkroom printing, film development, an
 
 ### **Printing Tools**
 
-- [**Border Calculator**](https://dorkroom.art/border) - Calculate precise print borders with to maintain your desired aspect ratio with the border sizes you want.
+- [**Border Calculator**](https://dorkroom.art/border) - Calculate precise print borders to maintain your desired aspect ratio with the border sizes you want.
 - [**Resize Calculator**](https://dorkroom.art/resize) - Scale prints to be larger or smaller without endless test strips (some test strips still necessary!)
-- [**Stops Calculator**](https://dorkroom.art/stops) - Translate exposure stops into seconds
+- [**Stops Calculator**](https://dorkroom.art/stops) - Translate exposure stops into seconds.
+- [**Mat Cut Calculator**](https://dorkroom.art/mat) - Plan single-window mats with independent borders; get exact window openings and mat-cutter guide-bar settings.
 
 ### **Shooting Tools**
 
-- [**Reciprocity Calculator**](https://dorkroom.art/reciprocity) - Calculate exposure time correction for long exposure (reciprocity) failure on films
+- [**Reciprocity Calculator**](https://dorkroom.art/reciprocity) - Calculate exposure time correction for long exposure (reciprocity) failure on films.
+- [**Exposure Calculator**](https://dorkroom.art/exposure) - Balance aperture, shutter speed, and ISO; calculate equivalent exposures across settings.
+- [**Lens Equivalency Calculator**](https://dorkroom.art/lenses) - Compare equivalent focal lengths and field of view across APS-C, Full Frame, and Medium Format.
+
+## iOS App
+
+A native **iOS app** (Expo / React Native, targeting iOS 26 with Liquid Glass
+styling) is in development under [`apps/mobile/`](apps/mobile/). It reuses the
+same `@dorkroom/logic` and `@dorkroom/api` packages as the web app and ships the
+Border, Exposure, Reciprocity, and Resize calculators plus a camera-based
+**Light Meter**. It versions independently — see
+[apps/mobile/CHANGELOG.md](apps/mobile/CHANGELOG.md).
 
 ## In the Works
 
 - **Dorkroom Docs** - Thorough documentation on how to use all the tools Dorkroom provides.
-- **Camera Exposure Calculator** - For calculating equivalent camera exposure values.
-- **Kindle browser support** - Support for for the app on the strange Kindle browser.
+- **Kindle browser support** - Support for the app on the strange Kindle browser.
   - _**Help needed!** The site currently does not render on Kindle browsers_ ☹️
 
 ## Development Quick Start
@@ -102,7 +113,7 @@ turbo run test --filter=@dorkroom/logic
 
 ## Technology Stack
 
-- **Frontend**: React 19 with TypeScript 5.9 (typecheck/build run on the TypeScript 7 beta `tsgo`)
+- **Frontend**: React 19 with TypeScript 6.0 (typecheck/build run on the TypeScript 7 beta `tsgo`)
 - **Styling**: Tailwind CSS 4.3 with custom darkroom theme
 - **Build Tool**: Vite 8 (Rolldown/Oxc) with Turborepo
 - **Testing**: Vitest 4 with Testing Library (happy-dom environment)
@@ -121,8 +132,9 @@ Dorkroom is built as a Turborepo monorepo with clear separation of concerns:
 
 ```
 apps/
-  dorkroom/           # Main React application with TanStack Router file-based routing
+  dorkroom/           # Main React (web) application with TanStack Router file-based routing
     src/routes/       # File-based route definitions
+  mobile/             # Native iOS app (Expo / React Native), reuses @dorkroom/logic + @dorkroom/api
 packages/
   ui/                 # Shared UI components (@dorkroom/ui)
   logic/              # Business logic, hooks, queries (@dorkroom/logic)

@@ -25,13 +25,17 @@ src/
 ├── components/
 │   ├── border-calculator/     # Border calculator UI components
 │   ├── calculator/            # Shared calculator components
+│   ├── detail-panel/          # Film/recipe detail panels
 │   ├── development-recipes/   # Recipe browser components
+│   ├── films/                 # Film database UI
+│   ├── filters/               # Shared filter controls
 │   ├── marketing/             # Landing page components
 │   └── ui/                    # Base UI primitives
 ├── contexts/          # React context providers
 ├── forms/             # TanStack Form components
 ├── hooks/             # UI-specific hooks
-└── lib/               # Utilities and constants
+├── lib/               # Utilities and constants
+└── types/             # Shared UI type definitions
 ```
 
 ## Core Components

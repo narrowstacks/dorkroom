@@ -85,26 +85,34 @@ function useCombinations() {
 
 ### Custom API Client
 
-By default, the client uses the production Dorkroom API at `https://dorkroom.art/api`. You can create a client with a custom base URL:
+The class constructor takes a config object `{ baseUrl?, apiKey? }`. By default it
+targets the public API at `https://api.dorkroom.art` (`PUBLIC_API_BASE_URL`), which
+**requires an API key** sent as the `X-API-Key` header:
 
 ```typescript
-import { DorkroomApiClient, DEFAULT_BASE_URL } from '@dorkroom/api';
+import {
+  DorkroomApiClient,
+  PUBLIC_API_BASE_URL,
+  INTERNAL_API_BASE_URL,
+} from '@dorkroom/api';
 
-// Default client uses production API
-const client = new DorkroomApiClient();
+// External consumers: defaults to https://api.dorkroom.art, needs a key
+const client = new DorkroomApiClient({ apiKey: 'dk_...' });
 
-// For staging environment
-const stagingClient = new DorkroomApiClient('https://staging.dorkroom.art/api');
+// Custom base URL (e.g. local development)
+const localClient = new DorkroomApiClient({
+  baseUrl: 'http://localhost:3001/api',
+});
 
-// For local development
-const localClient = new DorkroomApiClient('http://localhost:3001/api');
+console.log(PUBLIC_API_BASE_URL);   // 'https://api.dorkroom.art'  (external, keyed)
+console.log(INTERNAL_API_BASE_URL); // '/api'  (same-origin, used by the apiClient singleton)
 
-// Reference the default URL if needed
-console.log(DEFAULT_BASE_URL); // 'https://dorkroom.art/api'
-
-const stagingFilms = await stagingClient.fetchFilms();
-const localFilms = await localClient.fetchFilms();
+const films = await client.fetchFilms();
 ```
+
+> The exported `apiClient` singleton is configured for **internal** same-origin use
+> (`INTERNAL_API_BASE_URL` = `/api`) and is what the dorkroom.art web app uses. For
+> standalone/external use, construct your own client with an `apiKey` as above.
 
 ## API Types
 
