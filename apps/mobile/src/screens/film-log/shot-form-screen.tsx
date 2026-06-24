@@ -6,8 +6,10 @@ import {
   sanitizeText,
   snapToStandardStop,
 } from '@dorkroom/logic';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { SelectField } from '@/components/film-log/select-field';
 import { GlassCard } from '@/components/glass-card';
@@ -22,7 +24,14 @@ import {
 } from '@/hooks/use-film-log';
 import { useFormState } from '@/hooks/use-form-state';
 import { cameraUsesBacks } from '@/lib/film-log-options';
+import {
+  deletePhotoFile,
+  photoUri,
+  savePhoto,
+  shouldGrayscale,
+} from '@/lib/film-log-photos';
 import { addShot, updateShot } from '@/lib/film-log-storage';
+import type { ShotPhoto } from '@/types/film-log';
 
 const APERTURE_OPTIONS = STANDARD_APERTURES.map((a) => ({
   value: a.value,
@@ -47,6 +56,7 @@ export function ShotFormScreen() {
     aperture?: string;
     shutter?: string;
     meteredIso?: string;
+    photo?: string;
   }>();
   const rolls = useRolls();
   // When launched from a roll, rollId is fixed. From the meter "+ Log" button it
@@ -92,7 +102,30 @@ export function ShotFormScreen() {
     lensId: existing?.lensId,
     back: existing?.back ?? roll?.back,
     notes: existing?.notes ?? '',
+    photo: (existing?.photo ??
+      (params.photo
+        ? {
+            fileName: params.photo,
+            width: 0,
+            height: 0,
+            capturedAt: new Date().toISOString(),
+            source: 'meter' as const,
+          }
+        : undefined)) as ShotPhoto | undefined,
   });
+
+  const savedRef = useRef(false);
+
+  // eslint-disable-next-line react-doctor/exhaustive-deps -- savedRef.current is intentionally read in the cleanup without being a dep; refs are stable and adding .current would be the wrong fix
+  useEffect(() => {
+    const meterFile = params.photo;
+    return () => {
+      // Only clean up a fresh meter capture that was never saved and never replaced.
+      if (meterFile && !savedRef.current && !existing) {
+        void deletePhotoFile(meterFile);
+      }
+    };
+  }, [params.photo, existing]);
 
   const showRollPicker = !params.rollId;
   const rollOptions = rolls.map((r) => ({
@@ -109,6 +142,27 @@ export function ShotFormScreen() {
   );
   const showBacks = cameraUsesBacks(camera);
 
+  const onChoosePhoto = async () => {
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images',
+      quality: 1,
+    });
+    if (res.canceled || !res.assets[0]) return;
+    const a = res.assets[0];
+    const saved = await savePhoto(a.uri, {
+      source: 'library',
+      width: a.width ?? 0,
+      height: a.height ?? 0,
+      grayscale: shouldGrayscale(roll?.process ?? 'color'),
+    });
+    set('photo', saved);
+  };
+
+  const onRemovePhoto = () => {
+    if (form.photo) void deletePhotoFile(form.photo.fileName);
+    set('photo', undefined);
+  };
+
   const onSave = () => {
     if (!roll) return;
     const fields = {
@@ -120,12 +174,18 @@ export function ShotFormScreen() {
       notes: sanitizeText(form.notes, 2000),
       source:
         existing?.source ?? (params.source === 'meter' ? 'meter' : 'manual'),
+      photo: form.photo,
     } as const;
     if (existing) {
+      // Clean up the old photo file if the photo was replaced.
+      if (existing.photo && existing.photo.fileName !== form.photo?.fileName) {
+        void deletePhotoFile(existing.photo.fileName);
+      }
       updateShot(roll.id, existing.id, fields);
     } else {
       addShot(roll.id, { ...fields, takenAt: new Date().toISOString() });
     }
+    savedRef.current = true;
     router.back();
   };
 
@@ -230,6 +290,33 @@ export function ShotFormScreen() {
           onChangeText={(v) => set('notes', v)}
           placeholder="Subject, filter, reminders…"
         />
+        <View className="gap-2">
+          <Text className="text-sm text-white/60">Photo</Text>
+          {form.photo ? (
+            <View className="flex-row items-center gap-3">
+              <Image
+                source={{ uri: photoUri(form.photo.fileName) }}
+                style={{ width: 64, height: 84, borderRadius: 8 }}
+                contentFit="cover"
+              />
+              <Pressable
+                onPress={onRemovePhoto}
+                accessibilityRole="button"
+                className="rounded-xl bg-white/10 px-4 py-3"
+              >
+                <Text className="text-base text-rose-400">Remove</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => void onChoosePhoto()}
+              accessibilityRole="button"
+              className="items-center rounded-xl bg-white/10 px-4 py-3"
+            >
+              <Text className="text-base text-white">Choose from library</Text>
+            </Pressable>
+          )}
+        </View>
       </GlassCard>
 
       <Pressable
