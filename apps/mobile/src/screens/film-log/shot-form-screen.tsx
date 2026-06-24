@@ -23,7 +23,7 @@ import {
   useRolls,
 } from '@/hooks/use-film-log';
 import { useFormState } from '@/hooks/use-form-state';
-import { cameraUsesBacks } from '@/lib/film-log-options';
+import { cameraUsesBacks, lastUsedLensId } from '@/lib/film-log-options';
 import {
   deletePhotoFile,
   savePhoto,
@@ -98,7 +98,8 @@ export function ShotFormScreen() {
         ? snapToStandardStop(prefillShutter, STANDARD_SHUTTER_SPEEDS, true)
             .standard.value
         : 0.008),
-    lensId: existing?.lensId,
+    // New shots default to the last lens used on this roll.
+    lensId: existing?.lensId ?? lastUsedLensId(roll?.shots ?? []),
     back: existing?.back ?? roll?.back,
     notes: existing?.notes ?? '',
     photo: (existing?.photo ??

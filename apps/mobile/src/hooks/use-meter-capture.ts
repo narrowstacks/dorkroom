@@ -2,6 +2,7 @@ import * as MediaLibrary from 'expo-media-library';
 import { type RefObject, useCallback, useMemo, useState } from 'react';
 import type { CameraPhotoOutput } from 'react-native-vision-camera';
 import { useRolls } from '@/hooks/use-film-log';
+import { lastUsedLensId } from '@/lib/film-log-options';
 import {
   deletePhotoFile,
   photoUri,
@@ -73,6 +74,8 @@ export function useMeterCapture(
         activeRoll.shots.reduce((m, s) => Math.max(m, s.frameNumber), 0) + 1,
       aperture: pending.aperture,
       shutterSpeed: pending.shutterSpeed,
+      // Assume the same lens as the last shot on this roll.
+      lensId: lastUsedLensId(activeRoll.shots),
       source: 'meter',
       photo: pending.photo,
       takenAt: new Date().toISOString(),

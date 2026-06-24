@@ -1,5 +1,15 @@
 // Shared option lists + label helpers for the film-log forms.
-import type { Camera, CameraFormat, FilmProcess } from '@/types/film-log';
+import type { Camera, CameraFormat, FilmProcess, Shot } from '@/types/film-log';
+
+/** The lens used on the most recent shot of a roll that recorded one, if any.
+ * Used to pre-select the likely lens for the next shot. */
+export function lastUsedLensId(shots: readonly Shot[]): string | undefined {
+  for (let i = shots.length - 1; i >= 0; i--) {
+    const lensId = shots[i]?.lensId;
+    if (lensId) return lensId;
+  }
+  return undefined;
+}
 
 export const PROCESS_OPTIONS: { label: string; value: FilmProcess }[] = [
   { label: 'B&W', value: 'bw' },
