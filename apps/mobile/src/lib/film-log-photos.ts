@@ -75,10 +75,14 @@ export async function savePhoto(
   // unexpected format), fall back to the original in colour rather than failing
   // the whole capture.
   let from = sourceUri;
+  // The grayscale pass writes a temp JPEG that copyAsync duplicates into
+  // PHOTO_DIR; track it so we can delete the temp after the copy.
+  let tempGrayscale: string | undefined;
   let grayscaleApplied = false;
   if (opts.grayscale) {
     try {
       from = await toGrayscale(sourceUri);
+      tempGrayscale = from;
       grayscaleApplied = true;
     } catch (error) {
       console.warn(
@@ -87,7 +91,11 @@ export async function savePhoto(
       );
     }
   }
-  await FileSystem.copyAsync({ from, to: dest });
+  try {
+    await FileSystem.copyAsync({ from, to: dest });
+  } finally {
+    if (tempGrayscale) await deletePhotoFileAt(tempGrayscale);
+  }
   return {
     fileName,
     width: opts.width,
@@ -98,10 +106,15 @@ export async function savePhoto(
   };
 }
 
-export async function deletePhotoFile(fileName: string): Promise<void> {
+/** Best-effort delete of a file at an absolute uri; never throws. */
+async function deletePhotoFileAt(uri: string): Promise<void> {
   try {
-    await FileSystem.deleteAsync(photoUri(fileName), { idempotent: true });
+    await FileSystem.deleteAsync(uri, { idempotent: true });
   } catch {
     // Best-effort; a missing file must never block a data mutation.
   }
+}
+
+export async function deletePhotoFile(fileName: string): Promise<void> {
+  await deletePhotoFileAt(photoUri(fileName));
 }

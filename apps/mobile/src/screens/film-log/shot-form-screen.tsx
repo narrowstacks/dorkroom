@@ -172,7 +172,14 @@ export function ShotFormScreen() {
   };
 
   const onRemovePhoto = () => {
-    if (form.photo) void deletePhotoFile(form.photo.fileName);
+    const fileName = form.photo?.fileName;
+    // Only delete files created during this session right away. An existing
+    // shot's saved photo is left on disk and removed in onSave, so navigating
+    // back without saving keeps the photo the shot still references.
+    if (fileName && sessionFiles.current.has(fileName)) {
+      sessionFiles.current.delete(fileName);
+      void deletePhotoFile(fileName);
+    }
     set('photo', undefined);
   };
 
