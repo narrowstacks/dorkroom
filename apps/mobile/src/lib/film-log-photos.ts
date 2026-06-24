@@ -71,7 +71,22 @@ export async function savePhoto(
   await ensurePhotoDir();
   const fileName = `${generateId()}.jpg`;
   const dest = photoUri(fileName);
-  const from = opts.grayscale ? await toGrayscale(sourceUri) : sourceUri;
+  // Convert to grayscale for B&W rolls; if the source can't be decoded (e.g. an
+  // unexpected format), fall back to the original in colour rather than failing
+  // the whole capture.
+  let from = sourceUri;
+  let grayscaleApplied = false;
+  if (opts.grayscale) {
+    try {
+      from = await toGrayscale(sourceUri);
+      grayscaleApplied = true;
+    } catch (error) {
+      console.warn(
+        'film-log: grayscale conversion failed, saving colour',
+        error
+      );
+    }
+  }
   await FileSystem.copyAsync({ from, to: dest });
   return {
     fileName,
@@ -79,7 +94,7 @@ export async function savePhoto(
     height: opts.height,
     capturedAt: new Date().toISOString(),
     source: opts.source,
-    grayscale: opts.grayscale,
+    grayscale: grayscaleApplied,
   };
 }
 

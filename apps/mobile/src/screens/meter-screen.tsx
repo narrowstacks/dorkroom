@@ -60,8 +60,9 @@ export function MeterScreen() {
   const meter = useCameraMeter(calibrationOffset);
   const { hasPermission, requestPermission } = meter;
   // Still-photo output for the shutter; kept in a ref so the capture hook reads
-  // the latest instance without re-subscribing each render.
-  const photoOutput = usePhotoOutput();
+  // the latest instance without re-subscribing each render. Force JPEG (the iOS
+  // default is HEIC, which Skia's grayscale pass can't decode).
+  const photoOutput = usePhotoOutput({ containerFormat: 'jpeg' });
   const photoOutputRef = useRef<CameraPhotoOutput | null>(photoOutput);
   photoOutputRef.current = photoOutput;
   const capture = useMeterCapture(photoOutputRef);
