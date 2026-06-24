@@ -34,6 +34,8 @@ export interface ScrubField {
   calculated: boolean;
   stopError?: number;
   accessibilityLabel: string;
+  /** Option value to accent in the scrub wheel (e.g. the roll's rated ISO). */
+  highlightValue?: number;
 }
 
 interface MeterReadoutProps {

@@ -45,7 +45,7 @@ export function ScrubOverlay({
   baseIndex: number;
   dragY: Animated.Value;
 }) {
-  const { options, brighterIsHigherIndex, caption } = field;
+  const { options, brighterIsHigherIndex, caption, highlightValue } = field;
   const len = options.length;
   const dir = brighterIsHigherIndex ? 1 : -1;
   const period = len * SCRUB_ROW_HEIGHT;
@@ -97,7 +97,14 @@ export function ScrubOverlay({
                 style={{ height: SCRUB_ROW_HEIGHT }}
                 className="items-center justify-center"
               >
-                <Text style={[MONO, SHADOW]} className="text-lg text-white">
+                <Text
+                  style={[MONO, SHADOW]}
+                  className={
+                    option.value === highlightValue
+                      ? 'text-lg font-semibold text-amber-300'
+                      : 'text-lg text-white'
+                  }
+                >
                   {option.label}
                 </Text>
               </View>

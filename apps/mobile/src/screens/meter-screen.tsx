@@ -134,8 +134,9 @@ export function MeterScreen() {
     [enterMatrix, enterSpot]
   );
 
-  // Each setting (aperture / shutter / ISO) as a drag-scrubbable field.
-  const fields = useMeterScrubFields(solver);
+  // Each setting (aperture / shutter / ISO) as a drag-scrubbable field. The
+  // roll's rated EI is injected into the ISO options and accented.
+  const fields = useMeterScrubFields(solver, rollIso);
 
   if (!meter.hasPermission) {
     return (

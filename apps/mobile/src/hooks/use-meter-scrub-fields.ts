@@ -8,16 +8,24 @@ import {
   type useLightMeterSolver,
 } from '@dorkroom/logic';
 import { useMemo } from 'react';
-import type { ScrubField } from '@/components/meter/meter-readout';
+import type { ScrubField, ScrubOption } from '@/components/meter/meter-readout';
 
 export type SelectorTarget = 'aperture' | 'shutter' | 'iso';
 
 type Solver = ReturnType<typeof useLightMeterSolver>;
 
-const ISO_OPTIONS = STANDARD_ISOS.map((o) => ({
-  value: o.value,
-  label: String(o.value),
-}));
+// Common film speeds between the standard stops (third-stop box speeds).
+const EXTRA_FILM_ISOS = [80, 125, 160, 250, 320, 500];
+
+/** Standard + common film ISOs, plus the roll's rated EI, sorted ascending. */
+function buildIsoOptions(rollIso: number | undefined): ScrubOption[] {
+  const values = new Set<number>(STANDARD_ISOS.map((o) => o.value));
+  for (const v of EXTRA_FILM_ISOS) values.add(v);
+  if (rollIso != null) values.add(rollIso);
+  return [...values]
+    .sort((a, b) => a - b)
+    .map((value) => ({ value, label: String(value) }));
+}
 
 /**
  * Builds the three drag-scrubbable meter settings (aperture / shutter / ISO)
@@ -26,10 +34,12 @@ const ISO_OPTIONS = STANDARD_ISOS.map((o) => ({
  * scrub from its displayed (solved + snapped) value.
  */
 export function useMeterScrubFields(
-  solver: Solver
+  solver: Solver,
+  rollIso: number | undefined
 ): Record<SelectorTarget, ScrubField> {
   return useMemo(() => {
     const sol = solver.solution;
+    const isoOptions = buildIsoOptions(rollIso);
     const apertureLocked = solver.priority === 'aperture';
     const shutterLocked = solver.priority === 'shutter';
     return {
@@ -82,14 +92,16 @@ export function useMeterScrubFields(
       iso: {
         caption: 'ISO',
         accessibilityLabel: 'ISO',
-        options: ISO_OPTIONS,
+        options: isoOptions,
         value: solver.iso,
         displayLabel: String(solver.iso),
         onChange: solver.setIso,
         brighterIsHigherIndex: true,
         locked: false,
         calculated: false,
+        // Accent the roll's rated EI in the wheel.
+        highlightValue: rollIso,
       },
     };
-  }, [solver]);
+  }, [solver, rollIso]);
 }
