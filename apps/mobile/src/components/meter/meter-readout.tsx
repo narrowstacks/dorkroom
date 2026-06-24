@@ -119,7 +119,7 @@ function StatBody({
         >
           {value}
         </Text>
-        {draggable ? (
+        {draggable && !locked ? (
           <Text style={[MONO, SHADOW]} className="text-xs text-white/50">
             ↕
           </Text>
