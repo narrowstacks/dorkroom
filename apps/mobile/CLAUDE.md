@@ -129,6 +129,32 @@ bun run lint        # oxlint (lint) + biome (formatting only)
 Three workflows, cheapest first. Pick the **cheapest one that covers your
 change**. Full commands and credential setup are in `apps/mobile/README.md`.
 
+### Quick path — `scripts/ios.sh`
+
+`scripts/ios.sh` wraps all three workflows so you don't have to remember the
+`source`/`PATH`/`eas` incantation. Run from `apps/mobile`:
+
+```bash
+./scripts/ios.sh server      # 1. Metro dev server (JS/TS-only changes; hot reload)
+./scripts/ios.sh dev-build   # 2. local dev-client build → install + launch (native changes)
+./scripts/ios.sh build       # 3. standalone preview build → install + launch (no Metro)
+./scripts/ios.sh install     # (re)install the last built .ipa + launch
+./scripts/ios.sh help        # usage
+```
+
+Flags: `--clear` (server, stale bundler cache), `--no-launch`, `--no-install`
+(build only). The script auto-detects the connected iPhone, sources the App
+Store Connect key env, and resolves `eas`/`fastlane`/`pod`/`bun` onto `PATH`
+itself. It handles the gotchas that bite the raw commands:
+
+- `eas` isn't on `PATH` in a fresh shell (node/npm are nvm lazy-load shims,
+  `eas` has none) — it locates the nvm node bin that actually has `eas`.
+- Builds stream the **full** log to `/tmp/dorkroom-build.log` via `tee` (never
+  `tail`, which buffers the real Xcode error and masks the exit code).
+- One-time prereqs still apply (see the note at the end of this section):
+  `brew install fastlane`, the iOS platform component in Xcode, and first-build
+  credential generation. The sections below document what each command does.
+
 ### 1. Just reload Metro — for JS/TS-only changes
 
 Use when you changed **only** JavaScript/TypeScript: components, screens, hooks,
@@ -218,3 +244,7 @@ if it doesn't and the change was native, you needed **#2**.
 
 > One-time prerequisites for #2/#3 (Expo login, App Store Connect API key because
 > Apple 2FA is YubiKey-only, device registration): see `apps/mobile/README.md`.
+> Local builds also need **Fastlane** (`brew install fastlane`) and the **iOS
+> platform component** installed in Xcode (`xcodebuild -downloadPlatform iOS`, or
+> Settings → Components) — note the platform is required even when
+> `xcodebuild -showsdks` already lists the iOS SDK.

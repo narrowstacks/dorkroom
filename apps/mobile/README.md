@@ -48,6 +48,24 @@ install): `eas device:create`, or add the UDID at developer.apple.com.
 
 ## Build (local) & install to a device
 
+### Quick path — `scripts/ios.sh`
+
+The wrapper script handles the `source`/`PATH`/`eas` setup, auto-detects the
+connected iPhone, and streams the full build log to `/tmp/dorkroom-build.log`:
+
+```bash
+cd apps/mobile
+./scripts/ios.sh server      # Metro dev server (JS/TS-only changes; hot reload)
+./scripts/ios.sh dev-build   # local dev-client build → install + launch (native changes)
+./scripts/ios.sh build       # standalone preview build → install + launch (no Metro)
+./scripts/ios.sh install     # (re)install the last built .ipa + launch
+./scripts/ios.sh help        # usage + flags (--clear, --no-launch, --no-install)
+```
+
+It still needs the one-time prerequisites below (App Store Connect key,
+Fastlane, the iOS platform component, first-build credentials). The raw commands
+it wraps:
+
 After credentials exist, builds are non-interactive:
 
 ```bash
