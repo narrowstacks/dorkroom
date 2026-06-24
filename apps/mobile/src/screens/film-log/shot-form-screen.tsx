@@ -115,17 +115,29 @@ export function ShotFormScreen() {
   });
 
   const savedRef = useRef(false);
+  const committedFileRef = useRef<string | undefined>(undefined);
+  // eslint-disable-next-line react-doctor/rerender-lazy-ref-init -- Set() is a trivial allocation; lazy-init would require null + non-null assertion everywhere .current is accessed
+  const sessionFiles = useRef<Set<string>>(new Set());
 
-  // eslint-disable-next-line react-doctor/exhaustive-deps -- savedRef.current is intentionally read in the cleanup without being a dep; refs are stable and adding .current would be the wrong fix
+  // Seed the session set with the meter-capture file that was passed in as a param.
   useEffect(() => {
-    const meterFile = params.photo;
+    if (params.photo) sessionFiles.current.add(params.photo);
+    // eslint-disable-next-line react-doctor/exhaustive-deps -- one-time mount seed; sessionFiles ref is stable
+  }, []);
+
+  // On unmount, delete every file created during this session except the one committed.
+  // Refs are stable; reading .current in the cleanup is intentional — we want the
+  // latest value at unmount time, not the value captured at mount.
+  // eslint-disable-next-line react-doctor/exhaustive-deps -- refs are stable; cleanup reads latest .current on unmount
+  useEffect(() => {
     return () => {
-      // Only clean up a fresh meter capture that was never saved and never replaced.
-      if (meterFile && !savedRef.current && !existing) {
-        void deletePhotoFile(meterFile);
+      const kept = savedRef.current ? committedFileRef.current : undefined;
+      // eslint-disable-next-line react-doctor/exhaustive-deps -- intentional: iterate latest sessionFiles ref at unmount; .current is the value we want at cleanup time
+      for (const f of sessionFiles.current) {
+        if (f !== kept) void deletePhotoFile(f);
       }
     };
-  }, [params.photo, existing]);
+  }, []);
 
   const showRollPicker = !params.rollId;
   const rollOptions = rolls.map((r) => ({
@@ -155,6 +167,7 @@ export function ShotFormScreen() {
       height: a.height ?? 0,
       grayscale: shouldGrayscale(roll?.process ?? 'color'),
     });
+    sessionFiles.current.add(saved.fileName);
     set('photo', saved);
   };
 
@@ -186,6 +199,7 @@ export function ShotFormScreen() {
       addShot(roll.id, { ...fields, takenAt: new Date().toISOString() });
     }
     savedRef.current = true;
+    committedFileRef.current = form.photo?.fileName;
     router.back();
   };
 

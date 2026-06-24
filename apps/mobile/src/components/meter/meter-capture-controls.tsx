@@ -50,7 +50,7 @@ export function MeterCaptureControls({
             const fileName = capture.consumeForEdit();
             if (fileName) {
               router.push(
-                `/film-log/shot?source=meter&photo=${fileName}&aperture=${local.aperture}&shutter=${local.shutterSpeed}&meteredIso=${iso}`
+                `/film-log/shot?source=meter&photo=${fileName}&aperture=${local.aperture}&shutter=${local.shutterSpeed}&meteredIso=${local.iso}`
               );
             }
           }}

@@ -7,6 +7,10 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { generateId } from '@/lib/id';
 import type { FilmProcess, ShotPhoto } from '@/types/film-log';
 
+if (!FileSystem.documentDirectory) {
+  throw new Error('expo-file-system documentDirectory unavailable');
+}
+
 export const PHOTO_DIR = `${FileSystem.documentDirectory}film-log/`;
 
 export function photoUri(fileName: string): string {
@@ -48,7 +52,7 @@ export async function toGrayscale(sourceUri: string): Promise<string> {
   surface.flush();
   const snapshot = surface.makeImageSnapshot();
   const outBase64 = snapshot.encodeToBase64(ImageFormat.JPEG, 90);
-  const outUri = `${FileSystem.cacheDirectory}grayscale-${generateId()}.jpg`;
+  const outUri = `${FileSystem.cacheDirectory ?? FileSystem.documentDirectory}grayscale-${generateId()}.jpg`;
   await FileSystem.writeAsStringAsync(outUri, outBase64, {
     encoding: FileSystem.EncodingType.Base64,
   });
