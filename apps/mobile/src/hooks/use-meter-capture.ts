@@ -1,7 +1,8 @@
 import * as MediaLibrary from 'expo-media-library';
 import { type RefObject, useCallback, useMemo, useState } from 'react';
 import type { CameraPhotoOutput } from 'react-native-vision-camera';
-import { useLensesForCamera, useRolls } from '@/hooks/use-film-log';
+import { useLensesForCamera } from '@/hooks/use-film-log';
+import { useMeterRoll } from '@/hooks/use-meter-roll';
 import { lastUsedLensId } from '@/lib/film-log-options';
 import {
   deletePhotoFile,
@@ -23,11 +24,7 @@ interface Pending {
 export function useMeterCapture(
   photoOutputRef: RefObject<CameraPhotoOutput | null>
 ) {
-  const rolls = useRolls();
-  const activeRoll = useMemo(
-    () => rolls.find((r) => r.status === 'active'),
-    [rolls]
-  );
+  const { roll: activeRoll } = useMeterRoll();
   const lenses = useLensesForCamera(activeRoll?.cameraId);
   // Last lens used on this roll, pre-selected in the confirm sheet. Undefined on
   // a roll's first shot, where the sheet then requires the user to pick one.

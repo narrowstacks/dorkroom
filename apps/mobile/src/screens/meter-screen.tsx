@@ -1,12 +1,4 @@
-import {
-  formatAperture,
-  formatShutterSpeed,
-  STANDARD_APERTURES,
-  STANDARD_ISOS,
-  STANDARD_SHUTTER_SPEEDS,
-  snapToStandardStop,
-  useLightMeterSolver,
-} from '@dorkroom/logic';
+import { useLightMeterSolver } from '@dorkroom/logic';
 import { useIsFocused } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -22,10 +14,8 @@ import type { CameraPhotoOutput } from 'react-native-vision-camera';
 import { Camera, usePhotoOutput } from 'react-native-vision-camera';
 import { BlurPanel } from '@/components/meter/blur-panel';
 import { MeterCaptureControls } from '@/components/meter/meter-capture-controls';
-import {
-  MeterReadout,
-  type ScrubField,
-} from '@/components/meter/meter-readout';
+import { MeterReadout } from '@/components/meter/meter-readout';
+import { MeterRollPill } from '@/components/meter/meter-roll-pill';
 import { MeterStepper } from '@/components/meter/meter-stepper';
 import { PermissionFallback } from '@/components/meter/permission-fallback';
 import { RETICLE_SIZE, Reticle } from '@/components/meter/reticle';
@@ -35,6 +25,10 @@ import { useCalibration } from '@/hooks/use-calibration';
 import { useCameraMeter } from '@/hooks/use-camera-meter';
 import { useMeterCapture } from '@/hooks/use-meter-capture';
 import { useMeterIsoLock } from '@/hooks/use-meter-iso-lock';
+import {
+  type SelectorTarget,
+  useMeterScrubFields,
+} from '@/hooks/use-meter-scrub-fields';
 import { useShutterFlash } from '@/hooks/use-shutter-flash';
 import { getMeterSettings, setMeterSettings } from '@/lib/meter-settings';
 
@@ -47,13 +41,6 @@ const MODE_OPTIONS = [
   { label: 'Matrix', value: 'matrix' as const },
   { label: 'Spot', value: 'spot' as const },
 ];
-
-const ISO_OPTIONS = STANDARD_ISOS.map((o) => ({
-  value: o.value,
-  label: String(o.value),
-}));
-
-type SelectorTarget = 'aperture' | 'shutter' | 'iso';
 
 export function MeterScreen() {
   const insets = useSafeAreaInsets();
@@ -147,73 +134,8 @@ export function MeterScreen() {
     [enterMatrix, enterSpot]
   );
 
-  // Each setting is drag-scrubbable. Dragging aperture/shutter commits a value
-  // and locks it (sets that priority); ISO never changes priority. A calculated
-  // setting starts the scrub from its displayed (solved + snapped) value.
-  const fields = useMemo<Record<SelectorTarget, ScrubField>>(() => {
-    const sol = solver.solution;
-    const apertureLocked = solver.priority === 'aperture';
-    const shutterLocked = solver.priority === 'shutter';
-    return {
-      aperture: {
-        caption: 'aperture',
-        accessibilityLabel: 'Aperture',
-        options: STANDARD_APERTURES,
-        value: apertureLocked
-          ? solver.aperture
-          : snapToStandardStop(sol.aperture, STANDARD_APERTURES, false).standard
-              .value,
-        displayLabel: apertureLocked
-          ? formatAperture(solver.aperture)
-          : sol.isValid
-            ? sol.solvedLabel
-            : '—',
-        onChange: (v) => {
-          solver.setAperture(v);
-          solver.setPriority('aperture');
-        },
-        brighterIsHigherIndex: false,
-        locked: apertureLocked,
-        calculated: !apertureLocked,
-        stopError:
-          !apertureLocked && sol.isValid ? sol.solvedStopError : undefined,
-      },
-      shutter: {
-        caption: 'shutter',
-        accessibilityLabel: 'Shutter',
-        options: STANDARD_SHUTTER_SPEEDS,
-        value: shutterLocked
-          ? solver.shutterSpeed
-          : snapToStandardStop(sol.shutterSpeed, STANDARD_SHUTTER_SPEEDS, true)
-              .standard.value,
-        displayLabel: shutterLocked
-          ? formatShutterSpeed(solver.shutterSpeed)
-          : sol.isValid
-            ? sol.solvedLabel
-            : '—',
-        onChange: (v) => {
-          solver.setShutterSpeed(v);
-          solver.setPriority('shutter');
-        },
-        brighterIsHigherIndex: false,
-        locked: shutterLocked,
-        calculated: !shutterLocked,
-        stopError:
-          !shutterLocked && sol.isValid ? sol.solvedStopError : undefined,
-      },
-      iso: {
-        caption: 'ISO',
-        accessibilityLabel: 'ISO',
-        options: ISO_OPTIONS,
-        value: solver.iso,
-        displayLabel: String(solver.iso),
-        onChange: solver.setIso,
-        brighterIsHigherIndex: true,
-        locked: false,
-        calculated: false,
-      },
-    };
-  }, [solver]);
+  // Each setting (aperture / shutter / ISO) as a drag-scrubbable field.
+  const fields = useMeterScrubFields(solver);
 
   if (!meter.hasPermission) {
     return (
@@ -298,6 +220,14 @@ export function MeterScreen() {
         />
       </View>
 
+      {/* Which roll captures log to — centered below the status row. */}
+      <View
+        pointerEvents="box-none"
+        style={[styles.rollPillWrap, { top: insets.top + 52 }]}
+      >
+        <MeterRollPill />
+      </View>
+
       {/* Bottom: the live scrub value (while dragging) or the mode toggle,
           above the results readout. */}
       <View
@@ -376,6 +306,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   topLeftGroup: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  rollPillWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
   logButton: {
     borderRadius: 999,
     paddingHorizontal: 16,
