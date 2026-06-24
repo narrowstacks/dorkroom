@@ -17,6 +17,7 @@ import { MeterCaptureControls } from '@/components/meter/meter-capture-controls'
 import { MeterReadout } from '@/components/meter/meter-readout';
 import { MeterRollPill } from '@/components/meter/meter-roll-pill';
 import { MeterStepper } from '@/components/meter/meter-stepper';
+import { MeterToast } from '@/components/meter/meter-toast';
 import { PermissionFallback } from '@/components/meter/permission-fallback';
 import { RETICLE_SIZE, Reticle } from '@/components/meter/reticle';
 import { ScrubOverlay, useDragOffset } from '@/components/meter/scrub-overlay';
@@ -30,6 +31,7 @@ import {
   useMeterScrubFields,
 } from '@/hooks/use-meter-scrub-fields';
 import { useShutterFlash } from '@/hooks/use-shutter-flash';
+import { useToast } from '@/hooks/use-toast';
 import { getMeterSettings, setMeterSettings } from '@/lib/meter-settings';
 
 // Clearance for the translucent native tab bar so bottom controls stay tappable.
@@ -64,6 +66,11 @@ export function MeterScreen() {
   const { rollIso, isoLocked, toggleLock } = useMeterIsoLock(
     solver.iso,
     solver.setIso
+  );
+  const { message: toastMessage, show: showToast } = useToast();
+  const onIsoBlocked = useCallback(
+    () => showToast('Unlock EI in the upper left to pick an ISO'),
+    [showToast]
   );
   const [meteringMode, setMeteringMode] = useState<MeteringMode>('matrix');
   const [meterPoint, setMeterPoint] = useState<{ x: number; y: number } | null>(
@@ -136,7 +143,7 @@ export function MeterScreen() {
 
   // Each setting (aperture / shutter / ISO) as a drag-scrubbable field. The
   // roll's rated EI is injected into the ISO options and accented.
-  const fields = useMeterScrubFields(solver, rollIso);
+  const fields = useMeterScrubFields(solver, rollIso, isoLocked, onIsoBlocked);
 
   if (!meter.hasPermission) {
     return (
@@ -283,6 +290,8 @@ export function MeterScreen() {
         pointerEvents="none"
         style={[StyleSheet.absoluteFill, styles.flash, flashStyle]}
       />
+
+      {toastMessage ? <MeterToast message={toastMessage} /> : null}
     </View>
   );
 }

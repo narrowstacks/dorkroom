@@ -36,6 +36,9 @@ export interface ScrubField {
   accessibilityLabel: string;
   /** Option value to accent in the scrub wheel (e.g. the roll's rated ISO). */
   highlightValue?: number;
+  /** When true, dragging is swallowed and `onBlocked` fires instead of scrubbing. */
+  disabled?: boolean;
+  onBlocked?: () => void;
 }
 
 interface MeterReadoutProps {
@@ -211,15 +214,35 @@ function ValueScrubber({
     };
   });
 
+  // A disabled setting (e.g. ISO while locked to the roll's EI) swallows the
+  // gesture and prompts instead of scrubbing. Kept in refs the once-created
+  // PanResponder reads, so the check happens in the gesture handler itself.
+  const disabledRef = useRef(field.disabled);
+  disabledRef.current = field.disabled;
+  const onBlockedRef = useRef(field.onBlocked);
+  onBlockedRef.current = field.onBlocked;
+
   const panRef = useRef<ReturnType<typeof PanResponder.create>>(null);
   panRef.current ??= PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
     onPanResponderTerminationRequest: () => false,
-    onPanResponderGrant: () => controller.current.grant(),
-    onPanResponderMove: (_e, g) => controller.current.move(g),
-    onPanResponderRelease: () => controller.current.end(),
-    onPanResponderTerminate: () => controller.current.end(),
+    onPanResponderGrant: () => {
+      if (disabledRef.current) {
+        onBlockedRef.current?.();
+        return;
+      }
+      controller.current.grant();
+    },
+    onPanResponderMove: (_e, g) => {
+      if (!disabledRef.current) controller.current.move(g);
+    },
+    onPanResponderRelease: () => {
+      if (!disabledRef.current) controller.current.end();
+    },
+    onPanResponderTerminate: () => {
+      if (!disabledRef.current) controller.current.end();
+    },
   });
   const pan = panRef.current;
 
@@ -231,9 +254,13 @@ function ValueScrubber({
       accessibilityLabel={field.accessibilityLabel}
       accessibilityValue={{ text: field.displayLabel }}
       accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
-      onAccessibilityAction={(e) =>
-        controller.current.adjust(e.nativeEvent.actionName === 'increment')
-      }
+      onAccessibilityAction={(e) => {
+        if (disabledRef.current) {
+          onBlockedRef.current?.();
+          return;
+        }
+        controller.current.adjust(e.nativeEvent.actionName === 'increment');
+      }}
     >
       <StatBody
         caption={field.caption}

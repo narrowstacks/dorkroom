@@ -35,7 +35,9 @@ function buildIsoOptions(rollIso: number | undefined): ScrubOption[] {
  */
 export function useMeterScrubFields(
   solver: Solver,
-  rollIso: number | undefined
+  rollIso: number | undefined,
+  isoLocked: boolean,
+  onIsoBlocked: () => void
 ): Record<SelectorTarget, ScrubField> {
   return useMemo(() => {
     const sol = solver.solution;
@@ -97,11 +99,15 @@ export function useMeterScrubFields(
         displayLabel: String(solver.iso),
         onChange: solver.setIso,
         brighterIsHigherIndex: true,
-        locked: false,
+        // Show the lock icon (like the aperture/shutter priority lock) and make
+        // the wheel non-scrubbable while ISO is locked to the roll's EI.
+        locked: isoLocked,
         calculated: false,
         // Accent the roll's rated EI in the wheel.
         highlightValue: rollIso,
+        disabled: isoLocked,
+        onBlocked: onIsoBlocked,
       },
     };
-  }, [solver, rollIso]);
+  }, [solver, rollIso, isoLocked, onIsoBlocked]);
 }
