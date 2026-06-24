@@ -47,6 +47,8 @@ export function MeterCaptureControls({
           shutterSpeed={capture.pending.shutterSpeed}
           iso={capture.pending.iso}
           rollName={capture.activeRollName}
+          lenses={capture.lenses}
+          defaultLensId={capture.defaultLensId}
           onSave={capture.save}
           onDiscard={capture.discard}
           onEdit={() => {

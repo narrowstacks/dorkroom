@@ -1,7 +1,7 @@
 import * as MediaLibrary from 'expo-media-library';
 import { type RefObject, useCallback, useMemo, useState } from 'react';
 import type { CameraPhotoOutput } from 'react-native-vision-camera';
-import { useRolls } from '@/hooks/use-film-log';
+import { useLensesForCamera, useRolls } from '@/hooks/use-film-log';
 import { lastUsedLensId } from '@/lib/film-log-options';
 import {
   deletePhotoFile,
@@ -27,6 +27,13 @@ export function useMeterCapture(
   const activeRoll = useMemo(
     () => rolls.find((r) => r.status === 'active'),
     [rolls]
+  );
+  const lenses = useLensesForCamera(activeRoll?.cameraId);
+  // Last lens used on this roll, pre-selected in the confirm sheet. Undefined on
+  // a roll's first shot, where the sheet then requires the user to pick one.
+  const defaultLensId = useMemo(
+    () => (activeRoll ? lastUsedLensId(activeRoll.shots) : undefined),
+    [activeRoll]
   );
   const [pending, setPending] = useState<Pending | null>(null);
 
@@ -67,21 +74,23 @@ export function useMeterCapture(
     [activeRoll, photoOutputRef]
   );
 
-  const save = useCallback(() => {
-    if (!pending || !activeRoll) return;
-    addShot(activeRoll.id, {
-      frameNumber:
-        activeRoll.shots.reduce((m, s) => Math.max(m, s.frameNumber), 0) + 1,
-      aperture: pending.aperture,
-      shutterSpeed: pending.shutterSpeed,
-      // Assume the same lens as the last shot on this roll.
-      lensId: lastUsedLensId(activeRoll.shots),
-      source: 'meter',
-      photo: pending.photo,
-      takenAt: new Date().toISOString(),
-    });
-    setPending(null);
-  }, [pending, activeRoll]);
+  const save = useCallback(
+    (lensId: string | undefined) => {
+      if (!pending || !activeRoll) return;
+      addShot(activeRoll.id, {
+        frameNumber:
+          activeRoll.shots.reduce((m, s) => Math.max(m, s.frameNumber), 0) + 1,
+        aperture: pending.aperture,
+        shutterSpeed: pending.shutterSpeed,
+        lensId,
+        source: 'meter',
+        photo: pending.photo,
+        takenAt: new Date().toISOString(),
+      });
+      setPending(null);
+    },
+    [pending, activeRoll]
+  );
 
   const discard = useCallback(() => {
     if (pending) void deletePhotoFile(pending.photo.fileName);
@@ -100,6 +109,8 @@ export function useMeterCapture(
     activeRollName: activeRoll?.name?.trim()
       ? activeRoll.name
       : (activeRoll?.filmStockName ?? 'roll'),
+    lenses,
+    defaultLensId,
     capture,
     save,
     discard,
