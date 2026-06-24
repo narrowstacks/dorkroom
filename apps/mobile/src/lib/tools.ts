@@ -50,6 +50,14 @@ export const TOOLS: readonly Tool[] = [
     category: 'film',
   },
   {
+    id: 'film-log',
+    label: 'Film Log',
+    icon: 'film',
+    // Own nested stack (not the shared /more/[tool] single-screen renderer).
+    route: '/film-log',
+    category: 'film',
+  },
+  {
     id: 'lens',
     label: 'Lenses',
     icon: 'focus',

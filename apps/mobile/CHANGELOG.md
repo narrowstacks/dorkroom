@@ -9,6 +9,11 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Added
 
+- **Film Log** — a film roll tracker (new "Film Log" tool/tab). Catalog shots on rolls (camera, film stock, B&W/color/slide, ISO/aperture/shutter, lens, and holder/back for 4×5 & multi-back bodies), keep a saved list of cameras and lenses, and export the whole log as JSON via the share sheet. Works standalone (manual entry) and from the light meter: a new "＋ Log" button on the Meter screen prefills a shot with the current metered settings. Rolls/cameras/lenses persist locally (MMKV) and validate through Zod on read. Details:
+  - Lenses accept a free-form **max aperture** (e.g. f/2.5, f/1.7), not just full/half stops.
+  - Shots take a free-form **ISO / EI** so you can record a push/pull exposure index.
+  - Film picker uses a stubbed stock list pending the mobile film-database integration, and you can **add your own film stock** when it isn't listed; custom stocks persist in their own list and will merge on top of the real database once it's wired in.
+  - Photo capture, databack-style imprinting, and Lightroom export are planned follow-ups.
 - Lucide icons across the navigation — shared with the web app — on the More/Edit rows and the native tab bar (generated PNG assets via `scripts/generate-tab-icons.mjs`).
 
 ### Changed

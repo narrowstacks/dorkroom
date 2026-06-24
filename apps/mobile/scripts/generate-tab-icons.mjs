@@ -24,6 +24,7 @@ const ICON_NAMES = {
   exposure: 'gauge',
   mat: 'frame',
   reciprocity: 'timer',
+  'film-log': 'film',
   lens: 'focus',
   'camera-exposure': 'aperture',
   meter: 'sun-medium',

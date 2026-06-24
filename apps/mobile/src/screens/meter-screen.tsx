@@ -7,7 +7,7 @@ import {
   snapToStandardStop,
   useLightMeterSolver,
 } from '@dorkroom/logic';
-import { useIsFocused } from 'expo-router';
+import { router, useIsFocused } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   type LayoutChangeEvent,
@@ -245,11 +245,25 @@ export function MeterScreen() {
         </View>
       ) : null}
 
-      {/* Calibration, top-right. */}
+      {/* Log shot (left) + calibration (right). */}
       <View
         pointerEvents="box-none"
         style={[styles.topStrip, { top: insets.top + 8 }]}
       >
+        <Pressable
+          onPress={() => {
+            const a = fields.aperture.value;
+            const s = fields.shutter.value;
+            router.push(
+              `/film-log/shot?source=meter&aperture=${a}&shutter=${s}&iso=${solver.iso}`
+            );
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Log this reading to a film roll"
+          style={styles.logButton}
+        >
+          <Text style={styles.logButtonText}>＋ Log</Text>
+        </Pressable>
         <MeterStepper
           label={calLabel}
           onDecrement={() => handleCalibrationChange(-CALIBRATION_STEP)}
@@ -316,9 +330,16 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
+  logButton: {
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  logButtonText: { color: '#ffffff', fontSize: 15, fontWeight: '600' },
   bottomStack: {
     position: 'absolute',
     left: 16,
