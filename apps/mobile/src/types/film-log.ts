@@ -42,12 +42,24 @@ export interface Lens {
   createdAt: string;
 }
 
+export interface ShotPhoto {
+  /** Bare filename under documentDirectory/film-log/ — never an absolute path. */
+  fileName: string;
+  width: number;
+  height: number;
+  capturedAt: string;
+  source: 'meter' | 'library';
+  /** True when the stored file was desaturated for a B&W roll. */
+  grayscale?: boolean;
+}
+
 export interface Shot {
   id: string;
   frameNumber: number;
   aperture?: number;
   /** Shutter speed in seconds (e.g. 1/125 → 0.008). */
   shutterSpeed?: number;
+  photo?: ShotPhoto;
   // ISO is a roll-level property (the rated EI); shots inherit FilmRoll.iso.
   lensId?: string;
   /** Per-shot holder/back override (defaults to the roll's `back`). */
