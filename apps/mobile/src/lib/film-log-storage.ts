@@ -2,13 +2,21 @@
 // each collection is a JSON-stringified array under its own key, read back with a
 // schema safeParse so corrupt/legacy data falls back to [] instead of crashing.
 import { createMMKV } from 'react-native-mmkv';
+import { deletePhotoFile } from '@/lib/film-log-photos';
 import {
   camerasSchema,
   customFilmsSchema,
   lensesSchema,
   rollsSchema,
 } from '@/schemas/film-log.schema';
-import type { Camera, FilmRoll, FilmStock, Lens, Shot } from '@/types/film-log';
+import type {
+  Camera,
+  FilmRoll,
+  FilmStock,
+  Lens,
+  Shot,
+  ShotPhoto,
+} from '@/types/film-log';
 
 export const storage = createMMKV({ id: 'dorkroom-film-log' });
 
@@ -93,6 +101,10 @@ export function updateRoll(
 }
 
 export function deleteRoll(id: string): void {
+  const roll = getRolls().find((r) => r.id === id);
+  roll?.shots.forEach((s) => {
+    if (s.photo) void deletePhotoFile(s.photo.fileName);
+  });
   setRolls(getRolls().filter((roll) => roll.id !== id));
 }
 
@@ -135,6 +147,10 @@ export function updateShot(
 }
 
 export function removeShot(rollId: string, shotId: string): void {
+  const photo = getRolls()
+    .find((r) => r.id === rollId)
+    ?.shots.find((s) => s.id === shotId)?.photo;
+  if (photo) void deletePhotoFile(photo.fileName);
   setRolls(
     getRolls().map((roll) =>
       roll.id === rollId
@@ -146,6 +162,20 @@ export function removeShot(rollId: string, shotId: string): void {
         : roll
     )
   );
+}
+
+export function setShotPhoto(
+  rollId: string,
+  shotId: string,
+  photo: ShotPhoto
+): void {
+  const prev = getRolls()
+    .find((r) => r.id === rollId)
+    ?.shots.find((s) => s.id === shotId)?.photo;
+  if (prev && prev.fileName !== photo.fileName) {
+    void deletePhotoFile(prev.fileName);
+  }
+  updateShot(rollId, shotId, { photo });
 }
 
 // --- Cameras ---------------------------------------------------------------

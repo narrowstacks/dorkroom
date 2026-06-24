@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+const deleted: string[] = [];
+vi.mock('@/lib/film-log-photos', () => ({
+  deletePhotoFile: vi.fn(async (f: string) => void deleted.push(f)),
+}));
+
 const store = new Map<string, string>();
 vi.mock('react-native-mmkv', () => ({
   createMMKV: () => ({
@@ -24,6 +29,7 @@ import {
   KEYS,
   parseRolls,
   removeShot,
+  setShotPhoto,
   updateRoll,
   updateShot,
 } from './film-log-storage';
@@ -38,7 +44,10 @@ function newRoll() {
 }
 
 describe('film-log storage', () => {
-  beforeEach(() => store.clear());
+  beforeEach(() => {
+    store.clear();
+    deleted.length = 0;
+  });
 
   it('starts empty', () => {
     expect(getRolls()).toEqual([]);
@@ -125,5 +134,57 @@ describe('film-log storage', () => {
   it('falls back to [] when the shape fails schema validation', () => {
     expect(parseRolls(JSON.stringify([{ id: 1, bogus: true }]))).toEqual([]);
     expect(parseRolls(undefined)).toEqual([]);
+  });
+
+  it('deletes the photo file when a shot with a photo is removed', () => {
+    const roll = newRoll();
+    const shot = addShot(roll.id, { frameNumber: 1, source: 'manual' });
+    if (shot)
+      setShotPhoto(roll.id, shot.id, {
+        fileName: 'p1.jpg',
+        width: 1,
+        height: 1,
+        capturedAt: 'x',
+        source: 'library',
+      });
+    if (shot) removeShot(roll.id, shot.id);
+    expect(deleted).toContain('p1.jpg');
+  });
+
+  it('deletes all shot photos when a roll is deleted', () => {
+    const roll = newRoll();
+    const shot = addShot(roll.id, { frameNumber: 1, source: 'manual' });
+    if (shot)
+      setShotPhoto(roll.id, shot.id, {
+        fileName: 'p2.jpg',
+        width: 1,
+        height: 1,
+        capturedAt: 'x',
+        source: 'library',
+      });
+    deleteRoll(roll.id);
+    expect(deleted).toContain('p2.jpg');
+  });
+
+  it('deletes the old file when a shot photo is replaced', () => {
+    const roll = newRoll();
+    const shot = addShot(roll.id, { frameNumber: 1, source: 'manual' });
+    if (shot)
+      setShotPhoto(roll.id, shot.id, {
+        fileName: 'old.jpg',
+        width: 1,
+        height: 1,
+        capturedAt: 'x',
+        source: 'library',
+      });
+    if (shot)
+      setShotPhoto(roll.id, shot.id, {
+        fileName: 'new.jpg',
+        width: 1,
+        height: 1,
+        capturedAt: 'x',
+        source: 'library',
+      });
+    expect(deleted).toContain('old.jpg');
   });
 });
