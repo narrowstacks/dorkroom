@@ -101,8 +101,8 @@ export function updateRoll(
 }
 
 export function deleteRoll(id: string): void {
-  const roll = getRolls().find((r) => r.id === id);
-  roll?.shots.forEach((s) => {
+  const target = getRolls().find((r) => r.id === id);
+  target?.shots.forEach((s) => {
     if (s.photo) void deletePhotoFile(s.photo.fileName);
   });
   setRolls(getRolls().filter((roll) => roll.id !== id));
