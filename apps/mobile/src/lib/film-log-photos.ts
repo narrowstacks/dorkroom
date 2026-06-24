@@ -4,7 +4,7 @@
 // later databack imprint can reuse the same plumbing.
 import { ImageFormat, Skia } from '@shopify/react-native-skia';
 import * as FileSystem from 'expo-file-system/legacy';
-import { generateId } from '@/lib/film-log-storage';
+import { generateId } from '@/lib/id';
 import type { FilmProcess, ShotPhoto } from '@/types/film-log';
 
 export const PHOTO_DIR = `${FileSystem.documentDirectory}film-log/`;

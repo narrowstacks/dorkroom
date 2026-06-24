@@ -3,6 +3,7 @@
 // schema safeParse so corrupt/legacy data falls back to [] instead of crashing.
 import { createMMKV } from 'react-native-mmkv';
 import { deletePhotoFile } from '@/lib/film-log-photos';
+import { generateId } from '@/lib/id';
 import {
   camerasSchema,
   customFilmsSchema,
@@ -26,11 +27,6 @@ export const KEYS = {
   lenses: 'lenses',
   customFilms: 'customFilms',
 } as const;
-
-/** Collision-resistant id from a timestamp + randomness. Runtime-only use. */
-export function generateId(): string {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-}
 
 function nowIso(): string {
   return new Date().toISOString();
