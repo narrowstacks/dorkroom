@@ -8,6 +8,10 @@ export function Screen({ children }: { children: ReactNode }) {
       <GradientBackground />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
+        // Inset for the keyboard so a focused text field scrolls into view
+        // instead of being covered (e.g. Notes on the shot/roll forms).
+        automaticallyAdjustKeyboardInsets
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ padding: 16, gap: 16 }}
       >
         {children}
