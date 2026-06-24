@@ -9,12 +9,12 @@ import { formatProcess } from '@/lib/film-log-options';
 import { deleteRoll } from '@/lib/film-log-storage';
 import type { Shot } from '@/types/film-log';
 
-function exposureSummary(shot: Shot): string {
+function exposureSummary(shot: Shot, rollIso: number | undefined): string {
   const parts: string[] = [];
   if (shot.aperture !== undefined) parts.push(formatAperture(shot.aperture));
   if (shot.shutterSpeed !== undefined)
     parts.push(formatShutterSpeed(shot.shutterSpeed));
-  if (shot.iso !== undefined) parts.push(`ISO ${shot.iso}`);
+  if (rollIso !== undefined) parts.push(`ISO ${rollIso}`);
   return parts.length > 0 ? parts.join(' · ') : 'No exposure set';
 }
 
@@ -62,7 +62,7 @@ export function RollDetailScreen() {
             </Text>
             <View className="flex-1 gap-0.5">
               <Text className="text-base text-white">
-                {exposureSummary(item)}
+                {exposureSummary(item, roll?.iso)}
               </Text>
               {meta ? (
                 <Text className="text-sm text-white/50">{meta}</Text>
@@ -80,7 +80,7 @@ export function RollDetailScreen() {
         </Pressable>
       );
     },
-    [lensName, roll?.id]
+    [lensName, roll?.id, roll?.iso]
   );
 
   if (!roll) {
@@ -101,6 +101,7 @@ export function RollDetailScreen() {
         <Text className="text-sm text-white/60">{cameraName}</Text>
         <Text className="text-base text-white">
           {roll.filmStockName ?? 'No film set'} · {formatProcess(roll.process)}
+          {roll.iso !== undefined ? ` · EI ${roll.iso}` : ''}
         </Text>
         {roll.back ? (
           <Text className="text-sm text-white/50">Back: {roll.back}</Text>

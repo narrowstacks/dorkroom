@@ -30,6 +30,7 @@ import { ScrubOverlay, useDragOffset } from '@/components/meter/scrub-overlay';
 import { SegmentedPill } from '@/components/meter/segmented-pill';
 import { useCalibration } from '@/hooks/use-calibration';
 import { useCameraMeter } from '@/hooks/use-camera-meter';
+import { useMeterIsoLock } from '@/hooks/use-meter-iso-lock';
 import { getMeterSettings, setMeterSettings } from '@/lib/meter-settings';
 
 // Clearance for the translucent native tab bar so bottom controls stay tappable.
@@ -59,6 +60,11 @@ export function MeterScreen() {
   const initialSettings = useMemo(() => getMeterSettings(), []);
   const solver = useLightMeterSolver(meter.ev, initialSettings);
   const isFocused = useIsFocused();
+  // Lock the meter ISO to the active roll's rated EI (default on, tap to unlock).
+  const { rollIso, isoLocked, toggleLock } = useMeterIsoLock(
+    solver.iso,
+    solver.setIso
+  );
   const [meteringMode, setMeteringMode] = useState<MeteringMode>('matrix');
   const [meterPoint, setMeterPoint] = useState<{ x: number; y: number } | null>(
     null
@@ -245,25 +251,44 @@ export function MeterScreen() {
         </View>
       ) : null}
 
-      {/* Log shot (left) + calibration (right). */}
+      {/* Log shot + ISO lock (left) + calibration (right). */}
       <View
         pointerEvents="box-none"
         style={[styles.topStrip, { top: insets.top + 8 }]}
       >
-        <Pressable
-          onPress={() => {
-            const a = fields.aperture.value;
-            const s = fields.shutter.value;
-            router.push(
-              `/film-log/shot?source=meter&aperture=${a}&shutter=${s}&iso=${solver.iso}`
-            );
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Log this reading to a film roll"
-          style={styles.logButton}
-        >
-          <Text style={styles.logButtonText}>＋ Log</Text>
-        </Pressable>
+        <View style={styles.topLeftGroup}>
+          <Pressable
+            onPress={() => {
+              const a = fields.aperture.value;
+              const s = fields.shutter.value;
+              router.push(
+                `/film-log/shot?source=meter&aperture=${a}&shutter=${s}&meteredIso=${solver.iso}`
+              );
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Log this reading to a film roll"
+            style={styles.logButton}
+          >
+            <Text style={styles.logButtonText}>＋ Log</Text>
+          </Pressable>
+          {rollIso != null ? (
+            <Pressable
+              onPress={toggleLock}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isoLocked }}
+              accessibilityLabel={
+                isoLocked
+                  ? `ISO locked to roll EI ${rollIso}. Tap to unlock.`
+                  : `ISO unlocked. Tap to lock to roll EI ${rollIso}.`
+              }
+              style={styles.logButton}
+            >
+              <Text style={styles.logButtonText}>
+                {isoLocked ? `🔒 EI ${rollIso}` : '🔓 ISO'}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
         <MeterStepper
           label={calLabel}
           onDecrement={() => handleCalibrationChange(-CALIBRATION_STEP)}
@@ -333,6 +358,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  topLeftGroup: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   logButton: {
     borderRadius: 999,
     paddingHorizontal: 16,

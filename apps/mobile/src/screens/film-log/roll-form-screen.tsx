@@ -30,6 +30,7 @@ export function RollFormScreen() {
     cameraId: existing?.cameraId ?? cameras[0]?.id,
     filmStockId: existing?.filmStockId,
     process: (existing?.process ?? 'bw') as FilmProcess,
+    iso: existing?.iso !== undefined ? String(existing.iso) : '',
     status: (existing?.status ?? 'active') as FilmRoll['status'],
     back: existing?.back as string | undefined,
     notes: existing?.notes ?? '',
@@ -61,6 +62,8 @@ export function RollFormScreen() {
   const selectFilm = (stock: FilmStock) => {
     set('filmStockId', stock.id);
     set('process', stock.process);
+    // Default the roll's EI to box speed; the user bumps it to push/pull.
+    set('iso', String(stock.iso));
   };
 
   const onSelectFilm = (id: string) => {
@@ -78,12 +81,14 @@ export function RollFormScreen() {
       return;
     }
     const stock = resolveStock(form.filmStockId);
+    const ei = Number(form.iso);
     const fields = {
       name: sanitizeText(form.name, 120),
       cameraId: form.cameraId,
       filmStockId: form.filmStockId,
       filmStockName: stock ? `${stock.brand} ${stock.name}` : undefined,
       process: form.process,
+      iso: Number.isFinite(ei) && ei > 0 ? ei : undefined,
       status: form.status,
       back: showBacks ? form.back : undefined,
       notes: sanitizeText(form.notes, 2000),
@@ -150,6 +155,13 @@ export function RollFormScreen() {
             </Text>
           </Pressable>
         </View>
+        <LabeledTextField
+          label="ISO / EI (push/pull)"
+          value={form.iso}
+          onChangeText={(v) => set('iso', v)}
+          keyboardType="numeric"
+          placeholder="Box speed, or rate it differently"
+        />
         <View className="gap-2">
           <Text className="text-sm text-white/60">Process</Text>
           <SegmentedControl

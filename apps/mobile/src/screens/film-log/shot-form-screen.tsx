@@ -16,7 +16,6 @@ import { Screen } from '@/components/screen';
 import { Stepper } from '@/components/stepper';
 import {
   useCameras,
-  useFilmCatalog,
   useLensesForCamera,
   useRoll,
   useRolls,
@@ -47,7 +46,7 @@ export function ShotFormScreen() {
     source?: string;
     aperture?: string;
     shutter?: string;
-    iso?: string;
+    meteredIso?: string;
   }>();
   const rolls = useRolls();
   // When launched from a roll, rollId is fixed. From the meter "+ Log" button it
@@ -61,13 +60,17 @@ export function ShotFormScreen() {
   const cameras = useCameras();
   const camera = cameras.find((c) => c.id === roll?.cameraId);
   const lenses = useLensesForCamera(roll?.cameraId);
-  const films = useFilmCatalog();
   const existing = roll?.shots.find((shot) => shot.id === params.shotId);
 
-  const filmIso = films.find((f) => f.id === roll?.filmStockId)?.iso;
   const prefillAperture = parseNum(params.aperture);
   const prefillShutter = parseNum(params.shutter);
-  const prefillIso = parseNum(params.iso);
+  // The meter passes the ISO it metered at; warn if it differs from the roll's EI
+  // (the recorded aperture/shutter were solved for that ISO, not the roll's).
+  const meteredIso = parseNum(params.meteredIso);
+  const isoMismatch =
+    meteredIso !== undefined &&
+    roll?.iso !== undefined &&
+    meteredIso !== roll.iso;
   const nextFrame =
     (roll?.shots.reduce((max, shot) => Math.max(max, shot.frameNumber), 0) ??
       0) + 1;
@@ -86,8 +89,6 @@ export function ShotFormScreen() {
         ? snapToStandardStop(prefillShutter, STANDARD_SHUTTER_SPEEDS, true)
             .standard.value
         : 0.008),
-    // Free-form so the user can enter a push/pull EI (e.g. 800 for Tri-X @ +1).
-    iso: String(existing?.iso ?? prefillIso ?? filmIso ?? 400),
     lensId: existing?.lensId,
     back: existing?.back ?? roll?.back,
     notes: existing?.notes ?? '',
@@ -114,7 +115,6 @@ export function ShotFormScreen() {
       frameNumber: form.frameNumber,
       aperture: form.aperture,
       shutterSpeed: form.shutterSpeed,
-      iso: parseNum(form.iso),
       lensId: form.lensId,
       back: showBacks ? form.back : undefined,
       notes: sanitizeText(form.notes, 2000),
@@ -162,6 +162,17 @@ export function ShotFormScreen() {
   return (
     <Screen>
       <Stack.Screen options={{ title: existing ? 'Edit shot' : 'Add shot' }} />
+      {isoMismatch ? (
+        <GlassCard className="gap-1 border border-amber-400/40">
+          <Text className="text-sm font-semibold text-amber-300">
+            ISO doesn't match this roll
+          </Text>
+          <Text className="text-sm text-white/70">
+            Metered at ISO {meteredIso}, but this roll is rated EI {roll.iso}.
+            The aperture and shutter were solved for ISO {meteredIso}.
+          </Text>
+        </GlassCard>
+      ) : null}
       <GlassCard className="gap-4">
         {showRollPicker ? (
           <SelectField
@@ -194,13 +205,6 @@ export function ShotFormScreen() {
           value={form.shutterSpeed}
           options={SHUTTER_OPTIONS}
           onChange={(v) => set('shutterSpeed', v)}
-        />
-        <LabeledTextField
-          label="ISO / EI (push/pull)"
-          value={form.iso}
-          onChangeText={(v) => set('iso', v)}
-          keyboardType="numeric"
-          placeholder="e.g. 400 or 800 pushed"
         />
         <SelectField
           label="Lens"

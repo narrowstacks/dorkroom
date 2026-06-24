@@ -8,6 +8,9 @@ import { createMMKV } from 'react-native-mmkv';
 
 // Shares the light-meter store with the calibration offset.
 const storage = createMMKV({ id: 'dorkroom-light-meter' });
+// Exposed so the meter screen can persist the "lock ISO to the active roll" flag.
+export const meterStorage = storage;
+export const LOCK_ISO_TO_ROLL_KEY = 'lockIsoToRoll';
 const KEYS = {
   priority: 'priority',
   aperture: 'apertureValue',

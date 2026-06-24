@@ -76,7 +76,6 @@ describe('film-log storage', () => {
       frameNumber: 1,
       aperture: 8,
       shutterSpeed: 0.008,
-      iso: 400,
       source: 'manual',
     });
     expect(shot).toBeDefined();
