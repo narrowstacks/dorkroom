@@ -81,6 +81,7 @@ function StatBody({
   calculated = false,
   locked = false,
   draggable = false,
+  disabled = false,
   stopError,
 }: {
   caption: string;
@@ -88,6 +89,8 @@ function StatBody({
   calculated?: boolean;
   locked?: boolean;
   draggable?: boolean;
+  /** Non-scrubbable (e.g. ISO locked to roll EI) — hides the drag hint. */
+  disabled?: boolean;
   stopError?: number;
 }) {
   const error = stopError === undefined ? null : formatStopError(stopError);
@@ -119,7 +122,7 @@ function StatBody({
         >
           {value}
         </Text>
-        {draggable && !locked ? (
+        {draggable && !disabled ? (
           <Text style={[MONO, SHADOW]} className="text-xs text-white/50">
             ↕
           </Text>
@@ -268,6 +271,7 @@ function ValueScrubber({
         calculated={field.calculated}
         locked={field.locked}
         draggable
+        disabled={field.disabled}
         stopError={field.stopError}
       />
     </View>
