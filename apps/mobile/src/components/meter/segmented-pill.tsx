@@ -44,13 +44,13 @@ export function SegmentedPill<T extends string>({
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
             className={`px-3 ${vertical ? 'rounded-xl py-2' : 'rounded-full py-1'} ${
-              active ? 'bg-rose-600' : ''
+              active ? 'bg-yellow-400' : ''
             }`}
           >
             <Text
               style={[MONO, SHADOW]}
               className={`text-center text-sm uppercase tracking-widest ${
-                active ? 'font-bold text-white' : 'text-white/60'
+                active ? 'font-bold text-black' : 'text-white/60'
               }`}
             >
               {option.label}

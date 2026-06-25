@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 // PanResponder is intentional here: the scrubber deliberately avoids a react-native-gesture-handler dependency, commits the value only on release (no React re-renders during the drag), and writes the live offset to an Animated.Value the overlay wheel binds to for a smooth glide. Migrating to Gesture.Pan() would be an invasive, behavior-changing rewrite of the gesture/animation pipeline for no functional gain. The type-only Animated import is erased at runtime, so there's no UI-thread animation that reanimated would improve.
 // eslint-disable-next-line react-doctor/rn-prefer-reanimated, react-doctor/rn-no-panresponder
 import { type Animated, PanResponder, Text, View } from 'react-native';
-import { SCRUB_ROW_HEIGHT } from './scrub-overlay';
+import { scrubLandingIndex } from './scrub-math';
 
 const MONO = { fontFamily: 'Menlo' } as const;
 const SHADOW = {
@@ -16,6 +16,9 @@ const SHADOW = {
 export interface ScrubOption {
   label: string;
   value: number;
+  /** A non-value action (e.g. "Custom") — styled distinctly in the ruler;
+   * committing it runs the field's onChange with its sentinel value. */
+  action?: boolean;
 }
 
 /** A draggable exposure setting: everything {@link MeterReadout} needs to both
@@ -47,8 +50,8 @@ interface MeterReadoutProps {
   shutter: ScrubField;
   iso: ScrubField;
   outOfRange: boolean;
-  /** Live drag offset (px) the active scrubber writes to and the overlay wheel
-   * reads, so the wheel glides on the native side without React re-renders. */
+  /** Live combined drag offset (px, dx − dy) the active scrubber writes to and
+   * the overlay ruler reads, so it glides on the native side without re-renders. */
   dragY: Animated.Value;
   /** Fires when a drag begins on a setting (with the starting option index) and
    * ends, so the screen can show/hide the floating wheel above the readout. */
@@ -124,7 +127,7 @@ function StatBody({
         </Text>
         {draggable && !disabled ? (
           <Text style={[MONO, SHADOW]} className="text-xs text-white/50">
-            ↕
+            ↔
           </Text>
         ) : null}
         {error ? (
@@ -138,14 +141,14 @@ function StatBody({
 }
 
 /**
- * Touch-and-hold a setting, then drag up (brighter) or down (darker) to scrub.
- * The drag offset is written to `dragY`, which the overlay wheel binds to so it
- * glides continuously between stops rather than snapping; a haptic ticks each
- * time a new stop crosses center. The value commits on release — and the list
- * wraps, so dragging past either end is functionally infinite. Because the
- * commit calls {@link ScrubField.onChange}, scrubbing a calculated setting locks
- * it (flips priority). Built on the built-in PanResponder + Animated, so no
- * gesture-handler/reanimated dependency is needed.
+ * Touch-and-hold a setting, then drag to scrub — right *or* up is brighter, so a
+ * vertical swipe drives the horizontal ruler too (the axes are combined as
+ * dx − dy). The offset is written to `dragY`, which the overlay ruler binds to so
+ * it glides continuously between stops rather than snapping; a haptic ticks each
+ * time a new stop crosses the center window. The value commits on release and
+ * the list loops (no clamp). Because the commit calls {@link ScrubField.onChange},
+ * scrubbing a calculated setting locks it (flips priority). Built on the built-in
+ * PanResponder + Animated, so no gesture-handler/reanimated dependency is needed.
  */
 function ValueScrubber({
   field,
@@ -167,11 +170,12 @@ function ValueScrubber({
   // actually take effect on reload instead of sticking to the first version.
   const controller = useRef({
     grant() {},
-    move(_g: { dy: number }) {},
+    move(_g: { dx: number; dy: number }) {},
     end() {},
     adjust(_brighter: boolean) {},
   });
   useEffect(() => {
+    // eslint-disable-next-line react-doctor/no-event-handler -- not derived state: refreshes the gesture-controller ref each render so the once-created PanResponder (below) always invokes the latest closures and edits land under Fast Refresh; the real events are the PanResponder handlers, this isn't logic that belongs inside them.
     const { options, brighterIsHigherIndex, onChange } = field;
     const len = options.length;
     const dir = brighterIsHigherIndex ? 1 : -1;
@@ -180,11 +184,9 @@ function ValueScrubber({
         0,
         options.findIndex((o) => o.value === field.value)
       );
-    // Continuous centered index for a given drag offset; up (negative dy) is
-    // brighter. The wheel reads dragY directly for the smooth glide; here we
-    // only round it to detect stop crossings and the final landing index.
-    const indexAt = (dy: number) =>
-      Math.round(startIndex.current - (dy * dir) / SCRUB_ROW_HEIGHT);
+    // Combine axes so a vertical swipe scrubs the horizontal ruler too: right and
+    // up both move toward brighter, so the effective offset is dx − dy.
+    const offsetOf = (g: { dx: number; dy: number }) => g.dx - g.dy;
     controller.current = {
       grant: () => {
         startIndex.current = indexOfValue();
@@ -193,26 +195,27 @@ function ValueScrubber({
         onScrubStart(startIndex.current);
       },
       move: (g) => {
-        dragY.setValue(g.dy);
-        const idx = indexAt(g.dy);
+        const offset = offsetOf(g);
+        dragY.setValue(offset);
+        const idx = scrubLandingIndex(startIndex.current, offset, len, dir);
         if (idx === lastIndex.current) return;
         lastIndex.current = idx;
         void Haptics.selectionAsync();
       },
       end: () => {
-        // Commit the landed value (wrapped) only if it actually moved, so a tap
-        // doesn't flip priority on a calculated setting.
-        if (lastIndex.current !== startIndex.current) {
-          const wrapped = ((lastIndex.current % len) + len) % len;
-          onChange(options[wrapped].value);
+        // Commit the landed value (wrapped — the ruler loops) only if it actually
+        // moved, so a tap doesn't flip priority on a calculated setting.
+        const landed = ((lastIndex.current % len) + len) % len;
+        if (landed !== startIndex.current) {
+          onChange(options[landed].value);
         }
         onScrubEnd();
       },
       adjust: (brighter) => {
         const cur = indexOfValue();
-        const wrapped = (((cur + (brighter ? dir : -dir)) % len) + len) % len;
+        const next = (((cur + (brighter ? dir : -dir)) % len) + len) % len;
         void Haptics.selectionAsync();
-        onChange(options[wrapped].value);
+        onChange(options[next].value);
       },
     };
   });

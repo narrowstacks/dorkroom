@@ -11,6 +11,14 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 - **Film Log photos** — the light meter's shutter button captures a reference photo and attaches it to the logged shot via a quick-confirm sheet; manual shots can import a photo from the library. Photos are stored in-app (deleted with the shot/roll), shown as thumbnails with a full-screen viewer, and **saved in black & white when the roll is B&W**. Optional setting to also save meter photos to the iOS Photos library (default off).
 
+### Changed
+
+- **Light meter UI pass** — reworked the meter screen toward the iOS Camera look. The top controls (ISO/EI lock, roll picker, calibration) are now unified, larger "glass" pills with SF Symbol icons, the roll picker aligned under the lock, and the engaged ISO lock reading yellow. The capture button is bigger with a wider, thinner ring and a clear gap to the core, and it hides while a dial is being scrubbed. Tightened the gap between the readout and the tab bar. Replaced the floating value wheel with a flat horizontal tick ruler (drag right **or** up = brighter — a vertical swipe scrubs it too) that loops infinitely with a small gap at the seam, has a yellow center window, and keeps the "Custom" ISO entry. Custom ISO entry is now a centered pop-up that raises the keyboard immediately.
+
+### Fixed
+
+- **Meter ISO lock now follows the selected roll.** With more than one active roll, the ISO lock pinned to the first active roll's EI instead of the roll shown in the meter's roll pill — so metering for, say, Portra 160 could stick the ISO at another active roll's speed. It now locks to the EI of the roll the meter is logging to.
+
 ## [2026.06.23]
 
 ### Added

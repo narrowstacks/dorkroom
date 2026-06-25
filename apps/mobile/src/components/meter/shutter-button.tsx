@@ -21,24 +21,25 @@ export function ShutterButton({ onPress }: ShutterButtonProps) {
 }
 
 const styles = StyleSheet.create({
+  // iOS-Camera shutter: a wide, thin ring with a clear gap to the filled core.
   ring: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 76,
+    height: 76,
+    borderRadius: 38,
     borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.92)',
+    borderColor: 'rgba(255,255,255,0.9)',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
   },
   pressed: { opacity: 0.7 },
   core: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  plus: { color: '#0b0b0c', fontSize: 28, fontWeight: '300', lineHeight: 30 },
+  plus: { color: '#0b0b0c', fontSize: 32, fontWeight: '300', lineHeight: 34 },
 });

@@ -1,7 +1,9 @@
 import { router } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
+import { GlassPill } from '@/components/meter/glass-pill';
 import { useMeterRoll } from '@/hooks/use-meter-roll';
 import type { FilmRoll } from '@/types/film-log';
 
@@ -21,12 +23,18 @@ export function MeterRollPill() {
         onPress={() => setOpen(true)}
         accessibilityRole="button"
         accessibilityLabel={`Logging to ${label}. Tap to change roll.`}
-        style={styles.pill}
       >
-        <Text style={styles.pillText} numberOfLines={1}>
-          🎞 {label}
-        </Text>
-        <Text style={styles.chevron}>▾</Text>
+        <GlassPill style={styles.pill}>
+          <SymbolView name="film.fill" size={15} tintColor="#ffffff" />
+          <Text style={styles.pillText} numberOfLines={1}>
+            {label}
+          </Text>
+          <SymbolView
+            name="chevron.down"
+            size={11}
+            tintColor="rgba(255,255,255,0.5)"
+          />
+        </GlassPill>
       </Pressable>
 
       <BottomSheet
@@ -83,21 +91,11 @@ export function MeterRollPill() {
 }
 
 const styles = StyleSheet.create({
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    maxWidth: 220,
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
+  pill: { gap: 6, maxWidth: 240 },
   pillText: {
     color: '#ffffff',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     flexShrink: 1,
   },
-  chevron: { color: 'rgba(255,255,255,0.5)', fontSize: 12 },
 });

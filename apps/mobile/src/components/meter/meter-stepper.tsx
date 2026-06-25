@@ -1,4 +1,5 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text } from 'react-native';
+import { GlassPill } from './glass-pill';
 
 const MONO = { fontFamily: 'Menlo' } as const;
 const SHADOW = {
@@ -25,7 +26,7 @@ export function MeterStepper({
   incrementLabel,
 }: MeterStepperProps) {
   return (
-    <View className="flex-row items-center" style={{ gap: 12 }}>
+    <GlassPill style={{ gap: 14 }}>
       <Pressable
         onPress={onDecrement}
         accessibilityRole="button"
@@ -38,7 +39,7 @@ export function MeterStepper({
       </Pressable>
       <Text
         style={[MONO, SHADOW]}
-        className="text-sm font-semibold tracking-wider text-white"
+        className="text-base font-semibold tracking-wider text-white"
       >
         {label}
       </Text>
@@ -52,6 +53,6 @@ export function MeterStepper({
           ＋
         </Text>
       </Pressable>
-    </View>
+    </GlassPill>
   );
 }

@@ -31,10 +31,10 @@ function buildIsoOptions(
   for (const v of EXTRA_FILM_ISOS) values.add(v);
   if (rollIso != null) values.add(rollIso);
   if (currentIso > 0) values.add(currentIso);
-  const options = [...values]
+  const options: ScrubOption[] = [...values]
     .sort((a, b) => a - b)
     .map((value) => ({ value, label: String(value) }));
-  options.push({ value: CUSTOM_ISO, label: 'Custom' });
+  options.push({ value: CUSTOM_ISO, label: 'Custom', action: true });
   return options;
 }
 

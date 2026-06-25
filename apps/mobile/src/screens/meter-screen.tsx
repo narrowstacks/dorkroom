@@ -1,5 +1,6 @@
 import { useLightMeterSolver } from '@dorkroom/logic';
 import { useIsFocused } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   type LayoutChangeEvent,
@@ -14,6 +15,7 @@ import type { CameraPhotoOutput } from 'react-native-vision-camera';
 import { Camera, usePhotoOutput } from 'react-native-vision-camera';
 import { BlurPanel } from '@/components/meter/blur-panel';
 import { CustomIsoSheet } from '@/components/meter/custom-iso-sheet';
+import { GlassPill } from '@/components/meter/glass-pill';
 import { MeterCaptureControls } from '@/components/meter/meter-capture-controls';
 import { MeterReadout } from '@/components/meter/meter-readout';
 import { MeterRollPill } from '@/components/meter/meter-roll-pill';
@@ -35,8 +37,9 @@ import { useShutterFlash } from '@/hooks/use-shutter-flash';
 import { useToast } from '@/hooks/use-toast';
 import { getMeterSettings, setMeterSettings } from '@/lib/meter-settings';
 
-// Clearance for the translucent native tab bar so bottom controls stay tappable.
-const TAB_BAR_CLEARANCE = 64;
+// Clearance for the translucent native tab bar so bottom controls stay tappable
+// while the readout still sits snug above it (no dead gap).
+const TAB_BAR_CLEARANCE = 24;
 const CALIBRATION_STEP = 0.1;
 
 type MeteringMode = 'matrix' | 'spot';
@@ -220,11 +223,22 @@ export function MeterScreen() {
                   ? `ISO locked to roll EI ${rollIso}. Tap to unlock.`
                   : `ISO unlocked. Tap to lock to roll EI ${rollIso}.`
               }
-              style={styles.logButton}
             >
-              <Text style={styles.logButtonText}>
-                {isoLocked ? `🔒 EI ${rollIso}` : '🔓 ISO'}
-              </Text>
+              <GlassPill style={{ gap: 6 }}>
+                <SymbolView
+                  name={isoLocked ? 'lock.fill' : 'lock.open.fill'}
+                  size={15}
+                  tintColor={isoLocked ? '#facc15' : '#ffffff'}
+                />
+                <Text
+                  style={[
+                    styles.logButtonText,
+                    isoLocked && styles.logButtonTextLocked,
+                  ]}
+                >
+                  {isoLocked ? `EI ${rollIso}` : 'ISO'}
+                </Text>
+              </GlassPill>
             </Pressable>
           ) : null}
         </View>
@@ -237,10 +251,11 @@ export function MeterScreen() {
         />
       </View>
 
-      {/* Which roll captures log to — centered below the status row. */}
+      {/* Which roll captures log to — left-aligned directly under the ISO lock
+          so the top controls read as one tidy cluster. */}
       <View
         pointerEvents="box-none"
-        style={[styles.rollPillWrap, { top: insets.top + 52 }]}
+        style={[styles.rollPillWrap, { top: insets.top + 56 }]}
       >
         <MeterRollPill />
       </View>
@@ -291,7 +306,8 @@ export function MeterScreen() {
         aperture={fields.aperture.value}
         shutterSpeed={fields.shutter.value}
         iso={solver.iso}
-        bottom={insets.bottom + TAB_BAR_CLEARANCE + 96}
+        bottom={insets.bottom + TAB_BAR_CLEARANCE + 112}
+        showShutter={!scrub}
         onShutter={triggerFlash}
       />
 
@@ -335,17 +351,12 @@ const styles = StyleSheet.create({
   topLeftGroup: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   rollPillWrap: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
+    left: 20,
+    right: 20,
+    alignItems: 'flex-start',
   },
-  logButton: {
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-  },
-  logButtonText: { color: '#ffffff', fontSize: 15, fontWeight: '600' },
+  logButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
+  logButtonTextLocked: { color: '#facc15' },
   bottomStack: {
     position: 'absolute',
     left: 16,
