@@ -19,6 +19,10 @@ const EXTRA_FILM_ISOS = [80, 125, 160, 250, 320, 500];
 // Sentinel option value: landing on it opens a number input instead of setting ISO.
 const CUSTOM_ISO = -1;
 
+// The mobile readout renders f-stops with the florin glyph (ƒ, U+0192) instead
+// of a plain "f" — applied to the aperture's display value and ruler options.
+const toFlorin = (label: string): string => label.replace('f/', 'ƒ/');
+
 /**
  * Standard + common film ISOs, the roll's rated EI, and the current value, sorted
  * ascending — then a trailing "Custom" entry for off-list speeds.
@@ -60,15 +64,18 @@ export function useMeterScrubFields(
       aperture: {
         caption: 'aperture',
         accessibilityLabel: 'Aperture',
-        options: STANDARD_APERTURES,
+        options: STANDARD_APERTURES.map((o) => ({
+          ...o,
+          label: toFlorin(o.label),
+        })),
         value: apertureLocked
           ? solver.aperture
           : snapToStandardStop(sol.aperture, STANDARD_APERTURES, false).standard
               .value,
         displayLabel: apertureLocked
-          ? formatAperture(solver.aperture)
+          ? toFlorin(formatAperture(solver.aperture))
           : sol.isValid
-            ? sol.solvedLabel
+            ? toFlorin(sol.solvedLabel)
             : '—',
         onChange: (v) => {
           solver.setAperture(v);

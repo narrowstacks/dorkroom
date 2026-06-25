@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
+import { readoutText as MONO } from '@/theme/tokens';
 import { GlassPill } from './glass-pill';
 
-const MONO = { fontFamily: 'Menlo' } as const;
 const SHADOW = {
   textShadowColor: 'rgba(0,0,0,0.85)',
   textShadowOffset: { width: 0, height: 1 },

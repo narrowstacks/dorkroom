@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 // eslint-disable-next-line react-doctor/rn-prefer-reanimated -- JS-thread Animated is intentional: the drag is a JS-thread PanResponder (no gesture-handler) and reanimated's worklet babel plugin isn't wired up; the ruler commits on release so there are no React re-renders during the drag, keeping the glide smooth.
 import { Animated, Text, View } from 'react-native';
+import { readoutText as MONO } from '@/theme/tokens';
 import { BlurPanel } from './blur-panel';
 import type { ScrubField } from './meter-readout';
 import { SCRUB_COL_WIDTH, SCRUB_GAP } from './scrub-math';
@@ -14,7 +15,6 @@ export function useDragOffset() {
   return ref.current;
 }
 
-const MONO = { fontFamily: 'Menlo' } as const;
 const SHADOW = {
   textShadowColor: 'rgba(0,0,0,0.85)',
   textShadowOffset: { width: 0, height: 1 },

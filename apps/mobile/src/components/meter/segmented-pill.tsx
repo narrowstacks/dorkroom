@@ -1,7 +1,8 @@
 import { BlurView } from 'expo-blur';
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
+import { readoutText as MONO } from '@/theme/tokens';
 
-const MONO = { fontFamily: 'Menlo' } as const;
 const SHADOW = {
   textShadowColor: 'rgba(0,0,0,0.85)',
   textShadowOffset: { width: 0, height: 1 },
@@ -11,6 +12,9 @@ const SHADOW = {
 export interface SegmentedOption<T extends string> {
   label: string;
   value: T;
+  /** Render an icon in place of the text label; gets the resolved fg color so
+   * it matches the active/inactive state. `label` is still used for a11y. */
+  renderIcon?: (props: { color: string; size: number }) => ReactNode;
 }
 
 /** A compact option toggle drawn over the camera feed; horizontal or vertical. */
@@ -37,11 +41,13 @@ export function SegmentedPill<T extends string>({
     >
       {options.map((option) => {
         const active = option.value === value;
+        const fg = active ? '#0b0b0c' : 'rgba(255,255,255,0.62)';
         return (
           <Pressable
             key={option.value}
             onPress={() => onChange(option.value)}
             accessibilityRole="button"
+            accessibilityLabel={option.label}
             accessibilityState={{ selected: active }}
             style={[
               styles.option,
@@ -49,16 +55,20 @@ export function SegmentedPill<T extends string>({
               active && styles.optionActive,
             ]}
           >
-            <Text
-              style={[
-                MONO,
-                active ? styles.activeText : SHADOW,
-                styles.optionText,
-                active ? styles.optionTextActive : styles.optionTextInactive,
-              ]}
-            >
-              {option.label}
-            </Text>
+            {option.renderIcon ? (
+              option.renderIcon({ color: fg, size: 22 })
+            ) : (
+              <Text
+                style={[
+                  MONO,
+                  active ? styles.activeText : SHADOW,
+                  styles.optionText,
+                  active ? styles.optionTextActive : styles.optionTextInactive,
+                ]}
+              >
+                {option.label}
+              </Text>
+            )}
           </Pressable>
         );
       })}
@@ -85,9 +95,10 @@ const styles = StyleSheet.create({
     borderCurve: 'continuous',
   },
   option: {
-    minWidth: 108,
+    // Snug around the metering icons (text labels, when used, still wrap fine).
+    minWidth: 54,
     minHeight: 38,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
     alignItems: 'center',

@@ -1,3 +1,14 @@
+import type { TextStyle } from 'react-native';
+
+/**
+ * The meter readout's text style. iOS renders the system font (San Francisco)
+ * when no `fontFamily` is set, so this just pins tabular figures so numeric
+ * columns stay aligned. Centralized so the readout typeface is a one-token swap
+ * (e.g. if we later bundle a custom mono via expo-font). Replaced the per-file
+ * `Menlo` constants in the meter components.
+ */
+export const readoutText: TextStyle = { fontVariant: ['tabular-nums'] };
+
 /** Shared design tokens mirrored from the web palette. */
 export const tokens = {
   color: {

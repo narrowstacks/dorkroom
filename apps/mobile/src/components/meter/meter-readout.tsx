@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { SymbolView } from 'expo-symbols';
 import { useEffect, useRef } from 'react';
-// PanResponder is intentional here: the scrubber deliberately avoids a react-native-gesture-handler dependency, commits the value only on release (no React re-renders during the drag), and writes the live offset to an Animated.Value the overlay wheel binds to for a smooth glide. Migrating to Gesture.Pan() would be an invasive, behavior-changing rewrite of the gesture/animation pipeline for no functional gain. The type-only Animated import is erased at runtime, so there's no UI-thread animation that reanimated would improve.
+// PanResponder is intentional here: the scrubber deliberately avoids a react-native-gesture-handler dependency, commits the value live on each stop crossing (one re-render per stop, gated by the haptic tick — the smooth glide rides an Animated.Value the overlay wheel binds to, not React state). Migrating to Gesture.Pan() would be an invasive, behavior-changing rewrite of the gesture/animation pipeline for no functional gain. The type-only Animated import is erased at runtime, so there's no UI-thread animation that reanimated would improve.
 /* eslint-disable react-doctor/rn-prefer-reanimated, react-doctor/rn-no-panresponder -- intentional PanResponder + JS Animated pipeline; see note above */
 import {
   type Animated,
@@ -12,9 +12,9 @@ import {
   type ViewStyle,
 } from 'react-native';
 /* eslint-enable react-doctor/rn-prefer-reanimated, react-doctor/rn-no-panresponder */
+import { readoutText as MONO } from '@/theme/tokens';
 import { scrubLandingIndex } from './scrub-math';
 
-const MONO = { fontFamily: 'Menlo' } as const;
 const SHADOW = {
   textShadowColor: 'rgba(0,0,0,0.85)',
   textShadowOffset: { width: 0, height: 1 },
@@ -110,23 +110,17 @@ function StatBody({
   style?: ViewStyle;
 }) {
   const error = stopError === undefined ? null : formatStopError(stopError);
+  // ISO pinned to the roll's EI is the one "hard" lock (non-scrubbable here);
+  // flag it so the cell reads as locked — a light-red tint + a lock badge.
+  const hardLocked = locked && disabled;
   return (
-    <View style={[styles.statCell, style]}>
-      <View className="flex-row items-center" style={{ gap: 4 }}>
-        <Text
-          style={[MONO, SHADOW, styles.caption]}
-          className="uppercase text-white/55"
-        >
-          {caption}
-        </Text>
-        {locked ? (
-          <SymbolView
-            name="lock.fill"
-            size={12}
-            tintColor="rgba(255,255,255,0.75)"
-          />
-        ) : null}
-      </View>
+    <View style={[styles.statCell, style, hardLocked && styles.statCellLocked]}>
+      <Text
+        style={[MONO, SHADOW, styles.caption]}
+        className="uppercase text-white/55"
+      >
+        {caption}
+      </Text>
       <View style={styles.valueLine}>
         <Text
           numberOfLines={1}
@@ -139,14 +133,6 @@ function StatBody({
         >
           {value}
         </Text>
-        {draggable && !disabled ? (
-          <Text
-            style={[MONO, SHADOW, styles.dragHint]}
-            className="text-white/50"
-          >
-            ↔
-          </Text>
-        ) : null}
       </View>
       <Text
         style={[MONO, SHADOW, styles.errorText, !error && styles.hiddenText]}
@@ -154,6 +140,28 @@ function StatBody({
       >
         {error?.text ?? '+0.0'}
       </Text>
+      {/* Bottom-right affordance, clear of the big digits. The lock shows only
+          when the value is truly locked and can't be scrubbed here — ISO pinned
+          to the roll's EI (unlock via the EI pill). Aperture/shutter are
+          "locked" only as the priority axis, which the header already names, and
+          stay scrubbable, so they get the ↔ hint instead. */}
+      {hardLocked ? (
+        <View style={styles.affordanceCenter}>
+          <SymbolView
+            name="lock.fill"
+            size={15}
+            tintColor="rgba(255,255,255,0.9)"
+          />
+        </View>
+      ) : null}
+      {draggable && !disabled ? (
+        <Text
+          style={[MONO, SHADOW, styles.dragHint, styles.affordance]}
+          className="text-white/45"
+        >
+          ↔
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -163,9 +171,10 @@ function StatBody({
  * vertical swipe drives the horizontal ruler too (the axes are combined as
  * dx − dy). The offset is written to `dragY`, which the overlay ruler binds to so
  * it glides continuously between stops rather than snapping; a haptic ticks each
- * time a new stop crosses the center window. The value commits on release and
- * the list loops (no clamp). Because the commit calls {@link ScrubField.onChange},
- * scrubbing a calculated setting locks it (flips priority). Built on the built-in
+ * time a new stop crosses the center window. The value commits live on each stop
+ * crossing and the list loops (no clamp). Because the commit calls
+ * {@link ScrubField.onChange}, scrubbing a calculated setting locks it (flips
+ * priority) the moment it crosses a stop. Built on the built-in
  * PanResponder + Animated, so no gesture-handler/reanimated dependency is needed.
  */
 function ValueScrubber({
@@ -239,13 +248,25 @@ function ValueScrubber({
         if (idx === lastIndex.current) return;
         lastIndex.current = idx;
         void Haptics.selectionAsync();
+        // Commit live on every stop crossing (not just on release) so the field
+        // and every dependent readout — the solved aperture/EV — react in real
+        // time as the finger moves. The native glide still rides `dragY`; this
+        // only re-renders the readout once per stop, gated by the haptic tick.
+        // A tap never crosses a stop, so it still can't flip priority. Action
+        // options (e.g. ISO "Custom", which opens a sheet) are NOT fired here —
+        // that would trigger mid-drag; they commit on release instead.
+        const landed = ((idx % len) + len) % len;
+        if (!options[landed].action) {
+          onChange(options[landed].value);
+        }
       },
       end: () => {
         if (!scrubbing.current) return;
-        // Commit the landed value (wrapped — the ruler loops) only if it actually
-        // moved, so a tap doesn't flip priority on a calculated setting.
+        // Value options were already committed live during the drag. An action
+        // option (e.g. "Custom") was skipped mid-drag, so fire it now — on
+        // release — so its sheet opens only once the finger lifts.
         const landed = ((lastIndex.current % len) + len) % len;
-        if (landed !== startIndex.current) {
+        if (options[landed].action) {
           onChange(options[landed].value);
         }
         scrubbing.current = false;
@@ -374,9 +395,25 @@ export function MeterReadout({
   onTapHint,
 }: MeterReadoutProps) {
   const evLabel = ev === null ? '——' : ev.toFixed(1);
+  // Name the active exposure priority (the axis the user fixed) so flipping it —
+  // including live while scrubbing — is never silent. Exactly one of aperture /
+  // shutter is the locked priority; the other is the solved (yellow) value.
+  const priorityLabel = aperture.locked
+    ? 'Aperture priority'
+    : shutter.locked
+      ? 'Shutter priority'
+      : null;
 
   return (
     <View style={{ gap: 8 }}>
+      {priorityLabel ? (
+        <Text
+          style={[MONO, SHADOW, styles.priorityLabel]}
+          className="uppercase text-white/55"
+        >
+          {priorityLabel}
+        </Text>
+      ) : null}
       <View style={styles.row}>
         <StatBody caption="EV" value={evLabel} style={styles.evCell} />
         <ValueScrubber
@@ -420,6 +457,12 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     gap: 8,
   },
+  priorityLabel: {
+    alignSelf: 'center',
+    fontSize: 11,
+    lineHeight: 14,
+    letterSpacing: 1.6,
+  },
   statCell: {
     flex: 1,
     minWidth: 0,
@@ -431,6 +474,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderCurve: 'continuous',
     backgroundColor: 'rgba(255,255,255,0.055)',
+  },
+  statCellLocked: {
+    backgroundColor: 'rgba(244,63,94,0.22)',
+    borderWidth: 1,
+    borderColor: 'rgba(244,63,94,0.45)',
   },
   scrubberSlot: {
     flex: 1,
@@ -448,7 +496,9 @@ const styles = StyleSheet.create({
   },
   value: {
     alignSelf: 'center',
-    maxWidth: '100%',
+    // Small gutter so the longest strings (f/64, 1/4000) never touch the cell
+    // border; the ↔ drag hint lives in the caption row now, clear of the digits.
+    maxWidth: '92%',
     fontSize: 28,
     lineHeight: 32,
     fontVariant: ['tabular-nums'],
@@ -461,11 +511,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dragHint: {
+    fontSize: 12,
+    lineHeight: 14,
+  },
+  affordance: {
     position: 'absolute',
-    right: 4,
-    bottom: 5,
-    fontSize: 11,
-    lineHeight: 12,
+    right: 6,
+    bottom: 4,
+  },
+  affordanceCenter: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 4,
+    alignItems: 'center',
   },
   errorText: {
     alignSelf: 'center',

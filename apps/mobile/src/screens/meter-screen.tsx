@@ -20,8 +20,12 @@ import { GlassPill } from '@/components/meter/glass-pill';
 import { MeterCaptureControls } from '@/components/meter/meter-capture-controls';
 import { MeterReadout } from '@/components/meter/meter-readout';
 import { MeterRollPill } from '@/components/meter/meter-roll-pill';
-import { MeterStepper } from '@/components/meter/meter-stepper';
+import { MeterSettingsSheet } from '@/components/meter/meter-settings-sheet';
 import { MeterToast } from '@/components/meter/meter-toast';
+import {
+  MatrixMeteringIcon,
+  SpotMeteringIcon,
+} from '@/components/meter/metering-icons';
 import { PermissionFallback } from '@/components/meter/permission-fallback';
 import { RETICLE_SIZE, Reticle } from '@/components/meter/reticle';
 import { ScrubOverlay, useDragOffset } from '@/components/meter/scrub-overlay';
@@ -41,12 +45,23 @@ import { getMeterSettings, setMeterSettings } from '@/lib/meter-settings';
 // Clearance for the translucent native tab bar so bottom controls stay tappable
 // while the readout still sits snug above it (no dead gap).
 const TAB_BAR_CLEARANCE = 24;
-const CALIBRATION_STEP = 0.1;
 
 type MeteringMode = 'matrix' | 'spot';
 const MODE_OPTIONS = [
-  { label: 'Matrix', value: 'matrix' as const },
-  { label: 'Spot', value: 'spot' as const },
+  {
+    label: 'Matrix',
+    value: 'matrix' as const,
+    renderIcon: (p: { color: string; size: number }) => (
+      <MatrixMeteringIcon {...p} />
+    ),
+  },
+  {
+    label: 'Spot',
+    value: 'spot' as const,
+    renderIcon: (p: { color: string; size: number }) => (
+      <SpotMeteringIcon {...p} />
+    ),
+  },
 ];
 
 export function MeterScreen() {
@@ -83,6 +98,7 @@ export function MeterScreen() {
   );
   const [customIsoOpen, setCustomIsoOpen] = useState(false);
   const onCustomIso = useCallback(() => setCustomIsoOpen(true), []);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [meteringMode, setMeteringMode] = useState<MeteringMode>('matrix');
   const [meterPoint, setMeterPoint] = useState<{ x: number; y: number } | null>(
     null
@@ -176,7 +192,6 @@ export function MeterScreen() {
   }
 
   const isSpot = meteringMode === 'spot';
-  const calLabel = `CAL ${calibrationOffset > 0 ? '+' : ''}${calibrationOffset.toFixed(1)}`;
 
   return (
     <View style={styles.container} onLayout={onLayout}>
@@ -225,18 +240,29 @@ export function MeterScreen() {
         </View>
       ) : null}
 
-      {/* Calibration first, with roll/EI controls tucked below it as one stack. */}
+      {/* Settings gear, top-left — opens the meter-specific settings popup
+          (calibration, etc.) and balances the right-hand control stack. */}
+      <View
+        pointerEvents="box-none"
+        style={[styles.topLeftStack, { top: insets.top + 10 }]}
+      >
+        <Pressable
+          onPress={() => setSettingsOpen(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Meter settings"
+          hitSlop={8}
+        >
+          <GlassPill style={styles.settingsButton}>
+            <SymbolView name="gearshape" size={18} tintColor="#ffffff" />
+          </GlassPill>
+        </Pressable>
+      </View>
+
+      {/* Roll + EI lock, top-right. */}
       <View
         pointerEvents="box-none"
         style={[styles.topControlStack, { top: insets.top + 10 }]}
       >
-        <MeterStepper
-          label={calLabel}
-          onDecrement={() => handleCalibrationChange(-CALIBRATION_STEP)}
-          onIncrement={() => handleCalibrationChange(CALIBRATION_STEP)}
-          decrementLabel="Lower calibration"
-          incrementLabel="Raise calibration"
-        />
         {rollIso != null ? (
           <Pressable
             onPress={toggleLock}
@@ -268,8 +294,8 @@ export function MeterScreen() {
         <MeterRollPill />
       </View>
 
-      {/* Bottom: the live scrub value (while dragging) or the mode toggle,
-          above the results readout. */}
+      {/* Above the readout: the live scrub ruler (while dragging) or the
+          matrix/spot toggle, pinned bottom-right when idle. */}
       <View
         pointerEvents="box-none"
         style={[
@@ -277,20 +303,27 @@ export function MeterScreen() {
           { bottom: insets.bottom + TAB_BAR_CLEARANCE },
         ]}
       >
-        {scrub ? (
-          <ScrubOverlay
-            field={fields[scrub.target]}
-            baseIndex={scrub.baseIndex}
-            dragY={dragY}
-          />
-        ) : (
-          <SegmentedPill
-            options={MODE_OPTIONS}
-            value={meteringMode}
-            onChange={handleModeChange}
-            accessibilityLabel="Matrix or spot metering"
-          />
-        )}
+        <View
+          style={[
+            styles.bottomControlSlot,
+            scrub ? styles.bottomControlScrub : styles.bottomControlToggle,
+          ]}
+        >
+          {scrub ? (
+            <ScrubOverlay
+              field={fields[scrub.target]}
+              baseIndex={scrub.baseIndex}
+              dragY={dragY}
+            />
+          ) : (
+            <SegmentedPill
+              options={MODE_OPTIONS}
+              value={meteringMode}
+              onChange={handleModeChange}
+              accessibilityLabel="Matrix or spot metering"
+            />
+          )}
+        </View>
         <BlurPanel style={styles.resultsPanel}>
           <MeterReadout
             ev={meter.ev}
@@ -315,7 +348,7 @@ export function MeterScreen() {
         aperture={fields.aperture.value}
         shutterSpeed={fields.shutter.value}
         iso={solver.iso}
-        bottom={insets.bottom + TAB_BAR_CLEARANCE + 188}
+        bottom={insets.bottom + TAB_BAR_CLEARANCE + 156}
         showShutter={!scrub}
         onShutter={triggerFlash}
       />
@@ -334,6 +367,13 @@ export function MeterScreen() {
           onSubmit={solver.setIso}
         />
       ) : null}
+
+      <MeterSettingsSheet
+        visible={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        calibrationOffset={calibrationOffset}
+        onCalibrationChange={handleCalibrationChange}
+      />
     </View>
   );
 }
@@ -369,6 +409,18 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 8,
   },
+  topLeftStack: {
+    position: 'absolute',
+    left: 16,
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  settingsButton: {
+    width: 44,
+    minHeight: 44,
+    paddingHorizontal: 0,
+    justifyContent: 'center',
+  },
   isoPill: { gap: 6, minHeight: 42, paddingHorizontal: 16, paddingVertical: 8 },
   logButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
   logButtonTextLocked: { color: '#facc15' },
@@ -376,12 +428,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 12,
     right: 12,
-    // Left-align the mode toggle / scrub overlay so the bottom-center shutter
-    // (rendered separately, absolute) sits clear of them. The readout panel
-    // below is alignSelf:'stretch', so it stays full-width regardless.
+    // Both children stretch full-width; the control slot below aligns the
+    // toggle/ruler within it, and the readout panel is full-width.
     alignItems: 'flex-start',
     gap: 8,
   },
+  // Holds the matrix/spot toggle or the scrub ruler, above the readout.
+  bottomControlSlot: { alignSelf: 'stretch' },
+  // Idle: pin the matrix/spot toggle bottom-right (clear of the centered
+  // shutter). While scrubbing: keep the ruler left, as before.
+  bottomControlToggle: { alignItems: 'flex-end' },
+  bottomControlScrub: { alignItems: 'flex-start' },
   resultsPanel: {
     alignSelf: 'stretch',
     paddingVertical: 12,
