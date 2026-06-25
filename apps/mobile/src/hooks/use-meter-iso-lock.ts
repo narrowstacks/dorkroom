@@ -17,13 +17,18 @@ interface MeterIsoLock {
  * active roll can't hijack the EI). While locked, the solver ISO is kept equal to
  * that EI (scrubbing it snaps back); unlock to meter at a different EI. Lock
  * state is persisted (default on).
+ *
+ * When `linked` is false (the film-log integration is turned off in meter
+ * settings) the roll is ignored entirely: `rollIso` is undefined and nothing
+ * locks, so the meter ISO is freely scrubbable.
  */
 export function useMeterIsoLock(
   solverIso: number,
-  setSolverIso: (iso: number) => void
+  setSolverIso: (iso: number) => void,
+  linked: boolean
 ): MeterIsoLock {
   const { roll } = useMeterRoll();
-  const rollIso = roll?.iso;
+  const rollIso = linked ? roll?.iso : undefined;
   const [lockRaw, setLockIso] = useMMKVBoolean(
     LOCK_ISO_TO_ROLL_KEY,
     meterStorage

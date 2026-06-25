@@ -40,6 +40,7 @@ import {
 } from '@/hooks/use-meter-scrub-fields';
 import { useShutterFlash } from '@/hooks/use-shutter-flash';
 import { useToast } from '@/hooks/use-toast';
+import { useLinkFilmLog } from '@/lib/meter-film-log-link';
 import { getMeterSettings, setMeterSettings } from '@/lib/meter-settings';
 
 // Clearance for the translucent native tab bar so bottom controls stay tappable
@@ -82,10 +83,14 @@ export function MeterScreen() {
   const initialSettings = useMemo(() => getMeterSettings(), []);
   const solver = useLightMeterSolver(meter.ev, initialSettings);
   const isFocused = useIsFocused();
-  // Lock the meter ISO to the active roll's rated EI (default on, tap to unlock).
+  // When off, all film-log integration is hidden (clean standalone meter).
+  const [linkFilmLog] = useLinkFilmLog();
+  // Lock the meter ISO to the active roll's rated EI (default on, tap to unlock);
+  // skipped entirely while the film-log link is off.
   const { rollIso, isoLocked, toggleLock } = useMeterIsoLock(
     solver.iso,
-    solver.setIso
+    solver.setIso,
+    linkFilmLog
   );
   const { message: toastMessage, show: showToast } = useToast();
   const onIsoBlocked = useCallback(
@@ -291,7 +296,7 @@ export function MeterScreen() {
             </GlassPill>
           </Pressable>
         ) : null}
-        <MeterRollPill />
+        {linkFilmLog ? <MeterRollPill /> : null}
       </View>
 
       {/* Above the readout: the live scrub ruler (while dragging) or the
@@ -349,7 +354,7 @@ export function MeterScreen() {
         shutterSpeed={fields.shutter.value}
         iso={solver.iso}
         bottom={insets.bottom + TAB_BAR_CLEARANCE + 156}
-        showShutter={!scrub}
+        showShutter={!scrub && linkFilmLog}
         onShutter={triggerFlash}
       />
 
