@@ -14,6 +14,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 ### Changed
 
 - **Light meter UI pass** — reworked the meter screen toward the iOS Camera look. The top controls (ISO/EI lock, roll picker, calibration) are now unified, larger "glass" pills with SF Symbol icons, the roll picker aligned under the lock, and the engaged ISO lock reading yellow. The capture button is bigger with a wider, thinner ring and a clear gap to the core, and it hides while a dial is being scrubbed. Tightened the gap between the readout and the tab bar. Replaced the floating value wheel with a flat horizontal tick ruler (drag right **or** up = brighter — a vertical swipe scrubs it too) that loops infinitely with a small gap at the seam, has a yellow center window, and keeps the "Custom" ISO entry. Custom ISO entry is now a centered pop-up that raises the keyboard immediately.
+- **Light meter control polish** — tightened the glass readout layout so instrument positions stay fixed as values change, reduced the calibration control, stacked EI/roll controls beneath it, and added a tap hint so brief taps explain that aperture, shutter, and ISO values are selected by holding and dragging.
 
 ### Fixed
 

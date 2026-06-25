@@ -26,11 +26,14 @@ const styles = StyleSheet.create({
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 48,
     borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
+    borderColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(18,18,18,0.28)',
     overflow: 'hidden',
+    boxShadow: '0 10px 30px rgba(0,0,0,0.26)',
   },
 });

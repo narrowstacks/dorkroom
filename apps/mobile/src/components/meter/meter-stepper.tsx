@@ -1,4 +1,4 @@
-import { Pressable, Text } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { GlassPill } from './glass-pill';
 
 const MONO = { fontFamily: 'Menlo' } as const;
@@ -26,20 +26,19 @@ export function MeterStepper({
   incrementLabel,
 }: MeterStepperProps) {
   return (
-    <GlassPill style={{ gap: 14 }}>
+    <GlassPill style={styles.container}>
       <Pressable
         onPress={onDecrement}
         accessibilityRole="button"
         accessibilityLabel={decrementLabel}
         hitSlop={12}
+        style={styles.button}
       >
-        <Text style={[MONO, SHADOW]} className="text-xl font-bold text-white">
-          −
-        </Text>
+        <Text style={[MONO, SHADOW, styles.buttonText]}>−</Text>
       </Pressable>
       <Text
-        style={[MONO, SHADOW]}
-        className="text-base font-semibold tracking-wider text-white"
+        style={[MONO, SHADOW, styles.label]}
+        className="font-semibold tracking-wider text-white"
       >
         {label}
       </Text>
@@ -48,11 +47,40 @@ export function MeterStepper({
         accessibilityRole="button"
         accessibilityLabel={incrementLabel}
         hitSlop={12}
+        style={styles.button}
       >
-        <Text style={[MONO, SHADOW]} className="text-xl font-bold text-white">
-          ＋
-        </Text>
+        <Text style={[MONO, SHADOW, styles.buttonText]}>＋</Text>
       </Pressable>
     </GlassPill>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    gap: 8,
+    minHeight: 42,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  button: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 21,
+    lineHeight: 23,
+    fontWeight: '700',
+  },
+  label: {
+    minWidth: 76,
+    textAlign: 'center',
+    fontSize: 14,
+    lineHeight: 18,
+    fontVariant: ['tabular-nums'],
+  },
+});

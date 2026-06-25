@@ -2,8 +2,16 @@ import * as Haptics from 'expo-haptics';
 import { SymbolView } from 'expo-symbols';
 import { useEffect, useRef } from 'react';
 // PanResponder is intentional here: the scrubber deliberately avoids a react-native-gesture-handler dependency, commits the value only on release (no React re-renders during the drag), and writes the live offset to an Animated.Value the overlay wheel binds to for a smooth glide. Migrating to Gesture.Pan() would be an invasive, behavior-changing rewrite of the gesture/animation pipeline for no functional gain. The type-only Animated import is erased at runtime, so there's no UI-thread animation that reanimated would improve.
-// eslint-disable-next-line react-doctor/rn-prefer-reanimated, react-doctor/rn-no-panresponder
-import { type Animated, PanResponder, Text, View } from 'react-native';
+/* eslint-disable react-doctor/rn-prefer-reanimated, react-doctor/rn-no-panresponder -- intentional PanResponder + JS Animated pipeline; see note above */
+import {
+  type Animated,
+  PanResponder,
+  StyleSheet,
+  Text,
+  View,
+  type ViewStyle,
+} from 'react-native';
+/* eslint-enable react-doctor/rn-prefer-reanimated, react-doctor/rn-no-panresponder */
 import { scrubLandingIndex } from './scrub-math';
 
 const MONO = { fontFamily: 'Menlo' } as const;
@@ -12,6 +20,8 @@ const SHADOW = {
   textShadowOffset: { width: 0, height: 1 },
   textShadowRadius: 4,
 } as const;
+const HOLD_TO_SCRUB_MS = 240;
+const DRAG_TO_SCRUB_PX = 8;
 
 export interface ScrubOption {
   label: string;
@@ -60,6 +70,7 @@ interface MeterReadoutProps {
     baseIndex: number
   ) => void;
   onScrubEnd: () => void;
+  onTapHint: () => void;
 }
 
 /** Formats the snap error in stops: "+0.4" over, "−0.3" under, "✓" if exact. */
@@ -86,6 +97,7 @@ function StatBody({
   draggable = false,
   disabled = false,
   stopError,
+  style,
 }: {
   caption: string;
   value: string;
@@ -95,14 +107,15 @@ function StatBody({
   /** Non-scrubbable (e.g. ISO locked to roll EI) — hides the drag hint. */
   disabled?: boolean;
   stopError?: number;
+  style?: ViewStyle;
 }) {
   const error = stopError === undefined ? null : formatStopError(stopError);
   return (
-    <View className="items-center" style={{ gap: 3 }}>
+    <View style={[styles.statCell, style]}>
       <View className="flex-row items-center" style={{ gap: 4 }}>
         <Text
-          style={[MONO, SHADOW]}
-          className="text-xs uppercase tracking-widest text-white/55"
+          style={[MONO, SHADOW, styles.caption]}
+          className="uppercase text-white/55"
         >
           {caption}
         </Text>
@@ -114,28 +127,33 @@ function StatBody({
           />
         ) : null}
       </View>
-      <View className="flex-row items-baseline" style={{ gap: 3 }}>
+      <View style={styles.valueLine}>
         <Text
-          style={[MONO, SHADOW]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.72}
+          style={[MONO, SHADOW, styles.value]}
           className={
-            calculated
-              ? 'text-2xl font-bold text-yellow-300'
-              : 'text-2xl font-normal text-white'
+            calculated ? 'font-bold text-yellow-300' : 'font-normal text-white'
           }
         >
           {value}
         </Text>
         {draggable && !disabled ? (
-          <Text style={[MONO, SHADOW]} className="text-xs text-white/50">
+          <Text
+            style={[MONO, SHADOW, styles.dragHint]}
+            className="text-white/50"
+          >
             ↔
           </Text>
         ) : null}
-        {error ? (
-          <Text style={[MONO, SHADOW]} className={`text-sm ${error.tone}`}>
-            {error.text}
-          </Text>
-        ) : null}
       </View>
+      <Text
+        style={[MONO, SHADOW, styles.errorText, !error && styles.hiddenText]}
+        className={error?.tone ?? 'text-white/45'}
+      >
+        {error?.text ?? '+0.0'}
+      </Text>
     </View>
   );
 }
@@ -155,23 +173,37 @@ function ValueScrubber({
   dragY,
   onScrubStart,
   onScrubEnd,
+  onTapHint,
+  style,
 }: {
   field: ScrubField;
   dragY: Animated.Value;
   onScrubStart: (baseIndex: number) => void;
   onScrubEnd: () => void;
+  onTapHint: () => void;
+  style?: ViewStyle;
 }) {
   const startIndex = useRef(0);
   const lastIndex = useRef(0);
+  const scrubbing = useRef(false);
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearHoldTimer = () => {
+    if (!holdTimer.current) return;
+    clearTimeout(holdTimer.current);
+    holdTimer.current = null;
+  };
 
   // Gesture logic lives in a ref refreshed every render: it always sees the
   // latest props, and — since the PanResponder below is created once and
   // survives Fast Refresh — this is also what lets edits to the stepping math
   // actually take effect on reload instead of sticking to the first version.
   const controller = useRef({
-    grant() {},
+    prepare() {},
+    begin() {},
     move(_g: { dx: number; dy: number }) {},
     end() {},
+    cancel() {},
     adjust(_brighter: boolean) {},
   });
   useEffect(() => {
@@ -188,13 +220,19 @@ function ValueScrubber({
     // up both move toward brighter, so the effective offset is dx − dy.
     const offsetOf = (g: { dx: number; dy: number }) => g.dx - g.dy;
     controller.current = {
-      grant: () => {
+      prepare: () => {
+        scrubbing.current = false;
         startIndex.current = indexOfValue();
         lastIndex.current = startIndex.current;
         dragY.setValue(0);
+      },
+      begin: () => {
+        if (scrubbing.current) return;
+        scrubbing.current = true;
         onScrubStart(startIndex.current);
       },
       move: (g) => {
+        if (!scrubbing.current) return;
         const offset = offsetOf(g);
         dragY.setValue(offset);
         const idx = scrubLandingIndex(startIndex.current, offset, len, dir);
@@ -203,12 +241,20 @@ function ValueScrubber({
         void Haptics.selectionAsync();
       },
       end: () => {
+        if (!scrubbing.current) return;
         // Commit the landed value (wrapped — the ruler loops) only if it actually
         // moved, so a tap doesn't flip priority on a calculated setting.
         const landed = ((lastIndex.current % len) + len) % len;
         if (landed !== startIndex.current) {
           onChange(options[landed].value);
         }
+        scrubbing.current = false;
+        onScrubEnd();
+      },
+      cancel: () => {
+        if (!scrubbing.current) return;
+        scrubbing.current = false;
+        dragY.setValue(0);
         onScrubEnd();
       },
       adjust: (brighter) => {
@@ -220,6 +266,13 @@ function ValueScrubber({
     };
   });
 
+  useEffect(
+    () => () => {
+      clearHoldTimer();
+    },
+    []
+  );
+
   // A disabled setting (e.g. ISO while locked to the roll's EI) swallows the
   // gesture and prompts instead of scrubbing. Kept in refs the once-created
   // PanResponder reads, so the check happens in the gesture handler itself.
@@ -227,6 +280,8 @@ function ValueScrubber({
   disabledRef.current = field.disabled;
   const onBlockedRef = useRef(field.onBlocked);
   onBlockedRef.current = field.onBlocked;
+  const onTapHintRef = useRef(onTapHint);
+  onTapHintRef.current = onTapHint;
 
   const panRef = useRef<ReturnType<typeof PanResponder.create>>(null);
   panRef.current ??= PanResponder.create({
@@ -238,16 +293,36 @@ function ValueScrubber({
         onBlockedRef.current?.();
         return;
       }
-      controller.current.grant();
+      controller.current.prepare();
+      clearHoldTimer();
+      holdTimer.current = setTimeout(() => {
+        holdTimer.current = null;
+        controller.current.begin();
+      }, HOLD_TO_SCRUB_MS);
     },
     onPanResponderMove: (_e, g) => {
-      if (!disabledRef.current) controller.current.move(g);
+      if (disabledRef.current) return;
+      const moved = Math.hypot(g.dx, g.dy);
+      if (!scrubbing.current && moved >= DRAG_TO_SCRUB_PX) {
+        clearHoldTimer();
+        controller.current.begin();
+      }
+      controller.current.move(g);
     },
     onPanResponderRelease: () => {
-      if (!disabledRef.current) controller.current.end();
+      if (disabledRef.current) return;
+      clearHoldTimer();
+      if (scrubbing.current) {
+        controller.current.end();
+      } else {
+        dragY.setValue(0);
+        onTapHintRef.current();
+      }
     },
     onPanResponderTerminate: () => {
-      if (!disabledRef.current) controller.current.end();
+      if (disabledRef.current) return;
+      clearHoldTimer();
+      controller.current.cancel();
     },
   });
   const pan = panRef.current;
@@ -256,6 +331,7 @@ function ValueScrubber({
     <View
       {...pan.panHandlers}
       hitSlop={8}
+      style={[styles.scrubberSlot, style]}
       accessibilityRole="adjustable"
       accessibilityLabel={field.accessibilityLabel}
       accessibilityValue={{ text: field.displayLabel }}
@@ -295,30 +371,35 @@ export function MeterReadout({
   dragY,
   onScrubStart,
   onScrubEnd,
+  onTapHint,
 }: MeterReadoutProps) {
   const evLabel = ev === null ? '——' : ev.toFixed(1);
 
   return (
-    <View style={{ gap: 4 }}>
-      <View className="flex-row items-end justify-between">
-        <StatBody caption="EV" value={evLabel} />
+    <View style={{ gap: 8 }}>
+      <View style={styles.row}>
+        <StatBody caption="EV" value={evLabel} style={styles.evCell} />
         <ValueScrubber
           field={aperture}
           dragY={dragY}
           onScrubStart={(i) => onScrubStart('aperture', i)}
           onScrubEnd={onScrubEnd}
+          onTapHint={onTapHint}
         />
         <ValueScrubber
           field={shutter}
           dragY={dragY}
           onScrubStart={(i) => onScrubStart('shutter', i)}
           onScrubEnd={onScrubEnd}
+          onTapHint={onTapHint}
+          style={styles.shutterSlot}
         />
         <ValueScrubber
           field={iso}
           dragY={dragY}
           onScrubStart={(i) => onScrubStart('iso', i)}
           onScrubEnd={onScrubEnd}
+          onTapHint={onTapHint}
         />
       </View>
       {outOfRange ? (
@@ -332,3 +413,65 @@ export function MeterReadout({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 8,
+  },
+  statCell: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+    minHeight: 78,
+    paddingHorizontal: 4,
+    borderRadius: 16,
+    borderCurve: 'continuous',
+    backgroundColor: 'rgba(255,255,255,0.055)',
+  },
+  scrubberSlot: {
+    flex: 1,
+    minWidth: 0,
+  },
+  evCell: {
+    flex: 0.78,
+    backgroundColor: 'rgba(255,255,255,0.035)',
+  },
+  shutterSlot: { flex: 1.34 },
+  caption: {
+    fontSize: 11,
+    lineHeight: 14,
+    letterSpacing: 1.8,
+  },
+  value: {
+    alignSelf: 'center',
+    maxWidth: '100%',
+    fontSize: 28,
+    lineHeight: 32,
+    fontVariant: ['tabular-nums'],
+    textAlign: 'center',
+  },
+  valueLine: {
+    position: 'relative',
+    alignSelf: 'stretch',
+    minHeight: 34,
+    justifyContent: 'center',
+  },
+  dragHint: {
+    position: 'absolute',
+    right: 4,
+    bottom: 5,
+    fontSize: 11,
+    lineHeight: 12,
+  },
+  errorText: {
+    alignSelf: 'center',
+    fontSize: 13,
+    lineHeight: 15,
+    fontVariant: ['tabular-nums'],
+  },
+  hiddenText: { opacity: 0 },
+});

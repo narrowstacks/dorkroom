@@ -1,4 +1,5 @@
 import { useLightMeterSolver } from '@dorkroom/logic';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useIsFocused } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -74,6 +75,10 @@ export function MeterScreen() {
   const { message: toastMessage, show: showToast } = useToast();
   const onIsoBlocked = useCallback(
     () => showToast('Unlock EI in the upper left to pick an ISO'),
+    [showToast]
+  );
+  const onScrubTapHint = useCallback(
+    () => showToast('Hold and drag to select a value'),
     [showToast]
   );
   const [customIsoOpen, setCustomIsoOpen] = useState(false);
@@ -191,6 +196,19 @@ export function MeterScreen() {
         />
       </Pressable>
 
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(0,0,0,0.52)', 'rgba(0,0,0,0.18)', 'transparent']}
+        locations={[0, 0.58, 1]}
+        style={styles.topShade}
+      />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['transparent', 'rgba(0,0,0,0.24)', 'rgba(0,0,0,0.68)']}
+        locations={[0, 0.42, 1]}
+        style={styles.bottomShade}
+      />
+
       {/* Spot reticle: only shown in spot mode, on the metered point. */}
       {isSpot && meterPoint ? (
         <View
@@ -207,41 +225,11 @@ export function MeterScreen() {
         </View>
       ) : null}
 
-      {/* ISO lock (left) + calibration (right). */}
+      {/* Calibration first, with roll/EI controls tucked below it as one stack. */}
       <View
         pointerEvents="box-none"
-        style={[styles.topStrip, { top: insets.top + 8 }]}
+        style={[styles.topControlStack, { top: insets.top + 10 }]}
       >
-        <View style={styles.topLeftGroup}>
-          {rollIso != null ? (
-            <Pressable
-              onPress={toggleLock}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isoLocked }}
-              accessibilityLabel={
-                isoLocked
-                  ? `ISO locked to roll EI ${rollIso}. Tap to unlock.`
-                  : `ISO unlocked. Tap to lock to roll EI ${rollIso}.`
-              }
-            >
-              <GlassPill style={{ gap: 6 }}>
-                <SymbolView
-                  name={isoLocked ? 'lock.fill' : 'lock.open.fill'}
-                  size={15}
-                  tintColor={isoLocked ? '#facc15' : '#ffffff'}
-                />
-                <Text
-                  style={[
-                    styles.logButtonText,
-                    isoLocked && styles.logButtonTextLocked,
-                  ]}
-                >
-                  {isoLocked ? `EI ${rollIso}` : 'ISO'}
-                </Text>
-              </GlassPill>
-            </Pressable>
-          ) : null}
-        </View>
         <MeterStepper
           label={calLabel}
           onDecrement={() => handleCalibrationChange(-CALIBRATION_STEP)}
@@ -249,14 +237,34 @@ export function MeterScreen() {
           decrementLabel="Lower calibration"
           incrementLabel="Raise calibration"
         />
-      </View>
-
-      {/* Which roll captures log to — left-aligned directly under the ISO lock
-          so the top controls read as one tidy cluster. */}
-      <View
-        pointerEvents="box-none"
-        style={[styles.rollPillWrap, { top: insets.top + 56 }]}
-      >
+        {rollIso != null ? (
+          <Pressable
+            onPress={toggleLock}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isoLocked }}
+            accessibilityLabel={
+              isoLocked
+                ? `ISO locked to roll EI ${rollIso}. Tap to unlock.`
+                : `ISO unlocked. Tap to lock to roll EI ${rollIso}.`
+            }
+          >
+            <GlassPill style={styles.isoPill}>
+              <SymbolView
+                name={isoLocked ? 'lock.fill' : 'lock.open.fill'}
+                size={15}
+                tintColor={isoLocked ? '#facc15' : '#ffffff'}
+              />
+              <Text
+                style={[
+                  styles.logButtonText,
+                  isoLocked && styles.logButtonTextLocked,
+                ]}
+              >
+                {isoLocked ? `EI ${rollIso}` : 'ISO'}
+              </Text>
+            </GlassPill>
+          </Pressable>
+        ) : null}
         <MeterRollPill />
       </View>
 
@@ -295,6 +303,7 @@ export function MeterScreen() {
               setScrub({ target, baseIndex })
             }
             onScrubEnd={() => setScrub(null)}
+            onTapHint={onScrubTapHint}
           />
         </BlurPanel>
       </View>
@@ -306,7 +315,7 @@ export function MeterScreen() {
         aperture={fields.aperture.value}
         shutterSpeed={fields.shutter.value}
         iso={solver.iso}
-        bottom={insets.bottom + TAB_BAR_CLEARANCE + 112}
+        bottom={insets.bottom + TAB_BAR_CLEARANCE + 188}
         showShutter={!scrub}
         onShutter={triggerFlash}
       />
@@ -331,6 +340,20 @@ export function MeterScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0b0b0c' },
+  topShade: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 190,
+  },
+  bottomShade: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 340,
+  },
   flash: { backgroundColor: '#ffffff' },
   center: {
     flex: 1,
@@ -340,36 +363,28 @@ const styles = StyleSheet.create({
   },
   text: { color: '#f5f5f4' },
   reticle: { position: 'absolute' },
-  topStrip: {
+  topControlStack: {
     position: 'absolute',
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    right: 16,
+    alignItems: 'flex-end',
+    gap: 8,
   },
-  topLeftGroup: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  rollPillWrap: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    alignItems: 'flex-start',
-  },
+  isoPill: { gap: 6, minHeight: 42, paddingHorizontal: 16, paddingVertical: 8 },
   logButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
   logButtonTextLocked: { color: '#facc15' },
   bottomStack: {
     position: 'absolute',
-    left: 16,
-    right: 16,
+    left: 12,
+    right: 12,
     // Left-align the mode toggle / scrub overlay so the bottom-center shutter
     // (rendered separately, absolute) sits clear of them. The readout panel
     // below is alignSelf:'stretch', so it stays full-width regardless.
     alignItems: 'flex-start',
-    gap: 10,
+    gap: 8,
   },
   resultsPanel: {
     alignSelf: 'stretch',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
   },
 });
