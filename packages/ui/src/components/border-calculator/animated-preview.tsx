@@ -46,11 +46,16 @@ const AnimatedBlade = ({
     zIndex: 10,
   };
 
+  // Blades span only the preview container (which is `overflow-hidden`), so
+  // `top/bottom: 0` (vertical) and `left/right: 0` (horizontal) cover the full
+  // visible area. The previous ±1000px over-extension produced ~8x larger paint
+  // rects that were clipped away anyway — pure overdraw that re-rasterized on
+  // every scroll frame when the preview was partially clipped at the edge.
   const orientationStyle =
     orientation === 'vertical'
       ? {
-          top: -1000,
-          bottom: -1000,
+          top: 0,
+          bottom: 0,
           width: thickness,
           left: `${positionPercent}%`,
           transform:
@@ -59,8 +64,8 @@ const AnimatedBlade = ({
               : 'translateX(0)',
         }
       : {
-          left: -1000,
-          right: -1000,
+          left: 0,
+          right: 0,
           height: thickness,
           top: `${positionPercent}%`,
           transform:

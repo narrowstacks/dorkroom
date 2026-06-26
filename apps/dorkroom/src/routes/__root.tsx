@@ -53,17 +53,21 @@ function RootComponent() {
       <SpeedInsights route={routePattern} />
       <HeadContent />
       <div
-        className="h-dvh"
+        className="isolate h-dvh"
         style={{ backgroundColor: 'var(--color-background)' }}
       >
-        <div className="backdrop-gradient min-h-dvh">
+        {/* Background gradient as a dedicated position:fixed layer (painted once,
+            composited) rather than `background-attachment: fixed` on the
+            scrolling content — a fixed-attachment background must re-rasterize
+            the full-viewport gradient + SVG noise on every scroll frame (it
+            cannot be cached), which was the dominant scroll-jank source on
+            body-scroll pages and scales with screen area. */}
+        <div className="backdrop-gradient" aria-hidden="true" />
+        <div className="relative z-10 min-h-dvh">
           <header
-            className="sticky top-[env(safe-area-inset-top)] z-50 hidden border-b sm:block"
+            className="sticky top-[env(safe-area-inset-top)] z-50 hidden border-b backdrop-blur sm:block"
             style={{
-              // Near-opaque solid instead of backdrop-blur: a sticky element
-              // with backdrop-filter must re-blur the page behind it on every
-              // scroll frame, which was the primary scroll-jank source.
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.98)',
+              backgroundColor: 'rgba(var(--color-background-rgb), 0.8)',
               borderColor: 'var(--color-border-muted)',
             }}
           >
@@ -90,12 +94,9 @@ function RootComponent() {
               </Link>
               <nav className="hidden flex-1 justify-center sm:flex">
                 <div
-                  className="relative flex max-w-full gap-1 rounded-full border p-1 text-sm"
+                  className="relative flex max-w-full gap-1 rounded-full border p-1 text-sm backdrop-blur"
                   style={{
                     borderColor: 'var(--color-border-secondary)',
-                    // No backdrop-blur: it sits inside the now-opaque sticky
-                    // header, so the translucent tint reads fine without the
-                    // per-scroll-frame blur cost.
                     backgroundColor: 'rgba(var(--color-background-rgb), 0.5)',
                   }}
                 >

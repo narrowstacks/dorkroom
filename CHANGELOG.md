@@ -9,7 +9,9 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
-- Eliminated scroll lag on calculator and list pages. The sticky header, nav pill, and mobile menu button no longer use `backdrop-filter` blur — a blurred element that stays fixed while content scrolls under it forces the browser to re-blur the page behind it on every frame, which was the primary scroll-jank source. They now use a near-opaque/solid background. `backdrop-blur` was likewise dropped from the calculator stat cards, development-recipe and film filter panels, and the border-calculator panels/overlay. Scrolling now holds a locked 60fps (previously ~13% of frames dropped below 30fps).
+- Eliminated scroll lag on calculator and list pages by replacing the full-screen `background-attachment: fixed` page gradient with a dedicated `position: fixed` background layer. A fixed-attachment background can't be cached as a compositor layer, so the browser re-rasterized the entire viewport gradient + noise on every scroll frame (a cost that scales with screen size — worst on large/Retina displays); the dedicated fixed layer keeps the same viewport-pinned look but paints once and just composites, dropping per-frame scroll raster to zero. This was the dominant scroll-jank source on body-scroll pages.
+- Restored the `backdrop-filter` blur on the sticky header and navigation pill. With the background re-raster fixed, the blur no longer carries meaningful scroll cost — the earlier removal addressed a symptom of the background issue rather than the blur itself. (`backdrop-blur` remains off the mobile menu button, calculator stat cards, development-recipe and film filter panels, and the border-calculator panels/overlay.)
+- Reduced overdraw in the border-calculator preview: the blade elements no longer extend ±1000px beyond the clipped preview area (pure wasted paint), trimming per-frame paint cost during slider interaction.
 
 ### Changed
 

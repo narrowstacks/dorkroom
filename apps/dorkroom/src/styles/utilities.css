@@ -1,4 +1,16 @@
 @layer utilities {
+  /* Fixed, full-viewport background layer. `position: fixed` pins it to the
+     viewport (same look as the old `background-attachment: fixed`) but paints
+     ONCE into its own compositor layer and is merely composited during scroll —
+     no per-frame re-rasterization of the gradient + SVG noise. Sits behind the
+     z-10 content wrapper in __root.tsx. */
+  .backdrop-gradient {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
   /* Theme-aware background accents */
   /* Darkroom safelight: warm red/peach light bleeding from the edges into a
      near-black field, with a fine film-grain overlay (SVG fractal noise). */
@@ -22,12 +34,6 @@
       ), #070708;
   }
 
-  @media (hover: hover) {
-    [data-theme="dark"] .backdrop-gradient {
-      background-attachment: fixed;
-    }
-  }
-
   [data-theme="light"] .backdrop-gradient {
     background:
       radial-gradient(
@@ -45,12 +51,6 @@
         rgba(122, 140, 31, 0.08),
         transparent 60%
       ), #ffffff;
-  }
-
-  @media (hover: hover) {
-    [data-theme="light"] .backdrop-gradient {
-      background-attachment: fixed;
-    }
   }
 
   [data-theme="darkroom"] .backdrop-gradient {
