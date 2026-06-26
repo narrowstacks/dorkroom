@@ -5,6 +5,25 @@ Web app changes live in the [root CHANGELOG](../../CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.06.26]
+
+### Added
+
+- **Meter settings drawer** — a gear (top-left) opens a sheet for meter-only settings; **calibration** moved here from the always-on top-right stepper.
+- **Standalone meter** — a "Link to film log" toggle disables all film-log integration (roll pill, EI lock, log-to-roll shutter) for a clean viewfinder with a freely-scrubbable ISO. Defaults on when you have rolls, off when the film log is empty.
+- **Metering-mode label** — the readout names the active exposure priority ("Aperture priority" / "Shutter priority"), and the Matrix/Spot toggle now uses icons.
+
+### Changed
+
+- **Live scrubbing** — dragging a dial updates its value and the dependent solved value/EV in real time as the finger moves, instead of only on release.
+- **Readout typeface** — switched from Menlo to the system font (San Francisco) with tabular figures; apertures render with the florin glyph (ƒ).
+- **Readout affordances** — moved the drag hint out of the digits so extreme values (ƒ/64, 1/4000) no longer crowd; dropped the redundant aperture/shutter lock icons (the priority label covers them) and kept only the ISO lock, now larger with a light-red cell highlight.
+- **Bottom layout** — moved the Matrix/Spot toggle to the bottom-right and brought the capture button down, closer to the readout.
+
+### Fixed
+
+- **ISO "Custom" no longer opens mid-scrub** — the custom-entry sheet appears only when you release on "Custom", not the instant you scroll over it.
+
 ## [2026.06.24]
 
 ### Added
