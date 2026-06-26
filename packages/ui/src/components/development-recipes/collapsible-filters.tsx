@@ -75,10 +75,7 @@ export function CollapsibleFilters({
 
   return (
     <div
-      className={cn(
-        'relative z-0 rounded-2xl border shadow-subtle backdrop-blur',
-        className
-      )}
+      className={cn('relative z-0 rounded-2xl border shadow-subtle', className)}
       style={{
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',

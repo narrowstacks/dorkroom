@@ -880,11 +880,7 @@ export function MobileBorderCalculator({
                 value={presetsDisplayValue}
                 onPress={() => openDrawerSection('presets')}
                 icon={BookOpen}
-                className={
-                  isHighContrast
-                    ? 'backdrop-blur-sm'
-                    : 'backdrop-blur-sm shadow-lg'
-                }
+                className={isHighContrast ? '' : 'shadow-lg'}
               />
             </div>
 

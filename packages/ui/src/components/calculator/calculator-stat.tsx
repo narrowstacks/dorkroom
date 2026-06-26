@@ -42,10 +42,7 @@ export const CalculatorStat = memo(function CalculatorStat({
 
   return (
     <div
-      className={cn(
-        'rounded-xl border p-3 backdrop-blur-sm transition-colors',
-        className
-      )}
+      className={cn('rounded-xl border p-3 transition-colors', className)}
       style={
         toneStyle
           ? toneStyle.container

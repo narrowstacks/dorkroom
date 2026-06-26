@@ -55,7 +55,10 @@ export function InfoCard({
 
   return (
     <li
-      className={cn('rounded-2xl border px-4 py-3', className)}
+      className={cn(
+        'relative rounded-2xl border px-4 py-3 card-grain',
+        className
+      )}
       style={{
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: colorMixOr(
@@ -66,28 +69,30 @@ export function InfoCard({
         ),
       }}
     >
-      <p
-        className={styles.titleClass}
-        style={{
-          color:
-            variant === 'insight'
-              ? 'var(--color-text-tertiary)'
-              : 'var(--color-text-primary)',
-        }}
-      >
-        {item.title}
-      </p>
-      <p
-        className={styles.descriptionClass}
-        style={{
-          color:
-            variant === 'insight'
-              ? 'var(--color-text-primary)'
-              : 'var(--color-text-secondary)',
-        }}
-      >
-        {item.description}
-      </p>
+      <div className="relative z-10">
+        <p
+          className={styles.titleClass}
+          style={{
+            color:
+              variant === 'insight'
+                ? 'var(--color-text-tertiary)'
+                : 'var(--color-text-primary)',
+          }}
+        >
+          {item.title}
+        </p>
+        <p
+          className={styles.descriptionClass}
+          style={{
+            color:
+              variant === 'insight'
+                ? 'var(--color-text-primary)'
+                : 'var(--color-text-secondary)',
+          }}
+        >
+          {item.description}
+        </p>
+      </div>
     </li>
   );
 }

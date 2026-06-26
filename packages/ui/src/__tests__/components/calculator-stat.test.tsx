@@ -63,7 +63,6 @@ describe('CalculatorStat', () => {
         'rounded-xl',
         'border',
         'p-3',
-        'backdrop-blur-sm',
         'transition-colors'
       );
     });

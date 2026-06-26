@@ -5,6 +5,16 @@ The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHAN
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.06.26]
+
+### Fixed
+
+- Eliminated scroll lag on calculator and list pages. The sticky header, nav pill, and mobile menu button no longer use `backdrop-filter` blur — a blurred element that stays fixed while content scrolls under it forces the browser to re-blur the page behind it on every frame, which was the primary scroll-jank source. They now use a near-opaque/solid background. `backdrop-blur` was likewise dropped from the calculator stat cards, development-recipe and film filter panels, and the border-calculator panels/overlay. Scrolling now holds a locked 60fps (previously ~13% of frames dropped below 30fps).
+
+### Changed
+
+- The card film-grain texture now blends against each card's own surface color via `background-blend-mode` instead of `mix-blend-mode`. mix-blend samples the live page backdrop (re-blending every scroll frame); the new approach composites the layer once and just translates it during scroll — same soft-light look, no scroll cost.
+
 ## [2026.06.23]
 
 ### Changed

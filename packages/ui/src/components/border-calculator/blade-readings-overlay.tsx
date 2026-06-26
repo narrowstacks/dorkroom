@@ -198,7 +198,7 @@ function BladeReadingIndicator({ reading }: { reading: BladeReading }) {
 
   return (
     <div
-      className={`flex items-center gap-0.5 px-2.5 py-1 rounded text-sm font-medium shadow-lg backdrop-blur-sm ${
+      className={`flex items-center gap-0.5 px-2.5 py-1 rounded text-sm font-medium shadow-lg ${
         isVertical ? 'flex-col' : 'flex-row'
       }`}
       style={{

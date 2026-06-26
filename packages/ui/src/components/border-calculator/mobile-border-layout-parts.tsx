@@ -54,7 +54,7 @@ export function MobilePreviewCard({
         !isHighContrast
           ? 'shadow-[0_35px_110px_-50px_var(--color-visualization-overlay)]'
           : ''
-      } backdrop-blur-lg`}
+      }`}
       style={{
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: 'var(--color-background)',
@@ -151,13 +151,11 @@ export function MobileSettingsCard({
   onToggleBladeReadings,
   onShareClick,
 }: SettingsCardProps) {
-  const buttonClassName = isHighContrast
-    ? 'backdrop-blur-sm'
-    : 'backdrop-blur-sm shadow-lg';
+  const buttonClassName = isHighContrast ? '' : 'shadow-lg';
 
   return (
     <div
-      className="rounded-3xl border p-6 backdrop-blur-lg space-y-5"
+      className="rounded-3xl border p-6 space-y-5"
       style={{
         borderColor: 'var(--color-border-secondary)',
         background: 'var(--color-surface)',

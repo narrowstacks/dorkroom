@@ -35,6 +35,58 @@
     background: none;
   }
 
+  /* Subtle static film-grain texture for card surfaces. A neutral,
+     desaturated fractal-noise speckle laid over the surface via an ::after
+     overlay; `border-radius: inherit` clips it to the card's rounded corners
+     (no overflow:hidden needed). soft-light keeps it a faint tonal grain that
+     both lifts and darkens pixels rather than a hard speckle. The overlay
+     sits below content (give the card's content `relative z-10`). Static — no
+     flicker — so it stays quiet under text and is motion-safe. Two-tone themes
+     drop it to preserve their flat look. */
+  .card-grain {
+    position: relative;
+  }
+
+  .card-grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    /* Per-surface override via --card-grain-opacity; darker surfaces read the
+       soft-light grain more strongly, so they pass a lower value. */
+    opacity: var(--card-grain-opacity, 0.5);
+    /* Self-contained soft-light grain. The noise blends against a copy of the
+       card's own surface colour INSIDE this layer's own background stack via
+       background-blend-mode, then the layer composites normally over the card.
+       Unlike mix-blend-mode (which samples the live page backdrop and forces a
+       re-blend on every scroll frame — a major scroll-jank source), this paints
+       once and is just translated during scroll. Surfaces whose colour differs
+       from --color-surface pass it via --card-grain-base. */
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='cg'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23cg)'/%3E%3C/svg%3E"),
+      linear-gradient(
+        var(--card-grain-base, var(--color-surface)),
+        var(--card-grain-base, var(--color-surface))
+      );
+    background-size:
+      140px 140px,
+      100% 100%;
+    background-repeat: repeat, no-repeat;
+    background-blend-mode: soft-light, normal;
+  }
+
+  /* Lighter touch on light surfaces so the grain stays a faint tooth. */
+  [data-theme="light"] .card-grain::after {
+    opacity: var(--card-grain-opacity, 0.35);
+  }
+
+  /* Two-tone themes: flat surfaces, no grain. */
+  [data-theme="darkroom"] .card-grain::after,
+  [data-theme="high-contrast"] .card-grain::after {
+    background-image: none;
+  }
+
   /* Animated grain clipped to text with a subtle red glow */
   @keyframes noiseShift {
     0% {

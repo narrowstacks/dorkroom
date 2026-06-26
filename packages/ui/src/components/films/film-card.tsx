@@ -42,21 +42,28 @@ const FilmCardComponent: FC<FilmCardProps> = ({
       aria-pressed={isSelected}
       onClick={() => onClick(film)}
       className={cn(
-        'block w-full appearance-none bg-transparent text-left',
+        'relative block w-full appearance-none bg-transparent text-left card-grain',
         'cursor-pointer rounded-2xl border p-4 shadow-subtle transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
         className
       )}
-      style={{
-        borderColor: isSelected
-          ? 'var(--color-border-primary)'
-          : 'var(--color-border-secondary)',
-        backgroundColor: isSelected
-          ? 'var(--color-surface-muted)'
-          : 'var(--color-background)',
-        // @ts-expect-error: CSS custom property for ring color
-        '--tw-ring-color': 'var(--color-primary)',
-      }}
+      style={
+        {
+          borderColor: isSelected
+            ? 'var(--color-border-primary)'
+            : 'var(--color-border-secondary)',
+          backgroundColor: isSelected
+            ? 'var(--color-surface-muted)'
+            : 'var(--color-background)',
+          '--tw-ring-color': 'var(--color-primary)',
+          // Dark surface — keep the grain restrained.
+          '--card-grain-opacity': '0.28',
+          // Blend the grain against this surface's own base colour.
+          '--card-grain-base': isSelected
+            ? 'var(--color-surface-muted)'
+            : 'var(--color-background)',
+        } as React.CSSProperties
+      }
       onMouseEnter={(e) => {
         if (!isSelected) {
           setStyles(e.currentTarget, {
@@ -74,31 +81,33 @@ const FilmCardComponent: FC<FilmCardProps> = ({
         }
       }}
     >
-      <div className="flex gap-3 items-start">
-        <FilmImage
-          src={film.staticImageUrl}
-          alt={`${film.brand} ${film.name}`}
-          size="md"
-        />
+      <div className="relative z-10">
+        <div className="flex gap-3 items-start">
+          <FilmImage
+            src={film.staticImageUrl}
+            alt={`${film.brand} ${film.name}`}
+            size="md"
+          />
 
-        <div className="flex-1 min-w-0">
-          <div
-            className="text-base font-semibold"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            {film.brand} {film.name}
-          </div>
+          <div className="flex-1 min-w-0">
+            <div
+              className="text-base font-semibold"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              {film.brand} {film.name}
+            </div>
 
-          {/* Desktop: tags inline with name */}
-          <div className="mt-1 hidden sm:flex flex-wrap items-center gap-2">
-            {tagsContent}
+            {/* Desktop: tags inline with name */}
+            <div className="mt-1 hidden sm:flex flex-wrap items-center gap-2">
+              {tagsContent}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Mobile: tags in full-width row below for better wrapping */}
-      <div className="mt-2 flex sm:hidden flex-wrap items-center gap-1.5">
-        {tagsContent}
+        {/* Mobile: tags in full-width row below for better wrapping */}
+        <div className="mt-2 flex sm:hidden flex-wrap items-center gap-1.5">
+          {tagsContent}
+        </div>
       </div>
     </button>
   );

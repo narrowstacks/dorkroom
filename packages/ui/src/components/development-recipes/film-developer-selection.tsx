@@ -31,7 +31,7 @@ export function FilmDeveloperSelection({
   return (
     <div
       className={cn(
-        'relative z-10 rounded-2xl border p-6 shadow-subtle backdrop-blur',
+        'relative z-10 rounded-2xl border p-6 shadow-subtle',
         className
       )}
       style={{

@@ -58,9 +58,12 @@ function RootComponent() {
       >
         <div className="backdrop-gradient min-h-dvh">
           <header
-            className="sticky top-[env(safe-area-inset-top)] z-50 hidden border-b backdrop-blur sm:block"
+            className="sticky top-[env(safe-area-inset-top)] z-50 hidden border-b sm:block"
             style={{
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.8)',
+              // Near-opaque solid instead of backdrop-blur: a sticky element
+              // with backdrop-filter must re-blur the page behind it on every
+              // scroll frame, which was the primary scroll-jank source.
+              backgroundColor: 'rgba(var(--color-background-rgb), 0.98)',
               borderColor: 'var(--color-border-muted)',
             }}
           >
@@ -87,9 +90,12 @@ function RootComponent() {
               </Link>
               <nav className="hidden flex-1 justify-center sm:flex">
                 <div
-                  className="relative flex max-w-full gap-1 rounded-full border p-1 text-sm backdrop-blur"
+                  className="relative flex max-w-full gap-1 rounded-full border p-1 text-sm"
                   style={{
                     borderColor: 'var(--color-border-secondary)',
+                    // No backdrop-blur: it sits inside the now-opaque sticky
+                    // header, so the translucent tint reads fine without the
+                    // per-scroll-frame blur cost.
                     backgroundColor: 'rgba(var(--color-background-rgb), 0.5)',
                   }}
                 >

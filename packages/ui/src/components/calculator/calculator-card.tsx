@@ -32,7 +32,7 @@ export const CalculatorCard = memo(function CalculatorCard({
   return (
     <section
       className={cn(
-        'relative overflow-hidden rounded-2xl border shadow-subtle card-ring',
+        'relative overflow-hidden rounded-2xl border shadow-subtle card-ring card-grain',
         padding === 'compact' ? 'p-3.5 sm:p-4' : 'p-4 sm:p-5',
         className
       )}
