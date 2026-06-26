@@ -69,7 +69,7 @@ const MODE_OPTIONS = [
 
 interface MeterTopControlsProps {
   top: number;
-  rollIso: number | null;
+  rollIso: number | undefined;
   isoLocked: boolean;
   toggleLock: () => void;
   linkFilmLog: boolean;
@@ -143,7 +143,7 @@ interface MeterBottomControlsProps {
   meteringMode: MeteringMode;
   onModeChange: (mode: MeteringMode) => void;
   dragY: ReturnType<typeof useDragOffset>;
-  ev: number;
+  ev: number | null;
   outOfRange: boolean;
   onScrubStart: (target: SelectorTarget, baseIndex: number) => void;
   onScrubEnd: () => void;
