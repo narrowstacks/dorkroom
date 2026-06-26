@@ -88,10 +88,7 @@ function MeterTopControls({
     <>
       {/* Settings gear, top-left — opens the meter-specific settings popup
           (calibration, etc.) and balances the right-hand control stack. */}
-      <View
-        pointerEvents="box-none"
-        style={[styles.topLeftStack, { top }]}
-      >
+      <View pointerEvents="box-none" style={[styles.topLeftStack, { top }]}>
         <Pressable
           onPress={onOpenSettings}
           accessibilityRole="button"
@@ -104,10 +101,7 @@ function MeterTopControls({
         </Pressable>
       </View>
       {/* Roll + EI lock, top-right. */}
-      <View
-        pointerEvents="box-none"
-        style={[styles.topControlStack, { top }]}
-      >
+      <View pointerEvents="box-none" style={[styles.topControlStack, { top }]}>
         {rollIso != null ? (
           <Pressable
             onPress={toggleLock}
@@ -172,10 +166,7 @@ function MeterBottomControls({
   return (
     /* Above the readout: the live scrub ruler (while dragging) or the
        matrix/spot toggle, pinned bottom-right when idle. */
-    <View
-      pointerEvents="box-none"
-      style={[styles.bottomStack, { bottom }]}
-    >
+    <View pointerEvents="box-none" style={[styles.bottomStack, { bottom }]}>
       <View
         style={[
           styles.bottomControlSlot,
