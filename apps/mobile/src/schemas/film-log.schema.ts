@@ -40,11 +40,21 @@ export const lensSchema = z.object({
   createdAt: z.string(),
 });
 
+export const shotPhotoSchema = z.object({
+  fileName: z.string(),
+  width: z.number(),
+  height: z.number(),
+  capturedAt: z.string(),
+  source: z.enum(['meter', 'library']),
+  grayscale: z.boolean().optional(),
+});
+
 export const shotSchema = z.object({
   id: z.string(),
   frameNumber: z.number(),
   aperture: z.number().optional(),
   shutterSpeed: z.number().optional(),
+  photo: shotPhotoSchema.optional(),
   lensId: z.string().optional(),
   back: z.string().optional(),
   notes: z.string().optional(),

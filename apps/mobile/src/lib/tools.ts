@@ -11,6 +11,12 @@ export interface Tool {
   icon: string; // Lucide kebab icon name (e.g. 'crop', 'ruler')
   route: string; // expo-router pathname for the More-stack detail route
   category: ToolCategory;
+  /**
+   * Whether the user can pin/unpin this tool via Edit Tabs. Defaults to true.
+   * `film-log` is a permanent tab (always in the bar, not user-managed), so it
+   * sets this false to stay out of the pin editor and the pinned-id store.
+   */
+  pinnable?: boolean;
 }
 
 export const TOOLS: readonly Tool[] = [
@@ -53,9 +59,11 @@ export const TOOLS: readonly Tool[] = [
     id: 'film-log',
     label: 'Film Log',
     icon: 'film',
-    // Own nested stack (not the shared /more/[tool] single-screen renderer).
+    // Multi-screen section with its own nested stack. It's a permanent tab (see
+    // (tabs)/_layout.tsx), so it's not user-pinnable; still listed in More.
     route: '/film-log',
     category: 'film',
+    pinnable: false,
   },
   {
     id: 'lens',

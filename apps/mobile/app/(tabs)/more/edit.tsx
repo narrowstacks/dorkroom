@@ -41,7 +41,9 @@ function PinnedRow({
 
 export default function EditTabs() {
   const { pinned, setPinned } = usePinnedTabs();
-  const available = TOOLS.filter((t) => !pinned.includes(t.id));
+  const available = TOOLS.filter(
+    (t) => !pinned.includes(t.id) && t.pinnable !== false
+  );
   const canAdd = pinned.length < MAX_PINNED;
 
   const onReorder = useCallback(

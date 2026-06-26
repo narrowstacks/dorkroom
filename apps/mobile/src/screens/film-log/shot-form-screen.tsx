@@ -6,10 +6,12 @@ import {
   sanitizeText,
   snapToStandardStop,
 } from '@dorkroom/logic';
+import * as ImagePicker from 'expo-image-picker';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { SelectField } from '@/components/film-log/select-field';
+import { ShotPhotoRow } from '@/components/film-log/shot-photo-row';
 import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { Screen } from '@/components/screen';
@@ -21,8 +23,14 @@ import {
   useRolls,
 } from '@/hooks/use-film-log';
 import { useFormState } from '@/hooks/use-form-state';
-import { cameraUsesBacks } from '@/lib/film-log-options';
+import { cameraUsesBacks, lastUsedLensId } from '@/lib/film-log-options';
+import {
+  deletePhotoFile,
+  savePhoto,
+  shouldGrayscale,
+} from '@/lib/film-log-photos';
 import { addShot, updateShot } from '@/lib/film-log-storage';
+import type { ShotPhoto } from '@/types/film-log';
 
 const APERTURE_OPTIONS = STANDARD_APERTURES.map((a) => ({
   value: a.value,
@@ -47,6 +55,7 @@ export function ShotFormScreen() {
     aperture?: string;
     shutter?: string;
     meteredIso?: string;
+    photo?: string;
   }>();
   const rolls = useRolls();
   // When launched from a roll, rollId is fixed. From the meter "+ Log" button it
@@ -89,10 +98,46 @@ export function ShotFormScreen() {
         ? snapToStandardStop(prefillShutter, STANDARD_SHUTTER_SPEEDS, true)
             .standard.value
         : 0.008),
-    lensId: existing?.lensId,
+    // New shots default to the last lens used on this roll.
+    lensId: existing?.lensId ?? lastUsedLensId(roll?.shots ?? []),
     back: existing?.back ?? roll?.back,
     notes: existing?.notes ?? '',
+    photo: (existing?.photo ??
+      (params.photo
+        ? {
+            fileName: params.photo,
+            width: 0,
+            height: 0,
+            capturedAt: new Date().toISOString(),
+            source: 'meter' as const,
+          }
+        : undefined)) as ShotPhoto | undefined,
   });
+
+  const savedRef = useRef(false);
+  const committedFileRef = useRef<string | undefined>(undefined);
+  // eslint-disable-next-line react-doctor/rerender-lazy-ref-init -- Set() is a trivial allocation; lazy-init would require null + non-null assertion everywhere .current is accessed
+  const sessionFiles = useRef<Set<string>>(new Set());
+
+  // Seed the session set with the meter-capture file that was passed in as a param.
+  useEffect(() => {
+    if (params.photo) sessionFiles.current.add(params.photo);
+    // eslint-disable-next-line react-doctor/exhaustive-deps -- one-time mount seed; sessionFiles ref is stable
+  }, []);
+
+  // On unmount, delete every file created during this session except the one committed.
+  // Refs are stable; reading .current in the cleanup is intentional — we want the
+  // latest value at unmount time, not the value captured at mount.
+  // eslint-disable-next-line react-doctor/exhaustive-deps -- refs are stable; cleanup reads latest .current on unmount
+  useEffect(() => {
+    return () => {
+      const kept = savedRef.current ? committedFileRef.current : undefined;
+      // eslint-disable-next-line react-doctor/exhaustive-deps -- intentional: iterate latest sessionFiles ref at unmount; .current is the value we want at cleanup time
+      for (const f of sessionFiles.current) {
+        if (f !== kept) void deletePhotoFile(f);
+      }
+    };
+  }, []);
 
   const showRollPicker = !params.rollId;
   const rollOptions = rolls.map((r) => ({
@@ -109,6 +154,35 @@ export function ShotFormScreen() {
   );
   const showBacks = cameraUsesBacks(camera);
 
+  const onChoosePhoto = async () => {
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images',
+      quality: 1,
+    });
+    if (res.canceled || !res.assets[0]) return;
+    const a = res.assets[0];
+    const saved = await savePhoto(a.uri, {
+      source: 'library',
+      width: a.width ?? 0,
+      height: a.height ?? 0,
+      grayscale: shouldGrayscale(roll?.process ?? 'color'),
+    });
+    sessionFiles.current.add(saved.fileName);
+    set('photo', saved);
+  };
+
+  const onRemovePhoto = () => {
+    const fileName = form.photo?.fileName;
+    // Only delete files created during this session right away. An existing
+    // shot's saved photo is left on disk and removed in onSave, so navigating
+    // back without saving keeps the photo the shot still references.
+    if (fileName && sessionFiles.current.has(fileName)) {
+      sessionFiles.current.delete(fileName);
+      void deletePhotoFile(fileName);
+    }
+    set('photo', undefined);
+  };
+
   const onSave = () => {
     if (!roll) return;
     const fields = {
@@ -120,12 +194,19 @@ export function ShotFormScreen() {
       notes: sanitizeText(form.notes, 2000),
       source:
         existing?.source ?? (params.source === 'meter' ? 'meter' : 'manual'),
+      photo: form.photo,
     } as const;
     if (existing) {
+      // Clean up the old photo file if the photo was replaced.
+      if (existing.photo && existing.photo.fileName !== form.photo?.fileName) {
+        void deletePhotoFile(existing.photo.fileName);
+      }
       updateShot(roll.id, existing.id, fields);
     } else {
       addShot(roll.id, { ...fields, takenAt: new Date().toISOString() });
     }
+    savedRef.current = true;
+    committedFileRef.current = form.photo?.fileName;
     router.back();
   };
 
@@ -229,6 +310,11 @@ export function ShotFormScreen() {
           value={form.notes}
           onChangeText={(v) => set('notes', v)}
           placeholder="Subject, filter, reminders…"
+        />
+        <ShotPhotoRow
+          photo={form.photo}
+          onChoose={() => void onChoosePhoto()}
+          onRemove={onRemovePhoto}
         />
       </GlassCard>
 

@@ -3,13 +3,24 @@ import { router } from 'expo-router';
 import { Linking, Text } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
 import { Screen } from '@/components/screen';
+import { ToggleRow } from '@/components/toggle-row';
 import { ToolListRow } from '@/components/tool-list-row';
+import { useSaveMeterPhotosToLibrary } from '@/lib/photo-settings';
 
 export function SettingsScreen() {
   const version = Constants.expoConfig?.version;
+  const [savePhotos, setSavePhotos] = useSaveMeterPhotosToLibrary();
 
   return (
     <Screen>
+      <GlassCard>
+        <ToggleRow
+          label="Also save meter photos to Photos"
+          value={savePhotos}
+          onChange={setSavePhotos}
+        />
+      </GlassCard>
+
       <GlassCard>
         <ToolListRow
           label="Edit Tabs"

@@ -1,6 +1,7 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
+import { readoutText as MONO } from '@/theme/tokens';
+import { GlassPill } from './glass-pill';
 
-const MONO = { fontFamily: 'Menlo' } as const;
 const SHADOW = {
   textShadowColor: 'rgba(0,0,0,0.85)',
   textShadowOffset: { width: 0, height: 1 },
@@ -25,20 +26,19 @@ export function MeterStepper({
   incrementLabel,
 }: MeterStepperProps) {
   return (
-    <View className="flex-row items-center" style={{ gap: 12 }}>
+    <GlassPill style={styles.container}>
       <Pressable
         onPress={onDecrement}
         accessibilityRole="button"
         accessibilityLabel={decrementLabel}
         hitSlop={12}
+        style={styles.button}
       >
-        <Text style={[MONO, SHADOW]} className="text-xl font-bold text-white">
-          −
-        </Text>
+        <Text style={[MONO, SHADOW, styles.buttonText]}>−</Text>
       </Pressable>
       <Text
-        style={[MONO, SHADOW]}
-        className="text-sm font-semibold tracking-wider text-white"
+        style={[MONO, SHADOW, styles.label]}
+        className="font-semibold tracking-wider text-white"
       >
         {label}
       </Text>
@@ -47,11 +47,40 @@ export function MeterStepper({
         accessibilityRole="button"
         accessibilityLabel={incrementLabel}
         hitSlop={12}
+        style={styles.button}
       >
-        <Text style={[MONO, SHADOW]} className="text-xl font-bold text-white">
-          ＋
-        </Text>
+        <Text style={[MONO, SHADOW, styles.buttonText]}>＋</Text>
       </Pressable>
-    </View>
+    </GlassPill>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    gap: 8,
+    minHeight: 42,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  button: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 21,
+    lineHeight: 23,
+    fontWeight: '700',
+  },
+  label: {
+    minWidth: 76,
+    textAlign: 'center',
+    fontSize: 14,
+    lineHeight: 18,
+    fontVariant: ['tabular-nums'],
+  },
+});

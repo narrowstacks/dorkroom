@@ -7,7 +7,6 @@ const ROUTE_NAME: Record<string, string> = {
   border: 'index',
   exposure: 'exposure',
   reciprocity: 'reciprocity',
-  'film-log': 'film-log',
   resize: 'resize',
   meter: 'meter',
   mat: 'mat',
@@ -20,7 +19,6 @@ const TAB_ICON: Record<string, number> = {
   border: require('../../assets/tab-icons/border.png'),
   exposure: require('../../assets/tab-icons/exposure.png'),
   reciprocity: require('../../assets/tab-icons/reciprocity.png'),
-  'film-log': require('../../assets/tab-icons/film-log.png'),
   resize: require('../../assets/tab-icons/resize.png'),
   meter: require('../../assets/tab-icons/meter.png'),
   mat: require('../../assets/tab-icons/mat.png'),
@@ -28,6 +26,11 @@ const TAB_ICON: Record<string, number> = {
   'camera-exposure': require('../../assets/tab-icons/camera-exposure.png'),
   settings: require('../../assets/tab-icons/settings.png'),
 };
+// Film Log is a multi-screen section that always lives in the tab bar (it can't
+// use the /more/[tool] access path other single-screen tools do, and a native
+// tab is only reachable while its trigger is shown — so it's permanent, not
+// user-pinnable).
+const FILM_LOG_ICON: number = require('../../assets/tab-icons/film-log.png');
 const MORE_ICON: number = require('../../assets/tab-icons/more.png');
 
 export default function TabsLayout() {
@@ -46,6 +49,10 @@ export default function TabsLayout() {
           </NativeTabs.Trigger>
         );
       })}
+      <NativeTabs.Trigger name="film-log">
+        <NativeTabs.Trigger.Icon src={FILM_LOG_ICON} />
+        <NativeTabs.Trigger.Label>Film Log</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="more">
         <NativeTabs.Trigger.Icon src={MORE_ICON} />
         <NativeTabs.Trigger.Label>More</NativeTabs.Trigger.Label>

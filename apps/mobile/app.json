@@ -12,7 +12,9 @@
       "bundleIdentifier": "art.dorkroom.mobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "Dorkroom uses the camera to meter the light in your scene."
+        "NSCameraUsageDescription": "Dorkroom uses the camera to meter the light in your scene.",
+        "NSPhotoLibraryUsageDescription": "Attach a photo from your library to a shot in your film log.",
+        "NSPhotoLibraryAddUsageDescription": "Save photos captured with the light meter to your Photos library."
       }
     },
     "plugins": [
@@ -65,7 +67,14 @@
         }
       ],
       "./plugins/with-app-intents",
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-image",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Attach a photo from your library to a shot in your film log."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

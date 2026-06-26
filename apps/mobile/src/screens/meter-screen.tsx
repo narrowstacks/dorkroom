@@ -1,13 +1,7 @@
-import {
-  formatAperture,
-  formatShutterSpeed,
-  STANDARD_APERTURES,
-  STANDARD_ISOS,
-  STANDARD_SHUTTER_SPEEDS,
-  snapToStandardStop,
-  useLightMeterSolver,
-} from '@dorkroom/logic';
-import { router, useIsFocused } from 'expo-router';
+import { useLightMeterSolver } from '@dorkroom/logic';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useIsFocused } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   type LayoutChangeEvent,
@@ -16,39 +10,60 @@ import {
   Text,
   View,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Camera } from 'react-native-vision-camera';
+import type { CameraPhotoOutput } from 'react-native-vision-camera';
+import { Camera, usePhotoOutput } from 'react-native-vision-camera';
 import { BlurPanel } from '@/components/meter/blur-panel';
+import { CustomIsoSheet } from '@/components/meter/custom-iso-sheet';
+import { GlassPill } from '@/components/meter/glass-pill';
+import { MeterCaptureControls } from '@/components/meter/meter-capture-controls';
+import { MeterReadout } from '@/components/meter/meter-readout';
+import { MeterRollPill } from '@/components/meter/meter-roll-pill';
+import { MeterSettingsSheet } from '@/components/meter/meter-settings-sheet';
+import { MeterToast } from '@/components/meter/meter-toast';
 import {
-  MeterReadout,
-  type ScrubField,
-} from '@/components/meter/meter-readout';
-import { MeterStepper } from '@/components/meter/meter-stepper';
+  MatrixMeteringIcon,
+  SpotMeteringIcon,
+} from '@/components/meter/metering-icons';
 import { PermissionFallback } from '@/components/meter/permission-fallback';
 import { RETICLE_SIZE, Reticle } from '@/components/meter/reticle';
 import { ScrubOverlay, useDragOffset } from '@/components/meter/scrub-overlay';
 import { SegmentedPill } from '@/components/meter/segmented-pill';
 import { useCalibration } from '@/hooks/use-calibration';
 import { useCameraMeter } from '@/hooks/use-camera-meter';
+import { useMeterCapture } from '@/hooks/use-meter-capture';
 import { useMeterIsoLock } from '@/hooks/use-meter-iso-lock';
+import {
+  type SelectorTarget,
+  useMeterScrubFields,
+} from '@/hooks/use-meter-scrub-fields';
+import { useShutterFlash } from '@/hooks/use-shutter-flash';
+import { useToast } from '@/hooks/use-toast';
+import { useLinkFilmLog } from '@/lib/meter-film-log-link';
 import { getMeterSettings, setMeterSettings } from '@/lib/meter-settings';
 
-// Clearance for the translucent native tab bar so bottom controls stay tappable.
-const TAB_BAR_CLEARANCE = 64;
-const CALIBRATION_STEP = 0.1;
+// Clearance for the translucent native tab bar so bottom controls stay tappable
+// while the readout still sits snug above it (no dead gap).
+const TAB_BAR_CLEARANCE = 24;
 
 type MeteringMode = 'matrix' | 'spot';
 const MODE_OPTIONS = [
-  { label: 'Matrix', value: 'matrix' as const },
-  { label: 'Spot', value: 'spot' as const },
+  {
+    label: 'Matrix',
+    value: 'matrix' as const,
+    renderIcon: (p: { color: string; size: number }) => (
+      <MatrixMeteringIcon {...p} />
+    ),
+  },
+  {
+    label: 'Spot',
+    value: 'spot' as const,
+    renderIcon: (p: { color: string; size: number }) => (
+      <SpotMeteringIcon {...p} />
+    ),
+  },
 ];
-
-const ISO_OPTIONS = STANDARD_ISOS.map((o) => ({
-  value: o.value,
-  label: String(o.value),
-}));
-
-type SelectorTarget = 'aperture' | 'shutter' | 'iso';
 
 export function MeterScreen() {
   const insets = useSafeAreaInsets();
@@ -56,15 +71,39 @@ export function MeterScreen() {
     useCalibration();
   const meter = useCameraMeter(calibrationOffset);
   const { hasPermission, requestPermission } = meter;
+  // Still-photo output for the shutter; kept in a ref so the capture hook reads
+  // the latest instance without re-subscribing each render. Force JPEG (the iOS
+  // default is HEIC, which Skia's grayscale pass can't decode).
+  const photoOutput = usePhotoOutput({ containerFormat: 'jpeg' });
+  const photoOutputRef = useRef<CameraPhotoOutput | null>(photoOutput);
+  photoOutputRef.current = photoOutput;
+  const capture = useMeterCapture(photoOutputRef);
+  const { flashStyle, triggerFlash } = useShutterFlash();
   // Seed the solver from the last persisted locked setting + ISO (read once).
   const initialSettings = useMemo(() => getMeterSettings(), []);
   const solver = useLightMeterSolver(meter.ev, initialSettings);
   const isFocused = useIsFocused();
-  // Lock the meter ISO to the active roll's rated EI (default on, tap to unlock).
+  // When off, all film-log integration is hidden (clean standalone meter).
+  const [linkFilmLog] = useLinkFilmLog();
+  // Lock the meter ISO to the active roll's rated EI (default on, tap to unlock);
+  // skipped entirely while the film-log link is off.
   const { rollIso, isoLocked, toggleLock } = useMeterIsoLock(
     solver.iso,
-    solver.setIso
+    solver.setIso,
+    linkFilmLog
   );
+  const { message: toastMessage, show: showToast } = useToast();
+  const onIsoBlocked = useCallback(
+    () => showToast('Unlock EI in the upper left to pick an ISO'),
+    [showToast]
+  );
+  const onScrubTapHint = useCallback(
+    () => showToast('Hold and drag to select a value'),
+    [showToast]
+  );
+  const [customIsoOpen, setCustomIsoOpen] = useState(false);
+  const onCustomIso = useCallback(() => setCustomIsoOpen(true), []);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [meteringMode, setMeteringMode] = useState<MeteringMode>('matrix');
   const [meterPoint, setMeterPoint] = useState<{ x: number; y: number } | null>(
     null
@@ -134,73 +173,15 @@ export function MeterScreen() {
     [enterMatrix, enterSpot]
   );
 
-  // Each setting is drag-scrubbable. Dragging aperture/shutter commits a value
-  // and locks it (sets that priority); ISO never changes priority. A calculated
-  // setting starts the scrub from its displayed (solved + snapped) value.
-  const fields = useMemo<Record<SelectorTarget, ScrubField>>(() => {
-    const sol = solver.solution;
-    const apertureLocked = solver.priority === 'aperture';
-    const shutterLocked = solver.priority === 'shutter';
-    return {
-      aperture: {
-        caption: 'aperture',
-        accessibilityLabel: 'Aperture',
-        options: STANDARD_APERTURES,
-        value: apertureLocked
-          ? solver.aperture
-          : snapToStandardStop(sol.aperture, STANDARD_APERTURES, false).standard
-              .value,
-        displayLabel: apertureLocked
-          ? formatAperture(solver.aperture)
-          : sol.isValid
-            ? sol.solvedLabel
-            : '—',
-        onChange: (v) => {
-          solver.setAperture(v);
-          solver.setPriority('aperture');
-        },
-        brighterIsHigherIndex: false,
-        locked: apertureLocked,
-        calculated: !apertureLocked,
-        stopError:
-          !apertureLocked && sol.isValid ? sol.solvedStopError : undefined,
-      },
-      shutter: {
-        caption: 'shutter',
-        accessibilityLabel: 'Shutter',
-        options: STANDARD_SHUTTER_SPEEDS,
-        value: shutterLocked
-          ? solver.shutterSpeed
-          : snapToStandardStop(sol.shutterSpeed, STANDARD_SHUTTER_SPEEDS, true)
-              .standard.value,
-        displayLabel: shutterLocked
-          ? formatShutterSpeed(solver.shutterSpeed)
-          : sol.isValid
-            ? sol.solvedLabel
-            : '—',
-        onChange: (v) => {
-          solver.setShutterSpeed(v);
-          solver.setPriority('shutter');
-        },
-        brighterIsHigherIndex: false,
-        locked: shutterLocked,
-        calculated: !shutterLocked,
-        stopError:
-          !shutterLocked && sol.isValid ? sol.solvedStopError : undefined,
-      },
-      iso: {
-        caption: 'ISO',
-        accessibilityLabel: 'ISO',
-        options: ISO_OPTIONS,
-        value: solver.iso,
-        displayLabel: String(solver.iso),
-        onChange: solver.setIso,
-        brighterIsHigherIndex: true,
-        locked: false,
-        calculated: false,
-      },
-    };
-  }, [solver]);
+  // Each setting (aperture / shutter / ISO) as a drag-scrubbable field. The
+  // roll's rated EI is injected into the ISO options and accented.
+  const fields = useMeterScrubFields(
+    solver,
+    rollIso,
+    isoLocked,
+    onIsoBlocked,
+    onCustomIso
+  );
 
   if (!meter.hasPermission) {
     return (
@@ -216,7 +197,6 @@ export function MeterScreen() {
   }
 
   const isSpot = meteringMode === 'spot';
-  const calLabel = `CAL ${calibrationOffset > 0 ? '+' : ''}${calibrationOffset.toFixed(1)}`;
 
   return (
     <View style={styles.container} onLayout={onLayout}>
@@ -232,8 +212,22 @@ export function MeterScreen() {
           device={meter.device}
           isActive={isFocused}
           onPreviewStarted={meter.onInitialized}
+          outputs={[photoOutput]}
         />
       </Pressable>
+
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(0,0,0,0.52)', 'rgba(0,0,0,0.18)', 'transparent']}
+        locations={[0, 0.58, 1]}
+        style={styles.topShade}
+      />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['transparent', 'rgba(0,0,0,0.24)', 'rgba(0,0,0,0.68)']}
+        locations={[0, 0.42, 1]}
+        style={styles.bottomShade}
+      />
 
       {/* Spot reticle: only shown in spot mode, on the metered point. */}
       {isSpot && meterPoint ? (
@@ -251,55 +245,62 @@ export function MeterScreen() {
         </View>
       ) : null}
 
-      {/* Log shot + ISO lock (left) + calibration (right). */}
+      {/* Settings gear, top-left — opens the meter-specific settings popup
+          (calibration, etc.) and balances the right-hand control stack. */}
       <View
         pointerEvents="box-none"
-        style={[styles.topStrip, { top: insets.top + 8 }]}
+        style={[styles.topLeftStack, { top: insets.top + 10 }]}
       >
-        <View style={styles.topLeftGroup}>
-          <Pressable
-            onPress={() => {
-              const a = fields.aperture.value;
-              const s = fields.shutter.value;
-              router.push(
-                `/film-log/shot?source=meter&aperture=${a}&shutter=${s}&meteredIso=${solver.iso}`
-              );
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Log this reading to a film roll"
-            style={styles.logButton}
-          >
-            <Text style={styles.logButtonText}>＋ Log</Text>
-          </Pressable>
-          {rollIso != null ? (
-            <Pressable
-              onPress={toggleLock}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isoLocked }}
-              accessibilityLabel={
-                isoLocked
-                  ? `ISO locked to roll EI ${rollIso}. Tap to unlock.`
-                  : `ISO unlocked. Tap to lock to roll EI ${rollIso}.`
-              }
-              style={styles.logButton}
-            >
-              <Text style={styles.logButtonText}>
-                {isoLocked ? `🔒 EI ${rollIso}` : '🔓 ISO'}
-              </Text>
-            </Pressable>
-          ) : null}
-        </View>
-        <MeterStepper
-          label={calLabel}
-          onDecrement={() => handleCalibrationChange(-CALIBRATION_STEP)}
-          onIncrement={() => handleCalibrationChange(CALIBRATION_STEP)}
-          decrementLabel="Lower calibration"
-          incrementLabel="Raise calibration"
-        />
+        <Pressable
+          onPress={() => setSettingsOpen(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Meter settings"
+          hitSlop={8}
+        >
+          <GlassPill style={styles.settingsButton}>
+            <SymbolView name="gearshape" size={18} tintColor="#ffffff" />
+          </GlassPill>
+        </Pressable>
       </View>
 
-      {/* Bottom: the live scrub value (while dragging) or the mode toggle,
-          above the results readout. */}
+      {/* Roll + EI lock, top-right. */}
+      <View
+        pointerEvents="box-none"
+        style={[styles.topControlStack, { top: insets.top + 10 }]}
+      >
+        {rollIso != null ? (
+          <Pressable
+            onPress={toggleLock}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isoLocked }}
+            accessibilityLabel={
+              isoLocked
+                ? `ISO locked to roll EI ${rollIso}. Tap to unlock.`
+                : `ISO unlocked. Tap to lock to roll EI ${rollIso}.`
+            }
+          >
+            <GlassPill style={styles.isoPill}>
+              <SymbolView
+                name={isoLocked ? 'lock.fill' : 'lock.open.fill'}
+                size={15}
+                tintColor={isoLocked ? '#facc15' : '#ffffff'}
+              />
+              <Text
+                style={[
+                  styles.logButtonText,
+                  isoLocked && styles.logButtonTextLocked,
+                ]}
+              >
+                {isoLocked ? `EI ${rollIso}` : 'ISO'}
+              </Text>
+            </GlassPill>
+          </Pressable>
+        ) : null}
+        {linkFilmLog ? <MeterRollPill /> : null}
+      </View>
+
+      {/* Above the readout: the live scrub ruler (while dragging) or the
+          matrix/spot toggle, pinned bottom-right when idle. */}
       <View
         pointerEvents="box-none"
         style={[
@@ -307,20 +308,27 @@ export function MeterScreen() {
           { bottom: insets.bottom + TAB_BAR_CLEARANCE },
         ]}
       >
-        {scrub ? (
-          <ScrubOverlay
-            field={fields[scrub.target]}
-            baseIndex={scrub.baseIndex}
-            dragY={dragY}
-          />
-        ) : (
-          <SegmentedPill
-            options={MODE_OPTIONS}
-            value={meteringMode}
-            onChange={handleModeChange}
-            accessibilityLabel="Matrix or spot metering"
-          />
-        )}
+        <View
+          style={[
+            styles.bottomControlSlot,
+            scrub ? styles.bottomControlScrub : styles.bottomControlToggle,
+          ]}
+        >
+          {scrub ? (
+            <ScrubOverlay
+              field={fields[scrub.target]}
+              baseIndex={scrub.baseIndex}
+              dragY={dragY}
+            />
+          ) : (
+            <SegmentedPill
+              options={MODE_OPTIONS}
+              value={meteringMode}
+              onChange={handleModeChange}
+              accessibilityLabel="Matrix or spot metering"
+            />
+          )}
+        </View>
         <BlurPanel style={styles.resultsPanel}>
           <MeterReadout
             ev={meter.ev}
@@ -333,15 +341,65 @@ export function MeterScreen() {
               setScrub({ target, baseIndex })
             }
             onScrubEnd={() => setScrub(null)}
+            onTapHint={onScrubTapHint}
           />
         </BlurPanel>
       </View>
+
+      {/* Bottom-center shutter + confirm sheet (extracted to keep the screen
+          lean; capture state lives in useMeterCapture). */}
+      <MeterCaptureControls
+        capture={capture}
+        aperture={fields.aperture.value}
+        shutterSpeed={fields.shutter.value}
+        iso={solver.iso}
+        bottom={insets.bottom + TAB_BAR_CLEARANCE + 156}
+        showShutter={!scrub && linkFilmLog}
+        onShutter={triggerFlash}
+      />
+
+      <Animated.View
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, styles.flash, flashStyle]}
+      />
+
+      {toastMessage ? <MeterToast message={toastMessage} /> : null}
+
+      {customIsoOpen ? (
+        <CustomIsoSheet
+          visible
+          onClose={() => setCustomIsoOpen(false)}
+          onSubmit={solver.setIso}
+        />
+      ) : null}
+
+      <MeterSettingsSheet
+        visible={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        calibrationOffset={calibrationOffset}
+        onCalibrationChange={handleCalibrationChange}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0b0b0c' },
+  topShade: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 190,
+  },
+  bottomShade: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 340,
+  },
+  flash: { backgroundColor: '#ffffff' },
   center: {
     flex: 1,
     alignItems: 'center',
@@ -350,32 +408,45 @@ const styles = StyleSheet.create({
   },
   text: { color: '#f5f5f4' },
   reticle: { position: 'absolute' },
-  topStrip: {
+  topControlStack: {
     position: 'absolute',
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  topLeftGroup: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  logButton: {
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-  },
-  logButtonText: { color: '#ffffff', fontSize: 15, fontWeight: '600' },
-  bottomStack: {
-    position: 'absolute',
-    left: 16,
     right: 16,
     alignItems: 'flex-end',
-    gap: 10,
+    gap: 8,
   },
+  topLeftStack: {
+    position: 'absolute',
+    left: 16,
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  settingsButton: {
+    width: 44,
+    minHeight: 44,
+    paddingHorizontal: 0,
+    justifyContent: 'center',
+  },
+  isoPill: { gap: 6, minHeight: 42, paddingHorizontal: 16, paddingVertical: 8 },
+  logButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
+  logButtonTextLocked: { color: '#facc15' },
+  bottomStack: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    // Both children stretch full-width; the control slot below aligns the
+    // toggle/ruler within it, and the readout panel is full-width.
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  // Holds the matrix/spot toggle or the scrub ruler, above the readout.
+  bottomControlSlot: { alignSelf: 'stretch' },
+  // Idle: pin the matrix/spot toggle bottom-right (clear of the centered
+  // shutter). While scrubbing: keep the ruler left, as before.
+  bottomControlToggle: { alignItems: 'flex-end' },
+  bottomControlScrub: { alignItems: 'flex-start' },
   resultsPanel: {
     alignSelf: 'stretch',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
   },
 });

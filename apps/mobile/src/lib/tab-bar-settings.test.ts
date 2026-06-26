@@ -29,7 +29,7 @@ describe('tab-bar-settings', () => {
   beforeEach(() => store.clear());
 
   it('returns the defaults when unset', () => {
-    expect(getPinnedIds()).toEqual([...DEFAULT_PINNED_IDS]);
+    expect(getPinnedIds()).toEqual(DEFAULT_PINNED_IDS.slice(0, MAX_PINNED));
   });
 
   it('round-trips a saved set', () => {
@@ -46,13 +46,15 @@ describe('tab-bar-settings', () => {
 
   it('falls back to defaults when the saved set is empty', () => {
     setPinnedIds([]);
-    expect(getPinnedIds()).toEqual([...DEFAULT_PINNED_IDS]);
+    expect(getPinnedIds()).toEqual(DEFAULT_PINNED_IDS.slice(0, MAX_PINNED));
   });
 });
 
 describe('normalizePinnedIds', () => {
   it('returns defaults when value is undefined', () => {
-    expect(normalizePinnedIds(undefined)).toEqual([...DEFAULT_PINNED_IDS]);
+    expect(normalizePinnedIds(undefined)).toEqual(
+      DEFAULT_PINNED_IDS.slice(0, MAX_PINNED)
+    );
   });
 
   it('returns valid ids from a well-formed JSON array', () => {
@@ -61,7 +63,9 @@ describe('normalizePinnedIds', () => {
   });
 
   it('returns defaults when value is malformed JSON', () => {
-    expect(normalizePinnedIds('not json')).toEqual([...DEFAULT_PINNED_IDS]);
+    expect(normalizePinnedIds('not json')).toEqual(
+      DEFAULT_PINNED_IDS.slice(0, MAX_PINNED)
+    );
   });
 
   it('drops unknown ids from a mixed array', () => {
@@ -72,7 +76,7 @@ describe('normalizePinnedIds', () => {
     expect(result).not.toContain('unknown-tool');
   });
 
-  it('caps results at MAX_PINNED when more than 4 valid ids are provided', () => {
+  it('caps results at MAX_PINNED when more valid ids are provided', () => {
     const raw = JSON.stringify([
       'border',
       'resize',
