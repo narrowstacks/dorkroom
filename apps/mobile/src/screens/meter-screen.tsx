@@ -65,6 +65,157 @@ const MODE_OPTIONS = [
   },
 ];
 
+// --- Sub-components ---
+
+interface MeterTopControlsProps {
+  top: number;
+  rollIso: number | null;
+  isoLocked: boolean;
+  toggleLock: () => void;
+  linkFilmLog: boolean;
+  onOpenSettings: () => void;
+}
+
+function MeterTopControls({
+  top,
+  rollIso,
+  isoLocked,
+  toggleLock,
+  linkFilmLog,
+  onOpenSettings,
+}: MeterTopControlsProps) {
+  return (
+    <>
+      {/* Settings gear, top-left — opens the meter-specific settings popup
+          (calibration, etc.) and balances the right-hand control stack. */}
+      <View
+        pointerEvents="box-none"
+        style={[styles.topLeftStack, { top }]}
+      >
+        <Pressable
+          onPress={onOpenSettings}
+          accessibilityRole="button"
+          accessibilityLabel="Meter settings"
+          hitSlop={8}
+        >
+          <GlassPill style={styles.settingsButton}>
+            <SymbolView name="gearshape" size={18} tintColor="#ffffff" />
+          </GlassPill>
+        </Pressable>
+      </View>
+      {/* Roll + EI lock, top-right. */}
+      <View
+        pointerEvents="box-none"
+        style={[styles.topControlStack, { top }]}
+      >
+        {rollIso != null ? (
+          <Pressable
+            onPress={toggleLock}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isoLocked }}
+            accessibilityLabel={
+              isoLocked
+                ? `ISO locked to roll EI ${rollIso}. Tap to unlock.`
+                : `ISO unlocked. Tap to lock to roll EI ${rollIso}.`
+            }
+          >
+            <GlassPill style={styles.isoPill}>
+              <SymbolView
+                name={isoLocked ? 'lock.fill' : 'lock.open.fill'}
+                size={15}
+                tintColor={isoLocked ? '#facc15' : '#ffffff'}
+              />
+              <Text
+                style={[
+                  styles.logButtonText,
+                  isoLocked && styles.logButtonTextLocked,
+                ]}
+              >
+                {isoLocked ? `EI ${rollIso}` : 'ISO'}
+              </Text>
+            </GlassPill>
+          </Pressable>
+        ) : null}
+        {linkFilmLog ? <MeterRollPill /> : null}
+      </View>
+    </>
+  );
+}
+
+interface MeterBottomControlsProps {
+  bottom: number;
+  scrub: { target: SelectorTarget; baseIndex: number } | null;
+  fields: ReturnType<typeof useMeterScrubFields>;
+  meteringMode: MeteringMode;
+  onModeChange: (mode: MeteringMode) => void;
+  dragY: ReturnType<typeof useDragOffset>;
+  ev: number;
+  outOfRange: boolean;
+  onScrubStart: (target: SelectorTarget, baseIndex: number) => void;
+  onScrubEnd: () => void;
+  onScrubTapHint: () => void;
+}
+
+function MeterBottomControls({
+  bottom,
+  scrub,
+  fields,
+  meteringMode,
+  onModeChange,
+  dragY,
+  ev,
+  outOfRange,
+  onScrubStart,
+  onScrubEnd,
+  onScrubTapHint,
+}: MeterBottomControlsProps) {
+  return (
+    /* Above the readout: the live scrub ruler (while dragging) or the
+       matrix/spot toggle, pinned bottom-right when idle. */
+    <View
+      pointerEvents="box-none"
+      style={[styles.bottomStack, { bottom }]}
+    >
+      <View
+        style={[
+          styles.bottomControlSlot,
+          scrub ? styles.bottomControlScrub : styles.bottomControlToggle,
+        ]}
+      >
+        {scrub ? (
+          <ScrubOverlay
+            field={fields[scrub.target]}
+            baseIndex={scrub.baseIndex}
+            dragY={dragY}
+          />
+        ) : (
+          <SegmentedPill
+            options={MODE_OPTIONS}
+            value={meteringMode}
+            onChange={onModeChange}
+            accessibilityLabel="Matrix or spot metering"
+          />
+        )}
+      </View>
+      <BlurPanel style={styles.resultsPanel}>
+        <MeterReadout
+          ev={ev}
+          aperture={fields.aperture}
+          shutter={fields.shutter}
+          iso={fields.iso}
+          outOfRange={outOfRange}
+          dragY={dragY}
+          onScrubStart={onScrubStart}
+          onScrubEnd={onScrubEnd}
+          onTapHint={onScrubTapHint}
+        />
+      </BlurPanel>
+    </View>
+  );
+}
+
+// --- Main screen ---
+
 export function MeterScreen() {
   const insets = useSafeAreaInsets();
   const { offset: calibrationOffset, adjust: handleCalibrationChange } =
@@ -101,9 +252,9 @@ export function MeterScreen() {
     () => showToast('Hold and drag to select a value'),
     [showToast]
   );
-  const [customIsoOpen, setCustomIsoOpen] = useState(false);
-  const onCustomIso = useCallback(() => setCustomIsoOpen(true), []);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  // Only one overlay (custom-ISO sheet or settings sheet) can be open at a time.
+  const [overlay, setOverlay] = useState<'customIso' | 'settings' | null>(null);
+  const onCustomIso = useCallback(() => setOverlay('customIso'), []);
   const [meteringMode, setMeteringMode] = useState<MeteringMode>('matrix');
   const [meterPoint, setMeterPoint] = useState<{ x: number; y: number } | null>(
     null
@@ -245,106 +396,28 @@ export function MeterScreen() {
         </View>
       ) : null}
 
-      {/* Settings gear, top-left — opens the meter-specific settings popup
-          (calibration, etc.) and balances the right-hand control stack. */}
-      <View
-        pointerEvents="box-none"
-        style={[styles.topLeftStack, { top: insets.top + 10 }]}
-      >
-        <Pressable
-          onPress={() => setSettingsOpen(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Meter settings"
-          hitSlop={8}
-        >
-          <GlassPill style={styles.settingsButton}>
-            <SymbolView name="gearshape" size={18} tintColor="#ffffff" />
-          </GlassPill>
-        </Pressable>
-      </View>
+      <MeterTopControls
+        top={insets.top + 10}
+        rollIso={rollIso}
+        isoLocked={isoLocked}
+        toggleLock={toggleLock}
+        linkFilmLog={linkFilmLog}
+        onOpenSettings={() => setOverlay('settings')}
+      />
 
-      {/* Roll + EI lock, top-right. */}
-      <View
-        pointerEvents="box-none"
-        style={[styles.topControlStack, { top: insets.top + 10 }]}
-      >
-        {rollIso != null ? (
-          <Pressable
-            onPress={toggleLock}
-            accessibilityRole="button"
-            accessibilityState={{ selected: isoLocked }}
-            accessibilityLabel={
-              isoLocked
-                ? `ISO locked to roll EI ${rollIso}. Tap to unlock.`
-                : `ISO unlocked. Tap to lock to roll EI ${rollIso}.`
-            }
-          >
-            <GlassPill style={styles.isoPill}>
-              <SymbolView
-                name={isoLocked ? 'lock.fill' : 'lock.open.fill'}
-                size={15}
-                tintColor={isoLocked ? '#facc15' : '#ffffff'}
-              />
-              <Text
-                style={[
-                  styles.logButtonText,
-                  isoLocked && styles.logButtonTextLocked,
-                ]}
-              >
-                {isoLocked ? `EI ${rollIso}` : 'ISO'}
-              </Text>
-            </GlassPill>
-          </Pressable>
-        ) : null}
-        {linkFilmLog ? <MeterRollPill /> : null}
-      </View>
-
-      {/* Above the readout: the live scrub ruler (while dragging) or the
-          matrix/spot toggle, pinned bottom-right when idle. */}
-      <View
-        pointerEvents="box-none"
-        style={[
-          styles.bottomStack,
-          { bottom: insets.bottom + TAB_BAR_CLEARANCE },
-        ]}
-      >
-        <View
-          style={[
-            styles.bottomControlSlot,
-            scrub ? styles.bottomControlScrub : styles.bottomControlToggle,
-          ]}
-        >
-          {scrub ? (
-            <ScrubOverlay
-              field={fields[scrub.target]}
-              baseIndex={scrub.baseIndex}
-              dragY={dragY}
-            />
-          ) : (
-            <SegmentedPill
-              options={MODE_OPTIONS}
-              value={meteringMode}
-              onChange={handleModeChange}
-              accessibilityLabel="Matrix or spot metering"
-            />
-          )}
-        </View>
-        <BlurPanel style={styles.resultsPanel}>
-          <MeterReadout
-            ev={meter.ev}
-            aperture={fields.aperture}
-            shutter={fields.shutter}
-            iso={fields.iso}
-            outOfRange={solver.solution.outOfRange}
-            dragY={dragY}
-            onScrubStart={(target, baseIndex) =>
-              setScrub({ target, baseIndex })
-            }
-            onScrubEnd={() => setScrub(null)}
-            onTapHint={onScrubTapHint}
-          />
-        </BlurPanel>
-      </View>
+      <MeterBottomControls
+        bottom={insets.bottom + TAB_BAR_CLEARANCE}
+        scrub={scrub}
+        fields={fields}
+        meteringMode={meteringMode}
+        onModeChange={handleModeChange}
+        dragY={dragY}
+        ev={meter.ev}
+        outOfRange={solver.solution.outOfRange}
+        onScrubStart={(target, baseIndex) => setScrub({ target, baseIndex })}
+        onScrubEnd={() => setScrub(null)}
+        onScrubTapHint={onScrubTapHint}
+      />
 
       {/* Bottom-center shutter + confirm sheet (extracted to keep the screen
           lean; capture state lives in useMeterCapture). */}
@@ -365,17 +438,17 @@ export function MeterScreen() {
 
       {toastMessage ? <MeterToast message={toastMessage} /> : null}
 
-      {customIsoOpen ? (
+      {overlay === 'customIso' ? (
         <CustomIsoSheet
           visible
-          onClose={() => setCustomIsoOpen(false)}
+          onClose={() => setOverlay(null)}
           onSubmit={solver.setIso}
         />
       ) : null}
 
       <MeterSettingsSheet
-        visible={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
+        visible={overlay === 'settings'}
+        onClose={() => setOverlay(null)}
         calibrationOffset={calibrationOffset}
         onCalibrationChange={handleCalibrationChange}
       />
