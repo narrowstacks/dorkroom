@@ -11,6 +11,7 @@ import {
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
 import {
+  AspectPreview,
   colorMixOr,
   getRouteIcon,
   StatusAlert,
@@ -292,6 +293,37 @@ interface ResizeFieldHelpers {
   unitLabel: string;
   toDisplay: MeasurementConverter['toDisplay'];
   toInches: MeasurementConverter['toInches'];
+}
+
+function ResizePreview({ form }: { form: ResizeForm }) {
+  return (
+    <form.Subscribe
+      selector={(state) => ({
+        isEnlargerMode: state.values.isEnlargerHeightMode as boolean,
+        origWidth: state.values.originalWidth as number,
+        origLength: state.values.originalLength as number,
+        newWidth: state.values.newWidth as number,
+        newLength: state.values.newLength as number,
+      })}
+    >
+      {({ isEnlargerMode, origWidth, origLength, newWidth, newLength }) =>
+        isEnlargerMode || newWidth <= 0 || newLength <= 0 ? null : (
+          <CalculatorCard
+            title="Aspect preview"
+            description="Compare the proportions of your original and target prints."
+            padding="compact"
+          >
+            <AspectPreview
+              origW={origWidth}
+              origL={origLength}
+              newW={newWidth}
+              newL={newLength}
+            />
+          </CalculatorCard>
+        )
+      }
+    </form.Subscribe>
+  );
 }
 
 function ResizeResults({ form }: { form: ResizeForm }) {
@@ -663,7 +695,15 @@ export default function ResizeCalculatorPage() {
   const { toInches, toDisplay } = useMeasurementConverter();
   const { form, formValues } = useResizeForm();
 
-  const results = useMemo(() => <ResizeResults form={form} />, [form]);
+  const results = useMemo(
+    () => (
+      <div className="space-y-4">
+        <ResizeResults form={form} />
+        <ResizePreview form={form} />
+      </div>
+    ),
+    [form]
+  );
 
   return (
     <CalculatorLayout

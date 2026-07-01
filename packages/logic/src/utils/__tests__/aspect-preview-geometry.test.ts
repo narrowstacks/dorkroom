@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computePreviewRects } from './aspect-preview-geometry';
+import { computePreviewRects } from '../aspect-preview-geometry';
 
 describe('computePreviewRects', () => {
   it('scales both rects by a shared factor and centers them in the box', () => {
@@ -17,6 +17,12 @@ describe('computePreviewRects', () => {
 
   it('returns zero rects for non-positive input', () => {
     const { orig, target } = computePreviewRects(0, 0, 0, 0, 120);
+    expect(orig).toEqual({ x: 0, y: 0, w: 0, h: 0 });
+    expect(target).toEqual({ x: 0, y: 0, w: 0, h: 0 });
+  });
+
+  it('returns zero rects when a dimension is not finite', () => {
+    const { orig, target } = computePreviewRects(4, Number.NaN, 6, 9, 120);
     expect(orig).toEqual({ x: 0, y: 0, w: 0, h: 0 });
     expect(target).toEqual({ x: 0, y: 0, w: 0, h: 0 });
   });

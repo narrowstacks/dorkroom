@@ -1,7 +1,7 @@
+import { computePreviewRects } from '@dorkroom/logic';
 import { View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { ACCENT } from '@/theme/accents';
-import { computePreviewRects } from './aspect-preview-geometry';
 
 const BOX = 120;
 

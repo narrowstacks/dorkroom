@@ -134,6 +134,7 @@ export * from './types/lens-calculator';
 export * from './types/light-meter';
 export * from './types/reciprocity';
 // Utils exports
+export * from './utils/aspect-preview-geometry';
 export * from './utils/border-calculations';
 export * from './utils/camera-exposure-calculations';
 export * from './utils/combination-factory';

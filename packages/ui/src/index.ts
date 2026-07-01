@@ -47,6 +47,9 @@ export type { PlaceholderPageProps } from './components/placeholder-page';
 export { PlaceholderPage } from './components/placeholder-page';
 export { PushPullAlert } from './components/push-pull-alert';
 export { ReciprocityChart } from './components/reciprocity-chart';
+// Print resize aspect-ratio preview
+export type { AspectPreviewProps } from './components/resize/aspect-preview';
+export { AspectPreview } from './components/resize/aspect-preview';
 export type { ResponsiveModalProps } from './components/responsive-modal';
 export { ResponsiveModal } from './components/responsive-modal';
 export { ResultRow } from './components/result-row';
