@@ -8,8 +8,8 @@
           {
             "type": "command",
             "command": ".claude/hooks/websearch-add-year.sh",
-            "statusMessage": "Adding year to search...",
-            "timeout": 5
+            "timeout": 5,
+            "statusMessage": "Adding year to search..."
           }
         ]
       }
@@ -29,6 +29,7 @@
   },
   "enabledPlugins": {
     "commit-commands@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true
+    "typescript-lsp@claude-plugins-official": true,
+    "ios-simulator-skill@conorluddy": true
   }
 }
