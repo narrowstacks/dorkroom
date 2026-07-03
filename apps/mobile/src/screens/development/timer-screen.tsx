@@ -53,7 +53,9 @@ export function TimerScreen() {
     prefillApplied.current = true;
     const prefill = consumeTimerPrefill();
     if (prefill) {
+      // eslint-disable-next-line react-doctor/no-chain-state-updates -- one-shot mount effect consuming an external module-level queue (consumeTimerPrefill destructively reads-and-clears it), not a state reacting to another state
       setSelectedPresetId('');
+      // eslint-disable-next-line react-doctor/no-derived-state -- same one-shot external-system sync; stagesFromCombination(prefill) reads a destructive module singleton, not props/state already available during render, so it can't be computed inline or via useMemo
       applyStages(stagesFromCombination(prefill));
     }
   }, [applyStages]);
