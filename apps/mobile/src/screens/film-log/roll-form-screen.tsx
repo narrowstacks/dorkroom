@@ -3,6 +3,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { CustomFilmForm } from '@/components/film-log/custom-film-form';
+import { FilmStockPicker } from '@/components/film-log/film-stock-picker';
+import { resolveFilmStockName } from '@/components/film-log/film-stock-picker-logic';
 import { SelectField } from '@/components/film-log/select-field';
 import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
@@ -50,15 +52,6 @@ export function RollFormScreen() {
     () => cameras.map((c) => ({ label: c.name, value: c.id })),
     [cameras]
   );
-  const filmOptions = useMemo(
-    () =>
-      films.map((f) => ({
-        label: `${f.brand} ${f.name}`,
-        value: f.id,
-        detail: `ISO ${f.iso}`,
-      })),
-    [films]
-  );
   const backOptions = useMemo(
     () => (camera?.backs ?? []).map((b) => ({ label: b, value: b })),
     [camera]
@@ -69,12 +62,6 @@ export function RollFormScreen() {
     set('process', stock.process);
     // Default the roll's EI to box speed; the user bumps it to push/pull.
     set('iso', String(stock.iso));
-  };
-
-  const onSelectFilm = (id: string) => {
-    const stock = resolveStock(id);
-    if (stock) selectFilm(stock);
-    else set('filmStockId', id);
   };
 
   const onSave = () => {
@@ -91,7 +78,7 @@ export function RollFormScreen() {
       name: sanitizeText(form.name, 120),
       cameraId: form.cameraId,
       filmStockId: form.filmStockId,
-      filmStockName: stock ? `${stock.brand} ${stock.name}` : undefined,
+      filmStockName: resolveFilmStockName(stock, form.filmStockId, existing),
       process: form.process,
       iso: Number.isFinite(ei) && ei > 0 ? ei : undefined,
       status: form.status,
@@ -143,11 +130,11 @@ export function RollFormScreen() {
           onChange={(v) => set('cameraId', v)}
         />
         <View className="gap-2">
-          <SelectField
+          <FilmStockPicker
             label="Film"
             value={form.filmStockId}
-            options={filmOptions}
-            onChange={onSelectFilm}
+            films={films}
+            onSelect={selectFilm}
             placeholder="Select a film stock"
           />
           {filmsLoading ? (

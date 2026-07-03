@@ -26,6 +26,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - Unnamed film roll rows no longer repeat the film stock name in both the title and subtitle; the roll's started date is now shown alongside the shot count.
 - Raised the contrast of the picker-field dropdown caret (film/lens/format selects, reciprocity's film picker) from `white/40`–`white/50` to `white/70` so the field no longer reads as disabled/read-only.
 - The Lens field on the Add/Edit shot screen now shows a static "No saved lenses — add one under Cameras & lenses" hint instead of an empty, dead-end picker sheet when no lenses are saved.
+- **The Film Log's film picker is now searchable and grouped by brand.** With the live catalog's hundreds of stocks, the old flat, unsearched 360pt list was unusable; the Film field now opens a search box plus a brand-grouped, virtualized list (your custom stocks pinned in a leading "Your films" section), with the last row no longer clipped.
 
 ### Fixed
 
@@ -34,6 +35,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **Camera permission is no longer requested at app launch.** The Meter screen now requests camera permission only while its tab is focused, instead of firing on first mount — previously the permission dialog could appear over the Border screen before the user ever opened Meter.
 - **Edit Tabs now explains its at-capacity state** — when the tab bar is full, the dimmed "More tools" rows now show a "Tab bar is full — remove a tool to add another" hint instead of silently doing nothing when tapped.
 - **Form screens no longer draw content through the navigation title while typing.** The More, Film Log, and Recipes stacks' large-title headers stayed fully transparent once content scrolled beneath them (e.g. focusing a keyboard field), so field labels and list rows drew straight through the title text. The header now stays on a blurred background at all times, so scrolled content is always occluded instead of double-drawn.
+- **Editing an old roll no longer loses its film name.** Saving a roll whose `filmStockId` no longer resolves in the current catalog (e.g. a stub-era id, or an empty offline cache) used to silently blank out its stored film-name snapshot; the save path now keeps the roll's existing name when its film id is unresolved and unchanged.
 
 ## [2026.06.26]
 
