@@ -11,6 +11,7 @@ import { useTimer } from '@/components/development/timer/use-timer';
 import { PresetChipRow } from '@/components/preset-chip-row';
 import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
+import { totalRemainingSeconds } from '@/lib/timer/engine';
 import { consumeTimerPrefill } from '@/lib/timer/prefill';
 import { DEFAULT_BW_PRESET, stagesFromCombination } from '@/lib/timer/presets';
 import { addPreset, listPresets } from '@/lib/timer/presets-storage';
@@ -113,6 +114,13 @@ export function TimerScreen() {
             Math.max(0, (duration - timer.remainingSeconds) / duration)
           )
         : 0;
+  const totalLeft = totalRemainingSeconds({
+    stages: timer.stages,
+    currentStageIndex: timer.currentStageIndex,
+    remainingSeconds: timer.remainingSeconds,
+    status: timer.status,
+  });
+  const nextStage = timer.stages[timer.currentStageIndex + 1];
 
   return (
     <Screen>
@@ -135,6 +143,8 @@ export function TimerScreen() {
         remainingSeconds={timer.remainingSeconds}
         status={timer.status}
         progress={progress}
+        totalRemainingSeconds={totalLeft}
+        nextStage={nextStage}
       />
 
       <TimerControls

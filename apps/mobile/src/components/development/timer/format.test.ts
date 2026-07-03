@@ -3,6 +3,7 @@ import type { TimerStage } from '@/lib/timer/types';
 import {
   formatClock,
   formatDuration,
+  formatFinishAt,
   formatTemp,
   stageDisplayName,
   stageKindLabel,
@@ -55,6 +56,22 @@ describe('formatTemp', () => {
   it('returns null when there is no process temperature', () => {
     expect(formatTemp(null)).toBeNull();
     expect(formatTemp(Number.NaN)).toBeNull();
+  });
+});
+
+describe('formatFinishAt', () => {
+  it('adds the remaining seconds to now and formats as a locale time', () => {
+    const now = new Date('2026-07-03T15:00:00');
+    // Locale-tolerant: Hermes'/node's toLocaleTimeString may emit a narrow
+    // NBSP before AM/PM, or a 24h clock, depending on the environment locale.
+    expect(formatFinishAt(now, 3600)).toMatch(/4:00\s?PM|16:00/);
+  });
+
+  it('clamps negative/non-finite remaining seconds to now', () => {
+    const now = new Date('2026-07-03T15:00:00');
+    const expected = formatFinishAt(now, 0);
+    expect(formatFinishAt(now, -100)).toBe(expected);
+    expect(formatFinishAt(now, Number.NaN)).toBe(expected);
   });
 });
 

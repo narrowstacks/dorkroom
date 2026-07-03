@@ -59,3 +59,21 @@ export function stageKindLabel(kind: StageKind): string {
 export function stageDisplayName(stage: TimerStage): string {
   return stage.name.trim() || stageKindLabel(stage.kind);
 }
+
+/**
+ * Wall-clock finish estimate for a countdown, e.g. (now, 3900) -> "4:41 PM".
+ * `now` is injected so the helper stays pure/testable.
+ */
+export function formatFinishAt(
+  now: Date,
+  totalRemainingSeconds: number
+): string {
+  const safe = Number.isFinite(totalRemainingSeconds)
+    ? Math.max(0, totalRemainingSeconds)
+    : 0;
+  const end = new Date(now.getTime() + safe * 1000);
+  return end.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}

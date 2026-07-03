@@ -2,6 +2,7 @@ import { Check } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
 import { SectionLabel } from '@/components/section-label';
+import { agitationSummary } from '@/lib/timer/agitation';
 import type { TimerStage } from '@/lib/timer/types';
 import { ACCENT } from '@/theme/accents';
 import { formatDuration, formatTemp, stageDisplayName } from './format';
@@ -61,6 +62,11 @@ export function StageList({
                 </Text>
                 {temp ? (
                   <Text className="text-xs text-white/40">{temp}</Text>
+                ) : null}
+                {stage.agitationPattern ? (
+                  <Text className="text-xs text-white/40" numberOfLines={1}>
+                    {agitationSummary(stage.agitationPattern)}
+                  </Text>
                 ) : null}
               </View>
               <Text
