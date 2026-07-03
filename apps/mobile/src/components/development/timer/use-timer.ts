@@ -9,6 +9,7 @@
 // — which is fine for in-session testing over Metro.
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { agitationStateAt, agitationWindows } from '@/lib/timer/agitation';
 import { createTimerState, timerReducer } from '@/lib/timer/engine';
 import type { TimerStage } from '@/lib/timer/types';
 
@@ -77,6 +78,48 @@ export function useTimer(initialStages: TimerStage[]): UseTimer {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     }
   }, [state.currentStageIndex, state.status]);
+
+  // Agitation haptics: buzz on entering/leaving an agitation window while
+  // running. Tracked with its own refs (not the ones above, which the other
+  // effect already advances to the new value) so a stage change is detected
+  // here too and skipped — the stage-boundary Warning haptic above already
+  // covers that tick, so this never double-fires.
+  const prevAgitatingRef = useRef(false);
+  const prevAgitationStageRef = useRef(state.currentStageIndex);
+  useEffect(() => {
+    const stage = state.stages[state.currentStageIndex];
+    const pattern = stage?.agitationPattern ?? null;
+    const stageChanged =
+      state.currentStageIndex !== prevAgitationStageRef.current;
+    prevAgitationStageRef.current = state.currentStageIndex;
+
+    if (!pattern || state.status !== 'running') {
+      prevAgitatingRef.current = false;
+      return;
+    }
+
+    const elapsed = stage.durationSeconds - state.remainingSeconds;
+    const windows = agitationWindows(pattern, stage.durationSeconds);
+    const { agitating } = agitationStateAt(windows, elapsed);
+
+    if (stageChanged) {
+      // Resync silently; the stage-boundary haptic already fired this tick.
+      prevAgitatingRef.current = agitating;
+      return;
+    }
+
+    if (agitating && !prevAgitatingRef.current) {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    } else if (!agitating && prevAgitatingRef.current) {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    prevAgitatingRef.current = agitating;
+  }, [
+    state.stages,
+    state.currentStageIndex,
+    state.remainingSeconds,
+    state.status,
+  ]);
 
   const load = useCallback(
     (stages: TimerStage[]) => dispatch({ type: 'LOAD', stages }),

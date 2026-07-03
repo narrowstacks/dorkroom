@@ -74,6 +74,7 @@ describe('stageDisplayName', () => {
     durationSeconds: 0,
     temperatureF: null,
     agitation: null,
+    agitationPattern: null,
   };
 
   it('uses the stage name when present', () => {

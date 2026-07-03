@@ -17,6 +17,7 @@ function stage(id: string, name = id): TimerStage {
     durationSeconds: 60,
     temperatureF: null,
     agitation: null,
+    agitationPattern: null,
   };
 }
 

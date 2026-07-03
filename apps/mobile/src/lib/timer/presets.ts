@@ -3,12 +3,32 @@
 // unit-tested. The MMKV persistence layer lives in `presets-storage.ts`.
 import type { Combination } from '@dorkroom/api';
 import { z } from 'zod';
+import { AGITATION_PRESETS, patternFromRecipe } from './agitation';
 import type { StageKind, TimerPreset, TimerStage } from './types';
 
 /** Standard B&W process temperature: 20 °C === 68 °F. */
 export const STANDARD_PROCESS_TEMP_F = 68;
 
 const stageKindSchema = z.enum(['dev', 'stop', 'fix', 'wash', 'custom']);
+
+const agitationParamsSchema = z.object({
+  initialSeconds: z.number().nonnegative(),
+  agitateSeconds: z.number().nonnegative(),
+  intervalSeconds: z.number().nonnegative(),
+});
+
+const agitationPatternSchema = z.object({
+  id: z.enum([
+    'ilford',
+    'kodak',
+    'stand',
+    'semi-stand',
+    'continuous',
+    'none',
+    'custom',
+  ]),
+  params: agitationParamsSchema,
+});
 
 export const timerStageSchema = z.object({
   id: z.string(),
@@ -17,6 +37,13 @@ export const timerStageSchema = z.object({
   durationSeconds: z.number().nonnegative(),
   temperatureF: z.number().nullable(),
   agitation: z.string().nullable(),
+  // Old persisted presets predate this field entirely; malformed values (e.g.
+  // an unknown id) must not fail the whole stage/array — both cases fall back
+  // to `null` (no pattern assigned, the freeform `agitation` text still shows).
+  agitationPattern: agitationPatternSchema
+    .nullish()
+    .transform((v) => v ?? null)
+    .catch(null),
 });
 
 export const timerPresetSchema = z.object({
@@ -60,7 +87,11 @@ function bwTailStages(tempF: number | null): TimerStage[] {
       name: 'Stop bath',
       durationSeconds: minutes(1),
       temperatureF: tempF,
-      agitation: 'Agitate continuously',
+      agitation: 'Continuous',
+      agitationPattern: {
+        id: 'continuous',
+        params: AGITATION_PRESETS.continuous,
+      },
     },
     {
       id: 'fix',
@@ -68,7 +99,8 @@ function bwTailStages(tempF: number | null): TimerStage[] {
       name: 'Fixer',
       durationSeconds: minutes(5),
       temperatureF: tempF,
-      agitation: 'Agitate first 30s, then 10s every minute',
+      agitation: 'First 30s, then 10s every minute',
+      agitationPattern: { id: 'ilford', params: AGITATION_PRESETS.ilford },
     },
     {
       id: 'wash',
@@ -78,6 +110,7 @@ function bwTailStages(tempF: number | null): TimerStage[] {
       // Wash is running water; temperature isn't process-critical.
       temperatureF: null,
       agitation: 'Running water',
+      agitationPattern: { id: 'none', params: AGITATION_PRESETS.none },
     },
   ];
 }
@@ -90,7 +123,8 @@ export const DEFAULT_BW_STAGES: TimerStage[] = [
     name: 'Develop',
     durationSeconds: minutes(7),
     temperatureF: STANDARD_PROCESS_TEMP_F,
-    agitation: 'Agitate first 30s, then 10s every minute',
+    agitation: 'First 30s, then 10s every minute',
+    agitationPattern: { id: 'ilford', params: AGITATION_PRESETS.ilford },
   },
   ...bwTailStages(STANDARD_PROCESS_TEMP_F),
 ];
@@ -127,6 +161,10 @@ export function stagesFromCombination(combination: Combination): TimerStage[] {
     durationSeconds: recipeMinutesToSeconds(combination.timeMinutes),
     temperatureF: tempF,
     agitation: combination.agitationMethod || null,
+    agitationPattern: patternFromRecipe(
+      combination.agitationMethod,
+      combination.tags ?? []
+    ),
   };
   return [devStage, ...bwTailStages(tempF)];
 }
@@ -140,5 +178,6 @@ export function createBlankStage(kind: StageKind = 'custom'): TimerStage {
     durationSeconds: 0,
     temperatureF: null,
     agitation: null,
+    agitationPattern: null,
   };
 }

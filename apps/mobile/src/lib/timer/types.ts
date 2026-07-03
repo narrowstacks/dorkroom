@@ -3,6 +3,7 @@
 // custom stages) as a countdown state machine. The reducer in `engine.ts` owns all
 // transitions; the UI layer (added later) drives `TICK` from a wall-clock source and
 // renders the resulting `TimerState`.
+import type { AgitationPattern } from './agitation';
 
 /** The kind of a processing stage. `custom` covers pre-soak, Photo-Flo, etc. */
 export type StageKind = 'dev' | 'stop' | 'fix' | 'wash' | 'custom';
@@ -18,8 +19,13 @@ export interface TimerStage {
   durationSeconds: number;
   /** Optional target temperature in °F (the recipe/process temp). */
   temperatureF: number | null;
-  /** Optional agitation reminder shown while the stage runs. */
+  /** Optional agitation reminder shown while the stage runs. This is a
+   * freeform display note and fallback for presets predating patterns —
+   * `agitationPattern` is the source of truth for the live indicator/haptics. */
   agitation: string | null;
+  /** Structured agitation schedule for the live indicator + haptics. `null`
+   * means no pattern is assigned (falls back to the freeform `agitation` text). */
+  agitationPattern: AgitationPattern | null;
 }
 
 /** A named, reorderable sequence of stages, persisted in MMKV. */

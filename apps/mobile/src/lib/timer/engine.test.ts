@@ -22,6 +22,7 @@ const stage = (
   durationSeconds,
   temperatureF: null,
   agitation: null,
+  agitationPattern: null,
 });
 
 const THREE: TimerStage[] = [

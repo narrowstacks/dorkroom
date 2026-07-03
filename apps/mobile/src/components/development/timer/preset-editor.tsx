@@ -7,6 +7,14 @@ import { LabeledTextField } from '@/components/labeled-text-field';
 import { PresetChipRow } from '@/components/preset-chip-row';
 import { SectionLabel } from '@/components/section-label';
 import { Stepper } from '@/components/stepper';
+import {
+  AGITATION_PRESETS,
+  type AgitationParams,
+  type AgitationPattern,
+  type AgitationPatternId,
+  agitationLabel,
+  agitationSummary,
+} from '@/lib/timer/agitation';
 import type { StageKind, TimerStage } from '@/lib/timer/types';
 import { stageKindLabel } from './format';
 import {
@@ -21,6 +29,25 @@ import {
 const KIND_OPTIONS: { label: string; value: StageKind }[] = (
   ['dev', 'stop', 'fix', 'wash', 'custom'] as const
 ).map((kind) => ({ label: stageKindLabel(kind), value: kind }));
+
+const AGITATION_PATTERN_IDS: AgitationPatternId[] = [
+  'ilford',
+  'kodak',
+  'stand',
+  'semi-stand',
+  'continuous',
+  'none',
+  'custom',
+];
+
+/** Leading "—" opts out of a pattern entirely (falls back to the freeform note). */
+const AGITATION_OPTIONS: { label: string; value: AgitationPatternId | '' }[] = [
+  { label: '—', value: '' },
+  ...AGITATION_PATTERN_IDS.map((id) => ({
+    label: agitationLabel(id),
+    value: id,
+  })),
+];
 
 interface PresetEditorProps {
   stages: TimerStage[];
@@ -40,6 +67,20 @@ export function PresetEditor({
   const patch = (index: number, fields: Partial<TimerStage>) =>
     onChangeStages(updateStageAt(stages, index, fields));
 
+  /** Patch just the params of a `custom` (or any) pattern, immutably. */
+  const patchAgitationParams = (
+    index: number,
+    pattern: AgitationPattern,
+    fields: Partial<AgitationParams>
+  ) => {
+    patch(index, {
+      agitationPattern: {
+        id: pattern.id,
+        params: { ...pattern.params, ...fields },
+      },
+    });
+  };
+
   const handleSave = () => {
     const name = presetName.trim();
     if (!name || stages.length === 0) return;
@@ -54,6 +95,7 @@ export function PresetEditor({
 
       {stages.map((stage, index) => {
         const { minutes, seconds } = durationToParts(stage.durationSeconds);
+        const pattern = stage.agitationPattern;
         return (
           <GlassCard key={stage.id} className="gap-3">
             <View className="flex-row items-center justify-between">
@@ -147,14 +189,96 @@ export function PresetEditor({
               placeholder="—"
             />
 
-            <LabeledTextField
-              label="Agitation (optional)"
-              value={stage.agitation ?? ''}
-              onChangeText={(text) =>
-                patch(index, { agitation: text.trim() === '' ? null : text })
-              }
-              placeholder="e.g. 10s every minute"
-            />
+            <View className="gap-1">
+              <Text className="text-sm text-white/60">Agitation</Text>
+              <PresetChipRow
+                accent="green"
+                options={AGITATION_OPTIONS}
+                value={pattern?.id ?? ''}
+                onSelect={(id) => {
+                  if (id === '') {
+                    patch(index, { agitationPattern: null });
+                  } else if (id === 'custom') {
+                    patch(index, {
+                      agitationPattern: {
+                        id: 'custom',
+                        params: pattern?.params ?? AGITATION_PRESETS.ilford,
+                      },
+                    });
+                  } else {
+                    patch(index, {
+                      agitationPattern: { id, params: AGITATION_PRESETS[id] },
+                    });
+                  }
+                }}
+              />
+              {pattern?.id === 'custom' ? (
+                <View className="flex-row gap-3 pt-2">
+                  <View className="flex-1 gap-1">
+                    <Text className="text-sm text-white/60">Initial (s)</Text>
+                    <Stepper
+                      value={String(pattern.params.initialSeconds)}
+                      onDecrement={() =>
+                        patchAgitationParams(index, pattern, {
+                          initialSeconds: Math.max(
+                            0,
+                            pattern.params.initialSeconds - 5
+                          ),
+                        })
+                      }
+                      onIncrement={() =>
+                        patchAgitationParams(index, pattern, {
+                          initialSeconds: pattern.params.initialSeconds + 5,
+                        })
+                      }
+                    />
+                  </View>
+                  <View className="flex-1 gap-1">
+                    <Text className="text-sm text-white/60">Agitate (s)</Text>
+                    <Stepper
+                      value={String(pattern.params.agitateSeconds)}
+                      onDecrement={() =>
+                        patchAgitationParams(index, pattern, {
+                          agitateSeconds: Math.max(
+                            0,
+                            pattern.params.agitateSeconds - 1
+                          ),
+                        })
+                      }
+                      onIncrement={() =>
+                        patchAgitationParams(index, pattern, {
+                          agitateSeconds: pattern.params.agitateSeconds + 1,
+                        })
+                      }
+                    />
+                  </View>
+                  <View className="flex-1 gap-1">
+                    <Text className="text-sm text-white/60">Every (s)</Text>
+                    <Stepper
+                      value={String(pattern.params.intervalSeconds)}
+                      onDecrement={() =>
+                        patchAgitationParams(index, pattern, {
+                          intervalSeconds: Math.max(
+                            0,
+                            pattern.params.intervalSeconds - 5
+                          ),
+                        })
+                      }
+                      onIncrement={() =>
+                        patchAgitationParams(index, pattern, {
+                          intervalSeconds: pattern.params.intervalSeconds + 5,
+                        })
+                      }
+                    />
+                  </View>
+                </View>
+              ) : null}
+              {pattern ? (
+                <Text className="text-xs text-white/50">
+                  {agitationSummary(pattern)}
+                </Text>
+              ) : null}
+            </View>
           </GlassCard>
         );
       })}

@@ -5,7 +5,6 @@ import { CollapsibleSection } from '@/components/development/collapsible-section
 import { LinkRow } from '@/components/development/link-row';
 import { PushPullBadge } from '@/components/development/push-pull-badge';
 import {
-  formatAgitationMethod,
   formatRecipeTemp,
   formatRecipeTime,
   formatSourceTag,
@@ -16,6 +15,7 @@ import { VolumeMixer } from '@/components/development/volume-mixer';
 import { GlassCard } from '@/components/glass-card';
 import { ResultRow } from '@/components/result-row';
 import { Screen } from '@/components/screen';
+import { agitationSummary, patternFromRecipe } from '@/lib/timer/agitation';
 import { setTimerPrefill } from '@/lib/timer/prefill';
 import { ACCENT } from '@/theme/accents';
 
@@ -143,7 +143,9 @@ export function RecipeDetailScreen() {
       <GlassCard>
         <ResultRow
           label="Agitation"
-          value={formatAgitationMethod(combination.agitationMethod)}
+          value={agitationSummary(
+            patternFromRecipe(combination.agitationMethod, tags)
+          )}
         />
         <ResultRow
           label="Shooting ISO"

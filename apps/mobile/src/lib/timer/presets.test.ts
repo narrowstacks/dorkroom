@@ -62,6 +62,13 @@ describe('DEFAULT_BW_PRESET', () => {
     // 7 + 1 + 5 + 10 minutes
     expect(totalDurationSeconds(DEFAULT_BW_STAGES)).toBe(23 * 60);
   });
+
+  it('assigns the Ilford cadence to the dev stage and no agitation to wash', () => {
+    const dev = DEFAULT_BW_STAGES.find((s) => s.kind === 'dev');
+    const wash = DEFAULT_BW_STAGES.find((s) => s.kind === 'wash');
+    expect(dev?.agitationPattern?.id).toBe('ilford');
+    expect(wash?.agitationPattern?.id).toBe('none');
+  });
 });
 
 describe('recipeMinutesToSeconds', () => {
@@ -104,6 +111,25 @@ describe('stagesFromCombination', () => {
       timerPresetsSchema.safeParse([{ ...DEFAULT_BW_PRESET, stages }]).success
     ).toBe(true);
   });
+
+  it('maps a stand agitation method to the stand pattern', () => {
+    const [dev] = stagesFromCombination(
+      combination({ agitationMethod: 'stand' })
+    );
+    expect(dev.agitationPattern?.id).toBe('stand');
+  });
+
+  it('falls back to the source tag for the dev pattern when there is no agitation method', () => {
+    const [kodak] = stagesFromCombination(
+      combination({ agitationMethod: '', tags: ['official-kodak'] })
+    );
+    expect(kodak.agitationPattern?.id).toBe('kodak');
+
+    const [ilford] = stagesFromCombination(
+      combination({ agitationMethod: '', tags: ['official-cinestill'] })
+    );
+    expect(ilford.agitationPattern?.id).toBe('ilford');
+  });
 });
 
 describe('parsePresets', () => {
@@ -120,5 +146,51 @@ describe('parsePresets', () => {
   it('round-trips a valid preset array', () => {
     const raw = JSON.stringify([DEFAULT_BW_PRESET]);
     expect(parsePresets(raw)).toEqual([DEFAULT_BW_PRESET]);
+  });
+
+  it('parses an old-format preset (no agitationPattern key) with agitationPattern: null', () => {
+    const oldStage = {
+      id: 'dev',
+      kind: 'dev',
+      name: 'Develop',
+      durationSeconds: 420,
+      temperatureF: 68,
+      agitation: 'Agitate first 30s, then 10s every minute',
+      // No `agitationPattern` key at all — predates this field.
+    };
+    const oldPreset = {
+      id: 'legacy',
+      name: 'Legacy preset',
+      stages: [oldStage],
+      createdAt: '2020-01-01T00:00:00.000Z',
+      updatedAt: '2020-01-01T00:00:00.000Z',
+    };
+    const parsed = parsePresets(JSON.stringify([oldPreset]));
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].stages).toHaveLength(1);
+    expect(parsed[0].stages[0].agitationPattern).toBeNull();
+  });
+
+  it('parses a stage with a malformed agitationPattern as null, without dropping the array', () => {
+    const badStage = {
+      id: 'dev',
+      kind: 'dev',
+      name: 'Develop',
+      durationSeconds: 420,
+      temperatureF: 68,
+      agitation: null,
+      agitationPattern: { id: 'bogus' },
+    };
+    const preset = {
+      id: 'malformed',
+      name: 'Malformed preset',
+      stages: [badStage],
+      createdAt: '2020-01-01T00:00:00.000Z',
+      updatedAt: '2020-01-01T00:00:00.000Z',
+    };
+    const parsed = parsePresets(JSON.stringify([preset]));
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].stages).toHaveLength(1);
+    expect(parsed[0].stages[0].agitationPattern).toBeNull();
   });
 });

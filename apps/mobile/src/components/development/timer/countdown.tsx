@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -6,8 +6,13 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ResultCard } from '@/components/result-card';
+import {
+  agitationStateAt,
+  agitationSummary,
+  agitationWindows,
+} from '@/lib/timer/agitation';
 import type { TimerStage, TimerStatus } from '@/lib/timer/types';
-import { ACCENT } from '@/theme/accents';
+import { ACCENT, selectionTint } from '@/theme/accents';
 import { readoutText } from '@/theme/tokens';
 import { formatClock, formatTemp, stageDisplayName } from './format';
 
@@ -46,6 +51,20 @@ export function Countdown({
   const hint = STATUS_HINT[status];
   const completed = status === 'completed';
 
+  const pattern = stage?.agitationPattern ?? null;
+  const windows = useMemo(
+    () =>
+      stage && pattern ? agitationWindows(pattern, stage.durationSeconds) : [],
+    [stage, pattern]
+  );
+  const elapsed = stage ? stage.durationSeconds - remainingSeconds : 0;
+  const agitation = agitationStateAt(windows, elapsed);
+  const agitatingNow =
+    pattern !== null && agitation.agitating && status === 'running';
+  const showNextAgitation =
+    pattern !== null && !agitatingNow && agitation.nextWindowInSeconds != null;
+  const tint = selectionTint('green');
+
   return (
     <ResultCard accent="green">
       <View className="gap-3">
@@ -73,9 +92,37 @@ export function Countdown({
           />
         </View>
 
-        {stage?.agitation ? (
+        {agitatingNow ? (
+          <View
+            accessibilityLiveRegion="polite"
+            accessibilityLabel={`Agitate now, ${Math.ceil(agitation.windowRemainingSeconds)} seconds left`}
+            className="flex-row items-center self-start rounded-full border px-3 py-1.5"
+            style={{
+              backgroundColor: tint.backgroundColor,
+              borderColor: tint.borderColor,
+            }}
+          >
+            <Text
+              className="text-sm font-bold uppercase tracking-wide"
+              style={{ color: tint.color }}
+            >
+              Agitate · {formatClock(agitation.windowRemainingSeconds)}
+            </Text>
+          </View>
+        ) : showNextAgitation && agitation.nextWindowInSeconds != null ? (
+          <Text className="text-sm text-white/60">
+            Next agitation in {formatClock(agitation.nextWindowInSeconds)}
+          </Text>
+        ) : !pattern && stage?.agitation ? (
           <Text className="text-sm text-white/60">{stage.agitation}</Text>
         ) : null}
+
+        {pattern ? (
+          <Text className="text-xs text-white/40">
+            {agitationSummary(pattern)}
+          </Text>
+        ) : null}
+
         {temp ? <Text className="text-sm text-white/50">{temp}</Text> : null}
       </View>
     </ResultCard>
