@@ -5,7 +5,7 @@ The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHAN
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
-## [Unreleased]
+## [2026.07.03]
 
 ### Added
 
