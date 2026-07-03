@@ -18,6 +18,19 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - The resize calculator now defaults to **landscape** print sizes — original 6×4 (was 4×6) and target 9×6 (was 6×9).
 - Removed the stubbed film-stock list; the catalog is now sourced from the live API and mapped into the Film Log's lighter `FilmStock` shape.
 - **Pinned tool slots reduced from 3 to 2** — the native tab bar holds at most 5 items; with Film Log, Recipes, and More now permanent, only 2 slots remain for user-pinned tools. Existing users with 3 pinned tools will have the 3rd truncated.
+- **App version now follows CalVer**, matching the rest of the app (Settings previously showed a permanent, hardcoded "v1.0.0").
+- Camera and lens forms' sheet header action is now labelled "Cancel" instead of "Done" — it discards, so it no longer reads as a second, competing save button next to the sheet's own "Add/Save camera" (or lens) button.
+- The Film Log's "Export JSON" button is now labelled "Export data".
+- Border calculator's minimum-border slider now shows its min/max range as endpoint labels.
+- Unnamed film roll rows no longer repeat the film stock name in both the title and subtitle; the roll's started date is now shown alongside the shot count.
+- Raised the contrast of the picker-field dropdown caret (film/lens/format selects, reciprocity's film picker) from `white/40`–`white/50` to `white/70` so the field no longer reads as disabled/read-only.
+- The Lens field on the Add/Edit shot screen now shows a static "No saved lenses — add one under Cameras & lenses" hint instead of an empty, dead-end picker sheet when no lenses are saved.
+
+### Fixed
+
+- **Film Log tool icon** — the More list previously fell back to a generic circle for Film Log (the icon map had no `film` entry, while the tab bar showed the correct film-strip icon); now both surfaces agree.
+- **Camera permission is no longer requested at app launch.** The Meter screen now requests camera permission only while its tab is focused, instead of firing on first mount — previously the permission dialog could appear over the Border screen before the user ever opened Meter.
+- **Edit Tabs now explains its at-capacity state** — when the tab bar is full, the dimmed "More tools" rows now show a "Tab bar is full — remove a tool to add another" hint instead of silently doing nothing when tapped.
 
 ## [2026.06.26]
 

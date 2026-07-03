@@ -264,8 +264,8 @@ export function MeterScreen() {
   const sizeRef = useRef<{ width: number; height: number } | null>(null);
 
   useEffect(() => {
-    if (!hasPermission) void requestPermission();
-  }, [hasPermission, requestPermission]);
+    if (isFocused && !hasPermission) void requestPermission();
+  }, [isFocused, hasPermission, requestPermission]);
 
   // Persist the locked setting (priority + both values) and ISO so they survive
   // tab changes and app restarts.

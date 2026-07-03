@@ -2,6 +2,7 @@ import {
   Aperture,
   Circle,
   Crop,
+  Film,
   FlaskConical,
   Focus,
   Frame,
@@ -16,6 +17,7 @@ import {
 
 const ICONS: Record<string, LucideIcon> = {
   crop: Crop,
+  film: Film,
   'flask-conical': FlaskConical,
   ruler: Ruler,
   gauge: Gauge,

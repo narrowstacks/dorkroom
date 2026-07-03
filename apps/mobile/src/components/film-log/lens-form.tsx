@@ -69,6 +69,7 @@ export function LensForm({ visible, lens, onClose }: LensFormProps) {
       visible={visible}
       title={lens ? 'Edit lens' : 'Add lens'}
       onClose={onClose}
+      dismissLabel="Cancel"
     >
       <View className="gap-4">
         <LabeledTextField

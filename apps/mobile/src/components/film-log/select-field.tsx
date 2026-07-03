@@ -44,7 +44,7 @@ export function SelectField<T extends string | number>({
         >
           {selected?.label ?? placeholder}
         </Text>
-        <Text className="text-white/40">▾</Text>
+        <Text className="text-white/70">▾</Text>
       </Pressable>
 
       <BottomSheet visible={open} title={label} onClose={() => setOpen(false)}>

@@ -73,7 +73,7 @@ export function FilmPicker({ films, value, onChange }: FilmPickerProps) {
         <Text className="text-base text-white">
           {selected?.label ?? 'Select film'}
         </Text>
-        <Text className="text-white/50">▾</Text>
+        <Text className="text-white/70">▾</Text>
       </Pressable>
       <BottomSheet
         visible={open}

@@ -71,6 +71,11 @@ export default function EditTabs() {
       <Text className="px-4 pb-1 text-xs uppercase tracking-wide text-white/40">
         More tools
       </Text>
+      {!canAdd ? (
+        <Text className="px-4 pb-1 text-xs text-white/40">
+          Tab bar is full — remove a tool to add another.
+        </Text>
+      ) : null}
       {available.map((tool) => (
         <Pressable
           key={tool.id}

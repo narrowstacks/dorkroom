@@ -43,7 +43,18 @@ export function FilmListScreen() {
   const renderRoll = useCallback(
     ({ item }: { item: FilmRoll }) => {
       const film = item.filmStockName ?? 'No film set';
-      const subtitle = `${cameraName(item.cameraId)} · ${film} · ${formatProcess(item.process)}`;
+      const showName = Boolean(item.name?.trim());
+      const subtitle = [
+        cameraName(item.cameraId),
+        showName ? film : null,
+        formatProcess(item.process),
+      ]
+        .filter(Boolean)
+        .join(' · ');
+      const startedLabel = new Date(item.startedAt).toLocaleDateString(
+        undefined,
+        { month: 'short', day: 'numeric' }
+      );
       return (
         <Pressable
           onPress={() => router.push(`/film-log/roll/${item.id}`)}
@@ -65,9 +76,12 @@ export function FilmListScreen() {
             <Text className="text-sm text-white/60" numberOfLines={1}>
               {subtitle}
             </Text>
-            <Text className="text-sm text-white/40">
-              {item.shots.length} {item.shots.length === 1 ? 'shot' : 'shots'}
-            </Text>
+            <View className="flex-row items-center justify-between">
+              <Text className="text-sm text-white/40">
+                {item.shots.length} {item.shots.length === 1 ? 'shot' : 'shots'}
+              </Text>
+              <Text className="text-sm text-white/40">{startedLabel}</Text>
+            </View>
           </GlassCard>
         </Pressable>
       );
@@ -97,7 +111,7 @@ export function FilmListScreen() {
           accessibilityRole="button"
           className="flex-1 items-center rounded-xl bg-white/10 px-4 py-3"
         >
-          <Text className="text-base text-white">Export JSON</Text>
+          <Text className="text-base text-white">Export data</Text>
         </Pressable>
       </View>
     </View>

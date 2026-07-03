@@ -26,6 +26,8 @@ export function BorderSizeSection({
         step={SLIDER_STEP_BORDER}
         displayValue={formatInches(minBorder)}
         onChange={onChange}
+        minLabel={formatInches(SLIDER_MIN_BORDER)}
+        maxLabel={formatInches(SLIDER_MAX_BORDER)}
       />
     </View>
   );

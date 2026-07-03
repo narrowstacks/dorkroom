@@ -58,6 +58,7 @@ export function CameraForm({ visible, camera, onClose }: CameraFormProps) {
       visible={visible}
       title={camera ? 'Edit camera' : 'Add camera'}
       onClose={onClose}
+      dismissLabel="Cancel"
     >
       <View className="gap-4">
         <LabeledTextField

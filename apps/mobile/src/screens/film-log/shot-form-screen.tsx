@@ -287,15 +287,24 @@ export function ShotFormScreen() {
           options={SHUTTER_OPTIONS}
           onChange={(v) => set('shutterSpeed', v)}
         />
-        <SelectField
-          label="Lens"
-          value={form.lensId}
-          options={lensOptions}
-          onChange={(v) => set('lensId', v)}
-          placeholder={
-            lensOptions.length > 0 ? 'Select a lens' : 'No saved lenses'
-          }
-        />
+        {lensOptions.length > 0 ? (
+          <SelectField
+            label="Lens"
+            value={form.lensId}
+            options={lensOptions}
+            onChange={(v) => set('lensId', v)}
+            placeholder="Select a lens"
+          />
+        ) : (
+          <View className="gap-1">
+            <Text className="text-sm text-white/60">Lens</Text>
+            <View className="rounded-xl bg-white/5 px-4 py-3">
+              <Text className="text-sm text-white/40">
+                No saved lenses — add one under Cameras & lenses.
+              </Text>
+            </View>
+          </View>
+        )}
         {showBacks && backOptions.length > 0 ? (
           <SelectField
             label="Holder / back"

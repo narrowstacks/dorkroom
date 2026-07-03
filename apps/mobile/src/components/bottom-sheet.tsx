@@ -19,6 +19,12 @@ interface BottomSheetProps {
    * calculator, where the print preview should stay unobscured while editing.
    */
   showScrim?: boolean;
+  /**
+   * Label for the header's dismiss action. Defaults to "Done". Sheets whose
+   * body has its own commit button (e.g. a save/add form) should pass
+   * "Cancel" here, since the header action only discards — it never saves.
+   */
+  dismissLabel?: string;
 }
 
 // Scrim fade and panel slide share this duration so they ramp up in lockstep —
@@ -39,6 +45,7 @@ export function BottomSheet({
   onClose,
   children,
   showScrim = true,
+  dismissLabel = 'Done',
 }: BottomSheetProps) {
   const insets = useSafeAreaInsets();
   const keyboard = useAnimatedKeyboard();
@@ -80,7 +87,7 @@ export function BottomSheet({
             <Text className="text-lg font-semibold text-white">{title}</Text>
             <Pressable onPress={onClose} accessibilityRole="button">
               <Text className="text-base font-semibold text-rose-500">
-                Done
+                {dismissLabel}
               </Text>
             </Pressable>
           </View>
