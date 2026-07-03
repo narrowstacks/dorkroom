@@ -1,13 +1,14 @@
 import { calculatePushPull, useDevelopmentRecipes } from '@dorkroom/logic';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { Badge } from '@/components/development/badge';
 import { CollapsibleSection } from '@/components/development/collapsible-section';
 import { LinkRow } from '@/components/development/link-row';
 import { PushPullBadge } from '@/components/development/push-pull-badge';
 import {
+  formatAgitationMethod,
   formatRecipeTemp,
   formatRecipeTime,
+  formatSourceTag,
   pushPullDisplay,
   resolveDilution,
 } from '@/components/development/recipe-format';
@@ -22,7 +23,7 @@ export function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const recipes = useDevelopmentRecipes();
 
-  const combination = recipes.filteredCombinations.find(
+  const combination = recipes.allCombinations.find(
     (c) => c.uuid === id || String(c.id) === id
   );
 
@@ -68,18 +69,13 @@ export function RecipeDetailScreen() {
     <Screen>
       <Stack.Screen options={{ title: filmName }} />
 
-      {/* Context: film, developer, and push/pull. */}
-      <View className="gap-0.5">
-        <View className="flex-row items-start justify-between gap-2">
-          <Text
-            className="flex-1 text-lg font-semibold text-white"
-            numberOfLines={2}
-          >
-            {filmName}
-          </Text>
-          <PushPullBadge stops={stops} />
-        </View>
-        <Text className="text-sm text-white/60">{developerName}</Text>
+      {/* Context: developer name (the nav title already shows the film) and
+          push/pull. */}
+      <View className="flex-row items-center justify-between gap-2">
+        <Text className="flex-1 text-sm text-white/60" numberOfLines={1}>
+          {developerName}
+        </Text>
+        <PushPullBadge stops={stops} />
       </View>
 
       {/* Primary stats: dev time (the hero, in green), temperature, dilution.
@@ -147,7 +143,7 @@ export function RecipeDetailScreen() {
       <GlassCard>
         <ResultRow
           label="Agitation"
-          value={combination.agitationSchedule?.trim() || 'Standard'}
+          value={formatAgitationMethod(combination.agitationMethod)}
         />
         <ResultRow
           label="Shooting ISO"
@@ -157,15 +153,29 @@ export function RecipeDetailScreen() {
           label="Push / Pull"
           value={pp ? `${pp.label} stops` : 'Box speed'}
         />
+        {tags.length > 0 ? (
+          <ResultRow
+            label="Source"
+            value={tags.map(formatSourceTag).join(', ')}
+          />
+        ) : null}
       </GlassCard>
 
-      {tags.length > 0 ? (
-        <View className="flex-row flex-wrap gap-2">
-          {tags.map((tag) => (
-            <Badge key={tag} label={tag} />
-          ))}
-        </View>
-      ) : null}
+      <Pressable
+        onPress={() => {
+          // Hand the recipe to the timer screen (it consumes this on mount and
+          // prefills the dev stage from the recipe's time/temp/agitation).
+          setTimerPrefill(combination);
+          router.push('/development/timer');
+        }}
+        accessibilityRole="button"
+        accessibilityLabel="Start process timer for this recipe"
+        className="items-center rounded-xl bg-rose-600 px-4 py-3 active:opacity-80"
+      >
+        <Text className="text-base font-semibold text-white">
+          Start Process Timer
+        </Text>
+      </Pressable>
 
       {combination.notes?.trim() ? (
         <GlassCard className="gap-1">
@@ -209,22 +219,6 @@ export function RecipeDetailScreen() {
           />
         </GlassCard>
       ) : null}
-
-      <Pressable
-        onPress={() => {
-          // Hand the recipe to the timer screen (it consumes this on mount and
-          // prefills the dev stage from the recipe's time/temp/agitation).
-          setTimerPrefill(combination);
-          router.push('/development/timer');
-        }}
-        accessibilityRole="button"
-        accessibilityLabel="Start process timer for this recipe"
-        className="items-center rounded-xl bg-rose-600 px-4 py-3 active:opacity-80"
-      >
-        <Text className="text-base font-semibold text-white">
-          Start Process Timer
-        </Text>
-      </Pressable>
     </Screen>
   );
 }
