@@ -9,8 +9,70 @@ vi.mock('../serverlessLogger', () => ({
   serverlessError: vi.fn(),
 }));
 
+const verifyKeyMock = vi.fn();
+const ratelimitLimitMock = vi.fn();
+const unkeyConstructorMock = vi.fn();
+
+vi.mock('@unkey/api', () => ({
+  Unkey: unkeyConstructorMock,
+}));
+
+/**
+ * The serverless vitest project sets `mockReset: true`, which calls
+ * `vi.resetAllMocks()` before every test — that wipes
+ * `unkeyConstructorMock`'s implementation too, but the `vi.mock('@unkey/api')`
+ * factory above only runs once (module mocks aren't re-evaluated by
+ * `vi.resetModules()`). So the constructor's return value has to be
+ * reapplied in `beforeEach`, not just set once at the top of the file.
+ */
+function configureUnkeyConstructorMock(): void {
+  // `Unkey` is constructed with `new` in withHandler.ts — the implementation
+  // must be a real function (not an arrow function) so `new` can call it.
+  unkeyConstructorMock.mockImplementation(function Unkey() {
+    return {
+      keys: { verifyKey: verifyKeyMock },
+      ratelimit: { limit: ratelimitLimitMock },
+    };
+  });
+}
+
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+/** A rate-limit-passing verifyKey response with no configured ratelimits. */
+function validVerification() {
+  return {
+    data: {
+      valid: true,
+      code: undefined,
+      ratelimits: [],
+    },
+  };
+}
+
+/** A successful (under-limit) ratelimit.limit response. */
+function passingLimit(limit: number) {
+  return {
+    data: {
+      limit,
+      remaining: limit - 1,
+      reset: Date.now() + 60_000,
+      success: true,
+    },
+  };
+}
+
+/** An exceeded ratelimit.limit response. */
+function exceededLimit(limit: number) {
+  return {
+    data: {
+      limit,
+      remaining: 0,
+      reset: Date.now() + 60_000,
+      success: false,
+    },
+  };
+}
 
 describe('withHandler', () => {
   beforeEach(() => {
@@ -19,6 +81,11 @@ describe('withHandler', () => {
     delete process.env.UNKEY_API_ID;
     delete process.env.UNKEY_API_KEY_PERMISSION;
     delete process.env.UNKEY_ANON_NAMESPACE;
+    delete process.env.UNKEY_CLIENT_NAMESPACE;
+    verifyKeyMock.mockReset();
+    ratelimitLimitMock.mockReset();
+    unkeyConstructorMock.mockReset();
+    configureUnkeyConstructorMock();
   });
 
   afterEach(() => {
@@ -289,6 +356,196 @@ describe('withHandler', () => {
 
       const vary = res._headers.vary;
       expect(vary).toContain('Host');
+    });
+  });
+
+  describe('client identity rate limiting (keyed path)', () => {
+    function setupKeyedEnv() {
+      process.env.UNKEY_ROOT_KEY = 'root-key';
+      process.env.UNKEY_API_ID = 'test-api';
+      process.env.UNKEY_API_KEY_PERMISSION = 'read';
+    }
+
+    function keyedRequest(headers: Record<string, string> = {}) {
+      return createMockRequest({
+        headers: {
+          host: 'api.dorkroom.art',
+          'x-api-key': 'valid-key',
+          ...headers,
+        },
+      });
+    }
+
+    it("valid key, no X-Client-Id: does not call ratelimit.limit (today's behavior)", async () => {
+      setupKeyedEnv();
+      verifyKeyMock.mockResolvedValueOnce(validVerification());
+
+      const withHandler = await getHandler();
+      let handlerRan = false;
+      const handler = withHandler({
+        name: 'test',
+        handler: async (_req, res) => {
+          handlerRan = true;
+          res.status(200).json({ ok: true });
+        },
+      });
+
+      const req = keyedRequest();
+      const res = createMockResponse();
+      await handler(req, res);
+
+      expect(handlerRan).toBe(true);
+      expect(res._status).toBe(200);
+      expect(ratelimitLimitMock).not.toHaveBeenCalled();
+    });
+
+    it('valid key + valid X-Client-Id: checks both client and IP namespaces; both pass -> headers reflect the client-id result', async () => {
+      setupKeyedEnv();
+      verifyKeyMock.mockResolvedValueOnce(validVerification());
+      ratelimitLimitMock.mockImplementation(
+        async (opts: { identifier: string }) =>
+          opts.identifier.startsWith('client:')
+            ? passingLimit(60)
+            : passingLimit(240)
+      );
+
+      const withHandler = await getHandler();
+      let handlerRan = false;
+      const handler = withHandler({
+        name: 'test',
+        handler: async (_req, res) => {
+          handlerRan = true;
+          res.status(200).json({ ok: true });
+        },
+      });
+
+      const req = keyedRequest({
+        'x-client-id': 'client-abc-123',
+        'x-forwarded-for': '203.0.113.5',
+      });
+      const res = createMockResponse();
+      await handler(req, res);
+
+      expect(handlerRan).toBe(true);
+      expect(ratelimitLimitMock).toHaveBeenCalledTimes(2);
+
+      const calls = ratelimitLimitMock.mock.calls as Array<
+        [{ identifier: string; namespace: string }]
+      >;
+      const identifiers = calls.map(([opts]) => opts.identifier);
+      expect(identifiers).toContain('client:client-abc-123');
+      expect(identifiers).toContain('ip:203.0.113.5');
+
+      const namespaces = new Set(calls.map(([opts]) => opts.namespace));
+      expect(namespaces.size).toBe(1);
+      expect([...namespaces][0]).toBe('test-api-client');
+
+      // Headers reflect the client-id result (limit 60), not the IP result (240).
+      expect(res._headers['x-ratelimit-limit']).toBe('60');
+    });
+
+    it('client-id limit exceeded: 429 + Retry-After, handler not called', async () => {
+      setupKeyedEnv();
+      verifyKeyMock.mockResolvedValueOnce(validVerification());
+      ratelimitLimitMock.mockImplementation(
+        async (opts: { identifier: string }) =>
+          opts.identifier.startsWith('client:')
+            ? exceededLimit(60)
+            : passingLimit(240)
+      );
+
+      const withHandler = await getHandler();
+      let handlerRan = false;
+      const handler = withHandler({
+        name: 'test',
+        handler: async () => {
+          handlerRan = true;
+        },
+      });
+
+      const req = keyedRequest({ 'x-client-id': 'client-abc-123' });
+      const res = createMockResponse();
+      await handler(req, res);
+
+      expect(handlerRan).toBe(false);
+      expect(res._status).toBe(429);
+      expect(res._headers['retry-after']).toBeDefined();
+    });
+
+    it('IP guard exceeded (client-id fine): 429; headers reflect the IP result', async () => {
+      setupKeyedEnv();
+      verifyKeyMock.mockResolvedValueOnce(validVerification());
+      ratelimitLimitMock.mockImplementation(
+        async (opts: { identifier: string }) =>
+          opts.identifier.startsWith('client:')
+            ? passingLimit(60)
+            : exceededLimit(240)
+      );
+
+      const withHandler = await getHandler();
+      let handlerRan = false;
+      const handler = withHandler({
+        name: 'test',
+        handler: async () => {
+          handlerRan = true;
+        },
+      });
+
+      const req = keyedRequest({ 'x-client-id': 'client-abc-123' });
+      const res = createMockResponse();
+      await handler(req, res);
+
+      expect(handlerRan).toBe(false);
+      expect(res._status).toBe(429);
+      expect(res._headers['x-ratelimit-limit']).toBe('240');
+      expect(res._headers['retry-after']).toBeDefined();
+    });
+
+    it.each([
+      'short',
+      'has spaces!!',
+      'x'.repeat(65),
+    ])('malformed X-Client-Id (%s) is treated as absent: no ratelimit.limit call', async (badId) => {
+      setupKeyedEnv();
+      verifyKeyMock.mockResolvedValueOnce(validVerification());
+
+      const withHandler = await getHandler();
+      let handlerRan = false;
+      const handler = withHandler({
+        name: 'test',
+        handler: async (_req, res) => {
+          handlerRan = true;
+          res.status(200).json({ ok: true });
+        },
+      });
+
+      const req = keyedRequest({ 'x-client-id': badId });
+      const res = createMockResponse();
+      await handler(req, res);
+
+      expect(handlerRan).toBe(true);
+      expect(res._status).toBe(200);
+      expect(ratelimitLimitMock).not.toHaveBeenCalled();
+    });
+
+    it('invalid key + X-Client-Id: still 401 (key auth runs first)', async () => {
+      setupKeyedEnv();
+      verifyKeyMock.mockResolvedValueOnce({
+        data: { valid: false, code: 'UNAUTHORIZED', ratelimits: [] },
+      });
+
+      const withHandler = await getHandler();
+      const handler = withHandler({
+        name: 'test',
+        handler: async () => {},
+      });
+
+      const req = keyedRequest({ 'x-client-id': 'client-abc-123' });
+      const res = createMockResponse();
+      await handler(req, res);
+
+      expect(res._status).toBe(401);
+      expect(ratelimitLimitMock).not.toHaveBeenCalled();
     });
   });
 

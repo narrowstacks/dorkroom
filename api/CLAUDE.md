@@ -59,6 +59,17 @@ Two access modes are supported from one Vercel project:
   - Verifies key through Unkey
   - Returns `401` on missing/invalid keys
   - Returns `429` with `Retry-After` when key is rate-limited
+  - Optional `X-Client-Id` header (opaque per-install id, `^[A-Za-z0-9_-]{8,64}$`)
+    adds **per-client** rate limiting on top of the key's own limit: 60
+    req/min for `client:<id>` plus a 240 req/min `ip:<ip>` ceiling (bounds
+    id-rotation abuse from one address). This is how the iOS app, which ships
+    one shared free-tier key, keeps installs from sharing a single 60 req/min
+    budget — see `apps/mobile/src/lib/client-id.ts` and
+    `apps/mobile/src/lib/api-config.ts`. Requests **without** the header keep
+    today's key-only limiting, unaffected; a malformed value is treated as
+    absent (never rejected). Implemented in
+    `applyClientIdentityRateLimit`/`applyNamespaceRateLimit` in
+    `utils/withHandler.ts`.
 
 - `dorkroom.art/api/*`
   - No API key required
@@ -77,6 +88,7 @@ Unkey integration:
 - `UNKEY_API_ID` - required for public API host configuration
 - `UNKEY_API_KEY_PERMISSION` - required permission expression checked for every API key verification
 - `UNKEY_ANON_NAMESPACE` (optional) - explicit pre-created namespace for anonymous IP rate limiting
+- `UNKEY_CLIENT_NAMESPACE` (optional) - explicit pre-created namespace for the per-client (`X-Client-Id`) rate limiting on the keyed path; falls back to `${UNKEY_API_ID}-client`, then `dorkroom-client`
 
 Operational note:
 - Use `bun run keys:anon-bootstrap` to create/check the anonymous ratelimit namespace.

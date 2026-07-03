@@ -75,6 +75,58 @@ describe('DorkroomApiClient', () => {
         expect.objectContaining({ headers: undefined })
       );
     });
+
+    it('should send X-Client-Id header when clientId is set', async () => {
+      const clientIdClient = new DorkroomApiClient({
+        baseUrl: 'https://test.api.com',
+        clientId: 'install-abc-123',
+      });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+      await clientIdClient.fetchFilms();
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://test.api.com/films',
+        expect.objectContaining({
+          headers: { 'X-Client-Id': 'install-abc-123' },
+        })
+      );
+    });
+
+    it('should send both X-API-Key and X-Client-Id headers when both are set', async () => {
+      const bothClient = new DorkroomApiClient({
+        baseUrl: 'https://test.api.com',
+        apiKey: 'dk_test_123',
+        clientId: 'install-abc-123',
+      });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+      await bothClient.fetchFilms();
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://test.api.com/films',
+        expect.objectContaining({
+          headers: {
+            'X-API-Key': 'dk_test_123',
+            'X-Client-Id': 'install-abc-123',
+          },
+        })
+      );
+    });
+
+    it('should not send X-Client-Id header when clientId is not set', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+      await client.fetchFilms();
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://test.api.com/films',
+        expect.objectContaining({ headers: undefined })
+      );
+    });
   });
 
   describe('configure', () => {
@@ -109,6 +161,24 @@ describe('DorkroomApiClient', () => {
       expect(mockFetch).toHaveBeenCalledWith(
         'https://other.api.com/films',
         expect.objectContaining({ headers: { 'X-API-Key': 'dk_keep' } })
+      );
+    });
+
+    it('reconfigures clientId in place and round-trips it into the header', async () => {
+      const reconfigurable = new DorkroomApiClient({
+        baseUrl: 'https://test.api.com',
+      });
+      reconfigurable.configure({ clientId: 'install-xyz-789' });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+      await reconfigurable.fetchFilms();
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://test.api.com/films',
+        expect.objectContaining({
+          headers: { 'X-Client-Id': 'install-xyz-789' },
+        })
       );
     });
   });

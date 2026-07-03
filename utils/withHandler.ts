@@ -40,6 +40,16 @@ export interface HandlerConfig {
 
 const ANONYMOUS_RATE_LIMIT = 30;
 const ANONYMOUS_RATE_WINDOW_MS = 60_000;
+// Per-client rate limiting on the keyed (api.dorkroom.art) path — see
+// applyClientIdentityRateLimit. The shared key's own Unkey ratelimit remains
+// a global DDoS brake; these bound a single install / IP address instead.
+const CLIENT_RATE_LIMIT = 60;
+const CLIENT_IP_RATE_LIMIT = 240;
+const CLIENT_RATE_WINDOW_MS = 60_000;
+// Accepts `generateId()` output (timestamp+random, base36) and any future
+// UUID-shaped identity. Anything else is treated as an absent header rather
+// than rejected, so a malformed value never turns into a 4xx.
+const CLIENT_ID_REGEX = /^[A-Za-z0-9_-]{8,64}$/;
 const PUBLIC_API_HOST = 'api.dorkroom.art';
 const ALLOWED_ANONYMOUS_HOSTS = new Set([
   'dorkroom.art',
@@ -332,66 +342,157 @@ async function applyPublicApiKeyAuth(
     return false;
   }
 
+  const rawClientId = getHeaderValue(req.headers['x-client-id']).trim();
+  const clientId = CLIENT_ID_REGEX.test(rawClientId) ? rawClientId : null;
+
+  if (clientId) {
+    const passedClientChecks = await applyClientIdentityRateLimit(
+      req,
+      res,
+      requestId,
+      clientId
+    );
+    if (!passedClientChecks) {
+      return false;
+    }
+  }
+
   return true;
 }
 
-async function applyAnonymousRateLimit(
+function getClientNamespace(): string {
+  const configuredNamespace = process.env.UNKEY_CLIENT_NAMESPACE?.trim();
+  return (
+    configuredNamespace ||
+    (process.env.UNKEY_API_ID
+      ? `${process.env.UNKEY_API_ID}-client`
+      : 'dorkroom-client')
+  );
+}
+
+/**
+ * Per-client rate limiting for the keyed (api.dorkroom.art) path. Applied
+ * only when the request carries a well-formed `X-Client-Id` (see
+ * `CLIENT_ID_REGEX` in `applyPublicApiKeyAuth`) — requests without one keep
+ * today's key-only limiting, unaffected.
+ *
+ * Runs two independent namespace checks concurrently:
+ *  - `client:<id>` at CLIENT_RATE_LIMIT/min — the per-install budget.
+ *  - `ip:<ip>` at CLIENT_IP_RATE_LIMIT/min — bounds id-rotation abuse from a
+ *    single address (a rotated fake id still hits this ceiling).
+ *
+ * Response headers reflect the client-id result unless the IP guard is the
+ * one that tripped: the IP check is passed `setHeadersOnSuccess: false` so a
+ * passing IP check never clobbers a passing client-id check's headers, but a
+ * failing IP check still writes its own (rate-limited) headers + 429 body.
+ */
+async function applyClientIdentityRateLimit(
   req: VercelRequest,
   res: VercelResponse,
-  requestId: string
+  requestId: string,
+  clientId: string
+): Promise<boolean> {
+  const namespace = getClientNamespace();
+  const clientIp = getClientIp(req);
+
+  const [clientOk, ipOk] = await Promise.all([
+    applyNamespaceRateLimit(res, requestId, {
+      namespace,
+      identifier: `client:${clientId}`,
+      limit: CLIENT_RATE_LIMIT,
+      durationMs: CLIENT_RATE_WINDOW_MS,
+    }),
+    applyNamespaceRateLimit(res, requestId, {
+      namespace,
+      identifier: `ip:${clientIp}`,
+      limit: CLIENT_IP_RATE_LIMIT,
+      durationMs: CLIENT_RATE_WINDOW_MS,
+      setHeadersOnSuccess: false,
+    }),
+  ]);
+
+  return clientOk && ipOk;
+}
+
+/**
+ * Shared Unkey namespace rate-limit check, extracted so the anonymous
+ * (per-IP) limiter and the keyed per-client limiter can reuse identical
+ * error semantics instead of duplicating them:
+ *  - Unkey not configured -> warn and fail OPEN (skip limiting).
+ *  - `create_namespace` permission error -> fail OPEN outside production
+ *    (with a warning), fail CLOSED (500) in production.
+ *  - Any other insufficient-permissions error -> always fail CLOSED (500).
+ *  - Otherwise rethrow.
+ *
+ * `setHeadersOnSuccess` (default true) lets a caller run more than one check
+ * for a single request (see `applyClientIdentityRateLimit`) without a
+ * passing secondary check clobbering the primary check's response headers;
+ * it always sets headers (and writes the 429 body) when this check is the
+ * one that failed, regardless of the flag.
+ *
+ * Also bails out without touching `res` if a concurrent check already ended
+ * the response (relevant only to the dual client/IP check below, since a
+ * single-check caller never observes `res.writableEnded` here).
+ */
+async function applyNamespaceRateLimit(
+  res: VercelResponse,
+  requestId: string,
+  opts: {
+    namespace: string;
+    identifier: string;
+    limit: number;
+    durationMs: number;
+    setHeadersOnSuccess?: boolean;
+  }
 ): Promise<boolean> {
   const unkey = getUnkeyClient(requestId);
 
   if (!unkey) {
-    serverlessWarn('Anonymous rate limiting skipped (Unkey not configured)', {
+    serverlessWarn('Rate limiting skipped (Unkey not configured)', {
       requestId,
+      namespace: opts.namespace,
     });
     return true;
   }
 
-  const configuredNamespace = process.env.UNKEY_ANON_NAMESPACE?.trim();
-  const namespace =
-    configuredNamespace ||
-    (process.env.UNKEY_API_ID
-      ? `${process.env.UNKEY_API_ID}-anonymous`
-      : 'dorkroom-anonymous');
-
-  const identifier = getClientIp(req);
-
   let result: Awaited<ReturnType<typeof unkey.ratelimit.limit>>;
   try {
     result = await unkey.ratelimit.limit({
-      namespace,
-      identifier,
-      limit: ANONYMOUS_RATE_LIMIT,
-      duration: ANONYMOUS_RATE_WINDOW_MS,
+      namespace: opts.namespace,
+      identifier: opts.identifier,
+      limit: opts.limit,
+      duration: opts.durationMs,
     });
   } catch (error) {
+    if (res.writableEnded) {
+      return false;
+    }
+
     const errorMessage = error instanceof Error ? error.message : String(error);
     const shouldFailOpen = process.env.NODE_ENV !== 'production';
 
     if (errorMessage.includes('create_namespace')) {
       if (shouldFailOpen) {
         serverlessWarn(
-          'Anonymous rate limiting skipped due to missing create_namespace permission',
+          'Rate limiting skipped due to missing create_namespace permission',
           {
             requestId,
-            namespace,
+            namespace: opts.namespace,
           }
         );
         return true;
       }
 
       serverlessError(
-        'Anonymous rate limiting misconfigured: missing create_namespace permission',
+        'Rate limiting misconfigured: missing create_namespace permission',
         {
           requestId,
-          namespace,
+          namespace: opts.namespace,
         }
       );
       res.status(500).json({
         error: 'API configuration error',
-        message: 'Anonymous rate limiting is not configured',
+        message: 'Rate limiting is not configured',
         requestId,
       });
       return false;
@@ -402,15 +503,15 @@ async function applyAnonymousRateLimit(
       errorMessage.includes('Missing permission')
     ) {
       serverlessError(
-        'Anonymous rate limiting misconfigured: insufficient Unkey permissions',
+        'Rate limiting misconfigured: insufficient Unkey permissions',
         {
           requestId,
-          namespace,
+          namespace: opts.namespace,
         }
       );
       res.status(500).json({
         error: 'API configuration error',
-        message: 'Anonymous rate limiting is not configured',
+        message: 'Rate limiting is not configured',
         requestId,
       });
       return false;
@@ -419,15 +520,25 @@ async function applyAnonymousRateLimit(
     throw error;
   }
 
+  if (res.writableEnded) {
+    return false;
+  }
+
   const rateLimitData = result.data;
+  const exceeded = !rateLimitData.success;
+
+  if (opts.setHeadersOnSuccess === false && !exceeded) {
+    return true;
+  }
+
   setRateLimitHeaders(res, {
     limit: rateLimitData.limit,
     remaining: rateLimitData.remaining,
     reset: rateLimitData.reset,
-    exceeded: !rateLimitData.success,
+    exceeded,
   });
 
-  if (!rateLimitData.success) {
+  if (exceeded) {
     res.status(429).json({
       error: 'Rate limit exceeded',
       message: 'Too many requests. Please try again later.',
@@ -437,6 +548,26 @@ async function applyAnonymousRateLimit(
   }
 
   return true;
+}
+
+async function applyAnonymousRateLimit(
+  req: VercelRequest,
+  res: VercelResponse,
+  requestId: string
+): Promise<boolean> {
+  const configuredNamespace = process.env.UNKEY_ANON_NAMESPACE?.trim();
+  const namespace =
+    configuredNamespace ||
+    (process.env.UNKEY_API_ID
+      ? `${process.env.UNKEY_API_ID}-anonymous`
+      : 'dorkroom-anonymous');
+
+  return applyNamespaceRateLimit(res, requestId, {
+    namespace,
+    identifier: getClientIp(req),
+    limit: ANONYMOUS_RATE_LIMIT,
+    durationMs: ANONYMOUS_RATE_WINDOW_MS,
+  });
 }
 
 function hasRequiredEnv(requiredEnv: string[]): string[] {
@@ -491,7 +622,7 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
       res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
       res.setHeader(
         'Access-Control-Allow-Headers',
-        'Content-Type, Authorization, X-Requested-With, X-API-Key'
+        'Content-Type, Authorization, X-Requested-With, X-API-Key, X-Client-Id'
       );
       res.setHeader('Access-Control-Max-Age', '86400');
     }
@@ -540,6 +671,7 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
       setVaryHeader(res, 'Host');
       if (isPublicApi) {
         setVaryHeader(res, 'X-API-Key');
+        setVaryHeader(res, 'X-Client-Id');
         res.setHeader('Cache-Control', 'private, no-store');
       }
 

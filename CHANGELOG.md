@@ -7,13 +7,14 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ## [Unreleased]
 
+### Added
+
+- The public API (`api.dorkroom.art`) now supports optional per-client rate limiting via an `X-Client-Id` request header: in addition to the shared API key's own limit, a valid client id gets its own 60 req/min budget (plus a 240 req/min per-IP ceiling to bound id-rotation abuse). Requests without the header are unaffected. This lets a single shared key (e.g. the iOS app's embedded free-tier key) be rate-limited per install instead of globally across every user. See `api/CLAUDE.md` for the new `UNKEY_CLIENT_NAMESPACE` env var and header semantics.
+- Ported the print-resize **aspect preview** from the iOS app to the web resize calculator. In Print Size mode, the results column now shows a to-scale diagram overlaying the target print (filled teal) and the original print (dashed outline), scaled by a shared factor so their proportions are directly comparable, plus a legend with each aspect ratio. The pure preview geometry now lives in `@dorkroom/logic` (`computePreviewRects`) and is shared by both the web (`@dorkroom/ui`'s `AspectPreview`) and native renderers, removing the duplicated copy that previously lived inside the mobile app.
+
 ### Changed
 
 - The resize calculator now defaults to **landscape** print sizes — original 6×4 (was 4×6) and target 9×6 (was 6×9) — matching the more common enlarging orientation. Applies to new sessions; existing saved inputs are untouched.
-
-### Added
-
-- Ported the print-resize **aspect preview** from the iOS app to the web resize calculator. In Print Size mode, the results column now shows a to-scale diagram overlaying the target print (filled teal) and the original print (dashed outline), scaled by a shared factor so their proportions are directly comparable, plus a legend with each aspect ratio. The pure preview geometry now lives in `@dorkroom/logic` (`computePreviewRects`) and is shared by both the web (`@dorkroom/ui`'s `AspectPreview`) and native renderers, removing the duplicated copy that previously lived inside the mobile app.
 
 ## [2026.06.26]
 

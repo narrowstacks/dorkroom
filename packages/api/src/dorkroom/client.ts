@@ -49,6 +49,11 @@ export interface DorkroomApiClientConfig {
   baseUrl?: string;
   /** API key sent as X-API-Key header. Required for api.dorkroom.art. */
   apiKey?: string;
+  /**
+   * Opaque per-install identity sent as X-Client-Id; enables per-client rate
+   * limits on the shared key.
+   */
+  clientId?: string;
 }
 
 /**
@@ -57,10 +62,12 @@ export interface DorkroomApiClientConfig {
 export class DorkroomApiClient {
   private baseUrl: string;
   private apiKey: string | undefined;
+  private clientId: string | undefined;
 
   constructor(config: DorkroomApiClientConfig = {}) {
     this.baseUrl = config.baseUrl ?? PUBLIC_API_BASE_URL;
     this.apiKey = config.apiKey;
+    this.clientId = config.clientId;
   }
 
   /**
@@ -77,13 +84,20 @@ export class DorkroomApiClient {
     if (config.apiKey !== undefined) {
       this.apiKey = config.apiKey;
     }
+    if (config.clientId !== undefined) {
+      this.clientId = config.clientId;
+    }
   }
 
   private buildHeaders(): Record<string, string> | undefined {
+    const headers: Record<string, string> = {};
     if (this.apiKey) {
-      return { 'X-API-Key': this.apiKey };
+      headers['X-API-Key'] = this.apiKey;
     }
-    return undefined;
+    if (this.clientId) {
+      headers['X-Client-Id'] = this.clientId;
+    }
+    return Object.keys(headers).length > 0 ? headers : undefined;
   }
 
   /**

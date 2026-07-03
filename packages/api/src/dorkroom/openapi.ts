@@ -139,6 +139,17 @@ const sharedParameters: Record<string, JsonSchema> = {
     required: false,
     schema: { type: 'string' },
   },
+  ClientId: {
+    name: 'X-Client-Id',
+    in: 'header',
+    description:
+      'Opaque per-install identity (8-64 chars, `[A-Za-z0-9_-]`). Optional; ' +
+      'when present, requests are additionally rate-limited per client (and ' +
+      "per source IP) rather than only against the shared key's global " +
+      'limit. Malformed values are treated as absent.',
+    required: false,
+    schema: { type: 'string', minLength: 8, maxLength: 64 },
+  },
 };
 
 function ref(name: string): JsonSchema {
@@ -213,6 +224,7 @@ export function buildOpenApiDocument(): Record<string, unknown> {
               required: false,
               schema: { type: 'string' },
             },
+            ref('ClientId'),
           ],
           responses: withErrorResponses({
             description: 'Matching film stocks.',
@@ -249,6 +261,7 @@ export function buildOpenApiDocument(): Record<string, unknown> {
               required: false,
               schema: { type: 'string' },
             },
+            ref('ClientId'),
           ],
           responses: withErrorResponses({
             description: 'Matching developers.',
@@ -304,6 +317,7 @@ export function buildOpenApiDocument(): Record<string, unknown> {
             ref('Query'),
             ref('Fuzzy'),
             ref('Limit'),
+            ref('ClientId'),
           ],
           responses: withErrorResponses({
             description: 'Matching development recipe combinations.',
@@ -320,7 +334,7 @@ export function buildOpenApiDocument(): Record<string, unknown> {
           tags: ['stats'],
           operationId: 'getStats',
           summary: 'Database record counts',
-          parameters: [],
+          parameters: [ref('ClientId')],
           responses: withErrorResponses({
             description: 'Total record counts per collection.',
             content: {
@@ -351,6 +365,7 @@ export function buildOpenApiDocument(): Record<string, unknown> {
                 exclusiveMaximum: 10000000,
               },
             },
+            ref('ClientId'),
           ],
           responses: withErrorResponses({
             description: 'The filmdev.org recipe payload (passed through).',
