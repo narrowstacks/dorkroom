@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  formatAgitationMethod,
   formatRecipeTemp,
   formatRecipeTime,
+  formatSourceTag,
   pushPullDisplay,
   resolveDilution,
 } from './recipe-format';
@@ -92,5 +94,38 @@ describe('formatRecipeTemp', () => {
   });
   it('returns an em dash for invalid input', () => {
     expect(formatRecipeTemp(Number.NaN, Number.NaN, 'C')).toBe('—');
+  });
+});
+
+describe('formatSourceTag', () => {
+  it('labels a longer brand', () => {
+    expect(formatSourceTag('official-kodak')).toBe('Kodak official');
+  });
+  it('labels a longer brand with multiple words', () => {
+    expect(formatSourceTag('official-cinestill')).toBe('Cinestill official');
+  });
+  it('uppercases short brand segments', () => {
+    expect(formatSourceTag('official-jch')).toBe('JCH official');
+  });
+  it('passes through unprefixed tags unchanged', () => {
+    expect(formatSourceTag('custom-tag')).toBe('custom-tag');
+  });
+});
+
+describe('formatAgitationMethod', () => {
+  it('returns Standard for null', () => {
+    expect(formatAgitationMethod(null)).toBe('Standard');
+  });
+  it('returns Standard for undefined', () => {
+    expect(formatAgitationMethod(undefined)).toBe('Standard');
+  });
+  it('returns Standard for whitespace-only input', () => {
+    expect(formatAgitationMethod('  ')).toBe('Standard');
+  });
+  it('capitalizes a known method', () => {
+    expect(formatAgitationMethod('intermittent')).toBe('Intermittent');
+  });
+  it('capitalizes stand agitation', () => {
+    expect(formatAgitationMethod('stand')).toBe('Stand');
   });
 });

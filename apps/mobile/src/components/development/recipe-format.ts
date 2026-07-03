@@ -76,3 +76,31 @@ export function formatRecipeTemp(
   const text = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
   return `${text}°${unit}`;
 }
+
+/**
+ * Human label for a recipe source tag, e.g. "official-kodak" -> "Kodak
+ * official". Unknown/unprefixed tags pass through unchanged.
+ */
+export function formatSourceTag(tag: string): string {
+  const m = tag.match(/^official-(.+)$/);
+  if (!m) return tag;
+  const brand = m[1]
+    .split('-')
+    .map((w) =>
+      w.length <= 3 ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)
+    )
+    .join(' ');
+  return `${brand} official`;
+}
+
+/**
+ * Display value for the Agitation row: the API's agitation_method when
+ * present ("intermittent" -> "Intermittent"), else "Standard".
+ */
+export function formatAgitationMethod(
+  method: string | null | undefined
+): string {
+  const trimmed = method?.trim();
+  if (!trimmed) return 'Standard';
+  return trimmed[0].toUpperCase() + trimmed.slice(1);
+}
