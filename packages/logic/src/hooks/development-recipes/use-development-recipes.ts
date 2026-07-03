@@ -33,6 +33,7 @@ export interface DevelopmentRecipesState {
   error: string | null;
   allFilms: Film[];
   allDevelopers: Developer[];
+  allCombinations: Combination[];
   filteredCombinations: Combination[];
 }
 
@@ -627,6 +628,7 @@ export const useDevelopmentRecipes = (
     error,
     allFilms,
     allDevelopers,
+    allCombinations,
     filteredCombinations,
     setDeveloperTypeFilter,
     setDilutionFilter,
