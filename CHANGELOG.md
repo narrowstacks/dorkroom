@@ -16,6 +16,10 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 - The resize calculator now defaults to **landscape** print sizes — original 6×4 (was 4×6) and target 9×6 (was 6×9) — matching the more common enlarging orientation. Applies to new sessions; existing saved inputs are untouched.
 
+### Fixed
+
+- Moved the `key` prop after the `{...spread}` in the home page's tool grid and the mat calculator's guide-bar cards, so a `key` field inside the spread object can no longer silently overwrite the explicit key and break React's list reconciliation.
+
 ## [2026.06.26]
 
 ### Fixed
