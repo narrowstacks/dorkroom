@@ -9,6 +9,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Added
 
+- The app now sends a per-install identity (`X-Client-Id`) with every request to the shared public API. Previously every install shared one global rate-limit budget on the embedded free-tier key; the server now applies rate limits per device instead, so heavy use on one phone no longer affects others. The id is generated once and persisted locally (MMKV); it is not a secret and not a tracking identifier — a reinstall mints a new one.
 - **Development Recipes** — a new permanent "Recipes" tab lets you browse film-development recipes from the Dorkroom API (searchable, with a filters sheet); a recipe's detail screen shows dev time/temp/agitation and links to "Start Process Timer".
 - **Multi-stage film-processing timer** — a countdown timer (develop → stop → fix → wash → custom stages) that a recipe's "Start Process Timer" prefills from its time/temp/agitation, with pause/resume/skip controls and per-stage progress; also reachable as a standalone timer.
 - **Live film database** — the app now fetches films, developers, and development combinations from the Dorkroom API (`api.dorkroom.art`) instead of a hardcoded stub. The Film Log's film picker shows the full film catalog (still merging your custom stocks on top), with loading and retry states and graceful offline fallback. Successful API responses are cached to disk (MMKV) and rehydrated on launch, so the catalog (and Recipes) still render from the persisted cache when offline.

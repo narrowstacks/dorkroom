@@ -6,6 +6,7 @@
 // so it must hit https://api.dorkroom.art directly with an X-API-Key. We
 // reconfigure that singleton once, at startup, before any query runs.
 import { configureApiClient, PUBLIC_API_BASE_URL } from '@dorkroom/api';
+import { getClientId } from '@/lib/client-id';
 
 /**
  * Free-tier public key (`dk_f_*`, 60 req/min, read-only public data). Inlined
@@ -26,7 +27,15 @@ export function configureDorkroomApi(): void {
   if (configured) {
     return;
   }
-  configureApiClient({ baseUrl: PUBLIC_API_BASE_URL, apiKey: API_KEY });
+  configureApiClient({
+    baseUrl: PUBLIC_API_BASE_URL,
+    apiKey: API_KEY,
+    // Per-install identity, sent as the X-Client-Id header by @dorkroom/api's
+    // buildHeaders(), so the shared key's rate limit is applied per device
+    // rather than globally across every install (see
+    // utils/withHandler.ts's applyClientIdentityRateLimit).
+    clientId: getClientId(),
+  });
   configured = true;
 
   if (__DEV__ && !API_KEY) {
