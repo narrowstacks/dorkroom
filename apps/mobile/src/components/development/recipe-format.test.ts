@@ -3,7 +3,8 @@ import {
   formatAgitationMethod,
   formatRecipeTemp,
   formatRecipeTime,
-  formatSourceTag,
+  officialTagColor,
+  officialTagLabel,
   pushPullDisplay,
   resolveDilution,
 } from './recipe-format';
@@ -97,18 +98,32 @@ describe('formatRecipeTemp', () => {
   });
 });
 
-describe('formatSourceTag', () => {
+describe('officialTagLabel', () => {
   it('labels a longer brand', () => {
-    expect(formatSourceTag('official-kodak')).toBe('Kodak official');
+    expect(officialTagLabel('official-kodak')).toBe('Official Kodak Recipe');
   });
   it('labels a longer brand with multiple words', () => {
-    expect(formatSourceTag('official-cinestill')).toBe('Cinestill official');
+    expect(officialTagLabel('official-cinestill')).toBe(
+      'Official Cinestill Recipe'
+    );
   });
   it('uppercases short brand segments', () => {
-    expect(formatSourceTag('official-jch')).toBe('JCH official');
+    expect(officialTagLabel('official-jch')).toBe('Official JCH Recipe');
   });
   it('passes through unprefixed tags unchanged', () => {
-    expect(formatSourceTag('custom-tag')).toBe('custom-tag');
+    expect(officialTagLabel('custom-tag')).toBe('custom-tag');
+  });
+});
+
+describe('officialTagColor', () => {
+  it('returns the known brand hex', () => {
+    expect(officialTagColor('official-cinestill')).toBe('#f87171');
+  });
+  it('is case-insensitive', () => {
+    expect(officialTagColor('OFFICIAL-KODAK')).toBe('#e5ff7d');
+  });
+  it('falls back to the default hex for unknown tags', () => {
+    expect(officialTagColor('custom-tag')).toBe('#a1a1aa');
   });
 });
 

@@ -7,7 +7,7 @@ import { PushPullBadge } from '@/components/development/push-pull-badge';
 import {
   formatRecipeTemp,
   formatRecipeTime,
-  formatSourceTag,
+  officialTagLabel,
   pushPullDisplay,
   resolveDilution,
 } from '@/components/development/recipe-format';
@@ -158,7 +158,7 @@ export function RecipeDetailScreen() {
         {tags.length > 0 ? (
           <ResultRow
             label="Source"
-            value={tags.map(formatSourceTag).join(', ')}
+            value={tags.map(officialTagLabel).join(', ')}
           />
         ) : null}
       </GlassCard>

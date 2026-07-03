@@ -77,12 +77,27 @@ export function formatRecipeTemp(
   return `${text}°${unit}`;
 }
 
-/**
- * Human label for a recipe source tag, e.g. "official-kodak" -> "Kodak
- * official". Unknown/unprefixed tags pass through unchanged.
- */
-export function formatSourceTag(tag: string): string {
-  const m = tag.match(/^official-(.+)$/);
+/** Brand accent hexes for official-source tags — mirrors the web dark
+ * theme (apps/dorkroom/src/styles/theme.css [data-theme="dark"]). */
+export const OFFICIAL_TAG_COLORS: Record<string, string> = {
+  'official-ilford': '#6ef3a4',
+  'official-kodak': '#e5ff7d',
+  'official-fuji': '#7dd6ff',
+  'official-cinestill': '#f87171',
+  'official-rollei': '#c4b5fd',
+  'official-lomography': '#f9a8d4',
+  'official-jch': '#5eead4',
+};
+export const DEFAULT_TAG_COLOR = '#a1a1aa';
+
+export function officialTagColor(tag: string): string {
+  return OFFICIAL_TAG_COLORS[tag.toLowerCase()] ?? DEFAULT_TAG_COLOR;
+}
+
+/** "official-cinestill" -> "Official Cinestill Recipe" (web parity);
+ * non-official tags pass through unchanged. */
+export function officialTagLabel(tag: string): string {
+  const m = tag.match(/^official-(.+)$/i);
   if (!m) return tag;
   const brand = m[1]
     .split('-')
@@ -90,7 +105,7 @@ export function formatSourceTag(tag: string): string {
       w.length <= 3 ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)
     )
     .join(' ');
-  return `${brand} official`;
+  return `Official ${brand} Recipe`;
 }
 
 /**
