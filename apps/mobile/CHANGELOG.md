@@ -20,6 +20,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - The resize calculator now defaults to **landscape** print sizes — original 6×4 (was 4×6) and target 9×6 (was 6×9).
 - Removed the stubbed film-stock list; the catalog is now sourced from the live API and mapped into the Film Log's lighter `FilmStock` shape.
 - **Pinned tool slots reduced from 3 to 2** — the native tab bar holds at most 5 items; with Film Log, Recipes, and More now permanent, only 2 slots remain for user-pinned tools. Existing users with 3 pinned tools will have the 3rd truncated.
+- **Recipe detail layout** — removed the film title duplicated below the native nav header, folded the recipe's source tag into a labeled "Source" row instead of a stray tag pill, moved "Start Process Timer" up so it renders right after the key facts, and made the Volume Mixer collapsible (collapsed by default) so the primary action fits within roughly one screen.
 - **App version now follows CalVer**, matching the rest of the app (Settings previously showed a permanent, hardcoded "v1.0.0").
 - Camera and lens forms' sheet header action is now labelled "Cancel" instead of "Done" — it discards, so it no longer reads as a second, competing save button next to the sheet's own "Add/Save camera" (or lens) button.
 - The Film Log's "Export JSON" button is now labelled "Export data".
@@ -31,6 +32,8 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
+- **Recipe detail always showed "Standard" agitation.** The Agitation row read a field the API client hardcodes to `null`; it now reads the API's actual `agitation_method` value (e.g. "Intermittent", "Stand") and falls back to "Standard" only when it's genuinely absent.
+- **Deep links to filtered-out recipes showed "Recipe not found."** The recipe detail screen looked up its recipe in the currently-filtered list, so a `dorkroom://development/recipe/<uuid>` link to a valid recipe excluded by the active filters failed; it now searches the full, unfiltered combination list.
 - **Deep links and quick actions now open unpinned tools.** Opening a `dorkroom://` link or a home-screen quick action for a tool that isn't currently pinned to the tab bar (e.g. Exposure or Reciprocity, unpinned by default since the pin cap dropped to 2) previously did nothing — the app just stayed on the current screen, because a native tab route is only reachable while its trigger is rendered. Incoming tool paths are now resolved against the current pin state and redirected to the tool's always-available More-stack screen when needed; all four quick actions now point there directly.
 - **Film Log tool icon** — the More list previously fell back to a generic circle for Film Log (the icon map had no `film` entry, while the tab bar showed the correct film-strip icon); now both surfaces agree.
 - **Camera permission is no longer requested at app launch.** The Meter screen now requests camera permission only while its tab is focused, instead of firing on first mount — previously the permission dialog could appear over the Border screen before the user ever opened Meter.

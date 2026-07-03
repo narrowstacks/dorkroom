@@ -14,7 +14,7 @@ import {
 } from '@dorkroom/logic';
 import { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
-import { GlassCard } from '@/components/glass-card';
+import { CollapsibleSection } from '@/components/development/collapsible-section';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { PresetChipRow } from '@/components/preset-chip-row';
 import { ResultRow } from '@/components/result-row';
@@ -78,10 +78,13 @@ export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
   const selectPreset = (ml: number) => setText(formatDisplay(ml, unit));
 
   return (
-    <GlassCard className="gap-4">
-      <View className="flex-row items-center justify-between">
-        <Text className="text-base font-semibold text-white">Volume Mixer</Text>
-        <View className="w-32">
+    <CollapsibleSection
+      title="Volume Mixer"
+      subtitle={stock ? 'Stock — no mixing needed' : dilutionString}
+      defaultExpanded={false}
+    >
+      <View className="gap-4">
+        <View className="w-32 self-end">
           <SegmentedControl
             accent="green"
             options={UNIT_OPTIONS}
@@ -89,64 +92,64 @@ export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
             onChange={onToggleUnit}
           />
         </View>
+
+        {stock ? (
+          <Text className="text-sm text-white/60">
+            No mixing needed — use developer stock (undiluted).
+          </Text>
+        ) : null}
+
+        {!stock && !parsed ? (
+          <Text className="text-sm text-amber-300">
+            Couldn’t parse dilution “{dilutionString}”.
+          </Text>
+        ) : null}
+
+        {!stock && parsed ? (
+          <>
+            <View className="gap-2">
+              <LabeledTextField
+                label={`Total volume (${getVolumeUnitLabel(unit)})`}
+                value={text}
+                onChangeText={setText}
+                keyboardType="decimal-pad"
+              />
+              <Stepper
+                value={`${text} ${getVolumeUnitLabel(unit)}`}
+                onDecrement={() => step(-1)}
+                onIncrement={() => step(1)}
+              />
+              <PresetChipRow
+                accent="green"
+                options={VOLUME_PRESETS_ML.map((ml) => ({
+                  label: formatVolume(ml, unit),
+                  value: ml,
+                }))}
+                value={
+                  VOLUME_PRESETS_ML.find(
+                    (ml) => Math.abs(ml - volumeMl) < 0.5
+                  ) as number | undefined
+                }
+                onSelect={selectPreset}
+              />
+            </View>
+
+            <View>
+              <ResultRow
+                label="Developer"
+                value={volumes ? formatVolume(volumes.concentrate, unit) : '—'}
+              />
+              <ResultRow
+                label="Water"
+                value={volumes ? formatVolume(volumes.water, unit) : '—'}
+              />
+              <Text className="mt-1 text-sm text-white/50">
+                {formatDilutionDescription(parsed)}
+              </Text>
+            </View>
+          </>
+        ) : null}
       </View>
-
-      {stock ? (
-        <Text className="text-sm text-white/60">
-          No mixing needed — use developer stock (undiluted).
-        </Text>
-      ) : null}
-
-      {!stock && !parsed ? (
-        <Text className="text-sm text-amber-300">
-          Couldn’t parse dilution “{dilutionString}”.
-        </Text>
-      ) : null}
-
-      {!stock && parsed ? (
-        <>
-          <View className="gap-2">
-            <LabeledTextField
-              label={`Total volume (${getVolumeUnitLabel(unit)})`}
-              value={text}
-              onChangeText={setText}
-              keyboardType="decimal-pad"
-            />
-            <Stepper
-              value={`${text} ${getVolumeUnitLabel(unit)}`}
-              onDecrement={() => step(-1)}
-              onIncrement={() => step(1)}
-            />
-            <PresetChipRow
-              accent="green"
-              options={VOLUME_PRESETS_ML.map((ml) => ({
-                label: formatVolume(ml, unit),
-                value: ml,
-              }))}
-              value={
-                VOLUME_PRESETS_ML.find((ml) => Math.abs(ml - volumeMl) < 0.5) as
-                  | number
-                  | undefined
-              }
-              onSelect={selectPreset}
-            />
-          </View>
-
-          <View>
-            <ResultRow
-              label="Developer"
-              value={volumes ? formatVolume(volumes.concentrate, unit) : '—'}
-            />
-            <ResultRow
-              label="Water"
-              value={volumes ? formatVolume(volumes.water, unit) : '—'}
-            />
-            <Text className="mt-1 text-sm text-white/50">
-              {formatDilutionDescription(parsed)}
-            </Text>
-          </View>
-        </>
-      ) : null}
-    </GlassCard>
+    </CollapsibleSection>
   );
 }
