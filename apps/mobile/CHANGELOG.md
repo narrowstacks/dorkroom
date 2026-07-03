@@ -14,6 +14,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **Multi-stage film-processing timer** — a countdown timer (develop → stop → fix → wash → custom stages) that a recipe's "Start Process Timer" prefills from its time/temp/agitation, with pause/resume/skip controls and per-stage progress; also reachable as a standalone timer.
 - **Agitation patterns** — the timer now knows each stage's agitation pattern (Ilford, Kodak, stand, semi-stand, continuous, or a fully custom schedule) and shows a live "Agitate" indicator with haptic cues at window start/end; presets prefilled from a recipe infer their pattern from the recipe's agitation method or source tag, and every stage's pattern is editable in the preset editor. The recipe detail screen's Agitation row now shows the derived schedule instead of the raw API field.
 - **Live film database** — the app now fetches films, developers, and development combinations from the Dorkroom API (`api.dorkroom.art`) instead of a hardcoded stub. The Film Log's film picker shows the full film catalog (still merging your custom stocks on top), with loading and retry states and graceful offline fallback. Successful API responses are cached to disk (MMKV) and rehydrated on launch, so the catalog (and Recipes) still render from the persisted cache when offline.
+- The Process Timer screen now stays awake while a run is active — the screen no longer auto-locks while the timer is running or paused, so a countdown mid-develop won't be interrupted by the system idle timeout.
 
 ### Changed
 

@@ -1,4 +1,5 @@
 import * as Haptics from 'expo-haptics';
+import { useKeepAwake } from 'expo-keep-awake';
 import { Pencil } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -16,10 +17,21 @@ import { addPreset, listPresets } from '@/lib/timer/presets-storage';
 import type { TimerStage } from '@/lib/timer/types';
 
 /**
+ * Rendered only while the timer is active: keeps the display on for the
+ * duration of a development run (activates on mount, releases on unmount).
+ */
+function KeepAwakeWhileActive() {
+  useKeepAwake('process-timer');
+  return null;
+}
+
+/**
  * Standalone multi-stage film-processing timer. Drives the pure engine
- * (lib/timer/) from a wall-clock interval; presets persist via MMKV. Native
- * alerts / keep-awake / audio are a later, EAS-gated card (mob-timer-engine) —
- * this screen is JS-only and runs in the current Metro session.
+ * (lib/timer/) from a wall-clock interval; presets persist via MMKV. The
+ * screen stays awake while a run is active (running/paused) via
+ * expo-keep-awake. Native alerts / audio are a later, EAS-gated card
+ * (mob-timer-engine) — this screen is JS-only and runs in the current Metro
+ * session.
  */
 export function TimerScreen() {
   const [presets, setPresets] = useState(() => listPresets());
@@ -104,6 +116,10 @@ export function TimerScreen() {
 
   return (
     <Screen>
+      {timer.status === 'running' || timer.status === 'paused' ? (
+        <KeepAwakeWhileActive />
+      ) : null}
+
       <View className="gap-2">
         <SectionLabel>Preset</SectionLabel>
         <PresetChipRow
