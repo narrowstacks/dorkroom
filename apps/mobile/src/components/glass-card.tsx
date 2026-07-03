@@ -4,7 +4,7 @@ import {
   isLiquidGlassAvailable,
 } from 'expo-glass-effect';
 import type { ReactNode } from 'react';
-import { View } from 'react-native';
+import { type StyleProp, View, type ViewStyle } from 'react-native';
 
 function glassAvailable(): boolean {
   try {
@@ -25,15 +25,21 @@ const USE_GLASS = glassAvailable();
 interface GlassCardProps {
   children: ReactNode;
   className?: string;
+  /**
+   * Style applied to the OUTER card element. Needed for things `className`
+   * can't reach on the glass element — flex sizing (so a card can stretch to
+   * fill a row) or an accent border.
+   */
+  style?: StyleProp<ViewStyle>;
 }
 
 /** A Liquid Glass card on iOS 26; a translucent NativeWind card elsewhere. */
-export function GlassCard({ children, className }: GlassCardProps) {
+export function GlassCard({ children, className, style }: GlassCardProps) {
   if (USE_GLASS) {
     return (
       <GlassView
         glassEffectStyle="regular"
-        style={{ borderRadius: 20, overflow: 'hidden' }}
+        style={[{ borderRadius: 20, overflow: 'hidden' }, style]}
       >
         <View className={`p-5 ${className ?? ''}`}>{children}</View>
       </GlassView>
@@ -41,6 +47,7 @@ export function GlassCard({ children, className }: GlassCardProps) {
   }
   return (
     <View
+      style={style}
       className={`rounded-2xl border border-white/10 bg-white/10 p-5 ${className ?? ''}`}
     >
       {children}

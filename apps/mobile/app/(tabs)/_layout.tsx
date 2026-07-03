@@ -31,6 +31,8 @@ const TAB_ICON: Record<string, number> = {
 // tab is only reachable while its trigger is shown — so it's permanent, not
 // user-pinnable).
 const FILM_LOG_ICON: number = require('../../assets/tab-icons/film-log.png');
+// Development Recipes is also a permanent multi-screen section (see src/lib/tools.ts).
+const RECIPES_ICON: number = require('../../assets/tab-icons/recipes.png');
 const MORE_ICON: number = require('../../assets/tab-icons/more.png');
 
 export default function TabsLayout() {
@@ -52,6 +54,10 @@ export default function TabsLayout() {
       <NativeTabs.Trigger name="film-log">
         <NativeTabs.Trigger.Icon src={FILM_LOG_ICON} />
         <NativeTabs.Trigger.Label>Film Log</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="development">
+        <NativeTabs.Trigger.Icon src={RECIPES_ICON} />
+        <NativeTabs.Trigger.Label>Recipes</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="more">
         <NativeTabs.Trigger.Icon src={MORE_ICON} />

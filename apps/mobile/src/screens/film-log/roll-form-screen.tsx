@@ -22,7 +22,12 @@ export function RollFormScreen() {
   const { rollId } = useLocalSearchParams<{ rollId?: string }>();
   const existing = useRoll(rollId);
   const cameras = useCameras();
-  const films = useFilmCatalog();
+  const {
+    films,
+    isLoading: filmsLoading,
+    isError: filmsError,
+    refetch: refetchFilms,
+  } = useFilmCatalog();
   const [showCustomFilm, setShowCustomFilm] = useState(false);
 
   const [form, set] = useFormState({
@@ -145,6 +150,21 @@ export function RollFormScreen() {
             onChange={onSelectFilm}
             placeholder="Select a film stock"
           />
+          {filmsLoading ? (
+            <Text className="text-sm text-white/40">Loading film catalog…</Text>
+          ) : null}
+          {filmsError ? (
+            <Pressable
+              onPress={refetchFilms}
+              accessibilityRole="button"
+              className="self-start"
+            >
+              <Text className="text-sm text-amber-400">
+                Couldn't load the film catalog. Tap to retry — or add your film
+                below.
+              </Text>
+            </Pressable>
+          ) : null}
           <Pressable
             onPress={() => setShowCustomFilm(true)}
             accessibilityRole="button"

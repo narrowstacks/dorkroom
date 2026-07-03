@@ -77,6 +77,42 @@ describe('DorkroomApiClient', () => {
     });
   });
 
+  describe('configure', () => {
+    it('reconfigures base URL and api key in place', async () => {
+      const reconfigurable = new DorkroomApiClient({ baseUrl: '/api' });
+      reconfigurable.configure({
+        baseUrl: 'https://api.dorkroom.art',
+        apiKey: 'dk_f_live',
+      });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+      await reconfigurable.fetchFilms();
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.dorkroom.art/films',
+        expect.objectContaining({ headers: { 'X-API-Key': 'dk_f_live' } })
+      );
+    });
+
+    it('leaves omitted fields unchanged', async () => {
+      const reconfigurable = new DorkroomApiClient({
+        baseUrl: 'https://test.api.com',
+        apiKey: 'dk_keep',
+      });
+      reconfigurable.configure({ baseUrl: 'https://other.api.com' });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+      await reconfigurable.fetchFilms();
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://other.api.com/films',
+        expect.objectContaining({ headers: { 'X-API-Key': 'dk_keep' } })
+      );
+    });
+  });
+
   describe('fetchFilms', () => {
     it('should fetch films successfully', async () => {
       const mockRawFilms: RawFilm[] = [

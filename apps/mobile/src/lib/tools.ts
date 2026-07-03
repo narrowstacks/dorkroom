@@ -66,6 +66,17 @@ export const TOOLS: readonly Tool[] = [
     pinnable: false,
   },
   {
+    id: 'recipes',
+    label: 'Recipes',
+    icon: 'flask-conical',
+    // Multi-screen section (list + detail) with its own nested stack, like Film
+    // Log — a permanent tab (see (tabs)/_layout.tsx), so it's not user-pinnable;
+    // still listed in More.
+    route: '/development',
+    category: 'film',
+    pinnable: false,
+  },
+  {
     id: 'lens',
     label: 'Lenses',
     icon: 'focus',

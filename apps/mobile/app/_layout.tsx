@@ -3,13 +3,23 @@ import { installLocalStorage } from '@/polyfills/install-local-storage';
 
 installLocalStorage();
 
-import { QueryClientProvider } from '@tanstack/react-query';
+import { configureDorkroomApi } from '@/lib/api-config';
+
+// Point the shared @dorkroom/api client at the public API (with the bundled
+// key) before any query runs.
+configureDorkroomApi();
+
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Appearance } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { queryClient } from '@/providers/query-client';
+import {
+  QUERY_CACHE_MAX_AGE,
+  queryPersister,
+} from '@/providers/query-persister';
 
 // The app is dark-themed only (screens hard-code dark backgrounds and light
 // text). Force dark so native surfaces — notably expo-glass-effect's GlassView —
@@ -20,13 +30,19 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{
+            persister: queryPersister,
+            maxAge: QUERY_CACHE_MAX_AGE,
+          }}
+        >
           <ThemeProvider value={DarkTheme}>
             <Stack screenOptions={{ headerShown: false }} />
             {/* oxlint-disable-next-line react/style-prop-object -- expo-status-bar's `style` is a preset string ('auto' | 'light' | 'dark'), not a React style object */}
             <StatusBar style="light" />
           </ThemeProvider>
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

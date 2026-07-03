@@ -3,6 +3,7 @@ export const ACCENT = {
   blue: '#60a5fa',
   teal: '#2dd4bf',
   amber: '#fbbf24',
+  green: '#4ade80',
 } as const;
 
 export type AccentColor = keyof typeof ACCENT;

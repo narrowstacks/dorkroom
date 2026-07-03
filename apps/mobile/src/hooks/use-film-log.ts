@@ -11,7 +11,7 @@ import {
   parseRolls,
   storage,
 } from '@/lib/film-log-storage';
-import { useFilmStocks } from '@/lib/film-stocks-stub';
+import { useFilmStocks } from '@/lib/film-stocks';
 import type { Camera, FilmRoll, FilmStock, Lens } from '@/types/film-log';
 
 export function useRolls(): FilmRoll[] {
@@ -42,15 +42,36 @@ export function useCustomFilms(): FilmStock[] {
   return useMemo(() => parseCustomFilms(raw), [raw]);
 }
 
+/** {@link useFilmCatalog} result: the merged film list plus catalog fetch state. */
+export interface FilmCatalog {
+  /** User's custom stocks first, then the live API catalog (sorted). */
+  films: FilmStock[];
+  /** The API catalog is being fetched for the first time (no cache yet). */
+  isLoading: boolean;
+  /** The API catalog failed to load (offline with empty cache, auth, etc.). */
+  isError: boolean;
+  /** No films available at all (catalog failed/empty AND no custom stocks). */
+  isEmpty: boolean;
+  /** Retry the catalog fetch. */
+  refetch: () => void;
+}
+
 /**
- * The film picker source: the catalog (stubbed for now, the real film database
- * later) plus the user's own custom stocks. When the DB lands, only the catalog
- * source inside here changes — custom films keep merging on top.
+ * The film picker source: the live API film database plus the user's own custom
+ * stocks. Custom films always come first and remain available offline, so the
+ * picker is never empty as long as the user has added their own stocks.
  */
-export function useFilmCatalog(): FilmStock[] {
-  const catalog = useFilmStocks();
+export function useFilmCatalog(): FilmCatalog {
+  const { films: catalog, isLoading, isError, refetch } = useFilmStocks();
   const custom = useCustomFilms();
-  return useMemo(() => [...custom, ...catalog], [custom, catalog]);
+  const films = useMemo(() => [...custom, ...catalog], [custom, catalog]);
+  return {
+    films,
+    isLoading,
+    isError,
+    isEmpty: films.length === 0,
+    refetch,
+  };
 }
 
 /** Lenses usable on a camera: those bound to it plus any unassigned (global) lenses. */

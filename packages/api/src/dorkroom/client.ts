@@ -63,6 +63,22 @@ export class DorkroomApiClient {
     this.apiKey = config.apiKey;
   }
 
+  /**
+   * Reconfigure an existing client in place. Lets a consumer that depends on
+   * the shared `apiClient` singleton (and the `fetch*ForQuery` helpers bound to
+   * it) point at a different base URL / API key at runtime — e.g. the mobile
+   * app switching from the same-origin default to `api.dorkroom.art` with a
+   * shipped key. Omitted fields are left unchanged.
+   */
+  configure(config: DorkroomApiClientConfig): void {
+    if (config.baseUrl !== undefined) {
+      this.baseUrl = config.baseUrl;
+    }
+    if (config.apiKey !== undefined) {
+      this.apiKey = config.apiKey;
+    }
+  }
+
   private buildHeaders(): Record<string, string> | undefined {
     if (this.apiKey) {
       return { 'X-API-Key': this.apiKey };
@@ -342,6 +358,15 @@ export class DorkroomApiClient {
 export const apiClient = new DorkroomApiClient({
   baseUrl: INTERNAL_API_BASE_URL,
 });
+
+/**
+ * Reconfigure the shared `apiClient` singleton (and therefore every
+ * `fetch*ForQuery` helper bound to it, including the `@dorkroom/logic` API
+ * hooks). External consumers such as the mobile app call this once at startup
+ * to switch from the same-origin default to the public API with a key.
+ */
+export const configureApiClient = (config: DorkroomApiClientConfig): void =>
+  apiClient.configure(config);
 
 // Export convenience functions for external use
 export const fetchFilms = (options?: { signal?: AbortSignal }) =>
