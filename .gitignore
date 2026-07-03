@@ -54,8 +54,10 @@ Thumbs.db
 # Nx (legacy, may regenerate from dependencies)
 .nx
 
-# CLAUDE
-.claude/settings.local.json
+# AI
+.claude/*
+.agents/*
+.codex/*
 
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
