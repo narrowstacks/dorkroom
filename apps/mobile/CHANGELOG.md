@@ -29,6 +29,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Fixed
 
+- **Deep links and quick actions now open unpinned tools.** Opening a `dorkroom://` link or a home-screen quick action for a tool that isn't currently pinned to the tab bar (e.g. Exposure or Reciprocity, unpinned by default since the pin cap dropped to 2) previously did nothing — the app just stayed on the current screen, because a native tab route is only reachable while its trigger is rendered. Incoming tool paths are now resolved against the current pin state and redirected to the tool's always-available More-stack screen when needed; all four quick actions now point there directly.
 - **Film Log tool icon** — the More list previously fell back to a generic circle for Film Log (the icon map had no `film` entry, while the tab bar showed the correct film-strip icon); now both surfaces agree.
 - **Camera permission is no longer requested at app launch.** The Meter screen now requests camera permission only while its tab is focused, instead of firing on first mount — previously the permission dialog could appear over the Border screen before the user ever opened Meter.
 - **Edit Tabs now explains its at-capacity state** — when the tab bar is full, the dimmed "More tools" rows now show a "Tab bar is full — remove a tool to add another" hint instead of silently doing nothing when tapped.

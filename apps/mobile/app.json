@@ -36,7 +36,7 @@
               "title": "Light Meter",
               "icon": "symbol:camera.aperture",
               "params": {
-                "href": "/meter"
+                "href": "/more/meter"
               }
             },
             {
@@ -44,7 +44,7 @@
               "title": "Border",
               "icon": "symbol:square.dashed",
               "params": {
-                "href": "/"
+                "href": "/more/border"
               }
             },
             {
@@ -52,7 +52,7 @@
               "title": "Exposure",
               "icon": "symbol:plusminus",
               "params": {
-                "href": "/exposure"
+                "href": "/more/exposure"
               }
             },
             {
@@ -60,7 +60,7 @@
               "title": "Reciprocity",
               "icon": "symbol:timer",
               "params": {
-                "href": "/reciprocity"
+                "href": "/more/reciprocity"
               }
             }
           ]
