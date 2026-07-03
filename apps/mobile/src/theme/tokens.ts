@@ -16,6 +16,9 @@ export const tokens = {
     surface: 'rgba(255,255,255,0.06)',
     text: '#f5f5f4',
     textMuted: '#a1a1aa',
+    // Brand/commit accent only (solid-fill CTAs). Per-tool signature colors
+    // and the selection-tint treatment live in `theme/accents.ts` — that
+    // file is the source of truth for the accent system.
     accent: '#e11d48',
     warning: '#f59e0b',
   },

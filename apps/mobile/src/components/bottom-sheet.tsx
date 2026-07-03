@@ -86,7 +86,7 @@ export function BottomSheet({
           <View className="mb-4 flex-row items-center justify-between">
             <Text className="text-lg font-semibold text-white">{title}</Text>
             <Pressable onPress={onClose} accessibilityRole="button">
-              <Text className="text-base font-semibold text-rose-500">
+              <Text className="text-base font-semibold text-white/70">
                 {dismissLabel}
               </Text>
             </Pressable>

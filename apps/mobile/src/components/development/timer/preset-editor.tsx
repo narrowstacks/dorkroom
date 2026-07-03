@@ -89,6 +89,7 @@ export function PresetEditor({
             />
 
             <PresetChipRow
+              accent="green"
               options={KIND_OPTIONS}
               value={stage.kind}
               onSelect={(kind) => patch(index, { kind })}

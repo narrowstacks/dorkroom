@@ -32,7 +32,7 @@ function ToggleButton({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
-      className={`flex-1 items-center rounded-xl py-3 ${active ? 'bg-rose-600' : 'bg-white/10'}`}
+      className={`flex-1 items-center rounded-xl py-3 ${active ? 'bg-white/20' : 'bg-white/10'}`}
     >
       <Text className={active ? 'font-semibold text-white' : 'text-white/70'}>
         {label}

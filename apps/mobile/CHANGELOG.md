@@ -15,6 +15,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 ### Changed
 
+- **Bounded accent system** — each calculator now carries its signature color (exposure blue, resize teal, reciprocity amber, recipes green) through its selection controls, not just its results card; benign view toggles (Border's "Hide blades"/"Hide readings") and sheet dismiss actions are now neutral instead of brand rose, and the roll status label reads as metadata instead of an action. Rose stays reserved for buttons that commit or create, plus destructive text and links.
 - The resize calculator now defaults to **landscape** print sizes — original 6×4 (was 4×6) and target 9×6 (was 6×9).
 - Removed the stubbed film-stock list; the catalog is now sourced from the live API and mapped into the Film Log's lighter `FilmStock` shape.
 - **Pinned tool slots reduced from 3 to 2** — the native tab bar holds at most 5 items; with Film Log, Recipes, and More now permanent, only 2 slots remain for user-pinned tools. Existing users with 3 pinned tools will have the 3rd truncated.

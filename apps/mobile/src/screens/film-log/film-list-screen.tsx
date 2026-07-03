@@ -69,7 +69,7 @@ export function FilmListScreen() {
               >
                 {item.name?.trim() ? item.name : film}
               </Text>
-              <Text className="text-xs uppercase tracking-wide text-rose-400">
+              <Text className="text-xs uppercase tracking-wide text-white/50">
                 {STATUS_LABEL[item.status]}
               </Text>
             </View>

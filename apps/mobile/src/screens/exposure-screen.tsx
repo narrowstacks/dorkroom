@@ -41,6 +41,7 @@ export function ExposureScreen() {
         <View className="gap-2">
           <SectionLabel>Stop adjustment</SectionLabel>
           <PresetChipRow
+            accent="blue"
             options={presets.map((p) => ({ label: p.label, value: p.stops }))}
             value={stopsValue}
             onSelect={(v) => setStops(String(v))}

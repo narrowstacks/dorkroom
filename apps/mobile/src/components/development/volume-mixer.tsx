@@ -83,6 +83,7 @@ export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
         <Text className="text-base font-semibold text-white">Volume Mixer</Text>
         <View className="w-32">
           <SegmentedControl
+            accent="green"
             options={UNIT_OPTIONS}
             value={unit}
             onChange={onToggleUnit}
@@ -117,6 +118,7 @@ export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
               onIncrement={() => step(1)}
             />
             <PresetChipRow
+              accent="green"
               options={VOLUME_PRESETS_ML.map((ml) => ({
                 label: formatVolume(ml, unit),
                 value: ml,

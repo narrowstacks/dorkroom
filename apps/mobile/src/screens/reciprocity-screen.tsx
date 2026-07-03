@@ -59,6 +59,7 @@ export function ReciprocityScreen() {
         <View className="gap-2">
           <SectionLabel>Common times</SectionLabel>
           <PresetChipRow
+            accent="amber"
             options={exposurePresets.map((n) => ({ label: `${n}s`, value: n }))}
             onSelect={(n) => setMeteredTime(`${n}s`)}
           />

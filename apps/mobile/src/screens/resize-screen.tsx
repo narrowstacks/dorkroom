@@ -50,6 +50,7 @@ export function ResizeScreen() {
     <Screen>
       <GlassCard className="gap-4">
         <SegmentedControl
+          accent="teal"
           options={[
             { label: 'Print size', value: false },
             { label: 'Enlarger height', value: true },
@@ -82,6 +83,7 @@ export function ResizeScreen() {
             <View className="gap-2">
               <SectionLabel>Units</SectionLabel>
               <SegmentedControl
+                accent="teal"
                 options={[
                   { label: 'Inches', value: 'in' },
                   { label: 'Centimeters', value: 'cm' },

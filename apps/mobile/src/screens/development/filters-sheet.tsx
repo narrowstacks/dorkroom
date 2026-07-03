@@ -105,6 +105,7 @@ export function FiltersSheet({
               onChange={recipes.handleSort}
             />
             <SegmentedControl
+              accent="green"
               options={DIRECTION_OPTIONS}
               value={recipes.sortDirection}
               onChange={recipes.setSortDirection}
