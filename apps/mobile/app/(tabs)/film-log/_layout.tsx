@@ -1,8 +1,9 @@
 import { Stack } from 'expo-router';
+import { stackHeaderOptions } from '@/theme/stack-header-options';
 
 export default function FilmLogLayout() {
   return (
-    <Stack screenOptions={{ headerShown: true, headerLargeTitle: true }}>
+    <Stack screenOptions={stackHeaderOptions}>
       <Stack.Screen name="index" options={{ title: 'Film Log' }} />
       <Stack.Screen name="roll-form" options={{ title: 'Roll' }} />
       <Stack.Screen name="roll/[rollId]" options={{ title: 'Roll' }} />

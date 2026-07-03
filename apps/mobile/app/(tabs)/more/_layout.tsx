@@ -1,6 +1,7 @@
 import { router, Stack } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { Pressable, Text } from 'react-native';
+import { stackHeaderOptions } from '@/theme/stack-header-options';
 
 // Pushed detail pages (more/[tool]) — chevron + "Back" label. A custom headerLeft
 // replaces the native back button so it never shows the hub route name ("index").
@@ -25,8 +26,7 @@ export default function MoreLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
-        headerLargeTitle: true,
+        ...stackHeaderOptions,
         headerLeft: () => <HeaderBackButton />,
       }}
     >

@@ -33,6 +33,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **Film Log tool icon** — the More list previously fell back to a generic circle for Film Log (the icon map had no `film` entry, while the tab bar showed the correct film-strip icon); now both surfaces agree.
 - **Camera permission is no longer requested at app launch.** The Meter screen now requests camera permission only while its tab is focused, instead of firing on first mount — previously the permission dialog could appear over the Border screen before the user ever opened Meter.
 - **Edit Tabs now explains its at-capacity state** — when the tab bar is full, the dimmed "More tools" rows now show a "Tab bar is full — remove a tool to add another" hint instead of silently doing nothing when tapped.
+- **Form screens no longer draw content through the navigation title while typing.** The More, Film Log, and Recipes stacks' large-title headers stayed fully transparent once content scrolled beneath them (e.g. focusing a keyboard field), so field labels and list rows drew straight through the title text. The header now stays on a blurred background at all times, so scrolled content is always occluded instead of double-drawn.
 
 ## [2026.06.26]
 
