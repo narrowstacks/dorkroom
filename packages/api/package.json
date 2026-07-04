@@ -43,10 +43,10 @@
   },
   "type": "module",
   "scripts": {
-    "build": "tsgo --project tsconfig.lib.json",
+    "build": "node ../../node_modules/typescript-7/bin/tsc --project tsconfig.lib.json",
     "lint": "oxlint && biome check --linter-enabled=false .",
     "test": "vitest run",
-    "typecheck": "tsgo --noEmit --project tsconfig.json"
+    "typecheck": "node ../../node_modules/typescript-7/bin/tsc --noEmit --project tsconfig.json"
   },
   "devDependencies": {
     "@types/node": "^24.0.0"
