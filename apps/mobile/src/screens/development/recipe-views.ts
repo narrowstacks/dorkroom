@@ -50,6 +50,32 @@ export function filterRecipeViews(
   });
 }
 
+/** Picker options for the film selector; '' = All films. */
+export function filmPickerOptions(
+  films: Film[]
+): { label: string; value: string }[] {
+  return [
+    { label: 'All films', value: '' },
+    ...films.map((f) => ({
+      label: `${f.brand} ${f.name}`.trim(),
+      value: f.slug,
+    })),
+  ];
+}
+
+/** Picker options for the developer selector; '' = All developers. */
+export function developerPickerOptions(
+  developers: Developer[]
+): { label: string; value: string }[] {
+  return [
+    { label: 'All developers', value: '' },
+    ...developers.map((d) => ({
+      label: `${d.manufacturer} ${d.name}`.trim(),
+      value: d.slug,
+    })),
+  ];
+}
+
 /** Distinct developer types present in the catalog, for the type filter chips. */
 export function developerTypeOptions(
   developers: Developer[]

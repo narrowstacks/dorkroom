@@ -2,7 +2,9 @@ import type { Combination, Developer, Film } from '@dorkroom/api';
 import { describe, expect, it } from 'vitest';
 import {
   buildRecipeViews,
+  developerPickerOptions,
   developerTypeOptions,
+  filmPickerOptions,
   filterRecipeViews,
 } from './recipe-views';
 
@@ -156,6 +158,36 @@ describe('developerTypeOptions', () => {
       { label: 'All types', value: '' },
       { label: 'Liquid', value: 'Liquid' },
       { label: 'Powder', value: 'Powder' },
+    ]);
+  });
+});
+
+describe('filmPickerOptions', () => {
+  it('leads with "All films" and composes brand + name labels, preserving order', () => {
+    expect(filmPickerOptions(films)).toEqual([
+      { label: 'All films', value: '' },
+      { label: 'Ilford HP5 Plus', value: 'hp5' },
+      { label: 'Kodak Tri-X', value: 'trix' },
+    ]);
+  });
+
+  it('returns just the "All films" entry for an empty catalog', () => {
+    expect(filmPickerOptions([])).toEqual([{ label: 'All films', value: '' }]);
+  });
+});
+
+describe('developerPickerOptions', () => {
+  it('leads with "All developers" and composes manufacturer + name labels, preserving order', () => {
+    expect(developerPickerOptions(developers)).toEqual([
+      { label: 'All developers', value: '' },
+      { label: 'Kodak D-76', value: 'd76' },
+      { label: 'Kodak Rodinal', value: 'd76' },
+    ]);
+  });
+
+  it('returns just the "All developers" entry for an empty catalog', () => {
+    expect(developerPickerOptions([])).toEqual([
+      { label: 'All developers', value: '' },
     ]);
   });
 });
