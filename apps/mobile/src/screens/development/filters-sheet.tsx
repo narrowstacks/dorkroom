@@ -1,5 +1,4 @@
 import type { useDevelopmentRecipes } from '@dorkroom/logic';
-import { useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -8,11 +7,9 @@ import {
   View,
 } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
-import { OptionPickerSheet } from '@/components/development/option-picker-sheet';
 import { OptionRow } from '@/components/option-row';
 import { SectionLabel } from '@/components/section-label';
 import { SegmentedControl } from '@/components/segmented-control';
-import { ToolListRow } from '@/components/tool-list-row';
 import { developerTypeOptions } from './recipe-views';
 
 type RecipesController = ReturnType<typeof useDevelopmentRecipes>;
@@ -21,6 +18,8 @@ interface FiltersSheetProps {
   recipes: RecipesController;
   tagFilter: string;
   onTagFilterChange: (tag: string) => void;
+  /** Count of recipes currently matching the active filters, for the live footer. */
+  matchCount: number;
   visible: boolean;
   onClose: () => void;
 }
@@ -47,54 +46,21 @@ export function FiltersSheet({
   recipes,
   tagFilter,
   onTagFilterChange,
+  matchCount,
   visible,
   onClose,
 }: FiltersSheetProps) {
-  const [picker, setPicker] = useState<'film' | 'developer' | null>(null);
   const sheetMaxHeight = useWindowDimensions().height * 0.62;
 
-  const filmOptions = [
-    { label: 'All films', value: '' },
-    ...recipes.allFilms.map((f) => ({
-      label: `${f.brand} ${f.name}`.trim(),
-      value: f.slug,
-    })),
-  ];
-  const developerOptions = [
-    { label: 'All developers', value: '' },
-    ...recipes.allDevelopers.map((d) => ({
-      label: `${d.manufacturer} ${d.name}`.trim(),
-      value: d.slug,
-    })),
-  ];
-
-  const onPickFilm = (slug: string) => {
-    recipes.setSelectedFilm(
-      slug ? (recipes.allFilms.find((f) => f.slug === slug) ?? null) : null
-    );
-    recipes.setIsoFilter('');
-    setPicker(null);
-  };
-  const onPickDeveloper = (slug: string) => {
-    recipes.setSelectedDeveloper(
-      slug ? (recipes.allDevelopers.find((d) => d.slug === slug) ?? null) : null
-    );
-    recipes.setDilutionFilter('');
-    setPicker(null);
-  };
-
-  const clearAll = () => {
+  const resetSortAndFilters = () => {
     recipes.clearFilters();
     onTagFilterChange('');
-  };
-
-  const handleClose = () => {
-    setPicker(null);
-    onClose();
+    recipes.setSortBy('filmName');
+    recipes.setSortDirection('asc');
   };
 
   return (
-    <BottomSheet visible={visible} title="Filters & sort" onClose={handleClose}>
+    <BottomSheet visible={visible} title="Sort & filter" onClose={onClose}>
       <ScrollView
         style={{ maxHeight: sheetMaxHeight }}
         showsVerticalScrollIndicator={false}
@@ -103,7 +69,7 @@ export function FiltersSheet({
         <View className="gap-2">
           <SectionLabel>Sort by</SectionLabel>
           <OptionRow
-            label=""
+            accent="green"
             options={SORT_OPTIONS}
             value={recipes.sortBy}
             onChange={recipes.handleSort}
@@ -116,31 +82,10 @@ export function FiltersSheet({
           />
         </View>
 
-        <View>
-          <SectionLabel>Film &amp; developer</SectionLabel>
-          <ToolListRow
-            label="Film"
-            accessory={
-              recipes.selectedFilm
-                ? `${recipes.selectedFilm.brand} ${recipes.selectedFilm.name}`
-                : 'All'
-            }
-            onPress={() => setPicker('film')}
-          />
-          <ToolListRow
-            label="Developer"
-            accessory={
-              recipes.selectedDeveloper
-                ? `${recipes.selectedDeveloper.manufacturer} ${recipes.selectedDeveloper.name}`
-                : 'All'
-            }
-            onPress={() => setPicker('developer')}
-          />
-        </View>
-
         {recipes.selectedDeveloper ? (
           <OptionRow
             label="Dilution"
+            accent="green"
             options={recipes.getAvailableDilutions()}
             value={recipes.dilutionFilter}
             onChange={recipes.setDilutionFilter}
@@ -150,6 +95,7 @@ export function FiltersSheet({
         {recipes.selectedFilm ? (
           <OptionRow
             label="ISO / push-pull"
+            accent="green"
             options={recipes.getAvailableISOs()}
             value={recipes.isoFilter}
             onChange={recipes.setIsoFilter}
@@ -158,6 +104,7 @@ export function FiltersSheet({
 
         <OptionRow
           label="Developer type"
+          accent="green"
           options={developerTypeOptions(recipes.allDevelopers)}
           value={recipes.developerTypeFilter}
           onChange={recipes.setDeveloperTypeFilter}
@@ -165,42 +112,26 @@ export function FiltersSheet({
 
         <OptionRow
           label="Tag"
+          accent="green"
           options={recipes.getAvailableTags()}
           value={tagFilter}
           onChange={onTagFilterChange}
         />
 
         <Pressable
-          onPress={clearAll}
+          onPress={resetSortAndFilters}
           accessibilityRole="button"
           className="mt-1 items-center rounded-xl bg-white/10 px-4 py-3"
         >
           <Text className="text-base font-semibold text-white">
-            Clear filters
+            Reset sort &amp; filters
           </Text>
         </Pressable>
-      </ScrollView>
 
-      <OptionPickerSheet
-        visible={picker === 'film'}
-        title="Film"
-        searchable
-        searchPlaceholder="Search films"
-        options={filmOptions}
-        value={recipes.selectedFilm?.slug ?? ''}
-        onChange={onPickFilm}
-        onClose={() => setPicker(null)}
-      />
-      <OptionPickerSheet
-        visible={picker === 'developer'}
-        title="Developer"
-        searchable
-        searchPlaceholder="Search developers"
-        options={developerOptions}
-        value={recipes.selectedDeveloper?.slug ?? ''}
-        onChange={onPickDeveloper}
-        onClose={() => setPicker(null)}
-      />
+        <Text className="text-center text-sm text-white/40">
+          {matchCount} {matchCount === 1 ? 'recipe matches' : 'recipes match'}
+        </Text>
+      </ScrollView>
     </BottomSheet>
   );
 }
