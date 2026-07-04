@@ -1,0 +1,441 @@
+import type { Combination, Developer, Film } from '@dorkroom/api';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, renderHook } from '@testing-library/react';
+import { createElement, type ReactNode } from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// Mock the API query hooks so the tests control films/developers/combinations
+// data directly instead of going through TanStack Query fetchers.
+vi.mock('../../api/use-films', () => ({
+  useFilms: vi.fn(),
+}));
+vi.mock('../../api/use-developers', () => ({
+  useDevelopers: vi.fn(),
+}));
+vi.mock('../../api/use-combinations', () => ({
+  useCombinations: vi.fn(),
+}));
+
+// Import after mocking
+import { useCombinations } from '../../api/use-combinations';
+import { useDevelopers } from '../../api/use-developers';
+import { useFilms } from '../../api/use-films';
+import { useDevelopmentRecipes } from '../use-development-recipes';
+
+const mockFilms: Film[] = [
+  {
+    id: 1,
+    uuid: 'f1',
+    slug: 'hp5-plus',
+    brand: 'Ilford',
+    name: 'HP5 Plus',
+    colorType: 'bw',
+    isoSpeed: 400,
+    grainStructure: 'classic',
+    description: 'Classic B&W film',
+    manufacturerNotes: null,
+    reciprocityFailure: null,
+    discontinued: false,
+    staticImageUrl: null,
+    aliases: [],
+    baseFilmSlug: null,
+    dateAdded: '2023-01-01',
+    createdAt: '2023-01-01',
+    updatedAt: '2023-01-01',
+  },
+  {
+    id: 2,
+    uuid: 'f2',
+    slug: 'tri-x-400',
+    brand: 'Kodak',
+    name: 'Tri-X 400',
+    colorType: 'bw',
+    isoSpeed: 400,
+    grainStructure: 'classic',
+    description: 'Iconic high-speed B&W film',
+    manufacturerNotes: null,
+    reciprocityFailure: null,
+    discontinued: false,
+    staticImageUrl: null,
+    aliases: [],
+    baseFilmSlug: null,
+    dateAdded: '2023-01-01',
+    createdAt: '2023-01-01',
+    updatedAt: '2023-01-01',
+  },
+  {
+    id: 3,
+    uuid: 'f3',
+    slug: 'neopan-400',
+    brand: 'Fujifilm',
+    name: 'Neopan 400',
+    colorType: 'bw',
+    isoSpeed: 400,
+    grainStructure: 'classic',
+    description: 'Classic B&W film',
+    manufacturerNotes: null,
+    reciprocityFailure: null,
+    discontinued: false,
+    staticImageUrl: null,
+    aliases: [],
+    baseFilmSlug: null,
+    dateAdded: '2023-01-01',
+    createdAt: '2023-01-01',
+    updatedAt: '2023-01-01',
+  },
+];
+
+const mockDevelopers: Developer[] = [
+  {
+    id: 1,
+    uuid: 'd1',
+    slug: 'dd-x',
+    name: 'DD-X',
+    manufacturer: 'Ilford',
+    type: 'liquid',
+    description: 'Standard developer',
+    filmOrPaper: true,
+    dilutions: [],
+    mixingInstructions: null,
+    storageRequirements: null,
+    safetyNotes: null,
+    notes: null,
+    createdAt: '2023-01-01',
+    updatedAt: '2023-01-01',
+  },
+  {
+    id: 2,
+    uuid: 'd2',
+    slug: 'd-76',
+    name: 'D-76',
+    manufacturer: 'Kodak',
+    type: 'powder',
+    description: 'Classic developer',
+    filmOrPaper: true,
+    dilutions: [],
+    mixingInstructions: null,
+    storageRequirements: null,
+    safetyNotes: null,
+    notes: null,
+    createdAt: '2023-01-01',
+    updatedAt: '2023-01-01',
+  },
+  {
+    id: 3,
+    uuid: 'd3',
+    slug: 'rodinal',
+    name: 'Rodinal',
+    manufacturer: 'Adox',
+    type: 'liquid',
+    description: 'High-acutance developer',
+    filmOrPaper: true,
+    dilutions: [],
+    mixingInstructions: null,
+    storageRequirements: null,
+    safetyNotes: null,
+    notes: null,
+    createdAt: '2023-01-01',
+    updatedAt: '2023-01-01',
+  },
+];
+
+const createCombination = (overrides: Partial<Combination>): Combination => ({
+  id: 0,
+  uuid: 'c0',
+  name: 'combo',
+  filmStockId: 'f1',
+  filmSlug: 'hp5-plus',
+  developerId: 'd1',
+  developerSlug: 'dd-x',
+  shootingIso: 400,
+  dilutionId: null,
+  customDilution: null,
+  temperatureC: 20,
+  temperatureF: 68,
+  timeMinutes: 8,
+  agitationMethod: 'continuous',
+  agitationSchedule: null,
+  pushPull: 0,
+  tags: [],
+  notes: null,
+  infoSource: null,
+  createdAt: '2023-01-01',
+  updatedAt: '2023-01-01',
+  ...overrides,
+});
+
+// 6 combinations pairing the 3 films/developers above two ways each, so
+// grouped-by-name sort assertions have exactly two rows per brand/manufacturer.
+const mockCombinations: Combination[] = [
+  createCombination({
+    id: 1,
+    uuid: 'c1',
+    filmStockId: 'f1',
+    filmSlug: 'hp5-plus',
+    developerId: 'd1',
+    developerSlug: 'dd-x',
+    timeMinutes: 8,
+    temperatureF: 68,
+    shootingIso: 400,
+    tags: ['pull'],
+  }),
+  createCombination({
+    id: 2,
+    uuid: 'c2',
+    filmStockId: 'f2',
+    filmSlug: 'tri-x-400',
+    developerId: 'd2',
+    developerSlug: 'd-76',
+    timeMinutes: 10,
+    temperatureF: 70,
+    shootingIso: 200,
+    tags: ['push'],
+  }),
+  createCombination({
+    id: 3,
+    uuid: 'c3',
+    filmStockId: 'f3',
+    filmSlug: 'neopan-400',
+    developerId: 'd3',
+    developerSlug: 'rodinal',
+    timeMinutes: 6,
+    temperatureF: 65,
+    shootingIso: 800,
+    tags: [],
+  }),
+  createCombination({
+    id: 4,
+    uuid: 'c4',
+    filmStockId: 'f1',
+    filmSlug: 'hp5-plus',
+    developerId: 'd2',
+    developerSlug: 'd-76',
+    timeMinutes: 12,
+    temperatureF: 72,
+    shootingIso: 1600,
+    tags: ['stand'],
+  }),
+  createCombination({
+    id: 5,
+    uuid: 'c5',
+    filmStockId: 'f2',
+    filmSlug: 'tri-x-400',
+    developerId: 'd3',
+    developerSlug: 'rodinal',
+    timeMinutes: 5,
+    temperatureF: 68,
+    shootingIso: 100,
+    tags: [],
+  }),
+  createCombination({
+    id: 6,
+    uuid: 'c6',
+    filmStockId: 'f3',
+    filmSlug: 'neopan-400',
+    developerId: 'd1',
+    developerSlug: 'dd-x',
+    timeMinutes: 9,
+    temperatureF: 69,
+    shootingIso: 400,
+    tags: ['pull'],
+  }),
+];
+
+describe('useDevelopmentRecipes', () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    vi.mocked(useFilms).mockReturnValue({
+      data: mockFilms,
+      isPending: false,
+      isSuccess: true,
+      isError: false,
+      error: null,
+      status: 'success',
+    } as ReturnType<typeof useFilms>);
+
+    vi.mocked(useDevelopers).mockReturnValue({
+      data: mockDevelopers,
+      isPending: false,
+      isSuccess: true,
+      isError: false,
+      error: null,
+      status: 'success',
+    } as ReturnType<typeof useDevelopers>);
+
+    vi.mocked(useCombinations).mockReturnValue({
+      data: mockCombinations,
+      isPending: false,
+      isSuccess: true,
+      isError: false,
+      error: null,
+      status: 'success',
+    } as ReturnType<typeof useCombinations>);
+  });
+
+  const wrapper = ({ children }: { children: ReactNode }) =>
+    createElement(QueryClientProvider, { client: queryClient }, children);
+
+  describe('getFilmById', () => {
+    it('resolves by slug', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+      expect(result.current.getFilmById('hp5-plus')?.uuid).toBe('f1');
+    });
+
+    it('resolves by uuid', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+      expect(result.current.getFilmById('f2')?.slug).toBe('tri-x-400');
+    });
+
+    it('resolves by numeric id string', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+      expect(result.current.getFilmById('3')?.slug).toBe('neopan-400');
+    });
+
+    it('returns undefined for an unknown key', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+      expect(result.current.getFilmById('does-not-exist')).toBeUndefined();
+    });
+  });
+
+  describe('getDeveloperById', () => {
+    it('resolves by slug', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+      expect(result.current.getDeveloperById('dd-x')?.uuid).toBe('d1');
+    });
+
+    it('resolves by uuid', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+      expect(result.current.getDeveloperById('d2')?.slug).toBe('d-76');
+    });
+
+    it('resolves by id string', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+      expect(result.current.getDeveloperById('3')?.slug).toBe('rodinal');
+    });
+
+    it('returns undefined for an unknown key', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+      expect(result.current.getDeveloperById('does-not-exist')).toBeUndefined();
+    });
+  });
+
+  describe('sorting', () => {
+    it('sorts by film name (brand + name) ascending by default', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+
+      expect(result.current.sortBy).toBe('filmName');
+      expect(result.current.sortDirection).toBe('asc');
+      expect(result.current.filteredCombinations.map((c) => c.uuid)).toEqual([
+        'c3',
+        'c6',
+        'c1',
+        'c4',
+        'c2',
+        'c5',
+      ]);
+    });
+
+    it('reverses film name order when sortDirection is desc', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+
+      act(() => {
+        result.current.setSortDirection('desc');
+      });
+
+      expect(result.current.filteredCombinations.map((c) => c.uuid)).toEqual([
+        'c2',
+        'c5',
+        'c1',
+        'c4',
+        'c3',
+        'c6',
+      ]);
+    });
+
+    it('handleSort sorts timeMinutes ascending, then flips to descending', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+
+      act(() => {
+        result.current.handleSort('timeMinutes');
+      });
+
+      expect(result.current.sortBy).toBe('timeMinutes');
+      expect(result.current.sortDirection).toBe('asc');
+      expect(result.current.filteredCombinations.map((c) => c.uuid)).toEqual([
+        'c5',
+        'c3',
+        'c1',
+        'c6',
+        'c2',
+        'c4',
+      ]);
+
+      act(() => {
+        result.current.handleSort('timeMinutes');
+      });
+
+      expect(result.current.sortDirection).toBe('desc');
+      expect(result.current.filteredCombinations.map((c) => c.uuid)).toEqual([
+        'c4',
+        'c2',
+        'c6',
+        'c1',
+        'c3',
+        'c5',
+      ]);
+    });
+  });
+
+  describe('getAvailableTags', () => {
+    it('returns "All tags" first plus the distinct sorted tags from fixtures', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+
+      expect(result.current.getAvailableTags()).toEqual([
+        { label: 'All tags', value: '' },
+        { label: 'custom', value: 'custom' },
+        { label: 'pull', value: 'pull' },
+        { label: 'push', value: 'push' },
+        { label: 'stand', value: 'stand' },
+      ]);
+    });
+
+    it('returns the same array reference on consecutive calls (memoization guard)', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+
+      const first = result.current.getAvailableTags();
+      const second = result.current.getAvailableTags();
+      expect(first).toBe(second);
+    });
+  });
+});

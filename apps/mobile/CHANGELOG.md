@@ -48,6 +48,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **Edit Tabs now explains its at-capacity state** — when the tab bar is full, the dimmed "More tools" rows now show a "Tab bar is full — remove a tool to add another" hint instead of silently doing nothing when tapped.
 - **Form screens no longer draw content through the navigation title while typing.** The More, Film Log, and Recipes stacks' large-title headers stayed fully transparent once content scrolled beneath them (e.g. focusing a keyboard field), so field labels and list rows drew straight through the title text. The header now stays on a blurred background at all times, so scrolled content is always occluded instead of double-drawn.
 - **Editing an old roll no longer loses its film name.** Saving a roll whose `filmStockId` no longer resolves in the current catalog (e.g. a stub-era id, or an empty offline cache) used to silently blank out its stored film-name snapshot; the save path now keeps the roll's existing name when its film id is unresolved and unchanged.
+- **Sort & filter options now respond instantly.** Changing sort/filters previously stalled the app for seconds per tap (per-comparison catalog scans while re-sorting ~1000 recipes), which read as taps doing nothing.
 
 ## [2026.06.26]
 

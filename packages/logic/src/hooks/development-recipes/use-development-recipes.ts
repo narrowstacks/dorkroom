@@ -145,6 +145,26 @@ export const useDevelopmentRecipes = (
     [allFilmsUnfiltered]
   );
 
+  // O(1) id/uuid lookups; slug lookups stay on the alias-aware filmSlugIndex.
+  const filmIdIndex = useMemo(() => {
+    const index = new Map<string, Film>();
+    for (const film of allFilmsUnfiltered) {
+      index.set(film.id.toString(), film);
+      index.set(film.uuid, film);
+    }
+    return index;
+  }, [allFilmsUnfiltered]);
+
+  const developerIndex = useMemo(() => {
+    const index = new Map<string, Developer>();
+    for (const dev of allDevelopersUnfiltered) {
+      index.set(dev.id.toString(), dev);
+      index.set(dev.uuid, dev);
+      index.set(dev.slug, dev);
+    }
+    return index;
+  }, [allDevelopersUnfiltered]);
+
   // Build sets of film/developer IDs that appear in at least one combination
   // so we can exclude films/developers with no recipes from filter dropdowns.
   // Resolves aliases so renamed films still appear when recipes reference old slugs.
@@ -270,28 +290,17 @@ export const useDevelopmentRecipes = (
     (id?: string | null): Film | undefined => {
       if (!id) return undefined;
       const key = String(id);
-      // Check slug index first (covers canonical slugs and aliases)
-      const fromIndex = filmSlugIndex.get(key);
-      if (fromIndex) return fromIndex;
-      // Fallback to id/uuid lookup
-      return allFilmsUnfiltered.find(
-        (film) => film.id.toString() === key || film.uuid === key
-      );
+      return filmSlugIndex.get(key) ?? filmIdIndex.get(key);
     },
-    [allFilmsUnfiltered, filmSlugIndex]
+    [filmIdIndex, filmSlugIndex]
   );
 
   const getDeveloperById = useCallback(
     (id?: string | null): Developer | undefined => {
       if (!id) return undefined;
-      const key = String(id);
-      // Use unfiltered list so lookups work for custom recipes referencing any developer
-      return allDevelopersUnfiltered.find(
-        (dev) =>
-          dev.id.toString() === key || dev.uuid === key || dev.slug === key
-      );
+      return developerIndex.get(String(id));
     },
-    [allDevelopersUnfiltered]
+    [developerIndex]
   );
 
   const getCombinationsForFilm = useCallback(
@@ -324,7 +333,7 @@ export const useDevelopmentRecipes = (
     [allCombinations]
   );
 
-  const getAvailableDilutions = useCallback((): {
+  const availableDilutions = useMemo((): {
     label: string;
     value: string;
   }[] => {
@@ -360,20 +369,6 @@ export const useDevelopmentRecipes = (
 
     const sortedDilutions = Array.from(dilutionSet).sort();
 
-    // Summary log for easy debugging
-    if (sortedDilutions.length > 1) {
-      // More than just "Stock"
-      console.log(
-        `✅ Successfully found ${sortedDilutions.length} dilutions for ${
-          selectedDeveloper.name
-        }: ${sortedDilutions.join(', ')}`
-      );
-    } else {
-      console.warn(
-        `⚠️ Only found ${sortedDilutions.length} dilution(s) for ${selectedDeveloper.name}. Check if developer has dilution data or combinations.`
-      );
-    }
-
     sortedDilutions.forEach((dilution) => {
       dilutions.push({ label: dilution, value: dilution });
     });
@@ -381,7 +376,12 @@ export const useDevelopmentRecipes = (
     return dilutions;
   }, [selectedDeveloper, allCombinations]);
 
-  const getAvailableISOs = useCallback((): {
+  const getAvailableDilutions = useCallback(
+    () => availableDilutions,
+    [availableDilutions]
+  );
+
+  const availableISOs = useMemo((): {
     label: string;
     value: string;
   }[] => {
@@ -414,7 +414,9 @@ export const useDevelopmentRecipes = (
     return isos;
   }, [selectedFilm, allCombinations]);
 
-  const getAvailableTags = useCallback((): {
+  const getAvailableISOs = useCallback(() => availableISOs, [availableISOs]);
+
+  const availableTags = useMemo((): {
     label: string;
     value: string;
   }[] => {
@@ -441,6 +443,8 @@ export const useDevelopmentRecipes = (
 
     return tags;
   }, [allCombinations]);
+
+  const getAvailableTags = useCallback(() => availableTags, [availableTags]);
 
   const handleSort = useCallback(
     (sortKey: string) => {
@@ -533,17 +537,6 @@ export const useDevelopmentRecipes = (
 
         return dilutionInfo.toLowerCase() === dilutionFilter.toLowerCase();
       });
-
-      // Summary log for filtering results
-      if (combinations.length > 0) {
-        console.log(
-          `✅ Successfully filtered to ${combinations.length} combinations for dilution "${dilutionFilter}"`
-        );
-      } else {
-        console.warn(
-          `⚠️ No combinations found for dilution "${dilutionFilter}" with developer ${selectedDeveloper.name}. Check dilution name or availability.`
-        );
-      }
     }
 
     // Filter by ISO
@@ -559,44 +552,42 @@ export const useDevelopmentRecipes = (
       }
     }
 
-    // Sort combinations
-    combinations.sort((a, b) => {
-      let comparison = 0;
-
+    // Decorate–sort–undecorate: compute each row's sort key once instead of
+    // per comparison (the old comparator did linear catalog lookups per pair,
+    // which stalls the JS thread for seconds on device in dev mode).
+    const keyed = combinations.map((combo) => {
+      let key: string | number;
       switch (sortBy) {
         case 'filmName': {
-          const filmA = getFilmById(a.filmStockId);
-          const filmB = getFilmById(b.filmStockId);
-          const nameA = filmA ? `${filmA.brand} ${filmA.name}` : '';
-          const nameB = filmB ? `${filmB.brand} ${filmB.name}` : '';
-          comparison = nameA.localeCompare(nameB);
+          const film = getFilmById(combo.filmStockId);
+          key = film ? `${film.brand} ${film.name}`.toLowerCase() : '';
           break;
         }
         case 'developerName': {
-          const devA = getDeveloperById(a.developerId);
-          const devB = getDeveloperById(b.developerId);
-          const nameA = devA ? `${devA.manufacturer} ${devA.name}` : '';
-          const nameB = devB ? `${devB.manufacturer} ${devB.name}` : '';
-          comparison = nameA.localeCompare(nameB);
+          const dev = getDeveloperById(combo.developerId);
+          key = dev ? `${dev.manufacturer} ${dev.name}`.toLowerCase() : '';
           break;
         }
         case 'timeMinutes':
-          comparison = a.timeMinutes - b.timeMinutes;
+          key = combo.timeMinutes;
           break;
         case 'temperatureF':
-          comparison = a.temperatureF - b.temperatureF;
+          key = combo.temperatureF;
           break;
         case 'shootingIso':
-          comparison = a.shootingIso - b.shootingIso;
+          key = combo.shootingIso;
           break;
         default:
-          comparison = 0;
+          key = 0;
       }
-
+      return { combo, key };
+    });
+    keyed.sort((a, b) => {
+      const comparison = a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
       return sortDirection === 'desc' ? -comparison : comparison;
     });
 
-    return combinations;
+    return keyed.map((entry) => entry.combo);
   }, [
     allCombinations,
     allDevelopers,
