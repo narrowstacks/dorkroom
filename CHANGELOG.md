@@ -15,6 +15,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 ### Changed
 
 - The resize calculator now defaults to **landscape** print sizes — original 6×4 (was 4×6) and target 9×6 (was 6×9) — matching the more common enlarging orientation. Applies to new sessions; existing saved inputs are untouched.
+- Development Recipes filtering/sorting is markedly faster: the shared recipes hook (`@dorkroom/logic`) now uses O(1) indexed film/developer lookups and computes each row's sort key once instead of per comparison, memoizes the dilution/ISO/tag option lists, and drops hot-path console logging. Name sorting now compares case-insensitively by code point instead of `localeCompare` (identical ordering for the catalog's ASCII names). A punctuation-insensitive `matchesSearchQuery` helper is also exported for list filtering ("tri x" matches "Tri-X").
 
 ### Fixed
 
