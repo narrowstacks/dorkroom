@@ -8,8 +8,26 @@ import Fuse from 'fuse.js';
  * operators (`!`, `^`, `$`, `=`, `'`, `|`) so raw user input is matched
  * literally rather than being interpreted as a query operator.
  */
-function normalize(value: string): string {
+export function normalizeSearchText(value: string): string {
   return value.replace(/[-/_.!^$='|]/g, '').toLowerCase();
+}
+
+/**
+ * Punctuation- and word-break-insensitive substring match for filtering
+ * lists as the user types. Matches when the haystack contains either the
+ * query with all punctuation/spaces collapsed ("tri x" -> "trix") or every
+ * whitespace-separated token individually ("kodak trix" -> kodak AND trix).
+ * Not a ranking search — for weighted fuzzy results use searchFilms().
+ */
+export function matchesSearchQuery(haystack: string, query: string): boolean {
+  const q = query.trim();
+  if (!q) return true;
+  const h = normalizeSearchText(haystack.replace(/\s+/g, ''));
+  const tokens = q.split(/\s+/).map(normalizeSearchText).filter(Boolean);
+  if (tokens.length === 0) return true;
+  return (
+    h.includes(tokens.join('')) || tokens.every((token) => h.includes(token))
+  );
 }
 
 /** Snapshot of the default getFn to avoid depending on mutable global config */
@@ -23,9 +41,11 @@ const FILM_SEARCH_OPTIONS: IFuseOptions<Film> = {
   getFn: (obj, path) => {
     const value = defaultGetFn(obj, path);
     if (Array.isArray(value)) {
-      return value.map((v) => (typeof v === 'string' ? normalize(v) : v));
+      return value.map((v) =>
+        typeof v === 'string' ? normalizeSearchText(v) : v
+      );
     }
-    return typeof value === 'string' ? normalize(value) : value;
+    return typeof value === 'string' ? normalizeSearchText(value) : value;
   },
   // Search keys with weights (higher = more important)
   keys: [
@@ -150,8 +170,8 @@ export function searchFilms(
   }
 
   const searcher = existingSearcher ?? createFilmSearcher(films);
-  const normalized = normalize(trimmed);
-  const tokens = trimmed.split(/\s+/).map(normalize);
+  const normalized = normalizeSearchText(trimmed);
+  const tokens = trimmed.split(/\s+/).map(normalizeSearchText);
 
   // Single word: search directly
   if (tokens.length === 1) {

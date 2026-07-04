@@ -1,5 +1,6 @@
 import type { Combination, Developer, Film } from '@dorkroom/api';
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import { matchesSearchQuery } from '@dorkroom/logic';
 
 type FilmLookup = (id: string) => Film | undefined;
 type DeveloperLookup = (id: string) => Developer | undefined;
@@ -34,18 +35,18 @@ export function filterRecipeViews(
   query: string,
   tag: string
 ): DevelopmentCombinationView[] {
-  const q = query.trim().toLowerCase();
+  const q = query.trim();
   if (!q && !tag) return views;
   return views.filter((view) => {
     if (tag && !(view.combination.tags ?? []).includes(tag)) return false;
     if (!q) return true;
-    const film = view.film
-      ? `${view.film.brand} ${view.film.name}`.toLowerCase()
-      : '';
+    const film = view.film ? `${view.film.brand} ${view.film.name}` : '';
     const developer = view.developer
-      ? `${view.developer.manufacturer} ${view.developer.name}`.toLowerCase()
+      ? `${view.developer.manufacturer} ${view.developer.name}`
       : '';
-    return film.includes(q) || developer.includes(q);
+    return (
+      matchesSearchQuery(film, query) || matchesSearchQuery(developer, query)
+    );
   });
 }
 

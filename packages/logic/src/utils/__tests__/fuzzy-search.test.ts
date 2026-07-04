@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createFilmSearcher,
   getMatchHighlights,
+  matchesSearchQuery,
   searchFilms,
 } from '../fuzzy-search';
 
@@ -384,6 +385,44 @@ describe('fuzzy-search', () => {
           expect(index[0]).toBeLessThanOrEqual(index[1]);
         });
       });
+    });
+  });
+
+  describe('matchesSearchQuery', () => {
+    it('matches "tri x" against "Kodak Tri-X 400" (the reported bug)', () => {
+      expect(matchesSearchQuery('Kodak Tri-X 400', 'tri x')).toBe(true);
+    });
+
+    it('matches "trix" against "Kodak Tri-X 400"', () => {
+      expect(matchesSearchQuery('Kodak Tri-X 400', 'trix')).toBe(true);
+    });
+
+    it('matches "tri-x" against "Kodak Tri-X 400"', () => {
+      expect(matchesSearchQuery('Kodak Tri-X 400', 'tri-x')).toBe(true);
+    });
+
+    it('matches "d 76" against "Kodak D-76"', () => {
+      expect(matchesSearchQuery('Kodak D-76', 'd 76')).toBe(true);
+    });
+
+    it('matches "hp 5" against "Ilford HP5 Plus"', () => {
+      expect(matchesSearchQuery('Ilford HP5 Plus', 'hp 5')).toBe(true);
+    });
+
+    it('does not match "kodak" against "Ilford HP5 Plus"', () => {
+      expect(matchesSearchQuery('Ilford HP5 Plus', 'kodak')).toBe(false);
+    });
+
+    it('matches "kodak 400" against "Kodak Tri-X 400" (token AND)', () => {
+      expect(matchesSearchQuery('Kodak Tri-X 400', 'kodak 400')).toBe(true);
+    });
+
+    it('matches anything for an empty query', () => {
+      expect(matchesSearchQuery('anything', '')).toBe(true);
+    });
+
+    it('treats tokens that normalize to empty as an empty query (no crash)', () => {
+      expect(matchesSearchQuery('Kodak Tri-X 400', '- -')).toBe(true);
     });
   });
 });

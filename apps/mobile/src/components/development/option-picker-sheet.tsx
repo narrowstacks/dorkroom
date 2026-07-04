@@ -1,3 +1,4 @@
+import { matchesSearchQuery } from '@dorkroom/logic';
 import { Check } from 'lucide-react-native';
 import { memo, useCallback, useMemo, useState } from 'react';
 import {
@@ -92,11 +93,10 @@ export function OptionPickerSheet<T extends string | number>({
 
   const filtered = useMemo(() => {
     if (!searchable || query.trim() === '') return options;
-    const q = query.trim().toLowerCase();
     return options.filter(
       (o) =>
-        o.label.toLowerCase().includes(q) ||
-        o.sublabel?.toLowerCase().includes(q)
+        matchesSearchQuery(o.label, query) ||
+        (o.sublabel ? matchesSearchQuery(o.sublabel, query) : false)
     );
   }, [options, query, searchable]);
 

@@ -132,6 +132,22 @@ describe('filterRecipeViews', () => {
     expect(out).toHaveLength(1);
     expect(out[0]?.combination.uuid).toBe('c2');
   });
+  it('matches punctuation-insensitive multi-word film query ("tri x")', () => {
+    const out = filterRecipeViews(views, 'tri x', '');
+    expect(out).toHaveLength(1);
+    expect(out[0]?.film?.name).toBe('Tri-X');
+  });
+  it('matches punctuation-insensitive developer query ("d 76")', () => {
+    const out = filterRecipeViews(views, 'd 76', '');
+    expect(out).toHaveLength(2);
+  });
+  it('excludes matches when the tag filter does not apply (AND semantics)', () => {
+    const out = filterRecipeViews(views, 'tri x', 'pictorial');
+    expect(out).toHaveLength(0);
+  });
+  it('still matches nothing for a non-matching query', () => {
+    expect(filterRecipeViews(views, 'zzz', '')).toHaveLength(0);
+  });
 });
 
 describe('developerTypeOptions', () => {
