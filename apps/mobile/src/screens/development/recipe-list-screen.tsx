@@ -2,7 +2,7 @@ import type { DevelopmentCombinationView } from '@dorkroom/logic';
 import { useDevelopmentRecipes } from '@dorkroom/logic';
 import { router } from 'expo-router';
 import { SlidersHorizontal, Timer } from 'lucide-react-native';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useDeferredValue, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -116,6 +116,11 @@ export function RecipeListScreen() {
     () => filterRecipeViews(views, debouncedQuery, tagFilter),
     [views, debouncedQuery, tagFilter]
   );
+  // Defer the list's data swap so filter/sort taps commit instantly (chip
+  // highlight, match count) while the heavy card re-render happens in an
+  // interruptible background render — same pattern as the web page's
+  // deferredCombinedRows (development-recipes-page.tsx).
+  const deferredVisible = useDeferredValue(visible);
 
   const activeFilterCount =
     (recipes.selectedFilm ? 1 : 0) +
@@ -246,7 +251,7 @@ export function RecipeListScreen() {
       <FlatList
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{ padding: 16, gap: 12 }}
-        data={visible}
+        data={deferredVisible}
         keyExtractor={keyExtractor}
         ListHeaderComponent={header}
         ListEmptyComponent={
@@ -256,6 +261,11 @@ export function RecipeListScreen() {
           />
         }
         renderItem={renderItem}
+        windowSize={7}
+        maxToRenderPerBatch={8}
+        initialNumToRender={8}
+        updateCellsBatchingPeriod={50}
+        removeClippedSubviews
       />
       <FiltersSheet
         recipes={recipes}
