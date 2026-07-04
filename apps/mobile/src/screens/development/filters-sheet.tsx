@@ -88,95 +88,98 @@ export function FiltersSheet({
     onTagFilterChange('');
   };
 
+  const handleClose = () => {
+    setPicker(null);
+    onClose();
+  };
+
   return (
-    <>
-      <BottomSheet visible={visible} title="Filters & sort" onClose={onClose}>
-        <ScrollView
-          style={{ maxHeight: sheetMaxHeight }}
-          showsVerticalScrollIndicator={false}
-          contentContainerClassName="gap-4"
+    <BottomSheet visible={visible} title="Filters & sort" onClose={handleClose}>
+      <ScrollView
+        style={{ maxHeight: sheetMaxHeight }}
+        showsVerticalScrollIndicator={false}
+        contentContainerClassName="gap-4"
+      >
+        <View className="gap-2">
+          <SectionLabel>Sort by</SectionLabel>
+          <OptionRow
+            label=""
+            options={SORT_OPTIONS}
+            value={recipes.sortBy}
+            onChange={recipes.handleSort}
+          />
+          <SegmentedControl
+            accent="green"
+            options={DIRECTION_OPTIONS}
+            value={recipes.sortDirection}
+            onChange={recipes.setSortDirection}
+          />
+        </View>
+
+        <View>
+          <SectionLabel>Film &amp; developer</SectionLabel>
+          <ToolListRow
+            label="Film"
+            accessory={
+              recipes.selectedFilm
+                ? `${recipes.selectedFilm.brand} ${recipes.selectedFilm.name}`
+                : 'All'
+            }
+            onPress={() => setPicker('film')}
+          />
+          <ToolListRow
+            label="Developer"
+            accessory={
+              recipes.selectedDeveloper
+                ? `${recipes.selectedDeveloper.manufacturer} ${recipes.selectedDeveloper.name}`
+                : 'All'
+            }
+            onPress={() => setPicker('developer')}
+          />
+        </View>
+
+        {recipes.selectedDeveloper ? (
+          <OptionRow
+            label="Dilution"
+            options={recipes.getAvailableDilutions()}
+            value={recipes.dilutionFilter}
+            onChange={recipes.setDilutionFilter}
+          />
+        ) : null}
+
+        {recipes.selectedFilm ? (
+          <OptionRow
+            label="ISO / push-pull"
+            options={recipes.getAvailableISOs()}
+            value={recipes.isoFilter}
+            onChange={recipes.setIsoFilter}
+          />
+        ) : null}
+
+        <OptionRow
+          label="Developer type"
+          options={developerTypeOptions(recipes.allDevelopers)}
+          value={recipes.developerTypeFilter}
+          onChange={recipes.setDeveloperTypeFilter}
+        />
+
+        <OptionRow
+          label="Tag"
+          options={recipes.getAvailableTags()}
+          value={tagFilter}
+          onChange={onTagFilterChange}
+        />
+
+        <Pressable
+          onPress={clearAll}
+          accessibilityRole="button"
+          className="mt-1 items-center rounded-xl bg-white/10 px-4 py-3"
         >
-          <View className="gap-2">
-            <SectionLabel>Sort by</SectionLabel>
-            <OptionRow
-              label=""
-              options={SORT_OPTIONS}
-              value={recipes.sortBy}
-              onChange={recipes.handleSort}
-            />
-            <SegmentedControl
-              accent="green"
-              options={DIRECTION_OPTIONS}
-              value={recipes.sortDirection}
-              onChange={recipes.setSortDirection}
-            />
-          </View>
-
-          <View>
-            <SectionLabel>Film &amp; developer</SectionLabel>
-            <ToolListRow
-              label="Film"
-              accessory={
-                recipes.selectedFilm
-                  ? `${recipes.selectedFilm.brand} ${recipes.selectedFilm.name}`
-                  : 'All'
-              }
-              onPress={() => setPicker('film')}
-            />
-            <ToolListRow
-              label="Developer"
-              accessory={
-                recipes.selectedDeveloper
-                  ? `${recipes.selectedDeveloper.manufacturer} ${recipes.selectedDeveloper.name}`
-                  : 'All'
-              }
-              onPress={() => setPicker('developer')}
-            />
-          </View>
-
-          {recipes.selectedDeveloper ? (
-            <OptionRow
-              label="Dilution"
-              options={recipes.getAvailableDilutions()}
-              value={recipes.dilutionFilter}
-              onChange={recipes.setDilutionFilter}
-            />
-          ) : null}
-
-          {recipes.selectedFilm ? (
-            <OptionRow
-              label="ISO / push-pull"
-              options={recipes.getAvailableISOs()}
-              value={recipes.isoFilter}
-              onChange={recipes.setIsoFilter}
-            />
-          ) : null}
-
-          <OptionRow
-            label="Developer type"
-            options={developerTypeOptions(recipes.allDevelopers)}
-            value={recipes.developerTypeFilter}
-            onChange={recipes.setDeveloperTypeFilter}
-          />
-
-          <OptionRow
-            label="Tag"
-            options={recipes.getAvailableTags()}
-            value={tagFilter}
-            onChange={onTagFilterChange}
-          />
-
-          <Pressable
-            onPress={clearAll}
-            accessibilityRole="button"
-            className="mt-1 items-center rounded-xl bg-white/10 px-4 py-3"
-          >
-            <Text className="text-base font-semibold text-white">
-              Clear filters
-            </Text>
-          </Pressable>
-        </ScrollView>
-      </BottomSheet>
+          <Text className="text-base font-semibold text-white">
+            Clear filters
+          </Text>
+        </Pressable>
+      </ScrollView>
 
       <OptionPickerSheet
         visible={picker === 'film'}
@@ -198,6 +201,6 @@ export function FiltersSheet({
         onChange={onPickDeveloper}
         onClose={() => setPicker(null)}
       />
-    </>
+    </BottomSheet>
   );
 }

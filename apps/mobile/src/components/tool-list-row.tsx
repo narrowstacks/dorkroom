@@ -15,6 +15,10 @@ export function ToolListRow({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={
+        typeof accessory === 'string' ? `${label}: ${accessory}` : label
+      }
       className="flex-row items-center justify-between px-4 py-3 active:opacity-60"
     >
       <View className="flex-row items-center gap-3">
