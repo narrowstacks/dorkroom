@@ -11,12 +11,22 @@ import {
   Text,
   View,
 } from 'react-native';
+import { FilmDeveloperBar } from '@/components/development/film-developer-bar';
+import { OptionPickerSheet } from '@/components/development/option-picker-sheet';
 import { RecipeCard } from '@/components/development/recipe-card';
 import { SearchBar } from '@/components/development/search-bar';
 import { GradientBackground } from '@/components/gradient-background';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { selectionTint } from '@/theme/accents';
 import { FiltersSheet } from './filters-sheet';
-import { buildRecipeViews, filterRecipeViews } from './recipe-views';
+import {
+  buildRecipeViews,
+  developerPickerOptions,
+  filmPickerOptions,
+  filterRecipeViews,
+} from './recipe-views';
+
+const filtersBadgeTint = selectionTint('green');
 
 const RecipeRow = memo(function RecipeRow({
   recipe,
@@ -37,7 +47,57 @@ export function RecipeListScreen() {
   const [query, setQuery] = useState('');
   const [tagFilter, setTagFilter] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [picker, setPicker] = useState<'film' | 'developer' | null>(null);
   const debouncedQuery = useDebouncedValue(query);
+
+  const filmOptions = useMemo(
+    () => filmPickerOptions(recipes.allFilms),
+    [recipes.allFilms]
+  );
+  const developerOptions = useMemo(
+    () => developerPickerOptions(recipes.allDevelopers),
+    [recipes.allDevelopers]
+  );
+
+  const onPickFilm = useCallback(
+    (slug: string) => {
+      recipes.setSelectedFilm(
+        slug ? (recipes.allFilms.find((f) => f.slug === slug) ?? null) : null
+      );
+      recipes.setIsoFilter('');
+      setPicker(null);
+    },
+    [recipes]
+  );
+  const onPickDeveloper = useCallback(
+    (slug: string) => {
+      recipes.setSelectedDeveloper(
+        slug
+          ? (recipes.allDevelopers.find((d) => d.slug === slug) ?? null)
+          : null
+      );
+      recipes.setDilutionFilter('');
+      setPicker(null);
+    },
+    [recipes]
+  );
+
+  const onClearFilm = useCallback(() => {
+    recipes.setSelectedFilm(null);
+    recipes.setIsoFilter('');
+  }, [recipes]);
+  const onClearDeveloper = useCallback(() => {
+    recipes.setSelectedDeveloper(null);
+    recipes.setDilutionFilter('');
+  }, [recipes]);
+
+  const clearEverything = useCallback(() => {
+    recipes.clearFilters();
+    recipes.setSelectedFilm(null);
+    recipes.setSelectedDeveloper(null);
+    setTagFilter('');
+    setQuery('');
+  }, [recipes]);
 
   const views = useMemo(
     () =>
@@ -83,6 +143,22 @@ export function RecipeListScreen() {
   const header = (
     <View className="gap-3 pb-2">
       <SearchBar value={query} onChangeText={setQuery} />
+      <FilmDeveloperBar
+        filmLabel={
+          recipes.selectedFilm
+            ? `${recipes.selectedFilm.brand} ${recipes.selectedFilm.name}`
+            : null
+        }
+        developerLabel={
+          recipes.selectedDeveloper
+            ? `${recipes.selectedDeveloper.manufacturer} ${recipes.selectedDeveloper.name}`
+            : null
+        }
+        onPressFilm={() => setPicker('film')}
+        onPressDeveloper={() => setPicker('developer')}
+        onClearFilm={onClearFilm}
+        onClearDeveloper={onClearDeveloper}
+      />
       <View className="flex-row items-center justify-between">
         <Text className="text-sm text-white/50">
           {visible.length} {visible.length === 1 ? 'recipe' : 'recipes'}
@@ -109,8 +185,18 @@ export function RecipeListScreen() {
             <SlidersHorizontal size={16} color="#ffffff" />
             <Text className="text-sm font-semibold text-white">Filters</Text>
             {activeFilterCount > 0 ? (
-              <View className="rounded-full bg-rose-600 px-1.5">
-                <Text className="text-xs font-semibold text-white">
+              <View
+                className="rounded-full px-1.5"
+                style={{
+                  backgroundColor: filtersBadgeTint.backgroundColor,
+                  borderWidth: 1,
+                  borderColor: filtersBadgeTint.borderColor,
+                }}
+              >
+                <Text
+                  className="text-xs font-semibold"
+                  style={{ color: filtersBadgeTint.color }}
+                >
                   {activeFilterCount}
                 </Text>
               </View>
@@ -163,26 +249,69 @@ export function RecipeListScreen() {
         data={visible}
         keyExtractor={keyExtractor}
         ListHeaderComponent={header}
-        ListEmptyComponent={EmptyState}
+        ListEmptyComponent={
+          <EmptyState
+            showClearAll={activeFilterCount > 0 || query !== ''}
+            onClearAll={clearEverything}
+          />
+        }
         renderItem={renderItem}
       />
       <FiltersSheet
         recipes={recipes}
         tagFilter={tagFilter}
         onTagFilterChange={setTagFilter}
+        matchCount={visible.length}
         visible={filtersOpen}
         onClose={() => setFiltersOpen(false)}
+      />
+      <OptionPickerSheet
+        visible={picker === 'film'}
+        title="Film"
+        searchable
+        searchPlaceholder="Search films"
+        options={filmOptions}
+        value={recipes.selectedFilm?.slug ?? ''}
+        onChange={onPickFilm}
+        onClose={() => setPicker(null)}
+      />
+      <OptionPickerSheet
+        visible={picker === 'developer'}
+        title="Developer"
+        searchable
+        searchPlaceholder="Search developers"
+        options={developerOptions}
+        value={recipes.selectedDeveloper?.slug ?? ''}
+        onChange={onPickDeveloper}
+        onClose={() => setPicker(null)}
       />
     </View>
   );
 }
 
-function EmptyState() {
+function EmptyState({
+  showClearAll,
+  onClearAll,
+}: {
+  showClearAll: boolean;
+  onClearAll: () => void;
+}) {
   return (
-    <View className="items-center gap-2 px-6 py-16">
+    <View className="items-center gap-3 px-6 py-16">
       <Text className="text-center text-base text-white/60">
         No recipes match your search and filters.
       </Text>
+      {showClearAll ? (
+        <Pressable
+          onPress={onClearAll}
+          accessibilityRole="button"
+          className="rounded-full bg-white/10 px-4 py-2"
+        >
+          <Text className="text-sm font-semibold text-white">
+            Clear all filters
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
