@@ -5,6 +5,12 @@ Web app changes live in the [root CHANGELOG](../../CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.07.04]
+
+### Fixed
+
+- **App no longer crashes on launch with "Incompatible React versions".** A repo-wide bump of `react`/`react-dom` to `19.2.7` also moved the mobile app off the version React Native 0.85.3 vendors its renderer at (`19.2.3`), so `react` and `react-native-renderer` no longer matched. The mobile app is pinned back to `react`/`react-dom` `19.2.3` (the web app stays on `19.2.7`); the divergence reactivates the app-local React pin already present in `metro.config.js`, so every importer — including React Native and the source-bundled `@dorkroom/*` packages — resolves the single `19.2.3` copy the renderer expects.
+
 ## [2026.07.03]
 
 ### Added
