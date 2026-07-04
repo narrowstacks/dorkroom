@@ -39,9 +39,46 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="stylesheet" href="/src/styles.css" />
+    <style>
+      /* Pre-React app shell. The #root is otherwise empty until the ~216 KB JS
+         entry bundle downloads, parses, and executes, so First Contentful Paint
+         is gated entirely on that bundle. This inline spinner paints as soon as
+         the (much smaller) CSS parses, decoupling FCP from the JS. React's
+         createRoot().render() clears #root on mount, so the shell is swapped out
+         wholesale the moment the app renders — the same pattern as the in-app
+         Suspense fallbacks, so it introduces no layout shift (CLS stays 0).
+         Colors match the default dark theme (:root:not([data-theme])). */
+      #app-shell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100dvh;
+      }
+      #app-shell .app-shell-spinner {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 9999px;
+        border-bottom: 2px solid #6ef3a4;
+        animation: app-shell-spin 1s linear infinite;
+      }
+      @keyframes app-shell-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #app-shell .app-shell-spinner {
+          animation: none;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <output id="app-shell" aria-label="Loading" aria-live="polite">
+        <div class="app-shell-spinner"></div>
+      </output>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
