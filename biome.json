@@ -8,6 +8,7 @@
       "!**/dist",
       "!**/coverage",
       "!**/.nx",
+      "!**/.impeccable",
       "!**/node_modules",
       "!**/routeTree.gen.ts",
       "!api/openapi-spec.json",
