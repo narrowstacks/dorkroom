@@ -13,6 +13,9 @@
         {
           "paths": [
             "/docs/:path*",
+            "/keystatic",
+            "/keystatic/:path*",
+            "/api/keystatic/:path*",
             "/api/search",
             "/og/docs/:path*",
             "/llms-full.txt"
