@@ -6,7 +6,11 @@ on:
     paths:
       - apps/dorkroom/src/app/pages/home-page.tsx
       - apps/dorkroom/src/routes/index.tsx
-      - packages/ui/**
+      # Only rendered UI source affects the screenshot — not package.json bumps,
+      # config, docs, or tests under packages/ui (those triggered needless runs).
+      - packages/ui/src/**
+      - '!packages/ui/src/**/__tests__/**'
+      - '!packages/ui/src/**/*.test.*'
       - scripts/screenshot-homepage.ts
       - .github/workflows/homepage-screenshot.yml
   workflow_dispatch:
