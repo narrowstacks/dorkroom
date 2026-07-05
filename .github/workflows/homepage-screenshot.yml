@@ -59,12 +59,15 @@ jobs:
           # So we read the actual bound port from the server's own startup output
           # ("➜  Local:   http://localhost:<port>/") instead of hardcoding it.
           log="$(mktemp)"
-          (cd apps/dorkroom && bunx vite preview) >"$log" 2>&1 &
+          # NO_COLOR keeps Vite from wrapping the port digits in ANSI escapes
+          # (it prints "localhost:\e[1m4503\e[22m/"); we also strip any escapes
+          # below so parsing is robust regardless.
+          (cd apps/dorkroom && NO_COLOR=1 bunx vite preview) >"$log" 2>&1 &
           server_pid=$!
 
           port=""
           for _ in $(seq 1 60); do
-            port="$(grep -oiE 'localhost:[0-9]+' "$log" | head -1 | grep -oE '[0-9]+' || true)"
+            port="$(sed -E 's/\x1b\[[0-9;]*m//g' "$log" | grep -oiE 'localhost:[0-9]+' | head -1 | grep -oE '[0-9]+' || true)"
             [ -n "$port" ] && curl -sf "http://localhost:${port}/" >/dev/null && break
             # Stop waiting if the server process has exited.
             kill -0 "$server_pid" 2>/dev/null || break
