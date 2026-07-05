@@ -73,19 +73,22 @@ export const parseReciprocityTime = (input: string): number | null => {
   let seconds = 0;
   let valid = false;
 
-  const hourMatch = cleaned.match(/(\d+(\.\d+)?)\s*h/);
+  // Digit runs are bounded (`\d{1,9}`) rather than `\d+`: exposure times never
+  // need nine digits, and the bound keeps these unanchored matches linear
+  // (unbounded `\d+` next to `\s*` is a polynomial-ReDoS pattern).
+  const hourMatch = cleaned.match(/(\d{1,9}(\.\d{1,9})?)\s*h/);
   if (hourMatch) {
     seconds += parseFloat(hourMatch[1]) * 3600;
     valid = true;
   }
 
-  const minuteMatch = cleaned.match(/(\d+(\.\d+)?)\s*m(?!s)/);
+  const minuteMatch = cleaned.match(/(\d{1,9}(\.\d{1,9})?)\s*m(?!s)/);
   if (minuteMatch) {
     seconds += parseFloat(minuteMatch[1]) * 60;
     valid = true;
   }
 
-  const secondMatch = cleaned.match(/(\d+(\.\d+)?)\s*s/);
+  const secondMatch = cleaned.match(/(\d{1,9}(\.\d{1,9})?)\s*s/);
   if (secondMatch) {
     seconds += parseFloat(secondMatch[1]);
     valid = true;

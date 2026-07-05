@@ -26,26 +26,34 @@ export function sanitizeText(
 
   let sanitized = text;
 
-  // Remove all HTML tags (including self-closing and malformed tags)
-  // This regex handles: <tag>, </tag>, <tag/>, <tag attr="value">
-  sanitized = sanitized.replace(/<[^>]*>/g, '');
-
-  // Remove dangerous protocol handlers and event attributes
-  // Handle variations: javascript:, JAVASCRIPT:, java\x00script:, etc.
-  sanitized = sanitized
-    .replace(/javascript\s*:/gi, '')
-    .replace(/vbscript\s*:/gi, '')
-    .replace(/on\w+\s*=/gi, '') // onclick=, onerror=, etc.
-    .replace(/data\s*:\s*text\/html/gi, '')
-    .replace(/data\s*:\s*application/gi, '');
-
-  // Remove any remaining script-related content
-  // This catches cases where tags were URL-encoded or obfuscated
-  sanitized = sanitized
-    .replace(/script/gi, '')
-    .replace(/iframe/gi, '')
-    .replace(/object/gi, '')
-    .replace(/embed/gi, '');
+  // Apply the tag/pattern removals repeatedly until the string stops changing.
+  // A single pass is bypassable because one removal can splice two fragments
+  // into a fresh dangerous token (e.g. `<scr<script>ipt>` -> `<script>`), so we
+  // loop to a fixpoint rather than replacing once.
+  let previous: string;
+  do {
+    previous = sanitized;
+    sanitized = sanitized
+      // Remove all HTML tags (including self-closing and malformed tags).
+      // Handles: <tag>, </tag>, <tag/>, <tag attr="value">
+      // The `{0,2000}` bound (rather than `*`) keeps this linear — an unbounded
+      // `[^>]*` next to a required `>` backtracks quadratically on input like
+      // `<<<<…` (polynomial ReDoS); no real tag approaches 2000 chars.
+      .replace(/<[^>]{0,2000}>/g, '')
+      // Remove dangerous protocol handlers and event attributes.
+      // Handle variations: javascript:, JAVASCRIPT:, java\x00script:, etc.
+      .replace(/javascript\s*:/gi, '')
+      .replace(/vbscript\s*:/gi, '')
+      .replace(/on\w+\s*=/gi, '') // onclick=, onerror=, etc.
+      .replace(/data\s*:\s*text\/html/gi, '')
+      .replace(/data\s*:\s*application/gi, '')
+      // Remove any remaining script-related content. This catches cases where
+      // tags were URL-encoded or obfuscated.
+      .replace(/script/gi, '')
+      .replace(/iframe/gi, '')
+      .replace(/object/gi, '')
+      .replace(/embed/gi, '');
+  } while (sanitized !== previous);
 
   // Remove null bytes and other control characters (except \n, \r, \t)
   // Using RegExp constructor to avoid biome lint warning about control characters

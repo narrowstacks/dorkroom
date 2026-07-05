@@ -88,8 +88,11 @@ function startStaticServer(transformHtml?: (html: string) => string): Promise<{
       });
       res.end(body);
     } catch (err) {
-      res.writeHead(500);
-      res.end(String(err));
+      // Log the detail server-side; don't reflect the error (which may carry a
+      // stack trace or attacker-controlled path) back in the response body.
+      console.error('  [500]', err);
+      res.writeHead(500, { 'content-type': 'text/plain; charset=utf-8' });
+      res.end('Internal server error');
     }
   });
   return new Promise((resolve) => {

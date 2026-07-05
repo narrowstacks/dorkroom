@@ -35,7 +35,12 @@ export function decodeBase64(input: string): string {
  * Replaces `+` with `-`, `/` with `_`, and strips trailing `=` padding.
  */
 export function toUrlSafe(base64: string): string {
-  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  // `={1,2}$` (bounded) rather than `=+$`: valid base64 has at most two
+  // padding chars, and the bound keeps the match linear (no ReDoS backtracking).
+  return base64
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/={1,2}$/, '');
 }
 
 /**

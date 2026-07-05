@@ -217,6 +217,37 @@ export function isClipboardSupported(): boolean {
 }
 
 /**
+ * Checks whether a value points at filmdev.org (or a subdomain of it).
+ *
+ * Parses the value as a URL and compares the host, rather than using a
+ * substring match like `value.includes('filmdev.org')` — a substring check
+ * would wrongly accept `evil.com/filmdev.org` or `filmdev.org.attacker.com`.
+ * Accepts protocol-less input (e.g. `filmdev.org/12345`) by assuming https.
+ *
+ * @public
+ * @param value - URL or host-like string to test
+ * @returns True if the host is `filmdev.org` or `*.filmdev.org`
+ * @example
+ * ```typescript
+ * isFilmDevOrgUrl('https://www.filmdev.org/recipe/123'); // true
+ * isFilmDevOrgUrl('filmdev.org/12345');                  // true
+ * isFilmDevOrgUrl('https://evil.com/filmdev.org');       // false
+ * ```
+ */
+export function isFilmDevOrgUrl(value: string | null | undefined): boolean {
+  if (!value) return false;
+  const trimmed = value.trim();
+  try {
+    const { hostname } = new URL(
+      trimmed.includes('://') ? trimmed : `https://${trimmed}`
+    );
+    return hostname === 'filmdev.org' || hostname.endsWith('.filmdev.org');
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Gets a user-friendly URL for display purposes by removing the protocol.
  * Creates cleaner URLs for UI display while preserving path and hash.
  *

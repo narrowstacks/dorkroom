@@ -2,6 +2,7 @@ import type { Dilution } from '@dorkroom/api';
 import {
   calculatePushPull,
   type DevelopmentCombinationView,
+  isFilmDevOrgUrl,
 } from '@dorkroom/logic';
 import { Edit2, ExternalLink, Share2, Star, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -155,7 +156,7 @@ export function DevelopmentRecipeDetail({
           className="inline-flex items-center gap-2 text-xs text-tertiary underline-offset-4 hover:text-primary hover:underline"
         >
           <ExternalLink className="size-3" />{' '}
-          {combination.infoSource.includes('filmdev.org')
+          {isFilmDevOrgUrl(combination.infoSource)
             ? 'View on FilmDev.org'
             : 'View source'}
         </a>

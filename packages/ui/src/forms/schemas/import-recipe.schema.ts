@@ -1,3 +1,4 @@
+import { isFilmDevOrgUrl } from '@dorkroom/logic';
 import { z } from 'zod';
 
 /**
@@ -10,8 +11,8 @@ export const importRecipeSchema = z.object({
     .min(1, 'Please enter a recipe URL, ID, or code')
     .refine((value) => {
       const trimmed = value.trim();
-      // Match filmdev.org URL
-      if (trimmed.includes('filmdev.org')) return true;
+      // Match filmdev.org URL (host-checked, not a loose substring match)
+      if (isFilmDevOrgUrl(trimmed)) return true;
       // Match filmdev recipe ID (typically numeric)
       if (/^\d+$/.test(trimmed)) return true;
       // Match shared recipe code (alphanumeric)

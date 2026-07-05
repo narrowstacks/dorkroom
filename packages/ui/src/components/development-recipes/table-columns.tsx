@@ -1,6 +1,7 @@
 import {
   calculatePushPull,
   type DevelopmentCombinationView,
+  isFilmDevOrgUrl,
 } from '@dorkroom/logic';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import type { LucideIcon } from 'lucide-react';
@@ -545,7 +546,7 @@ export const createTableColumns = (
               target="_blank"
               rel="noreferrer"
               title={
-                combination.infoSource.includes('filmdev.org')
+                isFilmDevOrgUrl(combination.infoSource)
                   ? 'View on FilmDev.org'
                   : 'View source'
               }

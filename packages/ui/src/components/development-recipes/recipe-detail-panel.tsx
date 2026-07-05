@@ -2,6 +2,7 @@ import type { Dilution } from '@dorkroom/api';
 import {
   calculatePushPull,
   type DevelopmentCombinationView,
+  isFilmDevOrgUrl,
 } from '@dorkroom/logic';
 import { ExternalLink, Star } from 'lucide-react';
 import type { FC } from 'react';
@@ -354,7 +355,7 @@ const SidebarPanelContent: FC<PanelLayoutProps> = ({
           className="inline-flex items-center gap-2 text-xs text-tertiary underline-offset-4 hover:text-primary hover:underline"
         >
           <ExternalLink className="size-3" />{' '}
-          {combination.infoSource.includes('filmdev.org')
+          {isFilmDevOrgUrl(combination.infoSource)
             ? 'View on FilmDev.org'
             : 'View source'}
         </a>
@@ -584,7 +585,7 @@ const ExpandedSideColumn: FC<PanelLayoutProps> = ({
           }}
         >
           <ExternalLink className="size-4" />
-          {combination.infoSource.includes('filmdev.org')
+          {isFilmDevOrgUrl(combination.infoSource)
             ? 'View on FilmDev.org'
             : 'View Source'}
         </a>
