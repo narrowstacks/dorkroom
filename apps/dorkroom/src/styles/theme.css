@@ -970,8 +970,8 @@
   color: var(--color-official-badge-icon) !important;
 }
 
-/* Ensure all icons use only black/red in darkroom theme (except coming soon section) */
-[data-theme="darkroom"] svg:not([data-coming-soon]) {
+/* Ensure all icons use only black/red in darkroom theme */
+[data-theme="darkroom"] svg {
   color: var(--color-text-primary);
   stroke: var(--color-text-primary);
 }
@@ -999,9 +999,7 @@
 
 /* Make tool card icons black on hover in darkroom mode (so they're visible against red bg) */
 /* Only target anchor tags (tool cards), not button elements (dropdown items), but exclude statcards */
-[data-theme="darkroom"]
-  a.group:hover
-  svg:not([data-coming-soon]):not([data-statcard-icon]) {
+[data-theme="darkroom"] a.group:hover svg:not([data-statcard-icon]) {
   color: #000000;
   stroke: #000000;
 }
@@ -1014,16 +1012,14 @@
 }
 
 /* Make navigation icons black when nav item is active in darkroom mode (red bg needs black icons) */
-[data-theme="darkroom"] nav .shadow-subtle svg:not([data-coming-soon]) {
+[data-theme="darkroom"] nav .shadow-subtle svg {
   color: #000000;
   stroke: #000000;
 }
 
 /* Keep dropdown menu icons red on hover in darkroom mode (visible against black hover bg) */
-[data-theme="darkroom"]
-  button[role="menuitem"]:hover
-  svg:not([data-coming-soon]),
-[data-theme="darkroom"] a[role="menuitem"]:hover svg:not([data-coming-soon]) {
+[data-theme="darkroom"] button[role="menuitem"]:hover svg,
+[data-theme="darkroom"] a[role="menuitem"]:hover svg {
   color: #ff0000;
   stroke: #ff0000;
 }
