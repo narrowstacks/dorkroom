@@ -5,6 +5,12 @@ The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHAN
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.07.04]
+
+### Changed
+
+- Faster initial render (First Contentful Paint): the app now paints a lightweight inline shell (a centered spinner) straight from `index.html`, so first paint is no longer gated on downloading and executing the full JavaScript entry bundle — React swaps the shell out on mount. In addition, `@dorkroom/ui` and `@dorkroom/logic` are now marked side-effect-free (`"sideEffects": false`) so the bundler can tree-shake the shared barrel; form, table, and virtualization code no longer lands in the initial critical-path chunk on routes that don't use it. Together these cut the eager critical-path JS by roughly 30% and decouple first paint from bundle execution, without any layout shift (CLS stays 0).
+
 ## [2026.07.03]
 
 ### Added
