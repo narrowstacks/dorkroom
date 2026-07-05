@@ -21,28 +21,44 @@ interface PackageJson {
 
 const stripRange = (v: string): string => v.replace(/^[\^~]/, '');
 
-export function deriveBadgeValues(pkg: PackageJson): BadgeValues {
+/**
+ * The build compiler is pinned as `typescript-7: npm:typescript@rc`, so
+ * package.json only records the `rc` dist-tag — the concrete resolved version
+ * lives in bun.lock. Pull it from there so the badge tracks the real version.
+ */
+export function parseTypescriptVersion(lock: string): string {
+  const match = lock.match(/"typescript-7":\s*\[\s*"typescript@([^"]+)"/);
+  if (!match) {
+    throw new Error(
+      'Could not find resolved "typescript-7" version in bun.lock'
+    );
+  }
+  return match[1];
+}
+
+export function deriveBadgeValues(
+  pkg: PackageJson,
+  tsVersion: string
+): BadgeValues {
   const react = stripRange(pkg.dependencies?.react ?? '');
   const tailwind = stripRange(pkg.devDependencies?.tailwindcss ?? '');
-  const tsRaw = stripRange(
-    pkg.devDependencies?.['@typescript/native-preview'] ?? ''
-  );
-  // '7.0.0-dev.20260421.2' -> base '7.0.0' -> major.minor '7.0' -> '7.0_beta'
-  const tsBase = tsRaw.split('-')[0];
+  // '7.0.1-rc' -> base '7.0.1', prerelease 'rc' -> major.minor '7.0' -> '7.0_rc'
+  const [tsBase, tsPre = ''] = tsVersion.split('-');
   const [tsMajor, tsMinor] = tsBase.split('.');
+  const tsTag = tsPre.match(/^[a-z]+/i)?.[0];
   if (!react) throw new Error('Missing dependencies.react in package.json');
   if (!tailwind)
     throw new Error('Missing devDependencies.tailwindcss in package.json');
   if (!tsMajor || !tsMinor) {
-    throw new Error(
-      `Unexpected @typescript/native-preview version: "${tsRaw}"`
-    );
+    throw new Error(`Unexpected typescript version: "${tsVersion}"`);
   }
   return {
     version: pkg.version,
     react: react.split('.')[0],
     tailwind,
-    typescript: `${tsMajor}.${tsMinor}_beta`,
+    typescript: tsTag
+      ? `${tsMajor}.${tsMinor}_${tsTag}`
+      : `${tsMajor}.${tsMinor}`,
   };
 }
 
@@ -66,9 +82,12 @@ async function main(): Promise<void> {
   const pkg = JSON.parse(
     await readFile(join(root, 'package.json'), 'utf8')
   ) as PackageJson;
+  const tsVersion = parseTypescriptVersion(
+    await readFile(join(root, 'bun.lock'), 'utf8')
+  );
   const readmePath = join(root, 'README.md');
   const readme = await readFile(readmePath, 'utf8');
-  const updated = applyBadgeUpdates(readme, deriveBadgeValues(pkg));
+  const updated = applyBadgeUpdates(readme, deriveBadgeValues(pkg, tsVersion));
   if (updated !== readme) {
     await writeFile(readmePath, updated);
     console.log('README badges updated.');
