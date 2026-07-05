@@ -94,7 +94,8 @@ export function TemperatureAlert({
         </div>
         <div>
           {warning.isHigher ? 'Raise' : 'Lower'} your chemistry (developer,
-          stop, and fixer) to {recipeTemp.text} before starting development.
+          stop, and fixer) temperature to {recipeTemp.text} before starting
+          development.
         </div>
       </div>
     </div>

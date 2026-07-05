@@ -2,10 +2,8 @@ import { useStats } from '@dorkroom/logic';
 import { CATEGORY_LABELS, Greeting, ToolCard } from '@dorkroom/ui';
 import { Link } from '@tanstack/react-router';
 import {
-  BookOpen,
   CalculatorIcon,
   Camera,
-  Construction,
   Crop,
   Film,
   FlaskConical,
@@ -13,7 +11,6 @@ import {
   Frame,
   Gauge,
   GitBranch,
-  GraduationCap,
   HandCoins,
   Ruler,
   Timer,
@@ -98,19 +95,6 @@ const CALCULATORS = [
   },
 ] as const;
 
-const COMING_SOON = [
-  {
-    title: 'Docs',
-    description: 'Documentation for Dorkroom',
-    icon: BookOpen,
-  },
-  {
-    title: 'Infobase',
-    description: 'Photography & darkroom guides',
-    icon: GraduationCap,
-  },
-];
-
 export function HomePage() {
   const { data: stats, isPending: isStatsLoading } = useStats();
   // Compute the year client-only to avoid a render-time new Date() value.
@@ -191,7 +175,7 @@ export function HomePage() {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-[color:var(--color-text-primary)] flex items-center gap-2">
             <CalculatorIcon className="size-5 text-[color:var(--color-text-tertiary)]" />
-            Calculators
+            Tools
           </h2>
           <div
             className="h-px flex-1 ml-4"
@@ -214,35 +198,6 @@ export function HomePage() {
             />
           ))}
         </div>
-      </div>
-
-      {/* Coming Soon - quiet strip below the grid */}
-      <div
-        className="rounded-2xl border border-dashed px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-x-8 gap-y-2"
-        style={{
-          borderColor: 'var(--color-border-secondary)',
-          backgroundColor: 'var(--color-surface-muted)',
-        }}
-        data-coming-soon-section
-      >
-        <span className="flex shrink-0 items-center gap-2 text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-tertiary)]">
-          <Construction className="size-4" data-coming-soon />
-          Coming soon
-        </span>
-        {COMING_SOON.map((item) => (
-          <div key={item.title} className="flex items-center gap-2 min-w-0">
-            <item.icon
-              className="size-4 shrink-0 text-[color:var(--color-text-tertiary)]"
-              data-coming-soon
-            />
-            <span className="font-medium text-[color:var(--color-text-secondary)]">
-              {item.title}
-            </span>
-            <span className="text-sm text-[color:var(--color-text-tertiary)] truncate">
-              {item.description}
-            </span>
-          </div>
-        ))}
       </div>
 
       {/* Footer Links - Minimal */}

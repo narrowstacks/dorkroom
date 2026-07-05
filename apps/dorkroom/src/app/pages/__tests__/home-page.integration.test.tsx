@@ -123,9 +123,9 @@ describe('HomePage', () => {
       // The page should still render with main content visible
       expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
 
-      // Calculators section should still be visible (static content, not API-dependent)
+      // Tools section should still be visible (static content, not API-dependent)
       expect(
-        screen.getByRole('heading', { name: /calculators/i, level: 2 })
+        screen.getByRole('heading', { name: /tools/i, level: 2 })
       ).toBeInTheDocument();
     });
 
