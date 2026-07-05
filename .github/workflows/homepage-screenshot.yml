@@ -49,20 +49,36 @@ jobs:
         run: bunx playwright install --with-deps chromium
 
       - name: Capture homepage screenshot
-        env:
-          SCREENSHOT_URL: http://localhost:4300/
         run: |
           # Serve the build and capture in the same step so the background
           # server's lifetime is scoped to this shell.
-          (cd apps/dorkroom && bunx vite preview) &
+          #
+          # We can't assume :4300 — the @vercel/microfrontends Vite plugin's
+          # config() hook overrides preview.port with a value derived from the
+          # package name (e.g. :4503), which wins over the port in vite.config.ts.
+          # So we read the actual bound port from the server's own startup output
+          # ("➜  Local:   http://localhost:<port>/") instead of hardcoding it.
+          log="$(mktemp)"
+          (cd apps/dorkroom && bunx vite preview) >"$log" 2>&1 &
+          server_pid=$!
+
+          port=""
           for _ in $(seq 1 60); do
-            curl -sf http://localhost:4300/ >/dev/null && break
+            port="$(grep -oiE 'localhost:[0-9]+' "$log" | head -1 | grep -oE '[0-9]+' || true)"
+            [ -n "$port" ] && curl -sf "http://localhost:${port}/" >/dev/null && break
+            # Stop waiting if the server process has exited.
+            kill -0 "$server_pid" 2>/dev/null || break
             sleep 1
           done
-          curl -sf http://localhost:4300/ >/dev/null || {
-            echo "Preview server did not start on :4300"; exit 1;
-          }
-          bun run scripts/screenshot-homepage.ts
+
+          if [ -z "$port" ] || ! curl -sf "http://localhost:${port}/" >/dev/null; then
+            echo "Preview server did not start; captured output:"
+            cat "$log"
+            exit 1
+          fi
+          echo "Preview server ready on :${port}"
+
+          SCREENSHOT_URL="http://localhost:${port}/" bun run scripts/screenshot-homepage.ts
 
       - name: Commit updated screenshot
         run: |
