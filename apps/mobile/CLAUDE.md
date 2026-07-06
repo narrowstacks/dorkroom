@@ -135,14 +135,16 @@ change**. Full commands and credential setup are in `apps/mobile/README.md`.
 `source`/`PATH`/`eas` incantation. Run from `apps/mobile`:
 
 ```bash
-./scripts/ios.sh server      # 1. Metro dev server (JS/TS-only changes; hot reload)
+./scripts/ios.sh server              # 1. Metro dev server (JS/TS-only changes; hot reload)
+./scripts/ios.sh server --tailscale  # 1b. same, but reachable over Tailscale (off-LAN device)
 ./scripts/ios.sh dev-build   # 2. local dev-client build → install + launch (native changes)
 ./scripts/ios.sh build       # 3. standalone preview build → install + launch (no Metro)
 ./scripts/ios.sh install     # (re)install the last built .ipa + launch
 ./scripts/ios.sh help        # usage
 ```
 
-Flags: `--clear` (server, stale bundler cache), `--no-launch`, `--no-install`
+Flags: `--clear` (server, stale bundler cache), `--tailscale` (server, serve
+over Tailscale — see below), `--port=N` (server), `--no-launch`, `--no-install`
 (build only). The script auto-detects the connected iPhone, sources the App
 Store Connect key env, and resolves `eas`/`fastlane`/`pod`/`bun` onto `PATH`
 itself. It handles the gotchas that bite the raw commands:
@@ -175,6 +177,17 @@ stale-module errors.
 ```bash
 bunx expo start --dev-client --host lan --clear
 ```
+
+**Over Tailscale (off-LAN device):** `./scripts/ios.sh server --tailscale`. Use
+when the phone isn't on the same Wi-Fi (other network, cellular). Plain-HTTP
+Metro can't work here — iOS ATS treats Tailscale's `100.64.0.0/10` CGNAT range
+as non-local (unlike your `192.168.x` LAN), and this dev build has no
+`NSAllowsArbitraryLoads`. The flag serves Metro over **trusted HTTPS** instead:
+it mints a Let's Encrypt cert for this Mac's MagicDNS name (`tailscale cert`;
+requires HTTPS enabled on the tailnet), binds Metro to loopback advertising that
+hostname, and fronts it with `tailscale serve`. It prints a `dorkroom://` deep
+link; the phone needs Tailscale connected with MagicDNS ("Use Tailscale DNS")
+on. Ctrl-C tears the proxy down. No native rebuild — it's still Fast Refresh.
 
 ### 2. New **development build** — for native changes (dev client over Metro)
 
@@ -236,6 +249,7 @@ eas build --local --profile preview --platform ios --non-interactive \
 | --- | --- |
 | "Tweak this screen / calculator / style / shared hook" | **1. Reload Metro** |
 | "I changed metro/babel/tailwind config" or cache is stale | **1. Reload with `--clear`** |
+| "Test on my phone off this Wi-Fi (other network / cellular)" | **1. `server --tailscale`** |
 | "Add a native module / change app.json plugins / permissions / icon / shortcuts" | **2. Dev build** + reinstall |
 | "Test on my phone without Metro / share a build / demo / check the release bundle" | **3. Preview build** |
 
