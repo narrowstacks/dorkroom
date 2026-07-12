@@ -49,6 +49,24 @@ describe('formatReciprocityTime', () => {
       // minutes/seconds before rounding, so the rounded remainder hits 60.
       expect(formatReciprocityTime(119.99)).toBe('2m');
     });
+
+    it('carries inputs that round across the minutes/hours boundary into 1h', () => {
+      // These round to 3600 and so belong in the hours branch, but flooring
+      // the raw seconds there would decompose them as the impossible "0h 59m".
+      expect(formatReciprocityTime(3599.99)).toBe('1h');
+      expect(formatReciprocityTime(3599.95)).toBe('1h');
+    });
+
+    it('carries a whole-hour rounding boundary within the hours branch', () => {
+      // 7199.99 rounds to 7200 -- exactly 2h, not "1h 59m".
+      expect(formatReciprocityTime(7199.99)).toBe('2h');
+    });
+
+    it('keeps truncating leftover seconds in the hours branch away from boundaries', () => {
+      // Pre-existing behavior preserved: sub-minute leftovers in the hours
+      // branch are dropped, not rounded (3661s is 1h 1m 1s -> "1h 1m").
+      expect(formatReciprocityTime(3661)).toBe('1h 1m');
+    });
   });
 });
 

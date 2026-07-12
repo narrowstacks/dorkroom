@@ -21,6 +21,9 @@ import type {
  */
 const RECIPROCITY_MIN_CORRECTION_SECONDS = 1;
 
+const roundToOneDecimal = (value: number): number =>
+  Math.round(value * 10) / 10;
+
 /**
  * Formats reciprocity time in seconds to human-readable string.
  * Automatically chooses appropriate units (seconds, minutes, hours) based on duration.
@@ -34,9 +37,6 @@ const RECIPROCITY_MIN_CORRECTION_SECONDS = 1;
  * const long = formatReciprocityTime(3600); // '1h'
  * ```
  */
-const roundToOneDecimal = (value: number): number =>
-  Math.round(value * 10) / 10;
-
 export const formatReciprocityTime = (seconds: number): string => {
   // Decide which unit branch to display in using the *rounded* total: a raw
   // value like 59.98 belongs in the seconds branch, but its rounded display
@@ -63,10 +63,12 @@ export const formatReciprocityTime = (seconds: number): string => {
     return `${minutes}m`;
   }
 
-  // Minutes here come from Math.floor, so they are always a whole number
-  // below 60 -- no analogous rounding-carry case exists in this branch.
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
+  // Decompose from the same rounded total used for branch selection: an
+  // input like 3599.99 rounds into this branch, but flooring the *raw*
+  // seconds would yield the impossible "0h 59m". Flooring the rounded total
+  // needs no further carry -- its minutes remainder is always below 60.
+  const hours = Math.floor(roundedTotal / 3600);
+  const minutes = Math.floor((roundedTotal % 3600) / 60);
   return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
 };
 
