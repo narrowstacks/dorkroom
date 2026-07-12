@@ -55,15 +55,27 @@ export const roundStopsToThirds = (value: number): number => {
  * ```
  */
 export const formatExposureTime = (seconds: number): string => {
-  if (seconds >= 60) {
+  // Decide which unit branch to display in using the *rounded* total: a raw
+  // value like 59.999 belongs in the seconds branch, but its rounded display
+  // value (60) does not, so branching on the raw value would print "60s".
+  const roundedTotal = roundToStandardPrecision(seconds);
+
+  if (roundedTotal >= 60) {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     if (remainingSeconds > 0) {
-      return `${minutes}m ${roundToStandardPrecision(remainingSeconds)}s`;
+      const roundedRemainder = roundToStandardPrecision(remainingSeconds);
+      // Rounding the remainder can itself carry into the next unit (e.g.
+      // 119.999 decomposes to 1m 59.999s, which rounds to the impossible
+      // "1m 60s"); detect that and roll it into the minutes instead.
+      if (roundedRemainder >= 60) {
+        return `${minutes + 1}m`;
+      }
+      return `${minutes}m ${roundedRemainder}s`;
     }
     return `${minutes}m`;
   }
-  return `${roundToStandardPrecision(seconds)}s`;
+  return `${roundedTotal}s`;
 };
 
 /**

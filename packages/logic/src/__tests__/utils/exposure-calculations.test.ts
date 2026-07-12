@@ -99,6 +99,15 @@ describe('exposure calculations', () => {
       expect(formatExposureTime(90.005)).toBe('1m 30s'); // rounds to 30 (standard precision)
       expect(formatExposureTime(60.001)).toBe('1m 0s'); // remainingSeconds > 0, so shows rounded seconds
     });
+
+    it('should carry a rounded remainder into the next unit instead of printing 60s', () => {
+      // Rounding 119.999 to standard precision decomposes to "1m 59.999s",
+      // which itself rounds to the impossible "1m 60s" unless carried.
+      expect(formatExposureTime(119.999)).toBe('2m');
+      // Rounding 59.999 to standard precision reaches 60, which belongs in
+      // the minutes branch, not printed verbatim as the impossible "60s".
+      expect(formatExposureTime(59.999)).toBe('1m');
+    });
   });
 
   describe('parseExposureTime', () => {

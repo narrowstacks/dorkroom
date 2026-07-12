@@ -14,6 +14,14 @@ import type {
 } from '../types/reciprocity';
 
 /**
+ * Reciprocity failure is negligible below ~1s, and the power law `t ** factor`
+ * is only valid for exposures at or above 1 second: for factor > 1 (every film
+ * in RECIPROCITY_FILM_TYPES), raising a fraction to that power shrinks it,
+ * which would tell the photographer to expose for less time than metered.
+ */
+const RECIPROCITY_MIN_CORRECTION_SECONDS = 1;
+
+/**
  * Formats reciprocity time in seconds to human-readable string.
  * Automatically chooses appropriate units (seconds, minutes, hours) based on duration.
  *
@@ -26,19 +34,37 @@ import type {
  * const long = formatReciprocityTime(3600); // '1h'
  * ```
  */
+const roundToOneDecimal = (value: number): number =>
+  Math.round(value * 10) / 10;
+
 export const formatReciprocityTime = (seconds: number): string => {
-  if (seconds < 60) {
-    return `${Math.round(seconds * 10) / 10}s`;
+  // Decide which unit branch to display in using the *rounded* total: a raw
+  // value like 59.98 belongs in the seconds branch, but its rounded display
+  // value (60) does not, so branching on the raw value would print "60s".
+  const roundedTotal = roundToOneDecimal(seconds);
+
+  if (roundedTotal < 60) {
+    return `${roundedTotal}s`;
   }
 
-  if (seconds < 3600) {
+  if (roundedTotal < 3600) {
     const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.round((seconds % 60) * 10) / 10;
-    return remainingSeconds === 0
-      ? `${minutes}m`
-      : `${minutes}m ${remainingSeconds}s`;
+    const remainingSeconds = seconds % 60;
+    if (remainingSeconds > 0) {
+      const roundedRemainder = roundToOneDecimal(remainingSeconds);
+      // Rounding the remainder can itself carry into the next unit (e.g.
+      // 119.99 decomposes to 1m 59.99s, which rounds to the impossible
+      // "1m 60s"); detect that and roll it into the minutes instead.
+      if (roundedRemainder >= 60) {
+        return `${minutes + 1}m`;
+      }
+      return `${minutes}m ${roundedRemainder}s`;
+    }
+    return `${minutes}m`;
   }
 
+  // Minutes here come from Math.floor, so they are always a whole number
+  // below 60 -- no analogous rounding-carry case exists in this branch.
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
@@ -189,7 +215,12 @@ export function useReciprocityCalculator(): ReciprocityCalculatorState & {
       }
     }
 
-    const adjustedTime = originalTime ** factor;
+    // The power law only applies at or above the 1s threshold defined above;
+    // below it the metered time passes through unchanged rather than shrinking.
+    const adjustedTime =
+      originalTime >= RECIPROCITY_MIN_CORRECTION_SECONDS
+        ? originalTime ** factor
+        : originalTime;
     const percentageIncrease =
       ((adjustedTime - originalTime) / originalTime) * 100;
 
