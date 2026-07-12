@@ -84,10 +84,39 @@ describe('meta handler - border preset injection', () => {
       'property="og:title" content="&quot;&gt;&lt;svg onload=alert(1)&gt; | Dorkroom"'
     );
   });
+
+  // Encodes a preset whose name segment URI-decodes to `Foo$`Bar` — built
+  // the same way as `maliciousPreset` above (`<uri-encoded name>-0-2-50-0-
+  // 10000-8`, base64url-encoded). The backtick survives decodeURIComponent
+  // via %60, and the `$` survives via %24; escapeHtml does not touch either
+  // character. A `String.replace(pattern, someString)` call treats `$\``
+  // in `someString` as "insert everything before the match" — if any
+  // rewrite in meta.ts still passes a plain string replacement, this splices
+  // a duplicate copy of the preceding document into the output.
+  const backtickPreset = 'Rm9vJTI0JTYwQmFyLTAtMi01MC0wLTEwMDAwLTg';
+
+  it('treats a `$`-and-backtick decoded preset name as a literal string, not a replacement pattern', async () => {
+    const req = createMockRequest({
+      query: { path: '/border', preset: backtickPreset },
+    });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res._status).toBe(200);
+    expect(res._sent).toContain('<title>Foo$`Bar | Dorkroom</title>');
+    // No document content got spliced in via `$\`` — the doctype/html
+    // opening tags must each appear exactly once.
+    expect(res._sent.match(/<!DOCTYPE/gi)?.length).toBe(1);
+    expect(res._sent.match(/<html/gi)?.length).toBe(1);
+    // Telltale spliced fragment: the real <head> preamble reappearing
+    // inside the title text.
+    expect(res._sent).not.toContain('Foo$<!DOCTYPE');
+  });
 });
 
 describe('meta handler - unknown query params', () => {
-  it('returns 400 for a request carrying an unknown param', async () => {
+  it('redirects with a 308 for a request carrying an unknown param', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue(new Response(MOCK_INDEX_HTML, { status: 200 }));
@@ -100,7 +129,21 @@ describe('meta handler - unknown query params', () => {
 
     await handler(req, res);
 
-    expect(res._status).toBe(400);
+    expect(res._status).toBe(308);
+  });
+
+  it('redirects to the canonical URL, stripping the junk param but keeping an allowed one', async () => {
+    const req = createMockRequest({
+      query: { path: '/films', film: 'kodak-tri-x-400', cachebust: 'abc123' },
+    });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res._status).toBe(308);
+    const location = String(res.getHeader('location'));
+    expect(location).toBe('https://dorkroom.art/films?film=kodak-tri-x-400');
+    expect(location).not.toContain('cachebust');
   });
 
   it('does not call fetch when an unknown param is present', async () => {
@@ -119,7 +162,7 @@ describe('meta handler - unknown query params', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('sets a long cache-control header on the 400 so the CDN absorbs repeats', async () => {
+  it('sets a long cache-control header on the redirect so the CDN absorbs repeats', async () => {
     const req = createMockRequest({
       query: { path: '/', cachebust: 'abc123' },
     });
@@ -139,6 +182,29 @@ describe('meta handler - unknown query params', () => {
     await handler(req, res);
 
     expect(res._status).toBe(200);
+  });
+});
+
+describe('meta handler - duplicated allowed query params', () => {
+  it('redirects to the canonical URL using the first value of a duplicated allowed param', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(MOCK_INDEX_HTML, { status: 200 }));
+    globalThis.fetch = fetchMock;
+
+    // Vercel collapses `?film=a&film=b` into an array-valued `query.film`.
+    const req = createMockRequest({
+      query: { path: '/films', film: ['kodak-tri-x-400', 'ilford-hp5'] },
+    });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res._status).toBe(308);
+    expect(res.getHeader('location')).toBe(
+      'https://dorkroom.art/films?film=kodak-tri-x-400'
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 

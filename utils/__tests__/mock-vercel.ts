@@ -59,6 +59,18 @@ export function createMockResponse(): VercelResponse & {
       res.writableEnded = true;
       return res;
     },
+    redirect(statusOrUrl: number | string, url?: string) {
+      if (typeof statusOrUrl === 'number' && url !== undefined) {
+        res._status = statusOrUrl;
+        headers.location = url;
+      } else {
+        res._status = 307;
+        headers.location = String(statusOrUrl);
+      }
+      res._ended = true;
+      res.writableEnded = true;
+      return res;
+    },
     end() {
       res._ended = true;
       res.writableEnded = true;

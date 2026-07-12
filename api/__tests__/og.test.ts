@@ -332,6 +332,21 @@ describe('og handler - unknown query params', () => {
 
     expect(res.status).toBe(200);
   });
+
+  it('returns 400 for a duplicated allowed param', async () => {
+    const fetchMock = vi.fn();
+    globalThis.fetch = fetchMock;
+
+    const url = new URL('https://dorkroom.art/api/og');
+    url.searchParams.set('route', '/');
+    url.searchParams.append('film', 'a');
+    url.searchParams.append('film', 'b');
+
+    const res = await handler(new Request(url.toString()));
+
+    expect(res.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });
 
 describe('og handler - border preset', () => {

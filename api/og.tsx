@@ -29,10 +29,10 @@ const ALLOWED_PARAMS = new Set([
 ]);
 
 function rejectUnknownParams(searchParams: URLSearchParams): boolean {
-  let count = 0;
+  const seen = new Set<string>();
   for (const key of searchParams.keys()) {
-    count += 1;
-    if (count > ALLOWED_PARAMS.size || !ALLOWED_PARAMS.has(key)) return true;
+    if (!ALLOWED_PARAMS.has(key) || seen.has(key)) return true;
+    seen.add(key);
   }
   return false;
 }

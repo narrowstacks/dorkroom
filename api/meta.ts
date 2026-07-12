@@ -37,10 +37,44 @@ const ALLOWED_PARAMS = new Set([
   'preset',
 ]);
 
-function hasUnknownParams(query: VercelRequest['query']): boolean {
+/**
+ * True when `query` carries a key outside the allowlist, or an allowed key
+ * repeated (Vercel collapses `?film=a&film=b` into an array-valued
+ * `query.film`, which is how a duplicate shows up here).
+ */
+function hasQueryIssue(query: VercelRequest['query']): boolean {
   const keys = Object.keys(query);
   if (keys.length > ALLOWED_PARAMS.size) return true;
-  return keys.some((key) => !ALLOWED_PARAMS.has(key));
+  return keys.some(
+    (key) => !ALLOWED_PARAMS.has(key) || Array.isArray(query[key])
+  );
+}
+
+/**
+ * Build the canonical public URL for a request, keeping only the requested
+ * path and the allowlisted params present as a single string value. Used to
+ * redirect requests carrying unknown or duplicated params to a clean,
+ * cacheable target rather than 400ing them (crawlers/link-preview bots often
+ * arrive with tracking params like `utm_source` tacked on).
+ */
+function buildCanonicalUrl(query: VercelRequest['query']): string {
+  const path = typeof query.path === 'string' ? query.path : '/';
+  const url = new URL(path, 'https://dorkroom.art');
+
+  const search = new URLSearchParams();
+  for (const key of ALLOWED_PARAMS) {
+    if (key === 'path') continue;
+    const value = query[key];
+    if (typeof value === 'string') {
+      search.set(key, value);
+    } else if (Array.isArray(value) && typeof value[0] === 'string') {
+      // Duplicated allowed param — keep the first value.
+      search.set(key, value[0]);
+    }
+  }
+  url.search = search.toString();
+
+  return url.toString();
 }
 
 function extractMetadataQuery(
@@ -91,9 +125,15 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ): Promise<void> {
-  if (hasUnknownParams(req.query)) {
+  if (hasQueryIssue(req.query)) {
+    // Unknown/duplicated params never change the rendered card, so redirect
+    // crawlers to the canonical URL (dropping the junk) instead of 400ing —
+    // shared links routinely carry tracking params like utm_source, and a
+    // hard failure would break their previews. The redirect itself is
+    // cheaply cached; the crawler re-requests the clean URL and gets a 200.
+    const canonicalUrl = buildCanonicalUrl(req.query);
     res.setHeader('cache-control', 'public, s-maxage=86400');
-    res.status(400).send('Bad Request');
+    res.redirect(308, canonicalUrl);
     return;
   }
 
@@ -131,44 +171,53 @@ export default async function handler(
   });
   let html = await originResponse.text();
 
-  // Replace <title>
-  html = html.replace(/<title>[^<]*<\/title>/, `<title>${safeTitle}</title>`);
+  // Replace <title>. A function replacer is used for every substitution
+  // below — a string replacer interprets `$&`, `$``, `$'`, `$$`, `$n` in the
+  // *replacement*, and a decoded/escaped value can legitimately contain
+  // those two-character sequences (e.g. a border preset name with a `$` next
+  // to a backtick), which would splice arbitrary surrounding document text
+  // into the output. A function replacer treats its return value as a
+  // literal string, so no such interpolation happens.
+  html = html.replace(
+    /<title>[^<]*<\/title>/,
+    () => `<title>${safeTitle}</title>`
+  );
 
   // Replace meta description
   html = html.replace(
     /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/,
-    `<meta name="description" content="${safeDescription}" />`
+    () => `<meta name="description" content="${safeDescription}" />`
   );
 
   // Replace existing OG and Twitter tags
-  const replacements: [RegExp, string][] = [
+  const replacements: [RegExp, () => string][] = [
     [
       /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/,
-      `<meta property="og:title" content="${safeTitle}" />`,
+      () => `<meta property="og:title" content="${safeTitle}" />`,
     ],
     [
       /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/,
-      `<meta property="og:description" content="${safeDescription}" />`,
+      () => `<meta property="og:description" content="${safeDescription}" />`,
     ],
     [
       /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/,
-      `<meta property="og:url" content="${safeUrl}" />`,
+      () => `<meta property="og:url" content="${safeUrl}" />`,
     ],
     [
       /<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/,
-      `<meta property="og:image" content="${safeOgImageUrl}" />`,
+      () => `<meta property="og:image" content="${safeOgImageUrl}" />`,
     ],
     [
       /<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/,
-      `<meta name="twitter:title" content="${safeTitle}" />`,
+      () => `<meta name="twitter:title" content="${safeTitle}" />`,
     ],
     [
       /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/,
-      `<meta name="twitter:description" content="${safeDescription}" />`,
+      () => `<meta name="twitter:description" content="${safeDescription}" />`,
     ],
     [
       /<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/?>/,
-      `<meta name="twitter:image" content="${safeOgImageUrl}" />`,
+      () => `<meta name="twitter:image" content="${safeOgImageUrl}" />`,
     ],
   ];
 
@@ -179,7 +228,7 @@ export default async function handler(
   // Inject canonical URL before </head>
   html = html.replace(
     '</head>',
-    `    <link rel="canonical" href="${safeUrl}" />\n  </head>`
+    () => `    <link rel="canonical" href="${safeUrl}" />\n  </head>`
   );
 
   res.setHeader('content-type', 'text/html; charset=utf-8');
