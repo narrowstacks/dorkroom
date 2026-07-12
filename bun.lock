@@ -78,7 +78,7 @@
     },
     "apps/dorkroom": {
       "name": "@dorkroom/dorkroom",
-      "version": "2026.7.4",
+      "version": "2026.7.12",
     },
     "apps/mobile": {
       "name": "@dorkroom/mobile",
@@ -138,14 +138,14 @@
     },
     "packages/api": {
       "name": "@dorkroom/api",
-      "version": "2026.7.4",
+      "version": "2026.7.12",
       "devDependencies": {
         "@types/node": "^24.0.0",
       },
     },
     "packages/logic": {
       "name": "@dorkroom/logic",
-      "version": "2026.7.4",
+      "version": "2026.7.12",
       "dependencies": {
         "@dorkroom/api": "workspace:*",
         "fuse.js": "^7.1.0",
@@ -166,7 +166,7 @@
     },
     "packages/ui": {
       "name": "@dorkroom/ui",
-      "version": "2026.7.4",
+      "version": "2026.7.12",
       "dependencies": {
         "@dorkroom/api": "workspace:*",
         "@dorkroom/logic": "workspace:*",

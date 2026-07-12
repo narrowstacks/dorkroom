@@ -5,6 +5,28 @@ The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHAN
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.07.12]
+
+### Security
+
+- The Supabase edge functions backing `films`, `developers`, `combinations`, and `stats` now require a shared secret (`x-proxy-secret`, matched against `PROXY_SHARED_SECRET`) on every request and fail closed (503) if that secret isn't configured, so the catalog can no longer be read directly by anyone who learns the project URL, bypassing Vercel's rate limits.
+- The bot meta endpoint (`api/meta.ts`) HTML-escapes every value it interpolates into the served markup, and every tag rewrite now uses a function-based `String.replace` callback instead of a string replacement — closing a document-splicing bug where a decoded value containing `$\``/`$'`/`$&` could pull surrounding HTML into the output.
+- `api/og.tsx` and `api/meta.ts` reject query params outside their allowlist (and reject/normalize a duplicated allowed param, which previously slipped past `og.tsx`'s guard). `api/og.tsx`'s OG-image URLs are only ever emitted by the site itself, so it still 400s; `api/meta.ts` serves bot/crawler previews for arbitrary shared URLs, so it instead redirects (cached 308) to the canonical URL with unknown params dropped, keeping link previews working for links carrying tracking params like `utm_source`.
+
+### Fixed
+
+- The reciprocity calculator no longer returns a corrected exposure shorter than the metered time for sub-1-second exposures.
+- Time formatters no longer emit "1m 60s"-style output — seconds now roll over into minutes correctly.
+
+### Performance
+
+- The `films`, `developers`, `combinations`, and `stats` proxy endpoints are now edge-cached (`s-maxage=300`, `stale-while-revalidate=600`) instead of a browser-only `max-age`, so repeat and cold requests are served from Vercel's edge instead of hitting Supabase directly.
+
+### Documentation
+
+- Corrected README/API.md inaccuracies around the TypeScript toolchain, API auth credential, an unimplemented offline claim, and `.env` framing, and documented the previously-undocumented `/stats` endpoint.
+- Added `robots.txt` and `sitemap.xml` covering the ten indexable routes ahead of launch.
+
 ## [2026.07.04]
 
 ### Changed
