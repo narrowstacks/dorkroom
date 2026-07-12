@@ -300,6 +300,39 @@ curl -H "X-API-Key: dk_..." \
 
 ---
 
+### GET /stats
+
+Total record counts across the database.
+
+#### Query Parameters
+
+None.
+
+#### Example
+
+```bash
+curl -H "X-API-Key: dk_..." \
+  "https://api.dorkroom.art/stats"
+```
+
+#### Response
+
+```json
+{
+  "films": 1200,
+  "developers": 340,
+  "combinations": 8500
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `films` | integer | Total number of film stocks |
+| `developers` | integer | Total number of developers |
+| `combinations` | integer | Total number of film + developer recipes |
+
+---
+
 ### GET /filmdev
 
 Proxy to [filmdev.org](https://filmdev.org) recipe detail endpoint.
@@ -384,7 +417,7 @@ Internal app requests to `dorkroom.art/api/*` use server-side caching:
 
 | Endpoint | Cache TTL | Stale-While-Revalidate |
 | --- | --- | --- |
-| `/films`, `/developers`, `/combinations` | 5 minutes | 10 minutes |
+| `/films`, `/developers`, `/combinations`, `/stats` | 5 minutes | 10 minutes |
 | `/filmdev` | 1 hour | 2 hours |
 
 ## CORS

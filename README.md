@@ -78,7 +78,8 @@ cd dorkroom
 # Install dependencies (requires Bun)
 bun install
 
-# Set up environment variables (for API testing)
+# Optional — only needed to work on the api/ serverless endpoints.
+# The web calculators run fully client-side with no env vars.
 cp .env.example .env
 # Edit .env with your Supabase credentials
 
@@ -113,7 +114,7 @@ turbo run test --filter=@dorkroom/logic
 
 ## Technology Stack
 
-- **Frontend**: React 19 with TypeScript 6.0 (typecheck/build run on the TypeScript 7 beta `tsgo`)
+- **Frontend**: React 19 with TypeScript (typecheck/build run on the TypeScript 7 RC via the `typescript-7` alias)
 - **Styling**: Tailwind CSS 4.3 with custom darkroom theme
 - **Build Tool**: Vite 8 (Rolldown/Oxc) with Turborepo
 - **Testing**: Vitest 4 with Testing Library (happy-dom environment)
@@ -156,7 +157,7 @@ api/                  # Serverless API endpoints (Vercel functions)
   - Darkroom theme: User beware! This will still likely fog paper if your screen is left near it long enough, especially with non-OLED screens. A warning about this will be added to the app soon.
 - **Fast Calculations** - Instant results with real-time validation
 - **Type-Safe** - Full TypeScript coverage with strict mode
-- **Offline-Ready** - Smart caching with TanStack Query
+- **Session Caching** - Smart client-side caching with TanStack Query
 - **File-Based Routing** - Type-safe navigation with TanStack Router
 - **Form Validation** - Runtime schema validation with Zod
 - **Virtualized Lists** - Efficient rendering of large data sets with TanStack Virtual
@@ -175,7 +176,7 @@ Dorkroom provides a comprehensive API for accessing film development data, avail
 - **REST Endpoints**: `/api/films`, `/api/developers`, `/api/combinations`
 - **Features**: Query parameters, fuzzy search, request validation, CORS support
 - **API Key Access**: Contact [aaron+dorkroom@affords.art](mailto:aaron+dorkroom@affords.art) to request a key for `https://api.dorkroom.art`
-- **Authentication**: Supabase service role key (server-side only)
+- **Authentication**: `X-API-Key` header (request a key by email — see above)
 - **Anonymous Namespace Bootstrap**: `bun run keys:anon-bootstrap` (uses `UNKEY_ROOT_KEY`; requires `ratelimit.*.limit` and `ratelimit.*.create_namespace` on that key)
 
 ## Contributing
@@ -302,7 +303,7 @@ Found a security vulnerability? Please report it responsibly. See our [Security 
 
 AGPL 3.0 License - see the [LICENSE](LICENSE) file for details.
 
-You are allowed to reproduce any film development data on Dorkroom.art in any form or post on the Internet or any other computer network.
+You are allowed to reproduce any film-development data on Dorkroom.art in any form, or post it on the Internet or any other computer network.
 
 ## Support
 
