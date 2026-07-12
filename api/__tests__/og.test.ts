@@ -300,6 +300,40 @@ describe('og handler - film filters', () => {
   });
 });
 
+describe('og handler - unknown query params', () => {
+  it('returns 400 for a request carrying an unknown param', async () => {
+    const fetchMock = vi.fn();
+    globalThis.fetch = fetchMock;
+
+    const res = await handler(makeRequest({ route: '/', cachebust: 'abc123' }));
+
+    expect(res.status).toBe(400);
+  });
+
+  it('does not call fetch when an unknown param is present', async () => {
+    const fetchMock = vi.fn();
+    globalThis.fetch = fetchMock;
+
+    await handler(makeRequest({ route: '/', cachebust: 'abc123' }));
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('sets a long cache-control header on the 400 so the CDN absorbs repeats', async () => {
+    const res = await handler(makeRequest({ route: '/', cachebust: 'abc123' }));
+
+    expect(res.headers.get('cache-control')).toContain('s-maxage=86400');
+  });
+
+  it('still returns 200 for a request with only legitimate params', async () => {
+    const res = await handler(
+      makeRequest({ route: '/films', film: 'kodak-tri-x-400' })
+    );
+
+    expect(res.status).toBe(200);
+  });
+});
+
 describe('og handler - border preset', () => {
   // 35mm on 8x10, landscape, minBorder=0.5 → encodes to this string
   const validPreset =

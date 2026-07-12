@@ -10,6 +10,33 @@ import {
 
 export const config = { runtime: 'edge' };
 
+/**
+ * Every query param this endpoint reads (verified against every
+ * `searchParams.get(...)` call in this file). Anything else is rejected
+ * before any font fetch, upstream lookup, or image render — see the guard
+ * at the top of `handler`. Keep this in sync when adding a new param.
+ */
+const ALLOWED_PARAMS = new Set([
+  'route',
+  'film',
+  'developer',
+  'recipe',
+  'color',
+  'iso',
+  'brand',
+  'status',
+  'preset',
+]);
+
+function rejectUnknownParams(searchParams: URLSearchParams): boolean {
+  let count = 0;
+  for (const key of searchParams.keys()) {
+    count += 1;
+    if (count > ALLOWED_PARAMS.size || !ALLOWED_PARAMS.has(key)) return true;
+  }
+  return false;
+}
+
 const FETCH_TIMEOUT_MS = 3000;
 const FONT_URL =
   'https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Ew-.ttf';
@@ -461,6 +488,14 @@ function OgCard({
 
 export default async function handler(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
+
+  if (rejectUnknownParams(searchParams)) {
+    return new Response('Bad Request', {
+      status: 400,
+      headers: { 'Cache-Control': 'public, s-maxage=86400' },
+    });
+  }
+
   const route = searchParams.get('route') ?? '/';
   const filmSlug = searchParams.get('film');
   const developerSlug = searchParams.get('developer');

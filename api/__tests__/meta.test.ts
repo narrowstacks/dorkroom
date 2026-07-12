@@ -86,6 +86,62 @@ describe('meta handler - border preset injection', () => {
   });
 });
 
+describe('meta handler - unknown query params', () => {
+  it('returns 400 for a request carrying an unknown param', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(MOCK_INDEX_HTML, { status: 200 }));
+    globalThis.fetch = fetchMock;
+
+    const req = createMockRequest({
+      query: { path: '/', cachebust: 'abc123' },
+    });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res._status).toBe(400);
+  });
+
+  it('does not call fetch when an unknown param is present', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(MOCK_INDEX_HTML, { status: 200 }));
+    globalThis.fetch = fetchMock;
+
+    const req = createMockRequest({
+      query: { path: '/', cachebust: 'abc123' },
+    });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('sets a long cache-control header on the 400 so the CDN absorbs repeats', async () => {
+    const req = createMockRequest({
+      query: { path: '/', cachebust: 'abc123' },
+    });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res.getHeader('cache-control')).toContain('s-maxage=86400');
+  });
+
+  it('still returns 200 for a request with only legitimate params', async () => {
+    const req = createMockRequest({
+      query: { path: '/films', film: 'kodak-tri-x-400' },
+    });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res._status).toBe(200);
+  });
+});
+
 describe('meta handler - non-regression', () => {
   it('renders the generic /border card when no preset is given', async () => {
     const req = createMockRequest({ query: { path: '/border' } });

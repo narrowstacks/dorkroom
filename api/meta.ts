@@ -20,6 +20,29 @@ const BRAND_RE = /^[\w\s.'-]{1,50}$/;
 /** Preset: base64-safe chars (alphanumeric, -, _), 1-500 chars */
 const PRESET_RE = /^[A-Za-z0-9_-]{1,500}$/;
 
+/**
+ * Every query param this endpoint reads (the ones individually copied below,
+ * plus `path`). Anything else is rejected before the origin `fetch` — see the
+ * guard at the top of `handler`. Keep this in sync when adding a new param.
+ */
+const ALLOWED_PARAMS = new Set([
+  'path',
+  'film',
+  'developer',
+  'recipe',
+  'color',
+  'iso',
+  'brand',
+  'status',
+  'preset',
+]);
+
+function hasUnknownParams(query: VercelRequest['query']): boolean {
+  const keys = Object.keys(query);
+  if (keys.length > ALLOWED_PARAMS.size) return true;
+  return keys.some((key) => !ALLOWED_PARAMS.has(key));
+}
+
 function extractMetadataQuery(
   params: URLSearchParams
 ): MetadataQuery | undefined {
@@ -68,6 +91,12 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ): Promise<void> {
+  if (hasUnknownParams(req.query)) {
+    res.setHeader('cache-control', 'public, s-maxage=86400');
+    res.status(400).send('Bad Request');
+    return;
+  }
+
   const path = (req.query.path as string) ?? '/';
   const url = new URL(path, 'https://dorkroom.art');
 
