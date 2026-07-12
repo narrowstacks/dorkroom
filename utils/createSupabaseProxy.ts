@@ -155,7 +155,7 @@ export function createSupabaseProxy({
         'Cache-Control',
         ctx.isPublicApi
           ? 'private, no-store'
-          : 'public, max-age=300, stale-while-revalidate=600'
+          : 'public, max-age=60, s-maxage=300, stale-while-revalidate=600'
       );
       res.status(200).json(data);
     },

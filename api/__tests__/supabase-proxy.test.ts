@@ -388,6 +388,79 @@ describe.each([
     });
   });
 
+  describe('cache-control header', () => {
+    it('should set an edge-cacheable Cache-Control header for website requests', async () => {
+      const mockData = { data: [{ id: 1, name: 'Test' }] };
+      vi.stubGlobal(
+        'fetch',
+        vi
+          .fn()
+          .mockResolvedValue(
+            createJsonResponse(mockData, { ok: true, status: 200 })
+          )
+      );
+
+      const res = {
+        _status: 0,
+        _json: undefined as unknown,
+        _headers: {} as Record<string, string>,
+        setHeader(n: string, v: string) {
+          this._headers[n] = v;
+          return this;
+        },
+        status(code: number) {
+          this._status = code;
+          return this;
+        },
+        json(body: unknown) {
+          this._json = body;
+          return this;
+        },
+      };
+
+      await handler({ query: {} } as MockReq, res, createMockCtx());
+
+      expect(res._headers['Cache-Control']).toContain('s-maxage=300');
+    });
+
+    it('should keep the public API Cache-Control header as private, no-store', async () => {
+      const mockData = { data: [{ id: 1, name: 'Test' }] };
+      vi.stubGlobal(
+        'fetch',
+        vi
+          .fn()
+          .mockResolvedValue(
+            createJsonResponse(mockData, { ok: true, status: 200 })
+          )
+      );
+
+      const res = {
+        _status: 0,
+        _json: undefined as unknown,
+        _headers: {} as Record<string, string>,
+        setHeader(n: string, v: string) {
+          this._headers[n] = v;
+          return this;
+        },
+        status(code: number) {
+          this._status = code;
+          return this;
+        },
+        json(body: unknown) {
+          this._json = body;
+          return this;
+        },
+      };
+
+      await handler({ query: {} } as MockReq, res, {
+        ...createMockCtx(),
+        isPublicApi: true,
+      });
+
+      expect(res._headers['Cache-Control']).toBe('private, no-store');
+    });
+  });
+
   describe('shared secret', () => {
     it('should send x-proxy-secret on the outbound fetch to Supabase', async () => {
       const fetchMock = vi
