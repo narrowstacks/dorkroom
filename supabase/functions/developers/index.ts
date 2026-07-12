@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.203.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { requireProxySecret } from '../_shared/auth.ts';
 
 /**
  * Edge Function: /developers
@@ -46,6 +47,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       }
     );
   }
+  const unauthorized = await requireProxySecret(req);
+  if (unauthorized) return unauthorized;
   // ────────────────────────────────────────
   //  Supabase client
   // ────────────────────────────────────────
@@ -120,9 +123,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   const { data, error, count } = await dbQuery;
   if (error) {
+    console.error('developers query failed', error.message);
     return new Response(
       JSON.stringify({
-        error: error.message,
+        error: 'Internal Server Error',
       }),
       {
         status: 500,

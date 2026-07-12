@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.203.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { requireProxySecret } from '../_shared/auth.ts';
 import { sanitizeQuery, sanitizeSlug } from '../_shared/sanitize.ts';
 
 /**
@@ -47,6 +48,8 @@ serve(async (req) => {
       }
     );
   }
+  const unauthorized = await requireProxySecret(req);
+  if (unauthorized) return unauthorized;
   // ────────────────────────────────────────
   //  Supabase client
   // ────────────────────────────────────────
@@ -151,9 +154,10 @@ serve(async (req) => {
 
   const { data, error, count } = await dbQuery;
   if (error) {
+    console.error('films query failed', error.message);
     return new Response(
       JSON.stringify({
-        error: error.message,
+        error: 'Internal Server Error',
       }),
       {
         status: 500,

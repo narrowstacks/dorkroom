@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.203.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { requireProxySecret } from '../_shared/auth.ts';
 
 /**
  * Edge Function: /stats
@@ -33,6 +34,8 @@ serve(async (req) => {
       },
     });
   }
+  const unauthorized = await requireProxySecret(req);
+  if (unauthorized) return unauthorized;
 
   // Stats only returns aggregate counts over public tables, so the anon key
   // is sufficient; avoid using the service role key on unauthenticated routes.
@@ -64,7 +67,8 @@ serve(async (req) => {
 
   const error = films.error || developers.error || combinations.error;
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('stats query failed', error.message);
+    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
       status: 500,
       headers: {
         'Content-Type': 'application/json',

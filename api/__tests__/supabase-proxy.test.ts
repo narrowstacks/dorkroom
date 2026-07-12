@@ -89,6 +89,7 @@ describe.each([
     vi.resetModules();
     process.env[masterKey] = 'test-master-key';
     process.env[envKey] = 'https://test.supabase.co';
+    process.env.SUPABASE_PROXY_SECRET = 'test-proxy-secret';
 
     const mod = await importEndpoint(endpoint);
     handler = mod.default;
@@ -98,6 +99,7 @@ describe.each([
     vi.restoreAllMocks();
     delete process.env[masterKey];
     delete process.env[envKey];
+    delete process.env.SUPABASE_PROXY_SECRET;
   });
 
   describe('upstream error handling', () => {
@@ -383,6 +385,78 @@ describe.each([
 
       expect(res._status).toBe(200);
       expect(res._json).toEqual(mockData);
+    });
+  });
+
+  describe('shared secret', () => {
+    it('should send x-proxy-secret on the outbound fetch to Supabase', async () => {
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValue(createJsonResponse({ data: [] }, { ok: true }));
+      vi.stubGlobal('fetch', fetchMock);
+
+      const res = {
+        _status: 0,
+        _json: undefined as unknown,
+        _headers: {} as Record<string, string>,
+        setHeader(n: string, v: string) {
+          this._headers[n] = v;
+          return this;
+        },
+        status(code: number) {
+          this._status = code;
+          return this;
+        },
+        json(body: unknown) {
+          this._json = body;
+          return this;
+        },
+      };
+
+      await handler({ query: {} } as MockReq, res, createMockCtx());
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+      const headers = requestInit.headers as Record<string, string>;
+      expect(headers['x-proxy-secret']).toBe('test-proxy-secret');
+    });
+
+    it('should mask an upstream 401 as a 502 with no upstream detail', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi
+          .fn()
+          .mockResolvedValue(
+            createJsonResponse(
+              { error: 'Unauthorized' },
+              { ok: false, status: 401 }
+            )
+          )
+      );
+
+      const res = {
+        _status: 0,
+        _json: undefined as unknown,
+        _headers: {} as Record<string, string>,
+        setHeader(n: string, v: string) {
+          this._headers[n] = v;
+          return this;
+        },
+        status(code: number) {
+          this._status = code;
+          return this;
+        },
+        json(body: unknown) {
+          this._json = body;
+          return this;
+        },
+      };
+
+      await handler({ query: {} } as MockReq, res, createMockCtx());
+
+      expect(res._status).toBe(502);
+      const bodyText = JSON.stringify(res._json);
+      expect(bodyText).not.toContain('Unauthorized');
     });
   });
 });

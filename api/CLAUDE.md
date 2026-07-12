@@ -82,6 +82,7 @@ When Unkey is not configured (`UNKEY_ROOT_KEY` missing), anonymous rate limiting
 Supabase proxy handlers (`films`, `developers`, `combinations`):
 - `SUPABASE_MASTER_API_KEY` — Supabase secret API key (`sb_secret_...`) used as the `Bearer` token when calling Edge Functions
 - `SUPABASE_ENDPOINT` — Project URL, e.g. `https://<ref>.supabase.co`
+- `SUPABASE_PROXY_SECRET` — shared secret sent as the `x-proxy-secret` header on every outbound call, so the Edge Functions can reject requests that don't come through this proxy. The same value must be set as `PROXY_SHARED_SECRET` in the Supabase function environment; the functions fail closed (503) if it's unset there.
 
 Unkey integration:
 - `UNKEY_ROOT_KEY` - root key used for verification and anonymous rate limits

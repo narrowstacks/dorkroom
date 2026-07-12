@@ -23,12 +23,17 @@ export function createSupabaseProxy({
 }: SupabaseProxyConfig) {
   return withHandler({
     name,
-    requiredEnv: ['SUPABASE_MASTER_API_KEY', 'SUPABASE_ENDPOINT'],
+    requiredEnv: [
+      'SUPABASE_MASTER_API_KEY',
+      'SUPABASE_ENDPOINT',
+      'SUPABASE_PROXY_SECRET',
+    ],
     handler: async (req, res, ctx) => {
       const supabaseMasterApiKey = process.env.SUPABASE_MASTER_API_KEY;
       const supabaseBaseUrl = process.env.SUPABASE_ENDPOINT;
+      const proxySecret = process.env.SUPABASE_PROXY_SECRET;
 
-      if (!supabaseMasterApiKey || !supabaseBaseUrl) {
+      if (!supabaseMasterApiKey || !supabaseBaseUrl || !proxySecret) {
         throw new Error('Missing Supabase environment variables');
       }
 
@@ -49,6 +54,7 @@ export function createSupabaseProxy({
           'Content-Type': 'application/json',
           'User-Agent': ctx.userAgent,
           Accept: 'application/json',
+          'x-proxy-secret': proxySecret,
         },
         signal: createTimeoutSignal(TIMEOUT_MS),
       });
