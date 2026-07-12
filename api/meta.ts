@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { escapeHtml } from '../utils/htmlEscape';
 import type { MetadataQuery } from '../utils/routeMetadata';
 import { getRouteMetadata } from '../utils/routeMetadata';
 
@@ -90,6 +91,10 @@ export default async function handler(
 
   const query = extractMetadataQuery(url.searchParams);
   const meta = getRouteMetadata(url.pathname, query);
+  const safeTitle = escapeHtml(meta.title);
+  const safeDescription = escapeHtml(meta.description);
+  const safeUrl = escapeHtml(meta.url);
+  const safeOgImageUrl = escapeHtml(meta.ogImageUrl);
 
   // Fetch the static index.html from origin
   const originResponse = await fetch('https://dorkroom.art/', {
@@ -98,43 +103,43 @@ export default async function handler(
   let html = await originResponse.text();
 
   // Replace <title>
-  html = html.replace(/<title>[^<]*<\/title>/, `<title>${meta.title}</title>`);
+  html = html.replace(/<title>[^<]*<\/title>/, `<title>${safeTitle}</title>`);
 
   // Replace meta description
   html = html.replace(
     /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/,
-    `<meta name="description" content="${meta.description}" />`
+    `<meta name="description" content="${safeDescription}" />`
   );
 
   // Replace existing OG and Twitter tags
   const replacements: [RegExp, string][] = [
     [
       /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/,
-      `<meta property="og:title" content="${meta.title}" />`,
+      `<meta property="og:title" content="${safeTitle}" />`,
     ],
     [
       /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/,
-      `<meta property="og:description" content="${meta.description}" />`,
+      `<meta property="og:description" content="${safeDescription}" />`,
     ],
     [
       /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/,
-      `<meta property="og:url" content="${meta.url}" />`,
+      `<meta property="og:url" content="${safeUrl}" />`,
     ],
     [
       /<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/,
-      `<meta property="og:image" content="${meta.ogImageUrl}" />`,
+      `<meta property="og:image" content="${safeOgImageUrl}" />`,
     ],
     [
       /<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/,
-      `<meta name="twitter:title" content="${meta.title}" />`,
+      `<meta name="twitter:title" content="${safeTitle}" />`,
     ],
     [
       /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/,
-      `<meta name="twitter:description" content="${meta.description}" />`,
+      `<meta name="twitter:description" content="${safeDescription}" />`,
     ],
     [
       /<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/?>/,
-      `<meta name="twitter:image" content="${meta.ogImageUrl}" />`,
+      `<meta name="twitter:image" content="${safeOgImageUrl}" />`,
     ],
   ];
 
@@ -145,7 +150,7 @@ export default async function handler(
   // Inject canonical URL before </head>
   html = html.replace(
     '</head>',
-    `    <link rel="canonical" href="${meta.url}" />\n  </head>`
+    `    <link rel="canonical" href="${safeUrl}" />\n  </head>`
   );
 
   res.setHeader('content-type', 'text/html; charset=utf-8');
