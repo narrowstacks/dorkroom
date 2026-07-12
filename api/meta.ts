@@ -59,7 +59,17 @@ function hasQueryIssue(query: VercelRequest['query']): boolean {
  */
 function buildCanonicalUrl(query: VercelRequest['query']): string {
   const path = typeof query.path === 'string' ? query.path : '/';
-  const url = new URL(path, 'https://dorkroom.art');
+  // WHATWG URL lets a crafted `path` escape the base origin
+  // (`//evil.com`, `https://evil.com`, `/\/evil.com`, `\\evil.com` all
+  // resolve to https://evil.com/), and this endpoint is publicly
+  // reachable — so this must not become an open redirect. Rebuild the
+  // target by assigning the parsed *pathname* onto a fixed-origin URL:
+  // the pathname setter can never change the host, unlike re-parsing
+  // the pathname as a URL string (a pathname like `//evil.com`, reachable
+  // via `path=/.//evil.com`, would be protocol-relative if re-parsed).
+  const parsed = new URL(path, 'https://dorkroom.art');
+  const url = new URL('https://dorkroom.art');
+  url.pathname = parsed.pathname;
 
   const search = new URLSearchParams();
   for (const key of ALLOWED_PARAMS) {

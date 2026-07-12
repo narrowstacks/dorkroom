@@ -185,6 +185,72 @@ describe('meta handler - unknown query params', () => {
   });
 });
 
+describe('meta handler - redirect target is pinned on-origin', () => {
+  // /api/meta is publicly reachable (vercel.json routes /api/(.*) without a
+  // bot-UA check), so the canonical redirect must never follow an
+  // attacker-controlled `path` off-origin — WHATWG URL resolves inputs like
+  // `//evil.com` and `https://evil.com` against the base to a foreign host,
+  // and a pathname like `//evil.com` (via `path=/.//evil.com`) would be
+  // protocol-relative if naively re-parsed.
+  const hostilePaths = [
+    '//evil.com',
+    'https://evil.com',
+    '/\\/evil.com',
+    '\\\\evil.com',
+  ];
+
+  for (const path of hostilePaths) {
+    it(`keeps the redirect on https://dorkroom.art for path=${JSON.stringify(path)}`, async () => {
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValue(new Response(MOCK_INDEX_HTML, { status: 200 }));
+      globalThis.fetch = fetchMock;
+
+      // Junk param triggers the redirect branch.
+      const req = createMockRequest({
+        query: { path, utm_source: 'x' },
+      });
+      const res = createMockResponse();
+
+      await handler(req, res);
+
+      expect(res._status).toBe(308);
+      const location = String(res.getHeader('location'));
+      expect(location).toBe('https://dorkroom.art/');
+      expect(new URL(location).origin).toBe('https://dorkroom.art');
+      expect(location).not.toContain('evil.com');
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  }
+
+  it('stays on-origin even when the parsed pathname itself starts with // (path=/.//evil.com)', async () => {
+    // `new URL('/.//evil.com', base).pathname` is `//evil.com`; if the
+    // handler re-parsed that pathname as a URL string it would become
+    // protocol-relative and escape to https://evil.com/. The pathname
+    // *setter* used by buildCanonicalUrl cannot change the host, so the
+    // Location keeps the explicit dorkroom.art authority (`evil.com` is
+    // just a path segment there, not a host).
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(MOCK_INDEX_HTML, { status: 200 }));
+    globalThis.fetch = fetchMock;
+
+    const req = createMockRequest({
+      query: { path: '/.//evil.com', utm_source: 'x' },
+    });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res._status).toBe(308);
+    const location = String(res.getHeader('location'));
+    expect(location).toBe('https://dorkroom.art//evil.com');
+    expect(new URL(location).origin).toBe('https://dorkroom.art');
+    expect(new URL(location).hostname).toBe('dorkroom.art');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
 describe('meta handler - duplicated allowed query params', () => {
   it('redirects to the canonical URL using the first value of a duplicated allowed param', async () => {
     const fetchMock = vi
