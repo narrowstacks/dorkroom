@@ -2,6 +2,7 @@ import {
   calculateVolumes,
   convertDisplayToMl,
   convertMlToDisplay,
+  formatDilutionDescription,
   formatVolume,
   getDefaultVolumeMl,
   getVolumePrecision,
@@ -58,6 +59,14 @@ export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
 
   // Calculate volumes
   const volumes = calculateVolumes(totalVolumeMl, parsed);
+
+  // Explicitly state the interpreted ratio so the on-screen convention
+  // (A:B read the same as A+B — concentrate parts + water parts) is
+  // unambiguous next to the raw dilution string from the recipe.
+  const ratioCaption =
+    parsed.type === 'stock'
+      ? formatDilutionDescription(parsed)
+      : `${formatDilutionDescription(parsed)} (${dilutionString} = ${parsed.totalParts} parts total)`;
 
   // Convert display value
   const displayValue = convertMlToDisplay(totalVolumeMl, unit);
@@ -116,11 +125,7 @@ export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
       )}
 
       {/* Ratio description */}
-      <p className="text-xs text-tertiary">
-        {parsed.concentrateParts} part{parsed.concentrateParts !== 1 ? 's' : ''}{' '}
-        developer + {parsed.waterParts} part{parsed.waterParts !== 1 ? 's' : ''}{' '}
-        water
-      </p>
+      <p className="text-xs text-tertiary">{ratioCaption}</p>
     </div>
   );
 }

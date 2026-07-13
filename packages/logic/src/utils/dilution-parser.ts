@@ -3,17 +3,17 @@
  *
  * Supports common dilution formats:
  *
- * Plus Notation (A+B): A parts concentrate + B parts diluent
- * - "1+1" = 1 part concentrate + 1 part water = 2 total parts (50% concentrate)
- * - "1+4" = 1 part concentrate + 4 parts water = 5 total parts (20% concentrate)
- *
- * Colon Notation (A:B): Dilution factor - A parts concentrate in B total parts
- * - "1:4" = 1 part concentrate in 4 total = 1 part concentrate + 3 parts water (25% concentrate)
- * - "1:50" = 1 part concentrate in 50 total = 1 part concentrate + 49 parts water (2% concentrate)
- * - Exception: "1:1" is treated as "1+1" (historical convention meaning equal parts)
+ * Plus Notation (A+B) and Colon Notation (A:B) are read identically: A parts
+ * concentrate + B parts water, total A+B parts. This matches how
+ * manufacturers and the community actually write these ratios — Ilford's
+ * Ilfotec HC "Dilution B" is documented as 1+31 and stored in our data as
+ * "1:31"; both mean the same 1-part-in-32-total mix. There is no special
+ * case: "A:B" is not "A parts in B total".
+ * - "1+31" = "1:31" = 1 part concentrate + 31 parts water = 32 total parts
+ * - "1+4" = "1:4" = 1 part concentrate + 4 parts water = 5 total parts
  *
  * Stock: No dilution needed (use developer undiluted)
- * - "Stock" or "1+0"
+ * - "Stock", "1+0", or "A:0"
  */
 
 /**
@@ -55,7 +55,9 @@ export function isStockDilution(dilution: string): boolean {
  *
  * Supported formats:
  * - Plus notation "1+4": 1 part concentrate + 4 parts water = 5 total parts
- * - Colon notation "1:50": 1 part concentrate in 50 total parts = 1 + 49 water
+ * - Colon notation "1:31": read identically to plus notation — 1 part
+ *   concentrate + 31 parts water = 32 total parts, matching manufacturer
+ *   notation (Ilford 1+31 ≡ 1:31)
  * - "Stock", "1+0": no dilution needed
  *
  * @param dilution - The dilution string from the API
@@ -88,35 +90,13 @@ export function parseDilution(dilution: string): DilutionParsed | null {
     };
   }
 
-  // Colon format: "1:50", "1:100"
-  // Interpretation: Dilution factor - A parts concentrate in B total parts
-  // So water = B - A
-  // Exception: "1:1" is treated as equivalent to "1+1" (historical convention)
+  // Colon format: "1:31", "1:50"
+  // Interpretation: same as plus notation - A parts concentrate + B parts
+  // water (total = A + B). Matches manufacturer usage (Ilford 1+31 ≡ 1:31).
   const colonMatch = normalized.match(/^(\d+):(\d+)$/);
   if (colonMatch) {
-    const firstNum = parseInt(colonMatch[1], 10);
-    const secondNum = parseInt(colonMatch[2], 10);
-
-    // Special case: 1:1 is treated like 1+1 (1 part concentrate + 1 part water)
-    // This is a historical convention where 1:1 means equal parts, not "1 in 1"
-    if (firstNum === 1 && secondNum === 1) {
-      return {
-        type: 'ratio',
-        concentrateParts: 1,
-        waterParts: 1,
-        totalParts: 2,
-      };
-    }
-
-    // Standard dilution factor: A parts in B total
-    const concentrateParts = firstNum;
-    const totalParts = secondNum;
-    const waterParts = totalParts - concentrateParts;
-
-    // Handle edge case where total is less than concentrate
-    if (waterParts < 0) {
-      return null;
-    }
+    const concentrateParts = parseInt(colonMatch[1], 10);
+    const waterParts = parseInt(colonMatch[2], 10);
 
     // If water is 0, it's stock
     if (waterParts === 0) {
@@ -132,7 +112,7 @@ export function parseDilution(dilution: string): DilutionParsed | null {
       type: 'ratio',
       concentrateParts,
       waterParts,
-      totalParts,
+      totalParts: concentrateParts + waterParts,
     };
   }
 

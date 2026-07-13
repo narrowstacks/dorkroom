@@ -79,38 +79,48 @@ describe('dilution-parser', () => {
     });
   });
 
-  describe('parseDilution - Colon Notation (Dilution Factor)', () => {
-    it('should parse "1:4" as 1 part in 4 total (1 concentrate + 3 water)', () => {
+  describe('parseDilution - Colon Notation (concentrate+water, matches manufacturer usage)', () => {
+    it('should parse "1:4" as 1 part concentrate + 4 parts water', () => {
       const result = parseDilution('1:4');
       expect(result).toEqual({
         type: 'ratio',
         concentrateParts: 1,
-        waterParts: 3,
-        totalParts: 4,
+        waterParts: 4,
+        totalParts: 5,
       });
     });
 
-    it('should parse "1:50" as 1 part in 50 total (1 concentrate + 49 water)', () => {
+    it('should parse "1:50" as 1 part concentrate + 50 parts water', () => {
       const result = parseDilution('1:50');
       expect(result).toEqual({
         type: 'ratio',
         concentrateParts: 1,
-        waterParts: 49,
-        totalParts: 50,
+        waterParts: 50,
+        totalParts: 51,
       });
     });
 
-    it('should parse "1:100" as 1 part in 100 total', () => {
+    it('should parse "1:100" as 1 part concentrate + 100 parts water', () => {
       const result = parseDilution('1:100');
       expect(result).toEqual({
         type: 'ratio',
         concentrateParts: 1,
-        waterParts: 99,
-        totalParts: 100,
+        waterParts: 100,
+        totalParts: 101,
       });
     });
 
-    it('should treat "1:1" as exception - same as "1+1" (historical convention)', () => {
+    it('should parse "1:31" (Ilfotec HC dilution B) as 1 part concentrate + 31 parts water', () => {
+      const result = parseDilution('1:31');
+      expect(result).toEqual({
+        type: 'ratio',
+        concentrateParts: 1,
+        waterParts: 31,
+        totalParts: 32,
+      });
+    });
+
+    it('should parse "1:1" as 1 part concentrate + 1 part water (falls out of the general rule now, no special case needed)', () => {
       const result = parseDilution('1:1');
       expect(result).toEqual({
         type: 'ratio',
@@ -120,13 +130,13 @@ describe('dilution-parser', () => {
       });
     });
 
-    it('should parse "2:10" as 2 parts in 10 total (2 concentrate + 8 water)', () => {
+    it('should parse "2:10" as 2 parts concentrate + 10 parts water', () => {
       const result = parseDilution('2:10');
       expect(result).toEqual({
         type: 'ratio',
         concentrateParts: 2,
-        waterParts: 8,
-        totalParts: 10,
+        waterParts: 10,
+        totalParts: 12,
       });
     });
   });
@@ -157,12 +167,28 @@ describe('dilution-parser', () => {
       expect(parseDilution('abc')).toBeNull();
     });
 
-    it('should return null for colon notation where total < concentrate', () => {
-      expect(parseDilution('5:3')).toBeNull();
+    it('should parse "5:3" as 5 parts concentrate + 3 parts water (no longer null: colon is concentrate:water, not "total < concentrate")', () => {
+      const result = parseDilution('5:3');
+      expect(result).toEqual({
+        type: 'ratio',
+        concentrateParts: 5,
+        waterParts: 3,
+        totalParts: 8,
+      });
     });
 
-    it('should handle "2:2" as stock (2 parts in 2 total = no water)', () => {
+    it('should parse "2:2" as 2 parts concentrate + 2 parts water (no longer collapses to stock)', () => {
       const result = parseDilution('2:2');
+      expect(result).toEqual({
+        type: 'ratio',
+        concentrateParts: 2,
+        waterParts: 2,
+        totalParts: 4,
+      });
+    });
+
+    it('should parse "1:0" as stock (0 parts water)', () => {
+      const result = parseDilution('1:0');
       expect(result).toEqual({
         type: 'stock',
         concentrateParts: 1,
@@ -172,18 +198,14 @@ describe('dilution-parser', () => {
     });
   });
 
-  describe('parseDilution - Plus vs Colon Difference', () => {
-    it('should calculate different results for "1+4" vs "1:4"', () => {
+  describe('parseDilution - Plus vs Colon Equivalence', () => {
+    it('should calculate identical results for "1+4" and "1:4" (same convention, matches manufacturer usage)', () => {
       const plusResult = parseDilution('1+4');
       const colonResult = parseDilution('1:4');
 
-      // 1+4 = 1 part concentrate + 4 parts water = 5 total (20% concentrate)
+      expect(colonResult).toEqual(plusResult);
       expect(plusResult?.totalParts).toBe(5);
       expect(plusResult?.waterParts).toBe(4);
-
-      // 1:4 = 1 part in 4 total = 1 part concentrate + 3 parts water (25% concentrate)
-      expect(colonResult?.totalParts).toBe(4);
-      expect(colonResult?.waterParts).toBe(3);
     });
   });
 
@@ -206,13 +228,22 @@ describe('dilution-parser', () => {
       expect(result.water).toBe(400); // 500 * 4/5
     });
 
-    it('should calculate volumes for 1:50 dilution with 500ml total', () => {
+    it('should calculate volumes for 1:50 dilution with 500ml total (51 total parts)', () => {
       const parsed = parseDilution('1:50')!;
       const result = calculateVolumes(500, parsed);
 
       expect(result.total).toBe(500);
-      expect(result.concentrate).toBe(10); // 500 * 1/50
-      expect(result.water).toBe(490); // 500 * 49/50
+      expect(result.concentrate).toBeCloseTo(9.803922, 5); // 500 * 1/51
+      expect(result.water).toBeCloseTo(490.196078, 5); // 500 * 50/51
+    });
+
+    it('should calculate volumes for 1:31 (Ilfotec HC dilution B) with 500ml total', () => {
+      const parsed = parseDilution('1:31')!;
+      const result = calculateVolumes(500, parsed);
+
+      expect(result.total).toBe(500);
+      expect(result.concentrate).toBeCloseTo(15.625, 2); // 500 * 1/32
+      expect(result.water).toBeCloseTo(484.375, 2); // 500 * 31/32
     });
 
     it('should return all concentrate for stock dilution', () => {
