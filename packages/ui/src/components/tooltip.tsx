@@ -22,7 +22,8 @@ export function Tooltip({
           position === 'bottom' ? 'top-full mt-2' : 'bottom-full mb-2',
           'invisible translate-y-1 opacity-0',
           'group-hover:visible group-hover:translate-y-0 group-hover:opacity-100',
-          'group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100'
+          'group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100',
+          'group-has-[[aria-expanded=true]]:invisible group-has-[[aria-expanded=true]]:opacity-0'
         )}
         style={{
           backgroundColor: 'var(--color-text-primary)',

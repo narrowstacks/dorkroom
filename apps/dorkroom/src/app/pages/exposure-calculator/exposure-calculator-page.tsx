@@ -187,7 +187,7 @@ export default function ExposureCalculatorPage() {
         {(calculation) => (
           <CalculatorCard
             title="Exposure results"
-            description={`Adjusted exposure time for ${calculation.stopsValue >= 0 ? 'increased' : 'decreased'} amount of stops`}
+            description={`Adjusted exposure time for ${calculation.stopsValue >= 0 ? 'increased' : 'decreased'} number of stops`}
             accent="blue"
             padding="compact"
           >

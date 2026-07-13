@@ -599,7 +599,7 @@ describe('DevelopmentResultsCardsVirtualized', () => {
         </TableWrapper>
       );
 
-      expect(screen.getByText('8 min')).toBeInTheDocument();
+      expect(screen.getByText('8m')).toBeInTheDocument();
     });
 
     it('formats fractional minutes with seconds', () => {

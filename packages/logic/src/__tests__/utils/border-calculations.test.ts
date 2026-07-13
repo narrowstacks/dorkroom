@@ -242,6 +242,15 @@ describe('border calculations', () => {
       expect(result.halfW).toBe(2); // (10 - 6) / 2
       expect(result.halfH).toBe(2); // (8 - 4) / 2
     });
+
+    it('should not warn when both offsets are 0 and the allowed range is negative (half < minBorder)', () => {
+      // halfW = (10 - 8) / 2 = 1, halfW - minBorder = 1 - 2 = -1 (negative range)
+      // halfH = (8 - 6) / 2 = 1, halfH - minBorder = 1 - 2 = -1 (negative range)
+      const result = clampOffsets(10, 8, 8, 6, 2, 0, 0, false);
+      expect(result.h).toBe(0);
+      expect(result.v).toBe(0);
+      expect(result.warning).toBeNull();
+    });
   });
 
   describe('bordersFromGaps', () => {

@@ -428,7 +428,7 @@ function ChartLabels({ chartData }: { chartData: ChartData }) {
         fill="var(--color-text-primary)"
         fontWeight="500"
         fontFamily="system-ui, -apple-system, sans-serif"
-        transform={`rotate(-90, 12, ${chartData.height / 2})`}
+        transform={`rotate(-90, 16, ${chartData.height / CHART_CONFIG.labels.offsets.yTitleScale})`}
       >
         Adjusted exposure in seconds
       </text>

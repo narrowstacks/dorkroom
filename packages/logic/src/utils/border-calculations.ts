@@ -329,17 +329,27 @@ export const clampOffsets = (
 ) => {
   const halfW = (paperW - printW) / 2;
   const halfH = (paperH - printH) / 2;
-  const maxH = ignoreMinBorder ? halfW : Math.min(halfW - minBorder, halfW);
-  const maxV = ignoreMinBorder ? halfH : Math.min(halfH - minBorder, halfH);
+  const maxH = Math.max(
+    0,
+    ignoreMinBorder ? halfW : Math.min(halfW - minBorder, halfW)
+  );
+  const maxV = Math.max(
+    0,
+    ignoreMinBorder ? halfH : Math.min(halfH - minBorder, halfH)
+  );
 
   const clampedH = Math.max(-maxH, Math.min(maxH, horizontalOffset));
   const clampedV = Math.max(-maxV, Math.min(maxV, verticalOffset));
 
+  const OFFSET_EPSILON = 1e-9;
   let warning: string | null = null;
-  if (clampedH !== horizontalOffset || clampedV !== verticalOffset) {
+  if (
+    Math.abs(clampedH - horizontalOffset) > OFFSET_EPSILON ||
+    Math.abs(clampedV - verticalOffset) > OFFSET_EPSILON
+  ) {
     warning = ignoreMinBorder
       ? 'Offset adjusted to keep print on paper.'
-      : 'Offset adjusted to honour min-border.';
+      : 'Offset adjusted to honor min-border.';
   }
 
   return { halfW, halfH, h: clampedH, v: clampedV, warning };

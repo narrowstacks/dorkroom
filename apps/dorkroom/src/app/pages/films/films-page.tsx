@@ -67,6 +67,8 @@ function FilmsMobileLayout({
           isLoading={db.isLoading}
           isDetailOpen={!!selectedFilm || shouldShowDetailSkeleton}
           isFiltersCollapsed={false}
+          onClearFilters={db.clearFilters}
+          hasActiveFilters={db.hasActiveFilters}
         />
       </VirtualizedErrorBoundary>
 
@@ -130,6 +132,8 @@ function FilmsDesktopLayout({
             isLoading={db.isLoading}
             isDetailOpen={!!selectedFilm || shouldShowDetailSkeleton}
             isFiltersCollapsed={isFiltersCollapsed}
+            onClearFilters={db.clearFilters}
+            hasActiveFilters={db.hasActiveFilters}
           />
         </VirtualizedErrorBoundary>
       </main>

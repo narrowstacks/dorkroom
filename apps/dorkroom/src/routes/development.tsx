@@ -2,6 +2,7 @@ import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
 import { lazy, Suspense } from 'react';
 import { z } from 'zod';
+import { LoadingSpinner } from '../components/loading-spinner';
 
 const DevelopmentRecipesPage = lazy(
   () => import('../app/pages/development-recipes/development-recipes-page')
@@ -38,13 +39,7 @@ export const Route = createFileRoute('/development')({
     ],
   }),
   component: () => (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-spin rounded-full size-8 border-b-2 border-primary"></div>
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingSpinner />}>
       <DevelopmentRecipesPage />
     </Suspense>
   ),

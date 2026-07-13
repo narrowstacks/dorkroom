@@ -101,7 +101,7 @@ export function Toast({
   return (
     <output
       className={cn(
-        'fixed top-4 right-4 z-[9999] flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium shadow-lg transition-all duration-200',
+        'fixed top-4 right-4 z-[9999] flex max-w-[calc(100vw-2rem)] items-center gap-2 break-words rounded-lg px-4 py-3 text-sm font-medium shadow-lg transition-all duration-200',
         'border border-solid',
         isAnimating ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       )}

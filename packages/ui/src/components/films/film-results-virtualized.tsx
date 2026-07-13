@@ -122,6 +122,13 @@ interface FilmResultsVirtualizedProps {
   /** Height of the virtualized container. Defaults to calc(100dvh - 280px) */
   height?: string;
   className?: string;
+  /**
+   * Called when the user clicks "Clear filters" in the empty state. Only
+   * rendered when provided and `hasActiveFilters` is true.
+   */
+  onClearFilters?: () => void;
+  /** Whether any filter or search query is currently active. */
+  hasActiveFilters?: boolean;
 }
 
 // eslint-disable-next-line react-doctor/no-many-boolean-props -- independent display/state flags for the virtualized list, not a single variant axis
@@ -135,6 +142,8 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
   isFiltersCollapsed = false,
   height = DEFAULT_CONTAINER_HEIGHT,
   className,
+  onClearFilters,
+  hasActiveFilters = false,
 }) => {
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -224,6 +233,20 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
         <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
           Try adjusting your filters or search query
         </p>
+        {onClearFilters && hasActiveFilters && (
+          <button
+            type="button"
+            onClick={onClearFilters}
+            className="mt-4 rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
+            style={{
+              backgroundColor: 'var(--color-surface-muted)',
+              color: 'var(--color-text-secondary)',
+              border: '1px solid var(--color-border-secondary)',
+            }}
+          >
+            Clear filters
+          </button>
+        )}
       </div>
     );
   }

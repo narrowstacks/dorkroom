@@ -28,6 +28,7 @@ import {
   OfficialBadge,
 } from '../ui/official-badge';
 import { Tag } from '../ui/tag';
+import { formatTime } from './recipe-detail-shared';
 
 /**
  * Theme-aware action button that uses CSS for hover states.
@@ -163,19 +164,6 @@ const ActionIconButton = memo(function ActionIconButton({
  * Formatting utilities (extracted from results-table.tsx)
  */
 
-const formatTime = (minutes: number): string => {
-  if (minutes < 1) {
-    return `${Math.round(minutes * 60)}s`;
-  }
-
-  const wholeMinutes = Math.floor(minutes);
-  const seconds = Math.round((minutes - wholeMinutes) * 60);
-  if (seconds === 0) {
-    return `${wholeMinutes}m`;
-  }
-  return `${wholeMinutes}m ${seconds.toString().padStart(2, '0')}s`;
-};
-
 const formatDilution = (row: DevelopmentCombinationView): string => {
   const { combination, developer } = row;
   if (combination.customDilution) {
@@ -226,6 +214,13 @@ function TemperatureCellRenderer({
         temp.isNonStandard && 'font-medium'
       )}
       style={{ color: getTempColor() }}
+      title={
+        temp.isNonStandard
+          ? temp.isHigher
+            ? 'Above the standard 68°F / 20°C'
+            : 'Below the standard 68°F / 20°C'
+          : undefined
+      }
     >
       {temp.isNonStandard && (
         <TempIcon className="size-3.5 shrink-0" aria-hidden="true" />

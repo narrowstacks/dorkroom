@@ -104,6 +104,7 @@ export function OfficialBadge({ tag, showTooltip = true }: OfficialBadgeProps) {
         role="img"
         aria-label={tooltipText}
         aria-describedby={showTooltip && pos ? tooltipId : undefined}
+        title={tooltipText}
       >
         <Check className="size-3" strokeWidth={3} aria-hidden="true" />
       </span>

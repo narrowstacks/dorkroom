@@ -29,6 +29,7 @@ import {
 import { SkeletonCard } from '../ui/skeleton';
 import { Tag } from '../ui/tag';
 import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
+import { formatTime } from './recipe-detail-shared';
 import {
   useDeleteButtonStyles,
   useRecipeHoverStyles,
@@ -151,19 +152,6 @@ interface DevelopmentResultsCardsVirtualizedProps {
   /** ID of the currently selected recipe to highlight in the grid */
   selectedRecipeId?: string | null;
 }
-
-const formatTime = (minutes: number) => {
-  if (minutes < 1) {
-    return `${Math.round(minutes * 60)}s`;
-  }
-
-  const wholeMinutes = Math.floor(minutes);
-  const seconds = Math.round((minutes - wholeMinutes) * 60);
-  if (seconds === 0) {
-    return `${wholeMinutes} min`;
-  }
-  return `${wholeMinutes}m ${seconds.toString().padStart(2, '0')}s`;
-};
 
 const formatDilution = (view: DevelopmentCombinationView): string => {
   const { combination, developer } = view;
