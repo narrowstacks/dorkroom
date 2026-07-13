@@ -545,6 +545,11 @@ export const createTableColumns = (
                   ? 'View on FilmDev.org'
                   : 'View source'
               }
+              aria-label={
+                isFilmDevOrgUrl(combination.infoSource)
+                  ? 'View on FilmDev.org'
+                  : 'View source'
+              }
               className="inline-flex items-center"
               style={{ color: 'var(--color-text-tertiary)' }}
               onClick={(e) => {

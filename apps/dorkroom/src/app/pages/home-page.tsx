@@ -186,8 +186,8 @@ export function HomePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr">
           {CALCULATORS.map((tool, index) => (
             <ToolCard
-              {...tool}
               key={tool.title}
+              {...tool}
               as={Link}
               href={tool.href}
               className={

@@ -165,6 +165,7 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
           type="button"
           onClick={onClose}
           className="rounded-lg border border-white/20 bg-white/5 p-2 text-white transition hover:bg-white/10"
+          aria-label="Close paper & image size"
         >
           <X className="size-5" />
         </button>
