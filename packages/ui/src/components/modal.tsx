@@ -2,7 +2,6 @@ import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
 import { cn } from '../lib/cn';
-import { setStyles } from '../lib/dom';
 
 /**
  * Props for the Modal component.
@@ -99,26 +98,12 @@ export function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-4 top-4 rounded-full p-2 transition focus-visible:outline-none focus-visible:ring-2"
+            className="absolute right-4 top-4 rounded-full p-2 text-muted transition focus-visible:outline-none focus-visible:ring-2 hoverable-icon-btn"
             style={
               {
-                color: 'var(--color-text-muted)',
                 '--tw-ring-color': 'var(--color-border-primary)',
               } as React.CSSProperties
             }
-            onMouseEnter={(e) => {
-              setStyles(e.currentTarget, {
-                backgroundColor: 'var(--color-border-muted)',
-                color: 'var(--color-text-primary)',
-              });
-            }}
-            onMouseLeave={(e) => {
-              setStyles(e.currentTarget, {
-                backgroundColor:
-                  'var(--modal-close-bg-hover-leave, transparent)',
-                color: 'var(--color-text-muted)',
-              });
-            }}
             aria-label="Close"
           >
             <X className="size-4" />

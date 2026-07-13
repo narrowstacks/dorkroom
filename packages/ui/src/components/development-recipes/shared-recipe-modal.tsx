@@ -164,13 +164,7 @@ export function SharedRecipeModal({
         {description}
       </div>
 
-      <div
-        className="rounded-xl border p-4"
-        style={{
-          borderColor: 'var(--color-border-secondary)',
-          backgroundColor: 'var(--color-border-muted)',
-        }}
-      >
+      <div className="rounded-xl border border-secondary bg-border-muted p-4">
         <div
           className="mb-2 text-xs uppercase tracking-wide"
           style={{ color: 'var(--color-text-muted)' }}

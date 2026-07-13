@@ -101,15 +101,7 @@ export function PreviewAndControlsSection() {
         const shouldShow = !isPaperActuallyLandscape && !isSquareAspectRatio;
         return (
           shouldShow && (
-            <div
-              className="mt-2 rounded-xl px-3 py-2 text-center text-xs"
-              style={{
-                borderWidth: 1,
-                borderColor: 'var(--color-border-secondary)',
-                backgroundColor: 'var(--color-border-muted)',
-                color: 'var(--color-text-primary)',
-              }}
-            >
+            <div className="mt-2 rounded-xl border border-secondary bg-border-muted px-3 py-2 text-center text-xs text-primary">
               <strong className="font-semibold">Rotate your easel</strong>
               <br />
               Paper is in vertical orientation. Rotate your easel 90° to match
@@ -120,15 +112,7 @@ export function PreviewAndControlsSection() {
       })()}
 
       {calculation.isNonStandardPaperSize && (
-        <div
-          className="mt-2 rounded-xl px-3 py-2 text-center text-xs"
-          style={{
-            borderWidth: 1,
-            borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'var(--color-border-muted)',
-            color: 'var(--color-text-primary)',
-          }}
-        >
+        <div className="mt-2 rounded-xl border border-secondary bg-border-muted px-3 py-2 text-center text-xs text-primary">
           <strong className="font-semibold">Non-standard paper</strong>
           <br />
           Position paper in the {calculation.easelSizeLabel} slot all the way to
