@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { SymbolView } from 'expo-symbols';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 // PanResponder is intentional here: the scrubber deliberately avoids a react-native-gesture-handler dependency, commits the value live on each stop crossing (one re-render per stop, gated by the haptic tick — the smooth glide rides an Animated.Value the overlay wheel binds to, not React state). Migrating to Gesture.Pan() would be an invasive, behavior-changing rewrite of the gesture/animation pipeline for no functional gain. The type-only Animated import is erased at runtime, so there's no UI-thread animation that reanimated would improve.
 /* eslint-disable react-doctor/rn-prefer-reanimated, react-doctor/rn-no-panresponder -- intentional PanResponder + JS Animated pipeline; see note above */
 import {
@@ -297,56 +297,65 @@ function ValueScrubber({
   // A disabled setting (e.g. ISO while locked to the roll's EI) swallows the
   // gesture and prompts instead of scrubbing. Kept in refs the once-created
   // PanResponder reads, so the check happens in the gesture handler itself.
+  // Refreshed in an effect (not during render) for the same reason as
+  // `controller` above: render must stay pure, and these are only ever read
+  // later, from the gesture handlers.
   const disabledRef = useRef(field.disabled);
-  disabledRef.current = field.disabled;
   const onBlockedRef = useRef(field.onBlocked);
-  onBlockedRef.current = field.onBlocked;
   const onTapHintRef = useRef(onTapHint);
-  onTapHintRef.current = onTapHint;
-
-  const panRef = useRef<ReturnType<typeof PanResponder.create>>(null);
-  panRef.current ??= PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderTerminationRequest: () => false,
-    onPanResponderGrant: () => {
-      if (disabledRef.current) {
-        onBlockedRef.current?.();
-        return;
-      }
-      controller.current.prepare();
-      clearHoldTimer();
-      holdTimer.current = setTimeout(() => {
-        holdTimer.current = null;
-        controller.current.begin();
-      }, HOLD_TO_SCRUB_MS);
-    },
-    onPanResponderMove: (_e, g) => {
-      if (disabledRef.current) return;
-      const moved = Math.hypot(g.dx, g.dy);
-      if (!scrubbing.current && moved >= DRAG_TO_SCRUB_PX) {
-        clearHoldTimer();
-        controller.current.begin();
-      }
-      controller.current.move(g);
-    },
-    onPanResponderRelease: () => {
-      if (disabledRef.current) return;
-      clearHoldTimer();
-      if (scrubbing.current) {
-        controller.current.end();
-      } else {
-        dragY.setValue(0);
-        onTapHintRef.current();
-      }
-    },
-    onPanResponderTerminate: () => {
-      if (disabledRef.current) return;
-      clearHoldTimer();
-      controller.current.cancel();
-    },
+  useEffect(() => {
+    disabledRef.current = field.disabled;
+    onBlockedRef.current = field.onBlocked;
+    onTapHintRef.current = onTapHint;
   });
-  const pan = panRef.current;
+
+  // Created once and reused for the component's lifetime (a lazy useState
+  // initializer, not a ref write in render, so it stays pure) — Fast Refresh
+  // survives because the handlers below close over the refs above, not over
+  // `field` directly.
+  const [pan] = useState(() =>
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderGrant: () => {
+        if (disabledRef.current) {
+          onBlockedRef.current?.();
+          return;
+        }
+        controller.current.prepare();
+        clearHoldTimer();
+        holdTimer.current = setTimeout(() => {
+          holdTimer.current = null;
+          controller.current.begin();
+        }, HOLD_TO_SCRUB_MS);
+      },
+      onPanResponderMove: (_e, g) => {
+        if (disabledRef.current) return;
+        const moved = Math.hypot(g.dx, g.dy);
+        if (!scrubbing.current && moved >= DRAG_TO_SCRUB_PX) {
+          clearHoldTimer();
+          controller.current.begin();
+        }
+        controller.current.move(g);
+      },
+      onPanResponderRelease: () => {
+        if (disabledRef.current) return;
+        clearHoldTimer();
+        if (scrubbing.current) {
+          controller.current.end();
+        } else {
+          dragY.setValue(0);
+          onTapHintRef.current();
+        }
+      },
+      onPanResponderTerminate: () => {
+        if (disabledRef.current) return;
+        clearHoldTimer();
+        controller.current.cancel();
+      },
+    })
+  );
 
   return (
     <View
