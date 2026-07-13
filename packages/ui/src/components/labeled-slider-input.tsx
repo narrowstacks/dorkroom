@@ -100,6 +100,15 @@ export function LabeledSliderInput({
   const [localSliderValue, setLocalSliderValue] = useState<number | null>(null);
   const rafRef = useRef<number>(0);
 
+  // Local draft for the number input so transitional keystrokes ("-", "",
+  // "1.") are never clobbered by the controlled `value` prop round-tripping
+  // back down. Authoritative while focused; resynced from `value` on blur
+  // (see handleInputBlur) or whenever the parent updates it while unfocused.
+  const [numberDraft, setNumberDraft] = useState(String(value));
+  if (!isFocused && numberDraft !== String(value)) {
+    setNumberDraft(String(value));
+  }
+
   const handleSliderChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const newValue = parseFloat((e.target as HTMLInputElement).value);
@@ -123,8 +132,34 @@ export function LabeledSliderInput({
   }
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newValue = parseFloat((e.target as HTMLInputElement).value) || 0;
-    onChange(newValue);
+    const raw = (e.target as HTMLInputElement).value;
+    setNumberDraft(raw);
+    const parsed = parseFloat(raw);
+    if (Number.isFinite(parsed)) {
+      onChange(parsed);
+    }
+  };
+
+  const handleInputFocus = () => {
+    setIsFocused(true);
+  };
+
+  const handleInputBlur = () => {
+    setIsFocused(false);
+    const parsed = parseFloat(numberDraft);
+    if (Number.isFinite(parsed)) {
+      // Clamp on blur (not per keystroke) so typing e.g. "-1" is visible
+      // until the field loses focus, then snaps into range.
+      const clamped = Math.min(max, Math.max(min, parsed));
+      if (clamped !== value) {
+        onChange(clamped);
+      }
+      setNumberDraft(String(clamped));
+    } else {
+      // Unparseable draft ("", "-") - revert to the last committed value
+      // instead of coercing to 0.
+      setNumberDraft(String(value));
+    }
   };
 
   return (
@@ -142,7 +177,7 @@ export function LabeledSliderInput({
           type="number"
           id={inputId}
           aria-label={label}
-          value={value}
+          value={numberDraft}
           onChange={handleInputChange}
           min={min}
           max={max}
@@ -161,8 +196,8 @@ export function LabeledSliderInput({
           style={{
             color: 'var(--color-text-primary)',
           }}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
         />
       </div>
 

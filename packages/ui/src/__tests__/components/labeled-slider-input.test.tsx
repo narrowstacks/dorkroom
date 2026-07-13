@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { LabeledSliderInput } from '../../components/labeled-slider-input';
 
@@ -15,6 +16,37 @@ describe('LabeledSliderInput', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
+
+  // Mirrors real usage: the committed value flows back down as the `value`
+  // prop. A bare `vi.fn()` onChange spy with a fixed `value` prop can't
+  // model that round trip, which matters for assertions made *after* a
+  // commit (e.g. the state a blur-clamp leaves behind).
+  function ControlledWrapper({
+    initialValue,
+    min,
+    max,
+    onChange,
+  }: {
+    initialValue: number;
+    min: number;
+    max: number;
+    onChange: (value: number) => void;
+  }) {
+    const [value, setValue] = useState(initialValue);
+    return (
+      <LabeledSliderInput
+        label="Test Label"
+        value={value}
+        min={min}
+        max={max}
+        step={1}
+        onChange={(next) => {
+          setValue(next);
+          onChange(next);
+        }}
+      />
+    );
+  }
 
   it('renders with label and current value', () => {
     render(<LabeledSliderInput {...defaultProps} />);
@@ -111,14 +143,83 @@ describe('LabeledSliderInput', () => {
     expect(slider).toHaveAttribute('step', '1');
   });
 
-  it('handles invalid number input gracefully', () => {
+  // Note: `<input type="number">` sanitizes its `.value` per the HTML spec -
+  // an unparseable partial number like "-" or "invalid" always reads back as
+  // "" (in every browser, and in jsdom). These tests assert what's
+  // observable across environments: onChange is never called with a coerced
+  // 0 for a transitional entry, and a full, valid number commits and
+  // displays correctly once typed.
+  it('does not coerce invalid number input to 0', () => {
     const onChange = vi.fn();
     render(<LabeledSliderInput {...defaultProps} onChange={onChange} />);
 
     const numberInput = screen.getByRole('spinbutton');
+    fireEvent.focus(numberInput);
     fireEvent.change(numberInput, { target: { value: 'invalid' } });
 
-    expect(onChange).toHaveBeenCalledWith(0); // Falls back to 0 for invalid input
+    // Transitional/unparseable text is never propagated as 0.
+    expect(onChange).not.toHaveBeenCalled();
+    expect(numberInput).not.toHaveValue(0);
+  });
+
+  it('preserves a draft "-" without emitting 0, then commits once a full negative number parses', () => {
+    const onChange = vi.fn();
+    render(
+      <LabeledSliderInput
+        {...defaultProps}
+        min={-10}
+        max={10}
+        onChange={onChange}
+      />
+    );
+
+    const numberInput = screen.getByRole('spinbutton');
+    fireEvent.focus(numberInput);
+    fireEvent.change(numberInput, { target: { value: '-' } });
+    expect(onChange).not.toHaveBeenCalled();
+
+    fireEvent.change(numberInput, { target: { value: '-1' } });
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith(-1);
+    expect(numberInput).toHaveDisplayValue('-1');
+  });
+
+  it('clamps to min on blur without clamping per keystroke', () => {
+    const onChange = vi.fn();
+    render(
+      <ControlledWrapper
+        initialValue={5}
+        min={0}
+        max={10}
+        onChange={onChange}
+      />
+    );
+
+    const numberInput = screen.getByRole('spinbutton');
+    fireEvent.focus(numberInput);
+    fireEvent.change(numberInput, { target: { value: '-1' } });
+    // Typing keeps the out-of-range value visible; no clamp yet.
+    expect(numberInput).toHaveDisplayValue('-1');
+    expect(onChange).toHaveBeenLastCalledWith(-1);
+
+    fireEvent.blur(numberInput);
+    // Blur snaps both the displayed value and the committed value to min.
+    expect(numberInput).toHaveDisplayValue('0');
+    expect(onChange).toHaveBeenLastCalledWith(0);
+  });
+
+  it('reverts an unparseable draft to the last committed value on blur', () => {
+    const onChange = vi.fn();
+    render(<LabeledSliderInput {...defaultProps} onChange={onChange} />);
+
+    const numberInput = screen.getByRole('spinbutton');
+    fireEvent.focus(numberInput);
+    fireEvent.change(numberInput, { target: { value: '' } });
+    expect(onChange).not.toHaveBeenCalled();
+
+    fireEvent.blur(numberInput);
+    expect(numberInput).toHaveDisplayValue('5'); // defaultProps.value
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it('has proper accessibility attributes', () => {

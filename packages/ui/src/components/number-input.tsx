@@ -9,6 +9,7 @@ interface NumberInputProps {
   inputTitle?: string;
   step?: number;
   className?: string;
+  onFocus?: () => void;
   onBlur?: () => void;
 }
 
@@ -19,6 +20,7 @@ export function NumberInput({
   inputTitle,
   step = 1,
   className,
+  onFocus,
   onBlur,
 }: NumberInputProps) {
   const [isFocused, setIsFocused] = useState(false);
@@ -51,7 +53,10 @@ export function NumberInput({
           boxShadow: isFocused ? '0 0 0 2px var(--color-focus-ring)' : 'none',
         } as React.CSSProperties
       }
-      onFocus={() => setIsFocused(true)}
+      onFocus={() => {
+        setIsFocused(true);
+        onFocus?.();
+      }}
       onBlur={() => {
         setIsFocused(false);
         onBlur?.();

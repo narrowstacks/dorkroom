@@ -359,17 +359,17 @@ function ResizeResults({ form }: { form: ResizeForm }) {
               : 'Same size print — keep your original exposure.'
           : undefined;
 
-        return { newTime, stopsDifference, stopsHelper };
+        return { newTime, stopsDifference, stopsHelper, isEnlargerMode };
       }}
     >
-      {({ newTime, stopsDifference, stopsHelper }) =>
-        newTime ? (
-          <CalculatorCard
-            title="Exposure result"
-            description="Dial these in on your timer and make a quick test strip to confirm."
-            accent="teal"
-            padding="compact"
-          >
+      {({ newTime, stopsDifference, stopsHelper, isEnlargerMode }) => (
+        <CalculatorCard
+          title="Exposure result"
+          description="Dial these in on your timer and make a quick test strip to confirm."
+          accent="teal"
+          padding="compact"
+        >
+          {newTime ? (
             <div className="grid gap-4 sm:grid-cols-2">
               <CalculatorStat
                 label="New time"
@@ -384,9 +384,18 @@ function ResizeResults({ form }: { form: ResizeForm }) {
                 helperText={stopsHelper}
               />
             </div>
-          </CalculatorCard>
-        ) : null
-      }
+          ) : (
+            <p
+              className="text-sm"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              {isEnlargerMode
+                ? 'Enter enlarger heights and an original exposure time greater than 0 to calculate the new exposure. Both heights and the original time must be positive.'
+                : 'Enter sizes greater than 0 to calculate the new exposure. All four dimensions (and the original time) must be positive.'}
+            </p>
+          )}
+        </CalculatorCard>
+      )}
     </form.Subscribe>
   );
 }

@@ -23,7 +23,7 @@ import {
 } from '@dorkroom/ui/forms';
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
-import { type ChangeEvent, type FC, useMemo } from 'react';
+import { type ChangeEvent, type FC, useMemo, useRef, useState } from 'react';
 
 const validateExposureForm = createZodFormValidator(exposureCalculatorSchema);
 
@@ -54,6 +54,74 @@ const StopButton: FC<StopButtonProps> = ({ preset, onPress }) => (
     {preset.label}
   </button>
 );
+
+interface StopsNumberInputProps {
+  value: number;
+  onChange: (value: number) => void;
+  onBlur: () => void;
+  error?: string;
+}
+
+// Applies the same draft-preserving pattern as CalculatorNumberField
+// (packages/ui) to this page's raw <input type="number">: the local draft
+// is authoritative while focused, so a transitional "-" or "" never
+// round-trips back down as a coerced 0. On blur, an unparseable draft
+// reverts to the last committed value instead of showing 0.
+const StopsNumberInput: FC<StopsNumberInputProps> = ({
+  value,
+  onChange,
+  onBlur,
+  error,
+}) => {
+  // Never rendered - only gates the "resync from props" branch below and
+  // the blur handler, so a ref (not state) avoids a redraw on every
+  // focus/blur that wouldn't change anything on screen.
+  const isFocusedRef = useRef(false);
+  const [draft, setDraft] = useState(String(value));
+
+  if (!isFocusedRef.current && draft !== String(value)) {
+    setDraft(String(value));
+  }
+
+  return (
+    <div className="mx-2 space-y-1">
+      <input
+        type="number"
+        value={draft}
+        onChange={(e: ChangeEvent<HTMLInputElement>) => {
+          const raw = e.target.value;
+          setDraft(raw);
+          const parsed = parseFloat(raw);
+          if (Number.isFinite(parsed)) {
+            onChange(parsed);
+          }
+        }}
+        onFocus={() => {
+          isFocusedRef.current = true;
+        }}
+        onBlur={() => {
+          isFocusedRef.current = false;
+          if (!Number.isFinite(parseFloat(draft))) {
+            setDraft(String(value));
+          }
+          onBlur();
+        }}
+        placeholder="1"
+        step={0.1}
+        aria-label="Stops adjustment"
+        className="w-20 rounded-lg border px-3 py-2 text-center text-sm themed-input"
+      />
+      {error && (
+        <p
+          className="text-xs font-medium text-center"
+          style={{ color: 'var(--color-accent)' }}
+        >
+          {error}
+        </p>
+      )}
+    </div>
+  );
+};
 
 export default function ExposureCalculatorPage() {
   const form = useForm({
@@ -262,13 +330,23 @@ export default function ExposureCalculatorPage() {
               value={String(field.state.value)}
               onChange={(value: string) => {
                 const parsed = parseFloat(value);
-                const finiteValue = Number.isFinite(parsed) ? parsed : 0;
-                field.handleChange(finiteValue);
+                // CalculatorNumberField only calls onChange once the draft
+                // parses to a finite number, so this guard is unreachable
+                // from normal typing - it only protects against
+                // programmatic misuse.
+                if (Number.isFinite(parsed)) {
+                  field.handleChange(parsed);
+                }
               }}
               onBlur={field.handleBlur}
               placeholder="10"
               step={0.1}
               helperText="Base exposure time you want to adjust"
+              error={
+                field.state.meta.errors.length > 0
+                  ? field.state.meta.errors.join(', ')
+                  : undefined
+              }
             />
           )}
         </form.Field>
@@ -297,24 +375,16 @@ export default function ExposureCalculatorPage() {
               {/* Custom stop value input */}
               <form.Field name="stops">
                 {(field) => (
-                  <div className="mx-2">
-                    <input
-                      type="number"
-                      value={field.state.value}
-                      onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                        const parsed = parseFloat(e.target.value);
-                        const finiteValue = Number.isFinite(parsed)
-                          ? parsed
-                          : 0;
-                        field.handleChange(finiteValue);
-                      }}
-                      onBlur={field.handleBlur}
-                      placeholder="1"
-                      step={0.1}
-                      aria-label="Stops adjustment"
-                      className="w-20 rounded-lg border px-3 py-2 text-center text-sm themed-input"
-                    />
-                  </div>
+                  <StopsNumberInput
+                    value={field.state.value}
+                    onChange={field.handleChange}
+                    onBlur={field.handleBlur}
+                    error={
+                      field.state.meta.errors.length > 0
+                        ? field.state.meta.errors.join(', ')
+                        : undefined
+                    }
+                  />
                 )}
               </form.Field>
 
