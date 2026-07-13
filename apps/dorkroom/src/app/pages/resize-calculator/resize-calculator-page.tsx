@@ -80,7 +80,7 @@ function ModeToggle({ isEnlargerHeightMode, onModeChange }: ModeToggleProps) {
               type="button"
               aria-pressed={active}
               onClick={() => onModeChange(option.isEnlargerHeight)}
-              className="rounded-full px-4 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
+              className="rounded-full px-4 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
               style={
                 active
                   ? {

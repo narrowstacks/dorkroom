@@ -11,4 +11,29 @@
     @apply bg-primary/40;
     color: var(--color-text-primary);
   }
+
+  /* Skip-to-content link: visually hidden until keyboard-focused, then pinned
+     above the sticky header (z-50) so it isn't obscured. Uses a transform
+     (not top/left percentages) so it hides reliably regardless of the
+     containing block's size. */
+  .skip-link {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 60;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: var(--color-text-primary);
+    color: var(--color-background);
+    transform: translateY(-150%);
+    transition: none;
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
 }

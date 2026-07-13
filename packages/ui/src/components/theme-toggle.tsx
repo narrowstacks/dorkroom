@@ -257,7 +257,7 @@ export function ThemeToggle({
             'text-[color:var(--color-text-secondary)]',
             'hover-surface-tint hover:text-[color:var(--nav-hover-text)]',
             'transition focus-visible:outline-none focus-visible:ring-2',
-            'focus-visible:ring-[color:var(--color-border-primary)]'
+            'focus-visible:ring-[color:var(--color-focus-ring)]'
           )}
           aria-expanded={isOpen}
           aria-haspopup="menu"
@@ -292,7 +292,7 @@ export function ThemeToggle({
           className={cn(
             'flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium',
             'transition focus-visible:outline-none focus-visible:ring-2',
-            'focus-visible:ring-[color:var(--color-border-primary)]',
+            'focus-visible:ring-[color:var(--color-focus-ring)]',
             'text-[color:var(--color-text-secondary)]',
             'hover-surface-tint hover:text-[color:var(--nav-hover-text)]'
           )}
@@ -367,7 +367,7 @@ export function ThemeToggle({
         className={cn(
           'nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none',
           'focus-visible:ring-2',
-          'focus-visible:ring-[color:var(--color-border-primary)]',
+          'focus-visible:ring-[color:var(--color-focus-ring)]',
           'text-[color:var(--color-text-primary)] hover:bg-[color:var(--color-border-muted)]'
         )}
         style={{

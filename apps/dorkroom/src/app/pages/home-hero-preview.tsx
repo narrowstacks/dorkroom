@@ -142,7 +142,7 @@ export function HomeHeroPreview() {
     <Link
       to="/border"
       aria-label="Open the border calculator"
-      className="group/hero block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
+      className="group/hero block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
     >
       {/* The paper, with the print area and four easel blades */}
       <div

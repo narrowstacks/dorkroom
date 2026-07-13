@@ -21,7 +21,7 @@ export function PreviewAndControlsSection() {
   const flipControlBaseClasses =
     'flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none text-[color:var(--color-text-primary)] border-[color:var(--color-border-secondary)] bg-[rgba(var(--color-background-rgb),0.08)]';
   const enabledFlipClasses =
-    'hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]';
+    'hover:bg-[rgba(var(--color-background-rgb),0.14)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]';
 
   if (!calculation) return null;
 

@@ -151,14 +151,14 @@ export function HomePage() {
           <div className="flex flex-wrap gap-2">
             <Link
               to="/border"
-              className="darkroom-invert-icon inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm button-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
+              className="darkroom-invert-icon inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm button-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
             >
               <Crop className="size-4" />
               Calculate darkroom easel borders
             </Link>
             <Link
               to="/development"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm button-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm button-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
             >
               <FlaskConical className="size-4" />
               Search film development recipes

@@ -16,7 +16,7 @@ function SidebarNavItem({ item, isActive, onClick }: SidebarNavItemProps) {
   const itemClasses = cn(
     'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium',
     'transition focus-visible:outline-none focus-visible:ring-2',
-    'focus-visible:ring-[color:var(--color-border-primary)]',
+    'focus-visible:ring-[color:var(--color-focus-ring)]',
     'text-[color:var(--color-text-secondary)]',
     'hover-surface-tint hover:text-[color:var(--nav-hover-text)]',
     isActive &&
@@ -190,7 +190,7 @@ export function MobileSidebar({
             className={cn(
               'flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium',
               'transition focus-visible:outline-none focus-visible:ring-2',
-              'focus-visible:ring-[color:var(--color-border-primary)]',
+              'focus-visible:ring-[color:var(--color-focus-ring)]',
               'text-[color:var(--color-text-secondary)]',
               'hover-surface-tint hover:text-[color:var(--nav-hover-text)]',
               settingsItem.to &&

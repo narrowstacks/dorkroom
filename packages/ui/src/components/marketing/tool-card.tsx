@@ -89,7 +89,7 @@ export const ToolCard = memo(function ToolCard({
         'group relative overflow-hidden rounded-2xl border p-5 transition-all focus-visible:outline-none focus-visible:ring-2',
         'border-[color:var(--color-border-primary)]',
         'hover:bg-[color:var(--color-surface-muted)]',
-        'focus-visible:ring-[color:var(--color-border-primary)]',
+        'focus-visible:ring-[color:var(--color-focus-ring)]',
         '[&:not([data-theme="high-contrast"])]:hover:-translate-y-0.5',
         '[&:not([data-theme="high-contrast"])]:hover:shadow-lg',
         accentClasses.border,

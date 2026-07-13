@@ -292,7 +292,7 @@
       background-color: rgba(var(--color-background-rgb), 0.15) !important;
     }
     .hoverable-settings-btn:not(.settings-btn-selected):focus-visible {
-      outline: 2px solid var(--color-border-primary);
+      outline: 2px solid var(--color-focus-ring);
     }
     .hoverable-settings-btn:not(.settings-btn-selected):not(:focus-visible) {
       outline: var(--settings-button-outline-inactive, none);

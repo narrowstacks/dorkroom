@@ -130,6 +130,7 @@
   --color-border-primary: #ff0000;
   --color-border-secondary: #ff0000;
   --color-border-muted: #000000;
+  --color-focus-ring: #ff0000;
   --color-semantic-success: #ff0000;
   --color-semantic-warning: #ff0000;
   --color-semantic-error: #ff0000;
@@ -259,6 +260,7 @@
   --color-border-primary: rgba(255, 255, 255, 0.2);
   --color-border-secondary: rgba(255, 255, 255, 0.1);
   --color-border-muted: rgba(255, 255, 255, 0.05);
+  --color-focus-ring: #7dd6ff;
   --color-semantic-success: #6ef3a4;
   --color-semantic-warning: #e5ff7d;
   --color-semantic-error: #f99f96;
@@ -489,6 +491,7 @@
   --color-border-primary: rgba(9, 9, 11, 0.18);
   --color-border-secondary: rgba(9, 9, 11, 0.1);
   --color-border-muted: rgba(9, 9, 11, 0.06);
+  --color-focus-ring: #1e6091;
   --color-semantic-success: #2d7a4a;
   --color-semantic-warning: #b83f16; /* 4.6:1 on white */
   --color-semantic-error: #d32323;
@@ -730,6 +733,7 @@
   --color-border-primary: #000000;
   --color-border-secondary: #000000;
   --color-border-muted: #000000;
+  --color-focus-ring: #000000;
   --color-semantic-success: #000000;
   --color-semantic-warning: #000000;
   --color-semantic-error: #000000;
@@ -863,6 +867,7 @@
   --color-border-primary: rgba(255, 255, 255, 0.2);
   --color-border-secondary: rgba(255, 255, 255, 0.1);
   --color-border-muted: rgba(255, 255, 255, 0.05);
+  --color-focus-ring: #7dd6ff;
   --color-semantic-success: #6ef3a4;
   --color-semantic-warning: #e5ff7d;
   --color-semantic-error: #f99f96;
@@ -990,11 +995,11 @@
 
 /* Ensure focus rings use only red/black in darkroom theme */
 [data-theme="darkroom"] *:focus-visible {
-  outline-color: var(--color-border-primary);
+  outline-color: var(--color-focus-ring);
 }
 
 [data-theme="darkroom"] *:focus-visible {
-  --tw-ring-color: var(--color-border-primary);
+  --tw-ring-color: var(--color-focus-ring);
 }
 
 /* Make tool card icons black on hover in darkroom mode (so they're visible against red bg) */

@@ -78,14 +78,17 @@ describe('NumberInput', () => {
     const input = screen.getByRole('spinbutton');
 
     // Initially not focused
-    expect(input).toHaveClass('focus:outline-none');
+    expect(input).toHaveClass('focus-visible:outline-none');
+    expect(input.style.boxShadow).toBe('none');
 
     fireEvent.focus(input);
-    // Focus state affects internal state but classes are consistent
-    expect(input).toHaveClass('focus:ring-2');
+    // The visible focus ring is the inline box-shadow, driven by the
+    // --color-focus-ring token (readable in every theme).
+    expect(input.style.boxShadow).toContain('var(--color-focus-ring)');
 
     fireEvent.blur(input);
     // Blur resets focus state
+    expect(input.style.boxShadow).toBe('none');
   });
 
   it('handles empty string value', () => {

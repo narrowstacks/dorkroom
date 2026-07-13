@@ -95,8 +95,11 @@ Weights: `font-medium` = emphasis, `font-semibold` = headings,
   duration). High-contrast and darkroom themes disable ALL animation
   globally — never rely on motion to convey state.
 - Interactive elements: `focus-visible:outline-none focus-visible:ring-2
-  focus-visible:ring-[color:var(--color-border-primary)]`. Never bare
+  focus-visible:ring-[color:var(--color-focus-ring)]`. Never bare
   `focus:` rings; never remove an outline without adding a ring.
+  `--color-focus-ring` is a dedicated token (not `--color-border-primary`) so
+  the ring stays ≥3:1 against the surface in every theme — dark/light border
+  tokens are translucent and fail contrast for focus indicators.
 
 ## Accessibility
 

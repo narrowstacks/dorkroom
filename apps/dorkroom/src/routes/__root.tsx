@@ -56,6 +56,9 @@ function RootComponent() {
         className="isolate h-dvh"
         style={{ backgroundColor: 'var(--color-background)' }}
       >
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
         {/* Background gradient as a dedicated position:fixed layer (painted once,
             composited) rather than `background-attachment: fixed` on the
             scrolling content — a fixed-attachment background must re-rasterize
@@ -105,7 +108,7 @@ function RootComponent() {
                     className={cn(
                       'flex min-w-fit items-center gap-2 rounded-full px-4 py-2 font-medium transition focus-visible:outline-none',
                       'focus-visible:ring-2',
-                      'focus-visible:ring-[color:var(--color-border-primary)]',
+                      'focus-visible:ring-[color:var(--color-focus-ring)]',
                       'text-[color:var(--color-text-tertiary)] hover:text-[color:var(--nav-hover-text)]',
                       pathname === '/' &&
                         'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)] shadow-subtle hover:text-[color:var(--nav-active-hover-text)]'
@@ -132,7 +135,7 @@ function RootComponent() {
                     href="https://github.com/narrowstacks/dorkroom"
                     target="_blank"
                     rel="noreferrer"
-                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
+                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
                     style={{
                       color: 'var(--color-text-primary)',
                       borderColor: 'var(--color-border-secondary)',
@@ -149,7 +152,7 @@ function RootComponent() {
                     href="https://news.dorkroom.art"
                     target="_blank"
                     rel="noreferrer"
-                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
+                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
                     style={{
                       color: 'var(--color-text-primary)',
                       borderColor: 'var(--color-border-secondary)',
@@ -167,7 +170,7 @@ function RootComponent() {
                 <Tooltip label="Settings">
                   <Link
                     to="/settings"
-                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
+                    className="nav-button flex size-9 items-center justify-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
                     style={{
                       color: 'var(--color-text-primary)',
                       borderColor: 'var(--color-border-secondary)',
@@ -185,7 +188,7 @@ function RootComponent() {
 
           <MobileNav pathname={pathname} onNavigate={handleNavigate} />
 
-          <main>
+          <main id="main-content">
             <Outlet />
           </main>
         </div>

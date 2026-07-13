@@ -321,7 +321,7 @@
 
   /* Accessible focus styles for range inputs */
   .slider-track:focus-visible {
-    outline: 2px solid var(--color-border-primary);
+    outline: 2px solid var(--color-focus-ring);
     outline-offset: 2px;
   }
 

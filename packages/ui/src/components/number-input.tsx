@@ -33,7 +33,7 @@ export function NumberInput({
       title={inputTitle}
       step={step}
       className={cn(
-        'w-20 rounded-lg border px-3 py-2 focus:outline-none focus:ring-2',
+        'w-20 rounded-lg border px-3 py-2 focus-visible:outline-none',
         className
       )}
       style={
@@ -48,7 +48,7 @@ export function NumberInput({
             'var(--color-surface)'
           ),
           color: 'var(--color-text-primary)',
-          boxShadow: isFocused ? '0 0 0 2px var(--color-border-muted)' : 'none',
+          boxShadow: isFocused ? '0 0 0 2px var(--color-focus-ring)' : 'none',
         } as React.CSSProperties
       }
       onFocus={() => setIsFocused(true)}
