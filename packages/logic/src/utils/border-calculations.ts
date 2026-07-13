@@ -9,7 +9,11 @@ import {
   CALCULATION_CONSTANTS,
   DERIVED_CONSTANTS,
 } from '../constants/calculations';
-import { createMemoKey, roundToStandardPrecision } from './precision';
+import {
+  createMemoKey,
+  roundToPrecision,
+  roundToStandardPrecision,
+} from './precision';
 
 const { BORDER_OPTIMIZATION, CACHE, PAPER } = CALCULATION_CONSTANTS;
 
@@ -528,7 +532,13 @@ export const calculateQuarterInchMinBorder = ({
     }
 
     if (isQuarterIncrement(printW) && isQuarterIncrement(printH)) {
-      const roundedBorder = roundToStandardPrecision(Math.max(candidate, 0));
+      // Candidates are of the form (paper - k * 0.25 * ratio) / 2, which can
+      // require up to 3-4 decimal places (e.g. 0.875, steps of 1/16). The
+      // app-wide 2-decimal rounding helper used elsewhere in this file would
+      // destroy the quarter-inch alignment this function exists to produce,
+      // so round to 4 decimals here instead — enough to clean float noise
+      // while preserving every reachable candidate exactly.
+      const roundedBorder = roundToPrecision(Math.max(candidate, 0), 4);
       if (Math.abs(roundedBorder - currentMinBorder) < ROUNDING_EPSILON) {
         return null;
       }

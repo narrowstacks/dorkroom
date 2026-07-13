@@ -3,6 +3,7 @@ import {
   bordersFromGaps,
   calculateBladeThickness,
   calculateOptimalMinBorder,
+  calculateQuarterInchMinBorder,
   clampOffsets,
   computePrintSize,
   findCenteringOffsets,
@@ -316,6 +317,136 @@ describe('border calculations', () => {
     it('should handle negative offsets', () => {
       expect(validatePrintFits(10, 8, 6, 4, -1, -1)).toBe(true);
       expect(validatePrintFits(10, 8, 6, 4, -3, 0)).toBe(false); // negative offset too large
+    });
+  });
+
+  describe('calculateQuarterInchMinBorder', () => {
+    it('should return a border that makes the print size land exactly on quarter-inch increments', () => {
+      // /border defaults: oriented paper 10x8, aspect ratio 3:2, min border 0.6
+      // computePrintSize(10, 8, 3, 2, 0.6) -> 8.8 x 5.8666... (the observed blade readings)
+      const result = calculateQuarterInchMinBorder({
+        paperWidth: 10,
+        paperHeight: 8,
+        ratioWidth: 3,
+        ratioHeight: 2,
+        currentMinBorder: 0.6,
+        printWidth: 8.8,
+        printHeight: 5.866666666666667,
+      });
+
+      // The correct candidate is 0.875: print becomes exactly 8.25 x 5.5
+      expect(result).toBeCloseTo(0.875, 6);
+
+      const { printW, printH } = computePrintSize(
+        10,
+        8,
+        3,
+        2,
+        result as number
+      );
+      expect(printW % 0.25).toBeCloseTo(0, 6);
+      expect(printH % 0.25).toBeCloseTo(0, 6);
+    });
+
+    it('should return null when the print size is already quarter-aligned', () => {
+      const result = calculateQuarterInchMinBorder({
+        paperWidth: 10,
+        paperHeight: 8,
+        ratioWidth: 3,
+        ratioHeight: 2,
+        currentMinBorder: 0.875,
+        printWidth: 8.25,
+        printHeight: 5.5,
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null for non-positive inputs', () => {
+      expect(
+        calculateQuarterInchMinBorder({
+          paperWidth: 0,
+          paperHeight: 8,
+          ratioWidth: 3,
+          ratioHeight: 2,
+          currentMinBorder: 0.6,
+          printWidth: 8.8,
+          printHeight: 5.866666666666667,
+        })
+      ).toBeNull();
+    });
+
+    it('should respect the current border as a floor', () => {
+      const currentMinBorder = 0.6;
+      const result = calculateQuarterInchMinBorder({
+        paperWidth: 10,
+        paperHeight: 8,
+        ratioWidth: 3,
+        ratioHeight: 2,
+        currentMinBorder,
+        printWidth: 8.8,
+        printHeight: 5.866666666666667,
+      });
+
+      expect(result).not.toBeNull();
+      expect(result as number).toBeGreaterThanOrEqual(
+        currentMinBorder - 0.0001
+      );
+    });
+
+    it('should return null for an already quarter-aligned second scenario (paper 8x10, ratio 4:5, border 0.5)', () => {
+      // computePrintSize(8, 10, 4, 5, 0.5) -> 7 x 8.75, already quarter-aligned
+      const { printW, printH } = computePrintSize(8, 10, 4, 5, 0.5);
+      const result = calculateQuarterInchMinBorder({
+        paperWidth: 8,
+        paperHeight: 10,
+        ratioWidth: 4,
+        ratioHeight: 5,
+        currentMinBorder: 0.5,
+        printWidth: printW,
+        printHeight: printH,
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it('should find a quarter-aligned border for a non-aligned 4:5 scenario (paper 8x10, ratio 4:5, border 0.6)', () => {
+      // computePrintSize(8, 10, 4, 5, 0.6) -> 6.8 x 8.5; 6.8 is not a multiple
+      // of 0.25, so (unlike the border-0.5 case above) this is NOT aligned.
+      const { printW, printH } = computePrintSize(8, 10, 4, 5, 0.6);
+      const result = calculateQuarterInchMinBorder({
+        paperWidth: 8,
+        paperHeight: 10,
+        ratioWidth: 4,
+        ratioHeight: 5,
+        currentMinBorder: 0.6,
+        printWidth: printW,
+        printHeight: printH,
+      });
+
+      expect(result).not.toBeNull();
+      const recomputed = computePrintSize(8, 10, 4, 5, result as number);
+      expect(recomputed.printW % 0.25).toBeCloseTo(0, 6);
+      expect(recomputed.printH % 0.25).toBeCloseTo(0, 6);
+    });
+
+    it('should find a quarter-aligned border for a non-aligned square-ish ratio (paper 8x10, ratio 1:1, border 0.6)', () => {
+      // computePrintSize(8, 10, 1, 1, 0.6) -> 6.8 x 6.8, not quarter-aligned
+      const { printW, printH } = computePrintSize(8, 10, 1, 1, 0.6);
+      const result = calculateQuarterInchMinBorder({
+        paperWidth: 8,
+        paperHeight: 10,
+        ratioWidth: 1,
+        ratioHeight: 1,
+        currentMinBorder: 0.6,
+        printWidth: printW,
+        printHeight: printH,
+      });
+
+      expect(result).not.toBeNull();
+      const recomputed = computePrintSize(8, 10, 1, 1, result as number);
+      expect(recomputed.printW % 0.25).toBeCloseTo(0, 6);
+      expect(recomputed.printH % 0.25).toBeCloseTo(0, 6);
     });
   });
 });

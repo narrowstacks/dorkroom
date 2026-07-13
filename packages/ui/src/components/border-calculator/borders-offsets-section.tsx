@@ -1,4 +1,5 @@
 import {
+  formatForDisplay,
   generateBorderSliderLabels,
   OFFSET_SLIDER_LABELS,
   OFFSET_SLIDER_MAX,
@@ -64,20 +65,31 @@ export function BordersOffsetsSection() {
           )}
         </form.Field>
 
-        <button
-          type="button"
-          onClick={handleRoundMinBorderToQuarter}
-          disabled={quarterRoundedMinBorder === null}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
-          style={{
-            borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
-            color: 'var(--color-text-primary)',
-          }}
-          title="Round blade readings down to the nearest quarter inch"
-        >
-          Round to 1/4"
-        </button>
+        <div className="space-y-1">
+          <button
+            type="button"
+            onClick={handleRoundMinBorderToQuarter}
+            disabled={quarterRoundedMinBorder === null}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
+            style={{
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
+              color: 'var(--color-text-primary)',
+            }}
+            title="Adjust minimum border so the print size lands on ¼-inch increments"
+          >
+            Round to 1/4"
+          </button>
+          {quarterRoundedMinBorder !== null && (
+            <p
+              className="text-xs text-center"
+              style={{ color: 'var(--color-text-tertiary)' }}
+            >
+              Sets min border to {formatForDisplay(quarterRoundedMinBorder)}
+              {'″'}
+            </p>
+          )}
+        </div>
 
         <form.Field name="enableOffset">
           {(field: FieldApi<boolean>) => (

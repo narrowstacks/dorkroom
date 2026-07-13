@@ -1,4 +1,5 @@
 import {
+  formatForDisplay,
   generateBorderSliderLabels,
   SLIDER_MIN_BORDER,
   SLIDER_STEP_BORDER,
@@ -58,14 +59,26 @@ export function BorderSizeSection({ onClose }: BorderSizeSectionProps) {
           continuousUpdate={true}
         />
 
-        <button
-          type="button"
-          onClick={handleRoundMinBorderToQuarter}
-          disabled={quarterRoundedMinBorder === null}
-          className="w-full rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          Round to 1/4"
-        </button>
+        <div className="space-y-1">
+          <button
+            type="button"
+            onClick={handleRoundMinBorderToQuarter}
+            disabled={quarterRoundedMinBorder === null}
+            className="w-full rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
+            title="Adjust minimum border so the print size lands on ¼-inch increments"
+          >
+            Round to 1/4"
+          </button>
+          {quarterRoundedMinBorder !== null && (
+            <p
+              className="text-xs text-center"
+              style={{ color: 'var(--color-text-tertiary)' }}
+            >
+              Sets min border to {formatForDisplay(quarterRoundedMinBorder)}
+              {'″'}
+            </p>
+          )}
+        </div>
 
         {minBorderWarning && (
           <StatusAlert message={minBorderWarning} action="error" />
