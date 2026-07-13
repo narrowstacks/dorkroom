@@ -898,6 +898,7 @@ export function MobileBorderCalculator({
                 } as React.CSSProperties
               }
               title="Share preset"
+              aria-label="Share preset"
             >
               <Share className="size-5" />
             </button>
