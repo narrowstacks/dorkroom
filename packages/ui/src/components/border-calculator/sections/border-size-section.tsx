@@ -69,15 +69,19 @@ export function BorderSizeSection({ onClose }: BorderSizeSectionProps) {
           >
             Round to 1/4"
           </button>
-          {quarterRoundedMinBorder !== null && (
-            <p
-              className="text-xs text-center"
-              style={{ color: 'var(--color-text-tertiary)' }}
-            >
-              Sets min border to {formatForDisplay(quarterRoundedMinBorder)}
-              {'″'}
-            </p>
-          )}
+          {/* min-h reserves the caption's line so the controls below don't
+              jump while the slider crosses aligned/non-aligned values */}
+          <p
+            className="min-h-4 text-xs text-center"
+            style={{ color: 'var(--color-text-tertiary)' }}
+          >
+            {quarterRoundedMinBorder !== null && (
+              <>
+                Sets min border to {formatForDisplay(quarterRoundedMinBorder)}
+                {'″'}
+              </>
+            )}
+          </p>
         </div>
 
         {minBorderWarning && (
