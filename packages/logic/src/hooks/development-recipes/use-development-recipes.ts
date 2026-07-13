@@ -8,9 +8,11 @@ import {
   buildFilmSlugIndex,
   getAllSlugsForFilm,
 } from '../../utils/film-alias-resolver';
+import { matchesSearchQuery } from '../../utils/fuzzy-search';
 import { useCombinations } from '../api/use-combinations';
 import { useDevelopers } from '../api/use-developers';
 import { useFilms } from '../api/use-films';
+import { useDebounce } from '../use-debounce';
 
 export type CustomRecipeFilter =
   | 'all'
@@ -24,6 +26,7 @@ export interface DevelopmentRecipesState {
   isoFilter: string;
   customRecipeFilter: CustomRecipeFilter;
   tagFilter: string;
+  searchQuery: string;
   sortBy: string;
   sortDirection: 'asc' | 'desc';
   selectedFilm: Film | null;
@@ -43,6 +46,7 @@ export interface DevelopmentRecipesActions {
   setIsoFilter: (filter: string) => void;
   setCustomRecipeFilter: (filter: CustomRecipeFilter) => void;
   setTagFilter: (filter: string) => void;
+  setSearchQuery: (query: string) => void;
   setSortBy: (sort: string) => void;
   setSortDirection: (direction: 'asc' | 'desc') => void;
   handleSort: (sortKey: string) => void;
@@ -222,8 +226,12 @@ export const useDevelopmentRecipes = (
   const [customRecipeFilter, setCustomRecipeFilter] =
     useState<CustomRecipeFilter>('all');
   const [tagFilter, setTagFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('filmName');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  // Debounce free-text search to avoid re-filtering on every keystroke
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const [selectedFilm, setSelectedFilmState] = useState<Film | null>(
     (initialUrlState?.selectedFilm as Film | undefined) || null
@@ -464,6 +472,7 @@ export const useDevelopmentRecipes = (
     setIsoFilter('');
     setCustomRecipeFilter('all');
     setTagFilter('');
+    setSearchQuery('');
   }, []);
 
   const filteredCombinations = useMemo(() => {
@@ -552,6 +561,29 @@ export const useDevelopmentRecipes = (
       }
     }
 
+    // Filter by free-text search query (film, developer, dilution label).
+    // Skipped entirely when empty so the common no-search case avoids the
+    // per-row film/developer/dilution resolution below.
+    if (debouncedSearchQuery.trim()) {
+      combinations = combinations.filter((combo) => {
+        const film = getFilmById(combo.filmStockId);
+        const dev = getDeveloperById(combo.developerId);
+        const foundDilution = combo.dilutionId
+          ? dev?.dilutions?.find((d: Dilution) => d.id === combo.dilutionId)
+          : null;
+        const dilutionLabel =
+          combo.customDilution?.trim() ||
+          foundDilution?.dilution?.trim() ||
+          'Stock';
+        const haystack = [
+          film ? `${film.brand} ${film.name}` : '',
+          dev ? `${dev.manufacturer} ${dev.name}` : '',
+          dilutionLabel,
+        ].join(' ');
+        return matchesSearchQuery(haystack, debouncedSearchQuery);
+      });
+    }
+
     // Decorate–sort–undecorate: compute each row's sort key once instead of
     // per comparison (the old comparator did linear catalog lookups per pair,
     // which stalls the JS thread for seconds on device in dev mode).
@@ -596,6 +628,7 @@ export const useDevelopmentRecipes = (
     dilutionFilter,
     filmSlugIndex,
     isoFilter,
+    debouncedSearchQuery,
     selectedFilm,
     selectedDeveloper,
     sortBy,
@@ -610,6 +643,7 @@ export const useDevelopmentRecipes = (
     isoFilter,
     customRecipeFilter,
     tagFilter,
+    searchQuery,
     sortBy,
     sortDirection,
     selectedFilm,
@@ -626,6 +660,7 @@ export const useDevelopmentRecipes = (
     setIsoFilter,
     setCustomRecipeFilter,
     setTagFilter,
+    setSearchQuery,
     setSortBy,
     setSortDirection,
     handleSort,

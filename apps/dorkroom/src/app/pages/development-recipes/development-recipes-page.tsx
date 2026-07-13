@@ -44,6 +44,7 @@ export default function DevelopmentRecipesPage() {
     dilutionFilter,
     isoFilter,
     customRecipeFilter,
+    searchQuery,
     selectedFilm,
     selectedDeveloper,
     isLoading,
@@ -56,6 +57,7 @@ export default function DevelopmentRecipesPage() {
     setDilutionFilter,
     setIsoFilter,
     setCustomRecipeFilter,
+    setSearchQuery,
     setSelectedFilm,
     setSelectedDeveloper,
     forceRefresh,
@@ -65,6 +67,43 @@ export default function DevelopmentRecipesPage() {
     getAvailableDilutions,
     getAvailableISOs,
   } = useDevelopmentRecipes();
+
+  // Sync free-text search with the `q` URL param. Reads/writes only the `q`
+  // key on the live URL (read-modify-write) so it coexists with the other
+  // filters, which are synced separately via useRecipeUrlState's own raw
+  // history writes further down. Applied once on mount and on browser
+  // back/forward; writes are debounced to match the hook's search debounce.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const applyFromUrl = () => {
+      const q = new URLSearchParams(window.location.search).get('q') ?? '';
+      setSearchQuery(q);
+    };
+
+    applyFromUrl();
+    window.addEventListener('popstate', applyFromUrl);
+    return () => window.removeEventListener('popstate', applyFromUrl);
+    // eslint-disable-next-line react-doctor/exhaustive-deps -- setSearchQuery is a stable dispatch function; only wire the listener once
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const timeout = setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      if (searchQuery) {
+        params.set('q', searchQuery);
+      } else {
+        params.delete('q');
+      }
+      const search = params.toString();
+      const newUrl = `${window.location.pathname}${search ? `?${search}` : ''}${window.location.hash}`;
+      window.history.replaceState(null, '', newUrl);
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
 
   const {
     customRecipes,
@@ -472,6 +511,8 @@ export default function DevelopmentRecipesPage() {
             />
 
             <CollapsibleFilters
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
               developerTypeFilter={developerTypeFilter}
               onDeveloperTypeFilterChange={setDeveloperTypeFilter}
               developerTypeOptions={[
@@ -534,6 +575,8 @@ export default function DevelopmentRecipesPage() {
               style={{ width: isFiltersSidebarCollapsed ? '64px' : '304px' }}
             >
               <FiltersSidebar
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
                 selectedFilm={selectedFilm?.uuid || ''}
                 onFilmChange={(value) => {
                   const film = allFilms.find((f) => f.uuid === value);

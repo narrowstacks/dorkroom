@@ -1,4 +1,5 @@
 import type { CustomRecipeFilter, SelectItem } from '@dorkroom/logic';
+import { Search } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
@@ -11,6 +12,8 @@ const customRecipeOptions: SelectItem[] = [
 
 interface DevelopmentFiltersProps {
   className?: string;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
   selectedFilm: string;
   onFilmChange: (value: string) => void;
   filmOptions: SelectItem[];
@@ -37,6 +40,8 @@ interface DevelopmentFiltersProps {
 
 export function DevelopmentFiltersPanel({
   className,
+  searchQuery,
+  onSearchChange,
   selectedFilm,
   onFilmChange,
   filmOptions,
@@ -82,6 +87,27 @@ export function DevelopmentFiltersPanel({
         >
           Clear filters
         </button>
+      </div>
+
+      <div className="mb-4">
+        <label
+          htmlFor="recipe-search"
+          className="mb-2 block text-sm font-medium text-white/70"
+        >
+          Search
+        </label>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" />
+          <input
+            id="recipe-search"
+            type="text"
+            aria-label="Search recipes"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search film, developer…"
+            className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pr-3 pl-9 text-sm text-white transition placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

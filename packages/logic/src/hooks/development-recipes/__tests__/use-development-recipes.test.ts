@@ -16,6 +16,12 @@ vi.mock('../../api/use-combinations', () => ({
   useCombinations: vi.fn(),
 }));
 
+// Mock useDebounce to return the value immediately so search assertions don't
+// need to wait out the real 300ms debounce window.
+vi.mock('../../use-debounce', () => ({
+  useDebounce: vi.fn((value: unknown) => value),
+}));
+
 // Import after mocking
 import { useCombinations } from '../../api/use-combinations';
 import { useDevelopers } from '../../api/use-developers';
@@ -436,6 +442,114 @@ describe('useDevelopmentRecipes', () => {
       const first = result.current.getAvailableTags();
       const second = result.current.getAvailableTags();
       expect(first).toBe(second);
+    });
+  });
+
+  describe('free-text search', () => {
+    it('returns the unfiltered list when the query is empty', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+
+      expect(result.current.searchQuery).toBe('');
+      expect(result.current.filteredCombinations).toHaveLength(
+        mockCombinations.length
+      );
+    });
+
+    it('filters combinations to those matching a film name', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+
+      act(() => {
+        result.current.setSearchQuery('hp5');
+      });
+
+      // HP5 Plus (f1) appears in combinations c1 and c4 only
+      expect(
+        result.current.filteredCombinations.map((c) => c.uuid).toSorted()
+      ).toEqual(['c1', 'c4']);
+    });
+
+    it('filters combinations to those matching a developer name', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+
+      act(() => {
+        result.current.setSearchQuery('rodinal');
+      });
+
+      // Rodinal (d3) appears in combinations c3 and c5 only
+      expect(
+        result.current.filteredCombinations.map((c) => c.uuid).toSorted()
+      ).toEqual(['c3', 'c5']);
+    });
+
+    it('is punctuation- and word-break-insensitive ("tri x" matches "Tri-X 400")', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+
+      act(() => {
+        result.current.setSearchQuery('tri x');
+      });
+
+      // Tri-X 400 (f2) appears in combinations c2 and c5 only
+      expect(
+        result.current.filteredCombinations.map((c) => c.uuid).toSorted()
+      ).toEqual(['c2', 'c5']);
+    });
+
+    it('returns no combinations for a non-matching query', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+
+      act(() => {
+        result.current.setSearchQuery('nonexistent-film-or-developer');
+      });
+
+      expect(result.current.filteredCombinations).toHaveLength(0);
+    });
+
+    it('clearFilters resets the search query and unfilters the list', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+
+      act(() => {
+        result.current.setSearchQuery('hp5');
+      });
+      expect(result.current.filteredCombinations.length).toBeLessThan(
+        mockCombinations.length
+      );
+
+      act(() => {
+        result.current.clearFilters();
+      });
+
+      expect(result.current.searchQuery).toBe('');
+      expect(result.current.filteredCombinations).toHaveLength(
+        mockCombinations.length
+      );
+    });
+
+    it('combines with an existing dropdown filter (selected film) rather than replacing it', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), {
+        wrapper,
+      });
+
+      act(() => {
+        result.current.setSelectedFilm(mockFilms[0]); // HP5 Plus
+        result.current.setSearchQuery('dd-x');
+      });
+
+      // Of HP5 Plus's combinations (c1, c4), only c1 pairs with DD-X
+      expect(result.current.filteredCombinations.map((c) => c.uuid)).toEqual([
+        'c1',
+      ]);
     });
   });
 });

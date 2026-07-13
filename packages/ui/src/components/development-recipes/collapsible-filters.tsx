@@ -1,5 +1,5 @@
 import type { CustomRecipeFilter, SelectItem } from '@dorkroom/logic';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Search } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '../../lib/cn';
 import { setStyles } from '../../lib/dom';
@@ -7,6 +7,8 @@ import { Select } from '../select';
 
 interface CollapsibleFiltersProps {
   className?: string;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
   developerTypeFilter: string;
   onDeveloperTypeFilterChange: (value: string) => void;
   developerTypeOptions: SelectItem[];
@@ -36,6 +38,8 @@ const recipeTypeOptions: SelectItem[] = [
 
 export function CollapsibleFilters({
   className,
+  searchQuery,
+  onSearchChange,
   developerTypeFilter,
   onDeveloperTypeFilterChange,
   developerTypeOptions,
@@ -59,6 +63,7 @@ export function CollapsibleFilters({
 
   // Check if any filters are active
   const hasActiveFilters =
+    !!searchQuery ||
     developerTypeFilter ||
     dilutionFilter ||
     isoFilter ||
@@ -66,6 +71,7 @@ export function CollapsibleFilters({
     favoritesOnly;
 
   const activeFilterCount = [
+    searchQuery,
     developerTypeFilter,
     dilutionFilter,
     isoFilter,
@@ -121,7 +127,8 @@ export function CollapsibleFilters({
             className="text-sm"
             style={{ color: 'var(--color-text-tertiary)' }}
           >
-            Refine results by developer type, dilution, ISO, and recipe type.
+            Search, or refine results by developer type, dilution, ISO, and
+            recipe type.
           </p>
         </div>
         <ChevronDown
@@ -138,6 +145,46 @@ export function CollapsibleFilters({
           className="border-t p-6"
           style={{ borderColor: 'var(--color-border-secondary)' }}
         >
+          {/* Search input */}
+          <div className="mb-4 space-y-2">
+            <label
+              htmlFor="recipe-search-mobile"
+              className="block text-sm font-medium"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              Search
+            </label>
+            <div className="relative">
+              <Search
+                className="absolute left-3 top-1/2 size-4 -translate-y-1/2"
+                style={{ color: 'var(--color-text-muted)' }}
+              />
+              <input
+                id="recipe-search-mobile"
+                type="text"
+                aria-label="Search recipes"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder="Search film, developer…"
+                className="w-full rounded-lg border px-3 py-2 pl-9 focus:outline-none focus:ring-2"
+                style={
+                  {
+                    borderColor: 'var(--color-border-secondary)',
+                    backgroundColor: 'var(--color-surface-muted)',
+                    color: 'var(--color-text-primary)',
+                    '--tw-ring-color': 'var(--color-border-primary)',
+                  } as React.CSSProperties
+                }
+                onFocus={(e) => {
+                  e.target.style.borderColor = 'var(--color-border-primary)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'var(--color-border-secondary)';
+                }}
+              />
+            </div>
+          </div>
+
           <div className="mb-2 flex items-center justify-between">
             {hasActiveFilters && (
               <button

@@ -11,6 +11,7 @@ const DevelopmentRecipesPage = lazy(
 // Define search param schema for type-safety and validation
 // Invalid params are silently recovered to undefined for better UX
 const developmentSearchSchema = z.object({
+  q: z.string().optional().catch(undefined),
   film: z.string().optional().catch(undefined),
   developer: z.string().optional().catch(undefined),
   dilution: z.string().optional().catch(undefined),
