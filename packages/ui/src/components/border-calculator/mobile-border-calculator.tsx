@@ -703,6 +703,7 @@ export function MobileBorderCalculator({
       formatDimensions,
       currentSettings,
     }),
+    // eslint-disable-next-line react-doctor/exhaustive-deps -- react-doctor reports "stale dimensionData.paperSizeWarning" via alias tracing through paperSizeWarning, but paperSizeWarning (line 333) IS `calculation?.paperSizeWarning ?? dimensionData.paperSizeWarning` re-derived every render; adding dimensionData.paperSizeWarning directly is flagged as a redundant dep by react-hooks/exhaustive-deps
     [
       form,
       formValues,

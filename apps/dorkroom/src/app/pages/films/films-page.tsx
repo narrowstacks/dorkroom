@@ -193,6 +193,7 @@ export default function FilmsPage() {
   const urlFilm = useMemo(() => {
     if (!urlFilmSlug) return null;
     return films.find((f) => f.slug === urlFilmSlug) ?? null;
+    // eslint-disable-next-line react-doctor/exhaustive-deps -- react-doctor reports "stale searchParams.film" via alias tracing through urlFilmSlug, but urlFilmSlug IS searchParams.film re-derived every render (line 189, not memoized); adding searchParams.film directly is flagged as a redundant dep by react-hooks/exhaustive-deps
   }, [films, urlFilmSlug]);
 
   // Sync URL params to filter state when URL changes (back/forward navigation, bookmarks).
@@ -282,6 +283,7 @@ export default function FilmsPage() {
     if (urlFilm) {
       setSelectedFilm(urlFilm);
     }
+    // eslint-disable-next-line react-doctor/exhaustive-deps -- same alias-tracing false positive as the urlFilm useMemo above: urlFilmSlug already IS searchParams.film re-derived every render, so it's already covered
   }, [urlFilm, urlFilmSlug, isLoading]);
 
   // Debounced URL sync (500ms)
