@@ -1,5 +1,5 @@
 import { Film } from 'lucide-react';
-import { type FC, useEffect, useRef, useState } from 'react';
+import { type FC, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { cn } from '../../lib/cn';
 
 interface FilmImageProps {
@@ -60,14 +60,20 @@ export const FilmImage: FC<FilmImageProps> = ({
 }) => {
   // Single consolidated state so the per-src reset is one update.
   const [state, setState] = useState<ImageState>(() => getInitialState(src));
-  // Track the previous src in a ref and reset state during render when it
-  // changes, instead of in an effect. See
-  // https://react.dev/learn/you-might-not-need-an-effect
-  const prevSrcRef = useRef(src);
-  if (src !== prevSrcRef.current) {
-    prevSrcRef.current = src;
+  // Reset state when src changes (skipping the initial mount, since useState
+  // above already initializes correctly for it). A layout effect — not a
+  // render-time ref write, which react-doctor's no-ref-current-in-render rule
+  // flags, since render must stay pure — runs synchronously after the DOM
+  // update but before the browser paints, so there's no visible flash of the
+  // previous src's state.
+  const isFirstRender = useRef(true);
+  useLayoutEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     setState(getInitialState(src));
-  }
+  }, [src]);
 
   const { hasError, isLoading, hasTimedOut } = state;
   const dimension = sizeMap[size];
