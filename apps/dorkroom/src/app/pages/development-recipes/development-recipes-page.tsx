@@ -372,14 +372,19 @@ export default function DevelopmentRecipesPage() {
     onShareCombination: handleShareCombination,
   });
 
-  // Update ref on each render to keep handlers current
-  columnHandlersRef.current = {
-    isFavorite: handleCheckFavorite,
-    onToggleFavorite: handleToggleFavorite,
-    onEditCustomRecipe: handleEditCustomRecipe,
-    onDeleteCustomRecipe: handleDeleteCustomRecipe,
-    onShareCombination: handleShareCombination,
-  };
+  // Update ref after each commit to keep handlers current. This runs in an
+  // effect rather than during render because render must stay pure — the
+  // column wrappers below only read columnHandlersRef.current from event
+  // handlers (post-render), so a same-tick effect assignment is equivalent.
+  useEffect(() => {
+    columnHandlersRef.current = {
+      isFavorite: handleCheckFavorite,
+      onToggleFavorite: handleToggleFavorite,
+      onEditCustomRecipe: handleEditCustomRecipe,
+      onDeleteCustomRecipe: handleDeleteCustomRecipe,
+      onShareCombination: handleShareCombination,
+    };
+  });
 
   // Create stable columns - wrapper functions read from ref at call time
   const columns = useMemo(

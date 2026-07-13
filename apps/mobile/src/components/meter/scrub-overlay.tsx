@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useState } from 'react';
 // eslint-disable-next-line react-doctor/rn-prefer-reanimated -- JS-thread Animated is intentional: the drag is a JS-thread PanResponder (no gesture-handler) and reanimated's worklet babel plugin isn't wired up; the ruler commits on release so there are no React re-renders during the drag, keeping the glide smooth.
 import { Animated, Text, View } from 'react-native';
 import { readoutText as MONO } from '@/theme/tokens';
@@ -10,9 +10,8 @@ import { SCRUB_COL_WIDTH, SCRUB_GAP } from './scrub-math';
  * (writer) and the ruler (reader). Lives here so the screen needn't import
  * Animated directly. Carries the live combined drag offset in px (right/up +). */
 export function useDragOffset() {
-  const ref = useRef<Animated.Value>(null);
-  ref.current ??= new Animated.Value(0);
-  return ref.current;
+  const [value] = useState(() => new Animated.Value(0));
+  return value;
 }
 
 const SHADOW = {

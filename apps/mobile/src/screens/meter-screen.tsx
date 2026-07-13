@@ -215,10 +215,14 @@ export function MeterScreen() {
   const { hasPermission, requestPermission } = meter;
   // Still-photo output for the shutter; kept in a ref so the capture hook reads
   // the latest instance without re-subscribing each render. Force JPEG (the iOS
-  // default is HEIC, which Skia's grayscale pass can't decode).
+  // default is HEIC, which Skia's grayscale pass can't decode). Refreshed in an
+  // effect rather than during render, since render must stay pure — the ref is
+  // only read later, from the capture hook's own handler.
   const photoOutput = usePhotoOutput({ containerFormat: 'jpeg' });
   const photoOutputRef = useRef<CameraPhotoOutput | null>(photoOutput);
-  photoOutputRef.current = photoOutput;
+  useEffect(() => {
+    photoOutputRef.current = photoOutput;
+  });
   const capture = useMeterCapture(photoOutputRef);
   const { flashStyle, triggerFlash } = useShutterFlash();
   // Seed the solver from the last persisted locked setting + ISO (read once).
