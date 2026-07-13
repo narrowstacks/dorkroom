@@ -5,6 +5,33 @@ The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHAN
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.07.13]
+
+### Changed
+
+- **Colon-notation dilutions (`1:31`) are now read as concentrate + water parts — identical to plus notation (`1+31` = 32 total parts) — matching manufacturer usage (Ilford's Ilfotec HC "Dilution B" is documented as 1+31 and stored in our data as `1:31`).** Computed developer volumes for colon-notation recipes changed by roughly 2–3% (e.g. 500 ml at 1:31 is now 15.6 ml concentrate instead of 16.1 ml), and the internal `1:1` special case is gone. The volume mixer now states the interpretation on screen ("1 part concentrate + 31 parts water (1:31 = 32 parts total)") so the convention is never ambiguous.
+- Development recipe times render in one format everywhere (`14m` / `9m 30s`); the recipe cards previously showed `14 min` while the table showed `14m`.
+
+### Added
+
+- Free-text search on the development recipes page: a debounced search box (film, developer, or dilution — punctuation-insensitive, so "tri x" finds Tri-X) in the desktop sidebar and mobile filters, synced to a shareable `?q=` URL param.
+- A "Clear filters" action on the films page's no-results empty state.
+- A skip-to-content link for keyboard users, and hover tooltips explaining the flame/snowflake temperature icons and the OFFICIAL provenance badge.
+
+### Fixed
+
+- Border calculator "Round to 1/4″" now actually produces quarter-inch print sizes (a final 2-decimal rounding step was destroying the correct answer — e.g. blade readings 8.25/5.50 became 8.24/5.49), and the button discloses what it will do ("Sets min border to 0.875″") instead of silently rewriting the typed minimum border. The disclosure line reserves its space so controls don't shift while dragging the slider.
+- High Contrast theme: the Film / Developer / Volume Mixer cards in the recipe detail panel no longer render black-on-black (invisible); the theme's white-card override now applies.
+- Calculators no longer silently "fix" invalid input: typing `-5` on the stops page no longer inverts to `5`, the resize page explains what's needed instead of blanking its result card, and the border page's min-border field no longer coerces drafts to `0` mid-keystroke. Invalid committed values show inline validation errors.
+- The border calculator's "Offset adjusted" warning no longer fires when both offsets are 0 (and reads "honor", not "honour").
+- The reciprocity chart's Y-axis title was rotated around the wrong pivot and rendered off the left edge of the canvas — now visible.
+- Toast notifications can no longer extend past the right viewport edge (long messages wrap), and the "Themes" tooltip no longer lingers over the open theme menu.
+- Copy: "for X amount of stops" → "number of stops".
+
+### Accessibility
+
+- New `--color-focus-ring` token gives keyboard focus a ≥3:1 contrast ring in every theme; the dark and light themes previously used translucent border colors (e.g. `rgba(255,255,255,0.2)`) that were effectively invisible. All interactive components now use the token.
+
 ## [2026.07.12]
 
 ### Security
