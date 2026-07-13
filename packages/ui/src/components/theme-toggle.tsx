@@ -181,14 +181,14 @@ export function ThemeToggle({
   }, [isOpen]);
 
   // Toggle the dropdown via pointer. Reset focus tracking when opening to
-  // match the previous reset-on-open behavior.
+  // match the previous reset-on-open behavior. The ref write happens here,
+  // in the event handler, rather than inside the state updater — updaters
+  // must stay pure since React may invoke them more than once.
   const toggleOpen = () => {
-    setIsOpen((prev) => {
-      if (!prev) {
-        focusedIndexRef.current = -1;
-      }
-      return !prev;
-    });
+    if (!isOpen) {
+      focusedIndexRef.current = -1;
+    }
+    setIsOpen((prev) => !prev);
   };
 
   const handleThemeChange = (newTheme: Theme) => {

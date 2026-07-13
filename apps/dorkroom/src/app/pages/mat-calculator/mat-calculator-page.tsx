@@ -285,7 +285,7 @@ function MatSidebar({
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {guideBarCuts.map((c) => (
-            <GuideBarCard {...c} key={c.title} />
+            <GuideBarCard key={c.title} {...c} />
           ))}
         </div>
       </CalculatorCard>

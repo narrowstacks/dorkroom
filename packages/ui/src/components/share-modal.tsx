@@ -243,6 +243,7 @@ function WebLinkSection({
           <button
             type="button"
             onClick={onCopy}
+            aria-label={copySuccess ? 'Copied web link' : 'Copy web link'}
             className={cn(
               'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2'
             )}

@@ -68,6 +68,7 @@ export function PresetsSection({
           type="button"
           onClick={onClose}
           className="rounded-lg border border-primary bg-border-muted p-2 text-primary transition hoverable-action-btn"
+          aria-label="Close presets"
         >
           <X className="size-5" />
         </button>
@@ -186,6 +187,7 @@ export function PresetsSection({
                           type="button"
                           onClick={() => startEdit(preset)}
                           className="rounded p-1 text-white/70 transition hover:bg-white/10 hover:text-white"
+                          aria-label={`Edit ${preset.name}`}
                         >
                           <Save className="size-4" />
                         </button>
@@ -193,6 +195,7 @@ export function PresetsSection({
                           type="button"
                           onClick={() => onDeletePreset(preset.id)}
                           className="rounded p-1 text-red-400 transition hover:bg-red-500/10 hover:text-red-300"
+                          aria-label={`Delete ${preset.name}`}
                         >
                           <Trash2 className="size-4" />
                         </button>
