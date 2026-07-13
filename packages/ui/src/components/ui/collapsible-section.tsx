@@ -16,39 +16,21 @@ export function CollapsibleSection({
   onToggle,
 }: CollapsibleSectionProps) {
   return (
-    <div
-      className="rounded-xl border"
-      style={{
-        borderColor: 'var(--color-border-secondary)',
-        backgroundColor: 'var(--color-border-muted)',
-      }}
-    >
+    <div className="rounded-xl border border-secondary bg-border-muted">
       <button type="button" onClick={onToggle} className="w-full p-4 text-left">
         <div className="flex items-center justify-between">
           <div>
-            <div
-              className="text-xs uppercase tracking-wide"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
+            <div className="text-xs uppercase tracking-wide text-muted">
               {title}
             </div>
-            <div
-              className="mt-1 text-base font-semibold"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
+            <div className="mt-1 text-base font-semibold text-primary">
               {subtitle}
             </div>
           </div>
           {isExpanded ? (
-            <ChevronDown
-              className="size-4"
-              style={{ color: 'var(--color-text-muted)' }}
-            />
+            <ChevronDown className="size-4 text-muted" />
           ) : (
-            <ChevronRight
-              className="size-4"
-              style={{ color: 'var(--color-text-muted)' }}
-            />
+            <ChevronRight className="size-4 text-muted" />
           )}
         </div>
       </button>
