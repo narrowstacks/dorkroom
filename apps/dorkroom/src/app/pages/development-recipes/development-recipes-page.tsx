@@ -460,15 +460,7 @@ export default function DevelopmentRecipesPage() {
       {/* Max-width of 1920px accommodates wider displays while maintaining content readability */}
       <div className="mx-auto max-w-[1920px] space-y-3 py-3 px-4 pb-4 sm:px-6 lg:px-8">
         {error && (
-          <div
-            className="rounded-2xl px-4 py-3 text-sm"
-            style={{
-              borderWidth: 1,
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-border-muted)',
-              color: 'var(--color-text-primary)',
-            }}
-          >
+          <div className="rounded-2xl border border-secondary bg-border-muted px-4 py-3 text-sm text-primary">
             {error}
           </div>
         )}

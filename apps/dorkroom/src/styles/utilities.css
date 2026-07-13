@@ -279,6 +279,15 @@
       color: var(--color-text-primary) !important;
     }
 
+    .hoverable-icon-btn:hover {
+      background-color: var(--color-border-muted) !important;
+      color: var(--color-text-primary) !important;
+    }
+
+    .hoverable-link-tile:hover {
+      background-color: var(--color-border-primary) !important;
+    }
+
     .hoverable-delete-btn:hover {
       background-color: var(--del-bg-hover) !important;
       color: var(--del-color-hover) !important;

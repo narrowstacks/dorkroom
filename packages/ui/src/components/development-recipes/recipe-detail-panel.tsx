@@ -8,7 +8,6 @@ import { ExternalLink, Star } from 'lucide-react';
 import type { FC } from 'react';
 import { useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
-import { setStyles } from '../../lib/dom';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { DetailPanel } from '../detail-panel/detail-panel';
 import { PushPullAlert } from '../push-pull-alert';
@@ -216,23 +215,7 @@ const SidebarCustomRecipeButtons: FC<
       <button
         type="button"
         onClick={() => onEditCustomRecipe(view)}
-        className="flex-1 rounded-full px-4 py-2 text-sm font-medium transition"
-        style={{
-          backgroundColor: 'var(--color-border-muted)',
-          color: 'var(--color-text-secondary)',
-        }}
-        onMouseEnter={(e) => {
-          setStyles(e.currentTarget, {
-            backgroundColor: 'var(--color-border-secondary)',
-            color: 'var(--color-text-primary)',
-          });
-        }}
-        onMouseLeave={(e) => {
-          setStyles(e.currentTarget, {
-            backgroundColor: 'var(--color-border-muted)',
-            color: 'var(--color-text-secondary)',
-          });
-        }}
+        className="flex-1 rounded-full bg-border-muted px-4 py-2 text-sm font-medium text-secondary transition hoverable-action-btn"
       >
         Edit
       </button>
@@ -568,21 +551,7 @@ const ExpandedSideColumn: FC<PanelLayoutProps> = ({
           href={combination.infoSource}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2"
-          style={{
-            backgroundColor: 'var(--color-border-muted)',
-            color: 'var(--color-text-primary)',
-          }}
-          onMouseEnter={(e) => {
-            setStyles(e.currentTarget, {
-              backgroundColor: 'var(--color-border-primary)',
-            });
-          }}
-          onMouseLeave={(e) => {
-            setStyles(e.currentTarget, {
-              backgroundColor: 'var(--color-border-muted)',
-            });
-          }}
+          className="inline-flex items-center gap-2 rounded-lg bg-border-muted px-4 py-2.5 text-sm font-medium text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 hoverable-link-tile"
         >
           <ExternalLink className="size-4" />
           {isFilmDevOrgUrl(combination.infoSource)

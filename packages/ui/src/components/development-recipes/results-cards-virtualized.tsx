@@ -492,11 +492,7 @@ function RecipeCard({
                 type="button"
                 onClick={onEdit}
                 aria-label="Edit"
-                className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2 hoverable-action-btn"
-                style={{
-                  backgroundColor: 'var(--color-border-muted)',
-                  color: 'var(--color-text-secondary)',
-                }}
+                className="inline-flex items-center justify-center rounded-md p-1.5 text-xs text-secondary transition focus-visible:outline-2 focus-visible:outline-offset-2 hoverable-action-btn bg-border-muted"
                 title="Edit"
               >
                 <Edit2 className="size-3" />

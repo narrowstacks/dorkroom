@@ -377,14 +377,7 @@ export default function FilmsPage() {
       />
 
       {error && (
-        <div
-          className="mb-6 rounded-2xl border px-4 py-3 text-sm"
-          style={{
-            borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'var(--color-border-muted)',
-            color: 'var(--color-text-primary)',
-          }}
-        >
+        <div className="mb-6 rounded-2xl border border-secondary bg-border-muted px-4 py-3 text-sm text-primary">
           {error}
         </div>
       )}

@@ -226,18 +226,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
         {/* Development recipes link */}
         <a
           href={developmentRecipesUrl}
-          className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2"
-          style={{
-            backgroundColor: 'var(--color-border-muted)',
-            color: 'var(--color-text-primary)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor =
-              'var(--color-border-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-border-muted)';
-          }}
+          className="inline-flex items-center gap-2 rounded-lg bg-border-muted px-4 py-2.5 text-sm font-medium text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 hoverable-link-tile"
         >
           <ExternalLink className="size-4" />
           View Development Recipes
@@ -415,17 +404,7 @@ const FilmDetailContent: FC<FilmDetailContentProps> = ({
       {/* Development recipes link */}
       <a
         href={developmentRecipesUrl}
-        className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2"
-        style={{
-          backgroundColor: 'var(--color-border-muted)',
-          color: 'var(--color-text-primary)',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'var(--color-border-primary)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'var(--color-border-muted)';
-        }}
+        className="inline-flex items-center gap-2 rounded-lg bg-border-muted px-4 py-2.5 text-sm font-medium text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 hoverable-link-tile"
       >
         <ExternalLink className="size-4" />
         View Development Recipes

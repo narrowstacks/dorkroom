@@ -166,13 +166,7 @@ export function FilmdevPreviewModal({
       </div>
 
       {/* Recipe Preview */}
-      <div
-        className="rounded-lg border p-3"
-        style={{
-          borderColor: 'var(--color-border-secondary)',
-          backgroundColor: 'var(--color-border-muted)',
-        }}
-      >
+      <div className="rounded-lg border border-secondary bg-border-muted p-3">
         <div
           className="mb-2 text-sm font-semibold"
           style={{ color: 'var(--color-text-primary)' }}

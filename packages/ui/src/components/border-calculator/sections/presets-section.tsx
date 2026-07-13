@@ -67,19 +67,7 @@ export function PresetsSection({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border p-2 transition"
-          style={{
-            borderColor: 'var(--color-border-primary)',
-            backgroundColor: 'var(--color-border-muted)',
-            color: 'var(--color-text-primary)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor =
-              'var(--color-border-secondary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-border-muted)';
-          }}
+          className="rounded-lg border border-primary bg-border-muted p-2 text-primary transition hoverable-action-btn"
         >
           <X className="size-5" />
         </button>
@@ -88,13 +76,7 @@ export function PresetsSection({
       <div className="space-y-4">
         {/* Create new preset */}
         {isCreating ? (
-          <div
-            className="rounded-lg border p-4 space-y-3"
-            style={{
-              borderColor: 'var(--color-border-primary)',
-              backgroundColor: 'var(--color-border-muted)',
-            }}
-          >
+          <div className="rounded-lg border border-primary bg-border-muted p-4 space-y-3">
             <TextInput
               value={newPresetName}
               onValueChange={setNewPresetName}
@@ -126,20 +108,7 @@ export function PresetsSection({
                   setIsCreating(false);
                   setNewPresetName('');
                 }}
-                className="rounded-lg border px-3 py-2 text-sm font-medium transition"
-                style={{
-                  borderColor: 'var(--color-border-primary)',
-                  backgroundColor: 'var(--color-border-muted)',
-                  color: 'var(--color-text-primary)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    'var(--color-border-secondary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    'var(--color-border-muted)';
-                }}
+                className="rounded-lg border border-primary bg-border-muted px-3 py-2 text-sm font-medium text-primary transition hoverable-action-btn"
               >
                 Cancel
               </button>
@@ -149,12 +118,7 @@ export function PresetsSection({
           <button
             type="button"
             onClick={() => setIsCreating(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-3 text-sm font-medium transition"
-            style={{
-              borderColor: 'var(--color-border-primary)',
-              backgroundColor: 'var(--color-border-muted)',
-              color: 'var(--color-text-primary)',
-            }}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-primary bg-border-muted px-4 py-3 text-sm font-medium text-primary transition"
           >
             <Plus className="size-4" />
             Create New Preset

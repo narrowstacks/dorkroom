@@ -1,7 +1,6 @@
 import { GripVertical, Maximize2, Minimize2, X } from 'lucide-react';
 import { type FC, type ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { setStyles } from '../../lib/dom';
 
 /** Props for the reusable CloseButton component */
 interface CloseButtonProps {
@@ -17,25 +16,12 @@ export const DetailPanelCloseButton: FC<CloseButtonProps> = ({
   <button
     type="button"
     onClick={onClick}
-    className="rounded-full p-2 transition focus-visible:outline-none focus-visible:ring-2"
+    className="rounded-full p-2 text-muted transition focus-visible:outline-none focus-visible:ring-2 hoverable-icon-btn"
     style={
       {
-        color: 'var(--color-text-muted)',
         '--tw-ring-color': 'var(--color-border-primary)',
       } as React.CSSProperties
     }
-    onMouseEnter={(e) => {
-      setStyles(e.currentTarget, {
-        backgroundColor: 'var(--color-border-muted)',
-        color: 'var(--color-text-primary)',
-      });
-    }}
-    onMouseLeave={(e) => {
-      setStyles(e.currentTarget, {
-        backgroundColor: 'transparent',
-        color: 'var(--color-text-muted)',
-      });
-    }}
     aria-label={ariaLabel}
   >
     <X className="size-4" />
@@ -59,25 +45,12 @@ export const DetailPanelExpandButton: FC<ExpandButtonProps> = ({
   <button
     type="button"
     onClick={onClick}
-    className={`rounded-full p-2 transition focus-visible:outline-none focus-visible:ring-2 ${className}`}
+    className={`rounded-full p-2 text-muted transition focus-visible:outline-none focus-visible:ring-2 hoverable-icon-btn ${className}`}
     style={
       {
-        color: 'var(--color-text-muted)',
         '--tw-ring-color': 'var(--color-border-primary)',
       } as React.CSSProperties
     }
-    onMouseEnter={(e) => {
-      setStyles(e.currentTarget, {
-        backgroundColor: 'var(--color-border-muted)',
-        color: 'var(--color-text-primary)',
-      });
-    }}
-    onMouseLeave={(e) => {
-      setStyles(e.currentTarget, {
-        backgroundColor: 'transparent',
-        color: 'var(--color-text-muted)',
-      });
-    }}
     aria-label={isExpanded ? 'Collapse to panel' : 'Expand to full screen'}
   >
     {isExpanded ? (
