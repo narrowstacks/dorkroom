@@ -1,5 +1,12 @@
 import type { Combination, Developer, Film } from '@dorkroom/api';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import type {
   InitialUrlState,
   RecipeUrlParams,
@@ -75,15 +82,50 @@ const parseSearchParams = (searchParams: URLSearchParams): RecipeUrlParams => {
 };
 
 /**
- * Read the current browser URL and extract managed query parameters.
+ * The browser URL is an external store: it changes from browser navigation
+ * (popstate) and from our own history writes. Modelling it as a real store and
+ * reading it with `useSyncExternalStore` avoids the stale/torn values you get
+ * from mirroring it into `useState` via an effect.
  */
-const getCurrentParams = (): RecipeUrlParams => {
-  if (typeof window === 'undefined') {
-    return {};
-  }
+const EMPTY_PARAMS: RecipeUrlParams = {};
 
-  return parseSearchParams(new URLSearchParams(window.location.search));
+const urlListeners = new Set<() => void>();
+
+/**
+ * `pushState`/`replaceState` do not fire `popstate`, so our own history writes
+ * must notify subscribers explicitly.
+ */
+const notifyUrlChanged = (): void => {
+  for (const listener of urlListeners) {
+    listener();
+  }
 };
+
+const subscribeToUrl = (onStoreChange: () => void): (() => void) => {
+  urlListeners.add(onStoreChange);
+  window.addEventListener('popstate', onStoreChange);
+  return () => {
+    urlListeners.delete(onStoreChange);
+    window.removeEventListener('popstate', onStoreChange);
+  };
+};
+
+// Cached so the snapshot stays referentially stable between actual URL changes.
+// Returning a fresh object each call would make useSyncExternalStore re-render
+// forever.
+let cachedSearch: string | null = null;
+let cachedParams: RecipeUrlParams = EMPTY_PARAMS;
+
+const getUrlSnapshot = (): RecipeUrlParams => {
+  const search = window.location.search;
+  if (search !== cachedSearch) {
+    cachedSearch = search;
+    cachedParams = parseSearchParams(new URLSearchParams(search));
+  }
+  return cachedParams;
+};
+
+const getServerUrlSnapshot = (): RecipeUrlParams => EMPTY_PARAMS;
 
 /**
  * Find a film entity by slug helper.
@@ -267,8 +309,10 @@ export const useRecipeUrlState = (
   },
   recipesByUuid?: Map<string, Combination>
 ): UseRecipeUrlStateReturn => {
-  const [params, setParams] = useState<RecipeUrlParams>(() =>
-    getCurrentParams()
+  const params = useSyncExternalStore(
+    subscribeToUrl,
+    getUrlSnapshot,
+    getServerUrlSnapshot
   );
   const isInitializedRef = useRef(false);
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -277,21 +321,6 @@ export const useRecipeUrlState = (
   useEffect(() => {
     paramsRef.current = params;
   }, [params]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return undefined;
-    }
-
-    const handlePopState = () => {
-      setParams(getCurrentParams());
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, []);
 
   const { decodeSharedCustomRecipe, isCustomRecipeUrl } =
     useCustomRecipeSharing();
@@ -401,9 +430,17 @@ export const useRecipeUrlState = (
       }
     }
 
-    isInitializedRef.current = true;
     return state;
   }, [params, films, developers]);
+
+  // Mark initialized only once the derived state has committed. Writing this
+  // during the memo would leak the flag from renders React replays or discards.
+  // Declared before the URL-sync effect below so that effect still observes it.
+  useEffect(() => {
+    if (initialUrlState.fromUrl) {
+      isInitializedRef.current = true;
+    }
+  }, [initialUrlState]);
 
   const updateUrl = useCallback((newParams: Partial<RecipeUrlParams>) => {
     if (updateTimeoutRef.current) {
@@ -440,7 +477,8 @@ export const useRecipeUrlState = (
         searchString ? `?${searchString}` : ''
       }${window.location.hash ?? ''}`;
       window.history.replaceState(null, '', newUrl);
-      setParams(parseSearchParams(searchParams));
+      // replaceState doesn't fire popstate — tell the store to re-read the URL.
+      notifyUrlChanged();
     }, 300);
   }, []);
 

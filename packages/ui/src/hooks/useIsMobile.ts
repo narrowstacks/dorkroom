@@ -16,6 +16,10 @@ export function useIsMobile(maxWidth = 768): boolean {
     return window.matchMedia(`(max-width: ${maxWidth}px)`).matches;
   });
 
+  // Both subscribe paths below return a cleanup (removeEventListener / removeListener);
+  // the rule is thrown by the `typeof window` guard, whose early return subscribes to
+  // nothing. Suppressed as a false positive rather than "fixed".
+  // eslint-disable-next-line react-doctor/effect-needs-cleanup -- see above
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;

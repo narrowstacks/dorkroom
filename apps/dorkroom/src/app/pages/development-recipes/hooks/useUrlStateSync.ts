@@ -74,77 +74,37 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
     setIsFiltersSidebarCollapsed,
   } = props;
 
-  // Capture all setters and lookup functions in a stable ref so they never
-  // appear in the effect's dependency array. These values are written on every
-  // render but the effect only reads them when it fires (after isLoaded +
-  // recipesByUuid are ready), so we always get the current version.
-  const settersRef = useRef({
-    setSelectedFilm,
-    setSelectedDeveloper,
-    setDilutionFilter,
-    setIsoFilter,
-    setDeveloperTypeFilter,
-    setFavoritesOnly,
-    setCustomRecipeFilter,
-    setSharedRecipeView,
-    setSharedRecipeSource,
-    setIsSharedRecipeModalOpen,
-    setDetailView,
-    setIsDetailOpen,
-    setIsFiltersSidebarCollapsed,
-    getFilmById,
-    getDeveloperById,
-  });
-  settersRef.current = {
-    setSelectedFilm,
-    setSelectedDeveloper,
-    setDilutionFilter,
-    setIsoFilter,
-    setDeveloperTypeFilter,
-    setFavoritesOnly,
-    setCustomRecipeFilter,
-    setSharedRecipeView,
-    setSharedRecipeSource,
-    setIsSharedRecipeModalOpen,
-    setDetailView,
-    setIsDetailOpen,
-    setIsFiltersSidebarCollapsed,
-    getFilmById,
-    getDeveloperById,
-  };
-
+  // The setters are all useState dispatchers and the lookups are useCallback-memoized,
+  // so every value below is referentially stable. They can be listed as honest effect
+  // deps directly — no latest-ref indirection needed.
   const urlStateAppliedRef = useRef(false);
 
   // Effect 1: Apply filter state from URL (film, developer, filters).
-  // Depends only on isLoaded and the stable initialUrlState reference.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: settersRef is stable by design; initialUrlState is stable after load
   useEffect(() => {
     if (!isLoaded || !initialUrlState.fromUrl || urlStateAppliedRef.current) {
       return;
     }
 
-    const s = settersRef.current;
-
     if (initialUrlState.selectedFilm) {
-      s.setSelectedFilm(initialUrlState.selectedFilm);
+      setSelectedFilm(initialUrlState.selectedFilm);
     }
     if (initialUrlState.selectedDeveloper) {
-      s.setSelectedDeveloper(initialUrlState.selectedDeveloper);
+      setSelectedDeveloper(initialUrlState.selectedDeveloper);
     }
     if (initialUrlState.dilutionFilter) {
-      s.setDilutionFilter(initialUrlState.dilutionFilter);
+      setDilutionFilter(initialUrlState.dilutionFilter);
     }
     if (initialUrlState.isoFilter) {
-      s.setIsoFilter(initialUrlState.isoFilter);
+      setIsoFilter(initialUrlState.isoFilter);
     }
     if (initialUrlState.developerTypeFilter) {
-      s.setDeveloperTypeFilter(initialUrlState.developerTypeFilter);
+      setDeveloperTypeFilter(initialUrlState.developerTypeFilter);
     }
     if (initialUrlState.favoritesOnly) {
-      s.setFavoritesOnly(true);
+      setFavoritesOnly(true);
     }
     if (initialUrlState.customRecipeFilter) {
-      s.setCustomRecipeFilter(
+      setCustomRecipeFilter(
         initialUrlState.customRecipeFilter as
           | 'all'
           | 'hide-custom'
@@ -152,12 +112,21 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
           | 'official'
       );
     }
-  }, [isLoaded, initialUrlState]);
+  }, [
+    isLoaded,
+    initialUrlState,
+    setSelectedFilm,
+    setSelectedDeveloper,
+    setDilutionFilter,
+    setIsoFilter,
+    setDeveloperTypeFilter,
+    setFavoritesOnly,
+    setCustomRecipeFilter,
+  ]);
 
   // Effect 2: Handle shared custom recipe from URL.
   // Runs after Effect 1 has had a chance to set filters; marks applied only
   // when a shared custom recipe is present (early-exit path).
-  // biome-ignore lint/correctness/useExhaustiveDependencies: settersRef is stable by design
   useEffect(() => {
     if (!isLoaded || !initialUrlState.fromUrl || urlStateAppliedRef.current) {
       return;
@@ -166,16 +135,21 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
       return;
     }
 
-    const s = settersRef.current;
-    s.setSharedRecipeView(sharedCustomRecipeView);
-    s.setSharedRecipeSource('custom');
-    s.setIsSharedRecipeModalOpen(true);
+    setSharedRecipeView(sharedCustomRecipeView);
+    setSharedRecipeSource('custom');
+    setIsSharedRecipeModalOpen(true);
     urlStateAppliedRef.current = true;
-  }, [isLoaded, initialUrlState, sharedCustomRecipeView]);
+  }, [
+    isLoaded,
+    initialUrlState,
+    sharedCustomRecipeView,
+    setSharedRecipeView,
+    setSharedRecipeSource,
+    setIsSharedRecipeModalOpen,
+  ]);
 
   // Effect 3: Handle API recipe lookup from URL (requires recipesByUuid to be populated).
   // Depends on recipesByUuid so it retries after data loads.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: settersRef is stable by design
   useEffect(() => {
     if (!isLoaded || !initialUrlState.fromUrl || urlStateAppliedRef.current) {
       return;
@@ -196,29 +170,40 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
       return;
     }
 
-    const s = settersRef.current;
     const recipeView: DevelopmentCombinationView = {
       combination: recipe,
-      film: s.getFilmById(recipe.filmStockId),
-      developer: s.getDeveloperById(recipe.developerId),
+      film: getFilmById(recipe.filmStockId),
+      developer: getDeveloperById(recipe.developerId),
       source: 'api',
       canShare: true,
     };
 
-    if (initialUrlState.isDirectSelection) {
-      s.setDetailView(recipeView);
-      s.setIsDetailOpen(true);
-      s.setIsFiltersSidebarCollapsed?.(true);
-    } else if (initialUrlState.isSharedApiRecipe) {
-      s.setDetailView(recipeView);
-      s.setIsDetailOpen(true);
-      s.setIsFiltersSidebarCollapsed?.(true);
+    if (
+      initialUrlState.isDirectSelection ||
+      initialUrlState.isSharedApiRecipe
+    ) {
+      setDetailView(recipeView);
+      setIsDetailOpen(true);
+      setIsFiltersSidebarCollapsed?.(true);
     } else {
-      s.setSharedRecipeView(recipeView);
-      s.setSharedRecipeSource('shared');
-      s.setIsSharedRecipeModalOpen(true);
+      setSharedRecipeView(recipeView);
+      setSharedRecipeSource('shared');
+      setIsSharedRecipeModalOpen(true);
     }
 
     urlStateAppliedRef.current = true;
-  }, [isLoaded, initialUrlState, sharedCustomRecipeView, recipesByUuid]);
+  }, [
+    isLoaded,
+    initialUrlState,
+    sharedCustomRecipeView,
+    recipesByUuid,
+    getFilmById,
+    getDeveloperById,
+    setDetailView,
+    setIsDetailOpen,
+    setIsFiltersSidebarCollapsed,
+    setSharedRecipeView,
+    setSharedRecipeSource,
+    setIsSharedRecipeModalOpen,
+  ]);
 }
