@@ -270,7 +270,10 @@ describe('useRecipeUrlState', () => {
     });
 
     it('should handle valid dilution format: stock', () => {
-      mockLocation.search = '?dilution=stock';
+      // A developer is included because dilution is developer-relative and is
+      // ignored without one (see 'orphaned sub-filter params' below) — this
+      // test is about the format regex accepting "stock", not that guard.
+      mockLocation.search = '?developer=dd-x&dilution=stock';
 
       const { result } = renderHook(() =>
         useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
@@ -280,7 +283,7 @@ describe('useRecipeUrlState', () => {
     });
 
     it('should handle valid dilution format: 1:1', () => {
-      mockLocation.search = '?dilution=1:1';
+      mockLocation.search = '?developer=dd-x&dilution=1:1';
 
       const { result } = renderHook(() =>
         useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
@@ -291,7 +294,7 @@ describe('useRecipeUrlState', () => {
 
     it('should handle valid dilution format: 1+1', () => {
       // URL encode + as %2B since + is decoded as space in URLs
-      mockLocation.search = '?dilution=1%2B1';
+      mockLocation.search = '?developer=dd-x&dilution=1%2B1';
 
       const { result } = renderHook(() =>
         useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
@@ -301,7 +304,7 @@ describe('useRecipeUrlState', () => {
     });
 
     it('should handle valid dilution format: 100', () => {
-      mockLocation.search = '?dilution=100';
+      mockLocation.search = '?developer=dd-x&dilution=100';
 
       const { result } = renderHook(() =>
         useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
@@ -702,6 +705,40 @@ describe('useRecipeUrlState', () => {
       expect(lastCall[2]).toContain('iso=800');
 
       vi.useRealTimers();
+    });
+  });
+
+  describe('orphaned sub-filter params', () => {
+    it('ignores box speed with no film in the URL', () => {
+      mockLocation.search = '?iso=boxspeed';
+
+      const { result } = renderHook(() =>
+        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+      );
+
+      // Box speed is relative to a film; on its own it cannot mean anything, so
+      // it must not land in state where it would be invisible and inert.
+      expect(result.current.initialUrlState.isoFilter).toBeUndefined();
+    });
+
+    it('keeps a numeric ISO with no film in the URL', () => {
+      mockLocation.search = '?iso=400';
+
+      const { result } = renderHook(() =>
+        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+      );
+
+      expect(result.current.initialUrlState.isoFilter).toBe('400');
+    });
+
+    it('ignores a dilution with no developer in the URL', () => {
+      mockLocation.search = '?dilution=1%2B9';
+
+      const { result } = renderHook(() =>
+        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+      );
+
+      expect(result.current.initialUrlState.dilutionFilter).toBeUndefined();
     });
   });
 });
