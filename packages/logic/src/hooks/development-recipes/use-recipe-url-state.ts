@@ -202,7 +202,11 @@ export const validateUrlParams = (
       ) {
         errors.push('Invalid ISO value');
       } else {
-        sanitized.iso = params.iso;
+        // Store the canonicalised integer, not the raw input — otherwise a
+        // value like '400abc' passes the range check (parseInt is lenient)
+        // but never matches shootingIso.toString() downstream, silently
+        // emptying the results with no visible or clearable cause.
+        sanitized.iso = String(isoNum);
       }
     }
   }
