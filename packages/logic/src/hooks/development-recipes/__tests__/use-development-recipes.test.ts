@@ -552,4 +552,39 @@ describe('useDevelopmentRecipes', () => {
       ]);
     });
   });
+
+  describe('getAvailableISOs', () => {
+    it('offers every catalogue ISO when no film is selected', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
+
+      expect(result.current.getAvailableISOs()).toEqual([
+        { label: 'All ISOs', value: '' },
+        { label: '100', value: '100' },
+        { label: '200', value: '200' },
+        { label: '400', value: '400' },
+        { label: '800', value: '800' },
+        { label: '1600', value: '1600' },
+      ]);
+    });
+
+    it('adds box speed once a film is selected, keeping the full ISO list', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
+
+      act(() => {
+        result.current.setSelectedFilm(mockFilms[0]);
+      });
+
+      // The numeric options stay global — they do not narrow to HP5's ISOs —
+      // so an ISO chosen before the film change is still representable.
+      expect(result.current.getAvailableISOs()).toEqual([
+        { label: 'All ISOs', value: '' },
+        { label: 'Box speed (400)', value: 'boxspeed' },
+        { label: '100', value: '100' },
+        { label: '200', value: '200' },
+        { label: '400', value: '400' },
+        { label: '800', value: '800' },
+        { label: '1600', value: '1600' },
+      ]);
+    });
+  });
 });
