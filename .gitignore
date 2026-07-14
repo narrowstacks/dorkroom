@@ -96,3 +96,6 @@ ds-bundle/
 
 # Visual brainstorming companion scratch files
 .superpowers/
+
+# PR screenshot capture scratch (uploaded to GitHub CDN, never committed)
+.pr-screenshots/
