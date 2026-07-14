@@ -9,6 +9,7 @@
       "!**/coverage",
       "!**/.nx",
       "!**/.impeccable",
+      "!**/.claude",
       "!**/node_modules",
       "!**/routeTree.gen.ts",
       "!api/openapi-spec.json",

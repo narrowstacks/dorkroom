@@ -107,6 +107,19 @@ When adding new routes/pages, modifying existing routes, or changing API endpoin
 - **`@typescript/native-preview` is an exact dev snapshot that never auto-updates.** Re-evaluate it periodically (e.g. monthly) against newer snapshots for interim fixes — the feed is the `@beta`/`@latest` tags at <https://www.npmjs.com/package/@typescript/native-preview?activeTab=versions> (`bun pm view @typescript/native-preview`).
 - **Dependency pinning is two-tier:** toolchain that shapes the production bundle (vite, vitest, tailwindcss, jsdom, etc.) is pinned exact; everything else uses `^` ranges. Babel (`@babel/*`) stays on ranges — Vite 8/Oxc does the actual transforms, so Babel is dev-only tooling here. The `bunfig.toml` `minimumReleaseAge` gate (7 days) backstops the ranges. To install something published in the last week (e.g. an urgent CVE patch), run `bun install --minimum-release-age 0` or add the package to `minimumReleaseAgeExcludes`.
 
+## Pull Requests
+
+**Every PR that changes rendered output must include before/after screenshots.**
+That means a route, a shared component, a theme token, or a calculator's
+displayed result — anything a user would see. Use the **`pr-screenshots`** skill:
+it maps the diff to the affected routes, captures each one before (from the
+merge-base) and after, and uploads the images to GitHub's CDN. Nothing is
+committed to the repo.
+
+If a PR has no rendered output — an `api/` change, a config bump, tests — say so
+in the description in one line. Silence is ambiguous: a reviewer can't tell
+whether screenshots were considered or forgotten.
+
 ## Git
 
 - Conventional commits, short messages
