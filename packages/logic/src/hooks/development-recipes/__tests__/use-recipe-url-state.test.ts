@@ -740,5 +740,72 @@ describe('useRecipeUrlState', () => {
 
       expect(result.current.initialUrlState.dilutionFilter).toBeUndefined();
     });
+
+    it('strips a lone orphaned iso=boxspeed param from the URL once film/developer data arrives', () => {
+      // Films/developers load asynchronously in the real app: the hook first
+      // mounts with empty lists (initialUrlState stays {}, so the hook never
+      // initializes), then re-renders once the lists arrive. currentState
+      // itself never changes across this transition, because the orphan iso
+      // param never gets applied to it — so a fix that only re-syncs the URL
+      // when currentState.* changes would miss this entirely.
+      vi.useFakeTimers();
+      mockLocation.search = '?iso=boxspeed';
+
+      const { rerender } = renderHook(
+        ({ films, developers }) =>
+          useRecipeUrlState(films, developers, mockCurrentState),
+        {
+          initialProps: {
+            films: [] as typeof mockFilms,
+            developers: [] as typeof mockDevelopers,
+          },
+        }
+      );
+
+      rerender({ films: mockFilms, developers: mockDevelopers });
+
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      // The orphan param is never applied to state, so nothing else would ever
+      // trigger a URL rewrite — the canonical URL must still be written once
+      // after initialization so the stale param doesn't linger.
+      expect(mockReplaceState).toHaveBeenCalled();
+      const lastCall =
+        mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
+      expect(lastCall[2]).not.toContain('iso');
+
+      vi.useRealTimers();
+    });
+
+    it('strips a lone orphaned dilution param from the URL once film/developer data arrives', () => {
+      vi.useFakeTimers();
+      mockLocation.search = '?dilution=1%2B9';
+
+      const { rerender } = renderHook(
+        ({ films, developers }) =>
+          useRecipeUrlState(films, developers, mockCurrentState),
+        {
+          initialProps: {
+            films: [] as typeof mockFilms,
+            developers: [] as typeof mockDevelopers,
+          },
+        }
+      );
+
+      rerender({ films: mockFilms, developers: mockDevelopers });
+
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      expect(mockReplaceState).toHaveBeenCalled();
+      const lastCall =
+        mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
+      expect(lastCall[2]).not.toContain('dilution');
+
+      vi.useRealTimers();
+    });
   });
 });
