@@ -38,6 +38,10 @@ export function filterRecipeViews(
   const q = query.trim();
   if (!q && !tag) return views;
   return views.filter((view) => {
+    // Scans each view's own short tag list, not one shared array. Building a Set per view
+    // would cost an allocation per item to replace a handful of comparisons — strictly
+    // slower. Suppressed as a false positive rather than "fixed".
+    // eslint-disable-next-line react-doctor/js-set-map-lookups -- see above
     if (tag && !(view.combination.tags ?? []).includes(tag)) return false;
     if (!q) return true;
     const film = view.film ? `${view.film.brand} ${view.film.name}` : '';

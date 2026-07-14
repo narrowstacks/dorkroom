@@ -227,17 +227,24 @@ export function MeterScreen() {
   const { flashStyle, triggerFlash } = useShutterFlash();
   // Seed the solver from the last persisted locked setting + ISO (read once).
   const initialSettings = useMemo(() => getMeterSettings(), []);
-  const solver = useLightMeterSolver(meter.ev, initialSettings);
   const isFocused = useIsFocused();
   // When off, all film-log integration is hidden (clean standalone meter).
   const [linkFilmLog] = useLinkFilmLog();
   // Lock the meter ISO to the active roll's rated EI (default on, tap to unlock);
-  // skipped entirely while the film-log link is off.
-  const { rollIso, isoLocked, toggleLock } = useMeterIsoLock(
-    solver.iso,
-    solver.setIso,
-    linkFilmLog
-  );
+  // skipped entirely while the film-log link is off. Resolved before the solver so
+  // the locked EI can be derived into it rather than written back from an effect.
+  const { rollIso, isoLocked, lockedIso, setLocked } =
+    useMeterIsoLock(linkFilmLog);
+  const solver = useLightMeterSolver(meter.ev, initialSettings, lockedIso);
+  const { setIso } = solver;
+  const toggleLock = useCallback(() => {
+    // Commit the pinned EI as we unlock, so the meter stays on the EI the user has
+    // been metering at instead of snapping back to the ISO from before the lock.
+    if (isoLocked && rollIso != null) {
+      setIso(rollIso);
+    }
+    setLocked(!isoLocked);
+  }, [isoLocked, rollIso, setIso, setLocked]);
   const { message: toastMessage, show: showToast } = useToast();
   const onIsoBlocked = useCallback(
     () => showToast('Unlock EI in the upper left to pick an ISO'),

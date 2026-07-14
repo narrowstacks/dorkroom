@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { formatForDisplay } from '../../utils/precision';
 
 /**
@@ -42,15 +42,18 @@ export function usePaperDimensionInput({
   onWidthChange,
   onHeightChange,
 }: UsePaperDimensionInputProps): UsePaperDimensionInputReturn {
-  // Local string state for custom paper dimensions (in display units)
-  const [paperWidthInput, setPaperWidthInput] = useState(() =>
-    formatForDisplay(toDisplay(initialWidth))
-  );
-  const [paperHeightInput, setPaperHeightInput] = useState(() =>
-    formatForDisplay(toDisplay(initialHeight))
-  );
-  const [isEditingPaperWidth, setIsEditingPaperWidth] = useState(false);
-  const [isEditingPaperHeight, setIsEditingPaperHeight] = useState(false);
+  // While the user is typing we hold their raw keystrokes as a "draft"; the rest
+  // of the time the input is simply derived from the committed dimension. Keeping
+  // the committed value derived (rather than mirrored into state by an effect)
+  // means an external change — a preset, a unit switch — shows up on the next
+  // render instead of costing a second one.
+  const [widthDraft, setWidthDraft] = useState<string | null>(null);
+  const [heightDraft, setHeightDraft] = useState<string | null>(null);
+
+  const paperWidthInput =
+    widthDraft ?? formatForDisplay(toDisplay(initialWidth));
+  const paperHeightInput =
+    heightDraft ?? formatForDisplay(toDisplay(initialHeight));
 
   // Helper to validate and convert input to inches
   const validateAndConvert = (value: string): number | null => {
@@ -67,27 +70,9 @@ export function usePaperDimensionInput({
     return null;
   };
 
-  // Sync local state when parent state or unit changes (but not while editing)
-  useEffect(() => {
-    if (!isEditingPaperWidth) {
-      const displayValue = toDisplay(initialWidth);
-      // Round to 3 decimals to avoid floating point artifacts
-      setPaperWidthInput(formatForDisplay(displayValue));
-    }
-  }, [initialWidth, toDisplay, isEditingPaperWidth]);
-
-  useEffect(() => {
-    if (!isEditingPaperHeight) {
-      const displayValue = toDisplay(initialHeight);
-      // Round to 3 decimals to avoid floating point artifacts
-      setPaperHeightInput(formatForDisplay(displayValue));
-    }
-  }, [initialHeight, toDisplay, isEditingPaperHeight]);
-
   // Handle width input change
   const handlePaperWidthChange = (value: string) => {
-    setIsEditingPaperWidth(true);
-    setPaperWidthInput(value);
+    setWidthDraft(value);
 
     // Push valid changes to parent state immediately for live recomputation
     const inches = validateAndConvert(value);
@@ -96,28 +81,20 @@ export function usePaperDimensionInput({
     }
   };
 
-  // Handle width blur - convert to inches when stable
+  // Handle width blur - convert to inches when stable. Dropping the draft falls
+  // back to the derived display value, which reformats away typing artifacts
+  // ("9.5000" → "9.5") and reverts empty or invalid input to the last commit.
   const handlePaperWidthBlur = () => {
-    setIsEditingPaperWidth(false);
     const inches = validateAndConvert(paperWidthInput);
     if (inches !== null) {
       onWidthChange(inches);
-      // Format the display value to avoid floating point precision artifacts
-      const displayValue = toDisplay(inches);
-      setPaperWidthInput(formatForDisplay(displayValue));
-    } else if (paperWidthInput === '' || /^\s*$/.test(paperWidthInput)) {
-      // Reset to current value if empty
-      setPaperWidthInput(formatForDisplay(toDisplay(initialWidth)));
-    } else {
-      // Reset to current value if invalid
-      setPaperWidthInput(formatForDisplay(toDisplay(initialWidth)));
     }
+    setWidthDraft(null);
   };
 
   // Handle height input change
   const handlePaperHeightChange = (value: string) => {
-    setIsEditingPaperHeight(true);
-    setPaperHeightInput(value);
+    setHeightDraft(value);
 
     // Push valid changes to parent state immediately for live recomputation
     const inches = validateAndConvert(value);
@@ -126,29 +103,20 @@ export function usePaperDimensionInput({
     }
   };
 
-  // Handle height blur - convert to inches when stable
+  // Handle height blur - see handlePaperWidthBlur.
   const handlePaperHeightBlur = () => {
-    setIsEditingPaperHeight(false);
     const inches = validateAndConvert(paperHeightInput);
     if (inches !== null) {
       onHeightChange(inches);
-      // Format the display value to avoid floating point precision artifacts
-      const displayValue = toDisplay(inches);
-      setPaperHeightInput(formatForDisplay(displayValue));
-    } else if (paperHeightInput === '' || /^\s*$/.test(paperHeightInput)) {
-      // Reset to current value if empty
-      setPaperHeightInput(formatForDisplay(toDisplay(initialHeight)));
-    } else {
-      // Reset to current value if invalid
-      setPaperHeightInput(formatForDisplay(toDisplay(initialHeight)));
     }
+    setHeightDraft(null);
   };
 
   return {
     paperWidthInput,
     paperHeightInput,
-    isEditingPaperWidth,
-    isEditingPaperHeight,
+    isEditingPaperWidth: widthDraft !== null,
+    isEditingPaperHeight: heightDraft !== null,
     handlePaperWidthChange,
     handlePaperWidthBlur,
     handlePaperHeightChange,

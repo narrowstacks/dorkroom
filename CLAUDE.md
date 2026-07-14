@@ -61,6 +61,16 @@ npx react-doctor@latest --verbose         # unpinned; track the latest ruleset
   usage (e.g. `turbo-ignore` in `scripts/should-deploy.sh`, `lucide-static` in
   `apps/mobile/scripts/generate-tab-icons.mjs`) — so it reports those as
   "unused" false-positives. Circular-import detection stays on.
+- **`react-doctor/no-impure-state-updater` is also ignored** (added 2026-07-13,
+  react-doctor 0.7.7). The rule is meant to catch side effects inside a
+  `setX(prev => …)` updater callback, but it fires on any plain event handler
+  that calls a setter alongside anything else — e.g.
+  `openDetailDrawer(view) { setDetailView(view); setIsDetailOpen(true); }`.
+  Those handlers are typed `=> void` and are never passed to a setter, so they
+  cannot be updaters; its own suggested remedy ("move this into the event
+  handler") is already satisfied. It flagged 48 sites here, all false positives,
+  while flagging none of the repo's ~49 real updater callbacks. **Re-check on
+  each react-doctor upgrade** and drop the ignore once upstream fixes it.
 
 ## Documentation
 

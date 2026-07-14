@@ -9,7 +9,7 @@ import {
   type SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 
 export interface DevelopmentCombinationView {
   combination: Combination;
@@ -133,10 +133,6 @@ export function useDevelopmentTable({
     [pageIndex]
   );
 
-  // Keep a ref to the latest isFavorite so the Set can be rebuilt when it changes
-  const isFavoriteRef = useRef(isFavorite);
-  isFavoriteRef.current = isFavorite;
-
   // Pre-compute the full set of favorite IDs from the current rows.
   // This is O(n) once per rows/isFavorite change, eliminating the repeated
   // isFavorite() calls that made sorting O(n log n * k).
@@ -144,13 +140,11 @@ export function useDevelopmentTable({
     const set = new Set<string>();
     for (const row of rows) {
       const key = getCombinationKey(row);
-      if (isFavoriteRef.current(key)) {
+      if (isFavorite(key)) {
         set.add(key);
       }
     }
     return set;
-    // Re-compute when rows change OR when isFavorite identity changes (e.g., after toggle)
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- isFavorite kept intentionally to trigger rebuild on identity change (read via ref inside)
   }, [rows, isFavorite]);
 
   const favoriteSortingFn = useMemo(

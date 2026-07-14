@@ -46,12 +46,21 @@ export interface LightMeterSolverInitialState {
  *
  * @param ev - Metered scene EV at ISO 100, or null/NaN when unavailable
  * @param initial - Optional starting controls (e.g. persisted); read once on mount
+ * @param isoOverride - Pins the ISO while set (e.g. locked to a film roll's rated
+ *   EI). The solver derives its ISO from this rather than having a caller write it
+ *   back through `setIso` from an effect, which would cost an extra render and can
+ *   momentarily solve against a stale ISO. `setIso` still writes the underlying
+ *   value, so a caller can commit the pinned EI before releasing the override.
  */
 export const useLightMeterSolver = (
   ev: number | null,
-  initial?: LightMeterSolverInitialState
+  initial?: LightMeterSolverInitialState,
+  isoOverride?: number
 ): UseLightMeterSolver => {
-  const [iso, setIso] = useState(initial?.iso ?? DEFAULT_CAMERA_EXPOSURE_ISO);
+  const [isoState, setIso] = useState(
+    initial?.iso ?? DEFAULT_CAMERA_EXPOSURE_ISO
+  );
+  const iso = isoOverride ?? isoState;
   const [priority, setPriority] = useState<MeterPriority>(
     initial?.priority ?? 'aperture'
   );
