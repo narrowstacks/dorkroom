@@ -382,12 +382,19 @@ export const useRecipeUrlState = (
       }
     }
 
-    if (validation.sanitized.dilution) {
+    // A dilution is defined relative to a developer — "1+9" means different things
+    // for different developers — so it is meaningless without one. Applying it
+    // anyway would leave a filter in state that has no control and does nothing.
+    if (validation.sanitized.dilution && state.selectedDeveloper) {
       state.dilutionFilter = validation.sanitized.dilution;
     }
 
+    // A numeric ISO is absolute and stands on its own. Box speed is relative to
+    // the selected film, so it is only meaningful alongside one.
     if (validation.sanitized.iso) {
-      state.isoFilter = validation.sanitized.iso;
+      if (validation.sanitized.iso !== 'boxspeed' || state.selectedFilm) {
+        state.isoFilter = validation.sanitized.iso;
+      }
     }
 
     if (validation.sanitized.developerType) {
