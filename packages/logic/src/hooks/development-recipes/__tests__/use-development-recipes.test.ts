@@ -624,4 +624,50 @@ describe('useDevelopmentRecipes', () => {
       ]);
     });
   });
+
+  describe('ISO filtering without a film', () => {
+    it('filters on a numeric ISO with no film selected', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
+
+      act(() => {
+        result.current.setIsoFilter('400');
+      });
+
+      // hp5-plus/400 and neopan-400/400 — across two different films.
+      expect(result.current.filteredCombinations).toHaveLength(2);
+      expect(
+        result.current.filteredCombinations.every(
+          (combo) => combo.shootingIso === 400
+        )
+      ).toBe(true);
+    });
+
+    it('treats box speed as a no-op with no film selected', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
+      const total = result.current.filteredCombinations.length;
+
+      act(() => {
+        result.current.setIsoFilter('boxspeed');
+      });
+
+      // Box speed means "this film's rated speed" — with no film there is
+      // nothing to compare against, so it must not silently drop everything.
+      expect(result.current.filteredCombinations).toHaveLength(total);
+    });
+
+    it('still resolves box speed against the selected film', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
+
+      act(() => {
+        result.current.setSelectedFilm(mockFilms[0]); // hp5-plus, rated 400
+      });
+      act(() => {
+        result.current.setIsoFilter('boxspeed');
+      });
+
+      // Of HP5's two recipes (400 and 1600), only the 400 is at box speed.
+      expect(result.current.filteredCombinations).toHaveLength(1);
+      expect(result.current.filteredCombinations[0].shootingIso).toBe(400);
+    });
+  });
 });

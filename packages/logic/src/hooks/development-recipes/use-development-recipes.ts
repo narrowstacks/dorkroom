@@ -568,12 +568,16 @@ export const useDevelopmentRecipes = (
       });
     }
 
-    // Filter by ISO
-    if (isoFilter && selectedFilm) {
+    // Filter by ISO. A numeric ISO is absolute, so it filters on its own. Box
+    // speed is relative to the selected film's rated speed, so with no film there
+    // is nothing to compare against and it is a no-op rather than a wipeout.
+    if (isoFilter) {
       if (isoFilter === 'boxspeed') {
-        combinations = combinations.filter(
-          (combo) => combo.shootingIso === selectedFilm.isoSpeed
-        );
+        if (selectedFilm) {
+          combinations = combinations.filter(
+            (combo) => combo.shootingIso === selectedFilm.isoSpeed
+          );
+        }
       } else {
         combinations = combinations.filter(
           (combo) => combo.shootingIso.toString() === isoFilter
