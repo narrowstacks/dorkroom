@@ -1,30 +1,12 @@
 import { ROUTE_DESCRIPTIONS, ROUTE_TITLES } from '@dorkroom/ui';
 import { createFileRoute } from '@tanstack/react-router';
 import { lazy, Suspense } from 'react';
-import { z } from 'zod';
 import { LoadingSpinner } from '../components/loading-spinner';
+import { developmentSearchSchema } from './search-schemas';
 
 const DevelopmentRecipesPage = lazy(
   () => import('../app/pages/development-recipes/development-recipes-page')
 );
-
-// Define search param schema for type-safety and validation
-// Invalid params are silently recovered to undefined for better UX
-const developmentSearchSchema = z.object({
-  q: z.string().optional().catch(undefined),
-  film: z.string().optional().catch(undefined),
-  developer: z.string().optional().catch(undefined),
-  dilution: z.string().optional().catch(undefined),
-  iso: z.string().optional().catch(undefined),
-  recipe: z.string().optional().catch(undefined),
-  source: z.string().optional().catch(undefined),
-  view: z.enum(['favorites', 'custom']).optional().catch(undefined),
-  developerType: z.string().optional().catch(undefined),
-  recipeType: z.string().optional().catch(undefined),
-  favorites: z.string().optional().catch(undefined),
-});
-
-export type DevelopmentSearchParams = z.infer<typeof developmentSearchSchema>;
 
 export const Route = createFileRoute('/development')({
   validateSearch: developmentSearchSchema,

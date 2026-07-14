@@ -3,6 +3,7 @@ import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { Analytics } from '@vercel/analytics/react';
 import { lazy, StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
+import { parseSearch, stringifySearch } from './routes/search-params';
 import '@fontsource-variable/montserrat/index.css';
 import '@fontsource-variable/fraunces/index.css';
 import './styles.css';
@@ -42,6 +43,10 @@ const router = createRouter({
     queryClient,
   },
   defaultPreloadDelay: 50,
+  // Keep search params as plain strings instead of JSON-parsing them; see
+  // ./routes/search-params for why.
+  parseSearch,
+  stringifySearch,
 });
 
 // Register router for type safety
