@@ -670,4 +670,36 @@ describe('useDevelopmentRecipes', () => {
       expect(result.current.filteredCombinations[0].shootingIso).toBe(400);
     });
   });
+
+  describe('ISO survives a film change', () => {
+    it('keeps the ISO filter when a film is selected', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
+
+      act(() => {
+        result.current.setIsoFilter('400');
+      });
+      act(() => {
+        result.current.setSelectedFilm(mockFilms[0]); // hp5-plus
+      });
+
+      // A top-level filter must not be silently reset by another control.
+      expect(result.current.isoFilter).toBe('400');
+      // HP5 has exactly one recipe at ISO 400.
+      expect(result.current.filteredCombinations).toHaveLength(1);
+    });
+
+    it('still clears the dilution filter when a developer is selected', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
+
+      act(() => {
+        result.current.setDilutionFilter('1+9');
+      });
+      act(() => {
+        result.current.setSelectedDeveloper(mockDevelopers[0]);
+      });
+
+      // Dilution stays a sub-filter of developer — this behaviour is deliberate.
+      expect(result.current.dilutionFilter).toBe('');
+    });
+  });
 });
