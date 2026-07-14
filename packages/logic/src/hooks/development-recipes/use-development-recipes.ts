@@ -241,9 +241,11 @@ export const useDevelopmentRecipes = (
       (initialUrlState?.selectedDeveloper as Developer | undefined) || null
     );
 
+  // ISO is a top-level filter and deliberately survives a film change, so this no
+  // longer clears it. (setSelectedDeveloper still clears the dilution filter —
+  // dilution remains scoped to its developer.)
   const setSelectedFilm = useCallback((film: Film | null) => {
     setSelectedFilmState(film);
-    setIsoFilter('');
   }, []);
 
   const setSelectedDeveloper = useCallback((developer: Developer | null) => {
