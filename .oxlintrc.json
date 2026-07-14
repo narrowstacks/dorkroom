@@ -3,6 +3,7 @@
   "ignorePatterns": [
     "**/dist",
     "**/coverage",
+    "**/.claude",
     "**/node_modules",
     "**/routeTree.gen.ts",
     "**/*.tsbuildinfo",

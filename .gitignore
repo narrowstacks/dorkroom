@@ -55,7 +55,15 @@ Thumbs.db
 .nx
 
 # AI
+# Shared config (skills, agents, hooks) is committed; only local state is not.
+# Without these negations, `.claude/*` silently swallows every new skill.
 .claude/*
+!.claude/agents/
+!.claude/hooks/
+!.claude/skills/
+!.claude/settings.json
+.claude/settings.local.json
+.claude/worktrees/
 .agents/*
 .codex/*
 
