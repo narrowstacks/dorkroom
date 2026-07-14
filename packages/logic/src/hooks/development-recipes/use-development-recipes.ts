@@ -393,23 +393,23 @@ export const useDevelopmentRecipes = (
     label: string;
     value: string;
   }[] => {
-    if (!selectedFilm) return [];
+    const isos = [{ label: 'All ISOs', value: '' }];
 
-    const isos = [
-      { label: 'All ISOs', value: '' },
-      {
+    // Box speed is defined relative to the selected film's rated speed, so it is
+    // only offered when there is a film to be relative to.
+    if (selectedFilm) {
+      isos.push({
         label: `Box speed (${selectedFilm.isoSpeed})`,
         value: 'boxspeed',
-      },
-    ];
+      });
+    }
+
+    // ISO is a top-level filter, so the numeric options are every shooting ISO in
+    // the catalogue rather than just the selected film's. That keeps a chosen ISO
+    // representable when the film changes — which it must be, since selecting a
+    // film no longer clears it.
     const isoSet = new Set<number>();
-
-    const slugSet = new Set(getAllSlugsForFilm(selectedFilm));
-    const combinations = allCombinations.filter(
-      (combo) => slugSet.has(combo.filmStockId) || slugSet.has(combo.filmSlug)
-    );
-
-    combinations.forEach((combo) => {
+    allCombinations.forEach((combo) => {
       isoSet.add(combo.shootingIso);
     });
 
