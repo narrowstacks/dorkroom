@@ -404,14 +404,34 @@ export const useDevelopmentRecipes = (
       });
     }
 
-    // ISO is a top-level filter, so the numeric options are every shooting ISO in
-    // the catalogue rather than just the selected film's. That keeps a chosen ISO
-    // representable when the film changes — which it must be, since selecting a
-    // film no longer clears it.
     const isoSet = new Set<number>();
-    allCombinations.forEach((combo) => {
-      isoSet.add(combo.shootingIso);
-    });
+
+    if (selectedFilm) {
+      // Narrow to the selected film's own shooting ISOs (alias-aware, matching
+      // getCombinationsForFilm's slug resolution).
+      const slugSet = new Set(getAllSlugsForFilm(selectedFilm));
+      allCombinations.forEach((combo) => {
+        if (slugSet.has(combo.filmStockId) || slugSet.has(combo.filmSlug)) {
+          isoSet.add(combo.shootingIso);
+        }
+      });
+
+      // Union in a carried-over numeric ISO filter so it stays visible and
+      // clearable even if the newly selected film doesn't offer it — otherwise
+      // it becomes an invisible, unclearable filter once selecting a film no
+      // longer resets it.
+      if (isoFilter && isoFilter !== 'boxspeed') {
+        const carriedIso = Number(isoFilter);
+        if (!Number.isNaN(carriedIso)) {
+          isoSet.add(carriedIso);
+        }
+      }
+    } else {
+      // No film selected — offer every shooting ISO in the catalogue.
+      allCombinations.forEach((combo) => {
+        isoSet.add(combo.shootingIso);
+      });
+    }
 
     Array.from(isoSet)
       .sort((a, b) => a - b)
@@ -420,7 +440,7 @@ export const useDevelopmentRecipes = (
       });
 
     return isos;
-  }, [selectedFilm, allCombinations]);
+  }, [selectedFilm, allCombinations, isoFilter]);
 
   const getAvailableISOs = useCallback(() => availableISOs, [availableISOs]);
 
