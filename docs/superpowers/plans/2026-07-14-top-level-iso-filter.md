@@ -616,3 +616,29 @@ No placeholders. Names used consistently across tasks: `availableISOs`,
 `getAvailableISOs`, `setSelectedFilm`, `setIsoFilter`, `isoFilter`,
 `filteredCombinations`, `initialUrlState.isoFilter`, `initialUrlState.dilutionFilter`,
 `showIsoFilter`.
+
+---
+
+### Task 7: Clean an orphaned param out of the URL on load
+
+Added during execution. Browser verification showed orphaned params are correctly
+ignored (not applied, not counted, control clearable) but **linger in the URL**.
+
+Root cause: the UI→URL sync effect is guarded by `isInitializedRef` — a **ref**, so
+flipping it does not re-run the effect — and its dependencies are only
+`currentState.*` fields. For a lone orphan nothing enters state, so no dependency
+changes, so the effect never re-runs after initialisation and never rewrites the URL.
+The spec's claim that no URL cleanup was needed holds only when some *other* filter
+also lands and triggers the sync.
+
+**Files:**
+- Modify: `packages/logic/src/hooks/development-recipes/use-recipe-url-state.ts`
+- Test: `packages/logic/src/hooks/development-recipes/__tests__/use-recipe-url-state.test.ts`
+
+**Fix:** promote the initialised flag to state alongside the existing ref, and add it
+to the sync effect's dependencies, so the canonical URL is written once after
+initialisation even when no filter changed. The ref must stay — `updateUrl` reads it
+synchronously inside its debounce timeout.
+
+Acceptance: loading `?iso=boxspeed` (no film) or `?dilution=1%2B9` (no developer)
+leaves the URL with that param removed, and every existing URL-state test stays green.
