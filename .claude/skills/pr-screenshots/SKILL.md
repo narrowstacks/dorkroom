@@ -103,12 +103,17 @@ doesn't exist. Fix it; don't ship a PR with a missing screenshot.
 
 The "before" state is the merge-base, not your working tree. Get it from a
 worktree, which never touches your working tree — no stashing, nothing to lose.
-Leave the "after" server running: the second one auto-picks the next free port,
-which you read back the same way.
+
+**Stop the "after" server first.** The two dev servers cannot run side by side:
+the microfrontends proxy claims a fixed port and dies with `Microfrontends proxy
+error: Port is not available` rather than picking another one. (Bare `vite` does
+increment — `bun run dev` doesn't, because the proxy is in front of it.)
 
 ```bash
+pkill -f 'turbo run dev'          # free the port before starting the second server
+
 BASE=$(git merge-base HEAD origin/main)
-git worktree add /tmp/dr-before "$BASE"
+git worktree add --detach /tmp/dr-before "$BASE"
 (cd /tmp/dr-before && bun install && bun run dev > /tmp/dr-before.log 2>&1 &)
 until grep -q 'Local:' /tmp/dr-before.log; do sleep 1; done
 BEFORE=$(grep -o 'http://localhost:[0-9]*' /tmp/dr-before.log | head -1)
@@ -116,6 +121,7 @@ BEFORE=$(grep -o 'http://localhost:[0-9]*' /tmp/dr-before.log | head -1)
 bun run scripts/pr-screenshots.ts .pr-screenshots/shots.json \
   --base-url "$BEFORE" --out-dir .pr-screenshots/before
 
+pkill -f 'turbo run dev'
 git worktree remove --force /tmp/dr-before
 ```
 
