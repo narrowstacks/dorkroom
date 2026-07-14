@@ -528,7 +528,6 @@ export default function DevelopmentRecipesPage() {
               onClearFilters={clearFilters}
               showDeveloperTypeFilter={!selectedDeveloper}
               showDilutionFilter={!!selectedDeveloper}
-              showIsoFilter={!!selectedFilm}
               defaultCollapsed={true}
               favoritesOnly={favoritesOnly}
               onFavoritesOnlyChange={setFavoritesOnly}
@@ -610,7 +609,6 @@ export default function DevelopmentRecipesPage() {
                 onClearSelections={clearSelections}
                 showDeveloperTypeFilter={!selectedDeveloper}
                 showDilutionFilter={!!selectedDeveloper}
-                showIsoFilter={!!selectedFilm}
                 onCollapsedChange={setIsFiltersSidebarCollapsed}
                 collapsed={isFiltersSidebarCollapsed}
                 defaultCollapsed={false}
