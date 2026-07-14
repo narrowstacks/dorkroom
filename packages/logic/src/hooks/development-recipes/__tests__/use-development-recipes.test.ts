@@ -567,22 +567,59 @@ describe('useDevelopmentRecipes', () => {
       ]);
     });
 
-    it('adds box speed once a film is selected, keeping the full ISO list', () => {
+    it('narrows to the selected film’s own ISOs, plus box speed', () => {
       const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
 
       act(() => {
-        result.current.setSelectedFilm(mockFilms[0]);
+        result.current.setSelectedFilm(mockFilms[0]); // HP5 Plus
       });
 
-      // The numeric options stay global — they do not narrow to HP5's ISOs —
-      // so an ISO chosen before the film change is still representable.
+      // HP5 Plus's own combinations are c1 (400) and c4 (1600); other films'
+      // ISOs (200, 800, 100) are not offered once a film narrows the list.
       expect(result.current.getAvailableISOs()).toEqual([
         { label: 'All ISOs', value: '' },
         { label: 'Box speed (400)', value: 'boxspeed' },
-        { label: '100', value: '100' },
-        { label: '200', value: '200' },
+        { label: '400', value: '400' },
+        { label: '1600', value: '1600' },
+      ]);
+    });
+
+    it('unions a carried-over numeric isoFilter the selected film does not offer', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
+
+      // setSelectedFilm still clears isoFilter at this point in the plan, so the
+      // film must be selected first and the carried-over ISO set second, to
+      // simulate an ISO surviving a later film change.
+      act(() => {
+        result.current.setSelectedFilm(mockFilms[0]); // HP5 Plus
+      });
+      act(() => {
+        result.current.setIsoFilter('800'); // HP5 has no 800 combination
+      });
+
+      expect(result.current.getAvailableISOs()).toEqual([
+        { label: 'All ISOs', value: '' },
+        { label: 'Box speed (400)', value: 'boxspeed' },
         { label: '400', value: '400' },
         { label: '800', value: '800' },
+        { label: '1600', value: '1600' },
+      ]);
+    });
+
+    it('does not union isoFilter="boxspeed" into the numeric options', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
+
+      act(() => {
+        result.current.setSelectedFilm(mockFilms[0]); // HP5 Plus
+      });
+      act(() => {
+        result.current.setIsoFilter('boxspeed');
+      });
+
+      expect(result.current.getAvailableISOs()).toEqual([
+        { label: 'All ISOs', value: '' },
+        { label: 'Box speed (400)', value: 'boxspeed' },
+        { label: '400', value: '400' },
         { label: '1600', value: '1600' },
       ]);
     });

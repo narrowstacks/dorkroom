@@ -49,15 +49,22 @@ When a film **is** selected, additionally offer `{ label: 'Box speed (N)', value
 'boxspeed' }` immediately after "All ISOs", as it does today. Box speed is the one
 genuinely film-relative option and is worth keeping.
 
-**The numeric list stays global even when a film is selected** — it does *not*
-narrow to that film's ISOs as it does today. This is forced by the decision below
-that ISO survives a film change: the control must always be able to display the
-value it is holding.
+**With a film selected, the numeric options are that film's ISOs — plus the
+currently-selected ISO if it is not among them.**
 
-Accepted trade-off: with a film selected, the list now includes ISOs that yield
-zero results for that film, where today it only ever showed that film's ISOs. This
-is the honest cost of a top-level filter, and the zero-result state is visible and
-clearable rather than silent.
+The union is what makes "ISO survives a film change" safe: the control must always
+be able to display the value it is holding, or a carried-over ISO would become
+invisible and unclearable — the very bug this spec exists to remove. The union
+guarantees that without the cost of listing every catalogue ISO against a film that
+has no recipes at most of them.
+
+(Revised during implementation. The first version of this spec used the full
+catalogue list whenever a film was selected. That also satisfies representability,
+but it fills the list with options that yield zero results — and because
+`availableISOs` is shared with the iOS app, it did so there too, where the ISO
+control is only ever shown *with* a film. The union is strictly better on both
+platforms: on iOS it is a no-op, because that app clears the ISO filter itself on
+every film pick, so there is never a carried-over value to union in.)
 
 ### 2. Filtering — ungated for numeric ISO
 
