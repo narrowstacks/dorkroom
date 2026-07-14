@@ -315,6 +315,14 @@ export const useRecipeUrlState = (
     getServerUrlSnapshot
   );
   const isInitializedRef = useRef(false);
+  // React state mirror of isInitializedRef. The ref alone can't retrigger the
+  // URL-sync effect below — flipping a ref doesn't change dependencies — so a
+  // lone orphaned sub-filter param (which never touches currentState) would
+  // leave a stale param in the URL forever. This flag goes in that effect's
+  // dependency array so it fires once after initialization even when nothing
+  // in currentState changed. Setting it to `true` when it's already `true` is
+  // a no-op React bails out of (Object.is comparison), so this cannot loop.
+  const [isInitialized, setIsInitialized] = useState(false);
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const paramsRef = useRef(params);
 
@@ -446,6 +454,7 @@ export const useRecipeUrlState = (
   useEffect(() => {
     if (initialUrlState.fromUrl) {
       isInitializedRef.current = true;
+      setIsInitialized(true);
     }
   }, [initialUrlState]);
 
@@ -641,6 +650,10 @@ export const useRecipeUrlState = (
     currentState.customRecipeFilter,
     currentState.favoritesOnly,
     currentState.selectedRecipeId,
+    // Ensures the canonical URL is written once right after initialization,
+    // even when a lone orphaned sub-filter param means none of the
+    // currentState fields above ever change.
+    isInitialized,
     updateUrl,
   ]);
 
