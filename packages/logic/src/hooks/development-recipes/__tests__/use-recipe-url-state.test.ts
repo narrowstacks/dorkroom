@@ -731,6 +731,19 @@ describe('useRecipeUrlState', () => {
       expect(result.current.initialUrlState.isoFilter).toBe('400');
     });
 
+    it('canonicalizes a numeric-prefixed ISO to the parsed integer instead of storing the raw string', () => {
+      mockLocation.search = '?iso=400abc';
+
+      const { result } = renderHook(() =>
+        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+      );
+
+      // parseInt('400abc', 10) === 400, which is in range, so the value must
+      // be accepted — but it must be normalised to '400', not stored as the
+      // raw 'iso=400abc' string, which the equality filter would never match.
+      expect(result.current.initialUrlState.isoFilter).toBe('400');
+    });
+
     it('ignores a dilution with no developer in the URL', () => {
       mockLocation.search = '?dilution=1%2B9';
 

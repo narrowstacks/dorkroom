@@ -587,9 +587,9 @@ describe('useDevelopmentRecipes', () => {
     it('unions a carried-over numeric isoFilter the selected film does not offer', () => {
       const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
 
-      // setSelectedFilm still clears isoFilter at this point in the plan, so the
-      // film must be selected first and the carried-over ISO set second, to
-      // simulate an ISO surviving a later film change.
+      // Select the film first, then set an ISO the film doesn't offer, to
+      // simulate an ISO surviving a later film change (setSelectedFilm no
+      // longer clears isoFilter).
       act(() => {
         result.current.setSelectedFilm(mockFilms[0]); // HP5 Plus
       });
@@ -604,6 +604,53 @@ describe('useDevelopmentRecipes', () => {
         { label: '800', value: '800' },
         { label: '1600', value: '1600' },
       ]);
+    });
+
+    it('unions a carried-over numeric isoFilter set before any film is selected, and keeps it selected once a non-offering film is chosen', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
+
+      // The real user journey the union exists for: set an ISO with no film
+      // selected yet, then pick a film that doesn't offer that ISO. The ISO
+      // must remain visible in the options and remain the selected value.
+      act(() => {
+        result.current.setIsoFilter('160'); // Not in the catalogue at all
+      });
+
+      expect(result.current.getAvailableISOs()).toEqual([
+        { label: 'All ISOs', value: '' },
+        { label: '100', value: '100' },
+        { label: '160', value: '160' },
+        { label: '200', value: '200' },
+        { label: '400', value: '400' },
+        { label: '800', value: '800' },
+        { label: '1600', value: '1600' },
+      ]);
+
+      act(() => {
+        result.current.setSelectedFilm(mockFilms[0]); // HP5 Plus, no 160 combination
+      });
+
+      expect(result.current.isoFilter).toBe('160');
+      expect(result.current.getAvailableISOs()).toEqual([
+        { label: 'All ISOs', value: '' },
+        { label: 'Box speed (400)', value: 'boxspeed' },
+        { label: '160', value: '160' },
+        { label: '400', value: '400' },
+        { label: '1600', value: '1600' },
+      ]);
+    });
+
+    it('unions a carried-over numeric isoFilter with no film selected, even when not in the catalogue', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
+
+      act(() => {
+        result.current.setIsoFilter('160'); // Valid ISO, but no fixture recipe is shot at it
+      });
+
+      expect(result.current.getAvailableISOs()).toContainEqual({
+        label: '160',
+        value: '160',
+      });
     });
 
     it('does not union isoFilter="boxspeed" into the numeric options', () => {

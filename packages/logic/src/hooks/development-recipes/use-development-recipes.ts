@@ -396,19 +396,16 @@ export const useDevelopmentRecipes = (
     value: string;
   }[] => {
     const isos = [{ label: 'All ISOs', value: '' }];
+    const isoSet = new Set<number>();
 
-    // Box speed is defined relative to the selected film's rated speed, so it is
-    // only offered when there is a film to be relative to.
     if (selectedFilm) {
+      // Box speed is defined relative to the selected film's rated speed, so
+      // it is only offered when there is a film to be relative to.
       isos.push({
         label: `Box speed (${selectedFilm.isoSpeed})`,
         value: 'boxspeed',
       });
-    }
 
-    const isoSet = new Set<number>();
-
-    if (selectedFilm) {
       // Narrow to the selected film's own shooting ISOs (alias-aware, matching
       // getCombinationsForFilm's slug resolution).
       const slugSet = new Set(getAllSlugsForFilm(selectedFilm));
@@ -417,22 +414,24 @@ export const useDevelopmentRecipes = (
           isoSet.add(combo.shootingIso);
         }
       });
-
-      // Union in a carried-over numeric ISO filter so it stays visible and
-      // clearable even if the newly selected film doesn't offer it — otherwise
-      // it becomes an invisible, unclearable filter once selecting a film no
-      // longer resets it.
-      if (isoFilter && isoFilter !== 'boxspeed') {
-        const carriedIso = Number(isoFilter);
-        if (!Number.isNaN(carriedIso)) {
-          isoSet.add(carriedIso);
-        }
-      }
     } else {
       // No film selected — offer every shooting ISO in the catalogue.
       allCombinations.forEach((combo) => {
         isoSet.add(combo.shootingIso);
       });
+    }
+
+    // Union in a carried-over numeric ISO filter so it stays visible and
+    // clearable even if it isn't among the options above — whether that's
+    // because the newly selected film doesn't offer it, or because it was
+    // set before any film was selected and isn't a catalogue ISO at all.
+    // Without this, the <select> renders blank while the badge still counts
+    // an active filter, with no way to see or clear it.
+    if (isoFilter && isoFilter !== 'boxspeed') {
+      const carriedIso = Number(isoFilter);
+      if (!Number.isNaN(carriedIso)) {
+        isoSet.add(carriedIso);
+      }
     }
 
     Array.from(isoSet)
