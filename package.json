@@ -79,7 +79,7 @@
     "autoprefixer": "^10.4.23",
     "baseline-browser-mapping": "^2.8.29",
     "happy-dom": "20.9.0",
-    "jiti": "2.4.2",
+    "jiti": "2.7.0",
     "jsdom": "29.1.1",
     "oxlint": "1.71.0",
     "oxlint-tsgolint": "0.23.0",
