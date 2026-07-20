@@ -61,7 +61,7 @@
     "@swc-node/register": "~1.11.1",
     "@swc/cli": "~0.7.9",
     "@swc/core": "~1.15.40",
-    "@swc/helpers": "~0.5.11",
+    "@swc/helpers": "~0.5.23",
     "@tanstack/react-query-devtools": "^5.91.2",
     "@testing-library/dom": "10.4.1",
     "@testing-library/jest-dom": "^6.8.0",
