@@ -5,10 +5,8 @@ export { BladeReadingsSection } from './blade-readings-section';
 export { BladeResultsDisplay } from './blade-results-display';
 export { BladeVisualizationSection } from './blade-visualization-section';
 export type { BorderCalculatorContextValue } from './border-calculator-context';
-export {
-  BorderCalculatorProvider,
-  useBorderCalculator,
-} from './border-calculator-context';
+export { useBorderCalculator } from './border-calculator-context';
+export { BorderCalculatorProvider } from './border-calculator-provider';
 export { BorderInfoSection } from './border-info-section';
 export { BordersOffsetsSection } from './borders-offsets-section';
 export { MobileBorderCalculator } from './mobile-border-calculator';

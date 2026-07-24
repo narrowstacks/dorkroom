@@ -68,12 +68,9 @@ export { TextInput } from './components/text-input';
 export type { ThemeToggleProps } from './components/theme-toggle';
 export { ThemeToggle } from './components/theme-toggle';
 export type { ToastProps } from './components/toast';
-export {
-  Toast,
-  ToastProvider,
-  useOptionalToast,
-  useToast,
-} from './components/toast';
+export { Toast, ToastProvider } from './components/toast';
+export type { ToastContextValue, ToastType } from './components/toast-context';
+export { useOptionalToast, useToast } from './components/toast-context';
 export { ToggleSwitch } from './components/toggle-switch';
 export type { TooltipProps } from './components/tooltip';
 export { Tooltip } from './components/tooltip';
@@ -101,7 +98,8 @@ export {
   useTemperature,
 } from './contexts/temperature-context';
 // Theme
-export { ThemeProvider, useTheme } from './contexts/theme-context';
+export { useTheme } from './contexts/theme-context';
+export { ThemeProvider } from './contexts/theme-provider';
 // Volume
 export { useVolume, VolumeProvider } from './contexts/volume-context';
 // Forms (utilities only — components and schemas via @dorkroom/ui/forms)

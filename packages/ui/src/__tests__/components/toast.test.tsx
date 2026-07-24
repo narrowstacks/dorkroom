@@ -1,12 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  Toast,
-  ToastProvider,
-  useOptionalToast,
-  useToast,
-} from '../../components/toast';
+import { Toast, ToastProvider } from '../../components/toast';
+import { useOptionalToast, useToast } from '../../components/toast-context';
 
 // Mock timers for testing animations and auto-dismiss
 beforeEach(() => {

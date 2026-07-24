@@ -6,7 +6,7 @@ import type {
   SelectItem,
   useGeometryCalculations,
 } from '@dorkroom/logic';
-import { createContext, type ReactNode, use } from 'react';
+import { createContext, use } from 'react';
 import type { FormInstance } from '../../forms/utils/form-api-types';
 
 type GeometryCalculationResult = ReturnType<
@@ -87,23 +87,9 @@ export interface BorderCalculatorContextValue {
   currentSettings: BorderPresetSettings;
 }
 
-const BorderCalculatorContext = createContext<
+export const BorderCalculatorContext = createContext<
   BorderCalculatorContextValue | undefined
 >(undefined);
-
-interface BorderCalculatorProviderProps {
-  value: BorderCalculatorContextValue;
-  children: ReactNode;
-}
-
-export function BorderCalculatorProvider({
-  value,
-  children,
-}: BorderCalculatorProviderProps) {
-  return (
-    <BorderCalculatorContext value={value}>{children}</BorderCalculatorContext>
-  );
-}
 
 export function useBorderCalculator(): BorderCalculatorContextValue {
   const context = use(BorderCalculatorContext);

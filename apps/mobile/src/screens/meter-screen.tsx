@@ -28,8 +28,9 @@ import {
 } from '@/components/meter/metering-icons';
 import { PermissionFallback } from '@/components/meter/permission-fallback';
 import { RETICLE_SIZE, Reticle } from '@/components/meter/reticle';
-import { ScrubOverlay, useDragOffset } from '@/components/meter/scrub-overlay';
+import { ScrubOverlay } from '@/components/meter/scrub-overlay';
 import { SegmentedPill } from '@/components/meter/segmented-pill';
+import { useDragOffset } from '@/components/meter/use-drag-offset';
 import { useCalibration } from '@/hooks/use-calibration';
 import { useCameraMeter } from '@/hooks/use-camera-meter';
 import { useMeterCapture } from '@/hooks/use-meter-capture';
