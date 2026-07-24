@@ -1,18 +1,17 @@
 import { Check, X } from 'lucide-react';
 import {
-  createContext,
   type ReactNode,
-  use,
   useCallback,
   useEffect,
   useMemo,
   useState,
 } from 'react';
 import { cn } from '../lib/cn';
+import { ToastContext, type ToastType } from './toast-context';
 
 export interface ToastProps {
   message: string;
-  type?: 'success' | 'error' | 'info';
+  type?: ToastType;
   duration?: number;
   onClose?: () => void;
   isVisible?: boolean;
@@ -118,15 +117,6 @@ export interface ToastProviderProps {
   children: ReactNode;
 }
 
-export interface ToastContextValue {
-  showToast: (message: string, type?: ToastProps['type']) => void;
-}
-
-const ToastContext = createContext<ToastContextValue | null>(null);
-export function useOptionalToast(): ToastContextValue | null {
-  return use(ToastContext);
-}
-
 export function ToastProvider({ children }: ToastProviderProps) {
   const [toast, setToast] = useState<{
     message: string;
@@ -167,12 +157,4 @@ export function ToastProvider({ children }: ToastProviderProps) {
       )}
     </ToastContext>
   );
-}
-
-export function useToast(): ToastContextValue {
-  const context = use(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
 }

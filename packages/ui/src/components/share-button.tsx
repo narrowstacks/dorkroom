@@ -3,7 +3,7 @@ import { Loader2, Share2 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '../lib/cn';
-import { useOptionalToast } from './toast';
+import { useOptionalToast } from './toast-context';
 
 /**
  * Result returned from ShareButton's onClick callback to control toast display

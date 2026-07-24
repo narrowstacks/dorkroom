@@ -42,10 +42,8 @@ import { useMeasurementFormatter } from '../../hooks/use-measurement-conversion'
 import { AnimatedPreview } from './animated-preview';
 // Components
 import { BladeResultsDisplay } from './blade-results-display';
-import {
-  type BorderCalculatorContextValue,
-  BorderCalculatorProvider,
-} from './border-calculator-context';
+import type { BorderCalculatorContextValue } from './border-calculator-context';
+import { BorderCalculatorProvider } from './border-calculator-provider';
 // Sections
 import { BorderSizeSection } from './sections/border-size-section';
 import { PaperSizeSection } from './sections/paper-size-section';
