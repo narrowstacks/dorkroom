@@ -7,7 +7,7 @@
   "framework": null,
   "functions": {
     "api/**/*.ts": {
-      "runtime": "@vercel/node@5.8.26"
+      "runtime": "@vercel/node@5.9.0"
     }
   },
   "env": {
