@@ -64,8 +64,19 @@ Thumbs.db
 !.claude/settings.json
 .claude/settings.local.json
 .claude/worktrees/
+# Machine-local skills: symlinks into the ignored .agents/ tree, and skills
+# installed by skills-lock.json. Committing a symlink to an ignored directory
+# produces a dangling link for everyone else, and a stray `git add .claude`
+# will do exactly that unless they are ignored here by name.
+.claude/skills/github-upload-image-to-pr
+.claude/skills/impeccable/
+skills-lock.json
 .agents/*
 .codex/*
+
+# `improve` skill scratch output (handoff plans, critiques) — local only.
+.impeccable/
+plans/
 
 vite.config.*.timestamp*
 vitest.config.*.timestamp*

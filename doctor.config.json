@@ -11,8 +11,7 @@
       "deslop/unused-file",
       "deslop/unused-export",
       "deslop/unused-dependency",
-      "deslop/unused-dev-dependency",
-      "react-doctor/no-impure-state-updater"
+      "deslop/unused-dev-dependency"
     ]
   }
 }
