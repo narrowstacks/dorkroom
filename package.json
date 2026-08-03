@@ -75,7 +75,7 @@
     "@vitejs/plugin-legacy": "8.0.2",
     "@vitejs/plugin-react": "6.0.2",
     "@vitest/coverage-v8": "4.1.7",
-    "@vitest/ui": "4.1.7",
+    "@vitest/ui": "4.1.10",
     "autoprefixer": "^10.4.23",
     "baseline-browser-mapping": "^2.8.29",
     "happy-dom": "20.9.0",
