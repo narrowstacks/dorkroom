@@ -567,7 +567,7 @@ export default function DevelopmentRecipesPage() {
         ) : (
           <div className="flex gap-4">
             <aside
-              className="flex-shrink-0 transition-all duration-300"
+              className="flex-shrink-0 transition-[width] duration-300"
               style={{ width: isFiltersSidebarCollapsed ? '64px' : '304px' }}
             >
               <FiltersSidebar

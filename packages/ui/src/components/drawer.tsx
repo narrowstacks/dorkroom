@@ -57,6 +57,7 @@ export function Drawer({
 
   const runCloseTransition = useCallback(() => {
     setTransition((prev) => ({ ...prev, animateOpen: false }));
+    // eslint-disable-next-line react-doctor/effect-needs-cleanup -- the timer handle is captured and released by the returned `() => clearTimeout(timer)` cleanup, which the effect below wires up; the analyzer can't trace the handle out through this useCallback return
     const timer = setTimeout(
       () => setTransition((prev) => ({ ...prev, showContent: false })),
       300

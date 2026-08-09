@@ -31,6 +31,7 @@ export function useWindowDimensions() {
     height: isBrowser() ? window.innerHeight : DEFAULT_HEIGHT,
   });
 
+  // eslint-disable-next-line react-doctor/effect-needs-cleanup -- the debounce timer handle is held in effect scope and cleared in the returned cleanup (and before each re-arm); the setTimeout inside handleResize is fully owned, the analyzer just can't trace the handle through the nested function
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
 

@@ -1,5 +1,5 @@
 import { ChevronRight, Filter } from 'lucide-react';
-import { type FC, type ReactNode, useState } from 'react';
+import { type FC, type ReactNode, useCallback, useMemo, useState } from 'react';
 import { cn } from '../../lib/cn';
 import { setStyles } from '../../lib/dom';
 import { FilterPanelContext } from './filter-panel-context';
@@ -40,20 +40,24 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
   const isControlled = collapsed !== undefined;
   const isCollapsed = isControlled ? collapsed : internalCollapsed;
 
-  const toggle = () => {
+  const toggle = useCallback(() => {
     const newCollapsed = !isCollapsed;
     if (!isControlled) {
       setInternalCollapsed(newCollapsed);
     }
     onCollapsedChange?.(newCollapsed);
-  };
+  }, [isCollapsed, isControlled, onCollapsedChange]);
 
-  const contextValue = {
-    isCollapsed,
-    toggle,
-    activeFilterCount,
-    hasActiveFilters,
-  };
+  // Memoize so consumers don't redraw on every render of this container.
+  const contextValue = useMemo(
+    () => ({
+      isCollapsed,
+      toggle,
+      activeFilterCount,
+      hasActiveFilters,
+    }),
+    [isCollapsed, toggle, activeFilterCount, hasActiveFilters]
+  );
 
   // Collapsed state - show only toggle button and filter badge
   if (isCollapsed) {
