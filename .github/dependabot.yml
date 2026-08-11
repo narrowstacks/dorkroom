@@ -27,3 +27,21 @@ updates:
       # race. Once #15847 ships, this repo could drop back to Dependabot alone.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
+      # `tailwindcss` is intentionally at two different MAJORS in this repo:
+      # the web app is on v4, and apps/mobile is held on v3 because NativeWind
+      # v4 hard-requires Tailwind v3 (apps/mobile/scripts/link-nativewind-
+      # tailwind.mjs exists solely to symlink v3 into NativeWind).
+      #
+      # Dependabot cannot express that. It treats the workspace as one version
+      # domain and unifies the constraint across every manifest, so PR #187 —
+      # labelled "tailwindcss 4.3.0 to 4.3.3" — silently rewrote apps/mobile
+      # from ^3.4.17 to ^4.3.3, a v3->v4 major that breaks NativeWind. CI did
+      # not catch it: the mobile `build` script is a no-op and nothing in CI
+      # builds the native app.
+      #
+      # Note an `update-types: [semver-major]` ignore would NOT have stopped
+      # that, because from Dependabot's point of view it was a *patch* bump.
+      # The only reliable guard is ignoring the package outright here and
+      # letting Renovate own it — Renovate reads each manifest separately and
+      # keeps the two majors independent. See `renovate.json`.
+      - dependency-name: "tailwindcss"
