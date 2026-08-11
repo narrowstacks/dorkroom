@@ -5,6 +5,12 @@ Web app changes live in the [root CHANGELOG](../../CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.08.11]
+
+### Fixed
+
+- **App no longer trap-crashes at launch when built with Xcode 27 / the iOS 27 SDK.** UIKit kills apps linked against the iOS 27 SDK that have not adopted the UIScene lifecycle (`EXC_BREAKPOINT` in `__UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`, [Apple TN3187](https://developer.apple.com/documentation/technotes/tn3187-migrating-to-the-uikit-scene-based-life-cycle)) — before any JS loads, so it presents as an instant launch crash with no red box. iOS 26 only warned; iOS 27 made it fatal, which is why this appears now without any app change. Expo's prebuild template has not adopted scenes yet ([expo/expo#46664](https://github.com/expo/expo/issues/46664), blocked upstream on [facebook/react-native#54739](https://github.com/facebook/react-native/issues/54739)), so a local config plugin (`plugins/with-ios-scene-lifecycle`) injects a `UIApplicationSceneManifest` into `Info.plist` and patches the generated `AppDelegate.swift` with a `SceneDelegate` that starts React Native from the connected scene and forwards deep links, universal links, home-screen quick actions, and app life-cycle events back to the Expo app-delegate subscribers — so `expo-dev-launcher` and `expo-quick-actions` keep working. Remove the plugin once the Expo SDK ships a scene-based template; its patch anchors throw loudly if the template changes, so a future SDK bump fails prebuild rather than silently regressing.
+
 ## [2026.07.04]
 
 ### Fixed

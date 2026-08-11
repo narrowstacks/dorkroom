@@ -67,6 +67,7 @@
         }
       ],
       "./plugins/with-app-intents",
+      "./plugins/with-ios-scene-lifecycle",
       "expo-status-bar",
       "expo-image",
       [
