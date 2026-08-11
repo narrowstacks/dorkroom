@@ -23,7 +23,7 @@
         "@vercel/node": "^5.3.24",
         "@vercel/og": "^0.11.1",
         "clsx": "^2.1.1",
-        "fuse.js": "^7.1.0",
+        "fuse.js": "^7.5.0",
         "lucide-react": "^0.562.0",
         "react": "19.2.7",
         "react-dom": "19.2.7",
@@ -148,7 +148,7 @@
       "version": "2026.8.10",
       "dependencies": {
         "@dorkroom/api": "workspace:*",
-        "fuse.js": "^7.1.0",
+        "fuse.js": "^7.5.0",
         "zod": "^4.4.3",
       },
       "devDependencies": {
@@ -1852,7 +1852,7 @@
 
     "function-bind": ["function-bind@1.1.2", "", {}, "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA=="],
 
-    "fuse.js": ["fuse.js@7.1.0", "", {}, "sha512-trLf4SzuuUxfusZADLINj+dE8clK1frKdmqiJNb1Es75fmI5oY6X2mxLVUciLLjxqw/xr72Dhy+lER6dGd02FQ=="],
+    "fuse.js": ["fuse.js@7.5.0", "", {}, "sha512-sQtrEfA+ez/3G0cCZecF70oqpCRttCexYUG4mUrtWL49ULUzUyxokt5kyqwtKzj1270RaKih+hcP3qLcumccow=="],
 
     "gensync": ["gensync@1.0.0-beta.2", "", {}, "sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg=="],
 
