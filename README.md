@@ -6,9 +6,9 @@
 
 [**Dorkroom.art**](https://dorkroom.art/) is a collection of specialized calculators and tools designed for analog photographers and darkroom enthusiasts. Built to keep complex exposure math, border calculations, and chemistry planning out of your way so you can focus on making beautiful prints.
 
-![Version](https://img.shields.io/badge/Version-2026.07.13-red) [![License](https://img.shields.io/badge/License-AGPL_V3.0-blue)](https://github.com/narrowstacks/dorkroom/blob/main/LICENSE)
+![Version](https://img.shields.io/badge/Version-2026.08.10-red) [![License](https://img.shields.io/badge/License-AGPL_V3.0-blue)](https://github.com/narrowstacks/dorkroom/blob/main/LICENSE)
 
-![React 19](https://img.shields.io/badge/React-19-61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-7.0_rc-3178C6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.3.3-06B6D4) ![TanStack Query](https://img.shields.io/badge/-TanStack%20Query-red?style=flat-square&logo=react-query&logoColor=white) ![Biome](https://img.shields.io/badge/Biome-60A5FA?logo=biome&logoColor=fff)
+![React 19](https://img.shields.io/badge/React-19-61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-7.0-3178C6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.3.3-06B6D4) ![TanStack Query](https://img.shields.io/badge/-TanStack%20Query-red?style=flat-square&logo=react-query&logoColor=white) ![Biome](https://img.shields.io/badge/Biome-60A5FA?logo=biome&logoColor=fff)
 
 [![Uptime Robot status](https://img.shields.io/uptimerobot/status/m801823706-109991125954deb52b9281b8?logo=vercel&link=https%3A%2F%2Fstats.uptimerobot.com%2FL75VVTPwtz)](https://stats.uptimerobot.com/L75VVTPwtz) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/narrowstacks/dorkroom/ci.yml?logo=github&label=CI)](https://github.com/narrowstacks/dorkroom/actions/workflows/ci.yml) [![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-pr/narrowstacks/dorkroom)](https://github.com/narrowstacks/dorkroom/pulls) [![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/narrowstacks/dorkroom)](https://github.com/narrowstacks/dorkroom/issues)
 
@@ -114,7 +114,7 @@ turbo run test --filter=@dorkroom/logic
 
 ## Technology Stack
 
-- **Frontend**: React 19 with TypeScript (typecheck/build run on the TypeScript 7 RC via the `typescript-7` alias)
+- **Frontend**: React 19 with TypeScript (typecheck/build run on stable TypeScript 7 via the `typescript-7` alias; `typescript` stays on 6.x to supply the compiler API that TypeScript 7.0 doesn't ship)
 - **Styling**: Tailwind CSS 4.3 with custom darkroom theme
 - **Build Tool**: Vite 8 (Rolldown/Oxc) with Turborepo
 - **Testing**: Vitest 4 with Testing Library (happy-dom environment)

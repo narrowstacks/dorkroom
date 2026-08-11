@@ -4,7 +4,7 @@
 # versions being pulled in before anyone notices. See:
 # https://bun.sh/docs/runtime/bunfig#install-minimumreleaseage
 minimumReleaseAge = 604800 # 7 days, in seconds
-# The TypeScript 7 RC (typescript-7 = npm:typescript@rc) is a deliberately
-# adopted pre-release and is exempt from the release-age gate so fresh installs
-# (CI, teammates) resolve it without the --minimum-release-age 0 flag.
-minimumReleaseAgeExcludes = ["typescript-7", "typescript"]
+# No exemptions. `typescript-7` and `typescript` were listed here only while the
+# former tracked the moving `rc` dist-tag, which could resolve to a same-day
+# pre-release. Both now sit on released versions that clear the gate on their
+# own, so it applies to the whole dependency tree with no holes.

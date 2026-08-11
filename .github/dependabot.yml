@@ -9,3 +9,19 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    ignore:
+      # `typescript` is pinned to 6.x on purpose: it supplies the compiler API
+      # that TypeScript 7.0 dropped, and @vercel/node resolves it from the
+      # project to compile api/**/*.ts at deploy time. Lift this once
+      # TypeScript 7.1 restores the API.
+      #
+      # NOTE: the 7.x compiler installed alongside it as the `typescript-7`
+      # alias is NOT covered by Dependabot. Aliased packages are silently
+      # skipped in the `bun` ecosystem — the dealias support added for
+      # npm_and_yarn was never ported, so the alias is misparsed as a
+      # subdependency and no update is ever proposed, with no warning:
+      # https://github.com/dependabot/dependabot-core/issues/15847
+      # That is why the alias sat on the `rc` dist-tag from #133 until it was
+      # caught by hand. Bump `typescript-7` manually until that issue closes.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]

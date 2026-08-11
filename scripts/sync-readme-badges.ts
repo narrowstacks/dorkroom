@@ -22,9 +22,11 @@ interface PackageJson {
 const stripRange = (v: string): string => v.replace(/^[\^~]/, '');
 
 /**
- * The build compiler is pinned as `typescript-7: npm:typescript@rc`, so
- * package.json only records the `rc` dist-tag — the concrete resolved version
- * lives in bun.lock. Pull it from there so the badge tracks the real version.
+ * The build compiler is installed as the alias `typescript-7: npm:typescript@^7`,
+ * so package.json records a range against an aliased name — the concrete
+ * resolved version lives in bun.lock. Pull it from there so the badge tracks
+ * the real version. (`devDependencies.typescript` is the 6.x compiler *API*
+ * kept for @vercel/node, Vite, and the editor; it is not what we build with.)
  */
 export function parseTypescriptVersion(lock: string): string {
   const match = lock.match(/"typescript-7":\s*\[\s*"typescript@([^"]+)"/);

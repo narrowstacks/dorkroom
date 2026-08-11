@@ -1,6 +1,6 @@
 {
   "name": "@dorkroom/source",
-  "version": "2026.07.13",
+  "version": "2026.08.10",
   "license": "AGPL-3.0-only",
   "scripts": {
     "supabase:login": "bunx supabase login",
@@ -92,7 +92,7 @@
     "turbo": "^2.9.18",
     "turbo-ignore": "2.9.14",
     "typescript": "^6.0.3",
-    "typescript-7": "npm:typescript@rc",
+    "typescript-7": "npm:typescript@^7.0.2",
     "vite": "8.0.16",
     "vitest": "4.1.10"
   },
