@@ -20,6 +20,18 @@
       "rangeStrategy": "bump",
       "minimumReleaseAge": "7 days",
       "commitMessageTopic": "the TypeScript 7 compiler (`typescript-7` alias)"
+    },
+    {
+      "description": "Tailwind is at two different majors on purpose: v4 for the web app, v3 for apps/mobile (NativeWind v4 hard-requires v3). Dependabot treats the workspace as one version domain and unified them, which is how PR #187 rewrote apps/mobile from ^3.4.17 to ^4.3.3 while calling itself a patch bump. Renovate reads each manifest separately, so it is the tool that can hold the two apart. Dependabot now ignores tailwindcss entirely.",
+      "matchDepNames": ["tailwindcss"],
+      "enabled": true,
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "Hard ceiling: apps/mobile must never be offered Tailwind v4. NativeWind v4 refuses to run against it ('NativeWind only supports Tailwind CSS v3'), and nothing in CI would catch the break because the mobile build script is a no-op.",
+      "matchDepNames": ["tailwindcss"],
+      "matchFileNames": ["apps/mobile/package.json"],
+      "allowedVersions": "<4"
     }
   ]
 }
