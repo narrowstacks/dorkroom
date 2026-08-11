@@ -146,7 +146,7 @@ export function HomeHeroPreview() {
     >
       {/* The paper, with the print area and four easel blades */}
       <div
-        className="hero-preview-paper relative w-full overflow-hidden rounded-sm shadow-subtle transition-all group-hover/hero:-translate-y-0.5 group-hover/hero:shadow-lg"
+        className="hero-preview-paper relative w-full overflow-hidden rounded-sm shadow-subtle transition group-hover/hero:-translate-y-0.5 group-hover/hero:shadow-lg"
         style={{
           aspectRatio: `${PAPER.width} / ${PAPER.height}`,
           backgroundColor: 'var(--color-paper-background)',

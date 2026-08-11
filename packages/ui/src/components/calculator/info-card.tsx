@@ -123,6 +123,7 @@ export function InfoCardList({
   return (
     <ul className={cn('space-y-3', className)}>
       {normalizedItems.map((item, index) => (
+        // eslint-disable-next-line react-doctor/no-array-index-as-key -- static, read-only info list that never reorders or filters; the index fallback only applies to items with an empty title, so there is no stable id to key on and no data-mismatch risk
         <InfoCard key={item.title || index} item={item} variant={variant} />
       ))}
     </ul>

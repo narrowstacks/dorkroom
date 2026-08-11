@@ -5,6 +5,16 @@ The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHAN
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.08.09]
+
+### Fixed
+
+- The bot meta endpoint (`api/meta.ts`) now checks the origin response status before rewriting it: because `fetch()` resolves (rather than rejects) on HTTP 4xx/5xx, a failing origin request could previously have its error page rewritten and served as a valid share card. It now returns a 502 instead.
+
+### Changed
+
+- The films / development-recipes filter sidebar memoizes its context value and collapse toggle, so consumers no longer re-render on every parent render. Collapse/expand transitions now name the property they animate (`transition-[width]`) instead of `transition-all`, and the hero preview and skip link use the curated `transition` utility, avoiding animation of unrelated properties.
+
 ## [2026.07.13]
 
 ### Changed

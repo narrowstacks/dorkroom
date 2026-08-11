@@ -60,7 +60,7 @@ export const RecipeResultsSection: FC<RecipeResultsSectionProps> = (props) => {
   } = props;
 
   return (
-    <div className="transition-all duration-500 ease-in-out">
+    <div className="transition duration-500 ease-in-out">
       {(isLoading || isRefreshingData) && (
         <div className="space-y-4 animate-slide-fade-top">
           <div

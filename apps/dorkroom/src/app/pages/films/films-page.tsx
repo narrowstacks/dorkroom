@@ -102,7 +102,7 @@ function FilmsDesktopLayout({
 }) {
   return (
     <div className="mt-6 flex gap-6">
-      <aside className="flex-shrink-0 transition-all duration-300">
+      <aside className="flex-shrink-0 transition-[width] duration-300">
         <FilmFiltersPanel
           onCollapsedChange={onCollapsedChange}
           searchQuery={db.searchQuery}
@@ -357,7 +357,7 @@ export default function FilmsPage() {
       {/* Skip link for accessibility */}
       <a
         href="#film-results"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition"
         style={{
           backgroundColor: 'var(--color-primary)',
           color: 'white',

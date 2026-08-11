@@ -458,6 +458,7 @@ export const useRecipeUrlState = (
   useEffect(() => {
     if (initialUrlState.fromUrl) {
       isInitializedRef.current = true;
+      // eslint-disable-next-line react-doctor/no-adjust-state-on-prop-change -- this is a one-time init gate flipped after the URL-derived state commits (see comment above), not a per-change adjustment users would see go stale; it synchronizes with the external URL, a valid effect use
       setIsInitialized(true);
     }
   }, [initialUrlState]);

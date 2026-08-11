@@ -179,6 +179,15 @@ export default async function handler(
   const originResponse = await fetch('https://dorkroom.art/', {
     headers: { 'x-bypass-meta': '1' },
   });
+
+  // fetch() resolves (does not reject) on HTTP 4xx/5xx. Injecting meta tags
+  // into an origin error payload would emit a broken card, so fail fast with a
+  // bad-gateway instead of rewriting an error page as if it were the document.
+  if (!originResponse.ok) {
+    res.status(502).send('Failed to fetch origin document');
+    return;
+  }
+
   let html = await originResponse.text();
 
   // Replace <title>. A function replacer is used for every substitution

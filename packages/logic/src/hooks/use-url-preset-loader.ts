@@ -1,3 +1,4 @@
+/* eslint-disable react-doctor/no-adjust-state-on-prop-change -- this hook synchronizes React state with an external system (the URL `?preset=`/`#preset` params plus `hashchange` events), a documented valid effect use, not "adjusting state when a prop changes." No prop is tracked; the rule's heuristic misfires on every setter transitively reachable from the load effects. */
 import { useCallback, useEffect, useState } from 'react';
 import type { BorderPresetSettings } from '../types/border-calculator';
 import { decodePreset, isValidEncodedPreset } from '../utils/preset-sharing';
