@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@dorkroom/api": "workspace:*",
-    "fuse.js": "^7.1.0",
+    "fuse.js": "^7.5.0",
     "zod": "^4.4.3"
   },
   "peerDependencies": {
