@@ -79,7 +79,8 @@ Lint with `oxlint`, format with Biome. Typecheck/build run on **stable
 TypeScript 7** via the `typescript-7` npm alias; `typescript` is deliberately
 held on **6.x** because TS 7.0 ships no programmatic API and `@vercel/node`
 resolves `typescript` from the project to build `api/**/*.ts` — do not collapse
-the two. Nothing automated watches the `typescript-7` alias; bump it by hand.
+the two. Dependabot is blind to the `typescript-7` alias, so **Renovate** covers
+that one dependency (`renovate.json`) — do not let Renovate manage anything else.
 Type-aware rules run separately via `bun run lint:types` and are not yet in the
 CI gate. Dependency pinning is two-tier, backstopped by the `bunfig.toml`
 `minimumReleaseAge` gate. See the `toolchain` skill (`.claude/skills/toolchain/`)

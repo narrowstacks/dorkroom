@@ -1,0 +1,25 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommitTypeAll(chore)"],
+  "timezone": "America/Los_Angeles",
+  "schedule": ["before 9am on monday"],
+  "labels": ["dependencies"],
+  "dependencyDashboard": false,
+  "vulnerabilityAlerts": { "enabled": false },
+  "osvVulnerabilityAlerts": false,
+  "packageRules": [
+    {
+      "description": "Dependabot owns every dependency in this repo. Renovate is here for the single dependency Dependabot cannot see, so disable everything by default and let the allow-rule below opt one dep back in. Without this the two bots race and open duplicate PRs.",
+      "matchPackageNames": ["*"],
+      "enabled": false
+    },
+    {
+      "description": "The TypeScript 7 compiler is installed as an npm alias (typescript-7 = npm:typescript@^7.0.2). Dependabot silently skips aliased packages in the bun ecosystem (dependabot-core#15847) - no PR, no warning - which is how this pin sat on the moving `rc` dist-tag unnoticed. Renovate covers it. Match on depName, NOT packageName: the alias resolves to packageName `typescript`, which would also match the 6.x compiler-API pin that must stay on 6 until TS 7.1 restores the API.",
+      "matchDepNames": ["typescript-7"],
+      "enabled": true,
+      "rangeStrategy": "bump",
+      "minimumReleaseAge": "7 days",
+      "commitMessageTopic": "the TypeScript 7 compiler (`typescript-7` alias)"
+    }
+  ]
+}
