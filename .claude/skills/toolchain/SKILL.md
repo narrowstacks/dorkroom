@@ -38,14 +38,24 @@ description: Dorkroom's lint/format/typecheck/dependency toolchain — oxlint, B
   `.github/dependabot.yml` ignores `typescript` majors so the 6→7 bump stops being re-proposed;
   lift the hold and collapse the two packages once 7.1 restores the API (Microsoft's stated window
   is 3–4 months from the 7.0 RC, so roughly Q4 2026).
-- **Nothing watches `typescript-7` — bump it by hand.** Dependabot silently skips aliased packages
-  in the `bun` ecosystem
+- **Renovate watches `typescript-7`; Dependabot cannot see it.** Dependabot silently skips aliased
+  packages in the `bun` ecosystem
   ([dependabot-core#15847](https://github.com/dependabot/dependabot-core/issues/15847)): the alias
   is misparsed as a subdependency, so no update is proposed and no warning is emitted. That is why
-  the pin sat on the moving `rc` dist-tag from #133 until it was caught manually. Until that issue
-  closes, `typescript-7` is the one dependency with no automated coverage — check it whenever you
-  touch the toolchain (`bun pm view typescript` for the current 7.x release, then
-  `bun update typescript-7`).
+  the pin sat on the moving `rc` dist-tag from #133 until it was caught manually. `renovate.json`
+  exists solely to close that one gap — **every other dependency is disabled in it**, so the two
+  bots never race. Two things about that config are load-bearing:
+  - It matches on **`matchDepNames: ["typescript-7"]`, not `matchPackageNames`.** The alias resolves
+    to `packageName: "typescript"`, so a `matchPackageNames` rule would also match the 6.x
+    compiler-API pin and propose exactly the 6→7 bump that breaks the Vercel build.
+  - It sets **`rangeStrategy: "bump"`.** The dep is a caret range (`^7.0.2`), so under the default
+    `replace` strategy an in-range release like 7.1.0 would satisfy it and produce **no PR** — and
+    7.1 is precisely the release we are waiting for. `bump` moves the floor, so 7.1 arrives as a
+    visible PR.
+  - `minimumReleaseAge: "7 days"` mirrors the `bunfig.toml` soak gate, so Renovate never proposes a
+    version `bun install` would refuse.
+  - Renovate requires the GitHub App to be installed on the repo; the config file alone does
+    nothing. If `typescript-7` ever goes quiet for a long stretch, check that first.
 - **Don't reach for the `@typescript/typescript6` compat wrapper** that the announcement recommends
   (`typescript@npm:@typescript/typescript6`). Under bun 1.3.11 it self-destructs: the wrapper's
   `@typescript/old` → `npm:typescript@^6` dependency dedupes against the `typescript` alias key and

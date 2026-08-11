@@ -22,6 +22,8 @@ updates:
       # subdependency and no update is ever proposed, with no warning:
       # https://github.com/dependabot/dependabot-core/issues/15847
       # That is why the alias sat on the `rc` dist-tag from #133 until it was
-      # caught by hand. Bump `typescript-7` manually until that issue closes.
+      # caught by hand. Renovate covers that one dependency instead — see
+      # `renovate.json`, which disables everything else so the two bots do not
+      # race. Once #15847 ships, this repo could drop back to Dependabot alone.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
