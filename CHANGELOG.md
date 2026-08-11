@@ -5,6 +5,19 @@ The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHAN
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.08.10]
+
+### Changed
+
+- Typecheck and build now run on **stable TypeScript 7** (`7.0.2`), replacing the `typescript@rc` (`7.0.1-rc`) pin. It stays installed as the `typescript-7` npm alias, which every package's `build`/`typecheck` script already invokes by explicit path.
+- `typescript` stays on **6.x**, [side-by-side with 7](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0), because TypeScript 7.0 ships no programmatic API (it returns in 7.1). `@vercel/node` does `require.resolve('typescript')` against the project to compile `api/**/*.ts` at deploy time, so promoting `typescript` to 7.x would leave `ts.sys`/`ts.readConfigFile` undefined and break the serverless build; Vite, Vitest, and the editor language service resolve the same package. Dependabot now ignores `typescript` majors so the 6→7 bump stops being re-proposed.
+- Dropped `minimumReleaseAgeExcludes` from `bunfig.toml`. It existed only to let the moving `rc` dist-tag bypass the 7-day supply-chain soak gate; with both TypeScripts on released versions, the gate now covers the whole dependency tree with no holes.
+- The TypeScript README badge tracks `7.0` instead of `7.0_rc`.
+
+### Fixed
+
+- `sharp` is bumped to `0.35.3` (libvips 8.18.3), closing four libvips CVEs ([GHSA-f88m-g3jw-g9cj](https://github.com/advisories/GHSA-f88m-g3jw-g9cj)). A repo-wide `overrides` entry was needed because `@vercel/og` declares `sharp` as an optional dependency at `^0.34.5` — a caret on a `0.x` version is minor-locked, so it could only ever resolve inside the vulnerable range, leaving a nested vulnerable copy reachable from `api/og.tsx`.
+
 ## [2026.08.09]
 
 ### Fixed
