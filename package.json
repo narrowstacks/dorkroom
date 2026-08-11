@@ -102,7 +102,7 @@
     "supabase": "^2.107.0"
   },
   "overrides": {
-    "sharp": "0.35.3",
+    "sharp": "^0.35.3",
     "vite": "8.0.16"
   },
   "trustedDependencies": ["@shopify/react-native-skia"]

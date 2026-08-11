@@ -186,7 +186,7 @@
     "@shopify/react-native-skia",
   ],
   "overrides": {
-    "sharp": "0.35.3",
+    "sharp": "^0.35.3",
     "vite": "8.0.16",
   },
   "packages": {
