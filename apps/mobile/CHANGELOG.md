@@ -5,6 +5,14 @@ Web app changes live in the [root CHANGELOG](../../CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.08.17]
+
+### Changed
+
+- **Upgraded to Expo SDK 57** in one deliberate pass (`expo install expo@^57 --fix`), replacing a mixed state in which individual `expo-*` packages had been bumped across an SDK boundary while `expo` itself stayed on `^56` — which left duplicate native modules installed and `expo-doctor` failing 3 checks. It now reports 20/20. React Native moves to 0.86.2.
+- **Several native modules moved *back down* to the versions the SDK supports.** Dependabot had pushed them past the compatible set: `react-native-gesture-handler` 3.1.0 → 2.32.0, `react-native-worklets` 0.11.3 → 0.10.1, `@shopify/react-native-skia` 2.6.9 → 2.6.2, `react-native-svg` 15.15.5 → 15.15.4. Dependabot no longer proposes updates for Expo SDK-managed packages, so this should not recur.
+- **`react`/`react-dom` return to 19.2.7, matching the repo root.** This reverses the 19.2.3 pin added in [2026.07.04] — that pin was necessary under React Native 0.85.3, which vendored a renderer hard-tied to 19.2.3 and crashed with "Incompatible React versions" on any mismatch. React Native 0.86.x declares `peerDependencies.react: "^19.2.3"` and no longer carries that assertion, so the two versions are compatible again. Realigning removes a nested duplicate React, which had quietly promoted `metro.config.js`'s single-instance guard from inert safety net to load-bearing. `react` is listed in `expo.install.exclude` because the SDK pins 19.2.3, and a patch-level deviation is far safer than two React copies.
+
 ## [2026.08.11]
 
 ### Fixed
