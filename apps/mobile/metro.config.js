@@ -18,8 +18,8 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
-// 3. Force a single React instance. As of SDK 56 the app and the repo root both
-// use React 19.2.3, so React normally hoists to one copy at the workspace root
+// 3. Force a single React instance. As of SDK 57 the app and the repo root both
+// use React 19.2.7, so React normally hoists to one copy at the workspace root
 // and the redirect below is inert (no nested apps/mobile/node_modules/react to
 // point at). It stays as a guard: if a future version divergence ever
 // reintroduces a nested app-level React, the hard redirect in resolveRequest
@@ -27,6 +27,11 @@ config.resolver.nodeModulesPaths = [
 // "Incompatible React versions" renderer mismatch. extraNodeModules is only a
 // *fallback* and does not cover workspace packages (e.g. @dorkroom/logic,
 // bundled from packages/), which is why the redirect is explicit.
+//
+// Keep the two in sync: a Dependabot bump to the root `react` that leaves
+// apps/mobile behind silently reintroduces a nested copy, which flips this
+// guard from inert to load-bearing and trips expo-doctor's duplicate-native-
+// module check. That is exactly what happened between SDK 56 and 57.
 config.resolver.extraNodeModules = {
   'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
 };
