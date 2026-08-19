@@ -1,0 +1,5 @@
+{
+  "name": "@dorkroom/oxlint-anti-slop",
+  "private": true,
+  "type": "module"
+}
