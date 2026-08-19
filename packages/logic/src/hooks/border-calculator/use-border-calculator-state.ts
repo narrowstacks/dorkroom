@@ -24,7 +24,11 @@ import { isBrowser } from '../../utils/environment';
  * from an earlier build still hydrates; one that fails is discarded, not
  * dispatched into state.
  */
-const persistedStateSchema = z
+/**
+ * The persisted border-calculator snapshot. Exported because the mobile
+ * calculator writes and reads the same `borderCalculatorState_v2` payload.
+ */
+export const persistedBorderCalculatorSchema = z
   .object({
     aspectRatio: aspectRatioValueSchema,
     paperSize: paperSizeValueSchema,
@@ -50,7 +54,10 @@ const persistedStateSchema = z
   })
   .partial();
 
-type PersistedState = z.infer<typeof persistedStateSchema>;
+export type PersistedBorderCalculatorState = z.infer<
+  typeof persistedBorderCalculatorSchema
+>;
+type PersistedState = PersistedBorderCalculatorState;
 
 const createInitialState = (): BorderCalculatorState => {
   return {
@@ -200,7 +207,7 @@ export const useBorderCalculatorState = () => {
       const raw = window.localStorage.getItem(BORDER_CALCULATOR_STORAGE_KEY);
       if (!raw) return;
 
-      const cached = persistedStateSchema.safeParse(JSON.parse(raw));
+      const cached = persistedBorderCalculatorSchema.safeParse(JSON.parse(raw));
       if (cached.success) {
         dispatch({ type: 'BATCH_UPDATE', payload: cached.data });
       }

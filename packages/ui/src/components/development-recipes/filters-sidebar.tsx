@@ -3,12 +3,12 @@ import type { SortingState } from '@tanstack/react-table';
 import { Search } from 'lucide-react';
 import { type FC, useRef } from 'react';
 import { cssVars, setStyles } from '../../lib/dom';
+import { optionChangeHandler } from '../../lib/select-options';
 import { FilterPanelContainer } from '../filters/filter-panel-container';
 import { FilterPanelHeader } from '../filters/filter-panel-header';
 import { FilterPanelSection } from '../filters/filter-panel-section';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
-import { optionChangeHandler } from '../../lib/select-options';
 
 interface FiltersSidebarProps {
   className?: string;

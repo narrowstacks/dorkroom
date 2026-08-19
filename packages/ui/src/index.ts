@@ -56,7 +56,6 @@ export { ResultRow } from './components/result-row';
 export { SaveBeforeShareModal } from './components/save-before-share-modal';
 export { SearchableSelect } from './components/searchable-select';
 export { Select } from './components/select';
-export { optionChangeHandler } from './lib/select-options';
 export type { SensorSizeVisualizationProps } from './components/sensor-size-visualization';
 export { SensorSizeVisualization } from './components/sensor-size-visualization';
 export { SettingsButton } from './components/settings-button';
@@ -139,6 +138,7 @@ export {
   ROUTE_TITLES,
   referenceItems,
 } from './lib/navigation';
+export { optionChangeHandler } from './lib/select-options';
 export type { TemperatureUnit } from './lib/temperature';
 export { formatTemperatureWithUnit } from './lib/temperature';
 export type { Theme, ThemeColors } from './lib/themes';

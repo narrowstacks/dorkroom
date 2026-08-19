@@ -1,6 +1,5 @@
 // Hooks
 import {
-  type BorderCalculatorState,
   type BorderPreset,
   type BorderPresetSettings,
   borderCalculatorInitialState,
@@ -10,6 +9,7 @@ import {
   debugError,
   debugLog,
   PAPER_SIZES,
+  persistedBorderCalculatorSchema,
   shallowEqual,
   useBorderPresets,
   useDimensionCalculations,
@@ -123,14 +123,73 @@ export function MobileBorderCalculator({
       const raw = window.localStorage.getItem(CALC_STORAGE_KEY);
       if (!raw) return;
 
-      const parsed = JSON.parse(raw) as Partial<BorderCalculatorState>;
-      Object.entries(parsed).forEach(([key, value]: [string, unknown]) => {
-        if (value === undefined) return;
+      // Parsed, not asserted: this is an I/O boundary. The schema models the
+      // same 21-field `borderCalculatorState_v2` payload the effect below
+      // writes, so a snapshot this app wrote always validates.
+      const result = persistedBorderCalculatorSchema.safeParse(JSON.parse(raw));
+      if (!result.success) return;
+      const parsed = result.data;
+
+      // One statement per field: a literal key lets the compiler check the
+      // value against that field's own type, which a loop over Object.entries
+      // cannot do (it correlates neither key nor value).
+      if (parsed.aspectRatio !== undefined)
+        form.setFieldValue('aspectRatio', parsed.aspectRatio);
+      if (parsed.paperSize !== undefined)
+        form.setFieldValue('paperSize', parsed.paperSize);
+      if (parsed.customAspectWidth !== undefined)
+        form.setFieldValue('customAspectWidth', parsed.customAspectWidth);
+      if (parsed.customAspectHeight !== undefined)
+        form.setFieldValue('customAspectHeight', parsed.customAspectHeight);
+      if (parsed.customPaperWidth !== undefined)
+        form.setFieldValue('customPaperWidth', parsed.customPaperWidth);
+      if (parsed.customPaperHeight !== undefined)
+        form.setFieldValue('customPaperHeight', parsed.customPaperHeight);
+      if (parsed.minBorder !== undefined)
+        form.setFieldValue('minBorder', parsed.minBorder);
+      if (parsed.enableOffset !== undefined)
+        form.setFieldValue('enableOffset', parsed.enableOffset);
+      if (parsed.ignoreMinBorder !== undefined)
+        form.setFieldValue('ignoreMinBorder', parsed.ignoreMinBorder);
+      if (parsed.horizontalOffset !== undefined)
+        form.setFieldValue('horizontalOffset', parsed.horizontalOffset);
+      if (parsed.verticalOffset !== undefined)
+        form.setFieldValue('verticalOffset', parsed.verticalOffset);
+      if (parsed.showBlades !== undefined)
+        form.setFieldValue('showBlades', parsed.showBlades);
+      if (parsed.showBladeReadings !== undefined)
+        form.setFieldValue('showBladeReadings', parsed.showBladeReadings);
+      if (parsed.isLandscape !== undefined)
+        form.setFieldValue('isLandscape', parsed.isLandscape);
+      if (parsed.isRatioFlipped !== undefined)
+        form.setFieldValue('isRatioFlipped', parsed.isRatioFlipped);
+      if (parsed.hasManuallyFlippedPaper !== undefined)
         form.setFieldValue(
-          key as keyof BorderCalculatorState,
-          value as BorderCalculatorState[keyof BorderCalculatorState]
+          'hasManuallyFlippedPaper',
+          parsed.hasManuallyFlippedPaper
         );
-      });
+      if (parsed.lastValidCustomAspectWidth !== undefined)
+        form.setFieldValue(
+          'lastValidCustomAspectWidth',
+          parsed.lastValidCustomAspectWidth
+        );
+      if (parsed.lastValidCustomAspectHeight !== undefined)
+        form.setFieldValue(
+          'lastValidCustomAspectHeight',
+          parsed.lastValidCustomAspectHeight
+        );
+      if (parsed.lastValidCustomPaperWidth !== undefined)
+        form.setFieldValue(
+          'lastValidCustomPaperWidth',
+          parsed.lastValidCustomPaperWidth
+        );
+      if (parsed.lastValidCustomPaperHeight !== undefined)
+        form.setFieldValue(
+          'lastValidCustomPaperHeight',
+          parsed.lastValidCustomPaperHeight
+        );
+      if (parsed.lastValidMinBorder !== undefined)
+        form.setFieldValue('lastValidMinBorder', parsed.lastValidMinBorder);
 
       // Recalculate orientation for custom paper after loading from storage
       if (

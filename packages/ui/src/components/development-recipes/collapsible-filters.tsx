@@ -3,8 +3,8 @@ import { ChevronDown, Search } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '../../lib/cn';
 import { cssVars, setStyles } from '../../lib/dom';
-import { Select } from '../select';
 import { optionChangeHandler } from '../../lib/select-options';
+import { Select } from '../select';
 
 interface CollapsibleFiltersProps {
   className?: string;

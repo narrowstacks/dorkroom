@@ -9,8 +9,8 @@ import {
 import { useMemo, useState } from 'react';
 import { cn } from '../../lib/cn';
 import { setStyles } from '../../lib/dom';
-import { Select } from '../select';
 import { optionChangeHandler } from '../../lib/select-options';
+import { Select } from '../select';
 import { TextInput } from '../text-input';
 
 interface CustomRecipeFormProps {

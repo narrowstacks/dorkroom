@@ -33,6 +33,10 @@ export {
   usePresetManagement,
 } from './hooks/border-calculator';
 export {
+  type PersistedBorderCalculatorState,
+  persistedBorderCalculatorSchema,
+} from './hooks/border-calculator/use-border-calculator-state';
+export {
   useAddCustomRecipe,
   useClearCustomRecipes,
   useDeleteCustomRecipe,

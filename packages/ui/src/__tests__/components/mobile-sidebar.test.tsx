@@ -5,11 +5,11 @@ import {
 } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { MobileSidebar } from '../../components/mobile-sidebar';
 import {
   ThemeContext,
   type ThemeContextValue,
 } from '../../contexts/theme-context';
-import { MobileSidebar } from '../../components/mobile-sidebar';
 
 const themeContext: ThemeContextValue = {
   theme: 'dark',

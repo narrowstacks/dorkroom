@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { hasGlobal } from '../lib/dom';
+import { hasGlobal, matchMediaQuery } from '../lib/dom';
 
 /**
  * Hook to detect if the viewport is mobile-sized
@@ -26,21 +26,21 @@ export function useIsMobile(maxWidth = 768): boolean {
       return;
     }
 
-    const mediaQuery = window.matchMedia(`(max-width: ${maxWidth}px)`);
+    const mediaQuery = matchMediaQuery(`(max-width: ${maxWidth}px)`);
     const listener = (event: MediaQueryListEvent) => {
       setIsMobile(event.matches);
     };
 
     setIsMobile(mediaQuery.matches);
 
-    if (typeof mediaQuery.addEventListener === 'function') {
-      mediaQuery.addEventListener('change', listener);
-      return () => mediaQuery.removeEventListener('change', listener);
+    // Safari <14 and the legacy bundle's WebKit only have `addListener`.
+    if (mediaQuery.addEventListener === undefined) {
+      mediaQuery.addListener(listener);
+      return () => mediaQuery.removeListener(listener);
     }
 
-    // Fallback for older browsers
-    mediaQuery.addListener(listener);
-    return () => mediaQuery.removeListener(listener);
+    mediaQuery.addEventListener('change', listener);
+    return () => mediaQuery.removeEventListener('change', listener);
   }, [maxWidth]);
 
   return isMobile;

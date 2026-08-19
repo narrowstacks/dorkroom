@@ -85,6 +85,10 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
     setIsFiltersSidebarCollapsed,
   } = props;
 
+  const urlCustomRecipeFilter = initialUrlState.customRecipeFilter
+    ? toCustomRecipeFilter(initialUrlState.customRecipeFilter)
+    : undefined;
+
   // The setters are all useState dispatchers and the lookups are useCallback-memoized,
   // so every value below is referentially stable. They can be listed as honest effect
   // deps directly — no latest-ref indirection needed.
@@ -114,13 +118,13 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
     if (initialUrlState.favoritesOnly) {
       setFavoritesOnly(true);
     }
-    if (initialUrlState.customRecipeFilter) {
-      const filter = toCustomRecipeFilter(initialUrlState.customRecipeFilter);
-      if (filter) setCustomRecipeFilter(filter);
+    if (urlCustomRecipeFilter) {
+      setCustomRecipeFilter(urlCustomRecipeFilter);
     }
   }, [
     isLoaded,
     initialUrlState,
+    urlCustomRecipeFilter,
     setSelectedFilm,
     setSelectedDeveloper,
     setDilutionFilter,
