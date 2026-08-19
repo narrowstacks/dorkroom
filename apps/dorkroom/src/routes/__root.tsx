@@ -55,16 +55,26 @@ function RootComponent() {
         <a href="#main-content" className="skip-link">
           Skip to content
         </a>
-        {/* Background gradient as a dedicated position:fixed layer (painted once,
-            composited) rather than `background-attachment: fixed` on the
-            scrolling content — a fixed-attachment background must re-rasterize
-            the full-viewport gradient + SVG noise on every scroll frame (it
-            cannot be cached), which was the dominant scroll-jank source on
-            body-scroll pages and scales with screen area. */}
-        <div className="backdrop-gradient" aria-hidden="true" />
         <div className="relative z-10 min-h-dvh">
+          {/* Background gradient as a document-anchored absolute layer that
+              scrolls with the content, like a body background. Not
+              `background-attachment: fixed` (re-rasterizes the gradient + SVG
+              noise every scroll frame — the old scroll-jank source) and not
+              `position: fixed` — iOS 26+ Safari clips fixed layers to the
+              inner viewport and resizes them as the browser chrome collapses,
+              which visibly clipped/jumped the background while scrolling.
+              In-document pixels extend under the status bar and toolbars
+              naturally. Gradient geometry uses svh units so it paints the
+              first viewport identically regardless of document height (see
+              utilities.css). */}
+          <div className="backdrop-gradient" aria-hidden="true" />
+          {/* Sticky (and backdrop-blurred) only at sm+, where the header is
+              actually shown. Below sm it is display:none, but iOS 26+ Safari
+              still samples hidden sticky elements' background-color for the
+              status-bar/toolbar bands, which hijacked the tint that should
+              come from .backdrop-gradient (see utilities.css). */}
           <header
-            className="sticky top-[env(safe-area-inset-top)] z-50 hidden border-b backdrop-blur sm:block"
+            className="z-50 hidden border-b sm:sticky sm:top-[env(safe-area-inset-top)] sm:block sm:backdrop-blur"
             style={{
               backgroundColor: 'rgba(var(--color-background-rgb), 0.8)',
               borderColor: 'var(--color-border-muted)',

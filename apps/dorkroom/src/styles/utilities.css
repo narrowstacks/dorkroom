@@ -1,64 +1,98 @@
 @layer utilities {
-  /* Fixed, full-viewport background layer. `position: fixed` pins it to the
-     viewport (same look as the old `background-attachment: fixed`) but paints
-     ONCE into its own compositor layer and is merely composited during scroll —
-     no per-frame re-rasterization of the gradient + SVG noise. Sits behind the
-     z-10 content wrapper in __root.tsx. */
+  /* Document-anchored background layer spanning the full page height. It
+     scrolls with the content (rasterized once, no per-frame repaint), so on
+     iOS the real gradient pixels extend under the status bar and toolbars
+     while scrolling — position:fixed layers get clipped to iOS 26+ Safari's
+     inner viewport and visibly resize as the browser chrome collapses.
+     Glow geometry uses viewport units (svh/vw) so each glow fades out on
+     its own — never truncated by a box edge — with the warm accents
+     anchored to the top and bottom of the document. z-index -1 keeps it
+     behind the in-flow content inside the z-10 wrapper. */
   .backdrop-gradient {
-    position: fixed;
+    position: absolute;
     inset: 0;
-    z-index: 0;
+    z-index: -1;
     pointer-events: none;
+    background: var(--backdrop);
+    background-color: var(--backdrop-edge);
+    background-repeat: var(--backdrop-repeat, repeat);
   }
 
-  /* Theme-aware background accents */
-  /* Darkroom safelight: warm red/peach light bleeding from the edges into a
-     near-black field, with a fine film-grain overlay (SVG fractal noise). */
-  [data-theme="dark"] .backdrop-gradient {
-    background:
+  /* Theme-aware background accents, shared by the fixed layer above and the
+     html canvas (see base.css).
+
+     iOS 26+ Safari no longer extends web content behind the status bar or
+     browser chrome (safe-area-inset-top is 0; fixed layers are clipped to the
+     inner viewport). It paints those bands itself with ONE flat color: the
+     `background-color` of a fixed/sticky element that hugs a viewport edge
+     and spans ≥80% of its width — gradient images and theme-color are
+     ignored. So each theme splits its backdrop in two:
+
+     - `--backdrop`: the image stack, ending in an opaque solid layer
+       (linear-gradient of the base color) that paints the page base.
+     - `--backdrop-edge`: the band color Safari samples. Hidden in-page
+       behind the opaque stack; tinted toward the gradient's edge tone so
+       the chrome bands blend into the page instead of showing a seam. */
+  /* Darkroom safelight: warm peach light bleeding down from the top of the
+     page and red/orange glows rising from the bottom corners of the page,
+     over a near-black field with a fine film-grain overlay (SVG fractal
+     noise). Glow sizes are max(svh, vw) so they keep the proportions the
+     old viewport-percentage geometry had on both phones and desktops. */
+  [data-theme="dark"] {
+    --backdrop:
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E"),
       radial-gradient(
-        120% 80% at 50% -10%,
+        120vw 80svh at 50% -10svh,
         rgba(249, 159, 150, 0.1),
         transparent 55%
       ),
       radial-gradient(
-        circle at 12% 90%,
+        circle max(52svh, 52vw) at 12% calc(100% - 10svh),
         rgba(243, 70, 70, 0.14),
-        transparent 50%
+        transparent
       ),
       radial-gradient(
-        circle at 88% 95%,
+        circle max(48svh, 48vw) at 88% calc(100% - 5svh),
         rgba(229, 122, 60, 0.1),
-        transparent 45%
-      ), #070708;
+        transparent
+      ), linear-gradient(#070708, #070708);
+    /* noise tile, 3 self-fading accent glows, full base */
+    --backdrop-repeat: repeat, no-repeat, no-repeat, no-repeat, repeat;
+    /* ~5% of the top glow's peach over the #070708 base */
+    --backdrop-edge: #150f10;
   }
 
-  [data-theme="light"] .backdrop-gradient {
-    background:
+  [data-theme="light"] {
+    --backdrop:
       radial-gradient(
-        ellipse 1200px 800px at 15% 15%,
+        ellipse 1200px 800px at 15% 15svh,
         rgba(196, 82, 74, 0.1),
         transparent 60%
       ),
       radial-gradient(
-        ellipse 1000px 700px at 85% 20%,
+        ellipse 1000px 700px at 85% 20svh,
         rgba(30, 96, 145, 0.09),
         transparent 55%
       ),
       radial-gradient(
-        ellipse 900px 700px at 40% 85%,
+        ellipse 900px 700px at 40% calc(100% - 15svh),
         rgba(122, 140, 31, 0.08),
         transparent 60%
-      ), #ffffff;
+      ), linear-gradient(#ffffff, #ffffff);
+    /* 3 self-fading accent washes, full white base */
+    --backdrop-repeat: no-repeat, no-repeat, no-repeat, repeat;
+    /* ~4% of the top glow's red over white */
+    --backdrop-edge: #fdf8f8;
   }
 
-  [data-theme="darkroom"] .backdrop-gradient {
-    background: #000000;
+  [data-theme="darkroom"] {
+    --backdrop: #000000;
+    --backdrop-edge: #000000;
   }
 
-  [data-theme="high-contrast"] .backdrop-gradient {
-    background: #ffffff;
+  [data-theme="high-contrast"] {
+    --backdrop: #ffffff;
+    --backdrop-edge: #ffffff;
   }
 
   /* Hover tint utility that adapts to theme colors */
