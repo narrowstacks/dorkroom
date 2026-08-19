@@ -1,5 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalPassThroughEnv": ["SUPABASE_PROXY_SECRET"],
   "globalDependencies": [
     ".env",
     "tsconfig.json",

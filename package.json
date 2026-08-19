@@ -90,7 +90,6 @@
     "terser": "5.49.0",
     "tslib": "^2.3.0",
     "turbo": "^2.9.18",
-    "turbo-ignore": "2.9.14",
     "typescript": "^6.0.3",
     "typescript-7": "npm:typescript@^7.0.2",
     "vite": "8.0.16",
