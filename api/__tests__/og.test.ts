@@ -11,6 +11,11 @@ import handler from '../og';
 
 const FONT_HOST = 'fonts.gstatic.com';
 
+/** Exact host match — a substring test would also accept `fonts.gstatic.com.evil.test`. */
+function isFontRequest(url: string): boolean {
+  return URL.parse(url)?.hostname === FONT_HOST;
+}
+
 function jsonResponse(body: string): Response {
   return new Response(body, {
     status: 200,
@@ -31,7 +36,7 @@ function stubFetch(
 ): Mock<typeof fetch> {
   const fetchMock = vi.fn<typeof fetch>((input, init) => {
     const url = String(input);
-    if (url.includes(FONT_HOST)) {
+    if (isFontRequest(url)) {
       return Promise.resolve(new Response(null, { status: 404 }));
     }
     return respond(url, init);
