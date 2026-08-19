@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { z } from 'zod';
 import { SENSOR_FORMAT_MAP } from '../constants/lens-calculator-defaults';
 import {
   LENS_STORAGE_KEY,
@@ -9,7 +10,10 @@ import {
   calculateEquivalentFocalLength,
   calculateFieldOfView,
 } from '../utils/lens-calculations';
-import { useLocalStorageFormPersistence } from './use-local-storage-form-persistence';
+import {
+  type PersistedValue,
+  useLocalStorageFormPersistence,
+} from './use-local-storage-form-persistence';
 
 /** Derived lens equivalency result, or null when inputs are invalid. */
 export interface LensCalculatorResult {
@@ -20,6 +24,19 @@ export interface LensCalculatorResult {
   cropFactorRatio: number;
   fieldOfView: number;
 }
+
+/** Persisted focal lengths outside this range are discarded on hydration. */
+const persistedFocalLengthSchema = z.number().positive().max(2000);
+
+const persistedSensorFormatSchema = z
+  .string()
+  .refine((key) => SENSOR_FORMAT_MAP[key] !== undefined);
+
+const isPersistedFocalLength = (v: PersistedValue): boolean =>
+  persistedFocalLengthSchema.safeParse(v).success;
+
+const isPersistedSensorFormat = (v: PersistedValue): boolean =>
+  persistedSensorFormatSchema.safeParse(v).success;
 
 const LENS_DEFAULTS: LensFormState = {
   focalLength: 50,
@@ -93,18 +110,9 @@ export function useLensCalculator(): UseLensCalculatorReturn {
     formValues: values,
     persistKeys: ['focalLength', 'sourceFormat', 'targetFormat'],
     validators: {
-      focalLength: {
-        validate: (v) =>
-          typeof v === 'number' && Number.isFinite(v) && v > 0 && v <= 2000,
-      },
-      sourceFormat: {
-        validate: (v) =>
-          typeof v === 'string' && SENSOR_FORMAT_MAP[v] !== undefined,
-      },
-      targetFormat: {
-        validate: (v) =>
-          typeof v === 'string' && SENSOR_FORMAT_MAP[v] !== undefined,
-      },
+      focalLength: { validate: isPersistedFocalLength },
+      sourceFormat: { validate: isPersistedSensorFormat },
+      targetFormat: { validate: isPersistedSensorFormat },
     },
   });
 

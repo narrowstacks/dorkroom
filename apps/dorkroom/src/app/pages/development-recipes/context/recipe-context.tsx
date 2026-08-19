@@ -81,7 +81,7 @@ export interface RecipeActions {
   addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
   updateCustomRecipe: (id: string, data: CustomRecipeFormData) => Promise<void>;
   deleteCustomRecipe: (id: string) => Promise<void>;
-  refreshCustomRecipes: () => Promise<unknown>;
+  refreshCustomRecipes: () => Promise<CustomRecipe[]>;
 
   // Recipe interactions
   handleOpenDetail: (view: DevelopmentCombinationView) => void;
@@ -89,7 +89,7 @@ export interface RecipeActions {
   handleCopyCombination: (view: DevelopmentCombinationView) => Promise<void>;
   handleCustomRecipeSubmit: (data: CustomRecipeFormData) => Promise<void>;
   handleEditCustomRecipe: (view: DevelopmentCombinationView) => void;
-  handleDeleteCustomRecipe: (view: DevelopmentCombinationView) => Promise<void>;
+  handleDeleteCustomRecipe: (view: DevelopmentCombinationView) => void;
 
   // Favorites
   isFavorite: (id: string) => boolean;

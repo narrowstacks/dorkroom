@@ -57,11 +57,13 @@ export function durationFromParts(minutes: number, seconds: number): number {
   return Math.round(safeMinutes) * 60 + Math.round(safeSeconds);
 }
 
-/** Split a duration in seconds into whole-minute and remaining-second parts. */
-export function durationToParts(durationSeconds: number): {
+export interface DurationParts {
   minutes: number;
   seconds: number;
-} {
+}
+
+/** Split a duration in seconds into whole-minute and remaining-second parts. */
+export function durationToParts(durationSeconds: number): DurationParts {
   const safe = Number.isFinite(durationSeconds)
     ? Math.max(0, Math.round(durationSeconds))
     : 0;

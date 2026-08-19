@@ -11,7 +11,7 @@
     "lint": "oxlint && biome check --linter-enabled=false --css-linter-enabled=false .",
     "test": "vitest run",
     "build": "echo 'no-op: native app builds run via expo/EAS, not turbo'",
-    "typecheck": "node ../../node_modules/typescript-7/bin/tsc --noEmit",
+    "typecheck": "node ../../node_modules/typescript-7/bin/tsc --noEmit --project tsconfig.json",
     "postinstall": "node scripts/link-nativewind-tailwind.mjs",
     "eas-build-post-install": "node scripts/link-nativewind-tailwind.mjs"
   },

@@ -14,10 +14,7 @@ const chevron = <ChevronRight size={18} color="rgba(255,255,255,0.4)" />;
 type Group = { title: string; tools: Tool[] };
 
 function ToolRow({ tool }: { tool: Tool }) {
-  const handlePress = useCallback(
-    () => router.push(tool.route as never),
-    [tool.route]
-  );
+  const handlePress = useCallback(() => router.push(tool.route), [tool.route]);
   const leading = useMemo(() => <ToolIcon name={tool.icon} />, [tool.icon]);
   return (
     <ToolListRow

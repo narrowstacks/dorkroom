@@ -2,6 +2,7 @@ import type { SelectItem } from '@dorkroom/logic';
 import { ChevronDown, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { cn } from '../lib/cn';
+import { cssVars } from '../lib/dom';
 
 interface SearchableSelectProps {
   label?: string;
@@ -173,16 +174,14 @@ export function SearchableSelect({
           placeholder={selectedValue ? displayValue : placeholder}
           aria-label={label ?? placeholder}
           className="w-full rounded-lg border px-3 py-2 pr-16 focus:outline-none focus:ring-2"
-          style={
-            {
-              borderColor: focused
-                ? 'var(--color-border-primary)'
-                : 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-surface-muted)',
-              color: 'var(--color-text-primary)',
-              '--tw-ring-color': 'var(--color-border-primary)',
-            } as React.CSSProperties
-          }
+          style={cssVars({
+            borderColor: focused
+              ? 'var(--color-border-primary)'
+              : 'var(--color-border-secondary)',
+            backgroundColor: 'var(--color-surface-muted)',
+            color: 'var(--color-text-primary)',
+            '--tw-ring-color': 'var(--color-border-primary)',
+          })}
         />
 
         <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">

@@ -1,3 +1,5 @@
+import { hasGlobal } from './dom';
+
 export type Theme = 'light' | 'dark' | 'darkroom' | 'high-contrast' | 'system';
 
 export interface ThemeColors {
@@ -267,7 +269,7 @@ export const themes = {
 } as const;
 
 export function getSystemTheme(): 'light' | 'dark' {
-  if (typeof window === 'undefined') {
+  if (!hasGlobal('window')) {
     return 'dark';
   }
 

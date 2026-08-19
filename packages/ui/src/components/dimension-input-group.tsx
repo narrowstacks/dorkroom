@@ -1,5 +1,6 @@
 import { useMeasurement } from '../contexts/measurement-context';
 import { cn } from '../lib/cn';
+import { cssVars } from '../lib/dom';
 import { getUnitLabel } from '../lib/measurement';
 
 interface DimensionInputGroupProps {
@@ -52,19 +53,17 @@ export function DimensionInputGroup({
           type="number"
           aria-label={widthLabel}
           value={widthValue}
-          onChange={(e) => onWidthChange((e.target as HTMLInputElement).value)}
+          onChange={(e) => onWidthChange(e.target.value)}
           placeholder={widthPlaceholder}
           className="w-full rounded-lg border px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
-          style={
-            {
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-surface-muted)',
-              color: 'var(--color-text-primary)',
-              '--tw-placeholder-color': 'var(--color-text-muted)',
-              '--tw-ring-color': 'var(--color-border-primary)',
-              '--focus-border-color': 'var(--color-border-primary)',
-            } as React.CSSProperties
-          }
+          style={cssVars({
+            borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'var(--color-surface-muted)',
+            color: 'var(--color-text-primary)',
+            '--tw-placeholder-color': 'var(--color-text-muted)',
+            '--tw-ring-color': 'var(--color-border-primary)',
+            '--focus-border-color': 'var(--color-border-primary)',
+          })}
           onFocus={(e) => {
             e.target.style.borderColor = 'var(--color-border-primary)';
           }}
@@ -88,19 +87,17 @@ export function DimensionInputGroup({
           type="number"
           aria-label={heightLabel}
           value={heightValue}
-          onChange={(e) => onHeightChange((e.target as HTMLInputElement).value)}
+          onChange={(e) => onHeightChange(e.target.value)}
           placeholder={heightPlaceholder}
           className="w-full rounded-lg border px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
-          style={
-            {
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-surface-muted)',
-              color: 'var(--color-text-primary)',
-              '--tw-placeholder-color': 'var(--color-text-muted)',
-              '--tw-ring-color': 'var(--color-border-primary)',
-              '--focus-border-color': 'var(--color-border-primary)',
-            } as React.CSSProperties
-          }
+          style={cssVars({
+            borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'var(--color-surface-muted)',
+            color: 'var(--color-text-primary)',
+            '--tw-placeholder-color': 'var(--color-text-muted)',
+            '--tw-ring-color': 'var(--color-border-primary)',
+            '--focus-border-color': 'var(--color-border-primary)',
+          })}
           onFocus={(e) => {
             e.target.style.borderColor = 'var(--color-border-primary)';
           }}

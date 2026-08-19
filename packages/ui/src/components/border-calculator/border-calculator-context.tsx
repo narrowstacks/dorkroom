@@ -61,9 +61,12 @@ export interface BorderCalculatorContextValue {
   setPresetName: (name: string) => void;
   setIsEditingPreset: (isEditing: boolean) => void;
   savePreset: (name: string) => void;
+  // Both optional, mirroring usePresetManagement: an omitted `settings` means
+  // "use the live calculator settings". Declaring them required is what forced
+  // callers to fabricate an empty settings object and silently wipe a preset.
   updatePresetHandler: (
-    id: string,
-    data: { name: string; settings: BorderPresetSettings }
+    id?: string,
+    data?: { name?: string; settings?: BorderPresetSettings }
   ) => void;
   deletePresetHandler: (id: string) => void;
   clearLoadedPreset?: () => void;

@@ -21,8 +21,8 @@ describe('buildOpenApiDocument', () => {
   it('produces a valid OpenAPI 3.1 document', () => {
     const doc = buildOpenApiDocument();
     expect(doc.openapi).toBe('3.1.0');
-    expect((doc.info as { version: string }).version).toBe(OPENAPI_API_VERSION);
-    expect(Object.keys(doc.paths as object)).toEqual([
+    expect(doc.info.version).toBe(OPENAPI_API_VERSION);
+    expect(Object.keys(doc.paths)).toEqual([
       '/films',
       '/developers',
       '/combinations',
@@ -32,9 +32,7 @@ describe('buildOpenApiDocument', () => {
   });
 
   it('derives response schemas from the Zod schemas', () => {
-    const { components } = buildOpenApiDocument() as {
-      components: { schemas: Record<string, { properties: object }> };
-    };
+    const { components } = buildOpenApiDocument();
     // RawFilm should carry the snake_case fields from rawFilmSchema.
     expect(components.schemas.RawFilm.properties).toHaveProperty('iso_speed');
     expect(components.schemas.RawFilm.properties).toHaveProperty('color_type');

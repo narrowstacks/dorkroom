@@ -166,7 +166,7 @@ describe('mat calculator logic', () => {
         oh - parseMatInput(d.borderTop) - parseMatInput(d.borderBottom);
       expect(windowW).toBeGreaterThan(0);
       expect(windowH).toBeGreaterThan(0);
-      expect(typeof d.bottomWeight).toBe('boolean');
+      expect(d.bottomWeight).toBe(false);
     });
   });
 });

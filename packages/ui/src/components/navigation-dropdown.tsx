@@ -40,8 +40,9 @@ export function NavigationDropdown({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
+        event.target instanceof Node &&
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        !dropdownRef.current.contains(event.target)
       ) {
         setIsOpen(false);
       }

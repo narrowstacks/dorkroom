@@ -1,5 +1,6 @@
 import type { Developer, Film } from '@dorkroom/api';
 import type {
+  CustomRecipe,
   CustomRecipeFormData,
   ImportedCustomRecipe,
 } from '@dorkroom/logic';
@@ -8,7 +9,7 @@ import { type Dispatch, type SetStateAction, useCallback } from 'react';
 export interface UseRecipeCodeImportProps {
   // Recipe operations
   addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
-  refreshCustomRecipes: () => Promise<unknown>;
+  refreshCustomRecipes: () => Promise<CustomRecipe[]>;
   decodeSharedCustomRecipe: (input: string) => ImportedCustomRecipe | null;
 
   // Data helpers
@@ -91,8 +92,8 @@ export function useRecipeCodeImport({
                   importedRecipe.customDeveloper?.manufacturer || '',
                 name: importedRecipe.customDeveloper?.name || '',
                 type: importedRecipe.customDeveloper?.type || 'powder',
-                filmOrPaper: (importedRecipe.customDeveloper?.filmOrPaper ||
-                  'film') as 'film' | 'paper' | 'both',
+                filmOrPaper:
+                  importedRecipe.customDeveloper?.filmOrPaper || 'film',
                 workingLifeHours:
                   importedRecipe.customDeveloper?.workingLifeHours,
                 stockLifeMonths:

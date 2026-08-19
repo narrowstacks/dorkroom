@@ -21,6 +21,17 @@ interface VerifyRateLimit {
   exceeded: boolean;
 }
 
+/** The two Unkey calls this module makes, taken off the SDK client so the signatures cannot drift. */
+export interface UnkeyClient {
+  keys: Pick<Unkey['keys'], 'verifyKey'>;
+  ratelimit: Pick<Unkey['ratelimit'], 'limit'>;
+}
+
+type CreateUnkeyClient = (rootKey: string) => UnkeyClient;
+
+const createRealUnkeyClient: CreateUnkeyClient = (rootKey) =>
+  new Unkey({ rootKey });
+
 export interface HandlerContext {
   requestId: string;
   startTime: number;
@@ -36,6 +47,11 @@ export interface HandlerConfig {
     res: VercelResponse,
     ctx: HandlerContext
   ) => Promise<void>;
+  /**
+   * Builds the Unkey client once `UNKEY_ROOT_KEY` is present. Defaults to the
+   * real SDK client; deployed handlers leave it unset, tests pass a stand-in.
+   */
+  createUnkeyClient?: CreateUnkeyClient;
 }
 
 const ANONYMOUS_RATE_LIMIT = 30;
@@ -59,7 +75,7 @@ const ALLOWED_ANONYMOUS_HOSTS = new Set([
   '::1',
 ]);
 
-let unkeyClient: Unkey | null = null;
+let unkeyClient: UnkeyClient | null = null;
 let unkeyInitialized = false;
 
 function getHeaderValue(value: string | string[] | undefined): string {
@@ -67,7 +83,7 @@ function getHeaderValue(value: string | string[] | undefined): string {
     return value[0] ?? '';
   }
 
-  return typeof value === 'string' ? value : '';
+  return value ?? '';
 }
 
 function normalizeHost(value: string): string {
@@ -205,7 +221,10 @@ function getClientIp(req: VercelRequest): string {
   return 'anonymous';
 }
 
-function getUnkeyClient(requestId: string): Unkey | null {
+function getUnkeyClient(
+  requestId: string,
+  createUnkeyClient: CreateUnkeyClient
+): UnkeyClient | null {
   if (unkeyInitialized) {
     return unkeyClient;
   }
@@ -221,14 +240,15 @@ function getUnkeyClient(requestId: string): Unkey | null {
     return null;
   }
 
-  unkeyClient = new Unkey({ rootKey });
+  unkeyClient = createUnkeyClient(rootKey);
   return unkeyClient;
 }
 
 async function applyPublicApiKeyAuth(
   req: VercelRequest,
   res: VercelResponse,
-  requestId: string
+  requestId: string,
+  createUnkeyClient: CreateUnkeyClient
 ): Promise<boolean> {
   const apiId = process.env.UNKEY_API_ID;
 
@@ -255,7 +275,7 @@ async function applyPublicApiKeyAuth(
     return false;
   }
 
-  const unkey = getUnkeyClient(requestId);
+  const unkey = getUnkeyClient(requestId, createUnkeyClient);
   if (!unkey) {
     serverlessError('UNKEY_ROOT_KEY required for public API key verification', {
       requestId,
@@ -350,7 +370,8 @@ async function applyPublicApiKeyAuth(
       req,
       res,
       requestId,
-      clientId
+      clientId,
+      createUnkeyClient
     );
     if (!passedClientChecks) {
       return false;
@@ -390,19 +411,20 @@ async function applyClientIdentityRateLimit(
   req: VercelRequest,
   res: VercelResponse,
   requestId: string,
-  clientId: string
+  clientId: string,
+  createUnkeyClient: CreateUnkeyClient
 ): Promise<boolean> {
   const namespace = getClientNamespace();
   const clientIp = getClientIp(req);
 
   const [clientOk, ipOk] = await Promise.all([
-    applyNamespaceRateLimit(res, requestId, {
+    applyNamespaceRateLimit(res, requestId, createUnkeyClient, {
       namespace,
       identifier: `client:${clientId}`,
       limit: CLIENT_RATE_LIMIT,
       durationMs: CLIENT_RATE_WINDOW_MS,
     }),
-    applyNamespaceRateLimit(res, requestId, {
+    applyNamespaceRateLimit(res, requestId, createUnkeyClient, {
       namespace,
       identifier: `ip:${clientIp}`,
       limit: CLIENT_IP_RATE_LIMIT,
@@ -437,6 +459,7 @@ async function applyClientIdentityRateLimit(
 async function applyNamespaceRateLimit(
   res: VercelResponse,
   requestId: string,
+  createUnkeyClient: CreateUnkeyClient,
   opts: {
     namespace: string;
     identifier: string;
@@ -445,7 +468,7 @@ async function applyNamespaceRateLimit(
     setHeadersOnSuccess?: boolean;
   }
 ): Promise<boolean> {
-  const unkey = getUnkeyClient(requestId);
+  const unkey = getUnkeyClient(requestId, createUnkeyClient);
 
   if (!unkey) {
     serverlessWarn('Rate limiting skipped (Unkey not configured)', {
@@ -553,7 +576,8 @@ async function applyNamespaceRateLimit(
 async function applyAnonymousRateLimit(
   req: VercelRequest,
   res: VercelResponse,
-  requestId: string
+  requestId: string,
+  createUnkeyClient: CreateUnkeyClient
 ): Promise<boolean> {
   const configuredNamespace = process.env.UNKEY_ANON_NAMESPACE?.trim();
   const namespace =
@@ -562,7 +586,7 @@ async function applyAnonymousRateLimit(
       ? `${process.env.UNKEY_API_ID}-anonymous`
       : 'dorkroom-anonymous');
 
-  return applyNamespaceRateLimit(res, requestId, {
+  return applyNamespaceRateLimit(res, requestId, createUnkeyClient, {
     namespace,
     identifier: getClientIp(req),
     limit: ANONYMOUS_RATE_LIMIT,
@@ -578,9 +602,7 @@ function setVaryHeader(res: VercelResponse, value: string): void {
   const current = res.getHeader('Vary');
   const existing = Array.isArray(current)
     ? current.join(',')
-    : typeof current === 'string'
-      ? current
-      : '';
+    : String(current ?? '');
 
   const values = new Set(
     existing.split(',').flatMap((item) => {
@@ -675,9 +697,11 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
         res.setHeader('Cache-Control', 'private, no-store');
       }
 
+      const createUnkeyClient =
+        config.createUnkeyClient ?? createRealUnkeyClient;
       const passedChecks = isPublicApi
-        ? await applyPublicApiKeyAuth(req, res, requestId)
-        : await applyAnonymousRateLimit(req, res, requestId);
+        ? await applyPublicApiKeyAuth(req, res, requestId, createUnkeyClient)
+        : await applyAnonymousRateLimit(req, res, requestId, createUnkeyClient);
 
       if (!passedChecks) {
         return;

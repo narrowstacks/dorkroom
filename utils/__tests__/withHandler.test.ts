@@ -1,58 +1,38 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { HandlerConfig, UnkeyClient } from '../withHandler';
 import { createMockRequest, createMockResponse } from './mock-vercel';
 
-vi.mock('../serverlessLogger', () => ({
-  logApiRequest: vi.fn(),
-  logApiError: vi.fn(),
-  serverlessLog: vi.fn(),
-  serverlessWarn: vi.fn(),
-  serverlessError: vi.fn(),
-}));
+type VerifyKeyResponse = Awaited<ReturnType<UnkeyClient['keys']['verifyKey']>>;
+type RateLimitResponse = Awaited<ReturnType<UnkeyClient['ratelimit']['limit']>>;
 
-const verifyKeyMock = vi.fn();
-const ratelimitLimitMock = vi.fn();
-const unkeyConstructorMock = vi.fn();
+const verifyKeyMock = vi.fn<UnkeyClient['keys']['verifyKey']>();
+const ratelimitLimitMock = vi.fn<UnkeyClient['ratelimit']['limit']>();
 
-vi.mock('@unkey/api', () => ({
-  Unkey: unkeyConstructorMock,
-}));
-
-/**
- * The serverless vitest project sets `mockReset: true`, which calls
- * `vi.resetAllMocks()` before every test — that wipes
- * `unkeyConstructorMock`'s implementation too, but the `vi.mock('@unkey/api')`
- * factory above only runs once (module mocks aren't re-evaluated by
- * `vi.resetModules()`). So the constructor's return value has to be
- * reapplied in `beforeEach`, not just set once at the top of the file.
- */
-function configureUnkeyConstructorMock(): void {
-  // `Unkey` is constructed with `new` in withHandler.ts — the implementation
-  // must be a real function (not an arrow function) so `new` can call it.
-  unkeyConstructorMock.mockImplementation(function Unkey() {
-    return {
-      keys: { verifyKey: verifyKeyMock },
-      ratelimit: { limit: ratelimitLimitMock },
-    };
-  });
-}
+/** Stands in for the SDK client `withHandler` builds from `UNKEY_ROOT_KEY`. */
+const fakeUnkey: UnkeyClient = {
+  keys: { verifyKey: verifyKeyMock },
+  ratelimit: { limit: ratelimitLimitMock },
+};
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 /** A rate-limit-passing verifyKey response with no configured ratelimits. */
-function validVerification() {
+function validVerification(): VerifyKeyResponse {
   return {
+    meta: { requestId: 'unkey-request' },
     data: {
       valid: true,
-      code: undefined,
+      code: 'VALID',
       ratelimits: [],
     },
   };
 }
 
 /** A successful (under-limit) ratelimit.limit response. */
-function passingLimit(limit: number) {
+function passingLimit(limit: number): RateLimitResponse {
   return {
+    meta: { requestId: 'unkey-request' },
     data: {
       limit,
       remaining: limit - 1,
@@ -63,8 +43,9 @@ function passingLimit(limit: number) {
 }
 
 /** An exceeded ratelimit.limit response. */
-function exceededLimit(limit: number) {
+function exceededLimit(limit: number): RateLimitResponse {
   return {
+    meta: { requestId: 'unkey-request' },
     data: {
       limit,
       remaining: 0,
@@ -77,6 +58,11 @@ function exceededLimit(limit: number) {
 describe('withHandler', () => {
   beforeEach(() => {
     vi.resetModules();
+    // The real serverlessLogger runs; swallow its JSON lines to keep the
+    // suite output readable.
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     delete process.env.UNKEY_ROOT_KEY;
     delete process.env.UNKEY_API_ID;
     delete process.env.UNKEY_API_KEY_PERMISSION;
@@ -84,24 +70,27 @@ describe('withHandler', () => {
     delete process.env.UNKEY_CLIENT_NAMESPACE;
     verifyKeyMock.mockReset();
     ratelimitLimitMock.mockReset();
-    unkeyConstructorMock.mockReset();
-    configureUnkeyConstructorMock();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  async function getHandler() {
-    const mod = await import('../withHandler');
-    return mod.withHandler;
+  /**
+   * Each test imports `withHandler` fresh, since it caches the Unkey client in
+   * module state after the first request.
+   */
+  async function buildHandler(
+    config: Omit<HandlerConfig, 'createUnkeyClient'>
+  ) {
+    const { withHandler } = await import('../withHandler');
+    return withHandler({ ...config, createUnkeyClient: () => fakeUnkey });
   }
 
   describe('request ID generation', () => {
     it('should generate a UUID request ID', async () => {
-      const withHandler = await getHandler();
       let capturedRequestId = '';
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async (_req, _res, ctx) => {
           capturedRequestId = ctx.requestId;
@@ -116,8 +105,7 @@ describe('withHandler', () => {
     });
 
     it('should include requestId in error responses', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async () => {},
       });
@@ -127,15 +115,17 @@ describe('withHandler', () => {
       await handler(req, res);
 
       expect(res._status).toBe(405);
-      const body = res._json as Record<string, unknown>;
-      expect(body.requestId).toMatch(UUID_REGEX);
+      expect(res._json).toEqual({
+        error: 'Method not allowed',
+        allowed: ['GET', 'OPTIONS'],
+        requestId: expect.stringMatching(UUID_REGEX),
+      });
     });
   });
 
   describe('security headers', () => {
     it('should set X-Content-Type-Options: nosniff', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async (_req, res) => {
           res.status(200).json({ ok: true });
@@ -150,8 +140,7 @@ describe('withHandler', () => {
     });
 
     it('should set X-Content-Type-Options on preflight responses', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async () => {},
       });
@@ -167,8 +156,7 @@ describe('withHandler', () => {
 
   describe('CORS headers', () => {
     it('should set CORS headers for public API host (api.dorkroom.art)', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async () => {},
       });
@@ -185,8 +173,7 @@ describe('withHandler', () => {
     });
 
     it('should NOT set CORS headers for internal host (dorkroom.art)', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async (_req, res) => {
           res.status(200).json({ ok: true });
@@ -203,8 +190,7 @@ describe('withHandler', () => {
     });
 
     it('should handle OPTIONS preflight and return 200', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async () => {
           throw new Error('Should not reach handler');
@@ -222,8 +208,7 @@ describe('withHandler', () => {
 
   describe('method guard', () => {
     it('should reject non-GET methods with 405', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async () => {},
       });
@@ -239,17 +224,14 @@ describe('withHandler', () => {
 
       for (const res of results) {
         expect(res._status).toBe(405);
-        expect((res._json as Record<string, unknown>).error).toBe(
-          'Method not allowed'
-        );
+        expect(res._json).toMatchObject({ error: 'Method not allowed' });
       }
     });
   });
 
   describe('required environment variables', () => {
     it('should return 500 when required env vars are missing', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         requiredEnv: ['SOME_MISSING_VAR'],
         handler: async () => {},
@@ -260,17 +242,18 @@ describe('withHandler', () => {
       await handler(req, res);
 
       expect(res._status).toBe(500);
-      expect((res._json as Record<string, unknown>).error).toBe(
-        'API configuration error'
-      );
+      expect(res._json).toEqual({
+        error: 'API configuration error',
+        message: 'Missing required environment configuration',
+        requestId: expect.stringMatching(UUID_REGEX),
+      });
     });
   });
 
   describe('host-based routing', () => {
     it('should treat dorkroom.art as anonymous (non-public API)', async () => {
-      const withHandler = await getHandler();
       let capturedIsPublic = true;
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async (_req, _res, ctx) => {
           capturedIsPublic = ctx.isPublicApi;
@@ -288,8 +271,7 @@ describe('withHandler', () => {
     });
 
     it('should treat api.dorkroom.art as public API', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async () => {},
       });
@@ -305,8 +287,7 @@ describe('withHandler', () => {
     });
 
     it('should treat unknown hosts as public API (require key)', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async () => {},
       });
@@ -322,9 +303,8 @@ describe('withHandler', () => {
     });
 
     it('should treat .vercel.app hosts as anonymous', async () => {
-      const withHandler = await getHandler();
       let capturedIsPublic = true;
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async (_req, _res, ctx) => {
           capturedIsPublic = ctx.isPublicApi;
@@ -342,8 +322,7 @@ describe('withHandler', () => {
     });
 
     it('should set Vary: Host header', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async (_req, res) => {
           res.status(200).json({ ok: true });
@@ -380,9 +359,8 @@ describe('withHandler', () => {
       setupKeyedEnv();
       verifyKeyMock.mockResolvedValueOnce(validVerification());
 
-      const withHandler = await getHandler();
       let handlerRan = false;
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async (_req, res) => {
           handlerRan = true;
@@ -402,16 +380,14 @@ describe('withHandler', () => {
     it('valid key + valid X-Client-Id: checks both client and IP namespaces; both pass -> headers reflect the client-id result', async () => {
       setupKeyedEnv();
       verifyKeyMock.mockResolvedValueOnce(validVerification());
-      ratelimitLimitMock.mockImplementation(
-        async (opts: { identifier: string }) =>
-          opts.identifier.startsWith('client:')
-            ? passingLimit(60)
-            : passingLimit(240)
+      ratelimitLimitMock.mockImplementation(async (opts) =>
+        opts.identifier.startsWith('client:')
+          ? passingLimit(60)
+          : passingLimit(240)
       );
 
-      const withHandler = await getHandler();
       let handlerRan = false;
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async (_req, res) => {
           handlerRan = true;
@@ -429,9 +405,7 @@ describe('withHandler', () => {
       expect(handlerRan).toBe(true);
       expect(ratelimitLimitMock).toHaveBeenCalledTimes(2);
 
-      const calls = ratelimitLimitMock.mock.calls as Array<
-        [{ identifier: string; namespace: string }]
-      >;
+      const calls = ratelimitLimitMock.mock.calls;
       const identifiers = calls.map(([opts]) => opts.identifier);
       expect(identifiers).toContain('client:client-abc-123');
       expect(identifiers).toContain('ip:203.0.113.5');
@@ -447,16 +421,14 @@ describe('withHandler', () => {
     it('client-id limit exceeded: 429 + Retry-After, handler not called', async () => {
       setupKeyedEnv();
       verifyKeyMock.mockResolvedValueOnce(validVerification());
-      ratelimitLimitMock.mockImplementation(
-        async (opts: { identifier: string }) =>
-          opts.identifier.startsWith('client:')
-            ? exceededLimit(60)
-            : passingLimit(240)
+      ratelimitLimitMock.mockImplementation(async (opts) =>
+        opts.identifier.startsWith('client:')
+          ? exceededLimit(60)
+          : passingLimit(240)
       );
 
-      const withHandler = await getHandler();
       let handlerRan = false;
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async () => {
           handlerRan = true;
@@ -475,16 +447,14 @@ describe('withHandler', () => {
     it('IP guard exceeded (client-id fine): 429; headers reflect the IP result', async () => {
       setupKeyedEnv();
       verifyKeyMock.mockResolvedValueOnce(validVerification());
-      ratelimitLimitMock.mockImplementation(
-        async (opts: { identifier: string }) =>
-          opts.identifier.startsWith('client:')
-            ? passingLimit(60)
-            : exceededLimit(240)
+      ratelimitLimitMock.mockImplementation(async (opts) =>
+        opts.identifier.startsWith('client:')
+          ? passingLimit(60)
+          : exceededLimit(240)
       );
 
-      const withHandler = await getHandler();
       let handlerRan = false;
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async () => {
           handlerRan = true;
@@ -509,9 +479,8 @@ describe('withHandler', () => {
       setupKeyedEnv();
       verifyKeyMock.mockResolvedValueOnce(validVerification());
 
-      const withHandler = await getHandler();
       let handlerRan = false;
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async (_req, res) => {
           handlerRan = true;
@@ -531,11 +500,11 @@ describe('withHandler', () => {
     it('invalid key + X-Client-Id: still 401 (key auth runs first)', async () => {
       setupKeyedEnv();
       verifyKeyMock.mockResolvedValueOnce({
-        data: { valid: false, code: 'UNAUTHORIZED', ratelimits: [] },
+        meta: { requestId: 'unkey-request' },
+        data: { valid: false, code: 'FORBIDDEN', ratelimits: [] },
       });
 
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async () => {},
       });
@@ -551,8 +520,7 @@ describe('withHandler', () => {
 
   describe('error handling', () => {
     it('should return 504 for AbortError (timeout)', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async () => {
           const error = new Error('Timeout');
@@ -566,14 +534,15 @@ describe('withHandler', () => {
       await handler(req, res);
 
       expect(res._status).toBe(504);
-      expect((res._json as Record<string, unknown>).error).toBe(
-        'Request timeout'
-      );
+      expect(res._json).toEqual({
+        error: 'Request timeout',
+        message: 'Request to upstream service timed out',
+        requestId: expect.stringMatching(UUID_REGEX),
+      });
     });
 
     it('should return 502 for fetch TypeError', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async () => {
           throw new TypeError('fetch failed');
@@ -585,14 +554,15 @@ describe('withHandler', () => {
       await handler(req, res);
 
       expect(res._status).toBe(502);
-      expect((res._json as Record<string, unknown>).error).toBe(
-        'Network error'
-      );
+      expect(res._json).toEqual({
+        error: 'Network error',
+        message: 'Could not connect to upstream API',
+        requestId: expect.stringMatching(UUID_REGEX),
+      });
     });
 
     it('should return 500 for generic errors', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async () => {
           throw new Error('Something broke');
@@ -604,14 +574,15 @@ describe('withHandler', () => {
       await handler(req, res);
 
       expect(res._status).toBe(500);
-      expect((res._json as Record<string, unknown>).error).toBe(
-        'Internal server error'
-      );
+      expect(res._json).toEqual({
+        error: 'Internal server error',
+        message: 'An unexpected error occurred',
+        requestId: expect.stringMatching(UUID_REGEX),
+      });
     });
 
     it('should not write to response if already ended', async () => {
-      const withHandler = await getHandler();
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async (_req, res) => {
           res.status(200).json({ ok: true });
@@ -630,9 +601,8 @@ describe('withHandler', () => {
 
   describe('user-agent', () => {
     it('should pass user-agent from request to handler context', async () => {
-      const withHandler = await getHandler();
       let capturedUA = '';
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async (_req, _res, ctx) => {
           capturedUA = ctx.userAgent;
@@ -650,9 +620,8 @@ describe('withHandler', () => {
     });
 
     it('should use default user-agent when header is missing', async () => {
-      const withHandler = await getHandler();
       let capturedUA = '';
-      const handler = withHandler({
+      const handler = await buildHandler({
         name: 'test',
         handler: async (_req, _res, ctx) => {
           capturedUA = ctx.userAgent;

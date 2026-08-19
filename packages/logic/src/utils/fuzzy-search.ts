@@ -1,6 +1,7 @@
 import type { Film } from '@dorkroom/api';
 import type { FuseResult, FuseResultMatch, IFuseOptions } from 'fuse.js';
 import Fuse from 'fuse.js';
+import { z } from 'zod';
 
 /**
  * Strip hyphens, slashes, and other punctuation so "tmax" matches "T-MAX",
@@ -33,6 +34,17 @@ export function matchesSearchQuery(haystack: string, query: string): boolean {
 /** Snapshot of the default getFn to avoid depending on mutable global config */
 const defaultGetFn = Fuse.config.getFn;
 
+/** Fuse's default getFn is untyped and yields undefined for absent paths. */
+const indexedText = z.string();
+
+/** Search keys with weights (higher = more important) */
+const FILM_SEARCH_KEYS = [
+  { name: 'name', weight: 2.0 }, // High priority - film name
+  { name: 'brand', weight: 2.0 }, // High priority - manufacturer
+  { name: 'colorType', weight: 1.0 }, // Medium priority - color/BW classification
+  { name: 'aliases', weight: 1.5 }, // Former names should be findable
+];
+
 /**
  * Configuration options for film search
  */
@@ -41,31 +53,15 @@ const FILM_SEARCH_OPTIONS: IFuseOptions<Film> = {
   getFn: (obj, path) => {
     const value = defaultGetFn(obj, path);
     if (Array.isArray(value)) {
-      return value.map((v) =>
-        typeof v === 'string' ? normalizeSearchText(v) : v
-      );
+      return value.map((item) => {
+        const itemText = indexedText.safeParse(item);
+        return itemText.success ? normalizeSearchText(itemText.data) : item;
+      });
     }
-    return typeof value === 'string' ? normalizeSearchText(value) : value;
+    const text = indexedText.safeParse(value);
+    return text.success ? normalizeSearchText(text.data) : value;
   },
-  // Search keys with weights (higher = more important)
-  keys: [
-    {
-      name: 'name',
-      weight: 2.0, // High priority - film name
-    },
-    {
-      name: 'brand',
-      weight: 2.0, // High priority - manufacturer
-    },
-    {
-      name: 'colorType',
-      weight: 1.0, // Medium priority - color/BW classification
-    },
-    {
-      name: 'aliases',
-      weight: 1.5, // Former names should be findable
-    },
-  ],
+  keys: FILM_SEARCH_KEYS,
   // Fuzzy matching threshold (0.0 = exact, 1.0 = match anything)
   // 0.2 keeps results relevant — avoids matching "Retro"/"Pro" for "Portra"
   threshold: 0.2,
@@ -183,13 +179,7 @@ export function searchFilms(
   // then merge results by best score
   const joinedResults = searcher.search(tokens.join(''));
 
-  const keyNames = FILM_SEARCH_OPTIONS.keys!.map((key) =>
-    typeof key === 'string'
-      ? key
-      : Array.isArray(key)
-        ? key.join('.')
-        : (key as { name: string }).name
-  );
+  const keyNames = FILM_SEARCH_KEYS.map((key) => key.name);
 
   const expression = {
     $and: tokens.map((token) => ({

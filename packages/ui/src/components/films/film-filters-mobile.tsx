@@ -2,7 +2,8 @@ import type { SelectItem } from '@dorkroom/logic';
 import { ChevronDown, Search } from 'lucide-react';
 import { type FC, useState } from 'react';
 import { cn } from '../../lib/cn';
-import { setStyles } from '../../lib/dom';
+import { cssVars, setStyles } from '../../lib/dom';
+import { optionChangeHandler } from '../../lib/select-options';
 import { SearchableSelect } from '../searchable-select';
 import { Select } from '../select';
 
@@ -14,11 +15,11 @@ const FILM_TYPE_OPTIONS: SelectItem[] = [
   { label: 'Slide', value: 'slide' },
 ];
 
-const DISCONTINUED_OPTIONS: SelectItem[] = [
+const DISCONTINUED_OPTIONS = [
   { label: 'All films', value: 'all' },
   { label: 'Active only', value: 'active' },
   { label: 'Discontinued only', value: 'discontinued' },
-];
+] as const;
 
 interface FilmFiltersMobileProps {
   // Search
@@ -164,14 +165,12 @@ export const FilmFiltersMobile: FC<FilmFiltersMobileProps> = ({
                 onChange={(e) => onSearchChange(e.target.value)}
                 placeholder="Search films..."
                 className="w-full rounded-lg border px-3 py-2 pl-9 focus:outline-none focus:ring-2"
-                style={
-                  {
-                    borderColor: 'var(--color-border-secondary)',
-                    backgroundColor: 'var(--color-surface-muted)',
-                    color: 'var(--color-text-primary)',
-                    '--tw-ring-color': 'var(--color-border-primary)',
-                  } as React.CSSProperties
-                }
+                style={cssVars({
+                  borderColor: 'var(--color-border-secondary)',
+                  backgroundColor: 'var(--color-surface-muted)',
+                  color: 'var(--color-text-primary)',
+                  '--tw-ring-color': 'var(--color-border-primary)',
+                })}
                 onFocus={(e) => {
                   e.target.style.borderColor = 'var(--color-border-primary)';
                 }}
@@ -239,9 +238,10 @@ export const FilmFiltersMobile: FC<FilmFiltersMobileProps> = ({
             <Select
               label="Status"
               selectedValue={discontinuedFilter}
-              onValueChange={(value) =>
-                onDiscontinuedChange(value as 'all' | 'active' | 'discontinued')
-              }
+              onValueChange={optionChangeHandler(
+                DISCONTINUED_OPTIONS,
+                onDiscontinuedChange
+              )}
               items={DISCONTINUED_OPTIONS}
             />
           </div>

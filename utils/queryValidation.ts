@@ -55,16 +55,11 @@ export function validateAndSanitizeQuery(
     // Skip parameters not in allowlist
     if (!allowedParamSet.has(key)) continue;
 
-    // Extract string value from potential array
-    let stringValue: string | undefined;
-    if (typeof value === 'string') {
-      stringValue = value;
-    } else if (Array.isArray(value) && value.length > 0) {
-      stringValue = value[0];
-    }
+    // A repeated param arrives as an array; take its first value
+    const stringValue = Array.isArray(value) ? value[0] : value;
 
-    // Skip empty or non-string values
-    if (typeof stringValue !== 'string') continue;
+    // Skip absent values
+    if (stringValue === undefined) continue;
 
     const trimmed = stringValue.trim();
 

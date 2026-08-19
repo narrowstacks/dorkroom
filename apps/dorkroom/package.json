@@ -8,6 +8,6 @@
     "build": "vite build",
     "lint": "oxlint && biome check --linter-enabled=false .",
     "test": "vitest run",
-    "typecheck": "node ../../node_modules/typescript-7/bin/tsc --noEmit"
+    "typecheck": "node ../../node_modules/typescript-7/bin/tsc --noEmit --project tsconfig.app.json"
   }
 }

@@ -1,33 +1,16 @@
-import { describe, expect, it, vi } from 'vitest';
-
-vi.mock('react-native', () => ({
-  Platform: { OS: 'ios' },
-}));
-vi.mock('react-native-mmkv', () => ({
-  createMMKV: () => ({
-    getString: vi.fn(),
-    set: vi.fn(),
-    remove: vi.fn(),
-  }),
-}));
-vi.mock('expo-file-system/legacy', () => ({
-  documentDirectory: 'file:///docs/',
-  makeDirectoryAsync: vi.fn(async () => {}),
-  copyAsync: vi.fn(async () => {}),
-  deleteAsync: vi.fn(async () => {}),
-  getInfoAsync: vi.fn(async () => ({ exists: false })),
-}));
-vi.mock('@shopify/react-native-skia', () => ({ Skia: {} }));
-
+import { describe, expect, it } from 'vitest';
 import { PHOTO_DIR, photoUri, shouldGrayscale } from './film-log-photos';
 
+// The runner points 'expo-file-system/legacy' at src/test/expo-file-system.ts,
+// whose documentDirectory is 'file:///test/documents/'. Nothing here touches
+// native code: savePhoto and the Skia grayscale pass are device-verified.
 describe('film-log-photos helpers', () => {
   it('PHOTO_DIR is under the document directory', () => {
-    expect(PHOTO_DIR).toBe('file:///docs/film-log/');
+    expect(PHOTO_DIR).toBe('file:///test/documents/film-log/');
   });
 
   it('photoUri joins the dir and filename', () => {
-    expect(photoUri('abc.jpg')).toBe('file:///docs/film-log/abc.jpg');
+    expect(photoUri('abc.jpg')).toBe('file:///test/documents/film-log/abc.jpg');
   });
 
   it('shouldGrayscale only for bw', () => {

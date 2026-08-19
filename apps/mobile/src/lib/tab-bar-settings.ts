@@ -1,4 +1,5 @@
 import { createMMKV } from 'react-native-mmkv';
+import { z } from 'zod';
 import { DEFAULT_PINNED_IDS, getTool } from './tools';
 
 export const storage = createMMKV({ id: 'dorkroom-tab-bar' });
@@ -11,24 +12,33 @@ export const MAX_PINNED = 2;
 // Default pins, capped to the limit (takes the first MAX_PINNED in priority order).
 const DEFAULT_PINS = DEFAULT_PINNED_IDS.slice(0, MAX_PINNED);
 
+/** A stored pin: the id of a known, user-pinnable tool. Unknown tools and
+ * permanent tabs (e.g. film-log) fail, so a stale pin can't render a broken or
+ * duplicate trigger. */
+const pinnableToolIdSchema = z.string().refine((id) => {
+  const tool = getTool(id);
+  return tool !== undefined && tool.pinnable !== false;
+});
+
+/** Anything that isn't a JSON array decodes as empty — i.e. back to defaults. */
+const storedPinsSchema = z.array(z.unknown()).catch([]);
+
 /** Normalizes a raw stored value into a valid, capped pinned-id list,
  * falling back to defaults when unset/malformed/empty. */
 export function normalizePinnedIds(raw: string | undefined): string[] {
   if (!raw) return [...DEFAULT_PINS];
-  let parsed: unknown;
+  let json: unknown;
   try {
-    parsed = JSON.parse(raw);
+    json = JSON.parse(raw);
   } catch {
     return [...DEFAULT_PINS];
   }
-  if (!Array.isArray(parsed)) return [...DEFAULT_PINS];
-  const valid = parsed
-    .filter((id): id is string => {
-      if (typeof id !== 'string') return false;
-      const tool = getTool(id);
-      // Drop unknown tools and ones that aren't user-pinnable (e.g. film-log, a
-      // permanent tab) so a stale pin can't render a broken/duplicate trigger.
-      return tool !== undefined && tool.pinnable !== false;
+  // Entries are decoded one at a time so one bad pin can't discard the rest.
+  const valid = storedPinsSchema
+    .parse(json)
+    .flatMap((entry) => {
+      const id = pinnableToolIdSchema.safeParse(entry);
+      return id.success ? [id.data] : [];
     })
     .slice(0, MAX_PINNED);
   return valid.length > 0 ? valid : [...DEFAULT_PINS];

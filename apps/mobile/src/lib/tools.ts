@@ -1,3 +1,5 @@
+import type { Href } from 'expo-router';
+
 export type ToolCategory =
   | 'printing'
   | 'film'
@@ -9,7 +11,7 @@ export interface Tool {
   id: string;
   label: string;
   icon: string; // Lucide kebab icon name (e.g. 'crop', 'ruler')
-  route: string; // expo-router pathname for the More-stack detail route
+  route: Href; // expo-router pathname for the More-stack detail route
   category: ToolCategory;
   /**
    * Whether the user can pin/unpin this tool via Edit Tabs. Defaults to true.
@@ -121,13 +123,13 @@ export const CATEGORY_ORDER: readonly ToolCategory[] = [
   'system',
 ];
 
-export const CATEGORY_LABELS: Record<ToolCategory, string> = {
+export const CATEGORY_LABELS = {
   printing: 'Printing',
   film: 'Film',
   camera: 'Camera',
   reference: 'Reference',
   system: 'System',
-};
+} satisfies Record<ToolCategory, string>;
 
 const TOOL_BY_ID = new Map(TOOLS.map((t) => [t.id, t]));
 

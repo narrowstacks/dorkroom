@@ -5,29 +5,64 @@
 \* ------------------------------------------------------------------ */
 
 import { useEffect, useMemo, useReducer, useRef } from 'react';
-import { ASPECT_RATIOS, PAPER_SIZES } from '../../constants/border-calculator';
+import { z } from 'zod';
 import { BORDER_CALCULATOR_DEFAULTS } from '../../constants/border-calculator-defaults';
 import { BORDER_CALCULATOR_STORAGE_KEY } from '../../constants/storage-keys';
+import {
+  aspectRatioValueSchema,
+  paperSizeValueSchema,
+} from '../../schemas/border-calculator.schema';
 import type {
-  AspectRatioValue,
   BorderCalculatorAction,
   BorderCalculatorState,
   BorderPresetSettings,
-  PaperSizeValue,
 } from '../../types/border-calculator';
 import { isBrowser } from '../../utils/environment';
 
+/**
+ * Shape written to localStorage by this hook. Fields are optional so a snapshot
+ * from an earlier build still hydrates; one that fails is discarded, not
+ * dispatched into state.
+ */
+/**
+ * The persisted border-calculator snapshot. Exported because the mobile
+ * calculator writes and reads the same `borderCalculatorState_v2` payload.
+ */
+export const persistedBorderCalculatorSchema = z
+  .object({
+    aspectRatio: aspectRatioValueSchema,
+    paperSize: paperSizeValueSchema,
+    customAspectWidth: z.number(),
+    customAspectHeight: z.number(),
+    customPaperWidth: z.number(),
+    customPaperHeight: z.number(),
+    minBorder: z.number(),
+    enableOffset: z.boolean(),
+    ignoreMinBorder: z.boolean(),
+    horizontalOffset: z.number(),
+    verticalOffset: z.number(),
+    showBlades: z.boolean(),
+    showBladeReadings: z.boolean(),
+    isLandscape: z.boolean(),
+    isRatioFlipped: z.boolean(),
+    hasManuallyFlippedPaper: z.boolean(),
+    lastValidCustomAspectWidth: z.number(),
+    lastValidCustomAspectHeight: z.number(),
+    lastValidCustomPaperWidth: z.number(),
+    lastValidCustomPaperHeight: z.number(),
+    lastValidMinBorder: z.number(),
+  })
+  .partial();
+
+export type PersistedBorderCalculatorState = z.infer<
+  typeof persistedBorderCalculatorSchema
+>;
+type PersistedState = PersistedBorderCalculatorState;
+
 const createInitialState = (): BorderCalculatorState => {
-  const aspectRatio = ASPECT_RATIOS[0];
-  const paperSize = PAPER_SIZES[2];
-
-  if (!aspectRatio || !paperSize) {
-    throw new Error('Invalid default values for aspect ratio or paper size');
-  }
-
   return {
-    aspectRatio: aspectRatio.value as AspectRatioValue,
-    paperSize: paperSize.value as PaperSizeValue,
+    aspectRatio: BORDER_CALCULATOR_DEFAULTS.aspectRatio,
+    paperSize: BORDER_CALCULATOR_DEFAULTS.paperSize,
     customAspectWidth: BORDER_CALCULATOR_DEFAULTS.customAspectWidth,
     customAspectHeight: BORDER_CALCULATOR_DEFAULTS.customAspectHeight,
     customPaperWidth: BORDER_CALCULATOR_DEFAULTS.customPaperWidth,
@@ -84,7 +119,7 @@ function reducer(
       return { ...state, aspectRatio: action.value, isRatioFlipped: false };
 
     case 'SET_IMAGE_FIELD':
-      return { ...state, [action.key]: action.value } as BorderCalculatorState;
+      return { ...state, [action.key]: action.value };
 
     case 'SET_IMAGE_DIMENSIONS':
       return { ...state, imageDimensions: action.value };
@@ -137,38 +172,33 @@ export const useBorderCalculatorState = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const persistTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const persistableState: BorderPresetSettings & {
-    lastValidCustomAspectWidth: number;
-    lastValidCustomAspectHeight: number;
-    lastValidCustomPaperWidth: number;
-    lastValidCustomPaperHeight: number;
-    lastValidMinBorder: number;
-  } = useMemo(
-    () => ({
-      aspectRatio: state.aspectRatio,
-      paperSize: state.paperSize,
-      customAspectWidth: state.customAspectWidth,
-      customAspectHeight: state.customAspectHeight,
-      customPaperWidth: state.customPaperWidth,
-      customPaperHeight: state.customPaperHeight,
-      minBorder: state.minBorder,
-      enableOffset: state.enableOffset,
-      ignoreMinBorder: state.ignoreMinBorder,
-      horizontalOffset: state.horizontalOffset,
-      verticalOffset: state.verticalOffset,
-      showBlades: state.showBlades,
-      showBladeReadings: state.showBladeReadings,
-      isLandscape: state.isLandscape,
-      isRatioFlipped: state.isRatioFlipped,
-      hasManuallyFlippedPaper: state.hasManuallyFlippedPaper,
-      lastValidCustomAspectWidth: state.lastValidCustomAspectWidth,
-      lastValidCustomAspectHeight: state.lastValidCustomAspectHeight,
-      lastValidCustomPaperWidth: state.lastValidCustomPaperWidth,
-      lastValidCustomPaperHeight: state.lastValidCustomPaperHeight,
-      lastValidMinBorder: state.lastValidMinBorder,
-    }),
-    [state]
-  );
+  const persistableState: BorderPresetSettings & Required<PersistedState> =
+    useMemo(
+      () => ({
+        aspectRatio: state.aspectRatio,
+        paperSize: state.paperSize,
+        customAspectWidth: state.customAspectWidth,
+        customAspectHeight: state.customAspectHeight,
+        customPaperWidth: state.customPaperWidth,
+        customPaperHeight: state.customPaperHeight,
+        minBorder: state.minBorder,
+        enableOffset: state.enableOffset,
+        ignoreMinBorder: state.ignoreMinBorder,
+        horizontalOffset: state.horizontalOffset,
+        verticalOffset: state.verticalOffset,
+        showBlades: state.showBlades,
+        showBladeReadings: state.showBladeReadings,
+        isLandscape: state.isLandscape,
+        isRatioFlipped: state.isRatioFlipped,
+        hasManuallyFlippedPaper: state.hasManuallyFlippedPaper,
+        lastValidCustomAspectWidth: state.lastValidCustomAspectWidth,
+        lastValidCustomAspectHeight: state.lastValidCustomAspectHeight,
+        lastValidCustomPaperWidth: state.lastValidCustomPaperWidth,
+        lastValidCustomPaperHeight: state.lastValidCustomPaperHeight,
+        lastValidMinBorder: state.lastValidMinBorder,
+      }),
+      [state]
+    );
 
   useEffect(() => {
     if (!isBrowser()) return;
@@ -177,9 +207,9 @@ export const useBorderCalculatorState = () => {
       const raw = window.localStorage.getItem(BORDER_CALCULATOR_STORAGE_KEY);
       if (!raw) return;
 
-      const cached = JSON.parse(raw);
-      if (cached && typeof cached === 'object') {
-        dispatch({ type: 'BATCH_UPDATE', payload: cached });
+      const cached = persistedBorderCalculatorSchema.safeParse(JSON.parse(raw));
+      if (cached.success) {
+        dispatch({ type: 'BATCH_UPDATE', payload: cached.data });
       }
     } catch (error) {
       console.warn('Failed to load calculator state', error);

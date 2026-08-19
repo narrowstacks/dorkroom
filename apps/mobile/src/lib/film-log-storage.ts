@@ -2,6 +2,7 @@
 // each collection is a JSON-stringified array under its own key, read back with a
 // schema safeParse so corrupt/legacy data falls back to [] instead of crashing.
 import { createMMKV } from 'react-native-mmkv';
+import type { z } from 'zod';
 import { deletePhotoFile } from '@/lib/film-log-photos';
 import { generateId } from '@/lib/id';
 import {
@@ -32,12 +33,8 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
-type ArrayParse<T> = (
-  value: unknown
-) => { success: true; data: T[] } | { success: false };
-
 /** Pure: parse a stored JSON string through a schema, falling back to []. */
-function parseArray<T>(raw: string | undefined, parse: ArrayParse<T>): T[] {
+function parseArray<T>(raw: string | undefined, schema: z.ZodType<T[]>): T[] {
   if (!raw) return [];
   let json: unknown;
   try {
@@ -45,7 +42,7 @@ function parseArray<T>(raw: string | undefined, parse: ArrayParse<T>): T[] {
   } catch {
     return [];
   }
-  const result = parse(json);
+  const result = schema.safeParse(json);
   return result.success ? result.data : [];
 }
 
@@ -53,13 +50,13 @@ function parseArray<T>(raw: string | undefined, parse: ArrayParse<T>): T[] {
 // the MMKV-subscribed raw string (keeps `raw` a real dependency, not just a
 // re-render trigger).
 export const parseRolls = (raw: string | undefined): FilmRoll[] =>
-  parseArray(raw, (v) => rollsSchema.safeParse(v));
+  parseArray(raw, rollsSchema);
 export const parseCameras = (raw: string | undefined): Camera[] =>
-  parseArray(raw, (v) => camerasSchema.safeParse(v));
+  parseArray(raw, camerasSchema);
 export const parseLenses = (raw: string | undefined): Lens[] =>
-  parseArray(raw, (v) => lensesSchema.safeParse(v));
+  parseArray(raw, lensesSchema);
 export const parseCustomFilms = (raw: string | undefined): FilmStock[] =>
-  parseArray(raw, (v) => customFilmsSchema.safeParse(v));
+  parseArray(raw, customFilmsSchema);
 
 // --- Rolls -----------------------------------------------------------------
 

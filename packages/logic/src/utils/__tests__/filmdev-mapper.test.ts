@@ -21,6 +21,8 @@ const createMockFilm = (overrides: Partial<Film>): Film => ({
   reciprocityFailure: null,
   discontinued: false,
   staticImageUrl: null,
+  aliases: [],
+  baseFilmSlug: null,
   dateAdded: '2024-01-01',
   createdAt: '2024-01-01T00:00:00Z',
   updatedAt: '2024-01-01T00:00:00Z',

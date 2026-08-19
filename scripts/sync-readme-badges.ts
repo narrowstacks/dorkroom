@@ -81,9 +81,9 @@ export function applyBadgeUpdates(readme: string, v: BadgeValues): string {
 
 async function main(): Promise<void> {
   const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-  const pkg = JSON.parse(
+  const pkg: PackageJson = JSON.parse(
     await readFile(join(root, 'package.json'), 'utf8')
-  ) as PackageJson;
+  );
   const tsVersion = parseTypescriptVersion(
     await readFile(join(root, 'bun.lock'), 'utf8')
   );

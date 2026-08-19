@@ -1,69 +1,96 @@
 import { act, renderHook } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { type ResponsiveTier, useResponsiveTier } from '../use-responsive-tier';
 
-// Mock matchMedia with listener tracking
+/**
+ * A `(min-width: Npx)` media query list backed by a real `EventTarget`, so the
+ * hook subscribes and unsubscribes exactly as it does in a browser. `matches`
+ * is recomputed from the fake viewport width on every read.
+ */
+class FakeMediaQueryList extends EventTarget implements MediaQueryList {
+  readonly media: string;
+  onchange: ((this: MediaQueryList, ev: MediaQueryListEvent) => void) | null =
+    null;
+  /** Change handlers still subscribed, so tests can assert unmount cleanup. */
+  readonly changeHandlers = new Set<EventListenerOrEventListenerObject>();
+  private readonly minWidth: number;
+  private readonly currentWidth: () => number;
+
+  constructor(media: string, currentWidth: () => number) {
+    super();
+    this.media = media;
+    const minWidth = media.match(/min-width:\s*(\d+)px/);
+    this.minWidth = minWidth ? Number.parseInt(minWidth[1], 10) : 0;
+    this.currentWidth = currentWidth;
+  }
+
+  get matches(): boolean {
+    return this.currentWidth() >= this.minWidth;
+  }
+
+  override addEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject | null,
+    options?: AddEventListenerOptions | boolean
+  ): void {
+    if (type === 'change' && callback !== null) {
+      this.changeHandlers.add(callback);
+    }
+    super.addEventListener(type, callback, options);
+  }
+
+  override removeEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject | null,
+    options?: EventListenerOptions | boolean
+  ): void {
+    if (type === 'change' && callback !== null) {
+      this.changeHandlers.delete(callback);
+    }
+    super.removeEventListener(type, callback, options);
+  }
+
+  // The hook reaches the legacy Safari < 14 pair only when `addEventListener` is
+  // missing, which it never is here. Throwing surfaces that branch if it changes.
+  addListener(): never {
+    throw new Error('FakeMediaQueryList: use addEventListener');
+  }
+
+  removeListener(): never {
+    throw new Error('FakeMediaQueryList: use removeEventListener');
+  }
+}
+
 const createMockMatchMedia = (initialWidth: number) => {
-  const listeners = new Map<string, Set<(e: MediaQueryListEvent) => void>>();
+  let width = initialWidth;
+  const lists: FakeMediaQueryList[] = [];
 
   return {
     mock: (query: string): MediaQueryList => {
-      const match = query.match(/min-width:\s*(\d+)px/);
-      const minWidth = match ? parseInt(match[1], 10) : 0;
-
-      if (!listeners.has(query)) {
-        listeners.set(query, new Set());
-      }
-
-      return {
-        matches: initialWidth >= minWidth,
-        media: query,
-        addEventListener: (
-          event: string,
-          handler: (e: MediaQueryListEvent) => void
-        ) => {
-          if (event === 'change') {
-            listeners.get(query)?.add(handler);
-          }
-        },
-        removeEventListener: (
-          event: string,
-          handler: (e: MediaQueryListEvent) => void
-        ) => {
-          if (event === 'change') {
-            listeners.get(query)?.delete(handler);
-          }
-        },
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      } as MediaQueryList;
+      const list = new FakeMediaQueryList(query, () => width);
+      lists.push(list);
+      return list;
     },
     triggerChange: (newWidth: number) => {
-      // Update innerWidth
+      width = newWidth;
       Object.defineProperty(window, 'innerWidth', {
         value: newWidth,
         writable: true,
         configurable: true,
       });
 
-      // Trigger all listeners with updated matches values
-      for (const [query, handlers] of listeners) {
-        const match = query.match(/min-width:\s*(\d+)px/);
-        const minWidth = match ? parseInt(match[1], 10) : 0;
-        const matches = newWidth >= minWidth;
-
-        for (const handler of handlers) {
-          handler({
-            matches,
-            media: query,
-            type: 'change',
-          } as MediaQueryListEvent);
-        }
+      for (const list of lists) {
+        list.dispatchEvent(
+          new MediaQueryListEvent('change', {
+            matches: list.matches,
+            media: list.media,
+          })
+        );
       }
     },
-    listeners,
+    /** Total change handlers still subscribed across every query. */
+    subscribedChangeHandlers: () =>
+      lists.reduce((total, list) => total + list.changeHandlers.size, 0),
   };
 };
 
@@ -72,21 +99,17 @@ describe('useResponsiveTier', () => {
   let originalInnerWidth: number;
 
   beforeEach(() => {
-    if (typeof window !== 'undefined') {
-      originalMatchMedia = window.matchMedia;
-      originalInnerWidth = window.innerWidth;
-    }
+    originalMatchMedia = window.matchMedia;
+    originalInnerWidth = window.innerWidth;
   });
 
   afterEach(() => {
-    if (typeof window !== 'undefined') {
-      window.matchMedia = originalMatchMedia;
-      Object.defineProperty(window, 'innerWidth', {
-        value: originalInnerWidth,
-        writable: true,
-        configurable: true,
-      });
-    }
+    window.matchMedia = originalMatchMedia;
+    Object.defineProperty(window, 'innerWidth', {
+      value: originalInnerWidth,
+      writable: true,
+      configurable: true,
+    });
   });
 
   describe('tier detection', () => {
@@ -502,22 +525,12 @@ describe('useResponsiveTier', () => {
 
       const { unmount } = renderHook(() => useResponsiveTier());
 
-      // Verify listeners were added
-      expect(mockMedia.listeners.size).toBeGreaterThan(0);
-
-      // Count total listeners across all queries
-      const listenerCountBefore = Array.from(
-        mockMedia.listeners.values()
-      ).reduce((sum, set) => sum + set.size, 0);
-      expect(listenerCountBefore).toBeGreaterThan(0);
+      // One subscription per breakpoint query (sm, md, xl).
+      expect(mockMedia.subscribedChangeHandlers()).toBe(3);
 
       unmount();
 
-      // Count total listeners after unmount
-      const listenerCountAfter = Array.from(
-        mockMedia.listeners.values()
-      ).reduce((sum, set) => sum + set.size, 0);
-      expect(listenerCountAfter).toBe(0);
+      expect(mockMedia.subscribedChangeHandlers()).toBe(0);
     });
 
     it('handles extreme viewport widths', () => {
@@ -569,7 +582,7 @@ describe('useResponsiveTier', () => {
       expect(result.current).toHaveProperty('isMobile');
     });
 
-    it('returns consistent types for all properties', () => {
+    it('exposes exactly the tier flags for the current width', () => {
       const mockMedia = createMockMatchMedia(1000);
       window.matchMedia = mockMedia.mock;
       Object.defineProperty(window, 'innerWidth', {
@@ -580,12 +593,14 @@ describe('useResponsiveTier', () => {
 
       const { result } = renderHook(() => useResponsiveTier());
 
-      expect(typeof result.current.tier).toBe('string');
-      expect(typeof result.current.isPhone).toBe('boolean');
-      expect(typeof result.current.isTablet).toBe('boolean');
-      expect(typeof result.current.isDesktop).toBe('boolean');
-      expect(typeof result.current.isWide).toBe('boolean');
-      expect(typeof result.current.isMobile).toBe('boolean');
+      expect(result.current).toStrictEqual({
+        tier: 'desktop',
+        isPhone: false,
+        isTablet: false,
+        isDesktop: true,
+        isWide: false,
+        isMobile: false,
+      });
     });
 
     it('ensures only one tier flag is true at a time', () => {

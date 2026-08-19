@@ -1,4 +1,5 @@
 import { createContext, type ReactNode, use, useState } from 'react';
+import { hasGlobal } from '../lib/dom';
 
 export interface UnitContextValue<T extends string> {
   unit: T;
@@ -27,12 +28,15 @@ export function createUnitContext<T extends string>(
   const [unitA, unitB] = units;
 
   function getInitialUnit(): T {
-    if (typeof localStorage === 'undefined') {
+    if (!hasGlobal('localStorage')) {
       return defaultUnit;
     }
     const saved = localStorage.getItem(storageKey);
-    if (saved === unitA || saved === unitB) {
-      return saved as T;
+    if (saved === unitA) {
+      return unitA;
+    }
+    if (saved === unitB) {
+      return unitB;
     }
     return defaultUnit;
   }

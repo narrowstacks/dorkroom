@@ -7,7 +7,7 @@ import { useWindowDimensions as useRNWindowDimensions } from 'react-native';
  *
  * @returns Object containing current window width and height
  */
-export function useWindowDimensions(): { width: number; height: number } {
+export function useWindowDimensions() {
   const { width, height } = useRNWindowDimensions();
   return { width, height };
 }

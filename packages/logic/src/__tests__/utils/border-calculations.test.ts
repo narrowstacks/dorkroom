@@ -10,42 +10,6 @@ import {
   validatePrintFits,
 } from '../../utils/border-calculations';
 
-// Mock the constants to avoid importing complex dependencies
-vi.mock('../../constants/border-calculator', () => ({
-  EASEL_SIZES: [
-    { width: 10, height: 8, label: '8x10', value: '10x8' },
-    { width: 14, height: 11, label: '11x14', value: '14x11' },
-    { width: 20, height: 16, label: '16x20', value: '20x16' },
-    { width: 24, height: 20, label: '20x24', value: '24x20' },
-  ],
-  BLADE_THICKNESS: 15,
-}));
-
-vi.mock('../../constants/calculations', () => ({
-  CALCULATION_CONSTANTS: {
-    BORDER_OPTIMIZATION: {
-      SEARCH_SPAN: 0.5,
-      STEP: 0.01,
-      SNAP: 0.25,
-      EPSILON: 1e-9,
-      ADAPTIVE_STEP_DIVISOR: 100,
-    },
-    CACHE: {
-      MAX_MEMO_SIZE: 50,
-    },
-    PAPER: {
-      MAX_SCALE_FACTOR: 2,
-    },
-    PRECISION: {
-      DECIMAL_PLACES: 2,
-      ROUNDING_MULTIPLIER: 100,
-    },
-  },
-  DERIVED_CONSTANTS: {
-    BASE_PAPER_AREA: 480, // 20 * 24
-  },
-}));
-
 describe('border calculations', () => {
   describe('findCenteringOffsets', () => {
     it('should find exact match for standard paper sizes', () => {
@@ -346,15 +310,9 @@ describe('border calculations', () => {
       // The correct candidate is 0.875: print becomes exactly 8.25 x 5.5
       expect(result).toBeCloseTo(0.875, 6);
 
-      const { printW, printH } = computePrintSize(
-        10,
-        8,
-        3,
-        2,
-        result as number
-      );
-      expect(printW % 0.25).toBeCloseTo(0, 6);
-      expect(printH % 0.25).toBeCloseTo(0, 6);
+      const { printW, printH } = computePrintSize(10, 8, 3, 2, 0.875);
+      expect(printW).toBeCloseTo(8.25, 6);
+      expect(printH).toBeCloseTo(5.5, 6);
     });
 
     it('should return null when the print size is already quarter-aligned', () => {
@@ -397,10 +355,7 @@ describe('border calculations', () => {
         printHeight: 5.866666666666667,
       });
 
-      expect(result).not.toBeNull();
-      expect(result as number).toBeGreaterThanOrEqual(
-        currentMinBorder - 0.0001
-      );
+      expect(result).toBeGreaterThanOrEqual(currentMinBorder - 0.0001);
     });
 
     it('should return null for an already quarter-aligned second scenario (paper 8x10, ratio 4:5, border 0.5)', () => {
@@ -433,8 +388,8 @@ describe('border calculations', () => {
         printHeight: printH,
       });
 
-      expect(result).not.toBeNull();
-      const recomputed = computePrintSize(8, 10, 4, 5, result as number);
+      expect(result).toBeCloseTo(1, 6);
+      const recomputed = computePrintSize(8, 10, 4, 5, 1);
       expect(recomputed.printW % 0.25).toBeCloseTo(0, 6);
       expect(recomputed.printH % 0.25).toBeCloseTo(0, 6);
     });
@@ -452,8 +407,8 @@ describe('border calculations', () => {
         printHeight: printH,
       });
 
-      expect(result).not.toBeNull();
-      const recomputed = computePrintSize(8, 10, 1, 1, result as number);
+      expect(result).toBeCloseTo(0.625, 6);
+      const recomputed = computePrintSize(8, 10, 1, 1, 0.625);
       expect(recomputed.printW % 0.25).toBeCloseTo(0, 6);
       expect(recomputed.printH % 0.25).toBeCloseTo(0, 6);
     });

@@ -1,146 +1,96 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  createMockRequest,
+  createMockResponse,
+} from '../../utils/__tests__/mock-vercel';
+import handler from '../filmdev';
 
-vi.mock('../../utils/serverlessLogger', () => ({
-  logApiRequest: vi.fn(),
-  logApiResponse: vi.fn(),
-  logApiError: vi.fn(),
-  logExternalApiCall: vi.fn(),
-  logExternalApiResponse: vi.fn(),
-  serverlessLog: vi.fn(),
-  serverlessWarn: vi.fn(),
-  serverlessError: vi.fn(),
-}));
+/** A well-formed filmdev.org recipe lookup body; the proxy forwards it verbatim. */
+const RECIPE_PAYLOAD = JSON.stringify({ recipe: { id: 12_345 } });
 
-vi.mock('../../utils/withHandler', () => ({
-  withHandler: (config: { handler: Function }) => config.handler,
-}));
-
-vi.mock('../../utils/timeoutSignal', () => ({
-  createTimeoutSignal: () => undefined,
-}));
-
-function createMockCtx() {
-  return {
-    requestId: 'test-request-id',
-    startTime: Date.now(),
-    userAgent: 'TestAgent/1.0',
-    isPublicApi: false,
-  };
-}
-
-type MockReq = { query: Record<string, string | string[] | undefined> };
-
-function createJsonResponse(
-  data: unknown,
-  overrides: {
-    ok?: boolean;
+function createFilmdevResponse(
+  body: string,
+  init: {
     status?: number;
     contentType?: string;
     contentLength?: string;
   } = {}
-) {
-  const headers = new Map<string, string>();
-  headers.set('content-type', overrides.contentType ?? 'application/json');
-  if (overrides.contentLength) {
-    headers.set('content-length', overrides.contentLength);
+): Response {
+  const headers = new Headers({
+    'content-type': init.contentType ?? 'application/json',
+  });
+  if (init.contentLength !== undefined) {
+    headers.set('content-length', init.contentLength);
   }
 
-  return {
-    ok: overrides.ok ?? true,
-    status: overrides.status ?? 200,
-    headers: { get: (name: string) => headers.get(name) ?? null },
-    json: () => Promise.resolve(data),
-  };
+  return new Response(body, { status: init.status ?? 200, headers });
 }
 
-function createRes() {
-  return {
-    _status: 0,
-    _json: undefined as unknown,
-    _headers: {} as Record<string, string>,
-    setHeader(n: string, v: string) {
-      this._headers[n] = v;
-      return this;
-    },
-    status(code: number) {
-      this._status = code;
-      return this;
-    },
-    json(body: unknown) {
-      this._json = body;
-      return this;
-    },
-  };
+function respondWith(response: Response): void {
+  globalThis.fetch = vi.fn().mockResolvedValue(response);
 }
+
+const originalFetch = globalThis.fetch;
+
+beforeEach(() => {
+  // The handler and its wrapper log structured JSON through console
+  // (utils/serverlessLogger); silence it so a passing run stays readable.
+  for (const method of ['log', 'warn', 'error'] as const) {
+    vi.spyOn(console, method).mockImplementation(() => {});
+  }
+  // withHandler skips anonymous rate limiting when Unkey is unconfigured, so
+  // the real wrapper runs end to end without reaching the network.
+  vi.stubEnv('UNKEY_ROOT_KEY', '');
+  respondWith(createFilmdevResponse(RECIPE_PAYLOAD));
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+  globalThis.fetch = originalFetch;
+});
 
 describe('filmdev endpoint', () => {
-  let handler: Function;
-
-  beforeEach(async () => {
-    vi.resetModules();
-    const mod = await import('../filmdev');
-    handler = mod.default;
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   describe('recipe ID validation', () => {
     it('should reject missing recipe ID', async () => {
-      const res = createRes();
-      await handler({ query: {} } as MockReq, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest(), res);
 
       expect(res._status).toBe(400);
-      expect((res._json as Record<string, unknown>).error).toBe(
-        'Invalid recipe ID'
-      );
+      expect(res._json).toMatchObject({ error: 'Invalid recipe ID' });
     });
 
     it('should reject non-numeric recipe ID', async () => {
-      const res = createRes();
-      await handler({ query: { id: 'abc' } } as MockReq, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest({ query: { id: 'abc' } }), res);
 
       expect(res._status).toBe(400);
     });
 
     it('should reject zero', async () => {
-      const res = createRes();
-      await handler({ query: { id: '0' } } as MockReq, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest({ query: { id: '0' } }), res);
 
       expect(res._status).toBe(400);
     });
 
     it('should reject negative numbers', async () => {
-      const res = createRes();
-      await handler({ query: { id: '-1' } } as MockReq, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest({ query: { id: '-1' } }), res);
 
       expect(res._status).toBe(400);
     });
 
     it('should reject IDs exceeding max', async () => {
-      const res = createRes();
-      await handler(
-        { query: { id: '10000000' } } as MockReq,
-        res,
-        createMockCtx()
-      );
+      const res = createMockResponse();
+      await handler(createMockRequest({ query: { id: '10000000' } }), res);
 
       expect(res._status).toBe(400);
     });
 
     it('should accept valid recipe IDs', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue(createJsonResponse({ recipe: {} }))
-      );
-
-      const res = createRes();
-      await handler(
-        { query: { id: '12345' } } as MockReq,
-        res,
-        createMockCtx()
-      );
+      const res = createMockResponse();
+      await handler(createMockRequest({ query: { id: '12345' } }), res);
 
       expect(res._status).toBe(200);
     });
@@ -148,107 +98,75 @@ describe('filmdev endpoint', () => {
 
   describe('upstream error handling', () => {
     it('should return 502 for non-OK non-404 upstream responses', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi
-          .fn()
-          .mockResolvedValue(
-            createJsonResponse(null, { ok: false, status: 500 })
-          )
-      );
+      respondWith(createFilmdevResponse('', { status: 500 }));
 
-      const res = createRes();
-      await handler({ query: { id: '123' } } as MockReq, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest({ query: { id: '123' } }), res);
 
       expect(res._status).toBe(502);
-      const body = res._json as Record<string, unknown>;
-      expect(body.error).toBe('External API error');
-      expect(body).not.toHaveProperty('status');
+      expect(res._json).toMatchObject({ error: 'External API error' });
+      expect(res._json).not.toHaveProperty('status');
     });
 
     it('should return 404 when upstream returns 404', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi
-          .fn()
-          .mockResolvedValue(
-            createJsonResponse(null, { ok: false, status: 404 })
-          )
-      );
+      respondWith(createFilmdevResponse('', { status: 404 }));
 
-      const res = createRes();
-      await handler({ query: { id: '123' } } as MockReq, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest({ query: { id: '123' } }), res);
 
       expect(res._status).toBe(404);
-      expect((res._json as Record<string, unknown>).error).toBe(
-        'Recipe not found'
-      );
+      expect(res._json).toMatchObject({ error: 'Recipe not found' });
     });
   });
 
   describe('content type error handling', () => {
     it('should not include contentType in error response', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue(
-          createJsonResponse(null, {
-            ok: true,
-            status: 200,
-            contentType: 'text/html',
-          })
-        )
+      respondWith(
+        createFilmdevResponse('<html></html>', { contentType: 'text/html' })
       );
 
-      const res = createRes();
-      await handler({ query: { id: '123' } } as MockReq, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest({ query: { id: '123' } }), res);
 
       expect(res._status).toBe(502);
-      const body = res._json as Record<string, unknown>;
-      expect(body.error).toBe('Invalid response format');
-      expect(body).not.toHaveProperty('contentType');
+      expect(res._json).toMatchObject({ error: 'Invalid response format' });
+      expect(res._json).not.toHaveProperty('contentType');
     });
   });
 
   describe('User-Agent', () => {
     it('should send fixed User-Agent to filmdev.org', async () => {
-      const fetchMock = vi
-        .fn()
-        .mockResolvedValue(createJsonResponse({ recipe: {} }));
-      vi.stubGlobal('fetch', fetchMock);
+      const sent: (RequestInit | undefined)[] = [];
+      globalThis.fetch = vi.fn(
+        (_url: RequestInfo | URL, init?: RequestInit) => {
+          sent.push(init);
+          return Promise.resolve(createFilmdevResponse(RECIPE_PAYLOAD));
+        }
+      );
 
-      const res = createRes();
-      await handler({ query: { id: '123' } } as MockReq, res, createMockCtx());
+      await handler(
+        createMockRequest({ query: { id: '123' } }),
+        createMockResponse()
+      );
 
-      const fetchCall = fetchMock.mock.calls[0];
-      const headers = fetchCall[1].headers as Record<string, string>;
-      expect(headers['User-Agent']).toBe('Dorkroom-API/1.0');
+      const headers = new Headers(sent[0]?.headers);
+      expect(headers.get('user-agent')).toBe('Dorkroom-API/1.0');
     });
   });
 
   describe('response size limit', () => {
     it('should reject responses exceeding 1MB', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue(
-          createJsonResponse(
-            { recipe: {} },
-            {
-              ok: true,
-              status: 200,
-              contentType: 'application/json',
-              contentLength: String(1024 * 1024 + 1),
-            }
-          )
-        )
+      respondWith(
+        createFilmdevResponse(RECIPE_PAYLOAD, {
+          contentLength: String(1024 * 1024 + 1),
+        })
       );
 
-      const res = createRes();
-      await handler({ query: { id: '123' } } as MockReq, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest({ query: { id: '123' } }), res);
 
       expect(res._status).toBe(502);
-      expect((res._json as Record<string, unknown>).error).toBe(
-        'Response too large'
-      );
+      expect(res._json).toMatchObject({ error: 'Response too large' });
     });
   });
 });

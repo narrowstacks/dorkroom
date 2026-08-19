@@ -2,7 +2,8 @@ import type { CustomRecipeFilter, SelectItem } from '@dorkroom/logic';
 import type { SortingState } from '@tanstack/react-table';
 import { Search } from 'lucide-react';
 import { type FC, useRef } from 'react';
-import { setStyles } from '../../lib/dom';
+import { cssVars, setStyles } from '../../lib/dom';
+import { optionChangeHandler } from '../../lib/select-options';
 import { FilterPanelContainer } from '../filters/filter-panel-container';
 import { FilterPanelHeader } from '../filters/filter-panel-header';
 import { FilterPanelSection } from '../filters/filter-panel-section';
@@ -72,12 +73,12 @@ const sortingOptions: SelectItem[] = [
   },
 ];
 
-const recipeTypeOptions: SelectItem[] = [
+const recipeTypeOptions = [
   { label: 'All recipes', value: 'all' },
   { label: 'Official only', value: 'official' },
   { label: 'Hide custom recipes', value: 'hide-custom' },
   { label: 'Only custom recipes', value: 'only-custom' },
-];
+] as const;
 
 // eslint-disable-next-line react-doctor/no-many-boolean-props -- flags toggle independent optional filter sections, not a single variant axis
 export const FiltersSidebar: FC<FiltersSidebarProps> = ({
@@ -200,14 +201,12 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search film, developer…"
             className="w-full rounded-lg border px-3 py-2.5 pl-10 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2"
-            style={
-              {
-                borderColor: 'var(--color-border-secondary)',
-                backgroundColor: 'var(--color-surface-muted)',
-                color: 'var(--color-text-primary)',
-                '--tw-ring-color': 'var(--color-primary)',
-              } as React.CSSProperties
-            }
+            style={cssVars({
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'var(--color-surface-muted)',
+              color: 'var(--color-text-primary)',
+              '--tw-ring-color': 'var(--color-primary)',
+            })}
             onFocus={(e) => {
               setStyles(e.target, {
                 borderColor: 'var(--color-primary)',
@@ -303,9 +302,10 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
         <Select
           label="Recipe type"
           selectedValue={customRecipeFilter}
-          onValueChange={(value) =>
-            onCustomRecipeFilterChange(value as CustomRecipeFilter)
-          }
+          onValueChange={optionChangeHandler(
+            recipeTypeOptions,
+            onCustomRecipeFilterChange
+          )}
           items={recipeTypeOptions}
         />
         {onFavoritesOnlyChange && (

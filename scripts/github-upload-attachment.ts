@@ -119,7 +119,7 @@ async function uploadOne(
       .map((m) => m[0])
       .filter((url) => !seen.has(url));
     if (fresh.length > 0) {
-      const url = fresh[0] as string;
+      const url = fresh[0];
       seen.add(url);
       return url;
     }

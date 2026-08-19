@@ -1,8 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { JSDOM } from 'jsdom';
 import type { PropsWithChildren } from 'react';
-import { afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { useCustomRecipesUnified } from '../../hooks/custom-recipes/use-custom-recipes-unified';
 import type { CustomRecipe } from '../../types/custom-recipes';
 
@@ -47,22 +46,6 @@ const createTestHarness = () => {
 
   return { queryClient, wrapper };
 };
-
-beforeAll(() => {
-  if (typeof window === 'undefined') {
-    const dom = new JSDOM('<!doctype html><html><body></body></html>', {
-      url: 'https://dorkroom.test',
-    });
-    const globalWithDom = globalThis as unknown as {
-      window: Window & typeof globalThis;
-      document: Document;
-      navigator: Navigator;
-    };
-    globalWithDom.window = dom.window as unknown as Window & typeof globalThis;
-    globalWithDom.document = dom.window.document;
-    globalWithDom.navigator = dom.window.navigator;
-  }
-});
 
 afterEach(() => {
   window.localStorage.clear();

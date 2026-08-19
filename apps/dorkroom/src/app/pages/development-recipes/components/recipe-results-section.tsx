@@ -32,7 +32,7 @@ export interface RecipeResultsSectionProps {
   ) => undefined | ShareResult | Promise<undefined | ShareResult>;
   onCopyCombination: (view: DevelopmentCombinationView) => Promise<void>;
   onEditCustomRecipe: (view: DevelopmentCombinationView) => void;
-  onDeleteCustomRecipe: (view: DevelopmentCombinationView) => Promise<void>;
+  onDeleteCustomRecipe: (view: DevelopmentCombinationView) => void;
   isFavorite: (view: DevelopmentCombinationView) => boolean;
   /** ID of the currently selected recipe to highlight */
   selectedRecipeId?: string | null;

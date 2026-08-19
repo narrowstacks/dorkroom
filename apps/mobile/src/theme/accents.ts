@@ -28,12 +28,14 @@ export const ACCENT = {
 
 export type AccentColor = keyof typeof ACCENT;
 
-/** Tinted-glass selection treatment: bg/border/text for a selected control. */
-export function selectionTint(accent: AccentColor): {
+export interface SelectionTint {
   backgroundColor: string;
   borderColor: string;
   color: string;
-} {
+}
+
+/** Tinted-glass selection treatment: bg/border/text for a selected control. */
+export function selectionTint(accent: AccentColor): SelectionTint {
   const hex = ACCENT[accent];
   return {
     backgroundColor: `${hex}26`,

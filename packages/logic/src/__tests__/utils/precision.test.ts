@@ -73,8 +73,7 @@ describe('precision utilities', () => {
 
     it('should handle mixed types', () => {
       const key = createMemoKey(1.23, 'test', true, 456);
-      expect(typeof key).toBe('string');
-      expect(key).toContain(':');
+      expect(key).toBe('123:test:true:45600');
     });
 
     it('should round numbers for consistent keys', () => {

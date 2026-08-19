@@ -35,24 +35,24 @@ export const ROLL_STATUS_OPTIONS: {
   { label: 'Developed', value: 'developed' },
 ];
 
-const PROCESS_LABELS: Record<FilmProcess, string> = {
+const PROCESS_LABELS = {
   bw: 'B&W',
   color: 'Color',
   slide: 'Slide',
-};
+} satisfies Record<FilmProcess, string>;
 
 export function formatProcess(process: FilmProcess): string {
   return PROCESS_LABELS[process];
 }
 
-const FORMAT_LABELS: Record<CameraFormat, string> = {
+const FORMAT_LABELS = {
   '35mm': '35mm',
   '120': '120',
   '4x5': '4×5',
   '8x10': '8×10',
   digital: 'Digital',
   other: 'Other',
-};
+} satisfies Record<CameraFormat, string>;
 
 export function formatCameraFormat(format: CameraFormat): string {
   return FORMAT_LABELS[format];

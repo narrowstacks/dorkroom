@@ -34,6 +34,7 @@
         "@babel/core": "^8.0.1",
         "@babel/preset-react": "^8.0.1",
         "@biomejs/biome": "2.3.8",
+        "@oxlint/plugins": "1.77.0",
         "@swc-node/register": "~1.12.1",
         "@swc/cli": "~0.7.9",
         "@swc/core": "~1.15.47",
@@ -155,7 +156,6 @@
         "@types/react": "^19.2.7",
         "@vitest/ui": "4.1.10",
         "happy-dom": "20.11.1",
-        "jsdom": "29.1.1",
         "vitest": "4.1.10",
       },
       "peerDependencies": {
@@ -868,6 +868,8 @@
     "@oxlint/binding-win32-ia32-msvc": ["@oxlint/binding-win32-ia32-msvc@1.77.0", "", { "os": "win32", "cpu": "ia32" }, "sha512-zja5b7+6a7UsRFgAQSrnax5vrzliEyNPLCjfXONu/vTWswaIVZGFajJZptaeRvPE4LghtFdAzVFlexTm7MVTGA=="],
 
     "@oxlint/binding-win32-x64-msvc": ["@oxlint/binding-win32-x64-msvc@1.77.0", "", { "os": "win32", "cpu": "x64" }, "sha512-+teyvPDZ2RjUvo+SuCqS/UhaJl1QtdW5fWT5NJTV61V5MIuIS90Db9LixmtEGvXixyttiK62P96MSu3UlpviBw=="],
+
+    "@oxlint/plugins": ["@oxlint/plugins@1.77.0", "", {}, "sha512-6KtPXskPgpt+0Kyl2nNSxNnYXt7lbkxW1C7vi2L7xwtq/AisZlsmV+hnzOTEyM5tU1TxPv1GpTqpUBbZfPzBLg=="],
 
     "@polka/url": ["@polka/url@1.0.0-next.29", "", {}, "sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww=="],
 

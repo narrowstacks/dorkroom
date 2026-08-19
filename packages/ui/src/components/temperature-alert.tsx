@@ -5,13 +5,19 @@ import { formatTemperatureWithUnit } from '../lib/temperature';
 /** Standard development temperature is 68°F / 20°C */
 const STANDARD_TEMP_F = 68;
 
+/** Whether to warn about a temperature, and which direction it deviates. */
+interface TemperatureWarning {
+  show: boolean;
+  isHigher: boolean;
+}
+
 /**
  * Check if temperature differs from standard 68°F/20°C and return warning info.
  */
 function getTemperatureWarning(
   tempF?: number | null,
   tempC?: number | null
-): { show: boolean; isHigher: boolean } {
+): TemperatureWarning {
   if (tempF != null && tempF !== STANDARD_TEMP_F) {
     return { show: true, isHigher: tempF > STANDARD_TEMP_F };
   }

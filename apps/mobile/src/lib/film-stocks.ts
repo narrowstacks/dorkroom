@@ -8,14 +8,14 @@
 import type { Film } from '@dorkroom/api';
 import { useFilms } from '@dorkroom/logic';
 import { useMemo } from 'react';
+import { filmProcessSchema } from '@/schemas/film-log.schema';
 import type { FilmProcess, FilmStock } from '@/types/film-log';
 
-const PROCESSES: readonly FilmProcess[] = ['bw', 'color', 'slide'];
+// A new or malformed `colorType` reads as B&W rather than failing the row.
+const processOrBw = filmProcessSchema.catch('bw');
 
 function toProcess(colorType: string): FilmProcess {
-  return (PROCESSES as readonly string[]).includes(colorType)
-    ? (colorType as FilmProcess)
-    : 'bw';
+  return processOrBw.parse(colorType);
 }
 
 /** Map an API `Film` to the lighter `FilmStock` shape the film log uses. */

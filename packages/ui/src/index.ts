@@ -138,6 +138,7 @@ export {
   ROUTE_TITLES,
   referenceItems,
 } from './lib/navigation';
+export { optionChangeHandler } from './lib/select-options';
 export type { TemperatureUnit } from './lib/temperature';
 export { formatTemperatureWithUnit } from './lib/temperature';
 export type { Theme, ThemeColors } from './lib/themes';

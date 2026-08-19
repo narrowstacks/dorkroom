@@ -1,3 +1,5 @@
+import { isBrowser } from './environment';
+
 /*
  * URL configuration for different environments
  */
@@ -24,7 +26,7 @@ const URL_CONFIG = {
  * ```
  */
 function getBaseUrl(): string {
-  if (typeof window === 'undefined') {
+  if (!isBrowser()) {
     // Server-side rendering - default to production
     return URL_CONFIG.PRODUCTION_WEB;
   }
@@ -76,9 +78,7 @@ export function getDynamicShareUrl(
  * console.log(urls.webUrl); // 'https://beta.dorkroom.art/border?preset=preset123abc'
  * ```
  */
-export function generateSharingUrls(encoded: string): {
-  webUrl: string;
-} {
+export function generateSharingUrls(encoded: string) {
   const webUrl = `${getDynamicShareUrl()}?preset=${encoded}`;
 
   return {
@@ -104,7 +104,7 @@ export function generateSharingUrls(encoded: string): {
  * ```
  */
 export function getPresetFromUrl(): string | null {
-  if (typeof window === 'undefined') {
+  if (!isBrowser()) {
     return null;
   }
 
@@ -137,7 +137,7 @@ export function getPresetFromUrl(): string | null {
  * ```
  */
 export function updateUrlWithPreset(encoded: string): void {
-  if (typeof window === 'undefined') {
+  if (!isBrowser()) {
     return;
   }
 
@@ -161,7 +161,7 @@ export function updateUrlWithPreset(encoded: string): void {
  * ```
  */
 export function clearPresetFromUrl(): void {
-  if (typeof window === 'undefined') {
+  if (!isBrowser()) {
     return;
   }
 
@@ -190,7 +190,7 @@ export function clearPresetFromUrl(): void {
  * ```
  */
 export function isWebShareSupported(): boolean {
-  return typeof navigator !== 'undefined' && 'share' in navigator;
+  return globalThis.navigator !== undefined && 'share' in navigator;
 }
 
 /**
@@ -210,7 +210,7 @@ export function isWebShareSupported(): boolean {
  */
 export function isClipboardSupported(): boolean {
   return (
-    typeof navigator !== 'undefined' &&
+    globalThis.navigator !== undefined &&
     'clipboard' in navigator &&
     'writeText' in navigator.clipboard
   );

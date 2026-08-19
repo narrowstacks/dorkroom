@@ -37,11 +37,11 @@ interface CountdownProps {
   nextStage: TimerStage | undefined;
 }
 
-const STATUS_HINT: Partial<Record<TimerStatus, string>> = {
-  idle: 'Ready',
-  paused: 'Paused',
-  completed: 'Process complete',
-};
+const STATUS_HINT = new Map<TimerStatus, string>([
+  ['idle', 'Ready'],
+  ['paused', 'Paused'],
+  ['completed', 'Process complete'],
+]);
 
 /** The hero countdown card: stage name, big M:SS readout, and an animated bar. */
 export function Countdown({
@@ -63,7 +63,7 @@ export function Countdown({
   }));
 
   const temp = stage ? formatTemp(stage.temperatureF) : null;
-  const hint = STATUS_HINT[status];
+  const hint = STATUS_HINT.get(status);
   const completed = status === 'completed';
   const showTotals = status === 'running' || status === 'paused';
 

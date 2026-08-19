@@ -11,21 +11,6 @@ import type { FC, ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DevelopmentResultsTableVirtualized } from '../../../components/development-recipes/results-table-virtualized';
 
-// Mock useVirtualizer from @tanstack/react-virtual
-vi.mock('@tanstack/react-virtual', () => ({
-  useVirtualizer: vi.fn(({ count }) => ({
-    getVirtualItems: () =>
-      Array.from({ length: Math.min(count, 10) }, (_, i) => ({
-        index: i,
-        key: `row-${i}`,
-        start: i * 80,
-        end: (i + 1) * 80,
-        size: 80,
-      })),
-    getTotalSize: () => count * 80,
-  })),
-}));
-
 // Test data factories
 const mockFilm: Film = {
   id: 1,
@@ -41,6 +26,8 @@ const mockFilm: Film = {
   reciprocityFailure: null,
   discontinued: false,
   staticImageUrl: null,
+  aliases: [],
+  baseFilmSlug: null,
   dateAdded: '2023-01-01',
   createdAt: '2023-01-01',
   updatedAt: '2023-01-01',
@@ -154,12 +141,22 @@ const TableWrapper: FC<TableWrapperProps> = ({ rows, children }) => {
   return <>{children(table)}</>;
 };
 
+/**
+ * happy-dom performs no layout, so every box measures 0x0 and `useVirtualizer`
+ * would compute an empty window. Report a viewport tall enough to hold the rows.
+ */
+const VIEWPORT = { width: 1280, height: 2000 };
+
 describe('DevelopmentResultsTableVirtualized', () => {
+  const measure = Element.prototype.getBoundingClientRect;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    Element.prototype.getBoundingClientRect = () => DOMRect.fromRect(VIEWPORT);
   });
 
   afterEach(() => {
+    Element.prototype.getBoundingClientRect = measure;
     cleanup();
   });
 

@@ -1,7 +1,8 @@
 import type { SelectItem } from '@dorkroom/logic';
 import { Search } from 'lucide-react';
 import { type FC, useRef } from 'react';
-import { setStyles } from '../../lib/dom';
+import { cssVars, setStyles } from '../../lib/dom';
+import { optionChangeHandler } from '../../lib/select-options';
 import { FilterPanelContainer } from '../filters/filter-panel-container';
 import { FilterPanelHeader } from '../filters/filter-panel-header';
 import { FilterPanelSection } from '../filters/filter-panel-section';
@@ -16,11 +17,11 @@ const FILM_TYPE_OPTIONS: SelectItem[] = [
   { label: 'Slide', value: 'slide' },
 ];
 
-const DISCONTINUED_OPTIONS: SelectItem[] = [
+const DISCONTINUED_OPTIONS = [
   { label: 'All films', value: 'all' },
   { label: 'Active only', value: 'active' },
   { label: 'Discontinued only', value: 'discontinued' },
-];
+] as const;
 
 interface FilmFiltersPanelProps {
   // Search
@@ -122,14 +123,12 @@ export const FilmFiltersPanel: FC<FilmFiltersPanelProps> = ({
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Type to search..."
             className="w-full rounded-lg border px-3 py-2.5 pl-10 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2"
-            style={
-              {
-                borderColor: 'var(--color-border-secondary)',
-                backgroundColor: 'var(--color-surface-muted)',
-                color: 'var(--color-text-primary)',
-                '--tw-ring-color': 'var(--color-primary)',
-              } as React.CSSProperties
-            }
+            style={cssVars({
+              borderColor: 'var(--color-border-secondary)',
+              backgroundColor: 'var(--color-surface-muted)',
+              color: 'var(--color-text-primary)',
+              '--tw-ring-color': 'var(--color-primary)',
+            })}
             onFocus={(e) => {
               setStyles(e.target, {
                 borderColor: 'var(--color-primary)',
@@ -184,9 +183,10 @@ export const FilmFiltersPanel: FC<FilmFiltersPanelProps> = ({
         <Select
           label="Status"
           selectedValue={discontinuedFilter}
-          onValueChange={(value) =>
-            onDiscontinuedChange(value as 'all' | 'active' | 'discontinued')
-          }
+          onValueChange={optionChangeHandler(
+            DISCONTINUED_OPTIONS,
+            onDiscontinuedChange
+          )}
           items={DISCONTINUED_OPTIONS}
         />
       </FilterPanelSection>

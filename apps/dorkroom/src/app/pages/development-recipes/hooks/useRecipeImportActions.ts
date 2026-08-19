@@ -1,5 +1,6 @@
 import type { Developer, Film } from '@dorkroom/api';
 import type {
+  CustomRecipe,
   CustomRecipeFormData,
   FilmdevMappingResult,
   ImportedCustomRecipe,
@@ -14,7 +15,7 @@ import { useSharedRecipeImport } from './useSharedRecipeImport';
 export interface UseRecipeImportActionsProps {
   // Recipe operations
   addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
-  refreshCustomRecipes: () => Promise<unknown>;
+  refreshCustomRecipes: () => Promise<CustomRecipe[]>;
   decodeSharedCustomRecipe: (input: string) => ImportedCustomRecipe | null;
 
   // Film/Developer data

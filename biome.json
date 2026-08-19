@@ -13,7 +13,8 @@
       "!**/node_modules",
       "!**/routeTree.gen.ts",
       "!api/openapi-spec.json",
-      "!**/*.tsbuildinfo"
+      "!**/*.tsbuildinfo",
+      "!tools/oxlint/anti-slop"
     ]
   },
   "formatter": {

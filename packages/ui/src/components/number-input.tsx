@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { cn } from '../lib/cn';
 import { colorMixOr } from '../lib/color';
+import { cssVars } from '../lib/dom';
 
 interface NumberInputProps {
   value: string;
@@ -30,7 +31,7 @@ export function NumberInput({
       type="number"
       aria-label={inputTitle ?? placeholder ?? 'Number input'}
       value={value}
-      onChange={(e) => onChangeText((e.target as HTMLInputElement).value)}
+      onChange={(e) => onChangeText(e.target.value)}
       placeholder={placeholder}
       title={inputTitle}
       step={step}
@@ -38,21 +39,19 @@ export function NumberInput({
         'w-20 rounded-lg border px-3 py-2 focus-visible:outline-none',
         className
       )}
-      style={
-        {
-          borderColor: isFocused
-            ? 'var(--color-border-primary)'
-            : 'var(--color-border-secondary)',
-          backgroundColor: colorMixOr(
-            'var(--color-surface)',
-            20,
-            'transparent',
-            'var(--color-surface)'
-          ),
-          color: 'var(--color-text-primary)',
-          boxShadow: isFocused ? '0 0 0 2px var(--color-focus-ring)' : 'none',
-        } as React.CSSProperties
-      }
+      style={cssVars({
+        borderColor: isFocused
+          ? 'var(--color-border-primary)'
+          : 'var(--color-border-secondary)',
+        backgroundColor: colorMixOr(
+          'var(--color-surface)',
+          20,
+          'transparent',
+          'var(--color-surface)'
+        ),
+        color: 'var(--color-text-primary)',
+        boxShadow: isFocused ? '0 0 0 2px var(--color-focus-ring)' : 'none',
+      })}
       onFocus={() => {
         setIsFocused(true);
         onFocus?.();

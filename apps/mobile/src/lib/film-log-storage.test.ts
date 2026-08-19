@@ -1,20 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-const deleted: string[] = [];
-vi.mock('@/lib/film-log-photos', () => ({
-  deletePhotoFile: vi.fn(async (f: string) => void deleted.push(f)),
-}));
-
-const store = new Map<string, string>();
-vi.mock('react-native-mmkv', () => ({
-  createMMKV: () => ({
-    getString: (k: string) => store.get(k),
-    set: (k: string, v: string) => void store.set(k, v),
-    remove: (k: string) => void store.delete(k),
-  }),
-  useMMKVString: (key: string) => [store.get(key), vi.fn()],
-}));
-
+import { getInfoAsync, writeAsStringAsync } from 'expo-file-system/legacy';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { ensurePhotoDir, photoUri } from '@/lib/film-log-photos';
+// The runner points 'expo-file-system/legacy' at this in-memory implementation;
+// its reset hook is not part of the real module's API, so it is imported from
+// the implementation itself (same module, so the same store).
+import { resetFileSystem } from '@/test/expo-file-system';
 import {
   addCamera,
   addCustomFilm,
@@ -30,6 +20,7 @@ import {
   parseRolls,
   removeShot,
   setShotPhoto,
+  storage,
   updateRoll,
   updateShot,
 } from './film-log-storage';
@@ -43,10 +34,30 @@ function newRoll() {
   });
 }
 
+const writePhotoFile = (fileName: string) =>
+  writeAsStringAsync(photoUri(fileName), 'jpeg-bytes');
+
+/** A roll with one photographed shot, its file on disk, ready to be deleted. */
+async function shotWithPhoto(fileName: string) {
+  const roll = newRoll();
+  const shot = addShot(roll.id, { frameNumber: 1, source: 'manual' });
+  if (!shot) throw new Error('addShot did not return the new shot');
+  await writePhotoFile(fileName);
+  setShotPhoto(roll.id, shot.id, {
+    fileName,
+    width: 1,
+    height: 1,
+    capturedAt: 'x',
+    source: 'library',
+  });
+  return { rollId: roll.id, shotId: shot.id };
+}
+
 describe('film-log storage', () => {
-  beforeEach(() => {
-    store.clear();
-    deleted.length = 0;
+  beforeEach(async () => {
+    storage.clearAll();
+    resetFileSystem();
+    await ensurePhotoDir();
   });
 
   it('starts empty', () => {
@@ -127,7 +138,7 @@ describe('film-log storage', () => {
   });
 
   it('falls back to [] on corrupt JSON', () => {
-    store.set(KEYS.rolls, 'not json');
+    storage.set(KEYS.rolls, 'not json');
     expect(getRolls()).toEqual([]);
   });
 
@@ -136,55 +147,29 @@ describe('film-log storage', () => {
     expect(parseRolls(undefined)).toEqual([]);
   });
 
-  it('deletes the photo file when a shot with a photo is removed', () => {
-    const roll = newRoll();
-    const shot = addShot(roll.id, { frameNumber: 1, source: 'manual' });
-    if (shot)
-      setShotPhoto(roll.id, shot.id, {
-        fileName: 'p1.jpg',
-        width: 1,
-        height: 1,
-        capturedAt: 'x',
-        source: 'library',
-      });
-    if (shot) removeShot(roll.id, shot.id);
-    expect(deleted).toContain('p1.jpg');
+  it('deletes the photo file when a shot with a photo is removed', async () => {
+    const shot = await shotWithPhoto('p1.jpg');
+    removeShot(shot.rollId, shot.shotId);
+    expect((await getInfoAsync(photoUri('p1.jpg'))).exists).toBe(false);
   });
 
-  it('deletes all shot photos when a roll is deleted', () => {
-    const roll = newRoll();
-    const shot = addShot(roll.id, { frameNumber: 1, source: 'manual' });
-    if (shot)
-      setShotPhoto(roll.id, shot.id, {
-        fileName: 'p2.jpg',
-        width: 1,
-        height: 1,
-        capturedAt: 'x',
-        source: 'library',
-      });
-    deleteRoll(roll.id);
-    expect(deleted).toContain('p2.jpg');
+  it('deletes all shot photos when a roll is deleted', async () => {
+    const shot = await shotWithPhoto('p2.jpg');
+    deleteRoll(shot.rollId);
+    expect((await getInfoAsync(photoUri('p2.jpg'))).exists).toBe(false);
   });
 
-  it('deletes the old file when a shot photo is replaced', () => {
-    const roll = newRoll();
-    const shot = addShot(roll.id, { frameNumber: 1, source: 'manual' });
-    if (shot)
-      setShotPhoto(roll.id, shot.id, {
-        fileName: 'old.jpg',
-        width: 1,
-        height: 1,
-        capturedAt: 'x',
-        source: 'library',
-      });
-    if (shot)
-      setShotPhoto(roll.id, shot.id, {
-        fileName: 'new.jpg',
-        width: 1,
-        height: 1,
-        capturedAt: 'x',
-        source: 'library',
-      });
-    expect(deleted).toContain('old.jpg');
+  it('deletes the old file when a shot photo is replaced', async () => {
+    const shot = await shotWithPhoto('old.jpg');
+    await writePhotoFile('new.jpg');
+    setShotPhoto(shot.rollId, shot.shotId, {
+      fileName: 'new.jpg',
+      width: 1,
+      height: 1,
+      capturedAt: 'x',
+      source: 'library',
+    });
+    expect((await getInfoAsync(photoUri('old.jpg'))).exists).toBe(false);
+    expect((await getInfoAsync(photoUri('new.jpg'))).exists).toBe(true);
   });
 });

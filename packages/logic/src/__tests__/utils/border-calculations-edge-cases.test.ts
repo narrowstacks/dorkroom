@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   bladeReadings,
   bordersFromGaps,
@@ -19,42 +19,6 @@ import {
  * - Precision and rounding edge cases
  * - Invalid input handling
  */
-
-// Mock the constants
-vi.mock('../../constants/border-calculator', () => ({
-  EASEL_SIZES: [
-    { width: 10, height: 8, label: '8x10', value: '10x8' },
-    { width: 14, height: 11, label: '11x14', value: '14x11' },
-    { width: 20, height: 16, label: '16x20', value: '20x16' },
-    { width: 24, height: 20, label: '20x24', value: '24x20' },
-  ],
-  BLADE_THICKNESS: 15,
-}));
-
-vi.mock('../../constants/calculations', () => ({
-  CALCULATION_CONSTANTS: {
-    BORDER_OPTIMIZATION: {
-      SEARCH_SPAN: 0.5,
-      STEP: 0.01,
-      SNAP: 0.25,
-      EPSILON: 1e-9,
-      ADAPTIVE_STEP_DIVISOR: 100,
-    },
-    CACHE: {
-      MAX_MEMO_SIZE: 50,
-    },
-    PAPER: {
-      MAX_SCALE_FACTOR: 2,
-    },
-    PRECISION: {
-      DECIMAL_PLACES: 2,
-      ROUNDING_MULTIPLIER: 100,
-    },
-  },
-  DERIVED_CONSTANTS: {
-    BASE_PAPER_AREA: 480, // 20 * 24
-  },
-}));
 
 describe('border-calculations: Edge Cases and Boundary Tests', () => {
   describe('Extreme Aspect Ratios', () => {

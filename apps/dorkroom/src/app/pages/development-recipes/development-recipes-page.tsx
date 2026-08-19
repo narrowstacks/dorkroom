@@ -74,8 +74,6 @@ export default function DevelopmentRecipesPage() {
   // history writes further down. Applied once on mount and on browser
   // back/forward; writes are debounced to match the hook's search debounce.
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
     const applyFromUrl = () => {
       const q = new URLSearchParams(window.location.search).get('q') ?? '';
       setSearchQuery(q);
@@ -88,8 +86,6 @@ export default function DevelopmentRecipesPage() {
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
     const timeout = setTimeout(() => {
       const params = new URLSearchParams(window.location.search);
       if (searchQuery) {
@@ -390,7 +386,8 @@ export default function DevelopmentRecipesPage() {
   const columns = useMemo(
     () =>
       createTableColumns({
-        isFavorite: (view) => columnHandlersRef.current.isFavorite?.(view),
+        isFavorite: (view) =>
+          columnHandlersRef.current.isFavorite?.(view) ?? false,
         onToggleFavorite: (view) =>
           columnHandlersRef.current.onToggleFavorite?.(view),
         onEditCustomRecipe: (view) =>

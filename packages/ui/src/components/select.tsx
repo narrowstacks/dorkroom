@@ -2,12 +2,13 @@ import type { SelectItem } from '@dorkroom/logic';
 import { ChevronDown } from 'lucide-react';
 import { useId } from 'react';
 import { cn } from '../lib/cn';
+import { cssVars } from '../lib/dom';
 
 interface SelectProps {
   label?: string;
   selectedValue: string;
   onValueChange: (value: string) => void;
-  items: SelectItem[];
+  items: readonly SelectItem[];
   placeholder?: string;
   className?: string;
   ariaLabel?: string;
@@ -39,17 +40,15 @@ export function Select({
         <select
           id={selectId}
           value={selectedValue}
-          onChange={(e) => onValueChange((e.target as HTMLSelectElement).value)}
+          onChange={(e) => onValueChange(e.target.value)}
           className="w-full appearance-none rounded-lg border px-3 py-1.5 pr-8 text-sm focus:outline-none focus:ring-2"
           aria-label={ariaLabel}
-          style={
-            {
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'var(--color-surface-muted)',
-              color: 'var(--color-text-primary)',
-              '--tw-ring-color': 'var(--color-border-primary)',
-            } as React.CSSProperties
-          }
+          style={cssVars({
+            borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'var(--color-surface-muted)',
+            color: 'var(--color-text-primary)',
+            '--tw-ring-color': 'var(--color-border-primary)',
+          })}
           onFocus={(e) => {
             e.target.style.borderColor = 'var(--color-border-primary)';
           }}

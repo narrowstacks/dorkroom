@@ -33,8 +33,8 @@ export interface TemperatureData {
  * ```
  */
 export const formatTemperature = (temperatureData: TemperatureData): string => {
-  const fahrenheit = Number.isFinite(temperatureData.temperatureF)
-    ? (temperatureData.temperatureF as number)
+  const fahrenheit = Number.isFinite(temperatureData.temperatureF ?? NaN)
+    ? (temperatureData.temperatureF ?? null)
     : null;
   const celsius = Number.isFinite(temperatureData.temperatureC ?? NaN)
     ? (temperatureData.temperatureC ?? null)

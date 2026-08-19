@@ -172,11 +172,11 @@ export function formatDimensionPair(
   const displayHeight = convertInchesToDisplay(heightInches, unit);
 
   const formatValue = (value: number): string => {
-    if (typeof explicitPrecision === 'number') {
+    if (explicitPrecision !== undefined) {
       return value.toFixed(explicitPrecision);
     }
 
-    if (typeof maxPrecision === 'number') {
+    if (maxPrecision !== undefined) {
       return Number(value.toFixed(maxPrecision)).toString();
     }
 

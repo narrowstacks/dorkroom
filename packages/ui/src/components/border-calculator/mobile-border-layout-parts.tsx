@@ -15,6 +15,7 @@ import { SaveBeforeShareModal } from '../../components/save-before-share-modal';
 import { SettingsButton } from '../../components/settings-button';
 import { ShareModal } from '../../components/share-modal';
 import { StatusAlert } from '../../components/status-alert';
+import { cssVars } from '../../lib/dom';
 import { AnimatedPreview } from './animated-preview';
 import type { BorderCalculatorContextValue } from './border-calculator-context';
 import { BorderSizeSection } from './sections/border-size-section';
@@ -226,13 +227,11 @@ export function MobileSettingsCard({
           className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
             !isHighContrast ? 'shadow-lg' : ''
           }`}
-          style={
-            {
-              background: 'var(--gradient-card-primary)',
-              color: 'var(--color-text-primary)',
-              '--tw-ring-color': 'var(--color-semantic-success)',
-            } as React.CSSProperties
-          }
+          style={cssVars({
+            background: 'var(--gradient-card-primary)',
+            color: 'var(--color-text-primary)',
+            '--tw-ring-color': 'var(--color-semantic-success)',
+          })}
           title="Share preset"
           aria-label="Share preset"
         >
@@ -259,14 +258,12 @@ export function MobileResetButton({
       className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
         !isHighContrast ? 'shadow-lg' : ''
       }`}
-      style={
-        {
-          borderColor: 'var(--color-border-secondary)',
-          backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
-          color: 'var(--color-semantic-error)',
-          '--tw-ring-color': 'var(--color-semantic-error)',
-        } as React.CSSProperties
-      }
+      style={cssVars({
+        borderColor: 'var(--color-border-secondary)',
+        backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
+        color: 'var(--color-semantic-error)',
+        '--tw-ring-color': 'var(--color-semantic-error)',
+      })}
       onMouseEnter={(e) => {
         e.currentTarget.style.backgroundColor =
           'rgba(var(--color-background-rgb), 0.1)';

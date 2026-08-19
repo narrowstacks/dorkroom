@@ -21,10 +21,7 @@
  * ```
  */
 export const isMobileDevice = (): boolean => {
-  if (
-    typeof window === 'undefined' ||
-    typeof window.navigator === 'undefined'
-  ) {
+  if (globalThis.window === undefined || window.navigator === undefined) {
     return false;
   }
 
@@ -62,10 +59,7 @@ export const isMobileDevice = (): boolean => {
  * ```
  */
 export const isIOS = (): boolean => {
-  if (
-    typeof window === 'undefined' ||
-    typeof window.navigator === 'undefined'
-  ) {
+  if (globalThis.window === undefined || window.navigator === undefined) {
     return false;
   }
 
@@ -92,10 +86,7 @@ export const isIOS = (): boolean => {
  * ```
  */
 export const shouldUseWebShare = (): boolean => {
-  if (
-    typeof navigator === 'undefined' ||
-    typeof navigator.share !== 'function'
-  ) {
+  if (globalThis.navigator === undefined || navigator.share === undefined) {
     return false;
   }
 

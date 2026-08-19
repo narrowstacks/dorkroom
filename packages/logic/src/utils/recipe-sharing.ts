@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type {
   CustomDeveloperData,
   CustomFilmData,
@@ -38,8 +39,62 @@ export interface EncodedCustomRecipe {
   customFilm?: CustomFilmData;
   customDeveloper?: CustomDeveloperData;
   isPublic: boolean;
-  version: number;
+  /** Absent in links written before recipe sharing was versioned. */
+  version?: number;
 }
+
+/**
+ * JSON has no `undefined`, so a producer encoding "no value" writes `null`.
+ * Accept both and normalise to `undefined` so the decoded object still matches
+ * the optional-property wire interface.
+ */
+const jsonOptional = <T extends z.ZodTypeAny>(schema: T) =>
+  schema.nullish().transform((value) => value ?? undefined);
+
+const customFilmDataSchema = z.object({
+  brand: z.string().min(1),
+  name: z.string().min(1),
+  isoSpeed: z.number(),
+  colorType: z.enum(['bw', 'color', 'slide']),
+  grainStructure: jsonOptional(z.string()),
+  description: jsonOptional(z.string()),
+}) satisfies z.ZodType<CustomFilmData>;
+
+const customDeveloperDataSchema = z.object({
+  manufacturer: z.string().min(1),
+  name: z.string().min(1),
+  type: z.string(),
+  filmOrPaper: z.enum(['film', 'paper', 'both']),
+  workingLifeHours: jsonOptional(z.number()),
+  stockLifeMonths: jsonOptional(z.number()),
+  notes: jsonOptional(z.string()),
+  mixingInstructions: jsonOptional(z.string()),
+  safetyNotes: jsonOptional(z.string()),
+  dilutions: z.array(z.object({ name: z.string(), dilution: z.string() })),
+}) satisfies z.ZodType<CustomDeveloperData>;
+
+/** Wire contract for a shared recipe; a link that fails it decodes to null. */
+const encodedCustomRecipeSchema = z.object({
+  name: z.string().min(1),
+  filmId: z.string(),
+  developerId: z.string(),
+  temperatureF: z.number(),
+  timeMinutes: z.number(),
+  shootingIso: z.number(),
+  pushPull: z.number(),
+  agitationSchedule: jsonOptional(z.string()),
+  notes: jsonOptional(z.string()),
+  dilutionId: jsonOptional(z.number()),
+  customDilution: jsonOptional(z.string()),
+  isCustomFilm: z.boolean(),
+  isCustomDeveloper: z.boolean(),
+  customFilm: customFilmDataSchema.optional(),
+  customDeveloper: customDeveloperDataSchema.optional(),
+  isPublic: z.boolean(),
+  version: jsonOptional(z.number()),
+}) satisfies z.ZodType<EncodedCustomRecipe>;
+
+const encodedRecipeStringSchema = z.string().regex(/^[A-Za-z0-9_-]+$/);
 
 /**
  * Encodes a custom recipe into a URL-safe base64 string for sharing.
@@ -120,16 +175,7 @@ export const decodeCustomRecipe = (
 ): EncodedCustomRecipe | null => {
   try {
     const jsonString = decodeBase64(fromUrlSafe(encoded));
-    const recipe = JSON.parse(jsonString) as EncodedCustomRecipe;
-
-    if (
-      !recipe.name ||
-      typeof recipe.temperatureF !== 'number' ||
-      typeof recipe.timeMinutes !== 'number' ||
-      typeof recipe.shootingIso !== 'number'
-    ) {
-      throw new Error('Invalid recipe data: missing required fields');
-    }
+    const recipe = encodedCustomRecipeSchema.parse(JSON.parse(jsonString));
 
     if (!recipe.version || recipe.version > CURRENT_RECIPE_SHARING_VERSION) {
       console.warn(
@@ -208,7 +254,7 @@ export const createCustomRecipeFromEncoded = (
  * Validates if a string is a valid custom recipe encoding.
  * Checks format and attempts to decode to verify validity.
  *
- * @param encoded - String to validate as encoded recipe
+ * @param encoded - Candidate off a URL, so null/undefined are accepted
  * @returns True if the string is a valid encoded recipe, false otherwise
  * @example
  * ```typescript
@@ -219,16 +265,13 @@ export const createCustomRecipeFromEncoded = (
  * console.log(invalid); // false
  * ```
  */
-export const isValidCustomRecipeEncoding = (encoded: string): boolean => {
-  if (!encoded || typeof encoded !== 'string') {
+export const isValidCustomRecipeEncoding = (
+  encoded: string | null | undefined
+): boolean => {
+  const candidate = encodedRecipeStringSchema.safeParse(encoded);
+  if (!candidate.success) {
     return false;
   }
 
-  const base64UrlSafePattern = /^[A-Za-z0-9_-]+$/;
-  if (!base64UrlSafePattern.test(encoded)) {
-    return false;
-  }
-
-  const decoded = decodeCustomRecipe(encoded);
-  return decoded !== null;
+  return decodeCustomRecipe(candidate.data) !== null;
 };

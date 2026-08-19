@@ -109,6 +109,11 @@ function layoutFor(
   }
 }
 
+export interface BladeLabelOffset {
+  translateX: number;
+  translateY: number;
+}
+
 /**
  * Pixel transform that anchors a label at its blade-reading position using the
  * label's MEASURED size. RN has no `translate(-50%)`, so the caller measures
@@ -124,7 +129,7 @@ export function bladeLabelOffset(
   isInside: boolean,
   width: number,
   height: number
-): { translateX: number; translateY: number } {
+): BladeLabelOffset {
   const halfW = width / 2;
   const halfH = height / 2;
 

@@ -1,12 +1,10 @@
-// JSON export for the film log. `buildRollsExport` is pure (data in → plain
-// object out) so it's unit-testable; `shareRollsAsJson` reads the stores and
-// opens the iOS share sheet via the RN core `Share` API (no extra native dep).
+// JSON export format for the film log: data in → plain object out, with no
+// native dependencies, so it runs (and is tested) outside the app. The share
+// sheet that ships this payload lives in `film-log-share.ts`.
 //
 // TODO(export): a real `.json` *file* share (expo-file-system + expo-sharing,
 // needs a dev build) and Lightroom/XMP/CSV formats are deferred follow-ups.
 import { formatAperture, formatShutterSpeed } from '@dorkroom/logic';
-import { Share } from 'react-native';
-import { getCameras, getLenses, getRolls } from '@/lib/film-log-storage';
 import type { Camera, FilmRoll, Lens } from '@/types/film-log';
 
 export const FILM_LOG_EXPORT_VERSION = 1;
@@ -54,15 +52,4 @@ export function buildRollsExport({
       })),
     })),
   };
-}
-
-/** Opens the share sheet with the full log serialized as pretty JSON. */
-export async function shareRollsAsJson(): Promise<void> {
-  const payload = buildRollsExport({
-    rolls: getRolls(),
-    cameras: getCameras(),
-    lenses: getLenses(),
-    exportedAt: new Date().toISOString(),
-  });
-  await Share.share({ message: JSON.stringify(payload, null, 2) });
 }

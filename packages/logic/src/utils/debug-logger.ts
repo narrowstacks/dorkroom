@@ -1,13 +1,16 @@
+declare global {
+  /** Set by the dev harness to force debug logging on in a browser build. */
+  var __DORKROOM_DEBUG__: boolean | undefined;
+}
+
 /*
  * Determines if debug logging is enabled based on environment variables and global flags.
  * Debug logging is enabled in development environments or when explicitly enabled via
  * the global `__DORKROOM_DEBUG__` flag.
  */
 const DEBUG_ENABLED =
-  (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') ||
-  (typeof window !== 'undefined' &&
-    (window as unknown as { __DORKROOM_DEBUG__?: boolean })
-      .__DORKROOM_DEBUG__ === true);
+  (globalThis.process !== undefined && process.env.NODE_ENV !== 'production') ||
+  globalThis.__DORKROOM_DEBUG__ === true;
 
 /**
  * Debug logging function that outputs to console.log in development environments.

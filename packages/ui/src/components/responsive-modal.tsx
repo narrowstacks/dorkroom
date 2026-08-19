@@ -70,14 +70,11 @@ export interface ResponsiveModalProps {
  * ```
  */
 // Default max-heights based on mobile size
-const defaultMaxHeights: Record<
-  NonNullable<ResponsiveModalProps['mobileSize']>,
-  string
-> = {
+const defaultMaxHeights = {
   sm: '50vh',
   md: '70vh',
   lg: '85vh',
-};
+} satisfies Record<NonNullable<ResponsiveModalProps['mobileSize']>, string>;
 
 export const ResponsiveModal: FC<ResponsiveModalProps> = ({
   isOpen,

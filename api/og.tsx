@@ -80,7 +80,7 @@ async function fetchJson<T>(url: string): Promise<T | null> {
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeout);
     if (!res.ok) return null;
-    return (await res.json()) as T;
+    return await res.json();
   } catch {
     return null;
   }

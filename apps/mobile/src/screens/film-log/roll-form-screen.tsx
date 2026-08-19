@@ -18,7 +18,7 @@ import {
   ROLL_STATUS_OPTIONS,
 } from '@/lib/film-log-options';
 import { addRoll, updateRoll } from '@/lib/film-log-storage';
-import type { FilmProcess, FilmRoll, FilmStock } from '@/types/film-log';
+import type { FilmStock } from '@/types/film-log';
 
 export function RollFormScreen() {
   const { rollId } = useLocalSearchParams<{ rollId?: string }>();
@@ -36,10 +36,10 @@ export function RollFormScreen() {
     name: existing?.name ?? '',
     cameraId: existing?.cameraId ?? cameras[0]?.id,
     filmStockId: existing?.filmStockId,
-    process: (existing?.process ?? 'bw') as FilmProcess,
+    process: existing?.process ?? 'bw',
     iso: existing?.iso !== undefined ? String(existing.iso) : '',
-    status: (existing?.status ?? 'active') as FilmRoll['status'],
-    back: existing?.back as string | undefined,
+    status: existing?.status ?? 'active',
+    back: existing?.back,
     notes: existing?.notes ?? '',
   });
 

@@ -189,6 +189,15 @@ export function useMatCalculator(): UseMatCalculatorReturn {
     },
   ];
 
+  const revealRows: MatDimensionRow[] = [
+    ['Artwork', `${fmt(aw)} × ${fmt(ah)}`, 'as specified'],
+    [
+      'Actual reveal',
+      `${fmt(overlapLeft)} L/R · ${fmt(overlapTop)} T/B`,
+      'mat coverage onto the artwork edge',
+    ],
+  ];
+
   const dimensionRows: MatDimensionRow[] = [
     ['Outer mat', `${fmt(ow)} × ${fmt(oh)}`, 'matches frame rabbet'],
     [
@@ -201,16 +210,7 @@ export function useMatCalculator(): UseMatCalculatorReturn {
       `${fmt(bt)} top · ${fmt(bb)} bot · ${fmt(bl)} L · ${fmt(br)} R`,
       'distance from outer edge to window edge',
     ],
-    ...(revealMode
-      ? ([
-          ['Artwork', `${fmt(aw)} × ${fmt(ah)}`, 'as specified'],
-          [
-            'Actual reveal',
-            `${fmt(overlapLeft)} L/R · ${fmt(overlapTop)} T/B`,
-            'mat coverage onto the artwork edge',
-          ],
-        ] as MatDimensionRow[])
-      : []),
+    ...(revealMode ? revealRows : []),
   ];
 
   return {

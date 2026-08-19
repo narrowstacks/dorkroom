@@ -1,8 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react';
-import { JSDOM } from 'jsdom';
 import type { PropsWithChildren } from 'react';
-import { afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import {
   useAddCustomRecipe,
   useClearCustomRecipes,
@@ -10,12 +9,19 @@ import {
   useUpdateCustomRecipe,
 } from '../../hooks/custom-recipes/use-custom-recipe-mutations';
 import { queryKeys } from '../../queries/query-keys';
+import { createStorageManager, isArray } from '../../services/local-storage';
 import type {
   CustomRecipe,
   CustomRecipeFormData,
 } from '../../types/custom-recipes';
 
 const STORAGE_KEY = 'dorkroom_custom_recipes';
+
+/** The same manager the mutations use, so assertions see what the app loads. */
+const recipesStorage = createStorageManager<CustomRecipe[]>(STORAGE_KEY, {
+  defaultValue: [],
+  validate: isArray(),
+});
 
 const baseFormData: CustomRecipeFormData = {
   name: 'Test Recipe',
@@ -79,22 +85,6 @@ const createTestHarness = () => {
   return { queryClient, wrapper };
 };
 
-beforeAll(() => {
-  if (typeof window === 'undefined') {
-    const dom = new JSDOM('<!doctype html><html><body></body></html>', {
-      url: 'https://dorkroom.test',
-    });
-    const globalWithDom = globalThis as unknown as {
-      window: Window & typeof globalThis;
-      document: Document;
-      navigator: Navigator;
-    };
-    globalWithDom.window = dom.window as unknown as Window & typeof globalThis;
-    globalWithDom.document = dom.window.document;
-    globalWithDom.navigator = dom.window.navigator;
-  }
-});
-
 afterEach(() => {
   window.localStorage.clear();
 });
@@ -115,9 +105,7 @@ describe('custom recipe mutations', () => {
     expect(cached).toHaveLength(1);
     expect(cached?.[0].name).toBe('Test Recipe');
 
-    const persisted = JSON.parse(
-      window.localStorage.getItem(STORAGE_KEY) ?? '[]'
-    ) as CustomRecipe[];
+    const persisted = recipesStorage.read();
     expect(persisted).toHaveLength(1);
 
     queryClient.clear();
@@ -127,7 +115,7 @@ describe('custom recipe mutations', () => {
     const { queryClient, wrapper } = createTestHarness();
     const queryKey = getQueryKey();
     const existing = createStoredRecipe();
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify([existing]));
+    recipesStorage.write([existing]);
     queryClient.setQueryData(queryKey, [existing]);
 
     const { result } = renderHook(() => useUpdateCustomRecipe(), { wrapper });
@@ -147,9 +135,7 @@ describe('custom recipe mutations', () => {
     const cached = queryClient.getQueryData<CustomRecipe[]>(queryKey);
     expect(cached?.[0].name).toBe('Updated Recipe');
 
-    const persisted = JSON.parse(
-      window.localStorage.getItem(STORAGE_KEY) ?? '[]'
-    ) as CustomRecipe[];
+    const persisted = recipesStorage.read();
     expect(persisted[0].name).toBe('Updated Recipe');
 
     queryClient.clear();
@@ -159,7 +145,7 @@ describe('custom recipe mutations', () => {
     const { queryClient, wrapper } = createTestHarness();
     const queryKey = getQueryKey();
     const existing = createStoredRecipe();
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify([existing]));
+    recipesStorage.write([existing]);
     queryClient.setQueryData(queryKey, [existing]);
 
     const { result } = renderHook(() => useDeleteCustomRecipe(), { wrapper });
@@ -171,9 +157,7 @@ describe('custom recipe mutations', () => {
     const cached = queryClient.getQueryData<CustomRecipe[]>(queryKey);
     expect(cached).toHaveLength(0);
 
-    const persisted = JSON.parse(
-      window.localStorage.getItem(STORAGE_KEY) ?? '[]'
-    ) as CustomRecipe[];
+    const persisted = recipesStorage.read();
     expect(persisted).toHaveLength(0);
 
     queryClient.clear();
@@ -186,7 +170,7 @@ describe('custom recipe mutations', () => {
       createStoredRecipe({ id: 'one' }),
       createStoredRecipe({ id: 'two', name: 'Second' }),
     ];
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+    recipesStorage.write(existing);
     queryClient.setQueryData(queryKey, existing);
 
     const { result } = renderHook(() => useClearCustomRecipes(), { wrapper });
@@ -198,9 +182,7 @@ describe('custom recipe mutations', () => {
     const cached = queryClient.getQueryData<CustomRecipe[]>(queryKey);
     expect(cached).toHaveLength(0);
 
-    const persisted = JSON.parse(
-      window.localStorage.getItem(STORAGE_KEY) ?? '[]'
-    ) as CustomRecipe[];
+    const persisted = recipesStorage.read();
     expect(persisted).toHaveLength(0);
 
     queryClient.clear();

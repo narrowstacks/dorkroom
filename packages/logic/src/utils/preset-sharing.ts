@@ -1,4 +1,9 @@
+import { z } from 'zod';
 import { ASPECT_RATIOS, PAPER_SIZES } from '../constants/border-calculator';
+import {
+  aspectRatioValueSchema,
+  paperSizeValueSchema,
+} from '../schemas/border-calculator.schema';
 import type {
   AspectRatioValue,
   BorderPresetSettings,
@@ -7,27 +12,17 @@ import type {
 import { decodeBase64, encodeBase64, fromUrlSafe, toUrlSafe } from './base64';
 import { debugError } from './debug-logger';
 
-/**
- * Set of valid aspect ratio values for fast O(1) lookups.
- * Pre-computed from ASPECT_RATIOS constant for runtime validation.
- */
-const validAspectRatios = new Set<string>(
-  ASPECT_RATIOS.map((ratio) => ratio.value)
-);
-
-/**
- * Set of valid paper size values for fast O(1) lookups.
- * Pre-computed from PAPER_SIZES constant for runtime validation.
- */
-const validPaperSizes = new Set<string>(PAPER_SIZES.map((size) => size.value));
+const encodedPresetStringSchema = z.string().regex(/^[A-Za-z0-9_-]+$/);
 
 /**
  * Type guard to validate that a string is a valid AspectRatioValue.
  * @param value - String to validate
  * @returns True if value is a valid aspect ratio
  */
-function isValidAspectRatio(value: unknown): value is AspectRatioValue {
-  return typeof value === 'string' && validAspectRatios.has(value);
+function isValidAspectRatio(
+  value: string | undefined
+): value is AspectRatioValue {
+  return aspectRatioValueSchema.safeParse(value).success;
 }
 
 /**
@@ -35,8 +30,8 @@ function isValidAspectRatio(value: unknown): value is AspectRatioValue {
  * @param value - String to validate
  * @returns True if value is a valid paper size
  */
-function isValidPaperSize(value: unknown): value is PaperSizeValue {
-  return typeof value === 'string' && validPaperSizes.has(value);
+function isValidPaperSize(value: string | undefined): value is PaperSizeValue {
+  return paperSizeValueSchema.safeParse(value).success;
 }
 
 export interface PresetToShare {
@@ -277,17 +272,9 @@ export function decodePreset(encoded: string): SharedPreset | null {
  * ```
  */
 export function isValidEncodedPreset(encoded: string): boolean {
-  if (!encoded || typeof encoded !== 'string') {
+  if (!encodedPresetStringSchema.safeParse(encoded).success) {
     return false;
   }
 
-  // Basic validation: should be base64-like characters
-  const base64Regex = /^[A-Za-z0-9_-]+$/;
-  if (!base64Regex.test(encoded)) {
-    return false;
-  }
-
-  // Try to decode to see if it's valid
-  const decoded = decodePreset(encoded);
-  return decoded !== null;
+  return decodePreset(encoded) !== null;
 }

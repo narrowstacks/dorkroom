@@ -1,5 +1,4 @@
 import {
-  type ApertureKey,
   apertureToKey,
   type CameraExposureFormState,
   type EquivalentExposure,
@@ -8,12 +7,7 @@ import {
   type ExposureValueResult,
   formatAperture,
   formatShutterSpeed,
-  type ISOKey,
   isoToKey,
-  keyToAperture,
-  keyToISO,
-  keyToShutterSpeed,
-  type ShutterSpeedKey,
   type SolveFor,
   STANDARD_APERTURES,
   STANDARD_ISOS,
@@ -45,11 +39,27 @@ const isoOptions = STANDARD_ISOS.map((i) => ({
   label: i.label,
 }));
 
-const solveForOptions = [
+const solveForOptions: readonly { value: SolveFor; label: string }[] = [
   { value: 'shutterSpeed', label: 'Shutter Speed' },
   { value: 'aperture', label: 'Aperture' },
   { value: 'iso', label: 'ISO' },
 ];
+
+// A Select hands its value back as a plain string, so the standard lists double
+// as its decoder. An unlisted value leaves the current setting untouched.
+const APERTURE_BY_OPTION = new Map<string, number>(
+  STANDARD_APERTURES.map((a) => [a.label, a.value])
+);
+const SHUTTER_SPEED_BY_OPTION = new Map<string, number>(
+  STANDARD_SHUTTER_SPEEDS.map((s) => [s.label, s.value])
+);
+const ISO_BY_OPTION = new Map<string, number>(
+  STANDARD_ISOS.map((i) => [`ISO ${i.value}`, i.value])
+);
+
+function toSolveFor(value: string): SolveFor | undefined {
+  return solveForOptions.find((option) => option.value === value)?.value;
+}
 
 const HOW_TO_USE = [
   'Select your aperture, shutter speed, and ISO to see the current EV.',
@@ -304,7 +314,7 @@ function ExposureSettingsCard({
             label="Aperture"
             selectedValue={apertureToKey(values.aperture)}
             onValueChange={(v) =>
-              set('aperture', keyToAperture(v as ApertureKey))
+              set('aperture', APERTURE_BY_OPTION.get(v) ?? values.aperture)
             }
             items={apertureOptions}
             ariaLabel="Aperture"
@@ -313,7 +323,10 @@ function ExposureSettingsCard({
             label="Shutter speed"
             selectedValue={shutterSpeedToKey(values.shutterSpeed)}
             onValueChange={(v) =>
-              set('shutterSpeed', keyToShutterSpeed(v as ShutterSpeedKey))
+              set(
+                'shutterSpeed',
+                SHUTTER_SPEED_BY_OPTION.get(v) ?? values.shutterSpeed
+              )
             }
             items={shutterSpeedOptions}
             ariaLabel="Shutter speed"
@@ -321,7 +334,9 @@ function ExposureSettingsCard({
           <Select
             label="ISO"
             selectedValue={isoToKey(values.iso)}
-            onValueChange={(v) => set('iso', keyToISO(v as ISOKey))}
+            onValueChange={(v) =>
+              set('iso', ISO_BY_OPTION.get(v) ?? values.iso)
+            }
             items={isoOptions}
             ariaLabel="ISO"
           />
@@ -360,7 +375,10 @@ function ExposureComparisonCard({
             label="Aperture"
             selectedValue={apertureToKey(values.compareAperture)}
             onValueChange={(v) =>
-              set('compareAperture', keyToAperture(v as ApertureKey))
+              set(
+                'compareAperture',
+                APERTURE_BY_OPTION.get(v) ?? values.compareAperture
+              )
             }
             items={apertureOptions}
             ariaLabel="Compare aperture"
@@ -371,7 +389,7 @@ function ExposureComparisonCard({
             onValueChange={(v) =>
               set(
                 'compareShutterSpeed',
-                keyToShutterSpeed(v as ShutterSpeedKey)
+                SHUTTER_SPEED_BY_OPTION.get(v) ?? values.compareShutterSpeed
               )
             }
             items={shutterSpeedOptions}
@@ -380,7 +398,9 @@ function ExposureComparisonCard({
           <Select
             label="ISO"
             selectedValue={isoToKey(values.compareIso)}
-            onValueChange={(v) => set('compareIso', keyToISO(v as ISOKey))}
+            onValueChange={(v) =>
+              set('compareIso', ISO_BY_OPTION.get(v) ?? values.compareIso)
+            }
             items={isoOptions}
             ariaLabel="Compare ISO"
           />
@@ -452,7 +472,9 @@ function EVPresetsCard({
           <Select
             label="When selecting a preset, adjust"
             selectedValue={values.solveFor}
-            onValueChange={(v) => set('solveFor', v as SolveFor)}
+            onValueChange={(v) =>
+              set('solveFor', toSolveFor(v) ?? values.solveFor)
+            }
             items={solveForOptions}
             ariaLabel="Value to solve for"
           />

@@ -18,7 +18,7 @@ export type AccentColor =
  * string in source, so these are never built by interpolation. The CSS custom
  * properties resolve per-theme (see theme.css `--accent-*` variables).
  */
-const ACCENT_CLASSES: Record<AccentColor, { text: string; border: string }> = {
+const ACCENT_CLASSES = {
   indigo: {
     text: 'text-[color:var(--accent-indigo-text)]',
     border: 'group-hover:border-[color:var(--accent-indigo-border)]',
@@ -55,7 +55,7 @@ const ACCENT_CLASSES: Record<AccentColor, { text: string; border: string }> = {
     text: 'text-[color:var(--accent-sky-text)]',
     border: 'group-hover:border-[color:var(--accent-sky-border)]',
   },
-};
+} satisfies Record<AccentColor, { text: string; border: string }>;
 
 export interface ToolCardProps extends ComponentProps<'a'> {
   title: string;

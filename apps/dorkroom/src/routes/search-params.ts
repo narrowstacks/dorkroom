@@ -29,15 +29,15 @@
  * default JSON behaviour.
  */
 
-export const parseSearch = (searchStr: string): Record<string, string> => {
-  const result: Record<string, string> = {};
-  for (const [key, value] of new URLSearchParams(searchStr)) {
-    result[key] = value;
-  }
-  return result;
-};
+export const parseSearch = (searchStr: string) =>
+  Object.fromEntries(new URLSearchParams(searchStr));
 
-export const stringifySearch = (search: Record<string, unknown>): string => {
+/** A flat search-param value, as documented above — never nested or an array. */
+type SearchParamValue = string | number | boolean | null | undefined;
+
+export const stringifySearch = (
+  search: Record<string, SearchParamValue>
+): string => {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(search)) {
     if (value === undefined || value === null || value === '') continue;

@@ -1,4 +1,5 @@
 import type { FC, ReactNode } from 'react';
+import { cssVars } from '../../lib/dom';
 import { FilterPanelClearButton } from './filter-panel-clear-button';
 
 interface FilterPanelSectionProps {
@@ -23,16 +24,14 @@ export const FilterPanelSection: FC<FilterPanelSectionProps> = ({
   return (
     <div
       className="relative rounded-2xl border p-4 shadow-subtle card-grain"
-      style={
-        {
-          borderColor: 'var(--color-border-secondary)',
-          backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',
-          // Dark, translucent surface — keep the grain barely-there.
-          '--card-grain-opacity': '0.22',
-          // Blend the grain against this surface's own base colour.
-          '--card-grain-base': 'var(--color-background)',
-        } as React.CSSProperties
-      }
+      style={cssVars({
+        borderColor: 'var(--color-border-secondary)',
+        backgroundColor: 'rgba(var(--color-background-rgb), 0.25)',
+        // Dark, translucent surface — keep the grain barely-there.
+        '--card-grain-opacity': '0.22',
+        // Blend the grain against this surface's own base colour.
+        '--card-grain-base': 'var(--color-background)',
+      })}
     >
       <div className="relative z-10 space-y-4">
         {title && (

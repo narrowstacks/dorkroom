@@ -1,6 +1,7 @@
 import { AlertTriangle } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
+import { cssVars, hasGlobal } from '../lib/dom';
 
 interface ConfirmModalProps {
   /** Whether the modal is currently visible */
@@ -50,7 +51,7 @@ export function ConfirmModal({
     }
   };
 
-  if (typeof document === 'undefined' || !isOpen) {
+  if (!hasGlobal('document') || !isOpen) {
     return null;
   }
 
@@ -123,13 +124,11 @@ export function ConfirmModal({
             onClick={onClose}
             disabled={isProcessing}
             className="px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2"
-            style={
-              {
-                color: 'var(--color-text-secondary)',
-                backgroundColor: 'var(--color-surface-muted)',
-                '--tw-ring-color': 'var(--color-border-primary)',
-              } as React.CSSProperties
-            }
+            style={cssVars({
+              color: 'var(--color-text-secondary)',
+              backgroundColor: 'var(--color-surface-muted)',
+              '--tw-ring-color': 'var(--color-border-primary)',
+            })}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor =
                 'var(--color-border-muted)';
@@ -146,17 +145,15 @@ export function ConfirmModal({
             onClick={handleConfirm}
             disabled={isProcessing}
             className="px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50"
-            style={
-              {
-                color: 'white',
-                backgroundColor: isDestructive
-                  ? 'var(--color-semantic-error)'
-                  : 'var(--color-primary)',
-                '--tw-ring-color': isDestructive
-                  ? 'var(--color-semantic-error)'
-                  : 'var(--color-primary)',
-              } as React.CSSProperties
-            }
+            style={cssVars({
+              color: 'white',
+              backgroundColor: isDestructive
+                ? 'var(--color-semantic-error)'
+                : 'var(--color-primary)',
+              '--tw-ring-color': isDestructive
+                ? 'var(--color-semantic-error)'
+                : 'var(--color-primary)',
+            })}
             onMouseEnter={(e) => {
               if (!isProcessing) {
                 e.currentTarget.style.opacity = '0.9';

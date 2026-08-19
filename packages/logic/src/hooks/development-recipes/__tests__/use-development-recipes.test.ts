@@ -2,30 +2,9 @@ import type { Combination, Developer, Film } from '@dorkroom/api';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Mock the API query hooks so the tests control films/developers/combinations
-// data directly instead of going through TanStack Query fetchers.
-vi.mock('../../api/use-films', () => ({
-  useFilms: vi.fn(),
-}));
-vi.mock('../../api/use-developers', () => ({
-  useDevelopers: vi.fn(),
-}));
-vi.mock('../../api/use-combinations', () => ({
-  useCombinations: vi.fn(),
-}));
-
-// Mock useDebounce to return the value immediately so search assertions don't
-// need to wait out the real 300ms debounce window.
-vi.mock('../../use-debounce', () => ({
-  useDebounce: vi.fn((value: unknown) => value),
-}));
-
-// Import after mocking
-import { useCombinations } from '../../api/use-combinations';
-import { useDevelopers } from '../../api/use-developers';
-import { useFilms } from '../../api/use-films';
+import { queryKeys } from '../../../queries/query-keys';
 import { useDevelopmentRecipes } from '../use-development-recipes';
 
 const mockFilms: Film[] = [
@@ -251,36 +230,15 @@ describe('useDevelopmentRecipes', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
+    // Data that never goes stale resolves every query without a fetch.
     queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
+      defaultOptions: {
+        queries: { retry: false, staleTime: Number.POSITIVE_INFINITY },
+      },
     });
-
-    vi.mocked(useFilms).mockReturnValue({
-      data: mockFilms,
-      isPending: false,
-      isSuccess: true,
-      isError: false,
-      error: null,
-      status: 'success',
-    } as ReturnType<typeof useFilms>);
-
-    vi.mocked(useDevelopers).mockReturnValue({
-      data: mockDevelopers,
-      isPending: false,
-      isSuccess: true,
-      isError: false,
-      error: null,
-      status: 'success',
-    } as ReturnType<typeof useDevelopers>);
-
-    vi.mocked(useCombinations).mockReturnValue({
-      data: mockCombinations,
-      isPending: false,
-      isSuccess: true,
-      isError: false,
-      error: null,
-      status: 'success',
-    } as ReturnType<typeof useCombinations>);
+    queryClient.setQueryData(queryKeys.films.list(), mockFilms);
+    queryClient.setQueryData(queryKeys.developers.list(), mockDevelopers);
+    queryClient.setQueryData(queryKeys.combinations.list(), mockCombinations);
   });
 
   const wrapper = ({ children }: { children: ReactNode }) =>
@@ -446,6 +404,21 @@ describe('useDevelopmentRecipes', () => {
   });
 
   describe('free-text search', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    /** Waits out the hook's real 300ms search debounce. */
+    const flushSearchDebounce = () => {
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+    };
+
     it('returns the unfiltered list when the query is empty', () => {
       const { result } = renderHook(() => useDevelopmentRecipes(), {
         wrapper,
@@ -465,6 +438,7 @@ describe('useDevelopmentRecipes', () => {
       act(() => {
         result.current.setSearchQuery('hp5');
       });
+      flushSearchDebounce();
 
       // HP5 Plus (f1) appears in combinations c1 and c4 only
       expect(
@@ -480,6 +454,7 @@ describe('useDevelopmentRecipes', () => {
       act(() => {
         result.current.setSearchQuery('rodinal');
       });
+      flushSearchDebounce();
 
       // Rodinal (d3) appears in combinations c3 and c5 only
       expect(
@@ -495,6 +470,7 @@ describe('useDevelopmentRecipes', () => {
       act(() => {
         result.current.setSearchQuery('tri x');
       });
+      flushSearchDebounce();
 
       // Tri-X 400 (f2) appears in combinations c2 and c5 only
       expect(
@@ -510,6 +486,7 @@ describe('useDevelopmentRecipes', () => {
       act(() => {
         result.current.setSearchQuery('nonexistent-film-or-developer');
       });
+      flushSearchDebounce();
 
       expect(result.current.filteredCombinations).toHaveLength(0);
     });
@@ -522,6 +499,7 @@ describe('useDevelopmentRecipes', () => {
       act(() => {
         result.current.setSearchQuery('hp5');
       });
+      flushSearchDebounce();
       expect(result.current.filteredCombinations.length).toBeLessThan(
         mockCombinations.length
       );
@@ -529,6 +507,7 @@ describe('useDevelopmentRecipes', () => {
       act(() => {
         result.current.clearFilters();
       });
+      flushSearchDebounce();
 
       expect(result.current.searchQuery).toBe('');
       expect(result.current.filteredCombinations).toHaveLength(
@@ -545,6 +524,7 @@ describe('useDevelopmentRecipes', () => {
         result.current.setSelectedFilm(mockFilms[0]); // HP5 Plus
         result.current.setSearchQuery('dd-x');
       });
+      flushSearchDebounce();
 
       // Of HP5 Plus's combinations (c1, c4), only c1 pairs with DD-X
       expect(result.current.filteredCombinations.map((c) => c.uuid)).toEqual([

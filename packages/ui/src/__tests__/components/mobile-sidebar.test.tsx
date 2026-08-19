@@ -1,14 +1,32 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import {
+  fireEvent,
+  render as renderBare,
+  screen,
+} from '@testing-library/react';
+import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MobileSidebar } from '../../components/mobile-sidebar';
+import {
+  ThemeContext,
+  type ThemeContextValue,
+} from '../../contexts/theme-context';
 
-// Mock the theme context (required by ThemeToggle)
-vi.mock('../../contexts/theme-context', () => ({
-  useTheme: () => ({
-    theme: 'dark',
-    setTheme: vi.fn(),
-  }),
-}));
+const themeContext: ThemeContextValue = {
+  theme: 'dark',
+  resolvedTheme: 'dark',
+  setTheme: vi.fn(),
+  animationsEnabled: true,
+  setAnimationsEnabled: vi.fn(),
+};
+
+/** Renders inside the real ThemeContext, which the nested ThemeToggle requires. */
+function render(ui: ReactElement) {
+  return renderBare(ui, {
+    wrapper: ({ children }) => (
+      <ThemeContext value={themeContext}>{children}</ThemeContext>
+    ),
+  });
+}
 
 describe('MobileSidebar', () => {
   const defaultProps = {

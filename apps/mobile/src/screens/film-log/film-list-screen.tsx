@@ -4,15 +4,15 @@ import { Alert, FlatList, Pressable, Text, View } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
 import { GradientBackground } from '@/components/gradient-background';
 import { useCameras, useRolls } from '@/hooks/use-film-log';
-import { shareRollsAsJson } from '@/lib/film-log-export';
 import { formatProcess } from '@/lib/film-log-options';
+import { shareRollsAsJson } from '@/lib/film-log-share';
 import type { FilmRoll } from '@/types/film-log';
 
-const STATUS_LABEL: Record<FilmRoll['status'], string> = {
+const STATUS_LABEL = {
   active: 'Active',
   finished: 'Finished',
   developed: 'Developed',
-};
+} satisfies Record<FilmRoll['status'], string>;
 
 // Static — hoisted so it isn't rebuilt on every render.
 const EMPTY_STATE = (

@@ -1,5 +1,17 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { z } from 'zod';
 import { debugWarn } from '../utils/debug-logger';
+import { isBrowser } from '../utils/environment';
+
+const persistedSnapshotSchema = z.record(z.string(), z.json());
+
+/**
+ * A field value as it comes back out of a persisted snapshot, or `undefined`
+ * when the snapshot held no entry for that field.
+ */
+export type PersistedValue =
+  | z.infer<typeof persistedSnapshotSchema>[string]
+  | undefined;
 
 /**
  * Options for validating a field value during hydration
@@ -9,12 +21,12 @@ export interface FieldValidator<T> {
    * Validate a value before setting it on the form.
    * Return true if the value is valid and should be applied.
    */
-  validate?: (value: unknown) => boolean;
+  validate?: (value: PersistedValue) => boolean;
   /**
    * Transform a value during hydration before setting it on the form.
    * If not provided, the value is used as-is.
    */
-  transform?: (value: unknown) => T;
+  transform?: (value: PersistedValue) => T;
 }
 
 /**
@@ -39,17 +51,17 @@ export interface LocalStorageFormPersistenceOptions<T extends object> {
   /**
    * Keys to persist. If not provided, all keys from formValues are persisted.
    */
-  persistKeys?: Array<keyof T>;
+  persistKeys?: Array<keyof T & string>;
   /**
    * Optional validators for each field during hydration.
    * If a validator is provided and returns false, the field is skipped.
    */
-  validators?: Partial<Record<keyof T, FieldValidator<unknown>>>;
+  validators?: Partial<Record<keyof T & string, FieldValidator<T[keyof T]>>>;
   /**
    * Default validator applied to all fields if no specific validator is provided.
    * Defaults to checking the value is not undefined.
    */
-  defaultValidator?: (value: unknown) => boolean;
+  defaultValidator?: (value: PersistedValue) => boolean;
   /**
    * Callback after hydration completes
    */
@@ -100,9 +112,7 @@ export interface LocalStorageFormPersistenceReturn {
  *   formValues,
  *   persistKeys: ['originalTime', 'stops'],
  *   validators: {
- *     originalTime: {
- *       validate: (v) => typeof v === 'number' && Number.isFinite(v),
- *     },
+ *     originalTime: { validate: (v) => z.number().safeParse(v).success },
  *   },
  * });
  * ```
@@ -115,8 +125,8 @@ export function useLocalStorageFormPersistence<T extends object>(
     form,
     formValues,
     persistKeys,
-    validators = {} as Partial<Record<keyof T, FieldValidator<unknown>>>,
-    defaultValidator = (value: unknown) => value !== undefined,
+    validators,
+    defaultValidator = (value: PersistedValue) => value !== undefined,
     onHydrated,
     onPersisted,
     disableHydration = false,
@@ -128,7 +138,8 @@ export function useLocalStorageFormPersistence<T extends object>(
 
   // Determine which keys to persist
   const keysToUse = useMemo(() => {
-    return persistKeys ?? (Object.keys(formValues) as Array<keyof T>);
+    // SAFETY: Object.keys lists formValues' own keys, which are string keys of T.
+    return persistKeys ?? (Object.keys(formValues) as Array<keyof T & string>);
   }, [persistKeys, formValues]);
 
   // Create a memoized snapshot of persistable state
@@ -148,11 +159,7 @@ export function useLocalStorageFormPersistence<T extends object>(
   // Hydrate from localStorage on mount (runs exactly once)
   // biome-ignore lint/correctness/useExhaustiveDependencies: Intentional - only run once on mount
   useEffect(() => {
-    if (
-      hydrationRef.current ||
-      disableHydration ||
-      typeof window === 'undefined'
-    ) {
+    if (hydrationRef.current || disableHydration || !isBrowser()) {
       return;
     }
     hydrationRef.current = true;
@@ -164,8 +171,8 @@ export function useLocalStorageFormPersistence<T extends object>(
         return;
       }
 
-      const parsed = JSON.parse(raw) as Partial<T>;
-      if (!parsed || typeof parsed !== 'object') {
+      const snapshot = persistedSnapshotSchema.safeParse(JSON.parse(raw));
+      if (!snapshot.success) {
         isHydratedRef.current = true;
         return;
       }
@@ -173,8 +180,8 @@ export function useLocalStorageFormPersistence<T extends object>(
       const loadedValues: Partial<T> = {};
 
       for (const key of keysToUse) {
-        const value = parsed[key];
-        const fieldValidator = validators[key];
+        const value = snapshot.data[key];
+        const fieldValidator = validators?.[key];
 
         // Check if value passes validation
         const validateFn = fieldValidator?.validate ?? defaultValidator;
@@ -187,8 +194,14 @@ export function useLocalStorageFormPersistence<T extends object>(
           ? fieldValidator.transform(value)
           : value;
 
-        form.setFieldValue(key, transformedValue as T[typeof key]);
-        loadedValues[key] = transformedValue as T[typeof key];
+        // SAFETY: narrowed only as far as the caller's validator for `key` goes.
+        // `defaultValidator` is just `value !== undefined`, so a call site that
+        // passes no per-key validators (resize, reciprocity, border, mat) can
+        // hydrate a stored string into a numeric field. Pass a per-key schema
+        // validator to make this sound — see the lens/camera-exposure call sites.
+        const fieldValue = transformedValue as T[typeof key];
+        form.setFieldValue(key, fieldValue);
+        loadedValues[key] = fieldValue;
       }
 
       isHydratedRef.current = true;
@@ -206,7 +219,7 @@ export function useLocalStorageFormPersistence<T extends object>(
   // Persist form state to localStorage whenever it changes (debounced to avoid
   // blocking the main thread during rapid slider drags)
   useEffect(() => {
-    if (disablePersistence || typeof window === 'undefined') {
+    if (disablePersistence || !isBrowser()) {
       return;
     }
 
@@ -229,7 +242,7 @@ export function useLocalStorageFormPersistence<T extends object>(
   }, [storageKey, persistableSnapshot, disablePersistence, onPersisted]);
 
   const clearPersistedData = () => {
-    if (typeof window === 'undefined') return;
+    if (!isBrowser()) return;
     try {
       window.localStorage.removeItem(storageKey);
     } catch (error) {

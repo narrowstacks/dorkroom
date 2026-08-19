@@ -1,6 +1,19 @@
 import type { Combination, Developer, Film } from '@dorkroom/api';
+import type { CustomRecipeFilter } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useEffect, useRef } from 'react';
+
+const CUSTOM_RECIPE_FILTERS: readonly CustomRecipeFilter[] = [
+  'all',
+  'hide-custom',
+  'only-custom',
+  'official',
+];
+
+/** The URL carries the filter as free text; keep only a value the filter accepts. */
+function toCustomRecipeFilter(value: string): CustomRecipeFilter | undefined {
+  return CUSTOM_RECIPE_FILTERS.find((filter) => filter === value);
+}
 
 export interface UseUrlStateSyncProps {
   isLoaded: boolean;
@@ -28,9 +41,7 @@ export interface UseUrlStateSyncProps {
   setIsoFilter: (filter: string) => void;
   setDeveloperTypeFilter: (filter: string) => void;
   setFavoritesOnly: Dispatch<SetStateAction<boolean>>;
-  setCustomRecipeFilter: (
-    filter: 'all' | 'hide-custom' | 'only-custom' | 'official'
-  ) => void;
+  setCustomRecipeFilter: (filter: CustomRecipeFilter) => void;
   setSharedRecipeView: Dispatch<
     SetStateAction<DevelopmentCombinationView | null>
   >;
@@ -74,6 +85,10 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
     setIsFiltersSidebarCollapsed,
   } = props;
 
+  const urlCustomRecipeFilter = initialUrlState.customRecipeFilter
+    ? toCustomRecipeFilter(initialUrlState.customRecipeFilter)
+    : undefined;
+
   // The setters are all useState dispatchers and the lookups are useCallback-memoized,
   // so every value below is referentially stable. They can be listed as honest effect
   // deps directly — no latest-ref indirection needed.
@@ -103,18 +118,13 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
     if (initialUrlState.favoritesOnly) {
       setFavoritesOnly(true);
     }
-    if (initialUrlState.customRecipeFilter) {
-      setCustomRecipeFilter(
-        initialUrlState.customRecipeFilter as
-          | 'all'
-          | 'hide-custom'
-          | 'only-custom'
-          | 'official'
-      );
+    if (urlCustomRecipeFilter) {
+      setCustomRecipeFilter(urlCustomRecipeFilter);
     }
   }, [
     isLoaded,
     initialUrlState,
+    urlCustomRecipeFilter,
     setSelectedFilm,
     setSelectedDeveloper,
     setDilutionFilter,

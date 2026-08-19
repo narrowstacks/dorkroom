@@ -18,6 +18,7 @@ import {
 import { type FC, useEffect, useMemo, useRef, useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { cn } from '../../lib/cn';
+import { cssVars, hasGlobal } from '../../lib/dom';
 import { formatTemperatureWithUnit } from '../../lib/temperature';
 import type { ShareResult } from '../share-button';
 import { ShareButton } from '../share-button';
@@ -173,11 +174,14 @@ const formatDilution = (view: DevelopmentCombinationView): string => {
   return 'Stock';
 };
 
-/** Filter a recipe's tags into official badges and other display tags in one pass. */
-function partitionTags(tags: string[] | undefined): {
+/** A recipe's tags split into official badges and other display tags. */
+interface PartitionedTags {
   officialTags: string[];
   otherTags: string[];
-} {
+}
+
+/** Filter a recipe's tags into official badges and other display tags in one pass. */
+function partitionTags(tags: string[] | undefined): PartitionedTags {
   const officialTags: string[] = [];
   const otherTags: string[] = [];
   if (tags) {
@@ -324,24 +328,22 @@ function RecipeCard({
         'animate-slide-fade-bottom',
         !isSelected && 'hoverable-card'
       )}
-      style={
-        {
-          '--card-bg': isSelected
-            ? cardStyles.selected.backgroundColor
-            : cardStyles.default.backgroundColor,
-          '--card-bg-hover': cardStyles.hover.backgroundColor,
-          '--card-border': isSelected
-            ? cardStyles.selected.borderColor
-            : cardStyles.default.borderColor,
-          '--card-border-hover': cardStyles.hover.borderColor,
-          borderColor: isSelected
-            ? cardStyles.selected.borderColor
-            : cardStyles.default.borderColor,
-          backgroundColor: isSelected
-            ? cardStyles.selected.backgroundColor
-            : cardStyles.default.backgroundColor,
-        } as React.CSSProperties
-      }
+      style={cssVars({
+        '--card-bg': isSelected
+          ? cardStyles.selected.backgroundColor
+          : cardStyles.default.backgroundColor,
+        '--card-bg-hover': cardStyles.hover.backgroundColor,
+        '--card-border': isSelected
+          ? cardStyles.selected.borderColor
+          : cardStyles.default.borderColor,
+        '--card-border-hover': cardStyles.hover.borderColor,
+        borderColor: isSelected
+          ? cardStyles.selected.borderColor
+          : cardStyles.default.borderColor,
+        backgroundColor: isSelected
+          ? cardStyles.selected.backgroundColor
+          : cardStyles.default.backgroundColor,
+      })}
     >
       {/* Full-card overlay button provides the click/keyboard select target */}
       <button
@@ -502,16 +504,14 @@ function RecipeCard({
                 onClick={onDelete}
                 aria-label="Delete"
                 className="inline-flex items-center justify-center rounded-md p-1.5 text-xs transition focus-visible:outline-2 focus-visible:outline-offset-2 hoverable-delete-btn"
-                style={
-                  {
-                    '--del-bg': deleteButtonStyles.default.backgroundColor,
-                    '--del-bg-hover': deleteButtonStyles.hover.backgroundColor,
-                    '--del-color': deleteButtonStyles.default.color,
-                    '--del-color-hover': deleteButtonStyles.hover.color,
-                    backgroundColor: deleteButtonStyles.default.backgroundColor,
-                    color: deleteButtonStyles.default.color,
-                  } as React.CSSProperties
-                }
+                style={cssVars({
+                  '--del-bg': deleteButtonStyles.default.backgroundColor,
+                  '--del-bg-hover': deleteButtonStyles.hover.backgroundColor,
+                  '--del-color': deleteButtonStyles.default.color,
+                  '--del-color-hover': deleteButtonStyles.hover.color,
+                  backgroundColor: deleteButtonStyles.default.backgroundColor,
+                  color: deleteButtonStyles.default.color,
+                })}
                 title="Delete"
               >
                 <Trash2 className="size-3" />
@@ -580,7 +580,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
     observeElementRect: debouncedObserveElementRect,
     // Enable dynamic measurement for rows with varying heights (e.g., custom recipes with extra buttons)
     measureElement:
-      typeof window !== 'undefined' &&
+      hasGlobal('window') &&
       'ResizeObserver' in window &&
       navigator.userAgent.indexOf('Firefox') === -1
         ? (element) => element?.getBoundingClientRect().height

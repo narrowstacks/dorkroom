@@ -22,6 +22,8 @@ describe('useDevelopmentTable', () => {
     reciprocityFailure: null,
     discontinued: false,
     staticImageUrl: null,
+    aliases: [],
+    baseFilmSlug: null,
     dateAdded: '2023-01-01',
     createdAt: '2023-01-01',
     updatedAt: '2023-01-01',

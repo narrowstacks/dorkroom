@@ -5,28 +5,31 @@
 
 type Comparator<T> = (a: T, b: T) => number;
 
-const arr = Array.prototype as unknown as {
-  toSorted?: <T>(compare?: Comparator<T>) => T[];
-  toReversed?: <T>() => T[];
-  with?: <T>(index: number, value: T) => T[];
-};
+/** The change-by-copy methods as Hermes has them: possibly absent. */
+interface ChangeByCopyMethods {
+  toSorted?: <T>(this: T[], compare?: Comparator<T>) => T[];
+  toReversed?: <T>(this: T[]) => T[];
+  with?: <T>(this: T[], index: number, value: T) => T[];
+}
 
-if (typeof arr.toSorted !== 'function') {
-  arr.toSorted = function toSorted<T>(compare?: Comparator<T>): T[] {
+const arr: ChangeByCopyMethods = Array.prototype;
+
+if (arr.toSorted === undefined) {
+  arr.toSorted = function toSorted<T>(this: T[], compare?: Comparator<T>): T[] {
     // eslint-disable-next-line react-doctor/js-tosorted-immutable -- this IS the toSorted polyfill; can't call itself
-    return [...(this as T[])].sort(compare);
+    return [...this].sort(compare);
   };
 }
 
-if (typeof arr.toReversed !== 'function') {
-  arr.toReversed = function toReversed<T>(): T[] {
-    return [...(this as T[])].reverse();
+if (arr.toReversed === undefined) {
+  arr.toReversed = function toReversed<T>(this: T[]): T[] {
+    return [...this].reverse();
   };
 }
 
-if (typeof arr.with !== 'function') {
-  arr.with = function withItem<T>(index: number, value: T): T[] {
-    const copy = [...(this as T[])];
+if (arr.with === undefined) {
+  arr.with = function withItem<T>(this: T[], index: number, value: T): T[] {
+    const copy = [...this];
     copy[index < 0 ? copy.length + index : index] = value;
     return copy;
   };

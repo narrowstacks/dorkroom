@@ -1,6 +1,7 @@
 import { GripVertical, Maximize2, Minimize2, X } from 'lucide-react';
 import { type FC, type ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { cssVars, hasGlobal } from '../../lib/dom';
 
 /** Props for the reusable CloseButton component */
 interface CloseButtonProps {
@@ -17,11 +18,9 @@ export const DetailPanelCloseButton: FC<CloseButtonProps> = ({
     type="button"
     onClick={onClick}
     className="rounded-full p-2 text-muted transition focus-visible:outline-none focus-visible:ring-2 hoverable-icon-btn"
-    style={
-      {
-        '--tw-ring-color': 'var(--color-border-primary)',
-      } as React.CSSProperties
-    }
+    style={cssVars({
+      '--tw-ring-color': 'var(--color-border-primary)',
+    })}
     aria-label={ariaLabel}
   >
     <X className="size-4" />
@@ -46,11 +45,9 @@ export const DetailPanelExpandButton: FC<ExpandButtonProps> = ({
     type="button"
     onClick={onClick}
     className={`rounded-full p-2 text-muted transition focus-visible:outline-none focus-visible:ring-2 hoverable-icon-btn ${className}`}
-    style={
-      {
-        '--tw-ring-color': 'var(--color-border-primary)',
-      } as React.CSSProperties
-    }
+    style={cssVars({
+      '--tw-ring-color': 'var(--color-border-primary)',
+    })}
     aria-label={isExpanded ? 'Collapse to panel' : 'Expand to full screen'}
   >
     {isExpanded ? (
@@ -224,7 +221,7 @@ export const DetailPanel: FC<DetailPanelProps> = ({
     return () => dragCleanupRef.current?.();
   }, []);
 
-  if (typeof document === 'undefined' || !isOpen) {
+  if (!hasGlobal('document') || !isOpen) {
     return null;
   }
 

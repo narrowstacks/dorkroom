@@ -12,48 +12,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DevelopmentResultsCardsVirtualized } from '../../../components/development-recipes/results-cards-virtualized';
 import { TemperatureProvider } from '../../../contexts/temperature-context';
 
-// Mock ResizeObserver
-class MockResizeObserver {
-  callback: ResizeObserverCallback;
-  observedElements: Set<Element> = new Set();
-
-  constructor(callback: ResizeObserverCallback) {
-    this.callback = callback;
-  }
-
-  observe(target: Element) {
-    this.observedElements.add(target);
-  }
-
-  unobserve(target: Element) {
-    this.observedElements.delete(target);
-  }
-
-  disconnect() {
-    this.observedElements.clear();
-  }
-
-  // Helper to simulate resize
-  simulateResize(entries: ResizeObserverEntry[]) {
-    this.callback(entries, this);
-  }
-}
-
-// Mock useVirtualizer from @tanstack/react-virtual
-vi.mock('@tanstack/react-virtual', () => ({
-  useVirtualizer: vi.fn(({ count }) => ({
-    getVirtualItems: () =>
-      Array.from({ length: Math.min(count, 5) }, (_, i) => ({
-        index: i,
-        key: `row-${i}`,
-        start: i * 280,
-        end: (i + 1) * 280,
-        size: 280,
-      })),
-    getTotalSize: () => count * 280,
-  })),
-}));
-
 // Test data factories
 const mockFilm: Film = {
   id: 1,
@@ -69,6 +27,8 @@ const mockFilm: Film = {
   reciprocityFailure: null,
   discontinued: false,
   staticImageUrl: null,
+  aliases: [],
+  baseFilmSlug: null,
   dateAdded: '2023-01-01',
   createdAt: '2023-01-01',
   updatedAt: '2023-01-01',
@@ -170,19 +130,22 @@ const TableWrapper: FC<TableWrapperProps> = ({ rows, children }) => {
   return <TestWrapper>{children(table)}</TestWrapper>;
 };
 
+/**
+ * happy-dom performs no layout, so every box measures 0x0 and `useVirtualizer`
+ * would compute an empty window. Report a viewport tall enough to hold the rows.
+ */
+const VIEWPORT = { width: 1280, height: 2000 };
+
 describe('DevelopmentResultsCardsVirtualized', () => {
+  const measure = Element.prototype.getBoundingClientRect;
+
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Setup ResizeObserver mock. Assign the class directly (a class is a real
-    // constructor, unlike an arrow function) — react-virtual calls
-    // `new ResizeObserver(...)`, and MockResizeObserver's constructor records
-    // react-virtual calls `new ResizeObserver(...)`.
-    global.ResizeObserver =
-      MockResizeObserver as unknown as typeof ResizeObserver;
+    Element.prototype.getBoundingClientRect = () => DOMRect.fromRect(VIEWPORT);
   });
 
   afterEach(() => {
+    Element.prototype.getBoundingClientRect = measure;
     cleanup();
   });
 
@@ -239,8 +202,7 @@ describe('DevelopmentResultsCardsVirtualized', () => {
         </TableWrapper>
       );
 
-      const scrollContainer = container.firstChild as HTMLElement;
-      expect(scrollContainer.style.height).toBe('500px');
+      expect(container.firstElementChild).toHaveStyle({ height: '500px' });
     });
   });
 

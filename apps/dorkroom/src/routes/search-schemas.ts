@@ -26,9 +26,15 @@ export const developmentSearchSchema = z.object({
 
 export type DevelopmentSearchParams = z.infer<typeof developmentSearchSchema>;
 
+/** The film catalog's colour-process filter, as it travels in the URL. */
+export const filmColorFilterSchema = z
+  .enum(['bw', 'color', 'slide'])
+  .optional()
+  .catch(undefined);
+
 export const filmsSearchSchema = z.object({
   search: z.string().optional().catch(undefined),
-  color: z.enum(['bw', 'color', 'slide']).optional().catch(undefined),
+  color: filmColorFilterSchema,
   iso: z.string().optional().catch(undefined),
   brand: z.string().optional().catch(undefined),
   status: z.enum(['all', 'active', 'discontinued']).optional().catch(undefined),

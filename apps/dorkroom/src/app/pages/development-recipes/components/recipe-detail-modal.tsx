@@ -13,7 +13,7 @@ export interface RecipeDetailModalProps {
   isFavorite: (id: string) => boolean;
   toggleFavorite: (id: string) => void;
   onEditCustomRecipe: (view: DevelopmentCombinationView) => void;
-  onDeleteCustomRecipe: (view: DevelopmentCombinationView) => Promise<void>;
+  onDeleteCustomRecipe: (view: DevelopmentCombinationView) => void;
   onShareRecipe: (view: DevelopmentCombinationView) => Promise<void>;
   onCopyRecipe: (view: DevelopmentCombinationView) => Promise<void>;
   customRecipeSharingEnabled: boolean;

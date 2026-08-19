@@ -23,6 +23,7 @@
  */
 import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { type Browser, type ConsoleMessage, chromium } from 'playwright';
@@ -34,24 +35,35 @@ function dirname(metaUrl: string): string {
   return join(fileURLToPath(metaUrl), '..');
 }
 
-const MIME: Record<string, string> = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.mjs': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.svg': 'image/svg+xml',
-  '.woff2': 'font/woff2',
-  '.ico': 'image/x-icon',
-  '.png': 'image/png',
-  '.webp': 'image/webp',
-};
+const MIME = new Map<string, string>([
+  ['.html', 'text/html; charset=utf-8'],
+  ['.js', 'text/javascript; charset=utf-8'],
+  ['.mjs', 'text/javascript; charset=utf-8'],
+  ['.css', 'text/css; charset=utf-8'],
+  ['.json', 'application/json; charset=utf-8'],
+  ['.svg', 'image/svg+xml'],
+  ['.woff2', 'font/woff2'],
+  ['.ico', 'image/x-icon'],
+  ['.png', 'image/png'],
+  ['.webp', 'image/webp'],
+]);
 
 /**
  * Minimal static file server rooted at dist/, with SPA fallback to index.html.
  * `transformHtml`, if given, rewrites any HTML response before sending — used by
  * --serve-legacy to force the `nomodule` path so Chrome runs the ES5 bundle.
  */
+/**
+ * `Server.address()` returns a string for pipe/UDS listeners and an
+ * `AddressInfo` for TCP ones, discriminated only by JS representation — so the
+ * check belongs in a type guard, which is the parse step for this union.
+ */
+function isAddressInfo(
+  address: string | AddressInfo | null
+): address is AddressInfo {
+  return typeof address === 'object' && address !== null;
+}
+
 function startStaticServer(transformHtml?: (html: string) => string): Promise<{
   url: string;
   close: () => Promise<void>;
@@ -84,7 +96,8 @@ function startStaticServer(transformHtml?: (html: string) => string): Promise<{
       if (isHtml && transformHtml)
         body = Buffer.from(transformHtml(body.toString('utf8')));
       res.writeHead(200, {
-        'content-type': MIME[extname(filePath)] ?? 'application/octet-stream',
+        'content-type':
+          MIME.get(extname(filePath)) ?? 'application/octet-stream',
       });
       res.end(body);
     } catch (err) {
@@ -98,7 +111,7 @@ function startStaticServer(transformHtml?: (html: string) => string): Promise<{
   return new Promise((resolve) => {
     server.listen(0, '127.0.0.1', () => {
       const addr = server.address();
-      const port = typeof addr === 'object' && addr ? addr.port : 0;
+      const port = isAddressInfo(addr) ? addr.port : 0;
       resolve({
         url: `http://127.0.0.1:${port}/`,
         close: () => new Promise<void>((r) => server.close(() => r())),

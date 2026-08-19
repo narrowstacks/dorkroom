@@ -41,6 +41,21 @@ const SHUTTER_OPTIONS = STANDARD_SHUTTER_SPEEDS.map((s) => ({
   label: formatShutterSpeed(s.value),
 }));
 
+/** The photo a meter capture hands over as a route param, if there was one. */
+function meterCapturePhoto(
+  fileName: string | undefined
+): ShotPhoto | undefined {
+  return fileName
+    ? {
+        fileName,
+        width: 0,
+        height: 0,
+        capturedAt: new Date().toISOString(),
+        source: 'meter',
+      }
+    : undefined;
+}
+
 function parseNum(value: string | undefined): number | undefined {
   if (value === undefined) return undefined;
   const n = Number(value);
@@ -102,16 +117,7 @@ export function ShotFormScreen() {
     lensId: existing?.lensId ?? lastUsedLensId(roll?.shots ?? []),
     back: existing?.back ?? roll?.back,
     notes: existing?.notes ?? '',
-    photo: (existing?.photo ??
-      (params.photo
-        ? {
-            fileName: params.photo,
-            width: 0,
-            height: 0,
-            capturedAt: new Date().toISOString(),
-            source: 'meter' as const,
-          }
-        : undefined)) as ShotPhoto | undefined,
+    photo: existing?.photo ?? meterCapturePhoto(params.photo),
   });
 
   const savedRef = useRef(false);

@@ -437,17 +437,14 @@ function useReciprocityForm() {
       filmType: 'tri-x',
       meteredTime: '30s',
       customFactor: 1.3,
-    } as ReciprocityFormState,
+    } satisfies ReciprocityFormState,
     validators: {
       onChange: validateReciprocityForm,
     },
   });
 
   // Subscribe to form values
-  const formValues = useStore(
-    form.store,
-    (state) => state.values as ReciprocityFormState
-  );
+  const formValues = useStore(form.store, (state) => state.values);
 
   // Persist and hydrate form state to/from localStorage
   useLocalStorageFormPersistence({

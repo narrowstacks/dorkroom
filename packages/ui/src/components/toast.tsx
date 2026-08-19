@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 import { cn } from '../lib/cn';
+import { hasGlobal } from '../lib/dom';
 import { ToastContext, type ToastType } from './toast-context';
 
 export interface ToastProps {
@@ -128,7 +129,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
     (message: string, type: ToastProps['type'] = 'success') => {
       // Use crypto.randomUUID() if available, otherwise fall back to a timestamp-based ID
       const id =
-        typeof crypto !== 'undefined' && crypto.randomUUID
+        hasGlobal('crypto') && crypto.randomUUID
           ? crypto.randomUUID()
           : `toast-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 

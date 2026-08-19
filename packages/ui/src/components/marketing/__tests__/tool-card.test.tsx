@@ -1,15 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import { Calculator } from 'lucide-react';
 import { describe, expect, it } from 'vitest';
-import { type AccentColor, ToolCard } from '../tool-card';
+import { ToolCard, type ToolCardProps } from '../tool-card';
 
 describe('ToolCard', () => {
-  const defaultProps = {
+  const defaultProps: ToolCardProps = {
     title: 'Test Tool',
     description: 'A description of the tool',
     category: 'Category',
     icon: Calculator,
-    accent: 'blue' as AccentColor,
+    accent: 'blue',
     href: '/tool',
   };
 

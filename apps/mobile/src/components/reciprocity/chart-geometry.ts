@@ -75,8 +75,13 @@ export function buildCurve(
   return points;
 }
 
+export interface GridLines {
+  x: number[];
+  y: number[];
+}
+
 /** Pixel positions of dashed grid lines for both axes. */
-export function gridLines(l: ChartLayout): { x: number[]; y: number[] } {
+export function gridLines(l: ChartLayout): GridLines {
   const x: number[] = [];
   const xStep = l.maxMetered > 200 ? 60 : 30;
   for (let v = xStep; v < l.maxMetered; v += xStep) x.push(scaleX(v, l));
@@ -89,8 +94,13 @@ export function gridLines(l: ChartLayout): { x: number[]; y: number[] } {
   return { x, y };
 }
 
+export interface AxisTicks {
+  x: AxisTick[];
+  y: AxisTick[];
+}
+
 /** Tick values + pixel positions for axis labels. */
-export function axisTicks(l: ChartLayout): { x: AxisTick[]; y: AxisTick[] } {
+export function axisTicks(l: ChartLayout): AxisTicks {
   const x: AxisTick[] = [];
   for (let v = 0; v <= l.maxMetered; v += 60)
     x.push({ value: v, px: scaleX(v, l) });

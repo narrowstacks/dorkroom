@@ -1,19 +1,37 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  fireEvent,
+  render as renderBare,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  ThemeContext,
+  type ThemeContextValue,
+} from '../../contexts/theme-context';
 import type { Theme } from '../../lib/themes';
 import { ThemeToggle } from '../theme-toggle';
 
-// Mock the theme context
 const mockSetTheme = vi.fn();
-const mockTheme: Theme = 'dark';
 
-vi.mock('../../contexts/theme-context', () => ({
-  useTheme: () => ({
-    theme: mockTheme,
-    setTheme: mockSetTheme,
-  }),
-}));
+const themeContext: ThemeContextValue = {
+  theme: 'dark',
+  resolvedTheme: 'dark',
+  setTheme: mockSetTheme,
+  animationsEnabled: true,
+  setAnimationsEnabled: vi.fn(),
+};
+
+/** Renders inside the real ThemeContext. */
+function render(ui: ReactElement) {
+  return renderBare(ui, {
+    wrapper: ({ children }) => (
+      <ThemeContext value={themeContext}>{children}</ThemeContext>
+    ),
+  });
+}
 
 describe('ThemeToggle', () => {
   beforeEach(() => {
@@ -393,9 +411,7 @@ describe('ThemeToggle', () => {
     it('merges custom className with default classes', () => {
       const { container } = render(<ThemeToggle className="custom-class" />);
 
-      const element = container.firstChild as HTMLElement;
-      expect(element).toHaveClass('custom-class');
-      expect(element).toHaveClass('relative');
+      expect(container.firstChild).toHaveClass('custom-class', 'relative');
     });
   });
 

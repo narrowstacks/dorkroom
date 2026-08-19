@@ -6,7 +6,7 @@ import { LabeledTextField } from '@/components/labeled-text-field';
 import { useFormState } from '@/hooks/use-form-state';
 import { FORMAT_OPTIONS } from '@/lib/film-log-options';
 import { addCamera, deleteCamera, updateCamera } from '@/lib/film-log-storage';
-import type { Camera, CameraFormat } from '@/types/film-log';
+import type { Camera } from '@/types/film-log';
 
 interface CameraFormProps {
   visible: boolean;
@@ -18,7 +18,7 @@ interface CameraFormProps {
 export function CameraForm({ visible, camera, onClose }: CameraFormProps) {
   const [form, set] = useFormState({
     name: camera?.name ?? '',
-    format: (camera?.format ?? '35mm') as CameraFormat,
+    format: camera?.format ?? '35mm',
     backs: camera?.backs ?? [],
     backDraft: '',
     notes: camera?.notes ?? '',

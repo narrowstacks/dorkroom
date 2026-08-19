@@ -2,6 +2,7 @@ import type { Combination, Developer, Dilution, Film } from '@dorkroom/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { queryKeys } from '../../queries/query-keys';
+import type { CustomRecipeFilter } from '../../schemas/development-recipes.schema';
 import type { InitialUrlState } from '../../types/development-recipes-url';
 import { debugError, debugLog } from '../../utils/debug-logger';
 import {
@@ -14,11 +15,7 @@ import { useDevelopers } from '../api/use-developers';
 import { useFilms } from '../api/use-films';
 import { useDebounce } from '../use-debounce';
 
-export type CustomRecipeFilter =
-  | 'all'
-  | 'hide-custom'
-  | 'only-custom'
-  | 'official';
+export type { CustomRecipeFilter };
 
 export interface DevelopmentRecipesState {
   developerTypeFilter: string;
@@ -234,12 +231,10 @@ export const useDevelopmentRecipes = (
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const [selectedFilm, setSelectedFilmState] = useState<Film | null>(
-    (initialUrlState?.selectedFilm as Film | undefined) || null
+    initialUrlState?.selectedFilm ?? null
   );
   const [selectedDeveloper, setSelectedDeveloperState] =
-    useState<Developer | null>(
-      (initialUrlState?.selectedDeveloper as Developer | undefined) || null
-    );
+    useState<Developer | null>(initialUrlState?.selectedDeveloper ?? null);
 
   // ISO is a top-level filter and deliberately survives a film change, so this no
   // longer clears it. (setSelectedDeveloper still clears the dilution filter —

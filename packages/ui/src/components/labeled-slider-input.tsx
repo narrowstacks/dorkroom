@@ -50,6 +50,13 @@ const SLIDER_THUMB_RADIUS_PX = 8;
 // Stable default so the optional `labels` prop doesn't create a new array each render.
 const EMPTY_LABELS: SliderLabel[] = [];
 
+/** Whether a label carries its own slider position rather than just text. */
+function isPositionedLabel(
+  label: SliderLabel
+): label is { text: string; value: number } {
+  return label instanceof Object;
+}
+
 /**
  * A dual-input component combining a range slider with a number input field.
  * Provides both precise numeric input and intuitive slider-based value selection.
@@ -111,7 +118,7 @@ export function LabeledSliderInput({
 
   const handleSliderChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
-      const newValue = parseFloat((e.target as HTMLInputElement).value);
+      const newValue = parseFloat(e.target.value);
       // Update local value immediately so the slider thumb tracks the finger
       setLocalSliderValue(newValue);
 
@@ -132,7 +139,7 @@ export function LabeledSliderInput({
   }
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const raw = (e.target as HTMLInputElement).value;
+    const raw = e.target.value;
     setNumberDraft(raw);
     const parsed = parseFloat(raw);
     if (Number.isFinite(parsed)) {
@@ -218,36 +225,36 @@ export function LabeledSliderInput({
         />
 
         {labels.length > 0 &&
-          (typeof labels[0] === 'string' ? (
-            <div
-              className="flex justify-between text-xs"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              {(labels as string[]).map((optionLabel) => (
-                <span key={optionLabel}>{optionLabel}</span>
-              ))}
-            </div>
-          ) : (
+          (labels.every(isPositionedLabel) ? (
             <div
               className="relative h-4 text-xs"
               style={{ color: 'var(--color-text-muted)' }}
             >
-              {(labels as Array<{ text: string; value: number }>).map(
-                ({ text, value: labelValue }) => {
-                  const pct =
-                    max === min ? 0 : (labelValue - min) / (max - min);
-                  const offsetPx = (1 - 2 * pct) * SLIDER_THUMB_RADIUS_PX;
-                  return (
-                    <span
-                      key={text}
-                      className="absolute -translate-x-1/2"
-                      style={{ left: `calc(${pct * 100}% + ${offsetPx}px)` }}
-                    >
-                      {text}
-                    </span>
-                  );
-                }
-              )}
+              {labels.map(({ text, value: labelValue }) => {
+                const pct = max === min ? 0 : (labelValue - min) / (max - min);
+                const offsetPx = (1 - 2 * pct) * SLIDER_THUMB_RADIUS_PX;
+                return (
+                  <span
+                    key={text}
+                    className="absolute -translate-x-1/2"
+                    style={{ left: `calc(${pct * 100}% + ${offsetPx}px)` }}
+                  >
+                    {text}
+                  </span>
+                );
+              })}
+            </div>
+          ) : (
+            <div
+              className="flex justify-between text-xs"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              {labels.map((sliderLabel) => {
+                const text = isPositionedLabel(sliderLabel)
+                  ? sliderLabel.text
+                  : sliderLabel;
+                return <span key={text}>{text}</span>;
+              })}
             </div>
           ))}
       </div>

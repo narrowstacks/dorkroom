@@ -1,7 +1,10 @@
-import type { Combination } from '@dorkroom/api';
+import type { Combination, Developer, Film } from '@dorkroom/api';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useRecipeUrlState } from '../use-recipe-url-state';
+import {
+  type RecipeFilterState,
+  useRecipeUrlState,
+} from '../use-recipe-url-state';
 
 // Mock window.location and history
 const mockReplaceState = vi.fn();
@@ -24,7 +27,7 @@ Object.defineProperty(window, 'history', {
 });
 
 describe('useRecipeUrlState', () => {
-  const mockFilms = [
+  const mockFilms: Film[] = [
     {
       id: 1,
       uuid: 'f1',
@@ -46,7 +49,7 @@ describe('useRecipeUrlState', () => {
       updatedAt: '2023-01-01',
     },
   ];
-  const mockDevelopers = [
+  const mockDevelopers: Developer[] = [
     {
       id: 1,
       uuid: 'd1',
@@ -65,7 +68,13 @@ describe('useRecipeUrlState', () => {
       updatedAt: '2023-01-01',
     },
   ];
-  const mockCurrentState = {
+  /** Props for the hook's async film/developer data, which arrives after mount. */
+  interface RecipeDataProps {
+    films: Film[];
+    developers: Developer[];
+  }
+  const noRecipeData: RecipeDataProps = { films: [], developers: [] };
+  const mockCurrentState: RecipeFilterState = {
     selectedFilm: null,
     selectedDeveloper: null,
     dilutionFilter: '',
@@ -497,16 +506,30 @@ describe('useRecipeUrlState', () => {
 
     it('should handle shared recipe error state', async () => {
       // Map with a different recipe ID, so the requested one won't be found
-      const mockRecipesByUuid = new Map([
-        [
-          '123e4567-e89b-12d3-a456-426614174000',
-          {
-            id: 1,
-            filmId: 1,
-            developerId: 1,
-          } as unknown as Combination,
-        ],
-      ]);
+      const otherRecipe: Combination = {
+        id: 1,
+        uuid: '123e4567-e89b-12d3-a456-426614174000',
+        name: 'HP5 in DD-X',
+        filmStockId: 'f1',
+        filmSlug: 'hp5',
+        developerId: 'd1',
+        developerSlug: 'dd-x',
+        shootingIso: 400,
+        dilutionId: null,
+        customDilution: '1+4',
+        temperatureC: 20,
+        temperatureF: 68,
+        timeMinutes: 9,
+        agitationMethod: 'inversion',
+        agitationSchedule: null,
+        pushPull: null,
+        tags: null,
+        notes: null,
+        infoSource: null,
+        createdAt: '2023-01-01',
+        updatedAt: '2023-01-01',
+      };
+      const mockRecipesByUuid = new Map([[otherRecipe.uuid, otherRecipe]]);
       const recipeId = '550e8400-e29b-41d4-a716-446655440000';
       mockLocation.search = `?recipe=${recipeId}&source=share&film=hp5&developer=dd-x`;
 
@@ -550,25 +573,19 @@ describe('useRecipeUrlState', () => {
     it('should clear URL parameters when state is reset', () => {
       vi.useFakeTimers();
 
+      // Annotated, not asserted: renderHook infers its prop type from this first
+      // value, and an un-annotated `selectedFilm` would narrow to the film
+      // literal and reject the `null` the reset rerender passes below.
+      const initialState: RecipeFilterState = {
+        ...mockCurrentState,
+        selectedFilm: mockFilms[0],
+        isoFilter: '400',
+      };
+
       const { rerender } = renderHook(
         ({ currentState }) =>
           useRecipeUrlState(mockFilms, mockDevelopers, currentState),
-        {
-          initialProps: {
-            currentState: {
-              ...mockCurrentState,
-              selectedFilm: mockFilms[0],
-              isoFilter: '400',
-            } as {
-              selectedFilm: (typeof mockFilms)[0] | null;
-              selectedDeveloper: (typeof mockDevelopers)[0] | null;
-              dilutionFilter: string;
-              isoFilter: string;
-              favoritesOnly: boolean;
-              customRecipeFilter: string;
-            },
-          },
-        }
+        { initialProps: { currentState: initialState } }
       );
 
       // Reset state
@@ -767,12 +784,7 @@ describe('useRecipeUrlState', () => {
       const { rerender } = renderHook(
         ({ films, developers }) =>
           useRecipeUrlState(films, developers, mockCurrentState),
-        {
-          initialProps: {
-            films: [] as typeof mockFilms,
-            developers: [] as typeof mockDevelopers,
-          },
-        }
+        { initialProps: noRecipeData }
       );
 
       rerender({ films: mockFilms, developers: mockDevelopers });
@@ -799,12 +811,7 @@ describe('useRecipeUrlState', () => {
       const { rerender } = renderHook(
         ({ films, developers }) =>
           useRecipeUrlState(films, developers, mockCurrentState),
-        {
-          initialProps: {
-            films: [] as typeof mockFilms,
-            developers: [] as typeof mockDevelopers,
-          },
-        }
+        { initialProps: noRecipeData }
       );
 
       rerender({ films: mockFilms, developers: mockDevelopers });

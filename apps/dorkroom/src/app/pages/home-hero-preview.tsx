@@ -106,7 +106,6 @@ const bladeStyle = {
 const easeClass = 'transition-all duration-700 ease-in-out';
 
 function animationsDisabled(): boolean {
-  if (typeof document === 'undefined') return true;
   // Same contract the theme system writes for darkroom/high-contrast and the
   // user's animations toggle (utilities.css kills transitions for it too).
   if (
@@ -114,8 +113,10 @@ function animationsDisabled(): boolean {
   ) {
     return true;
   }
+  // The legacy bundle also runs on the Kindle's WebKit ~2009 engine, which
+  // predates matchMedia.
   return (
-    typeof window.matchMedia === 'function' &&
+    'matchMedia' in window &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
 }

@@ -1,20 +1,20 @@
 // Tool id <-> tab-route-name mapping, duplicated locally from
 // `app/(tabs)/_layout.tsx`'s `ROUTE_NAME` so this pure module doesn't import
 // from a route file. Keep both in sync when a new pinnable tool is added.
-const ROUTE_NAME_TO_TOOL_ID: Record<string, string> = {
-  index: 'border',
-  exposure: 'exposure',
-  reciprocity: 'reciprocity',
-  resize: 'resize',
-  meter: 'meter',
-  mat: 'mat',
-  lenses: 'lens',
-  'camera-exposure': 'camera-exposure',
-  settings: 'settings',
-};
+const ROUTE_NAME_TO_TOOL_ID = new Map([
+  ['index', 'border'],
+  ['exposure', 'exposure'],
+  ['reciprocity', 'reciprocity'],
+  ['resize', 'resize'],
+  ['meter', 'meter'],
+  ['mat', 'mat'],
+  ['lenses', 'lens'],
+  ['camera-exposure', 'camera-exposure'],
+  ['settings', 'settings'],
+]);
 
 /** Splits a leading path segment from the rest (query/fragment/sub-path). */
-function splitFirstSegment(path: string): { segment: string; rest: string } {
+function splitFirstSegment(path: string) {
   const queryOrHashIndex = path.search(/[?#]/);
   const pathOnly =
     queryOrHashIndex === -1 ? path : path.slice(0, queryOrHashIndex);
@@ -38,7 +38,7 @@ export function resolveToolPath(
 
   // "/" (root) maps to the border tool's tab route.
   const routeName = segment === '' ? 'index' : segment;
-  const toolId = ROUTE_NAME_TO_TOOL_ID[routeName];
+  const toolId = ROUTE_NAME_TO_TOOL_ID.get(routeName);
 
   // Not a recognized single-screen tool tab route (e.g. "/film-log",
   // "/more", "/development", unknown paths) — pass through unchanged.

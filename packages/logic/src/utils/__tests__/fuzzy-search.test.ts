@@ -34,6 +34,8 @@ describe('fuzzy-search', () => {
       reciprocityFailure: null,
       discontinued: false,
       staticImageUrl: null,
+      aliases: [],
+      baseFilmSlug: null,
       dateAdded: '2023-01-01',
       createdAt: '2023-01-01',
       updatedAt: '2023-01-01',
@@ -52,6 +54,8 @@ describe('fuzzy-search', () => {
       reciprocityFailure: null,
       discontinued: false,
       staticImageUrl: null,
+      aliases: [],
+      baseFilmSlug: null,
       dateAdded: '2023-01-01',
       createdAt: '2023-01-01',
       updatedAt: '2023-01-01',
@@ -70,6 +74,8 @@ describe('fuzzy-search', () => {
       reciprocityFailure: null,
       discontinued: false,
       staticImageUrl: null,
+      aliases: [],
+      baseFilmSlug: null,
       dateAdded: '2023-01-01',
       createdAt: '2023-01-01',
       updatedAt: '2023-01-01',
@@ -88,6 +94,8 @@ describe('fuzzy-search', () => {
       reciprocityFailure: null,
       discontinued: false,
       staticImageUrl: null,
+      aliases: [],
+      baseFilmSlug: null,
       dateAdded: '2023-01-01',
       createdAt: '2023-01-01',
       updatedAt: '2023-01-01',
@@ -106,6 +114,8 @@ describe('fuzzy-search', () => {
       reciprocityFailure: null,
       discontinued: false,
       staticImageUrl: null,
+      aliases: [],
+      baseFilmSlug: null,
       dateAdded: '2023-01-01',
       createdAt: '2023-01-01',
       updatedAt: '2023-01-01',
@@ -113,11 +123,11 @@ describe('fuzzy-search', () => {
   ];
 
   describe('createFilmSearcher', () => {
-    it('should create a valid Fuse instance', () => {
+    it('should create a searcher bound to the supplied films', () => {
       const searcher = createFilmSearcher(mockFilms);
 
-      expect(searcher).toBeDefined();
-      expect(typeof searcher.search).toBe('function');
+      const results = searcher.search('ilford');
+      expect(results.map((result) => result.item.slug)).toContain('hp5-plus');
     });
 
     it('should create searcher with empty film list', () => {
@@ -250,9 +260,8 @@ describe('fuzzy-search', () => {
         const results = searchFilms(mockFilms, 'tri-x');
 
         expect(results.length).toBeGreaterThan(0);
-        expect(results[0].score).toBeDefined();
-        expect(typeof results[0].score).toBe('number');
-        // Lower score = better match
+        // Fuse scores are normalized: 0 is an exact match, 1 is no match
+        expect(results[0].score).toBeGreaterThanOrEqual(0);
         expect(results[0].score).toBeLessThan(1);
       });
 
@@ -371,18 +380,16 @@ describe('fuzzy-search', () => {
       expect(highlights.length).toBeGreaterThan(0);
 
       highlights.forEach((highlight) => {
-        expect(highlight.key).toBeDefined();
-        expect(typeof highlight.key).toBe('string');
-        expect(highlight.value).toBeDefined();
-        expect(typeof highlight.value).toBe('string');
-        expect(Array.isArray(highlight.indices)).toBe(true);
-        // Each index should be a [start, end] tuple
-        highlight.indices.forEach((index) => {
-          expect(Array.isArray(index)).toBe(true);
-          expect(index).toHaveLength(2);
-          expect(typeof index[0]).toBe('number');
-          expect(typeof index[1]).toBe('number');
-          expect(index[0]).toBeLessThanOrEqual(index[1]);
+        // Highlights can only name an indexed search key
+        expect(['name', 'brand', 'colorType', 'aliases']).toContain(
+          highlight.key
+        );
+        expect(highlight.value.length).toBeGreaterThan(0);
+        // Each index is a [start, end] range inside the matched value
+        highlight.indices.forEach(([start, end]) => {
+          expect(start).toBeGreaterThanOrEqual(0);
+          expect(start).toBeLessThanOrEqual(end);
+          expect(end).toBeLessThan(highlight.value.length);
         });
       });
     });

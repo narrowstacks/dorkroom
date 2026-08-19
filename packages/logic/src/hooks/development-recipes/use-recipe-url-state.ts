@@ -7,12 +7,14 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
+import { customRecipeFilterSchema } from '../../schemas/development-recipes.schema';
 import type {
   InitialUrlState,
   RecipeUrlParams,
   UrlValidationConfig,
   UrlValidationResult,
 } from '../../types/development-recipes-url';
+import { isBrowser } from '../../utils/environment';
 import type { ImportedCustomRecipe } from './use-custom-recipe-sharing';
 import { useCustomRecipeSharing } from './use-custom-recipe-sharing';
 
@@ -36,7 +38,6 @@ const MANAGED_QUERY_KEYS: Array<keyof RecipeUrlParams> = [
 ];
 
 const VALID_DEVELOPER_TYPES = ['powder', 'concentrate'];
-const VALID_RECIPE_TYPES = ['all', 'hide-custom', 'only-custom', 'official'];
 
 /**
  * Convert managed URL search parameters into a recipe parameter object.
@@ -46,35 +47,38 @@ const parseSearchParams = (searchParams: URLSearchParams): RecipeUrlParams => {
 
   MANAGED_QUERY_KEYS.forEach((key) => {
     const value = searchParams.get(key);
-    if (value) {
-      if (key === 'source') {
+    if (!value) return;
+
+    switch (key) {
+      case 'source':
         if (value === 'share') {
           result.source = 'share';
         }
-      } else if (key === 'view') {
+        break;
+      case 'view':
         if (value === 'favorites' || value === 'custom') {
           result.view = value;
         }
-      } else if (key === 'developerType') {
+        break;
+      case 'developerType':
         if (VALID_DEVELOPER_TYPES.includes(value)) {
           result.developerType = value;
         }
-      } else if (key === 'recipeType') {
-        if (VALID_RECIPE_TYPES.includes(value)) {
-          result.recipeType = value;
+        break;
+      case 'recipeType': {
+        const recipeType = customRecipeFilterSchema.safeParse(value);
+        if (recipeType.success) {
+          result.recipeType = recipeType.data;
         }
-      } else if (key === 'favorites') {
+        break;
+      }
+      case 'favorites':
         if (value === 'true') {
           result.favorites = 'true';
         }
-      } else {
-        result[
-          key as Exclude<
-            keyof RecipeUrlParams,
-            'source' | 'view' | 'developerType' | 'recipeType' | 'favorites'
-          >
-        ] = value;
-      }
+        break;
+      default:
+        result[key] = value;
     }
   });
 
@@ -211,12 +215,13 @@ export const validateUrlParams = (
     }
   }
 
-  if (params.dilution) {
+  const { dilution } = params;
+  if (dilution) {
     const isValidDilution = VALIDATION_CONFIG.dilutionPatterns.some((pattern) =>
-      pattern.test(params.dilution as string)
+      pattern.test(dilution)
     );
     if (isValidDilution) {
-      sanitized.dilution = params.dilution;
+      sanitized.dilution = dilution;
     } else {
       errors.push('Invalid dilution format');
     }
@@ -231,8 +236,9 @@ export const validateUrlParams = (
   }
 
   if (params.recipeType) {
-    if (VALID_RECIPE_TYPES.includes(params.recipeType)) {
-      sanitized.recipeType = params.recipeType;
+    const recipeType = customRecipeFilterSchema.safeParse(params.recipeType);
+    if (recipeType.success) {
+      sanitized.recipeType = recipeType.data;
     } else {
       errors.push('Invalid recipe type');
     }
@@ -298,19 +304,22 @@ export interface UseRecipeUrlStateReturn {
  * Hook that keeps development recipe state synchronized with URL parameters.
  * Validates parameters, resolves shared recipes, and exposes helpers for updates.
  */
+/** The live filter selection `useRecipeUrlState` mirrors into the URL. */
+export interface RecipeFilterState {
+  selectedFilm: Film | null;
+  selectedDeveloper: Developer | null;
+  dilutionFilter: string;
+  isoFilter: string;
+  developerTypeFilter: string;
+  customRecipeFilter: string;
+  favoritesOnly: boolean;
+  selectedRecipeId?: string | null;
+}
+
 export const useRecipeUrlState = (
   films: Film[],
   developers: Developer[],
-  currentState: {
-    selectedFilm: Film | null;
-    selectedDeveloper: Developer | null;
-    dilutionFilter: string;
-    isoFilter: string;
-    developerTypeFilter: string;
-    customRecipeFilter: string;
-    favoritesOnly: boolean;
-    selectedRecipeId?: string | null;
-  },
+  currentState: RecipeFilterState,
   recipesByUuid?: Map<string, Combination>
 ): UseRecipeUrlStateReturn => {
   const params = useSyncExternalStore(
@@ -472,7 +481,7 @@ export const useRecipeUrlState = (
     updateTimeoutRef.current = setTimeout(() => {
       updateTimeoutRef.current = null;
 
-      if (!isInitializedRef.current || typeof window === 'undefined') {
+      if (!isInitializedRef.current || !isBrowser()) {
         return;
       }
 
@@ -487,9 +496,10 @@ export const useRecipeUrlState = (
         ...newParams,
       };
 
-      Object.entries(mergedParams).forEach(([key, value]) => {
+      MANAGED_QUERY_KEYS.forEach((key) => {
+        const value = mergedParams[key];
         if (value) {
-          searchParams.set(key, value as string);
+          searchParams.set(key, value);
         }
       });
 
@@ -624,11 +634,13 @@ export const useRecipeUrlState = (
     urlParams.developerType = currentState.developerTypeFilter || '';
 
     // Recipe type (only write non-default values)
+    const recipeTypeFilter = customRecipeFilterSchema.safeParse(
+      currentState.customRecipeFilter
+    );
     urlParams.recipeType =
-      currentState.customRecipeFilter &&
-      currentState.customRecipeFilter !== 'all'
-        ? currentState.customRecipeFilter
-        : '';
+      recipeTypeFilter.success && recipeTypeFilter.data !== 'all'
+        ? recipeTypeFilter.data
+        : undefined;
 
     // Favorites
     urlParams.favorites = currentState.favoritesOnly ? 'true' : '';

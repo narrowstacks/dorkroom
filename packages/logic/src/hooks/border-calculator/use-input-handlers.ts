@@ -8,6 +8,12 @@
 \* ------------------------------------------------------------------ */
 
 import { useCallback, useMemo } from 'react';
+import {
+  aspectRatioOptions,
+  aspectRatioValueSchema,
+  paperSizeOptions,
+  paperSizeValueSchema,
+} from '../../schemas/border-calculator.schema';
 import type {
   AspectRatioValue,
   BorderCalculatorAction,
@@ -17,63 +23,36 @@ import type {
 import { debugError } from '../../utils/debug-logger';
 import { debounce, tryNumber } from '../../utils/input-validation';
 
-// Validation sets for discriminated union types
-const VALID_ASPECT_RATIOS = new Set<AspectRatioValue>([
-  'custom',
-  'even-borders',
-  '3:2',
-  '65:24',
-  '4:3',
-  '1:1',
-  '7:6',
-  '5:4',
-  '7:5',
-  '16:9',
-  '1.37:1',
-  '1.85:1',
-  '2:1',
-  '2.39:1',
-  '2.76:1',
-]);
-
-const VALID_PAPER_SIZES = new Set<PaperSizeValue>([
-  'custom',
-  '5x7',
-  '3.875x5.875',
-  '8x10',
-  '11x14',
-  '16x20',
-  '20x24',
-]);
-
 /**
- * Validates and safely casts a value to AspectRatioValue
+ * Validates a string against the AspectRatioValue contract.
  * @returns The valid AspectRatioValue or null if invalid
  */
 function validateAspectRatio(value: string): AspectRatioValue | null {
-  if (VALID_ASPECT_RATIOS.has(value as AspectRatioValue)) {
-    return value as AspectRatioValue;
+  const parsed = aspectRatioValueSchema.safeParse(value);
+  if (parsed.success) {
+    return parsed.data;
   }
   debugError(
-    `Invalid aspect ratio value: "${value}". Expected one of: ${Array.from(
-      VALID_ASPECT_RATIOS
-    ).join(', ')}`
+    `Invalid aspect ratio value: "${value}". Expected one of: ${aspectRatioOptions.join(
+      ', '
+    )}`
   );
   return null;
 }
 
 /**
- * Validates and safely casts a value to PaperSizeValue
+ * Validates a string against the PaperSizeValue contract.
  * @returns The valid PaperSizeValue or null if invalid
  */
 function validatePaperSize(value: string): PaperSizeValue | null {
-  if (VALID_PAPER_SIZES.has(value as PaperSizeValue)) {
-    return value as PaperSizeValue;
+  const parsed = paperSizeValueSchema.safeParse(value);
+  if (parsed.success) {
+    return parsed.data;
   }
   debugError(
-    `Invalid paper size value: "${value}". Expected one of: ${Array.from(
-      VALID_PAPER_SIZES
-    ).join(', ')}`
+    `Invalid paper size value: "${value}". Expected one of: ${paperSizeOptions.join(
+      ', '
+    )}`
   );
   return null;
 }
@@ -140,7 +119,7 @@ export const useInputHandlers = (
   const setSliderField = useCallback(
     (key: keyof BorderCalculatorState, v: string | number) => {
       // Convert to number directly since sliders always provide valid numeric values
-      const numericValue = typeof v === 'number' ? v : parseFloat(v);
+      const numericValue = parseFloat(String(v));
 
       // Only update if the value actually changed to prevent unnecessary re-renders
       if (state[key] !== numericValue) {
@@ -203,7 +182,7 @@ export const useInputHandlers = (
   // Custom dimension setters
   const setCustomAspectWidth = useCallback(
     (v: string | number) => {
-      const stringValue = typeof v === 'string' ? v : String(v);
+      const stringValue = String(v);
       setCustomDimensionField(
         'customAspectWidth',
         'lastValidCustomAspectWidth',
@@ -215,7 +194,7 @@ export const useInputHandlers = (
 
   const setCustomAspectHeight = useCallback(
     (v: string | number) => {
-      const stringValue = typeof v === 'string' ? v : String(v);
+      const stringValue = String(v);
       setCustomDimensionField(
         'customAspectHeight',
         'lastValidCustomAspectHeight',
@@ -227,7 +206,7 @@ export const useInputHandlers = (
 
   const setCustomPaperWidth = useCallback(
     (v: string | number) => {
-      const stringValue = typeof v === 'string' ? v : String(v);
+      const stringValue = String(v);
       setCustomDimensionField(
         'customPaperWidth',
         'lastValidCustomPaperWidth',
@@ -239,7 +218,7 @@ export const useInputHandlers = (
 
   const setCustomPaperHeight = useCallback(
     (v: string | number) => {
-      const stringValue = typeof v === 'string' ? v : String(v);
+      const stringValue = String(v);
       setCustomDimensionField(
         'customPaperHeight',
         'lastValidCustomPaperHeight',
@@ -252,7 +231,7 @@ export const useInputHandlers = (
   // Numeric field setters (for text inputs)
   const setMinBorder = useCallback(
     (v: string | number) => {
-      const stringValue = typeof v === 'string' ? v : String(v);
+      const stringValue = String(v);
       setNumericField('minBorder', stringValue);
     },
     [setNumericField]
@@ -260,7 +239,7 @@ export const useInputHandlers = (
 
   const setHorizontalOffset = useCallback(
     (v: string | number) => {
-      const stringValue = typeof v === 'string' ? v : String(v);
+      const stringValue = String(v);
       setNumericField('horizontalOffset', stringValue);
     },
     [setNumericField]
@@ -268,7 +247,7 @@ export const useInputHandlers = (
 
   const setVerticalOffset = useCallback(
     (v: string | number) => {
-      const stringValue = typeof v === 'string' ? v : String(v);
+      const stringValue = String(v);
       setNumericField('verticalOffset', stringValue);
     },
     [setNumericField]

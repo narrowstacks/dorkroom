@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { type AnyMediaQueryList, hasGlobal, matchMediaQuery } from '../lib/dom';
 
 /** Responsive tier corresponding to the 4-tier breakpoint system */
 export type ResponsiveTier = 'phone' | 'tablet' | 'desktop' | 'wide';
@@ -41,50 +42,50 @@ export interface ResponsiveTierResult {
  */
 export function useResponsiveTier(): ResponsiveTierResult {
   const [tier, setTier] = useState<ResponsiveTier>(() => {
-    if (typeof window === 'undefined') return 'desktop';
+    if (!hasGlobal('window')) return 'desktop';
     return getTier(window.innerWidth);
   });
 
   // Both subscribe paths below return a cleanup (removeEventListener / removeListener);
-  // the rule is thrown by the `typeof window` guard, whose early return subscribes to
+  // the rule is thrown by the browser-environment guard, whose early return subscribes to
   // nothing. Suppressed as a false positive rather than "fixed".
   // eslint-disable-next-line react-doctor/effect-needs-cleanup -- see above
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!hasGlobal('window')) return;
 
-    const smQuery = window.matchMedia(`(min-width: ${BREAKPOINTS.sm}px)`);
-    const mdQuery = window.matchMedia(`(min-width: ${BREAKPOINTS.md}px)`);
-    const xlQuery = window.matchMedia(`(min-width: ${BREAKPOINTS.xl}px)`);
+    const smQuery = matchMediaQuery(`(min-width: ${BREAKPOINTS.sm}px)`);
+    const mdQuery = matchMediaQuery(`(min-width: ${BREAKPOINTS.md}px)`);
+    const xlQuery = matchMediaQuery(`(min-width: ${BREAKPOINTS.xl}px)`);
 
     const update = () => setTier(getTier(window.innerWidth));
 
-    const queries = [smQuery, mdQuery, xlQuery];
+    const queries: AnyMediaQueryList[] = [smQuery, mdQuery, xlQuery];
 
-    if (typeof smQuery.addEventListener === 'function') {
+    // Safari <14 and the legacy bundle's WebKit only have `addListener`.
+    if (smQuery.addEventListener === undefined) {
       for (const q of queries) {
-        q.addEventListener('change', update);
+        if (q.addEventListener === undefined) q.addListener(update);
       }
 
-      // Initial sync after listeners are attached
       update();
 
       return () => {
         for (const q of queries) {
-          q.removeEventListener('change', update);
+          if (q.addEventListener === undefined) q.removeListener(update);
         }
       };
     }
 
-    // Fallback for older browsers (Safari < 14)
     for (const q of queries) {
-      q.addListener(update);
+      q.addEventListener?.('change', update);
     }
 
+    // Initial sync after listeners are attached
     update();
 
     return () => {
       for (const q of queries) {
-        q.removeListener(update);
+        q.removeEventListener?.('change', update);
       }
     };
   }, []);

@@ -79,19 +79,19 @@ export function formatRecipeTemp(
 
 /** Brand accent hexes for official-source tags — mirrors the web dark
  * theme (apps/dorkroom/src/styles/theme.css [data-theme="dark"]). */
-export const OFFICIAL_TAG_COLORS: Record<string, string> = {
-  'official-ilford': '#6ef3a4',
-  'official-kodak': '#e5ff7d',
-  'official-fuji': '#7dd6ff',
-  'official-cinestill': '#f87171',
-  'official-rollei': '#c4b5fd',
-  'official-lomography': '#f9a8d4',
-  'official-jch': '#5eead4',
-};
+export const OFFICIAL_TAG_COLORS = new Map([
+  ['official-ilford', '#6ef3a4'],
+  ['official-kodak', '#e5ff7d'],
+  ['official-fuji', '#7dd6ff'],
+  ['official-cinestill', '#f87171'],
+  ['official-rollei', '#c4b5fd'],
+  ['official-lomography', '#f9a8d4'],
+  ['official-jch', '#5eead4'],
+]);
 export const DEFAULT_TAG_COLOR = '#a1a1aa';
 
 export function officialTagColor(tag: string): string {
-  return OFFICIAL_TAG_COLORS[tag.toLowerCase()] ?? DEFAULT_TAG_COLOR;
+  return OFFICIAL_TAG_COLORS.get(tag.toLowerCase()) ?? DEFAULT_TAG_COLOR;
 }
 
 /** "official-cinestill" -> "Official Cinestill Recipe" (web parity);

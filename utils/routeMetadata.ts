@@ -1,7 +1,7 @@
 export const SITE_NAME = 'Dorkroom';
 export const BASE_URL = 'https://dorkroom.art';
 
-export const ROUTE_TITLES: Record<string, string> = {
+export const ROUTE_TITLES = {
   '/': 'Home',
   '/border': 'Border Calculator',
   '/resize': 'Print Resize Calculator',
@@ -14,9 +14,12 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/films': 'Film Database',
   '/docs': 'Documentation',
   '/settings': 'Settings',
-};
+} satisfies Record<string, string>;
 
-export const ROUTE_DESCRIPTIONS: Record<string, string> = {
+/** A route with static title/description metadata. */
+type StaticRoute = keyof typeof ROUTE_TITLES;
+
+export const ROUTE_DESCRIPTIONS = {
   '/': 'Film photography calculators and resources for analog photographers. Development recipes, printing calculators, and exposure tools.',
   '/border':
     'Figure out where to set your easel blades for even borders. Punch in paper size and negative format, get blade positions.',
@@ -38,7 +41,20 @@ export const ROUTE_DESCRIPTIONS: Record<string, string> = {
     'Browse and search the film stock database. Filter by brand, ISO, and color type.',
   '/docs': 'How-to guides and reference material for analog photography.',
   '/settings': 'Set your preferred units, defaults, and display options.',
-};
+} satisfies Record<StaticRoute, string>;
+
+/**
+ * Own-key membership that narrows. `in` also sees `Object.prototype`, so a
+ * `?color=constructor` style param would otherwise satisfy a filter lookup.
+ * Spelled without `Object.hasOwn` because `api/tsconfig.json` targets es2020.
+ */
+function hasOwn<T extends object>(target: T, key: PropertyKey): key is keyof T {
+  return Object.prototype.hasOwnProperty.call(target, key);
+}
+
+function isStaticRoute(pathname: string): pathname is StaticRoute {
+  return hasOwn(ROUTE_TITLES, pathname);
+}
 
 const DEFAULT_TITLE = 'Dorkroom';
 const DEFAULT_DESCRIPTION =
@@ -63,16 +79,27 @@ export interface MetadataQuery {
   preset?: string;
 }
 
-export const COLOR_LABELS: Record<string, string> = {
+export const COLOR_LABELS = {
   bw: 'Black & White',
   color: 'Color Negative',
   slide: 'Slide',
-};
+} satisfies Record<string, string>;
 
-export const STATUS_LABELS: Record<
-  string,
-  { title: string; subtitle: string; standalone: string }
-> = {
+/** A `color` filter value the film database recognises. */
+type ColorFilter = keyof typeof COLOR_LABELS;
+
+function isColorFilter(value: string): value is ColorFilter {
+  return hasOwn(COLOR_LABELS, value);
+}
+
+/** Card copy for a film production-status filter. */
+export interface StatusLabels {
+  title: string;
+  subtitle: string;
+  standalone: string;
+}
+
+export const STATUS_LABELS = {
   active: {
     title: 'In Production',
     subtitle: 'Currently in production',
@@ -83,7 +110,14 @@ export const STATUS_LABELS: Record<
     subtitle: 'No longer manufactured',
     standalone: 'Discontinued Film Stocks',
   },
-};
+} satisfies Record<string, StatusLabels>;
+
+/** A `status` filter value with card copy — `all` deliberately has none. */
+type StatusFilter = keyof typeof STATUS_LABELS;
+
+function isStatusFilter(value: string): value is StatusFilter {
+  return hasOwn(STATUS_LABELS, value);
+}
 
 export interface FilmFilterParts {
   title: string;
@@ -101,15 +135,18 @@ export function buildFilmFilterParts(
   query: MetadataQuery
 ): FilmFilterParts | null {
   const { color, iso, brand, status } = query;
-  const hasColor = color != null && color in COLOR_LABELS;
+  const colorLabel =
+    color != null && isColorFilter(color) ? COLOR_LABELS[color] : null;
+  const statusLabel =
+    status != null && status !== 'all' && isStatusFilter(status)
+      ? STATUS_LABELS[status]
+      : null;
   const hasIso = iso != null && iso.length > 0;
   const hasBrand = brand != null && brand.length > 0;
-  const hasStatus =
-    status != null && status in STATUS_LABELS && status !== 'all';
 
-  if (!hasColor && !hasIso && !hasBrand && !hasStatus) return null;
-
-  const statusOnly = hasStatus && !hasColor && !hasIso && !hasBrand;
+  if (colorLabel === null && !hasIso && !hasBrand && statusLabel === null) {
+    return null;
+  }
 
   // Status-only: use standalone title, no subtitle
   // Combined: [Color] [Brand] ISO [N] Films + status subtitle
@@ -117,48 +154,48 @@ export function buildFilmFilterParts(
   let titleLines: string[];
   let subtitle: string | undefined;
 
-  if (statusOnly) {
-    title = STATUS_LABELS[status]!.standalone;
+  if (statusLabel !== null && colorLabel === null && !hasIso && !hasBrand) {
+    title = statusLabel.standalone;
     titleLines = [title];
     subtitle = undefined;
   } else {
     const titleParts: string[] = [];
-    if (hasColor) titleParts.push(COLOR_LABELS[color]!);
+    if (colorLabel !== null) titleParts.push(colorLabel);
     if (hasBrand) titleParts.push(brand);
     if (hasIso) titleParts.push(`ISO ${iso}`);
     titleParts.push('Films');
     title = titleParts.join(' ');
 
     // Split color label onto its own line when brand/ISO follows
-    if (hasColor && (hasBrand || hasIso)) {
+    if (colorLabel !== null && (hasBrand || hasIso)) {
       const rest = [
         ...(hasBrand ? [brand] : []),
         ...(hasIso ? [`ISO ${iso}`] : []),
         'Films',
       ];
-      titleLines = [COLOR_LABELS[color]!, rest.join(' ')];
+      titleLines = [colorLabel, rest.join(' ')];
     } else {
       titleLines = [title];
     }
 
-    subtitle = hasStatus ? STATUS_LABELS[status]!.subtitle : undefined;
+    subtitle = statusLabel?.subtitle;
   }
 
   // Pills
   const pills: string[] = [];
-  if (hasColor) pills.push(COLOR_LABELS[color]!);
+  if (colorLabel !== null) pills.push(colorLabel);
   if (hasBrand) pills.push(brand);
   if (hasIso) pills.push(`ISO ${iso}`);
-  if (hasStatus) pills.push(STATUS_LABELS[status]!.title);
+  if (statusLabel !== null) pills.push(statusLabel.title);
 
   // Description
   const descParts: string[] = ['Browse'];
-  if (hasColor) descParts.push(COLOR_LABELS[color]!.toLowerCase());
+  if (colorLabel !== null) descParts.push(colorLabel.toLowerCase());
   if (hasBrand) descParts.push(brand);
   if (hasIso) descParts.push(`ISO ${iso}`);
   descParts.push('film stocks');
-  if (hasStatus)
-    descParts.push(`— ${STATUS_LABELS[status]!.subtitle.toLowerCase()}`);
+  if (statusLabel !== null)
+    descParts.push(`— ${statusLabel.subtitle.toLowerCase()}`);
   descParts.push('in the Dorkroom film database.');
   const description = descParts.join(' ');
 
@@ -388,7 +425,7 @@ export function getRouteMetadata(
 ): RouteMetadata {
   const normalized = normalizePath(pathname);
   const isHome = normalized === '/';
-  const isKnownRoute = normalized in ROUTE_TITLES;
+  const isKnownRoute = isStaticRoute(normalized);
 
   // Border preset card (e.g. /border?preset=encoded)
   if (normalized === '/border' && query?.preset) {
@@ -460,8 +497,10 @@ export function getRouteMetadata(
   }
 
   // Static route metadata
-  const baseTitle = ROUTE_TITLES[normalized] ?? DEFAULT_TITLE;
-  const description = ROUTE_DESCRIPTIONS[normalized] ?? DEFAULT_DESCRIPTION;
+  const baseTitle = isKnownRoute ? ROUTE_TITLES[normalized] : DEFAULT_TITLE;
+  const description = isKnownRoute
+    ? ROUTE_DESCRIPTIONS[normalized]
+    : DEFAULT_DESCRIPTION;
   const fullTitle = isHome
     ? `${SITE_NAME} - Photography Calculators and Resources`
     : isKnownRoute

@@ -9,6 +9,14 @@ import {
   MAX_ENCODED_LENGTH,
 } from '../recipe-sharing';
 
+/** Encode a payload the way a shared link does: base64, then URL-safe. */
+const toUrlSafeBase64 = (payload: string): string =>
+  Buffer.from(payload, 'utf8')
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
 describe('recipe-sharing', () => {
   // Suppress expected console.error/warn from debugError/debugWarn in error-path tests
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
@@ -121,16 +129,16 @@ describe('recipe-sharing', () => {
     });
 
     it('returns empty string on encoding failure', () => {
-      // Mock JSON.stringify to throw an error
-      const originalStringify = JSON.stringify;
-      JSON.stringify = vi.fn(() => {
-        throw new Error('Stringify error');
-      }) as unknown as typeof JSON.stringify;
+      const stringifySpy = vi
+        .spyOn(JSON, 'stringify')
+        .mockImplementation(() => {
+          throw new Error('Stringify error');
+        });
 
       const encoded = encodeCustomRecipe(mockCustomRecipe);
       expect(encoded).toBe('');
 
-      JSON.stringify = originalStringify;
+      stringifySpy.mockRestore();
     });
   });
 
@@ -198,13 +206,7 @@ describe('recipe-sharing', () => {
         version: 1,
       };
 
-      // Manually encode the invalid recipe
-      const jsonString = JSON.stringify(invalidRecipe);
-      const base64 = Buffer.from(jsonString, 'utf8')
-        .toString('base64')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '');
+      const base64 = toUrlSafeBase64(JSON.stringify(invalidRecipe));
 
       const decoded = decodeCustomRecipe(base64);
       expect(decoded).toBeNull();
@@ -226,12 +228,7 @@ describe('recipe-sharing', () => {
         version: 999,
       };
 
-      const jsonString = JSON.stringify(futureRecipe);
-      const base64 = Buffer.from(jsonString, 'utf8')
-        .toString('base64')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '');
+      const base64 = toUrlSafeBase64(JSON.stringify(futureRecipe));
 
       const decoded = decodeCustomRecipe(base64);
 
@@ -261,12 +258,7 @@ describe('recipe-sharing', () => {
         version: 1,
       };
 
-      const jsonString = JSON.stringify(invalidFilmRecipe);
-      const base64 = Buffer.from(jsonString, 'utf8')
-        .toString('base64')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '');
+      const base64 = toUrlSafeBase64(JSON.stringify(invalidFilmRecipe));
 
       const decoded = decodeCustomRecipe(base64);
       expect(decoded).toBeNull();
@@ -292,12 +284,7 @@ describe('recipe-sharing', () => {
         version: 1,
       };
 
-      const jsonString = JSON.stringify(invalidDeveloperRecipe);
-      const base64 = Buffer.from(jsonString, 'utf8')
-        .toString('base64')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '');
+      const base64 = toUrlSafeBase64(JSON.stringify(invalidDeveloperRecipe));
 
       const decoded = decodeCustomRecipe(base64);
       expect(decoded).toBeNull();
@@ -470,21 +457,17 @@ describe('recipe-sharing', () => {
     });
 
     it('returns false for null', () => {
-      expect(isValidCustomRecipeEncoding(null as unknown as string)).toBe(
-        false
-      );
+      expect(isValidCustomRecipeEncoding(null)).toBe(false);
     });
 
     it('returns false for undefined', () => {
-      expect(isValidCustomRecipeEncoding(undefined as unknown as string)).toBe(
-        false
-      );
+      expect(isValidCustomRecipeEncoding(undefined)).toBe(false);
     });
 
-    it('returns false for non-string values', () => {
-      expect(isValidCustomRecipeEncoding(123 as unknown as string)).toBe(false);
-      expect(isValidCustomRecipeEncoding({} as unknown as string)).toBe(false);
-      expect(isValidCustomRecipeEncoding([] as unknown as string)).toBe(false);
+    it('returns false for base64 that decodes to non-recipe JSON', () => {
+      expect(isValidCustomRecipeEncoding(toUrlSafeBase64('123'))).toBe(false);
+      expect(isValidCustomRecipeEncoding(toUrlSafeBase64('{}'))).toBe(false);
+      expect(isValidCustomRecipeEncoding(toUrlSafeBase64('[]'))).toBe(false);
     });
 
     it('returns false for string with spaces', () => {
@@ -492,12 +475,7 @@ describe('recipe-sharing', () => {
     });
 
     it('returns false for valid base64 but invalid recipe data', () => {
-      // Valid base64 but invalid JSON
-      const invalidJson = Buffer.from('not json', 'utf8')
-        .toString('base64')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '');
+      const invalidJson = toUrlSafeBase64('not json');
       expect(isValidCustomRecipeEncoding(invalidJson)).toBe(false);
     });
   });

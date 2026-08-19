@@ -1,32 +1,16 @@
 // src/lib/tab-bar-settings.test.ts
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-const store = new Map<string, string>();
-vi.mock('react-native-mmkv', () => ({
-  createMMKV: () => ({
-    getString(k: string) {
-      return store.get(k);
-    },
-    set(k: string, v: string) {
-      store.set(k, v);
-    },
-    remove(k: string) {
-      store.delete(k);
-    },
-  }),
-  useMMKVString: (key: string) => [store.get(key), vi.fn()],
-}));
-
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
   getPinnedIds,
   MAX_PINNED,
   normalizePinnedIds,
   setPinnedIds,
+  storage,
 } from './tab-bar-settings';
 import { DEFAULT_PINNED_IDS } from './tools';
 
 describe('tab-bar-settings', () => {
-  beforeEach(() => store.clear());
+  beforeEach(() => storage.clearAll());
 
   it('returns the defaults when unset', () => {
     expect(getPinnedIds()).toEqual(DEFAULT_PINNED_IDS.slice(0, MAX_PINNED));

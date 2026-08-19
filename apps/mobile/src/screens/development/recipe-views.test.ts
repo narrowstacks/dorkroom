@@ -1,5 +1,5 @@
-import type { Combination, Developer, Film } from '@dorkroom/api';
 import { describe, expect, it } from 'vitest';
+import { combo, developer, film } from '@/test/fixtures';
 import {
   buildRecipeViews,
   developerPickerOptions,
@@ -7,75 +7,6 @@ import {
   filmPickerOptions,
   filterRecipeViews,
 } from './recipe-views';
-
-const film = (over: Partial<Film>): Film =>
-  ({
-    id: 1,
-    uuid: 'f1',
-    slug: 'hp5',
-    brand: 'Ilford',
-    name: 'HP5 Plus',
-    colorType: 'bw',
-    isoSpeed: 400,
-    grainStructure: null,
-    description: '',
-    manufacturerNotes: null,
-    reciprocityFailure: null,
-    discontinued: false,
-    staticImageUrl: null,
-    aliases: [],
-    baseFilmSlug: null,
-    dateAdded: '',
-    createdAt: '',
-    updatedAt: '',
-    ...over,
-  }) as Film;
-
-const developer = (over: Partial<Developer>): Developer =>
-  ({
-    id: 1,
-    uuid: 'd1',
-    slug: 'd76',
-    name: 'D-76',
-    manufacturer: 'Kodak',
-    type: 'Powder',
-    description: '',
-    filmOrPaper: true,
-    dilutions: [],
-    mixingInstructions: null,
-    storageRequirements: null,
-    safetyNotes: null,
-    notes: null,
-    createdAt: '',
-    updatedAt: '',
-    ...over,
-  }) as Developer;
-
-const combo = (over: Partial<Combination>): Combination =>
-  ({
-    id: 1,
-    uuid: 'c1',
-    name: '',
-    filmStockId: 'f1',
-    filmSlug: 'hp5',
-    developerId: 'd1',
-    developerSlug: 'd76',
-    shootingIso: 400,
-    dilutionId: null,
-    customDilution: '1+1',
-    temperatureC: 20,
-    temperatureF: 68,
-    timeMinutes: 8.5,
-    agitationMethod: '',
-    agitationSchedule: null,
-    pushPull: 0,
-    tags: ['pictorial'],
-    notes: null,
-    infoSource: null,
-    createdAt: '',
-    updatedAt: '',
-    ...over,
-  }) as Combination;
 
 const films = [
   film({}),

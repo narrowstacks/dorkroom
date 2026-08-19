@@ -5,6 +5,9 @@ import { Skeleton } from '../ui/skeleton';
 
 export type StatCardColorKey = 'emerald' | 'rose' | 'indigo';
 
+/** Router search params forwarded to `to`, one query value per key. */
+export type StatCardSearch = Record<string, string | number | boolean>;
+
 export interface StatCardProps extends ComponentProps<'a'> {
   label: string;
   value: string | number;
@@ -13,7 +16,7 @@ export interface StatCardProps extends ComponentProps<'a'> {
   variant?: 'horizontal' | 'vertical';
   as?: ElementType;
   to?: string;
-  search?: Record<string, unknown>;
+  search?: StatCardSearch;
   loading?: boolean;
 }
 
@@ -23,11 +26,11 @@ export interface StatCardProps extends ComponentProps<'a'> {
  * by interpolation. The gradient overlay uses an inline `--accent-*-gradient`
  * custom property instead.
  */
-const HOVER_BORDER_CLASSES: Record<StatCardColorKey, string> = {
+const HOVER_BORDER_CLASSES = {
   emerald: 'group-hover:border-[color:var(--accent-emerald-border)]',
   rose: 'group-hover:border-[color:var(--accent-rose-border)]',
   indigo: 'group-hover:border-[color:var(--accent-indigo-border)]',
-};
+} satisfies Record<StatCardColorKey, string>;
 
 export function StatCard({
   label,

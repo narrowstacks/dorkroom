@@ -27,10 +27,6 @@ function RootComponent() {
 
   // Update document title based on route
   useEffect(() => {
-    if (typeof document === 'undefined') {
-      return;
-    }
-
     const normalisedPath = pathname.replace(/\/+$/, '') || '/';
     const pageTitle =
       ROUTE_TITLES[normalisedPath] ||

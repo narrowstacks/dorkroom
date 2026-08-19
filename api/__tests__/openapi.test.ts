@@ -16,20 +16,22 @@ describe('openapi endpoint', () => {
       'application/json; charset=utf-8'
     );
 
-    const doc = res._json as Record<string, unknown>;
-    expect(doc.openapi).toBe('3.1.0');
-    expect(Object.keys(doc.paths as object)).toEqual(
-      expect.arrayContaining([
-        '/films',
-        '/developers',
-        '/combinations',
-        '/stats',
-        '/filmdev',
-      ])
-    );
-    const components = doc.components as { schemas: Record<string, unknown> };
-    expect(components.schemas.RawFilm).toBeDefined();
-    expect(components.schemas.ErrorResponse).toBeDefined();
+    expect(res._json).toMatchObject({
+      openapi: '3.1.0',
+      paths: {
+        '/films': expect.anything(),
+        '/developers': expect.anything(),
+        '/combinations': expect.anything(),
+        '/stats': expect.anything(),
+        '/filmdev': expect.anything(),
+      },
+      components: {
+        schemas: {
+          RawFilm: expect.anything(),
+          ErrorResponse: expect.anything(),
+        },
+      },
+    });
   });
 
   it('sets permissive CORS and cache headers', () => {

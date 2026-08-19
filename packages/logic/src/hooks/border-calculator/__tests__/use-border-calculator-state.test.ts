@@ -98,11 +98,13 @@ describe('useBorderCalculatorState', () => {
       expect(result.current.state.cropScale).toBe(1);
     });
 
-    it('should provide dispatch function', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
+    it('should provide a dispatch identity that survives re-renders', () => {
+      const { result, rerender } = renderHook(() => useBorderCalculatorState());
+      const firstDispatch = result.current.dispatch;
 
-      expect(result.current.dispatch).toBeDefined();
-      expect(typeof result.current.dispatch).toBe('function');
+      rerender();
+
+      expect(result.current.dispatch).toBe(firstDispatch);
     });
   });
 

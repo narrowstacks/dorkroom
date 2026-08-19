@@ -24,22 +24,22 @@ export function SettingsScreen() {
       <GlassCard>
         <ToolListRow
           label="Edit Tabs"
-          accessory="›"
-          onPress={() => router.push('/more/edit' as never)}
+          accessoryText="›"
+          onPress={() => router.push('/more/edit')}
         />
       </GlassCard>
 
       <GlassCard>
         <ToolListRow
           label="GitHub"
-          accessory="›"
+          accessoryText="›"
           onPress={() =>
             Linking.openURL('https://github.com/narrowstacks/dorkroom')
           }
         />
         <ToolListRow
           label="Newsletter"
-          accessory="›"
+          accessoryText="›"
           onPress={() => Linking.openURL('https://news.dorkroom.art')}
         />
       </GlassCard>

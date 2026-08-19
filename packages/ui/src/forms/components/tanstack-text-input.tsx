@@ -1,6 +1,7 @@
 import type React from 'react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
+import { cssVars } from '../../lib/dom';
 
 export interface TanStackTextInputProps {
   field: {
@@ -82,21 +83,19 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
           'placeholder:[color:var(--color-text-muted)]',
           'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2'
         )}
-        style={
-          {
-            '--border-color': hasErrors
-              ? borderColorError
-              : 'var(--color-border-secondary)',
-            '--border-color-focused': hasErrors
-              ? borderColorError
-              : 'var(--color-border-primary)',
-            backgroundColor: 'var(--color-surface-muted)',
-            color: 'var(--color-text-primary)',
-            '--tw-ring-color': hasErrors
-              ? ringColorError
-              : 'var(--color-border-primary)',
-          } as React.CSSProperties
-        }
+        style={cssVars({
+          '--border-color': hasErrors
+            ? borderColorError
+            : 'var(--color-border-secondary)',
+          '--border-color-focused': hasErrors
+            ? borderColorError
+            : 'var(--color-border-primary)',
+          backgroundColor: 'var(--color-surface-muted)',
+          color: 'var(--color-text-primary)',
+          '--tw-ring-color': hasErrors
+            ? ringColorError
+            : 'var(--color-border-primary)',
+        })}
       />
       {hasErrors && (
         <div

@@ -8,12 +8,7 @@ import { type StyleProp, View, type ViewStyle } from 'react-native';
 
 function glassAvailable(): boolean {
   try {
-    // isGlassEffectAPIAvailable exists on SDK 55+; fall back to SDK 54 check.
-    const apiCheck =
-      typeof isGlassEffectAPIAvailable === 'function'
-        ? isGlassEffectAPIAvailable()
-        : true;
-    return apiCheck && isLiquidGlassAvailable();
+    return isGlassEffectAPIAvailable() && isLiquidGlassAvailable();
   } catch {
     return false;
   }

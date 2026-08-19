@@ -1,38 +1,21 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { CustomBadge, isOfficialTag, OfficialBadge } from '../official-badge';
 
-// Mock createPortal to render inline
-vi.mock('react-dom', async () => {
-  const actual = await vi.importActual('react-dom');
-  return {
-    ...actual,
-    createPortal: (node: React.ReactNode) => node,
-  };
+/**
+ * happy-dom drops any `color-mix()` declaration, so the badge's colors are only
+ * readable back on `colorMixOr`'s `var(...)` fallback branch. Report no support
+ * before `lib/color` is first imported to take it.
+ */
+Object.defineProperty(globalThis, 'CSS', {
+  value: { supports: () => false },
+  writable: true,
 });
 
-// Mock lucide-react icons
-vi.mock('lucide-react', () => ({
-  Check: (props: React.SVGProps<SVGSVGElement>) => (
-    <span data-testid="check-icon" {...props} />
-  ),
-  Beaker: (props: React.SVGProps<SVGSVGElement>) => (
-    <span data-testid="beaker-icon" {...props} />
-  ),
-}));
-
-// Mock utility functions
-vi.mock('../../../lib/color', () => ({
-  colorMixOr: () => 'rgb(1, 2, 3)',
-}));
-
-vi.mock('../../../lib/tag-colors', () => ({
-  getTagThemeStyle: () => ({
-    backgroundColor: '#000000',
-    borderColor: '#111111',
-    color: '#ffffff',
-  }),
-}));
+const { CustomBadge, isOfficialTag, OfficialBadge } = await import(
+  '../official-badge'
+);
+const { colorMixOr } = await import('../../../lib/color');
+const { getTagThemeStyle } = await import('../../../lib/tag-colors');
 
 describe('isOfficialTag', () => {
   it('returns true for tags starting with official-', () => {
@@ -66,9 +49,9 @@ describe('isOfficialTag', () => {
 describe('OfficialBadge', () => {
   describe('rendering', () => {
     it('renders badge with correct structure', () => {
-      render(<OfficialBadge tag="official-kodak" />);
+      const { container } = render(<OfficialBadge tag="official-kodak" />);
 
-      expect(screen.getByTestId('check-icon')).toBeInTheDocument();
+      expect(container.querySelector('.lucide-check')).toBeInTheDocument();
     });
 
     it('renders with correct aria-label based on tag', () => {
@@ -92,21 +75,20 @@ describe('OfficialBadge', () => {
       expect(badge).toBeInTheDocument();
     });
 
-    it('applies theme styles', () => {
-      const { container } = render(<OfficialBadge tag="official-kodak" />);
+    it('applies the theme style for its tag', () => {
+      render(<OfficialBadge tag="official-kodak" />);
 
-      const styledElement = container.querySelector('[aria-label]');
-      expect(styledElement).toHaveStyle({
-        backgroundColor: '#000000',
-        borderColor: '#111111',
-        color: '#ffffff',
-      });
+      const badge = screen.getByLabelText('Official Kodak Recipe');
+      const themeStyle = getTagThemeStyle('official-kodak');
+      expect(badge.style.backgroundColor).toBe(themeStyle.backgroundColor);
+      expect(badge.style.borderColor).toBe(themeStyle.borderColor);
+      expect(badge.style.color).toBe(themeStyle.color);
     });
 
     it('renders Check icon', () => {
-      render(<OfficialBadge tag="official-kodak" />);
+      const { container } = render(<OfficialBadge tag="official-kodak" />);
 
-      expect(screen.getByTestId('check-icon')).toBeInTheDocument();
+      expect(container.querySelector('.lucide-check')).toBeInTheDocument();
     });
   });
 
@@ -266,9 +248,9 @@ describe('OfficialBadge', () => {
 describe('CustomBadge', () => {
   describe('rendering', () => {
     it('renders badge with correct structure', () => {
-      render(<CustomBadge />);
+      const { container } = render(<CustomBadge />);
 
-      expect(screen.getByTestId('beaker-icon')).toBeInTheDocument();
+      expect(container.querySelector('.lucide-beaker')).toBeInTheDocument();
     });
 
     it('renders with correct aria-label', () => {
@@ -279,20 +261,39 @@ describe('CustomBadge', () => {
     });
 
     it('renders Beaker icon', () => {
-      render(<CustomBadge />);
-
-      expect(screen.getByTestId('beaker-icon')).toBeInTheDocument();
-    });
-
-    it('applies custom styling', () => {
       const { container } = render(<CustomBadge />);
 
-      const styledElement = container.querySelector('[aria-label]');
-      expect(styledElement).toHaveStyle({
-        backgroundColor: 'rgb(1, 2, 3)',
-        borderColor: 'rgb(1, 2, 3)',
-        color: 'rgb(1, 2, 3)',
-      });
+      expect(container.querySelector('.lucide-beaker')).toBeInTheDocument();
+    });
+
+    it('applies accent-derived styling', () => {
+      render(<CustomBadge />);
+
+      const badge = screen.getByLabelText('Custom Recipe');
+      expect(badge.style.backgroundColor).toBe(
+        colorMixOr(
+          'var(--color-accent)',
+          15,
+          'transparent',
+          'var(--color-border-muted)'
+        )
+      );
+      expect(badge.style.borderColor).toBe(
+        colorMixOr(
+          'var(--color-accent)',
+          30,
+          'transparent',
+          'var(--color-border-secondary)'
+        )
+      );
+      expect(badge.style.color).toBe(
+        colorMixOr(
+          'var(--color-accent)',
+          80,
+          'var(--color-text-primary)',
+          'var(--color-text-primary)'
+        )
+      );
     });
   });
 
@@ -408,11 +409,9 @@ describe('OfficialBadge vs CustomBadge', () => {
     const { container: customContainer } = render(<CustomBadge />);
 
     expect(
-      officialContainer.querySelector('[data-testid="check-icon"]')
+      officialContainer.querySelector('.lucide-check')
     ).toBeInTheDocument();
-    expect(
-      customContainer.querySelector('[data-testid="beaker-icon"]')
-    ).toBeInTheDocument();
+    expect(customContainer.querySelector('.lucide-beaker')).toBeInTheDocument();
   });
 
   it('renders different aria-labels', () => {

@@ -31,14 +31,12 @@ const normalizeErrors = (errors: unknown[]): string => {
     if (error === null || error === undefined) {
       continue;
     }
-    if (typeof error === 'string') {
-      errorStrings.push(error);
-    } else if (error instanceof Error) {
+    if (error instanceof Error) {
       errorStrings.push(error.message);
+    } else if (error instanceof Object) {
+      errorStrings.push(JSON.stringify(error));
     } else {
-      errorStrings.push(
-        typeof error === 'object' ? JSON.stringify(error) : String(error)
-      );
+      errorStrings.push(String(error));
     }
   }
 
