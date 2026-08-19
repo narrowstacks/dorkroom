@@ -9,9 +9,8 @@ echo "📌 Repo: $VERCEL_GIT_REPO_OWNER/$VERCEL_GIT_REPO_SLUG"
 
 # Check if we have a previous commit to compare against
 if [ -z "$VERCEL_GIT_PREVIOUS_SHA" ]; then
-  echo "⚠️ No previous commit SHA, falling back to turbo-ignore"
-  bunx turbo-ignore @dorkroom/dorkroom
-  exit $?
+  echo "⚠️ No previous commit SHA — cannot diff, so building."
+  exit 1
 fi
 
 # Use GitHub API to get changed files (works without git history)
@@ -24,11 +23,18 @@ echo "📁 Changed files:"
 echo "$CHANGED_FILES"
 
 if [ -z "$CHANGED_FILES" ]; then
-  echo "⚠️ Could not determine changed files, falling back to turbo-ignore"
-  bunx turbo-ignore @dorkroom/dorkroom
-  exit $?
+  echo "⚠️ Could not determine changed files — building rather than risk a skip."
+  exit 1
 fi
 
+# Both fallbacks above deliberately BUILD rather than consult turbo's affected
+# detection. `turbo query affected` (the replacement Vercel recommends for the
+# deprecated turbo-ignore) is package-scoped: it reports zero affected packages
+# for root-level changes like vercel.json, turbo.json or the root package.json.
+# Gating on it would have skipped the deploy that fixed the @vercel/node builder
+# pin. The allowlist below is the inverse and is the safe shape: build unless a
+# change is explicitly known not to feed the web build.
+#
 # Skip if changes are ONLY in these paths/files.
 # - apps/mobile is the React Native (Expo) app — Vercel builds the web app only,
 #   so commits touching only the mobile app must not trigger a web deployment.
