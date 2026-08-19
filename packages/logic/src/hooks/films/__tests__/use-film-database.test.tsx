@@ -2,7 +2,8 @@ import type { Film } from '@dorkroom/api';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { queryKeys } from '../../../queries/query-keys';
 import { useFilmDatabase } from '../use-film-database';
 
 /**
@@ -14,19 +15,6 @@ import { useFilmDatabase } from '../use-film-database';
  * - Alphabetical sorting
  * - Filter state management and clearing
  */
-
-// Mock the useFilms hook
-vi.mock('../../api/use-films', () => ({
-  useFilms: vi.fn(),
-}));
-
-// Mock the useDebounce hook to return value immediately (no delay in tests)
-vi.mock('../../use-debounce', () => ({
-  useDebounce: vi.fn((value) => value),
-}));
-
-// Import after mocking
-import { useFilms } from '../../api/use-films';
 
 /**
  * Mock film data representing realistic analog photography film stocks
@@ -235,28 +223,30 @@ const mockFilms: Film[] = [
   },
 ];
 
+const createWrapper =
+  (client: QueryClient) =>
+  ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  );
+
+const createQueryClient = () =>
+  new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
 describe('useFilmDatabase', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
-    // Create a new QueryClient for each test
+    // Data that never goes stale resolves the query without a fetch.
     queryClient = new QueryClient({
       defaultOptions: {
-        queries: {
-          retry: false,
-        },
+        queries: { retry: false, staleTime: Number.POSITIVE_INFINITY },
       },
     });
+    queryClient.setQueryData(queryKeys.films.list(), mockFilms);
+  });
 
-    // Mock useFilms to return our test data
-    vi.mocked(useFilms).mockReturnValue({
-      data: mockFilms,
-      isPending: false,
-      error: null,
-      isError: false,
-      isSuccess: true,
-      status: 'success',
-    } as ReturnType<typeof useFilms>);
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   const wrapper = ({ children }: { children: ReactNode }) => (
@@ -287,37 +277,32 @@ describe('useFilmDatabase', () => {
       expect(fujifilmNames).toEqual(sortedNames);
     });
 
-    it('should return loading state when data is pending', () => {
-      vi.mocked(useFilms).mockReturnValue({
-        data: undefined,
-        isPending: true,
-        error: null,
-        isError: false,
-        isSuccess: false,
-        status: 'pending',
-      } as ReturnType<typeof useFilms>);
+    it('should return loading state while the films request is in flight', () => {
+      vi.stubGlobal('fetch', () => new Promise<Response>(() => undefined));
 
-      const { result } = renderHook(() => useFilmDatabase(), { wrapper });
+      const { result } = renderHook(() => useFilmDatabase(), {
+        wrapper: createWrapper(createQueryClient()),
+      });
 
       expect(result.current.isLoading).toBe(true);
       expect(result.current.films).toEqual([]);
       expect(result.current.filteredFilms).toEqual([]);
     });
 
-    it('should return error state when fetch fails', () => {
-      const errorMessage = 'Failed to fetch films';
-      vi.mocked(useFilms).mockReturnValue({
-        data: undefined,
-        isPending: false,
-        error: new Error(errorMessage),
-        isError: true,
-        isSuccess: false,
-        status: 'error',
-      } as ReturnType<typeof useFilms>);
+    it('should return error state when fetch fails', async () => {
+      vi.stubGlobal('fetch', () =>
+        Promise.resolve(
+          new Response(null, { status: 503, statusText: 'Unavailable' })
+        )
+      );
 
-      const { result } = renderHook(() => useFilmDatabase(), { wrapper });
+      const { result } = renderHook(() => useFilmDatabase(), {
+        wrapper: createWrapper(createQueryClient()),
+      });
 
-      expect(result.current.error).toBe(errorMessage);
+      await waitFor(() => {
+        expect(result.current.error).toBe('Failed to fetch films: Unavailable');
+      });
       expect(result.current.films).toEqual([]);
     });
   });

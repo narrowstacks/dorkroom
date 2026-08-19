@@ -17,14 +17,11 @@ interface MockLocation {
   pathname: string;
   search: string;
   hash: string;
-  [key: string]: unknown;
 }
 
 interface MockWindow {
   location: MockLocation;
-  history: {
-    replaceState: (data: unknown, unused: string, url?: string) => void;
-  };
+  history: Pick<History, 'replaceState'>;
 }
 
 const mockWindow: MockWindow = {

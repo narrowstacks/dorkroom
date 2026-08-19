@@ -56,9 +56,8 @@ describe('CollapsibleSection', () => {
     // stylesheet and render black-on-black in high-contrast mode.
     const { container } = render(<CollapsibleSection {...defaultProps} />);
 
-    const section = container.firstElementChild as HTMLElement;
+    const section = container.firstElementChild;
     expect(section).toHaveClass('bg-border-muted', 'rounded-xl', 'border');
-    expect(section.style.backgroundColor).toBe('');
-    expect(section.getAttribute('style')).toBeNull();
+    expect(section).not.toHaveAttribute('style');
   });
 });

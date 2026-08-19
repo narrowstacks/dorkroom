@@ -24,10 +24,9 @@ describe('tool registry', () => {
     expect(getTool('nope')).toBeUndefined();
   });
 
-  it('every tool has a non-empty Lucide icon name', () => {
+  it('every tool names its Lucide icon in kebab-case', () => {
     for (const tool of TOOLS) {
-      expect(typeof tool.icon).toBe('string');
-      expect(tool.icon.length).toBeGreaterThan(0);
+      expect(tool.icon).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
     }
   });
 });

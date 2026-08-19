@@ -43,13 +43,21 @@ export interface EncodedCustomRecipe {
   version?: number;
 }
 
+/**
+ * JSON has no `undefined`, so a producer encoding "no value" writes `null`.
+ * Accept both and normalise to `undefined` so the decoded object still matches
+ * the optional-property wire interface.
+ */
+const jsonOptional = <T extends z.ZodTypeAny>(schema: T) =>
+  schema.nullish().transform((value) => value ?? undefined);
+
 const customFilmDataSchema = z.object({
   brand: z.string().min(1),
   name: z.string().min(1),
   isoSpeed: z.number(),
   colorType: z.enum(['bw', 'color', 'slide']),
-  grainStructure: z.string().optional(),
-  description: z.string().optional(),
+  grainStructure: jsonOptional(z.string()),
+  description: jsonOptional(z.string()),
 }) satisfies z.ZodType<CustomFilmData>;
 
 const customDeveloperDataSchema = z.object({
@@ -57,11 +65,11 @@ const customDeveloperDataSchema = z.object({
   name: z.string().min(1),
   type: z.string(),
   filmOrPaper: z.enum(['film', 'paper', 'both']),
-  workingLifeHours: z.number().optional(),
-  stockLifeMonths: z.number().optional(),
-  notes: z.string().optional(),
-  mixingInstructions: z.string().optional(),
-  safetyNotes: z.string().optional(),
+  workingLifeHours: jsonOptional(z.number()),
+  stockLifeMonths: jsonOptional(z.number()),
+  notes: jsonOptional(z.string()),
+  mixingInstructions: jsonOptional(z.string()),
+  safetyNotes: jsonOptional(z.string()),
   dilutions: z.array(z.object({ name: z.string(), dilution: z.string() })),
 }) satisfies z.ZodType<CustomDeveloperData>;
 
@@ -74,16 +82,16 @@ const encodedCustomRecipeSchema = z.object({
   timeMinutes: z.number(),
   shootingIso: z.number(),
   pushPull: z.number(),
-  agitationSchedule: z.string().optional(),
-  notes: z.string().optional(),
-  dilutionId: z.number().optional(),
-  customDilution: z.string().optional(),
+  agitationSchedule: jsonOptional(z.string()),
+  notes: jsonOptional(z.string()),
+  dilutionId: jsonOptional(z.number()),
+  customDilution: jsonOptional(z.string()),
   isCustomFilm: z.boolean(),
   isCustomDeveloper: z.boolean(),
   customFilm: customFilmDataSchema.optional(),
   customDeveloper: customDeveloperDataSchema.optional(),
   isPublic: z.boolean(),
-  version: z.number().optional(),
+  version: jsonOptional(z.number()),
 }) satisfies z.ZodType<EncodedCustomRecipe>;
 
 const encodedRecipeStringSchema = z.string().regex(/^[A-Za-z0-9_-]+$/);
@@ -246,7 +254,7 @@ export const createCustomRecipeFromEncoded = (
  * Validates if a string is a valid custom recipe encoding.
  * Checks format and attempts to decode to verify validity.
  *
- * @param encoded - String to validate as encoded recipe
+ * @param encoded - Candidate off a URL, so null/undefined are accepted
  * @returns True if the string is a valid encoded recipe, false otherwise
  * @example
  * ```typescript
@@ -257,10 +265,13 @@ export const createCustomRecipeFromEncoded = (
  * console.log(invalid); // false
  * ```
  */
-export const isValidCustomRecipeEncoding = (encoded: string): boolean => {
-  if (!encodedRecipeStringSchema.safeParse(encoded).success) {
+export const isValidCustomRecipeEncoding = (
+  encoded: string | null | undefined
+): boolean => {
+  const candidate = encodedRecipeStringSchema.safeParse(encoded);
+  if (!candidate.success) {
     return false;
   }
 
-  return decodeCustomRecipe(encoded) !== null;
+  return decodeCustomRecipe(candidate.data) !== null;
 };

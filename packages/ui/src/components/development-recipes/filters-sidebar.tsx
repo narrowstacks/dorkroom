@@ -7,7 +7,8 @@ import { FilterPanelContainer } from '../filters/filter-panel-container';
 import { FilterPanelHeader } from '../filters/filter-panel-header';
 import { FilterPanelSection } from '../filters/filter-panel-section';
 import { SearchableSelect } from '../searchable-select';
-import { optionChangeHandler, Select } from '../select';
+import { Select } from '../select';
+import { optionChangeHandler } from '../../lib/select-options';
 
 interface FiltersSidebarProps {
   className?: string;

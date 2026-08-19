@@ -1,5 +1,4 @@
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -44,19 +43,4 @@ Object.defineProperty(window, 'CSS', {
     },
   },
   writable: true,
-});
-
-// Mock useId for consistent test IDs
-let mockIdCounter = 0;
-vi.mock('react', async () => {
-  const actual = await vi.importActual('react');
-  return {
-    ...actual,
-    useId: () => `test-id-${++mockIdCounter}`,
-  };
-});
-
-// Reset ID counter before each test
-beforeEach(() => {
-  mockIdCounter = 0;
 });

@@ -3,10 +3,10 @@ import {
   STANDARD_APERTURES,
   STANDARD_SHUTTER_SPEEDS,
 } from '../../constants/camera-exposure-defaults';
-import type {
-  ApertureKey,
-  ISOKey,
-  ShutterSpeedKey,
+import {
+  asApertureKey,
+  asISOKey,
+  asShutterSpeedKey,
 } from '../../types/camera-exposure-calculator';
 import {
   apertureToKey,
@@ -27,11 +27,6 @@ import {
   solveForISO,
   solveForShutterSpeed,
 } from '../../utils/camera-exposure-calculations';
-
-/** Helper to cast string literals to branded key types in tests. */
-const ssKey = (s: string) => s as ShutterSpeedKey;
-const apKey = (s: string) => s as ApertureKey;
-const iKey = (s: string) => s as ISOKey;
 
 // Precision guide for toBeCloseTo(value, numDigits):
 //   numDigits=0 → tolerance of 0.5 (within half a stop for EV values)
@@ -814,27 +809,36 @@ describe('camera exposure calculations', () => {
 
     describe('keyToShutterSpeed', () => {
       it('should convert standard labels to shutter speeds', () => {
-        expect(keyToShutterSpeed(ssKey('1/125'))).toBeCloseTo(1 / 125, 5);
-        expect(keyToShutterSpeed(ssKey('1/250'))).toBeCloseTo(1 / 250, 5);
-        expect(keyToShutterSpeed(ssKey('1"'))).toBe(1);
-        expect(keyToShutterSpeed(ssKey('2"'))).toBe(2);
-        expect(keyToShutterSpeed(ssKey('30"'))).toBe(30);
+        expect(keyToShutterSpeed(asShutterSpeedKey('1/125'))).toBeCloseTo(
+          1 / 125,
+          5
+        );
+        expect(keyToShutterSpeed(asShutterSpeedKey('1/250'))).toBeCloseTo(
+          1 / 250,
+          5
+        );
+        expect(keyToShutterSpeed(asShutterSpeedKey('1"'))).toBe(1);
+        expect(keyToShutterSpeed(asShutterSpeedKey('2"'))).toBe(2);
+        expect(keyToShutterSpeed(asShutterSpeedKey('30"'))).toBe(30);
       });
 
       it('should parse "1/X" format for non-standards', () => {
-        expect(keyToShutterSpeed(ssKey('1/333'))).toBeCloseTo(1 / 333, 5);
-        expect(keyToShutterSpeed(ssKey('1/100'))).toBe(0.01);
+        expect(keyToShutterSpeed(asShutterSpeedKey('1/333'))).toBeCloseTo(
+          1 / 333,
+          5
+        );
+        expect(keyToShutterSpeed(asShutterSpeedKey('1/100'))).toBe(0.01);
       });
 
       it('should parse seconds with quote mark', () => {
-        expect(keyToShutterSpeed(ssKey('5"'))).toBe(5);
-        expect(keyToShutterSpeed(ssKey('15"'))).toBe(15);
+        expect(keyToShutterSpeed(asShutterSpeedKey('5"'))).toBe(5);
+        expect(keyToShutterSpeed(asShutterSpeedKey('15"'))).toBe(15);
       });
 
       it('should return fallback for invalid keys', () => {
-        expect(keyToShutterSpeed(ssKey('invalid'))).toBe(1 / 125);
-        expect(keyToShutterSpeed(ssKey(''))).toBe(1 / 125);
-        expect(keyToShutterSpeed(ssKey('abc'))).toBe(1 / 125);
+        expect(keyToShutterSpeed(asShutterSpeedKey('invalid'))).toBe(1 / 125);
+        expect(keyToShutterSpeed(asShutterSpeedKey(''))).toBe(1 / 125);
+        expect(keyToShutterSpeed(asShutterSpeedKey('abc'))).toBe(1 / 125);
       });
     });
 
@@ -873,22 +877,22 @@ describe('camera exposure calculations', () => {
 
     describe('keyToAperture', () => {
       it('should convert standard labels to apertures', () => {
-        expect(keyToAperture(apKey('f/1.4'))).toBe(1.4);
-        expect(keyToAperture(apKey('f/2.8'))).toBe(2.8);
-        expect(keyToAperture(apKey('f/5.6'))).toBe(5.6);
-        expect(keyToAperture(apKey('f/8'))).toBe(8);
-        expect(keyToAperture(apKey('f/16'))).toBe(16);
+        expect(keyToAperture(asApertureKey('f/1.4'))).toBe(1.4);
+        expect(keyToAperture(asApertureKey('f/2.8'))).toBe(2.8);
+        expect(keyToAperture(asApertureKey('f/5.6'))).toBe(5.6);
+        expect(keyToAperture(asApertureKey('f/8'))).toBe(8);
+        expect(keyToAperture(asApertureKey('f/16'))).toBe(16);
       });
 
       it('should parse "f/X" format for non-standards', () => {
-        expect(keyToAperture(apKey('f/3.5'))).toBe(3.5);
-        expect(keyToAperture(apKey('f/6.3'))).toBe(6.3);
+        expect(keyToAperture(asApertureKey('f/3.5'))).toBe(3.5);
+        expect(keyToAperture(asApertureKey('f/6.3'))).toBe(6.3);
       });
 
       it('should return fallback for invalid keys', () => {
-        expect(keyToAperture(apKey('invalid'))).toBe(8);
-        expect(keyToAperture(apKey(''))).toBe(8);
-        expect(keyToAperture(apKey('abc'))).toBe(8);
+        expect(keyToAperture(asApertureKey('invalid'))).toBe(8);
+        expect(keyToAperture(asApertureKey(''))).toBe(8);
+        expect(keyToAperture(asApertureKey('abc'))).toBe(8);
       });
     });
 
@@ -915,16 +919,16 @@ describe('camera exposure calculations', () => {
 
     describe('keyToISO', () => {
       it('should convert labeled keys to ISO values', () => {
-        expect(keyToISO(iKey('ISO 100'))).toBe(100);
-        expect(keyToISO(iKey('ISO 400'))).toBe(400);
-        expect(keyToISO(iKey('ISO 1600'))).toBe(1600);
-        expect(keyToISO(iKey('ISO 3200'))).toBe(3200);
+        expect(keyToISO(asISOKey('ISO 100'))).toBe(100);
+        expect(keyToISO(asISOKey('ISO 400'))).toBe(400);
+        expect(keyToISO(asISOKey('ISO 1600'))).toBe(1600);
+        expect(keyToISO(asISOKey('ISO 3200'))).toBe(3200);
       });
 
       it('should return fallback for invalid keys', () => {
-        expect(keyToISO(iKey('invalid'))).toBe(100);
-        expect(keyToISO(iKey(''))).toBe(100);
-        expect(keyToISO(iKey('abc'))).toBe(100);
+        expect(keyToISO(asISOKey('invalid'))).toBe(100);
+        expect(keyToISO(asISOKey(''))).toBe(100);
+        expect(keyToISO(asISOKey('abc'))).toBe(100);
       });
     });
 

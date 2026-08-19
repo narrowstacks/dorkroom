@@ -1,7 +1,10 @@
 {
   "$schema": "https://react.doctor/schema/config.json",
   "ignore": {
-    "files": ["**/supabase/functions/**"],
+    "files": [
+      "**/supabase/functions/**",
+      "tools/oxlint/anti-slop/**"
+    ],
     "rules": [
       "deslop/unused-file",
       "deslop/unused-export",

@@ -33,7 +33,6 @@
     "@testing-library/jest-dom": "^6.8.0",
     "@vitest/ui": "4.1.10",
     "happy-dom": "20.11.1",
-    "jsdom": "29.1.1",
     "vitest": "4.1.10"
   }
 }

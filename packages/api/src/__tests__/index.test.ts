@@ -12,37 +12,53 @@ import {
   PUBLIC_API_BASE_URL,
 } from '../index.js';
 
+/** Spies on the singleton the convenience wrappers are supposed to delegate to. */
+function spyOnClientFetches() {
+  return {
+    films: vi.spyOn(apiClient, 'fetchFilms').mockResolvedValue([]),
+    developers: vi.spyOn(apiClient, 'fetchDevelopers').mockResolvedValue([]),
+    combinations: vi
+      .spyOn(apiClient, 'fetchCombinations')
+      .mockResolvedValue([]),
+  };
+}
+
 describe('API Package Exports', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('should export DorkroomApiClient', () => {
-    expect(DorkroomApiClient).toBeDefined();
-    expect(typeof DorkroomApiClient).toBe('function');
+    expect(new DorkroomApiClient()).toBeInstanceOf(DorkroomApiClient);
   });
 
   it('should export apiClient instance', () => {
-    expect(apiClient).toBeDefined();
     expect(apiClient).toBeInstanceOf(DorkroomApiClient);
   });
 
-  it('should export convenience functions', () => {
-    expect(fetchFilms).toBeDefined();
-    expect(typeof fetchFilms).toBe('function');
+  it('should export convenience functions bound to the shared client', async () => {
+    const { films, developers, combinations } = spyOnClientFetches();
 
-    expect(fetchDevelopers).toBeDefined();
-    expect(typeof fetchDevelopers).toBe('function');
+    await Promise.all([fetchFilms(), fetchDevelopers(), fetchCombinations()]);
 
-    expect(fetchCombinations).toBeDefined();
-    expect(typeof fetchCombinations).toBe('function');
+    expect(films).toHaveBeenCalledTimes(1);
+    expect(developers).toHaveBeenCalledTimes(1);
+    expect(combinations).toHaveBeenCalledTimes(1);
   });
 
-  it('should export TanStack Query compatible functions', () => {
-    expect(fetchFilmsForQuery).toBeDefined();
-    expect(typeof fetchFilmsForQuery).toBe('function');
+  it('should export TanStack Query compatible functions that forward the query signal', async () => {
+    const { films, developers, combinations } = spyOnClientFetches();
+    const { signal } = new AbortController();
 
-    expect(fetchDevelopersForQuery).toBeDefined();
-    expect(typeof fetchDevelopersForQuery).toBe('function');
+    await Promise.all([
+      fetchFilmsForQuery({ signal }),
+      fetchDevelopersForQuery({ signal }),
+      fetchCombinationsForQuery({ signal }),
+    ]);
 
-    expect(fetchCombinationsForQuery).toBeDefined();
-    expect(typeof fetchCombinationsForQuery).toBe('function');
+    expect(films).toHaveBeenCalledWith({ signal });
+    expect(developers).toHaveBeenCalledWith({ signal });
+    expect(combinations).toHaveBeenCalledWith({ signal });
   });
 
   it('should export PUBLIC_API_BASE_URL', () => {

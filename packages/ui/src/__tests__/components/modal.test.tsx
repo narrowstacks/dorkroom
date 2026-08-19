@@ -2,15 +2,6 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Modal } from '../../components/modal';
 
-// Mock createPortal to render directly in test environment
-vi.mock('react-dom', async () => {
-  const actual = await vi.importActual('react-dom');
-  return {
-    ...actual,
-    createPortal: (children: React.ReactNode) => children,
-  };
-});
-
 describe('Modal', () => {
   const defaultProps = {
     isOpen: true,

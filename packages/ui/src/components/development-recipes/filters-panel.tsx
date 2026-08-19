@@ -2,7 +2,8 @@ import type { CustomRecipeFilter, SelectItem } from '@dorkroom/logic';
 import { Search } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { SearchableSelect } from '../searchable-select';
-import { optionChangeHandler, Select } from '../select';
+import { Select } from '../select';
+import { optionChangeHandler } from '../../lib/select-options';
 
 const customRecipeOptions = [
   { label: 'All recipes', value: 'all' },

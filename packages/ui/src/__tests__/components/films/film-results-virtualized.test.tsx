@@ -2,37 +2,6 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FilmResultsVirtualized } from '../../../components/films/film-results-virtualized';
 
-// Mock ResizeObserver used by the responsive column-count hook.
-class MockResizeObserver {
-  callback: ResizeObserverCallback;
-  observedElements: Set<Element> = new Set();
-
-  constructor(callback: ResizeObserverCallback) {
-    this.callback = callback;
-  }
-
-  observe(target: Element) {
-    this.observedElements.add(target);
-  }
-
-  unobserve(target: Element) {
-    this.observedElements.delete(target);
-  }
-
-  disconnect() {
-    this.observedElements.clear();
-  }
-}
-
-// Mock useVirtualizer from @tanstack/react-virtual — the empty-state path
-// renders before any virtual rows are read, so a minimal stub is enough.
-vi.mock('@tanstack/react-virtual', () => ({
-  useVirtualizer: vi.fn(() => ({
-    getVirtualItems: () => [],
-    getTotalSize: () => 0,
-  })),
-}));
-
 const noop = () => {
   // no-op
 };
@@ -40,8 +9,6 @@ const noop = () => {
 describe('FilmResultsVirtualized empty state', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    global.ResizeObserver =
-      MockResizeObserver as unknown as typeof ResizeObserver;
   });
 
   afterEach(() => {

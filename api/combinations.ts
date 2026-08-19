@@ -1,6 +1,9 @@
-import { createSupabaseProxy } from '../utils/createSupabaseProxy';
+import {
+  createSupabaseProxy,
+  type SupabaseProxyConfig,
+} from '../utils/createSupabaseProxy';
 
-export default createSupabaseProxy({
+export const combinationsProxyConfig: SupabaseProxyConfig = {
   name: 'combinations',
   allowedParams: [
     'film',
@@ -12,4 +15,6 @@ export default createSupabaseProxy({
     'fuzzy',
     'limit',
   ],
-});
+};
+
+export default createSupabaseProxy(combinationsProxyConfig);

@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    // Held on TS6 options on purpose: @vercel/node compiles this tree with
+    // the project's `typescript` (6.x), not the 7.x used for build/typecheck.
+    "ignoreDeprecations": "6.0",
     "module": "commonjs",
     "target": "es2020",
     "moduleResolution": "node",

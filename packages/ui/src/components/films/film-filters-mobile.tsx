@@ -4,7 +4,8 @@ import { type FC, useState } from 'react';
 import { cn } from '../../lib/cn';
 import { cssVars, setStyles } from '../../lib/dom';
 import { SearchableSelect } from '../searchable-select';
-import { optionChangeHandler, Select } from '../select';
+import { Select } from '../select';
+import { optionChangeHandler } from '../../lib/select-options';
 
 /** Static filter options - defined outside component to prevent recreation on each render */
 const FILM_TYPE_OPTIONS: SelectItem[] = [

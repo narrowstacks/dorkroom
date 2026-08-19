@@ -1,6 +1,11 @@
-import { createSupabaseProxy } from '../utils/createSupabaseProxy';
+import {
+  createSupabaseProxy,
+  type SupabaseProxyConfig,
+} from '../utils/createSupabaseProxy';
 
-export default createSupabaseProxy({
+export const filmsProxyConfig: SupabaseProxyConfig = {
   name: 'films',
   allowedParams: ['query', 'fuzzy', 'limit', 'colorType', 'brand', 'slug'],
-});
+};
+
+export default createSupabaseProxy(filmsProxyConfig);

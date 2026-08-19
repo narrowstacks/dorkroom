@@ -1,25 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
-
-// film-log-export pulls in react-native (Share) and the storage module at import
-// time; storage now transitively imports film-log-photos, which loads Skia and
-// expo-file-system/legacy. Stub them all so the pure builder runs in node.
-vi.mock('react-native', () => ({ Share: { share: vi.fn() } }));
-vi.mock('react-native-mmkv', () => ({
-  createMMKV: () => ({ getString: vi.fn(), set: vi.fn(), remove: vi.fn() }),
-  useMMKVString: () => [undefined, vi.fn()],
-}));
-vi.mock('@shopify/react-native-skia', () => ({ Skia: {}, ImageFormat: {} }));
-vi.mock('expo-file-system/legacy', () => ({
-  documentDirectory: 'file:///docs/',
-  cacheDirectory: 'file:///cache/',
-  makeDirectoryAsync: vi.fn(),
-  copyAsync: vi.fn(),
-  deleteAsync: vi.fn(),
-  getInfoAsync: vi.fn(async () => ({ exists: false })),
-  readAsStringAsync: vi.fn(),
-  writeAsStringAsync: vi.fn(),
-}));
-
+import { describe, expect, it } from 'vitest';
 import type { Camera, FilmRoll, Lens } from '@/types/film-log';
 import { buildRollsExport, FILM_LOG_EXPORT_VERSION } from './film-log-export';
 

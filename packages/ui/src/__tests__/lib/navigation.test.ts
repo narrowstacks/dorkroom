@@ -26,9 +26,9 @@ describe('navigation utilities', () => {
         expect(category).toHaveProperty('label');
         expect(category).toHaveProperty('icon');
         expect(category).toHaveProperty('items');
-        expect(typeof category.label).toBe('string');
-        expect(typeof category.icon).toBe('function');
-        expect(Array.isArray(category.items)).toBe(true);
+        expect(category.label).not.toBe('');
+        expect(category.icon).toBeInstanceOf(Function);
+        expect(category.items.length).toBeGreaterThan(0);
       });
     });
   });
@@ -81,10 +81,10 @@ describe('navigation utilities', () => {
         expect(item).toHaveProperty('to');
         expect(item).toHaveProperty('icon');
         expect(item).toHaveProperty('summary');
-        expect(typeof item.label).toBe('string');
-        expect(typeof item.to).toBe('string');
-        expect(typeof item.summary).toBe('string');
-        expect(typeof item.icon).toBe('function'); // React component
+        expect(item.label).not.toBe('');
+        expect(item.to.startsWith('/')).toBe(true);
+        expect(item.summary).not.toBe('');
+        expect(item.icon).toBeInstanceOf(Function);
       });
     });
 
@@ -116,7 +116,6 @@ describe('navigation utilities', () => {
 
     it('has meaningful titles', () => {
       Object.entries(ROUTE_TITLES).forEach(([route, title]) => {
-        expect(typeof title).toBe('string');
         expect(title.length).toBeGreaterThan(0);
         expect(route.startsWith('/')).toBe(true);
       });

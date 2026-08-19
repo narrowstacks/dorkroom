@@ -194,7 +194,11 @@ export function useLocalStorageFormPersistence<T extends object>(
           ? fieldValidator.transform(value)
           : value;
 
-        // SAFETY: `key`'s validator accepted this value, so it is a valid T[key].
+        // SAFETY: narrowed only as far as the caller's validator for `key` goes.
+        // `defaultValidator` is just `value !== undefined`, so a call site that
+        // passes no per-key validators (resize, reciprocity, border, mat) can
+        // hydrate a stored string into a numeric field. Pass a per-key schema
+        // validator to make this sound — see the lens/camera-exposure call sites.
         const fieldValue = transformedValue as T[typeof key];
         form.setFieldValue(key, fieldValue);
         loadedValues[key] = fieldValue;

@@ -6,10 +6,11 @@ const BREAKPOINT_XL = 1280;
 const BREAKPOINT_LG = 1024;
 const BREAKPOINT_SM = 640;
 
-// Mock ResizeObserver for testing
+// In-memory ResizeObserver: records what it observes and lets a test push a
+// width through the real callback contract.
 type ResizeCallback = ResizeObserverCallback;
 
-class MockResizeObserver {
+class MockResizeObserver implements ResizeObserver {
   static instances: MockResizeObserver[] = [];
   callback: ResizeCallback;
   observedElements: Set<Element> = new Set();
@@ -33,20 +34,15 @@ class MockResizeObserver {
 
   // Helper to simulate resize
   simulateResize(width: number) {
+    const size: ResizeObserverSize = { blockSize: 600, inlineSize: width };
     const entries: ResizeObserverEntry[] = Array.from(
       this.observedElements
     ).map((element) => ({
       target: element,
-      contentRect: { width, height: 600 } as DOMRectReadOnly,
-      borderBoxSize: [
-        { blockSize: 600, inlineSize: width },
-      ] as ResizeObserverSize[],
-      contentBoxSize: [
-        { blockSize: 600, inlineSize: width },
-      ] as ResizeObserverSize[],
-      devicePixelContentBoxSize: [
-        { blockSize: 600, inlineSize: width },
-      ] as ResizeObserverSize[],
+      contentRect: DOMRectReadOnly.fromRect({ width, height: 600 }),
+      borderBoxSize: [size],
+      contentBoxSize: [size],
+      devicePixelContentBoxSize: [size],
     }));
     this.callback(entries, this);
   }
@@ -55,10 +51,13 @@ class MockResizeObserver {
     MockResizeObserver.instances = [];
   }
 
-  static getLatest(): MockResizeObserver | undefined {
-    return MockResizeObserver.instances[
-      MockResizeObserver.instances.length - 1
-    ];
+  /** The observer the hook under test just constructed. */
+  static getLatest(): MockResizeObserver {
+    const observer = MockResizeObserver.instances.at(-1);
+    if (observer === undefined) {
+      throw new Error('the hook constructed no ResizeObserver');
+    }
+    return observer;
   }
 }
 
@@ -114,8 +113,7 @@ describe('useResponsiveColumnCount', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     MockResizeObserver.reset();
-    global.ResizeObserver =
-      MockResizeObserver as unknown as typeof ResizeObserver;
+    global.ResizeObserver = MockResizeObserver;
   });
 
   afterEach(() => {
@@ -266,8 +264,7 @@ describe('useResponsiveColumnCount', () => {
 
       // Simulate resize to xl breakpoint
       act(() => {
-        const observer = MockResizeObserver.getLatest();
-        observer?.simulateResize(1400);
+        MockResizeObserver.getLatest().simulateResize(1400);
       });
 
       expect(result.current).toBe(4);
@@ -286,8 +283,7 @@ describe('useResponsiveColumnCount', () => {
 
       // Simulate resize to sm breakpoint
       act(() => {
-        const observer = MockResizeObserver.getLatest();
-        observer?.simulateResize(700);
+        MockResizeObserver.getLatest().simulateResize(700);
       });
 
       expect(result.current).toBe(2);
@@ -302,10 +298,8 @@ describe('useResponsiveColumnCount', () => {
         useResponsiveColumnCount(containerRef, false)
       );
 
-      const observer = MockResizeObserver.getLatest();
-      expect(observer).toBeDefined();
       const disconnectSpy = vi.spyOn(
-        observer as MockResizeObserver,
+        MockResizeObserver.getLatest(),
         'disconnect'
       );
 
@@ -321,8 +315,9 @@ describe('useResponsiveColumnCount', () => {
 
       renderHook(() => useResponsiveColumnCount(containerRef, false));
 
-      const observer = MockResizeObserver.getLatest();
-      expect(observer?.observedElements.has(container)).toBe(true);
+      expect(
+        MockResizeObserver.getLatest().observedElements.has(container)
+      ).toBe(true);
     });
   });
 
@@ -412,8 +407,7 @@ describe('useResponsiveColumnCount', () => {
 
       // Simulate resize after unmount
       act(() => {
-        const observer = MockResizeObserver.getLatest();
-        observer?.simulateResize(1400);
+        MockResizeObserver.getLatest().simulateResize(1400);
       });
 
       // Value should not have changed (component is unmounted)

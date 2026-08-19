@@ -1,351 +1,150 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  createMockRequest,
+  createMockResponse,
+} from '../../utils/__tests__/mock-vercel';
+import { createSupabaseProxyHandler } from '../../utils/createSupabaseProxy';
+import type { HandlerContext } from '../../utils/withHandler';
+import { combinationsProxyConfig } from '../combinations';
+import { developersProxyConfig } from '../developers';
+import { filmsProxyConfig } from '../films';
 
-vi.mock('../../utils/serverlessLogger', () => ({
-  logApiRequest: vi.fn(),
-  logApiResponse: vi.fn(),
-  logApiError: vi.fn(),
-  logExternalApiCall: vi.fn(),
-  logExternalApiResponse: vi.fn(),
-  serverlessLog: vi.fn(),
-  serverlessWarn: vi.fn(),
-  serverlessError: vi.fn(),
-}));
+/** A well-formed Supabase Edge Function list payload; the proxy forwards it verbatim. */
+const LIST_PAYLOAD = JSON.stringify({ data: [{ id: 1, name: 'Test' }] });
+const EMPTY_LIST_PAYLOAD = JSON.stringify({ data: [] });
 
-vi.mock('../../utils/withHandler', () => ({
-  withHandler: (config: { handler: Function }) => config.handler,
-}));
-
-vi.mock('../../utils/timeoutSignal', () => ({
-  createTimeoutSignal: () => undefined,
-}));
-
-function createMockCtx() {
-  return {
-    requestId: 'test-request-id',
-    startTime: Date.now(),
-    userAgent: 'TestAgent/1.0',
-    isPublicApi: false,
-  };
-}
-
-type MockReq = { query: Record<string, string | string[] | undefined> };
-
-function createJsonResponse(
-  data: unknown,
-  overrides: {
-    ok?: boolean;
+function createUpstreamResponse(
+  body: string,
+  init: {
     status?: number;
     contentType?: string;
     contentLength?: string;
   } = {}
-) {
-  const headers = new Map<string, string>();
-  headers.set('content-type', overrides.contentType ?? 'application/json');
-  if (overrides.contentLength) {
-    headers.set('content-length', overrides.contentLength);
+): Response {
+  const headers = new Headers({
+    'content-type': init.contentType ?? 'application/json',
+  });
+  if (init.contentLength !== undefined) {
+    headers.set('content-length', init.contentLength);
   }
 
+  return new Response(body, { status: init.status ?? 200, headers });
+}
+
+function respondWith(response: Response): void {
+  globalThis.fetch = vi.fn().mockResolvedValue(response);
+}
+
+/** The context `withHandler` hands the proxy once host auth has passed. */
+function createContext(isPublicApi = false): HandlerContext {
   return {
-    ok: overrides.ok ?? true,
-    status: overrides.status ?? 200,
-    headers: { get: (name: string) => headers.get(name) ?? null },
-    json: () => Promise.resolve(data),
+    requestId: 'test-request-id',
+    startTime: Date.now(),
+    userAgent: 'TestAgent/1.0',
+    isPublicApi,
   };
 }
 
-async function importEndpoint(name: string) {
-  switch (name) {
-    case 'films':
-      return import('../films.ts');
-    case 'developers':
-      return import('../developers.ts');
-    case 'combinations':
-      return import('../combinations.ts');
-    default:
-      throw new Error(`Unknown endpoint: ${name}`);
+const originalFetch = globalThis.fetch;
+
+beforeEach(() => {
+  // The proxy logs structured JSON through console (utils/serverlessLogger);
+  // silence it so a passing run stays readable.
+  for (const method of ['log', 'warn', 'error'] as const) {
+    vi.spyOn(console, method).mockImplementation(() => {});
   }
-}
+  vi.stubEnv('SUPABASE_MASTER_API_KEY', 'test-master-key');
+  vi.stubEnv('SUPABASE_ENDPOINT', 'https://test.supabase.co');
+  vi.stubEnv('SUPABASE_PROXY_SECRET', 'test-proxy-secret');
+  respondWith(createUpstreamResponse(LIST_PAYLOAD));
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+  globalThis.fetch = originalFetch;
+});
 
 describe.each([
-  {
-    endpoint: 'films',
-    envKey: 'SUPABASE_ENDPOINT',
-    masterKey: 'SUPABASE_MASTER_API_KEY',
-  },
-  {
-    endpoint: 'developers',
-    envKey: 'SUPABASE_ENDPOINT',
-    masterKey: 'SUPABASE_MASTER_API_KEY',
-  },
-  {
-    endpoint: 'combinations',
-    envKey: 'SUPABASE_ENDPOINT',
-    masterKey: 'SUPABASE_MASTER_API_KEY',
-  },
-])('$endpoint endpoint', ({ endpoint, envKey, masterKey }) => {
-  let handler: Function;
-
-  beforeEach(async () => {
-    vi.resetModules();
-    process.env[masterKey] = 'test-master-key';
-    process.env[envKey] = 'https://test.supabase.co';
-    process.env.SUPABASE_PROXY_SECRET = 'test-proxy-secret';
-
-    const mod = await importEndpoint(endpoint);
-    handler = mod.default;
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-    delete process.env[masterKey];
-    delete process.env[envKey];
-    delete process.env.SUPABASE_PROXY_SECRET;
-  });
+  { endpoint: 'films', config: filmsProxyConfig },
+  { endpoint: 'developers', config: developersProxyConfig },
+  { endpoint: 'combinations', config: combinationsProxyConfig },
+])('$endpoint endpoint', ({ config }) => {
+  const handler = createSupabaseProxyHandler(config);
 
   describe('upstream error handling', () => {
     it('should return 502 for non-OK upstream responses (not reflected status)', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi
-          .fn()
-          .mockResolvedValue(
-            createJsonResponse(null, { ok: false, status: 403 })
-          )
-      );
+      respondWith(createUpstreamResponse('', { status: 403 }));
 
-      const req = { query: {} } as MockReq;
-      const res = {
-        _status: 0,
-        _json: undefined as unknown,
-        _headers: {} as Record<string, string>,
-        setHeader(name: string, value: string) {
-          this._headers[name] = value;
-          return this;
-        },
-        status(code: number) {
-          this._status = code;
-          return this;
-        },
-        json(body: unknown) {
-          this._json = body;
-          return this;
-        },
-      };
-
-      await handler(req, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
 
       expect(res._status).toBe(502);
-      const body = res._json as Record<string, unknown>;
-      expect(body.error).toBe('External API error');
-      expect(body).not.toHaveProperty('status');
+      expect(res._json).toMatchObject({ error: 'External API error' });
+      expect(res._json).not.toHaveProperty('status');
     });
 
-    it('should not include upstream status codes like 401, 500 in response', async () => {
-      // Each case mutates the shared global fetch stub, so the cases must run
-      // sequentially; extract the per-case body so the await isn't in the loop.
-      async function assertUpstreamStatusHidden(upstreamStatus: number) {
-        vi.stubGlobal(
-          'fetch',
-          vi
-            .fn()
-            .mockResolvedValue(
-              createJsonResponse(null, { ok: false, status: upstreamStatus })
-            )
-        );
+    it.each([
+      401, 403, 500, 503,
+    ])('should not include upstream status %i in the response', async (upstreamStatus) => {
+      respondWith(createUpstreamResponse('', { status: upstreamStatus }));
 
-        const res = {
-          _status: 0,
-          _json: undefined as unknown,
-          _headers: {} as Record<string, string>,
-          setHeader(n: string, v: string) {
-            this._headers[n] = v;
-            return this;
-          },
-          status(code: number) {
-            this._status = code;
-            return this;
-          },
-          json(body: unknown) {
-            this._json = body;
-            return this;
-          },
-        };
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
 
-        await handler({ query: {} } as MockReq, res, createMockCtx());
-
-        expect(res._status).toBe(502);
-        const body = res._json as Record<string, unknown>;
-        expect(body).not.toHaveProperty('status');
-      }
-
-      // Sequential promise chain (shared fetch stub forbids concurrency)
-      // keeps each await out of a loop body.
-      await [401, 403, 500, 503].reduce(
-        (chain, upstreamStatus) =>
-          chain.then(() => assertUpstreamStatusHidden(upstreamStatus)),
-        Promise.resolve()
-      );
+      expect(res._status).toBe(502);
+      expect(res._json).not.toHaveProperty('status');
     });
   });
 
   describe('content type error handling', () => {
     it('should not include contentType in error response body', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue(
-          createJsonResponse(null, {
-            ok: true,
-            status: 200,
-            contentType: 'text/html',
-          })
-        )
+      respondWith(
+        createUpstreamResponse('<html></html>', { contentType: 'text/html' })
       );
 
-      const res = {
-        _status: 0,
-        _json: undefined as unknown,
-        _headers: {} as Record<string, string>,
-        setHeader(n: string, v: string) {
-          this._headers[n] = v;
-          return this;
-        },
-        status(code: number) {
-          this._status = code;
-          return this;
-        },
-        json(body: unknown) {
-          this._json = body;
-          return this;
-        },
-      };
-
-      await handler({ query: {} } as MockReq, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
 
       expect(res._status).toBe(502);
-      const body = res._json as Record<string, unknown>;
-      expect(body.error).toBe('Invalid response format');
-      expect(body).not.toHaveProperty('contentType');
+      expect(res._json).toMatchObject({ error: 'Invalid response format' });
+      expect(res._json).not.toHaveProperty('contentType');
     });
   });
 
   describe('response size limit', () => {
     it('should reject responses exceeding 1MB', async () => {
-      const oversizeLength = String(1024 * 1024 + 1);
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue(
-          createJsonResponse(
-            { data: [] },
-            {
-              ok: true,
-              status: 200,
-              contentType: 'application/json',
-              contentLength: oversizeLength,
-            }
-          )
-        )
+      respondWith(
+        createUpstreamResponse(EMPTY_LIST_PAYLOAD, {
+          contentLength: String(1024 * 1024 + 1),
+        })
       );
 
-      const res = {
-        _status: 0,
-        _json: undefined as unknown,
-        _headers: {} as Record<string, string>,
-        setHeader(n: string, v: string) {
-          this._headers[n] = v;
-          return this;
-        },
-        status(code: number) {
-          this._status = code;
-          return this;
-        },
-        json(body: unknown) {
-          this._json = body;
-          return this;
-        },
-      };
-
-      await handler({ query: {} } as MockReq, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
 
       expect(res._status).toBe(502);
-      expect((res._json as Record<string, unknown>).error).toBe(
-        'Response too large'
-      );
+      expect(res._json).toMatchObject({ error: 'Response too large' });
     });
 
     it('should allow responses within 1MB', async () => {
-      const validLength = String(1024 * 1024);
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue(
-          createJsonResponse(
-            { data: [] },
-            {
-              ok: true,
-              status: 200,
-              contentType: 'application/json',
-              contentLength: validLength,
-            }
-          )
-        )
+      respondWith(
+        createUpstreamResponse(EMPTY_LIST_PAYLOAD, {
+          contentLength: String(1024 * 1024),
+        })
       );
 
-      const res = {
-        _status: 0,
-        _json: undefined as unknown,
-        _headers: {} as Record<string, string>,
-        setHeader(n: string, v: string) {
-          this._headers[n] = v;
-          return this;
-        },
-        status(code: number) {
-          this._status = code;
-          return this;
-        },
-        json(body: unknown) {
-          this._json = body;
-          return this;
-        },
-      };
-
-      await handler({ query: {} } as MockReq, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
 
       expect(res._status).toBe(200);
     });
 
     it('should allow responses without content-length header', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue(
-          createJsonResponse(
-            { data: [] },
-            {
-              ok: true,
-              status: 200,
-              contentType: 'application/json',
-            }
-          )
-        )
-      );
+      respondWith(createUpstreamResponse(EMPTY_LIST_PAYLOAD));
 
-      const res = {
-        _status: 0,
-        _json: undefined as unknown,
-        _headers: {} as Record<string, string>,
-        setHeader(n: string, v: string) {
-          this._headers[n] = v;
-          return this;
-        },
-        status(code: number) {
-          this._status = code;
-          return this;
-        },
-        json(body: unknown) {
-          this._json = body;
-          return this;
-        },
-      };
-
-      await handler({ query: {} } as MockReq, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
 
       expect(res._status).toBe(200);
     });
@@ -353,183 +152,59 @@ describe.each([
 
   describe('successful responses', () => {
     it('should return 200 with data for successful upstream response', async () => {
-      const mockData = { data: [{ id: 1, name: 'Test' }] };
-      vi.stubGlobal(
-        'fetch',
-        vi
-          .fn()
-          .mockResolvedValue(
-            createJsonResponse(mockData, { ok: true, status: 200 })
-          )
-      );
-
-      const res = {
-        _status: 0,
-        _json: undefined as unknown,
-        _headers: {} as Record<string, string>,
-        setHeader(n: string, v: string) {
-          this._headers[n] = v;
-          return this;
-        },
-        status(code: number) {
-          this._status = code;
-          return this;
-        },
-        json(body: unknown) {
-          this._json = body;
-          return this;
-        },
-      };
-
-      await handler({ query: {} } as MockReq, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
 
       expect(res._status).toBe(200);
-      expect(res._json).toEqual(mockData);
+      expect(res._json).toEqual(JSON.parse(LIST_PAYLOAD));
     });
   });
 
   describe('cache-control header', () => {
     it('should set an edge-cacheable Cache-Control header for website requests', async () => {
-      const mockData = { data: [{ id: 1, name: 'Test' }] };
-      vi.stubGlobal(
-        'fetch',
-        vi
-          .fn()
-          .mockResolvedValue(
-            createJsonResponse(mockData, { ok: true, status: 200 })
-          )
-      );
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
 
-      const res = {
-        _status: 0,
-        _json: undefined as unknown,
-        _headers: {} as Record<string, string>,
-        setHeader(n: string, v: string) {
-          this._headers[n] = v;
-          return this;
-        },
-        status(code: number) {
-          this._status = code;
-          return this;
-        },
-        json(body: unknown) {
-          this._json = body;
-          return this;
-        },
-      };
-
-      await handler({ query: {} } as MockReq, res, createMockCtx());
-
-      expect(res._headers['Cache-Control']).toContain('s-maxage=300');
+      expect(res._headers['cache-control']).toContain('s-maxage=300');
     });
 
     it('should keep the public API Cache-Control header as private, no-store', async () => {
-      const mockData = { data: [{ id: 1, name: 'Test' }] };
-      vi.stubGlobal(
-        'fetch',
-        vi
-          .fn()
-          .mockResolvedValue(
-            createJsonResponse(mockData, { ok: true, status: 200 })
-          )
-      );
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext(true));
 
-      const res = {
-        _status: 0,
-        _json: undefined as unknown,
-        _headers: {} as Record<string, string>,
-        setHeader(n: string, v: string) {
-          this._headers[n] = v;
-          return this;
-        },
-        status(code: number) {
-          this._status = code;
-          return this;
-        },
-        json(body: unknown) {
-          this._json = body;
-          return this;
-        },
-      };
-
-      await handler({ query: {} } as MockReq, res, {
-        ...createMockCtx(),
-        isPublicApi: true,
-      });
-
-      expect(res._headers['Cache-Control']).toBe('private, no-store');
+      expect(res._headers['cache-control']).toBe('private, no-store');
     });
   });
 
   describe('shared secret', () => {
     it('should send x-proxy-secret on the outbound fetch to Supabase', async () => {
-      const fetchMock = vi
-        .fn()
-        .mockResolvedValue(createJsonResponse({ data: [] }, { ok: true }));
-      vi.stubGlobal('fetch', fetchMock);
+      const sent: (RequestInit | undefined)[] = [];
+      globalThis.fetch = vi.fn(
+        (_url: RequestInfo | URL, init?: RequestInit) => {
+          sent.push(init);
+          return Promise.resolve(createUpstreamResponse(EMPTY_LIST_PAYLOAD));
+        }
+      );
 
-      const res = {
-        _status: 0,
-        _json: undefined as unknown,
-        _headers: {} as Record<string, string>,
-        setHeader(n: string, v: string) {
-          this._headers[n] = v;
-          return this;
-        },
-        status(code: number) {
-          this._status = code;
-          return this;
-        },
-        json(body: unknown) {
-          this._json = body;
-          return this;
-        },
-      };
+      await handler(createMockRequest(), createMockResponse(), createContext());
 
-      await handler({ query: {} } as MockReq, res, createMockCtx());
-
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-      const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
-      const headers = requestInit.headers as Record<string, string>;
-      expect(headers['x-proxy-secret']).toBe('test-proxy-secret');
+      expect(sent).toHaveLength(1);
+      const headers = new Headers(sent[0]?.headers);
+      expect(headers.get('x-proxy-secret')).toBe('test-proxy-secret');
     });
 
     it('should mask an upstream 401 as a 502 with no upstream detail', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi
-          .fn()
-          .mockResolvedValue(
-            createJsonResponse(
-              { error: 'Unauthorized' },
-              { ok: false, status: 401 }
-            )
-          )
+      respondWith(
+        createUpstreamResponse(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+        })
       );
 
-      const res = {
-        _status: 0,
-        _json: undefined as unknown,
-        _headers: {} as Record<string, string>,
-        setHeader(n: string, v: string) {
-          this._headers[n] = v;
-          return this;
-        },
-        status(code: number) {
-          this._status = code;
-          return this;
-        },
-        json(body: unknown) {
-          this._json = body;
-          return this;
-        },
-      };
-
-      await handler({ query: {} } as MockReq, res, createMockCtx());
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
 
       expect(res._status).toBe(502);
-      const bodyText = JSON.stringify(res._json);
-      expect(bodyText).not.toContain('Unauthorized');
+      expect(JSON.stringify(res._json)).not.toContain('Unauthorized');
     });
   });
 });

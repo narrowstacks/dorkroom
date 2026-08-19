@@ -558,10 +558,12 @@ describe('useBorderCalculator', () => {
       expect(calc).not.toBeNull();
       if (!calc) return;
 
-      // With max positive offset on large paper, borders should exist
-      // Whether they're positive depends on print size vs offset
-      expect(typeof calc.leftBorder).toBe('number');
-      expect(typeof calc.rightBorder).toBe('number');
+      // The offset slides the print without changing the paper it covers
+      expect(calc.leftBorder + calc.printWidth + calc.rightBorder).toBeCloseTo(
+        calc.paperWidth,
+        5
+      );
+      expect(calc.leftBorder).toBeGreaterThan(calc.rightBorder);
 
       act(() => {
         result.current.setHorizontalOffset(-3); // max negative
@@ -571,9 +573,12 @@ describe('useBorderCalculator', () => {
       expect(calc).not.toBeNull();
       if (!calc) return;
 
-      // With max negative offset, borders swap
-      expect(typeof calc.leftBorder).toBe('number');
-      expect(typeof calc.rightBorder).toBe('number');
+      // With max negative offset, the borders swap
+      expect(calc.leftBorder + calc.printWidth + calc.rightBorder).toBeCloseTo(
+        calc.paperWidth,
+        5
+      );
+      expect(calc.rightBorder).toBeGreaterThan(calc.leftBorder);
     });
   });
 

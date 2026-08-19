@@ -1,8 +1,8 @@
 import { createMMKV } from 'react-native-mmkv';
 import { generateId } from '@/lib/id';
 
-const storage = createMMKV({ id: 'dorkroom-client-id' });
-const KEY = 'clientId';
+export const storage = createMMKV({ id: 'dorkroom-client-id' });
+export const KEY = 'clientId';
 
 /**
  * Stable per-install identity sent as `X-Client-Id` so the shared public API

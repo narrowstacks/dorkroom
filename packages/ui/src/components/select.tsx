@@ -14,22 +14,6 @@ interface SelectProps {
   ariaLabel?: string;
 }
 
-/**
- * Build a change handler that reports the option table's own value type: a
- * `<select>` hands back a plain string, so look it up in the rendered options.
- */
-export function optionChangeHandler<TValue extends string>(
-  items: readonly { readonly value: TValue }[],
-  onChange: (value: TValue) => void
-): (value: string) => void {
-  return (value) => {
-    const item = items.find((candidate) => candidate.value === value);
-    if (item) {
-      onChange(item.value);
-    }
-  };
-}
-
 export function Select({
   label,
   selectedValue,

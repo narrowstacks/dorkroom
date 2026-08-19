@@ -1,219 +1,202 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
-import { useStats } from '@dorkroom/logic';
+import type { Stats } from '@dorkroom/api';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Outlet,
+  RouterProvider,
+} from '@tanstack/react-router';
 import { render, screen } from '@testing-library/react';
-import type { ReactNode } from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { HomePage } from '../home-page';
 
-// Mock the hooks - vi.mocked() provides better type inference
-vi.mock('@dorkroom/logic', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@dorkroom/logic')>();
-  return {
-    ...actual,
-    useStats: vi.fn(),
-  };
-});
+// The page's numbers come through the real chain: useStats → apiClient.fetchStats
+// → fetch('/api/stats'). Only the network boundary is replaced, so the hook, its
+// query key, the response schema and the pending/error transitions are the real
+// ones. Any other request is a bug in this test, so it throws rather than 404s.
+const STATS: Stats = { films: 151, developers: 24, combinations: 1020 };
 
-// Mock TanStack Router's Link to render as <a>
-vi.mock('@tanstack/react-router', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@tanstack/react-router')>();
-  return {
-    ...actual,
-    Link: ({
-      to,
-      search,
-      children,
-      className,
-      ...props
-    }: {
-      to: string;
-      search?: Record<string, string>;
-      children: ReactNode;
-      className?: string;
-    }) => {
-      const searchParams = search
-        ? `?${new URLSearchParams(search).toString()}`
-        : '';
-      return (
-        <a href={`${to}${searchParams}`} className={className} {...props}>
-          {children}
-        </a>
-      );
-    },
-  };
-});
+function serveStats(respond: () => Promise<Response>): void {
+  vi.stubGlobal('fetch', (input: string | URL | Request) => {
+    const url = input instanceof Request ? input.url : String(input);
+    if (!url.endsWith('/api/stats')) {
+      throw new Error(`HomePage requested something unexpected: ${url}`);
+    }
+    return respond();
+  });
+}
 
-// Default mock return values
-const defaultMocks = {
-  useStats: {
-    data: { films: 151, developers: 24, combinations: 1020 },
-    isPending: false,
-    error: null,
-  },
-};
+const statsResponse = (stats: Stats) =>
+  Promise.resolve(
+    new Response(JSON.stringify(stats), {
+      headers: { 'content-type': 'application/json' },
+    })
+  );
 
-const createWrapper = () => {
+/** Every route HomePage links to, so the router builds its hrefs for real. */
+const LINKED_PATHS = [
+  '/border',
+  '/stops',
+  '/resize',
+  '/mat',
+  '/reciprocity',
+  '/development',
+  '/lenses',
+  '/exposure',
+  '/films',
+];
+
+async function renderHomePage() {
+  const rootRoute = createRootRoute({ component: Outlet });
+  const indexRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/',
+    component: HomePage,
+  });
+  const linkTargets = LINKED_PATHS.map((path) =>
+    createRoute({
+      getParentRoute: () => rootRoute,
+      path,
+      component: () => null,
+    })
+  );
+  const router = createRouter({
+    routeTree: rootRoute.addChildren([indexRoute, ...linkTargets]),
+    history: createMemoryHistory({ initialEntries: ['/'] }),
+  });
+  // A fresh client per render keeps one test's stats out of the next one's cache.
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
 
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
-  };
-};
+  render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  );
+
+  return screen.findByRole('heading', { level: 1 });
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe('HomePage', () => {
-  let Wrapper: ReturnType<typeof createWrapper>;
+  it('renders the hero stats once the stats request resolves', async () => {
+    serveStats(() => statsResponse(STATS));
 
-  beforeEach(() => {
-    // Reset mocks to default values using vi.mocked() for type safety
-    vi.mocked(useStats).mockReturnValue(defaultMocks.useStats);
+    await renderHomePage();
 
-    // Create fresh wrapper with new QueryClient to prevent cache pollution
-    Wrapper = createWrapper();
-  });
-
-  it('renders without crashing when all data is loaded', () => {
-    expect(() =>
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      )
-    ).not.toThrow();
+    expect(await screen.findByText('1,020')).toBeInTheDocument();
+    expect(screen.getByText('151')).toBeInTheDocument();
+    expect(screen.getByText('24')).toBeInTheDocument();
   });
 
   // Note: Visual regression testing is handled by Chromatic (see e2e/homepage.spec.ts)
 
   describe('data states', () => {
-    it('handles loading state when data is pending', () => {
-      vi.mocked(useStats).mockReturnValue({
-        data: undefined,
-        isPending: true,
-        error: null,
-      });
+    it('shows a placeholder for every stat while the request is in flight', async () => {
+      serveStats(() => new Promise<Response>(() => {}));
 
-      expect(() =>
-        render(
-          <Wrapper>
-            <HomePage />
-          </Wrapper>
-        )
-      ).not.toThrow();
+      await renderHomePage();
+
+      expect(screen.getAllByText('-')).toHaveLength(3);
     });
 
-    it('handles API error gracefully with fallback content', () => {
-      vi.mocked(useStats).mockReturnValue({
-        data: undefined,
-        isPending: false,
-        error: new Error('Failed to fetch'),
-      });
-
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
+    it('handles API error gracefully with fallback content', async () => {
+      serveStats(() =>
+        Promise.resolve(
+          new Response('no stats for you', {
+            status: 500,
+            statusText: 'Server Error',
+          })
+        )
       );
 
-      // HomePage gracefully degrades - shows "-" for missing data instead of error message
-      // The page should still render with main content visible
-      expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+      const heading = await renderHomePage();
 
-      // Tools section should still be visible (static content, not API-dependent)
+      // HomePage gracefully degrades - shows "-" for missing data instead of an
+      // error message, and the rest of the page still renders.
+      expect(heading).toBeVisible();
+      expect(screen.getAllByText('-')).toHaveLength(3);
       expect(
         screen.getByRole('heading', { name: /tools/i, level: 2 })
       ).toBeInTheDocument();
     });
 
-    it('handles empty stats gracefully', () => {
-      vi.mocked(useStats).mockReturnValue({
-        data: { films: 0, developers: 0, combinations: 0 },
-        isPending: false,
-        error: null,
-      });
+    it('handles empty stats gracefully', async () => {
+      serveStats(() =>
+        statsResponse({ films: 0, developers: 0, combinations: 0 })
+      );
 
-      expect(() =>
-        render(
-          <Wrapper>
-            <HomePage />
-          </Wrapper>
-        )
-      ).not.toThrow();
+      await renderHomePage();
+
+      expect(await screen.findAllByText('0')).toHaveLength(3);
     });
   });
 
   describe('accessibility', () => {
-    it('has proper heading hierarchy with single h1', () => {
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+    it('has proper heading hierarchy with single h1', async () => {
+      serveStats(() => statsResponse(STATS));
+
+      await renderHomePage();
 
       // Page should have exactly one h1 for proper document structure
-      const h1s = screen.queryAllByRole('heading', { level: 1 });
-      expect(h1s).toHaveLength(1);
+      expect(screen.queryAllByRole('heading', { level: 1 })).toHaveLength(1);
 
       // Should have section headings (h2s)
-      const h2s = screen.getAllByRole('heading', { level: 2 });
-      expect(h2s.length).toBeGreaterThan(0);
+      expect(
+        screen.getAllByRole('heading', { level: 2 }).length
+      ).toBeGreaterThan(0);
     });
 
-    it('all links have accessible names', () => {
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+    it('all links have accessible names', async () => {
+      serveStats(() => statsResponse(STATS));
 
-      const links = screen.getAllByRole('link');
-      for (const link of links) {
+      await renderHomePage();
+
+      for (const link of screen.getAllByRole('link')) {
         expect(link).toHaveAccessibleName();
       }
     });
 
-    it('external links have security attributes', () => {
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+    it('external links have security attributes', async () => {
+      serveStats(() => statsResponse(STATS));
 
-      const links = screen.getAllByRole('link');
+      await renderHomePage();
+
       // Match only http/https URLs, excluding protocol-relative (//), mailto:, tel:, etc.
-      const externalLinks = links.filter((link) =>
-        link.getAttribute('href')?.match(/^https?:\/\//)
-      );
+      const externalLinks = screen
+        .getAllByRole('link')
+        .filter((link) => /^https?:\/\//.test(link.getAttribute('href') ?? ''));
+      expect(externalLinks.length).toBeGreaterThan(0);
 
       for (const link of externalLinks) {
         expect(link).toHaveAttribute('target', '_blank');
         // noreferrer implies noopener in modern browsers
-        const rel = link.getAttribute('rel');
-        expect(rel).toContain('noreferrer');
+        expect(link.getAttribute('rel')).toContain('noreferrer');
       }
     });
   });
 
   describe('navigation', () => {
-    it('calculator links point to valid routes', () => {
-      render(
-        <Wrapper>
-          <HomePage />
-        </Wrapper>
-      );
+    it('calculator links point to routes the router knows', async () => {
+      serveStats(() => statsResponse(STATS));
 
-      const links = screen.getAllByRole('link');
-      const internalLinks = links.filter(
-        (link) => !link.getAttribute('href')?.startsWith('http')
-      );
+      await renderHomePage();
 
-      for (const link of internalLinks) {
-        expect(link).toHaveAttribute('href');
-        expect(link.getAttribute('href')).toMatch(/^\//);
+      const internalHrefs = screen
+        .getAllByRole('link')
+        .map((link) => link.getAttribute('href') ?? '')
+        .filter((href) => !href.startsWith('http'));
+      expect(internalHrefs.length).toBeGreaterThan(0);
+
+      for (const href of internalHrefs) {
+        expect(LINKED_PATHS).toContain(href);
       }
     });
   });
