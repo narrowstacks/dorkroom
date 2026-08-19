@@ -7,6 +7,26 @@
     color: var(--color-text-primary);
   }
 
+  /* Paint the theme backdrop on the root canvas as well as on the fixed
+     .backdrop-gradient layer, so overscroll (rubber-band) regions show the
+     gradient rather than a flat color. The background-color longhand is the
+     flat tint iOS 26+ Safari composites under its chrome bands — see the
+     --backdrop / --backdrop-edge notes in utilities.css. */
+  html {
+    background: var(--backdrop, var(--color-background));
+    background-color: var(--backdrop-edge, var(--color-background));
+    background-repeat: var(--backdrop-repeat, repeat);
+  }
+
+  /* iOS 26+ Safari's chrome-band sampler rejects this app's fixed backdrop
+     layer (a WebKit heuristic quirk triggered by the full stylesheet — see
+     the notes in utilities.css) and falls back to body's background-color,
+     so body must carry the edge tint too. It is never visible in-page: the
+     fixed backdrop covers the whole viewport. */
+  body {
+    background-color: var(--backdrop-edge, var(--color-background));
+  }
+
   ::selection {
     @apply bg-primary/40;
     color: var(--color-text-primary);

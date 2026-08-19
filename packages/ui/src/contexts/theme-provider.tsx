@@ -73,19 +73,22 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
           shouldDisableAnimations ? 'true' : 'false'
         );
 
-        // Sync iOS Safari's browser-chrome color (status bar + toolbar
-        // background-extension bands) to the active theme's background. The
-        // static meta in index.html is near-black (#09090b); without this it
-        // shows as a black band in light/high-contrast themes — most visibly
-        // at the top and behind the bottom toolbar while the mobile menu is
-        // open (the page is dimmed, so the chrome bands stand out).
+        // Sync browser-chrome color (status bar + toolbar background-extension
+        // bands) to the active theme. The static meta in index.html is
+        // near-black (#09090b); without this it shows as a black band in
+        // light/high-contrast themes. iOS 26+ ignores theme-color entirely
+        // (it samples body/fixed-element background-color instead — see
+        // --backdrop-edge in the app's utilities.css), but older iOS and
+        // Android still use it, so keep it aligned with the same edge tint.
         const themeColorMeta = document.querySelector<HTMLMetaElement>(
           'meta[name="theme-color"]'
         );
         if (themeColorMeta) {
-          const background = getComputedStyle(document.documentElement)
-            .getPropertyValue('--color-background')
-            .trim();
+          const rootStyle = getComputedStyle(document.documentElement);
+          const background = (
+            rootStyle.getPropertyValue('--backdrop-edge') ||
+            rootStyle.getPropertyValue('--color-background')
+          ).trim();
           if (background) {
             themeColorMeta.setAttribute('content', background);
           }
