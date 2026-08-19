@@ -55,8 +55,8 @@ npx react-doctor@latest --verbose         # unpinned; track the latest ruleset
   mean `bun run test` passes (and the gate's typecheck is a no-op on the
   solution tsconfigs). Always run **both** `bun run test` and React Doctor.
 - Config lives in **`doctor.config.json`** at the repo root. It ignores
-  generated/vendored/non-React trees (`.design-sync`, `.ds-sync`, `ds-bundle`,
-  `supabase/functions`) and the `deslop/unused-*` dead-code rules. Those
+  generated/vendored/non-React trees (`supabase/functions`) and the
+  `deslop/unused-*` dead-code rules. Those
   dead-code rules are disabled because react-doctor's import analysis cannot
   resolve this repo's `@/` path alias, Vercel `api/` serverless entrypoints,
   Vitest manual mocks (`__mocks__`), `.mjs` build scripts, or shell-script CLI

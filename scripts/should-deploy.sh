@@ -32,14 +32,12 @@ fi
 # Skip if changes are ONLY in these paths/files.
 # - apps/mobile is the React Native (Expo) app — Vercel builds the web app only,
 #   so commits touching only the mobile app must not trigger a web deployment.
-# - .design-sync/.ds-sync/ds-bundle are Claude Design preview/vendored trees the
-#   web build never imports.
 # - supabase/ (Deno edge functions + DB migrations) deploys to Supabase, and
 #   docker/ (self-host entrypoint) deploys outside Vercel — neither feeds the build.
 # - resources/ holds README/marketing assets only.
 # NOTE: types/ and utils/ are intentionally NOT here — they're imported by the
 # app and api/, so changes there must still trigger a build.
-NON_BUILD_PATTERNS="(^docs/|^scripts/|^\.github/|^\.cursor/|^\.vscode/|^\.claude/|^\.superpowers/|^\.design-sync/|^\.ds-sync/|^ds-bundle/|^apps/mobile/|^supabase/|^docker/|^resources/|\.md$|^LICENSE$|^NOTICE$|^\.gitignore$|^\.dockerignore$|^\.editorconfig$)"
+NON_BUILD_PATTERNS="(^docs/|^scripts/|^\.github/|^\.cursor/|^\.vscode/|^\.claude/|^\.superpowers/|^apps/mobile/|^supabase/|^docker/|^resources/|\.md$|^LICENSE$|^NOTICE$|^\.gitignore$|^\.dockerignore$|^\.editorconfig$)"
 
 # Check if ANY changed file is NOT in the skip patterns
 if echo "$CHANGED_FILES" | grep -qvE "$NON_BUILD_PATTERNS"; then
