@@ -322,9 +322,7 @@
   [data-animations-disabled="true"] *,
   [data-animations-disabled="true"] *::before,
   [data-animations-disabled="true"] *::after {
-    /* biome-ignore lint/complexity/noImportantStyles: Required to override inline styles in components */
     animation: none !important;
-    /* biome-ignore lint/complexity/noImportantStyles: Required to override inline styles in components */
     transition: none !important;
   }
 
