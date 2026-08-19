@@ -86,6 +86,29 @@ CI gate. Dependency pinning is two-tier, backstopped by the `bunfig.toml`
 `minimumReleaseAge` gate. See the `toolchain` skill (`.claude/skills/toolchain/`)
 for the full policy and rationale.
 
+## Vercel Runtime
+
+**Never pin `@vercel/node` in `vercel.json`.** It is an *official* builder: the
+build image installs the version bundled with its own CLI and then hard-fails if
+a `functions[].runtime` pin disagrees —
+
+```
+> Installing Builder: @vercel/node@5.10.1
+Error: Failed to load Builders after installing them: @vercel/node@5.9.0 (version-mismatch)
+```
+
+A pin can only match by coincidence, and Vercel rolls the image forward on its
+own schedule. This repo chased that treadmill four times (5.3.0 → 5.6.3 →
+5.8.26 → 5.9.0) before removing it. `functions[].runtime` is for **community**
+runtimes (`vercel-php@0.5.2`) only. Zero-config `api/` detection already builds
+every entrypoint — it always did, which is why `api/og.tsx` deployed fine
+despite never matching the old `api/**/*.ts` glob.
+
+The Node major is set by root `package.json` `engines.node`, which **overrides**
+the Vercel dashboard setting — change it here, not there. Diagnose build
+failures from the full log (the `Installing Builder` line above the error names
+the real cause), not the error string alone.
+
 ## Pull Requests
 
 **Every PR that changes rendered output must include before/after screenshots.**
