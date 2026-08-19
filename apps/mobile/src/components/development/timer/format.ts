@@ -43,13 +43,13 @@ export function formatTemp(temperatureF: number | null): string | null {
 }
 
 /** Human label for a stage kind, used in the preset editor's kind picker. */
-const KIND_LABELS: Record<StageKind, string> = {
+const KIND_LABELS = {
   dev: 'Develop',
   stop: 'Stop',
   fix: 'Fix',
   wash: 'Wash',
   custom: 'Custom',
-};
+} satisfies Record<StageKind, string>;
 
 export function stageKindLabel(kind: StageKind): string {
   return KIND_LABELS[kind];

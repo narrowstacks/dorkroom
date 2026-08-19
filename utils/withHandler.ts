@@ -67,7 +67,7 @@ function getHeaderValue(value: string | string[] | undefined): string {
     return value[0] ?? '';
   }
 
-  return typeof value === 'string' ? value : '';
+  return value ?? '';
 }
 
 function normalizeHost(value: string): string {
@@ -578,9 +578,7 @@ function setVaryHeader(res: VercelResponse, value: string): void {
   const current = res.getHeader('Vary');
   const existing = Array.isArray(current)
     ? current.join(',')
-    : typeof current === 'string'
-      ? current
-      : '';
+    : String(current ?? '');
 
   const values = new Set(
     existing.split(',').flatMap((item) => {

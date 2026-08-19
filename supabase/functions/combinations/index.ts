@@ -142,7 +142,7 @@ serve(async (req) => {
       }
 
       if (filmData && filmData.length > 0) {
-        const aliases = (filmData[0].aliases || []) as Array<{ slug: string }>;
+        const aliases: { slug: string }[] = filmData[0].aliases || [];
         const allSlugs = [filmData[0].slug, ...aliases.map((a) => a.slug)];
         dbQuery = dbQuery.in('film_stock', allSlugs);
       } else {

@@ -9,7 +9,7 @@ import {
 import { useMemo, useState } from 'react';
 import { cn } from '../../lib/cn';
 import { setStyles } from '../../lib/dom';
-import { Select } from '../select';
+import { optionChangeHandler, Select } from '../select';
 import { TextInput } from '../text-input';
 
 interface CustomRecipeFormProps {
@@ -44,6 +44,18 @@ const defaultCustomDeveloper = (): CustomDeveloperData => ({
   safetyNotes: '',
   dilutions: [{ name: 'Stock', dilution: 'Stock' }],
 });
+
+const COLOR_TYPE_OPTIONS = [
+  { label: 'Black & White', value: 'bw' },
+  { label: 'Color', value: 'color' },
+  { label: 'Slide', value: 'slide' },
+] as const;
+
+const FILM_OR_PAPER_OPTIONS = [
+  { label: 'Film', value: 'film' },
+  { label: 'Paper', value: 'paper' },
+  { label: 'Both', value: 'both' },
+] as const;
 
 type ChangeHandler = <K extends keyof CustomRecipeFormData>(
   key: K,
@@ -139,17 +151,11 @@ function FilmSection({
           <Select
             label="Color type"
             selectedValue={formData.customFilm?.colorType || 'bw'}
-            onValueChange={(value) =>
-              onCustomFilmChange(
-                'colorType',
-                value as CustomFilmData['colorType']
-              )
-            }
-            items={[
-              { label: 'Black & White', value: 'bw' },
-              { label: 'Color', value: 'color' },
-              { label: 'Slide', value: 'slide' },
-            ]}
+            onValueChange={optionChangeHandler(
+              COLOR_TYPE_OPTIONS,
+              (colorType) => onCustomFilmChange('colorType', colorType)
+            )}
+            items={COLOR_TYPE_OPTIONS}
           />
           <TextInput
             label="Grain structure"
@@ -248,17 +254,12 @@ function DeveloperSection({
           <Select
             label="Film or paper"
             selectedValue={formData.customDeveloper?.filmOrPaper || 'film'}
-            onValueChange={(value) =>
-              onCustomDeveloperChange(
-                'filmOrPaper',
-                value as CustomDeveloperData['filmOrPaper']
-              )
-            }
-            items={[
-              { label: 'Film', value: 'film' },
-              { label: 'Paper', value: 'paper' },
-              { label: 'Both', value: 'both' },
-            ]}
+            onValueChange={optionChangeHandler(
+              FILM_OR_PAPER_OPTIONS,
+              (filmOrPaper) =>
+                onCustomDeveloperChange('filmOrPaper', filmOrPaper)
+            )}
+            items={FILM_OR_PAPER_OPTIONS}
           />
           <TextInput
             label="Working life (hours)"

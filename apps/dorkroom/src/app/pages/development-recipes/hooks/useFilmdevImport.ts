@@ -1,5 +1,6 @@
 import type { Developer, Film } from '@dorkroom/api';
 import type {
+  CustomRecipe,
   CustomRecipeFormData,
   FilmdevMappingResult,
 } from '@dorkroom/logic';
@@ -17,7 +18,7 @@ import { type Dispatch, type SetStateAction, useCallback } from 'react';
 export interface UseFilmdevImportProps {
   // Recipe operations
   addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
-  refreshCustomRecipes: () => Promise<unknown>;
+  refreshCustomRecipes: () => Promise<CustomRecipe[]>;
 
   // Film/Developer data
   allFilms: Film[];
@@ -194,6 +195,8 @@ export function useFilmdevImport({
                   reciprocityFailure: null,
                   discontinued: false,
                   staticImageUrl: null,
+                  aliases: [],
+                  baseFilmSlug: null,
                   dateAdded: new Date().toISOString(),
                   createdAt: new Date().toISOString(),
                   updatedAt: new Date().toISOString(),

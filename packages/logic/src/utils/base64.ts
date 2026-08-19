@@ -3,11 +3,11 @@
  * Works in both browser (btoa) and Node.js (Buffer) environments.
  */
 export function encodeBase64(input: string): string {
-  if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
+  if (globalThis.window !== undefined && window.btoa !== undefined) {
     return window.btoa(input);
   }
 
-  if (typeof Buffer !== 'undefined') {
+  if (globalThis.Buffer !== undefined) {
     return Buffer.from(input, 'utf8').toString('base64');
   }
 
@@ -19,11 +19,11 @@ export function encodeBase64(input: string): string {
  * Works in both browser (atob) and Node.js (Buffer) environments.
  */
 export function decodeBase64(input: string): string {
-  if (typeof window !== 'undefined' && typeof window.atob === 'function') {
+  if (globalThis.window !== undefined && window.atob !== undefined) {
     return window.atob(input);
   }
 
-  if (typeof Buffer !== 'undefined') {
+  if (globalThis.Buffer !== undefined) {
     return Buffer.from(input, 'base64').toString('utf8');
   }
 

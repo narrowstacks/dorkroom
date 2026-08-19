@@ -8,7 +8,7 @@ import { dimensionValidator } from './validators';
 
 const dimensionNumber = dimensionValidator();
 
-const aspectRatioOptions = [
+export const aspectRatioOptions = [
   'custom',
   'even-borders',
   '3:2',
@@ -26,7 +26,7 @@ const aspectRatioOptions = [
   '2.76:1',
 ] as const;
 
-const paperSizeOptions = [
+export const paperSizeOptions = [
   'custom',
   '5x7',
   '3.875x5.875',
@@ -36,16 +36,22 @@ const paperSizeOptions = [
   '20x24',
 ] as const;
 
+/** Runtime contract for `AspectRatioValue`. */
+export const aspectRatioValueSchema = z.enum(aspectRatioOptions);
+
+/** Runtime contract for `PaperSizeValue`. */
+export const paperSizeValueSchema = z.enum(paperSizeOptions);
+
 export const borderCalculatorSchema = z.object({
   // Paper Setup
-  aspectRatio: z.enum(aspectRatioOptions),
+  aspectRatio: aspectRatioValueSchema,
   customAspectWidth: dimensionNumber
     .optional()
     .default(BORDER_CALCULATOR_DEFAULTS.customAspectWidth),
   customAspectHeight: dimensionNumber
     .optional()
     .default(BORDER_CALCULATOR_DEFAULTS.customAspectHeight),
-  paperSize: z.enum(paperSizeOptions),
+  paperSize: paperSizeValueSchema,
   customPaperWidth: dimensionNumber
     .optional()
     .default(BORDER_CALCULATOR_DEFAULTS.customPaperWidth),

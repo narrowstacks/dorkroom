@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { hasGlobal } from '../lib/dom';
 
 /** Responsive tier corresponding to the 4-tier breakpoint system */
 export type ResponsiveTier = 'phone' | 'tablet' | 'desktop' | 'wide';
@@ -41,16 +42,16 @@ export interface ResponsiveTierResult {
  */
 export function useResponsiveTier(): ResponsiveTierResult {
   const [tier, setTier] = useState<ResponsiveTier>(() => {
-    if (typeof window === 'undefined') return 'desktop';
+    if (!hasGlobal('window')) return 'desktop';
     return getTier(window.innerWidth);
   });
 
   // Both subscribe paths below return a cleanup (removeEventListener / removeListener);
-  // the rule is thrown by the `typeof window` guard, whose early return subscribes to
+  // the rule is thrown by the browser-environment guard, whose early return subscribes to
   // nothing. Suppressed as a false positive rather than "fixed".
   // eslint-disable-next-line react-doctor/effect-needs-cleanup -- see above
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!hasGlobal('window')) return;
 
     const smQuery = window.matchMedia(`(min-width: ${BREAKPOINTS.sm}px)`);
     const mdQuery = window.matchMedia(`(min-width: ${BREAKPOINTS.md}px)`);

@@ -16,6 +16,7 @@ import {
 } from '@dorkroom/ui/films';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { filmColorFilterSchema } from '../../../routes/search-schemas';
 
 type FilmDatabase = ReturnType<typeof useFilmDatabase>;
 
@@ -294,9 +295,7 @@ export default function FilmsPage() {
         to: '/films',
         search: {
           search: searchQuery || undefined,
-          color: colorTypeFilter
-            ? (colorTypeFilter as 'bw' | 'color' | 'slide')
-            : undefined,
+          color: filmColorFilterSchema.parse(colorTypeFilter),
           iso: isoSpeedFilter || undefined,
           brand: brandFilter || undefined,
           status: discontinuedFilter !== 'all' ? discontinuedFilter : undefined,

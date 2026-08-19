@@ -12,22 +12,22 @@ import { ReciprocityScreen } from '@/screens/reciprocity-screen';
 import { ResizeScreen } from '@/screens/resize-screen';
 import { SettingsScreen } from '@/screens/settings-screen';
 
-const SCREENS: Record<string, ComponentType> = {
-  border: BorderScreen,
-  exposure: ExposureScreen,
-  reciprocity: ReciprocityScreen,
-  resize: ResizeScreen,
-  meter: MeterScreen,
-  mat: MatScreen,
-  lens: LensScreen,
-  'camera-exposure': CameraExposureScreen,
-  settings: SettingsScreen,
-};
+const SCREENS = new Map<string, ComponentType>([
+  ['border', BorderScreen],
+  ['exposure', ExposureScreen],
+  ['reciprocity', ReciprocityScreen],
+  ['resize', ResizeScreen],
+  ['meter', MeterScreen],
+  ['mat', MatScreen],
+  ['lens', LensScreen],
+  ['camera-exposure', CameraExposureScreen],
+  ['settings', SettingsScreen],
+]);
 
 export default function MoreToolDetail() {
   const { tool } = useLocalSearchParams<{ tool: string }>();
   const meta = getTool(tool);
-  const ScreenComponent = tool ? SCREENS[tool] : undefined;
+  const ScreenComponent = tool ? SCREENS.get(tool) : undefined;
   if (!meta || !ScreenComponent) {
     return (
       <View className="flex-1 items-center justify-center">

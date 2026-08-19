@@ -5,6 +5,20 @@ export type ShutterSpeedKey = string & { readonly __brand: 'ShutterSpeedKey' };
 export type ApertureKey = string & { readonly __brand: 'ApertureKey' };
 export type ISOKey = string & { readonly __brand: 'ISOKey' };
 
+/* Minting a key is centralized here so the brands stay searchable. */
+
+export const asShutterSpeedKey = (label: string): ShutterSpeedKey =>
+  // SAFETY: the brand adds no runtime requirement over `string`.
+  label as ShutterSpeedKey;
+
+export const asApertureKey = (label: string): ApertureKey =>
+  // SAFETY: the brand adds no runtime requirement over `string`.
+  label as ApertureKey;
+
+export const asISOKey = (label: string): ISOKey =>
+  // SAFETY: the brand adds no runtime requirement over `string`.
+  label as ISOKey;
+
 export interface CameraExposureFormState {
   aperture: number;
   shutterSpeed: number;

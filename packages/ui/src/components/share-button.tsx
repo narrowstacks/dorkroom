@@ -31,6 +31,12 @@ export interface ShareButtonProps {
   iconOnly?: boolean;
 }
 
+/** Class names for one share-button variant: the button itself and its icon. */
+interface VariantClasses {
+  buttonClasses: string;
+  iconClasses: string;
+}
+
 /**
  * Get CSS classes for button variants with hover states.
  * Uses CSS for hover to prevent flickering on re-render.
@@ -39,7 +45,7 @@ function getVariantClasses(
   variant: 'primary' | 'secondary' | 'outline',
   isDarkroom: boolean,
   isDarkTheme: boolean
-): { buttonClasses: string; iconClasses: string } {
+): VariantClasses {
   switch (variant) {
     case 'primary':
       return {
@@ -154,7 +160,9 @@ export function ShareButton({
       const resolved = result instanceof Promise ? await result : result;
 
       // If the caller indicates a clipboard path or explicit toast, show it
-      if (!shouldShowToast && resolved && typeof resolved === 'object') {
+      if (!shouldShowToast && resolved) {
+        // SAFETY: onClick returns ShareResult, undefined, or void, so the only
+        // truthy result it can produce is a ShareResult.
         const shareResult = resolved as ShareResult;
         if (
           shareResult.showToast === true ||

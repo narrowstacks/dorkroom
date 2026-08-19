@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { shouldUseWebShare } from '../../utils/device-detection';
+import { isBrowser } from '../../utils/environment';
 import { useCustomRecipeSharing } from './use-custom-recipe-sharing';
 
 export interface RegularRecipeShareOptions {
@@ -20,14 +21,14 @@ export interface RecipeShareResult {
 }
 
 const getBaseUrl = (): string => {
-  if (typeof window === 'undefined') {
+  if (!isBrowser()) {
     return '';
   }
   return `${window.location.protocol}//${window.location.host}`;
 };
 
 const copyToClipboard = async (text: string): Promise<void> => {
-  if (typeof navigator !== 'undefined' && navigator.clipboard) {
+  if (globalThis.navigator !== undefined && navigator.clipboard) {
     await navigator.clipboard.writeText(text);
   } else {
     // Fallback for older browsers

@@ -1,7 +1,10 @@
 import type { Combination } from '@dorkroom/api';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useRecipeUrlState } from '../use-recipe-url-state';
+import {
+  type RecipeFilterState,
+  useRecipeUrlState,
+} from '../use-recipe-url-state';
 
 // Mock window.location and history
 const mockReplaceState = vi.fn();
@@ -65,7 +68,7 @@ describe('useRecipeUrlState', () => {
       updatedAt: '2023-01-01',
     },
   ];
-  const mockCurrentState = {
+  const mockCurrentState: RecipeFilterState = {
     selectedFilm: null,
     selectedDeveloper: null,
     dilutionFilter: '',
@@ -550,25 +553,19 @@ describe('useRecipeUrlState', () => {
     it('should clear URL parameters when state is reset', () => {
       vi.useFakeTimers();
 
+      // Annotated, not asserted: renderHook infers its prop type from this first
+      // value, and an un-annotated `selectedFilm` would narrow to the film
+      // literal and reject the `null` the reset rerender passes below.
+      const initialState: RecipeFilterState = {
+        ...mockCurrentState,
+        selectedFilm: mockFilms[0],
+        isoFilter: '400',
+      };
+
       const { rerender } = renderHook(
         ({ currentState }) =>
           useRecipeUrlState(mockFilms, mockDevelopers, currentState),
-        {
-          initialProps: {
-            currentState: {
-              ...mockCurrentState,
-              selectedFilm: mockFilms[0],
-              isoFilter: '400',
-            } as {
-              selectedFilm: (typeof mockFilms)[0] | null;
-              selectedDeveloper: (typeof mockDevelopers)[0] | null;
-              dilutionFilter: string;
-              isoFilter: string;
-              favoritesOnly: boolean;
-              customRecipeFilter: string;
-            },
-          },
-        }
+        { initialProps: { currentState: initialState } }
       );
 
       // Reset state

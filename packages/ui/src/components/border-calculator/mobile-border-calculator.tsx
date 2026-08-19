@@ -39,6 +39,7 @@ import { useMeasurement } from '../../contexts/measurement-context';
 import { useTheme } from '../../contexts/theme-context';
 import { createZodFormValidator } from '../../forms/utils/create-zod-form-validator';
 import { useMeasurementFormatter } from '../../hooks/use-measurement-conversion';
+import { cssVars, hasGlobal } from '../../lib/dom';
 import { AnimatedPreview } from './animated-preview';
 // Components
 import { BladeResultsDisplay } from './blade-results-display';
@@ -115,7 +116,7 @@ export function MobileBorderCalculator({
 
   // Hydrate from persisted state on mount (runs exactly once)
   useEffect(() => {
-    if (hydrationRef.current || typeof window === 'undefined') return;
+    if (hydrationRef.current || !hasGlobal('window')) return;
     hydrationRef.current = true;
 
     try {
@@ -149,10 +150,7 @@ export function MobileBorderCalculator({
   }, [form.setFieldValue]);
 
   // Subscribe to form changes for reactivity
-  const formValues = useStore(
-    form.store,
-    (state) => state.values as BorderCalculatorState
-  );
+  const formValues = useStore(form.store, (state) => state.values);
 
   const {
     aspectRatio,
@@ -229,7 +227,7 @@ export function MobileBorderCalculator({
   );
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!hasGlobal('window')) return;
 
     const timer = setTimeout(() => {
       try {
@@ -889,13 +887,11 @@ export function MobileBorderCalculator({
               className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
                 !isHighContrast ? 'shadow-lg' : ''
               }`}
-              style={
-                {
-                  background: 'var(--gradient-card-primary)',
-                  color: 'var(--color-text-primary)',
-                  '--tw-ring-color': 'var(--color-semantic-success)',
-                } as React.CSSProperties
-              }
+              style={cssVars({
+                background: 'var(--gradient-card-primary)',
+                color: 'var(--color-text-primary)',
+                '--tw-ring-color': 'var(--color-semantic-success)',
+              })}
               title="Share preset"
               aria-label="Share preset"
             >
@@ -911,14 +907,12 @@ export function MobileBorderCalculator({
           className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 hoverable-reset-btn ${
             !isHighContrast ? 'shadow-lg' : ''
           }`}
-          style={
-            {
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
-              color: 'var(--color-semantic-error)',
-              '--tw-ring-color': 'var(--color-semantic-error)',
-            } as React.CSSProperties
-          }
+          style={cssVars({
+            borderColor: 'var(--color-border-secondary)',
+            backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
+            color: 'var(--color-semantic-error)',
+            '--tw-ring-color': 'var(--color-semantic-error)',
+          })}
         >
           <RotateCcw className="size-4" />
           Reset to Defaults

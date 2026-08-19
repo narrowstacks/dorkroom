@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { z } from 'zod';
 import {
   DEFAULT_CAMERA_EXPOSURE_APERTURE,
   DEFAULT_CAMERA_EXPOSURE_ISO,
@@ -23,7 +24,10 @@ import {
   solveForISO,
   solveForShutterSpeed,
 } from '../utils/camera-exposure-calculations';
-import { useLocalStorageFormPersistence } from './use-local-storage-form-persistence';
+import {
+  type PersistedValue,
+  useLocalStorageFormPersistence,
+} from './use-local-storage-form-persistence';
 
 const CAMERA_EXPOSURE_DEFAULTS: CameraExposureFormState = {
   aperture: DEFAULT_CAMERA_EXPOSURE_APERTURE,
@@ -35,8 +39,10 @@ const CAMERA_EXPOSURE_DEFAULTS: CameraExposureFormState = {
   compareIso: DEFAULT_CAMERA_EXPOSURE_ISO,
 };
 
-const positiveNumber = (v: unknown): boolean =>
-  typeof v === 'number' && Number.isFinite(v) && v > 0;
+const positiveNumberSchema = z.number().positive();
+
+const positiveNumber = (v: PersistedValue): boolean =>
+  positiveNumberSchema.safeParse(v).success;
 
 export interface UseCameraExposureCalculatorReturn {
   values: CameraExposureFormState;

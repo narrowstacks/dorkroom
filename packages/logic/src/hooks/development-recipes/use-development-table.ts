@@ -1,6 +1,7 @@
 import type { Combination, Developer, Film } from '@dorkroom/api';
 import {
   type ColumnDef,
+  functionalUpdate,
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
@@ -45,7 +46,7 @@ const compareNumbers = (a?: number | null, b?: number | null) => {
   if (a === undefined || a === null || b === undefined || b === null) {
     return 0;
   }
-  return (a as number) - (b as number);
+  return a - b;
 };
 
 /**
@@ -161,17 +162,13 @@ export function useDevelopmentTable({
     },
     enableSortingRemoval: false,
     onSortingChange: (updaterOrValue) => {
-      const nextSorting =
-        typeof updaterOrValue === 'function'
-          ? updaterOrValue(sorting)
-          : updaterOrValue;
-      onSortingChange(nextSorting);
+      onSortingChange(functionalUpdate(updaterOrValue, sorting));
     },
     onPaginationChange: (updaterOrValue) => {
-      const nextPagination =
-        typeof updaterOrValue === 'function'
-          ? updaterOrValue({ pageIndex, pageSize: PAGE_SIZE })
-          : updaterOrValue;
+      const nextPagination = functionalUpdate(updaterOrValue, {
+        pageIndex,
+        pageSize: PAGE_SIZE,
+      });
       if (nextPagination.pageIndex !== pageIndex) {
         onPageIndexChange(nextPagination.pageIndex);
       }

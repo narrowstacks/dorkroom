@@ -13,48 +13,72 @@ interface TagThemeStyle {
 }
 
 // Legacy Tailwind colors - deprecated, use getTagThemeStyle instead
-export const TAG_COLORS: Record<string, TagColorConfig> = {
-  'official-ilford': {
-    bg: 'bg-green-500/20',
-    text: 'text-green-200',
-    border: 'border-green-500/30',
-  },
-  'official-kodak': {
-    bg: 'bg-yellow-500/20',
-    text: 'text-yellow-200',
-    border: 'border-yellow-500/30',
-  },
-  'official-fuji': {
-    bg: 'bg-blue-500/20',
-    text: 'text-blue-200',
-    border: 'border-blue-500/30',
-  },
-  'official-cinestill': {
-    bg: 'bg-red-500/20',
-    text: 'text-red-200',
-    border: 'border-red-500/30',
-  },
-  'official-rollei': {
-    bg: 'bg-violet-500/20',
-    text: 'text-violet-200',
-    border: 'border-violet-500/30',
-  },
-  'official-lomography': {
-    bg: 'bg-pink-500/20',
-    text: 'text-pink-200',
-    border: 'border-pink-500/30',
-  },
-  'official-jch': {
-    bg: 'bg-teal-500/20',
-    text: 'text-teal-200',
-    border: 'border-teal-500/30',
-  },
-  community: {
-    bg: 'bg-red-500/20',
-    text: 'text-red-200',
-    border: 'border-red-500/30',
-  },
-};
+export const TAG_COLORS = new Map<string, TagColorConfig>([
+  [
+    'official-ilford',
+    {
+      bg: 'bg-green-500/20',
+      text: 'text-green-200',
+      border: 'border-green-500/30',
+    },
+  ],
+  [
+    'official-kodak',
+    {
+      bg: 'bg-yellow-500/20',
+      text: 'text-yellow-200',
+      border: 'border-yellow-500/30',
+    },
+  ],
+  [
+    'official-fuji',
+    {
+      bg: 'bg-blue-500/20',
+      text: 'text-blue-200',
+      border: 'border-blue-500/30',
+    },
+  ],
+  [
+    'official-cinestill',
+    {
+      bg: 'bg-red-500/20',
+      text: 'text-red-200',
+      border: 'border-red-500/30',
+    },
+  ],
+  [
+    'official-rollei',
+    {
+      bg: 'bg-violet-500/20',
+      text: 'text-violet-200',
+      border: 'border-violet-500/30',
+    },
+  ],
+  [
+    'official-lomography',
+    {
+      bg: 'bg-pink-500/20',
+      text: 'text-pink-200',
+      border: 'border-pink-500/30',
+    },
+  ],
+  [
+    'official-jch',
+    {
+      bg: 'bg-teal-500/20',
+      text: 'text-teal-200',
+      border: 'border-teal-500/30',
+    },
+  ],
+  [
+    'community',
+    {
+      bg: 'bg-red-500/20',
+      text: 'text-red-200',
+      border: 'border-red-500/30',
+    },
+  ],
+]);
 
 const DEFAULT_TAG_COLORS: TagColorConfig = {
   bg: 'bg-gray-500/20',
@@ -63,7 +87,7 @@ const DEFAULT_TAG_COLORS: TagColorConfig = {
 };
 
 export function getTagColors(tag: string): TagColorConfig {
-  return TAG_COLORS[tag] || DEFAULT_TAG_COLORS;
+  return TAG_COLORS.get(tag) ?? DEFAULT_TAG_COLORS;
 }
 
 // Tag matching constants
@@ -94,16 +118,16 @@ function styleFromVar(cssVar: string): TagThemeStyle {
 }
 
 // Map of tag names to their CSS custom property variable
-const TAG_CSS_VARS: Record<string, string> = {
-  'official-ilford': 'var(--color-tag-official-ilford)',
-  'official-kodak': 'var(--color-tag-official-kodak)',
-  'official-fuji': 'var(--color-tag-official-fuji)',
-  'official-cinestill': 'var(--color-tag-official-cinestill)',
-  'official-rollei': 'var(--color-tag-official-rollei)',
-  'official-lomography': 'var(--color-tag-official-lomography)',
-  'official-jch': 'var(--color-tag-official-jch)',
-  community: 'var(--color-tag-community)',
-};
+const TAG_CSS_VARS = new Map<string, string>([
+  ['official-ilford', 'var(--color-tag-official-ilford)'],
+  ['official-kodak', 'var(--color-tag-official-kodak)'],
+  ['official-fuji', 'var(--color-tag-official-fuji)'],
+  ['official-cinestill', 'var(--color-tag-official-cinestill)'],
+  ['official-rollei', 'var(--color-tag-official-rollei)'],
+  ['official-lomography', 'var(--color-tag-official-lomography)'],
+  ['official-jch', 'var(--color-tag-official-jch)'],
+  ['community', 'var(--color-tag-community)'],
+]);
 
 // Theme-aware tag styles using CSS custom properties
 export function getTagThemeStyle(tag: string): TagThemeStyle {
@@ -122,7 +146,7 @@ export function getTagThemeStyle(tag: string): TagThemeStyle {
     return styleFromVar('var(--color-tag-slide)');
   }
 
-  const cssVar = TAG_CSS_VARS[tag];
+  const cssVar = TAG_CSS_VARS.get(tag);
   if (cssVar) {
     return styleFromVar(cssVar);
   }

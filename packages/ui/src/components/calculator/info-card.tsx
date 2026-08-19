@@ -17,14 +17,13 @@ export interface InfoCardProps {
   className?: string;
 }
 
-const variantStyles: Record<
-  InfoCardVariant,
-  {
-    titleClass: string;
-    descriptionClass: string;
-    backgroundOpacity: number;
-  }
-> = {
+interface InfoCardVariantStyle {
+  titleClass: string;
+  descriptionClass: string;
+  backgroundOpacity: number;
+}
+
+const variantStyles = {
   default: {
     titleClass: 'text-sm font-semibold',
     descriptionClass: 'mt-1 text-sm',
@@ -40,7 +39,7 @@ const variantStyles: Record<
     descriptionClass: 'mt-1 text-sm',
     backgroundOpacity: 5,
   },
-};
+} satisfies Record<InfoCardVariant, InfoCardVariantStyle>;
 
 /**
  * Single info card item with title and description.
@@ -117,7 +116,7 @@ export function InfoCardList({
 }: InfoCardListProps) {
   // Normalize items to InfoCardItem format
   const normalizedItems: InfoCardItem[] = items.map((item) =>
-    typeof item === 'string' ? { title: item, description: '' } : item
+    item instanceof Object ? item : { title: item, description: '' }
   );
 
   return (

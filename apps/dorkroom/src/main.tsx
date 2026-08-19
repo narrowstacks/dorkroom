@@ -73,9 +73,10 @@ window.addEventListener('vite:preloadError', (event) => {
   }
 });
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+const rootElement = document.getElementById('root');
+if (!rootElement) throw new Error('index.html is missing its #root element');
+
+const root = ReactDOM.createRoot(rootElement);
 
 root.render(
   <StrictMode>

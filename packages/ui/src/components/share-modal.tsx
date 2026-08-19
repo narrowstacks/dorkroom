@@ -2,6 +2,7 @@ import { debugError } from '@dorkroom/logic';
 import { useState } from 'react';
 import { cn } from '../lib/cn';
 import { colorMixOr } from '../lib/color';
+import { cssVars } from '../lib/dom';
 
 export interface ShareModalProps {
   isOpen: boolean;
@@ -14,13 +15,13 @@ export interface ShareModalProps {
   canCopyToClipboard?: boolean;
 }
 
-const closeButtonStyle = {
+const closeButtonStyle = cssVars({
   backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
   color: 'var(--color-text-primary)',
   borderWidth: 1,
   borderColor: 'var(--color-border-secondary)',
   '--tw-ring-color': 'var(--color-border-primary)',
-} as React.CSSProperties;
+});
 
 /**
  * Footer row containing the modal's close action.
@@ -134,8 +135,8 @@ function NativeShareButton({
         className={cn(
           'w-full flex items-center justify-center px-4 py-2 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2'
         )}
-        style={
-          (isSharing
+        style={cssVars(
+          isSharing
             ? {
                 backgroundColor: 'rgba(var(--color-background-rgb), 0.2)',
                 color: 'var(--color-text-secondary)',
@@ -145,10 +146,8 @@ function NativeShareButton({
                 backgroundColor: 'var(--color-text-primary)',
                 color: 'var(--color-background)',
                 '--tw-ring-color': 'var(--color-border-primary)',
-              }) as React.CSSProperties & {
-            '--tw-ring-color': string;
-          }
-        }
+              }
+        )}
       >
         {isSharing ? (
           <>
@@ -247,8 +246,8 @@ function WebLinkSection({
             className={cn(
               'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2'
             )}
-            style={
-              (copySuccess
+            style={cssVars(
+              copySuccess
                 ? {
                     backgroundColor: 'var(--color-semantic-success)',
                     color: 'var(--color-background)',
@@ -258,10 +257,8 @@ function WebLinkSection({
                     backgroundColor: 'rgba(var(--color-background-rgb), 0.2)',
                     color: 'var(--color-text-primary)',
                     '--tw-ring-color': 'var(--color-border-primary)',
-                  }) as React.CSSProperties & {
-                '--tw-ring-color': string;
-              }
-            }
+                  }
+            )}
           >
             {copySuccess ? (
               <svg

@@ -34,18 +34,18 @@ function dirname(metaUrl: string): string {
   return join(fileURLToPath(metaUrl), '..');
 }
 
-const MIME: Record<string, string> = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.mjs': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.svg': 'image/svg+xml',
-  '.woff2': 'font/woff2',
-  '.ico': 'image/x-icon',
-  '.png': 'image/png',
-  '.webp': 'image/webp',
-};
+const MIME = new Map<string, string>([
+  ['.html', 'text/html; charset=utf-8'],
+  ['.js', 'text/javascript; charset=utf-8'],
+  ['.mjs', 'text/javascript; charset=utf-8'],
+  ['.css', 'text/css; charset=utf-8'],
+  ['.json', 'application/json; charset=utf-8'],
+  ['.svg', 'image/svg+xml'],
+  ['.woff2', 'font/woff2'],
+  ['.ico', 'image/x-icon'],
+  ['.png', 'image/png'],
+  ['.webp', 'image/webp'],
+]);
 
 /**
  * Minimal static file server rooted at dist/, with SPA fallback to index.html.
@@ -84,7 +84,8 @@ function startStaticServer(transformHtml?: (html: string) => string): Promise<{
       if (isHtml && transformHtml)
         body = Buffer.from(transformHtml(body.toString('utf8')));
       res.writeHead(200, {
-        'content-type': MIME[extname(filePath)] ?? 'application/octet-stream',
+        'content-type':
+          MIME.get(extname(filePath)) ?? 'application/octet-stream',
       });
       res.end(body);
     } catch (err) {

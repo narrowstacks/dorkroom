@@ -164,7 +164,15 @@ export function getRouteIcon(
   return allNavItems.find((item) => item.to === to)?.icon;
 }
 
-export const ROUTE_TITLES: Record<string, string> = {
+/**
+ * Page copy keyed by route pathname. The root route and the OG image/meta
+ * endpoints look up an arbitrary pathname, so the key stays open.
+ */
+interface RouteTextByPath {
+  readonly [path: string]: string;
+}
+
+export const ROUTE_TITLES: RouteTextByPath = {
   '/': 'Home',
   '/border': 'Border Calculator',
   '/resize': 'Print Resize Calculator',
@@ -179,7 +187,7 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/settings': 'Settings',
 };
 
-export const ROUTE_DESCRIPTIONS: Record<string, string> = {
+export const ROUTE_DESCRIPTIONS: RouteTextByPath = {
   '/': 'Film photography calculators and resources for analog photographers. Development recipes, printing calculators, and exposure tools.',
   '/border':
     'Figure out where to set your easel blades for even borders. Punch in paper size and negative format, get blade positions.',

@@ -22,23 +22,84 @@ import {
 /** Contract version of the public API surface (independent of package CalVer). */
 export const OPENAPI_API_VERSION = '1.0.0';
 
-type JsonSchema = Record<string, unknown>;
+/** A JSON Schema object, as emitted by `z.toJSONSchema` and embedded verbatim. */
+type ComponentSchema = z.core.JSONSchema.BaseSchema;
+
+/** An OpenAPI Reference Object (`{ $ref: '#/components/...' }`). */
+interface ReferenceObject {
+  $ref: string;
+}
+
+/** An OpenAPI Parameter Object for a query or header parameter. */
+interface ParameterObject {
+  name: string;
+  in: 'header' | 'query';
+  description: string;
+  required: boolean;
+  schema: ComponentSchema;
+}
+
+/** An OpenAPI Response Object with an optional JSON body. */
+interface ResponseObject {
+  description: string;
+  content?: {
+    'application/json': { schema: ComponentSchema | ReferenceObject };
+  };
+}
+
+/** An OpenAPI Security Scheme Object for the `X-API-Key` header. */
+interface ApiKeySecurityScheme {
+  type: 'apiKey';
+  in: 'header';
+  name: string;
+  description: string;
+}
+
+/** A single read-only GET operation. */
+interface OperationObject {
+  tags: string[];
+  operationId: string;
+  summary: string;
+  description?: string;
+  parameters: (ParameterObject | ReferenceObject)[];
+  responses: Record<string, ResponseObject>;
+}
+
+/** The OpenAPI 3.1 Document Object this builder emits. */
+export interface OpenApiDocument {
+  openapi: string;
+  jsonSchemaDialect: string;
+  info: {
+    title: string;
+    version: string;
+    description: string;
+    license: { name: string };
+    contact: { name: string; url: string; email: string };
+  };
+  servers: { url: string; description: string }[];
+  security: Record<string, string[]>[];
+  tags: { name: string; description: string }[];
+  paths: Record<string, { get: OperationObject }>;
+  components: {
+    securitySchemes: Record<string, ApiKeySecurityScheme>;
+    parameters: Record<string, ParameterObject>;
+    schemas: Record<string, ComponentSchema>;
+  };
+}
 
 /**
  * Convert a Zod schema to a JSON Schema suitable for embedding under
  * `components.schemas`. The top-level `$schema` dialect marker is stripped —
  * the dialect is declared once on the OpenAPI document via `jsonSchemaDialect`.
  */
-function toComponentSchema(schema: z.ZodType): JsonSchema {
-  const jsonSchema = z.toJSONSchema(schema, {
-    target: 'draft-2020-12',
-  }) as JsonSchema;
+function toComponentSchema(schema: z.ZodType): ComponentSchema {
+  const jsonSchema = z.toJSONSchema(schema, { target: 'draft-2020-12' });
   delete jsonSchema.$schema;
   return jsonSchema;
 }
 
 /** A `{ data: [...], count?: number }` envelope referencing an item schema. */
-function listEnvelope(itemRef: string, description: string): JsonSchema {
+function listEnvelope(itemRef: string, description: string): ComponentSchema {
   return {
     type: 'object',
     description,
@@ -57,7 +118,7 @@ function listEnvelope(itemRef: string, description: string): JsonSchema {
 }
 
 /** Reusable JSON error response body returned by the handler wrapper. */
-const errorResponseSchema: JsonSchema = {
+const errorResponseSchema: ComponentSchema = {
   type: 'object',
   description:
     'Standard error envelope. `requestId` is always present and should be ' +
@@ -82,7 +143,7 @@ const errorResponseSchema: JsonSchema = {
 };
 
 /** Build the `responses` map for an endpoint, merging a 200 with shared errors. */
-function withErrorResponses(ok: JsonSchema): Record<string, JsonSchema> {
+function withErrorResponses(ok: ResponseObject) {
   const errorRef = {
     content: {
       'application/json': {
@@ -110,7 +171,7 @@ function withErrorResponses(ok: JsonSchema): Record<string, JsonSchema> {
 }
 
 /** Shared query parameter definitions, referenced by `$ref` from the paths. */
-const sharedParameters: Record<string, JsonSchema> = {
+const sharedParameters = {
   Query: {
     name: 'query',
     in: 'query',
@@ -150,14 +211,14 @@ const sharedParameters: Record<string, JsonSchema> = {
     required: false,
     schema: { type: 'string', minLength: 8, maxLength: 64 },
   },
-};
+} satisfies Record<string, ParameterObject>;
 
-function ref(name: string): JsonSchema {
+function ref(name: string): ReferenceObject {
   return { $ref: `#/components/parameters/${name}` };
 }
 
 /** Build the complete OpenAPI 3.1 document for the public Dorkroom API. */
-export function buildOpenApiDocument(): Record<string, unknown> {
+export function buildOpenApiDocument(): OpenApiDocument {
   return {
     openapi: '3.1.0',
     jsonSchemaDialect: 'https://json-schema.org/draft/2020-12/schema',

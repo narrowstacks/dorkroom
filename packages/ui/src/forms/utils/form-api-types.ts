@@ -100,6 +100,15 @@ type AnyReactFormApi =
       >
     : never;
 
+/** TanStack Form's per-validator error map; each entry holds that validator's own result. */
+export interface FieldErrorMap {
+  onMount?: unknown;
+  onChange?: unknown;
+  onBlur?: unknown;
+  onSubmit?: unknown;
+  onServer?: unknown;
+}
+
 /**
  * FieldApi type for form field render props
  * Generic interface that accepts any FieldApi-like value
@@ -129,7 +138,7 @@ export interface FieldApi<TValue = unknown> {
       isDirty?: boolean;
       isTouched?: boolean;
       isValidating?: boolean;
-      errorMap?: Record<string, unknown>;
+      errorMap?: FieldErrorMap;
     };
   };
   handleChange: (value: TValue) => void;

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { hasGlobal } from '../lib/dom';
 
 /**
  * Hook to detect if the viewport is mobile-sized
@@ -12,16 +13,16 @@ import { useEffect, useState } from 'react';
  */
 export function useIsMobile(maxWidth = 768): boolean {
   const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === 'undefined') return false;
+    if (!hasGlobal('window')) return false;
     return window.matchMedia(`(max-width: ${maxWidth}px)`).matches;
   });
 
   // Both subscribe paths below return a cleanup (removeEventListener / removeListener);
-  // the rule is thrown by the `typeof window` guard, whose early return subscribes to
+  // the rule is thrown by the browser-environment guard, whose early return subscribes to
   // nothing. Suppressed as a false positive rather than "fixed".
   // eslint-disable-next-line react-doctor/effect-needs-cleanup -- see above
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (!hasGlobal('window')) {
       return;
     }
 

@@ -2,13 +2,13 @@ import type { CustomRecipeFilter, SelectItem } from '@dorkroom/logic';
 import { Search } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { SearchableSelect } from '../searchable-select';
-import { Select } from '../select';
+import { optionChangeHandler, Select } from '../select';
 
-const customRecipeOptions: SelectItem[] = [
+const customRecipeOptions = [
   { label: 'All recipes', value: 'all' },
   { label: 'Hide custom recipes', value: 'hide-custom' },
   { label: 'Only custom recipes', value: 'only-custom' },
-];
+] as const;
 
 interface DevelopmentFiltersProps {
   className?: string;
@@ -148,9 +148,10 @@ export function DevelopmentFiltersPanel({
         <Select
           label="Recipe type"
           selectedValue={customRecipeFilter}
-          onValueChange={(value) =>
-            onCustomRecipeFilterChange(value as CustomRecipeFilter)
-          }
+          onValueChange={optionChangeHandler(
+            customRecipeOptions,
+            onCustomRecipeFilterChange
+          )}
           items={customRecipeOptions}
         />
         <Select

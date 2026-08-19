@@ -17,6 +17,15 @@ interface SupabaseProxyConfig {
   allowedParams: string[];
 }
 
+/**
+ * The one field this proxy reads from an upstream payload: list endpoints answer
+ * with `{ data: [...] }` and the row count goes into the log. The payload itself
+ * is forwarded verbatim.
+ */
+interface UpstreamListPayload {
+  data?: readonly unknown[];
+}
+
 export function createSupabaseProxy({
   name,
   allowedParams,
@@ -116,7 +125,7 @@ export function createSupabaseProxy({
         return;
       }
 
-      let data: unknown;
+      let data: UpstreamListPayload | null = null;
       try {
         data = await response.json();
       } catch (parseError) {
@@ -144,11 +153,8 @@ export function createSupabaseProxy({
         true
       );
 
-      const responseData = data as Record<string, unknown> | null;
       logApiResponse(ctx.requestId, 200, responseTime, {
-        dataLength: Array.isArray(responseData?.data)
-          ? responseData.data.length
-          : 'N/A',
+        dataLength: Array.isArray(data?.data) ? data.data.length : 'N/A',
       });
 
       res.setHeader(

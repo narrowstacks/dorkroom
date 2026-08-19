@@ -13,10 +13,10 @@ vi.mock('react-dom', async () => {
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => ({
-  Check: (props: React.SVGProps<SVGSVGElement>) => (
+  Check: (props: React.ComponentProps<'span'>) => (
     <span data-testid="check-icon" {...props} />
   ),
-  Beaker: (props: React.SVGProps<SVGSVGElement>) => (
+  Beaker: (props: React.ComponentProps<'span'>) => (
     <span data-testid="beaker-icon" {...props} />
   ),
 }));

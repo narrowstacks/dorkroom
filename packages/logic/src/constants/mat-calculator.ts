@@ -53,9 +53,8 @@ export type MatCalculatorState = typeof MAT_CALCULATOR_DEFAULTS;
  * for empty or unparseable input.
  */
 export function parseMatInput(str: string | number): number {
-  if (typeof str === 'number') return str;
-  if (str === '' || str == null) return NaN;
   const s = String(str).trim();
+  if (s === '') return NaN;
   const mixed = s.match(/^(\d+(?:\.\d+)?)\s+(\d+)\/(\d+)$/);
   if (mixed)
     return parseFloat(mixed[1]) + parseInt(mixed[2]) / parseInt(mixed[3]);

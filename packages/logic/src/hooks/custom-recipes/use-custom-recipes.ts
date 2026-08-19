@@ -4,6 +4,7 @@ import { queryKeys } from '../../queries/query-keys';
 import { createStorageManager, isArray } from '../../services/local-storage';
 import type { CustomRecipe } from '../../types/custom-recipes';
 import { debugError } from '../../utils/debug-logger';
+import { isBrowser } from '../../utils/environment';
 
 const STORAGE_KEY = 'dorkroom_custom_recipes';
 
@@ -43,7 +44,7 @@ export function useCustomRecipes() {
   const queryKey = useMemo(() => queryKeys.customRecipes.list(), []);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (!isBrowser()) {
       return undefined;
     }
 

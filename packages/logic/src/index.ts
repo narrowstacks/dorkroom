@@ -115,6 +115,7 @@ export { useUrlPresetLoader } from './hooks/use-url-preset-loader';
 export { useWindowDimensions } from './hooks/use-window-dimensions';
 // Schemas
 export * from './schemas/border-calculator.schema';
+export { customRecipeFilterSchema } from './schemas/development-recipes.schema';
 export * from './schemas/validators';
 // Services exports
 export * from './services/filmdev-api';

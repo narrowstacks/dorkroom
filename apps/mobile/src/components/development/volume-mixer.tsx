@@ -125,11 +125,9 @@ export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
                   label: formatVolume(ml, unit),
                   value: ml,
                 }))}
-                value={
-                  VOLUME_PRESETS_ML.find(
-                    (ml) => Math.abs(ml - volumeMl) < 0.5
-                  ) as number | undefined
-                }
+                value={VOLUME_PRESETS_ML.find(
+                  (ml) => Math.abs(ml - volumeMl) < 0.5
+                )}
                 onSelect={selectPreset}
               />
             </View>

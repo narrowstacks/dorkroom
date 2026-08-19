@@ -3,14 +3,17 @@ import {
   STANDARD_APERTURES,
   STANDARD_SHUTTER_SPEEDS,
 } from '../constants/camera-exposure-defaults';
-import type {
-  ApertureKey,
-  EquivalentExposure,
-  ExposureComparison,
-  ExposureValueResult,
-  ISOKey,
-  ShutterSpeedKey,
-  StandardValue,
+import {
+  type ApertureKey,
+  asApertureKey,
+  asISOKey,
+  asShutterSpeedKey,
+  type EquivalentExposure,
+  type ExposureComparison,
+  type ExposureValueResult,
+  type ISOKey,
+  type ShutterSpeedKey,
+  type StandardValue,
 } from '../types/camera-exposure-calculator';
 import { debugWarn } from './debug-logger';
 import { roundToPrecision } from './precision';
@@ -294,8 +297,8 @@ export const shutterSpeedToKey = (seconds: number): ShutterSpeedKey => {
   const nearest = findNearestStandard(seconds, STANDARD_SHUTTER_SPEEDS);
   const stopsDiff = Math.abs(Math.log2(seconds / nearest.value));
   if (stopsDiff < EXACT_MATCH_TOLERANCE)
-    return nearest.label as ShutterSpeedKey;
-  return formatShutterSpeed(seconds) as ShutterSpeedKey;
+    return asShutterSpeedKey(nearest.label);
+  return asShutterSpeedKey(formatShutterSpeed(seconds));
 };
 
 /**
@@ -333,8 +336,8 @@ export const keyToShutterSpeed = (key: ShutterSpeedKey): number => {
 export const apertureToKey = (fNumber: number): ApertureKey => {
   const nearest = findNearestStandard(fNumber, STANDARD_APERTURES);
   const stopsDiff = Math.abs(Math.log2(fNumber / nearest.value));
-  if (stopsDiff < EXACT_MATCH_TOLERANCE) return nearest.label as ApertureKey;
-  return formatAperture(fNumber) as ApertureKey;
+  if (stopsDiff < EXACT_MATCH_TOLERANCE) return asApertureKey(nearest.label);
+  return asApertureKey(formatAperture(fNumber));
 };
 
 /**
@@ -362,7 +365,7 @@ export const keyToAperture = (key: ApertureKey): number => {
  * Converts an ISO value to a Select-compatible string key.
  */
 export const isoToKey = (iso: number): ISOKey => {
-  return `ISO ${iso}` as ISOKey;
+  return asISOKey(`ISO ${iso}`);
 };
 
 /**

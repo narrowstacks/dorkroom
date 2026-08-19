@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
 import { cn } from '../lib/cn';
+import { cssVars, hasGlobal } from '../lib/dom';
 
 /**
  * Props for the Modal component.
@@ -26,12 +27,12 @@ interface ModalProps {
   hideCloseButton?: boolean;
 }
 
-const SIZE_CLASSES: Record<NonNullable<ModalProps['size']>, string> = {
+const SIZE_CLASSES = {
   sm: 'max-w-md',
   md: 'max-w-2xl',
   lg: 'max-w-4xl',
   xl: 'max-w-5xl',
-};
+} satisfies Record<NonNullable<ModalProps['size']>, string>;
 
 /**
  * Render a modal dialog into a portal with a backdrop and automatic body-scroll locking when open.
@@ -60,7 +61,7 @@ export function Modal({
 }: ModalProps) {
   useBodyScrollLock(isOpen);
 
-  if (typeof document === 'undefined' || !isOpen) {
+  if (!hasGlobal('document') || !isOpen) {
     return null;
   }
 
@@ -99,11 +100,9 @@ export function Modal({
             type="button"
             onClick={onClose}
             className="absolute right-4 top-4 rounded-full p-2 text-muted transition focus-visible:outline-none focus-visible:ring-2 hoverable-icon-btn"
-            style={
-              {
-                '--tw-ring-color': 'var(--color-border-primary)',
-              } as React.CSSProperties
-            }
+            style={cssVars({
+              '--tw-ring-color': 'var(--color-border-primary)',
+            })}
             aria-label="Close"
           >
             <X className="size-4" />

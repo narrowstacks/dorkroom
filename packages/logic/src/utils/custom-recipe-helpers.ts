@@ -41,7 +41,7 @@ export const getCustomRecipeFilm = (
       name: recipe.customFilm.name,
       colorType: recipe.customFilm.colorType,
       isoSpeed: recipe.customFilm.isoSpeed,
-      grainStructure: recipe.customFilm.grainStructure,
+      grainStructure: recipe.customFilm.grainStructure ?? null,
       description: recipe.customFilm.description || '',
       manufacturerNotes: [],
       reciprocityFailure: null,
@@ -52,7 +52,7 @@ export const getCustomRecipeFilm = (
       dateAdded: recipe.dateCreated,
       createdAt: now,
       updatedAt: now,
-    } as Film;
+    } satisfies Film;
   }
 
   return getFilmById(recipe.filmId);
@@ -110,7 +110,7 @@ export const getCustomRecipeDeveloper = (
       notes: recipe.customDeveloper.notes || null,
       createdAt: now,
       updatedAt: now,
-    } as Developer;
+    } satisfies Developer;
   }
 
   return getDeveloperById(recipe.developerId);

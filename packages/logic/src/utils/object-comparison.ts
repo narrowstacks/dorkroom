@@ -16,43 +16,33 @@
  * shallowEqual(a, c); // false
  * ```
  */
-export function shallowEqual<T extends object>(
+export function shallowEqual<T extends object, U extends object>(
   obj1: T,
-  obj2: unknown
+  obj2: U | null | undefined
 ): boolean {
   // Fast path: reference equality
-  if (obj1 === obj2) {
+  if (Object.is(obj1, obj2)) {
     return true;
   }
 
-  // Type guard: both must be objects (not arrays)
-  if (obj1 === null || typeof obj1 !== 'object' || Array.isArray(obj1)) {
-    return false;
-  }
-  if (obj2 === null || typeof obj2 !== 'object' || Array.isArray(obj2)) {
+  if (obj2 === null || obj2 === undefined) {
     return false;
   }
 
-  // Get keys from both objects
-  const keys1 = Object.keys(obj1);
-  const keys2 = Object.keys(obj2);
+  // Arrays compare by reference only
+  if (Array.isArray(obj1) || Array.isArray(obj2)) {
+    return false;
+  }
+
+  const entries1: readonly [string, unknown][] = Object.entries(obj1);
+  const values2 = new Map<string, unknown>(Object.entries(obj2));
 
   // Different number of keys means objects are not equal
-  if (keys1.length !== keys2.length) {
+  if (entries1.length !== values2.size) {
     return false;
   }
 
-  // Check if all values match
-  // Since both objects have the same number of keys (verified above),
-  // we only need to check that all values match for each key in obj1.
-  for (const key of keys1) {
-    if (
-      (obj1 as Record<string, unknown>)[key] !==
-      (obj2 as Record<string, unknown>)[key]
-    ) {
-      return false;
-    }
-  }
-
-  return true;
+  // Same key count, so matching every key in obj1 is enough. A key missing from
+  // obj2 reads as undefined, matching only an undefined value in obj1.
+  return entries1.every(([key, value]) => values2.get(key) === value);
 }

@@ -53,10 +53,7 @@ export interface AgitationState {
  * `none` carry all-zero params — `agitationWindows` special-cases their id
  * rather than encoding "whole stage" as an unbounded/Infinity param.
  */
-export const AGITATION_PRESETS: Record<
-  Exclude<AgitationPatternId, 'custom'>,
-  AgitationParams
-> = {
+export const AGITATION_PRESETS = {
   ilford: { initialSeconds: 30, agitateSeconds: 10, intervalSeconds: 60 },
   kodak: { initialSeconds: 5, agitateSeconds: 5, intervalSeconds: 30 },
   // Event-based, not periodic: a "single agitation" is a 10s window at the
@@ -66,7 +63,7 @@ export const AGITATION_PRESETS: Record<
   'semi-stand': { initialSeconds: 10, agitateSeconds: 10, intervalSeconds: 0 },
   continuous: { initialSeconds: 0, agitateSeconds: 0, intervalSeconds: 0 },
   none: { initialSeconds: 0, agitateSeconds: 0, intervalSeconds: 0 },
-};
+} satisfies Record<Exclude<AgitationPatternId, 'custom'>, AgitationParams>;
 
 /** Clamp a window into `[0, duration]`; return null if it collapses to nothing. */
 function clampWindow(
@@ -226,7 +223,7 @@ export function agitationStateAt(
   };
 }
 
-const AGITATION_LABELS: Record<AgitationPatternId, string> = {
+const AGITATION_LABELS = {
   ilford: 'Ilford',
   kodak: 'Kodak',
   stand: 'Stand',
@@ -234,7 +231,7 @@ const AGITATION_LABELS: Record<AgitationPatternId, string> = {
   continuous: 'Continuous',
   none: 'None',
   custom: 'Custom',
-};
+} satisfies Record<AgitationPatternId, string>;
 
 /** Human label for a pattern id, used in the preset editor's pattern picker. */
 export function agitationLabel(id: AgitationPatternId): string {

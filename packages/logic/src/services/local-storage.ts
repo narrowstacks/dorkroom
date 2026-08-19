@@ -9,7 +9,9 @@
  * - Default value support
  */
 
+import { z } from 'zod';
 import { debugError, debugWarn } from '../utils/debug-logger';
+import { isBrowser } from '../utils/environment';
 
 /**
  * Options for configuring the storage manager
@@ -20,10 +22,10 @@ export interface StorageManagerOptions<T> {
    */
   defaultValue: T;
   /**
-   * Optional custom validator for parsed values
-   * Return true if the value is valid, false otherwise
+   * Validator for the parsed value. Nothing is returned from storage unless it
+   * passes, so the manager never has to assume the stored shape.
    */
-  validate?: (value: unknown) => value is T;
+  validate: (value: unknown) => value is T;
   /**
    * Custom context name for debug logging (defaults to storage key)
    */
@@ -59,7 +61,7 @@ export interface StorageManager<T> {
  * Returns null in SSR environments or when localStorage is unavailable
  */
 function getStorage(): Storage | null {
-  if (typeof window === 'undefined') {
+  if (!isBrowser()) {
     return null;
   }
 
@@ -88,10 +90,6 @@ function getStorage(): Storage | null {
  * const recipes = recipesStorage.read();
  * recipesStorage.write([...recipes, newRecipe]);
  *
- * // For object data
- * const settingsStorage = createStorageManager<UserSettings>('settings', {
- *   defaultValue: { theme: 'light' },
- * });
  * ```
  */
 export function createStorageManager<T>(
@@ -113,23 +111,13 @@ export function createStorageManager<T>(
         return defaultValue;
       }
 
-      const parsed = JSON.parse(raw) as unknown;
-
-      // If validator provided, use it
-      if (validate) {
-        if (validate(parsed)) {
-          return parsed;
-        }
-        debugWarn(`[${context}] Stored value failed validation`);
-        return defaultValue;
+      const parsed: unknown = JSON.parse(raw);
+      if (validate(parsed)) {
+        return parsed;
       }
 
-      // Basic type check - ensure it's not null/undefined
-      if (parsed === null || parsed === undefined) {
-        return defaultValue;
-      }
-
-      return parsed as T;
+      debugWarn(`[${context}] Stored value failed validation`);
+      return defaultValue;
     } catch (error) {
       debugError(`[${context}] Failed to parse stored data:`, error);
       return defaultValue;
@@ -189,11 +177,11 @@ export function isArray<T>(
   };
 }
 
+const stringArraySchema = z.array(z.string());
+
 /**
  * Type guard validator for string arrays
  */
 export function isStringArray(value: unknown): value is string[] {
-  return (
-    Array.isArray(value) && value.every((item) => typeof item === 'string')
-  );
+  return stringArraySchema.safeParse(value).success;
 }

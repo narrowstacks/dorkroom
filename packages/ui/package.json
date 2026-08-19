@@ -42,7 +42,7 @@
     "build": "node ../../node_modules/typescript-7/bin/tsc --project tsconfig.lib.json",
     "lint": "oxlint && biome check --linter-enabled=false .",
     "test": "vitest run",
-    "typecheck": "node ../../node_modules/typescript-7/bin/tsc --noEmit --project tsconfig.json"
+    "typecheck": "node ../../node_modules/typescript-7/bin/tsc --noEmit --project tsconfig.lib.json && node ../../node_modules/typescript-7/bin/tsc --noEmit --project tsconfig.spec.json"
   },
   "dependencies": {
     "@dorkroom/api": "workspace:*",

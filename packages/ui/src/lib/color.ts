@@ -1,12 +1,16 @@
+import { hasGlobal } from './dom';
+
+function detectColorMix(): boolean {
+  const css = hasGlobal('CSS') ? CSS : undefined;
+  if (css === undefined || !('supports' in css)) {
+    return false;
+  }
+  // A plain example ensures broad engine parsing in supports()
+  return css.supports('color', 'color-mix(in srgb, red 50%, white)');
+}
+
 // Runtime detection for CSS color-mix support
-export const supportsColorMix: boolean =
-  typeof CSS !== 'undefined' &&
-  typeof (CSS as unknown as { supports?: (...args: unknown[]) => boolean })
-    .supports === 'function' &&
-  // Use a plain example to ensure broad engine parsing in supports()
-  (
-    CSS as unknown as { supports: (property: string, value: string) => boolean }
-  ).supports('color', 'color-mix(in srgb, red 50%, white)');
+export const supportsColorMix: boolean = detectColorMix();
 
 /**
  * Returns a color-mix() string if supported, otherwise a reasonable fallback.

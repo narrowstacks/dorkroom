@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import type { CustomRecipe } from '../../types/custom-recipes';
 import { debugLog } from '../../utils/debug-logger';
 import { shouldUseWebShare } from '../../utils/device-detection';
+import { isBrowser } from '../../utils/environment';
 import {
   createCustomRecipeFromEncoded,
   decodeCustomRecipe,
@@ -36,12 +37,12 @@ export interface ImportedCustomRecipe {
  * @returns Promise that resolves when the copy attempt completes
  */
 const copyToClipboard = async (text: string) => {
-  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+  if (globalThis.navigator !== undefined && navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(text);
     return;
   }
 
-  if (typeof document !== 'undefined') {
+  if (globalThis.document !== undefined) {
     const textarea = document.createElement('textarea');
     textarea.value = text;
     Object.assign(textarea.style, {
@@ -61,12 +62,13 @@ const copyToClipboard = async (text: string) => {
  * @returns Base URL string appropriate for the current environment
  */
 const getBaseUrl = (): string => {
-  if (typeof window !== 'undefined' && window.location) {
+  if (isBrowser() && window.location) {
     return `${window.location.protocol}//${window.location.host}`;
   }
 
-  if (typeof process !== 'undefined' && process.env.PUBLIC_URL) {
-    return process.env.PUBLIC_URL;
+  const publicUrl = globalThis.process?.env.PUBLIC_URL;
+  if (publicUrl) {
+    return publicUrl;
   }
 
   return 'https://dorkroom.art';

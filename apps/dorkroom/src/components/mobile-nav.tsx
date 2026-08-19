@@ -22,10 +22,6 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
 
   // Lock body scroll while the menu is open
   useEffect(() => {
-    if (typeof document === 'undefined') {
-      return undefined;
-    }
-
     if (isMobileMenuOpen) {
       const previousOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
@@ -40,10 +36,6 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
 
   // Close when the viewport crosses the sm breakpoint (640px)
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return undefined;
-    }
-
     const mq = window.matchMedia('(min-width: 640px)');
     const handleChange = (e: MediaQueryListEvent) => {
       if (e.matches) {

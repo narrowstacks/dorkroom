@@ -9,11 +9,11 @@ interface TierConfig {
   defaultPrefix: string;
 }
 
-const TIER_CONFIG: Record<Tier, TierConfig> = {
+const TIER_CONFIG = {
   free: { limit: 60, duration: 60_000, defaultPrefix: 'dk_f' },
   standard: { limit: 300, duration: 60_000, defaultPrefix: 'dk_s' },
   partner: { limit: 1_000_000_000, duration: 60_000, defaultPrefix: 'dk_e' },
-};
+} satisfies Record<Tier, TierConfig>;
 
 function printUsage(): void {
   console.log(`Usage:
@@ -37,8 +37,13 @@ Required environment variables:
 `);
 }
 
-function parseFlagArgs(args: string[]): Record<string, string> {
-  const options: Record<string, string> = {};
+/** `--flag value` pairs from argv, keyed by flag name without the dashes. */
+interface FlagOptions {
+  [flag: string]: string;
+}
+
+function parseFlagArgs(args: string[]): FlagOptions {
+  const options: FlagOptions = {};
 
   for (let index = 0; index < args.length; index += 1) {
     const token = args[index];
@@ -69,12 +74,20 @@ function requireEnv(name: string): string {
   return value;
 }
 
-function requireOption(options: Record<string, string>, name: string): string {
+function requireOption(options: FlagOptions, name: string): string {
   const value = options[name];
   if (!value) {
     throw new Error(`Missing required option: --${name}`);
   }
   return value;
+}
+
+function parseCommand(value: string): Command {
+  if (value === 'create' || value === 'tier' || value === 'anon-bootstrap') {
+    return value;
+  }
+
+  throw new Error(`Unknown command: ${value}`);
 }
 
 function parseTier(value: string): Tier {
@@ -88,7 +101,7 @@ function parseTier(value: string): Tier {
 }
 
 function parseOptionalPositiveInt(
-  options: Record<string, string>,
+  options: FlagOptions,
   name: string
 ): number | undefined {
   const value = options[name];
@@ -106,11 +119,7 @@ function parseOptionalPositiveInt(
   return parsed;
 }
 
-function getUnkeyAdminClient(): {
-  client: Unkey;
-  apiId: string;
-  keyPermission: string;
-} {
+function getUnkeyAdminClient() {
   const rootKey = requireEnv('UNKEY_ADMIN_ROOT_KEY');
   const apiId = requireEnv('UNKEY_API_ID');
   const keyPermission = requireEnv('UNKEY_API_KEY_PERMISSION');
@@ -122,7 +131,7 @@ function getUnkeyAdminClient(): {
   };
 }
 
-function getUnkeyRuntimeClient(): { client: Unkey; apiId: string } {
+function getUnkeyRuntimeClient() {
   const rootKey = requireEnv('UNKEY_ROOT_KEY');
   const apiId = requireEnv('UNKEY_API_ID');
 
@@ -132,7 +141,7 @@ function getUnkeyRuntimeClient(): { client: Unkey; apiId: string } {
   };
 }
 
-async function createKey(options: Record<string, string>): Promise<void> {
+async function createKey(options: FlagOptions): Promise<void> {
   const customerId = requireOption(options, 'customer-id');
   const tier = parseTier(requireOption(options, 'tier'));
   const externalId = options['external-id'] ?? customerId;
@@ -174,7 +183,7 @@ async function createKey(options: Record<string, string>): Promise<void> {
   );
 }
 
-async function updateTier(options: Record<string, string>): Promise<void> {
+async function updateTier(options: FlagOptions): Promise<void> {
   const keyId = requireOption(options, 'key-id');
   const tier = parseTier(requireOption(options, 'tier'));
   const { limit, duration } = TIER_CONFIG[tier];
@@ -208,7 +217,7 @@ async function updateTier(options: Record<string, string>): Promise<void> {
 }
 
 async function bootstrapAnonymousNamespace(
-  options: Record<string, string>
+  options: FlagOptions
 ): Promise<void> {
   const { client, apiId } = getUnkeyRuntimeClient();
   const namespaceFromEnv = process.env.UNKEY_ANON_NAMESPACE?.trim();
@@ -242,21 +251,15 @@ async function bootstrapAnonymousNamespace(
 }
 
 async function main(): Promise<void> {
-  const command = process.argv[2] as Command | undefined;
+  const requested = process.argv[2];
   const args = process.argv.slice(3);
 
-  if (!command || command === '--help' || command === '-h') {
+  if (!requested || requested === '--help' || requested === '-h') {
     printUsage();
     process.exit(0);
   }
 
-  if (
-    command !== 'create' &&
-    command !== 'tier' &&
-    command !== 'anon-bootstrap'
-  ) {
-    throw new Error(`Unknown command: ${command}`);
-  }
+  const command = parseCommand(requested);
 
   if (args.includes('--help') || args.includes('-h')) {
     printUsage();

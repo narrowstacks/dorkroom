@@ -146,7 +146,8 @@ export const useBorderCalculator = () => {
       paperSizeWarning: calculation.paperSizeWarning,
       lastValidMinBorder: calculation.lastValidMinBorder,
       clampedHorizontalOffset: calculation.clampedHorizontalOffset,
-    } as BorderCalculation,
+      clampedVerticalOffset: calculation.clampedVerticalOffset,
+    } satisfies BorderCalculation,
 
     /* setters (from input handlers) */
     ...inputHandlers,

@@ -92,7 +92,7 @@ export function MobileBorderLayout() {
         id: 'custom',
         name: presetName,
         settings: currentSettings,
-      } as BorderPreset;
+      };
     }
     return null;
   }, [selectedPresetId, presets, presetName, currentSettings]);

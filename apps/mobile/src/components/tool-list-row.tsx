@@ -5,11 +5,15 @@ export function ToolListRow({
   label,
   onPress,
   accessory,
+  accessoryText,
   leading,
 }: {
   label: string;
   onPress: () => void;
+  /** Trailing element, e.g. a chevron. Ignored when `accessoryText` is set. */
   accessory?: ReactNode;
+  /** Trailing value text; also read out after the label. */
+  accessoryText?: string;
   leading?: ReactNode;
 }) {
   return (
@@ -17,7 +21,7 @@ export function ToolListRow({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={
-        typeof accessory === 'string' ? `${label}: ${accessory}` : label
+        accessoryText === undefined ? label : `${label}: ${accessoryText}`
       }
       className="flex-row items-center justify-between px-4 py-3 active:opacity-60"
     >
@@ -25,10 +29,10 @@ export function ToolListRow({
         {leading}
         <Text className="text-base text-white">{label}</Text>
       </View>
-      {typeof accessory === 'string' ? (
-        <Text className="text-white/40">{accessory}</Text>
-      ) : (
+      {accessoryText === undefined ? (
         accessory
+      ) : (
+        <Text className="text-white/40">{accessoryText}</Text>
       )}
     </Pressable>
   );

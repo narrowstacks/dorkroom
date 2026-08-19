@@ -1,5 +1,12 @@
 export type TemperatureUnit = 'fahrenheit' | 'celsius';
 
+/** A temperature formatted for display, plus how it compares to standard. */
+export interface FormattedTemperature {
+  text: string;
+  isNonStandard: boolean;
+  isHigher: boolean;
+}
+
 export const STANDARD_TEMP_F = 68;
 export const STANDARD_TEMP_C = 20;
 
@@ -24,20 +31,22 @@ export function isHigherTemperature(temperatureF: number): boolean {
  * @param temperatureC - Temperature in degrees Celsius, or `null` if not provided
  * @param unit - The unit to format the output in (`'fahrenheit'` or `'celsius'`)
  * @param highlight - Unused; accepted for API compatibility
- * @returns An object with `text` containing the formatted temperature (e.g., `"68.0°F"` or `"20.0°C"`) or `"—"` when no value is available, `isNonStandard` indicating whether the temperature differs from the standard temperature, and `isHigher` indicating whether it's above standard (for color coding)
+ * @returns A `FormattedTemperature`: `text` holds the formatted temperature (e.g., `"68.0°F"` or `"20.0°C"`) or `"—"` when no value is available, `isNonStandard` indicates whether the temperature differs from the standard temperature, and `isHigher` whether it's above standard (for color coding)
  */
 export function formatTemperatureWithUnit(
   temperatureF: number | null,
   temperatureC: number | null,
   unit: TemperatureUnit,
   _highlight = false
-): { text: string; isNonStandard: boolean; isHigher: boolean } {
-  let fahrenheit = Number.isFinite(temperatureF)
-    ? (temperatureF as number)
-    : null;
-  let celsius = Number.isFinite(temperatureC ?? NaN)
-    ? (temperatureC as number)
-    : null;
+): FormattedTemperature {
+  let fahrenheit =
+    temperatureF !== null && Number.isFinite(temperatureF)
+      ? temperatureF
+      : null;
+  let celsius =
+    temperatureC !== null && Number.isFinite(temperatureC)
+      ? temperatureC
+      : null;
 
   if (fahrenheit === null && celsius !== null) {
     fahrenheit = (celsius * 9) / 5 + 32;

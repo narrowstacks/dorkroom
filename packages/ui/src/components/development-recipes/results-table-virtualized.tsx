@@ -4,6 +4,7 @@ import { flexRender } from '@tanstack/react-table';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { type FC, useMemo, useRef } from 'react';
 import { cn } from '../../lib/cn';
+import { cssVars } from '../../lib/dom';
 import { SkeletonTableRow } from '../ui/skeleton';
 import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
 import { useRecipeHoverStyles } from './use-recipe-hover-styles';
@@ -96,16 +97,13 @@ export const DevelopmentResultsTableVirtualized: FC<
             // eslint-disable-next-line react-doctor/no-noninteractive-element-to-interactive-role -- genuinely an interactive grid: rows are focusable (tabIndex) and selectable (aria-selected); role="grid" is required for aria-selected on <tr> to be valid
             role="grid"
             className="min-w-full divide-y text-sm"
-            style={
-              {
-                // Fixed layout ensures column widths are determined by headers,
-                // preventing resize when custom recipe rows virtualize in/out
-                tableLayout: 'fixed',
-                '--tw-divide-opacity': '0.15',
-                divideColor: 'var(--color-border-secondary)',
-                color: 'var(--color-border-secondary)',
-              } as React.CSSProperties
-            }
+            style={cssVars({
+              // Fixed layout ensures column widths are determined by headers,
+              // preventing resize when custom recipe rows virtualize in/out
+              tableLayout: 'fixed',
+              '--tw-divide-opacity': '0.15',
+              color: 'var(--color-border-secondary)',
+            })}
           >
             <thead
               className="text-xs uppercase tracking-wide sticky top-0 z-10"
@@ -180,12 +178,9 @@ export const DevelopmentResultsTableVirtualized: FC<
             </thead>
             <tbody
               className="divide-y"
-              style={
-                {
-                  '--tw-divide-opacity': '0.15',
-                  divideColor: 'var(--color-text-secondary)',
-                } as React.CSSProperties
-              }
+              style={cssVars({
+                '--tw-divide-opacity': '0.15',
+              })}
             >
               {paddingTop > 0 && (
                 // eslint-disable-next-line react-doctor/no-aria-hidden-on-focusable -- virtualization spacer row: not focusable (no tabIndex); aria-hidden keeps the empty padding out of the AT row count
@@ -242,20 +237,18 @@ export const DevelopmentResultsTableVirtualized: FC<
                         'animate-slide-fade-bottom',
                         !isSelected && 'hoverable-row'
                       )}
-                      style={
-                        {
-                          '--row-bg': isSelected
-                            ? rowStyles.selected.backgroundColor
-                            : rowStyles.default.backgroundColor,
-                          '--row-bg-hover': rowStyles.hover.backgroundColor,
-                          backgroundColor: isSelected
-                            ? rowStyles.selected.backgroundColor
-                            : rowStyles.default.backgroundColor,
-                          boxShadow: isSelected
-                            ? 'inset 3px 0 0 var(--color-primary)'
-                            : undefined,
-                        } as React.CSSProperties
-                      }
+                      style={cssVars({
+                        '--row-bg': isSelected
+                          ? rowStyles.selected.backgroundColor
+                          : rowStyles.default.backgroundColor,
+                        '--row-bg-hover': rowStyles.hover.backgroundColor,
+                        backgroundColor: isSelected
+                          ? rowStyles.selected.backgroundColor
+                          : rowStyles.default.backgroundColor,
+                        boxShadow: isSelected
+                          ? 'inset 3px 0 0 var(--color-primary)'
+                          : undefined,
+                      })}
                     >
                       {row
                         .getVisibleCells()

@@ -8,6 +8,13 @@ import { PROCESS_OPTIONS } from '@/lib/film-log-options';
 import { addCustomFilm } from '@/lib/film-log-storage';
 import type { FilmProcess, FilmStock } from '@/types/film-log';
 
+interface CustomFilmDraft {
+  brand: string;
+  name: string;
+  iso: string;
+  process: FilmProcess;
+}
+
 interface CustomFilmFormProps {
   visible: boolean;
   onClose: () => void;
@@ -21,11 +28,11 @@ export function CustomFilmForm({
   onClose,
   onCreated,
 }: CustomFilmFormProps) {
-  const [form, set] = useFormState({
+  const [form, set] = useFormState<CustomFilmDraft>({
     brand: '',
     name: '',
     iso: '',
-    process: 'bw' as FilmProcess,
+    process: 'bw',
   });
 
   const onSave = () => {

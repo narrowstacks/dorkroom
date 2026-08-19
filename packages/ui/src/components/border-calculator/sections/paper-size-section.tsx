@@ -1,4 +1,4 @@
-import { ASPECT_RATIOS, PAPER_SIZES, type SelectItem } from '@dorkroom/logic';
+import { ASPECT_RATIOS, PAPER_SIZES } from '@dorkroom/logic';
 import { RotateCw, Square, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DimensionInputGroup } from '../../../components/dimension-input-group';
@@ -186,7 +186,7 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
               form.getFieldValue('customAspectHeight')
             );
           }}
-          items={ASPECT_RATIOS as SelectItem[]}
+          items={ASPECT_RATIOS}
           placeholder="Select Aspect Ratio"
         />
 
@@ -221,7 +221,7 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
           label="Paper Size:"
           selectedValue={paperSize}
           onValueChange={(value) => form.setFieldValue('paperSize', value)}
-          items={displayPaperSizes as SelectItem[]}
+          items={displayPaperSizes}
           placeholder="Select Paper Size"
         />
 

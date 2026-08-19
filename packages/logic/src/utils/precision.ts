@@ -67,9 +67,9 @@ export const createMemoKey = (
 ): string => {
   return values
     .map((val) =>
-      typeof val === 'number'
-        ? Math.round(val * ROUNDING_MULTIPLIER).toString()
-        : val.toString()
+      Number.isFinite(val)
+        ? Math.round(Number(val) * ROUNDING_MULTIPLIER).toString()
+        : String(val)
     )
     .join(':');
 };

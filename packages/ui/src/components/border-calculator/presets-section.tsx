@@ -1,4 +1,3 @@
-import type { BorderPresetSettings } from '@dorkroom/logic';
 import { Save, Share2, Trash2 } from 'lucide-react';
 import { CalculatorCard } from '../calculator/calculator-card';
 import { Select } from '../select';
@@ -112,10 +111,9 @@ export function PresetsSection() {
               type="button"
               onClick={() =>
                 selectedPresetId &&
-                updatePresetHandler(selectedPresetId, {
-                  name: presetName,
-                  settings: {} as BorderPresetSettings,
-                })
+                // `settings` omitted on purpose: usePresetManagement falls back
+                // to the live calculator settings, which is what Update means.
+                updatePresetHandler(selectedPresetId, { name: presetName })
               }
               disabled={!selectedPresetId}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"

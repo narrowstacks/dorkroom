@@ -1,4 +1,4 @@
-import type { CustomRecipeFormData } from '@dorkroom/logic';
+import type { CustomRecipe, CustomRecipeFormData } from '@dorkroom/logic';
 import { debugError } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
@@ -6,7 +6,7 @@ import { type Dispatch, type SetStateAction, useCallback } from 'react';
 export interface UseSharedRecipeImportProps {
   // Recipe operations
   addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
-  refreshCustomRecipes: () => Promise<unknown>;
+  refreshCustomRecipes: () => Promise<CustomRecipe[]>;
 
   // Modal state
   sharedRecipeView: DevelopmentCombinationView | null;
@@ -64,7 +64,7 @@ export function useSharedRecipeImport({
           (!sharedRecipeView.film ||
             !sharedRecipeView.film.brand ||
             !sharedRecipeView.film.name ||
-            typeof sharedRecipeView.film.isoSpeed !== 'number')
+            !Number.isFinite(sharedRecipeView.film.isoSpeed))
         ) {
           throw new Error(
             'Invalid film data in shared recipe. Missing required fields.'

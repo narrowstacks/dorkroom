@@ -128,17 +128,14 @@ export default function ExposureCalculatorPage() {
     defaultValues: {
       originalTime: 10,
       stops: 1,
-    },
+    } satisfies ExposureFormState,
     validators: {
       onChange: validateExposureForm,
     },
   });
 
   // Subscribe to form values
-  const formValues = useStore(
-    form.store,
-    (state) => state.values as ExposureFormState
-  );
+  const formValues = useStore(form.store, (state) => state.values);
 
   // Persist and hydrate form state to/from localStorage
   useLocalStorageFormPersistence({
@@ -148,10 +145,10 @@ export default function ExposureCalculatorPage() {
     persistKeys: ['originalTime', 'stops'],
     validators: {
       originalTime: {
-        validate: (v) => typeof v === 'number' && Number.isFinite(v),
+        validate: (v) => Number.isFinite(v),
       },
       stops: {
-        validate: (v) => typeof v === 'number' && Number.isFinite(v),
+        validate: (v) => Number.isFinite(v),
       },
     },
   });

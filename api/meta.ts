@@ -21,9 +21,9 @@ const BRAND_RE = /^[\w\s.'-]{1,50}$/;
 const PRESET_RE = /^[A-Za-z0-9_-]{1,500}$/;
 
 /**
- * Every query param this endpoint reads (the ones individually copied below,
- * plus `path`). Anything else is rejected before the origin `fetch` — see the
- * guard at the top of `handler`. Keep this in sync when adding a new param.
+ * Every query param this endpoint reads, `path` included. Anything else is
+ * rejected before the origin `fetch` — see the guard at the top of `handler`.
+ * Keep this in sync when adding a new param.
  */
 const ALLOWED_PARAMS = new Set([
   'path',
@@ -36,6 +36,11 @@ const ALLOWED_PARAMS = new Set([
   'status',
   'preset',
 ]);
+
+/** Vercel collapses a repeated param into an array, which has no single value. */
+function singleValue(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? undefined : value;
+}
 
 /**
  * True when `query` carries a key outside the allowlist, or an allowed key
@@ -58,7 +63,7 @@ function hasQueryIssue(query: VercelRequest['query']): boolean {
  * arrive with tracking params like `utm_source` tacked on).
  */
 function buildCanonicalUrl(query: VercelRequest['query']): string {
-  const path = typeof query.path === 'string' ? query.path : '/';
+  const path = singleValue(query.path) ?? '/';
   // WHATWG URL lets a crafted `path` escape the base origin
   // (`//evil.com`, `https://evil.com`, `/\/evil.com`, `\\evil.com` all
   // resolve to https://evil.com/), and this endpoint is publicly
@@ -74,12 +79,11 @@ function buildCanonicalUrl(query: VercelRequest['query']): string {
   const search = new URLSearchParams();
   for (const key of ALLOWED_PARAMS) {
     if (key === 'path') continue;
-    const value = query[key];
-    if (typeof value === 'string') {
+    const raw = query[key];
+    // Duplicated allowed param — keep the first value.
+    const value = Array.isArray(raw) ? raw[0] : raw;
+    if (value !== undefined) {
       search.set(key, value);
-    } else if (Array.isArray(value) && typeof value[0] === 'string') {
-      // Duplicated allowed param — keep the first value.
-      search.set(key, value[0]);
     }
   }
   url.search = search.toString();
@@ -147,26 +151,15 @@ export default async function handler(
     return;
   }
 
-  const path = (req.query.path as string) ?? '/';
+  const path = singleValue(req.query.path) ?? '/';
   const url = new URL(path, 'https://dorkroom.art');
 
   // Merge any query params from the original URL
-  if (typeof req.query.film === 'string')
-    url.searchParams.set('film', req.query.film);
-  if (typeof req.query.developer === 'string')
-    url.searchParams.set('developer', req.query.developer);
-  if (typeof req.query.recipe === 'string')
-    url.searchParams.set('recipe', req.query.recipe);
-  if (typeof req.query.color === 'string')
-    url.searchParams.set('color', req.query.color);
-  if (typeof req.query.iso === 'string')
-    url.searchParams.set('iso', req.query.iso);
-  if (typeof req.query.brand === 'string')
-    url.searchParams.set('brand', req.query.brand);
-  if (typeof req.query.status === 'string')
-    url.searchParams.set('status', req.query.status);
-  if (typeof req.query.preset === 'string')
-    url.searchParams.set('preset', req.query.preset);
+  for (const key of ALLOWED_PARAMS) {
+    if (key === 'path') continue;
+    const value = singleValue(req.query[key]);
+    if (value !== undefined) url.searchParams.set(key, value);
+  }
 
   const query = extractMetadataQuery(url.searchParams);
   const meta = getRouteMetadata(url.pathname, query);

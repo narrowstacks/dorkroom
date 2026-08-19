@@ -1,7 +1,7 @@
 import type { Film } from '@dorkroom/api';
 import { type FC, memo } from 'react';
 import { cn } from '../../lib/cn';
-import { setStyles } from '../../lib/dom';
+import { cssVars, setStyles } from '../../lib/dom';
 import { Tag } from '../ui/tag';
 import { FilmImage } from './film-image';
 
@@ -47,23 +47,21 @@ const FilmCardComponent: FC<FilmCardProps> = ({
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
         className
       )}
-      style={
-        {
-          borderColor: isSelected
-            ? 'var(--color-border-primary)'
-            : 'var(--color-border-secondary)',
-          backgroundColor: isSelected
-            ? 'var(--color-surface-muted)'
-            : 'var(--color-background)',
-          '--tw-ring-color': 'var(--color-primary)',
-          // Dark surface — keep the grain restrained.
-          '--card-grain-opacity': '0.28',
-          // Blend the grain against this surface's own base colour.
-          '--card-grain-base': isSelected
-            ? 'var(--color-surface-muted)'
-            : 'var(--color-background)',
-        } as React.CSSProperties
-      }
+      style={cssVars({
+        borderColor: isSelected
+          ? 'var(--color-border-primary)'
+          : 'var(--color-border-secondary)',
+        backgroundColor: isSelected
+          ? 'var(--color-surface-muted)'
+          : 'var(--color-background)',
+        '--tw-ring-color': 'var(--color-primary)',
+        // Dark surface — keep the grain restrained.
+        '--card-grain-opacity': '0.28',
+        // Blend the grain against this surface's own base colour.
+        '--card-grain-base': isSelected
+          ? 'var(--color-surface-muted)'
+          : 'var(--color-background)',
+      })}
       onMouseEnter={(e) => {
         if (!isSelected) {
           setStyles(e.currentTarget, {

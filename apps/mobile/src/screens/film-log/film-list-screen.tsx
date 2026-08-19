@@ -8,11 +8,11 @@ import { shareRollsAsJson } from '@/lib/film-log-export';
 import { formatProcess } from '@/lib/film-log-options';
 import type { FilmRoll } from '@/types/film-log';
 
-const STATUS_LABEL: Record<FilmRoll['status'], string> = {
+const STATUS_LABEL = {
   active: 'Active',
   finished: 'Finished',
   developed: 'Developed',
-};
+} satisfies Record<FilmRoll['status'], string>;
 
 // Static — hoisted so it isn't rebuilt on every render.
 const EMPTY_STATE = (

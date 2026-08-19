@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   BASE_URL,
+  buildFilmFilterParts,
   getRouteMetadata,
   prettifySlug,
   ROUTE_DESCRIPTIONS,
@@ -145,5 +146,33 @@ describe('getRouteMetadata with query params', () => {
   it('ignores query params on non-dynamic routes', () => {
     const meta = getRouteMetadata('/border', { film: 'anything' });
     expect(meta.title).toBe('Border Calculator | Dorkroom');
+  });
+});
+
+describe('filter params inherited from Object.prototype', () => {
+  // `?color=constructor` once satisfied a `value in COLOR_LABELS` membership
+  // test, so the label became the Object constructor and formatting it threw
+  // a TypeError out of this endpoint. Every filter lookup is own-key only now.
+  const inherited = ['constructor', 'toString', '__proto__', 'hasOwnProperty'];
+
+  it.each(inherited)('treats color=%s as absent', (color) => {
+    expect(buildFilmFilterParts({ color })).toBeNull();
+  });
+
+  it.each(inherited)('treats status=%s as absent', (status) => {
+    expect(buildFilmFilterParts({ status })).toBeNull();
+  });
+
+  it.each(inherited)('does not resolve %s as a route', (pathname) => {
+    expect(getRouteMetadata(pathname).title).toBe(SITE_NAME);
+  });
+
+  it('still resolves real filter values', () => {
+    expect(buildFilmFilterParts({ color: 'bw' })?.title).toBe(
+      'Black & White Films'
+    );
+    expect(buildFilmFilterParts({ status: 'discontinued' })?.title).toBe(
+      'Discontinued Film Stocks'
+    );
   });
 });

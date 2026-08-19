@@ -5,6 +5,12 @@ export interface AspectPreviewRect {
   h: number;
 }
 
+/** The original and target rectangles of the aspect-ratio preview. */
+export interface AspectPreviewRects {
+  orig: AspectPreviewRect;
+  target: AspectPreviewRect;
+}
+
 /**
  * Computes two centered, uniformly-scaled rectangles for the print resize
  * aspect-ratio preview: the original print and the target print. Both are
@@ -20,7 +26,7 @@ export function computePreviewRects(
   newW: number,
   newL: number,
   box: number
-): { orig: AspectPreviewRect; target: AspectPreviewRect } {
+): AspectPreviewRects {
   const zero: AspectPreviewRect = { x: 0, y: 0, w: 0, h: 0 };
   const maxDim = Math.max(origW, origL, newW, newL);
   if (!Number.isFinite(maxDim) || maxDim <= 0)

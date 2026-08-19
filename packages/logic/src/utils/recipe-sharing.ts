@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type {
   CustomDeveloperData,
   CustomFilmData,
@@ -38,8 +39,54 @@ export interface EncodedCustomRecipe {
   customFilm?: CustomFilmData;
   customDeveloper?: CustomDeveloperData;
   isPublic: boolean;
-  version: number;
+  /** Absent in links written before recipe sharing was versioned. */
+  version?: number;
 }
+
+const customFilmDataSchema = z.object({
+  brand: z.string().min(1),
+  name: z.string().min(1),
+  isoSpeed: z.number(),
+  colorType: z.enum(['bw', 'color', 'slide']),
+  grainStructure: z.string().optional(),
+  description: z.string().optional(),
+}) satisfies z.ZodType<CustomFilmData>;
+
+const customDeveloperDataSchema = z.object({
+  manufacturer: z.string().min(1),
+  name: z.string().min(1),
+  type: z.string(),
+  filmOrPaper: z.enum(['film', 'paper', 'both']),
+  workingLifeHours: z.number().optional(),
+  stockLifeMonths: z.number().optional(),
+  notes: z.string().optional(),
+  mixingInstructions: z.string().optional(),
+  safetyNotes: z.string().optional(),
+  dilutions: z.array(z.object({ name: z.string(), dilution: z.string() })),
+}) satisfies z.ZodType<CustomDeveloperData>;
+
+/** Wire contract for a shared recipe; a link that fails it decodes to null. */
+const encodedCustomRecipeSchema = z.object({
+  name: z.string().min(1),
+  filmId: z.string(),
+  developerId: z.string(),
+  temperatureF: z.number(),
+  timeMinutes: z.number(),
+  shootingIso: z.number(),
+  pushPull: z.number(),
+  agitationSchedule: z.string().optional(),
+  notes: z.string().optional(),
+  dilutionId: z.number().optional(),
+  customDilution: z.string().optional(),
+  isCustomFilm: z.boolean(),
+  isCustomDeveloper: z.boolean(),
+  customFilm: customFilmDataSchema.optional(),
+  customDeveloper: customDeveloperDataSchema.optional(),
+  isPublic: z.boolean(),
+  version: z.number().optional(),
+}) satisfies z.ZodType<EncodedCustomRecipe>;
+
+const encodedRecipeStringSchema = z.string().regex(/^[A-Za-z0-9_-]+$/);
 
 /**
  * Encodes a custom recipe into a URL-safe base64 string for sharing.
@@ -120,16 +167,7 @@ export const decodeCustomRecipe = (
 ): EncodedCustomRecipe | null => {
   try {
     const jsonString = decodeBase64(fromUrlSafe(encoded));
-    const recipe = JSON.parse(jsonString) as EncodedCustomRecipe;
-
-    if (
-      !recipe.name ||
-      typeof recipe.temperatureF !== 'number' ||
-      typeof recipe.timeMinutes !== 'number' ||
-      typeof recipe.shootingIso !== 'number'
-    ) {
-      throw new Error('Invalid recipe data: missing required fields');
-    }
+    const recipe = encodedCustomRecipeSchema.parse(JSON.parse(jsonString));
 
     if (!recipe.version || recipe.version > CURRENT_RECIPE_SHARING_VERSION) {
       console.warn(
@@ -220,15 +258,9 @@ export const createCustomRecipeFromEncoded = (
  * ```
  */
 export const isValidCustomRecipeEncoding = (encoded: string): boolean => {
-  if (!encoded || typeof encoded !== 'string') {
+  if (!encodedRecipeStringSchema.safeParse(encoded).success) {
     return false;
   }
 
-  const base64UrlSafePattern = /^[A-Za-z0-9_-]+$/;
-  if (!base64UrlSafePattern.test(encoded)) {
-    return false;
-  }
-
-  const decoded = decodeCustomRecipe(encoded);
-  return decoded !== null;
+  return decodeCustomRecipe(encoded) !== null;
 };

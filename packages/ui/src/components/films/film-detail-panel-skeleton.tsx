@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { createPortal } from 'react-dom';
+import { hasGlobal } from '../../lib/dom';
 
 /**
  * Props for the FilmDetailPanelSkeleton component.
@@ -21,7 +22,7 @@ interface FilmDetailPanelSkeletonProps {
 export const FilmDetailPanelSkeleton: FC<FilmDetailPanelSkeletonProps> = ({
   isMobile,
 }) => {
-  if (typeof document === 'undefined') {
+  if (!hasGlobal('document')) {
     return null;
   }
 

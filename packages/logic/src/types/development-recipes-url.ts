@@ -1,4 +1,5 @@
 import type { Developer, Film } from '@dorkroom/api';
+import type { CustomRecipeFilter } from '../schemas/development-recipes.schema';
 
 export interface RecipeUrlParams {
   film?: string;
@@ -6,7 +7,7 @@ export interface RecipeUrlParams {
   dilution?: string;
   iso?: string;
   developerType?: string;
-  recipeType?: string;
+  recipeType?: CustomRecipeFilter;
   favorites?: string;
   recipe?: string;
   source?: 'share';
@@ -20,7 +21,7 @@ export interface InitialUrlState {
   dilutionFilter?: string;
   isoFilter?: string;
   developerTypeFilter?: string;
-  customRecipeFilter?: string;
+  customRecipeFilter?: CustomRecipeFilter;
   favoritesOnly?: boolean;
   recipeId?: string;
   fromUrl?: boolean;

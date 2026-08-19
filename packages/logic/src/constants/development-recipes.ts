@@ -39,10 +39,10 @@ export const SORT_OPTIONS = [
   { label: 'ISO', value: 'shootingIso' },
 ];
 
-export const PUSH_PULL_LABELS: Record<number, string> = {
+export const PUSH_PULL_LABELS = {
   [-2]: 'Pull 2 stops',
   [-1]: 'Pull 1 stop',
   0: 'Box Speed',
   1: 'Push 1 stop',
   2: 'Push 2 stops',
-};
+} satisfies Record<number, string>;

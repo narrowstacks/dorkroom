@@ -73,6 +73,8 @@ const PickerRowInner = <T extends string | number>({
     </Pressable>
   );
 };
+// SAFETY: `memo` returns a component with the identical props contract but an
+// erased type parameter; the assertion restores the generic signature.
 const PickerRow = memo(PickerRowInner) as typeof PickerRowInner;
 
 /**

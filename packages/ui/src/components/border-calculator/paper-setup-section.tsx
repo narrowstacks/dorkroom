@@ -1,4 +1,4 @@
-import { ASPECT_RATIOS, type SelectItem } from '@dorkroom/logic';
+import { ASPECT_RATIOS } from '@dorkroom/logic';
 import { useStore } from '@tanstack/react-store';
 import type { FieldApi } from '../../forms/utils/form-api-types';
 import { CalculatorCard } from '../calculator/calculator-card';
@@ -43,7 +43,7 @@ export function PaperSetupSection() {
                 field.handleChange(value);
                 form.setFieldValue('isRatioFlipped', false);
               }}
-              items={ASPECT_RATIOS as SelectItem[]}
+              items={ASPECT_RATIOS}
               placeholder="Select"
             />
           )}

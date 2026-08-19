@@ -74,7 +74,7 @@ interface MeterReadoutProps {
 }
 
 /** Formats the snap error in stops: "+0.4" over, "−0.3" under, "✓" if exact. */
-function formatStopError(stops: number): { text: string; tone: string } {
+function formatStopError(stops: number) {
   const rounded = Math.round(stops * 10) / 10;
   if (Math.abs(rounded) < 0.05) return { text: '✓', tone: 'text-white/45' };
   const sign = rounded > 0 ? '+' : '−';

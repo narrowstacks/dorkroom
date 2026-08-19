@@ -234,6 +234,22 @@ function calculateAspectRatioMatch(
   return originalRatio === newRatio;
 }
 
+const RESIZE_FORM_DEFAULTS: ResizeCalculatorState = {
+  isEnlargerHeightMode: false,
+  originalWidth: Number(DEFAULT_ORIGINAL_WIDTH),
+  originalLength: Number(DEFAULT_ORIGINAL_LENGTH),
+  newWidth: Number(DEFAULT_NEW_WIDTH),
+  newLength: Number(DEFAULT_NEW_LENGTH),
+  originalTime: Number(DEFAULT_ORIGINAL_TIME),
+  originalHeight: Number(DEFAULT_ORIGINAL_HEIGHT),
+  newHeight: Number(DEFAULT_NEW_HEIGHT),
+};
+
+interface ExposureChanges {
+  newTime: string;
+  stopsDifference: string;
+}
+
 // Helper function to calculate exposure changes
 function calculateExposureChanges(
   isEnlargerMode: boolean,
@@ -244,7 +260,7 @@ function calculateExposureChanges(
   newL: number,
   origHeight: number,
   newH: number
-): { newTime: string; stopsDifference: string } {
+): ExposureChanges {
   let calculatedNewTime = '';
   let calculatedStopsDifference = '';
 
@@ -299,11 +315,11 @@ function ResizePreview({ form }: { form: ResizeForm }) {
   return (
     <form.Subscribe
       selector={(state) => ({
-        isEnlargerMode: state.values.isEnlargerHeightMode as boolean,
-        origWidth: state.values.originalWidth as number,
-        origLength: state.values.originalLength as number,
-        newWidth: state.values.newWidth as number,
-        newLength: state.values.newLength as number,
+        isEnlargerMode: state.values.isEnlargerHeightMode,
+        origWidth: state.values.originalWidth,
+        origLength: state.values.originalLength,
+        newWidth: state.values.newWidth,
+        newLength: state.values.newLength,
       })}
     >
       {({ isEnlargerMode, origWidth, origLength, newWidth, newLength }) =>
@@ -330,14 +346,14 @@ function ResizeResults({ form }: { form: ResizeForm }) {
   return (
     <form.Subscribe
       selector={(state) => {
-        const isEnlargerMode = state.values.isEnlargerHeightMode as boolean;
-        const origTime = state.values.originalTime as number;
-        const origWidth = state.values.originalWidth as number;
-        const origLength = state.values.originalLength as number;
-        const newW = state.values.newWidth as number;
-        const newL = state.values.newLength as number;
-        const origHeight = state.values.originalHeight as number;
-        const newH = state.values.newHeight as number;
+        const isEnlargerMode = state.values.isEnlargerHeightMode;
+        const origTime = state.values.originalTime;
+        const origWidth = state.values.originalWidth;
+        const origLength = state.values.originalLength;
+        const newW = state.values.newWidth;
+        const newL = state.values.newLength;
+        const origHeight = state.values.originalHeight;
+        const newH = state.values.newHeight;
 
         const { newTime, stopsDifference } = calculateExposureChanges(
           isEnlargerMode,
@@ -657,26 +673,17 @@ function ResizeInputs({
 
 function useResizeForm() {
   const form = useForm({
-    defaultValues: {
-      isEnlargerHeightMode: false,
-      originalWidth: Number(DEFAULT_ORIGINAL_WIDTH),
-      originalLength: Number(DEFAULT_ORIGINAL_LENGTH),
-      newWidth: Number(DEFAULT_NEW_WIDTH),
-      newLength: Number(DEFAULT_NEW_LENGTH),
-      originalTime: Number(DEFAULT_ORIGINAL_TIME),
-      originalHeight: Number(DEFAULT_ORIGINAL_HEIGHT),
-      newHeight: Number(DEFAULT_NEW_HEIGHT),
-    },
+    // Annotated rather than `satisfies`: the form's field types come from these
+    // defaults, and `satisfies` would pin isEnlargerHeightMode to the literal
+    // `false`, so setFieldValue could never accept a real boolean.
+    defaultValues: RESIZE_FORM_DEFAULTS,
     validators: {
       onChange: validateResizeForm,
     },
   });
 
   // Subscribe to form values
-  const formValues = useStore(
-    form.store,
-    (state) => state.values as ResizeCalculatorState
-  );
+  const formValues = useStore(form.store, (state) => state.values);
 
   // Persist and hydrate form state to/from localStorage
   useLocalStorageFormPersistence({

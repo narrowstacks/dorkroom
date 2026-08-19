@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { hasGlobal } from '../lib/dom';
 import type { Theme } from '../lib/themes';
 import { resolveTheme } from '../lib/themes';
 import { ThemeContext, type ThemeContextValue } from './theme-context';
@@ -13,7 +14,7 @@ const ANIMATIONS_STORAGE_KEY = 'dorkroom-animations-enabled';
 // Read the persisted theme on first render. On the server (no localStorage) or
 // for a first-time visitor, default to 'system' and persist that default.
 function getInitialTheme(): Theme {
-  if (typeof localStorage === 'undefined') {
+  if (!hasGlobal('localStorage')) {
     return 'system';
   }
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -33,7 +34,7 @@ function getInitialTheme(): Theme {
 
 // Read the persisted animations preference on first render, defaulting to true.
 function getInitialAnimationsEnabled(): boolean {
-  if (typeof localStorage === 'undefined') {
+  if (!hasGlobal('localStorage')) {
     return true;
   }
   const savedAnimations = localStorage.getItem(ANIMATIONS_STORAGE_KEY);
@@ -60,7 +61,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       setResolvedTheme(resolved);
 
       // Apply theme to document
-      if (typeof document !== 'undefined') {
+      if (hasGlobal('document')) {
         document.documentElement.setAttribute('data-theme', resolved);
         // Always disable animations for darkroom and high-contrast themes
         const shouldDisableAnimations =
