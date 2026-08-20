@@ -37,6 +37,8 @@
       ]
     },
     "@dorkroom/mobile#build": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "package.json", "tsconfig*.json"],
       "outputs": []
     },
     "dev": {
@@ -48,7 +50,7 @@
       "dependsOn": ["^build"]
     },
     "typecheck": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["build"]
     },
     "@dorkroom/dorkroom#typecheck": {
       "dependsOn": [
