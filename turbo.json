@@ -50,6 +50,13 @@
     "typecheck": {
       "dependsOn": ["^build"]
     },
+    "@dorkroom/dorkroom#typecheck": {
+      "dependsOn": [
+        "@dorkroom/api#build",
+        "@dorkroom/logic#build",
+        "@dorkroom/ui#build"
+      ]
+    },
     "lint": {},
     "//#typecheck:api": {
       "inputs": ["api/**", "!api/dist/**", "utils/**"]
