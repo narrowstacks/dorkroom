@@ -28,7 +28,7 @@ config.resolver.nodeModulesPaths = [
 // *fallback* and does not cover workspace packages (e.g. @dorkroom/logic,
 // bundled from packages/), which is why the redirect is explicit.
 //
-// Keep the two in sync: a Dependabot bump to the root `react` that leaves
+// Keep the two in sync: a bot bump (Renovate) to the root `react` that leaves
 // apps/mobile behind silently reintroduces a nested copy, which flips this
 // guard from inert to load-bearing and trips expo-doctor's duplicate-native-
 // module check. That is exactly what happened between SDK 56 and 57.
