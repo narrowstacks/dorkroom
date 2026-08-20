@@ -16,7 +16,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 ### Changed
 
 - `typecheck:api` and `test:serverless` are registered as root Turbo tasks (`//#`), running in parallel with package tasks and cacheable with scoped inputs, instead of being chained serially after Turbo with `&&`.
-- `typecheck` depends on `^build` instead of `build` — it's `--noEmit` and only needs dependencies' output, so it no longer waits for the package's own build.
+- `typecheck` depends on `^build` instead of `build` — it's `--noEmit` and only needs dependencies' output, so it no longer waits for the package's own build. The web app declares no workspace dependencies in its `package.json` (it consumes packages via tsconfig project references and Vite aliases), so its `^build` is empty; `@dorkroom/dorkroom#typecheck` therefore names the three package builds explicitly. The previous `dependsOn: ["build"]` only ordered these by accident (typecheck waited behind the ~28s Vite build), which surfaced as a `TS6305` race on the first cold-cache main run.
 - Net effect: warm CI runs drop from ~90s to ~22s. (Namespace runners were also evaluated — 17s warm — but reverted in favor of GitHub's free public-repo minutes; details in PR #221.)
 
 ## [2026.08.10]
