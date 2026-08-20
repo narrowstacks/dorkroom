@@ -35,27 +35,32 @@ description: Dorkroom's lint/format/typecheck/dependency toolchain — oxlint, B
   `undefined`). Vite, Vitest, and the editor language service resolve the same package. This is the
   side-by-side layout from
   [Announcing TypeScript 7.0](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0).
-  `.github/dependabot.yml` ignores `typescript` majors so the 6→7 bump stops being re-proposed;
+  `renovate.json` disables `typescript` majors so the 6→7 bump stops being re-proposed;
   lift the hold and collapse the two packages once 7.1 restores the API (Microsoft's stated window
   is 3–4 months from the 7.0 RC, so roughly Q4 2026).
-- **Renovate watches `typescript-7`; Dependabot cannot see it.** Dependabot silently skips aliased
-  packages in the `bun` ecosystem
-  ([dependabot-core#15847](https://github.com/dependabot/dependabot-core/issues/15847)): the alias
-  is misparsed as a subdependency, so no update is proposed and no warning is emitted. That is why
-  the pin sat on the moving `rc` dist-tag from #133 until it was caught manually. `renovate.json`
-  exists solely to close that one gap — **every other dependency is disabled in it**, so the two
-  bots never race. Two things about that config are load-bearing:
-  - It matches on **`matchDepNames: ["typescript-7"]`, not `matchPackageNames`.** The alias resolves
-    to `packageName: "typescript"`, so a `matchPackageNames` rule would also match the 6.x
-    compiler-API pin and propose exactly the 6→7 bump that breaks the Vercel build.
-  - It sets **`rangeStrategy: "bump"`.** The dep is a caret range (`^7.0.2`), so under the default
-    `replace` strategy an in-range release like 7.1.0 would satisfy it and produce **no PR** — and
-    7.1 is precisely the release we are waiting for. `bump` moves the floor, so 7.1 arrives as a
-    visible PR.
-  - `minimumReleaseAge: "7 days"` mirrors the `bunfig.toml` soak gate, so Renovate never proposes a
-    version `bun install` would refuse.
+- **Renovate owns every dependency in this repo** (`renovate.json`). It replaced Dependabot, whose
+  bun-ecosystem support had three disqualifying failure modes: it silently skips aliased packages
+  ([dependabot-core#15847](https://github.com/dependabot/dependabot-core/issues/15847) — how the
+  `typescript-7` pin sat on the moving `rc` dist-tag from #133 until caught manually), it unifies a
+  version across every workspace manifest (how PR #187 rewrote apps/mobile's tailwindcss from v3 to
+  v4 while calling itself a patch bump), and it bumps react-dom without react (issue #208 — always
+  fails CI). Things about the config that are load-bearing:
+  - The typescript-7 rule matches on **`matchDepNames: ["typescript-7"]`, not `matchPackageNames`.**
+    The alias resolves to `packageName: "typescript"`, so a `matchPackageNames` rule would also
+    match the 6.x compiler-API pin and propose exactly the 6→7 bump that breaks the Vercel build.
+  - Global **`rangeStrategy: "bump"`**: under the default `replace` strategy an in-range release
+    like typescript 7.1.0 would satisfy `^7.0.2` and produce **no PR** — and 7.1 is precisely the
+    release we are waiting for. `bump` moves the floor, so releases arrive as visible PRs.
+  - Global `minimumReleaseAge: "7 days"` mirrors the `bunfig.toml` soak gate, so Renovate never
+    proposes a version `bun install` would refuse.
+  - react/react-dom (+ their @types) are grouped into one PR (`groupName: "react"`) — they must be
+    the exact same version or react-dom refuses to boot.
+  - Expo SDK-managed native modules are disabled entirely: `expo install --fix` owns those
+    versions, and nothing in CI builds the native app to catch a bad bump.
+  - GitHub's "automated security fixes" (Dependabot security PRs) are disabled at the repo level;
+    Renovate's `vulnerabilityAlerts`/`osvVulnerabilityAlerts` cover security updates instead.
   - Renovate requires the GitHub App to be installed on the repo; the config file alone does
-    nothing. If `typescript-7` ever goes quiet for a long stretch, check that first.
+    nothing. If updates ever go quiet for a long stretch, check that first.
 - **Don't reach for the `@typescript/typescript6` compat wrapper** that the announcement recommends
   (`typescript@npm:@typescript/typescript6`). Under bun 1.3.11 it self-destructs: the wrapper's
   `@typescript/old` → `npm:typescript@^6` dependency dedupes against the `typescript` alias key and

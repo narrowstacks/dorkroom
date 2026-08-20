@@ -17,7 +17,9 @@
       "dependsOn": ["^build"],
       "inputs": [
         "src/**",
+        "public/**",
         "index.html",
+        "microfrontends.json",
         "package.json",
         "vite.config.ts",
         "tsconfig*.json",
