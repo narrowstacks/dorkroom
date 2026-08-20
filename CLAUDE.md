@@ -123,6 +123,19 @@ If a PR has no rendered output — an `api/` change, a config bump, tests — sa
 in the description in one line. Silence is ambiguous: a reviewer can't tell
 whether screenshots were considered or forgotten.
 
+**Every PR must use the template at `.github/PULL_REQUEST_TEMPLATE.md`.**
+Fill in every section: check the actual boxes that apply, list real changes,
+and delete nothing. When creating a PR with `gh pr create`, start the body from
+the template file rather than writing a freeform description. Issues likewise
+use the forms in `.github/ISSUE_TEMPLATE/`.
+
+**Every PR and issue must be labeled.** Pick from the existing labels
+(`gh label list`): at least one type label (`bug`, `enhancement`, `adjustment`,
+`refactoring`, `documentation`, `dependencies`) plus any area labels that apply
+(`api`, `infobase`, per-calculator/page labels, etc.). Add `claude` to anything
+Claude Code creates. Never apply `eas-build` unless an EAS build is intended:
+that label triggers builds. Don't invent new labels without asking.
+
 ## Git
 
 - Conventional commits, short messages
