@@ -45,12 +45,12 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # Turbo remote cache co-located with the Namespace runner. Exports
+      # TURBO_TOKEN/TURBO_TEAM/TURBO_API into the job env, so it runs after
+      # `bun install` to keep cache credentials out of the environment while
+      # package lifecycle scripts execute.
+      - name: Setup Turbo remote cache
+        uses: namespace-actions/setup-turbocache@v0
+
       - name: Run quality checks (lint, test, build, typecheck)
-        # Turbo Remote Caching secrets are scoped to this step only, so they
-        # are never present in the environment during `bun install` (which
-        # executes package lifecycle scripts). Set TURBO_TOKEN as a repository
-        # secret and TURBO_TEAM as a repository variable.
-        env:
-          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
         run: bun run test
