@@ -1,6 +1,6 @@
 {
   "name": "@dorkroom/source",
-  "version": "2026.08.10",
+  "version": "2026.08.19",
   "license": "AGPL-3.0-only",
   "scripts": {
     "supabase:login": "bunx supabase login",
@@ -19,9 +19,9 @@
     "build": "turbo run build",
     "verify:legacy": "turbo run build --filter=@dorkroom/dorkroom && bun run scripts/verify-legacy-build.ts",
     "dev": "turbo run dev --filter=@dorkroom/dorkroom",
-    "test": "turbo run lint test build typecheck --filter='@dorkroom/*' && bun run typecheck:api && vitest run --config vitest.config.ts",
+    "test": "turbo run lint test build typecheck typecheck:api test:serverless --filter='@dorkroom/*' --filter='//'",
     "test:unit": "turbo run test --filter='@dorkroom/*' -- --passWithNoTests",
-    "test:serverless": "vitest run --config vitest.config.ts",
+    "test:serverless": "vitest run --config vitest.config.ts --project serverless",
     "typecheck:api": "node node_modules/typescript/bin/tsc --noEmit --project api/tsconfig.json",
     "lint": "oxlint && biome check --linter-enabled=false .",
     "lint:fix": "oxlint --fix && biome check --linter-enabled=false --write .",

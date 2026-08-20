@@ -5,6 +5,20 @@ The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHAN
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.08.19]
+
+### Fixed
+
+- Turbo remote caching had been silently disabled for the repo's entire history: the CI workflow referenced a `TURBO_TOKEN` secret and `TURBO_TEAM` variable that were never created, so every run logged `Remote caching disabled` and rebuilt from scratch. Turbo caching now works through the `actions/cache`-restored `.turbo` directory, whose `restore-keys` let PR runs reuse main's artifacts — warm CI runs go `FULL TURBO`.
+- The root vitest sweep at the end of `bun run test` ran **every** package's tests a second time (its config's `projects` list matched all apps and packages — 88 files / 1788 tests duplicated per run). It now runs only the `serverless` project.
+- `@dorkroom/mobile#build` (a no-op — native builds run via EAS) declares `outputs: []`, so Turbo caches it instead of warning `no output files found` and re-running it unconditionally.
+
+### Changed
+
+- `typecheck:api` and `test:serverless` are registered as root Turbo tasks (`//#`), running in parallel with package tasks and cacheable with scoped inputs, instead of being chained serially after Turbo with `&&`.
+- `typecheck` depends on `^build` instead of `build` — it's `--noEmit` and only needs dependencies' output, so it no longer waits for the package's own build.
+- Net effect: warm CI runs drop from ~90s to ~22s. (Namespace runners were also evaluated — 17s warm — but reverted in favor of GitHub's free public-repo minutes; details in PR #221.)
+
 ## [2026.08.10]
 
 ### Changed
