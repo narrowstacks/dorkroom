@@ -12,6 +12,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - Turbo remote caching had been silently disabled for the repo's entire history: the CI workflow referenced a `TURBO_TOKEN` secret and `TURBO_TEAM` variable that were never created, so every run logged `Remote caching disabled` and rebuilt from scratch. Turbo caching now works through the `actions/cache`-restored `.turbo` directory, whose `restore-keys` let PR runs reuse main's artifacts — warm CI runs go `FULL TURBO`.
 - The root vitest sweep at the end of `bun run test` ran **every** package's tests a second time (its config's `projects` list matched all apps and packages — 88 files / 1788 tests duplicated per run). It now runs only the `serverless` project.
 - `@dorkroom/mobile#build` (a no-op — native builds run via EAS) declares `outputs: []`, so Turbo caches it instead of warning `no output files found` and re-running it unconditionally.
+- Vercel no longer builds the automated README-badge and homepage-screenshot commits. The ignore script's path allowlist already covered them, but it learns the changed files from an unauthenticated GitHub API call that gets rate-limited on Vercel's shared build IPs, and its (deliberately safe) fallback is to build — so the bot commits deployed anyway. They are now skipped deterministically by commit message before the API call.
 
 ### Changed
 

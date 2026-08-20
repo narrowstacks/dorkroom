@@ -7,6 +7,19 @@ echo "📌 Current commit: $VERCEL_GIT_COMMIT_SHA"
 echo "📌 Previous commit: $VERCEL_GIT_PREVIOUS_SHA"
 echo "📌 Repo: $VERCEL_GIT_REPO_OWNER/$VERCEL_GIT_REPO_SLUG"
 
+# Commits from our own automation never affect the web build: the badge sync
+# only rewrites README.md and the screenshot sync only rewrites
+# resources/dorkroom-homepage.webp. Match them by commit message BEFORE the
+# GitHub API diff below — that call is unauthenticated and rate-limited from
+# Vercel's shared build IPs, and its failure mode is deliberately "build",
+# which let these bot commits trigger deployments despite the path allowlist.
+case "$VERCEL_GIT_COMMIT_MESSAGE" in
+  "chore: sync README version badges"* | "chore: update homepage screenshot"*)
+    echo "⏭ Skipping build: automation commit ($VERCEL_GIT_COMMIT_MESSAGE)"
+    exit 0
+    ;;
+esac
+
 # Check if we have a previous commit to compare against
 if [ -z "$VERCEL_GIT_PREVIOUS_SHA" ]; then
   echo "⚠️ No previous commit SHA — cannot diff, so building."
