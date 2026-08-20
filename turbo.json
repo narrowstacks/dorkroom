@@ -36,6 +36,9 @@
         "UNKEY_CLIENT_NAMESPACE"
       ]
     },
+    "@dorkroom/mobile#build": {
+      "outputs": []
+    },
     "dev": {
       "cache": false,
       "persistent": true,
@@ -45,8 +48,20 @@
       "dependsOn": ["^build"]
     },
     "typecheck": {
-      "dependsOn": ["build"]
+      "dependsOn": ["^build"]
     },
-    "lint": {}
+    "lint": {},
+    "//#typecheck:api": {
+      "inputs": ["api/**", "!api/dist/**", "utils/**"]
+    },
+    "//#test:serverless": {
+      "inputs": [
+        "api/**",
+        "!api/dist/**",
+        "utils/**",
+        "scripts/**",
+        "vitest.config.ts"
+      ]
+    }
   }
 }
