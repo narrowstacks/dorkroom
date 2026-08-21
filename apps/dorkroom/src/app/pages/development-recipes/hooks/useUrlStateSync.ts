@@ -29,6 +29,7 @@ export interface UseUrlStateSyncProps {
     favoritesOnly?: boolean;
     view?: string;
     recipeId?: string;
+    fromShare?: boolean;
     isSharedApiRecipe?: boolean;
     isDirectSelection?: boolean;
   };
@@ -190,9 +191,14 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
       canShare: true,
     };
 
-    // Both branches are someone arriving on a link another user handed them;
-    // they differ only in whether we open the recipe or offer to save it.
-    trackEvent('share_opened', { tool: 'recipe' });
+    // Only a link that carried `source=share` is somebody else's share. A
+    // recipe URL without it is the canonical address of a detail view, which
+    // is what reloading or bookmarking a recipe you picked yourself produces,
+    // and counting those would inflate the share/share_opened pair that the
+    // viral coefficient is derived from.
+    if (initialUrlState.fromShare) {
+      trackEvent('share_opened', { tool: 'recipe' });
+    }
 
     if (
       initialUrlState.isDirectSelection ||

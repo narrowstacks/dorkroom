@@ -1,13 +1,47 @@
 import { useEffect, useRef } from 'react';
 import { type BrowseTool, trackEvent } from './events';
 
-interface SearchDeadEndOptions {
-  tool: BrowseTool;
-  /** The live query. Used only to detect a *new* dead end; never sent. */
+interface SearchState {
+  /**
+   * The query that produced `resultCount`, i.e. the debounced one where the
+   * search is debounced. Used only to detect a *new* dead end; never sent.
+   * Passing the live query instead pairs a fresh query with a stale count and
+   * reports a dead end for every keystroke.
+   */
   query: string;
   resultCount: number;
-  activeFilterCount: number;
   isLoading: boolean;
+  /** The query already counted as a dead end, or `null` for none. */
+  lastReported: string | null;
+}
+
+interface SearchDeadEndOptions extends Omit<SearchState, 'lastReported'> {
+  tool: BrowseTool;
+  activeFilterCount: number;
+}
+
+/**
+ * What the current search state means for reporting.
+ *
+ * `reset` clears the memo of the last dead end, so the next empty result counts
+ * as a fresh one rather than a repeat. `ignore` covers a query still loading,
+ * an empty box, and a dead end already reported.
+ */
+export type DeadEndOutcome = 'report' | 'reset' | 'ignore';
+
+export function deadEndOutcome({
+  query,
+  resultCount,
+  isLoading,
+  lastReported,
+}: SearchState): DeadEndOutcome {
+  if (isLoading || !query) {
+    return 'ignore';
+  }
+  if (resultCount > 0) {
+    return 'reset';
+  }
+  return lastReported === query ? 'ignore' : 'report';
 }
 
 /**
@@ -32,17 +66,18 @@ export function useSearchDeadEndAnalytics({
   const lastReported = useRef<string | null>(null);
 
   useEffect(() => {
-    if (isLoading || !query) {
-      return;
-    }
+    const outcome = deadEndOutcome({
+      query,
+      resultCount,
+      isLoading,
+      lastReported: lastReported.current,
+    });
 
-    if (resultCount > 0) {
-      // Results came back, so the next empty result is a fresh dead end.
+    if (outcome === 'reset') {
       lastReported.current = null;
       return;
     }
-
-    if (lastReported.current === query) {
+    if (outcome === 'ignore') {
       return;
     }
 

@@ -83,7 +83,8 @@ const TRACKED_EVENTS: TrackedEvent[] = [
   {
     name: 'app_error',
     fires: 'Something crashes.',
-    records: 'The page path. Never the error message.',
+    records:
+      "Which of Dorkroom's pages you were on, chosen from a fixed list. Never the error message, and never a path you typed.",
   },
   {
     name: 'route_not_found',

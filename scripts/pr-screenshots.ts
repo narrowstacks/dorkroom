@@ -48,7 +48,8 @@ type Action =
   | { fill: string; value: string }
   | { click: string }
   | { select: string; value: string }
-  | { waitFor: string };
+  | { waitFor: string }
+  | { scrollTo: string };
 
 interface Shot {
   id: string;
@@ -138,10 +139,12 @@ async function runAction(view: CaptureView, action: Action, shotId: string) {
     await view.selectOption(action.select, action.value);
   } else if ('waitFor' in action) {
     await view.waitForVisible(action.waitFor, 15_000);
+  } else if ('scrollTo' in action) {
+    await view.scrollTo(action.scrollTo);
   } else {
     throw new Error(
       `Shot "${shotId}": unknown action ${JSON.stringify(action)}. ` +
-        'Supported: fill, click, select, waitFor.'
+        'Supported: fill, click, select, waitFor, scrollTo.'
     );
   }
 }

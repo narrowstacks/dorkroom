@@ -1,11 +1,14 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   type AnalyticsEvents,
   type AnalyticsValue,
   capEventProperties,
   MAX_EVENT_PROPERTIES,
+  TRACKED_ROUTES,
 } from '../events';
-import { currentRoutePath, redactAnalyticsUrl, referrerKind } from '../redact';
+import { currentRouteLabel, redactAnalyticsUrl, referrerKind } from '../redact';
 
 /**
  * One representative payload per event.
@@ -108,15 +111,63 @@ describe('redactAnalyticsUrl', () => {
   });
 });
 
-describe('currentRoutePath', () => {
-  it('returns the pathname without the query', () => {
+/**
+ * The routes TanStack Router generated, read from the file rather than
+ * imported: `routeTree.gen.ts` pulls in every page module, and this only needs
+ * the list of paths.
+ */
+function generatedRoutes(): string[] {
+  const generated = readFileSync(
+    join(import.meta.dirname, '../../../../routeTree.gen.ts'),
+    'utf8'
+  );
+  const paths = new Set<string>();
+  for (const [, path] of generated.matchAll(/^\s+fullPath: '([^']+)'$/gm)) {
+    paths.add(path);
+  }
+  // The wildcard is the thing TRACKED_ROUTES exists to guard against: it
+  // matches any pathname, so it reports as `unknown` rather than as itself.
+  paths.delete('/$');
+  return Array.from(paths).sort();
+}
+
+describe('TRACKED_ROUTES', () => {
+  it('matches the routes the router actually generated', () => {
+    expect(Array.from(TRACKED_ROUTES).sort()).toEqual(generatedRoutes());
+  });
+});
+
+describe('currentRouteLabel', () => {
+  it('returns the route without the query', () => {
     window.history.replaceState({}, '', '/border?preset=secret');
-    expect(currentRoutePath()).toBe('/border');
+    expect(currentRouteLabel()).toBe('/border');
   });
 
-  it('bounds the pathname at the value ceiling Vercel enforces', () => {
-    window.history.replaceState({}, '', `/${'a'.repeat(400)}`);
-    expect(currentRoutePath()).toHaveLength(255);
+  it('ignores a trailing slash', () => {
+    window.history.replaceState({}, '', '/films/');
+    expect(currentRouteLabel()).toBe('/films');
+  });
+
+  it('reports the home route as itself, not as unknown', () => {
+    window.history.replaceState({}, '', '/');
+    expect(currentRouteLabel()).toBe('/');
+  });
+
+  it('refuses a user-controlled path from the wildcard route', () => {
+    window.history.replaceState({}, '', '/person@example.com');
+    expect(currentRouteLabel()).toBe('unknown');
+  });
+
+  it('does not leak a path that merely starts with a known route', () => {
+    window.history.replaceState({}, '', '/films-of-jane@example.com');
+    expect(currentRouteLabel()).toBe('unknown');
+  });
+
+  it('reports every tracked route as itself', () => {
+    for (const route of TRACKED_ROUTES) {
+      window.history.replaceState({}, '', route);
+      expect(currentRouteLabel()).toBe(route);
+    }
   });
 });
 

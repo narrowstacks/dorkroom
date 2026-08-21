@@ -24,6 +24,12 @@ export interface DevelopmentRecipesState {
   customRecipeFilter: CustomRecipeFilter;
   tagFilter: string;
   searchQuery: string;
+  /**
+   * The query `filteredCombinations` was actually computed from. Lags
+   * `searchQuery` by the 300ms debounce, so anything reading the result set
+   * alongside the query it answers wants this one.
+   */
+  debouncedSearchQuery: string;
   sortBy: string;
   sortDirection: 'asc' | 'desc';
   selectedFilm: Film | null;
@@ -664,6 +670,7 @@ export const useDevelopmentRecipes = (
     customRecipeFilter,
     tagFilter,
     searchQuery,
+    debouncedSearchQuery,
     sortBy,
     sortDirection,
     selectedFilm,

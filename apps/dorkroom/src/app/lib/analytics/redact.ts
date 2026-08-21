@@ -1,4 +1,6 @@
 import type { BeforeSendEvent } from '@vercel/analytics';
+import type { RouteLabel, TrackedRoute } from './events';
+import { TRACKED_ROUTES } from './events';
 
 /**
  * Drop everything after the path before an event leaves the browser.
@@ -27,19 +29,30 @@ export function redactAnalyticsUrl(
 }
 
 /**
- * The current route as a bare pathname, safe to attach to an event.
+ * The current route as a closed label, safe to attach to an event.
  *
- * Used instead of `window.location.href` so a crash on `/border?preset=...`
- * reports `/border` and nothing else. `beforeSend` already strips the event's
- * own `url`, but a property is a separate field and would otherwise slip past.
+ * Used instead of `window.location.pathname` because the wildcard route matches
+ * anything: a visitor who lands on `/person@example.com` and triggers a render
+ * error would otherwise put that string into `app_error`. `beforeSend` strips
+ * the event's own `url`, but a property is a separate field and slips past it,
+ * so the narrowing has to happen here. Anything off the list reports `unknown`,
+ * which is also the honest answer for a 404.
  */
-export function currentRoutePath(): string {
+export function currentRouteLabel(): RouteLabel {
   if (globalThis.window === undefined) {
-    return '';
+    return 'unknown';
   }
-  // Bounded here rather than in the event layer: this is the one place an
-  // unbounded string enters, and Vercel silently truncates past 255 anyway.
-  return window.location.pathname.slice(0, 255);
+  // Trailing slashes are a routing detail, not a different page.
+  const pathname = window.location.pathname.replace(/\/+$/, '') || '/';
+  return isTrackedRoute(pathname) ? pathname : 'unknown';
+}
+
+function isTrackedRoute(pathname: string): pathname is TrackedRoute {
+  // SAFETY: widening a `readonly TrackedRoute[]` to `readonly string[]` so
+  // `includes` accepts an arbitrary pathname. Every element is a string, and
+  // the array is never written through this view.
+  const routes: readonly string[] = TRACKED_ROUTES;
+  return routes.includes(pathname);
 }
 
 /**
