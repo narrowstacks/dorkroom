@@ -10,9 +10,14 @@ Scans React codebases for security, performance, correctness, and architecture i
 
 ## After making React code changes:
 
-Run `npx react-doctor@latest --verbose --diff` and check the score did not regress.
+Run `bun run doctor`. It is pinned, non-interactive, and exits non-zero on any
+warning, so there is no score to eyeball. For per-file detail on a failure, run
+`bunx react-doctor --verbose`.
 
-If the score dropped, fix the regressions before committing.
+This is enforced: `doctor` is part of `bun run test` and runs in CI, so a
+regression fails the PR. Fix it rather than suppressing it, and if you do add a
+suppression, check the rule name is current (`bunx react-doctor why <file>:<line>`
+explains why a rule fired or why a suppression did not apply).
 
 ## For general cleanup or code improvement:
 
@@ -21,7 +26,8 @@ Run `npx react-doctor@latest --verbose` (without `--diff`) to scan the full code
 ## Command
 
 ```bash
-npx react-doctor@latest --verbose --diff
+bun run doctor          # the enforced check; pinned, non-interactive
+bunx react-doctor --verbose --diff   # detail while iterating
 ```
 
 | Flag        | Purpose                                       |

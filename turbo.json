@@ -65,6 +65,23 @@
     "//#typecheck:api": {
       "inputs": ["api/**", "!api/dist/**", "utils/**"]
     },
+    "//#doctor": {
+      "inputs": [
+        "apps/*/src/**",
+        "packages/*/src/**",
+        "doctor.config.json",
+        "package.json"
+      ]
+    },
+    "//#test:docs": {
+      "inputs": [
+        "tools/__tests__/**",
+        "vitest.config.ts",
+        "PRIVACY.md",
+        "apps/dorkroom/src/app/lib/analytics/events.ts",
+        "apps/dorkroom/src/app/pages/privacy-page.tsx"
+      ]
+    },
     "//#test:serverless": {
       "inputs": [
         "api/**",
