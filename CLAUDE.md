@@ -2,16 +2,22 @@
 
 ## What This Is
 
-Dorkroom is an analog photography calculator app. Turborepo monorepo with React 19, TypeScript, Tailwind CSS 4, and the TanStack ecosystem (Query v5, Router v1, Form v1, Table v8, Virtual v3).
+Dorkroom is an analog photography calculator app. Turborepo monorepo with React 19, TypeScript, Tailwind CSS 4, and the TanStack ecosystem (Query v5, Router v1, Form v1, Table v8, Virtual v3, Store v0.11).
 
 **Structure:**
 
-- `apps/dorkroom/` - Main React application
+- `apps/dorkroom/` - Main React application (Vite SPA)
 - `apps/mobile/` - iOS app (Expo, React Native) reusing @dorkroom/logic and @dorkroom/api
 - `packages/ui/` - Shared UI components (@dorkroom/ui)
 - `packages/logic/` - Business logic, hooks, schemas (@dorkroom/logic)
 - `packages/api/` - API client and types (@dorkroom/api)
 - `api/` - Vercel serverless functions (proxy to Supabase)
+- `utils/` - Shared helpers for the `api/` functions. Repo root, not `api/utils/`
+
+`dorkroom.art/docs` is served by a **separate repo** through Vercel
+Microfrontends. `apps/dorkroom/microfrontends.json` declares which paths route
+there (`/docs/*`, `/keystatic*`, `/api/search`, `/llms-full.txt`). Nothing under
+those paths lives in this repo.
 
 ## Essential Commands
 
@@ -21,13 +27,16 @@ bun run dev                               # Start dev server (check port 4200 fi
 bun run build                             # Build all packages
 
 # Verification (run before considering done)
-bun run test                              # lint, test, build, typecheck, doctor, docs sync
+bun run test                              # lint, test, build, typecheck, typecheck:api,
+                                          # test:serverless, test:docs, doctor
 bun run test:unit "pattern"               # Run only tests matching pattern
 bun run doctor                            # React Doctor alone; fails on any warning
 
 # Formatting (run after verification passes)
 bun run format
 ```
+
+CI runs exactly `bun run test`, so a green local run means a green pipeline.
 
 ## Health Score (React Doctor)
 
@@ -53,19 +62,24 @@ ruleset, `doctor.config.json` policy, and which rules are suppressed and why.
 - `packages/ui/CLAUDE.md` - Component patterns, Tailwind, accessibility
 - `packages/api/CLAUDE.md` - API types, Raw vs Transformed types, error handling
 - `api/CLAUDE.md` - Vercel serverless functions, Supabase proxy endpoints
+- `apps/mobile/CLAUDE.md` - iOS app conventions and the build-vs-reload decision guide
 
 **Reference:**
 
 - `docs/pages.md` - All pages, their purposes, and functionality requirements
-- `docs/search-strategy.md` - Codebase search tool guidance
+- `docs/API.md` - Public REST API reference for `api.dorkroom.art`
 
 ## Critical Rules
 
 1. **Use Context7** before working with TanStack, Tailwind, or other dependencies
-2. **Never use `any`** - use specific types or `unknown`
-3. **Never import internal package paths** - always use `@dorkroom/ui`, `@dorkroom/logic`, `@dorkroom/api`
+2. **Never use `any`**. Use specific types or `unknown`
+3. **Import only published entry points.** `@dorkroom/logic` and `@dorkroom/api`
+   expose a single root entry. `@dorkroom/ui` also publishes subpaths
+   (`/forms`, `/calculator`, `/border-calculator`, `/development-recipes`,
+   `/films`) declared in its `exports` map. Anything not in an `exports` map is
+   an internal path and off limits.
 4. **Avoid circular dependencies** between packages
-5. **Avoid using "warning" or "error" in file names** as this causes false warnings and errors flags in the build log.
+5. **Avoid using "warning" or "error" in file names**, which raises false warning and error flags in the build log.
 
 ## OG Image Generation
 
@@ -85,7 +99,9 @@ strings and hashes are stripped in `redact.ts` before any event is sent.
 
 Analytics lives in the app, never in `packages/logic` or `packages/ui`. The
 iOS app shares those packages and has no Vercel Analytics, so instrument at the
-app-level action hooks and page components instead.
+app-level action hooks (`use-calculator-analytics.ts`,
+`use-search-analytics.ts`, `use-preference-analytics.ts`) and page components
+instead.
 
 Adding or changing an event means updating `events.ts`, `PRIVACY.md`, and
 `apps/dorkroom/src/app/pages/privacy-page.tsx` **in the same PR**. This is
@@ -98,28 +114,29 @@ app so that a `PRIVACY.md`-only edit still busts turbo's cache.
 
 **CalVer** (`YYYY.MM.DD`). Web and iOS version independently, each with its own
 changelog (root `CHANGELOG.md` / `apps/mobile/CHANGELOG.md`). README badges are
-workflow-synced — never hand-edit. See the `releasing` skill
-(`.claude/skills/releasing/`) before pushing to main.
+workflow-synced by `.github/workflows/sync-readme-badges.yml`. Never hand-edit
+them. See the `releasing` skill (`.claude/skills/releasing/`) before pushing to
+main.
 
 ## Toolchain
 
 Lint with `oxlint`, format with Biome. Typecheck/build run on **stable
 TypeScript 7** via the `typescript-7` npm alias; `typescript` is deliberately
 held on **6.x** because TS 7.0 ships no programmatic API and `@vercel/node`
-resolves `typescript` from the project to build `api/**/*.ts` — do not collapse
-the two. **Renovate** manages all dependencies (`renovate.json`); Dependabot was
-dropped because its bun support is blind to the `typescript-7` alias, unifies
-versions across workspace manifests, and desyncs react/react-dom (issue #208).
-Type-aware rules run separately via `bun run lint:types` and are not yet in the
-CI gate. Dependency pinning is two-tier, backstopped by the `bunfig.toml`
-`minimumReleaseAge` gate. See the `toolchain` skill (`.claude/skills/toolchain/`)
-for the full policy and rationale.
+resolves `typescript` from the project to build the functions in `api/`. Do not
+collapse the two. **Renovate** manages all dependencies (`renovate.json`);
+Dependabot was dropped because its bun support is blind to the `typescript-7`
+alias, unifies versions across workspace manifests, and desyncs react/react-dom
+(issue #208). Type-aware rules run separately via `bun run lint:types` and are
+not yet in the CI gate. Dependency pinning is two-tier, backstopped by the
+`bunfig.toml` `minimumReleaseAge` gate. See the `toolchain` skill
+(`.claude/skills/toolchain/`) for the full policy and rationale.
 
 ## Vercel Runtime
 
 **Never pin `@vercel/node` in `vercel.json`.** It is an *official* builder: the
 build image installs the version bundled with its own CLI and then hard-fails if
-a `functions[].runtime` pin disagrees —
+a `functions[].runtime` pin disagrees.
 
 ```
 > Installing Builder: @vercel/node@5.10.1
@@ -127,27 +144,27 @@ Error: Failed to load Builders after installing them: @vercel/node@5.9.0 (versio
 ```
 
 A pin can only match by coincidence, and Vercel rolls the image forward on its
-own schedule. This repo chased that treadmill four times (5.3.0 → 5.6.3 →
-5.8.26 → 5.9.0) before removing it. `functions[].runtime` is for **community**
-runtimes (`vercel-php@0.5.2`) only. Zero-config `api/` detection already builds
-every entrypoint — it always did, which is why `api/og.tsx` deployed fine
-despite never matching the old `api/**/*.ts` glob.
+own schedule. This repo chased that treadmill four times (5.3.0, 5.6.3, 5.8.26,
+5.9.0) before removing it. `functions[].runtime` is for **community** runtimes
+(`vercel-php@0.5.2`) only. Zero-config `api/` detection already builds every
+entrypoint. It always did, which is why `api/og.tsx` deployed fine despite
+never matching the old `api/**/*.ts` glob.
 
-The Node major is set by root `package.json` `engines.node`, which **overrides**
-the Vercel dashboard setting — change it here, not there. Diagnose build
-failures from the full log (the `Installing Builder` line above the error names
-the real cause), not the error string alone.
+The Node major is set by root `package.json` `engines.node` (currently `24.x`),
+which **overrides** the Vercel dashboard setting. Change it here, not there.
+Diagnose build failures from the full log (the `Installing Builder` line above
+the error names the real cause), not the error string alone.
 
 ## Pull Requests
 
 **Every PR that changes rendered output must include before/after screenshots.**
 That means a route, a shared component, a theme token, or a calculator's
-displayed result — anything a user would see. Use the **`pr-screenshots`** skill:
-it maps the diff to the affected routes, captures each one before (from the
+displayed result: anything a user would see. Use the **`pr-screenshots`** skill.
+It maps the diff to the affected routes, captures each one before (from the
 merge-base) and after, and uploads the images to GitHub's CDN. Nothing is
 committed to the repo.
 
-If a PR has no rendered output — an `api/` change, a config bump, tests — say so
+If a PR has no rendered output (an `api/` change, a config bump, tests), say so
 in the description in one line. Silence is ambiguous: a reviewer can't tell
 whether screenshots were considered or forgotten.
 
@@ -168,7 +185,4 @@ that label triggers builds. Don't invent new labels without asking.
 
 - Conventional commits, short messages
 - Confirm before committing; never push without explicit request
-
-## Codebase Search
-
-For complex multi-file analysis, use the Task tool with `subagent_type=Explore` instead of manual tool chains.
+- `main` rejects merge commits. Land branches by squash or rebase
