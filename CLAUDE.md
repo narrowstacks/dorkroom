@@ -21,20 +21,28 @@ bun run dev                               # Start dev server (check port 4200 fi
 bun run build                             # Build all packages
 
 # Verification (run before considering done)
-bun run test                              # Runs lint, test, build, typecheck
+bun run test                              # lint, test, build, typecheck, doctor, docs sync
 bun run test:unit "pattern"               # Run only tests matching pattern
-npx react-doctor@latest --score           # Health score — must stay 100/100 (see below)
+bun run doctor                            # React Doctor alone; fails on any warning
 
 # Formatting (run after verification passes)
 bun run format
 ```
 
-## Health Score (React Doctor) — run when finishing a task
+## Health Score (React Doctor)
 
-Run `npx react-doctor@latest --verbose` after completing a feature, fixing a bug,
-or before committing React code. All four projects must stay at **100/100**.
-A 100 score does **not** mean `bun run test` passes — always run both.
-See the `react-doctor` skill (`.claude/skills/react-doctor/`) for the full
+**Enforced.** `bun run doctor` runs `react-doctor --blocking warning`, which
+exits non-zero on any warning, and it is part of `bun run test`. CI runs the
+same command, so a regression fails the PR rather than drifting unnoticed.
+
+`react-doctor` is a pinned devDependency, not `npx @latest`, so Renovate
+proposes upgrades as reviewable PRs. This matters: the tool renamed
+`no-multi-comp` to `no-multi-component-file`, our suppressions kept naming the
+old rule, and the score silently fell to 90/100 (fixed in #229). A pinned
+version turns that into one failing PR instead of a mystery.
+
+Use `bun run doctor` to check, `bunx react-doctor --verbose` to see per-file
+detail. See the `react-doctor` skill (`.claude/skills/react-doctor/`) for the
 ruleset, `doctor.config.json` policy, and which rules are suppressed and why.
 
 ## Documentation
@@ -80,7 +88,11 @@ iOS app shares those packages and has no Vercel Analytics, so instrument at the
 app-level action hooks and page components instead.
 
 Adding or changing an event means updating `events.ts`, `PRIVACY.md`, and
-`apps/dorkroom/src/app/pages/privacy-page.tsx` **in the same PR**.
+`apps/dorkroom/src/app/pages/privacy-page.tsx` **in the same PR**. This is
+enforced: `tools/__tests__/analytics-privacy-sync.test.ts` compares the event
+names in all three and fails if they diverge. It runs as `bun run test:docs`,
+inside `bun run test`, and in CI. It lives at the repo root rather than in the
+app so that a `PRIVACY.md`-only edit still busts turbo's cache.
 
 ## Versioning
 

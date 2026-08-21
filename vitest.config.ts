@@ -26,6 +26,14 @@ export default defineConfig({
           mockReset: true,
         },
       },
+      {
+        test: {
+          name: 'docs',
+          globals: true,
+          environment: 'node',
+          include: ['tools/__tests__/*.{test,spec}.ts'],
+        },
+      },
     ],
   },
 });
