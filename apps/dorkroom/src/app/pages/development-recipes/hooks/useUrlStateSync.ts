@@ -2,6 +2,7 @@ import type { Combination, Developer, Film } from '@dorkroom/api';
 import type { CustomRecipeFilter } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useEffect, useRef } from 'react';
+import { trackEvent } from '../../../lib/analytics/events';
 
 const CUSTOM_RECIPE_FILTERS: readonly CustomRecipeFilter[] = [
   'all',
@@ -145,6 +146,7 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
       return;
     }
 
+    trackEvent('share_opened', { tool: 'custom_recipe' });
     setSharedRecipeView(sharedCustomRecipeView);
     setSharedRecipeSource('custom');
     setIsSharedRecipeModalOpen(true);
@@ -187,6 +189,10 @@ export function useUrlStateSync(props: UseUrlStateSyncProps): void {
       source: 'api',
       canShare: true,
     };
+
+    // Both branches are someone arriving on a link another user handed them;
+    // they differ only in whether we open the recipe or offer to save it.
+    trackEvent('share_opened', { tool: 'recipe' });
 
     if (
       initialUrlState.isDirectSelection ||

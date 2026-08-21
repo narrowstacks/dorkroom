@@ -17,6 +17,7 @@ import {
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Beaker, GitBranch, Home, Newspaper, Settings } from 'lucide-react';
 import { useEffect } from 'react';
+import { usePreferenceAnalytics } from '../app/lib/analytics/use-preference-analytics';
 import { cn } from '../app/lib/cn';
 import { MobileNav } from '../components/mobile-nav';
 
@@ -24,6 +25,8 @@ function RootComponent() {
   const router = useRouter();
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
+
+  usePreferenceAnalytics();
 
   // Update document title based on route
   useEffect(() => {

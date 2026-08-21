@@ -47,6 +47,7 @@ const LINKED_PATHS = [
   '/lenses',
   '/exposure',
   '/films',
+  '/privacy',
 ];
 
 async function renderHomePage() {

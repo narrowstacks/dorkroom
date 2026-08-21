@@ -24,6 +24,7 @@ import {
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { type ChangeEvent, type FC, useMemo, useRef, useState } from 'react';
+import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 
 const validateExposureForm = createZodFormValidator(exposureCalculatorSchema);
 
@@ -124,6 +125,8 @@ const StopsNumberInput: FC<StopsNumberInputProps> = ({
 };
 
 export default function ExposureCalculatorPage() {
+  useCalculatorAnalytics({ tool: 'stops' });
+
   const form = useForm({
     defaultValues: {
       originalTime: 10,

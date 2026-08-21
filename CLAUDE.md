@@ -66,6 +66,22 @@ See the `og-image-routes` skill (`.claude/skills/og-image-routes/`) for the
 four-step procedure. Note: the generic `og-image` skill describes a different,
 screenshot-based approach that does **not** apply to this repo.
 
+## Analytics and Privacy
+
+Vercel Web Analytics custom events are declared in **one** place:
+`apps/dorkroom/src/app/lib/analytics/events.ts`. Two constraints are
+load-bearing there: at most **two properties per event** (the Pro-plan
+ceiling; Vercel drops the surplus silently) and **closed unions or numbers
+only, never free text**, so nothing a user typed can reach the wire. URL query
+strings and hashes are stripped in `redact.ts` before any event is sent.
+
+Analytics lives in the app, never in `packages/logic` or `packages/ui`. The
+iOS app shares those packages and has no Vercel Analytics, so instrument at the
+app-level action hooks and page components instead.
+
+Adding or changing an event means updating `events.ts`, `PRIVACY.md`, and
+`apps/dorkroom/src/app/pages/privacy-page.tsx` **in the same PR**.
+
 ## Versioning
 
 **CalVer** (`YYYY.MM.DD`). Web and iOS version independently, each with its own

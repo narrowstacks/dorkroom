@@ -6,6 +6,7 @@ import {
   useEffect,
   useRef,
 } from 'react';
+import { trackEvent } from '../../../lib/analytics/events';
 
 export interface UseFavoriteActionsProps {
   isFavorite: (id: string) => boolean;
@@ -66,14 +67,17 @@ export function useFavoriteActions({
   const handleToggleFavorite = useCallback(
     (view: DevelopmentCombinationView) => {
       const id = String(view.combination.uuid || view.combination.id);
+      const isCurrentlyFavorite = isFavorite(id);
+
+      // Report on click rather than after the animation settles: the intent is
+      // expressed here, and the animated path defers the actual toggle by 500ms.
+      trackEvent('favorite_toggled', { added: !isCurrentlyFavorite });
 
       if (!animationsEnabled) {
         toggleFavorite(id);
         return;
       }
 
-      // Determine if adding or removing favorite
-      const isCurrentlyFavorite = isFavorite(id);
       const transitionType = isCurrentlyFavorite ? 'removing' : 'adding';
 
       // Add to transition state

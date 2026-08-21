@@ -22,7 +22,9 @@ import {
   CalculatorStat,
 } from '@dorkroom/ui/calculator';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { type FC, useMemo, useState } from 'react';
+import { type FC, useCallback, useMemo, useState } from 'react';
+import { trackEvent } from '../../lib/analytics/events';
+import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 
 const apertureOptions = STANDARD_APERTURES.map((a) => ({
   value: a.label,
@@ -512,6 +514,21 @@ export default function CameraExposureCalculatorPage() {
     comparison,
   } = useCameraExposureCalculator();
 
+  useCalculatorAnalytics({
+    tool: 'exposure',
+    mode: values.solveFor === 'shutterSpeed' ? 'shutter' : values.solveFor,
+  });
+
+  // The EV itself is the preset identity, and it is one of our own constants
+  // rather than anything the user supplied.
+  const handlePresetClick = useCallback(
+    (ev: number) => {
+      trackEvent('preset_applied', { tool: 'exposure', preset: ev });
+      applyPreset(ev);
+    },
+    [applyPreset]
+  );
+
   const results = useMemo(
     () => (
       <div className="space-y-6">
@@ -536,12 +553,19 @@ export default function CameraExposureCalculatorPage() {
             set={set}
             presetsOpen={presetsOpen}
             onToggle={() => setPresetsOpen((prev) => !prev)}
-            onPresetClick={applyPreset}
+            onPresetClick={handlePresetClick}
           />
         </div>
       </div>
     ),
-    [values, set, applyPreset, exposureValue, equivalentExposures, presetsOpen]
+    [
+      values,
+      set,
+      handlePresetClick,
+      exposureValue,
+      equivalentExposures,
+      presetsOpen,
+    ]
   );
 
   return (
@@ -591,7 +615,7 @@ export default function CameraExposureCalculatorPage() {
           set={set}
           presetsOpen={presetsOpen}
           onToggle={() => setPresetsOpen((prev) => !prev)}
-          onPresetClick={applyPreset}
+          onPresetClick={handlePresetClick}
         />
       </div>
     </CalculatorLayout>

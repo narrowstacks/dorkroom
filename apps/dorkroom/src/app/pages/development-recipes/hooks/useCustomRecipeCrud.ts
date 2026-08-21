@@ -8,6 +8,7 @@ import {
 } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
+import { trackEvent } from '../../../lib/analytics/events';
 import { getCombinationIdentifier } from '../utils/recipeUtils';
 
 export interface UseCustomRecipeCrudProps {
@@ -125,6 +126,11 @@ export function useCustomRecipeCrud({
           }
         }
 
+        trackEvent('recipe_saved', {
+          action: editingRecipe ? 'updated' : 'created',
+          source: 'manual',
+        });
+
         setIsCustomModalOpen(false);
         setEditingRecipe(null);
       } catch (error) {
@@ -191,6 +197,8 @@ export function useCustomRecipeCrud({
         setIsDetailOpen(false);
         setDetailView(null);
       }
+
+      trackEvent('recipe_deleted', { scope: 'single' });
 
       closeDeleteConfirm();
     } catch (error) {

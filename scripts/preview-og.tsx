@@ -24,6 +24,7 @@ const previews = [
   { name: 'development-recipes', params: { route: '/development' } },
   { name: 'film-database', params: { route: '/films' } },
   { name: 'docs', params: { route: '/docs' } },
+  { name: 'privacy', params: { route: '/privacy' } },
   {
     name: 'film-detail',
     params: { route: '/films', film: 'adox-chs-100-ii' },

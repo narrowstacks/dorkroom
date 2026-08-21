@@ -2,6 +2,7 @@ import type { CustomRecipe } from '@dorkroom/logic';
 import { debugError } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { useCallback } from 'react';
+import { trackEvent } from '../../../lib/analytics/events';
 
 /**
  * Internal result type from sharing functions.
@@ -93,6 +94,16 @@ export function useRecipeSharingActions({
             shareMethod === 'share'
               ? await shareRegularRecipe(recipeOptions)
               : await copyRegularRecipeToClipboard(recipeOptions);
+        }
+
+        if (result?.success && result.method) {
+          trackEvent('share', {
+            tool: view.source === 'custom' ? 'custom_recipe' : 'recipe',
+            // The hook reports the Web Share API as 'webShare'; analytics
+            // calls the same thing 'native' so /border and /development
+            // stay comparable in one breakdown.
+            method: result.method === 'webShare' ? 'native' : 'clipboard',
+          });
         }
 
         // Show toast if the result indicates we should

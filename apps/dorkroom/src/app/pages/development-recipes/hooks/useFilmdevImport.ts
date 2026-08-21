@@ -14,6 +14,7 @@ import {
 } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
+import { trackEvent } from '../../../lib/analytics/events';
 
 export interface UseFilmdevImportProps {
   // Recipe operations
@@ -82,6 +83,7 @@ export function useFilmdevImport({
     try {
       await addCustomRecipe(filmdevPreviewData.formData);
       await refreshCustomRecipes();
+      trackEvent('recipe_saved', { action: 'created', source: 'import' });
       setIsImportModalOpen(false);
       handleCloseFilmdevPreview();
     } catch (err) {
@@ -113,6 +115,7 @@ export function useFilmdevImport({
       try {
         const recipeId = extractRecipeId(input);
         if (!recipeId) {
+          trackEvent('recipe_imported', { ok: false });
           setImportError(
             'Unable to extract recipe ID from filmdev.org URL. Please check the URL format.'
           );
@@ -240,12 +243,18 @@ export function useFilmdevImport({
               : undefined),
         };
 
+        trackEvent('recipe_imported', { ok: true });
+
         // Set preview data and open the preview modal
         setFilmdevPreviewData(mappingResult);
         setFilmdevPreviewRecipe(previewRecipe);
         setIsFilmdevPreviewOpen(true);
         setIsImporting(false);
       } catch (err) {
+        // Only the outcome, not the message: filmdev errors quote the URL the
+        // user pasted.
+        trackEvent('recipe_imported', { ok: false });
+
         if (err instanceof FilmdevApiError) {
           setImportError(err.message);
         } else {

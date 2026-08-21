@@ -13,6 +13,7 @@ import {
   GitBranch,
   HandCoins,
   Ruler,
+  ShieldCheck,
   Timer,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -220,6 +221,13 @@ export function HomePage() {
           </a>{' '}
         </p>
         <div className="flex items-center gap-6">
+          <Link
+            to="/privacy"
+            className="flex items-center gap-2 transition-colors footer-link"
+          >
+            <ShieldCheck className="size-4" />
+            <span>Privacy</span>
+          </Link>
           <a
             href="https://github.com/narrowstacks/dorkroom"
             target="_blank"

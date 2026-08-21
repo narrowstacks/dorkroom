@@ -184,6 +184,7 @@ export const ROUTE_TITLES: RouteTextByPath = {
   '/development': 'Development Recipes',
   '/films': 'Film Database',
   '/docs': 'Documentation',
+  '/privacy': 'Privacy',
   '/settings': 'Settings',
 };
 
@@ -208,6 +209,8 @@ export const ROUTE_DESCRIPTIONS: RouteTextByPath = {
   '/films':
     'Browse and search the film stock database. Filter by brand, ISO, and color type.',
   '/docs': 'How-to guides and reference material for analog photography.',
+  '/privacy':
+    'What Dorkroom measures and what it deliberately does not. No accounts, no cookies, and nothing you type ever leaves your browser.',
   '/settings': 'Set your preferred units, defaults, and display options.',
 };
 

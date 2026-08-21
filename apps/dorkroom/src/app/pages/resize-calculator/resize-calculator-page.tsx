@@ -31,6 +31,7 @@ import {
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { useMemo } from 'react';
+import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 
 const validateResizeForm = createZodFormValidator(resizeCalculatorSchema);
 
@@ -710,6 +711,11 @@ export default function ResizeCalculatorPage() {
   const unitLabel = unit === 'imperial' ? 'in' : 'cm';
   const { toInches, toDisplay } = useMeasurementConverter();
   const { form, formValues } = useResizeForm();
+
+  useCalculatorAnalytics({
+    tool: 'resize',
+    mode: formValues.isEnlargerHeightMode ? 'enlarger_height' : 'print_size',
+  });
 
   const results = useMemo(
     () => (

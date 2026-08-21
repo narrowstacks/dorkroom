@@ -2,6 +2,7 @@ import type { CustomRecipe, CustomRecipeFormData } from '@dorkroom/logic';
 import { debugError } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
+import { trackEvent } from '../../../lib/analytics/events';
 
 export interface UseSharedRecipeImportProps {
   // Recipe operations
@@ -160,6 +161,10 @@ export function useSharedRecipeImport({
         await refreshCustomRecipes();
         showToast('Recipe added to your collection!', 'success');
       }
+
+      // The conversion half of `share_opened`: someone kept a recipe another
+      // user sent them.
+      trackEvent('recipe_saved', { action: 'created', source: 'import' });
 
       setIsSharedRecipeModalOpen(false);
       setSharedRecipeView(null);
