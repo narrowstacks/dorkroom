@@ -130,7 +130,7 @@ interface DrawerContentProps {
   style?: React.CSSProperties;
 }
 
-// eslint-disable-next-line react-doctor/no-multi-comp -- compound-component sibling of Drawer; intentionally co-located in the same module
+// eslint-disable-next-line react-doctor/no-multi-component-file -- compound-component sibling of Drawer; intentionally co-located in the same module
 export function DrawerContent({
   children,
   className,
@@ -148,7 +148,7 @@ interface DrawerBodyProps {
   className?: string;
 }
 
-// eslint-disable-next-line react-doctor/no-multi-comp -- compound-component sibling of Drawer; intentionally co-located in the same module
+// eslint-disable-next-line react-doctor/no-multi-component-file -- compound-component sibling of Drawer; intentionally co-located in the same module
 export function DrawerBody({ children, className }: DrawerBodyProps) {
   return (
     <div className={cn('flex-1 overflow-y-auto', className)}>{children}</div>

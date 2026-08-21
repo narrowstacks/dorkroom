@@ -35,7 +35,7 @@ interface ExpandButtonProps {
 }
 
 /** Reusable expand/collapse button with hover styling */
-// eslint-disable-next-line react-doctor/no-multi-comp -- small presentational helper exported as part of the detail-panel public surface; intentionally co-located with DetailPanel
+// eslint-disable-next-line react-doctor/no-multi-component-file -- small presentational helper exported as part of the detail-panel public surface; intentionally co-located with DetailPanel
 export const DetailPanelExpandButton: FC<ExpandButtonProps> = ({
   isExpanded,
   onClick,
@@ -93,7 +93,7 @@ export interface DetailPanelProps {
  *
  * @public
  */
-// eslint-disable-next-line react-doctor/no-multi-comp -- primary component co-located with its small CloseButton/ExpandButton helpers, which are part of the detail-panel public surface
+// eslint-disable-next-line react-doctor/no-multi-component-file -- primary component co-located with its small CloseButton/ExpandButton helpers, which are part of the detail-panel public surface
 export const DetailPanel: FC<DetailPanelProps> = ({
   isOpen,
   onClose,
