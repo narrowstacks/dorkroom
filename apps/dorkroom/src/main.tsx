@@ -3,6 +3,11 @@ import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { Analytics } from '@vercel/analytics/react';
 import { lazy, StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
+import { trackEvent } from './app/lib/analytics/events';
+import {
+  currentRoutePath,
+  redactAnalyticsUrl,
+} from './app/lib/analytics/redact';
 import { parseSearch, stringifySearch } from './routes/search-params';
 import '@fontsource-variable/montserrat/index.css';
 import '@fontsource-variable/fraunces/index.css';
@@ -80,8 +85,19 @@ const root = ReactDOM.createRoot(rootElement);
 
 root.render(
   <StrictMode>
-    <Analytics />
-    <ErrorBoundary>
+    <Analytics
+      // Vite does not expose NODE_ENV the way the auto-detector expects, so
+      // name the mode rather than letting it guess and report dev traffic.
+      mode={
+        process.env.NODE_ENV === 'production' ? 'production' : 'development'
+      }
+      beforeSend={redactAnalyticsUrl}
+    />
+    <ErrorBoundary
+      // Route only. The error message is deliberately left out: it is
+      // unbounded text that can quote whatever the user typed.
+      onError={() => trackEvent('app_error', { route: currentRoutePath() })}
+    >
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <MeasurementProvider>

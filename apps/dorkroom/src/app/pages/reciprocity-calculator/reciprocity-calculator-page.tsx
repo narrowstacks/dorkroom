@@ -29,6 +29,7 @@ import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { ChartLine, Maximize2, Minimize2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 
 const validateReciprocityForm = createZodFormValidator(
   reciprocityCalculatorSchema
@@ -482,6 +483,8 @@ function useReciprocityForm() {
  * @returns The JSX element representing the reciprocity calculator UI.
  */
 export default function ReciprocityCalculatorPage() {
+  useCalculatorAnalytics({ tool: 'reciprocity' });
+
   const { form, filmTypes, filmOptions, parsedDisplay } = useReciprocityForm();
 
   const [showChart, setShowChart] = useState(false);

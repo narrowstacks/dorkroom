@@ -151,6 +151,8 @@ function getRouteAccent(route: string): string {
       return '#f99f96'; // coral — app accent
     case '/docs':
       return '#c4b5fd'; // purple
+    case '/privacy':
+      return '#c4b5fd'; // purple — reference, same family as /docs
     default:
       return '#e5ff7d'; // lime — calculators
   }
@@ -236,6 +238,14 @@ function getRouteIcon(route: string): React.JSX.Element[] | null {
         <path key="6" d="M17 3v18" />,
         <path key="7" d="M17 7.5h4" />,
         <path key="8" d="M17 16.5h4" />,
+      ];
+    case '/privacy': // ShieldCheck
+      return [
+        <path
+          key="1"
+          d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+        />,
+        <path key="2" d="m9 12 2 2 4-4" />,
       ];
     case '/docs': // BookOpen
       return [

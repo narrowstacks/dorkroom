@@ -1,7 +1,16 @@
 import { Link } from '@tanstack/react-router';
 import { Aperture, ArrowLeft, Home } from 'lucide-react';
+import { useEffect } from 'react';
+import { trackEvent } from '../lib/analytics/events';
+import { referrerKind } from '../lib/analytics/redact';
 
 export function NotFoundPage() {
+  // Where they came from, not the referrer itself. An internal miss is a link
+  // we shipped broken; an external one is usually a stale shared URL.
+  useEffect(() => {
+    trackEvent('route_not_found', { referrer: referrerKind() });
+  }, []);
+
   return (
     <div className="mx-auto flex max-w-6xl flex-col items-center justify-center px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
       <div className="flex flex-col items-center text-center">

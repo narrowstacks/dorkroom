@@ -13,6 +13,7 @@ import {
   CalculatorStat,
 } from '@dorkroom/ui/calculator';
 import { useMemo } from 'react';
+import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 import { FractionField } from './fraction-field';
 import { MatDiagram } from './mat-diagram';
 
@@ -526,6 +527,8 @@ function ArtworkBestFitCard({
 }
 
 export default function MatCalculatorPage() {
+  useCalculatorAnalytics({ tool: 'mat' });
+
   const calc = useMatCalculator();
 
   const results = useMemo(

@@ -1,4 +1,5 @@
 import type { Combination } from '@dorkroom/api';
+import type { CustomRecipeFilter } from '@dorkroom/logic';
 import {
   useCustomRecipes,
   useDevelopmentRecipes,
@@ -28,7 +29,16 @@ import {
   type TableColumnContext,
 } from '@dorkroom/ui/development-recipes';
 import type { SortingState } from '@tanstack/react-table';
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { type DevelopmentFilter, trackEvent } from '../../lib/analytics/events';
+import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
 import { RecipeModals } from './components/recipe-modals';
 import { RecipeResultsSection } from './components/recipe-results-section';
 import { useRecipeActions } from './hooks/useRecipeActions';
@@ -452,6 +462,67 @@ export default function DevelopmentRecipesPage() {
     };
   }, []);
 
+  useSearchDeadEndAnalytics({
+    tool: 'development',
+    query: searchQuery,
+    resultCount: deferredCombinedRows.length,
+    activeFilterCount: [
+      developerTypeFilter,
+      dilutionFilter,
+      isoFilter,
+      customRecipeFilter !== 'all' ? customRecipeFilter : '',
+      favoritesOnly ? 'favorites' : '',
+    ].filter(Boolean).length,
+    isLoading,
+  });
+
+  // Wrapping only what the filter UI calls. `useUrlStateSync` writes the same
+  // state through the raw setters, so restoring a bookmarked or shared filter
+  // is not counted as someone reaching for the control.
+  const trackFilter = useCallback((filter: DevelopmentFilter) => {
+    trackEvent('filter_applied', { tool: 'development', filter });
+  }, []);
+
+  const handleDeveloperTypeFilterChange = useCallback(
+    (value: string) => {
+      if (value) trackFilter('developer_type');
+      setDeveloperTypeFilter(value);
+    },
+    [trackFilter, setDeveloperTypeFilter]
+  );
+
+  const handleDilutionFilterChange = useCallback(
+    (value: string) => {
+      if (value) trackFilter('dilution');
+      setDilutionFilter(value);
+    },
+    [trackFilter, setDilutionFilter]
+  );
+
+  const handleIsoFilterChange = useCallback(
+    (value: string) => {
+      if (value) trackFilter('iso');
+      setIsoFilter(value);
+    },
+    [trackFilter, setIsoFilter]
+  );
+
+  const handleCustomRecipeFilterChange = useCallback(
+    (value: CustomRecipeFilter) => {
+      if (value !== 'all') trackFilter('recipe_type');
+      setCustomRecipeFilter(value);
+    },
+    [trackFilter, setCustomRecipeFilter]
+  );
+
+  const handleFavoritesOnlyChange = useCallback(
+    (value: boolean) => {
+      if (value) trackFilter('favorites');
+      setFavoritesOnly(value);
+    },
+    [trackFilter, setFavoritesOnly]
+  );
+
   const clearSelections = () => {
     setSelectedFilm(null);
     setSelectedDeveloper(null);
@@ -508,26 +579,26 @@ export default function DevelopmentRecipesPage() {
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               developerTypeFilter={developerTypeFilter}
-              onDeveloperTypeFilterChange={setDeveloperTypeFilter}
+              onDeveloperTypeFilterChange={handleDeveloperTypeFilterChange}
               developerTypeOptions={[
                 { label: 'All developers', value: '' },
                 { label: 'Powder', value: 'powder' },
                 { label: 'Concentrate', value: 'concentrate' },
               ]}
               dilutionFilter={dilutionFilter}
-              onDilutionFilterChange={setDilutionFilter}
+              onDilutionFilterChange={handleDilutionFilterChange}
               dilutionOptions={getAvailableDilutions()}
               isoFilter={isoFilter}
-              onIsoFilterChange={setIsoFilter}
+              onIsoFilterChange={handleIsoFilterChange}
               isoOptions={getAvailableISOs()}
               customRecipeFilter={customRecipeFilter}
-              onCustomRecipeFilterChange={setCustomRecipeFilter}
+              onCustomRecipeFilterChange={handleCustomRecipeFilterChange}
               onClearFilters={clearFilters}
               showDeveloperTypeFilter={!selectedDeveloper}
               showDilutionFilter={!!selectedDeveloper}
               defaultCollapsed={true}
               favoritesOnly={favoritesOnly}
-              onFavoritesOnlyChange={setFavoritesOnly}
+              onFavoritesOnlyChange={handleFavoritesOnlyChange}
             />
 
             <MobileSortingControls
@@ -583,22 +654,22 @@ export default function DevelopmentRecipesPage() {
                 }}
                 developerOptions={developerOptions}
                 developerTypeFilter={developerTypeFilter}
-                onDeveloperTypeFilterChange={setDeveloperTypeFilter}
+                onDeveloperTypeFilterChange={handleDeveloperTypeFilterChange}
                 developerTypeOptions={[
                   { label: 'All developers', value: '' },
                   { label: 'Powder', value: 'powder' },
                   { label: 'Concentrate', value: 'concentrate' },
                 ]}
                 dilutionFilter={dilutionFilter}
-                onDilutionFilterChange={setDilutionFilter}
+                onDilutionFilterChange={handleDilutionFilterChange}
                 dilutionOptions={getAvailableDilutions()}
                 isoFilter={isoFilter}
-                onIsoFilterChange={setIsoFilter}
+                onIsoFilterChange={handleIsoFilterChange}
                 isoOptions={getAvailableISOs()}
                 customRecipeFilter={customRecipeFilter}
-                onCustomRecipeFilterChange={setCustomRecipeFilter}
+                onCustomRecipeFilterChange={handleCustomRecipeFilterChange}
                 favoritesOnly={favoritesOnly}
-                onFavoritesOnlyChange={setFavoritesOnly}
+                onFavoritesOnlyChange={handleFavoritesOnlyChange}
                 sorting={sorting}
                 onSortingChange={setSorting}
                 showSortingControls={viewMode === 'grid'}

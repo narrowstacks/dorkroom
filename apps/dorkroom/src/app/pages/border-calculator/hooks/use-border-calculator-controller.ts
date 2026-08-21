@@ -30,6 +30,7 @@ import {
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { useCallback, useEffect, useMemo } from 'react';
+import { trackEvent } from '../../../lib/analytics/events';
 
 const validateBorderCalculator = createZodFormValidator(borderCalculatorSchema);
 
@@ -342,6 +343,9 @@ export function useBorderCalculatorController() {
     isSharing,
   } = usePresetSharing({
     onShareSuccess: (result) => {
+      if (result.method) {
+        trackEvent('share', { tool: 'border', method: result.method });
+      }
       if (result.method === 'clipboard') {
         debugLog('Preset link copied to clipboard!');
       } else if (result.method === 'native') {
@@ -359,6 +363,9 @@ export function useBorderCalculatorController() {
       name: string;
       settings: BorderPresetSettings;
     }) => {
+      // The preset name is the user's own label; only the fact of arrival
+      // on a shared link is reported.
+      trackEvent('share_opened', { tool: 'border' });
       applyPresetSettings(preset.settings);
       setPresetName(preset.name);
       debugLog(`Preset "${preset.name}" loaded from URL!`);
@@ -423,6 +430,16 @@ export function useBorderCalculatorController() {
     shallowEqual,
   });
 
+  // The share modal's copy button writes to the clipboard directly rather than
+  // going through `sharePreset`, so it never reaches `onShareSuccess` above.
+  const handleCopyToClipboardTracked = useCallback(
+    async (url: string) => {
+      await handleCopyToClipboard(url);
+      trackEvent('share', { tool: 'border', method: 'clipboard' });
+    },
+    [handleCopyToClipboard]
+  );
+
   return {
     isDesktop,
     form,
@@ -476,7 +493,7 @@ export function useBorderCalculatorController() {
     // Sharing Handlers
     handleShareClick,
     handleSaveAndShare,
-    handleCopyToClipboard,
+    handleCopyToClipboard: handleCopyToClipboardTracked,
     handleNativeShare,
     setIsShareModalOpen,
     setIsSaveBeforeShareOpen,

@@ -1,5 +1,6 @@
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
+import { trackEvent } from '../../../lib/analytics/events';
 
 export interface UseRecipeDetailActionsProps {
   setDetailView: Dispatch<SetStateAction<DevelopmentCombinationView | null>>;
@@ -22,6 +23,7 @@ export function useRecipeDetailActions({
 }: UseRecipeDetailActionsProps): UseRecipeDetailActionsReturn {
   const handleOpenDetail = useCallback(
     (view: DevelopmentCombinationView) => {
+      trackEvent('detail_opened', { type: 'recipe' });
       setDetailView(view);
       setIsDetailOpen(true);
       setIsFiltersSidebarCollapsed?.(true);

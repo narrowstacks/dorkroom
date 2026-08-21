@@ -4,6 +4,8 @@ import { cn } from '../lib/cn';
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  /** Called when a render below this boundary throws. */
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
@@ -23,6 +25,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
+    this.props.onError?.(error, errorInfo);
   }
 
   public override render() {

@@ -17,6 +17,8 @@ import {
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { filmColorFilterSchema } from '../../../routes/search-schemas';
+import { trackEvent } from '../../lib/analytics/events';
+import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
 
 type FilmDatabase = ReturnType<typeof useFilmDatabase>;
 
@@ -334,7 +336,53 @@ export default function FilmsPage() {
     [selectedFilm, filmSlugIndex]
   );
 
+  const activeFilterCount = [
+    colorTypeFilter,
+    isoSpeedFilter,
+    brandFilter,
+    discontinuedFilter !== 'all' ? discontinuedFilter : '',
+  ].filter(Boolean).length;
+
+  useSearchDeadEndAnalytics({
+    tool: 'films',
+    query: searchQuery,
+    resultCount: filteredFilms.length,
+    activeFilterCount,
+    isLoading,
+  });
+
+  // Only the setters the UI calls are wrapped. The URL-sync effects above use
+  // the destructured setters, so restoring a bookmarked filter does not read as
+  // someone reaching for the filter.
+  const trackedDb = useMemo(
+    () => ({
+      ...db,
+      setColorTypeFilter: (value: string) => {
+        if (value)
+          trackEvent('filter_applied', { tool: 'films', filter: 'color' });
+        db.setColorTypeFilter(value);
+      },
+      setIsoSpeedFilter: (value: string) => {
+        if (value)
+          trackEvent('filter_applied', { tool: 'films', filter: 'iso' });
+        db.setIsoSpeedFilter(value);
+      },
+      setBrandFilter: (value: string) => {
+        if (value)
+          trackEvent('filter_applied', { tool: 'films', filter: 'brand' });
+        db.setBrandFilter(value);
+      },
+      setDiscontinuedFilter: (value: 'all' | 'active' | 'discontinued') => {
+        if (value !== 'all')
+          trackEvent('filter_applied', { tool: 'films', filter: 'status' });
+        db.setDiscontinuedFilter(value);
+      },
+    }),
+    [db]
+  );
+
   const handleSelectFilm = (film: Film) => {
+    trackEvent('detail_opened', { type: 'film' });
     setSelectedFilm(film);
   };
 
@@ -385,7 +433,7 @@ export default function FilmsPage() {
 
       {isMobile ? (
         <FilmsMobileLayout
-          db={db}
+          db={trackedDb}
           isMobile={isMobile}
           selectedFilm={selectedFilm}
           baseFilm={baseFilm}
@@ -395,7 +443,7 @@ export default function FilmsPage() {
         />
       ) : (
         <FilmsDesktopLayout
-          db={db}
+          db={trackedDb}
           isMobile={isMobile}
           selectedFilm={selectedFilm}
           baseFilm={baseFilm}

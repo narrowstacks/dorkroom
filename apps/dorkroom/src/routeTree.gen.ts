@@ -13,6 +13,7 @@ import { Route as StopsRouteImport } from './routes/stops'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResizeRouteImport } from './routes/resize'
 import { Route as ReciprocityRouteImport } from './routes/reciprocity'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as MatRouteImport } from './routes/mat'
 import { Route as LensesRouteImport } from './routes/lenses'
 import { Route as FilmsRouteImport } from './routes/films'
@@ -40,6 +41,11 @@ const ResizeRoute = ResizeRouteImport.update({
 const ReciprocityRoute = ReciprocityRouteImport.update({
   id: '/reciprocity',
   path: '/reciprocity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MatRoute = MatRouteImport.update({
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/films': typeof FilmsRoute
   '/lenses': typeof LensesRoute
   '/mat': typeof MatRoute
+  '/privacy': typeof PrivacyRoute
   '/reciprocity': typeof ReciprocityRoute
   '/resize': typeof ResizeRoute
   '/settings': typeof SettingsRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/films': typeof FilmsRoute
   '/lenses': typeof LensesRoute
   '/mat': typeof MatRoute
+  '/privacy': typeof PrivacyRoute
   '/reciprocity': typeof ReciprocityRoute
   '/resize': typeof ResizeRoute
   '/settings': typeof SettingsRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/films': typeof FilmsRoute
   '/lenses': typeof LensesRoute
   '/mat': typeof MatRoute
+  '/privacy': typeof PrivacyRoute
   '/reciprocity': typeof ReciprocityRoute
   '/resize': typeof ResizeRoute
   '/settings': typeof SettingsRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/films'
     | '/lenses'
     | '/mat'
+    | '/privacy'
     | '/reciprocity'
     | '/resize'
     | '/settings'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/films'
     | '/lenses'
     | '/mat'
+    | '/privacy'
     | '/reciprocity'
     | '/resize'
     | '/settings'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/films'
     | '/lenses'
     | '/mat'
+    | '/privacy'
     | '/reciprocity'
     | '/resize'
     | '/settings'
@@ -180,6 +192,7 @@ export interface RootRouteChildren {
   FilmsRoute: typeof FilmsRoute
   LensesRoute: typeof LensesRoute
   MatRoute: typeof MatRoute
+  PrivacyRoute: typeof PrivacyRoute
   ReciprocityRoute: typeof ReciprocityRoute
   ResizeRoute: typeof ResizeRoute
   SettingsRoute: typeof SettingsRoute
@@ -214,6 +227,13 @@ declare module '@tanstack/react-router' {
       path: '/reciprocity'
       fullPath: '/reciprocity'
       preLoaderRoute: typeof ReciprocityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mat': {
@@ -284,6 +304,7 @@ const rootRouteChildren: RootRouteChildren = {
   FilmsRoute: FilmsRoute,
   LensesRoute: LensesRoute,
   MatRoute: MatRoute,
+  PrivacyRoute: PrivacyRoute,
   ReciprocityRoute: ReciprocityRoute,
   ResizeRoute: ResizeRoute,
   SettingsRoute: SettingsRoute,

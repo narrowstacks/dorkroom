@@ -187,6 +187,10 @@ We welcome contributions from the analog photography community! Please read our 
 - **Issues**: Report bugs or request features
 - **Pull Requests**: Submit improvements and new calculators (see our [PR template](.github/PULL_REQUEST_TEMPLATE.md))
 
+If your change adds or alters an analytics event, update [PRIVACY.md](PRIVACY.md)
+and the `/privacy` page in the same PR. The rule is in
+[PRIVACY.md](PRIVACY.md#changing-this-document).
+
 ### Development Workflow
 
 1. Fork the repository

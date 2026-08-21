@@ -17,6 +17,7 @@ import {
 } from '@dorkroom/ui/calculator';
 import { ArrowRightLeft } from 'lucide-react';
 import type { FC } from 'react';
+import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 
 const HOW_TO_USE = [
   'Select the source format — the sensor or film size you know the focal length for.',
@@ -87,6 +88,8 @@ const FOCAL_LENGTH_PRESETS = [
 
 // eslint-disable-next-line react-doctor/no-giant-component -- size is dominated by the inline How-it-works info section and the results card; a results-card extraction stays deferred to avoid regression risk on this flagship page
 export default function LensCalculatorPage() {
+  useCalculatorAnalytics({ tool: 'lenses' });
+
   const {
     values,
     setFocalLength,
