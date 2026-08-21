@@ -264,6 +264,25 @@ export class CaptureView {
     }
   }
 
+  /**
+   * Bring the first match into view — Playwright's `scrollIntoViewIfNeeded()`.
+   *
+   * A screenshot is viewport-sized, so a change further down a long page is
+   * invisible without this. Scrolling is instant rather than smooth: the shot
+   * is taken right after, and a smooth scroll would still be in flight.
+   */
+  async scrollTo(selector: string): Promise<void> {
+    await this.waitForVisible(selector);
+    await this.call(
+      `function (selector) {
+        document
+          .querySelector(selector)
+          .scrollIntoView({ behavior: 'instant', block: 'center' });
+      }`,
+      [selector]
+    );
+  }
+
   /** Append a <style> to the document — Playwright's addStyleTag(). */
   async addStyleTag(css: string): Promise<void> {
     await this.call(
