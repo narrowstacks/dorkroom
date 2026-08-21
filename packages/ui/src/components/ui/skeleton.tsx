@@ -12,7 +12,7 @@ export function Skeleton({ className }: SkeletonProps) {
   );
 }
 
-// eslint-disable-next-line react-doctor/no-multi-comp -- cohesive skeleton primitives; SkeletonCard composes Skeleton and is exported together via the package barrel
+// eslint-disable-next-line react-doctor/no-multi-component-file -- cohesive skeleton primitives; SkeletonCard composes Skeleton and is exported together via the package barrel
 export function SkeletonCard() {
   return (
     <div
@@ -51,7 +51,7 @@ export function SkeletonCard() {
   );
 }
 
-// eslint-disable-next-line react-doctor/no-multi-comp -- cohesive skeleton primitives; SkeletonTableRow composes Skeleton and is exported together via the package barrel
+// eslint-disable-next-line react-doctor/no-multi-component-file -- cohesive skeleton primitives; SkeletonTableRow composes Skeleton and is exported together via the package barrel
 export function SkeletonTableRow() {
   return (
     <tr
