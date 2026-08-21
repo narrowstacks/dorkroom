@@ -12,6 +12,7 @@ on:
       - '!packages/ui/src/**/__tests__/**'
       - '!packages/ui/src/**/*.test.*'
       - scripts/screenshot-homepage.ts
+      - scripts/webview-capture.ts
       - .github/workflows/homepage-screenshot.yml
   workflow_dispatch:
 
@@ -37,7 +38,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.4.0
 
       # Cache node_modules (fastest - skips install entirely on cache hit).
       # Keys match ci.yml exactly so this workflow reuses the caches CI
@@ -70,16 +71,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
-      # Cache Playwright's browser download (~150 MB). The install step still
-      # runs for its OS deps, but skips the Chromium download on a hit.
-      - name: Cache Playwright browsers
-        uses: actions/cache@v5
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
@@ -89,9 +80,9 @@ jobs:
       - name: Build app
         run: bunx turbo run build --filter=@dorkroom/dorkroom
 
-      - name: Install Chromium
-        run: bunx playwright install --with-deps chromium
-
+      # scripts/screenshot-homepage.ts drives Chrome through Bun.WebView and
+      # encodes with Bun.Image, so there is no Chromium to download and no
+      # sharp to build — ubuntu-latest already ships google-chrome-stable.
       - name: Capture homepage screenshot
         run: |
           # Serve the build and capture in the same step so the background

@@ -6,8 +6,7 @@
 import { mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright';
-import sharp from 'sharp';
+import { CaptureView } from './webview-capture';
 
 const WIDTH = 1280;
 const HEIGHT = 918;
@@ -21,30 +20,23 @@ const outPath = join(root, 'resources', 'dorkroom-homepage.webp');
 
 await mkdir(dirname(outPath), { recursive: true });
 
-const browser = await chromium.launch();
-try {
-  const page = await browser.newPage({
-    viewport: { width: WIDTH, height: HEIGHT },
-    deviceScaleFactor: 1,
-    colorScheme: 'dark',
-  });
+const view = await CaptureView.open({
+  width: WIDTH,
+  height: HEIGHT,
+  colorScheme: 'dark',
   // Force the app's dark theme regardless of the headless browser's
   // prefers-color-scheme. The app persists the choice under this localStorage
   // key and applies it via the <html data-theme="..."> attribute.
-  await page.addInitScript(() => {
-    localStorage.setItem('dorkroom-theme', 'dark');
-  });
+  initScript: `try { localStorage.setItem('dorkroom-theme', 'dark') } catch {}`,
+});
+try {
   console.log(`Navigating to ${url} ...`);
-  await page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 });
+  await view.goto(url);
   // Wait for the hero panel (stable homepage element) and web fonts.
-  await page
-    .locator('.hero-grain')
-    .first()
-    .waitFor({ state: 'visible', timeout: 30_000 });
-  await page.evaluate(() => document.fonts.ready);
-  const png = await page.screenshot(); // viewport-only PNG buffer, not full page
-  await sharp(png).webp({ quality: WEBP_QUALITY }).toFile(outPath);
+  await view.waitForVisible('.hero-grain', 30_000);
+  await view.waitForFonts();
+  await view.screenshotWebp(outPath, WEBP_QUALITY);
   console.log(`Saved ${outPath}`);
 } finally {
-  await browser.close();
+  view.close();
 }

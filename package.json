@@ -90,7 +90,6 @@
     "playwright": "^1.61.1",
     "postcss": "^8.5.26",
     "react-doctor": "0.9.12",
-    "sharp": "^0.35.3",
     "tailwindcss": "4.3.3",
     "terser": "5.49.0",
     "tslib": "^2.3.0",
