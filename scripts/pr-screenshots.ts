@@ -15,19 +15,13 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { type Browser, chromium, type Page } from 'playwright';
-import sharp from 'sharp';
+import { CaptureView, VIEWPORTS, type Viewport } from './webview-capture';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 // Matches scripts/screenshot-homepage.ts: WebP q90 keeps UI text and gradients
 // crisp at roughly a tenth of the equivalent PNG. GitHub renders WebP inline.
 const WEBP_QUALITY = 90;
-
-const VIEWPORTS = {
-  desktop: { width: 1280, height: 918 },
-  mobile: { width: 390, height: 844 },
-} as const;
 
 // The dev server floats overlays over the app that a reviewer must never see in
 // a screenshot: the TanStack Query devtools button (.tsqd-*), the Router
@@ -48,7 +42,6 @@ const THEMES = ['light', 'dark', 'darkroom', 'high-contrast'] as const;
 
 const THEME_STORAGE_KEY = 'dorkroom-theme';
 
-type Viewport = keyof typeof VIEWPORTS;
 type Theme = (typeof THEMES)[number];
 
 type Action =
@@ -136,18 +129,15 @@ function validate(list: ShotList): asserts list is ShotList {
   }
 }
 
-async function runAction(page: Page, action: Action, shotId: string) {
+async function runAction(view: CaptureView, action: Action, shotId: string) {
   if ('fill' in action) {
-    await page.locator(action.fill).first().fill(action.value);
+    await view.fill(action.fill, action.value);
   } else if ('click' in action) {
-    await page.locator(action.click).first().click();
+    await view.click(action.click);
   } else if ('select' in action) {
-    await page.locator(action.select).first().selectOption(action.value);
+    await view.selectOption(action.select, action.value);
   } else if ('waitFor' in action) {
-    await page
-      .locator(action.waitFor)
-      .first()
-      .waitFor({ state: 'visible', timeout: 15_000 });
+    await view.waitForVisible(action.waitFor, 15_000);
   } else {
     throw new Error(
       `Shot "${shotId}": unknown action ${JSON.stringify(action)}. ` +
@@ -157,7 +147,6 @@ async function runAction(page: Page, action: Action, shotId: string) {
 }
 
 async function capture(
-  browser: Browser,
   shot: Shot,
   baseUrl: string,
   outDir: string
@@ -171,43 +160,34 @@ async function capture(
     theme,
   };
 
-  const context = await browser.newContext({
-    viewport: VIEWPORTS[viewport],
+  // One view per shot: each gets its own renderer and its own ephemeral
+  // storage, so a theme or form state from the previous shot can't leak in.
+  const view = await CaptureView.open({
+    ...VIEWPORTS[viewport],
     deviceScaleFactor: 2,
     // Belt and braces: the app resolves the 'system' theme from this, and any
     // component reading prefers-color-scheme directly should agree with the
     // theme we're forcing below.
     colorScheme: theme === 'light' ? 'light' : 'dark',
-    reducedMotion: 'reduce',
-  });
-
-  try {
+    reducedMotion: true,
     // The app persists the theme under this key and applies it as
     // <html data-theme="...">. Seeding it before any script runs avoids a
     // first-paint flash of the wrong theme landing in the screenshot.
-    await context.addInitScript(
-      ([key, value]) => {
-        localStorage.setItem(key, value);
-      },
-      [THEME_STORAGE_KEY, theme] as const
-    );
+    initScript: `try { localStorage.setItem(${JSON.stringify(THEME_STORAGE_KEY)}, ${JSON.stringify(theme)}) } catch {}`,
+  });
 
-    const page = await context.newPage();
-    await page.goto(`${baseUrl}${shot.route}`, {
-      waitUntil: 'networkidle',
-      timeout: 60_000,
-    });
+  try {
+    await view.goto(`${baseUrl}${shot.route}`);
 
     for (const action of shot.actions ?? []) {
-      await runAction(page, action, shot.id);
+      await runAction(view, action, shot.id);
     }
 
-    await page.addStyleTag({ content: HIDE_DEV_OVERLAYS });
-    await page.evaluate(() => document.fonts.ready);
+    await view.addStyleTag(HIDE_DEV_OVERLAYS);
+    await view.waitForFonts();
 
-    const png = await page.screenshot(); // viewport-only, not full-page
     const file = join(outDir, `${shot.id}.webp`);
-    await sharp(png).webp({ quality: WEBP_QUALITY }).toFile(join(ROOT, file));
+    await view.screenshotWebp(join(ROOT, file), WEBP_QUALITY);
 
     console.log(`  ✓ ${shot.id}  (${shot.route}, ${viewport}, ${theme})`);
     return { ...result, file };
@@ -216,7 +196,7 @@ async function capture(
     console.log(`  ✗ ${shot.id}  ${message.split('\n')[0]}`);
     return { ...result, file: null, error: message };
   } finally {
-    await context.close();
+    view.close();
   }
 }
 
@@ -239,15 +219,9 @@ if (isAbsolute(outDir)) {
 await mkdir(join(ROOT, outDir), { recursive: true });
 
 console.log(`Capturing ${list.shots.length} shot(s) from ${baseUrl}`);
-const browser = await chromium.launch();
-let results: ShotResult[];
-try {
-  results = [];
-  for (const shot of list.shots) {
-    results.push(await capture(browser, shot, baseUrl, outDir));
-  }
-} finally {
-  await browser.close();
+const results: ShotResult[] = [];
+for (const shot of list.shots) {
+  results.push(await capture(shot, baseUrl, outDir));
 }
 
 const manifestPath = join(outDir, 'manifest.json');
