@@ -118,6 +118,43 @@ export class CaptureView {
   }
 
   /**
+   * Call a page-side function with real arguments — Playwright's
+   * `page.evaluate(fn, arg)`.
+   *
+   * `Bun.WebView`'s own `evaluate()` only takes a source string, which would
+   * mean pasting selectors and form values into that string and relying on the
+   * quoting to hold. CDP passes arguments out of band instead, so no caller
+   * input is ever parsed as code.
+   *
+   * The global's `objectId` is fetched per call rather than cached: navigating
+   * destroys the execution context, and a stale id fails at the far end with a
+   * protocol error rather than anything legible.
+   */
+  private async call<T>(
+    functionDeclaration: string,
+    args: unknown[]
+  ): Promise<T> {
+    const owner = await this.view.cdp<{ result: { objectId: string } }>(
+      'Runtime.evaluate',
+      { expression: 'globalThis' }
+    );
+    const outcome = await this.view.cdp<{
+      result: { value: T };
+      exceptionDetails?: { text: string };
+    }>('Runtime.callFunctionOn', {
+      objectId: owner.result.objectId,
+      functionDeclaration,
+      arguments: args.map((value) => ({ value })),
+      returnByValue: true,
+      awaitPromise: true,
+    });
+    if (outcome.exceptionDetails) {
+      throw new Error(outcome.exceptionDetails.text);
+    }
+    return outcome.result.value;
+  }
+
+  /**
    * Wait for the first match of `selector` to be rendered — attached with a
    * non-zero box. `Bun.WebView` only bundles this wait inside click(), so a
    * standalone wait has to poll.
@@ -125,11 +162,14 @@ export class CaptureView {
   async waitForVisible(selector: string, timeoutMs = 15_000): Promise<void> {
     const deadline = Date.now() + timeoutMs;
     for (;;) {
-      const visible = await this.evaluate<boolean>(
-        `(() => { const el = document.querySelector(${JSON.stringify(selector)});
+      const visible = await this.call<boolean>(
+        `function (selector) {
+          const el = document.querySelector(selector);
           if (!el) return false;
           const r = el.getBoundingClientRect();
-          return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden' })()`
+          return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden';
+        }`,
+        [selector]
       );
       if (visible) return;
       if (Date.now() > deadline) {
@@ -154,55 +194,94 @@ export class CaptureView {
    */
   async fill(selector: string, value: string): Promise<void> {
     await this.waitForVisible(selector);
-    const ok = await this.evaluate<boolean>(
-      `(() => {
-        const el = document.querySelector(${JSON.stringify(selector)});
+    const ok = await this.call<boolean>(
+      `function (selector, value) {
+        const el = document.querySelector(selector);
         if (!el) return false;
         const proto = el instanceof HTMLTextAreaElement
           ? HTMLTextAreaElement.prototype
           : HTMLInputElement.prototype;
-        Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, ${JSON.stringify(value)});
+        Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, value);
         el.dispatchEvent(new Event('input', { bubbles: true }));
         el.dispatchEvent(new Event('change', { bubbles: true }));
         return true;
-      })()`
+      }`,
+      [selector, value]
     );
     if (!ok) throw new Error(`fill: no element matched "${selector}"`);
   }
 
-  /** Choose an option in a native <select> — Playwright's selectOption(). */
-  async selectOption(selector: string, value: string): Promise<void> {
+  /**
+   * Choose an option in a native <select> — Playwright's selectOption().
+   *
+   * Assigning a value no `<option>` carries silently sets `selectedIndex` to
+   * -1, which would leave the shot reporting success while screenshotting the
+   * wrong state. So the option has to exist: this keeps polling for it (the
+   * list is often populated by a fetch that lands after the element does) and
+   * then fails loudly, naming what was actually on offer.
+   */
+  async selectOption(
+    selector: string,
+    value: string,
+    timeoutMs = 15_000
+  ): Promise<void> {
     await this.waitForVisible(selector);
-    const ok = await this.evaluate<boolean>(
-      `(() => {
-        const el = document.querySelector(${JSON.stringify(selector)});
-        if (!el) return false;
-        Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value')
-          .set.call(el, ${JSON.stringify(value)});
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-        return true;
-      })()`
-    );
-    if (!ok) throw new Error(`select: no element matched "${selector}"`);
+    const deadline = Date.now() + timeoutMs;
+    for (;;) {
+      const outcome = await this.call<'ok' | 'no-element' | 'no-option'>(
+        `function (selector, value) {
+          const el = document.querySelector(selector);
+          if (!el) return 'no-element';
+          if (!Array.from(el.options ?? []).some((o) => o.value === value)) {
+            return 'no-option';
+          }
+          Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value')
+            .set.call(el, value);
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+          return 'ok';
+        }`,
+        [selector, value]
+      );
+      if (outcome === 'ok') return;
+      if (Date.now() > deadline) {
+        if (outcome === 'no-element') {
+          throw new Error(`select: no element matched "${selector}"`);
+        }
+        const available = await this.call<string[]>(
+          `function (selector) {
+            const el = document.querySelector(selector);
+            return Array.from(el?.options ?? []).map((o) => o.value);
+          }`,
+          [selector]
+        );
+        throw new Error(
+          `select: "${selector}" has no option with value "${value}". ` +
+            `Available: ${available.join(', ') || '(none)'}`
+        );
+      }
+      await Bun.sleep(100);
+    }
   }
 
   /** Append a <style> to the document — Playwright's addStyleTag(). */
   async addStyleTag(css: string): Promise<void> {
-    await this.evaluate(
-      `(() => { const s = document.createElement('style');
-        s.textContent = ${JSON.stringify(css)};
-        document.head.appendChild(s); return true })()`
+    await this.call(
+      `function (css) {
+        const style = document.createElement('style');
+        style.textContent = css;
+        document.head.appendChild(style);
+      }`,
+      [css]
     );
   }
 
   /** Block until web fonts have loaded, so no shot catches a fallback face. */
   async waitForFonts(): Promise<void> {
-    await this.evaluate('document.fonts.ready.then(() => true)');
-  }
-
-  evaluate<T = unknown>(script: string): Promise<T> {
-    return this.view.evaluate<T>(script);
+    await this.call(
+      `function () { return document.fonts.ready.then(() => true) }`,
+      []
+    );
   }
 
   /**
