@@ -55,6 +55,7 @@ export default function DevelopmentRecipesPage() {
     isoFilter,
     customRecipeFilter,
     searchQuery,
+    debouncedSearchQuery,
     selectedFilm,
     selectedDeveloper,
     isLoading,
@@ -462,10 +463,14 @@ export default function DevelopmentRecipesPage() {
     };
   }, []);
 
+  // The debounced query paired with the rows it actually produced. Using the
+  // live query would report a dead end on every keystroke, and
+  // `deferredCombinedRows` deliberately lags a further render, so both of the
+  // page's stale reads are avoided here.
   useSearchDeadEndAnalytics({
     tool: 'development',
-    query: searchQuery,
-    resultCount: deferredCombinedRows.length,
+    query: debouncedSearchQuery,
+    resultCount: combinedRows.length,
     activeFilterCount: [
       developerTypeFilter,
       dilutionFilter,

@@ -47,7 +47,7 @@ The catalog below is generated from, and must stay in sync with,
 | `search_no_results` | A search returns nothing. | Which page, and how many filters were active. Never the search text. |
 | `detail_opened` | You open a film or recipe detail view. | Whether it was a film or a recipe. |
 | `filter_applied` | You apply a filter. | Which page, and which filter control. Never the value you chose. |
-| `app_error` | Something crashes. | The page path. Never the error message. |
+| `app_error` | Something crashes. | Which of Dorkroom's pages you were on, chosen from a fixed list. Never the error message, and never a path you typed. |
 | `route_not_found` | You land on a page that does not exist. | Whether you arrived from inside Dorkroom, from elsewhere, or directly. |
 
 Each event carries at most two of these short labels and nothing else. There is

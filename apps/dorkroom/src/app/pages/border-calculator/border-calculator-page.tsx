@@ -9,7 +9,14 @@ import { useBorderCalculatorController } from './hooks/use-border-calculator-con
 export default function BorderCalculatorPage() {
   const { isDesktop, ...contextValue } = useBorderCalculatorController();
 
-  useCalculatorAnalytics({ tool: 'border' });
+  // The offsets toggle is the calculator's mode: with it off every border is
+  // the same width, with it on the print is deliberately shifted on the paper.
+  // Reading it here rather than defaulting to `default` is the whole reason
+  // `symmetric`/`asymmetric` exist in the mode union.
+  useCalculatorAnalytics({
+    tool: 'border',
+    mode: contextValue.formValues.enableOffset ? 'asymmetric' : 'symmetric',
+  });
 
   return (
     <BorderCalculatorProvider value={contextValue}>

@@ -25,6 +25,12 @@ export interface InitialUrlState {
   favoritesOnly?: boolean;
   recipeId?: string;
   fromUrl?: boolean;
+  /**
+   * The URL carried `source=share`, i.e. a link another user handed over.
+   * Distinct from `isSharedApiRecipe`, which additionally requires the film and
+   * developer slugs; a share link missing those is still a share.
+   */
+  fromShare?: boolean;
   isSharedApiRecipe?: boolean;
   isDirectSelection?: boolean;
   /** @deprecated Kept for backward compat */

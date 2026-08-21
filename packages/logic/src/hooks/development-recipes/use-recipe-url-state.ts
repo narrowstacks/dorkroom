@@ -448,6 +448,7 @@ export const useRecipeUrlState = (
       const isFromShare = validation.sanitized.source === 'share';
 
       if (isFromShare) {
+        state.fromShare = true;
         const hasFilmDeveloper =
           validation.sanitized.film && validation.sanitized.developer;
         if (hasFilmDeveloper) {

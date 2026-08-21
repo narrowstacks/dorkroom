@@ -44,6 +44,36 @@ export type DevelopmentFilter =
   | 'recipe_type'
   | 'favorites';
 
+/**
+ * Every route the app can render, in the order the router declares them.
+ *
+ * `app_error` needs to say *where* a crash happened, and the obvious answer,
+ * `window.location.pathname`, is user-controlled: the wildcard route matches
+ * anything, so a crash while rendering `/person@example.com` would put that
+ * free text on the wire. Bounding the length does not make it private. A closed
+ * list does, at the cost of one edit whenever a route is added, which
+ * `analytics.test.ts` enforces against the generated route tree.
+ */
+export const TRACKED_ROUTES = [
+  '/',
+  '/border',
+  '/development',
+  '/exposure',
+  '/films',
+  '/lenses',
+  '/mat',
+  '/privacy',
+  '/reciprocity',
+  '/resize',
+  '/settings',
+  '/stops',
+] as const;
+
+export type TrackedRoute = (typeof TRACKED_ROUTES)[number];
+
+/** A known route, or `unknown` for anything the wildcard route caught. */
+export type RouteLabel = TrackedRoute | 'unknown';
+
 export type ThemeName =
   | 'light'
   | 'dark'
@@ -87,8 +117,9 @@ export interface AnalyticsEvents {
   search_no_results: { tool: BrowseTool; filters: number };
   detail_opened: { type: 'film' | 'recipe' };
   filter_applied: { tool: BrowseTool; filter: FilmsFilter | DevelopmentFilter };
-  /** `route` is a bare pathname, never a full URL. */
-  app_error: { route: string };
+  /** `route` is one of the app's known routes, or `unknown`. Never the raw
+   *  pathname: the wildcard route would let a visitor choose the value. */
+  app_error: { route: RouteLabel };
   route_not_found: { referrer: 'internal' | 'external' | 'direct' };
 }
 

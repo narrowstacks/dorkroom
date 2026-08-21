@@ -5,7 +5,7 @@ import { lazy, StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { trackEvent } from './app/lib/analytics/events';
 import {
-  currentRoutePath,
+  currentRouteLabel,
   redactAnalyticsUrl,
 } from './app/lib/analytics/redact';
 import { parseSearch, stringifySearch } from './routes/search-params';
@@ -96,7 +96,7 @@ root.render(
     <ErrorBoundary
       // Route only. The error message is deliberately left out: it is
       // unbounded text that can quote whatever the user typed.
-      onError={() => trackEvent('app_error', { route: currentRoutePath() })}
+      onError={() => trackEvent('app_error', { route: currentRouteLabel() })}
     >
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>

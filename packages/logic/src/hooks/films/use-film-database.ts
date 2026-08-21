@@ -19,6 +19,12 @@ export interface UseFilmDatabaseReturn {
   // Search
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  /**
+   * The query `filteredFilms` was actually computed from. Lags `searchQuery`
+   * by the 300ms debounce, so anything reading the result set alongside the
+   * query it answers wants this one.
+   */
+  debouncedSearchQuery: string;
 
   // Filters
   colorTypeFilter: string; // '', 'bw', 'color', 'slide'
@@ -237,6 +243,7 @@ export function useFilmDatabase(): UseFilmDatabaseReturn {
     // Search
     searchQuery,
     setSearchQuery,
+    debouncedSearchQuery,
 
     // Filters
     colorTypeFilter,

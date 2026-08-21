@@ -344,6 +344,34 @@ describe('useRecipeUrlState', () => {
       expect(result.current.initialUrlState.isSharedApiRecipe).toBeUndefined();
     });
 
+    // `fromShare` is what tells a link somebody handed over apart from the
+    // canonical URL of a detail view you opened yourself. `isSharedApiRecipe`
+    // cannot answer that: it additionally requires the film and developer
+    // slugs, so a share link without them looks identical to a bookmark.
+    it('should mark a source=share URL as coming from a share', () => {
+      const validUuid = '550e8400-e29b-41d4-a716-446655440000';
+      mockLocation.search = `?recipe=${validUuid}&source=share`;
+
+      const { result } = renderHook(() =>
+        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+      );
+
+      expect(result.current.initialUrlState.fromShare).toBe(true);
+      expect(result.current.initialUrlState.isDirectSelection).toBeUndefined();
+    });
+
+    it('should not mark a bookmarked recipe URL as coming from a share', () => {
+      const validUuid = '550e8400-e29b-41d4-a716-446655440000';
+      mockLocation.search = `?recipe=${validUuid}`;
+
+      const { result } = renderHook(() =>
+        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+      );
+
+      expect(result.current.initialUrlState.fromShare).toBeUndefined();
+      expect(result.current.initialUrlState.isDirectSelection).toBe(true);
+    });
+
     it('should handle encoded custom recipe ID', () => {
       // Suppress expected console.error from invalid base64 decode attempt
       const errorSpy = vi

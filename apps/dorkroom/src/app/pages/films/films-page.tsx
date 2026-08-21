@@ -345,7 +345,7 @@ export default function FilmsPage() {
 
   useSearchDeadEndAnalytics({
     tool: 'films',
-    query: searchQuery,
+    query: db.debouncedSearchQuery,
     resultCount: filteredFilms.length,
     activeFilterCount,
     isLoading,
