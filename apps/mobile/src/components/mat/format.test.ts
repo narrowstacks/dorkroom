@@ -51,4 +51,18 @@ describe('buildMatWarnings', () => {
       'Window does not match a 0.25" reveal. Actual overlap: 0.5" L/R · 0.75" T/B.',
     ]);
   });
+
+  it('preserves negative overlap values when the formatter only supports magnitudes', () => {
+    expect(
+      buildMatWarnings({
+        ...base,
+        hasRevealMismatch: true,
+        fmt: (value: number) => (value < 0 ? '' : `${value}"`),
+        overlapLeft: -0.75,
+        overlapTop: -1.75,
+      })
+    ).toEqual([
+      'Window does not match a 0.25" reveal. Actual overlap: -0.75" L/R · -1.75" T/B.',
+    ]);
+  });
 });
