@@ -37,7 +37,8 @@ export function formatSignedMatFraction(
   fmt: UseMatCalculatorReturn['fmt'],
   value: number
 ): string {
-  return value < 0 ? `-${fmt(Math.abs(value))}` : fmt(value);
+  const formatted = fmt(Math.abs(value));
+  return value < 0 && formatted !== '· · ·' ? `-${formatted}` : formatted;
 }
 
 export function buildMobileMatDimensionRows(

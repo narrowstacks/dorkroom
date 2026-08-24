@@ -6,6 +6,7 @@ import {
   formatArtworkSummary,
   formatBorderSummary,
   formatMatPair,
+  formatSignedMatFraction,
 } from './format';
 
 describe('mat summaries', () => {
@@ -88,5 +89,13 @@ describe('buildMobileMatDimensionRows', () => {
       ],
       ['Borders', '3" top', 'distance from outer edge to window edge'],
     ]);
+  });
+});
+
+describe('formatSignedMatFraction', () => {
+  it('does not prefix the invalid placeholder with a minus sign', () => {
+    expect(formatSignedMatFraction(makeMatFormatter(false), -0.75)).toBe(
+      '· · ·'
+    );
   });
 });
