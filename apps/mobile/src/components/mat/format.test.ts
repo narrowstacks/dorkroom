@@ -33,7 +33,7 @@ describe('buildMatWarnings', () => {
   const base = {
     valid: true,
     hasRevealMismatch: false,
-    fmt: (value: number) => `${value}\"`,
+    fmt: (value: number) => `${value}"`,
     revVal: 0.25,
     overlapLeft: 0.5,
     overlapTop: 0.75,
@@ -48,7 +48,7 @@ describe('buildMatWarnings', () => {
       buildMatWarnings({ ...base, valid: false, hasRevealMismatch: true })
     ).toEqual([
       'Check inputs. The outer mat must be positive and the borders must leave a window larger than zero on both axes.',
-      'Window does not match a 0.25\" reveal. Actual overlap: 0.5\" L/R · 0.75\" T/B.',
+      'Window does not match a 0.25" reveal. Actual overlap: 0.5" L/R · 0.75" T/B.',
     ]);
   });
 });

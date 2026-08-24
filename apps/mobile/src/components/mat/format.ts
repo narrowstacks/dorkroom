@@ -24,7 +24,12 @@ export function formatArtworkSummary(values: MatCalculatorState): string {
 
 type WarningInput = Pick<
   UseMatCalculatorReturn,
-  'valid' | 'hasRevealMismatch' | 'fmt' | 'revVal' | 'overlapLeft' | 'overlapTop'
+  | 'valid'
+  | 'hasRevealMismatch'
+  | 'fmt'
+  | 'revVal'
+  | 'overlapLeft'
+  | 'overlapTop'
 >;
 
 export function buildMatWarnings(calc: WarningInput): string[] {
