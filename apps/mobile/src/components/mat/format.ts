@@ -1,5 +1,6 @@
 import type {
   MatCalculatorState,
+  MatDimensionRow,
   UseMatCalculatorReturn,
 } from '@dorkroom/logic';
 
@@ -32,10 +33,32 @@ type WarningInput = Pick<
   | 'overlapTop'
 >;
 
+export function formatSignedMatFraction(
+  fmt: UseMatCalculatorReturn['fmt'],
+  value: number
+): string {
+  return value < 0 ? `-${fmt(Math.abs(value))}` : fmt(value);
+}
+
+export function buildMobileMatDimensionRows(
+  dimensionRows: UseMatCalculatorReturn['dimensionRows'],
+  fmt: UseMatCalculatorReturn['fmt'],
+  overlapLeft: number,
+  overlapTop: number
+): MatDimensionRow[] {
+  return dimensionRows.map(([label, value, note]) =>
+    label === 'Actual reveal'
+      ? [
+          label,
+          `${formatSignedMatFraction(fmt, overlapLeft)} L/R · ${formatSignedMatFraction(fmt, overlapTop)} T/B`,
+          note,
+        ]
+      : [label, value, note]
+  );
+}
+
 export function buildMatWarnings(calc: WarningInput): string[] {
   const warnings: string[] = [];
-  const formatSigned = (value: number) =>
-    value < 0 ? `-${calc.fmt(Math.abs(value))}` : calc.fmt(value);
   if (!calc.valid) {
     warnings.push(
       'Check inputs. The outer mat must be positive and the borders must leave a window larger than zero on both axes.'
@@ -43,7 +66,7 @@ export function buildMatWarnings(calc: WarningInput): string[] {
   }
   if (calc.hasRevealMismatch) {
     warnings.push(
-      `Window does not match a ${calc.fmt(calc.revVal)} reveal. Actual overlap: ${formatSigned(calc.overlapLeft)} L/R · ${formatSigned(calc.overlapTop)} T/B.`
+      `Window does not match a ${calc.fmt(calc.revVal)} reveal. Actual overlap: ${formatSignedMatFraction(calc.fmt, calc.overlapLeft)} L/R · ${formatSignedMatFraction(calc.fmt, calc.overlapTop)} T/B.`
     );
   }
   return warnings;

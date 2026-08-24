@@ -1,6 +1,7 @@
 import type { UseMatCalculatorReturn } from '@dorkroom/logic';
 import { Text, View } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
+import { buildMobileMatDimensionRows } from '@/components/mat/format';
 import { ResultCard } from '@/components/result-card';
 import { ResultStat } from '@/components/result-stat';
 import { ACCENT } from '@/theme/accents';
@@ -11,6 +12,8 @@ interface MatResultsProps {
   windowH: number;
   guideBarCuts: UseMatCalculatorReturn['guideBarCuts'];
   dimensionRows: UseMatCalculatorReturn['dimensionRows'];
+  overlapLeft: number;
+  overlapTop: number;
 }
 
 interface CutterReadingProps {
@@ -36,7 +39,16 @@ export function MatResults({
   windowH,
   guideBarCuts,
   dimensionRows,
+  overlapLeft,
+  overlapTop,
 }: MatResultsProps) {
+  const mobileDimensionRows = buildMobileMatDimensionRows(
+    dimensionRows,
+    fmt,
+    overlapLeft,
+    overlapTop
+  );
+
   return (
     <View className="gap-4">
       <ResultCard accent="cyan" className="gap-3">
@@ -75,7 +87,7 @@ export function MatResults({
         >
           All dimensions
         </Text>
-        {dimensionRows.map(([label, value, note]) => (
+        {mobileDimensionRows.map(([label, value, note]) => (
           <View key={`${label}-${value}`} className="gap-0.5 py-1">
             <View className="flex-row items-center justify-between gap-3">
               <Text className="text-sm text-white/60">{label}</Text>

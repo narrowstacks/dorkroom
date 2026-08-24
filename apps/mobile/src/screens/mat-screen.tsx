@@ -88,6 +88,8 @@ export function MatScreen() {
         windowH={calc.windowH}
         guideBarCuts={calc.guideBarCuts}
         dimensionRows={calc.dimensionRows}
+        overlapLeft={calc.overlapLeft}
+        overlapTop={calc.overlapTop}
       />
 
       <Pressable

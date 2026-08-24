@@ -1,7 +1,8 @@
-import { MAT_CALCULATOR_DEFAULTS } from '@dorkroom/logic';
+import { MAT_CALCULATOR_DEFAULTS, makeMatFormatter } from '@dorkroom/logic';
 import { describe, expect, it } from 'vitest';
 import {
   buildMatWarnings,
+  buildMobileMatDimensionRows,
   formatArtworkSummary,
   formatBorderSummary,
   formatMatPair,
@@ -63,6 +64,29 @@ describe('buildMatWarnings', () => {
       })
     ).toEqual([
       'Window does not match a 0.25" reveal. Actual overlap: -0.75" L/R · -1.75" T/B.',
+    ]);
+  });
+});
+
+describe('buildMobileMatDimensionRows', () => {
+  it('replaces only the Actual reveal value with signed fractions', () => {
+    const rows: [string, string, string][] = [
+      ['Outer mat', '18" × 24"', 'matches frame rabbet'],
+      ['Actual reveal', ' L/R ·  T/B', 'mat coverage onto the artwork edge'],
+      ['Borders', '3" top', 'distance from outer edge to window edge'],
+    ];
+    const magnitudeOnly = makeMatFormatter(true);
+
+    expect(
+      buildMobileMatDimensionRows(rows, magnitudeOnly, -0.75, -1.75)
+    ).toEqual([
+      ['Outer mat', '18" × 24"', 'matches frame rabbet'],
+      [
+        'Actual reveal',
+        '-3/4" L/R · -1 3/4" T/B',
+        'mat coverage onto the artwork edge',
+      ],
+      ['Borders', '3" top', 'distance from outer edge to window edge'],
     ]);
   });
 });
