@@ -51,6 +51,16 @@ export function computeMatPreviewGeometry(
   ) {
     return null;
   }
+  if (
+    input.borderTop < 0 ||
+    input.borderBottom < 0 ||
+    input.borderLeft < 0 ||
+    input.borderRight < 0 ||
+    input.borderLeft + input.borderRight >= input.outerWidth ||
+    input.borderTop + input.borderBottom >= input.outerHeight
+  ) {
+    return null;
+  }
 
   const scale = Math.min(
     input.availableWidth / input.outerWidth,

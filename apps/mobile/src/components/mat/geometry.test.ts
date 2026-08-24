@@ -72,6 +72,10 @@ describe('computeMatPreviewGeometry', () => {
     { ...portrait, outerWidth: 0 },
     { ...portrait, availableWidth: Number.NaN },
     { ...portrait, borderLeft: Number.POSITIVE_INFINITY },
+    { ...portrait, borderLeft: -1 },
+    { ...portrait, borderLeft: 8, borderRight: 8 },
+    { ...portrait, borderTop: 10, borderBottom: 10 },
+    { ...portrait, borderTop: 11, borderBottom: 10 },
   ])('returns null for invalid geometry %#', (input) => {
     expect(computeMatPreviewGeometry(input)).toBeNull();
   });
