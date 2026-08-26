@@ -43,4 +43,45 @@ describe('useLightMeterSolver', () => {
     const { result } = renderHook(() => useLightMeterSolver(-6));
     expect(result.current.solution.outOfRange).toBe(true);
   });
+
+  it('does not flag an in-range solved aperture in shutter-priority', () => {
+    // EV 12 at 1/125 ISO 100 → f/5.7, well within f/1–f/64.
+    const { result } = renderHook(() => useLightMeterSolver(12));
+    act(() => result.current.setPriority('shutter'));
+    act(() => result.current.setShutterSpeed(1 / 125));
+    expect(result.current.solution.isValid).toBe(true);
+    expect(result.current.solution.outOfRange).toBe(false);
+  });
+
+  it('flags a solved aperture wider than f/1 in shutter-priority', () => {
+    // EV -2 at 1/125 ISO 100 → f/0.045, far wider than any real lens.
+    const { result } = renderHook(() => useLightMeterSolver(-2));
+    act(() => result.current.setPriority('shutter'));
+    act(() => result.current.setShutterSpeed(1 / 125));
+    expect(result.current.solution.outOfRange).toBe(true);
+  });
+
+  it('flags a solved aperture narrower than f/64 in shutter-priority', () => {
+    // EV 16 at 1s ISO 100 → f/256.
+    const { result } = renderHook(() => useLightMeterSolver(16));
+    act(() => result.current.setPriority('shutter'));
+    act(() => result.current.setShutterSpeed(1));
+    expect(result.current.solution.outOfRange).toBe(true);
+  });
+
+  it('does not flag solved apertures exactly at the f/1 and f/64 bounds', () => {
+    // EV 0 at 1s ISO 100 solves to exactly f/1.
+    const low = renderHook(() => useLightMeterSolver(0));
+    act(() => low.result.current.setPriority('shutter'));
+    act(() => low.result.current.setShutterSpeed(1));
+    expect(low.result.current.solution.aperture).toBeCloseTo(1, 10);
+    expect(low.result.current.solution.outOfRange).toBe(false);
+
+    // EV 12 at 1s ISO 100 solves to exactly f/64.
+    const high = renderHook(() => useLightMeterSolver(12));
+    act(() => high.result.current.setPriority('shutter'));
+    act(() => high.result.current.setShutterSpeed(1));
+    expect(high.result.current.solution.aperture).toBeCloseTo(64, 10);
+    expect(high.result.current.solution.outOfRange).toBe(false);
+  });
 });
