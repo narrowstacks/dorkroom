@@ -119,6 +119,81 @@ const borderCalculatorObjectSchema = z.object({
   isEditingPreset: z.boolean().default(false),
 });
 
+const persistedOffset = z
+  .number()
+  .min(OFFSET_SLIDER_MIN)
+  .max(OFFSET_SLIDER_MAX);
+
+/**
+ * Per-field bounds for a `BorderPresetSettings` object read back from
+ * localStorage: the form schema's static field bounds (derived from the same
+ * slider constants), so a stored preset can never apply values the form
+ * itself would reject. The paper-dependent minBorder ceiling is not enforced
+ * here: minBorder can legitimately exceed it after a paper-size switch, and
+ * the runtime already clamps that case with a warning.
+ */
+export const borderPresetSettingsFieldSchemas = {
+  aspectRatio: aspectRatioValueSchema,
+  paperSize: paperSizeValueSchema,
+  customAspectWidth: dimensionNumber,
+  customAspectHeight: dimensionNumber,
+  customPaperWidth: dimensionNumber,
+  customPaperHeight: dimensionNumber,
+  minBorder: dimensionNumber.min(SLIDER_MIN_BORDER),
+  enableOffset: z.boolean(),
+  ignoreMinBorder: z.boolean(),
+  horizontalOffset: persistedOffset,
+  verticalOffset: persistedOffset,
+  showBlades: z.boolean(),
+  showBladeReadings: z.boolean(),
+  isLandscape: z.boolean(),
+  isRatioFlipped: z.boolean(),
+  hasManuallyFlippedPaper: z.boolean(),
+};
+
+/**
+ * Runtime contract for a persisted `BorderPresetSettings` object. Every field
+ * the form schema defaults is defaulted here too: `borderPresets` storage
+ * predates both `showBladeReadings` and `hasManuallyFlippedPaper`, so presets
+ * saved before those fields existed omit them, and rejecting such a preset
+ * would erase it from localStorage on the user's next save.
+ */
+export const borderPresetSettingsSchema = z.object({
+  ...borderPresetSettingsFieldSchemas,
+  customAspectWidth: dimensionNumber.default(
+    BORDER_CALCULATOR_DEFAULTS.customAspectWidth
+  ),
+  customAspectHeight: dimensionNumber.default(
+    BORDER_CALCULATOR_DEFAULTS.customAspectHeight
+  ),
+  customPaperWidth: dimensionNumber.default(
+    BORDER_CALCULATOR_DEFAULTS.customPaperWidth
+  ),
+  customPaperHeight: dimensionNumber.default(
+    BORDER_CALCULATOR_DEFAULTS.customPaperHeight
+  ),
+  enableOffset: z.boolean().default(BORDER_CALCULATOR_DEFAULTS.enableOffset),
+  ignoreMinBorder: z
+    .boolean()
+    .default(BORDER_CALCULATOR_DEFAULTS.ignoreMinBorder),
+  showBlades: z.boolean().default(BORDER_CALCULATOR_DEFAULTS.showBlades),
+  showBladeReadings: z
+    .boolean()
+    .default(BORDER_CALCULATOR_DEFAULTS.showBladeReadings),
+  isLandscape: z.boolean().default(BORDER_CALCULATOR_DEFAULTS.isLandscape),
+  isRatioFlipped: z
+    .boolean()
+    .default(BORDER_CALCULATOR_DEFAULTS.isRatioFlipped),
+  hasManuallyFlippedPaper: z.boolean().default(false),
+});
+
+/** Runtime contract for one saved preset in the `borderPresets` payload. */
+export const borderPresetSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  settings: borderPresetSettingsSchema,
+});
+
 export const borderCalculatorSchema = borderCalculatorObjectSchema.superRefine(
   (values, ctx) => {
     const paper =

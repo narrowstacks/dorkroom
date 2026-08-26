@@ -13,7 +13,10 @@ export { exposureCalculatorSchema } from './exposure-calculator.schema';
 export type { ImportRecipeFormData } from './import-recipe.schema';
 export { importRecipeSchema } from './import-recipe.schema';
 export type { ReciprocityCalculatorFormData } from './reciprocity-calculator.schema';
-export { reciprocityCalculatorSchema } from './reciprocity-calculator.schema';
+export {
+  reciprocityCalculatorSchema,
+  reciprocityMeteredTimeSchema,
+} from './reciprocity-calculator.schema';
 export type { ResizeCalculatorFormData } from './resize-calculator.schema';
 export {
   type ResizeEnlargerHeightMode,

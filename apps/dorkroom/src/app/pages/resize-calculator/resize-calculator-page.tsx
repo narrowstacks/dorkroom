@@ -32,6 +32,7 @@ import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { useMemo } from 'react';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
+import { resizeHydrationValidators } from './hydration';
 
 const validateResizeForm = createZodFormValidator(resizeCalculatorSchema);
 
@@ -701,6 +702,7 @@ function useResizeForm() {
       'originalHeight',
       'newHeight',
     ],
+    validators: resizeHydrationValidators,
   });
 
   return { form, formValues };

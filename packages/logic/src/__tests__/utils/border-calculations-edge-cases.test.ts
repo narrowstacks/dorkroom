@@ -36,6 +36,17 @@ describe('border-calculations: Edge Cases and Boundary Tests', () => {
       expect(ratio).toBeCloseTo(65 / 24, 2);
     });
 
+    it('should return a zero print for a non-positive ratio width', () => {
+      expect(computePrintSize(8, 10, -5, 3, 0.5)).toEqual({
+        printW: 0,
+        printH: 0,
+      });
+      expect(computePrintSize(8, 10, 0, 3, 0.5)).toEqual({
+        printW: 0,
+        printH: 0,
+      });
+    });
+
     it('should handle CinemaScope ultra-wide (2.76:1)', () => {
       const result = computePrintSize(20, 16, 2.76, 1, 1.5);
 

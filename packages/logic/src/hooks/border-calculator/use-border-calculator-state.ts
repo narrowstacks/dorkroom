@@ -8,10 +8,7 @@ import { useEffect, useMemo, useReducer, useRef } from 'react';
 import { z } from 'zod';
 import { BORDER_CALCULATOR_DEFAULTS } from '../../constants/border-calculator-defaults';
 import { BORDER_CALCULATOR_STORAGE_KEY } from '../../constants/storage-keys';
-import {
-  aspectRatioValueSchema,
-  paperSizeValueSchema,
-} from '../../schemas/border-calculator.schema';
+import { borderPresetSettingsFieldSchemas } from '../../schemas/border-calculator.schema';
 import type {
   BorderCalculatorAction,
   BorderCalculatorState,
@@ -20,38 +17,33 @@ import type {
 import { isBrowser } from '../../utils/environment';
 
 /**
- * Shape written to localStorage by this hook. Fields are optional so a snapshot
- * from an earlier build still hydrates; one that fails is discarded, not
- * dispatched into state.
+ * Field bounds for the persisted border-calculator snapshot: the preset
+ * settings bounds plus the `lastValid*` fields, each bounded exactly like the
+ * field it mirrors. They accept 0 because applying the built-in preset copies
+ * its zeroed custom dimensions into them; the negative values issue #239
+ * reported are what the bounds keep out. Exported so the web form's hydration
+ * can validate the same keys one at a time.
  */
+export const persistedBorderCalculatorFieldSchemas = {
+  ...borderPresetSettingsFieldSchemas,
+  lastValidCustomAspectWidth:
+    borderPresetSettingsFieldSchemas.customAspectWidth,
+  lastValidCustomAspectHeight:
+    borderPresetSettingsFieldSchemas.customAspectHeight,
+  lastValidCustomPaperWidth: borderPresetSettingsFieldSchemas.customPaperWidth,
+  lastValidCustomPaperHeight:
+    borderPresetSettingsFieldSchemas.customPaperHeight,
+  lastValidMinBorder: borderPresetSettingsFieldSchemas.minBorder,
+};
+
 /**
- * The persisted border-calculator snapshot. Exported because the mobile
- * calculator writes and reads the same `borderCalculatorState_v2` payload.
+ * The persisted border-calculator snapshot. Fields are optional so a snapshot
+ * from an earlier build still hydrates; one that fails is discarded whole, not
+ * partially dispatched into state. Exported because the mobile calculator
+ * writes and reads the same `borderCalculatorState_v2` payload.
  */
 export const persistedBorderCalculatorSchema = z
-  .object({
-    aspectRatio: aspectRatioValueSchema,
-    paperSize: paperSizeValueSchema,
-    customAspectWidth: z.number(),
-    customAspectHeight: z.number(),
-    customPaperWidth: z.number(),
-    customPaperHeight: z.number(),
-    minBorder: z.number(),
-    enableOffset: z.boolean(),
-    ignoreMinBorder: z.boolean(),
-    horizontalOffset: z.number(),
-    verticalOffset: z.number(),
-    showBlades: z.boolean(),
-    showBladeReadings: z.boolean(),
-    isLandscape: z.boolean(),
-    isRatioFlipped: z.boolean(),
-    hasManuallyFlippedPaper: z.boolean(),
-    lastValidCustomAspectWidth: z.number(),
-    lastValidCustomAspectHeight: z.number(),
-    lastValidCustomPaperWidth: z.number(),
-    lastValidCustomPaperHeight: z.number(),
-    lastValidMinBorder: z.number(),
-  })
+  .object(persistedBorderCalculatorFieldSchemas)
   .partial();
 
 export type PersistedBorderCalculatorState = z.infer<
