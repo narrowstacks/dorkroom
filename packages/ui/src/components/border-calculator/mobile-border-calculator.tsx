@@ -6,6 +6,7 @@ import {
   borderCalculatorSchema,
   CALC_STORAGE_KEY,
   calculateQuarterInchMinBorder,
+  computeMaxAllowedMinBorder,
   debugError,
   debugLog,
   PAPER_SIZES,
@@ -306,12 +307,11 @@ export function MobileBorderCalculator({
   const dimensionData = useDimensionCalculations(formValues);
   const { orientedPaper, orientedRatio } = dimensionData.orientedDimensions;
 
-  // Calculate the maximum allowed minimum border based on paper size
-  const maxAllowedMinBorder = useMemo(() => {
-    const smallerDimension = Math.min(orientedPaper.w, orientedPaper.h);
-    // Leave 0.125" room to ensure at least a minimal print area
-    return Math.max(0, smallerDimension / 2 - 0.125);
-  }, [orientedPaper.w, orientedPaper.h]);
+  // Maximum allowed minimum border for the current paper size
+  const maxAllowedMinBorder = useMemo(
+    () => computeMaxAllowedMinBorder(orientedPaper.w, orientedPaper.h),
+    [orientedPaper.w, orientedPaper.h]
+  );
 
   const { calculation } = useGeometryCalculations(
     formValues,

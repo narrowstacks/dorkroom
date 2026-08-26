@@ -164,6 +164,20 @@ export const calculateBladeThickness = (paperW: number, paperH: number) => {
   return Math.round(BLADE_THICKNESS * scale);
 };
 
+/**
+ * Largest minimum border a sheet of paper allows: half of the smaller
+ * dimension, minus 0.125" so at least a minimal print area remains.
+ * The border sliders and the form schema both derive their upper
+ * bound from this so a UI-reachable value always validates.
+ */
+export const computeMaxAllowedMinBorder = (
+  paperW: number,
+  paperH: number
+): number => {
+  const smallerDimension = Math.min(paperW, paperH);
+  return Math.max(0, smallerDimension / 2 - 0.125);
+};
+
 /* ------------------------------------------------------------------ *
    Border optimisation helpers
  * ------------------------------------------------------------------ */

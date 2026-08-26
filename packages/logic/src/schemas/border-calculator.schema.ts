@@ -1,5 +1,12 @@
 import { z } from 'zod';
+import {
+  OFFSET_SLIDER_MAX,
+  OFFSET_SLIDER_MIN,
+  PAPER_SIZE_MAP,
+  SLIDER_MIN_BORDER,
+} from '../constants/border-calculator';
 import { BORDER_CALCULATOR_DEFAULTS } from '../constants/border-calculator-defaults';
+import { computeMaxAllowedMinBorder } from '../utils/border-calculations';
 import { dimensionValidator } from './validators';
 
 /**
@@ -42,7 +49,7 @@ export const aspectRatioValueSchema = z.enum(aspectRatioOptions);
 /** Runtime contract for `PaperSizeValue`. */
 export const paperSizeValueSchema = z.enum(paperSizeOptions);
 
-export const borderCalculatorSchema = z.object({
+const borderCalculatorObjectSchema = z.object({
   // Paper Setup
   aspectRatio: aspectRatioValueSchema,
   customAspectWidth: dimensionNumber
@@ -60,10 +67,14 @@ export const borderCalculatorSchema = z.object({
     .default(BORDER_CALCULATOR_DEFAULTS.customPaperHeight),
 
   // Borders & Offsets
+  // The static bound only enforces the slider floor; the paper-dependent
+  // ceiling is enforced by the superRefine below.
   minBorder: z
     .number()
-    .min(0.125, 'Minimum border must be at least 0.125 inches')
-    .max(4, 'Minimum border cannot exceed 4 inches'),
+    .min(
+      SLIDER_MIN_BORDER,
+      `Minimum border cannot be less than ${SLIDER_MIN_BORDER} inches`
+    ),
 
   enableOffset: z.boolean().default(BORDER_CALCULATOR_DEFAULTS.enableOffset),
   ignoreMinBorder: z
@@ -71,13 +82,25 @@ export const borderCalculatorSchema = z.object({
     .default(BORDER_CALCULATOR_DEFAULTS.ignoreMinBorder),
   horizontalOffset: z
     .number()
-    .min(-2, 'Horizontal offset cannot be less than -2')
-    .max(2, 'Horizontal offset cannot be more than +2'),
+    .min(
+      OFFSET_SLIDER_MIN,
+      `Horizontal offset cannot be less than ${OFFSET_SLIDER_MIN}`
+    )
+    .max(
+      OFFSET_SLIDER_MAX,
+      `Horizontal offset cannot be more than +${OFFSET_SLIDER_MAX}`
+    ),
 
   verticalOffset: z
     .number()
-    .min(-2, 'Vertical offset cannot be less than -2')
-    .max(2, 'Vertical offset cannot be more than +2'),
+    .min(
+      OFFSET_SLIDER_MIN,
+      `Vertical offset cannot be less than ${OFFSET_SLIDER_MIN}`
+    )
+    .max(
+      OFFSET_SLIDER_MAX,
+      `Vertical offset cannot be more than +${OFFSET_SLIDER_MAX}`
+    ),
 
   // Blade Visualization
   showBlades: z.boolean().default(BORDER_CALCULATOR_DEFAULTS.showBlades),
@@ -95,5 +118,27 @@ export const borderCalculatorSchema = z.object({
   presetName: z.string().optional(),
   isEditingPreset: z.boolean().default(false),
 });
+
+export const borderCalculatorSchema = borderCalculatorObjectSchema.superRefine(
+  (values, ctx) => {
+    const paper =
+      values.paperSize === 'custom'
+        ? { width: values.customPaperWidth, height: values.customPaperHeight }
+        : PAPER_SIZE_MAP.get(values.paperSize);
+    if (!paper) return;
+
+    const maxAllowed = computeMaxAllowedMinBorder(paper.width, paper.height);
+    // maxAllowed is 0 when the paper dimensions are degenerate (e.g. a custom
+    // size still being typed); the paper fields report that error themselves.
+    if (maxAllowed > 0 && values.minBorder > maxAllowed) {
+      const displayMax = Math.round(maxAllowed * 1000) / 1000;
+      ctx.addIssue({
+        code: 'custom',
+        path: ['minBorder'],
+        message: `Minimum border cannot exceed ${displayMax} inches for this paper size`,
+      });
+    }
+  }
+);
 
 export type BorderCalculatorFormData = z.infer<typeof borderCalculatorSchema>;
