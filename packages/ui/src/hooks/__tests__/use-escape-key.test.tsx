@@ -140,13 +140,21 @@ describe('useEscapeKey', () => {
   });
 
   it('removes the document listener once no layer is enabled', () => {
+    const addSpy = vi.spyOn(document, 'addEventListener');
     const removeSpy = vi.spyOn(document, 'removeEventListener');
     const { unmount } = render(
       <Layer isOpen={true} onEscape={vi.fn()} label="one" />
     );
 
+    const addedCall = addSpy.mock.calls.find(([type]) => type === 'keydown');
+    expect(addedCall).toBeDefined();
+    const addedHandler = addedCall?.[1];
+
     unmount();
 
-    expect(removeSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
+    // Asserting the exact handler reference, not just `expect.any(Function)`,
+    // so this fails if the hook ever removes a different function than the
+    // one it added, which would leak the document listener.
+    expect(removeSpy).toHaveBeenCalledWith('keydown', addedHandler);
   });
 });

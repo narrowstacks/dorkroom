@@ -82,16 +82,9 @@ describe('ConfirmModal', () => {
   describe('backdrop', () => {
     it('dismisses on click', () => {
       const onClose = vi.fn();
-      const { container } = render(
-        <ConfirmModal {...defaultProps} onClose={onClose} />
-      );
+      render(<ConfirmModal {...defaultProps} onClose={onClose} />);
 
-      const backdrop = container.ownerDocument.querySelector(
-        '[data-testid="confirm-modal-backdrop"]'
-      );
-      expect(backdrop).not.toBeNull();
-      // eslint-disable-next-line anti-slop/require-safety-comment-for-type-assertion -- the toBeNull() assertion above proves backdrop is non-null and an Element
-      fireEvent.click(backdrop as Element);
+      fireEvent.click(screen.getByTestId('confirm-modal-backdrop'));
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });
@@ -99,9 +92,7 @@ describe('ConfirmModal', () => {
     it('is hidden from assistive technology and out of the tab order', () => {
       render(<ConfirmModal {...defaultProps} />);
 
-      const backdrop = document.querySelector(
-        '[data-testid="confirm-modal-backdrop"]'
-      );
+      const backdrop = screen.getByTestId('confirm-modal-backdrop');
       expect(backdrop).toHaveAttribute('aria-hidden', 'true');
       expect(backdrop).toHaveAttribute('tabindex', '-1');
     });

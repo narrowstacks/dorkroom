@@ -310,11 +310,6 @@ export const DetailPanel: FC<DetailPanelProps> = ({
               onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
               onTouchEnd={handleDragEnd}
               onMouseDown={(e) => handleMouseDragStart(e.clientY)}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape' || e.key === 'Enter') {
-                  onClose();
-                }
-              }}
             >
               <GripVertical
                 className="size-5"

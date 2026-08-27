@@ -73,7 +73,8 @@ export function Modal({
       style={{ height: '100dvh' }}
     >
       {/* Backdrop: a real button so click-to-close works; hidden from AT and
-          the tab sequence since the header X button already covers keyboard close. */}
+          the tab sequence since Escape already covers keyboard dismissal
+          (as does the header close button, when shown). */}
       <button
         type="button"
         aria-hidden="true"
