@@ -147,17 +147,23 @@ describe('Drawer', () => {
       expect(backdrop).not.toHaveClass('backdrop-blur-sm');
     });
 
-    it('applies background overlay by default', () => {
+    it('paints the overlay with the theme overlay token by default', () => {
       render(<Drawer {...defaultProps} />);
 
       const backdrop = document.querySelector('.absolute.inset-0');
-      expect(backdrop).toHaveClass('bg-black/50');
+      expect(backdrop).toHaveClass(
+        'bg-[color:var(--color-visualization-overlay)]'
+      );
+      expect(backdrop).not.toHaveClass('bg-black/50');
     });
 
     it('does not apply background overlay when disabled', () => {
       render(<Drawer {...defaultProps} enableBackgroundOverlay={false} />);
 
       const backdrop = document.querySelector('.absolute.inset-0');
+      expect(backdrop).not.toHaveClass(
+        'bg-[color:var(--color-visualization-overlay)]'
+      );
       expect(backdrop).not.toHaveClass('bg-black/50');
     });
   });
@@ -238,6 +244,38 @@ describe('Drawer', () => {
       rerender(<Drawer {...defaultProps} isOpen={false} />);
       backdrop = document.querySelector('.absolute.inset-0');
       expect(backdrop).toHaveClass('opacity-0');
+    });
+  });
+
+  describe('escape key', () => {
+    it('calls onClose when Escape is pressed while open', () => {
+      const onClose = vi.fn();
+      render(<Drawer {...defaultProps} onClose={onClose} />);
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onClose on Escape while closed', () => {
+      const onClose = vi.fn();
+      render(<Drawer {...defaultProps} isOpen={false} onClose={onClose} />);
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('stops listening once the drawer is closed, even mid-animation', () => {
+      const onClose = vi.fn();
+      const { rerender } = render(
+        <Drawer {...defaultProps} onClose={onClose} />
+      );
+
+      rerender(<Drawer {...defaultProps} isOpen={false} onClose={onClose} />);
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(onClose).not.toHaveBeenCalled();
     });
   });
 });
