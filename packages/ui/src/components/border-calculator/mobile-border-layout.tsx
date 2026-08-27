@@ -158,7 +158,7 @@ export function MobileBorderLayout() {
     form.setFieldValue('showBladeReadings', !showBladeReadings);
   };
 
-  // Handlers for PresetsSection
+  // Handlers for MobilePresetsSection
   const onApplyPreset = (preset: BorderPreset) => {
     handleSelectPreset(preset.id);
     closeDrawer();

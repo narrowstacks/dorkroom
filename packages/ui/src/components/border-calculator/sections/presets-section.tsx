@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { TextInput } from '../../../components/text-input';
 import { useBorderCalculator } from '../border-calculator-context';
 
-interface PresetsSectionProps {
+interface MobilePresetsSectionProps {
   onClose: () => void;
   currentPreset: BorderPreset | null;
   onApplyPreset: (preset: BorderPreset) => void;
@@ -14,14 +14,14 @@ interface PresetsSectionProps {
   onDeletePreset: (id: string) => void;
 }
 
-export function PresetsSection({
+export function MobilePresetsSection({
   onClose,
   currentPreset,
   onApplyPreset,
   onSavePreset,
   onUpdatePreset,
   onDeletePreset,
-}: PresetsSectionProps) {
+}: MobilePresetsSectionProps) {
   const { presets, currentSettings } = useBorderCalculator();
 
   const [isCreating, setIsCreating] = useState(false);

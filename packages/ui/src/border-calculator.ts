@@ -12,6 +12,7 @@ export {
   BordersOffsetsSection,
   MobileBorderCalculator,
   MobileBorderLayout,
+  MobilePresetsSection,
   PaperSetupSection,
   PaperSizeSection,
   PositionOffsetsSection,
