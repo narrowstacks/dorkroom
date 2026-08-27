@@ -1,5 +1,6 @@
 import { debugError } from '@dorkroom/logic';
 import { useState } from 'react';
+import { useEscapeKey } from '../hooks/use-escape-key';
 import { cn } from '../lib/cn';
 import { colorMixOr } from '../lib/color';
 import { cssVars } from '../lib/dom';
@@ -419,6 +420,8 @@ export function ShareModal({
   const [copySuccess, setCopySuccess] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
 
+  useEscapeKey(isOpen, onClose);
+
   if (!isOpen) {
     return null;
   }
@@ -459,9 +462,6 @@ export function ShareModal({
           style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
           role="presentation"
           onClick={onClose}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') onClose();
-          }}
         />
 
         {/* Modal */}
