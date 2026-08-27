@@ -25,11 +25,13 @@ export function PositionOffsetsSection({
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">Position & Offsets</h3>
+        <h3 className="text-lg font-semibold text-primary">
+          Position & Offsets
+        </h3>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-white/20 bg-white/5 p-2 text-white transition hover:bg-white/10"
+          className="rounded-lg border border-primary bg-border-muted p-2 text-primary transition hoverable-action-btn"
           aria-label="Close position & offsets"
         >
           <X className="size-5" />
@@ -54,7 +56,7 @@ export function PositionOffsetsSection({
             />
 
             {ignoreMinBorder && (
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-secondary">
                 Print can be positioned freely but will stay within paper edges
               </p>
             )}
@@ -101,9 +103,11 @@ export function PositionOffsetsSection({
           </div>
         )}
 
-        <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-          <h4 className="text-sm font-medium text-white mb-2">About Offsets</h4>
-          <p className="text-xs text-white/70 leading-relaxed">
+        <div className="rounded-lg border border-secondary bg-border-muted p-4">
+          <h4 className="text-sm font-medium text-primary mb-2">
+            About Offsets
+          </h4>
+          <p className="text-xs text-secondary leading-relaxed">
             Shift the image away from center. Negative values go left/up,
             positive go right/down.
           </p>

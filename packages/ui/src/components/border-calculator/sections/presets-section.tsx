@@ -138,9 +138,18 @@ export function PresetsSection({
                 key={preset.id}
                 className={`rounded-lg border p-3 transition-colors ${
                   isActive
-                    ? 'border-blue-500/50 bg-blue-500/10'
-                    : 'border-white/20 bg-white/5 hover:bg-white/10'
+                    ? ''
+                    : 'border-primary bg-border-muted hoverable-action-btn'
                 }`}
+                style={
+                  isActive
+                    ? {
+                        borderColor: 'var(--color-primary)',
+                        backgroundColor:
+                          'color-mix(in srgb, var(--color-primary) 12%, transparent)',
+                      }
+                    : undefined
+                }
               >
                 {isEditing ? (
                   <div className="space-y-2">
@@ -153,7 +162,11 @@ export function PresetsSection({
                       <button
                         type="button"
                         onClick={() => handleUpdate(preset.id)}
-                        className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-blue-700"
+                        className="flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-medium transition hover:brightness-90"
+                        style={{
+                          backgroundColor: 'var(--color-semantic-info)',
+                          color: 'var(--color-background)',
+                        }}
                       >
                         <Save className="size-3" />
                         Update
@@ -161,7 +174,7 @@ export function PresetsSection({
                       <button
                         type="button"
                         onClick={cancelEdit}
-                        className="rounded-lg border border-white/20 bg-white/5 px-3 py-1 text-xs font-medium text-white transition hover:bg-white/10"
+                        className="rounded-lg border border-primary bg-border-muted px-3 py-1 text-xs font-medium text-primary transition hoverable-action-btn"
                       >
                         Cancel
                       </button>
@@ -174,11 +187,11 @@ export function PresetsSection({
                       onClick={() => onApplyPreset(preset)}
                       className="flex-1 text-left"
                     >
-                      <div className="text-sm font-medium text-white">
+                      <div className="text-sm font-medium text-primary">
                         {preset.name}
                       </div>
                       {!isUserPreset && (
-                        <div className="text-xs text-white/50">Default</div>
+                        <div className="text-xs text-tertiary">Default</div>
                       )}
                     </button>
                     {isUserPreset && (
@@ -186,7 +199,7 @@ export function PresetsSection({
                         <button
                           type="button"
                           onClick={() => startEdit(preset)}
-                          className="rounded p-1 text-white/70 transition hover:bg-white/10 hover:text-white"
+                          className="rounded p-1 text-secondary transition hoverable-action-btn"
                           aria-label={`Edit ${preset.name}`}
                         >
                           <Save className="size-4" />
@@ -194,7 +207,7 @@ export function PresetsSection({
                         <button
                           type="button"
                           onClick={() => onDeletePreset(preset.id)}
-                          className="rounded p-1 text-red-400 transition hover:bg-red-500/10 hover:text-red-300"
+                          className="rounded p-1 text-error transition hover:bg-error/10"
                           aria-label={`Delete ${preset.name}`}
                         >
                           <Trash2 className="size-4" />

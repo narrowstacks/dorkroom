@@ -33,11 +33,11 @@ export function BorderSizeSection({ onClose }: BorderSizeSectionProps) {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">Border Size</h3>
+        <h3 className="text-lg font-semibold text-primary">Border Size</h3>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-white/20 bg-white/5 p-2 text-white transition hover:bg-white/10"
+          className="rounded-lg border border-primary bg-border-muted p-2 text-primary transition hoverable-action-btn"
           aria-label="Close border size"
         >
           <X className="size-5" />
@@ -65,7 +65,7 @@ export function BorderSizeSection({ onClose }: BorderSizeSectionProps) {
             type="button"
             onClick={handleRoundMinBorderToQuarter}
             disabled={quarterRoundedMinBorder === null}
-            className="w-full rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-full border border-primary px-4 py-2 text-sm font-semibold text-primary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] disabled:cursor-not-allowed disabled:opacity-60"
             title="Adjust minimum border so the print size lands on ¼-inch increments"
           >
             Round to 1/4"
@@ -89,11 +89,11 @@ export function BorderSizeSection({ onClose }: BorderSizeSectionProps) {
           <StatusAlert message={minBorderWarning} action="error" />
         )}
 
-        <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-          <h4 className="text-sm font-medium text-white mb-2">
+        <div className="rounded-lg border border-secondary bg-border-muted p-4">
+          <h4 className="text-sm font-medium text-primary mb-2">
             About Border Size
           </h4>
-          <p className="text-xs text-white/70 leading-relaxed">
+          <p className="text-xs text-secondary leading-relaxed">
             How much white space around the image. Bigger borders mean a smaller
             print, but they give you room if the easel is slightly off.
           </p>
