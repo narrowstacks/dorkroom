@@ -56,7 +56,7 @@ const ActionIconButton = memo(function ActionIconButton({
 }: ActionIconButtonProps) {
   // Base classes for all buttons
   const baseClasses =
-    'group inline-flex items-center justify-center rounded-md p-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2';
+    'group inline-flex items-center justify-center rounded-md p-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]';
 
   // Get variant-specific classes and styles
   const getVariantConfig = () => {

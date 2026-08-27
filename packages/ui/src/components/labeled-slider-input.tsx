@@ -191,13 +191,13 @@ export function LabeledSliderInput({
           step={step}
           className={cn(
             'w-20 rounded px-2 py-1 text-sm border transition-colors',
-            'focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2',
+            'focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-offset-2',
+            'focus-visible:outline-[color:var(--color-focus-ring)]',
             warning
-              ? 'border-yellow-500/50 bg-yellow-500/10 focus-visible:outline-yellow-500'
+              ? 'border-yellow-500/50 bg-yellow-500/10'
               : cn(
                   'border-[var(--color-border-primary)] bg-[var(--color-surface)]',
-                  isFocused && 'border-[var(--color-border-secondary)]',
-                  'focus-visible:outline-[var(--color-border-secondary)]'
+                  isFocused && 'border-[var(--color-border-secondary)]'
                 )
           )}
           style={{

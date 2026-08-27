@@ -6,12 +6,16 @@ import { describe, expect, it } from 'vitest';
 // packages/ui/CLAUDE.md mandates exactly one focus indicator:
 //   focus-visible:outline-none focus-visible:ring-2
 //   focus-visible:ring-[color:var(--color-focus-ring)]
+// or, where an outline (not a ring) is the chosen indicator:
+//   focus-visible:outline-2 focus-visible:outline-offset-2
+//   focus-visible:outline-[color:var(--color-focus-ring)]
 //
 // --color-focus-ring is a dedicated token precisely because the border
 // tokens are translucent: rgba(255,255,255,0.2) in dark measures 1.85:1
 // against --color-surface, under the 3:1 WCAG 1.4.11 non-text minimum.
 // See issue #244.
 const TOKEN = 'ring-[color:var(--color-focus-ring)]';
+const OUTLINE_TOKEN = 'outline-[color:var(--color-focus-ring)]';
 
 const srcRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -21,25 +25,55 @@ const srcRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
  * Covers `focus:`, `focus-visible:`, and `focus-within:`. Excludes widths
  * (`ring-2`), `ring-inset`, and every `ring-offset-*` utility — offset
  * colour is a separate concern and out of scope here. The value
- * alternation deliberately accepts arbitrary values
- * (`ring-[color:var(--x)]`), slash opacity (`ring-white/30`) and
- * *arbitrary* slash opacity (`ring-red-500/[0.06]`), so a raw palette
- * colour cannot slip through by using bracket-opacity syntax.
+ * alternation accepts arbitrary colour-shaped values
+ * (`ring-[color:var(--x)]`, `ring-[--x]`, `ring-[#fff]`, `ring-[var(--x)]`,
+ * `ring-[rgb(...)]`), Tailwind v4's CSS-variable shorthand
+ * (`ring-(--x)`), slash opacity (`ring-white/30`), and *arbitrary* slash
+ * opacity (`ring-red-500/[0.06]`), so a raw palette colour cannot slip
+ * through by using bracket-opacity syntax. It deliberately does NOT match
+ * an arbitrary non-colour bracket value such as `ring-[3px]` — that is a
+ * width, not a colour.
  */
 const FOCUS_RING_COLOR =
-  /\b(?:group-)?focus(?:-visible|-within)?:(ring-(?!\d+\b|inset\b|offset-)(?:\[[^\]]*\]|[a-z]+(?:-\d{2,3})?)(?:\/(?:\[[^\]]*\]|\d{1,3}))?)/g;
+  /\b(?:group-)?focus(?:-visible|-within)?:(ring-(?!\d+\b|inset\b|offset-)(?:\[(?:color:|--|#|var\(|rgb|hsl|oklch)[^\]]*\]|\(--[^)]*\)|[a-z]+(?:-\d{2,3})?)(?:\/(?:\[[^\]]*\]|\d{1,3}))?)/g;
+
+/**
+ * The outline analogue of FOCUS_RING_COLOR. Excludes `outline-none` (a
+ * reset, not a colour), widths (`outline-2`), and every
+ * `outline-offset-*` utility.
+ */
+const FOCUS_OUTLINE_COLOR =
+  /\b(?:group-)?focus(?:-visible|-within)?:(outline-(?!none\b|\d+\b|offset-)(?:\[(?:color:|--|#|var\(|rgb|hsl|oklch)[^\]]*\]|\(--[^)]*\)|[a-z]+(?:-\d{2,3})?)(?:\/(?:\[[^\]]*\]|\d{1,3}))?)/g;
 
 /** A bare `focus:` ring prefix. `focus-visible:` does not match. */
 const BARE_FOCUS_RING = /\bfocus:ring-/g;
+
+/** A bare `focus:` outline prefix. `focus-visible:` does not match. */
+const BARE_FOCUS_OUTLINE = /\bfocus:outline-/g;
 
 /** Any inline `style` write to the Tailwind ring-colour custom property. */
 const INLINE_RING_COLOR = /--tw-ring-color/g;
 
 /**
- * A focus ring *width*, i.e. a file that paints a focus ring at all.
- * Covers `focus:`, `focus-visible:`, and `focus-within:`.
+ * A focus ring *width*, i.e. a utility that paints a focus ring at all.
+ * Covers `focus:`, `focus-visible:`, and `focus-within:`, plus numbered
+ * widths (`ring-2`) and the bare `ring` utility (no number, falls back to
+ * `currentColor`). Global, so occurrences can be counted.
  */
-const FOCUS_RING_WIDTH = /\b(?:group-)?focus(?:-visible|-within)?:ring-\d+\b/;
+const FOCUS_RING_WIDTH_GLOBAL =
+  /\b(?:group-)?focus(?:-visible|-within)?:ring(?:-\d+)?(?![\w-])/g;
+
+/**
+ * The outline analogue of FOCUS_RING_WIDTH_GLOBAL. Deliberately does not
+ * extend to a bare `outline` utility the way the ring pattern extends to
+ * bare `ring`: `virtualized-error-boundary.tsx` pairs bare
+ * `focus-visible:outline` with `focus-visible:outline-2` for a single
+ * indicator, and counting both would break count-equality against the one
+ * token that colours them. The numbered width alone is enough to require
+ * the token.
+ */
+const FOCUS_OUTLINE_WIDTH_GLOBAL =
+  /\b(?:group-)?focus(?:-visible|-within)?:outline-\d+\b/g;
 
 function collectSourceFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {
@@ -51,7 +85,7 @@ function collectSourceFiles(dir: string): string[] {
   });
 }
 
-describe('focus ring tokens', () => {
+describe('focus ring and outline tokens', () => {
   const files = collectSourceFiles(srcRoot);
 
   it('finds the ui source files', () => {
@@ -74,9 +108,30 @@ describe('focus ring tokens', () => {
 
   it.each(
     files.map((file) => [relative(srcRoot, file), file])
+  )('%s colours every focus outline with --color-focus-ring', (_name, file) => {
+    const source = readFileSync(file, 'utf8');
+    const wrong = [
+      ...new Set(
+        [...source.matchAll(FOCUS_OUTLINE_COLOR)]
+          .map((match) => match[1])
+          .filter((utility) => utility !== OUTLINE_TOKEN)
+      ),
+    ];
+    expect(wrong).toEqual([]);
+  });
+
+  it.each(
+    files.map((file) => [relative(srcRoot, file), file])
   )('%s uses focus-visible, never a bare focus ring', (_name, file) => {
     const source = readFileSync(file, 'utf8');
     expect(source.match(BARE_FOCUS_RING) ?? []).toEqual([]);
+  });
+
+  it.each(
+    files.map((file) => [relative(srcRoot, file), file])
+  )('%s uses focus-visible, never a bare focus outline', (_name, file) => {
+    const source = readFileSync(file, 'utf8');
+    expect(source.match(BARE_FOCUS_OUTLINE) ?? []).toEqual([]);
   });
 
   it.each(
@@ -90,13 +145,21 @@ describe('focus ring tokens', () => {
 
   it.each(
     files.map((file) => [relative(srcRoot, file), file])
-  )('%s pairs any focus ring width with the token colour', (_name, file) => {
-    // File-level, not element-level: a file with several focus rings is
-    // only proven to colour one of them. Rules above carry the exactness;
-    // this one catches a width added with no colour at all, which would
-    // fall back to Tailwind's `currentColor`.
+  )('%s pairs every focus ring width with the token colour', (_name, file) => {
+    // Count equality, not file-level containment: a file with several
+    // focus rings is otherwise only proven to colour one of them. A new
+    // colourless ring added alongside an existing coloured one would pass
+    // a mere "does the token appear somewhere" check silently.
     const source = readFileSync(file, 'utf8');
-    if (!FOCUS_RING_WIDTH.test(source)) return;
-    expect(source).toContain(TOKEN);
+    const widths = source.match(FOCUS_RING_WIDTH_GLOBAL) ?? [];
+    expect(source.split(TOKEN).length - 1).toBe(widths.length);
+  });
+
+  it.each(
+    files.map((file) => [relative(srcRoot, file), file])
+  )('%s pairs every focus outline width with the token colour', (_name, file) => {
+    const source = readFileSync(file, 'utf8');
+    const widths = source.match(FOCUS_OUTLINE_WIDTH_GLOBAL) ?? [];
+    expect(source.split(OUTLINE_TOKEN).length - 1).toBe(widths.length);
   });
 });

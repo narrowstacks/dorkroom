@@ -15,12 +15,12 @@ export interface ShareModalProps {
   canCopyToClipboard?: boolean;
 }
 
-const closeButtonStyle = cssVars({
+const closeButtonStyle = {
   backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
   color: 'var(--color-text-primary)',
   borderWidth: 1,
   borderColor: 'var(--color-border-secondary)',
-});
+};
 
 /**
  * Footer row containing the modal's close action.

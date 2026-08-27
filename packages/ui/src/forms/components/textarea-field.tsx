@@ -57,10 +57,10 @@ export const TextareaField: React.FC<TextareaFieldProps> = ({
         disabled={disabled}
         className={cn(
           'px-3 py-2 border border-gray-300 rounded-md',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] focus-visible:border-transparent',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
           'disabled:bg-gray-100 disabled:cursor-not-allowed',
           'resize-none',
-          showErrors && 'border-red-500',
+          showErrors ? 'border-red-500' : 'focus-visible:border-transparent',
           className
         )}
       />
