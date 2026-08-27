@@ -105,4 +105,28 @@ describe('ConfirmModal', () => {
       expect(backdrop).toHaveAttribute('tabindex', '-1');
     });
   });
+
+  describe('confirm button colours', () => {
+    it('takes its foreground from a theme token, not a raw colour', () => {
+      render(<ConfirmModal {...defaultProps} />);
+
+      const confirm = screen.getByRole('button', { name: 'Confirm' });
+      expect(confirm.style.color).toBe('var(--color-background)');
+    });
+
+    it('fills with the primary token for a non-destructive action', () => {
+      render(<ConfirmModal {...defaultProps} />);
+
+      const confirm = screen.getByRole('button', { name: 'Confirm' });
+      expect(confirm.style.backgroundColor).toBe('var(--color-primary)');
+    });
+
+    it('fills with the error token for a destructive action', () => {
+      render(<ConfirmModal {...defaultProps} isDestructive={true} />);
+
+      const confirm = screen.getByRole('button', { name: 'Confirm' });
+      expect(confirm.style.backgroundColor).toBe('var(--color-semantic-error)');
+      expect(confirm.style.color).toBe('var(--color-background)');
+    });
+  });
 });

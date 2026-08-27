@@ -151,7 +151,7 @@ export function ConfirmModal({
             disabled={isProcessing}
             className="px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50"
             style={cssVars({
-              color: 'white',
+              color: 'var(--color-background)',
               backgroundColor: isDestructive
                 ? 'var(--color-semantic-error)'
                 : 'var(--color-primary)',
