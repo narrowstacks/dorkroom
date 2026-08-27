@@ -3,6 +3,11 @@ services:
     build: .
     ports:
       - "4200:4200"
+    environment:
+      # The @vercel/microfrontends Vite plugin derives the dev port from a hash
+      # of the package name (4503 outside Docker), overriding vite.config.ts.
+      # Pin it so the published port above stays correct.
+      MFE_APP_PORT: "4200"
     volumes:
       - .:/app:ro
       - /app/node_modules

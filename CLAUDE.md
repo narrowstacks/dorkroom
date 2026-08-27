@@ -23,7 +23,8 @@ those paths lives in this repo.
 
 ```bash
 # Development
-bun run dev                               # Start dev server (check port 4200 first!)
+bun run dev                               # Start dev server (port comes from the
+                                          # microfrontends plugin — read Vite's banner)
 bun run build                             # Build all packages
 
 # Verification (run before considering done)
@@ -37,6 +38,22 @@ bun run format
 ```
 
 CI runs exactly `bun run test`, so a green local run means a green pipeline.
+
+### Dev Server Ports
+
+There is no fixed dev port. The `@vercel/microfrontends` Vite plugin sets
+`server.port` from a hash of the package name, and a plugin's config wins over
+`vite.config.ts`, so the value in that file would be ignored (it is no longer
+there). Today the app lands on **4503**; `turbo run dev` also starts the
+microfrontends **local proxy on 3024**, which is the one that routes `/docs/*`
+to the separate docs repo. Read both off the startup output rather than
+assuming. Set `MFE_APP_PORT` to pin the app's port (`docker-compose.yml` does
+this so its `4200:4200` mapping stays true).
+
+To reach the dev server from another machine, use the IP Vite prints under
+`Network:`, or a Tailscale MagicDNS FQDN — `server.allowedHosts` permits
+`.ts.net`. Any other hostname 403s with "Blocked request", and the 3024 proxy
+binds loopback only, so it is not reachable remotely at all.
 
 ## Health Score (React Doctor)
 
