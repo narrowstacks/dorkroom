@@ -166,7 +166,7 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-primary bg-border-muted p-2 text-primary transition hoverable-action-btn"
+          className="rounded-lg border border-primary bg-border-muted p-2 text-primary transition hover:opacity-80"
           aria-label="Close paper & image size"
         >
           <X className="size-5" />
@@ -246,7 +246,7 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
           <button
             type="button"
             onClick={() => form.setFieldValue('isLandscape', !isLandscape)}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-primary bg-border-muted px-4 py-3 text-sm font-medium text-primary transition hoverable-action-btn"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-primary bg-border-muted px-4 py-3 text-sm font-medium text-primary transition hover:opacity-80"
           >
             <RotateCw className="size-4" />
             Flip Paper
@@ -260,7 +260,7 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
             className={`flex flex-1 items-center justify-center gap-2 rounded-lg border border-primary bg-border-muted px-4 py-3 text-sm font-medium text-primary transition ${
               isEvenBordersSelected
                 ? 'cursor-not-allowed opacity-50'
-                : 'hoverable-action-btn'
+                : 'hover:opacity-80'
             }`}
             disabled={isEvenBordersSelected}
             aria-disabled={isEvenBordersSelected}

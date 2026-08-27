@@ -37,7 +37,7 @@ export function BorderSizeSection({ onClose }: BorderSizeSectionProps) {
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-primary bg-border-muted p-2 text-primary transition hoverable-action-btn"
+          className="rounded-lg border border-primary bg-border-muted p-2 text-primary transition hover:opacity-80"
           aria-label="Close border size"
         >
           <X className="size-5" />

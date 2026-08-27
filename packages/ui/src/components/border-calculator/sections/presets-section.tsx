@@ -67,7 +67,7 @@ export function MobilePresetsSection({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-primary bg-border-muted p-2 text-primary transition hoverable-action-btn"
+          className="rounded-lg border border-primary bg-border-muted p-2 text-primary transition hover:opacity-80"
           aria-label="Close presets"
         >
           <X className="size-5" />
@@ -109,7 +109,7 @@ export function MobilePresetsSection({
                   setIsCreating(false);
                   setNewPresetName('');
                 }}
-                className="rounded-lg border border-primary bg-border-muted px-3 py-2 text-sm font-medium text-primary transition hoverable-action-btn"
+                className="rounded-lg border border-primary bg-border-muted px-3 py-2 text-sm font-medium text-primary transition hover:opacity-80"
               >
                 Cancel
               </button>
@@ -139,7 +139,7 @@ export function MobilePresetsSection({
                 className={`rounded-lg border p-3 transition-colors ${
                   isActive
                     ? ''
-                    : 'border-primary bg-border-muted hoverable-action-btn'
+                    : 'border-primary bg-border-muted hover:opacity-80'
                 }`}
                 style={
                   isActive
@@ -174,7 +174,7 @@ export function MobilePresetsSection({
                       <button
                         type="button"
                         onClick={cancelEdit}
-                        className="rounded-lg border border-primary bg-border-muted px-3 py-1 text-xs font-medium text-primary transition hoverable-action-btn"
+                        className="rounded-lg border border-primary bg-border-muted px-3 py-1 text-xs font-medium text-primary transition hover:opacity-80"
                       >
                         Cancel
                       </button>
@@ -199,7 +199,7 @@ export function MobilePresetsSection({
                         <button
                           type="button"
                           onClick={() => startEdit(preset)}
-                          className="rounded p-1 text-secondary transition hoverable-action-btn"
+                          className="rounded p-1 text-secondary transition hover:opacity-80"
                           aria-label={`Edit ${preset.name}`}
                         >
                           <Save className="size-4" />
