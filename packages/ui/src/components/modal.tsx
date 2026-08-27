@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
+import { useEscapeKey } from '../hooks/use-escape-key';
 import { cn } from '../lib/cn';
 import { cssVars, hasGlobal } from '../lib/dom';
 
@@ -60,6 +61,7 @@ export function Modal({
   hideCloseButton,
 }: ModalProps) {
   useBodyScrollLock(isOpen);
+  useEscapeKey(isOpen, onClose);
 
   if (!hasGlobal('document') || !isOpen) {
     return null;
