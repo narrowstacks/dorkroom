@@ -1,6 +1,7 @@
 import { AlertTriangle } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
+import { useEscapeKey } from '../hooks/use-escape-key';
 import { cssVars, hasGlobal } from '../lib/dom';
 
 interface ConfirmModalProps {
@@ -44,6 +45,7 @@ export function ConfirmModal({
   isProcessing = false,
 }: ConfirmModalProps) {
   useBodyScrollLock(isOpen);
+  useEscapeKey(isOpen, onClose);
 
   const handleConfirm = () => {
     if (!isProcessing) {
@@ -60,11 +62,14 @@ export function ConfirmModal({
       className="fixed inset-0 z-[100] flex items-center justify-center px-4"
       style={{ height: '100dvh' }}
     >
-      {/* Backdrop: a real button so click-to-close is keyboard-accessible */}
+      {/* Backdrop: a real button so click-to-close works; hidden from AT and
+          the tab sequence since Escape and the Cancel button already cover
+          keyboard dismissal. */}
       <button
         type="button"
-        aria-label={`Dismiss ${title}`}
+        aria-hidden="true"
         tabIndex={-1}
+        data-testid="confirm-modal-backdrop"
         className="absolute inset-0 cursor-default backdrop-blur"
         style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
         onClick={onClose}
