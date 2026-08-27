@@ -90,6 +90,7 @@ describe('ConfirmModal', () => {
         '[data-testid="confirm-modal-backdrop"]'
       );
       expect(backdrop).not.toBeNull();
+      // eslint-disable-next-line anti-slop/require-safety-comment-for-type-assertion -- the toBeNull() assertion above proves backdrop is non-null and an Element
       fireEvent.click(backdrop as Element);
 
       expect(onClose).toHaveBeenCalledTimes(1);
