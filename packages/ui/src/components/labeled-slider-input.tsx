@@ -191,8 +191,8 @@ export function LabeledSliderInput({
           step={step}
           className={cn(
             'w-20 rounded px-2 py-1 text-sm border transition-colors',
-            'focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-offset-2',
-            'focus-visible:outline-[color:var(--color-focus-ring)]',
+            'focus-visible:outline-none focus-visible:ring-2',
+            'focus-visible:ring-[color:var(--color-focus-ring)]',
             warning
               ? 'border-yellow-500/50 bg-yellow-500/10'
               : cn(

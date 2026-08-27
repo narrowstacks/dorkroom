@@ -75,6 +75,25 @@ const FOCUS_RING_WIDTH_GLOBAL =
 const FOCUS_OUTLINE_WIDTH_GLOBAL =
   /\b(?:group-)?focus(?:-visible|-within)?:outline-\d+\b/g;
 
+/**
+ * A focus-prefixed outline-style reset. Tailwind v4's `outline-none` sets
+ * `outline-style: none`, which wins the cascade over any outline width
+ * utility in the same file, producing zero visible focus indicator
+ * regardless of the width/colour utilities alongside it. This exact
+ * combination shipped with a fully invisible focus indicator on
+ * `labeled-slider-input.tsx`; see issue #244.
+ */
+const FOCUS_OUTLINE_NONE =
+  /\b(?:group-)?focus(?:-visible|-within)?:outline-none\b/;
+
+/**
+ * A focus-prefixed outline *width* utility, the thing `outline-none`
+ * defeats when both appear together: numbered widths (`outline-2`) and
+ * pixel/rem/em arbitrary widths (`outline-[2px]`).
+ */
+const FOCUS_OUTLINE_WIDTH =
+  /\b(?:group-)?focus(?:-visible|-within)?:outline-(?:\d+\b|\[[0-9.]+(?:px|rem|em)\])/;
+
 function collectSourceFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {
     const path = join(dir, entry);
@@ -161,5 +180,19 @@ describe('focus ring and outline tokens', () => {
     const source = readFileSync(file, 'utf8');
     const widths = source.match(FOCUS_OUTLINE_WIDTH_GLOBAL) ?? [];
     expect(source.split(OUTLINE_TOKEN).length - 1).toBe(widths.length);
+  });
+
+  it.each(
+    files.map((file) => [relative(srcRoot, file), file])
+  )('%s never pairs a focus outline-none reset with an outline width', (_name, file) => {
+    // outline-none sets outline-style: none, which wins the cascade over
+    // any outline width utility in the same file, producing an invisible
+    // focus indicator regardless of colour (issue #244). outline-none
+    // paired with a *ring* is the mandated pattern and must not be
+    // flagged here.
+    const source = readFileSync(file, 'utf8');
+    const hasNone = FOCUS_OUTLINE_NONE.test(source);
+    const hasWidth = FOCUS_OUTLINE_WIDTH.test(source);
+    expect(hasNone && hasWidth).toBe(false);
   });
 });
