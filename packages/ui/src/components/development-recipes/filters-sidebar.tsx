@@ -200,12 +200,11 @@ export const FiltersSidebar: FC<FiltersSidebarProps> = ({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search film, developer…"
-            className="w-full rounded-lg border px-3 py-2.5 pl-10 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2"
+            className="w-full rounded-lg border px-3 py-2.5 pl-10 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
             style={cssVars({
               borderColor: 'var(--color-border-secondary)',
               backgroundColor: 'var(--color-surface-muted)',
               color: 'var(--color-text-primary)',
-              '--tw-ring-color': 'var(--color-primary)',
             })}
             onFocus={(e) => {
               setStyles(e.target, {

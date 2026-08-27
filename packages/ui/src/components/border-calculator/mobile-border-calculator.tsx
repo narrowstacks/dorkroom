@@ -943,13 +943,12 @@ export function MobileBorderCalculator({
             <button
               type="button"
               onClick={handleShare}
-              className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
+              className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] ${
                 !isHighContrast ? 'shadow-lg' : ''
               }`}
               style={cssVars({
                 background: 'var(--gradient-card-primary)',
                 color: 'var(--color-text-primary)',
-                '--tw-ring-color': 'var(--color-semantic-success)',
               })}
               title="Share preset"
               aria-label="Share preset"
@@ -963,14 +962,13 @@ export function MobileBorderCalculator({
         <button
           type="button"
           onClick={resetToDefaults}
-          className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 hoverable-reset-btn ${
+          className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-reset-btn ${
             !isHighContrast ? 'shadow-lg' : ''
           }`}
           style={cssVars({
             borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
             color: 'var(--color-semantic-error)',
-            '--tw-ring-color': 'var(--color-semantic-error)',
           })}
         >
           <RotateCcw className="size-4" />

@@ -26,8 +26,8 @@ export function ToggleSwitch({
         aria-label={label}
         onClick={() => onValueChange(!value)}
         className={cn(
-          'relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
-          'focus:ring-primary/40 focus:ring-offset-transparent'
+          'relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+          'focus-visible:ring-[color:var(--color-focus-ring)] focus-visible:ring-offset-transparent'
         )}
         style={{
           backgroundColor: value

@@ -44,7 +44,7 @@ const FilmCardComponent: FC<FilmCardProps> = ({
       className={cn(
         'relative block w-full appearance-none bg-transparent text-left card-grain',
         'cursor-pointer rounded-2xl border p-4 shadow-subtle transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] focus-visible:ring-offset-2',
         className
       )}
       style={cssVars({
@@ -54,7 +54,6 @@ const FilmCardComponent: FC<FilmCardProps> = ({
         backgroundColor: isSelected
           ? 'var(--color-surface-muted)'
           : 'var(--color-background)',
-        '--tw-ring-color': 'var(--color-primary)',
         // Dark surface — keep the grain restrained.
         '--card-grain-opacity': '0.28',
         // Blend the grain against this surface's own base colour.

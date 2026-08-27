@@ -65,7 +65,7 @@ export function BorderSizeSection({ onClose }: BorderSizeSectionProps) {
             type="button"
             onClick={handleRoundMinBorderToQuarter}
             disabled={quarterRoundedMinBorder === null}
-            className="w-full rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] disabled:cursor-not-allowed disabled:opacity-60"
             title="Adjust minimum border so the print size lands on ¼-inch increments"
           >
             Round to 1/4"

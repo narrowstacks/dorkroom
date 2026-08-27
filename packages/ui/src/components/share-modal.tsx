@@ -20,7 +20,6 @@ const closeButtonStyle = cssVars({
   color: 'var(--color-text-primary)',
   borderWidth: 1,
   borderColor: 'var(--color-border-secondary)',
-  '--tw-ring-color': 'var(--color-border-primary)',
 });
 
 /**
@@ -110,7 +109,7 @@ function ShareModalError({ onClose }: { onClose: () => void }) {
       </div>
       <ModalFooter
         onClose={onClose}
-        buttonClassName="inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm sm:ml-3 sm:w-auto sm:text-sm transition focus-visible:outline-none focus-visible:ring-2"
+        buttonClassName="inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm sm:ml-3 sm:w-auto sm:text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
       />
     </>
   );
@@ -133,19 +132,17 @@ function NativeShareButton({
         onClick={onShare}
         disabled={isSharing}
         className={cn(
-          'w-full flex items-center justify-center px-4 py-2 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2'
+          'w-full flex items-center justify-center px-4 py-2 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]'
         )}
         style={cssVars(
           isSharing
             ? {
                 backgroundColor: 'rgba(var(--color-background-rgb), 0.2)',
                 color: 'var(--color-text-secondary)',
-                '--tw-ring-color': 'var(--color-border-primary)',
               }
             : {
                 backgroundColor: 'var(--color-text-primary)',
                 color: 'var(--color-background)',
-                '--tw-ring-color': 'var(--color-border-primary)',
               }
         )}
       >
@@ -244,19 +241,17 @@ function WebLinkSection({
             onClick={onCopy}
             aria-label={copySuccess ? 'Copied web link' : 'Copy web link'}
             className={cn(
-              'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2'
+              'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]'
             )}
             style={cssVars(
               copySuccess
                 ? {
                     backgroundColor: 'var(--color-semantic-success)',
                     color: 'var(--color-background)',
-                    '--tw-ring-color': 'var(--color-border-primary)',
                   }
                 : {
                     backgroundColor: 'rgba(var(--color-background-rgb), 0.2)',
                     color: 'var(--color-text-primary)',
-                    '--tw-ring-color': 'var(--color-border-primary)',
                   }
             )}
           >
@@ -383,7 +378,7 @@ function ShareModalContent({
       </div>
       <ModalFooter
         onClose={onClose}
-        buttonClassName="mt-3 inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition focus-visible:outline-none focus-visible:ring-2"
+        buttonClassName="mt-3 inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
       />
     </>
   );
