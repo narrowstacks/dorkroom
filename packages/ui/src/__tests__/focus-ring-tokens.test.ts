@@ -18,15 +18,16 @@ const srcRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 /**
  * A focus-prefixed ring utility that carries a colour rather than a width.
  *
- * Excludes widths (`ring-2`), `ring-inset`, and every `ring-offset-*`
- * utility — offset colour is a separate concern and out of scope here.
- * The value alternation deliberately accepts arbitrary values
+ * Covers `focus:`, `focus-visible:`, and `focus-within:`. Excludes widths
+ * (`ring-2`), `ring-inset`, and every `ring-offset-*` utility — offset
+ * colour is a separate concern and out of scope here. The value
+ * alternation deliberately accepts arbitrary values
  * (`ring-[color:var(--x)]`), slash opacity (`ring-white/30`) and
  * *arbitrary* slash opacity (`ring-red-500/[0.06]`), so a raw palette
  * colour cannot slip through by using bracket-opacity syntax.
  */
 const FOCUS_RING_COLOR =
-  /\b(?:group-)?focus(?:-visible)?:(ring-(?!\d+\b|inset\b|offset-)(?:\[[^\]]*\]|[a-z]+(?:-\d{2,3})?)(?:\/(?:\[[^\]]*\]|\d{1,3}))?)/g;
+  /\b(?:group-)?focus(?:-visible|-within)?:(ring-(?!\d+\b|inset\b|offset-)(?:\[[^\]]*\]|[a-z]+(?:-\d{2,3})?)(?:\/(?:\[[^\]]*\]|\d{1,3}))?)/g;
 
 /** A bare `focus:` ring prefix. `focus-visible:` does not match. */
 const BARE_FOCUS_RING = /\bfocus:ring-/g;
@@ -34,8 +35,11 @@ const BARE_FOCUS_RING = /\bfocus:ring-/g;
 /** Any inline `style` write to the Tailwind ring-colour custom property. */
 const INLINE_RING_COLOR = /--tw-ring-color/g;
 
-/** A focus ring *width*, i.e. a file that paints a focus ring at all. */
-const FOCUS_RING_WIDTH = /\b(?:group-)?focus(?:-visible)?:ring-\d+\b/;
+/**
+ * A focus ring *width*, i.e. a file that paints a focus ring at all.
+ * Covers `focus:`, `focus-visible:`, and `focus-within:`.
+ */
+const FOCUS_RING_WIDTH = /\b(?:group-)?focus(?:-visible|-within)?:ring-\d+\b/;
 
 function collectSourceFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {

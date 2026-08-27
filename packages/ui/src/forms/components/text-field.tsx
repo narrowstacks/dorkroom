@@ -57,9 +57,9 @@ export const TextField: React.FC<TextFieldProps> = ({
         disabled={disabled}
         className={cn(
           'px-3 py-2 border border-gray-300 rounded-md',
-          'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] focus-visible:border-transparent',
           'disabled:bg-gray-100 disabled:cursor-not-allowed',
-          showErrors && 'border-red-500 focus:ring-red-500',
+          showErrors && 'border-red-500',
           className
         )}
       />

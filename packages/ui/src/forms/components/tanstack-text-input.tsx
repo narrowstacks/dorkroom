@@ -43,12 +43,6 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
     'var(--color-border-primary)',
     'var(--color-border-secondary)'
   );
-  const ringColorError = colorMixOr(
-    'var(--color-semantic-error)',
-    30,
-    'var(--color-border-primary)',
-    'var(--color-border-secondary)'
-  );
 
   return (
     <div className={cn('space-y-2', className)}>
@@ -81,7 +75,7 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
           '[border-color:var(--border-color)]',
           'focus-visible:[border-color:var(--border-color-focused)]',
           'placeholder:[color:var(--color-text-muted)]',
-          'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2'
+          'w-full rounded-lg border px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]'
         )}
         style={cssVars({
           '--border-color': hasErrors
@@ -92,9 +86,6 @@ export const TanStackTextInput: React.FC<TanStackTextInputProps> = ({
             : 'var(--color-border-primary)',
           backgroundColor: 'var(--color-surface-muted)',
           color: 'var(--color-text-primary)',
-          '--tw-ring-color': hasErrors
-            ? ringColorError
-            : 'var(--color-border-primary)',
         })}
       />
       {hasErrors && (

@@ -99,9 +99,10 @@ describe('ToggleSwitch', () => {
 
     const toggle = screen.getByRole('switch');
     expect(toggle).toHaveClass(
-      'focus:outline-none',
-      'focus:ring-2',
-      'focus:ring-offset-2'
+      'focus-visible:outline-none',
+      'focus-visible:ring-2',
+      'focus-visible:ring-offset-2',
+      'focus-visible:ring-[color:var(--color-focus-ring)]'
     );
   });
 
