@@ -107,6 +107,7 @@ export { createZodFormValidator } from './forms/utils/create-zod-form-validator'
 export type { FieldApi, FormInstance } from './forms/utils/form-api-types';
 // Hooks
 export { useBodyScrollLock } from './hooks/use-body-scroll-lock';
+export { useEscapeKey } from './hooks/use-escape-key';
 export {
   useMeasurementConverter,
   useMeasurementFormatter,
