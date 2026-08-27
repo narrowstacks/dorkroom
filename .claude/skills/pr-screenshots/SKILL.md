@@ -154,8 +154,34 @@ bun run scripts/github-upload-attachment.ts --pr <number> \
   .pr-screenshots/before/*.webp .pr-screenshots/after/*.webp
 ```
 
-It prints `{"<path>": "<url>"}`. If it reports you're not logged in, the session
-expired — re-run `--login`.
+Pass every file in one command, as above. The script still uploads them **one at
+a time, each on its own page load**, because GitHub's comment box accepts the
+first upload of a page load and silently swallows every one after it. Do not try
+to be clever and loop the script per file yourself; it already does the right
+thing, and one invocation pays the browser startup cost once.
+
+It prints `{"<path>": "<url>"}` on stdout for every file that made it. If it
+reports you're not logged in, the session expired — re-run `--login`.
+
+**Partial failures are normal and recoverable.** Each file gets up to three
+attempts with backoff. A file that still fails does not sink the run: the JSON
+still holds every URL that landed, the failures go to stderr, and the exit code
+is non-zero.
+
+```
+1 file(s) failed to upload:
+  .pr-screenshots/after/reciprocity.webp: Timed out waiting for GitHub to accept …
+
+The JSON above holds every file that did upload. Re-run just the failures:
+  bun run scripts/github-upload-attachment.ts --pr 42 .pr-screenshots/after/reciprocity.webp
+```
+
+When that happens: keep the URLs you already have, run the printed command to
+retry only the missing files, and merge the two maps. **Never re-capture.** The
+screenshots on disk are fine; only the upload failed.
+
+A file GitHub refuses outright (unsupported type, too large) is reported and not
+retried, since retrying a refusal only refuses again.
 
 <details>
 <summary>Why a browser at all?</summary>
@@ -165,6 +191,16 @@ immediately and returns a permanent `user-attachments/assets/…` URL — and th
 URL survives even if the comment is never submitted. So the script uploads,
 harvests the URLs, and clears the box without posting anything. This is exactly
 what happens when a human drags an image into a PR.
+
+Two quirks of that box cost real debugging time, and the script now handles both:
+
+- The box takes **one upload per page load**. A second file dropped on the same
+  page produces no placeholder, no error, and no URL anywhere on the page.
+- On a PR with inline review threads, a collapsed inline *reply* box appears
+  earlier in the DOM than the main comment box. Targeting "the first comment
+  textarea" hands you that dead widget, and uploads vanish into it. The script
+  anchors to the main comment form and takes the file input from the same
+  `<file-attachment>` wrapper, so the pair can never be mismatched.
 </details>
 
 ## Step 6 — Embed in the PR
