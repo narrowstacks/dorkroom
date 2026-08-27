@@ -72,13 +72,63 @@ describe('dialog dismissal and colour tokens', () => {
   )('%s sets no raw colour keyword or hex in an inline style', (file) => {
     const source = readDialog(file);
 
-    // A declaration counts as tokenised if a theme variable appears anywhere
-    // in its value, not just at the start: share-modal.tsx and
-    // save-before-share-modal.tsx legitimately use
+    // Find every color/backgroundColor/borderColor declaration and scan its
+    // whole value region, not just the string literal immediately after the
+    // colon. A conditional value such as
+    //   backgroundColor: isDestructive
+    //     ? 'color-mix(in srgb, var(--color-semantic-error) 15%, transparent)'
+    //     : 'color-mix(in srgb, var(--color-semantic-warning) 15%, transparent)'
+    // has to have BOTH ternary branches inspected, or a future edit could
+    // swap one branch for a raw literal and this guard would stay blind to
+    // it. The value region ends at the first top-level comma or closing
+    // brace, tracking paren depth so a nested call like color-mix(...)
+    // doesn't end the region early. A literal counts as tokenised, per the
+    // same exemption used elsewhere, if `var(--` appears anywhere inside it:
+    // share-modal.tsx and save-before-share-modal.tsx legitimately use
     // `rgba(var(--color-background-rgb), 0.06)`.
-    const rawColours = (
-      source.match(/(?:color|backgroundColor|borderColor):\s*'[^']+'/g) ?? []
-    ).filter((declaration) => !declaration.includes('var(--'));
+    const rawColours: string[] = [];
+    const propertyPattern = /\b(color|backgroundColor|borderColor):/g;
+    let propertyMatch = propertyPattern.exec(source);
+
+    while (propertyMatch !== null) {
+      const property = propertyMatch[1];
+      const valueStart = propertyMatch.index + propertyMatch[0].length;
+      let depth = 0;
+      let valueEnd = valueStart;
+
+      while (valueEnd < source.length) {
+        const char = source[valueEnd];
+
+        if (char === '(') {
+          depth += 1;
+        } else if (char === ')') {
+          depth -= 1;
+        } else if (depth <= 0 && (char === ',' || char === '}')) {
+          break;
+        }
+
+        valueEnd += 1;
+      }
+
+      const valueRegion = source.slice(valueStart, valueEnd);
+      const literals = valueRegion.match(/'[^']*'/g) ?? [];
+
+      for (const literal of literals) {
+        // 'transparent' is the CSS keyword for zero alpha, not a hue, so it
+        // never needs a theme token. share-modal.tsx and
+        // save-before-share-modal.tsx pass it as a colorMixOr() fallback
+        // ingredient alongside a var(--...) token.
+        if (literal === "'transparent'") {
+          continue;
+        }
+
+        if (!literal.includes('var(--')) {
+          rawColours.push(`${property}: ${literal}`);
+        }
+      }
+
+      propertyMatch = propertyPattern.exec(source);
+    }
 
     expect(rawColours).toEqual([]);
   });
