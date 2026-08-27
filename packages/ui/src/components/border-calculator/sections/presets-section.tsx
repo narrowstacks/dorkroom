@@ -162,7 +162,7 @@ export function MobilePresetsSection({
                       <button
                         type="button"
                         onClick={() => handleUpdate(preset.id)}
-                        className="flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-medium transition hover:brightness-90"
+                        className="flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-medium transition hover:opacity-80 darkroom-invert-icon"
                         style={{
                           backgroundColor: 'var(--color-semantic-info)',
                           color: 'var(--color-background)',
@@ -207,7 +207,7 @@ export function MobilePresetsSection({
                         <button
                           type="button"
                           onClick={() => onDeletePreset(preset.id)}
-                          className="rounded p-1 text-error transition hover:bg-error/10"
+                          className="rounded p-1 text-error transition hover:opacity-80"
                           aria-label={`Delete ${preset.name}`}
                         >
                           <Trash2 className="size-4" />
