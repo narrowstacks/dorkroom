@@ -10,7 +10,6 @@ export {
   BorderInfoSection,
   BorderSizeSection,
   BordersOffsetsSection,
-  MobileBorderCalculator,
   MobileBorderLayout,
   MobilePresetsSection,
   PaperSetupSection,
