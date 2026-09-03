@@ -242,7 +242,7 @@ describe('LabeledSliderInput', () => {
     const numberInput = screen.getByRole('spinbutton');
 
     fireEvent.focus(numberInput);
-    expect(numberInput).toHaveClass('focus-visible:outline-2');
+    expect(numberInput).toHaveClass('focus-visible:ring-2');
 
     fireEvent.blur(numberInput);
     // Focus state is managed internally and affects styling

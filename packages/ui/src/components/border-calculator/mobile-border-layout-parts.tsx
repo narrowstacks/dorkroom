@@ -21,7 +21,7 @@ import type { BorderCalculatorContextValue } from './border-calculator-context';
 import { BorderSizeSection } from './sections/border-size-section';
 import { PaperSizeSection } from './sections/paper-size-section';
 import { PositionOffsetsSection } from './sections/position-offsets-section';
-import { PresetsSection } from './sections/presets-section';
+import { MobilePresetsSection } from './sections/presets-section';
 
 export type ActiveSection =
   | 'paperSize'
@@ -224,13 +224,12 @@ export function MobileSettingsCard({
         <button
           type="button"
           onClick={onShareClick}
-          className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
+          className={`rounded-full p-4 font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] ${
             !isHighContrast ? 'shadow-lg' : ''
           }`}
           style={cssVars({
             background: 'var(--gradient-card-primary)',
             color: 'var(--color-text-primary)',
-            '--tw-ring-color': 'var(--color-semantic-success)',
           })}
           title="Share preset"
           aria-label="Share preset"
@@ -255,14 +254,13 @@ export function MobileResetButton({
     <button
       type="button"
       onClick={onReset}
-      className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 ${
+      className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] ${
         !isHighContrast ? 'shadow-lg' : ''
       }`}
       style={cssVars({
         borderColor: 'var(--color-border-secondary)',
         backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
         color: 'var(--color-semantic-error)',
-        '--tw-ring-color': 'var(--color-semantic-error)',
       })}
       onMouseEnter={(e) => {
         e.currentTarget.style.backgroundColor =
@@ -328,7 +326,7 @@ export function MobileSettingsDrawer({
           )}
 
           {activeSection === 'presets' && (
-            <PresetsSection
+            <MobilePresetsSection
               onClose={onClose}
               currentPreset={currentPreset}
               onApplyPreset={onApplyPreset}

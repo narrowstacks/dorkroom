@@ -1,5 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { MAT_CALCULATOR_STORAGE_KEY } from '../../constants/mat-calculator';
+import type { PersistedValue } from '../../hooks/use-local-storage-form-persistence';
 import { useMatCalculator } from '../../hooks/use-mat-calculator';
 
 describe('useMatCalculator', () => {
@@ -61,5 +63,36 @@ describe('useMatCalculator', () => {
     expect(result.current.guideBarCuts[0].title).toContain('Cut 01');
     // Cut 01 stop = outer width − right border = 16 − 2¾ = 13¼".
     expect(result.current.guideBarCuts[0].stop).toBe('13 1/4"');
+  });
+
+  describe('hydration validation (issue #239)', () => {
+    const seed = (payload: Record<string, PersistedValue>) => {
+      window.localStorage.setItem(
+        MAT_CALCULATOR_STORAGE_KEY,
+        JSON.stringify(payload)
+      );
+    };
+
+    it('hydrates valid stored strings unchanged', () => {
+      seed({ outerW: '20', borderTop: '3 1/4', bottomWeight: true });
+
+      const { result } = renderHook(() => useMatCalculator());
+
+      expect(result.current.values.outerW).toBe('20');
+      expect(result.current.values.borderTop).toBe('3 1/4');
+      expect(result.current.values.bottomWeight).toBe(true);
+    });
+
+    it('falls back to defaults for wrong-typed fields', () => {
+      seed({ outerW: 20, artW: null, bottomWeight: 'yes', outerH: '18' });
+
+      const { result } = renderHook(() => useMatCalculator());
+
+      // Wrong types are skipped; the valid string still hydrates.
+      expect(result.current.values.outerW).toBe('16');
+      expect(result.current.values.artW).toBe('11');
+      expect(result.current.values.bottomWeight).toBe(false);
+      expect(result.current.values.outerH).toBe('18');
+    });
   });
 });

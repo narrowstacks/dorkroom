@@ -82,7 +82,7 @@ export class VirtualizedErrorBoundary extends Component<Props, State> {
             className={cn(
               'rounded-lg px-4 py-2 text-sm font-medium transition-colors',
               'bg-[color:var(--color-text-primary)] text-[color:var(--color-background)]',
-              'hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-text-primary)]'
+              'hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-focus-ring)]'
             )}
           >
             Try Again

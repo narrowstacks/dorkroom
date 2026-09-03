@@ -2,7 +2,7 @@ import { GripVertical, Maximize2, Minimize2, X } from 'lucide-react';
 import { type FC, type ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useEscapeKey } from '../../hooks/use-escape-key';
-import { cssVars, hasGlobal } from '../../lib/dom';
+import { hasGlobal } from '../../lib/dom';
 
 /** Props for the reusable CloseButton component */
 interface CloseButtonProps {
@@ -18,10 +18,7 @@ export const DetailPanelCloseButton: FC<CloseButtonProps> = ({
   <button
     type="button"
     onClick={onClick}
-    className="rounded-full p-2 text-muted transition focus-visible:outline-none focus-visible:ring-2 hoverable-icon-btn"
-    style={cssVars({
-      '--tw-ring-color': 'var(--color-border-primary)',
-    })}
+    className="rounded-full p-2 text-muted transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-icon-btn"
     aria-label={ariaLabel}
   >
     <X className="size-4" />
@@ -45,10 +42,7 @@ export const DetailPanelExpandButton: FC<ExpandButtonProps> = ({
   <button
     type="button"
     onClick={onClick}
-    className={`rounded-full p-2 text-muted transition focus-visible:outline-none focus-visible:ring-2 hoverable-icon-btn ${className}`}
-    style={cssVars({
-      '--tw-ring-color': 'var(--color-border-primary)',
-    })}
+    className={`rounded-full p-2 text-muted transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-icon-btn ${className}`}
     aria-label={isExpanded ? 'Collapse to panel' : 'Expand to full screen'}
   >
     {isExpanded ? (

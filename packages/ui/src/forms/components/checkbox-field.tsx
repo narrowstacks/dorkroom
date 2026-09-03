@@ -67,7 +67,7 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
           disabled={disabled}
           className={cn(
             'w-4 h-4 rounded',
-            'focus:outline-none focus:ring-2',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
             'disabled:cursor-not-allowed disabled:opacity-50',
             className
           )}

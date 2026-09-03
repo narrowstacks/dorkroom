@@ -30,6 +30,7 @@ import { useStore } from '@tanstack/react-store';
 import { ChartLine, Maximize2, Minimize2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
+import { reciprocityHydrationValidators } from './hydration';
 
 const validateReciprocityForm = createZodFormValidator(
   reciprocityCalculatorSchema
@@ -453,6 +454,7 @@ function useReciprocityForm() {
     form,
     formValues,
     persistKeys: ['filmType', 'meteredTime', 'customFactor'],
+    validators: reciprocityHydrationValidators,
   });
 
   // Calculate derived values from form state

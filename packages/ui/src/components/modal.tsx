@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
 import { useEscapeKey } from '../hooks/use-escape-key';
 import { cn } from '../lib/cn';
-import { cssVars, hasGlobal } from '../lib/dom';
+import { hasGlobal } from '../lib/dom';
 
 /**
  * Props for the Modal component.
@@ -102,10 +102,7 @@ export function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-4 top-4 rounded-full p-2 text-muted transition focus-visible:outline-none focus-visible:ring-2 hoverable-icon-btn"
-            style={cssVars({
-              '--tw-ring-color': 'var(--color-border-primary)',
-            })}
+            className="absolute right-4 top-4 rounded-full p-2 text-muted transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-icon-btn"
             aria-label="Close"
           >
             <X className="size-4" />

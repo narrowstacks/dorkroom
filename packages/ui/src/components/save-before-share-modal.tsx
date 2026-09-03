@@ -175,22 +175,18 @@ export function SaveBeforeShareModal({
                           placeholder='e.g., Portrait 5x7 with 0.5" border'
                           className={cn(
                             'mt-1 block w-full rounded-md border px-3 py-2 text-sm placeholder:opacity-70',
-                            'focus:outline-none focus:ring-2',
+                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
                             'disabled:cursor-not-allowed'
                           )}
                           style={
                             displayError
                               ? cssVars({
                                   borderColor: 'var(--color-semantic-error)',
-                                  '--tw-ring-color':
-                                    'var(--color-semantic-error)',
                                   backgroundColor: 'var(--color-surface-muted)',
                                   color: 'var(--color-text-primary)',
                                 })
                               : cssVars({
                                   borderColor: 'var(--color-border-secondary)',
-                                  '--tw-ring-color':
-                                    'var(--color-border-primary)',
                                   backgroundColor: 'var(--color-surface-muted)',
                                   color: 'var(--color-text-primary)',
                                 })
@@ -227,7 +223,7 @@ export function SaveBeforeShareModal({
                 className={cn(
                   'inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm',
                   'sm:ml-3 sm:w-auto sm:text-sm',
-                  'focus:outline-none focus:ring-2',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
                   'disabled:opacity-50 disabled:cursor-not-allowed'
                 )}
                 style={
@@ -236,12 +232,10 @@ export function SaveBeforeShareModal({
                         backgroundColor:
                           'rgba(var(--color-background-rgb), 0.2)',
                         color: 'var(--color-text-secondary)',
-                        '--tw-ring-color': 'var(--color-border-primary)',
                       })
                     : cssVars({
                         backgroundColor: 'var(--color-text-primary)',
                         color: 'var(--color-background)',
-                        '--tw-ring-color': 'var(--color-border-primary)',
                       })
                 }
               >
@@ -277,7 +271,7 @@ export function SaveBeforeShareModal({
                 type="button"
                 onClick={handleClose}
                 disabled={isLoading}
-                className="mt-3 inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm focus:outline-none focus:ring-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-3 inline-flex w-full justify-center rounded-md px-4 py-2 text-base font-medium shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 style={cssVars({
                   borderWidth: 1,
                   borderColor: 'var(--color-border-secondary)',

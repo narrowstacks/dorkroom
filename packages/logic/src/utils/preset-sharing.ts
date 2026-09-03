@@ -15,6 +15,16 @@ import { debugError } from './debug-logger';
 const encodedPresetStringSchema = z.string().regex(/^[A-Za-z0-9_-]+$/);
 
 /**
+ * Delimiter for the current (v2) encoding. Chosen because it can never appear
+ * in a legacy (v1) raw string: v1 joined parts with '-', numbers contain no
+ * '|', and encodeURIComponent escapes '|' in preset names. Its presence in a
+ * decoded raw string therefore unambiguously identifies the v2 format, and it
+ * lets negative numbers and hyphenated names encode without corruption.
+ */
+const V2_DELIMITER = '|';
+const V2_VERSION_MARKER = '2';
+
+/**
  * Type guard to validate that a string is a valid AspectRatioValue.
  * @param value - String to validate
  * @returns True if value is a valid aspect ratio
@@ -119,16 +129,19 @@ function fromBooleanBitmask(mask: number): Partial<BorderPresetSettings> {
  * ```typescript
  * const preset = {
  *   name: 'My Preset',
- *   settings: { aspectRatio: '2:3', paperSize: '8x10', minBorder: 0.5, ... }
+ *   settings: { aspectRatio: '3:2', paperSize: '8x10', minBorder: 0.5, ... }
  * };
  * const encoded = encodePreset(preset);
- * console.log(encoded); // 'TXklMjBQcmVzZXQtMC0xLTUwLTAtMTAwMDAtNA'
+ * console.log(encoded); // 'MnxNeSUyMFByZXNldHwwfDJ8NTB8MHwwfDQ'
  * ```
  */
 export function encodePreset(preset: PresetToShare): string {
   try {
     const { name, settings } = preset;
     const parts: (string | number)[] = [];
+
+    // Version marker distinguishes this format from legacy v1 links
+    parts.push(V2_VERSION_MARKER);
 
     // Add preset name
     parts.push(encodeURIComponent(name));
@@ -148,9 +161,9 @@ export function encodePreset(preset: PresetToShare): string {
     parts.push(aspectRatioIndex);
     parts.push(paperSizeIndex);
     parts.push(Math.round(settings.minBorder * 100));
+    // The '|' delimiter tolerates minus signs, so offsets encode raw
     parts.push(Math.round(settings.horizontalOffset * 100));
-    // Encode negative numbers by adding 10000 to make them positive
-    parts.push(Math.round(settings.verticalOffset * 100) + 10000);
+    parts.push(Math.round(settings.verticalOffset * 100));
     parts.push(getBooleanBitmask(settings));
 
     // Add custom values if needed
@@ -164,7 +177,7 @@ export function encodePreset(preset: PresetToShare): string {
     }
 
     // Create the encoded string
-    const rawString = parts.join('-');
+    const rawString = parts.join(V2_DELIMITER);
     return toUrlSafe(encodeBase64(rawString));
   } catch (error) {
     debugError('Failed to encode preset:', error);
@@ -172,35 +185,82 @@ export function encodePreset(preset: PresetToShare): string {
   }
 }
 
+interface RawPresetParts {
+  name: string;
+  parts: number[];
+  /** Amount to subtract from the encoded verticalOffset (v1 added +10000) */
+  verticalOffsetBias: number;
+}
+
+/**
+ * Splits a decoded raw preset string into its name and numeric parts,
+ * handling both the current (v2, '|'-delimited) and legacy (v1,
+ * '-'-delimited) formats.
+ *
+ * @param rawString - Base64-decoded preset payload
+ * @returns Preset name, numeric parts, and the vertical offset bias to apply
+ */
+function splitRawPreset(rawString: string): RawPresetParts {
+  if (rawString.includes(V2_DELIMITER)) {
+    const stringParts = rawString.split(V2_DELIMITER);
+    if (stringParts.shift() !== V2_VERSION_MARKER) {
+      throw new Error('Unknown preset encoding version');
+    }
+    const name = decodeURIComponent(stringParts.shift() ?? '');
+    const parts = stringParts.map(Number);
+    if (parts.some(Number.isNaN)) {
+      throw new Error('Preset payload contains a non-numeric part');
+    }
+    return { name, parts, verticalOffsetBias: 0 };
+  }
+
+  // Legacy v1 format: parts joined with '-'. A negative horizontalOffset was
+  // encoded raw, so its minus sign produced a double hyphen and split()
+  // yields an empty part before the digits. Merge each empty part back with
+  // the following part as a negative number to repair those links.
+  const stringParts = rawString.split('-');
+  const name = decodeURIComponent(stringParts.shift() ?? '');
+  const parts: number[] = [];
+  for (let i = 0; i < stringParts.length; i++) {
+    if (stringParts[i] === '' && i + 1 < stringParts.length) {
+      parts.push(-Number(stringParts[i + 1]));
+      i++;
+    } else {
+      parts.push(Number(stringParts[i]));
+    }
+  }
+  if (parts.some(Number.isNaN)) {
+    throw new Error('Preset payload contains a non-numeric part');
+  }
+  return { name, parts, verticalOffsetBias: 10000 };
+}
+
 /**
  * Decodes a border calculator preset from a URL-safe encoded string.
  * Reverses the encoding process and reconstructs the complete preset object.
+ * Accepts both the current (v2) format and legacy (v1) links.
  *
  * @param encoded - URL-safe encoded preset string
  * @returns Decoded preset object with name and settings, or null if decoding fails
  * @example
  * ```typescript
- * const encoded = 'TXklMjBQcmVzZXQtMC0xLTUwLTAtMTAwMDAtNA';
+ * const encoded = 'MnxNeSUyMFByZXNldHwwfDJ8NTB8MHwwfDQ';
  * const preset = decodePreset(encoded);
  * console.log(preset);
- * // { name: 'My Preset', settings: { aspectRatio: '2:3', ... } }
+ * // { name: 'My Preset', settings: { aspectRatio: '3:2', ... } }
  * ```
  */
 export function decodePreset(encoded: string): SharedPreset | null {
   try {
     const rawString = decodeBase64(fromUrlSafe(encoded));
-    const stringParts = rawString.split('-');
-
-    const name = decodeURIComponent(stringParts.shift() || '');
-    const parts = stringParts.map(Number);
+    const { name, parts, verticalOffsetBias } = splitRawPreset(rawString);
 
     let partIndex = 0;
     const aspectRatioIndex = parts[partIndex++];
     const paperSizeIndex = parts[partIndex++];
     const minBorder = parts[partIndex++] / 100;
     const horizontalOffset = parts[partIndex++] / 100;
-    // Decode negative numbers by subtracting 10000
-    const verticalOffset = (parts[partIndex++] - 10000) / 100;
+    const verticalOffset = (parts[partIndex++] - verticalOffsetBias) / 100;
     const boolMask = parts[partIndex++];
 
     const aspectRatioValue = ASPECT_RATIOS[aspectRatioIndex]?.value;
@@ -247,6 +307,12 @@ export function decodePreset(encoded: string): SharedPreset | null {
     if (settings.paperSize === 'custom') {
       settings.customPaperWidth = parts[partIndex++] / 100;
       settings.customPaperHeight = parts[partIndex++] / 100;
+    }
+
+    // partIndex counts every part read above; fewer parts means a truncated
+    // payload whose missing reads produced NaN settings
+    if (parts.length < partIndex) {
+      throw new Error('Truncated preset payload');
     }
 
     return { name, settings };

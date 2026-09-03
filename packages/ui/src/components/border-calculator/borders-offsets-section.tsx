@@ -70,7 +70,7 @@ export function BordersOffsetsSection() {
             type="button"
             onClick={handleRoundMinBorderToQuarter}
             disabled={quarterRoundedMinBorder === null}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] disabled:cursor-not-allowed disabled:opacity-60"
             style={{
               borderColor: 'var(--color-border-secondary)',
               backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',

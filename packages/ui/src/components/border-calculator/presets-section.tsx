@@ -96,7 +96,7 @@ export function PresetsSection() {
               type="button"
               onClick={() => savePreset(presetName)}
               disabled={!presetName}
-              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{
                 color: 'var(--color-primary)',
                 borderColor: 'var(--color-primary)',
@@ -116,7 +116,7 @@ export function PresetsSection() {
                 updatePresetHandler(selectedPresetId, { name: presetName })
               }
               disabled={!selectedPresetId}
-              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{
                 color: 'var(--color-secondary)',
                 borderColor: 'var(--color-secondary)',
@@ -133,7 +133,7 @@ export function PresetsSection() {
                 selectedPresetId && deletePresetHandler(selectedPresetId)
               }
               disabled={!selectedPresetId}
-              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{
                 color: 'var(--color-accent)',
                 borderColor: 'var(--color-accent)',

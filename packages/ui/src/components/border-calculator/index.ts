@@ -15,5 +15,7 @@ export { PaperSetupSection } from './paper-setup-section';
 export { PresetsSection } from './presets-section';
 export { PreviewAndControlsSection } from './preview-and-controls-section';
 export { ResponsiveBorderLayout } from './responsive-border-layout';
-// Mobile Sections
+// Mobile Sections. The mobile presets drawer is exported as
+// MobilePresetsSection: sharing the name with the desktop component above
+// let the explicit export silently shadow this star re-export.
 export * from './sections';

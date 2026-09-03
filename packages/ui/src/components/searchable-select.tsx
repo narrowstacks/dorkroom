@@ -173,14 +173,13 @@ export function SearchableSelect({
           onKeyDown={handleKeyDown}
           placeholder={selectedValue ? displayValue : placeholder}
           aria-label={label ?? placeholder}
-          className="w-full rounded-lg border px-3 py-2 pr-16 focus:outline-none focus:ring-2"
+          className="w-full rounded-lg border px-3 py-2 pr-16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
           style={cssVars({
             borderColor: focused
               ? 'var(--color-border-primary)'
               : 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-surface-muted)',
             color: 'var(--color-text-primary)',
-            '--tw-ring-color': 'var(--color-border-primary)',
           })}
         />
 

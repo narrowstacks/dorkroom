@@ -237,7 +237,7 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
           <button
             type="button"
             onClick={onClearFilters}
-            className="mt-4 rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-primary)]"
+            className="mt-4 rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
             style={{
               backgroundColor: 'var(--color-surface-muted)',
               color: 'var(--color-text-secondary)',
