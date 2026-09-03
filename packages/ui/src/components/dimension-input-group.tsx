@@ -55,13 +55,12 @@ export function DimensionInputGroup({
           value={widthValue}
           onChange={(e) => onWidthChange(e.target.value)}
           placeholder={widthPlaceholder}
-          className="w-full rounded-lg border px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
+          className="w-full rounded-lg border px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
           style={cssVars({
             borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-surface-muted)',
             color: 'var(--color-text-primary)',
             '--tw-placeholder-color': 'var(--color-text-muted)',
-            '--tw-ring-color': 'var(--color-border-primary)',
             '--focus-border-color': 'var(--color-border-primary)',
           })}
           onFocus={(e) => {
@@ -89,13 +88,12 @@ export function DimensionInputGroup({
           value={heightValue}
           onChange={(e) => onHeightChange(e.target.value)}
           placeholder={heightPlaceholder}
-          className="w-full rounded-lg border px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
+          className="w-full rounded-lg border px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
           style={cssVars({
             borderColor: 'var(--color-border-secondary)',
             backgroundColor: 'var(--color-surface-muted)',
             color: 'var(--color-text-primary)',
             '--tw-placeholder-color': 'var(--color-text-muted)',
-            '--tw-ring-color': 'var(--color-border-primary)',
             '--focus-border-color': 'var(--color-border-primary)',
           })}
           onFocus={(e) => {

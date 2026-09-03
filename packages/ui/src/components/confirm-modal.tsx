@@ -123,11 +123,10 @@ export function ConfirmModal({
             type="button"
             onClick={onClose}
             disabled={isProcessing}
-            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2"
+            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
             style={cssVars({
               color: 'var(--color-text-secondary)',
               backgroundColor: 'var(--color-surface-muted)',
-              '--tw-ring-color': 'var(--color-border-primary)',
             })}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor =
@@ -144,13 +143,10 @@ export function ConfirmModal({
             type="button"
             onClick={handleConfirm}
             disabled={isProcessing}
-            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] disabled:opacity-50"
             style={cssVars({
               color: 'white',
               backgroundColor: isDestructive
-                ? 'var(--color-semantic-error)'
-                : 'var(--color-primary)',
-              '--tw-ring-color': isDestructive
                 ? 'var(--color-semantic-error)'
                 : 'var(--color-primary)',
             })}

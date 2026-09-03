@@ -29,7 +29,7 @@ export function SettingsButton({
       type="button"
       onClick={onPress}
       className={cn(
-        'w-full rounded-lg border p-4 text-left transition-colors focus:outline-none focus:ring-2 hoverable-settings-btn',
+        'w-full rounded-lg border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-settings-btn',
         isSelected && 'settings-btn-selected',
         className
       )}

@@ -36,7 +36,7 @@ export function UnitToggle({
       aria-checked={currentUnit === rightOption.value}
       aria-label={ariaLabel}
       onClick={onToggle}
-      className={`rounded-full border px-3 py-1.5 text-sm font-medium transition flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 text-[color:var(--color-text-secondary)] hover:text-[color:var(--color-text-primary)] ${className ?? ''}`}
+      className={`rounded-full border px-3 py-1.5 text-sm font-medium transition flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] focus-visible:ring-offset-2 text-[color:var(--color-text-secondary)] hover:text-[color:var(--color-text-primary)] ${className ?? ''}`}
       style={{
         borderColor: 'var(--color-border-primary)',
       }}

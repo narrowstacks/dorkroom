@@ -132,7 +132,7 @@ export function ShareButton({
 
   const baseClasses = cn(
     'group inline-flex items-center justify-center font-medium transition-colors',
-    'focus:outline-none focus:ring-2 focus:ring-offset-2',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] focus-visible:ring-offset-2',
     'disabled:opacity-50 disabled:cursor-not-allowed',
     // Use rounded-md for icon-only buttons to match ActionIconButton
     iconOnly ? 'rounded-md' : 'rounded-lg',
