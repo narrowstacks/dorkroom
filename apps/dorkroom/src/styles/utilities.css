@@ -344,6 +344,49 @@
     .hoverable-reset-btn:hover {
       background-color: rgba(var(--color-background-rgb), 0.1) !important;
     }
+
+    /* The hover rules above repaint the background from a border token and
+       assume it lands somewhere between the surface and the text. That holds
+       in dark and light, where every border token is translucent and
+       composites into a subtle tint. It does not hold in darkroom and
+       high-contrast: those palettes have two colours and define their border
+       tokens as opaque copies of them, so the repaint lands on exactly
+       --color-text-primary and the content disappears.
+
+       Invert in those two themes instead. The hovered control takes the text
+       colour as its background and the page colour as its text, which is the
+       highest contrast the palette can express (darkroom 5.25:1,
+       high-contrast 21:1) and cannot collapse whatever the tokens become.
+       This is the same treatment theme.css already gives dropdown menu items.
+       Higher specificity than the rules above, and likewise !important, so it
+       wins against them and lets the high-contrast .bg-border-muted override
+       in theme.css apply at rest. */
+    [data-theme="darkroom"] .hoverable-action-btn:hover,
+    [data-theme="darkroom"] .hoverable-icon-btn:hover,
+    [data-theme="darkroom"] .hoverable-favorite:hover,
+    [data-theme="darkroom"] .hoverable-link-tile:hover,
+    [data-theme="high-contrast"] .hoverable-action-btn:hover,
+    [data-theme="high-contrast"] .hoverable-icon-btn:hover,
+    [data-theme="high-contrast"] .hoverable-favorite:hover,
+    [data-theme="high-contrast"] .hoverable-link-tile:hover {
+      background-color: var(--color-text-primary) !important;
+      color: var(--color-background) !important;
+    }
+
+    /* Icons do not follow the colour change on their own: darkroom pins every
+       svg to --color-text-primary (theme.css), which is the colour the
+       background just became. Invert them alongside their button. */
+    [data-theme="darkroom"] .hoverable-action-btn:hover svg,
+    [data-theme="darkroom"] .hoverable-icon-btn:hover svg,
+    [data-theme="darkroom"] .hoverable-favorite:hover svg,
+    [data-theme="darkroom"] .hoverable-link-tile:hover svg,
+    [data-theme="high-contrast"] .hoverable-action-btn:hover svg,
+    [data-theme="high-contrast"] .hoverable-icon-btn:hover svg,
+    [data-theme="high-contrast"] .hoverable-favorite:hover svg,
+    [data-theme="high-contrast"] .hoverable-link-tile:hover svg {
+      color: var(--color-background) !important;
+      stroke: var(--color-background) !important;
+    }
   }
 
   /* Disable all animations and transitions helper */
