@@ -10,3 +10,8 @@ export const METER_EV_SAMPLE_WINDOW = 8;
 /** Practical shutter-speed range for flagging out-of-range solved results (seconds). */
 export const METER_MIN_SHUTTER_SPEED = 1 / 8000;
 export const METER_MAX_SHUTTER_SPEED = 30;
+
+/** Practical aperture range (f-numbers) for flagging out-of-range solved results,
+ * matching the span of STANDARD_APERTURES (f/1 to f/64). */
+export const METER_MIN_APERTURE = 1;
+export const METER_MAX_APERTURE = 64;

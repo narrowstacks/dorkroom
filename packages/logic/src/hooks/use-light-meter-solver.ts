@@ -7,7 +7,9 @@ import {
   STANDARD_SHUTTER_SPEEDS,
 } from '../constants/camera-exposure-defaults';
 import {
+  METER_MAX_APERTURE,
   METER_MAX_SHUTTER_SPEED,
+  METER_MIN_APERTURE,
   METER_MIN_SHUTTER_SPEED,
 } from '../constants/light-meter-defaults';
 import type { LightMeterSolution, MeterPriority } from '../types/light-meter';
@@ -107,6 +109,9 @@ export const useLightMeterSolver = (
 
     const solvedAperture = solveForAperture(ev, shutterSpeed, iso);
     const valid = Number.isFinite(solvedAperture);
+    const outOfRange =
+      solvedAperture < METER_MIN_APERTURE ||
+      solvedAperture > METER_MAX_APERTURE;
     // A smaller f-number lets in more light, so ties round wider (brighter).
     const snapped = snapToStandardStop(
       solvedAperture,
@@ -118,7 +123,7 @@ export const useLightMeterSolver = (
       shutterSpeed,
       solvedLabel: valid ? snapped.standard.label : '—',
       solvedStopError: valid ? snapped.stopError : 0,
-      outOfRange: false,
+      outOfRange,
       isValid: valid,
     };
   }, [ev, priority, aperture, shutterSpeed, iso]);
