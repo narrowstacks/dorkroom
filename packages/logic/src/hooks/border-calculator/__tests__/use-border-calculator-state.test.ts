@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BORDER_CALCULATOR_STORAGE_KEY } from '../../../constants/storage-keys';
+import type { PersistedValue } from '../../../hooks/use-local-storage-form-persistence';
 import type { BorderCalculatorState } from '../../../types/border-calculator';
 import { useBorderCalculatorState } from '../use-border-calculator-state';
 
@@ -922,6 +923,133 @@ describe('useBorderCalculatorState', () => {
       // Warning fields should not be in persisted data
       expect(parsed.offsetWarning).toBeUndefined();
       expect(parsed.bladeWarning).toBeUndefined();
+    });
+  });
+
+  describe('Hydration Validation (issue #239)', () => {
+    const seed = (payload: Record<string, PersistedValue>) => {
+      localStorageMock.setItem(
+        BORDER_CALCULATOR_STORAGE_KEY,
+        JSON.stringify(payload)
+      );
+    };
+
+    const expectDefaults = (state: BorderCalculatorState) => {
+      expect(state.minBorder).toBe(0.5);
+      expect(state.horizontalOffset).toBe(0);
+      expect(state.customAspectWidth).toBe(2);
+      expect(state.lastValidCustomAspectWidth).toBe(2);
+      expect(state.aspectRatio).toBe('3:2');
+    };
+
+    it('rejects a snapshot with an out-of-bounds minBorder', () => {
+      seed({ minBorder: -1, aspectRatio: '16:9' });
+
+      const { result } = renderHook(() => useBorderCalculatorState());
+
+      // The whole snapshot is discarded, not just the bad field
+      expectDefaults(result.current.state);
+    });
+
+    it('rejects a snapshot with an out-of-range offset', () => {
+      seed({ horizontalOffset: 99, aspectRatio: '16:9' });
+
+      const { result } = renderHook(() => useBorderCalculatorState());
+
+      expectDefaults(result.current.state);
+    });
+
+    it('rejects a snapshot with a negative lastValidCustomAspectWidth', () => {
+      seed({ lastValidCustomAspectWidth: -5, aspectRatio: '16:9' });
+
+      const { result } = renderHook(() => useBorderCalculatorState());
+
+      expectDefaults(result.current.state);
+    });
+
+    it('hydrates the zeroed lastValid dimensions the built-in preset writes', () => {
+      // Applying DEFAULT_BORDER_PRESETS copies its zeroed custom dimensions
+      // into the lastValid mirrors, so 0 has to survive a round trip.
+      seed({
+        lastValidCustomAspectWidth: 0,
+        lastValidCustomAspectHeight: 0,
+        lastValidCustomPaperWidth: 0,
+        lastValidCustomPaperHeight: 0,
+      });
+
+      const { result } = renderHook(() => useBorderCalculatorState());
+
+      expect(result.current.state.lastValidCustomAspectWidth).toBe(0);
+      expect(result.current.state.lastValidCustomPaperHeight).toBe(0);
+    });
+
+    it('rejects a snapshot with an absurdly large dimension', () => {
+      seed({ customPaperWidth: 100000 });
+
+      const { result } = renderHook(() => useBorderCalculatorState());
+
+      expectDefaults(result.current.state);
+    });
+
+    it('rejects a snapshot with wrong field types', () => {
+      seed({ minBorder: '0.5', showBlades: 1 });
+
+      const { result } = renderHook(() => useBorderCalculatorState());
+
+      expectDefaults(result.current.state);
+    });
+
+    it('rejects a snapshot with an unknown enum value', () => {
+      seed({ paperSize: '99x99' });
+
+      const { result } = renderHook(() => useBorderCalculatorState());
+
+      expectDefaults(result.current.state);
+    });
+
+    it('hydrates a valid full snapshot unchanged', () => {
+      seed({
+        aspectRatio: '16:9',
+        paperSize: 'custom',
+        customAspectWidth: 4,
+        customAspectHeight: 3,
+        customPaperWidth: 12,
+        customPaperHeight: 16,
+        minBorder: 1.25,
+        enableOffset: true,
+        ignoreMinBorder: false,
+        horizontalOffset: -1.5,
+        verticalOffset: 2,
+        showBlades: true,
+        showBladeReadings: true,
+        isLandscape: false,
+        isRatioFlipped: true,
+        hasManuallyFlippedPaper: true,
+        lastValidCustomAspectWidth: 4,
+        lastValidCustomAspectHeight: 3,
+        lastValidCustomPaperWidth: 12,
+        lastValidCustomPaperHeight: 16,
+        lastValidMinBorder: 1.25,
+      });
+
+      const { result } = renderHook(() => useBorderCalculatorState());
+
+      expect(result.current.state.aspectRatio).toBe('16:9');
+      expect(result.current.state.paperSize).toBe('custom');
+      expect(result.current.state.minBorder).toBe(1.25);
+      expect(result.current.state.horizontalOffset).toBe(-1.5);
+      expect(result.current.state.lastValidCustomPaperHeight).toBe(16);
+      expect(result.current.state.lastValidMinBorder).toBe(1.25);
+    });
+
+    it('still hydrates a partial snapshot with only valid keys', () => {
+      seed({ minBorder: 2, verticalOffset: 3 });
+
+      const { result } = renderHook(() => useBorderCalculatorState());
+
+      expect(result.current.state.minBorder).toBe(2);
+      expect(result.current.state.verticalOffset).toBe(3);
+      expect(result.current.state.aspectRatio).toBe('3:2');
     });
   });
 

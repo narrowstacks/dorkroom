@@ -288,7 +288,13 @@ export const computePrintSize = (
   ratioH: number,
   minBorder: number
 ) => {
-  if (ratioH <= 0 || paperW <= 0 || paperH <= 0 || minBorder < 0) {
+  if (
+    ratioW <= 0 ||
+    ratioH <= 0 ||
+    paperW <= 0 ||
+    paperH <= 0 ||
+    minBorder < 0
+  ) {
     return { printW: 0, printH: 0 };
   }
 

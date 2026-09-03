@@ -126,7 +126,9 @@ export function MobileBorderCalculator({
 
       // Parsed, not asserted: this is an I/O boundary. The schema models the
       // same 21-field `borderCalculatorState_v2` payload the effect below
-      // writes, so a snapshot this app wrote always validates.
+      // writes, bounded by the values the form accepts, so a snapshot written
+      // through the form always validates. One that does not is discarded
+      // whole rather than partly applied.
       const result = persistedBorderCalculatorSchema.safeParse(JSON.parse(raw));
       if (!result.success) return;
       const parsed = result.data;
