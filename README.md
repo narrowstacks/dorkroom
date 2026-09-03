@@ -89,7 +89,7 @@ bun run build
 # Start development server
 bun run dev
 
-# Open http://localhost:4200
+# Open the URL Vite prints (the @vercel/microfrontends plugin picks the port)
 ```
 
 ### Building

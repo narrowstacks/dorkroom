@@ -50,8 +50,21 @@ export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/apps/dorkroom',
   server: {
-    port: Number(process.env.PORT) || 4200,
+    // No `port` here on purpose. The @vercel/microfrontends plugin's `config()`
+    // hook sets `server.port` (and `preview.port`) from a hash of the package
+    // name, and a plugin's returned config wins over the user config — so any
+    // port set here is silently ignored. `bun run dev` currently lands on 4503;
+    // read the real port off Vite's startup banner rather than assuming one. To
+    // pin it, set MFE_APP_PORT, which the plugin honours ahead of the hash.
     host: 'localhost',
+    // Vite rejects any request whose Host header is not an IP or localhost, as
+    // DNS-rebinding protection. That makes the dev server unreachable *by name*
+    // from another machine even though this package's dev script binds it to
+    // 0.0.0.0 — the request 403s with "Blocked request. This host is not
+    // allowed." Raw IPs are always allowed; this entry additionally opens up
+    // Tailscale MagicDNS names on any tailnet. Bare short names
+    // (`http://devbox:4503`) stay blocked — use the FQDN or the IP.
+    allowedHosts: ['.ts.net'],
     proxy: {
       '/api/filmdev': {
         target: 'https://filmdev.org',
@@ -72,10 +85,11 @@ export default defineConfig(() => ({
     },
   },
   preview: {
-    port: 4300,
     host: 'localhost',
-    // Fail fast instead of silently falling back to another port — the
-    // screenshot workflow probes this exact port.
+    // Fail fast instead of silently falling back to another port. The port
+    // itself comes from the microfrontends plugin (see `server` above), which
+    // is why the screenshot workflow parses it out of Vite's startup banner
+    // instead of hardcoding one.
     strictPort: true,
   },
   optimizeDeps: {
