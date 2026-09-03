@@ -1,3 +1,17 @@
+/**
+ * Dorkroom
+ * Copyright (C) 2026 Aaron F. Anderson <aaron@affords.art>
+ *
+ * Licensed under the GNU Affero General Public License, version 3, WITH the
+ * additional permission for app store distribution granted under AGPLv3
+ * section 7. See LICENSE and LICENSE-EXCEPTION at the repository root.
+ *
+ * This package is embedded in the Dorkroom iOS app, so the exception applies
+ * to it. It waives no source-availability or copyleft obligation.
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 // Types exports
 
 // Constants exports

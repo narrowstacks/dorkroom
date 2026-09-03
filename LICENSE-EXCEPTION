@@ -99,7 +99,31 @@ permission from any copy of the Program, or from any part of it. If you do,
 the AGPLv3 applies to that copy without modification.
 
 
-5. NO OTHER CHANGE
+5. NOTICES IN SOURCE FILES
+
+Section 7 of the AGPLv3 requires that terms added under it be accompanied, in
+the relevant source files, by either a statement of those terms or a notice
+indicating where to find them, and states that this requirement applies to
+permissive and non-permissive terms alike.
+
+A notice pointing to this document is carried at the entry point of each
+covered work in this repository:
+
+  apps/mobile/index.js            the iOS application
+  apps/dorkroom/src/main.tsx      the web application
+  packages/logic/src/index.ts     shared logic, embedded in the iOS app
+  packages/ui/src/index.ts        shared web components
+
+Those notices point here; this document states the terms. Adding a new
+top-level application or package to the repository means carrying the same
+notice at its entry point.
+
+The package at packages/api/ carries no such notice, and deliberately so: it is
+released under the MIT license rather than the AGPLv3, so this exception has
+nothing to add to it. See packages/api/LICENSE.
+
+
+6. NO OTHER CHANGE
 
 Except as expressly stated above, the AGPLv3 applies to the Program in full.
 Where this document and the AGPLv3 can be read consistently, they should be.
