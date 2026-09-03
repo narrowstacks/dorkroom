@@ -54,6 +54,12 @@ Our interpretation of the GNU Affero General Public License version 3:
    bound by any applicable terms of service and rate limits for the API
    itself.
 
+   The `@dorkroom/api` package (packages/api/) is the official TypeScript
+   client for that API, and it is not AGPLv3 at all. It is released under the
+   MIT license, so importing it into your own application carries no copyleft
+   obligation of any kind. This is a license grant rather than an
+   interpretation: see packages/api/LICENSE for the terms.
+
 ADDITIONAL PERMISSION FOR APP STORE DISTRIBUTION
 
 Unlike the numbered points above, this is not an interpretation. It is a

@@ -269,3 +269,17 @@ The API client is self-contained and can be used independently of the rest of th
 - Server-side applications
 - Standalone utilities
 - Integration with other frameworks
+
+## License
+
+MIT. See [LICENSE](LICENSE).
+
+This package is deliberately licensed differently from the rest of the Dorkroom
+repository, which is AGPL-3.0. It is a standalone client for a public API, with
+no runtime dependency on any AGPL-licensed Dorkroom code, and AGPL on a client
+library would make it unusable for its entire audience: importing it would pull
+the consumer's whole application into the copyleft. MIT is what lets you
+actually build on the Dorkroom API.
+
+The AGPL still covers everything else in this repo, including the server that
+this client talks to.

@@ -314,6 +314,11 @@ otherwise conflict with the license. See
 [LICENSE-EXCEPTION](LICENSE-EXCEPTION). It waives nothing about copyleft or
 source availability.
 
+One package is **MIT**, not AGPL: [`@dorkroom/api`](packages/api/), the
+TypeScript client for the public REST API. It is a standalone client with no
+AGPL dependencies, and copyleft on a client library would make it useless to
+the people it exists for. Import it into anything you like.
+
 You are allowed to reproduce any film-development data on Dorkroom.art in any form, or post it on the Internet or any other computer network.
 
 ## Support
