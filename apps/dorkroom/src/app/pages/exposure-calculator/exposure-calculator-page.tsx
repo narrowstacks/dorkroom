@@ -1,6 +1,5 @@
 import {
-  calculateNewExposureTime,
-  calculatePercentageIncrease,
+  calculateExposureAdjustment,
   EXPOSURE_PRESETS,
   EXPOSURE_STORAGE_KEY,
   type ExposureFormState,
@@ -166,81 +165,72 @@ export default function ExposureCalculatorPage() {
   const results = useMemo(
     () => (
       <form.Subscribe
-        selector={(state) => {
-          const originalTime = state.values.originalTime;
-          const stops = state.values.stops;
-          const newTimeValue = calculateNewExposureTime(originalTime, stops);
-          const addedTime = newTimeValue - originalTime;
-          const percentageIncrease = calculatePercentageIncrease(
-            originalTime,
-            newTimeValue
-          );
-          return {
-            originalTimeValue: originalTime,
-            stopsValue: stops,
-            newTimeValue,
-            addedTime,
-            percentageIncrease,
-          };
-        }}
+        selector={(state) =>
+          calculateExposureAdjustment(
+            state.values.originalTime,
+            state.values.stops
+          )
+        }
       >
-        {(calculation) => (
-          <CalculatorCard
-            title="Exposure results"
-            description={`Adjusted exposure time for ${calculation.stopsValue >= 0 ? 'increased' : 'decreased'} number of stops`}
-            accent="blue"
-            padding="compact"
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <CalculatorStat
-                label="New exposure time"
-                value={formatExposureTime(calculation.newTimeValue)}
-                helperText={`${calculation.stopsValue > 0 ? '+' : ''}${
-                  calculation.stopsValue
-                } stops`}
-                tone="blue"
-              />
-              <CalculatorStat
-                label={`${
-                  calculation.addedTime >= 0 ? 'Add' : 'Remove'
-                } exposure`}
-                value={formatExposureTime(Math.abs(calculation.addedTime))}
-                helperText={`${Math.abs(calculation.percentageIncrease).toFixed(
-                  1
-                )}% change`}
-              />
-            </div>
+        {(calculation) =>
+          calculation ? (
+            <CalculatorCard
+              title="Exposure results"
+              description={`Adjusted exposure time for ${calculation.stopsValue >= 0 ? 'increased' : 'decreased'} number of stops`}
+              accent="blue"
+              padding="compact"
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <CalculatorStat
+                  label="New exposure time"
+                  value={formatExposureTime(calculation.newTimeValue)}
+                  helperText={`${calculation.stopsValue > 0 ? '+' : ''}${
+                    calculation.stopsValue
+                  } stops`}
+                  tone="blue"
+                />
+                <CalculatorStat
+                  label={`${
+                    calculation.addedTime >= 0 ? 'Add' : 'Remove'
+                  } exposure`}
+                  value={formatExposureTime(Math.abs(calculation.addedTime))}
+                  helperText={`${Math.abs(
+                    calculation.percentageIncrease
+                  ).toFixed(1)}% change`}
+                />
+              </div>
 
-            <div className="rounded-2xl p-4 font-mono text-sm border border-secondary bg-background/20 text-primary">
-              {`${formatExposureTime(calculation.originalTimeValue)} `}
-              <span className="align-super text-xs font-semibold text-[color:var(--color-on-accent)]">
-                ×2^
-                {calculation.stopsValue}
-              </span>
-              <span>{' = '}</span>
-              <span className="font-semibold">
-                {formatExposureTime(calculation.newTimeValue)}
-              </span>
-            </div>
+              <div className="rounded-2xl p-4 font-mono text-sm border border-secondary bg-background/20 text-primary">
+                {`${formatExposureTime(calculation.originalTimeValue)} `}
+                <span className="align-super text-xs font-semibold text-[color:var(--color-on-accent)]">
+                  ×2^
+                  {calculation.stopsValue}
+                </span>
+                <span>{' = '}</span>
+                <span className="font-semibold">
+                  {formatExposureTime(calculation.newTimeValue)}
+                </span>
+              </div>
 
-            <div className="space-y-2">
-              <ResultRow
-                label="Original time"
-                value={formatExposureTime(calculation.originalTimeValue)}
-              />
-              <ResultRow
-                label="Stop adjustment"
-                value={`${calculation.stopsValue > 0 ? '+' : ''}${
-                  calculation.stopsValue
-                } stops`}
-              />
-              <ResultRow
-                label="Multiplier"
-                value={`×${(2 ** calculation.stopsValue).toFixed(3)}`}
-              />
-            </div>
-          </CalculatorCard>
-        )}
+              <div className="space-y-2">
+                <ResultRow
+                  label="Original time"
+                  value={formatExposureTime(calculation.originalTimeValue)}
+                />
+                <ResultRow
+                  label="Stop adjustment"
+                  value={`${calculation.stopsValue > 0 ? '+' : ''}${
+                    calculation.stopsValue
+                  } stops`}
+                />
+                <ResultRow
+                  label="Multiplier"
+                  value={`×${(2 ** calculation.stopsValue).toFixed(3)}`}
+                />
+              </div>
+            </CalculatorCard>
+          ) : null
+        }
       </form.Subscribe>
     ),
     [form]
