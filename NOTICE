@@ -54,6 +54,24 @@ Our interpretation of the GNU Affero General Public License version 3:
    bound by any applicable terms of service and rate limits for the API
    itself.
 
+ADDITIONAL PERMISSION FOR APP STORE DISTRIBUTION
+
+Unlike the numbered points above, this is not an interpretation. It is a
+binding additional permission granted under section 7 of the AGPLv3, and its
+full text is in the file LICENSE-EXCEPTION.
+
+Dorkroom ships a native iOS application (apps/mobile/). Mobile application
+stores require end users to accept terms of service that restrict rights the
+AGPLv3 grants, which would otherwise make distribution through those stores
+impossible under section 12. LICENSE-EXCEPTION waives the specific AGPLv3
+conditions that collide with those store terms, for that channel only.
+
+It does not waive copyleft and it does not waive source availability. A
+modified version distributed through an app store must still be licensed under
+the AGPLv3, and its Corresponding Source must still be made available to
+recipients. The permission runs to everyone, not only to us, and any recipient
+may strip it back out as section 7 allows.
+
 We hope this interpretation aligns with your values and goals. If you have any
 questions about the licensing of Dorkroom, you can:
 

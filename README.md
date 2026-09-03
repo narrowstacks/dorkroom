@@ -305,7 +305,14 @@ Found a security vulnerability? Please report it responsibly. See our [Security 
 
 ## License
 
-AGPL 3.0 License - see the [LICENSE](LICENSE) file for details.
+AGPL 3.0 License - see the [LICENSE](LICENSE) file for the license text and
+[NOTICE](NOTICE) for how we read it.
+
+The iOS app ships under one additional permission granted by AGPLv3 section 7,
+so that it can be distributed through app stores whose terms of service would
+otherwise conflict with the license. See
+[LICENSE-EXCEPTION](LICENSE-EXCEPTION). It waives nothing about copyleft or
+source availability.
 
 You are allowed to reproduce any film-development data on Dorkroom.art in any form, or post it on the Internet or any other computer network.
 

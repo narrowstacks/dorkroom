@@ -165,4 +165,16 @@ Contributors are recognized in several ways:
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the [AGPL-3.0 License](LICENSE).
+By contributing, you agree that your contributions will be licensed under the
+[AGPL-3.0 License](LICENSE) **together with** the additional permission in
+[LICENSE-EXCEPTION](LICENSE-EXCEPTION), on the same terms as the rest of the
+project.
+
+The second half matters. That exception is what lets the iOS app ship through
+the App Store at all. If part of a release were AGPLv3 without it, the build
+could not be distributed there. Contributing under both keeps the project
+distributable as a whole.
+
+It does not ask you for anything else. There is no CLA, you keep your
+copyright, and nobody gains the right to relicense your work as proprietary.
+The exception waives no source-availability or copyleft obligation.
