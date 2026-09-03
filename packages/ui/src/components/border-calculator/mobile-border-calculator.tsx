@@ -6,6 +6,7 @@ import {
   borderCalculatorSchema,
   CALC_STORAGE_KEY,
   calculateQuarterInchMinBorder,
+  computeMaxAllowedMinBorder,
   debugError,
   debugLog,
   PAPER_SIZES,
@@ -49,7 +50,7 @@ import { BorderCalculatorProvider } from './border-calculator-provider';
 import { BorderSizeSection } from './sections/border-size-section';
 import { PaperSizeSection } from './sections/paper-size-section';
 import { PositionOffsetsSection } from './sections/position-offsets-section';
-import { PresetsSection } from './sections/presets-section';
+import { MobilePresetsSection } from './sections/presets-section';
 
 // Active section type
 type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
@@ -125,7 +126,9 @@ export function MobileBorderCalculator({
 
       // Parsed, not asserted: this is an I/O boundary. The schema models the
       // same 21-field `borderCalculatorState_v2` payload the effect below
-      // writes, so a snapshot this app wrote always validates.
+      // writes, bounded by the values the form accepts, so a snapshot written
+      // through the form always validates. One that does not is discarded
+      // whole rather than partly applied.
       const result = persistedBorderCalculatorSchema.safeParse(JSON.parse(raw));
       if (!result.success) return;
       const parsed = result.data;
@@ -306,12 +309,11 @@ export function MobileBorderCalculator({
   const dimensionData = useDimensionCalculations(formValues);
   const { orientedPaper, orientedRatio } = dimensionData.orientedDimensions;
 
-  // Calculate the maximum allowed minimum border based on paper size
-  const maxAllowedMinBorder = useMemo(() => {
-    const smallerDimension = Math.min(orientedPaper.w, orientedPaper.h);
-    // Leave 0.125" room to ensure at least a minimal print area
-    return Math.max(0, smallerDimension / 2 - 0.125);
-  }, [orientedPaper.w, orientedPaper.h]);
+  // Maximum allowed minimum border for the current paper size
+  const maxAllowedMinBorder = useMemo(
+    () => computeMaxAllowedMinBorder(orientedPaper.w, orientedPaper.h),
+    [orientedPaper.w, orientedPaper.h]
+  );
 
   const { calculation } = useGeometryCalculations(
     formValues,
@@ -1000,7 +1002,7 @@ export function MobileBorderCalculator({
                 )}
 
                 {activeSection === 'presets' && (
-                  <PresetsSection
+                  <MobilePresetsSection
                     onClose={closeDrawer}
                     currentPreset={currentPreset}
                     onApplyPreset={handleApplyPreset}

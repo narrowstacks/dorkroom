@@ -453,7 +453,10 @@ export function MeterReadout({
           style={[MONO, SHADOW]}
           className="text-center text-xs text-amber-400"
         >
-          out of range (1/8000s–30s)
+          {/* The solved (unlocked) axis is the one that went out of range. */}
+          {shutter.locked
+            ? 'out of range (f/1–f/64)'
+            : 'out of range (1/8000s–30s)'}
         </Text>
       ) : null}
     </View>

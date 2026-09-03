@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { z } from 'zod';
 import {
   bestFitBorders,
   MAT_CALCULATOR_DEFAULTS,
@@ -9,7 +10,21 @@ import {
   parseMatInput,
   toFractionInput,
 } from '../constants/mat-calculator';
-import { useLocalStorageFormPersistence } from './use-local-storage-form-persistence';
+import {
+  type PersistedValue,
+  useLocalStorageFormPersistence,
+} from './use-local-storage-form-persistence';
+
+// Mat inputs are fraction-friendly free text ("3 1/2"); unparseable strings
+// already render as placeholders, so hydration only has to reject wrong types.
+const matInputSchema = z.string();
+const matFlagSchema = z.boolean();
+const isPersistedMatInput = (v: PersistedValue): boolean =>
+  matInputSchema.safeParse(v).success;
+const isPersistedMatFlag = (v: PersistedValue): boolean =>
+  matFlagSchema.safeParse(v).success;
+const matInput = { validate: isPersistedMatInput };
+const matFlag = { validate: isPersistedMatFlag };
 
 /** A single guide-bar cut card for the mat cutter. */
 export interface MatGuideBarCut {
@@ -103,6 +118,18 @@ export function useMatCalculator(): UseMatCalculatorReturn {
       'reveal',
       'bottomWeight',
     ],
+    validators: {
+      outerW: matInput,
+      outerH: matInput,
+      borderTop: matInput,
+      borderBottom: matInput,
+      borderLeft: matInput,
+      borderRight: matInput,
+      artW: matInput,
+      artH: matInput,
+      reveal: matInput,
+      bottomWeight: matFlag,
+    },
   });
 
   const ow = parseMatInput(values.outerW);

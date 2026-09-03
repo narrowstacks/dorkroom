@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { borderPresetSchema } from '../schemas/border-calculator.schema';
 import type {
   BorderPreset,
   BorderPresetSettings,
@@ -47,10 +48,20 @@ export function useBorderPresets() {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
 
-      const next = JSON.parse(raw);
-      if (Array.isArray(next)) {
-        setPresets(next);
+      const stored = JSON.parse(raw);
+      if (!Array.isArray(stored)) return;
+
+      // Each preset is validated whole so applying one can never spread
+      // unvalidated settings across the form; a corrupted entry is dropped
+      // without discarding the rest.
+      const next: BorderPreset[] = [];
+      for (const entry of stored) {
+        const preset = borderPresetSchema.safeParse(entry);
+        if (preset.success) {
+          next.push(preset.data);
+        }
       }
+      setPresets(next);
     } catch (error) {
       console.warn('Failed to load presets', error);
     }

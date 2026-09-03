@@ -34,6 +34,7 @@ export {
 } from './hooks/border-calculator';
 export {
   type PersistedBorderCalculatorState,
+  persistedBorderCalculatorFieldSchemas,
   persistedBorderCalculatorSchema,
 } from './hooks/border-calculator/use-border-calculator-state';
 export {
@@ -99,6 +100,7 @@ export {
   type FieldValidator,
   type LocalStorageFormPersistenceOptions,
   type LocalStorageFormPersistenceReturn,
+  type PersistedValue,
   useLocalStorageFormPersistence,
 } from './hooks/use-local-storage-form-persistence';
 export {
