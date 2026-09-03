@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useEscapeKey } from '../hooks/use-escape-key';
 import { cn } from '../lib/cn';
 
 const sizeClasses = {
@@ -71,6 +72,8 @@ export function Drawer({
     return isOpen ? runOpenTransition() : runCloseTransition();
   }, [isOpen, runOpenTransition, runCloseTransition]);
 
+  useEscapeKey(isOpen, onClose);
+
   const transformClasses = {
     bottom: animateOpen ? 'translate-y-0' : 'translate-y-full',
     top: animateOpen ? 'translate-y-0' : '-translate-y-full',
@@ -91,15 +94,13 @@ export function Drawer({
         className={cn(
           'absolute inset-0 transition-opacity duration-300 h-full',
           enableBackgroundBlur && 'backdrop-blur-sm',
-          enableBackgroundOverlay && 'bg-black/50',
+          enableBackgroundOverlay &&
+            'bg-[color:var(--color-visualization-overlay)]',
           animateOpen ? 'opacity-100' : 'opacity-0'
         )}
         style={{ height: '100dvh' }}
         role="presentation"
         onClick={onClose}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') onClose();
-        }}
       />
 
       {/* Drawer */}

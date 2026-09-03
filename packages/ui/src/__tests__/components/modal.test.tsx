@@ -182,6 +182,45 @@ describe('Modal', () => {
 
       expect(closeButton).toHaveFocus();
     });
+
+    it('calls onClose when Escape is pressed', () => {
+      const onClose = vi.fn();
+      render(<Modal {...defaultProps} onClose={onClose} />);
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onClose on Escape while closed', () => {
+      const onClose = vi.fn();
+      render(<Modal {...defaultProps} isOpen={false} onClose={onClose} />);
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('stops listening after the modal closes', () => {
+      const onClose = vi.fn();
+      const { rerender } = render(
+        <Modal {...defaultProps} onClose={onClose} />
+      );
+
+      rerender(<Modal {...defaultProps} isOpen={false} onClose={onClose} />);
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('ignores keys other than Escape', () => {
+      const onClose = vi.fn();
+      render(<Modal {...defaultProps} onClose={onClose} />);
+
+      fireEvent.keyDown(document, { key: 'Enter' });
+
+      expect(onClose).not.toHaveBeenCalled();
+    });
   });
 
   describe('mouse interactions', () => {

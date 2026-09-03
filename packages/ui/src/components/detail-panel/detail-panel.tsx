@@ -1,6 +1,7 @@
 import { GripVertical, Maximize2, Minimize2, X } from 'lucide-react';
 import { type FC, type ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useEscapeKey } from '../../hooks/use-escape-key';
 import { hasGlobal } from '../../lib/dom';
 
 /** Props for the reusable CloseButton component */
@@ -135,24 +136,16 @@ export const DetailPanel: FC<DetailPanelProps> = ({
     };
   }, [isOpen, isMobile, isExpanded]);
 
-  // Handle escape key - collapse modal first, then close panel
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (isExpanded) {
-          setIsExpanded(false);
-        } else {
-          onClose();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-    // eslint-disable-next-line react-doctor/prefer-use-effect-event -- a plain keydown listener with intentional deps; useEffectEvent adds no real benefit here
-  }, [isOpen, isExpanded, onClose]);
+  // Escape collapses an expanded panel first, then closes it. Routed through
+  // the shared dismiss stack so a dialog opened above the panel takes the
+  // keypress instead of both layers closing at once.
+  useEscapeKey(isOpen, () => {
+    if (isExpanded) {
+      setIsExpanded(false);
+    } else {
+      onClose();
+    }
+  });
 
   // Mobile drag handlers
   const handleDragStart = (clientY: number) => {
@@ -311,11 +304,6 @@ export const DetailPanel: FC<DetailPanelProps> = ({
               onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
               onTouchEnd={handleDragEnd}
               onMouseDown={(e) => handleMouseDragStart(e.clientY)}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape' || e.key === 'Enter') {
-                  onClose();
-                }
-              }}
             >
               <GripVertical
                 className="size-5"

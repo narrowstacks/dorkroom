@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
+import { useEscapeKey } from '../hooks/use-escape-key';
 import { cn } from '../lib/cn';
 import { hasGlobal } from '../lib/dom';
 
@@ -60,6 +61,7 @@ export function Modal({
   hideCloseButton,
 }: ModalProps) {
   useBodyScrollLock(isOpen);
+  useEscapeKey(isOpen, onClose);
 
   if (!hasGlobal('document') || !isOpen) {
     return null;
@@ -71,7 +73,8 @@ export function Modal({
       style={{ height: '100dvh' }}
     >
       {/* Backdrop: a real button so click-to-close works; hidden from AT and
-          the tab sequence since the header X button already covers keyboard close. */}
+          the tab sequence since Escape already covers keyboard dismissal
+          (as does the header close button, when shown). */}
       <button
         type="button"
         aria-hidden="true"

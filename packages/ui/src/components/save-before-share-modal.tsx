@@ -1,5 +1,6 @@
 import type React from 'react';
 import { useState } from 'react';
+import { useEscapeKey } from '../hooks/use-escape-key';
 import { cn } from '../lib/cn';
 import { colorMixOr } from '../lib/color';
 import { cssVars } from '../lib/dom';
@@ -36,6 +37,14 @@ export function SaveBeforeShareModal({
   const [presetName, setPresetName] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  const handleClose = () => {
+    setPresetName('');
+    setValidationError(null);
+    onClose();
+  };
+
+  useEscapeKey(isOpen, handleClose);
+
   if (!isOpen) {
     return null;
   }
@@ -63,12 +72,6 @@ export function SaveBeforeShareModal({
     onSaveAndShare(trimmedName);
   };
 
-  const handleClose = () => {
-    setPresetName('');
-    setValidationError(null);
-    onClose();
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPresetName(e.target.value);
     if (validationError) {
@@ -81,11 +84,14 @@ export function SaveBeforeShareModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:items-center sm:p-0">
-        {/* Backdrop: a real button so click-to-close is keyboard-accessible */}
+        {/* Backdrop: a real button so click-to-close works; hidden from AT and
+            the tab sequence since Escape and the Cancel button already cover
+            keyboard dismissal. */}
         <button
           type="button"
-          aria-label="Close"
+          aria-hidden="true"
           tabIndex={-1}
+          data-testid="save-before-share-backdrop"
           className="fixed inset-0 cursor-default backdrop-blur-sm transition-opacity"
           style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
           onClick={handleClose}
