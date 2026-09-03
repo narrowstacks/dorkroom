@@ -50,7 +50,7 @@ import { BorderCalculatorProvider } from './border-calculator-provider';
 import { BorderSizeSection } from './sections/border-size-section';
 import { PaperSizeSection } from './sections/paper-size-section';
 import { PositionOffsetsSection } from './sections/position-offsets-section';
-import { PresetsSection } from './sections/presets-section';
+import { MobilePresetsSection } from './sections/presets-section';
 
 // Active section type
 type ActiveSection = 'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
@@ -1004,7 +1004,7 @@ export function MobileBorderCalculator({
                 )}
 
                 {activeSection === 'presets' && (
-                  <PresetsSection
+                  <MobilePresetsSection
                     onClose={closeDrawer}
                     currentPreset={currentPreset}
                     onApplyPreset={handleApplyPreset}

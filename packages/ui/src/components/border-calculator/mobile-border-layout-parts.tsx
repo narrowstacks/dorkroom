@@ -21,7 +21,7 @@ import type { BorderCalculatorContextValue } from './border-calculator-context';
 import { BorderSizeSection } from './sections/border-size-section';
 import { PaperSizeSection } from './sections/paper-size-section';
 import { PositionOffsetsSection } from './sections/position-offsets-section';
-import { PresetsSection } from './sections/presets-section';
+import { MobilePresetsSection } from './sections/presets-section';
 
 export type ActiveSection =
   | 'paperSize'
@@ -328,7 +328,7 @@ export function MobileSettingsDrawer({
           )}
 
           {activeSection === 'presets' && (
-            <PresetsSection
+            <MobilePresetsSection
               onClose={onClose}
               currentPreset={currentPreset}
               onApplyPreset={onApplyPreset}

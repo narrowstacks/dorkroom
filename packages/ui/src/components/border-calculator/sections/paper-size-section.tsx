@@ -160,11 +160,13 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">Paper & Image Size</h3>
+        <h3 className="text-lg font-semibold text-primary">
+          Paper & Image Size
+        </h3>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-white/20 bg-white/5 p-2 text-white transition hover:bg-white/10"
+          className="rounded-lg border border-primary bg-border-muted p-2 text-primary transition hover:opacity-80"
           aria-label="Close paper & image size"
         >
           <X className="size-5" />
@@ -244,7 +246,7 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
           <button
             type="button"
             onClick={() => form.setFieldValue('isLandscape', !isLandscape)}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-primary bg-border-muted px-4 py-3 text-sm font-medium text-primary transition hover:opacity-80"
           >
             <RotateCw className="size-4" />
             Flip Paper
@@ -255,10 +257,10 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
               if (isEvenBordersSelected) return;
               form.setFieldValue('isRatioFlipped', !isRatioFlipped);
             }}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-sm font-medium text-white transition ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border border-primary bg-border-muted px-4 py-3 text-sm font-medium text-primary transition ${
               isEvenBordersSelected
                 ? 'cursor-not-allowed opacity-50'
-                : 'hover:bg-white/10'
+                : 'hover:opacity-80'
             }`}
             disabled={isEvenBordersSelected}
             aria-disabled={isEvenBordersSelected}

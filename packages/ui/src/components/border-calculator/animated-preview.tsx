@@ -149,10 +149,10 @@ export function AnimatedPreview({
   if (!calculation || !transformValues) {
     return (
       <div
-        className={`border bg-white/5 flex items-center justify-center mx-auto ${className}`}
+        className={`border bg-border-muted flex items-center justify-center mx-auto ${className}`}
         style={staticDimensions}
       >
-        <div className="text-white/60">Preview</div>
+        <div className="text-tertiary">Preview</div>
       </div>
     );
   }
