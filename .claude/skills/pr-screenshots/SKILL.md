@@ -18,9 +18,34 @@ Two pieces do the work:
   local paths in the PR body to permanent `user-attachments/assets/…` URLs.
   Nothing lands in the repo.
 
-`--attach` needs **gh 2.99.0 or newer**. Check with `gh --version` and upgrade
-with `brew upgrade gh` before starting. On older gh the flag does not exist and
-the command fails with `unknown flag: --attach`.
+`--attach` needs **gh 2.99.0 or newer**. Check with `gh --version` first — on
+older gh the flag does not exist and the command fails with
+`unknown flag: --attach`. It is also unsupported on GitHub Enterprise Server at
+any version.
+
+Upgrading, in order of what's likely to work where you are:
+
+```bash
+brew upgrade gh                          # macOS, and Linuxbrew
+
+# No Homebrew, no root — the release tarball works anywhere.
+V=2.99.0; OS=linux; ARCH=amd64           # ARCH=arm64 on aarch64
+curl -fsSL "https://github.com/cli/cli/releases/download/v$V/gh_${V}_${OS}_${ARCH}.tar.gz" \
+  | tar xz -C /tmp
+export PATH="/tmp/gh_${V}_${OS}_${ARCH}/bin:$PATH"
+gh --version
+```
+
+Distro packages (apt, dnf, apk, winget, scoop) lag by days to weeks; check
+<https://github.com/cli/cli/blob/trunk/docs/install_linux.md> before assuming
+one has 2.99.0 yet.
+
+**If you cannot get gh 2.99.0**, don't improvise an uploader — there is no
+scripted fallback in this repo any more, and the browser-driving flow it
+replaced was deleted. Capture the shots (steps 2-4), then either hand the files
+to a human to drag into the PR comment box, or say in the PR description that
+screenshots were captured but could not be uploaded from this environment.
+Leaving the section out silently is the one thing that isn't acceptable.
 
 ## Step 1 — Decide whether the change is visual
 
@@ -188,12 +213,33 @@ gh pr edit "$PR" --body-file /tmp/dr-body.md \
   --attach '.pr-screenshots/after/reciprocity.webp#reciprocity after'
 ```
 
-One command, all files, no browser and no session to keep alive. Then read the
-body back and confirm every path became a CDN URL:
+One command, all files, no browser and no session to keep alive.
+
+Then verify, because two different failures both leave a body that *looks*
+fine. Read it back and check two things — that no local path survived, and that
+the number of CDN URLs equals the number of `--attach` flags you passed:
 
 ```bash
-gh pr view "$PR" --json body -q .body | grep -c 'user-attachments/assets'
+gh pr view "$PR" --json body -q .body > /tmp/dr-body-live.md
+
+# 1. No local path may survive. A hit here means a reference didn't match —
+#    almost always an HTML <img> or a typo'd path.
+if grep -n '\.pr-screenshots/' /tmp/dr-body-live.md; then
+  echo 'FAIL: a local path was not rewritten'
+fi
+
+# 2. One CDN URL per attachment, no more. A surplus means a file was appended
+#    at the bottom instead of landing in its table cell.
+grep -o 'user-attachments/assets' /tmp/dr-body-live.md | wc -l
 ```
+
+**Count occurrences, not lines.** `grep -c` counts *matching lines*, and a
+before/after table row holds two URLs on one line — it would report `1` for a
+correct two-shot table. `grep -o … | wc -l` counts the URLs themselves.
+
+Neither check alone is enough: an unmatched path leaves the local text behind
+*and* appends the asset elsewhere, so check 1 catches the broken reference and
+check 2 catches the stray image.
 
 Rules that matter in practice:
 
