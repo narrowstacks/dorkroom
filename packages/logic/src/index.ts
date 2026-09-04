@@ -71,11 +71,6 @@ export {
 } from './hooks/development-recipes/use-view-preference';
 // Film hooks
 export { type UseFilmDatabaseReturn, useFilmDatabase } from './hooks/films';
-/**
- * @deprecated Use `useBorderCalculator` from './hooks/border-calculator' instead.
- * This legacy hook will be removed in v2.0.0.
- */
-export { useBorderCalculator as useLegacyBorderCalculator } from './hooks/use-border-calculator';
 export { useBorderPresets } from './hooks/use-border-presets';
 export {
   type UseCameraExposureCalculatorReturn,
