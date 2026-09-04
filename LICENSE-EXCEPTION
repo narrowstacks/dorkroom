@@ -1,0 +1,131 @@
+DORKROOM APP STORE DISTRIBUTION EXCEPTION
+Version 1.0, 3 September 2026
+
+Additional permission under section 7 of the GNU Affero General Public
+License, version 3.
+
+Copyright (C) 2026 Aaron F. Anderson <aaron@affords.art>
+
+Everyone is permitted to copy and distribute verbatim copies of this
+exception document, but changing it is not allowed.
+
+
+0. PURPOSE
+
+Dorkroom is licensed under the GNU Affero General Public License, version 3
+(the "AGPLv3"), a copy of which is distributed in the file LICENSE.
+
+Dorkroom is also distributed as a native mobile application. The operators of
+mobile application stores require, as a condition of distribution, that end
+users accept terms of service which restrict the exercise of rights the AGPLv3
+grants: limits on the number of devices an application may be installed on,
+and digital rights management applied to the delivered binary, among others.
+Those restrictions are imposed by the store operator, not by us, but their
+presence would otherwise make it impossible to distribute Dorkroom through
+such a store while satisfying the AGPLv3.
+
+This exception removes that obstacle. It does not weaken the copyleft. The
+obligation to make Corresponding Source available is untouched, and is
+restated in section 3 below.
+
+
+1. DEFINITIONS
+
+The terms "Program", "covered work", "convey", "modify", "object code",
+"Corresponding Source", "User Product", and "Installation Information" carry
+the meanings given to them in the AGPLv3.
+
+A "Managed Distribution Platform" is a service that distributes application
+software to end users and that conditions such distribution on the end user's
+acceptance of terms of service imposed by the operator of that service. Apple's
+App Store, Google Play, and Microsoft Store are Managed Distribution Platforms.
+
+
+2. GRANT OF ADDITIONAL PERMISSION
+
+You are granted permission to convey the Program, or a covered work based on
+the Program, in object-code form through a Managed Distribution Platform,
+notwithstanding the following conditions of the AGPLv3, but only to the extent
+that compliance with them is made impossible by the terms of service of that
+Platform:
+
+  (a) the requirement in section 6 to accompany a User Product with
+      Installation Information;
+
+  (b) the prohibition in section 10 on the imposition of further restrictions
+      on the exercise of the rights granted by the AGPLv3, insofar as those
+      restrictions are imposed by the Platform operator and not by you; and
+
+  (c) the requirement in section 12 that you refrain from conveying a covered
+      work when you cannot simultaneously satisfy your obligations under the
+      AGPLv3 and other pertinent obligations, insofar as those other
+      obligations arise from the Platform's terms of service.
+
+For the avoidance of doubt, delivery of a covered work through a Managed
+Distribution Platform that applies a technological protection measure to the
+delivered object code does not, by itself, place you in violation of the
+AGPLv3, and you do not by such delivery waive any legal power to forbid
+circumvention of such measures under section 3.
+
+
+3. WHAT THIS EXCEPTION DOES NOT PERMIT
+
+This exception is narrow. In particular:
+
+  (a) Source availability is unaffected. Every recipient of a covered work
+      conveyed under this exception remains entitled to the Corresponding
+      Source under sections 4, 5, and 6 of the AGPLv3, and section 13 of the
+      AGPLv3 continues to apply in full to any modified version made available
+      to users over a network. If you convey a modified version through a
+      Managed Distribution Platform, you must make the Corresponding Source
+      for that version available to its recipients.
+
+  (b) Copyleft is unaffected. A covered work conveyed under this exception
+      remains licensed under the AGPLv3, and any work based on it must be
+      licensed under the AGPLv3.
+
+  (c) You may not rely on this exception to impose restrictions of your own.
+      The permission in section 2(b) extends only to restrictions imposed by
+      the Platform operator as a condition of distribution.
+
+  (d) This exception grants no rights in any trademark, service mark, trade
+      name, or logo of the copyright holder, including the name "Dorkroom".
+
+
+4. REMOVAL
+
+As provided in section 7 of the AGPLv3, you may remove this additional
+permission from any copy of the Program, or from any part of it. If you do,
+the AGPLv3 applies to that copy without modification.
+
+
+5. NOTICES IN SOURCE FILES
+
+Section 7 of the AGPLv3 requires that terms added under it be accompanied, in
+the relevant source files, by either a statement of those terms or a notice
+indicating where to find them, and states that this requirement applies to
+permissive and non-permissive terms alike.
+
+A notice pointing to this document is carried at the entry point of each
+covered work in this repository:
+
+  apps/mobile/index.js            the iOS application
+  apps/dorkroom/src/main.tsx      the web application
+  packages/logic/src/index.ts     shared logic, embedded in the iOS app
+  packages/ui/src/index.ts        shared web components
+
+Those notices point here; this document states the terms. Adding a new
+top-level application or package to the repository means carrying the same
+notice at its entry point.
+
+The package at packages/api/ carries no such notice, and deliberately so: it is
+released under the MIT license rather than the AGPLv3, so this exception has
+nothing to add to it. See packages/api/LICENSE.
+
+
+6. NO OTHER CHANGE
+
+Except as expressly stated above, the AGPLv3 applies to the Program in full.
+Where this document and the AGPLv3 can be read consistently, they should be.
+Where they cannot, this document controls only as to the specific conditions
+enumerated in section 2.

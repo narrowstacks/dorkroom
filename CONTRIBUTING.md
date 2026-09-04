@@ -165,4 +165,25 @@ Contributors are recognized in several ways:
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the [AGPL-3.0 License](LICENSE).
+Contributions are licensed inbound on exactly the terms the file you changed is
+distributed outbound. Two cases, because this repository is not uniformly
+licensed:
+
+| What you changed | Your contribution is licensed under |
+| --- | --- |
+| `packages/api/` | [MIT](packages/api/LICENSE) |
+| Everything else | [AGPL-3.0](LICENSE) **together with** the additional permission in [LICENSE-EXCEPTION](LICENSE-EXCEPTION) |
+
+Both halves of the second row matter. That exception is what lets the iOS app
+ship through the App Store at all. If part of a release were AGPLv3 without it,
+the build could not be distributed there. Contributing under both keeps the
+project distributable as a whole.
+
+The `packages/api/` carve-out exists for the mirror-image reason. That package
+is published to npm under MIT so that anyone can build on the Dorkroom API. A
+patch contributed there under AGPL could not lawfully be included in an MIT
+release, which would block the next publish on tracking down its author.
+
+Neither case asks you for anything else. There is no CLA, you keep your
+copyright, and nobody gains the right to relicense your work as proprietary.
+The exception waives no source-availability or copyleft obligation.

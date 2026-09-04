@@ -1,3 +1,14 @@
+/**
+ * Dorkroom
+ * Copyright (C) 2026 Aaron F. Anderson <aaron@affords.art>
+ *
+ * Licensed under the GNU Affero General Public License, version 3, WITH the
+ * additional permission for app store distribution granted under AGPLv3
+ * section 7. See LICENSE and LICENSE-EXCEPTION at the repository root.
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 // Core UI Components
 
 // DevelopmentCombinationView re-exported for backwards compat (type-only)

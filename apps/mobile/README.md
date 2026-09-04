@@ -127,3 +127,19 @@ bunx expo start --dev-client --host lan         # Metro; phone must be on same W
 
 Development-recipes DB, custom recipes, favorites, in-app sharing/deep links,
 border image overlay.
+
+## License
+
+AGPL-3.0-only, like the rest of the repo, **plus** the additional permission in
+[`LICENSE-EXCEPTION`](../../LICENSE-EXCEPTION) at the repo root.
+
+That exception exists for this app specifically. Apple conditions App Store
+distribution on end users accepting terms that restrict rights the AGPLv3
+grants (device-count limits, DRM on the delivered binary). Without the
+exception, AGPLv3 section 12 would forbid shipping here at all: this is what
+got VLC pulled from the App Store in 2011. The exception waives only the
+license conditions that collide with those store terms.
+
+It does **not** waive copyleft or source availability. A modified build
+distributed through an app store must still be AGPLv3 and must still make its
+Corresponding Source available.
