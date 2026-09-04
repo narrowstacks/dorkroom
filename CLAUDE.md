@@ -203,3 +203,21 @@ that label triggers builds. Don't invent new labels without asking.
 - Conventional commits, short messages
 - Confirm before committing; never push without explicit request
 - `main` rejects merge commits. Land branches by squash or rebase
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues on `narrowstacks/dorkroom`, via the `gh` CLI; new
+issues and PRs must use the templates in `.github/` and carry type + area
+labels. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage roles map to identically named labels, all of which
+exist on GitHub. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` and one `docs/adr/` at the repo root, neither
+created yet. See `docs/agents/domain.md`.
