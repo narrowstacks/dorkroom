@@ -5,6 +5,15 @@ Web app changes live in the [root CHANGELOG](../../CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.09.04]
+
+### Changed
+
+- **The licensing blocker on App Store distribution is cleared.** Under plain AGPLv3 this app could not lawfully ship to the App Store at all. Apple conditions distribution on end users accepting terms that restrict rights the license grants — limits on how many devices an app may be installed on, and DRM applied to the delivered binary — and AGPLv3 section 12 says that when you cannot satisfy the license and other pertinent obligations simultaneously, you may not convey the work. That is not a theoretical reading: it is what got VLC pulled from the App Store in 2011, and it applied here the moment this app targeted a store. The repo now grants an additional permission under section 7 ([`LICENSE-EXCEPTION`](../../LICENSE-EXCEPTION)) waiving only the conditions that collide with store terms (section 6 Installation Information, section 10 further restrictions, section 12 conflicting obligations), and only to the extent the store makes compliance impossible. It changes nothing about how the app is built or what it does.
+- **The exception waives no copyleft and no source obligation.** A modified build of this app distributed through any store is still AGPLv3 and still owes its Corresponding Source to the people who receive it. The permission is granted to everyone rather than reserved to this project, and section 7 lets any recipient remove it again.
+- **`index.js` carries the section 7 notice.** Section 7 requires added terms to be pointed to from the relevant source files, so the app's entry point names the exception and where to find it. `@dorkroom/logic`, which this app embeds, carries the same notice; `@dorkroom/api`, which it also embeds, is now MIT-licensed and carries an SPDX MIT header instead. Comment-only changes, no runtime effect.
+- The App Store version string in `app.json` is untouched. It tracks shipped store releases, not repo pushes, and this change does not warrant a submission on its own.
+
 ## [2026.08.17]
 
 ### Changed
