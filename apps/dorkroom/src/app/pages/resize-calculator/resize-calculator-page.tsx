@@ -1,4 +1,5 @@
 import {
+  calculateResizeExposure,
   DEFAULT_NEW_HEIGHT,
   DEFAULT_NEW_LENGTH,
   DEFAULT_NEW_WIDTH,
@@ -6,6 +7,7 @@ import {
   DEFAULT_ORIGINAL_LENGTH,
   DEFAULT_ORIGINAL_TIME,
   DEFAULT_ORIGINAL_WIDTH,
+  matchesAspectRatio,
   RESIZE_STORAGE_KEY,
   type ResizeCalculatorState,
   useLocalStorageFormPersistence,
@@ -221,21 +223,6 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
   );
 }
 
-// Helper function to calculate aspect ratio match
-function calculateAspectRatioMatch(
-  isEnlargerMode: boolean,
-  origWidth: number,
-  origLength: number,
-  newW: number,
-  newL: number
-): boolean {
-  if (isEnlargerMode) return true;
-  if (origWidth <= 0 || origLength <= 0 || newW <= 0 || newL <= 0) return true;
-  const originalRatio = (origWidth / origLength).toFixed(3);
-  const newRatio = (newW / newL).toFixed(3);
-  return originalRatio === newRatio;
-}
-
 const RESIZE_FORM_DEFAULTS: ResizeCalculatorState = {
   isEnlargerHeightMode: false,
   originalWidth: Number(DEFAULT_ORIGINAL_WIDTH),
@@ -246,62 +233,6 @@ const RESIZE_FORM_DEFAULTS: ResizeCalculatorState = {
   originalHeight: Number(DEFAULT_ORIGINAL_HEIGHT),
   newHeight: Number(DEFAULT_NEW_HEIGHT),
 };
-
-interface ExposureChanges {
-  newTime: string;
-  stopsDifference: string;
-}
-
-// Helper function to calculate exposure changes
-function calculateExposureChanges(
-  isEnlargerMode: boolean,
-  origTime: number,
-  origWidth: number,
-  origLength: number,
-  newW: number,
-  newL: number,
-  origHeight: number,
-  newH: number
-): ExposureChanges {
-  let calculatedNewTime = '';
-  let calculatedStopsDifference = '';
-
-  if (isEnlargerMode) {
-    if (origHeight > 0 && newH > 0 && origTime > 0) {
-      const ratio = newH ** 2 / origHeight ** 2;
-      const newTimeValue = origTime * ratio;
-      const stops = Math.log2(ratio);
-
-      calculatedNewTime = newTimeValue.toFixed(1);
-      calculatedStopsDifference = stops.toFixed(2);
-    }
-  } else {
-    if (
-      origWidth > 0 &&
-      origLength > 0 &&
-      newW > 0 &&
-      newL > 0 &&
-      origTime > 0
-    ) {
-      const originalArea = origWidth * origLength;
-      const newArea = newW * newL;
-
-      if (originalArea > 0) {
-        const ratio = newArea / originalArea;
-        const newTimeValue = origTime * ratio;
-        const stops = Math.log2(ratio);
-
-        calculatedNewTime = newTimeValue.toFixed(1);
-        calculatedStopsDifference = stops.toFixed(2);
-      }
-    }
-  }
-
-  return {
-    newTime: calculatedNewTime,
-    stopsDifference: calculatedStopsDifference,
-  };
-}
 
 type ResizeForm = ReturnType<typeof useResizeForm>['form'];
 type MeasurementConverter = ReturnType<typeof useMeasurementConverter>;
@@ -357,16 +288,16 @@ function ResizeResults({ form }: { form: ResizeForm }) {
         const origHeight = state.values.originalHeight;
         const newH = state.values.newHeight;
 
-        const { newTime, stopsDifference } = calculateExposureChanges(
-          isEnlargerMode,
-          origTime,
-          origWidth,
-          origLength,
-          newW,
-          newL,
-          origHeight,
-          newH
-        );
+        const { newTime, stopsDifference } = calculateResizeExposure({
+          isEnlargerHeightMode: isEnlargerMode,
+          originalTime: origTime,
+          originalWidth: origWidth,
+          originalLength: origLength,
+          newWidth: newW,
+          newLength: newL,
+          originalHeight: origHeight,
+          newHeight: newH,
+        });
 
         const stopsNumber = parseFloat(stopsDifference);
         const stopsHelper = Number.isFinite(stopsNumber)
@@ -629,13 +560,13 @@ function ResizeInputs({
       />
 
       {!formValues.isEnlargerHeightMode &&
-        !calculateAspectRatioMatch(
-          false,
-          formValues.originalWidth,
-          formValues.originalLength,
-          formValues.newWidth,
-          formValues.newLength
-        ) && (
+        !matchesAspectRatio({
+          isEnlargerHeightMode: false,
+          originalWidth: formValues.originalWidth,
+          originalLength: formValues.originalLength,
+          newWidth: formValues.newWidth,
+          newLength: formValues.newLength,
+        }) && (
           <StatusAlert
             message="The aspect ratios of the original and target prints do not match. Try to match the aspect ratio of the original print to the target print as close as possible."
             action="warning"

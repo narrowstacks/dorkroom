@@ -1,3 +1,4 @@
+import { applyReciprocity } from '@dorkroom/logic';
 import { useState } from 'react';
 import {
   Modal,
@@ -67,7 +68,7 @@ export function ReciprocityChartModal({
   const baseY = chartH - PADDING.bottom;
 
   const activeMetered = scrub ?? originalTime;
-  const activeAdjusted = activeMetered ** factor;
+  const activeAdjusted = applyReciprocity(activeMetered, factor);
   const mx = scaleX(activeMetered, layout);
   const my = scaleY(activeAdjusted, layout);
 
