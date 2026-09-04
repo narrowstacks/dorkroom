@@ -25,6 +25,7 @@ export function LabeledTextField({
     <View className="gap-1">
       <Text className="text-sm text-white/60">{label}</Text>
       <TextInput
+        accessibilityLabel={label}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType}

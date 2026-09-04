@@ -75,6 +75,7 @@ export function BottomSheet({
         className="flex-1"
         onPress={onClose}
         accessibilityRole="button"
+        accessibilityLabel={`Dismiss ${title}`}
       />
       {/* Outer view tracks the keyboard; inner keeps the slide-in entrance. */}
       <Animated.View style={liftStyle}>
@@ -85,7 +86,12 @@ export function BottomSheet({
         >
           <View className="mb-4 flex-row items-center justify-between">
             <Text className="text-lg font-semibold text-white">{title}</Text>
-            <Pressable onPress={onClose} accessibilityRole="button">
+            <Pressable
+              className="min-h-11 min-w-11 items-center justify-center"
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel={dismissLabel}
+            >
               <Text className="text-base font-semibold text-white/70">
                 {dismissLabel}
               </Text>
