@@ -1,3 +1,4 @@
+import type { ExposureCalculation } from '../types/exposure-calculator';
 import { roundToPrecision, roundToStandardPrecision } from './precision';
 
 /**
@@ -162,4 +163,44 @@ export const calculatePushPull = (
   const stops = Math.log2(shootingIso / boxSpeed);
   // Round to nearest 2 decimal places
   return roundToPrecision(stops, 2);
+};
+
+/**
+ * Assembles the exposure readout for a metered time and stop adjustment.
+ *
+ * The web page and the iOS screen previously each built this object from the
+ * same three helpers above; sharing the assembly keeps the two readouts from
+ * drifting the way the reciprocity ones did.
+ *
+ * @param originalTime - Metered exposure time in seconds
+ * @param stops - Stop adjustment (positive = longer exposure)
+ * @returns The readout, or null when the metered time is not a usable duration
+ * @example
+ * ```typescript
+ * const result = calculateExposureAdjustment(10, 1);
+ * // result.newTimeValue === 20, result.addedTime === 10
+ * ```
+ */
+export const calculateExposureAdjustment = (
+  originalTime: number,
+  stops: number
+): ExposureCalculation | null => {
+  if (
+    !Number.isFinite(originalTime) ||
+    !Number.isFinite(stops) ||
+    originalTime <= 0
+  ) {
+    return null;
+  }
+
+  const newTimeValue = calculateNewExposureTime(originalTime, stops);
+
+  return {
+    originalTimeValue: originalTime,
+    stopsValue: stops,
+    newTimeValue,
+    addedTime: newTimeValue - originalTime,
+    percentageIncrease: calculatePercentageIncrease(originalTime, newTimeValue),
+    isValid: true,
+  };
 };

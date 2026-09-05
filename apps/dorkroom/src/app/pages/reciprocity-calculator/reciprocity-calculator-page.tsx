@@ -1,9 +1,11 @@
 import {
+  calculateReciprocity,
   formatReciprocityTime,
   parseReciprocityTime,
   RECIPROCITY_EXPOSURE_PRESETS,
   RECIPROCITY_FILM_TYPES,
   RECIPROCITY_STORAGE_KEY,
+  type ReciprocityCalculation,
   type ReciprocityFormState,
   type SelectItem,
   useLocalStorageFormPersistence,
@@ -48,51 +50,26 @@ const TIPS = [
   'Worth checking for night landscapes, astro, interiors, and anything over about a second.',
 ];
 
-// Helper function to select and calculate reciprocity results
+/**
+ * Adapts the form's values to the shared reciprocity calculation, which the iOS
+ * screen and the reciprocity chart also use. Keeping the arithmetic there is
+ * what stops the page's readout and the plotted curve from disagreeing.
+ */
 function selectReciprocityCalculation(
-  values: ReciprocityFormState,
-  filmTypes: typeof RECIPROCITY_FILM_TYPES
-): {
-  originalTime: number;
-  adjustedTime: number;
-  factor: number;
-  percentageIncrease: number;
-  filmName: string;
-} | null {
-  const filmType = values.filmType;
-  const meteredTime = values.meteredTime;
-  const customFactor = values.customFactor;
+  values: ReciprocityFormState
+): ReciprocityCalculation | null {
+  const meteredSeconds = parseReciprocityTime(values.meteredTime);
 
-  const parsedSeconds = parseReciprocityTime(meteredTime);
-  if (parsedSeconds === null || parsedSeconds <= 0) return null;
+  if (meteredSeconds === null) {
+    return null;
+  }
 
-  const selectedFilm = filmTypes.find((f: SelectItem) => f.value === filmType);
-  const factor =
-    filmType === 'custom'
-      ? Number.isFinite(customFactor)
-        ? customFactor
-        : 1.3
-      : (selectedFilm?.factor ?? 1.3);
-
-  const adjustedTime = parsedSeconds ** factor;
-  const percentageIncrease =
-    ((adjustedTime - parsedSeconds) / parsedSeconds) * 100;
-
-  return {
-    originalTime: parsedSeconds,
-    adjustedTime,
-    factor,
-    percentageIncrease,
-    filmName:
-      filmType === 'custom'
-        ? 'Custom profile'
-        : (selectedFilm?.label ?? 'Unknown'),
-  };
+  return calculateReciprocity({
+    meteredSeconds,
+    filmType: values.filmType,
+    customFactor: values.customFactor,
+  });
 }
-
-type ReciprocityCalculation = NonNullable<
-  ReturnType<typeof selectReciprocityCalculation>
->;
 
 function ReciprocitySidebar() {
   return (
@@ -247,10 +224,7 @@ function ReciprocityResults({
       </div>
 
       <div className="space-y-2">
-        <ResultRow
-          label="Film selection"
-          value={calculation.filmName || 'Custom profile'}
-        />
+        <ResultRow label="Film selection" value={calculation.filmName} />
         <ResultRow
           label="Original time"
           value={formatReciprocityTime(calculation.originalTime)}
@@ -487,7 +461,7 @@ function useReciprocityForm() {
 export default function ReciprocityCalculatorPage() {
   useCalculatorAnalytics({ tool: 'reciprocity' });
 
-  const { form, filmTypes, filmOptions, parsedDisplay } = useReciprocityForm();
+  const { form, filmOptions, parsedDisplay } = useReciprocityForm();
 
   const [showChart, setShowChart] = useState(false);
   const [isWideChart, setIsWideChart] = useState(false);
@@ -497,9 +471,7 @@ export default function ReciprocityCalculatorPage() {
   // Build the wide chart footer section
   const wideChartFooter = showChart && isWideChart && (
     <form.Subscribe
-      selector={(state) =>
-        selectReciprocityCalculation(state.values, filmTypes)
-      }
+      selector={(state) => selectReciprocityCalculation(state.values)}
     >
       {(calculation) =>
         calculation ? (
@@ -515,9 +487,7 @@ export default function ReciprocityCalculatorPage() {
   const results = useMemo(
     () => (
       <form.Subscribe
-        selector={(state) =>
-          selectReciprocityCalculation(state.values, filmTypes)
-        }
+        selector={(state) => selectReciprocityCalculation(state.values)}
       >
         {(calculation) =>
           calculation ? (
@@ -532,7 +502,7 @@ export default function ReciprocityCalculatorPage() {
         }
       </form.Subscribe>
     ),
-    [form, filmTypes, showChart, isWideChart]
+    [form, showChart, isWideChart]
   );
 
   return (
