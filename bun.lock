@@ -78,11 +78,11 @@
     },
     "apps/dorkroom": {
       "name": "@dorkroom/dorkroom",
-      "version": "2026.8.19",
+      "version": "2026.9.4",
     },
     "apps/mobile": {
       "name": "@dorkroom/mobile",
-      "version": "2026.8.17",
+      "version": "2026.9.4",
       "dependencies": {
         "@dorkroom/api": "workspace:*",
         "@dorkroom/logic": "workspace:*",
@@ -131,21 +131,21 @@
         "@types/react": "~19.2.14",
         "lucide-static": "^1.18.0",
         "sharp": "^0.35.3",
-        "tailwindcss": "^3.4.17",
+        "tailwindcss": "^3.4.19",
         "typescript": "~6.0.3",
         "vitest": "4.1.10",
       },
     },
     "packages/api": {
       "name": "@dorkroom/api",
-      "version": "2026.8.19",
+      "version": "2026.9.4",
       "devDependencies": {
         "@types/node": "^26.1.2",
       },
     },
     "packages/logic": {
       "name": "@dorkroom/logic",
-      "version": "2026.8.19",
+      "version": "2026.9.4",
       "dependencies": {
         "@dorkroom/api": "workspace:*",
         "fuse.js": "^7.5.0",
@@ -165,7 +165,7 @@
     },
     "packages/ui": {
       "name": "@dorkroom/ui",
-      "version": "2026.8.19",
+      "version": "2026.9.4",
       "dependencies": {
         "@dorkroom/api": "workspace:*",
         "@dorkroom/logic": "workspace:*",
