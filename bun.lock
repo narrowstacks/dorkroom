@@ -78,11 +78,11 @@
     },
     "apps/dorkroom": {
       "name": "@dorkroom/dorkroom",
-      "version": "2026.8.19",
+      "version": "2026.9.4",
     },
     "apps/mobile": {
       "name": "@dorkroom/mobile",
-      "version": "2026.8.17",
+      "version": "2026.9.4",
       "dependencies": {
         "@dorkroom/api": "workspace:*",
         "@dorkroom/logic": "workspace:*",
@@ -116,7 +116,7 @@
         "react-dom": "19.2.7",
         "react-native": "0.86.2",
         "react-native-gesture-handler": "~2.32.0",
-        "react-native-mmkv": "^4.3.1",
+        "react-native-mmkv": "^4.3.2",
         "react-native-nitro-modules": "^0.36.1",
         "react-native-reanimated": "4.5.1",
         "react-native-reorderable-list": "^0.18.1",
@@ -138,14 +138,14 @@
     },
     "packages/api": {
       "name": "@dorkroom/api",
-      "version": "2026.8.19",
+      "version": "2026.9.4",
       "devDependencies": {
         "@types/node": "^26.1.2",
       },
     },
     "packages/logic": {
       "name": "@dorkroom/logic",
-      "version": "2026.8.19",
+      "version": "2026.9.4",
       "dependencies": {
         "@dorkroom/api": "workspace:*",
         "fuse.js": "^7.5.0",
@@ -165,7 +165,7 @@
     },
     "packages/ui": {
       "name": "@dorkroom/ui",
-      "version": "2026.8.19",
+      "version": "2026.9.4",
       "dependencies": {
         "@dorkroom/api": "workspace:*",
         "@dorkroom/logic": "workspace:*",
@@ -2449,7 +2449,7 @@
 
     "react-native-is-edge-to-edge": ["react-native-is-edge-to-edge@1.3.1", "", { "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-NIXU/iT5+ORyCc7p0z2nnlkouYKX425vuU1OEm6bMMtWWR9yvb+Xg5AZmImTKoF9abxCPqrKC3rOZsKzUYgYZA=="],
 
-    "react-native-mmkv": ["react-native-mmkv@4.3.1", "", { "peerDependencies": { "react": "*", "react-native": "*", "react-native-nitro-modules": "*" } }, "sha512-APyGGaaHtayVgT18dBM8QGGZKr9pGfSTiBwbbPNzhGGfJQSU7awLGRGq879OqYl31HmVks9hOBLCs+qfgacRZg=="],
+    "react-native-mmkv": ["react-native-mmkv@4.3.2", "", { "peerDependencies": { "react": "*", "react-native": "*", "react-native-nitro-modules": "*" } }, "sha512-49OAyfkg0/TMWiWELZN6VuVQPZPhizwL4DTmp8b7B1md3dB/s3LH3mGfC3T+lp9W0y/rqxZMEnotLFTIbOAenQ=="],
 
     "react-native-nitro-image": ["react-native-nitro-image@0.15.1", "", { "peerDependencies": { "react": "*", "react-native": "*", "react-native-nitro-modules": "*" } }, "sha512-slrImfUgasAdzylTiNWuTkawE0R4t7LGh+7N2VFa/D9+SxlQbkKYp1J6hA3XkkEnTnUCKaea39ZVg+1xx665MQ=="],
 
