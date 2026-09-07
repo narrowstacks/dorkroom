@@ -10,12 +10,42 @@ A reviewer reading a diff has to imagine the result. Screenshots mean they don't
 have to — and they catch the regressions a diff hides: a value that now renders
 `NaN`, a card that lost its padding, a theme where the text went invisible.
 
-Two scripts do the work:
+Two pieces do the work:
 
 - `scripts/pr-screenshots.ts` — captures a **shot list** against a running dev
   server, writes WebP files.
-- `scripts/github-upload-attachment.ts` — uploads those files to GitHub and
-  returns permanent `user-attachments/assets/…` URLs. Nothing lands in the repo.
+- `gh pr edit --attach` — uploads those files to GitHub's CDN and rewrites the
+  local paths in the PR body to permanent `user-attachments/assets/…` URLs.
+  Nothing lands in the repo.
+
+`--attach` needs **gh 2.99.0 or newer**. Check with `gh --version` first — on
+older gh the flag does not exist and the command fails with
+`unknown flag: --attach`. It is also unsupported on GitHub Enterprise Server at
+any version.
+
+Upgrading, in order of what's likely to work where you are:
+
+```bash
+brew upgrade gh                          # macOS, and Linuxbrew
+
+# No Homebrew, no root — the release tarball works anywhere.
+V=2.99.0; OS=linux; ARCH=amd64           # ARCH=arm64 on aarch64
+curl -fsSL "https://github.com/cli/cli/releases/download/v$V/gh_${V}_${OS}_${ARCH}.tar.gz" \
+  | tar xz -C /tmp
+export PATH="/tmp/gh_${V}_${OS}_${ARCH}/bin:$PATH"
+gh --version
+```
+
+Distro packages (apt, dnf, apk, winget, scoop) lag by days to weeks; check
+<https://github.com/cli/cli/blob/trunk/docs/install_linux.md> before assuming
+one has 2.99.0 yet.
+
+**If you cannot get gh 2.99.0**, don't improvise an uploader — there is no
+scripted fallback in this repo any more, and the browser-driving flow it
+replaced was deleted. Capture the shots (steps 2-4), then either hand the files
+to a human to drag into the PR comment box, or say in the PR description that
+screenshots were captured but could not be uploaded from this environment.
+Leaving the section out silently is the one thing that isn't acceptable.
 
 ## Step 1 — Decide whether the change is visual
 
@@ -78,7 +108,8 @@ Fields: `id` (required — becomes the filename and the image's alt text), `rout
 (default `dark`), `actions` (optional: `fill`, `click`, `select`, `waitFor`).
 
 Keep it tight. Three or four shots that show the change beat twelve that bury
-it.
+it. One `gh` command takes at most **50 attachments**, which is far more than
+any honest shot list.
 
 ## Step 3 — Capture "after"
 
@@ -137,76 +168,11 @@ Two things to know:
   captures "before" from production and skips the worktree install entirely —
   by far the slowest step. Only valid when `main` is deployed and current.
 
-## Step 5 — Upload
+## Step 5 — Write the Screenshots section
 
-First run only, to save a GitHub session into a persistent browser profile:
-
-```bash
-bun run scripts/github-upload-attachment.ts --login
-```
-
-That opens a headed browser; log in once. The profile lives at
-`~/.dorkroom/gh-upload-profile`, outside the repo — it holds a real session, so
-treat it as a credential. Every run after that is headless:
-
-```bash
-bun run scripts/github-upload-attachment.ts --pr <number> \
-  .pr-screenshots/before/*.webp .pr-screenshots/after/*.webp
-```
-
-Pass every file in one command, as above. The script still uploads them **one at
-a time, each on its own page load**, because GitHub's comment box accepts the
-first upload of a page load and silently swallows every one after it. Do not try
-to be clever and loop the script per file yourself; it already does the right
-thing, and one invocation pays the browser startup cost once.
-
-It prints `{"<path>": "<url>"}` on stdout for every file that made it. If it
-reports you're not logged in, the session expired — re-run `--login`.
-
-**Partial failures are normal and recoverable.** Each file gets up to three
-attempts with backoff. A file that still fails does not sink the run: the JSON
-still holds every URL that landed, the failures go to stderr, and the exit code
-is non-zero.
-
-```
-1 file(s) failed to upload:
-  .pr-screenshots/after/reciprocity.webp: Timed out waiting for GitHub to accept …
-
-The JSON above holds every file that did upload. Re-run just the failures:
-  bun run scripts/github-upload-attachment.ts --pr 42 .pr-screenshots/after/reciprocity.webp
-```
-
-When that happens: keep the URLs you already have, run the printed command to
-retry only the missing files, and merge the two maps. **Never re-capture.** The
-screenshots on disk are fine; only the upload failed.
-
-A file GitHub refuses outright (unsupported type, too large) is reported and not
-retried, since retrying a refusal only refuses again.
-
-<details>
-<summary>Why a browser at all?</summary>
-
-GitHub has no upload API. But dropping a file on a comment box uploads it
-immediately and returns a permanent `user-attachments/assets/…` URL — and that
-URL survives even if the comment is never submitted. So the script uploads,
-harvests the URLs, and clears the box without posting anything. This is exactly
-what happens when a human drags an image into a PR.
-
-Two quirks of that box cost real debugging time, and the script now handles both:
-
-- The box takes **one upload per page load**. A second file dropped on the same
-  page produces no placeholder, no error, and no URL anywhere on the page.
-- On a PR with inline review threads, a collapsed inline *reply* box appears
-  earlier in the DOM than the main comment box. Targeting "the first comment
-  textarea" hands you that dead widget, and uploads vanish into it. The script
-  anchors to the main comment form and takes the file input from the same
-  `<file-attachment>` wrapper, so the pair can never be mismatched.
-</details>
-
-## Step 6 — Embed in the PR
-
-Append a `## Screenshots` section with `gh pr edit`, pairing before and after by
-shot id:
+Write the section with **Markdown image syntax pointing at the local files**.
+`gh` rewrites those paths to CDN URLs on upload. Group by route, and put the
+shot that best shows the change first:
 
 ```markdown
 ## Screenshots
@@ -215,11 +181,86 @@ shot id:
 
 | Before | After |
 |---|---|
-| <img width="500" alt="reciprocity before" src="https://github.com/user-attachments/assets/…" /> | <img width="500" alt="reciprocity after" src="https://github.com/user-attachments/assets/…" /> |
+| ![reciprocity before](.pr-screenshots/before/reciprocity.webp) | ![reciprocity after](.pr-screenshots/after/reciprocity.webp) |
 ```
 
 New UI has no before — use a single **After** column and say the route is new.
-Group by route, and put the shot that best shows the change first.
+
+**Markdown syntax only.** `gh` rewrites `![alt](path)` and nothing else. An HTML
+`<img src="./shot.webp">` is left untouched — you get a broken image *and* the
+file appended a second time at the bottom of the body. This is the one rule that
+silently produces a wrong PR, so don't reach for `<img>` to set a width. A
+two-column table already constrains each image to half the body width, which is
+the only sizing the old flow was buying.
+
+`gh pr edit --body-file` replaces the whole body, so build the new body from the
+current one:
+
+```bash
+PR=$(gh pr view --json number -q .number)
+gh pr view "$PR" --json body -q .body > /tmp/dr-body.md
+cat .pr-screenshots/section.md >> /tmp/dr-body.md
+```
+
+## Step 6 — Upload and embed, in one command
+
+Pass every screenshot as a repeated `--attach`. Each value is
+`<path>#<alt text>`; without the `#` part the filename becomes the alt text.
+
+```bash
+gh pr edit "$PR" --body-file /tmp/dr-body.md \
+  --attach '.pr-screenshots/before/reciprocity.webp#reciprocity before' \
+  --attach '.pr-screenshots/after/reciprocity.webp#reciprocity after'
+```
+
+One command, all files, no browser and no session to keep alive.
+
+Then verify, because two different failures both leave a body that *looks*
+fine. Read it back and check two things — that no local path survived, and that
+the number of CDN URLs equals the number of `--attach` flags you passed:
+
+```bash
+gh pr view "$PR" --json body -q .body > /tmp/dr-body-live.md
+
+# 1. No local path may survive. A hit here means a reference didn't match —
+#    almost always an HTML <img> or a typo'd path.
+if grep -n '\.pr-screenshots/' /tmp/dr-body-live.md; then
+  echo 'FAIL: a local path was not rewritten'
+fi
+
+# 2. One CDN URL per attachment, no more. A surplus means a file was appended
+#    at the bottom instead of landing in its table cell.
+grep -o 'user-attachments/assets' /tmp/dr-body-live.md | wc -l
+```
+
+**Count occurrences, not lines.** `grep -c` counts *matching lines*, and a
+before/after table row holds two URLs on one line — it would report `1` for a
+correct two-shot table. `grep -o … | wc -l` counts the URLs themselves.
+
+Neither check alone is enough: an unmatched path leaves the local text behind
+*and* appends the asset elsewhere, so check 1 catches the broken reference and
+check 2 catches the stray image.
+
+Rules that matter in practice:
+
+- **Every attached file must be referenced in the body.** An unreferenced
+  attachment is not an error — it gets appended to the bottom of the body, out
+  of its table. If you see a stray image below the section, that's a path that
+  didn't match.
+- **Path forms are normalized**, so `./shot.webp` in the body matches
+  `shot.webp` in the flag and vice versa. Subdirectories work fine.
+- **Alt text in the body wins.** `--attach 'x.webp#flag alt'` referenced as
+  `![body alt](x.webp)` keeps *body alt*. The `#alt` only applies to
+  attachments the body doesn't reference.
+- **A file can be attached only once per command** (`… are the same file;
+  attached files must be unique`). If one screenshot belongs in two places,
+  reference it once and link to it in the second.
+- **Supported types:** png, jpg, jpeg, gif, webp, svg, mp4, mov, webm. Anything
+  else is refused up front. Images cap at 10 MB; our WebP shots are kilobytes.
+- Every run **re-uploads** — editing the body a second time mints new asset
+  URLs. Harmless, but don't expect the old URLs back.
+- The same flag works on `gh pr create`, `gh pr comment`, and the `gh issue`
+  equivalents, so a follow-up screenshot can go in a comment instead.
 
 ## Step 7 — Clean up
 
