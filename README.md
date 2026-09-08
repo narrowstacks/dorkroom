@@ -34,18 +34,38 @@ Dorkroom provides useful calculators for darkroom printing, film development, an
 - [**Exposure Calculator**](https://dorkroom.art/exposure) - Balance aperture, shutter speed, and ISO; calculate equivalent exposures across settings.
 - [**Lens Equivalency Calculator**](https://dorkroom.art/lenses) - Compare equivalent focal lengths and field of view across APS-C, Full Frame, and Medium Format.
 
+### Documentation
+
+- [**Dorkroom Docs**](https://dorkroom.art/docs) - How-to guides and reference material for every tool. It lives in its own repository and is stitched in through Vercel Microfrontends.
+
 ## iOS App
 
 A native **iOS app** (Expo / React Native, targeting iOS 26 with Liquid Glass
 styling) is in development under [`apps/mobile/`](apps/mobile/). It reuses the
-same `@dorkroom/logic` and `@dorkroom/api` packages as the web app and ships the
-Border, Exposure, Reciprocity, and Resize calculators plus a camera-based
-**Light Meter**. It versions independently — see
+same `@dorkroom/logic` and `@dorkroom/api` packages as the web app, so the math
+is identical on both platforms.
+
+Working today:
+
+- **Border**, **Reciprocity**, and **Resize** calculators
+- **Exposure**, the f-stop and time calculator the web app calls
+  [Stops](https://dorkroom.art/stops)
+- **Light Meter**, metering through the camera, with aperture- and
+  shutter-priority solving
+- **Development Recipes** browsing, with a multi-stage process timer and
+  editable timer presets
+- **Film Log** for rolls, shots, and gear, using the live film database as its
+  film picker
+
+Still placeholders: **Mat Cut**, **Lens Equivalency**, and **Camera Exposure**
+appear in the tool list but render a Coming Soon screen.
+
+The app versions independently of the web app. See
 [apps/mobile/CHANGELOG.md](apps/mobile/CHANGELOG.md).
 
 ## In the Works
 
-- **Dorkroom Docs** - Thorough documentation on how to use all the tools Dorkroom provides.
+- **iOS parity** - Mat Cut, Lens Equivalency, and Camera Exposure still need native screens, and the film database is not yet browsable on iOS.
 - **Kindle browser support** - Support for the app on the strange Kindle browser.
   - _**Help needed!** The site currently does not render on Kindle browsers_ ☹️
 

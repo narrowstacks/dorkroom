@@ -12,13 +12,19 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 | `/border` | Border Calculator | Printing | Implemented |
 | `/stops` | Stops Calculator | Printing | Implemented |
 | `/resize` | Resize Calculator | Printing | Implemented |
+| `/mat` | Mat Cut Calculator | Printing | Implemented |
 | `/reciprocity` | Reciprocity Calculator | Film | Implemented |
 | `/development` | Film Development Recipes | Film | Implemented |
 | `/lenses` | Lens Equivalency Calculator | Camera | Implemented |
 | `/exposure` | Camera Exposure Calculator | Camera | Implemented |
 | `/films` | Film Database | Reference | Implemented |
-| `/docs` | Documentation | Reference | Placeholder |
+| `/docs` | Documentation | Reference | Separate repo (microfrontend) |
+| `/privacy` | Privacy | — | Implemented |
 | `/settings` | Settings | — | Implemented |
+
+`/docs` has no route file in this repo. It is served by a different
+application through Vercel Microfrontends; see [Documentation
+(`/docs`)](#documentation-docs) below.
 
 ---
 
@@ -30,17 +36,22 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 
 **Features:**
 
-- Hero section with app description
-- Stats cards (total recipes, favorites, custom recipes)
-- Calculator tool cards with navigation
-- Coming soon section for unreleased features
-- Footer with GitHub and donation links
+- Grain-textured hero panel: `Greeting`, the "Skip the math. Make prints!"
+  tagline, and a one-line stat summary (development recipes, film stocks,
+  developers)
+- Two hero calls to action, linking to `/border` and `/development`
+- `HomeHeroPreview` - a live border-calculator preview, shown from the `md`
+  breakpoint up
+- Tools grid of `ToolCard`s, one per calculator, driven by the module-level
+  `CALCULATORS` array (category, accent tone, and icon per tool)
+- Footer with license, `/privacy`, GitHub, and Ko-fi links
 
 **Data dependencies:**
 
-- `useCombinations()` - Total recipe count
-- `useFavorites()` - Favorite recipe IDs
-- `useCustomRecipes()` - User's custom recipes
+- `useStats()` - Recipe, film, and developer counts for the hero stat line
+
+The footer year is set in a mount effect rather than during render, so
+build-time prerender snapshots stay deterministic.
 
 ---
 
@@ -109,6 +120,42 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 
 - Print size: `newTime = originalTime × (newArea / originalArea)`
 - Enlarger height: `newTime = originalTime × (newHeight² / originalHeight²)`
+
+---
+
+## Mat Cut Calculator (`/mat`)
+
+**Purpose:** Plan a single-window mat and get the numbers a mat cutter needs.
+
+**Location:** `apps/dorkroom/src/app/pages/mat-calculator/`
+
+**Features:**
+
+- Outer mat dimensions, with common board presets (`MAT_PRESETS`) and an
+  orientation flip
+- Independent top, bottom, left, and right borders
+- Optional artwork dimensions plus a per-side reveal, which turns on reveal
+  mode and the best-fit calculation
+- Bottom weighting, for the optical-centre convention where the bottom border
+  is deeper than the top
+- Best fit: proposes the four borders that centre the artwork at the requested
+  reveal, previewed before it is applied
+- `mat-diagram.tsx` - proportional preview of board, window, and artwork
+- Warnings for an invalid window and for a window that does not match the
+  requested reveal
+- Window-opening result, four cutter guide-bar settings, and a full dimension
+  table
+- Fraction-friendly inputs (`fraction-field.tsx`): decimals, simple fractions,
+  and mixed fractions all round-trip
+- State persistence to localStorage
+
+**Key hook:**
+
+- `useMatCalculator()` - all parsing, geometry, best fit, warnings, and
+  persistence. The iOS app consumes the same hook.
+
+**Note:** this calculator is imperial-only; it does not yet follow the global
+imperial/metric preference (issue #250).
 
 ---
 
@@ -300,13 +347,47 @@ Routes use TanStack Router file-based routing in `apps/dorkroom/src/routes/`.
 
 ---
 
-## Placeholder Pages
+## Privacy (`/privacy`)
 
-### Documentation (`/docs`)
+**Purpose:** State exactly what the app measures and what it deliberately does
+not.
 
-**Status:** Placeholder
+**Location:** `apps/dorkroom/src/app/pages/privacy-page.tsx`
 
-**Planned purpose:** How-to guides and reference material for analog photography.
+**Features:**
+
+- The short version, then what we use, every event we record, what we never
+  collect, opting out, and checking our work
+- A table of every custom analytics event, rendered from the page's own
+  `TRACKED_EVENTS` array
+
+**Kept in sync, and enforced:** the event names here, in
+`apps/dorkroom/src/app/lib/analytics/events.ts`, and in root `PRIVACY.md` must
+match. `tools/__tests__/analytics-privacy-sync.test.ts` compares all three and
+fails if they diverge; it runs as `bun run test:docs`, inside `bun run test`,
+and in CI. Adding or changing an event means editing all three in the same PR.
+
+---
+
+## Documentation (`/docs`)
+
+**Status:** Live, and served from a **separate repository**.
+
+`dorkroom.art/docs` is a Fumadocs site owned by another repo and stitched in
+through Vercel Microfrontends. Nothing under those paths lives here and there
+is no `routes/docs.tsx`.
+
+`apps/dorkroom/microfrontends.json` declares which paths route to it:
+
+- `/docs/:path*`
+- `/keystatic`, `/keystatic/:path*`, `/api/keystatic/:path*`
+- `/api/search`
+- `/og/docs/:path*`
+- `/llms-full.txt`
+
+`/docs` still gets a title and description from `ROUTE_TITLES` /
+`ROUTE_DESCRIPTIONS` in `utils/routeMetadata.ts`, because the bot metadata
+endpoint answers for the whole domain.
 
 ---
 
