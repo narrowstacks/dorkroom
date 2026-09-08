@@ -7,14 +7,14 @@ import {
   formatPosition,
   formatPreviewCaption,
 } from '@/components/border/format';
-import { NavRow } from '@/components/border/nav-row';
 import { BorderSizeSection } from '@/components/border/sections/border-size-section';
 import { PaperImageSection } from '@/components/border/sections/paper-image-section';
 import { PositionSection } from '@/components/border/sections/position-section';
-import { WarningsCard } from '@/components/border/warnings-card';
 import { BottomSheet } from '@/components/bottom-sheet';
 import { GlassCard } from '@/components/glass-card';
+import { NavRow } from '@/components/nav-row';
 import { Screen } from '@/components/screen';
+import { WarningsCard } from '@/components/warnings-card';
 
 type SheetId = 'paperImage' | 'borderSize' | 'position' | null;
 

@@ -35,7 +35,7 @@ export function PresetChipRow<T extends string | number>({
               }}
               accessibilityRole="button"
               accessibilityState={{ selected }}
-              className={`rounded-full px-4 py-2 ${
+              className={`min-h-11 items-center justify-center rounded-full px-4 py-2 ${
                 selected && !tint
                   ? 'bg-rose-600'
                   : !selected
