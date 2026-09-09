@@ -97,7 +97,7 @@
     "typescript": "^6.0.3",
     "typescript-7": "npm:typescript@^7.0.2",
     "vite": "8.0.16",
-    "vitest": "4.1.10"
+    "vitest": "4.1.11"
   },
   "packageManager": "bun@1.4.0",
   "engines": {
