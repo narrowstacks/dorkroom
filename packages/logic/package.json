@@ -29,7 +29,7 @@
     "@tanstack/react-table": "^8.0.0"
   },
   "devDependencies": {
-    "@types/react": "^19.2.7",
+    "@types/react": "^19.2.18",
     "@testing-library/jest-dom": "^6.8.0",
     "@vitest/ui": "4.1.10",
     "happy-dom": "20.11.1",
