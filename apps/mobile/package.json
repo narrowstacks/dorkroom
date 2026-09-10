@@ -44,8 +44,8 @@
     "expo-symbols": "~57.0.2",
     "lucide-react-native": "^1.18.0",
     "nativewind": "^4.2.6",
-    "react": "19.2.7",
-    "react-dom": "19.2.7",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "react-native": "0.86.2",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-mmkv": "^4.3.1",
@@ -60,7 +60,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/react": "~19.2.14",
+    "@types/react": "~19.2.18",
     "lucide-static": "^1.18.0",
     "sharp": "^0.35.3",
     "tailwindcss": "^3.4.17",
