@@ -2,95 +2,21 @@ import {
   MAT_PRESETS,
   type MatCalculatorState,
   parseMatInput,
-  toFractionInput,
   type UseMatCalculatorReturn,
   useMatCalculator,
 } from '@dorkroom/logic';
-import { getRouteIcon, StatusAlert } from '@dorkroom/ui';
+import { getRouteIcon, StatusAlert, useMeasurement } from '@dorkroom/ui';
 import {
   CalculatorCard,
   CalculatorLayout,
   CalculatorStat,
 } from '@dorkroom/ui/calculator';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 import { FractionField } from './fraction-field';
 import { MatDiagram } from './mat-diagram';
-
-const HOW_TO_USE = [
-  'Enter the outer mat dimensions — usually the frame’s rabbet opening, or pick a board preset.',
-  'Set each border, or let Best fit center your artwork inside the board.',
-  'Bottom-weighting adds a touch to the bottom border so the window sits at the optical center.',
-  'Read the window opening, then take the guide-bar settings below to your cutter.',
-];
-
-const TIPS = [
-  'Cut the mat face down. The guide-bar offset is the border for the edge set against the bar.',
-  'Reveal (overlap onto the artwork) is typically 1/8" to 1/4" per side so the mat hides the paper edge.',
-  'For a beveled cutter, overshoot each plunge/stop slightly to account for the bevel reach — verify on a scrap first.',
-  'Inputs accept decimals like 1.5, or fractions like 1 1/2 and 1/4.',
-];
-
-function InfoSection() {
-  return (
-    <CalculatorCard
-      title="How this calculator works"
-      padding="normal"
-      className="bg-surface-muted/80"
-    >
-      <div className="space-y-6">
-        <p
-          className="text-[15px] leading-relaxed"
-          style={{ color: 'var(--color-text-secondary)' }}
-        >
-          Plan a single-window mat with independent borders. Enter your board
-          and borders (or fit them to your artwork) and the calculator returns
-          the exact window opening plus guide-bar settings for a mat cutter.
-        </p>
-
-        <div className="space-y-3">
-          <h4
-            className="text-sm font-semibold"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            How to use
-          </h4>
-          <ol className="ml-5 list-decimal space-y-2">
-            {HOW_TO_USE.map((item) => (
-              <li
-                key={item}
-                className="pl-2 text-[15px] leading-relaxed"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                {item}
-              </li>
-            ))}
-          </ol>
-        </div>
-
-        <div className="space-y-3">
-          <h4
-            className="text-sm font-semibold"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            Tips
-          </h4>
-          <ul className="ml-5 list-disc space-y-2">
-            {TIPS.map((tip) => (
-              <li
-                key={tip}
-                className="pl-2 text-[15px] leading-relaxed"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                {tip}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </CalculatorCard>
-  );
-}
+import { MatInfoSection } from './mat-info-section';
+import { formatMatPreview, formatMatValue } from './mat-units';
 
 interface PresetRowProps {
   outerW: string;
@@ -322,7 +248,7 @@ function MatSidebar({
         </div>
       </CalculatorCard>
 
-      <InfoSection />
+      <MatInfoSection />
     </>
   );
 }
@@ -433,6 +359,8 @@ function ArtworkBestFitCard({
   | 'overlapTop'
   | 'hasRevealMismatch'
 >) {
+  const { unit } = useMeasurement();
+
   return (
     <CalculatorCard
       title="Artwork & best fit"
@@ -503,10 +431,10 @@ function ArtworkBestFitCard({
           className="font-mono text-[11px]"
           style={{ color: 'var(--color-text-tertiary)' }}
         >
-          Would set borders to {toFractionInput(bestFitPreview.top)}″ T ·{' '}
-          {toFractionInput(bestFitPreview.bottom)}″ B ·{' '}
-          {toFractionInput(bestFitPreview.left)}″ L ·{' '}
-          {toFractionInput(bestFitPreview.right)}″ R
+          Would set borders to {formatMatPreview(bestFitPreview.top, unit)} T ·{' '}
+          {formatMatPreview(bestFitPreview.bottom, unit)} B ·{' '}
+          {formatMatPreview(bestFitPreview.left, unit)} L ·{' '}
+          {formatMatPreview(bestFitPreview.right, unit)} R
         </p>
       )}
 
@@ -529,7 +457,17 @@ function ArtworkBestFitCard({
 export default function MatCalculatorPage() {
   useCalculatorAnalytics({ tool: 'mat' });
 
-  const calc = useMatCalculator();
+  const { unit } = useMeasurement();
+
+  // The only place the mat page leaves inches: form state, persistence and
+  // every calculation stay imperial, and this renders them in the unit the
+  // user picked in /settings.
+  const formatValue = useCallback(
+    (inches: number) => formatMatValue(inches, unit),
+    [unit]
+  );
+
+  const calc = useMatCalculator({ formatValue });
 
   const results = useMemo(
     () => (
