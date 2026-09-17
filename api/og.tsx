@@ -124,12 +124,15 @@ async function lookupDeveloper(slug: string): Promise<DeveloperInfo | null> {
  * Without a `recipeUuid`, returns the first row (`limit=1`) — there is no
  * specific recipe to match, so any row for the pairing is fine.
  *
- * With a `recipeUuid`, pages through `/api/combinations` (`limit=50` per
- * page) looking for that exact row, since the backend gives no ordering
- * guarantee that would put it on page 1. A miss returns `null` rather than
- * substituting an unrelated recipe — see issue #252. Paging stops once the
- * UUID is found, the upstream reports no more matching rows (via `count`),
- * a page comes back empty, or `MAX_COMBINATION_PAGES` is reached.
+ * With a `recipeUuid`, pages through `/api/combinations` looking for that
+ * exact row, since the backend gives no ordering guarantee that would put it
+ * on page 1. The upstream function only honours `page` when the page size is
+ * sent as `count`; with `limit` it ignores `page` and returns the first rows
+ * every time (see `supabase/functions/combinations/index.ts`). A miss returns
+ * `null` rather than substituting an unrelated recipe — see issue #252. Paging
+ * stops once the UUID is found, the upstream reports no more matching rows
+ * (via the response's `count`), a page comes back empty, or
+ * `MAX_COMBINATION_PAGES` is reached.
  */
 export async function lookupCombination(
   filmSlug: string,
@@ -150,7 +153,7 @@ export async function lookupCombination(
     const data = await fetchJson<{
       data: (CombinationInfo & { uuid?: string })[];
       count?: number;
-    }>(`${baseUrl}&limit=${COMBINATION_PAGE_SIZE}&page=${page}`);
+    }>(`${baseUrl}&count=${COMBINATION_PAGE_SIZE}&page=${page}`);
     if (!data?.data?.length) return null;
 
     const match = data.data.find((c) => c.uuid === recipeUuid);

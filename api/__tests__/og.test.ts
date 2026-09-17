@@ -130,6 +130,18 @@ describe('og handler - film detail', () => {
   });
 });
 
+/**
+ * Mirrors the upstream pagination contract in
+ * `supabase/functions/combinations/index.ts`: `page` is honoured only when the
+ * page size is sent as `count`. A `limit` request always yields page 1, which
+ * is exactly the trap #252's first fix fell into.
+ */
+function requestedPage(url: string): number {
+  const params = new URL(url).searchParams;
+  if (!params.has('count')) return 1;
+  return Number.parseInt(params.get('page') ?? '1', 10);
+}
+
 describe('og handler - development recipe', () => {
   it('renders recipe card with API data', async () => {
     stubFetch((url) => {
@@ -283,7 +295,7 @@ describe('og handler - development recipe', () => {
       }
       if (url.includes('/api/combinations')) {
         combinationUrls.push(url);
-        if (url.includes('page=2')) {
+        if (requestedPage(url) === 2) {
           return Promise.resolve(
             jsonResponse(
               JSON.stringify({
@@ -328,7 +340,7 @@ describe('og handler - development recipe', () => {
     );
 
     expect(res.status).toBe(200);
-    expect(combinationUrls.some((url) => url.includes('page=2'))).toBe(true);
+    expect(combinationUrls.some((url) => requestedPage(url) === 2)).toBe(true);
   });
 });
 
@@ -369,7 +381,7 @@ describe('lookupCombination', () => {
     const requestedUrls: string[] = [];
     stubFetch((url) => {
       requestedUrls.push(url);
-      if (url.includes('page=2')) {
+      if (requestedPage(url) === 2) {
         return Promise.resolve(
           combinationsResponse([{ uuid: 'target', time_minutes: 20 }], 75)
         );
@@ -388,12 +400,13 @@ describe('lookupCombination', () => {
     );
 
     expect(result?.time_minutes).toBe(20);
-    expect(requestedUrls.some((url) => url.includes('page=2'))).toBe(true);
+    expect(requestedUrls.some((url) => requestedPage(url) === 2)).toBe(true);
+    expect(requestedUrls.every((url) => url.includes('count=50'))).toBe(true);
   });
 
   it('returns null, never the first row, when the uuid is absent', async () => {
     stubFetch((url) => {
-      if (url.includes('page=2')) {
+      if (requestedPage(url) === 2) {
         const page2 = Array.from({ length: 10 }, (_, i) => ({
           uuid: `other-page2-${i}`,
           time_minutes: 2,
