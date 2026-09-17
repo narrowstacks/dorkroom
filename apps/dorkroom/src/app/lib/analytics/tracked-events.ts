@@ -113,6 +113,8 @@ export interface AnalyticsEvents {
   calculator_used: { tool: CalculatorTool; mode: CalculatorMode };
   /** `preset` is always a number drawn from the calculator's own fixed preset
    *  list, never anything the user typed. What it means depends on `tool`:
+   *  - `border`: the preset's index into `DEFAULT_BORDER_PRESETS`; user-saved
+   *    presets are never tracked.
    *  - `exposure`: the EV.
    *  - `stops`: the stop increment the button applies (e.g. -1, 1/3).
    *  - `lenses`: the focal length in millimeters.
