@@ -13,6 +13,10 @@ export const MAX_LIMIT = 1000;
 // Numeric parameters that need special validation
 const NUMERIC_PARAMS = new Set(['limit', 'count', 'page']);
 
+// `fuzzy` is documented as a two-value enum (see api/openapi.ts); only these
+// exact values are forwarded upstream.
+const FUZZY_VALUES = new Set(['true', 'false']);
+
 export interface QueryValidationOptions {
   /** Maximum length for string parameters (default: 200) */
   maxParamLength?: number;
@@ -85,29 +89,16 @@ export function validateAndSanitizeQuery(
       if (key === 'page' && numValue < 1) continue;
 
       params.set(key, String(numValue));
+    } else if (key === 'fuzzy') {
+      // Skip values outside the documented enum, same as an out-of-range
+      // numeric param above: dropped rather than forwarded or 400'd.
+      if (!FUZZY_VALUES.has(trimmed)) continue;
+
+      params.set(key, trimmed);
     } else {
       params.set(key, trimmed);
     }
   }
 
   return params;
-}
-
-/**
- * Type guard to check if a value is a valid numeric string within bounds.
- *
- * @param value - The value to check
- * @param min - Minimum allowed value
- * @param max - Maximum allowed value
- * @returns true if value is a valid number within bounds
- */
-export function isValidNumericParam(
-  value: string | undefined,
-  min: number,
-  max: number
-): boolean {
-  if (!value) return false;
-  if (!/^\d+$/.test(value)) return false;
-  const num = parseInt(value, 10);
-  return num >= min && num <= max;
 }

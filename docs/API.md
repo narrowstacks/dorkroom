@@ -27,6 +27,15 @@ The spec is generated from the same Zod schemas used for runtime validation, so 
 
 Per-key rate limits are configured when your key is issued (e.g. 60/min free, 300/min standard).
 
+Requests may optionally send an `X-Client-Id` header: an opaque per-install
+identifier (8-64 chars, `[A-Za-z0-9_-]`). When present, the request is
+additionally rate-limited per client — 60 req/min per `X-Client-Id` value,
+plus a 240 req/min ceiling per source IP — on top of the key's own limit.
+This lets multiple installs sharing one API key (e.g. a mobile app shipping a
+single free-tier key) each get their own budget instead of exhausting the
+key's shared limit. Omitting the header keeps key-only limiting, unaffected;
+a malformed value is treated as absent rather than rejected.
+
 Every response includes rate limit headers:
 
 | Header | Description |
@@ -108,6 +117,8 @@ curl -H "X-API-Key: dk_..." \
       "reciprocity_failure": "1.3",
       "discontinued": false,
       "static_image_url": "https://...",
+      "aliases": [{ "slug": "kodak-portra-160-alt", "name": "Portra 160 (alt)" }],
+      "base_film_slug": null,
       "date_added": "2024-01-15",
       "created_at": "2024-01-15T00:00:00Z",
       "updated_at": "2024-06-01T00:00:00Z"
@@ -133,6 +144,8 @@ curl -H "X-API-Key: dk_..." \
 | `reciprocity_failure` | string \| null | Reciprocity correction exponent |
 | `discontinued` | boolean | Whether the film is discontinued |
 | `static_image_url` | string \| null | Sample image URL |
+| `aliases` | array | Alternate `{ slug, name }` pairs this film is also known by; `[]` when none |
+| `base_film_slug` | string \| null | Slug of the base film this is a rebrand/variant of, or `null` |
 | `date_added` | string | Date added (YYYY-MM-DD) |
 | `created_at` | string | ISO 8601 timestamp |
 | `updated_at` | string | ISO 8601 timestamp |
@@ -426,7 +439,9 @@ The public API (`api.dorkroom.art`) sets permissive CORS headers:
 
 - `Access-Control-Allow-Origin: *`
 - `Access-Control-Allow-Methods: GET, OPTIONS`
-- `Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-API-Key`
+- `Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-API-Key, X-Client-Id`
 - `Access-Control-Max-Age: 86400`
+
+`X-Client-Id` is optional; see [Rate Limits](#rate-limits) for what it does.
 
 Preflight `OPTIONS` requests return `200` immediately.
