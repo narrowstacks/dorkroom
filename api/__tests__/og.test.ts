@@ -7,7 +7,11 @@ import {
   type Mock,
   vi,
 } from 'vitest';
-import handler, { lookupCombination } from '../og';
+import handler, {
+  getRouteAccent,
+  getRouteIcon,
+  lookupCombination,
+} from '../og';
 
 const FONT_HOST = 'fonts.gstatic.com';
 
@@ -89,6 +93,21 @@ describe('og handler - static routes', () => {
 
   it('handles unknown routes without throwing', async () => {
     const res = await handler(makeRequest({ route: '/some-unknown-page' }));
+    expect(res.status).toBe(200);
+  });
+
+  it('selects a dedicated icon and accent for /settings instead of the home fallback', () => {
+    const settingsIcon = getRouteIcon('/settings');
+
+    expect(settingsIcon).not.toBeNull();
+    expect(settingsIcon).not.toEqual(getRouteIcon('/'));
+    // An unknown route takes the home treatment; /settings must not.
+    expect(settingsIcon).not.toEqual(getRouteIcon('/some-unknown-page'));
+    expect(getRouteAccent('/settings')).not.toBe(getRouteAccent('/'));
+  });
+
+  it('still renders /settings successfully', async () => {
+    const res = await handler(makeRequest({ route: '/settings' }));
     expect(res.status).toBe(200);
   });
 });
