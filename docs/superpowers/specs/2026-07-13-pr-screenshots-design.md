@@ -1,5 +1,11 @@
 # PR Screenshots — Design
 
+> **Superseded (2026-09-02).** GitHub CLI 2.99.0 added a native `--attach`
+> flag, so `scripts/github-upload-attachment.ts` and its Playwright browser
+> profile were deleted. The upload half of this design no longer describes
+> the implementation; the capture half (`scripts/pr-screenshots.ts`, the shot
+> list) is unchanged. See `.claude/skills/pr-screenshots/SKILL.md`.
+
 **Date:** 2026-07-13
 **Status:** Approved, pending implementation
 
