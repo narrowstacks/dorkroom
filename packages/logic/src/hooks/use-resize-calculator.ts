@@ -8,6 +8,10 @@ import {
   DEFAULT_ORIGINAL_TIME,
   DEFAULT_ORIGINAL_WIDTH,
 } from '../constants/resize-calculator';
+import {
+  calculateResizeExposure,
+  matchesAspectRatio,
+} from '../utils/resize-calculations';
 
 export interface UseResizeCalculatorReturn {
   isEnlargerHeightMode: boolean;
@@ -49,35 +53,15 @@ export const useResizeCalculator = (): UseResizeCalculatorReturn => {
   const [newHeight, setNewHeight] = useState(DEFAULT_NEW_HEIGHT);
 
   const checkAspectRatio = useCallback(() => {
-    // Skip aspect ratio check if in enlarger height mode
-    if (isEnlargerHeightMode) {
-      setIsAspectRatioMatched(true);
-      return;
-    }
-
-    const origWidth = parseFloat(originalWidth);
-    const origLength = parseFloat(originalLength);
-    const newW = parseFloat(newWidth);
-    const newL = parseFloat(newLength);
-
-    if (
-      Number.isNaN(origWidth) ||
-      Number.isNaN(origLength) ||
-      Number.isNaN(newW) ||
-      Number.isNaN(newL) ||
-      origWidth <= 0 ||
-      origLength <= 0 ||
-      newW <= 0 ||
-      newL <= 0
-    ) {
-      setIsAspectRatioMatched(true);
-      return;
-    }
-
-    const originalRatio = (origWidth / origLength).toFixed(3);
-    const newRatio = (newW / newL).toFixed(3);
-
-    setIsAspectRatioMatched(originalRatio === newRatio);
+    setIsAspectRatioMatched(
+      matchesAspectRatio({
+        isEnlargerHeightMode,
+        originalWidth: parseFloat(originalWidth),
+        originalLength: parseFloat(originalLength),
+        newWidth: parseFloat(newWidth),
+        newLength: parseFloat(newLength),
+      })
+    );
   }, [
     originalWidth,
     originalLength,
@@ -87,81 +71,29 @@ export const useResizeCalculator = (): UseResizeCalculatorReturn => {
   ]);
 
   // Calculate exposure directly using useMemo
-  const { newTime, stopsDifference } = useMemo(() => {
-    const origTime = parseFloat(originalTime);
-    let calculatedNewTime = '';
-    let calculatedStopsDifference = '';
-
-    if (isEnlargerHeightMode) {
-      const origHeight = parseFloat(originalHeight);
-      const newH = parseFloat(newHeight);
-
-      if (
-        !Number.isNaN(origHeight) &&
-        !Number.isNaN(newH) &&
-        !Number.isNaN(origTime) &&
-        origHeight > 0 &&
-        newH > 0 &&
-        origTime > 0
-      ) {
-        const oldMagnification = origHeight;
-        const newMagnification = newH;
-
-        const numerator = newMagnification ** 2;
-        const denominator = oldMagnification ** 2;
-        const ratio = numerator / denominator;
-
-        const newTimeValue = origTime * ratio;
-        const stops = Math.log2(ratio);
-
-        calculatedNewTime = newTimeValue.toFixed(1);
-        calculatedStopsDifference = stops.toFixed(2);
-      }
-    } else {
-      const origWidth = parseFloat(originalWidth);
-      const origLength = parseFloat(originalLength);
-      const newW = parseFloat(newWidth);
-      const newL = parseFloat(newLength);
-
-      if (
-        !Number.isNaN(origWidth) &&
-        !Number.isNaN(origLength) &&
-        !Number.isNaN(newW) &&
-        !Number.isNaN(newL) &&
-        !Number.isNaN(origTime) &&
-        origWidth > 0 &&
-        origLength > 0 &&
-        newW > 0 &&
-        newL > 0 &&
-        origTime > 0
-      ) {
-        const originalArea = origWidth * origLength;
-        const newArea = newW * newL;
-
-        if (originalArea > 0) {
-          const ratio = newArea / originalArea;
-          const newTimeValue = origTime * ratio;
-          const stops = Math.log2(ratio);
-
-          calculatedNewTime = newTimeValue.toFixed(1);
-          calculatedStopsDifference = stops.toFixed(2);
-        }
-      }
-    }
-    return {
-      newTime: calculatedNewTime,
-      stopsDifference: calculatedStopsDifference,
-    };
-  }, [
-    isEnlargerHeightMode,
-    originalWidth,
-    originalLength,
-    newWidth,
-    newLength,
-    originalTime,
-    originalHeight,
-    newHeight,
-  ]);
+  const { newTime, stopsDifference } = useMemo(
+    () =>
+      calculateResizeExposure({
+        isEnlargerHeightMode,
+        originalTime: parseFloat(originalTime),
+        originalWidth: parseFloat(originalWidth),
+        originalLength: parseFloat(originalLength),
+        newWidth: parseFloat(newWidth),
+        newLength: parseFloat(newLength),
+        originalHeight: parseFloat(originalHeight),
+        newHeight: parseFloat(newHeight),
+      }),
+    [
+      isEnlargerHeightMode,
+      originalWidth,
+      originalLength,
+      newWidth,
+      newLength,
+      originalTime,
+      originalHeight,
+      newHeight,
+    ]
+  );
 
   // Check aspect ratio when dimensions or mode change
   useEffect(() => {

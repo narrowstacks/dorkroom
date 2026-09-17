@@ -9,8 +9,8 @@ import type {
 } from '../types/exposure-calculator';
 import { EXPOSURE_PRESETS } from '../types/exposure-calculator';
 import {
+  calculateExposureAdjustment,
   calculateNewExposureTime,
-  calculatePercentageIncrease,
   formatExposureTime,
   parseExposureTime,
   roundStopsToThirds,
@@ -148,34 +148,21 @@ export const useExposureCalculator = () => {
   // Calculate derived values
   const calculation = useMemo((): ExposureCalculation | null => {
     const originalTimeValue = parseExposureTime(state.originalTime);
-    const stopsValue = parseFloat(state.stops);
+    // `newTime` is recalculated from originalTime + stops on every edit, so an
+    // empty or unparseable one means the inputs are mid-edit, not that the
+    // adjustment is invalid.
     const newTimeValue = state.newTime
       ? parseExposureTime(state.newTime)
       : null;
 
-    if (
-      originalTimeValue === null ||
-      Number.isNaN(stopsValue) ||
-      newTimeValue === null ||
-      originalTimeValue <= 0
-    ) {
+    if (originalTimeValue === null || newTimeValue === null) {
       return null;
     }
 
-    const addedTime = newTimeValue - originalTimeValue;
-    const percentageIncrease = calculatePercentageIncrease(
+    return calculateExposureAdjustment(
       originalTimeValue,
-      newTimeValue
+      parseFloat(state.stops)
     );
-
-    return {
-      originalTimeValue,
-      stopsValue,
-      newTimeValue,
-      addedTime,
-      percentageIncrease,
-      isValid: true,
-    };
   }, [state.originalTime, state.stops, state.newTime]);
 
   return {

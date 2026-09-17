@@ -6,20 +6,12 @@ import {
 import {
   DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
   DEFAULT_RECIPROCITY_METERED_TIME,
-  RECIPROCITY_MAX_BAR_WIDTH,
 } from '../constants/reciprocity-calculator-defaults';
 import type {
   ReciprocityCalculation,
   ReciprocityCalculatorState,
 } from '../types/reciprocity';
-
-/**
- * Reciprocity failure is negligible below ~1s, and the power law `t ** factor`
- * is only valid for exposures at or above 1 second: for factor > 1 (every film
- * in RECIPROCITY_FILM_TYPES), raising a fraction to that power shrinks it,
- * which would tell the photographer to expose for less time than metered.
- */
-const RECIPROCITY_MIN_CORRECTION_SECONDS = 1;
+import { calculateReciprocity } from '../utils/reciprocity-calculations';
 
 const roundToOneDecimal = (value: number): number =>
   Math.round(value * 10) / 10;
@@ -194,57 +186,19 @@ export function useReciprocityCalculator(): ReciprocityCalculatorState & {
   }, []);
 
   const currentCalculation = useMemo<ReciprocityCalculation | null>(() => {
-    const originalTime = parseReciprocityTime(meteredTime);
+    const meteredSeconds = parseReciprocityTime(meteredTime);
 
-    if (!originalTime || originalTime <= 0) {
+    if (meteredSeconds === null) {
       return null;
     }
 
-    let factor = 1;
-    let filmName = '';
-
-    if (filmType === 'custom') {
-      factor = parseFloat(customFactor) || 1;
-      filmName = 'Custom';
-    } else {
-      const selectedFilm = RECIPROCITY_FILM_TYPES.find(
-        (film) => film.value === filmType
-      );
-
-      if (selectedFilm) {
-        factor = selectedFilm.factor ?? 1;
-        filmName = selectedFilm.label;
-      }
-    }
-
-    // The power law only applies at or above the 1s threshold defined above;
-    // below it the metered time passes through unchanged rather than shrinking.
-    const adjustedTime =
-      originalTime >= RECIPROCITY_MIN_CORRECTION_SECONDS
-        ? originalTime ** factor
-        : originalTime;
-    const percentageIncrease =
-      ((adjustedTime - originalTime) / originalTime) * 100;
-
-    const logScale = (time: number) =>
-      Math.min(
-        RECIPROCITY_MAX_BAR_WIDTH,
-        (Math.log(time + 1) / Math.log(Math.max(adjustedTime, 10) + 1)) *
-          RECIPROCITY_MAX_BAR_WIDTH
-      );
-
-    const timeBarWidth = logScale(originalTime);
-    const adjustedTimeBarWidth = logScale(adjustedTime);
-
-    return {
-      originalTime,
-      adjustedTime,
-      factor,
-      filmName,
-      percentageIncrease,
-      timeBarWidth,
-      adjustedTimeBarWidth,
-    };
+    return calculateReciprocity({
+      meteredSeconds,
+      filmType,
+      // The hook holds the factor as an input string; the shared calculation
+      // takes a number and treats an unparseable one as "no correction".
+      customFactor: parseFloat(customFactor),
+    });
   }, [customFactor, filmType, meteredTime]);
 
   useEffect(() => {

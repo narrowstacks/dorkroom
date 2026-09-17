@@ -1,4 +1,4 @@
-import { formatSeconds } from '@dorkroom/logic';
+import { applyReciprocity, formatSeconds } from '@dorkroom/logic';
 
 // Chart configuration constants for maintainability and theming
 export const CHART_CONFIG = {
@@ -109,7 +109,10 @@ export function computeChartData(
 
   // Dynamic range based on current calculation with some headroom
   const maxMetered = Math.max(300, originalTime * 1.5);
-  const maxAdjusted = Math.max(adjustedTime * 1.3, maxMetered ** factor);
+  const maxAdjusted = Math.max(
+    adjustedTime * 1.3,
+    applyReciprocity(maxMetered, factor)
+  );
 
   // Scale functions
   const scaleX = (x: number) => (x / maxMetered) * plotWidth + padding.left;
@@ -121,7 +124,7 @@ export function computeChartData(
   const steps = 100;
   for (let i = 0; i <= steps; i++) {
     const x = (i / steps) * maxMetered;
-    const y = x ** factor;
+    const y = applyReciprocity(x, factor);
     curvePoints.push({ x: scaleX(x), y: scaleY(y) });
   }
 
@@ -192,7 +195,7 @@ export function computeChartData(
   }
 
   for (let t = effectiveInterval; t <= maxMetered; t += effectiveInterval) {
-    const adjustedT = t ** factor;
+    const adjustedT = applyReciprocity(t, factor);
     hoverPoints.push({
       meteredTime: t,
       adjustedTime: adjustedT,
@@ -205,7 +208,7 @@ export function computeChartData(
   // Always include the final maxMetered point if it's not already included
   const lastHoverPoint = hoverPoints[hoverPoints.length - 1];
   if (!lastHoverPoint || lastHoverPoint.meteredTime < maxMetered) {
-    const adjustedMaxMetered = maxMetered ** factor;
+    const adjustedMaxMetered = applyReciprocity(maxMetered, factor);
     hoverPoints.push({
       meteredTime: maxMetered,
       adjustedTime: adjustedMaxMetered,

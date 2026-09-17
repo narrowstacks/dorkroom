@@ -1,3 +1,4 @@
+import { applyReciprocity } from '@dorkroom/logic';
 export interface Padding {
   top: number;
   right: number;
@@ -38,7 +39,10 @@ export function computeChartLayout(params: {
 }): ChartLayout {
   const { originalTime, adjustedTime, factor, width, height, padding } = params;
   const maxMetered = Math.max(300, originalTime * 1.5);
-  const maxAdjusted = Math.max(adjustedTime * 1.3, maxMetered ** factor);
+  const maxAdjusted = Math.max(
+    adjustedTime * 1.3,
+    applyReciprocity(maxMetered, factor)
+  );
   return { width, height, padding, maxMetered, maxAdjusted };
 }
 
@@ -69,7 +73,7 @@ export function buildCurve(
   const points: ChartPoint[] = [];
   for (let i = 0; i <= samples; i++) {
     const metered = (i / samples) * l.maxMetered;
-    const adjusted = metered ** factor;
+    const adjusted = applyReciprocity(metered, factor);
     points.push({ x: scaleX(metered, l), y: scaleY(adjusted, l) });
   }
   return points;
