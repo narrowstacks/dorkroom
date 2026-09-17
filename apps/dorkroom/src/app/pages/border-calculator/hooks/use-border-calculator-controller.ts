@@ -33,7 +33,7 @@ import {
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { useCallback, useEffect, useMemo } from 'react';
-import { trackEvent } from '../../../lib/analytics/events';
+import { trackEvent } from '../../../lib/analytics/tracked-events';
 
 const validateBorderCalculator = createZodFormValidator(borderCalculatorSchema);
 

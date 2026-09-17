@@ -6,7 +6,7 @@ import {
   useEffect,
   useRef,
 } from 'react';
-import { trackEvent } from '../../../lib/analytics/events';
+import { trackEvent } from '../../../lib/analytics/tracked-events';
 
 export interface UseFavoriteActionsProps {
   isFavorite: (id: string) => boolean;

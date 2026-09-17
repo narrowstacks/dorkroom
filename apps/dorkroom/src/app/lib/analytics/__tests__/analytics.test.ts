@@ -1,14 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { currentRouteLabel, redactAnalyticsUrl, referrerKind } from '../redact';
 import {
   type AnalyticsEvents,
   type AnalyticsValue,
   capEventProperties,
   MAX_EVENT_PROPERTIES,
   TRACKED_ROUTES,
-} from '../events';
-import { currentRouteLabel, redactAnalyticsUrl, referrerKind } from '../redact';
+} from '../tracked-events';
 
 /**
  * One representative payload per event.

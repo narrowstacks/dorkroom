@@ -2,7 +2,7 @@ import type { CustomRecipe, CustomRecipeFormData } from '@dorkroom/logic';
 import { debugError } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
-import { trackEvent } from '../../../lib/analytics/events';
+import { trackEvent } from '../../../lib/analytics/tracked-events';
 
 export interface UseSharedRecipeImportProps {
   // Recipe operations

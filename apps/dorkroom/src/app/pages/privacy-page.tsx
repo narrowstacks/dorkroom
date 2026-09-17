@@ -8,7 +8,7 @@ interface TrackedEvent {
 
 /**
  * Kept deliberately in sync with the event catalog in
- * `app/lib/analytics/events.ts`. If an event is added there, it belongs here
+ * `app/lib/analytics/tracked-events.ts`. If an event is added there, it belongs here
  * too: a privacy page that lists less than the app sends is worse than none.
  */
 const TRACKED_EVENTS: TrackedEvent[] = [
@@ -302,7 +302,7 @@ export function PrivacyPage() {
             for any of it.
           </p>
           <a
-            href="https://github.com/narrowstacks/dorkroom/blob/main/apps/dorkroom/src/app/lib/analytics/events.ts"
+            href="https://github.com/narrowstacks/dorkroom/blob/main/apps/dorkroom/src/app/lib/analytics/tracked-events.ts"
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 text-sm transition-colors footer-link"

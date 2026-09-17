@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { type BrowseTool, trackEvent } from './events';
+import { type BrowseTool, trackEvent } from './tracked-events';
 
 interface SearchState {
   /**

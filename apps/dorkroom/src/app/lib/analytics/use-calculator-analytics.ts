@@ -1,5 +1,9 @@
 import { useEffect } from 'react';
-import { type CalculatorMode, type CalculatorTool, trackEvent } from './events';
+import {
+  type CalculatorMode,
+  type CalculatorTool,
+  trackEvent,
+} from './tracked-events';
 
 /**
  * Tool + mode combinations already reported during this page load.

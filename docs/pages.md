@@ -362,7 +362,7 @@ not.
   `TRACKED_EVENTS` array
 
 **Kept in sync, and enforced:** the event names here, in
-`apps/dorkroom/src/app/lib/analytics/events.ts`, and in root `PRIVACY.md` must
+`apps/dorkroom/src/app/lib/analytics/tracked-events.ts`, and in root `PRIVACY.md` must
 match. `tools/__tests__/analytics-privacy-sync.test.ts` compares all three and
 fails if they diverge; it runs as `bun run test:docs`, inside `bun run test`,
 and in CI. Adding or changing an event means editing all three in the same PR.

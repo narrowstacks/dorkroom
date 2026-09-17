@@ -37,7 +37,10 @@ import {
   useRef,
   useState,
 } from 'react';
-import { type DevelopmentFilter, trackEvent } from '../../lib/analytics/events';
+import {
+  type DevelopmentFilter,
+  trackEvent,
+} from '../../lib/analytics/tracked-events';
 import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
 import { RecipeModals } from './components/recipe-modals';
 import { RecipeResultsSection } from './components/recipe-results-section';

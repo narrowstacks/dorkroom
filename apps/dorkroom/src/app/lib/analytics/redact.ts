@@ -1,6 +1,6 @@
 import type { BeforeSendEvent } from '@vercel/analytics';
-import type { RouteLabel, TrackedRoute } from './events';
-import { TRACKED_ROUTES } from './events';
+import type { RouteLabel, TrackedRoute } from './tracked-events';
+import { TRACKED_ROUTES } from './tracked-events';
 
 /**
  * Drop everything after the path before an event leaves the browser.

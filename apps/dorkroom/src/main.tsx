@@ -14,11 +14,11 @@ import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { Analytics } from '@vercel/analytics/react';
 import { lazy, StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import { trackEvent } from './app/lib/analytics/events';
 import {
   currentRouteLabel,
   redactAnalyticsUrl,
 } from './app/lib/analytics/redact';
+import { trackEvent } from './app/lib/analytics/tracked-events';
 import { parseSearch, stringifySearch } from './routes/search-params';
 import '@fontsource-variable/montserrat/index.css';
 import '@fontsource-variable/fraunces/index.css';

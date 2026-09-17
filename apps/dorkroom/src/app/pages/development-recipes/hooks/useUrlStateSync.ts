@@ -2,7 +2,7 @@ import type { Combination, Developer, Film } from '@dorkroom/api';
 import type { CustomRecipeFilter } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useEffect, useRef } from 'react';
-import { trackEvent } from '../../../lib/analytics/events';
+import { trackEvent } from '../../../lib/analytics/tracked-events';
 
 const CUSTOM_RECIPE_FILTERS: readonly CustomRecipeFilter[] = [
   'all',
