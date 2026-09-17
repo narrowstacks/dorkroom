@@ -7,7 +7,11 @@ import {
   type Mock,
   vi,
 } from 'vitest';
-import handler, { lookupCombination } from '../og';
+import handler, {
+  getRouteAccent,
+  getRouteIcon,
+  lookupCombination,
+} from '../og';
 
 const FONT_HOST = 'fonts.gstatic.com';
 
@@ -92,20 +96,19 @@ describe('og handler - static routes', () => {
     expect(res.status).toBe(200);
   });
 
-  it('renders the settings route with its own icon rather than falling back to home', async () => {
-    const settingsRes = await handler(makeRequest({ route: '/settings' }));
-    const homeRes = await handler(makeRequest({ route: '/' }));
+  it('selects a dedicated icon and accent for /settings instead of the home fallback', () => {
+    const settingsIcon = getRouteIcon('/settings');
 
-    expect(settingsRes.status).toBe(200);
-    const [settingsBuffer, homeBuffer] = await Promise.all([
-      settingsRes.arrayBuffer(),
-      homeRes.arrayBuffer(),
-    ]);
-    // Different icons render to different PNG bytes; a fallback to the home
-    // icon would make these byte-for-byte identical.
-    expect(Buffer.from(settingsBuffer).equals(Buffer.from(homeBuffer))).toBe(
-      false
-    );
+    expect(settingsIcon).not.toBeNull();
+    expect(settingsIcon).not.toEqual(getRouteIcon('/'));
+    // An unknown route takes the home treatment; /settings must not.
+    expect(settingsIcon).not.toEqual(getRouteIcon('/some-unknown-page'));
+    expect(getRouteAccent('/settings')).not.toBe(getRouteAccent('/'));
+  });
+
+  it('still renders /settings successfully', async () => {
+    const res = await handler(makeRequest({ route: '/settings' }));
+    expect(res.status).toBe(200);
   });
 });
 

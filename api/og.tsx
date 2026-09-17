@@ -178,7 +178,7 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function getRouteAccent(route: string): string {
+export function getRouteAccent(route: string): string {
   switch (route) {
     case '/':
       return '#6ef3a4'; // green — app primary
@@ -198,7 +198,7 @@ function getRouteAccent(route: string): string {
 }
 
 /** Lucide icon SVG children keyed by route. Each entry is an array of SVG elements. */
-function getRouteIcon(route: string): React.JSX.Element[] | null {
+export function getRouteIcon(route: string): React.JSX.Element[] | null {
   switch (route) {
     case '/': // Beaker
       return [
