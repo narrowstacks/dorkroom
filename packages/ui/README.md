@@ -158,32 +158,25 @@ function MyComponent() {
 
 ## Form Components
 
-TanStack Form integrated components for type-safe forms.
+TanStack Form integrated components for type-safe forms, published from the
+`@dorkroom/ui/forms` subpath alongside the shared schemas and validator helpers.
 
 ```tsx
-import {
-  TextField,
-  NumberField,
-  SelectField,
-  CheckboxField,
-  TextareaField
-} from '@dorkroom/ui';
+import { CheckboxField, TanStackTextInput } from '@dorkroom/ui/forms';
 
 function RecipeForm() {
   const form = useForm({
-    defaultValues: { name: '', temperature: 20 },
+    defaultValues: { name: '', isPublic: false },
   });
 
   return (
     <form.Provider>
       <form.Field name="name">
-        {(field) => <TextField field={field} label="Recipe Name" />}
+        {(field) => <TanStackTextInput field={field} label="Recipe Name" />}
       </form.Field>
 
-      <form.Field name="temperature">
-        {(field) => (
-          <NumberField field={field} label="Temperature" unit="°C" />
-        )}
+      <form.Field name="isPublic">
+        {(field) => <CheckboxField field={field} label="Public recipe" />}
       </form.Field>
     </form.Provider>
   );

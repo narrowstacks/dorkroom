@@ -42,7 +42,7 @@ export function TextInput({
         </label>
       )}
       {description && (
-        <p className="text-sm text-[color:var(--color-text-secondary)]">
+        <p className="text-sm text-[color:var(--color-text-muted)]">
           {description}
         </p>
       )}
