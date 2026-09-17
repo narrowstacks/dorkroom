@@ -7,6 +7,7 @@ export function ToolListRow({
   accessory,
   accessoryText,
   leading,
+  dimmed,
 }: {
   label: string;
   onPress: () => void;
@@ -15,6 +16,9 @@ export function ToolListRow({
   /** Trailing value text; also read out after the label. */
   accessoryText?: string;
   leading?: ReactNode;
+  /** Visually de-emphasize the row (e.g. a coming-soon tool) without
+   * disabling it. */
+  dimmed?: boolean;
 }) {
   return (
     <Pressable
@@ -23,7 +27,7 @@ export function ToolListRow({
       accessibilityLabel={
         accessoryText === undefined ? label : `${label}: ${accessoryText}`
       }
-      className="flex-row items-center justify-between px-4 py-3 active:opacity-60"
+      className={`flex-row items-center justify-between px-4 py-3 ${dimmed ? 'opacity-50 active:opacity-30' : 'active:opacity-60'}`}
     >
       <View className="flex-row items-center gap-3">
         {leading}

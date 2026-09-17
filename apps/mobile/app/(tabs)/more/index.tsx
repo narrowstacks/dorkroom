@@ -20,7 +20,9 @@ function ToolRow({ tool }: { tool: Tool }) {
     <ToolListRow
       label={tool.label}
       leading={leading}
-      accessory={chevron}
+      accessory={tool.comingSoon ? undefined : chevron}
+      accessoryText={tool.comingSoon ? 'Coming soon' : undefined}
+      dimmed={tool.comingSoon}
       onPress={handlePress}
     />
   );

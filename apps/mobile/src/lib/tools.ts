@@ -17,8 +17,14 @@ export interface Tool {
    * Whether the user can pin/unpin this tool via Edit Tabs. Defaults to true.
    * `film-log` is a permanent tab (always in the bar, not user-managed), so it
    * sets this false to stay out of the pin editor and the pinned-id store.
+   * Use `isPinnable(tool)` rather than reading this field directly — it also
+   * accounts for `comingSoon`.
    */
   pinnable?: boolean;
+  /**
+   * Screen is a ComingSoon stub. Not pinnable, and badged in More.
+   */
+  comingSoon?: boolean;
 }
 
 export const TOOLS: readonly Tool[] = [
@@ -84,6 +90,7 @@ export const TOOLS: readonly Tool[] = [
     icon: 'focus',
     route: '/more/lens',
     category: 'camera',
+    comingSoon: true,
   },
   {
     id: 'camera-exposure',
@@ -91,6 +98,7 @@ export const TOOLS: readonly Tool[] = [
     icon: 'aperture',
     route: '/more/camera-exposure',
     category: 'camera',
+    comingSoon: true,
   },
   {
     id: 'meter',
@@ -135,4 +143,10 @@ const TOOL_BY_ID = new Map(TOOLS.map((t) => [t.id, t]));
 
 export function getTool(id: string): Tool | undefined {
   return TOOL_BY_ID.get(id);
+}
+
+/** Whether a tool can be pinned/unpinned via Edit Tabs: opted out via
+ * `pinnable: false`, or a `comingSoon` stub that has nothing to pin yet. */
+export function isPinnable(tool: Tool): boolean {
+  return tool.pinnable !== false && tool.comingSoon !== true;
 }

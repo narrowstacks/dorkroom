@@ -32,6 +32,18 @@ describe('tab-bar-settings', () => {
     setPinnedIds([]);
     expect(getPinnedIds()).toEqual(DEFAULT_PINNED_IDS.slice(0, MAX_PINNED));
   });
+
+  it('drops a comingSoon tool (lens) from a stored set', () => {
+    setPinnedIds(['lens', 'border']);
+    const result = getPinnedIds();
+    expect(result).not.toContain('lens');
+    expect(result).toContain('border');
+  });
+
+  it('falls back to defaults when the stored set is only comingSoon ids', () => {
+    setPinnedIds(['lens', 'camera-exposure']);
+    expect(getPinnedIds()).toEqual(DEFAULT_PINNED_IDS.slice(0, MAX_PINNED));
+  });
 });
 
 describe('normalizePinnedIds', () => {
