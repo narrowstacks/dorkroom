@@ -8,7 +8,7 @@ import {
 } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
-import { trackEvent } from '../../../lib/analytics/events';
+import { trackEvent } from '../../../lib/analytics/tracked-events';
 import { getCombinationIdentifier } from '../utils/recipeUtils';
 
 export interface UseCustomRecipeCrudProps {

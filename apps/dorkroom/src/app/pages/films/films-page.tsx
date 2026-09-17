@@ -17,7 +17,7 @@ import {
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { filmColorFilterSchema } from '../../../routes/search-schemas';
-import { trackEvent } from '../../lib/analytics/events';
+import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
 
 type FilmDatabase = ReturnType<typeof useFilmDatabase>;

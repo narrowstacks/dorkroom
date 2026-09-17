@@ -1,8 +1,8 @@
 import { Link } from '@tanstack/react-router';
 import { Aperture, ArrowLeft, Home } from 'lucide-react';
 import { useEffect } from 'react';
-import { trackEvent } from '../lib/analytics/events';
 import { referrerKind } from '../lib/analytics/redact';
+import { trackEvent } from '../lib/analytics/tracked-events';
 
 export function NotFoundPage() {
   // Where they came from, not the referrer itself. An internal miss is a link

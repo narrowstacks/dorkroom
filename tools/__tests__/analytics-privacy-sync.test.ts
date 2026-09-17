@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
  * Analytics events are declared in one place, but they are *described* in two
  * others: the published `/privacy` page and `PRIVACY.md`. A policy that lists
  * fewer events than the app actually sends is worse than no policy at all, and
- * nothing about adding an event to `events.ts` forces either document to keep
+ * nothing about adding an event to `tracked-events.ts` forces either document to keep
  * up. This test is that force.
  *
  * It reads all three files as text rather than importing them. The documents
@@ -19,7 +19,7 @@ const REPO_ROOT = join(import.meta.dirname, '..', '..');
 
 const EVENTS_TS = join(
   REPO_ROOT,
-  'apps/dorkroom/src/app/lib/analytics/events.ts'
+  'apps/dorkroom/src/app/lib/analytics/tracked-events.ts'
 );
 const PRIVACY_MD = join(REPO_ROOT, 'PRIVACY.md');
 const PRIVACY_PAGE = join(
@@ -38,7 +38,7 @@ function declaredEvents(): string[] {
   const start = source.indexOf('export interface AnalyticsEvents {');
   if (start === -1) {
     throw new Error(
-      'Could not find `export interface AnalyticsEvents` in events.ts. If the ' +
+      'Could not find `export interface AnalyticsEvents` in tracked-events.ts. If the ' +
         'catalog was renamed or restructured, update this test to match.'
     );
   }
@@ -80,7 +80,7 @@ describe('analytics events stay in sync with the privacy policy', () => {
   it('documents every declared event in PRIVACY.md', () => {
     expect(
       sorted(documentedInMarkdown()),
-      'PRIVACY.md does not match events.ts. Every event the app can send must ' +
+      'PRIVACY.md does not match tracked-events.ts. Every event the app can send must ' +
         'be listed there before it ships.'
     ).toEqual(sorted(declared));
   });
@@ -88,7 +88,7 @@ describe('analytics events stay in sync with the privacy policy', () => {
   it('documents every declared event on the /privacy page', () => {
     expect(
       sorted(documentedOnPage()),
-      'privacy-page.tsx does not match events.ts. The published page is what ' +
+      'privacy-page.tsx does not match tracked-events.ts. The published page is what ' +
         'visitors actually read, so it must list every event.'
     ).toEqual(sorted(declared));
   });

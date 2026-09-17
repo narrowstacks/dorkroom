@@ -1,6 +1,6 @@
 import { useMeasurement, useTheme, useVolume } from '@dorkroom/ui';
 import { useEffect, useRef } from 'react';
-import { type ThemeName, trackEvent } from './events';
+import { type ThemeName, trackEvent } from './tracked-events';
 
 // Module-level so their identity is stable across renders and the effect below
 // only does work when the value it watches actually moved.

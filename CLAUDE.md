@@ -108,7 +108,7 @@ screenshot-based approach that does **not** apply to this repo.
 ## Analytics and Privacy
 
 Vercel Web Analytics custom events are declared in **one** place:
-`apps/dorkroom/src/app/lib/analytics/events.ts`. Two constraints are
+`apps/dorkroom/src/app/lib/analytics/tracked-events.ts`. Two constraints are
 load-bearing there: at most **two properties per event** (the Pro-plan
 ceiling; Vercel drops the surplus silently) and **closed unions or numbers
 only, never free text**, so nothing a user typed can reach the wire. URL query
@@ -120,7 +120,7 @@ app-level action hooks (`use-calculator-analytics.ts`,
 `use-search-analytics.ts`, `use-preference-analytics.ts`) and page components
 instead.
 
-Adding or changing an event means updating `events.ts`, `PRIVACY.md`, and
+Adding or changing an event means updating `tracked-events.ts`, `PRIVACY.md`, and
 `apps/dorkroom/src/app/pages/privacy-page.tsx` **in the same PR**. This is
 enforced: `tools/__tests__/analytics-privacy-sync.test.ts` compares the event
 names in all three and fails if they diverge. It runs as `bun run test:docs`,

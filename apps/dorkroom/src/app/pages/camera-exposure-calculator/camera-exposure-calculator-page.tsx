@@ -23,7 +23,7 @@ import {
 } from '@dorkroom/ui/calculator';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { type FC, useCallback, useMemo, useState } from 'react';
-import { trackEvent } from '../../lib/analytics/events';
+import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 
 const apertureOptions = STANDARD_APERTURES.map((a) => ({

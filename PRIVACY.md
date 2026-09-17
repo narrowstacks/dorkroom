@@ -30,7 +30,7 @@ searched for. None of that reaches the analytics service. The redaction runs in
 ## Every event we record
 
 The catalog below is generated from, and must stay in sync with,
-[`events.ts`](apps/dorkroom/src/app/lib/analytics/events.ts).
+[`tracked-events.ts`](apps/dorkroom/src/app/lib/analytics/tracked-events.ts).
 
 | Event | When it fires | What it records |
 | --- | --- | --- |
@@ -74,11 +74,11 @@ film page works exactly the same with analytics blocked.
 ## Changing this document
 
 Analytics events are declared in one place,
-[`apps/dorkroom/src/app/lib/analytics/events.ts`](apps/dorkroom/src/app/lib/analytics/events.ts).
+[`apps/dorkroom/src/app/lib/analytics/tracked-events.ts`](apps/dorkroom/src/app/lib/analytics/tracked-events.ts).
 Adding or changing an event means updating three things together, in the same
 pull request:
 
-1. The event catalog in `events.ts`.
+1. The event catalog in `tracked-events.ts`.
 2. This file.
 3. The table in
    [`apps/dorkroom/src/app/pages/privacy-page.tsx`](apps/dorkroom/src/app/pages/privacy-page.tsx),

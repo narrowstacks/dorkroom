@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CalculatorMode } from '../events';
+import type { CalculatorMode } from '../tracked-events';
 import {
   reportedCalculatorModes,
   resetCalculatorAnalytics,
