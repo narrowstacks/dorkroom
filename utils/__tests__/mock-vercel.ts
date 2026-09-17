@@ -59,44 +59,56 @@ export function createMockResponse(): MockVercelResponse {
     _sent: '',
   };
 
-  const res: MockVercelResponse = Object.assign(
-    new ServerResponse(new IncomingMessage(new Socket())),
-    recorded,
-    {
-      setHeader(name: string, value: string | string[]) {
-        headers[name.toLowerCase()] = value;
-        return res;
-      },
-      getHeader(name: string) {
-        return headers[name.toLowerCase()];
-      },
-      status(code: number) {
-        res._status = code;
-        return res;
-      },
-      json(body: JsonValue) {
-        res._json = body;
-        res._ended = true;
-        return res;
-      },
-      send(body: string) {
-        res._sent = body;
-        res._ended = true;
-        return res;
-      },
-      redirect(statusOrUrl: string | number, url?: string) {
-        // `redirect(url)` defaults to 307; `redirect(status, url)` sets both.
-        res._status = url === undefined ? 307 : Number(statusOrUrl);
-        headers.location = url ?? String(statusOrUrl);
-        res._ended = true;
-        return res;
-      },
-      end() {
-        res._ended = true;
-        return res;
-      },
-    }
-  );
+  // `_headers` collides with a deprecated getter/setter pair on
+  // `OutgoingMessage.prototype` (removed in Node 24, still present in 22).
+  // `Object.assign` below copies via `[[Set]]`, which walks up to that
+  // inherited setter *unless* the target already has its own `_headers`
+  // property — so define it here, ahead of time, via `Object.defineProperty`
+  // (`[[DefineOwnProperty]]`). The assignment from `recorded` a few lines
+  // down then just overwrites this own property in place, on every Node
+  // version, without ever touching the prototype accessor.
+  const serverResponse = new ServerResponse(new IncomingMessage(new Socket()));
+  Object.defineProperty(serverResponse, '_headers', {
+    value: headers,
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  });
+
+  const res: MockVercelResponse = Object.assign(serverResponse, recorded, {
+    setHeader(name: string, value: string | string[]) {
+      headers[name.toLowerCase()] = value;
+      return res;
+    },
+    getHeader(name: string) {
+      return headers[name.toLowerCase()];
+    },
+    status(code: number) {
+      res._status = code;
+      return res;
+    },
+    json(body: JsonValue) {
+      res._json = body;
+      res._ended = true;
+      return res;
+    },
+    send(body: string) {
+      res._sent = body;
+      res._ended = true;
+      return res;
+    },
+    redirect(statusOrUrl: string | number, url?: string) {
+      // `redirect(url)` defaults to 307; `redirect(status, url)` sets both.
+      res._status = url === undefined ? 307 : Number(statusOrUrl);
+      headers.location = url ?? String(statusOrUrl);
+      res._ended = true;
+      return res;
+    },
+    end() {
+      res._ended = true;
+      return res;
+    },
+  });
 
   // `withHandler` checks `writableEnded` before writing a late error response;
   // the mock never runs the real stream, so derive it from what was recorded.
