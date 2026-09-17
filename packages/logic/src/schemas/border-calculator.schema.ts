@@ -194,6 +194,60 @@ export const borderPresetSchema = z.object({
   settings: borderPresetSettingsSchema,
 });
 
+/**
+ * Wraps a bounded numeric schema so a number outside its range is pulled to
+ * the nearest bound instead of rejected. The clamp targets are read off the
+ * schema itself, so they cannot drift from the bounds they mirror, and the
+ * bounded schema still runs afterwards: anything that is not a finite number
+ * never reaches the clamp and is rejected exactly as before.
+ */
+const clampedInto = (bounded: z.ZodNumber) => {
+  const min = bounded.minValue ?? Number.NEGATIVE_INFINITY;
+  const max = bounded.maxValue ?? Number.POSITIVE_INFINITY;
+  return z
+    .number()
+    .transform((value) => Math.min(Math.max(value, min), max))
+    .pipe(bounded);
+};
+
+/**
+ * Runtime contract for a `BorderPresetSettings` object arriving from a share
+ * link. A link is the only copy of the preset it carries, so a numeric field
+ * outside the slider range is clamped to the nearest valid value rather than
+ * throwing the whole link away; a wrong-typed field, a non-finite number or an
+ * unknown enum member still rejects, because for those there is no nearest
+ * valid value to fall back to. Absent fields inherit
+ * `borderPresetSettingsSchema`'s defaults, which come from
+ * `BORDER_CALCULATOR_DEFAULTS`.
+ *
+ * The paper-dependent `minBorder` ceiling is deliberately not applied here —
+ * it depends on the paper size in the same payload and the calculator already
+ * clamps it downstream with a toast — and neither is the geometry-derived
+ * offset clamp, which `clampOffsets` re-applies on every calculation.
+ */
+export const sharedBorderPresetSettingsSchema =
+  borderPresetSettingsSchema.extend({
+    customAspectWidth: clampedInto(
+      borderPresetSettingsFieldSchemas.customAspectWidth
+    ).default(BORDER_CALCULATOR_DEFAULTS.customAspectWidth),
+    customAspectHeight: clampedInto(
+      borderPresetSettingsFieldSchemas.customAspectHeight
+    ).default(BORDER_CALCULATOR_DEFAULTS.customAspectHeight),
+    customPaperWidth: clampedInto(
+      borderPresetSettingsFieldSchemas.customPaperWidth
+    ).default(BORDER_CALCULATOR_DEFAULTS.customPaperWidth),
+    customPaperHeight: clampedInto(
+      borderPresetSettingsFieldSchemas.customPaperHeight
+    ).default(BORDER_CALCULATOR_DEFAULTS.customPaperHeight),
+    minBorder: clampedInto(borderPresetSettingsFieldSchemas.minBorder),
+    horizontalOffset: clampedInto(
+      borderPresetSettingsFieldSchemas.horizontalOffset
+    ),
+    verticalOffset: clampedInto(
+      borderPresetSettingsFieldSchemas.verticalOffset
+    ),
+  });
+
 export const borderCalculatorSchema = borderCalculatorObjectSchema.superRefine(
   (values, ctx) => {
     const paper =
