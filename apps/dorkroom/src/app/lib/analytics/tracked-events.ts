@@ -114,6 +114,7 @@ export interface AnalyticsEvents {
   /** `preset` is always a number drawn from the calculator's own fixed preset
    *  list, never anything the user typed. What it means depends on `tool`:
    *  - `exposure`: the EV.
+   *  - `stops`: the stop increment the button applies (e.g. -1, 1/3).
    *  - `lenses`: the focal length in millimeters.
    *  - `reciprocity`: the exposure time in seconds.
    *  - `mat`: the preset's index into `MAT_PRESETS`, since a board size is a

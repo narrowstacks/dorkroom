@@ -53,7 +53,7 @@ const TRACKED_EVENTS: TrackedEvent[] = [
     name: 'preset_applied',
     fires: 'You tap a built-in preset.',
     records:
-      "Which calculator, and the preset value — an EV, a focal length in mm, an exposure time in seconds, or a mat board preset's position in the list.",
+      "Which calculator, and the preset value — an EV, a stop increment, a focal length in mm, an exposure time in seconds, or a mat board preset's position in the list.",
   },
   {
     name: 'theme_changed',
