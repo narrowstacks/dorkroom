@@ -5,6 +5,16 @@ The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHAN
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.09.17]
+
+### Fixed
+
+- **Shared recipe preview cards can no longer show the wrong recipe.** The Open Graph image for a `/development?recipe=<uuid>` link looked the uuid up in the first 50 recipes for the film + developer pairing and, on a miss, silently fell back to the first row, so pairings with more than 50 recipes (Ektapan P3200 in XTOL has 70) could render another recipe's time, temperature and ISO. The lookup now pages through the results with `count` + `page` (the upstream function ignores `page` when the size is sent as `limit`, which `docs/API.md` now says) and returns the generic film + developer card when the uuid is not found. (#308, fixes #252)
+- **The border calculator preview rescales when the viewport changes.** It read `window.innerWidth` once inside a memo keyed only on the calculation, so rotating a device or resizing the window left it at the old size until an input changed. It now subscribes through `useIsMobile` and a new `useViewportWidth` hook, keeping the original strict 768px desktop boundary. (#309, fixes #247)
+- **Share buttons follow theme changes while mounted.** `ShareButton` read `data-theme` off the document on render instead of the theme context, so switching theme on the recipes page left the visible buttons styled for the previous theme. (#309, fixes #247)
+- **The dev server loads from other machines with an ad blocker on.** Vite serves modules at their source paths, and `src/app/lib/analytics/events.ts` was fetched from a URL matching uBlock Origin's stock `/analytics/event` rule; it is a first-order import of `main.tsx`, so the app never mounted and nothing was logged. The file is now `tracked-events.ts`. Production was unaffected. (#307, fixes #277)
+- **`bun run test` passes on Node 22.** The serverless response mock built `_headers` with `Object.assign`, which on Node < 24 hit the deprecated `OutgoingMessage.prototype._headers` setter and left every header assertion reading `undefined` (24 failures that looked like missing security headers). The field is now defined as an own property. The README's stale "Node 18+" prerequisite now reads 24.x, matching `engines.node` and CI. (#306, fixes #282)
+
 ## [2026.09.04]
 
 ### Changed

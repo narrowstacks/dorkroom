@@ -5,6 +5,12 @@ Web app changes live in the [root CHANGELOG](../../CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.09.17]
+
+### Fixed
+
+- **Coming-soon tools can no longer take a tab-bar slot.** Lenses and Camera Exposure are still stubs, but the tool registry treated them like working tools: they were offered in Edit Tabs, where they could occupy one of the two customisable slots, and the More list showed them with the same row and chevron as everything else. They are now flagged `comingSoon`, a single `isPinnable()` helper keeps that and the existing `pinnable` opt-out from drifting, and in More they render dimmed with a "Coming soon" trailing label that VoiceOver reads as "Lenses: Coming soon". An existing pin on either tool is dropped on the next read. (#310, fixes #259)
+
 ## [2026.09.04]
 
 ### Changed
