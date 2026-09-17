@@ -7,7 +7,7 @@ import {
   type Mock,
   vi,
 } from 'vitest';
-import handler from '../og';
+import handler, { lookupCombination } from '../og';
 
 const FONT_HOST = 'fonts.gstatic.com';
 
@@ -251,6 +251,210 @@ describe('og handler - development recipe', () => {
     );
     expect(res.status).toBe(200);
   }, 10_000);
+
+  it('pages through /api/combinations when the recipe uuid is not on page 1', async () => {
+    const combinationUrls: string[] = [];
+    stubFetch((url) => {
+      if (url.includes('/api/films')) {
+        return Promise.resolve(
+          jsonResponse(
+            JSON.stringify({
+              data: [
+                { slug: 'kodak-tri-x-400', brand: 'Kodak', name: 'Tri-X 400' },
+              ],
+            })
+          )
+        );
+      }
+      if (url.includes('/api/developers')) {
+        return Promise.resolve(
+          jsonResponse(
+            JSON.stringify({
+              data: [
+                {
+                  slug: 'ilford-perceptol',
+                  name: 'Perceptol',
+                  manufacturer: 'Ilford',
+                },
+              ],
+            })
+          )
+        );
+      }
+      if (url.includes('/api/combinations')) {
+        combinationUrls.push(url);
+        if (url.includes('page=2')) {
+          return Promise.resolve(
+            jsonResponse(
+              JSON.stringify({
+                data: [
+                  {
+                    uuid: 'target-uuid',
+                    time_minutes: 13,
+                    temperature_celsius: 20,
+                    shooting_iso: 400,
+                    push_pull: 0,
+                  },
+                ],
+                count: 51,
+              })
+            )
+          );
+        }
+        return Promise.resolve(
+          jsonResponse(
+            JSON.stringify({
+              data: Array.from({ length: 50 }, (_, i) => ({
+                uuid: `other-${i}`,
+                time_minutes: 1,
+                temperature_celsius: 20,
+                shooting_iso: 400,
+              })),
+              count: 51,
+            })
+          )
+        );
+      }
+      return Promise.resolve(jsonResponse(JSON.stringify({ data: [] })));
+    });
+
+    const res = await handler(
+      makeRequest({
+        route: '/development',
+        film: 'kodak-tri-x-400',
+        developer: 'ilford-perceptol',
+        recipe: 'target-uuid',
+      })
+    );
+
+    expect(res.status).toBe(200);
+    expect(combinationUrls.some((url) => url.includes('page=2'))).toBe(true);
+  });
+});
+
+describe('lookupCombination', () => {
+  function combinationsResponse(
+    data: Array<{ uuid: string; time_minutes: number }>,
+    count: number
+  ): Response {
+    return jsonResponse(
+      JSON.stringify({
+        data: data.map((c) => ({
+          ...c,
+          temperature_celsius: 20,
+          shooting_iso: 400,
+        })),
+        count,
+      })
+    );
+  }
+
+  it('returns the row when the uuid is on page 1', async () => {
+    stubFetch(() =>
+      Promise.resolve(
+        combinationsResponse([{ uuid: 'target', time_minutes: 10 }], 1)
+      )
+    );
+
+    const result = await lookupCombination(
+      'kodak-tri-x-400',
+      'ilford-perceptol',
+      'target'
+    );
+
+    expect(result?.time_minutes).toBe(10);
+  });
+
+  it('fetches page 2 and returns the row when the uuid is not on page 1', async () => {
+    const requestedUrls: string[] = [];
+    stubFetch((url) => {
+      requestedUrls.push(url);
+      if (url.includes('page=2')) {
+        return Promise.resolve(
+          combinationsResponse([{ uuid: 'target', time_minutes: 20 }], 75)
+        );
+      }
+      const page1 = Array.from({ length: 50 }, (_, i) => ({
+        uuid: `other-${i}`,
+        time_minutes: 1,
+      }));
+      return Promise.resolve(combinationsResponse(page1, 75));
+    });
+
+    const result = await lookupCombination(
+      'kodak-tri-x-400',
+      'ilford-perceptol',
+      'target'
+    );
+
+    expect(result?.time_minutes).toBe(20);
+    expect(requestedUrls.some((url) => url.includes('page=2'))).toBe(true);
+  });
+
+  it('returns null, never the first row, when the uuid is absent', async () => {
+    stubFetch((url) => {
+      if (url.includes('page=2')) {
+        const page2 = Array.from({ length: 10 }, (_, i) => ({
+          uuid: `other-page2-${i}`,
+          time_minutes: 2,
+        }));
+        return Promise.resolve(combinationsResponse(page2, 60));
+      }
+      const page1 = Array.from({ length: 50 }, (_, i) => ({
+        uuid: `other-page1-${i}`,
+        time_minutes: 1,
+      }));
+      return Promise.resolve(combinationsResponse(page1, 60));
+    });
+
+    const result = await lookupCombination(
+      'kodak-tri-x-400',
+      'ilford-perceptol',
+      'target'
+    );
+
+    expect(result).toBeNull();
+  });
+
+  it('stops at the page cap and returns null when the uuid is never found', async () => {
+    const fetchMock = stubFetch((url) => {
+      const page = Array.from({ length: 50 }, (_, i) => ({
+        uuid: `${url}-${i}`,
+        time_minutes: 1,
+      }));
+      // count far exceeds what MAX_COMBINATION_PAGES * 50 rows can cover.
+      return Promise.resolve(combinationsResponse(page, 10_000));
+    });
+
+    const result = await lookupCombination(
+      'kodak-tri-x-400',
+      'ilford-perceptol',
+      'target'
+    );
+
+    expect(result).toBeNull();
+    // 10 combination pages (MAX_COMBINATION_PAGES) — no font requests here.
+    expect(fetchMock).toHaveBeenCalledTimes(10);
+  });
+
+  it('requests limit=1 and returns the first row when no uuid is given', async () => {
+    const requestedUrls: string[] = [];
+    stubFetch((url) => {
+      requestedUrls.push(url);
+      return Promise.resolve(
+        combinationsResponse([{ uuid: 'first', time_minutes: 5 }], 1)
+      );
+    });
+
+    const result = await lookupCombination(
+      'kodak-tri-x-400',
+      'ilford-perceptol'
+    );
+
+    expect(result?.time_minutes).toBe(5);
+    expect(requestedUrls.every((url) => url.includes('limit=1'))).toBe(true);
+    expect(requestedUrls.some((url) => url.includes('page='))).toBe(false);
+  });
 });
 
 describe('og handler - film filters', () => {
