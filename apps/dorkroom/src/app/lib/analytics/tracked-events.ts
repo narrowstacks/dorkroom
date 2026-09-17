@@ -103,12 +103,21 @@ export interface AnalyticsEvents {
   /** Someone arrived on a link that another user shared. */
   share_opened: { tool: ShareTool };
   recipe_saved: { action: 'created' | 'updated'; source: 'manual' | 'import' };
-  recipe_deleted: { scope: 'single' | 'all' };
+  /** There is no delete-all UI, so `scope` only ever fires as `'single'`. It
+   *  stays a union of one rather than a bare `boolean` so a future bulk-delete
+   *  action has somewhere to report a second value without widening the type
+   *  to free text. */
+  recipe_deleted: { scope: 'single' };
   recipe_imported: { ok: boolean };
   favorite_toggled: { added: boolean };
   calculator_used: { tool: CalculatorTool; mode: CalculatorMode };
-  /** `preset` is always a number (an EV, a focal length, a duration in
-   *  seconds), never a user-supplied preset name. */
+  /** `preset` is always a number drawn from the calculator's own fixed preset
+   *  list, never anything the user typed. What it means depends on `tool`:
+   *  - `exposure`: the EV.
+   *  - `lenses`: the focal length in millimeters.
+   *  - `reciprocity`: the exposure time in seconds.
+   *  - `mat`: the preset's index into `MAT_PRESETS`, since a board size is a
+   *    width×height pair and this event carries one number, not two. */
   preset_applied: { tool: CalculatorTool; preset: number };
   theme_changed: { theme: ThemeName };
   units_changed: { context: 'measurement' | 'volume'; unit: string };

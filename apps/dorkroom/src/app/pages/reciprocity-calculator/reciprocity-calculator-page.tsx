@@ -31,6 +31,7 @@ import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { ChartLine, Maximize2, Minimize2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 import { reciprocityHydrationValidators } from './hydration';
 
@@ -372,7 +373,16 @@ function ReciprocityInputs({
                 <button
                   key={seconds}
                   type="button"
-                  onClick={() => field.handleChange(`${seconds}s`)}
+                  onClick={() => {
+                    // The exposure time itself is the preset identity, and it
+                    // is one of our own constants rather than anything the
+                    // user typed.
+                    trackEvent('preset_applied', {
+                      tool: 'reciprocity',
+                      preset: seconds,
+                    });
+                    field.handleChange(`${seconds}s`);
+                  }}
                   className="rounded-full px-3 py-1 text-xs font-medium transition"
                   style={{
                     color: 'var(--color-text-secondary)',

@@ -31,7 +31,7 @@ const TRACKED_EVENTS: TrackedEvent[] = [
   {
     name: 'recipe_deleted',
     fires: 'You delete a custom recipe.',
-    records: 'Whether it was one recipe or all of them.',
+    records: 'Nothing else; there is no bulk-delete action.',
   },
   {
     name: 'recipe_imported',
@@ -52,7 +52,8 @@ const TRACKED_EVENTS: TrackedEvent[] = [
   {
     name: 'preset_applied',
     fires: 'You tap a built-in preset.',
-    records: 'Which calculator, and the preset value (an EV number).',
+    records:
+      "Which calculator, and the preset value — an EV, a focal length in mm, an exposure time in seconds, or a mat board preset's position in the list.",
   },
   {
     name: 'theme_changed',

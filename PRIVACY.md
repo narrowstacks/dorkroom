@@ -37,11 +37,11 @@ The catalog below is generated from, and must stay in sync with,
 | `share` | You create a share link for a preset or a recipe. | Which tool, and whether the link was copied or shared natively. |
 | `share_opened` | You open a link someone else shared with you. | Which tool the link points at. |
 | `recipe_saved` | You save a custom development recipe. | Whether it was new or an edit, and whether you typed it or imported it. |
-| `recipe_deleted` | You delete a custom recipe. | Whether it was one recipe or all of them. |
+| `recipe_deleted` | You delete a custom recipe. | Nothing else; there is no bulk-delete action. |
 | `recipe_imported` | You import a recipe from filmdev.org. | Whether the import succeeded. |
 | `favorite_toggled` | You favorite or unfavorite a recipe. | Whether it was added or removed. |
 | `calculator_used` | A calculator produces a result, once per calculator per visit. | Which calculator, and which mode (for example print size vs enlarger height). |
-| `preset_applied` | You tap a built-in preset. | Which calculator, and the preset value (an EV number). |
+| `preset_applied` | You tap a built-in preset. | Which calculator, and the preset value — an EV, a focal length in mm, an exposure time in seconds, or a mat board preset's position in the list. |
 | `theme_changed` | You switch themes. | Which theme you switched to. |
 | `units_changed` | You switch between imperial and metric, or change volume units. | Which setting, and which unit. |
 | `search_no_results` | A search returns nothing. | Which page, and how many filters were active. Never the search text. |
