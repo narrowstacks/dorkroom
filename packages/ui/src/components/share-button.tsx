@@ -2,6 +2,7 @@ import { shouldUseWebShare } from '@dorkroom/logic';
 import { Loader2, Share2 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { useTheme } from '../contexts/theme-context';
 import { cn } from '../lib/cn';
 import { useOptionalToast } from './toast-context';
 
@@ -120,9 +121,10 @@ export function ShareButton({
     };
   }, []);
 
-  const theme = document.documentElement.getAttribute('data-theme');
-  const isDarkroom = theme === 'darkroom';
-  const isDarkTheme = theme === 'dark' || theme === 'high-contrast';
+  const { resolvedTheme } = useTheme();
+  const isDarkroom = resolvedTheme === 'darkroom';
+  const isDarkTheme =
+    resolvedTheme === 'dark' || resolvedTheme === 'high-contrast';
 
   const { buttonClasses, iconClasses } = getVariantClasses(
     variant,

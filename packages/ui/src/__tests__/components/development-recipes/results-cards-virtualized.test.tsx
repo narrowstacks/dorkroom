@@ -11,6 +11,10 @@ import type { FC, ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DevelopmentResultsCardsVirtualized } from '../../../components/development-recipes/results-cards-virtualized';
 import { TemperatureProvider } from '../../../contexts/temperature-context';
+import {
+  ThemeContext,
+  type ThemeContextValue,
+} from '../../../contexts/theme-context';
 
 // Test data factories
 const mockFilm: Film = {
@@ -106,9 +110,20 @@ const testColumns: ColumnDef<DevelopmentCombinationView>[] = [
   },
 ];
 
-// Wrapper component for testing
+const themeContext: ThemeContextValue = {
+  theme: 'light',
+  resolvedTheme: 'light',
+  setTheme: () => {},
+  animationsEnabled: true,
+  setAnimationsEnabled: () => {},
+};
+
+// Wrapper component for testing. Includes the real ThemeContext because the
+// rendered cards contain a `ShareButton`, which calls `useTheme()`.
 const TestWrapper: FC<{ children: ReactNode }> = ({ children }) => (
-  <TemperatureProvider>{children}</TemperatureProvider>
+  <ThemeContext value={themeContext}>
+    <TemperatureProvider>{children}</TemperatureProvider>
+  </ThemeContext>
 );
 
 // Table wrapper component
