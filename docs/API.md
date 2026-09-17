@@ -28,13 +28,14 @@ The spec is generated from the same Zod schemas used for runtime validation, so 
 Per-key rate limits are configured when your key is issued (e.g. 60/min free, 300/min standard).
 
 Requests may optionally send an `X-Client-Id` header: an opaque per-install
-identifier (8-64 chars, `[A-Za-z0-9_-]`). When present, the request is
-additionally rate-limited per client — 60 req/min per `X-Client-Id` value,
-plus a 240 req/min ceiling per source IP — on top of the key's own limit.
-This lets multiple installs sharing one API key (e.g. a mobile app shipping a
-single free-tier key) each get their own budget instead of exhausting the
-key's shared limit. Omitting the header keeps key-only limiting, unaffected;
-a malformed value is treated as absent rather than rejected.
+identifier (8-64 chars, `[A-Za-z0-9_-]`). The key's own limit is always
+checked first and is shared by every request made with that key. When the
+header is present and the key check passes, two further ceilings apply: 60
+req/min per `X-Client-Id` value and 240 req/min per source IP. These only ever
+tighten the budget; they do not give each install its own allowance, so one
+busy install can still exhaust the key-wide limit for the others. Omitting the
+header keeps key-only limiting; a malformed value is treated as absent rather
+than rejected.
 
 Every response includes rate limit headers:
 
