@@ -129,6 +129,7 @@ export {
   type ResponsiveTierResult,
   useResponsiveTier,
 } from './hooks/use-responsive-tier';
+export { useViewportWidth } from './hooks/use-viewport-width';
 export { useIsMobile } from './hooks/useIsMobile';
 // Utilities
 export { cn } from './lib/cn';

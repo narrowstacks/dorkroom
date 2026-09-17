@@ -12,6 +12,8 @@
 
 import type { BorderCalculation } from '@dorkroom/logic';
 import { useMemo } from 'react';
+import { useViewportWidth } from '../../hooks/use-viewport-width';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { BladeReadingsOverlay } from './blade-readings-overlay';
 
 interface AnimatedPreviewProps {
@@ -83,24 +85,29 @@ export function AnimatedPreview({
   showBladeReadings = false,
   className,
 }: AnimatedPreviewProps) {
+  // Subscribed to viewport changes so rotating/resizing rescales the preview
+  // instead of waiting for the next `calculation` change. 767 keeps the
+  // original strict `< 768` boundary: the hook's default `max-width: 768px`
+  // would also match iPad portrait (exactly 768px), which is desktop here.
+  const isMobile = useIsMobile(767);
+  const viewportWidth = useViewportWidth();
+
   // Static dimensions for consistent layout - make responsive for mobile
   const staticDimensions = useMemo(() => {
     if (!calculation) {
       // Use responsive dimensions that fit mobile screens better
-      const isMobile = window.innerWidth < 768;
       return {
-        width: isMobile ? Math.min(320, window.innerWidth - 80) : 400,
-        height: isMobile ? Math.min(240, (window.innerWidth - 80) * 0.75) : 300,
+        width: isMobile ? Math.min(320, viewportWidth - 80) : 400,
+        height: isMobile ? Math.min(240, (viewportWidth - 80) * 0.75) : 300,
       };
     }
 
     // Ensure preview dimensions are mobile-friendly
     const baseWidth = calculation.previewWidth || 400;
     const baseHeight = calculation.previewHeight || 300;
-    const isMobile = window.innerWidth < 768;
 
     if (isMobile) {
-      const maxWidth = Math.min(320, window.innerWidth - 80);
+      const maxWidth = Math.min(320, viewportWidth - 80);
       const aspectRatio = baseHeight / baseWidth;
       const width = Math.min(baseWidth, maxWidth);
       const height = Math.min(baseHeight, width * aspectRatio);
@@ -111,7 +118,7 @@ export function AnimatedPreview({
       width: baseWidth,
       height: baseHeight,
     };
-  }, [calculation]);
+  }, [calculation, isMobile, viewportWidth]);
 
   // Calculate transform values
   const transformValues = useMemo(() => {
