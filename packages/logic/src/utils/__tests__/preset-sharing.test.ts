@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ASPECT_RATIOS, PAPER_SIZES } from '../../constants/border-calculator';
+import { BORDER_CALCULATOR_DEFAULTS } from '../../constants/border-calculator-defaults';
 import type { BorderPresetSettings } from '../../types/border-calculator';
 import { encodeBase64, toUrlSafe } from '../base64';
 import {
@@ -42,13 +43,16 @@ function encodeLegacyPreset(
   return toUrlSafe(encodeBase64(parts.join('-')));
 }
 
+// The custom dimensions match BORDER_CALCULATOR_DEFAULTS because the encoding
+// omits them entirely for a non-custom aspect ratio and paper size, and decode
+// fills an omitted field from the defaults.
 const baseSettings: BorderPresetSettings = {
   aspectRatio: '3:2',
   paperSize: '8x10',
-  customAspectWidth: 0,
-  customAspectHeight: 0,
-  customPaperWidth: 0,
-  customPaperHeight: 0,
+  customAspectWidth: BORDER_CALCULATOR_DEFAULTS.customAspectWidth,
+  customAspectHeight: BORDER_CALCULATOR_DEFAULTS.customAspectHeight,
+  customPaperWidth: BORDER_CALCULATOR_DEFAULTS.customPaperWidth,
+  customPaperHeight: BORDER_CALCULATOR_DEFAULTS.customPaperHeight,
   minBorder: 0.5,
   enableOffset: true,
   ignoreMinBorder: false,
