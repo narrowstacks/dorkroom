@@ -10,7 +10,7 @@ import { GradientBackground } from '@/components/gradient-background';
 import { ToolIcon } from '@/components/tool-icon';
 import { usePinnedTabs } from '@/hooks/use-pinned-tabs';
 import { MAX_PINNED } from '@/lib/tab-bar-settings';
-import { getTool, TOOLS } from '@/lib/tools';
+import { getTool, isPinnable, TOOLS } from '@/lib/tools';
 
 function PinnedRow({
   id,
@@ -42,7 +42,7 @@ function PinnedRow({
 export default function EditTabs() {
   const { pinned, setPinned } = usePinnedTabs();
   const available = TOOLS.filter(
-    (t) => !pinned.includes(t.id) && t.pinnable !== false
+    (t) => !pinned.includes(t.id) && isPinnable(t)
   );
   const canAdd = pinned.length < MAX_PINNED;
 

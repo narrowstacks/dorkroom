@@ -1,6 +1,6 @@
 import { createMMKV } from 'react-native-mmkv';
 import { z } from 'zod';
-import { DEFAULT_PINNED_IDS, getTool } from './tools';
+import { DEFAULT_PINNED_IDS, getTool, isPinnable } from './tools';
 
 export const storage = createMMKV({ id: 'dorkroom-tab-bar' });
 export const KEY = 'pinnedToolIds';
@@ -17,7 +17,7 @@ const DEFAULT_PINS = DEFAULT_PINNED_IDS.slice(0, MAX_PINNED);
  * duplicate trigger. */
 const pinnableToolIdSchema = z.string().refine((id) => {
   const tool = getTool(id);
-  return tool !== undefined && tool.pinnable !== false;
+  return tool !== undefined && isPinnable(tool);
 });
 
 /** Anything that isn't a JSON array decodes as empty — i.e. back to defaults. */
