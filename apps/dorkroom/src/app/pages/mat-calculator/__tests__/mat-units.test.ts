@@ -1,5 +1,7 @@
+import { MAT_PRESETS } from '@dorkroom/logic';
 import { describe, expect, it } from 'vitest';
 import {
+  formatMatPresetLabel,
   formatMatPreview,
   formatMatValue,
   matDisplayToValue,
@@ -123,5 +125,22 @@ describe('matStepLabel', () => {
   it('names the step in the active unit', () => {
     expect(matStepLabel('imperial')).toBe('1/16 inch');
     expect(matStepLabel('metric')).toBe('1 mm');
+  });
+});
+
+describe('formatMatPresetLabel', () => {
+  const sixteenByTwenty = MAT_PRESETS.find((p) => p.label === '16×20');
+
+  it('keeps the conventional inch name in imperial', () => {
+    expect(formatMatPresetLabel(sixteenByTwenty!, 'imperial')).toBe('16×20');
+  });
+
+  it('shows the converted board in centimetres in metric', () => {
+    expect(formatMatPresetLabel(sixteenByTwenty!, 'metric')).toBe(
+      '40.6×50.8cm'
+    );
+    expect(formatMatPresetLabel({ label: '8×10', w: 8, h: 10 }, 'metric')).toBe(
+      '20.3×25.4cm'
+    );
   });
 });

@@ -195,10 +195,19 @@ describe('MatCalculatorPage', () => {
       await expect(persistedOuterWidth()).resolves.toBe('11.811');
     });
 
+    it('labels the board presets in centimetres', () => {
+      renderPage('metric');
+
+      expect(
+        screen.getByRole('button', { name: '40.6×50.8cm' })
+      ).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: '16×20' })).toBeNull();
+    });
+
     it('applies a board preset in inches and displays it in centimetres', async () => {
       renderPage('metric');
 
-      fireEvent.click(screen.getByRole('button', { name: '11×14' }));
+      fireEvent.click(screen.getByRole('button', { name: '27.9×35.6cm' }));
 
       expect(screen.getByTitle('Enter Width')).toHaveValue('27.94');
       expect(screen.getByTitle('Enter Height')).toHaveValue('35.56');

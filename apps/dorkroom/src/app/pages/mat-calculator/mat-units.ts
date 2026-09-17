@@ -2,6 +2,7 @@ import {
   convertDisplayToInches,
   convertInchesToDisplay,
   formatMeasurement,
+  type MatPreset,
   type MeasurementUnit,
   parseMatInput,
   toFraction,
@@ -124,4 +125,21 @@ export function stepMatDisplay(
 /** Human-readable step size for the stepper buttons' accessible names. */
 export function matStepLabel(unit: MeasurementUnit): string {
   return unit === 'imperial' ? '1/16 inch' : '1 mm';
+}
+
+/**
+ * Label for a board-size preset chip. The presets are standard inch boards,
+ * so imperial keeps the conventional name ("16×20"); metric shows the same
+ * board converted, at the precision the results use ("40.6×50.8cm").
+ */
+export function formatMatPresetLabel(
+  preset: MatPreset,
+  unit: MeasurementUnit
+): string {
+  if (unit === 'imperial') {
+    return preset.label;
+  }
+  const w = trimDecimals(convertInchesToDisplay(preset.w, unit), 1);
+  const h = trimDecimals(convertInchesToDisplay(preset.h, unit), 1);
+  return `${w}×${h}cm`;
 }

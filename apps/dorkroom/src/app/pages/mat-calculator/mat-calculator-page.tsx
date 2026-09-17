@@ -16,7 +16,11 @@ import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analy
 import { FractionField } from './fraction-field';
 import { MatDiagram } from './mat-diagram';
 import { MatInfoSection } from './mat-info-section';
-import { formatMatPreview, formatMatValue } from './mat-units';
+import {
+  formatMatPresetLabel,
+  formatMatPreview,
+  formatMatValue,
+} from './mat-units';
 
 interface PresetRowProps {
   outerW: string;
@@ -25,6 +29,7 @@ interface PresetRowProps {
 }
 
 function PresetRow({ outerW, outerH, onSelect }: PresetRowProps) {
+  const { unit } = useMeasurement();
   return (
     <div className="flex flex-wrap gap-1.5">
       {MAT_PRESETS.map((p) => {
@@ -34,6 +39,7 @@ function PresetRow({ outerW, outerH, onSelect }: PresetRowProps) {
           <button
             key={p.label}
             type="button"
+            title={unit === 'imperial' ? undefined : `${p.label} in`}
             onClick={() => onSelect(p.w, p.h)}
             className="rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors"
             style={{
@@ -46,7 +52,7 @@ function PresetRow({ outerW, outerH, onSelect }: PresetRowProps) {
                 : 'var(--color-text-tertiary)',
             }}
           >
-            {p.label}
+            {formatMatPresetLabel(p, unit)}
           </button>
         );
       })}
