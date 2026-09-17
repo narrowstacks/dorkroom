@@ -73,7 +73,7 @@ The app versions independently of the web app. See
 
 ### Prerequisites
 
-- **Node.js** 18+ (required)
+- **Node.js** 24.x (required)
 - **Bun** (required - uses Bun workspaces)
 
 Install Bun:
