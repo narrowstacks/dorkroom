@@ -18,7 +18,7 @@ function tipsFor(unit: MeasurementUnit): string[] {
   const entry =
     unit === 'imperial'
       ? 'Inputs accept decimals like 1.5, or fractions like 1 1/2 and 1/4.'
-      : 'Inputs accept centimetres like 3.8. Board presets are named in inches but apply in centimetres.';
+      : 'Inputs accept centimetres like 3.8. Board presets are named in inches; the fields show them converted to centimetres.';
   return [
     'Cut the mat face down. The guide-bar offset is the border for the edge set against the bar.',
     reveal,
