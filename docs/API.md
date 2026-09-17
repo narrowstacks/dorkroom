@@ -236,8 +236,8 @@ All parameters are optional. Use `film` and `developer` (slug values) to find re
 | `query` | string | Exact search term (max 200 chars) |
 | `fuzzy` | string | Fuzzy search term (max 200 chars) |
 | `limit` | integer | Max results to return (1-1000) |
-| `count` | integer | Alias for limit (1-1000) |
-| `page` | integer | Page number (>= 1) |
+| `count` | integer | Page size (1-1000). Use with `page`; unlike `limit`, this enables offset pagination |
+| `page` | integer | Page number (>= 1). Only applied together with `count`; ignored with `limit` |
 | `id` | string | Look up a specific combination by ID (max 200 chars) |
 
 #### Example

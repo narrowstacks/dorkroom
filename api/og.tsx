@@ -38,6 +38,14 @@ function rejectUnknownParams(searchParams: URLSearchParams): boolean {
 }
 
 const FETCH_TIMEOUT_MS = 3000;
+/** Rows requested per `/api/combinations` page when scanning for a recipe UUID. */
+const COMBINATION_PAGE_SIZE = 50;
+/**
+ * Upper bound on pages scanned for a recipe UUID (500 rows at
+ * `COMBINATION_PAGE_SIZE`). Prevents a pathological film+developer pairing
+ * from fanning out into unbounded upstream requests.
+ */
+const MAX_COMBINATION_PAGES = 10;
 const FONT_URL =
   'https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Ew-.ttf';
 const FONT_BOLD_URL =
@@ -110,22 +118,51 @@ async function lookupDeveloper(slug: string): Promise<DeveloperInfo | null> {
   return data?.data?.[0] ?? null;
 }
 
-async function lookupCombination(
+/**
+ * Resolves a film+developer combination.
+ *
+ * Without a `recipeUuid`, returns the first row (`limit=1`) — there is no
+ * specific recipe to match, so any row for the pairing is fine.
+ *
+ * With a `recipeUuid`, pages through `/api/combinations` looking for that
+ * exact row, since the backend gives no ordering guarantee that would put it
+ * on page 1. The upstream function only honours `page` when the page size is
+ * sent as `count`; with `limit` it ignores `page` and returns the first rows
+ * every time (see `supabase/functions/combinations/index.ts`). A miss returns
+ * `null` rather than substituting an unrelated recipe — see issue #252. Paging
+ * stops once the UUID is found, the upstream reports no more matching rows
+ * (via the response's `count`), a page comes back empty, or
+ * `MAX_COMBINATION_PAGES` is reached.
+ */
+export async function lookupCombination(
   filmSlug: string,
   developerSlug: string,
   recipeUuid?: string
 ): Promise<CombinationInfo | null> {
-  const url = recipeUuid
-    ? `${BASE_URL}/api/combinations?film=${encodeURIComponent(filmSlug)}&developer=${encodeURIComponent(developerSlug)}&limit=50`
-    : `${BASE_URL}/api/combinations?film=${encodeURIComponent(filmSlug)}&developer=${encodeURIComponent(developerSlug)}&limit=1`;
-  const data = await fetchJson<{
-    data: (CombinationInfo & { uuid?: string })[];
-  }>(url);
-  if (!data?.data?.length) return null;
-  if (recipeUuid) {
-    return data.data.find((c) => c.uuid === recipeUuid) ?? data.data[0];
+  const baseUrl = `${BASE_URL}/api/combinations?film=${encodeURIComponent(filmSlug)}&developer=${encodeURIComponent(developerSlug)}`;
+
+  if (!recipeUuid) {
+    const data = await fetchJson<{
+      data: (CombinationInfo & { uuid?: string })[];
+      count?: number;
+    }>(`${baseUrl}&limit=1`);
+    return data?.data?.[0] ?? null;
   }
-  return data.data[0];
+
+  for (let page = 1; page <= MAX_COMBINATION_PAGES; page++) {
+    const data = await fetchJson<{
+      data: (CombinationInfo & { uuid?: string })[];
+      count?: number;
+    }>(`${baseUrl}&count=${COMBINATION_PAGE_SIZE}&page=${page}`);
+    if (!data?.data?.length) return null;
+
+    const match = data.data.find((c) => c.uuid === recipeUuid);
+    if (match) return match;
+
+    const rowsSeen = page * COMBINATION_PAGE_SIZE;
+    if (data.count === undefined || rowsSeen >= data.count) return null;
+  }
+  return null;
 }
 
 function formatTime(minutes: number): string {
