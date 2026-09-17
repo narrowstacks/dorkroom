@@ -1,15 +1,28 @@
 import '@testing-library/jest-dom/vitest';
+import type { MeasurementUnit } from '@dorkroom/logic';
+import { MeasurementProvider } from '@dorkroom/ui';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FractionField } from '../fraction-field';
 
-function renderField(value: string) {
+const MEASUREMENT_STORAGE_KEY = 'dorkroom-measurement-unit';
+
+function renderField(value: string, unit: MeasurementUnit = 'imperial') {
+  window.localStorage.setItem(MEASUREMENT_STORAGE_KEY, unit);
   const onChange = vi.fn();
-  render(<FractionField label="Top" value={value} onChange={onChange} />);
+  render(
+    <MeasurementProvider>
+      <FractionField label="Top" value={value} onChange={onChange} />
+    </MeasurementProvider>
+  );
   return { onChange, input: screen.getByRole('textbox') };
 }
 
 describe('FractionField', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   it('accepts free-form typing', () => {
     const { onChange, input } = renderField('3');
     fireEvent.change(input, { target: { value: '2 3/4' } });
@@ -75,6 +88,49 @@ describe('FractionField', () => {
       const { onChange } = renderField('3');
       fireEvent.click(screen.getByLabelText('Decrease Top by 1/16 inch'));
       expect(onChange).toHaveBeenCalledWith('2 15/16');
+    });
+  });
+
+  describe('metric preference', () => {
+    it('shows the inch value converted to centimetres', () => {
+      const { input } = renderField('16', 'metric');
+      expect(input).toHaveValue('40.64');
+      expect(screen.getByText('cm')).toBeInTheDocument();
+    });
+
+    it('commits typed centimetres as inches', () => {
+      const { onChange, input } = renderField('16', 'metric');
+      fireEvent.change(input, { target: { value: '50' } });
+      expect(onChange).toHaveBeenCalledWith('19.685');
+    });
+
+    it('holds a transitional keystroke while focused', () => {
+      const { onChange, input } = renderField('16', 'metric');
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '30.' } });
+      // The draft is what the user typed; the parent still gets inches.
+      expect(input).toHaveValue('30.');
+      expect(onChange).toHaveBeenCalledWith('11.811');
+    });
+
+    it('commits an empty string for unparseable text', () => {
+      const { onChange, input } = renderField('16', 'metric');
+      fireEvent.change(input, { target: { value: 'abc' } });
+      expect(onChange).toHaveBeenCalledWith('');
+    });
+
+    it('steps by 1mm and labels the steppers accordingly', () => {
+      const { onChange } = renderField('16', 'metric');
+      expect(screen.getByLabelText('Increase Top by 1 mm')).toBeInTheDocument();
+      // 40.64cm snaps to the 1mm grid (40.6) and steps to 40.7cm = 16.024in.
+      fireEvent.click(screen.getByLabelText('Increase Top by 1 mm'));
+      expect(onChange).toHaveBeenCalledWith('16.024');
+    });
+
+    it('clamps stepping down at zero', () => {
+      const { onChange } = renderField('0', 'metric');
+      fireEvent.click(screen.getByLabelText('Decrease Top by 1 mm'));
+      expect(onChange).toHaveBeenCalledWith('0');
     });
   });
 });

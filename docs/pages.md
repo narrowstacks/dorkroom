@@ -147,15 +147,19 @@ build-time prerender snapshots stay deterministic.
   table
 - Fraction-friendly inputs (`fraction-field.tsx`): decimals, simple fractions,
   and mixed fractions all round-trip
+- Unit conversion (imperial/metric via settings): metric shows centimetre
+  inputs and results, while form state, presets, and persistence stay in
+  inches. `mat-units.ts` is the whole boundary.
 - State persistence to localStorage
 
 **Key hook:**
 
 - `useMatCalculator()` - all parsing, geometry, best fit, warnings, and
-  persistence. The iOS app consumes the same hook.
+  persistence. The iOS app consumes the same hook. Its optional `formatValue`
+  option renders the derived strings in another unit; the math stays imperial.
 
-**Note:** this calculator is imperial-only; it does not yet follow the global
-imperial/metric preference (issue #250).
+**Note:** the iOS screen does not follow the measurement preference yet
+(issue #263).
 
 ---
 

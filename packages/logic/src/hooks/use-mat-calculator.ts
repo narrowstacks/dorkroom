@@ -47,7 +47,7 @@ export interface UseMatCalculatorReturn {
   applyBestFit: () => void;
   /** Preview of the best-fit borders, or null when the art cannot fit. */
   bestFitPreview: MatBorders | null;
-  /** Formatter that renders inches as a nearest-1/16 fraction (or placeholder when invalid). */
+  /** Formatter for a measurement in inches (nearest-1/16 fraction by default, placeholder when invalid). */
   fmt: (value: number) => string;
   /** Whether the outer mat and borders leave a positive window on both axes. */
   valid: boolean;
@@ -71,6 +71,16 @@ export interface UseMatCalculatorReturn {
   dimensionRows: MatDimensionRow[];
 }
 
+export interface UseMatCalculatorOptions {
+  /**
+   * Render one measurement for display. Receives inches — form state,
+   * persistence and every calculation stay imperial — and defaults to the
+   * nearest-1/16 fraction with an inch mark. The web app passes a unit-aware
+   * formatter so metric users read centimetres.
+   */
+  formatValue?: (inches: number) => string;
+}
+
 /**
  * Hook for the single-window mat cut calculator. Owns the fraction-friendly
  * form state (persisted to localStorage) and derives the window opening,
@@ -83,7 +93,9 @@ export interface UseMatCalculatorReturn {
  * return <span>{mat.fmt(mat.windowW)}</span>;
  * ```
  */
-export function useMatCalculator(): UseMatCalculatorReturn {
+export function useMatCalculator(
+  options?: UseMatCalculatorOptions
+): UseMatCalculatorReturn {
   const [values, setValues] = useState<MatCalculatorState>(
     MAT_CALCULATOR_DEFAULTS
   );
@@ -157,7 +169,7 @@ export function useMatCalculator(): UseMatCalculatorReturn {
   const windowH = oh - bt - bb;
   const valid = outerValid && bordersValid && windowW > 0 && windowH > 0;
 
-  const fmt = makeMatFormatter(valid);
+  const fmt = makeMatFormatter(valid, options?.formatValue);
 
   const artValid = !isNaN(aw) && !isNaN(ah) && aw > 0 && ah > 0;
   const revealMode = artValid;
