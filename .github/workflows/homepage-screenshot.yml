@@ -38,7 +38,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.4.0
+          bun-version: 1.4.2
 
       # Cache node_modules (fastest - skips install entirely on cache hit).
       # Keys match ci.yml exactly so this workflow reuses the caches CI
