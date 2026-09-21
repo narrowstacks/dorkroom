@@ -23,6 +23,7 @@ import {
 import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { type ChangeEvent, type FC, useMemo, useRef, useState } from 'react';
+import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 
 const validateExposureForm = createZodFormValidator(exposureCalculatorSchema);
@@ -156,6 +157,9 @@ export default function ExposureCalculatorPage() {
   });
 
   const handleAdjustStops = (increment: number) => {
+    // The increment is one of EXPOSURE_PRESETS' own stop values, never the
+    // number the user typed into the stops field.
+    trackEvent('preset_applied', { tool: 'stops', preset: increment });
     const currentStops = form.getFieldValue('stops');
     const newStopsValue = roundStopsToThirds(currentStops + increment);
     const truncatedStops = roundToStandardPrecision(newStopsValue);

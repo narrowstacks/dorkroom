@@ -388,7 +388,7 @@ export function useBorderCalculatorController() {
     presetItems,
     setPresetName,
     setIsEditingPreset,
-    handleSelectPreset,
+    handleSelectPreset: selectPreset,
     savePreset,
     updatePresetHandler,
     deletePresetHandler,
@@ -401,6 +401,22 @@ export function useBorderCalculatorController() {
     onRemovePreset: removePreset,
     onApplySettings: applyPresetSettings,
   });
+
+  // Only the built-in presets are tracked: their index in DEFAULT_BORDER_PRESETS
+  // is a fixed identity, whereas a user-saved preset is named by the user and
+  // stays off the wire entirely.
+  const handleSelectPreset = useCallback(
+    (id: string) => {
+      const builtInIndex = DEFAULT_BORDER_PRESETS.findIndex(
+        (preset) => preset.id === id
+      );
+      if (builtInIndex >= 0) {
+        trackEvent('preset_applied', { tool: 'border', preset: builtInIndex });
+      }
+      selectPreset(id);
+    },
+    [selectPreset]
+  );
 
   const sharePresetWrapper = useCallback(
     async (

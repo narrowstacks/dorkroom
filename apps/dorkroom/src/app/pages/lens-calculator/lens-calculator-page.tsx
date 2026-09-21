@@ -16,7 +16,8 @@ import {
   CalculatorStat,
 } from '@dorkroom/ui/calculator';
 import { ArrowRightLeft } from 'lucide-react';
-import type { FC } from 'react';
+import { type FC, useCallback } from 'react';
+import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 
 const HOW_TO_USE = [
@@ -99,6 +100,16 @@ export default function LensCalculatorPage() {
     calculation,
   } = useLensCalculator();
 
+  // The focal length itself is the preset identity, and it is one of our own
+  // constants rather than anything the user typed.
+  const handlePresetClick = useCallback(
+    (focalLength: number) => {
+      trackEvent('preset_applied', { tool: 'lenses', preset: focalLength });
+      setFocalLength(focalLength);
+    },
+    [setFocalLength]
+  );
+
   return (
     <div className="mx-auto max-w-7xl px-6 pb-16 pt-12 sm:px-10">
       <CalculatorPageHeader
@@ -132,7 +143,7 @@ export default function LensCalculatorPage() {
                     key={preset.value}
                     value={preset.value}
                     label={preset.label}
-                    onClick={setFocalLength}
+                    onClick={handlePresetClick}
                   />
                 ))}
               </div>
