@@ -235,44 +235,30 @@ export function useBorderCalculatorController() {
     }
   }, [customPaperWidth, customPaperHeight, form]);
 
+  // Callers pass settings that have already been validated against the form's
+  // own bounds — `borderPresetSchema` for a stored preset, the share-link
+  // schema inside `decodePreset` for a URL — so this only has to land them.
+  // One `reset` replaces the whole value set in a single store update instead
+  // of 21 sequential writes, so no render observes a half-applied preset and
+  // stale per-field validation state from the previous settings is dropped.
+  // `keepDefaultValues` is load-bearing: without it `reset` adopts the preset
+  // as the form's defaultValues, which would both redirect "reset to
+  // defaults" at the preset and let the `form.update(opts)` that `useForm`
+  // runs on the next render overwrite the values just applied.
   const applyPresetSettings = useCallback(
     (settings: BorderPresetSettings) => {
-      form.setFieldValue('aspectRatio', settings.aspectRatio);
-      form.setFieldValue('paperSize', settings.paperSize);
-      form.setFieldValue('customAspectWidth', settings.customAspectWidth);
-      form.setFieldValue('customAspectHeight', settings.customAspectHeight);
-      form.setFieldValue('customPaperWidth', settings.customPaperWidth);
-      form.setFieldValue('customPaperHeight', settings.customPaperHeight);
-      form.setFieldValue('minBorder', settings.minBorder);
-      form.setFieldValue('enableOffset', settings.enableOffset);
-      form.setFieldValue('ignoreMinBorder', settings.ignoreMinBorder);
-      form.setFieldValue('horizontalOffset', settings.horizontalOffset);
-      form.setFieldValue('verticalOffset', settings.verticalOffset);
-      form.setFieldValue('showBlades', settings.showBlades);
-      form.setFieldValue('showBladeReadings', settings.showBladeReadings);
-      form.setFieldValue('isLandscape', settings.isLandscape);
-      form.setFieldValue('isRatioFlipped', settings.isRatioFlipped);
-      form.setFieldValue(
-        'hasManuallyFlippedPaper',
-        settings.hasManuallyFlippedPaper
+      form.reset(
+        {
+          ...form.state.values,
+          ...settings,
+          lastValidCustomAspectWidth: settings.customAspectWidth,
+          lastValidCustomAspectHeight: settings.customAspectHeight,
+          lastValidCustomPaperWidth: settings.customPaperWidth,
+          lastValidCustomPaperHeight: settings.customPaperHeight,
+          lastValidMinBorder: settings.minBorder,
+        },
+        { keepDefaultValues: true }
       );
-      form.setFieldValue(
-        'lastValidCustomAspectWidth',
-        settings.customAspectWidth
-      );
-      form.setFieldValue(
-        'lastValidCustomAspectHeight',
-        settings.customAspectHeight
-      );
-      form.setFieldValue(
-        'lastValidCustomPaperWidth',
-        settings.customPaperWidth
-      );
-      form.setFieldValue(
-        'lastValidCustomPaperHeight',
-        settings.customPaperHeight
-      );
-      form.setFieldValue('lastValidMinBorder', settings.minBorder);
     },
     [form]
   );
@@ -388,7 +374,7 @@ export function useBorderCalculatorController() {
     presetItems,
     setPresetName,
     setIsEditingPreset,
-    handleSelectPreset,
+    handleSelectPreset: selectPreset,
     savePreset,
     updatePresetHandler,
     deletePresetHandler,
@@ -401,6 +387,22 @@ export function useBorderCalculatorController() {
     onRemovePreset: removePreset,
     onApplySettings: applyPresetSettings,
   });
+
+  // Only the built-in presets are tracked: their index in DEFAULT_BORDER_PRESETS
+  // is a fixed identity, whereas a user-saved preset is named by the user and
+  // stays off the wire entirely.
+  const handleSelectPreset = useCallback(
+    (id: string) => {
+      const builtInIndex = DEFAULT_BORDER_PRESETS.findIndex(
+        (preset) => preset.id === id
+      );
+      if (builtInIndex >= 0) {
+        trackEvent('preset_applied', { tool: 'border', preset: builtInIndex });
+      }
+      selectPreset(id);
+    },
+    [selectPreset]
+  );
 
   const sharePresetWrapper = useCallback(
     async (

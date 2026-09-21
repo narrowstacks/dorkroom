@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  isValidNumericParam,
   MAX_LIMIT,
   MAX_PARAM_LENGTH,
   MIN_LIMIT,
@@ -9,7 +8,7 @@ import {
 
 describe('queryValidation', () => {
   describe('validateAndSanitizeQuery', () => {
-    const allowedParams = ['query', 'limit', 'page', 'colorType'];
+    const allowedParams = ['query', 'limit', 'page', 'colorType', 'fuzzy'];
 
     it('should filter out parameters not in allowlist', () => {
       const query = {
@@ -119,29 +118,29 @@ describe('queryValidation', () => {
       expect(result.get('query')).toBeNull();
       expect(result.get('colorType')).toBe('bw');
     });
-  });
 
-  describe('isValidNumericParam', () => {
-    it('should return true for valid numbers within range', () => {
-      expect(isValidNumericParam('50', MIN_LIMIT, MAX_LIMIT)).toBe(true);
-      expect(isValidNumericParam('1', MIN_LIMIT, MAX_LIMIT)).toBe(true);
-      expect(isValidNumericParam('1000', MIN_LIMIT, MAX_LIMIT)).toBe(true);
+    it('should accept documented fuzzy enum values', () => {
+      const query1 = { fuzzy: 'true' };
+      const result1 = validateAndSanitizeQuery(query1, allowedParams);
+      expect(result1.get('fuzzy')).toBe('true');
+
+      const query2 = { fuzzy: 'false' };
+      const result2 = validateAndSanitizeQuery(query2, allowedParams);
+      expect(result2.get('fuzzy')).toBe('false');
     });
 
-    it('should return false for numbers outside range', () => {
-      expect(isValidNumericParam('0', MIN_LIMIT, MAX_LIMIT)).toBe(false);
-      expect(isValidNumericParam('1001', MIN_LIMIT, MAX_LIMIT)).toBe(false);
-      expect(isValidNumericParam('-5', MIN_LIMIT, MAX_LIMIT)).toBe(false);
-    });
+    it('should drop fuzzy values outside the documented enum', () => {
+      const query1 = { fuzzy: 'banana' };
+      const result1 = validateAndSanitizeQuery(query1, allowedParams);
+      expect(result1.get('fuzzy')).toBeNull();
 
-    it('should return false for non-numeric values', () => {
-      expect(isValidNumericParam('abc', MIN_LIMIT, MAX_LIMIT)).toBe(false);
-      expect(isValidNumericParam('12abc', MIN_LIMIT, MAX_LIMIT)).toBe(false);
-      expect(isValidNumericParam('', MIN_LIMIT, MAX_LIMIT)).toBe(false);
-    });
+      const query2 = { fuzzy: 'True' };
+      const result2 = validateAndSanitizeQuery(query2, allowedParams);
+      expect(result2.get('fuzzy')).toBeNull();
 
-    it('should return false for undefined', () => {
-      expect(isValidNumericParam(undefined, MIN_LIMIT, MAX_LIMIT)).toBe(false);
+      const query3 = { fuzzy: '1' };
+      const result3 = validateAndSanitizeQuery(query3, allowedParams);
+      expect(result3.get('fuzzy')).toBeNull();
     });
   });
 

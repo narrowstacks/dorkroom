@@ -12,6 +12,7 @@ import {
   CalculatorStat,
 } from '@dorkroom/ui/calculator';
 import { useCallback, useMemo } from 'react';
+import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
 import { FractionField } from './fraction-field';
 import { MatDiagram } from './mat-diagram';
@@ -32,7 +33,7 @@ function PresetRow({ outerW, outerH, onSelect }: PresetRowProps) {
   const { unit } = useMeasurement();
   return (
     <div className="flex flex-wrap gap-1.5">
-      {MAT_PRESETS.map((p) => {
+      {MAT_PRESETS.map((p, index) => {
         const active =
           parseMatInput(outerW) === p.w && parseMatInput(outerH) === p.h;
         return (
@@ -40,7 +41,13 @@ function PresetRow({ outerW, outerH, onSelect }: PresetRowProps) {
             key={p.label}
             type="button"
             title={unit === 'imperial' ? undefined : `${p.label} in`}
-            onClick={() => onSelect(p.w, p.h)}
+            onClick={() => {
+              // A board size is a width×height pair, so the preset's index in
+              // the fixed list stands in for it as the single number the
+              // event carries — never the dimensions themselves.
+              trackEvent('preset_applied', { tool: 'mat', preset: index });
+              onSelect(p.w, p.h);
+            }}
             className="rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors"
             style={{
               borderColor: active

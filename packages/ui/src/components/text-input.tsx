@@ -41,7 +41,11 @@ export function TextInput({
           {label}
         </label>
       )}
-      {description && <p className="text-sm text-gray-500">{description}</p>}
+      {description && (
+        <p className="text-sm text-[color:var(--color-text-muted)]">
+          {description}
+        </p>
+      )}
       <input
         id={id}
         type="text"

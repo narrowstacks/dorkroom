@@ -5,7 +5,7 @@ import {
 } from '@dorkroom/logic';
 import { MeasurementProvider } from '@dorkroom/ui';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import MatCalculatorPage from '../mat-calculator-page';
 
@@ -42,6 +42,16 @@ describe('MatCalculatorPage', () => {
   beforeEach(() => {
     // Start each test from the built-in defaults, not persisted state.
     window.localStorage.clear();
+    // `@vercel/analytics`'s `track` only forwards to `window.va`, the queue
+    // the real script installs in production. Stubbing that global (the same
+    // way `test-setup.ts` stubs `localStorage`) lets the preset_applied test
+    // below observe the real `trackEvent` -> `track` call chain instead of
+    // replacing the module.
+    window.va = vi.fn();
+  });
+
+  afterEach(() => {
+    delete window.va;
   });
 
   it('renders the calculator with its default window opening', () => {
@@ -101,6 +111,19 @@ describe('MatCalculatorPage', () => {
     expect(
       screen.getByText(/Would set borders to/i, { exact: false })
     ).toBeInTheDocument();
+  });
+
+  it('tracks preset_applied with the preset’s list index when a board size is tapped', () => {
+    renderPage();
+
+    // MAT_PRESETS[2] is 16×20.
+    fireEvent.click(screen.getByRole('button', { name: '16×20' }));
+
+    expect(window.va).toHaveBeenCalledWith('event', {
+      name: 'preset_applied',
+      data: { tool: 'mat', preset: 2 },
+      options: undefined,
+    });
   });
 
   describe('imperial preference', () => {
