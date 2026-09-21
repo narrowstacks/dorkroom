@@ -115,6 +115,7 @@ export {
 export {
   type MatDimensionRow,
   type MatGuideBarCut,
+  type UseMatCalculatorOptions,
   type UseMatCalculatorReturn,
   useMatCalculator,
 } from './hooks/use-mat-calculator';

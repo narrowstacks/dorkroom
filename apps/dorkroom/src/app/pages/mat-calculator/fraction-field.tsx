@@ -1,11 +1,19 @@
-import { parseMatInput, toFractionInput } from '@dorkroom/logic';
-import { colorMixOr } from '@dorkroom/ui';
+import { getDisplayUnitLabel } from '@dorkroom/logic';
+import { colorMixOr, useMeasurement } from '@dorkroom/ui';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
+import {
+  matDisplayToValue,
+  matStepLabel,
+  matValueToDisplay,
+  stepMatDisplay,
+} from './mat-units';
 
 interface FractionFieldProps {
   label: string;
+  /** The measurement in inches — always, whatever the display unit is. */
   value: string;
+  /** Receives the measurement in inches. */
   onChange: (value: string) => void;
   placeholder?: string;
   unit?: string;
@@ -13,35 +21,51 @@ interface FractionFieldProps {
   className?: string;
 }
 
-/** Increment step for the up/down steppers and arrow keys: 1/16 inch. */
-const STEP = 1 / 16;
-
-/** Snap the current value to the 1/16 grid and step by one notch (clamped at 0). */
-function step(value: string, direction: 1 | -1): string {
-  const current = parseMatInput(value);
-  const base = Number.isNaN(current) ? 0 : current;
-  const snapped = Math.round(base / STEP) * STEP;
-  const next = Math.max(0, snapped + direction * STEP);
-  return toFractionInput(next);
-}
-
 /**
  * Text input styled like the dorkroom CalculatorNumberField, but accepts
  * fraction entry ("3 1/2", "1/4") which is how matting is measured in the shop.
- * Up/down arrow keys and the tap steppers nudge the value by 1/16".
+ * Up/down arrow keys and the tap steppers nudge the value by one notch of the
+ * active unit: 1/16" in imperial, 1mm in metric.
+ *
+ * `value`/`onChange` are always inches; when the global preference is metric
+ * the field shows and accepts centimetres and converts at this boundary, so
+ * form state and persistence never change unit.
  */
 export function FractionField({
   label,
   value,
   onChange,
   placeholder,
-  unit = 'in',
+  unit,
   helperText,
   className,
 }: FractionFieldProps) {
+  const { unit: measurementUnit } = useMeasurement();
   const [isFocused, setIsFocused] = useState(false);
+  const isMetric = measurementUnit === 'metric';
+  const converted = matValueToDisplay(value, measurementUnit);
 
-  const nudge = (direction: 1 | -1) => onChange(step(value, direction));
+  // Metric only: while the field is focused the local draft is authoritative,
+  // so transitional keystrokes ("20.", "") survive the trip through inches and
+  // back instead of being clobbered by the reconverted prop. Imperial keeps
+  // rendering `value` verbatim — the conversion is the identity there.
+  const [draft, setDraft] = useState(converted);
+  if (isMetric && !isFocused && draft !== converted) {
+    setDraft(converted);
+  }
+  const displayValue = isMetric ? draft : value;
+  const unitLabel = unit ?? getDisplayUnitLabel(measurementUnit);
+  const stepLabel = matStepLabel(measurementUnit);
+
+  const commit = (raw: string) => {
+    if (isMetric) {
+      setDraft(raw);
+    }
+    onChange(matDisplayToValue(raw, measurementUnit));
+  };
+
+  const nudge = (direction: 1 | -1) =>
+    commit(stepMatDisplay(displayValue, measurementUnit, direction));
 
   return (
     <div className={`min-w-0 space-y-2 ${className ?? ''}`}>
@@ -50,7 +74,7 @@ export function FractionField({
         style={{ color: 'var(--color-text-primary)' }}
       >
         <span className="font-medium">{label}</span>
-        {unit && (
+        {unitLabel && (
           <span
             className="flex items-center justify-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase"
             style={{
@@ -64,7 +88,7 @@ export function FractionField({
               color: 'var(--color-text-tertiary)',
             }}
           >
-            {unit}
+            {unitLabel}
           </span>
         )}
       </div>
@@ -73,8 +97,8 @@ export function FractionField({
           type="text"
           inputMode="decimal"
           aria-label={label}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={displayValue}
+          onChange={(e) => commit(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'ArrowUp') {
               e.preventDefault();
@@ -107,13 +131,13 @@ export function FractionField({
         />
         <div className="absolute inset-y-1 right-1 flex flex-col overflow-hidden rounded-md">
           <StepperButton
-            label={`Increase ${label} by 1/16 inch`}
+            label={`Increase ${label} by ${stepLabel}`}
             onTap={() => nudge(1)}
           >
             <ChevronUp className="size-3.5" />
           </StepperButton>
           <StepperButton
-            label={`Decrease ${label} by 1/16 inch`}
+            label={`Decrease ${label} by ${stepLabel}`}
             onTap={() => nudge(-1)}
           >
             <ChevronDown className="size-3.5" />

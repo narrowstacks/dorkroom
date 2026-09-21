@@ -21,6 +21,19 @@ describe('useMatCalculator', () => {
     expect(result.current.fmt(result.current.windowH)).toBe('13 1/2"');
   });
 
+  it('renders every derived string through an injected formatter', () => {
+    const cm = (inches: number) => `${(inches * 2.54).toFixed(1)}cm`;
+    const { result } = renderHook(() => useMatCalculator({ formatValue: cm }));
+
+    // Form state and the math stay in inches; only the strings change unit.
+    expect(result.current.values.outerW).toBe('16');
+    expect(result.current.windowW).toBeCloseTo(10.5, 5);
+    expect(result.current.fmt(result.current.windowW)).toBe('26.7cm');
+    // The guide-bar cards and dimension rows are built with the same fmt.
+    expect(result.current.guideBarCuts[0].offset).toBe('7.6cm');
+    expect(result.current.dimensionRows[0][1]).toBe('40.6cm × 50.8cm');
+  });
+
   it('recomputes the window when a field changes', () => {
     const { result } = renderHook(() => useMatCalculator());
 

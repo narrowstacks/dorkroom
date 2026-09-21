@@ -87,11 +87,20 @@ export function toFractionInput(decimal: number, denom = 16): string {
   return toFraction(decimal, denom).replace(/"$/, '');
 }
 
-/** Build a formatter that renders inches as a nearest-1/16 fraction. */
-export function makeMatFormatter(valid: boolean) {
+/**
+ * Build a formatter that renders a measurement, falling back to a placeholder
+ * while the inputs are invalid. `format` defaults to the nearest-1/16 fraction
+ * with an inch mark; pass one in to render the value in another unit (the web
+ * app supplies a centimetre formatter for metric users). The value handed to
+ * `format` is always in inches.
+ */
+export function makeMatFormatter(
+  valid: boolean,
+  format: (inches: number) => string = toFraction
+) {
   return (v: number): string => {
     if (!valid || isNaN(v)) return '· · ·';
-    return toFraction(v);
+    return format(v);
   };
 }
 

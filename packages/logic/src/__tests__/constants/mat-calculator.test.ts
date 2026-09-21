@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   bestFitBorders,
   bottomWeightFor,
@@ -91,6 +91,18 @@ describe('mat calculator logic', () => {
     it('returns the placeholder when invalid or NaN', () => {
       expect(makeMatFormatter(false)(3.5)).toBe('· · ·');
       expect(makeMatFormatter(true)(NaN)).toBe('· · ·');
+    });
+
+    it('uses an injected formatter for the value, still in inches', () => {
+      const cm = (inches: number) => `${(inches * 2.54).toFixed(1)}cm`;
+      expect(makeMatFormatter(true, cm)(3.5)).toBe('8.9cm');
+    });
+
+    it('keeps the placeholder ahead of an injected formatter', () => {
+      const shout = vi.fn(() => 'NOPE');
+      expect(makeMatFormatter(false, shout)(3.5)).toBe('· · ·');
+      expect(makeMatFormatter(true, shout)(NaN)).toBe('· · ·');
+      expect(shout).not.toHaveBeenCalled();
     });
   });
 
