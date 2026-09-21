@@ -3,6 +3,7 @@ import { ASPECT_RATIOS, PAPER_SIZES } from '../constants/border-calculator';
 import {
   aspectRatioValueSchema,
   paperSizeValueSchema,
+  sharedBorderPresetSettingsSchema,
 } from '../schemas/border-calculator.schema';
 import type {
   AspectRatioValue,
@@ -240,6 +241,13 @@ function splitRawPreset(rawString: string): RawPresetParts {
  * Reverses the encoding process and reconstructs the complete preset object.
  * Accepts both the current (v2) format and legacy (v1) links.
  *
+ * The decoded settings are parsed through `sharedBorderPresetSettingsSchema`
+ * before they are returned, so a non-null result is always in bounds: numeric
+ * fields outside the slider range are clamped to the nearest valid value, and
+ * a payload that is malformed in a way clamping cannot repair yields null.
+ * Fields the payload omits take their value from `BORDER_CALCULATOR_DEFAULTS`
+ * through that schema rather than from a fallback declared here.
+ *
  * @param encoded - URL-safe encoded preset string
  * @returns Decoded preset object with name and settings, or null if decoding fails
  * @example
@@ -279,34 +287,25 @@ export function decodePreset(encoded: string): SharedPreset | null {
       );
     }
 
-    const booleanSettings = fromBooleanBitmask(boolMask);
-    const settings: BorderPresetSettings = {
+    // Only the fields the payload actually carries are listed: the rest are
+    // left absent so the schema supplies BORDER_CALCULATOR_DEFAULTS for them.
+    const decoded: z.input<typeof sharedBorderPresetSettingsSchema> = {
       aspectRatio: aspectRatioValue,
       paperSize: paperSizeValue,
       minBorder,
       horizontalOffset,
       verticalOffset,
-      enableOffset: booleanSettings.enableOffset ?? false,
-      ignoreMinBorder: booleanSettings.ignoreMinBorder ?? false,
-      showBlades: booleanSettings.showBlades ?? true,
-      showBladeReadings: booleanSettings.showBladeReadings ?? false,
-      isLandscape: booleanSettings.isLandscape ?? false,
-      isRatioFlipped: booleanSettings.isRatioFlipped ?? false,
-      hasManuallyFlippedPaper: false,
-      customAspectWidth: 0,
-      customAspectHeight: 0,
-      customPaperWidth: 0,
-      customPaperHeight: 0,
+      ...fromBooleanBitmask(boolMask),
     };
 
     // Parse custom values if needed
-    if (settings.aspectRatio === 'custom') {
-      settings.customAspectWidth = parts[partIndex++] / 100;
-      settings.customAspectHeight = parts[partIndex++] / 100;
+    if (aspectRatioValue === 'custom') {
+      decoded.customAspectWidth = parts[partIndex++] / 100;
+      decoded.customAspectHeight = parts[partIndex++] / 100;
     }
-    if (settings.paperSize === 'custom') {
-      settings.customPaperWidth = parts[partIndex++] / 100;
-      settings.customPaperHeight = parts[partIndex++] / 100;
+    if (paperSizeValue === 'custom') {
+      decoded.customPaperWidth = parts[partIndex++] / 100;
+      decoded.customPaperHeight = parts[partIndex++] / 100;
     }
 
     // partIndex counts every part read above; fewer parts means a truncated
@@ -315,7 +314,17 @@ export function decodePreset(encoded: string): SharedPreset | null {
       throw new Error('Truncated preset payload');
     }
 
-    return { name, settings };
+    // A share link is untrusted input, so the settings only leave this
+    // function through the schema: out-of-range numbers come back clamped,
+    // and anything the schema cannot repair rejects the link outright.
+    const settings = sharedBorderPresetSettingsSchema.safeParse(decoded);
+    if (!settings.success) {
+      throw new Error(
+        `Preset payload failed validation: ${settings.error.message}`
+      );
+    }
+
+    return { name, settings: settings.data };
   } catch (error) {
     debugError('Failed to decode preset:', error);
     return null;
