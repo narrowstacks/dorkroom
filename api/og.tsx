@@ -178,7 +178,7 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function getRouteAccent(route: string): string {
+export function getRouteAccent(route: string): string {
   switch (route) {
     case '/':
       return '#6ef3a4'; // green — app primary
@@ -190,13 +190,15 @@ function getRouteAccent(route: string): string {
       return '#c4b5fd'; // purple
     case '/privacy':
       return '#c4b5fd'; // purple — reference, same family as /docs
+    case '/settings':
+      return '#c4b5fd'; // purple — reference, same family as /docs and /privacy
     default:
       return '#e5ff7d'; // lime — calculators
   }
 }
 
 /** Lucide icon SVG children keyed by route. Each entry is an array of SVG elements. */
-function getRouteIcon(route: string): React.JSX.Element[] | null {
+export function getRouteIcon(route: string): React.JSX.Element[] | null {
   switch (route) {
     case '/': // Beaker
       return [
@@ -291,6 +293,14 @@ function getRouteIcon(route: string): React.JSX.Element[] | null {
           key="2"
           d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
         />,
+      ];
+    case '/settings': // Settings
+      return [
+        <path
+          key="1"
+          d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"
+        />,
+        <circle key="2" cx={12} cy={12} r={3} />,
       ];
     default:
       return null;
