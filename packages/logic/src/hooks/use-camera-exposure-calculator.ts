@@ -14,12 +14,16 @@ import {
   type EquivalentExposure,
   type ExposureComparison,
   type ExposureValueResult,
+  type PresetWarning,
 } from '../types/camera-exposure-calculator';
 import {
   calculateExposureValue,
   compareExposures,
   findNearestStandard,
+  formatAperture,
+  formatShutterSpeed,
   getEquivalentExposures,
+  getPresetOutOfRangeWarning,
   solveForAperture,
   solveForISO,
   solveForShutterSpeed,
@@ -44,6 +48,11 @@ const positiveNumberSchema = z.number().positive();
 const positiveNumber = (v: PersistedValue): boolean =>
   positiveNumberSchema.safeParse(v).success;
 
+// No shared ISO formatter exists elsewhere (unlike shutter speed/aperture),
+// so this rounds a solved ISO to a display string for the out-of-range
+// preset warning only.
+const formatISO = (iso: number): string => `ISO ${Math.round(iso)}`;
+
 export interface UseCameraExposureCalculatorReturn {
   values: CameraExposureFormState;
   /** Update a single field. */
@@ -53,6 +62,13 @@ export interface UseCameraExposureCalculatorReturn {
   ) => void;
   /** Solve for the selected value (aperture/shutter/ISO) to match an EV preset. */
   applyPreset: (ev: number) => void;
+  /**
+   * Set when the last-applied preset's solved value fell outside the
+   * standard dial range and got clamped to the nearest endpoint (e.g. 30s
+   * or f/64) rather than the value the preset actually needs. `null` when
+   * the last preset (if any) applied cleanly, or after any input change.
+   */
+  presetWarning: PresetWarning | null;
   /** Exposure value for the primary settings (A). */
   exposureValue: ExposureValueResult;
   /** Equivalent aperture/shutter pairs at the current EV (empty when invalid). */
@@ -78,12 +94,18 @@ export function useCameraExposureCalculator(): UseCameraExposureCalculatorReturn
   const [values, setValues] = useState<CameraExposureFormState>(
     CAMERA_EXPOSURE_DEFAULTS
   );
+  const [presetWarning, setPresetWarning] = useState<PresetWarning | null>(
+    null
+  );
 
   const set = useCallback(
     <K extends keyof CameraExposureFormState>(
       key: K,
       value: CameraExposureFormState[K]
-    ) => setValues((prev) => ({ ...prev, [key]: value })),
+    ) => {
+      setPresetWarning(null);
+      setValues((prev) => ({ ...prev, [key]: value }));
+    },
     []
   );
 
@@ -122,23 +144,47 @@ export function useCameraExposureCalculator(): UseCameraExposureCalculatorReturn
     },
   });
 
-  const applyPreset = useCallback((ev: number) => {
-    setValues((prev) => {
-      if (prev.solveFor === 'shutterSpeed') {
-        const solved = solveForShutterSpeed(ev, prev.aperture, prev.iso);
+  const applyPreset = useCallback(
+    (ev: number) => {
+      if (values.solveFor === 'shutterSpeed') {
+        const solved = solveForShutterSpeed(ev, values.aperture, values.iso);
         const nearest = findNearestStandard(solved, STANDARD_SHUTTER_SPEEDS);
-        return { ...prev, shutterSpeed: nearest.value };
+        setPresetWarning(
+          getPresetOutOfRangeWarning(
+            ev,
+            'shutterSpeed',
+            solved,
+            nearest,
+            formatShutterSpeed
+          )
+        );
+        setValues((prev) => ({ ...prev, shutterSpeed: nearest.value }));
+        return;
       }
-      if (prev.solveFor === 'aperture') {
-        const solved = solveForAperture(ev, prev.shutterSpeed, prev.iso);
+      if (values.solveFor === 'aperture') {
+        const solved = solveForAperture(ev, values.shutterSpeed, values.iso);
         const nearest = findNearestStandard(solved, STANDARD_APERTURES);
-        return { ...prev, aperture: nearest.value };
+        setPresetWarning(
+          getPresetOutOfRangeWarning(
+            ev,
+            'aperture',
+            solved,
+            nearest,
+            formatAperture
+          )
+        );
+        setValues((prev) => ({ ...prev, aperture: nearest.value }));
+        return;
       }
-      const solved = solveForISO(ev, prev.aperture, prev.shutterSpeed);
+      const solved = solveForISO(ev, values.aperture, values.shutterSpeed);
       const nearest = findNearestStandard(solved, STANDARD_ISOS);
-      return { ...prev, iso: nearest.value };
-    });
-  }, []);
+      setPresetWarning(
+        getPresetOutOfRangeWarning(ev, 'iso', solved, nearest, formatISO)
+      );
+      setValues((prev) => ({ ...prev, iso: nearest.value }));
+    },
+    [values.solveFor, values.aperture, values.iso, values.shutterSpeed]
+  );
 
   const exposureValue = useMemo(
     () =>
@@ -180,6 +226,7 @@ export function useCameraExposureCalculator(): UseCameraExposureCalculatorReturn
     values,
     set,
     applyPreset,
+    presetWarning,
     exposureValue,
     equivalentExposures,
     comparison,

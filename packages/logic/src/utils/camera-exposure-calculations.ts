@@ -12,7 +12,9 @@ import {
   type ExposureComparison,
   type ExposureValueResult,
   type ISOKey,
+  type PresetWarning,
   type ShutterSpeedKey,
+  type SolveFor,
   type StandardValue,
 } from '../types/camera-exposure-calculator';
 import { debugWarn } from './debug-logger';
@@ -118,6 +120,41 @@ export const findNearestStandard = (
   }
 
   return nearest;
+};
+
+// How far a preset's exact solved value may be from the standard value it
+// snaps to before it's considered out of the camera's dial range. Looser
+// than STANDARD_VALUE_TOLERANCE above (which just picks the nearest dial
+// setting): a solved value within a normal 1/3-stop step of its neighbor
+// is an ordinary snap, not a sign the preset is unreachable.
+const PRESET_RANGE_TOLERANCE = 1 / 3; // ~0.333 stops
+
+/**
+ * Compares a preset's exact solved value to the standard value it was
+ * snapped to (e.g. by `findNearestStandard`). When they differ by more
+ * than `PRESET_RANGE_TOLERANCE` stops, the snap silently clamped to a dial
+ * endpoint (30", f/64, …) far from what the preset's EV actually needs —
+ * returns a warning describing that instead of letting it apply silently.
+ * Returns `null` when the snap is a normal, in-range rounding.
+ */
+export const getPresetOutOfRangeWarning = (
+  presetEv: number,
+  variable: SolveFor,
+  solved: number,
+  nearest: StandardValue,
+  formatRequired: (value: number) => string
+): PresetWarning | null => {
+  if (!Number.isFinite(solved) || solved <= 0) return null;
+
+  const stopsOff = Math.abs(Math.log2(solved / nearest.value));
+  if (stopsOff <= PRESET_RANGE_TOLERANCE) return null;
+
+  return {
+    presetEv,
+    variable,
+    required: formatRequired(solved),
+    limit: nearest.label,
+  };
 };
 
 /**

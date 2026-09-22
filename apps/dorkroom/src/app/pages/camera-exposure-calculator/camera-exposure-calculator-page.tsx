@@ -8,6 +8,7 @@ import {
   formatAperture,
   formatShutterSpeed,
   isoToKey,
+  type PresetWarning,
   type SolveFor,
   STANDARD_APERTURES,
   STANDARD_ISOS,
@@ -15,7 +16,7 @@ import {
   shutterSpeedToKey,
   useCameraExposureCalculator,
 } from '@dorkroom/logic';
-import { getRouteIcon, ResultRow, Select } from '@dorkroom/ui';
+import { getRouteIcon, ResultRow, Select, StatusAlert } from '@dorkroom/ui';
 import {
   CalculatorCard,
   CalculatorLayout,
@@ -151,6 +152,61 @@ function EVResultCard({
         </span>
       </div>
     </CalculatorCard>
+  );
+}
+
+// What to suggest doing instead, keyed by which value the preset couldn't
+// reach within the standard dial range.
+const PRESET_WARNING_HINTS = {
+  shutterSpeed: 'Use Bulb, or open the aperture / raise ISO.',
+  aperture: 'Open the aperture as far as the lens allows, or raise the ISO.',
+  iso: 'Adjust the aperture or shutter speed instead.',
+} satisfies Record<SolveFor, string>;
+
+const PRESET_WARNING_LIMIT_NOUN = {
+  shutterSpeed: 'shutter dial',
+  aperture: 'aperture',
+  iso: 'ISO dial',
+} satisfies Record<SolveFor, string>;
+
+/**
+ * Builds the inline notice text for a preset that landed outside the
+ * standard dial range, e.g. "Night Sky (EV -2) needs 256" at f/8, ISO 100:
+ * beyond the 30" shutter dial limit. Use Bulb, or open the aperture /
+ * raise ISO."
+ */
+function formatPresetWarningMessage(
+  warning: PresetWarning,
+  values: CameraExposureFormState
+): string {
+  const preset = EV_PRESETS.find((p) => p.ev === warning.presetEv);
+  const label = preset
+    ? `${preset.label} (EV ${warning.presetEv})`
+    : `EV ${warning.presetEv}`;
+
+  const context =
+    warning.variable === 'shutterSpeed'
+      ? `${formatAperture(values.aperture)}, ISO ${values.iso}`
+      : warning.variable === 'aperture'
+        ? `${formatShutterSpeed(values.shutterSpeed)}, ISO ${values.iso}`
+        : `${formatAperture(values.aperture)}, ${formatShutterSpeed(values.shutterSpeed)}`;
+
+  return `${label} needs ${warning.required} at ${context}: beyond the ${warning.limit} ${PRESET_WARNING_LIMIT_NOUN[warning.variable]} limit. ${PRESET_WARNING_HINTS[warning.variable]}`;
+}
+
+function PresetWarningNotice({
+  presetWarning,
+  values,
+}: {
+  presetWarning: PresetWarning | null;
+  values: CameraExposureFormState;
+}) {
+  if (!presetWarning) return null;
+  return (
+    <StatusAlert
+      action="warning"
+      message={formatPresetWarningMessage(presetWarning, values)}
+    />
   );
 }
 
@@ -509,6 +565,7 @@ export default function CameraExposureCalculatorPage() {
     values,
     set,
     applyPreset,
+    presetWarning,
     exposureValue,
     equivalentExposures,
     comparison,
@@ -535,6 +592,11 @@ export default function CameraExposureCalculatorPage() {
         {/* EV Result — desktop right column only */}
         <div className="hidden md:block">
           <EVResultCard exposureValue={exposureValue} values={values} />
+        </div>
+
+        {/* Preset out-of-range notice — desktop right column only */}
+        <div className="hidden md:block">
+          <PresetWarningNotice presetWarning={presetWarning} values={values} />
         </div>
 
         {/* Equivalent Exposures — desktop right column only */}
@@ -564,6 +626,7 @@ export default function CameraExposureCalculatorPage() {
       handlePresetClick,
       exposureValue,
       equivalentExposures,
+      presetWarning,
       presetsOpen,
     ]
   );
@@ -590,6 +653,11 @@ export default function CameraExposureCalculatorPage() {
       {/* EV Result — mobile only; on desktop this lives in the results column */}
       <div className="md:hidden">
         <EVResultCard exposureValue={exposureValue} values={values} />
+      </div>
+
+      {/* Preset out-of-range notice — mobile only; on desktop this lives in the results column */}
+      <div className="md:hidden">
+        <PresetWarningNotice presetWarning={presetWarning} values={values} />
       </div>
 
       {/* Equivalent Exposures — mobile only; on desktop this lives in the results column */}

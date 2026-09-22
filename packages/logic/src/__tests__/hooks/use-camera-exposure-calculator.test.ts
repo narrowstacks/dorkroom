@@ -46,4 +46,72 @@ describe('useCameraExposureCalculator', () => {
     expect(result.current.values.aperture).toBe(8);
     expect(result.current.values.iso).toBe(100);
   });
+
+  it('produces no preset warning for an in-range preset', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    // Sunny 16 (EV 15) at the defaults (f/8, ISO 100) needs a shutter
+    // speed well within the standard dial range.
+    act(() => result.current.applyPreset(15));
+
+    expect(result.current.presetWarning).toBeNull();
+  });
+
+  it('warns when the "Night Sky" preset needs a shutter speed beyond the dial range', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    // f/8, ISO 100, EV -2 needs 256s — far past the 30s dial limit.
+    act(() => result.current.applyPreset(-2));
+
+    expect(result.current.presetWarning).not.toBeNull();
+    expect(result.current.presetWarning?.presetEv).toBe(-2);
+    expect(result.current.presetWarning?.variable).toBe('shutterSpeed');
+    expect(result.current.presetWarning?.required).toBe('256"');
+    expect(result.current.presetWarning?.limit).toBe('30"');
+
+    // The value still gets clamped to the dial endpoint rather than being
+    // rejected outright.
+    expect(result.current.values.shutterSpeed).toBe(30);
+  });
+
+  it('warns when a preset needs an aperture beyond the dial range', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    act(() => {
+      result.current.set('solveFor', 'aperture');
+      result.current.set('shutterSpeed', 1 / 30);
+      result.current.set('iso', 12800);
+    });
+
+    // 1/30s, ISO 12800, EV 16 needs roughly f/529 — far past f/64.
+    act(() => result.current.applyPreset(16));
+
+    expect(result.current.presetWarning).not.toBeNull();
+    expect(result.current.presetWarning?.variable).toBe('aperture');
+    expect(result.current.presetWarning?.presetEv).toBe(16);
+    expect(result.current.presetWarning?.limit).toBe('f/64');
+    expect(result.current.values.aperture).toBe(64);
+  });
+
+  it('clears the preset warning when any input changes', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    act(() => result.current.applyPreset(-2));
+    expect(result.current.presetWarning).not.toBeNull();
+
+    act(() => result.current.set('iso', 400));
+
+    expect(result.current.presetWarning).toBeNull();
+  });
+
+  it('clears the preset warning when a subsequent in-range preset is applied', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    act(() => result.current.applyPreset(-2));
+    expect(result.current.presetWarning).not.toBeNull();
+
+    act(() => result.current.applyPreset(15));
+
+    expect(result.current.presetWarning).toBeNull();
+  });
 });
