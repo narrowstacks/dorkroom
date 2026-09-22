@@ -50,8 +50,18 @@ const positiveNumber = (v: PersistedValue): boolean =>
 
 // No shared ISO formatter exists elsewhere (unlike shutter speed/aperture),
 // so this rounds a solved ISO to a display string for the out-of-range
-// preset warning only.
-const formatISO = (iso: number): string => `ISO ${Math.round(iso)}`;
+// preset warning only. Clamped to 1 so an extremely bright preset (solving
+// for a near-zero or negative ISO) never renders as "ISO 0".
+const formatISO = (iso: number): string =>
+  `ISO ${Math.max(1, Math.round(iso))}`;
+
+// formatAperture keeps one decimal place, which reads fine for normal
+// f-numbers (f/5.6) but not for the wildly out-of-range values a warning
+// can surface (f/528.8). Round those to a whole f-stop instead; small
+// values (a preset needing wider than f/1) keep the decimal since it's
+// still meaningful there.
+const formatApertureForWarning = (aperture: number): string =>
+  aperture >= 10 ? `f/${Math.round(aperture)}` : formatAperture(aperture);
 
 export interface UseCameraExposureCalculatorReturn {
   values: CameraExposureFormState;
@@ -170,7 +180,7 @@ export function useCameraExposureCalculator(): UseCameraExposureCalculatorReturn
             'aperture',
             solved,
             nearest,
-            formatAperture
+            formatApertureForWarning
           )
         );
         setValues((prev) => ({ ...prev, aperture: nearest.value }));

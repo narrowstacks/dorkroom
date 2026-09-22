@@ -91,6 +91,40 @@ describe('useCameraExposureCalculator', () => {
     expect(result.current.presetWarning?.presetEv).toBe(16);
     expect(result.current.presetWarning?.limit).toBe('f/64');
     expect(result.current.values.aperture).toBe(64);
+
+    // The scene is too *bright* for the lens to stop down far enough, so
+    // this must warn "over" (needs a smaller aperture than f/64 allows) —
+    // never "under", which would wrongly suggest opening the aperture
+    // further when the fix is the opposite.
+    expect(result.current.presetWarning?.direction).toBe('over');
+    expect(result.current.presetWarning?.required).toBe('f/529');
+  });
+
+  it('warns when a preset needs an ISO beyond the dial range', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    act(() => result.current.set('solveFor', 'iso'));
+
+    // f/8, 1/125s, EV -2 needs ISO 3,200,000 — far past ISO 12800.
+    act(() => result.current.applyPreset(-2));
+
+    expect(result.current.presetWarning).not.toBeNull();
+    expect(result.current.presetWarning?.variable).toBe('iso');
+    expect(result.current.presetWarning?.presetEv).toBe(-2);
+    expect(result.current.presetWarning?.limit).toBe('ISO 12800');
+    expect(result.current.presetWarning?.direction).toBe('over');
+    expect(result.current.values.iso).toBe(12800);
+  });
+
+  it('clears the preset warning when solveFor changes', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    act(() => result.current.applyPreset(-2));
+    expect(result.current.presetWarning).not.toBeNull();
+
+    act(() => result.current.set('solveFor', 'aperture'));
+
+    expect(result.current.presetWarning).toBeNull();
   });
 
   it('clears the preset warning when any input changes', () => {

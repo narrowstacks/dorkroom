@@ -18,6 +18,7 @@ import {
   formatShutterSpeed,
   getEquivalentExposures,
   getEVDescription,
+  getPresetOutOfRangeWarning,
   isoToKey,
   keyToAperture,
   keyToISO,
@@ -942,6 +943,111 @@ describe('camera exposure calculations', () => {
           expect(value).toBe(iso);
         });
       });
+    });
+  });
+
+  describe('getPresetOutOfRangeWarning', () => {
+    const shutterNearest = { value: 30, label: '30"' };
+
+    it('returns null when the solved value is inside the ~1/3-stop tolerance', () => {
+      // 30 * 2^0.3 is 0.3 stops off — inside the 1/3-stop tolerance.
+      const solved = 30 * 2 ** 0.3;
+      expect(
+        getPresetOutOfRangeWarning(
+          -2,
+          'shutterSpeed',
+          solved,
+          shutterNearest,
+          formatShutterSpeed
+        )
+      ).toBeNull();
+    });
+
+    it('warns once the solved value crosses the ~1/3-stop tolerance', () => {
+      // 30 * 2^0.34 is 0.34 stops off — just past the 1/3-stop tolerance.
+      const solved = 30 * 2 ** 0.34;
+      const warning = getPresetOutOfRangeWarning(
+        -2,
+        'shutterSpeed',
+        solved,
+        shutterNearest,
+        formatShutterSpeed
+      );
+
+      expect(warning).not.toBeNull();
+      expect(warning?.direction).toBe('over');
+    });
+
+    it('treats aperture stops as 2x the raw log2 distance', () => {
+      // f/80 vs f/64 is log2(80/64) ≈ 0.32 raw units — under 1/3 on a raw
+      // basis, but aperture stops are double that (an f-number stop is a
+      // factor of √2, not 2), so this should warn at ≈0.64 stops.
+      const apertureNearest = { value: 64, label: 'f/64' };
+      const warning = getPresetOutOfRangeWarning(
+        16,
+        'aperture',
+        80,
+        apertureNearest,
+        formatAperture
+      );
+
+      expect(warning).not.toBeNull();
+      expect(warning?.direction).toBe('over');
+    });
+
+    it('returns null for non-finite or non-positive solved values', () => {
+      expect(
+        getPresetOutOfRangeWarning(
+          0,
+          'iso',
+          Number.NaN,
+          shutterNearest,
+          formatShutterSpeed
+        )
+      ).toBeNull();
+      expect(
+        getPresetOutOfRangeWarning(
+          0,
+          'iso',
+          -5,
+          shutterNearest,
+          formatShutterSpeed
+        )
+      ).toBeNull();
+      expect(
+        getPresetOutOfRangeWarning(
+          0,
+          'iso',
+          0,
+          shutterNearest,
+          formatShutterSpeed
+        )
+      ).toBeNull();
+      expect(
+        getPresetOutOfRangeWarning(
+          0,
+          'iso',
+          Number.POSITIVE_INFINITY,
+          shutterNearest,
+          formatShutterSpeed
+        )
+      ).toBeNull();
+    });
+
+    it('marks "under" when the solved value falls below the snapped minimum', () => {
+      // A very fast shutter speed requirement snaps up to the fastest
+      // standard speed (1/8000), with the exact value below it.
+      const fastestShutter = { value: 1 / 8000, label: '1/8000' };
+      const warning = getPresetOutOfRangeWarning(
+        16,
+        'shutterSpeed',
+        1 / 20000,
+        fastestShutter,
+        formatShutterSpeed
+      );
+
+      expect(warning).not.toBeNull();
+      expect(warning?.direction).toBe('under');
     });
   });
 });
