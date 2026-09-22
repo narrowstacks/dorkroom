@@ -9,6 +9,7 @@ import {
   getVolumeStepSize,
   getVolumeUnitLabel,
   isStockDilution,
+  parseDecimalInput,
   parseDilution,
   type VolumeUnit,
 } from '@dorkroom/logic';
@@ -49,7 +50,7 @@ export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
     formatDisplay(getDefaultVolumeMl(), 'ml')
   );
 
-  const displayValue = Number.parseFloat(text);
+  const displayValue = parseDecimalInput(text);
   const safeDisplay = Number.isFinite(displayValue) ? displayValue : 0;
   const volumeMl = convertDisplayToMl(safeDisplay, unit);
 

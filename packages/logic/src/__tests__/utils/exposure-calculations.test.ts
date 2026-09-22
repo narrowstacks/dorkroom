@@ -118,6 +118,13 @@ describe('exposure calculations', () => {
       expect(parseExposureTime('120')).toBe(120);
     });
 
+    it('should accept a comma decimal separator (#318)', () => {
+      expect(parseExposureTime('12,5')).toBe(12.5);
+      expect(parseExposureTime(',5')).toBe(0.5);
+      expect(parseExposureTime(' 0,25 ')).toBe(0.25);
+      expect(parseExposureTime('12,')).toBe(12);
+    });
+
     it('should handle whitespace', () => {
       expect(parseExposureTime('  30  ')).toBe(30);
       expect(parseExposureTime('\t5.5\n')).toBe(5.5);
@@ -127,7 +134,10 @@ describe('exposure calculations', () => {
       expect(parseExposureTime('')).toBeNull();
       expect(parseExposureTime('   ')).toBeNull();
       expect(parseExposureTime('abc')).toBeNull();
-      expect(parseExposureTime('1m30s')).toBe(1); // parseFloat('1m30s') returns 1
+      // Trailing text is rejected rather than read as its leading number.
+      expect(parseExposureTime('1m30s')).toBeNull();
+      expect(parseExposureTime('12abc')).toBeNull();
+      expect(parseExposureTime('1,234.5')).toBeNull();
     });
 
     it('should return null for zero and negative values', () => {
@@ -139,7 +149,7 @@ describe('exposure calculations', () => {
     it('should handle edge cases', () => {
       expect(parseExposureTime('0.0001')).toBe(0.0001);
       expect(parseExposureTime('999999')).toBe(999999);
-      expect(parseExposureTime('Infinity')).toBe(Infinity); // parseFloat returns Infinity, and Infinity > 0
+      expect(parseExposureTime('Infinity')).toBeNull();
       expect(parseExposureTime('NaN')).toBeNull();
     });
   });

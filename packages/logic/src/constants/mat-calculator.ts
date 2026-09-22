@@ -6,6 +6,8 @@
  * measured in the shop; helpers here parse and format those values.
  */
 
+import { parseDecimalInput } from '../utils/input-validation';
+
 export const MAT_CALCULATOR_STORAGE_KEY = 'matCalculatorState_v1';
 
 export interface MatBorders {
@@ -48,9 +50,9 @@ export const MAT_CALCULATOR_DEFAULTS = {
 export type MatCalculatorState = typeof MAT_CALCULATOR_DEFAULTS;
 
 /**
- * Parse a measurement string into inches. Accepts decimals ("1.5"),
- * simple fractions ("1/4") and mixed numbers ("1 1/2"). Returns NaN
- * for empty or unparseable input.
+ * Parse a measurement string into inches. Accepts decimals ("1.5", or "1,5"
+ * with a comma separator), simple fractions ("1/4") and mixed numbers
+ * ("1 1/2"). Returns NaN for empty or unparseable input.
  */
 export function parseMatInput(str: string | number): number {
   const s = String(str).trim();
@@ -60,7 +62,12 @@ export function parseMatInput(str: string | number): number {
     return parseFloat(mixed[1]) + parseInt(mixed[2]) / parseInt(mixed[3]);
   const fraction = s.match(/^(\d+)\/(\d+)$/);
   if (fraction) return parseInt(fraction[1]) / parseInt(fraction[2]);
-  return parseFloat(s);
+  const decimal = parseDecimalInput(s);
+  if (!Number.isNaN(decimal)) return decimal;
+  // Anything else keeps parseFloat's read-the-leading-number leniency
+  // (e.g. a trailing inch mark, `11"`), with a lone comma taken as the
+  // decimal separator so `12,5"` is 12.5 rather than 12.
+  return parseFloat(s.includes('.') ? s : s.replace(',', '.'));
 }
 
 /**
