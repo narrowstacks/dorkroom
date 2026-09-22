@@ -61,6 +61,9 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
 
   return (
     <>
+      {/* size-12 + this bottom offset is what __root.tsx's `<main>` reserves
+          `calc(env(safe-area-inset-bottom)+5rem)` of bottom padding for
+          (#345) — resize this button and update that reservation to match. */}
       <button
         type="button"
         className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex size-12 items-center justify-center rounded-full shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] sm:hidden"

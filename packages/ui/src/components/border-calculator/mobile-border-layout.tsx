@@ -182,7 +182,18 @@ export function MobileBorderLayout() {
 
   return (
     <div
-      className="min-h-dvh px-4 pb-24 pt-10"
+      // `min-h-dvh` + the explicit `background` below were added together
+      // (b121a0b) so this full-bleed mobile layout paints a solid surface
+      // over the app's decorative backdrop-gradient, rather than showing it
+      // through — deliberate, not a leftover, so it's kept. `<main>` in
+      // __root.tsx now reserves `calc(env(safe-area-inset-bottom)+5rem)`
+      // below sm so nothing ends up under the floating mobile-nav toggle
+      // (#345); a plain `pb-24` here would leave that reserved strip
+      // uncovered by this div's background, showing the gradient through as
+      // a seam. The negative margin pulls the box back up by the same
+      // amount `<main>` reserves, so the extra padding's background bleeds
+      // into that strip instead of adding a second one.
+      className="min-h-dvh px-4 pt-10 -mb-[calc(env(safe-area-inset-bottom)+5rem)] pb-[calc(env(safe-area-inset-bottom)+6rem)]"
       style={{
         background: 'var(--color-background)',
         color: 'var(--color-text-primary)',
