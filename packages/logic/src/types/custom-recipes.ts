@@ -9,7 +9,12 @@ export interface CustomRecipe {
   pushPull: number;
   agitationSchedule?: string;
   notes?: string;
-  dilutionId?: number;
+  /**
+   * A dilution of the selected existing developer, matched against
+   * `Dilution.id`. A string because the catalogue mixes numeric ids ("2")
+   * with UUIDs. Recipes stored before #322 never set it.
+   */
+  dilutionId?: string;
   customDilution?: string;
   isCustomFilm: boolean;
   isCustomDeveloper: boolean;

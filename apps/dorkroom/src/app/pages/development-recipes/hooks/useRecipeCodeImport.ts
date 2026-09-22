@@ -69,6 +69,10 @@ export function useRecipeCodeImport({
           pushPull: importedRecipe.pushPull,
           agitationSchedule: importedRecipe.agitationSchedule || '',
           notes: importedRecipe.notes || '',
+          // A free-text dilution wins, matching how recipes display.
+          selectedDilutionId: importedRecipe.customDilution
+            ? 'custom'
+            : (importedRecipe.dilutionId ?? ''),
           customDilution: importedRecipe.customDilution || '',
           isPublic: importedRecipe.isPublic ?? false,
           useExistingFilm: !!getFilmById(importedRecipe.filmId),
