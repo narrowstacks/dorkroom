@@ -105,7 +105,15 @@ export const FilmImage: FC<FilmImageProps> = ({
     return () => clearTimeout(timeoutId);
   }, [src, isLoading]);
 
-  const showFallback = !src || hasError || hasTimedOut;
+  // Only !src and hasError unmount the real <img>. A timeout must NOT unmount
+  // it: with `loading="lazy"` the browser can legitimately defer the fetch
+  // well past 5s (e.g. Safari not extending the lazy margin into a nested
+  // overflow scroller, so overscan rows stay deferred). Unmounting on
+  // timeout would cancel that pending load and there'd be no onLoad handler
+  // left to ever recover the thumbnail. Instead the icon renders as an
+  // overlay on top of the still-mounted (opacity-0) <img>, and a late
+  // onLoad clears hasTimedOut to swap the real image back in.
+  const showFallback = !src || hasError;
 
   return (
     <div
@@ -146,6 +154,20 @@ export const FilmImage: FC<FilmImageProps> = ({
               }}
             />
           )}
+          {hasTimedOut && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Film
+                className="text-current"
+                style={{
+                  width: dimension * 0.6,
+                  height: dimension * 0.6,
+                  color: 'var(--color-text-muted)',
+                }}
+                strokeWidth={1.5}
+                aria-hidden="true"
+              />
+            </div>
+          )}
           <img
             ref={imgRef}
             src={src}
@@ -163,11 +185,15 @@ export const FilmImage: FC<FilmImageProps> = ({
             }}
             onLoad={() => {
               if (src) loadedImageCache.add(src);
-              setState((prev) => ({ ...prev, isLoading: false }));
+              setState((prev) => ({
+                ...prev,
+                isLoading: false,
+                hasTimedOut: false,
+              }));
             }}
             className={cn(
               'w-full h-full object-cover transition-opacity duration-300',
-              isLoading && 'opacity-0'
+              (isLoading || hasTimedOut) && 'opacity-0'
             )}
           />
         </>

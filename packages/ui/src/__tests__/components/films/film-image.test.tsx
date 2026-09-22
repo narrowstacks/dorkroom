@@ -1,12 +1,6 @@
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FilmImage } from '../../../components/films/film-image';
-
-// A real, minimal 1x1 transparent PNG. happy-dom decodes data: URLs
-// synchronously (no network involved), giving a real `naturalWidth > 0`
-// after mount — the same signal a genuinely browser-cached image gives.
-const CACHED_PNG =
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
 
 describe('FilmImage', () => {
   beforeEach(() => {
@@ -15,10 +9,17 @@ describe('FilmImage', () => {
 
   afterEach(() => {
     cleanup();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it('does not construct Image objects or set src outside the rendered <img> elements', () => {
-    const ImageSpy = vi.spyOn(window, 'Image');
+    // happy-dom's native Image constructor throws "Illegal constructor" when
+    // invoked through vi.spyOn's default call-through wrapper, so give it a
+    // safe stand-in implementation instead of calling through.
+    const ImageSpy = vi
+      .spyOn(window, 'Image')
+      .mockImplementation(() => document.createElement('img'));
 
     const srcs = Array.from(
       { length: 20 },
@@ -26,11 +27,11 @@ describe('FilmImage', () => {
     );
 
     const { container } = render(
-      <>
+      <div>
         {srcs.map((src) => (
           <FilmImage key={src} src={src} alt={`film ${src}`} />
         ))}
-      </>
+      </div>
     );
 
     // No probe Image() constructed anywhere, for any of the 20 cards.
@@ -81,19 +82,60 @@ describe('FilmImage', () => {
     expect(container.querySelector('img')).toHaveClass('opacity-0');
   });
 
-  it('skips the skeleton when the <img> already reports complete + naturalWidth (cached)', () => {
-    const ImageSpy = vi.spyOn(window, 'Image');
+  describe('cached-image detection (complete + naturalWidth on the real <img>)', () => {
+    // Stub the properties a genuinely browser-cached image reports, on the
+    // HTMLImageElement prototype, rather than relying on happy-dom to
+    // actually fetch anything (it won't, for a plain http(s) src).
+    function stubImageCompleteness(complete: boolean, naturalWidth: number) {
+      Object.defineProperty(HTMLImageElement.prototype, 'complete', {
+        configurable: true,
+        get: () => complete,
+      });
+      Object.defineProperty(HTMLImageElement.prototype, 'naturalWidth', {
+        configurable: true,
+        get: () => naturalWidth,
+      });
+    }
 
-    const { container } = render(
-      <FilmImage src={CACHED_PNG} alt="a cached film" />
-    );
+    afterEach(() => {
+      // Remove the stubbed own-property getters so the prototype falls back
+      // to happy-dom's real `complete`/`naturalWidth` accessors again.
+      Reflect.deleteProperty(HTMLImageElement.prototype, 'complete');
+      Reflect.deleteProperty(HTMLImageElement.prototype, 'naturalWidth');
+    });
 
-    // The complete/naturalWidth check never constructs an Image itself.
-    expect(ImageSpy).not.toHaveBeenCalled();
+    it('skips the skeleton when the <img> reports complete=true and naturalWidth>0 (cached)', () => {
+      stubImageCompleteness(true, 1);
 
-    expect(container.querySelector('.shimmer-loading')).toBeNull();
-    const img = container.querySelector('img');
-    expect(img).not.toHaveClass('opacity-0');
+      const ImageSpy = vi
+        .spyOn(window, 'Image')
+        .mockImplementation(() => document.createElement('img'));
+
+      const { container } = render(
+        <FilmImage src="https://example.com/cached.jpeg" alt="a cached film" />
+      );
+
+      // The complete/naturalWidth check never constructs an Image itself.
+      expect(ImageSpy).not.toHaveBeenCalled();
+
+      expect(container.querySelector('.shimmer-loading')).toBeNull();
+      const img = container.querySelector('img');
+      expect(img).not.toHaveClass('opacity-0');
+    });
+
+    it('keeps the skeleton when complete=true but naturalWidth=0 (not actually loaded)', () => {
+      stubImageCompleteness(true, 0);
+
+      const { container } = render(
+        <FilmImage
+          src="https://example.com/not-cached.jpeg"
+          alt="an uncached film"
+        />
+      );
+
+      expect(container.querySelector('.shimmer-loading')).not.toBeNull();
+      expect(container.querySelector('img')).toHaveClass('opacity-0');
+    });
   });
 
   it('falls back to the placeholder icon on load error', () => {
@@ -131,5 +173,34 @@ describe('FilmImage', () => {
 
     expect(container.querySelector('img')).not.toHaveClass('opacity-0');
     expect(container.querySelector('.shimmer-loading')).toBeNull();
+  });
+
+  it('keeps the <img> mounted past the 5s timeout, and a late load still recovers it', () => {
+    vi.useFakeTimers();
+
+    const { container } = render(
+      <FilmImage src="https://example.com/slow.jpeg" alt="a slow film" />
+    );
+
+    let img = container.querySelector('img');
+    if (!img) throw new Error('expected an <img> to be rendered');
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    // The fallback icon shows as an overlay, but the real <img> is still
+    // mounted underneath (hidden via opacity), not unmounted.
+    expect(container.querySelector('svg')).not.toBeNull();
+    img = container.querySelector('img');
+    if (!img) throw new Error('<img> must stay mounted after the timeout');
+    expect(img).toHaveClass('opacity-0');
+
+    fireEvent.load(img);
+
+    // A late load — the browser finally fetched the lazily-deferred image —
+    // clears the timed-out icon and reveals the real image.
+    expect(container.querySelector('svg')).toBeNull();
+    expect(container.querySelector('img')).not.toHaveClass('opacity-0');
   });
 });
