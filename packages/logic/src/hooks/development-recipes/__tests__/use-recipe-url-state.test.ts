@@ -390,6 +390,47 @@ describe('useRecipeUrlState', () => {
       errorSpy.mockRestore();
     });
 
+    // Regression for #323: an out-of-range shared recipe must surface as an
+    // invalid link, not decode as valid and crash the page during render.
+    it('reports an out-of-range shared custom recipe as invalid', async () => {
+      const errorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      const outOfRange = {
+        name: 'x',
+        filmId: 'a',
+        developerId: 'b',
+        temperatureF: 250,
+        timeMinutes: 8,
+        shootingIso: 400,
+        pushPull: 0,
+        isCustomFilm: false,
+        isCustomDeveloper: false,
+        isPublic: false,
+      };
+      const encodedRecipe = Buffer.from(JSON.stringify(outOfRange), 'utf8')
+        .toString('base64')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+      mockLocation.search = `?recipe=${encodedRecipe}&source=share`;
+
+      const { result } = renderHook(() =>
+        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+      );
+
+      await waitFor(() => {
+        expect(result.current.sharedRecipeError).toBe(
+          'Invalid custom recipe data'
+        );
+      });
+      expect(result.current.sharedCustomRecipe).toBeNull();
+      expect(result.current.isLoadingSharedRecipe).toBe(false);
+
+      errorSpy.mockRestore();
+    });
+
     it('should handle invalid view parameter', () => {
       mockLocation.search = '?view=invalid-view';
 

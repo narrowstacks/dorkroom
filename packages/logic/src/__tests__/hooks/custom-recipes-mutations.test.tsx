@@ -187,4 +187,51 @@ describe('custom recipe mutations', () => {
 
     queryClient.clear();
   });
+
+  // Regression for #323: an out-of-range recipe used to be persisted and then
+  // crash /development on every load.
+  it('rejects out-of-range values in useAddCustomRecipe without persisting', async () => {
+    const { queryClient, wrapper } = createTestHarness();
+    const queryKey = getQueryKey();
+    queryClient.setQueryData(queryKey, []);
+
+    const { result } = renderHook(() => useAddCustomRecipe(), { wrapper });
+
+    await act(async () => {
+      await expect(
+        result.current.mutateAsync({ ...baseFormData, temperatureF: 250 })
+      ).rejects.toThrow('Temperature must be at most 212°F');
+    });
+
+    expect(queryClient.getQueryData<CustomRecipe[]>(queryKey)).toEqual([]);
+    expect(recipesStorage.read()).toHaveLength(0);
+
+    queryClient.clear();
+  });
+
+  it('rejects out-of-range values in useUpdateCustomRecipe without persisting', async () => {
+    const { queryClient, wrapper } = createTestHarness();
+    const queryKey = getQueryKey();
+    const existing = createStoredRecipe();
+    recipesStorage.write([existing]);
+    queryClient.setQueryData(queryKey, [existing]);
+
+    const { result } = renderHook(() => useUpdateCustomRecipe(), { wrapper });
+
+    await act(async () => {
+      await expect(
+        result.current.mutateAsync({
+          id: existing.id,
+          formData: { ...baseFormData, pushPull: 9 },
+        })
+      ).rejects.toThrow('Push/pull must be at most +5 stops');
+    });
+
+    expect(queryClient.getQueryData<CustomRecipe[]>(queryKey)).toEqual([
+      existing,
+    ]);
+    expect(recipesStorage.read()).toEqual([existing]);
+
+    queryClient.clear();
+  });
 });

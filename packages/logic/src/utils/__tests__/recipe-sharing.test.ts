@@ -212,6 +212,62 @@ describe('recipe-sharing', () => {
       expect(decoded).toBeNull();
     });
 
+    // Regression for #323: out-of-range numbers used to decode as valid and
+    // then throw during render.
+    it.each([
+      ['temperature above boiling', { temperatureF: 250 }],
+      ['temperature below freezing', { temperatureF: 20 }],
+      ['zero development time', { timeMinutes: 0 }],
+      ['negative development time', { timeMinutes: -3 }],
+      ['zero shooting ISO', { shootingIso: 0 }],
+      ['push beyond +5 stops', { pushPull: 9 }],
+      ['pull beyond -2 stops', { pushPull: -3 }],
+    ])('returns null for a recipe with %s', (_label, override) => {
+      const outOfRange = {
+        name: 'x',
+        filmId: 'a',
+        developerId: 'b',
+        temperatureF: 68,
+        timeMinutes: 8,
+        shootingIso: 400,
+        pushPull: 0,
+        isCustomFilm: false,
+        isCustomDeveloper: false,
+        isPublic: false,
+        ...override,
+      };
+      const encoded = toUrlSafeBase64(JSON.stringify(outOfRange));
+
+      expect(decodeCustomRecipe(encoded)).toBeNull();
+      expect(isValidCustomRecipeEncoding(encoded)).toBe(false);
+    });
+
+    it('accepts values on the edges of the allowed ranges', () => {
+      const edge = {
+        name: 'x',
+        filmId: 'a',
+        developerId: 'b',
+        temperatureF: 212,
+        timeMinutes: 0.5,
+        shootingIso: 400,
+        pushPull: 5,
+        isCustomFilm: false,
+        isCustomDeveloper: false,
+        isPublic: false,
+      };
+
+      expect(
+        decodeCustomRecipe(toUrlSafeBase64(JSON.stringify(edge)))
+      ).not.toBeNull();
+      expect(
+        decodeCustomRecipe(
+          toUrlSafeBase64(
+            JSON.stringify({ ...edge, temperatureF: 32, pushPull: -2 })
+          )
+        )
+      ).not.toBeNull();
+    });
+
     it('warns about recipes from newer version', () => {
       // Create a recipe with a future version
       const futureRecipe: EncodedCustomRecipe = {

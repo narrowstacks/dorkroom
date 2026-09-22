@@ -5,6 +5,7 @@ import type {
   CustomRecipe,
   CustomRecipeFormData,
 } from '../../types/custom-recipes';
+import { getRecipeValidationError } from '../../utils/combination-factory';
 import {
   sanitizeCustomDeveloper,
   sanitizeCustomFilm,
@@ -35,6 +36,13 @@ const createRecipeFromFormData = (
   formData: CustomRecipeFormData,
   base?: CustomRecipe
 ): CustomRecipe => {
+  // Reject out-of-range numbers before they reach the cache or storage: a
+  // stored invalid recipe would break every later render of /development.
+  const validationError = getRecipeValidationError(formData);
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
   const timestamp = Date.now();
   const nowIso = new Date(timestamp).toISOString();
 

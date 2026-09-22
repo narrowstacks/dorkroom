@@ -2,6 +2,7 @@ import type { Combination, Developer, Film } from '@dorkroom/api';
 import type { CustomRecipe } from '@dorkroom/logic';
 import {
   createCombinationFromCustomRecipe,
+  debugWarn,
   getCustomRecipeDeveloper,
   getCustomRecipeFilm,
 } from '@dorkroom/logic';
@@ -45,6 +46,26 @@ export interface UseRecipeDataReturn {
 }
 
 /**
+ * Converts a custom recipe to a Combination, or returns null when its values
+ * are out of range. Recipes saved before validation existed (#323) can still
+ * sit in localStorage; skipping them keeps one bad entry from crashing the
+ * whole page during render.
+ */
+function toCombinationOrNull(
+  recipe:
+    | CustomRecipe
+    | Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'>,
+  uuid?: string
+): Combination | null {
+  try {
+    return createCombinationFromCustomRecipe(recipe, uuid);
+  } catch (error) {
+    debugWarn('Skipping invalid custom recipe:', recipe.name, error);
+    return null;
+  }
+}
+
+/**
  * Hook that handles all data processing and derived state for development recipes
  * Consolidates recipe maps, combination views, filtering, and sorting
  */
@@ -85,7 +106,10 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     const map = new Map<string, Combination>();
     // Add custom recipes (convert to Combination format)
     for (const recipe of customRecipes) {
-      map.set(recipe.id, createCombinationFromCustomRecipe(recipe));
+      const combination = toCombinationOrNull(recipe);
+      if (combination) {
+        map.set(recipe.id, combination);
+      }
     }
     return map;
   }, [customRecipes]);
@@ -107,10 +131,13 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     }
 
     // Convert CustomRecipe to DevelopmentCombinationView
-    const combination = createCombinationFromCustomRecipe(
+    const combination = toCombinationOrNull(
       sharedCustomRecipe,
       'shared-custom'
     );
+    if (!combination) {
+      return null;
+    }
 
     // Get film and developer (either from database or custom data)
     let film: Film | undefined;
@@ -193,18 +220,24 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
       return [];
     }
 
-    return customRecipes.map((recipe) => {
-      return {
-        combination: createCombinationFromCustomRecipe(recipe),
-        film: getCustomRecipeFilm(recipe.id, customRecipes, getFilmById),
-        developer: getCustomRecipeDeveloper(
-          recipe.id,
-          customRecipes,
-          getDeveloperById
-        ),
-        source: 'custom',
-        canShare: flags.CUSTOM_RECIPE_SHARING,
-      } satisfies DevelopmentCombinationView;
+    return customRecipes.flatMap((recipe) => {
+      const combination = toCombinationOrNull(recipe);
+      if (!combination) {
+        return [];
+      }
+      return [
+        {
+          combination,
+          film: getCustomRecipeFilm(recipe.id, customRecipes, getFilmById),
+          developer: getCustomRecipeDeveloper(
+            recipe.id,
+            customRecipes,
+            getDeveloperById
+          ),
+          source: 'custom',
+          canShare: flags.CUSTOM_RECIPE_SHARING,
+        } satisfies DevelopmentCombinationView,
+      ];
     });
   }, [
     customRecipes,
