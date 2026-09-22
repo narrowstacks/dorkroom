@@ -7,6 +7,15 @@ interface FilmImageProps {
   alt: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  /**
+   * Native `loading` hint for the underlying `<img>`. Defaults to `'lazy'`,
+   * which is correct for thumbnails in scrollable/virtualized lists. Pass
+   * `'eager'` only for an image that is guaranteed to be visible as soon as
+   * it mounts (e.g. a detail panel that opens with the image already in the
+   * viewport), where deferring the fetch would just delay a paint the user
+   * is about to see anyway.
+   */
+  loading?: 'lazy' | 'eager';
 }
 
 const sizeMap = {
@@ -15,27 +24,12 @@ const sizeMap = {
   lg: 80,
 } as const;
 
-// Module-level cache to track which images have been successfully loaded
-// This prevents showing loading state for images that are already in browser cache
+// Module-level cache to track which images have been successfully loaded in
+// this session. Only ever populated by onLoad/the complete-check below —
+// never by probing an image ourselves — so it can only avoid a skeleton
+// flash on remount (e.g. a virtualized card scrolling out and back in); it
+// never triggers a fetch.
 const loadedImageCache = new Set<string>();
-
-/**
- * Check if an image is already loaded in the browser cache
- * Uses the browser's native image complete check
- */
-function isImageCached(src: string): boolean {
-  if (loadedImageCache.has(src)) return true;
-
-  // Check if browser has the image cached
-  const img = new Image();
-  img.src = src;
-  // If complete is true and naturalWidth > 0, the image is cached
-  if (img.complete && img.naturalWidth > 0) {
-    loadedImageCache.add(src);
-    return true;
-  }
-  return false;
-}
 
 interface ImageState {
   hasError: boolean;
@@ -47,8 +41,9 @@ function getInitialState(src: string | null): ImageState {
   return {
     hasError: false,
     hasTimedOut: false,
-    // Only show loading state if we have a src to load and it's not cached
-    isLoading: !!src && !isImageCached(src),
+    // Only show loading state if we have a src to load and we haven't
+    // already seen it load successfully earlier in this session.
+    isLoading: !!src && !loadedImageCache.has(src),
   };
 }
 
@@ -57,9 +52,11 @@ export const FilmImage: FC<FilmImageProps> = ({
   alt,
   size = 'md',
   className,
+  loading = 'lazy',
 }) => {
   // Single consolidated state so the per-src reset is one update.
   const [state, setState] = useState<ImageState>(() => getInitialState(src));
+  const imgRef = useRef<HTMLImageElement>(null);
   // Reset state when src changes (skipping the initial mount, since useState
   // above already initializes correctly for it). A layout effect — not a
   // render-time ref write, which react-doctor's no-ref-current-in-render rule
@@ -73,6 +70,23 @@ export const FilmImage: FC<FilmImageProps> = ({
       return;
     }
     setState(getInitialState(src));
+  }, [src]);
+
+  // Right after this src mounts, check whether the real <img> element
+  // already reports itself as loaded (e.g. the browser served it from HTTP
+  // cache). This only *reads* properties the browser already populated — it
+  // never constructs an Image or assigns a src, so it can't trigger a fetch
+  // and can't defeat `loading="lazy"`. A subsequent genuine load/error is
+  // still handled by onLoad/onError below.
+  useLayoutEffect(() => {
+    if (!src) return;
+    const img = imgRef.current;
+    if (img?.complete && img.naturalWidth > 0) {
+      loadedImageCache.add(src);
+      setState((prev) =>
+        prev.isLoading ? { ...prev, isLoading: false } : prev
+      );
+    }
   }, [src]);
 
   const { hasError, isLoading, hasTimedOut } = state;
@@ -133,9 +147,13 @@ export const FilmImage: FC<FilmImageProps> = ({
             />
           )}
           <img
+            ref={imgRef}
             src={src}
             alt={alt}
-            loading="lazy"
+            width={dimension}
+            height={dimension}
+            loading={loading}
+            decoding="async"
             onError={() => {
               setState((prev) => ({
                 ...prev,
