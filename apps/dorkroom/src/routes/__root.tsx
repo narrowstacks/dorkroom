@@ -197,7 +197,15 @@ function RootComponent() {
 
           <MobileNav pathname={pathname} onNavigate={handleNavigate} />
 
-          <main id="main-content">
+          {/* Reserves space below the page content on phones (<640px) so
+              nothing at the bottom of a route's content can end up under the
+              floating mobile-nav toggle (`MobileNav`, fixed bottom-right,
+              size-12). At sm+ the toggle is hidden, so the padding is removed
+              there. See issue #345. */}
+          <main
+            id="main-content"
+            className="pb-[calc(env(safe-area-inset-bottom)+5rem)] sm:pb-0"
+          >
             <Outlet />
           </main>
         </div>

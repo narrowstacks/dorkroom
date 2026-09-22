@@ -113,7 +113,7 @@ export function HomePage() {
   ];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 pb-24 space-y-10">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 sm:pb-24 space-y-10">
       {/* Hero: one grain-textured panel - copy + CTAs on the left, live
           border preview on the right */}
       <div className="hero-grain rounded-3xl border border-[color:var(--color-border-secondary)] p-6 sm:p-8 shadow-subtle grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-10 md:items-center">
