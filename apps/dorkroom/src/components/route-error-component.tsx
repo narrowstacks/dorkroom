@@ -41,9 +41,12 @@ const CHUNK_LOAD_ERROR_PATTERN =
  *
  * The outer app-level `ErrorBoundary` around `<RouterProvider>` (main.tsx)
  * still exists, but now only ever sees an error thrown outside the router
- * entirely (e.g. a bug in `__root.tsx`'s own render), or one thrown by this
- * component itself — never a normal route error, which this boundary already
- * caught.
+ * entirely — e.g. from one of the providers wrapping it (`ThemeProvider`,
+ * `QueryClientProvider`, …) or from the `<Analytics>` component next to it —
+ * or one thrown by this component itself. A root-route render error still
+ * goes through this same `defaultErrorComponent`/`defaultOnCatch`, just
+ * without a surviving header, since the root match is what renders the
+ * header in the first place.
  */
 export function RouteErrorComponent({ error }: ErrorComponentProps) {
   const router = useRouter();
