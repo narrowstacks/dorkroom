@@ -24,7 +24,10 @@ export {
 } from './components/detail-panel';
 export { DimensionInputGroup } from './components/dimension-input-group';
 export { Drawer, DrawerBody, DrawerContent } from './components/drawer';
-export type { ErrorFallbackProps } from './components/error-boundary';
+export type {
+  ErrorFallbackAction,
+  ErrorFallbackProps,
+} from './components/error-boundary';
 export { ErrorBoundary, ErrorFallback } from './components/error-boundary';
 // Filter Panel Components
 export {

@@ -31,7 +31,7 @@ import {
   ToastProvider,
   VolumeProvider,
 } from '@dorkroom/ui';
-import { RouteErrorComponent } from './components/route-error-component';
+import { routeErrorOptions } from './app/lib/route-error-options';
 import { routeTree } from './routeTree.gen';
 
 // Lazy load devtools only in development
@@ -71,14 +71,10 @@ const router = createRouter({
   // tree, so an uncaught render error was replacing the root layout — header,
   // nav, everything — with an unstyled "Something went wrong!" box, and the
   // app-level ErrorBoundary around <RouterProvider> never saw the error to
-  // report it. `defaultErrorComponent` scopes each boundary to its own route
-  // instead, so the layout survives and the fallback UI renders in its place.
-  defaultErrorComponent: RouteErrorComponent,
-  // `onCatch` fires exactly once per caught error, mirroring the outer
-  // ErrorBoundary's `onError` below. `route` is deliberately the only
-  // property: see the ErrorBoundary's onError for why the raw message isn't
-  // included.
-  defaultOnCatch: () => trackEvent('app_error', { route: currentRouteLabel() }),
+  // report it. `defaultErrorComponent`/`defaultOnCatch` scope each boundary to
+  // its own route instead, so the layout survives and the fallback UI renders
+  // in its place.
+  ...routeErrorOptions,
 });
 
 // Register router for type safety

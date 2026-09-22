@@ -8,10 +8,10 @@ import {
   RouterProvider,
 } from '@tanstack/react-router';
 import { render, screen } from '@testing-library/react';
+import type { ComponentType } from 'react';
+import { lazy, Suspense } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { currentRouteLabel } from '../../app/lib/analytics/redact';
-import { trackEvent } from '../../app/lib/analytics/tracked-events';
-import { RouteErrorComponent } from '../route-error-component';
+import { routeErrorOptions } from '../../app/lib/route-error-options';
 
 function ThrowingPage(): never {
   throw new Error('boom');
@@ -19,10 +19,11 @@ function ThrowingPage(): never {
 
 /**
  * A stand-in for the real app: a root layout with a header and nav around an
- * `<Outlet />`, plus one route that throws during render. Wires up
- * `defaultErrorComponent`/`defaultOnCatch` the same way main.tsx does.
+ * `<Outlet />`, plus a `/border` route rendering `component`. Spreads
+ * `routeErrorOptions`, the exact object main.tsx uses, so this exercises the
+ * real wiring rather than a copy that could silently drift from it.
  */
-function buildRouter() {
+function buildRouter(component: ComponentType) {
   const rootRoute = createRootRoute({
     component: () => (
       <>
@@ -34,18 +35,16 @@ function buildRouter() {
       </>
     ),
   });
-  const boomRoute = createRoute({
+  const childRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/border',
-    component: ThrowingPage,
+    component,
   });
 
   return createRouter({
-    routeTree: rootRoute.addChildren([boomRoute]),
+    routeTree: rootRoute.addChildren([childRoute]),
     history: createMemoryHistory({ initialEntries: ['/border'] }),
-    defaultErrorComponent: RouteErrorComponent,
-    defaultOnCatch: () =>
-      trackEvent('app_error', { route: currentRouteLabel() }),
+    ...routeErrorOptions,
   });
 }
 
@@ -58,6 +57,10 @@ describe('RouteErrorComponent', () => {
     // (memory) history, so it has to be pointed at the route under test.
     window.history.replaceState({}, '', '/border');
     window.va = vi.fn();
+    // wasRecentPreloadReload() reads this key; a leftover value from another
+    // test (or a real preload failure earlier in the suite) would otherwise
+    // suppress app_error here for the wrong reason.
+    sessionStorage.clear();
     // A route render throw is expected here; keep it out of the test output,
     // matching how the rest of the repo tests error boundaries.
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -71,7 +74,7 @@ describe('RouteErrorComponent', () => {
   });
 
   it('renders the styled fallback in place of the failed route, with the header and nav still mounted', async () => {
-    render(<RouterProvider router={buildRouter()} />);
+    render(<RouterProvider router={buildRouter(ThrowingPage)} />);
 
     expect(await screen.findByText('Something went wrong')).toBeInTheDocument();
     expect(screen.getByText('App Header')).toBeInTheDocument();
@@ -86,7 +89,7 @@ describe('RouteErrorComponent', () => {
 
     render(
       <ErrorBoundary onError={outerOnError}>
-        <RouterProvider router={buildRouter()} />
+        <RouterProvider router={buildRouter(ThrowingPage)} />
       </ErrorBoundary>
     );
 
@@ -99,5 +102,35 @@ describe('RouteErrorComponent', () => {
       options: undefined,
     });
     expect(outerOnError).not.toHaveBeenCalled();
+  });
+
+  it('offers a Reload Page action for a chunk-load failure, since a retry alone cannot recover from it', async () => {
+    // React.lazy caches a rejected import permanently: once this module
+    // "fails to load", every subsequent render throws the same error again,
+    // exactly like a stale chunk after a deploy. router.invalidate() (the
+    // "Try Again" action) re-renders the same route and hits the same cached
+    // rejection, so it can never recover from this — only a full reload can.
+    const RejectingLazy = lazy(() =>
+      Promise.reject(new Error('Failed to fetch dynamically imported module'))
+    );
+    function ChunkFailurePage() {
+      return (
+        <Suspense fallback={<div>Loading…</div>}>
+          <RejectingLazy />
+        </Suspense>
+      );
+    }
+
+    render(<RouterProvider router={buildRouter(ChunkFailurePage)} />);
+
+    expect(await screen.findByText('Something went wrong')).toBeInTheDocument();
+    // Both actions are offered — a retry never helps here, but it's still on
+    // offer alongside the reload in case the failure was misclassified.
+    expect(
+      screen.getByRole('button', { name: 'Reload Page' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Try Again' })
+    ).toBeInTheDocument();
   });
 });

@@ -24,14 +24,50 @@ const RELOAD_GUARD_WINDOW_MS = 10_000;
  * event's default action isn't prevented, so leaving it un-prevented here
  * lets the real chunk error surface (and reach a React error boundary)
  * instead of being silently swallowed while the guard is cooling down.
+ *
+ * `sessionStorage` access is wrapped in `try`/`catch`: private-mode Safari,
+ * a full quota, or a locked-down embed can all make it throw. When that
+ * happens there's no safe way to tell whether a reload loop is already in
+ * progress, so this bails out entirely — no reload, no `preventDefault()` —
+ * and lets the error surface instead of guessing.
  */
 export function handleVitePreloadError(event: Event): void {
   const now = Date.now();
-  const lastReload = Number(sessionStorage.getItem(RELOAD_GUARD_KEY) ?? 0);
-  if (now - lastReload > RELOAD_GUARD_WINDOW_MS) {
-    event.preventDefault();
+  let lastReload: number;
+  try {
+    lastReload = Number(sessionStorage.getItem(RELOAD_GUARD_KEY) ?? 0);
+  } catch {
+    return;
+  }
+  if (now - lastReload <= RELOAD_GUARD_WINDOW_MS) {
+    return;
+  }
+  try {
     sessionStorage.setItem(RELOAD_GUARD_KEY, String(now));
-    window.location.reload();
+  } catch {
+    return;
+  }
+  event.preventDefault();
+  window.location.reload();
+}
+
+/**
+ * Whether {@link handleVitePreloadError} scheduled a reload within the last
+ * `windowMs` (default ~2s — comfortably longer than it takes `reload()` to
+ * actually navigate away, shorter than the 10s reload-loop guard above).
+ *
+ * Used to skip reporting `app_error` for a route error caused by a stale
+ * chunk that's about to be fixed by that reload: `React.lazy` caches a
+ * rejected import forever, so once a chunk fails, every remaining render
+ * before the reload takes effect throws the same error again, and none of
+ * those retries reflect a real, still-broken error worth counting.
+ */
+export function wasRecentPreloadReload(windowMs = 2_000): boolean {
+  try {
+    const lastReload = Number(sessionStorage.getItem(RELOAD_GUARD_KEY) ?? 0);
+    return Date.now() - lastReload <= windowMs;
+  } catch {
+    return false;
   }
 }
 
