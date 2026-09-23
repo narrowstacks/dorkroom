@@ -3,7 +3,7 @@ import {
   render as renderBare,
   screen,
 } from '@testing-library/react';
-import type { ReactElement } from 'react';
+import { createRef, type ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MobileSidebar } from '../../components/mobile-sidebar';
 import {
@@ -209,6 +209,58 @@ describe('MobileSidebar', () => {
 
       const filmsButton = screen.getByRole('button', { name: 'Films' });
       expect(filmsButton).toHaveAttribute('aria-current', 'page');
+    });
+  });
+
+  // Regression coverage for #346: the drawer had no close control of its
+  // own, so the FAB that opened it (hidden underneath, same z-index, later
+  // in the DOM) was the only way to close it — and tapping that spot hit
+  // the Settings button in the footer instead.
+  describe('close button (#346)', () => {
+    it('renders a labeled close button', () => {
+      render(<MobileSidebar {...defaultProps} />);
+
+      expect(
+        screen.getByRole('button', { name: 'Close navigation' })
+      ).toBeInTheDocument();
+    });
+
+    it('calls onClose when the close button is clicked', () => {
+      const onClose = vi.fn();
+      render(<MobileSidebar {...defaultProps} onClose={onClose} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Close navigation' }));
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('meets the 44px touch target minimum', () => {
+      render(<MobileSidebar {...defaultProps} />);
+
+      // size-11 = 2.75rem = 44px, the repo's established minimum-touch-target
+      // class (see filter-panel-container.tsx, actions-bar.tsx).
+      expect(
+        screen.getByRole('button', { name: 'Close navigation' })
+      ).toHaveClass('size-11');
+    });
+
+    it('forwards closeButtonRef to the close button, so a caller can move focus to it', () => {
+      const ref = createRef<HTMLButtonElement>();
+      render(<MobileSidebar {...defaultProps} closeButtonRef={ref} />);
+
+      expect(ref.current).toBe(
+        screen.getByRole('button', { name: 'Close navigation' })
+      );
+    });
+
+    it('places the close button outside the main-navigation landmark', () => {
+      render(<MobileSidebar {...defaultProps} />);
+
+      const nav = screen.getByRole('navigation', { name: 'Main navigation' });
+      const closeButton = screen.getByRole('button', {
+        name: 'Close navigation',
+      });
+      expect(nav.contains(closeButton)).toBe(false);
     });
   });
 

@@ -1,6 +1,6 @@
 import { MobileSidebar } from '@dorkroom/ui';
 import { Menu, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { cn } from '../app/lib/cn';
 import { usePresence } from './use-presence';
 
@@ -19,6 +19,33 @@ interface MobileNavProps {
 export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { mounted, visible } = usePresence(isMobileMenuOpen, 350);
+  const toggleButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const wasOpenRef = useRef(isMobileMenuOpen);
+
+  // Move focus into the drawer's close button once it mounts, and back to
+  // the toggle that opened it once the drawer closes (backdrop, Escape, a
+  // nav item, the close button itself, or the sm breakpoint auto-close all
+  // go through setIsMobileMenuOpen(false), so one effect covers all of
+  // them). This is deliberately narrow: it only sets initial/returned focus
+  // for this one drawer, not a general focus trap — see #286 for the
+  // repo-wide focus-trap primitive that's still missing.
+  //
+  // useLayoutEffect, not useEffect: the <nav> below sets
+  // aria-hidden={!isMobileMenuOpen} in the same render that flips
+  // isMobileMenuOpen to false, so focus has to leave the (about to be
+  // hidden) close button before the browser paints — otherwise AT briefly
+  // sees a focused descendant of an aria-hidden container.
+  useLayoutEffect(() => {
+    if (mounted && isMobileMenuOpen) {
+      closeButtonRef.current?.focus();
+    }
+
+    if (wasOpenRef.current && !isMobileMenuOpen) {
+      toggleButtonRef.current?.focus();
+    }
+    wasOpenRef.current = isMobileMenuOpen;
+  }, [mounted, isMobileMenuOpen]);
 
   // Lock body scroll while the menu is open
   useEffect(() => {
@@ -63,10 +90,16 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
     <>
       {/* size-12 + this bottom offset is what __root.tsx's `<main>` reserves
           `calc(env(safe-area-inset-bottom)+5rem)` of bottom padding for
-          (#345) — resize this button and update that reservation to match. */}
+          (#345) — resize this button and update that reservation to match.
+          z-[60], one step above the drawer's z-50 (mobile-sidebar.tsx's <nav>
+          below): the drawer paints later in the DOM, so without this the FAB
+          sits underneath it while open (#346). The drawer's own close button
+          is the primary, discoverable fix; this keeps the FAB's tap target
+          working too, in case anyone still reaches for it. */}
       <button
+        ref={toggleButtonRef}
         type="button"
-        className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex size-12 items-center justify-center rounded-full shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] sm:hidden"
+        className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-[60] flex size-12 items-center justify-center rounded-full shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] sm:hidden"
         style={{
           color: 'var(--color-background)',
           borderColor: 'var(--color-background)',
@@ -131,6 +164,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
                 setIsMobileMenuOpen(false);
               }}
               onClose={() => setIsMobileMenuOpen(false)}
+              closeButtonRef={closeButtonRef}
             />
           </nav>
         </>

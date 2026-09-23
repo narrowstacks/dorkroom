@@ -1,4 +1,5 @@
-import { Settings } from 'lucide-react';
+import { Settings, X } from 'lucide-react';
+import type { Ref } from 'react';
 import { cn } from '../lib/cn';
 import type { MobileNavItem } from '../lib/navigation';
 import { mobileNavItems } from '../lib/navigation';
@@ -85,6 +86,11 @@ export interface MobileSidebarProps {
   pathname: string;
   onNavigate: (path: string) => void;
   onClose: () => void;
+  /**
+   * Forwarded to the header close button so the caller can move focus into
+   * the drawer on open and back to its trigger on close (see mobile-nav.tsx).
+   */
+  closeButtonRef?: Ref<HTMLButtonElement>;
 }
 
 const renderSectionHeader = (label: string) => (
@@ -101,6 +107,7 @@ export function MobileSidebar({
   pathname,
   onNavigate,
   onClose,
+  closeButtonRef,
 }: MobileSidebarProps) {
   // Filter out theme and settings — they go in the footer
   const navItems = mobileNavItems.filter(
@@ -143,6 +150,22 @@ export function MobileSidebar({
 
   return (
     <div className="flex h-full flex-col">
+      {/* Header: a close button that always lives inside the drawer, so it
+          never depends on the FAB that opened it staying reachable underneath
+          (#346 — the FAB and this drawer share a z-index, and the drawer
+          paints on top since it comes later in the DOM). */}
+      <div className="flex shrink-0 justify-end p-2">
+        <button
+          ref={closeButtonRef}
+          type="button"
+          onClick={onClose}
+          className="flex size-11 items-center justify-center rounded-full text-[color:var(--color-text-secondary)] transition hover-surface-tint hover:text-[color:var(--nav-hover-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+          aria-label="Close navigation"
+        >
+          <X className="size-5" />
+        </button>
+      </div>
+
       {/* Scrollable nav content */}
       <div className="flex-1 overflow-y-auto p-3">
         <nav className="flex flex-col gap-0.5" aria-label="Main navigation">
