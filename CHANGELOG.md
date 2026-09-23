@@ -5,6 +5,18 @@ The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHAN
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.09.22]
+
+### Fixed
+
+- **A dilution picked from the dropdown now saves with your custom recipe.** Choosing, say, HC-110 Dilution B left the saved recipe showing "Stock" in the table, cards and detail panel, which is a wrong development instruction. Saving a shared API recipe to your collection lost its dilution the same way. The dilution filter now matches these recipes too. (#356, fixes #322)
+- **A bad shared recipe link or recipe code no longer crashes the app.** A link or code with out-of-range values (a 250°F temperature, a push of +9) replaced the whole app with a blank error screen, and an imported code did it on every visit to /development until site data was cleared. Such links now show an "Invalid custom recipe data" banner at the top of the page that stays until you dismiss it, bad codes are refused on import, and recipes already stored with bad values are skipped instead of breaking the page. (#358, fixes #323)
+- **When a page fails to load, you get a real error screen instead of a bare one.** Page crashes showed an unstyled "Something went wrong!" box with the navigation gone and no way out. They now show the Dorkroom error screen under the header with Try Again and Reload Page buttons, and Reload Page comes first when the cause is a stale file left over from an update. (#357, fixes #330)
+- **The menu button no longer covers "Next" on phones.** On /development the round menu button sat on top of the pagination's Next button, so tapping Next opened the menu. Pages now leave room at the bottom for the button on small screens. (#359, fixes #345)
+- **Camera Exposure presets tell you when the settings can't reach them.** A preset like Night Sky (EV −2) at f/8 and ISO 100 needs a 256-second exposure, but the calculator silently stopped at the 30-second dial limit and showed an exposure several stops off. A notice now says what the preset needs and suggests Bulb, a wider aperture, a faster shutter, a different ISO or an ND filter, depending on which way it is out of range. (#360, fixes #337)
+- **Film thumbnails load as you scroll instead of all at once.** A hidden image check downloaded every thumbnail in the list as soon as its card rendered, which defeated lazy loading on /films. A thumbnail that takes more than 5 seconds now still appears when it finishes loading, instead of being stuck on the placeholder icon. (#361, part of #353)
+- **The mat calculator accepts a decimal comma.** Typing `30,5` in metric was read as 30. It is now read as 30.5. (#362, fixes #318)
+
 ## [2026.09.17]
 
 ### Fixed

@@ -1,6 +1,6 @@
 {
   "name": "@dorkroom/api",
-  "version": "2026.09.17",
+  "version": "2026.09.22",
   "license": "MIT",
   "description": "API client and type definitions for the Dorkroom analog photography calculator",
   "keywords": [

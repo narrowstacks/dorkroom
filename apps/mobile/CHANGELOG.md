@@ -5,6 +5,12 @@ Web app changes live in the [root CHANGELOG](../../CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.09.22]
+
+### Fixed
+
+- **Numbers typed with a decimal comma are read correctly.** In regions that use a comma as the decimal separator (Germany, France, Brazil and others), the number keyboard types "," and the calculators dropped everything after it: an exposure time of `12,5` s was treated as 12, and a custom reciprocity factor of `1,3` as 1, so results were silently wrong. Exposure, Resize, Reciprocity, Mat, the volume mixer, the custom ISO sheet and the film log's lens, film and roll forms now accept either separator. Input that mixes both, like `1,234.5`, is rejected rather than guessed. (#362, fixes #318)
+
 ## [2026.09.17]
 
 ### Fixed
