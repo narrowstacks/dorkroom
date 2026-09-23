@@ -1,4 +1,5 @@
 import {
+  formatSignedMatValue,
   MAT_PRESETS,
   type MatCalculatorState,
   parseMatInput,
@@ -460,7 +461,7 @@ function ArtworkBestFitCard({
       {hasRevealMismatch && (
         <StatusAlert
           action="warning"
-          message={`Window doesn’t match a ${fmt(revVal)} reveal. Actual overlap: ${fmt(overlapLeft)} L/R · ${fmt(overlapTop)} T/B.`}
+          message={`Window doesn’t match a ${fmt(revVal)} reveal. Actual overlap: ${formatSignedMatValue(fmt, overlapLeft)} L/R · ${formatSignedMatValue(fmt, overlapTop)} T/B.`}
         />
       )}
     </CalculatorCard>

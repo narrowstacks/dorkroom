@@ -111,6 +111,26 @@ export function makeMatFormatter(
   };
 }
 
+/**
+ * Format a value that can go negative, such as reveal-mode overlap: positive
+ * means the mat covers the art by that much, negative means the window is
+ * larger than the art and leaves a gap instead. `fmt` (from `makeMatFormatter`,
+ * imperial `toFraction` or the web app's metric formatter) returns an empty
+ * string for negative input because that is the right behavior for a
+ * measurement field — a border or window can never legitimately be negative.
+ * Overlap can, so this formats the magnitude through `fmt` and prefixes a
+ * minus sign, keeping that contract intact everywhere else. See #342.
+ */
+export function formatSignedMatValue(
+  fmt: (inches: number) => string,
+  value: number
+): string {
+  const formatted = fmt(Math.abs(value));
+  return value < 0 && formatted !== '' && formatted !== '· · ·'
+    ? `-${formatted}`
+    : formatted;
+}
+
 /** Extra bottom border (optical centering) scaled to the total vertical border. */
 export function bottomWeightFor(vTotal: number): number {
   if (vTotal > 12) return 1;

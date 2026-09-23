@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { z } from 'zod';
 import {
   bestFitBorders,
+  formatSignedMatValue,
   MAT_CALCULATOR_DEFAULTS,
   MAT_CALCULATOR_STORAGE_KEY,
   type MatBorders,
@@ -232,8 +233,8 @@ export function useMatCalculator(
     ['Artwork', `${fmt(aw)} × ${fmt(ah)}`, 'as specified'],
     [
       'Actual reveal',
-      `${fmt(overlapLeft)} L/R · ${fmt(overlapTop)} T/B`,
-      'mat coverage onto the artwork edge',
+      `${formatSignedMatValue(fmt, overlapLeft)} L/R · ${formatSignedMatValue(fmt, overlapTop)} T/B`,
+      'mat coverage onto the artwork edge; negative means a gap',
     ],
   ];
 
