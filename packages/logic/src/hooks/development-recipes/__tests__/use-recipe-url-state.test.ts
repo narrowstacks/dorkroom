@@ -945,6 +945,36 @@ describe('useRecipeUrlState', () => {
       expect(result.current.initialUrlState.dilutionFilter).toBeUndefined();
     });
 
+    it('applies developerType with no developer in the URL', () => {
+      mockLocation.search = '?developerType=powder';
+
+      const { result } = renderHook(() =>
+        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+      );
+
+      expect(result.current.initialUrlState.developerTypeFilter).toBe('powder');
+    });
+
+    it('ignores developerType when a developer is also set in the URL (#325)', () => {
+      // The mirror image of the dilution case above: dilution needs a
+      // developer to mean anything, developerType is made redundant by one.
+      // A shared URL with both set (developer=dd-x is a liquid developer)
+      // must not hydrate a hidden, inert — or worse, silently applied —
+      // developer-type filter.
+      mockLocation.search = '?developer=dd-x&developerType=powder';
+
+      const { result } = renderHook(() =>
+        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+      );
+
+      expect(result.current.initialUrlState.selectedDeveloper?.slug).toBe(
+        'dd-x'
+      );
+      expect(
+        result.current.initialUrlState.developerTypeFilter
+      ).toBeUndefined();
+    });
+
     it('strips a lone orphaned iso=boxspeed param from the URL once film/developer data arrives', () => {
       // Films/developers load asynchronously in the real app: the hook first
       // mounts with empty lists (initialUrlState stays {}, so the hook never

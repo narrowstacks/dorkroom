@@ -729,4 +729,58 @@ describe('useDevelopmentRecipes', () => {
       expect(result.current.dilutionFilter).toBe('');
     });
   });
+
+  describe('developer type filter cleared when a developer is selected', () => {
+    it('clears developerTypeFilter when a developer is selected (#325)', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
+
+      act(() => {
+        result.current.setDeveloperTypeFilter('powder');
+      });
+      act(() => {
+        // d1 (DD-X) is a liquid developer — mismatched with the 'powder' filter.
+        // Its control (Developer type) is hidden once a developer is picked,
+        // so a stale value here would either zero out results in the main
+        // list, or — for paths that apply developerTypeFilter without gating
+        // on selectedDeveloper (e.g. the custom-recipes list) — silently
+        // filter results with no visible control to explain or undo it.
+        result.current.setSelectedDeveloper(mockDevelopers[0]);
+      });
+
+      // Cleared just like dilutionFilter, not left inert.
+      expect(result.current.developerTypeFilter).toBe('');
+      expect(result.current.filteredCombinations.length).toBeGreaterThan(0);
+      expect(
+        result.current.filteredCombinations.every(
+          (combo) => combo.developerId === 'd1'
+        )
+      ).toBe(true);
+    });
+
+    it('does not clear developerTypeFilter when the developer is cleared to null', () => {
+      const { result } = renderHook(() => useDevelopmentRecipes(), { wrapper });
+
+      act(() => {
+        result.current.setSelectedDeveloper(mockDevelopers[0]);
+      });
+      act(() => {
+        result.current.setDeveloperTypeFilter('powder');
+      });
+      act(() => {
+        result.current.setSelectedDeveloper(null);
+      });
+
+      // Only selecting a developer clears the type filter; deselecting one
+      // (back to "no developer") must not wipe a filter the now-visible
+      // control still shows and can apply.
+      expect(result.current.developerTypeFilter).toBe('powder');
+      // Only d2 (D-76) is a powder developer among the fixtures.
+      expect(
+        result.current.filteredCombinations.every(
+          (combo) => combo.developerId === 'd2'
+        )
+      ).toBe(true);
+      expect(result.current.filteredCombinations.length).toBeGreaterThan(0);
+    });
+  });
 });
