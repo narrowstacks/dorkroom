@@ -78,6 +78,48 @@ describe('useMatCalculator', () => {
     expect(result.current.guideBarCuts[0].stop).toBe('13 1/4"');
   });
 
+  describe('reveal-mode gap (issue #342)', () => {
+    // 16×20 board with the default borders keeps a 10½"×13½" window. Art
+    // smaller than that window (8×10 at a ¼" reveal) makes the mat's window
+    // larger than the art — a gap, not an overlap — so overlapLeft/Top go
+    // negative.
+    it('reports negative overlapLeft/overlapTop when the window is larger than the art', () => {
+      const { result } = renderHook(() => useMatCalculator());
+      act(() => result.current.set('artW', '8'));
+      act(() => result.current.set('artH', '10'));
+
+      expect(result.current.overlapLeft).toBeCloseTo(-1.25, 5);
+      expect(result.current.overlapTop).toBeCloseTo(-1.75, 5);
+      expect(result.current.hasRevealMismatch).toBe(true);
+    });
+
+    it('renders the gap as a signed value in the "Actual reveal" row instead of blanking it', () => {
+      const { result } = renderHook(() => useMatCalculator());
+      act(() => result.current.set('artW', '8'));
+      act(() => result.current.set('artH', '10'));
+
+      const revealRow = result.current.dimensionRows.find(
+        ([label]) => label === 'Actual reveal'
+      );
+      expect(revealRow).toBeDefined();
+      expect(revealRow?.[1]).toBe('-1 1/4" L/R · -1 3/4" T/B');
+    });
+
+    it('renders the gap through an injected metric formatter too', () => {
+      const cm = (inches: number) => `${(inches * 2.54).toFixed(1)}cm`;
+      const { result } = renderHook(() =>
+        useMatCalculator({ formatValue: cm })
+      );
+      act(() => result.current.set('artW', '8'));
+      act(() => result.current.set('artH', '10'));
+
+      const revealRow = result.current.dimensionRows.find(
+        ([label]) => label === 'Actual reveal'
+      );
+      expect(revealRow?.[1]).toBe('-3.2cm L/R · -4.4cm T/B');
+    });
+  });
+
   describe('hydration validation (issue #239)', () => {
     const seed = (payload: Record<string, PersistedValue>) => {
       window.localStorage.setItem(

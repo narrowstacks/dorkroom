@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   bestFitBorders,
   bottomWeightFor,
+  formatSignedMatValue,
   MAT_CALCULATOR_DEFAULTS,
   MAT_PRESETS,
   makeMatFormatter,
@@ -115,6 +116,36 @@ describe('mat calculator logic', () => {
       expect(makeMatFormatter(false, shout)(3.5)).toBe('· · ·');
       expect(makeMatFormatter(true, shout)(NaN)).toBe('· · ·');
       expect(shout).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('formatSignedMatValue', () => {
+    it('formats a positive value the same as the underlying formatter', () => {
+      expect(formatSignedMatValue(toFraction, 1.25)).toBe('1 1/4"');
+    });
+
+    it('renders a negative value as a signed magnitude rather than blanking it (#342)', () => {
+      // toFraction(-1.25) is '' — that fallback is right for a measurement
+      // field, but reveal-mode overlap going negative (a gap) still needs a
+      // real value on screen.
+      expect(formatSignedMatValue(toFraction, -1.25)).toBe('-1 1/4"');
+      expect(formatSignedMatValue(toFraction, -1.75)).toBe('-1 3/4"');
+    });
+
+    it('works with an injected metric formatter', () => {
+      const cm = (inches: number) => `${(inches * 2.54).toFixed(1)}cm`;
+      expect(formatSignedMatValue(cm, -1.25)).toBe('-3.2cm');
+      expect(formatSignedMatValue(cm, 1.25)).toBe('3.2cm');
+    });
+
+    it('keeps the placeholder for an invalid value instead of adding a sign', () => {
+      const fmt = makeMatFormatter(false);
+      expect(formatSignedMatValue(fmt, -1.25)).toBe('· · ·');
+    });
+
+    it('leaves zero and NaN untouched', () => {
+      expect(formatSignedMatValue(toFraction, 0)).toBe('0"');
+      expect(formatSignedMatValue(toFraction, NaN)).toBe('');
     });
   });
 

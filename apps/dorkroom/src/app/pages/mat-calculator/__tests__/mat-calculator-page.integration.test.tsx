@@ -113,6 +113,26 @@ describe('MatCalculatorPage', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows a signed gap instead of a blank value when the window is larger than the art (#342)', () => {
+    renderPage();
+
+    // Default 16×20 board/borders keep a 10½"×13½" window; art smaller than
+    // that (8×10 at the default ¼" reveal) leaves a gap, not an overlap.
+    fireEvent.change(screen.getByTitle('Enter Art width'), {
+      target: { value: '8' },
+    });
+    fireEvent.change(screen.getByTitle('Enter Art height'), {
+      target: { value: '10' },
+    });
+
+    expect(
+      screen.getByText(
+        'Window doesn’t match a 1/4" reveal. Actual overlap: -1 1/4" L/R · -1 3/4" T/B.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('-1 1/4" L/R · -1 3/4" T/B')).toBeInTheDocument();
+  });
+
   it('tracks preset_applied with the preset’s list index when a board size is tapped', () => {
     renderPage();
 
@@ -235,6 +255,23 @@ describe('MatCalculatorPage', () => {
       expect(screen.getByTitle('Enter Width')).toHaveValue('27.94');
       expect(screen.getByTitle('Enter Height')).toHaveValue('35.56');
       await expect(persistedOuterWidth()).resolves.toBe('11');
+    });
+
+    it('shows a signed gap in centimetres when the window is larger than the art (#342)', () => {
+      renderPage('metric');
+
+      fireEvent.change(screen.getByTitle('Enter Art width'), {
+        target: { value: '20.32' }, // 8in
+      });
+      fireEvent.change(screen.getByTitle('Enter Art height'), {
+        target: { value: '25.4' }, // 10in
+      });
+
+      // Gap magnitudes: 1.25in → 3.2cm, 1.75in → 4.4cm.
+      expect(
+        screen.getByText(/Actual overlap: -3\.2cm L\/R · -4\.4cm T\/B\./)
+      ).toBeInTheDocument();
+      expect(screen.getByText('-3.2cm L/R · -4.4cm T/B')).toBeInTheDocument();
     });
 
     it('reads state persisted in inches without rewriting it', async () => {
