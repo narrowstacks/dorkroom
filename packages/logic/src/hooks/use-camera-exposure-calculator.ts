@@ -77,6 +77,12 @@ export interface UseCameraExposureCalculatorReturn {
    * standard dial range and got clamped to the nearest endpoint (e.g. 30s
    * or f/64) rather than the value the preset actually needs. `null` when
    * the last preset (if any) applied cleanly, or after any input change.
+   *
+   * Derived (not stored directly) from `values` and the last-applied
+   * preset's EV: storing the warning object itself, computed inside
+   * `applyPreset`, would mean reading the *other* two settings off
+   * whatever `values` happened to be at the time `applyPreset` was called
+   * rather than the state `set()` had just committed in the same handler.
    */
   presetWarning: PresetWarning | null;
   /** Exposure value for the primary settings (A). */
@@ -104,16 +110,18 @@ export function useCameraExposureCalculator(): UseCameraExposureCalculatorReturn
   const [values, setValues] = useState<CameraExposureFormState>(
     CAMERA_EXPOSURE_DEFAULTS
   );
-  const [presetWarning, setPresetWarning] = useState<PresetWarning | null>(
-    null
-  );
+  // The EV of the last-applied preset, or null once any input changes it
+  // (via `set`) invalidates it. `presetWarning` is derived from this plus
+  // the committed `values` below, rather than computed once inside
+  // `applyPreset` and stored — see the return type's doc comment.
+  const [lastPresetEv, setLastPresetEv] = useState<number | null>(null);
 
   const set = useCallback(
     <K extends keyof CameraExposureFormState>(
       key: K,
       value: CameraExposureFormState[K]
     ) => {
-      setPresetWarning(null);
+      setLastPresetEv(null);
       setValues((prev) => ({ ...prev, [key]: value }));
     },
     []
@@ -154,47 +162,91 @@ export function useCameraExposureCalculator(): UseCameraExposureCalculatorReturn
     },
   });
 
-  const applyPreset = useCallback(
-    (ev: number) => {
-      if (values.solveFor === 'shutterSpeed') {
-        const solved = solveForShutterSpeed(ev, values.aperture, values.iso);
+  const applyPreset = useCallback((ev: number) => {
+    // Functional updater, reading only `prev` — not the `values` closure —
+    // so a preset applied right after a `set()` call in the same handler
+    // (e.g. `set('aperture', 5.6); applyPreset(15)`) solves from the value
+    // `set` just committed, not a stale render. No side effects here:
+    // StrictMode double-invokes updaters, and `setLastPresetEv` below runs
+    // exactly once per `applyPreset` call regardless.
+    setValues((prev) => {
+      if (prev.solveFor === 'shutterSpeed') {
+        const solved = solveForShutterSpeed(ev, prev.aperture, prev.iso);
         const nearest = findNearestStandard(solved, STANDARD_SHUTTER_SPEEDS);
-        setPresetWarning(
-          getPresetOutOfRangeWarning(
-            ev,
-            'shutterSpeed',
-            solved,
-            nearest,
-            formatShutterSpeed
-          )
-        );
-        setValues((prev) => ({ ...prev, shutterSpeed: nearest.value }));
-        return;
+        return { ...prev, shutterSpeed: nearest.value };
       }
-      if (values.solveFor === 'aperture') {
-        const solved = solveForAperture(ev, values.shutterSpeed, values.iso);
+      if (prev.solveFor === 'aperture') {
+        const solved = solveForAperture(ev, prev.shutterSpeed, prev.iso);
         const nearest = findNearestStandard(solved, STANDARD_APERTURES);
-        setPresetWarning(
-          getPresetOutOfRangeWarning(
-            ev,
-            'aperture',
-            solved,
-            nearest,
-            formatApertureForWarning
-          )
-        );
-        setValues((prev) => ({ ...prev, aperture: nearest.value }));
-        return;
+        return { ...prev, aperture: nearest.value };
       }
-      const solved = solveForISO(ev, values.aperture, values.shutterSpeed);
+      const solved = solveForISO(ev, prev.aperture, prev.shutterSpeed);
       const nearest = findNearestStandard(solved, STANDARD_ISOS);
-      setPresetWarning(
-        getPresetOutOfRangeWarning(ev, 'iso', solved, nearest, formatISO)
+      return { ...prev, iso: nearest.value };
+    });
+    setLastPresetEv(ev);
+  }, []);
+
+  // Derives from the committed `values` + `lastPresetEv` rather than being
+  // computed once inside `applyPreset`, so it can never reflect a stale
+  // closure. Since only the solved-for field changes when a preset is
+  // applied, the other two current values are exactly the ones the preset
+  // was solved against, so re-solving here reproduces the same `solved`
+  // (and thus the same warning, if any) `applyPreset` used to pick
+  // `nearest`.
+  const presetWarning = useMemo<PresetWarning | null>(() => {
+    if (lastPresetEv === null) return null;
+
+    if (values.solveFor === 'shutterSpeed') {
+      const solved = solveForShutterSpeed(
+        lastPresetEv,
+        values.aperture,
+        values.iso
       );
-      setValues((prev) => ({ ...prev, iso: nearest.value }));
-    },
-    [values.solveFor, values.aperture, values.iso, values.shutterSpeed]
-  );
+      const nearest = findNearestStandard(solved, STANDARD_SHUTTER_SPEEDS);
+      return getPresetOutOfRangeWarning(
+        lastPresetEv,
+        'shutterSpeed',
+        solved,
+        nearest,
+        formatShutterSpeed
+      );
+    }
+    if (values.solveFor === 'aperture') {
+      const solved = solveForAperture(
+        lastPresetEv,
+        values.shutterSpeed,
+        values.iso
+      );
+      const nearest = findNearestStandard(solved, STANDARD_APERTURES);
+      return getPresetOutOfRangeWarning(
+        lastPresetEv,
+        'aperture',
+        solved,
+        nearest,
+        formatApertureForWarning
+      );
+    }
+    const solved = solveForISO(
+      lastPresetEv,
+      values.aperture,
+      values.shutterSpeed
+    );
+    const nearest = findNearestStandard(solved, STANDARD_ISOS);
+    return getPresetOutOfRangeWarning(
+      lastPresetEv,
+      'iso',
+      solved,
+      nearest,
+      formatISO
+    );
+  }, [
+    lastPresetEv,
+    values.solveFor,
+    values.aperture,
+    values.shutterSpeed,
+    values.iso,
+  ]);
 
   const exposureValue = useMemo(
     () =>

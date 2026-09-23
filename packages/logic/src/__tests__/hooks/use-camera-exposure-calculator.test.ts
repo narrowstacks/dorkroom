@@ -148,4 +148,28 @@ describe('useCameraExposureCalculator', () => {
 
     expect(result.current.presetWarning).toBeNull();
   });
+
+  it('solves applyPreset from a value set() just committed in the same handler, not a stale closure', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    // Regression: applyPreset used to read `values` off the render closure,
+    // so calling it right after set() in the same handler (exactly what the
+    // hook's own JSDoc example does) solved from the *previous* render's
+    // aperture, not the one set() had just committed.
+    act(() => {
+      result.current.set('aperture', 5.6);
+      result.current.applyPreset(-2);
+    });
+
+    expect(result.current.values.aperture).toBe(5.6);
+
+    // f/5.6, ISO 100, EV -2 needs ~125.4s — still past the 30s limit, but a
+    // clearly different number from f/8's 256s (the original #337 example).
+    // Getting 256" here would mean the preset was solved against the stale
+    // f/8 instead of the f/5.6 set() just committed.
+    expect(result.current.presetWarning).not.toBeNull();
+    expect(result.current.presetWarning?.required).toBe('125.4"');
+    expect(result.current.presetWarning?.limit).toBe('30"');
+    expect(result.current.values.shutterSpeed).toBe(30);
+  });
 });
