@@ -44,6 +44,7 @@ import {
 import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
 import { RecipeModals } from './components/recipe-modals';
 import { RecipeResultsSection } from './components/recipe-results-section';
+import { SharedRecipeNotice } from './components/shared-recipe-notice';
 import { useRecipeActions } from './hooks/useRecipeActions';
 import { useRecipeData } from './hooks/useRecipeData';
 import { useRecipeModals } from './hooks/useRecipeModals';
@@ -212,6 +213,7 @@ export default function DevelopmentRecipesPage() {
     initialUrlState,
     isLoadingSharedRecipe,
     sharedRecipeError,
+    dismissSharedRecipeError,
     sharedCustomRecipe,
   } = useRecipeUrlState(
     allFilms,
@@ -546,6 +548,12 @@ export default function DevelopmentRecipesPage() {
           </div>
         )}
 
+        <SharedRecipeNotice
+          isLoading={isLoadingSharedRecipe}
+          message={sharedRecipeError}
+          onDismiss={dismissSharedRecipeError}
+        />
+
         <DevelopmentActionsBar
           totalResults={deferredCombinedRows.length}
           viewMode={isMobile ? 'grid' : viewMode}
@@ -795,21 +803,6 @@ export default function DevelopmentRecipesPage() {
           isDestructive
           isProcessing={isDeleting}
         />
-
-        {(isLoadingSharedRecipe || sharedRecipeError) && (
-          <div
-            className="rounded-2xl px-4 py-3 text-sm"
-            style={{
-              borderWidth: 1,
-              borderColor: 'var(--color-border-secondary)',
-              backgroundColor: 'rgba(var(--color-background-rgb), 0.05)',
-              color: 'var(--color-text-secondary)',
-            }}
-          >
-            {isLoadingSharedRecipe && 'Loading shared recipe…'}
-            {sharedRecipeError && <span>{sharedRecipeError}</span>}
-          </div>
-        )}
       </div>
     </TemperatureProvider>
   );
