@@ -1,4 +1,4 @@
-import { sanitizeText } from '@dorkroom/logic';
+import { parseDecimalInput, sanitizeText } from '@dorkroom/logic';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
@@ -73,7 +73,7 @@ export function RollFormScreen() {
       return;
     }
     const stock = resolveStock(form.filmStockId);
-    const ei = Number(form.iso);
+    const ei = parseDecimalInput(form.iso);
     const fields = {
       name: sanitizeText(form.name, 120),
       cameraId: form.cameraId,

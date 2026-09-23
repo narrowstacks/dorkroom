@@ -5,6 +5,7 @@
    -------------------------------------------------------------
    Exports:
      - tryNumber: Enhanced numeric parser for complete numeric literals
+     - parseDecimalInput: Locale-tolerant parser for typed decimals ("12,5")
      - debounce: Debounce utility for input processing
 \* ------------------------------------------------------------------ */
 
@@ -33,6 +34,51 @@ export const tryNumber = (v: string): number | null => {
 
   const n = parseFloat(v);
   return Number.isFinite(n) ? n : null;
+};
+
+/**
+ * Matches an optionally signed decimal with at most one separator, which may
+ * be "." or ",". At least one digit is required somewhere; either side of the
+ * separator may be empty (".5", "12.").
+ */
+const DECIMAL_INPUT_REGEX = /^[+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+)$/;
+
+/**
+ * Parses a number typed into a text field, accepting either "." or "," as the
+ * decimal separator. iOS decimal keyboards type "," in comma-decimal regions
+ * (de_DE, fr_FR, pt_BR, …), where `parseFloat("12,5")` silently returns 12.
+ *
+ * Rules:
+ * - Surrounding whitespace is trimmed.
+ * - Exactly zero or one separator. Input with two separators ("1,234.5",
+ *   "1.2.3") is NaN rather than a guess, because "," and "." each mean
+ *   "thousands" in some locale.
+ * - A leading "-" or "+" is allowed; callers that need a positive value must
+ *   check the sign themselves.
+ * - The whole string must be numeric: unlike `parseFloat`, "12abc" is NaN,
+ *   and so are exponents ("1e3") and internal spaces.
+ * - Mid-typing input with a trailing separator ("12." or "12,") parses to 12,
+ *   matching `Number("12.")`, so a controlled field keeps its result while the
+ *   user types the next digit. A bare separator or sign ("," / "-") is NaN.
+ *
+ * Only the number is normalised. Callers should keep and display the user's
+ * string as typed.
+ *
+ * @param text - Raw text from an input field
+ * @returns The parsed number, or NaN when the text is empty or not a number
+ * @example
+ * ```typescript
+ * parseDecimalInput('12,5'); // 12.5
+ * parseDecimalInput('12.5'); // 12.5
+ * parseDecimalInput('12,'); // 12 (mid-typing)
+ * parseDecimalInput('1,234.5'); // NaN (ambiguous)
+ * parseDecimalInput('12abc'); // NaN
+ * ```
+ */
+export const parseDecimalInput = (text: string): number => {
+  const trimmed = text.trim();
+  if (!DECIMAL_INPUT_REGEX.test(trimmed)) return Number.NaN;
+  return Number(trimmed.replace(',', '.'));
 };
 
 /**

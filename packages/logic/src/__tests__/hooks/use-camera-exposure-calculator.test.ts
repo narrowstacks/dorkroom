@@ -46,4 +46,130 @@ describe('useCameraExposureCalculator', () => {
     expect(result.current.values.aperture).toBe(8);
     expect(result.current.values.iso).toBe(100);
   });
+
+  it('produces no preset warning for an in-range preset', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    // Sunny 16 (EV 15) at the defaults (f/8, ISO 100) needs a shutter
+    // speed well within the standard dial range.
+    act(() => result.current.applyPreset(15));
+
+    expect(result.current.presetWarning).toBeNull();
+  });
+
+  it('warns when the "Night Sky" preset needs a shutter speed beyond the dial range', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    // f/8, ISO 100, EV -2 needs 256s — far past the 30s dial limit.
+    act(() => result.current.applyPreset(-2));
+
+    expect(result.current.presetWarning).not.toBeNull();
+    expect(result.current.presetWarning?.presetEv).toBe(-2);
+    expect(result.current.presetWarning?.variable).toBe('shutterSpeed');
+    expect(result.current.presetWarning?.required).toBe('256"');
+    expect(result.current.presetWarning?.limit).toBe('30"');
+
+    // The value still gets clamped to the dial endpoint rather than being
+    // rejected outright.
+    expect(result.current.values.shutterSpeed).toBe(30);
+  });
+
+  it('warns when a preset needs an aperture beyond the dial range', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    act(() => {
+      result.current.set('solveFor', 'aperture');
+      result.current.set('shutterSpeed', 1 / 30);
+      result.current.set('iso', 12800);
+    });
+
+    // 1/30s, ISO 12800, EV 16 needs roughly f/529 — far past f/64.
+    act(() => result.current.applyPreset(16));
+
+    expect(result.current.presetWarning).not.toBeNull();
+    expect(result.current.presetWarning?.variable).toBe('aperture');
+    expect(result.current.presetWarning?.presetEv).toBe(16);
+    expect(result.current.presetWarning?.limit).toBe('f/64');
+    expect(result.current.values.aperture).toBe(64);
+
+    // The scene is too *bright* for the lens to stop down far enough, so
+    // this must warn "over" (needs a smaller aperture than f/64 allows) —
+    // never "under", which would wrongly suggest opening the aperture
+    // further when the fix is the opposite.
+    expect(result.current.presetWarning?.direction).toBe('over');
+    expect(result.current.presetWarning?.required).toBe('f/529');
+  });
+
+  it('warns when a preset needs an ISO beyond the dial range', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    act(() => result.current.set('solveFor', 'iso'));
+
+    // f/8, 1/125s, EV -2 needs ISO 3,200,000 — far past ISO 12800.
+    act(() => result.current.applyPreset(-2));
+
+    expect(result.current.presetWarning).not.toBeNull();
+    expect(result.current.presetWarning?.variable).toBe('iso');
+    expect(result.current.presetWarning?.presetEv).toBe(-2);
+    expect(result.current.presetWarning?.limit).toBe('ISO 12800');
+    expect(result.current.presetWarning?.direction).toBe('over');
+    expect(result.current.values.iso).toBe(12800);
+  });
+
+  it('clears the preset warning when solveFor changes', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    act(() => result.current.applyPreset(-2));
+    expect(result.current.presetWarning).not.toBeNull();
+
+    act(() => result.current.set('solveFor', 'aperture'));
+
+    expect(result.current.presetWarning).toBeNull();
+  });
+
+  it('clears the preset warning when any input changes', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    act(() => result.current.applyPreset(-2));
+    expect(result.current.presetWarning).not.toBeNull();
+
+    act(() => result.current.set('iso', 400));
+
+    expect(result.current.presetWarning).toBeNull();
+  });
+
+  it('clears the preset warning when a subsequent in-range preset is applied', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    act(() => result.current.applyPreset(-2));
+    expect(result.current.presetWarning).not.toBeNull();
+
+    act(() => result.current.applyPreset(15));
+
+    expect(result.current.presetWarning).toBeNull();
+  });
+
+  it('solves applyPreset from a value set() just committed in the same handler, not a stale closure', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+
+    // Regression: applyPreset used to read `values` off the render closure,
+    // so calling it right after set() in the same handler (exactly what the
+    // hook's own JSDoc example does) solved from the *previous* render's
+    // aperture, not the one set() had just committed.
+    act(() => {
+      result.current.set('aperture', 5.6);
+      result.current.applyPreset(-2);
+    });
+
+    expect(result.current.values.aperture).toBe(5.6);
+
+    // f/5.6, ISO 100, EV -2 needs ~125.4s — still past the 30s limit, but a
+    // clearly different number from f/8's 256s (the original #337 example).
+    // Getting 256" here would mean the preset was solved against the stale
+    // f/8 instead of the f/5.6 set() just committed.
+    expect(result.current.presetWarning).not.toBeNull();
+    expect(result.current.presetWarning?.required).toBe('125.4"');
+    expect(result.current.presetWarning?.limit).toBe('30"');
+    expect(result.current.values.shutterSpeed).toBe(30);
+  });
 });

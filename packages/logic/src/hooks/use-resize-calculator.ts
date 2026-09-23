@@ -8,6 +8,7 @@ import {
   DEFAULT_ORIGINAL_TIME,
   DEFAULT_ORIGINAL_WIDTH,
 } from '../constants/resize-calculator';
+import { parseDecimalInput } from '../utils/input-validation';
 import {
   calculateResizeExposure,
   matchesAspectRatio,
@@ -56,10 +57,10 @@ export const useResizeCalculator = (): UseResizeCalculatorReturn => {
     setIsAspectRatioMatched(
       matchesAspectRatio({
         isEnlargerHeightMode,
-        originalWidth: parseFloat(originalWidth),
-        originalLength: parseFloat(originalLength),
-        newWidth: parseFloat(newWidth),
-        newLength: parseFloat(newLength),
+        originalWidth: parseDecimalInput(originalWidth),
+        originalLength: parseDecimalInput(originalLength),
+        newWidth: parseDecimalInput(newWidth),
+        newLength: parseDecimalInput(newLength),
       })
     );
   }, [
@@ -75,13 +76,13 @@ export const useResizeCalculator = (): UseResizeCalculatorReturn => {
     () =>
       calculateResizeExposure({
         isEnlargerHeightMode,
-        originalTime: parseFloat(originalTime),
-        originalWidth: parseFloat(originalWidth),
-        originalLength: parseFloat(originalLength),
-        newWidth: parseFloat(newWidth),
-        newLength: parseFloat(newLength),
-        originalHeight: parseFloat(originalHeight),
-        newHeight: parseFloat(newHeight),
+        originalTime: parseDecimalInput(originalTime),
+        originalWidth: parseDecimalInput(originalWidth),
+        originalLength: parseDecimalInput(originalLength),
+        newWidth: parseDecimalInput(newWidth),
+        newLength: parseDecimalInput(newLength),
+        originalHeight: parseDecimalInput(originalHeight),
+        newHeight: parseDecimalInput(newHeight),
       }),
     [
       isEnlargerHeightMode,

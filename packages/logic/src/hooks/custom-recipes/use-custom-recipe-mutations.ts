@@ -32,6 +32,25 @@ const writeRecipesToStorage = (recipes: CustomRecipe[]): void => {
   recipesStorage.write(recipes);
 };
 
+/**
+ * Resolves the two dilution fields from the form. A dilution picked from the
+ * dropdown is an id and must clear `customDilution`, because every display
+ * shows `customDilution` first. `'custom'`, an empty pick, or a custom
+ * developer (which has no catalogue ids) keeps the free-text dilution.
+ */
+const resolveDilution = (
+  formData: CustomRecipeFormData
+): Pick<CustomRecipe, 'dilutionId' | 'customDilution'> => {
+  const selected = sanitizeText(formData.selectedDilutionId, 100).trim();
+  if (formData.useExistingDeveloper && selected && selected !== 'custom') {
+    return { dilutionId: selected, customDilution: '' };
+  }
+  return {
+    dilutionId: undefined,
+    customDilution: sanitizeText(formData.customDilution, 100),
+  };
+};
+
 const createRecipeFromFormData = (
   formData: CustomRecipeFormData,
   base?: CustomRecipe
@@ -71,12 +90,11 @@ const createRecipeFromFormData = (
     pushPull: formData.pushPull,
     agitationSchedule: sanitizeText(formData.agitationSchedule, 500),
     notes: sanitizeText(formData.notes, 2000),
-    customDilution: sanitizeText(formData.customDilution, 100),
+    ...resolveDilution(formData),
     isCustomFilm: !formData.useExistingFilm,
     isCustomDeveloper: !formData.useExistingDeveloper,
     customFilm: sanitizeCustomFilm(formData.customFilm),
     customDeveloper: sanitizeCustomDeveloper(formData.customDeveloper),
-    dilutionId: base?.dilutionId ?? undefined,
     dateCreated: base?.dateCreated ?? nowIso,
     dateModified: nowIso,
     isPublic: formData.isPublic,

@@ -279,12 +279,20 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
         return false;
       }
 
-      if (
-        dilutionFilter &&
-        combination.customDilution?.toLowerCase() !==
-          dilutionFilter.toLowerCase()
-      ) {
-        return false;
+      if (dilutionFilter) {
+        // Same resolution as the API-recipe filter in useDevelopmentRecipes:
+        // customDilution > the developer's dilution by id > 'Stock'.
+        const dilutionLabel =
+          combination.customDilution?.trim() ||
+          (combination.dilutionId
+            ? developer?.dilutions
+                ?.find((d) => String(d.id) === String(combination.dilutionId))
+                ?.dilution?.trim()
+            : undefined) ||
+          'Stock';
+        if (dilutionLabel.toLowerCase() !== dilutionFilter.toLowerCase()) {
+          return false;
+        }
       }
 
       if (isoFilter) {

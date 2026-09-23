@@ -8,6 +8,7 @@ import {
   formatAperture,
   formatShutterSpeed,
   isoToKey,
+  type PresetWarning,
   type SolveFor,
   STANDARD_APERTURES,
   STANDARD_ISOS,
@@ -15,7 +16,7 @@ import {
   shutterSpeedToKey,
   useCameraExposureCalculator,
 } from '@dorkroom/logic';
-import { getRouteIcon, ResultRow, Select } from '@dorkroom/ui';
+import { getRouteIcon, ResultRow, Select, StatusAlert } from '@dorkroom/ui';
 import {
   CalculatorCard,
   CalculatorLayout,
@@ -151,6 +152,112 @@ function EVResultCard({
         </span>
       </div>
     </CalculatorCard>
+  );
+}
+
+type PresetWarningDirection = PresetWarning['direction'];
+
+// What to suggest doing instead, keyed by which value the preset couldn't
+// reach within the standard dial range AND which way it missed: the fix
+// for a preset that needs *more* range is never the same as the fix for
+// one that needs *less* (e.g. a too-bright scene needing a smaller
+// aperture than f/64 can't be fixed by opening the aperture further).
+const PRESET_WARNING_HINTS = {
+  shutterSpeed: {
+    over: 'Use Bulb, or open the aperture / raise ISO.',
+    under: 'Stop down or lower ISO, or use an ND filter.',
+  },
+  aperture: {
+    over: 'Use a faster shutter speed or lower ISO, or an ND filter.',
+    under: 'Use a slower shutter speed or raise ISO.',
+  },
+  iso: {
+    over: 'Use a wider aperture or a slower shutter speed instead.',
+    under: 'Use a narrower aperture or a faster shutter speed instead.',
+  },
+} satisfies Record<SolveFor, Record<PresetWarningDirection, string>>;
+
+// How to phrase "the exact value is past the dial's limit" for each
+// variable/direction pair so it reads naturally either way (a shutter
+// speed is "longer" or "faster", an aperture is "smaller" or "wider", ISO
+// is "above" or "below" — never the same word for opposite directions).
+const PRESET_WARNING_RANGE_PHRASE = {
+  shutterSpeed: {
+    over: (limit: string) => `longer than the ${limit} limit`,
+    under: (limit: string) => `faster than the ${limit} limit`,
+  },
+  aperture: {
+    over: (limit: string) => `smaller than the ${limit} limit`,
+    under: (limit: string) => `wider than the ${limit} limit`,
+  },
+  iso: {
+    over: (limit: string) => `above the ${limit} limit`,
+    under: (limit: string) => `below the ${limit} limit`,
+  },
+} satisfies Record<
+  SolveFor,
+  Record<PresetWarningDirection, (limit: string) => string>
+>;
+
+/**
+ * Builds the inline notice text for a preset that landed outside the
+ * standard dial range, e.g. "Night Sky (EV -2) needs 256" at f/8, ISO 100:
+ * longer than the 30" limit. Use Bulb, or open the aperture / raise ISO."
+ */
+function formatPresetWarningMessage(
+  warning: PresetWarning,
+  values: CameraExposureFormState
+): string {
+  const preset = EV_PRESETS.find((p) => p.ev === warning.presetEv);
+  const label = preset
+    ? `${preset.label} (EV ${warning.presetEv})`
+    : `EV ${warning.presetEv}`;
+
+  const context =
+    warning.variable === 'shutterSpeed'
+      ? `${formatAperture(values.aperture)}, ISO ${values.iso}`
+      : warning.variable === 'aperture'
+        ? `${formatShutterSpeed(values.shutterSpeed)}, ISO ${values.iso}`
+        : `${formatAperture(values.aperture)}, ${formatShutterSpeed(values.shutterSpeed)}`;
+
+  const rangePhrase = PRESET_WARNING_RANGE_PHRASE[warning.variable][
+    warning.direction
+  ](warning.limit);
+  const hint = PRESET_WARNING_HINTS[warning.variable][warning.direction];
+
+  return `${label} needs ${warning.required} at ${context}: ${rangePhrase}. ${hint}`;
+}
+
+/**
+ * Wraps the notice in a live region that stays mounted (with `aria-live`
+ * always present) even when there's no warning, so screen readers announce
+ * the *first* warning too — not just later swaps between two warnings.
+ * `StatusAlert` sets its own `role` by default; `omitRole` avoids nesting a
+ * second live region inside this wrapper's.
+ *
+ * `<output>` carries an implicit `role="status"` (per the ARIA spec, via
+ * `aria-query`'s tag mapping) — using the semantic tag instead of
+ * `<div role="status">` is also what satisfies `jsx-a11y/prefer-tag-over-role`.
+ * `className="block"` keeps it from behaving as inline content, since
+ * `<output>` is inline by default and `StatusAlert` renders a flex block.
+ */
+function PresetWarningNotice({
+  presetWarning,
+  values,
+}: {
+  presetWarning: PresetWarning | null;
+  values: CameraExposureFormState;
+}) {
+  return (
+    <output className="block" aria-live="polite">
+      {presetWarning && (
+        <StatusAlert
+          action="warning"
+          message={formatPresetWarningMessage(presetWarning, values)}
+          omitRole
+        />
+      )}
+    </output>
   );
 }
 
@@ -509,6 +616,7 @@ export default function CameraExposureCalculatorPage() {
     values,
     set,
     applyPreset,
+    presetWarning,
     exposureValue,
     equivalentExposures,
     comparison,
@@ -535,6 +643,11 @@ export default function CameraExposureCalculatorPage() {
         {/* EV Result — desktop right column only */}
         <div className="hidden md:block">
           <EVResultCard exposureValue={exposureValue} values={values} />
+        </div>
+
+        {/* Preset out-of-range notice — desktop right column only */}
+        <div className="hidden md:block">
+          <PresetWarningNotice presetWarning={presetWarning} values={values} />
         </div>
 
         {/* Equivalent Exposures — desktop right column only */}
@@ -564,6 +677,7 @@ export default function CameraExposureCalculatorPage() {
       handlePresetClick,
       exposureValue,
       equivalentExposures,
+      presetWarning,
       presetsOpen,
     ]
   );
@@ -590,6 +704,11 @@ export default function CameraExposureCalculatorPage() {
       {/* EV Result — mobile only; on desktop this lives in the results column */}
       <div className="md:hidden">
         <EVResultCard exposureValue={exposureValue} values={values} />
+      </div>
+
+      {/* Preset out-of-range notice — mobile only; on desktop this lives in the results column */}
+      <div className="md:hidden">
+        <PresetWarningNotice presetWarning={presetWarning} values={values} />
       </div>
 
       {/* Equivalent Exposures — mobile only; on desktop this lives in the results column */}

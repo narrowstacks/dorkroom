@@ -19,6 +19,7 @@ import {
   redactAnalyticsUrl,
 } from './app/lib/analytics/redact';
 import { trackEvent } from './app/lib/analytics/tracked-events';
+import { installVitePreloadErrorRecovery } from './app/lib/preload-chunk-recovery';
 import { parseSearch, stringifySearch } from './routes/search-params';
 import '@fontsource-variable/montserrat/index.css';
 import '@fontsource-variable/fraunces/index.css';
@@ -30,6 +31,7 @@ import {
   ToastProvider,
   VolumeProvider,
 } from '@dorkroom/ui';
+import { routeFallbackOptions } from './app/lib/route-fallback-options';
 import { routeTree } from './routeTree.gen';
 
 // Lazy load devtools only in development
@@ -63,6 +65,16 @@ const router = createRouter({
   // ./routes/search-params for why.
   parseSearch,
   stringifySearch,
+  // Gives every matched route its own styled error boundary (see
+  // ./components/route-fallback), instead of falling through to TanStack's
+  // built-in one. That built-in boundary wraps the *entire* match tree, so an
+  // uncaught render error was replacing the root layout — header, nav,
+  // everything — with an unstyled "Something went wrong!" box, and the
+  // app-level ErrorBoundary around <RouterProvider> never saw the error to
+  // report it. `defaultErrorComponent`/`defaultOnCatch` scope each boundary to
+  // its own route instead, so the layout survives and the fallback UI renders
+  // in its place.
+  ...routeFallbackOptions,
 });
 
 // Register router for type safety
@@ -72,22 +84,7 @@ declare module '@tanstack/react-router' {
   }
 }
 
-// Recover from stale chunk hashes after a new deploy (or a failed HMR fetch in
-// dev): when a lazy route's module can't be fetched, reload once to pick up the
-// current index.html. The timestamp guard prevents an infinite reload loop if
-// the chunk is genuinely unreachable (e.g. offline), while still allowing
-// recovery from a future deploy.
-window.addEventListener('vite:preloadError', (event) => {
-  event.preventDefault();
-  const now = Date.now();
-  const lastReload = Number(
-    sessionStorage.getItem('vite-preload-reload-at') ?? 0
-  );
-  if (now - lastReload > 10_000) {
-    sessionStorage.setItem('vite-preload-reload-at', String(now));
-    window.location.reload();
-  }
-});
+installVitePreloadErrorRecovery();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('index.html is missing its #root element');

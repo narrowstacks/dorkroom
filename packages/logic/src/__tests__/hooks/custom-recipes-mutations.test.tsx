@@ -235,3 +235,112 @@ describe('custom recipe mutations', () => {
     queryClient.clear();
   });
 });
+
+describe('custom recipe dilution persistence (#322)', () => {
+  const addRecipe = async (formData: CustomRecipeFormData) => {
+    const { queryClient, wrapper } = createTestHarness();
+    queryClient.setQueryData(getQueryKey(), []);
+    const { result } = renderHook(() => useAddCustomRecipe(), { wrapper });
+    let saved: CustomRecipe | undefined;
+    await act(async () => {
+      saved = await result.current.mutateAsync(formData);
+    });
+    queryClient.clear();
+    return saved;
+  };
+
+  const updateRecipe = async (
+    existing: CustomRecipe,
+    formData: CustomRecipeFormData
+  ) => {
+    const { queryClient, wrapper } = createTestHarness();
+    recipesStorage.write([existing]);
+    queryClient.setQueryData(getQueryKey(), [existing]);
+    const { result } = renderHook(() => useUpdateCustomRecipe(), { wrapper });
+    let saved: CustomRecipe | undefined;
+    await act(async () => {
+      saved = await result.current.mutateAsync({ id: existing.id, formData });
+    });
+    queryClient.clear();
+    return saved;
+  };
+
+  it('persists a dilution picked from the dropdown', async () => {
+    const saved = await addRecipe({
+      ...baseFormData,
+      selectedDilutionId: '69affee4-6a3f-44d2-8ec3-1dc83eca7449',
+      customDilution: '1+1',
+    });
+
+    expect(saved?.dilutionId).toBe('69affee4-6a3f-44d2-8ec3-1dc83eca7449');
+    // A stale free-text dilution would win over the id in every display.
+    expect(saved?.customDilution).toBe('');
+
+    const [persisted] = recipesStorage.read();
+    expect(persisted.dilutionId).toBe('69affee4-6a3f-44d2-8ec3-1dc83eca7449');
+    expect(persisted.customDilution).toBe('');
+  });
+
+  it("keeps the free-text dilution for the 'custom' option", async () => {
+    const saved = await addRecipe({
+      ...baseFormData,
+      selectedDilutionId: 'custom',
+      customDilution: '1+31',
+    });
+
+    expect(saved?.dilutionId).toBeUndefined();
+    expect(saved?.customDilution).toBe('1+31');
+  });
+
+  it('keeps the free-text dilution when nothing is selected', async () => {
+    const saved = await addRecipe({
+      ...baseFormData,
+      selectedDilutionId: '',
+      customDilution: '1+31',
+    });
+
+    expect(saved?.dilutionId).toBeUndefined();
+    expect(saved?.customDilution).toBe('1+31');
+  });
+
+  it('ignores a dropdown id when the developer is custom', async () => {
+    const saved = await addRecipe({
+      ...baseFormData,
+      useExistingDeveloper: false,
+      selectedDeveloperId: '',
+      customDeveloper: {
+        manufacturer: 'Home',
+        name: 'Brew',
+        type: 'liquid',
+        filmOrPaper: 'film',
+        dilutions: [{ name: 'Stock', dilution: 'Stock' }],
+      },
+      selectedDilutionId: '2',
+      customDilution: '1+4',
+    });
+
+    expect(saved?.dilutionId).toBeUndefined();
+    expect(saved?.customDilution).toBe('1+4');
+  });
+
+  it('replaces a stored dilution id with the newly picked one on edit', async () => {
+    const saved = await updateRecipe(createStoredRecipe({ dilutionId: '1' }), {
+      ...baseFormData,
+      selectedDilutionId: '2',
+    });
+
+    expect(saved?.dilutionId).toBe('2');
+    expect(recipesStorage.read()[0].dilutionId).toBe('2');
+  });
+
+  it('drops the stored dilution id when edited to a custom dilution', async () => {
+    const saved = await updateRecipe(createStoredRecipe({ dilutionId: '1' }), {
+      ...baseFormData,
+      selectedDilutionId: 'custom',
+      customDilution: '1+100',
+    });
+
+    expect(saved?.dilutionId).toBeUndefined();
+    expect(saved?.customDilution).toBe('1+100');
+  });
+});

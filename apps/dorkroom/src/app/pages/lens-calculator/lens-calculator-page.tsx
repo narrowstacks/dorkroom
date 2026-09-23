@@ -111,7 +111,7 @@ export default function LensCalculatorPage() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-6 pb-16 pt-12 sm:px-10">
+    <div className="mx-auto max-w-7xl px-6 pt-12 sm:px-10 sm:pb-16">
       <CalculatorPageHeader
         eyebrow="Format Comparison"
         icon={getRouteIcon('/lenses')}

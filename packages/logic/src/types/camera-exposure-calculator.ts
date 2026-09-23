@@ -63,4 +63,29 @@ export interface EVPreset {
   description: string;
 }
 
+/**
+ * Surfaced when an EV preset's solved value falls outside the standard
+ * dial range (e.g. a preset needs 256s but the shutter dial tops out at
+ * 30s) and got silently clamped to the nearest endpoint instead of the
+ * value the preset actually needs.
+ */
+export interface PresetWarning {
+  /** The EV of the preset that produced this warning. */
+  presetEv: number;
+  /** Which value the calculator was solving for. */
+  variable: SolveFor;
+  /** The exact value the preset needs, formatted for display (e.g. "256\""). */
+  required: string;
+  /** The standard value it was clamped to, formatted for display (e.g. "30\""). */
+  limit: string;
+  /**
+   * Whether the exact solved value is above the standard range's top
+   * ('over', e.g. needs a slower shutter speed than 30s allows) or below
+   * its bottom ('under', e.g. needs a faster shutter speed than 1/8000
+   * allows). Callers use this to pick a direction-correct hint — the fix
+   * for "over" is never the same as the fix for "under".
+   */
+  direction: 'over' | 'under';
+}
+
 export const CAMERA_EXPOSURE_STORAGE_KEY = 'cameraExposureCalculatorState_v1';

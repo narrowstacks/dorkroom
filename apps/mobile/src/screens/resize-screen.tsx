@@ -1,4 +1,4 @@
-import { useResizeCalculator } from '@dorkroom/logic';
+import { parseDecimalInput, useResizeCalculator } from '@dorkroom/logic';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
@@ -13,7 +13,7 @@ import { SegmentedControl } from '@/components/segmented-control';
 import { ShareButton } from '@/components/share-button';
 import { buildResizeShare } from '@/lib/share-text';
 
-const num = (s: string) => Number.parseFloat(s) || 0;
+const num = (s: string) => parseDecimalInput(s) || 0;
 
 export function ResizeScreen() {
   const {

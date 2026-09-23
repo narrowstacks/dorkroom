@@ -33,7 +33,7 @@ export interface EncodedCustomRecipe {
   pushPull: number;
   agitationSchedule?: string;
   notes?: string;
-  dilutionId?: number;
+  dilutionId?: string;
   customDilution?: string;
   isCustomFilm: boolean;
   isCustomDeveloper: boolean;
@@ -85,7 +85,11 @@ const encodedCustomRecipeSchema = z.object({
   pushPull: recipeNumericFieldSchemas.pushPull,
   agitationSchedule: jsonOptional(z.string()),
   notes: jsonOptional(z.string()),
-  dilutionId: jsonOptional(z.number()),
+  // Links written before #322 typed this as a number (none carried a value in
+  // practice); catalogue ids are strings and many are UUIDs.
+  dilutionId: jsonOptional(
+    z.union([z.string().max(100), z.number()]).transform(String)
+  ),
   customDilution: jsonOptional(z.string()),
   isCustomFilm: z.boolean(),
   isCustomDeveloper: z.boolean(),

@@ -1,4 +1,4 @@
-import { sanitizeText } from '@dorkroom/logic';
+import { parseDecimalInput, sanitizeText } from '@dorkroom/logic';
 import { Pressable, Text, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
 import { LabeledTextField } from '@/components/labeled-text-field';
@@ -38,7 +38,7 @@ export function CustomFilmForm({
   const onSave = () => {
     const brand = sanitizeText(form.brand, 60);
     const name = sanitizeText(form.name, 80);
-    const iso = Number(form.iso);
+    const iso = parseDecimalInput(form.iso);
     if (!name || !Number.isFinite(iso) || iso <= 0) return;
     const created = addCustomFilm({
       brand: brand || 'Custom',

@@ -11,6 +11,7 @@ import type {
   ReciprocityCalculation,
   ReciprocityCalculatorState,
 } from '../types/reciprocity';
+import { parseDecimalInput } from '../utils/input-validation';
 import { calculateReciprocity } from '../utils/reciprocity-calculations';
 
 const roundToOneDecimal = (value: number): number =>
@@ -66,7 +67,8 @@ export const formatReciprocityTime = (seconds: number): string => {
 
 /**
  * Parses reciprocity time input from various string formats.
- * Supports formats like '30s', '2m 30s', '1h 30m', or plain numbers.
+ * Supports formats like '30s', '2m 30s', '1h 30m', or plain numbers, with
+ * either "." or "," as the decimal separator ('1,5m').
  *
  * @param input - Time string to parse
  * @returns Parsed time in seconds, or null if parsing fails
@@ -86,8 +88,10 @@ export const parseReciprocityTime = (input: string): number | null => {
     return null;
   }
 
-  if (/^\d+(\.\d+)?$/.test(cleaned)) {
-    return parseFloat(cleaned);
+  // A bare number is seconds. "," is accepted as the decimal separator (#318).
+  if (/^[\d.,]+$/.test(cleaned)) {
+    const plain = parseDecimalInput(cleaned);
+    return Number.isNaN(plain) ? null : plain;
   }
 
   let seconds = 0;
@@ -96,21 +100,21 @@ export const parseReciprocityTime = (input: string): number | null => {
   // Digit runs are bounded (`\d{1,9}`) rather than `\d+`: exposure times never
   // need nine digits, and the bound keeps these unanchored matches linear
   // (unbounded `\d+` next to `\s*` is a polynomial-ReDoS pattern).
-  const hourMatch = cleaned.match(/(\d{1,9}(\.\d{1,9})?)\s*h/);
+  const hourMatch = cleaned.match(/(\d{1,9}([.,]\d{1,9})?)\s*h/);
   if (hourMatch) {
-    seconds += parseFloat(hourMatch[1]) * 3600;
+    seconds += parseDecimalInput(hourMatch[1]) * 3600;
     valid = true;
   }
 
-  const minuteMatch = cleaned.match(/(\d{1,9}(\.\d{1,9})?)\s*m(?!s)/);
+  const minuteMatch = cleaned.match(/(\d{1,9}([.,]\d{1,9})?)\s*m(?!s)/);
   if (minuteMatch) {
-    seconds += parseFloat(minuteMatch[1]) * 60;
+    seconds += parseDecimalInput(minuteMatch[1]) * 60;
     valid = true;
   }
 
-  const secondMatch = cleaned.match(/(\d{1,9}(\.\d{1,9})?)\s*s/);
+  const secondMatch = cleaned.match(/(\d{1,9}([.,]\d{1,9})?)\s*s/);
   if (secondMatch) {
-    seconds += parseFloat(secondMatch[1]);
+    seconds += parseDecimalInput(secondMatch[1]);
     valid = true;
   }
 
@@ -197,7 +201,7 @@ export function useReciprocityCalculator(): ReciprocityCalculatorState & {
       filmType,
       // The hook holds the factor as an input string; the shared calculation
       // takes a number and treats an unparseable one as "no correction".
-      customFactor: parseFloat(customFactor),
+      customFactor: parseDecimalInput(customFactor),
     });
   }, [customFactor, filmType, meteredTime]);
 
