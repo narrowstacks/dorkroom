@@ -47,7 +47,7 @@ describe('recipe-sharing', () => {
     pushPull: 0,
     agitationSchedule: 'Continuous for first 30s, then 10s every minute',
     notes: 'This is a test recipe with some notes.',
-    dilutionId: 1,
+    dilutionId: '1',
     customDilution: '1+1',
     isCustomFilm: false,
     isCustomDeveloper: false,
@@ -155,6 +155,23 @@ describe('recipe-sharing', () => {
       expect(decoded?.timeMinutes).toBe(mockCustomRecipe.timeMinutes);
       expect(decoded?.shootingIso).toBe(mockCustomRecipe.shootingIso);
       expect(decoded?.pushPull).toBe(mockCustomRecipe.pushPull);
+    });
+
+    it('round-trips a UUID dilution id (#322)', () => {
+      const uuid = '69affee4-6a3f-44d2-8ec3-1dc83eca7449';
+      const decoded = decodeCustomRecipe(
+        encodeCustomRecipe({ ...mockCustomRecipe, dilutionId: uuid })
+      );
+
+      expect(decoded?.dilutionId).toBe(uuid);
+    });
+
+    it('reads a numeric dilution id from an older link as a string', () => {
+      const decoded = decodeCustomRecipe(
+        toUrlSafeBase64(JSON.stringify({ ...mockCustomRecipe, dilutionId: 2 }))
+      );
+
+      expect(decoded?.dilutionId).toBe('2');
     });
 
     it('decodes a recipe with custom film', () => {

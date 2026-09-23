@@ -4,6 +4,18 @@ import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
 import { trackEvent } from '../../../lib/analytics/tracked-events';
 
+/**
+ * The dropdown value that reproduces a recipe's displayed dilution. Displays
+ * show `customDilution` ahead of `dilutionId`, so a free-text dilution wins.
+ */
+const importedDilutionSelection = (
+  combination: Pick<
+    DevelopmentCombinationView['combination'],
+    'customDilution' | 'dilutionId'
+  >
+): string =>
+  combination.customDilution ? 'custom' : (combination.dilutionId ?? '');
+
 export interface UseSharedRecipeImportProps {
   // Recipe operations
   addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
@@ -132,6 +144,7 @@ export function useSharedRecipeImport({
           pushPull: combination.pushPull || 0,
           agitationSchedule: combination.agitationSchedule || '',
           notes: combination.notes || 'Imported from shared custom recipe',
+          selectedDilutionId: importedDilutionSelection(combination),
           customDilution: combination.customDilution || '',
           isPublic: false,
         };
@@ -153,6 +166,7 @@ export function useSharedRecipeImport({
           pushPull: combination.pushPull || 0,
           agitationSchedule: combination.agitationSchedule || '',
           notes: combination.notes || 'Imported from shared recipe',
+          selectedDilutionId: importedDilutionSelection(combination),
           customDilution: combination.customDilution || '',
           isPublic: false,
         };

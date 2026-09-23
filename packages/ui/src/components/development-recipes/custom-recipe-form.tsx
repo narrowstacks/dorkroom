@@ -608,7 +608,19 @@ export function CustomRecipeForm({
   }, [calculatedPushPull]);
 
   const updateRecipeField: ChangeHandler = (key, value) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [key]: value };
+      // Dilution ids belong to one developer; a stale one would save a
+      // dilution the new developer doesn't have.
+      if (
+        key === 'selectedDeveloperId' &&
+        value !== prev.selectedDeveloperId &&
+        prev.selectedDilutionId !== 'custom'
+      ) {
+        next.selectedDilutionId = '';
+      }
+      return next;
+    });
   };
 
   const handleCustomFilmChange: CustomFilmChangeHandler = (key, value) => {
