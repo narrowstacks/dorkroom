@@ -1,4 +1,4 @@
-import { sanitizeText } from '@dorkroom/logic';
+import { parseDecimalInput, sanitizeText } from '@dorkroom/logic';
 import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
@@ -41,8 +41,8 @@ export function LensForm({ visible, lens, onClose }: LensFormProps) {
   const onSave = () => {
     const cleanName = sanitizeText(form.name, 80);
     if (!cleanName) return;
-    const focal = Number(form.focalLength);
-    const aperture = Number(form.maxAperture);
+    const focal = parseDecimalInput(form.focalLength);
+    const aperture = parseDecimalInput(form.maxAperture);
     const fields = {
       name: cleanName,
       cameraId: form.cameraId === ANY_CAMERA ? null : form.cameraId,

@@ -15,7 +15,15 @@ import {
   parseExposureTime,
   roundStopsToThirds,
 } from '../utils/exposure-calculations';
+import { parseDecimalInput } from '../utils/input-validation';
 import { roundToStandardPrecision } from '../utils/precision';
+
+/**
+ * Stops are rounded and written back into state. Keep the separator the user
+ * typed so a comma-decimal entry ("0,5") is not flipped to "0.5" under them.
+ */
+const inSeparatorOf = (typed: string, value: string): string =>
+  typed.includes(',') ? value.replace('.', ',') : value;
 
 /**
  * Exposure calculator hook for photography stop calculations.
@@ -60,7 +68,7 @@ export const useExposureCalculator = () => {
   const recalculateNewTime = useCallback(
     (originalTime: string, stops: string): string => {
       const originalTimeValue = parseExposureTime(originalTime);
-      const stopsValue = parseFloat(stops);
+      const stopsValue = parseDecimalInput(stops);
 
       if (
         originalTimeValue === null ||
@@ -98,7 +106,12 @@ export const useExposureCalculator = () => {
   const setStops = useCallback(
     (stops: string) => {
       // Allow typing incomplete numbers
-      if (stops === '' || stops === '-' || stops.endsWith('.')) {
+      if (
+        stops === '' ||
+        stops === '-' ||
+        stops.endsWith('.') ||
+        stops.endsWith(',')
+      ) {
         setState((prev) => ({
           ...prev,
           stops,
@@ -107,10 +120,12 @@ export const useExposureCalculator = () => {
         return;
       }
 
-      const numericStops = parseFloat(stops);
+      const numericStops = parseDecimalInput(stops);
       if (!Number.isNaN(numericStops)) {
-        const truncatedStops =
-          roundToStandardPrecision(numericStops).toString();
+        const truncatedStops = inSeparatorOf(
+          stops,
+          roundToStandardPrecision(numericStops).toString()
+        );
         setState((prev) => ({
           ...prev,
           stops: truncatedStops,
@@ -130,11 +145,14 @@ export const useExposureCalculator = () => {
   // Adjust stops by increment
   const adjustStops = useCallback(
     (increment: number) => {
-      const currentStops = parseFloat(state.stops);
+      const currentStops = parseDecimalInput(state.stops);
       if (Number.isNaN(currentStops)) return;
 
       const newStopsValue = roundStopsToThirds(currentStops + increment);
-      const truncatedStops = roundToStandardPrecision(newStopsValue).toString();
+      const truncatedStops = inSeparatorOf(
+        state.stops,
+        roundToStandardPrecision(newStopsValue).toString()
+      );
 
       setState((prev) => ({
         ...prev,
@@ -161,7 +179,7 @@ export const useExposureCalculator = () => {
 
     return calculateExposureAdjustment(
       originalTimeValue,
-      parseFloat(state.stops)
+      parseDecimalInput(state.stops)
     );
   }, [state.originalTime, state.stops, state.newTime]);
 

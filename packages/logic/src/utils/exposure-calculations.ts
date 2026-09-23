@@ -1,4 +1,5 @@
 import type { ExposureCalculation } from '../types/exposure-calculator';
+import { parseDecimalInput } from './input-validation';
 import { roundToPrecision, roundToStandardPrecision } from './precision';
 
 /**
@@ -82,12 +83,14 @@ export const formatExposureTime = (seconds: number): string => {
 /**
  * Validates and parses exposure time input from user input string.
  * Returns null for invalid input, ensuring only positive numeric values are accepted.
+ * Accepts "," as the decimal separator (see {@link parseDecimalInput}).
  *
  * @param input - User input string representing exposure time
  * @returns Parsed exposure time in seconds, or null if invalid
  * @example
  * ```typescript
  * const valid = parseExposureTime('15.5'); // 15.5
+ * const comma = parseExposureTime('15,5'); // 15.5
  * const invalid = parseExposureTime('abc'); // null
  * const negative = parseExposureTime('-5'); // null
  * const empty = parseExposureTime(' '); // null
@@ -97,7 +100,7 @@ export const parseExposureTime = (input: string): number | null => {
   const trimmed = input.trim();
   if (!trimmed) return null;
 
-  const numericValue = parseFloat(trimmed);
+  const numericValue = parseDecimalInput(trimmed);
   if (Number.isNaN(numericValue) || numericValue <= 0) {
     return null;
   }

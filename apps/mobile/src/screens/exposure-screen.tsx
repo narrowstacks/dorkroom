@@ -1,4 +1,4 @@
-import { useExposureCalculator } from '@dorkroom/logic';
+import { parseDecimalInput, useExposureCalculator } from '@dorkroom/logic';
 import { Text, View } from 'react-native';
 import { FormulaRow } from '@/components/formula-row';
 import { GlassCard } from '@/components/glass-card';
@@ -27,7 +27,7 @@ export function ExposureScreen() {
     presets,
   } = useExposureCalculator();
 
-  const stopsValue = calculation?.stopsValue ?? (Number.parseFloat(stops) || 0);
+  const stopsValue = calculation?.stopsValue ?? (parseDecimalInput(stops) || 0);
 
   return (
     <Screen>

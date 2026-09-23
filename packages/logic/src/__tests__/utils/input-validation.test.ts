@@ -2,10 +2,77 @@ import {
   debounce,
   isValidNumberInProgress,
   isValidNumericInput,
+  parseDecimalInput,
   tryNumber,
 } from '../../utils/input-validation';
 
 describe('input validation utilities', () => {
+  describe('parseDecimalInput', () => {
+    it('parses dot decimals exactly as before', () => {
+      expect(parseDecimalInput('12.5')).toBe(12.5);
+      expect(parseDecimalInput('0.33')).toBe(0.33);
+      expect(parseDecimalInput('.5')).toBe(0.5);
+      expect(parseDecimalInput('100')).toBe(100);
+      expect(parseDecimalInput('0')).toBe(0);
+    });
+
+    it('parses a single comma as the decimal separator', () => {
+      expect(parseDecimalInput('12,5')).toBe(12.5);
+      expect(parseDecimalInput('0,33')).toBe(0.33);
+      expect(parseDecimalInput(',5')).toBe(0.5);
+      expect(parseDecimalInput('2,8')).toBe(2.8);
+    });
+
+    it('treats a lone comma as decimal, not thousands', () => {
+      expect(parseDecimalInput('1,234')).toBe(1.234);
+    });
+
+    it('accepts a leading sign', () => {
+      expect(parseDecimalInput('-1,5')).toBe(-1.5);
+      expect(parseDecimalInput('-1.5')).toBe(-1.5);
+      expect(parseDecimalInput('-,5')).toBe(-0.5);
+      expect(parseDecimalInput('+2')).toBe(2);
+    });
+
+    it('trims surrounding whitespace', () => {
+      expect(parseDecimalInput('  12,5  ')).toBe(12.5);
+      expect(parseDecimalInput('\t3.25\n')).toBe(3.25);
+    });
+
+    it('parses mid-typing input with a trailing separator', () => {
+      expect(parseDecimalInput('12.')).toBe(12);
+      expect(parseDecimalInput('12,')).toBe(12);
+      expect(parseDecimalInput('-3,')).toBe(-3);
+    });
+
+    it('returns NaN for empty or separator-only input', () => {
+      expect(parseDecimalInput('')).toBeNaN();
+      expect(parseDecimalInput('   ')).toBeNaN();
+      expect(parseDecimalInput(',')).toBeNaN();
+      expect(parseDecimalInput('.')).toBeNaN();
+      expect(parseDecimalInput('-')).toBeNaN();
+      expect(parseDecimalInput('-,')).toBeNaN();
+    });
+
+    it('returns NaN when both or repeated separators make it ambiguous', () => {
+      expect(parseDecimalInput('1,234.5')).toBeNaN();
+      expect(parseDecimalInput('1.234,5')).toBeNaN();
+      expect(parseDecimalInput('1.2.3')).toBeNaN();
+      expect(parseDecimalInput('1,2,3')).toBeNaN();
+      expect(parseDecimalInput('12,,5')).toBeNaN();
+    });
+
+    it('rejects trailing garbage that parseFloat would accept', () => {
+      expect(parseDecimalInput('12abc')).toBeNaN();
+      expect(parseDecimalInput('12,5s')).toBeNaN();
+      expect(parseDecimalInput('1e3')).toBeNaN();
+      expect(parseDecimalInput('1 2')).toBeNaN();
+      expect(parseDecimalInput('abc')).toBeNaN();
+      expect(parseDecimalInput('Infinity')).toBeNaN();
+      expect(parseDecimalInput('--1')).toBeNaN();
+    });
+  });
+
   describe('tryNumber', () => {
     it('should parse complete valid numbers', () => {
       expect(tryNumber('123')).toBe(123);

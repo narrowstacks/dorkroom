@@ -18,6 +18,13 @@ describe('parseReciprocityTime', () => {
     expect(parseReciprocityTime('0.5')).toBe(0.5);
   });
 
+  it('accepts a comma decimal separator (#318)', () => {
+    expect(parseReciprocityTime('1,5')).toBe(1.5);
+    expect(parseReciprocityTime('0,5s')).toBe(0.5);
+    expect(parseReciprocityTime('2,5m')).toBe(150);
+    expect(parseReciprocityTime('1,5h 30m')).toBe(7200);
+  });
+
   it('returns null for invalid or empty input', () => {
     expect(parseReciprocityTime('abc')).toBeNull();
     expect(parseReciprocityTime('')).toBeNull();
@@ -151,5 +158,39 @@ describe('useReciprocityCalculator', () => {
     expect(result.current.calculation?.adjustedTime).toBeGreaterThanOrEqual(
       result.current.calculation?.originalTime ?? Number.POSITIVE_INFINITY
     );
+  });
+
+  it('applies a comma-decimal custom factor (#318)', () => {
+    const comma = renderHook(() => useReciprocityCalculator());
+    const dot = renderHook(() => useReciprocityCalculator());
+
+    act(() => {
+      comma.result.current.setFilmType('custom');
+      comma.result.current.setCustomFactor('1,3');
+      comma.result.current.setMeteredTime('30s');
+      dot.result.current.setFilmType('custom');
+      dot.result.current.setCustomFactor('1.3');
+      dot.result.current.setMeteredTime('30s');
+    });
+
+    expect(comma.result.current.customFactor).toBe('1,3');
+    expect(comma.result.current.calculation?.factor).toBe(1.3);
+    expect(comma.result.current.calculation?.adjustedTime).toBeCloseTo(
+      30 ** 1.3,
+      5
+    );
+    expect(comma.result.current.calculation?.adjustedTime).toBe(
+      dot.result.current.calculation?.adjustedTime
+    );
+  });
+
+  it('parses a comma-decimal metered time (#318)', () => {
+    const { result } = renderHook(() => useReciprocityCalculator());
+
+    act(() => {
+      result.current.setMeteredTime('1,5');
+    });
+
+    expect(result.current.calculation?.originalTime).toBe(1.5);
   });
 });

@@ -18,6 +18,18 @@ describe('mat calculator logic', () => {
       expect(parseMatInput('0')).toBe(0);
     });
 
+    it('parses a comma decimal separator (#318)', () => {
+      expect(parseMatInput('1,5')).toBe(1.5);
+      expect(parseMatInput('12,75')).toBe(12.75);
+      expect(parseMatInput(' 30,5 ')).toBe(30.5);
+      expect(parseMatInput('12,5"')).toBe(12.5);
+    });
+
+    it('keeps reading a leading number with trailing text', () => {
+      expect(parseMatInput('11"')).toBe(11);
+      expect(parseMatInput('1.5"')).toBe(1.5);
+    });
+
     it('parses simple fractions', () => {
       expect(parseMatInput('1/4')).toBe(0.25);
       expect(parseMatInput('3/4')).toBe(0.75);

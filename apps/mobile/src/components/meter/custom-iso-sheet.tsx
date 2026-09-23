@@ -1,3 +1,4 @@
+import { parseDecimalInput } from '@dorkroom/logic';
 import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
@@ -21,7 +22,7 @@ export function CustomIsoSheet({
 }: CustomIsoSheetProps) {
   const [text, setText] = useState('');
   const submit = () => {
-    const value = Number(text);
+    const value = parseDecimalInput(text);
     if (!Number.isFinite(value) || value <= 0) return;
     onSubmit(value);
     onClose();
