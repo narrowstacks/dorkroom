@@ -249,9 +249,15 @@ export const useDevelopmentRecipes = (
     setSelectedFilmState(film);
   }, []);
 
+  // A chosen developer pins a concrete type and hides the type control, so
+  // clear developerTypeFilter like dilution; otherwise a stale value keeps
+  // filtering API and custom recipes with nothing visible to undo it (#325).
   const setSelectedDeveloper = useCallback((developer: Developer | null) => {
     setSelectedDeveloperState(developer);
     setDilutionFilter('');
+    if (developer) {
+      setDeveloperTypeFilter('');
+    }
   }, []);
 
   // Combined loading and error states

@@ -420,7 +420,9 @@ export const useRecipeUrlState = (
       }
     }
 
-    if (validation.sanitized.developerType) {
+    // The mirror of the dilution rule above: a developer makes developerType
+    // redundant and hides its control, so drop it rather than apply it (#325).
+    if (validation.sanitized.developerType && !state.selectedDeveloper) {
       state.developerTypeFilter = validation.sanitized.developerType;
     }
 
