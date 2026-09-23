@@ -90,10 +90,12 @@ function FilmsMobileLayout({
   );
 }
 
-function FilmsDesktopLayout({
+// eslint-disable-next-line react-doctor/no-multi-component-file -- exported alongside the default FilmsPage export solely so this layout's props (notably baseFilm) are unit-testable in isolation; see #329
+export function FilmsDesktopLayout({
   db,
   isMobile,
   selectedFilm,
+  baseFilm,
   shouldShowDetailSkeleton,
   onSelectFilm,
   onClosePanel,
@@ -147,6 +149,7 @@ function FilmsDesktopLayout({
         selectedFilm && (
           <FilmDetailPanel
             film={selectedFilm}
+            baseFilm={baseFilm}
             isOpen={!!selectedFilm}
             onClose={onClosePanel}
             isMobile={isMobile}
