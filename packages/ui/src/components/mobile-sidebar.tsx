@@ -150,10 +150,8 @@ export function MobileSidebar({
 
   return (
     <div className="flex h-full flex-col">
-      {/* Header: a close button that always lives inside the drawer, so it
-          never depends on the FAB that opened it staying reachable underneath
-          (#346 — the FAB and this drawer share a z-index, and the drawer
-          paints on top since it comes later in the DOM). */}
+      {/* The drawer covers the toggle that opened it, so it needs its own
+          close button (#346). */}
       <div className="flex shrink-0 justify-end p-2">
         <button
           ref={closeButtonRef}

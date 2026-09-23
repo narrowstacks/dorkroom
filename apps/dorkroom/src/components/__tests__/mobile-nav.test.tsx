@@ -17,7 +17,7 @@ function render346(ui: ReactElement) {
  * focus never moved off the now-invisible toggle.
  */
 describe('MobileNav (#346)', () => {
-  it('gives the open drawer its own close button, distinct from the (now-obscured) FAB', () => {
+  it('gives the open drawer its own close button, distinct from the FAB', () => {
     render346(<MobileNav pathname="/" onNavigate={vi.fn()} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
@@ -73,16 +73,5 @@ describe('MobileNav (#346)', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
 
     expect(toggle).toHaveFocus();
-  });
-
-  it('keeps the FAB above the drawer in stacking order, so its own tap target also still works', () => {
-    render346(<MobileNav pathname="/" onNavigate={vi.fn()} />);
-
-    const toggle = screen.getByRole('button', { name: 'Open navigation' });
-    fireEvent.click(toggle);
-
-    const drawer = screen.getByRole('dialog', { name: 'Navigation menu' });
-    expect(toggle).toHaveClass('z-[60]');
-    expect(drawer).toHaveClass('z-50');
   });
 });

@@ -23,19 +23,10 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(isMobileMenuOpen);
 
-  // Move focus into the drawer's close button once it mounts, and back to
-  // the toggle that opened it once the drawer closes (backdrop, Escape, a
-  // nav item, the close button itself, or the sm breakpoint auto-close all
-  // go through setIsMobileMenuOpen(false), so one effect covers all of
-  // them). This is deliberately narrow: it only sets initial/returned focus
-  // for this one drawer, not a general focus trap — see #286 for the
-  // repo-wide focus-trap primitive that's still missing.
-  //
-  // useLayoutEffect, not useEffect: the <nav> below sets
-  // aria-hidden={!isMobileMenuOpen} in the same render that flips
-  // isMobileMenuOpen to false, so focus has to leave the (about to be
-  // hidden) close button before the browser paints — otherwise AT briefly
-  // sees a focused descendant of an aria-hidden container.
+  // The open drawer covers the toggle (#346), so move focus to the drawer's
+  // own close button on open and back to the toggle on close. Layout effect so
+  // focus leaves the close button before its nav turns aria-hidden. Not a
+  // focus trap; see #286.
   useLayoutEffect(() => {
     if (mounted && isMobileMenuOpen) {
       closeButtonRef.current?.focus();
@@ -90,16 +81,11 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
     <>
       {/* size-12 + this bottom offset is what __root.tsx's `<main>` reserves
           `calc(env(safe-area-inset-bottom)+5rem)` of bottom padding for
-          (#345) — resize this button and update that reservation to match.
-          z-[60], one step above the drawer's z-50 (mobile-sidebar.tsx's <nav>
-          below): the drawer paints later in the DOM, so without this the FAB
-          sits underneath it while open (#346). The drawer's own close button
-          is the primary, discoverable fix; this keeps the FAB's tap target
-          working too, in case anyone still reaches for it. */}
+          (#345) — resize this button and update that reservation to match. */}
       <button
         ref={toggleButtonRef}
         type="button"
-        className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-[60] flex size-12 items-center justify-center rounded-full shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] sm:hidden"
+        className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex size-12 items-center justify-center rounded-full shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] sm:hidden"
         style={{
           color: 'var(--color-background)',
           borderColor: 'var(--color-background)',
