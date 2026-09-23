@@ -113,9 +113,9 @@ any honest shot list.
 
 ## Step 3 — Capture "after"
 
-**Never hardcode the dev server's port.** `@vercel/microfrontends` assigns it
-(4503 at time of writing, not the 4200 in `vite.config.ts`) and increments when
-that port is taken, so `PORT=…` does *not* override it. Always read the port
+**Read the dev server's port from its output; don't hardcode it.**
+`@vercel/microfrontends` assigns it from a hash of the package name and
+increments when that port is taken, so `PORT=…` does *not* override it. Always read the port
 back from the server's own output:
 
 ```bash

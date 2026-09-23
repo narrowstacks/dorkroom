@@ -8,44 +8,24 @@ version: "1.0.0"
 
 Scans React codebases for security, performance, correctness, and architecture issues. Outputs a 0–100 health score.
 
-## After making React code changes:
-
-Run `bun run doctor`. It is pinned, non-interactive, and exits non-zero on any
-warning, so there is no score to eyeball. For per-file detail on a failure, run
-`bunx react-doctor --verbose`.
-
-This is enforced: `doctor` is part of `bun run test` and runs in CI, so a
-regression fails the PR. Fix it rather than suppressing it, and if you do add a
-suppression, check the rule name is current (`bunx react-doctor why <file>:<line>`
-explains why a rule fired or why a suppression did not apply).
-
-## For general cleanup or code improvement:
-
-Run `npx react-doctor@latest --verbose` (without `--diff`) to scan the full codebase. Fix issues by severity — errors first, then warnings.
-
-## Command
+## Commands
 
 ```bash
-bun run doctor          # the enforced check; pinned, non-interactive
-bunx react-doctor --verbose --diff   # detail while iterating
+bun run doctor                       # the enforced check; pinned, non-interactive
+bunx react-doctor --verbose          # per-file, per-rule detail
+bunx react-doctor why <file>:<line>  # why a rule fired, or why a suppression didn't apply
 ```
 
-| Flag        | Purpose                                       |
-| ----------- | --------------------------------------------- |
-| `.`         | Scan current directory                        |
-| `--verbose` | Show affected files and line numbers per rule |
-| `--diff`    | Only scan changed files vs base branch        |
-| `--score`   | Output only the numeric score                 |
+Always use the pinned copy (`bun run doctor` / `bunx react-doctor`), never
+`npx react-doctor@latest`: the gate runs the pinned version, so a scan on
+`@latest` can disagree with CI.
+
+`bun run doctor` exits non-zero on any warning, so there is no score to
+eyeball. It is part of `bun run test` and runs in CI, so a regression fails the
+PR. For general cleanup, run the `--verbose` scan and fix errors before
+warnings.
 
 ## Dorkroom specifics
-
-After completing a feature, fixing a bug, or before committing React code, run
-React Doctor and make sure the score has **not regressed** — the target is
-**100/100 for every project**:
-
-```bash
-npx react-doctor@latest --verbose         # unpinned; track the latest ruleset
-```
 
 - It scans **four** projects and prints **four** scores: `@dorkroom/source`
   (the app), `@dorkroom/mobile`, `@dorkroom/logic`, `@dorkroom/ui`. All four must be 100.
@@ -55,8 +35,9 @@ npx react-doctor@latest --verbose         # unpinned; track the latest ruleset
 - It **respects inline disables**. Prefer a real fix; only suppress a genuinely
   subjective/false-positive finding, always with a justifying comment:
   `// eslint-disable-next-line react-doctor/<rule> -- why` for native rules, or
-  `jsx-a11y/<rule>` for a11y rules. Use `--explain <file:line>` to confirm a
-  suppression applies.
+  `jsx-a11y/<rule>` for a11y rules. Use `why <file>:<line>` to confirm a
+  suppression applies, and check the rule name is current: upstream renames
+  rules between versions.
 - React Doctor's checks are separate from the gate: a 100 score does **not**
   mean `bun run test` passes (and the gate's typecheck is a no-op on the
   solution tsconfigs). Always run **both** `bun run test` and React Doctor.
@@ -69,13 +50,6 @@ npx react-doctor@latest --verbose         # unpinned; track the latest ruleset
   usage (e.g. `turbo-ignore` in `scripts/should-deploy.sh`, `lucide-static` in
   `apps/mobile/scripts/generate-tab-icons.mjs`) — so it reports those as
   "unused" false-positives. Circular-import detection stays on.
-- **`react-doctor/no-impure-state-updater` is no longer ignored** — the ignore
-  was dropped 2026-08-10 after upstream fixed the rule. It was added 2026-07-13
-  against react-doctor 0.7.7, where it fired on any plain event handler that
-  called a setter alongside anything else (e.g.
-  `openDetailDrawer(view) { setDetailView(view); setIsDetailOpen(true); }`) —
-  48 sites here, all false positives, while catching none of the repo's ~49
-  real updater callbacks. Re-checked on 0.9.4: the rule still ships, and with
-  the ignore removed all four projects still score 100 with zero findings, so
-  the false positives are gone. **Keep re-checking suppressions on each
-  react-doctor upgrade** — this one had gone stale for two minor versions.
+- **Re-check every rule ignore in `doctor.config.json` on each react-doctor
+  upgrade.** Ignores added for upstream false positives go stale once upstream
+  fixes the rule.

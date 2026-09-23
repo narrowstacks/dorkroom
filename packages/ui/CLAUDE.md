@@ -5,7 +5,7 @@ components and shares `@dorkroom/logic` instead.
 
 ## Before You Start
 
-1. **Use Context7** for Tailwind CSS docs before making changes
+1. **Check current Tailwind CSS 4 docs** (Context7 when connected) before making changes
 2. **Watch for circular dependencies** between @dorkroom packages
 
 ## Structure

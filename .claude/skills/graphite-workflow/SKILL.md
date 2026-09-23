@@ -1,20 +1,19 @@
 ---
 name: graphite-workflow
-description: Use this skill when working with Graphite (gt) for stacked PRs, when the user mentions pull requests, Graphite, stacking, or gt commands. Ensures proper use of gt commands instead of raw git for stack-aware operations.
+description: Graphite CLI (gt) for stacked PRs. Use when the user mentions Graphite, `gt`, or stacked PRs, or the current branch is already tracked by Graphite. Not for ordinary PRs; those go through `gh`.
 ---
 
 # Graphite Workflow Skill
 
-This skill ensures correct usage of Graphite CLI (`gt`) for managing stacked PRs. When working in a Graphite-enabled workflow, **always use `gt` commands instead of raw `git` commands** for stack-aware operations.
+Graphite CLI (`gt`) for managing stacked PRs. First check that `gt` is installed
+(`command -v gt`); if it isn't, say so and use plain `git`/`gh`. In a stack, use
+`gt` for stack-aware operations, because raw `git` commits and rebases leave
+descendant branches un-restacked.
 
-## When to Use
+The repo's git rules still apply: confirm before committing, and don't run
+`gt submit` (which pushes) without an explicit request.
 
-Apply this skill when:
-- User mentions Graphite, pull requests, stacking, or `gt`
-- Working on a feature that uses stacked PRs
-- Managing branches in a stack
-
-## Critical Rule: gt vs git
+## gt vs git
 
 | Instead of... | Use... | Why |
 |---------------|--------|-----|

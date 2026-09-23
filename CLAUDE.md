@@ -62,9 +62,8 @@ exits non-zero on any warning, and it is part of `bun run test`. CI runs the
 same command, so a regression fails the PR rather than drifting unnoticed.
 
 `react-doctor` is a pinned devDependency, not `npx @latest`, so Renovate
-proposes upgrades as reviewable PRs. This matters: the tool renamed
-`no-multi-comp` to `no-multi-component-file`, our suppressions kept naming the
-old rule, and the score silently fell to 90/100 (fixed in #229). A pinned
+proposes upgrades as reviewable PRs. Upstream renames rules between versions,
+and a suppression naming the old rule silently stops applying; a pinned
 version turns that into one failing PR instead of a mystery.
 
 Use `bun run doctor` to check, `bunx react-doctor --verbose` to see per-file
@@ -88,7 +87,10 @@ ruleset, `doctor.config.json` policy, and which rules are suppressed and why.
 
 ## Critical Rules
 
-1. **Use Context7** before working with TanStack, Tailwind, or other dependencies
+1. **Check current docs** (Context7 when it is connected, otherwise the official
+   docs) before working with TanStack, Tailwind, or other dependencies. Several
+   are on recent majors (Tailwind 4, TanStack Router/Form v1) whose APIs differ
+   from older examples
 2. **Never use `any`**. Use specific types or `unknown`
 3. **Import only published entry points.** `@dorkroom/logic` and `@dorkroom/api`
    expose a single root entry. `@dorkroom/ui` also publishes subpaths
@@ -102,8 +104,7 @@ ruleset, `doctor.config.json` policy, and which rules are suppressed and why.
 
 When adding or changing routes/pages or API endpoints, regenerate the OG images.
 See the `og-image-routes` skill (`.claude/skills/og-image-routes/`) for the
-four-step procedure. Note: the generic `og-image` skill describes a different,
-screenshot-based approach that does **not** apply to this repo.
+four-step procedure.
 
 ## Analytics and Privacy
 
@@ -161,11 +162,9 @@ Error: Failed to load Builders after installing them: @vercel/node@5.9.0 (versio
 ```
 
 A pin can only match by coincidence, and Vercel rolls the image forward on its
-own schedule. This repo chased that treadmill four times (5.3.0, 5.6.3, 5.8.26,
-5.9.0) before removing it. `functions[].runtime` is for **community** runtimes
+own schedule. `functions[].runtime` is for **community** runtimes
 (`vercel-php@0.5.2`) only. Zero-config `api/` detection already builds every
-entrypoint. It always did, which is why `api/og.tsx` deployed fine despite
-never matching the old `api/**/*.ts` glob.
+entrypoint, `api/og.tsx` included.
 
 The Node major is set by root `package.json` `engines.node` (currently `24.x`),
 which **overrides** the Vercel dashboard setting. Change it here, not there.

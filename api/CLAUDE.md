@@ -120,8 +120,8 @@ Two access modes are supported from one Vercel project:
     id-rotation abuse from one address). This is how the iOS app, which ships
     one shared free-tier key, keeps installs from sharing a single 60 req/min
     budget. See `apps/mobile/src/lib/client-id.ts` and
-    `apps/mobile/src/lib/api-config.ts`. Requests **without** the header keep
-    today's key-only limiting, unaffected; a malformed value is treated as
+    `apps/mobile/src/lib/api-config.ts`. Requests **without** the header get
+    key-only limiting; a malformed value is treated as
     absent (never rejected). Implemented in
     `applyClientIdentityRateLimit`/`applyNamespaceRateLimit` in
     `utils/withHandler.ts`.

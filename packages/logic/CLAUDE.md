@@ -9,7 +9,7 @@ sibling (Metro picks it up automatically; see `use-window-dimensions.native.ts`)
 
 ## Before You Start
 
-1. **Use Context7** for TanStack Query/Form/Table docs before making changes
+1. **Check current TanStack Query/Form/Table docs** (Context7 when connected) before making changes
 2. **Watch for circular dependencies** between @dorkroom packages
 3. Calculator math lives here, not in a screen or page component
 

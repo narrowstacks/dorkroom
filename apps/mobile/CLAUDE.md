@@ -11,8 +11,9 @@ The native iOS app (Expo / React Native). It reuses `@dorkroom/logic` and
 
 ## Before you start
 
-1. **Use Context7** for Expo, Expo Router, NativeWind, React Native, and
-   `react-native-vision-camera` docs before changing how they're used.
+1. **Check current docs** (Context7 when connected) for Expo, Expo Router,
+   NativeWind, React Native, and `react-native-vision-camera` before changing
+   how they're used.
 2. This app is **iOS-only**, **dark-only**, targets **iOS 26**
    (`expo-build-properties` sets `deploymentTarget: "26.0"`), and runs on the
    New Architecture.

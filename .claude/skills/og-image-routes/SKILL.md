@@ -5,9 +5,8 @@ description: Dorkroom's Open Graph image pipeline — regenerate OG images and m
 
 # Dorkroom OG images
 
-Dorkroom generates OG images **at runtime** from `api/og.tsx` — it does not
-commit static PNGs or screenshot a dedicated page. (The generic `og-image`
-skill describes that other approach; it does not apply here.)
+Dorkroom generates OG images **at runtime** from `api/og.tsx`. There are no
+committed PNGs and no dedicated page to screenshot.
 
 ## When to run this
 
