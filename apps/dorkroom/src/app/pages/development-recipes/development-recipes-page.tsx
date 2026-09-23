@@ -45,6 +45,7 @@ import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analyt
 import { RecipeModals } from './components/recipe-modals';
 import { RecipeResultsSection } from './components/recipe-results-section';
 import { SharedRecipeNotice } from './components/shared-recipe-notice';
+import { useClearFilters } from './hooks/useClearFilters';
 import { useRecipeActions } from './hooks/useRecipeActions';
 import { useRecipeData } from './hooks/useRecipeData';
 import { useRecipeModals } from './hooks/useRecipeModals';
@@ -538,6 +539,11 @@ export default function DevelopmentRecipesPage() {
     setSelectedDeveloper(null);
   };
 
+  const handleClearFilters = useClearFilters({
+    clearFilters,
+    setFavoritesOnly,
+  });
+
   return (
     <TemperatureProvider>
       {/* Max-width of 1920px accommodates wider displays while maintaining content readability */}
@@ -609,7 +615,7 @@ export default function DevelopmentRecipesPage() {
               isoOptions={getAvailableISOs()}
               customRecipeFilter={customRecipeFilter}
               onCustomRecipeFilterChange={handleCustomRecipeFilterChange}
-              onClearFilters={clearFilters}
+              onClearFilters={handleClearFilters}
               showDeveloperTypeFilter={!selectedDeveloper}
               showDilutionFilter={!!selectedDeveloper}
               defaultCollapsed={true}
@@ -689,7 +695,7 @@ export default function DevelopmentRecipesPage() {
                 sorting={sorting}
                 onSortingChange={setSorting}
                 showSortingControls={viewMode === 'grid'}
-                onClearFilters={clearFilters}
+                onClearFilters={handleClearFilters}
                 onClearSelections={clearSelections}
                 showDeveloperTypeFilter={!selectedDeveloper}
                 showDilutionFilter={!!selectedDeveloper}
