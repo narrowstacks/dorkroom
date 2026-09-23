@@ -249,14 +249,9 @@ export const useDevelopmentRecipes = (
     setSelectedFilmState(film);
   }, []);
 
-  // Selecting a developer also clears developerTypeFilter, same as dilution:
-  // its control is hidden once a developer is chosen (development-recipes-page.tsx
-  // gates it on !selectedDeveloper), and the developer already pins a concrete
-  // type, so a stale value here would either zero out results (the API-recipe
-  // path in filteredCombinations below) or silently filter results a hidden
-  // control can't explain (the custom-recipe path in useRecipeData.ts, which
-  // applies developerTypeFilter independently and isn't gated on
-  // selectedDeveloper at all). Clearing state is the one fix that covers both.
+  // A chosen developer pins a concrete type and hides the type control, so
+  // clear developerTypeFilter like dilution; otherwise a stale value keeps
+  // filtering API and custom recipes with nothing visible to undo it (#325).
   const setSelectedDeveloper = useCallback((developer: Developer | null) => {
     setSelectedDeveloperState(developer);
     setDilutionFilter('');

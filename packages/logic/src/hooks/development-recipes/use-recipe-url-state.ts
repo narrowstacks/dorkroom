@@ -420,12 +420,8 @@ export const useRecipeUrlState = (
       }
     }
 
-    // A specific developer already pins a concrete type, and its control is
-    // hidden once one is selected (development-recipes-page.tsx gates it on
-    // !selectedDeveloper) — the mirror image of dilution above, which needs a
-    // developer rather than being made redundant by one. Applying it anyway
-    // would leave a filter in state with no control and, for some result
-    // views, an actual (invisible) effect on the results.
+    // The mirror of the dilution rule above: a developer makes developerType
+    // redundant and hides its control, so drop it rather than apply it (#325).
     if (validation.sanitized.developerType && !state.selectedDeveloper) {
       state.developerTypeFilter = validation.sanitized.developerType;
     }
