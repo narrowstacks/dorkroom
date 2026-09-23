@@ -19,6 +19,8 @@ export interface ErrorFallbackProps {
   onReload: () => void;
   /** Primary action button label. Defaults to "Reload Page". */
   reloadLabel?: string;
+  /** Merged onto the wrapper `<div>` for layout overrides (e.g. min-height). */
+  className?: string;
   /**
    * An optional second button, e.g. a full page reload offered alongside a
    * lighter in-app retry — a retry alone can't recover from a chunk that
@@ -35,7 +37,7 @@ export interface ErrorFallbackProps {
 }
 
 const buttonClasses =
-  'rounded-lg px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]';
+  'rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]';
 
 /**
  * The styled "something broke" UI, shared by the app-level `ErrorBoundary`
@@ -49,6 +51,7 @@ export function ErrorFallback({
   reloadLabel = 'Reload Page',
   secondaryAction,
   message = 'We encountered an unexpected error. Please try refreshing the page.',
+  className,
 }: ErrorFallbackProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -63,7 +66,10 @@ export function ErrorFallback({
   return (
     <div
       role="alert"
-      className="flex min-h-[400px] w-full flex-col items-center justify-center p-6 text-center"
+      className={cn(
+        'flex min-h-[400px] w-full flex-col items-center justify-center p-6 text-center',
+        className
+      )}
     >
       <div className="mb-4 rounded-full bg-[color:var(--color-semantic-error)]/10 p-4">
         <svg

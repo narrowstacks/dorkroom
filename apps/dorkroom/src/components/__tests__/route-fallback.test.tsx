@@ -11,7 +11,7 @@ import { render, screen } from '@testing-library/react';
 import type { ComponentType } from 'react';
 import { lazy, Suspense } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { routeErrorOptions } from '../../app/lib/route-error-options';
+import { routeFallbackOptions } from '../../app/lib/route-fallback-options';
 
 function ThrowingPage(): never {
   throw new Error('boom');
@@ -20,8 +20,8 @@ function ThrowingPage(): never {
 /**
  * A stand-in for the real app: a root layout with a header and nav around an
  * `<Outlet />`, plus a `/border` route rendering `component`. Spreads
- * `routeErrorOptions`, the exact object main.tsx uses, so this exercises the
- * real wiring rather than a copy that could silently drift from it.
+ * `routeFallbackOptions`, the exact object main.tsx uses, so this exercises
+ * the real wiring rather than a copy that could silently drift from it.
  */
 function buildRouter(component: ComponentType) {
   const rootRoute = createRootRoute({
@@ -44,11 +44,11 @@ function buildRouter(component: ComponentType) {
   return createRouter({
     routeTree: rootRoute.addChildren([childRoute]),
     history: createMemoryHistory({ initialEntries: ['/border'] }),
-    ...routeErrorOptions,
+    ...routeFallbackOptions,
   });
 }
 
-describe('RouteErrorComponent', () => {
+describe('RouteFallback', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 

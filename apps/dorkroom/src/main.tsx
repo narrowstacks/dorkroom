@@ -19,7 +19,7 @@ import {
   redactAnalyticsUrl,
 } from './app/lib/analytics/redact';
 import { trackEvent } from './app/lib/analytics/tracked-events';
-import { installVitePreloadErrorRecovery } from './app/lib/preload-error-recovery';
+import { installVitePreloadErrorRecovery } from './app/lib/preload-chunk-recovery';
 import { parseSearch, stringifySearch } from './routes/search-params';
 import '@fontsource-variable/montserrat/index.css';
 import '@fontsource-variable/fraunces/index.css';
@@ -31,7 +31,7 @@ import {
   ToastProvider,
   VolumeProvider,
 } from '@dorkroom/ui';
-import { routeErrorOptions } from './app/lib/route-error-options';
+import { routeFallbackOptions } from './app/lib/route-fallback-options';
 import { routeTree } from './routeTree.gen';
 
 // Lazy load devtools only in development
@@ -66,15 +66,15 @@ const router = createRouter({
   parseSearch,
   stringifySearch,
   // Gives every matched route its own styled error boundary (see
-  // ./components/route-error-component), instead of falling through to
-  // TanStack's built-in one. That built-in boundary wraps the *entire* match
-  // tree, so an uncaught render error was replacing the root layout — header,
-  // nav, everything — with an unstyled "Something went wrong!" box, and the
+  // ./components/route-fallback), instead of falling through to TanStack's
+  // built-in one. That built-in boundary wraps the *entire* match tree, so an
+  // uncaught render error was replacing the root layout — header, nav,
+  // everything — with an unstyled "Something went wrong!" box, and the
   // app-level ErrorBoundary around <RouterProvider> never saw the error to
   // report it. `defaultErrorComponent`/`defaultOnCatch` scope each boundary to
   // its own route instead, so the layout survives and the fallback UI renders
   // in its place.
-  ...routeErrorOptions,
+  ...routeFallbackOptions,
 });
 
 // Register router for type safety

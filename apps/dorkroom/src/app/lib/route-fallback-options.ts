@@ -10,10 +10,10 @@
  */
 
 import type { ErrorInfo } from 'react';
-import { RouteErrorComponent } from '../../components/route-error-component';
+import { RouteFallback } from '../../components/route-fallback';
 import { currentRouteLabel } from './analytics/redact';
 import { trackEvent } from './analytics/tracked-events';
-import { wasRecentPreloadReload } from './preload-error-recovery';
+import { wasRecentPreloadReload } from './preload-chunk-recovery';
 
 /**
  * `defaultErrorComponent`/`defaultOnCatch` for `createRouter`, kept together
@@ -21,14 +21,14 @@ import { wasRecentPreloadReload } from './preload-error-recovery';
  * test can import the exact options the app uses instead of redeclaring its
  * own copy that could silently drift from main.tsx.
  *
- * Deliberately not in `../../components/route-error-component.tsx`: that
- * file exports only the `RouteErrorComponent` component, which is what keeps
+ * Deliberately not in `../../components/route-fallback.tsx`: that file
+ * exports only the `RouteFallback` component, which is what keeps
  * react-doctor's `only-export-components` rule (a Fast Refresh boundary
  * check) happy — a non-component export like this object belongs in a
  * plain module instead.
  */
-export const routeErrorOptions = {
-  defaultErrorComponent: RouteErrorComponent,
+export const routeFallbackOptions = {
+  defaultErrorComponent: RouteFallback,
   /**
    * Fires exactly once per caught error, mirroring the outer `ErrorBoundary`'s
    * `onError` in main.tsx. `route` is deliberately the only property: see

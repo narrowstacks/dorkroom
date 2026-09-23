@@ -26,8 +26,9 @@ const CHUNK_LOAD_ERROR_PATTERN =
   /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|Unable to preload CSS/i;
 
 /**
- * The router's `defaultErrorComponent` (see `routeErrorOptions` in
- * `../app/lib/route-error-options`, spread into `createRouter` in main.tsx).
+ * The router's `defaultErrorComponent` (see `routeFallbackOptions` in
+ * `../app/lib/route-fallback-options`, spread into `createRouter` in
+ * main.tsx).
  *
  * TanStack Router gives every matched route its own error boundary keyed off
  * `route.options.errorComponent ?? router.options.defaultErrorComponent`. That
@@ -48,7 +49,7 @@ const CHUNK_LOAD_ERROR_PATTERN =
  * without a surviving header, since the root match is what renders the
  * header in the first place.
  */
-export function RouteErrorComponent({ error }: ErrorComponentProps) {
+export function RouteFallback({ error }: ErrorComponentProps) {
   const router = useRouter();
   const err = error instanceof Error ? error : null;
   const isChunkLoadError = err

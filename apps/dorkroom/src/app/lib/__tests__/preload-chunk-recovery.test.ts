@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   handleVitePreloadError,
   wasRecentPreloadReload,
-} from '../preload-error-recovery';
+} from '../preload-chunk-recovery';
 
 /** Mirrors how Vite's own preload helper constructs the event it dispatches. */
 function dispatchPreloadError(): Event {
