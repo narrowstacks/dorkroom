@@ -539,9 +539,6 @@ export default function DevelopmentRecipesPage() {
     setSelectedDeveloper(null);
   };
 
-  // clearFilters (from useDevelopmentRecipes) doesn't know about
-  // favoritesOnly, which is page state — wrap it so "Clear filters" also
-  // resets "Favorites only" (#327).
   const handleClearFilters = useClearFilters({
     clearFilters,
     setFavoritesOnly,

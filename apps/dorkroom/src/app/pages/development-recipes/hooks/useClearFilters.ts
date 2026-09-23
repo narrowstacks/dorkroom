@@ -12,7 +12,7 @@ export interface UseClearFiltersProps {
  * Wraps the hook's `clearFilters` so "Clear filters" also resets
  * "Favorites only". `favoritesOnly` lives in page state (not in
  * `useDevelopmentRecipes`), so the hook's own `clearFilters` can't reach it
- * on its own (dorkroom/dorkroom#327). Resetting it here is also sufficient
+ * on its own (#327). Resetting it here is also sufficient
  * to clear the `favorites` URL param and the dead-end-search analytics
  * filter count, both of which already react to `favoritesOnly` changes.
  */
