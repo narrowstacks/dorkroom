@@ -5,6 +5,7 @@ import type {
   CustomRecipe,
 } from '../types/custom-recipes';
 import { decodeBase64, encodeBase64, fromUrlSafe, toUrlSafe } from './base64';
+import { recipeNumericFieldSchemas } from './combination-factory';
 import { debugError } from './debug-logger';
 import {
   sanitizeCustomDeveloper,
@@ -78,10 +79,10 @@ const encodedCustomRecipeSchema = z.object({
   name: z.string().min(1),
   filmId: z.string(),
   developerId: z.string(),
-  temperatureF: z.number(),
-  timeMinutes: z.number(),
-  shootingIso: z.number(),
-  pushPull: z.number(),
+  temperatureF: recipeNumericFieldSchemas.temperatureF,
+  timeMinutes: recipeNumericFieldSchemas.timeMinutes,
+  shootingIso: recipeNumericFieldSchemas.shootingIso,
+  pushPull: recipeNumericFieldSchemas.pushPull,
   agitationSchedule: jsonOptional(z.string()),
   notes: jsonOptional(z.string()),
   // Links written before #322 typed this as a number (none carried a value in

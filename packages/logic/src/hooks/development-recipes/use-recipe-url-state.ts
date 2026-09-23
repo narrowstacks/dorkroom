@@ -296,6 +296,8 @@ export interface UseRecipeUrlStateReturn {
   sharedCustomRecipe: ImportedCustomRecipe['recipe'] | null;
   isLoadingSharedRecipe: boolean;
   sharedRecipeError: string | null;
+  /** Clears `sharedRecipeError`, e.g. when the user closes its banner. */
+  dismissSharedRecipeError: () => void;
   hasSharedRecipe: boolean;
   hasSharedCustomRecipe: boolean;
 }
@@ -514,18 +516,33 @@ export const useRecipeUrlState = (
     }, 300);
   }, []);
 
+  const dismissSharedRecipeError = useCallback(() => {
+    setSharedRecipeState((prev) =>
+      prev.error === null ? prev : { ...prev, error: null }
+    );
+  }, []);
+
   const handleSharedRecipeLookup = useCallback(async () => {
     const validation = validateUrlParams(params);
     const recipeId = validation.sanitized.recipe;
     const isFromShare = validation.sanitized.source === 'share';
 
     if (!recipeId || !isFromShare) {
-      setSharedRecipeState({
-        recipe: null,
-        customRecipe: null,
-        isLoading: false,
-        error: null,
-      });
+      // Keep any error. Once a share link is handled, the URL-sync effect
+      // rewrites the URL without `recipe`/`source` (debounced), which lands
+      // here. Clearing the error at that point hid the "invalid link" banner
+      // a moment after it appeared. It now stays until the user dismisses it
+      // or a different shared recipe is processed.
+      setSharedRecipeState((prev) =>
+        prev.recipe === null && prev.customRecipe === null && !prev.isLoading
+          ? prev
+          : {
+              recipe: null,
+              customRecipe: null,
+              isLoading: false,
+              error: prev.error,
+            }
+      );
       isProcessingSharedRecipeRef.current = false;
       return;
     }
@@ -721,6 +738,7 @@ export const useRecipeUrlState = (
     sharedCustomRecipe,
     isLoadingSharedRecipe,
     sharedRecipeError,
+    dismissSharedRecipeError,
     hasSharedRecipe: enhancedUrlState.hasSharedRecipe ?? false,
     hasSharedCustomRecipe: enhancedUrlState.hasSharedCustomRecipe ?? false,
   };

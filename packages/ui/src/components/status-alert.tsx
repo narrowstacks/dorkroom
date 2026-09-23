@@ -1,4 +1,4 @@
-import { AlertCircle, AlertTriangle } from 'lucide-react';
+import { AlertCircle, AlertTriangle, X } from 'lucide-react';
 import { cn } from '../lib/cn';
 import { colorMixOr } from '../lib/color';
 
@@ -15,6 +15,10 @@ interface StatusAlertProps {
    * or not at all.
    */
   omitRole?: boolean;
+  /** Renders a close button that calls this. Requires `dismissLabel`. */
+  onDismiss?: () => void;
+  /** Accessible name for the close button, e.g. "Dismiss message". */
+  dismissLabel?: string;
 }
 
 export function StatusAlert({
@@ -22,6 +26,8 @@ export function StatusAlert({
   action = 'warning',
   className,
   omitRole = false,
+  onDismiss,
+  dismissLabel = 'Dismiss',
 }: StatusAlertProps) {
   const Icon = action === 'error' ? AlertCircle : AlertTriangle;
 
@@ -75,7 +81,17 @@ export function StatusAlert({
       }}
     >
       <Icon className="size-4 flex-shrink-0" aria-hidden="true" />
-      <span className="text-sm">{message}</span>
+      <span className="flex-1 text-sm">{message}</span>
+      {onDismiss && (
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label={dismissLabel}
+          className="-m-1 flex-shrink-0 rounded p-1 transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+        >
+          <X className="size-4" aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }

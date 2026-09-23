@@ -227,7 +227,11 @@ export const useCustomRecipeSharing = () => {
       return false;
     }
 
-    return recipeParam.length > 50 && isValidCustomRecipeEncoding(recipeParam);
+    // Shape only, not validity: a link that looks like an encoded recipe but
+    // fails to decode (bad JSON, out-of-range values) must still take the
+    // custom-recipe path so the user sees "Invalid custom recipe data"
+    // instead of waiting on a database lookup that can never match.
+    return recipeParam.length > 50 && /^[A-Za-z0-9_-]+$/.test(recipeParam);
   }, []);
 
   const getSharingMethodDescription = useCallback(async (): Promise<string> => {

@@ -3,6 +3,7 @@ import type { CustomRecipe } from '../../types/custom-recipes';
 import {
   createCombinationFromCustomRecipe,
   createTemporaryCombination,
+  getRecipeValidationError,
 } from '../combination-factory';
 
 describe('combination-factory', () => {
@@ -137,6 +138,21 @@ describe('combination-factory', () => {
       expect(() =>
         createTemporaryCombination({ ...validData, timeMinutes: -5 })
       ).toThrow('Time must be positive');
+    });
+  });
+
+  describe('getRecipeValidationError', () => {
+    it('returns null for in-range values', () => {
+      expect(getRecipeValidationError(validRecipe)).toBeNull();
+    });
+
+    it('returns the first range message for out-of-range values', () => {
+      expect(
+        getRecipeValidationError({ ...validRecipe, temperatureF: 250 })
+      ).toBe('Temperature must be at most 212°F (boiling point)');
+      expect(getRecipeValidationError({ ...validRecipe, pushPull: -3 })).toBe(
+        'Push/pull must be at least -2 stops'
+      );
     });
   });
 });

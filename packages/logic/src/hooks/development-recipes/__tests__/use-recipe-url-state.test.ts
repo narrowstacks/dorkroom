@@ -1,6 +1,6 @@
 import type { Combination, Developer, Film } from '@dorkroom/api';
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   type RecipeFilterState,
   useRecipeUrlState,
@@ -388,6 +388,152 @@ describe('useRecipeUrlState', () => {
       expect(result.current.initialUrlState.recipeId).toBe(encodedRecipe);
 
       errorSpy.mockRestore();
+    });
+
+    // Regression for #323: an out-of-range shared recipe must surface as an
+    // invalid link, not decode as valid and crash the page during render.
+    it('reports an out-of-range shared custom recipe as invalid', async () => {
+      const errorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      const outOfRange = {
+        name: 'x',
+        filmId: 'a',
+        developerId: 'b',
+        temperatureF: 250,
+        timeMinutes: 8,
+        shootingIso: 400,
+        pushPull: 0,
+        isCustomFilm: false,
+        isCustomDeveloper: false,
+        isPublic: false,
+      };
+      const encodedRecipe = Buffer.from(JSON.stringify(outOfRange), 'utf8')
+        .toString('base64')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+      mockLocation.search = `?recipe=${encodedRecipe}&source=share`;
+
+      const { result } = renderHook(() =>
+        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+      );
+
+      await waitFor(() => {
+        expect(result.current.sharedRecipeError).toBe(
+          'Invalid custom recipe data'
+        );
+      });
+      expect(result.current.sharedCustomRecipe).toBeNull();
+      expect(result.current.isLoadingSharedRecipe).toBe(false);
+
+      errorSpy.mockRestore();
+    });
+
+    // Regression for #323: the URL-sync effect drops `?recipe=` 300ms after
+    // init, which re-ran the lookup and wiped the error, so the banner
+    // vanished almost as soon as it appeared.
+    describe('shared recipe outcome after URL cleanup', () => {
+      const validShare = {
+        name: 'Shared',
+        filmId: 'f1',
+        developerId: 'd1',
+        temperatureF: 68,
+        timeMinutes: 8,
+        shootingIso: 400,
+        pushPull: 0,
+        isCustomFilm: false,
+        isCustomDeveloper: false,
+        isPublic: false,
+      };
+      const encodeShare = (recipe: typeof validShare): string =>
+        Buffer.from(JSON.stringify(recipe), 'utf8')
+          .toString('base64')
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+$/, '');
+
+      let errorSpy: ReturnType<typeof vi.spyOn>;
+
+      beforeEach(() => {
+        vi.useFakeTimers();
+        errorSpy = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => undefined);
+        // Make the mocked replaceState actually move the URL, as the browser does.
+        mockReplaceState.mockImplementation(
+          (...args: Parameters<History['replaceState']>) => {
+            mockLocation.search = new URL(
+              String(args[2]),
+              'http://localhost'
+            ).search;
+          }
+        );
+      });
+
+      afterEach(() => {
+        mockReplaceState.mockReset();
+        errorSpy.mockRestore();
+        vi.useRealTimers();
+      });
+
+      const renderAndSettle = async () => {
+        const hook = renderHook(() =>
+          useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        );
+        // Let the lookup run, then the debounced URL write, then the re-run.
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(1000);
+        });
+        return hook;
+      };
+
+      it('keeps the invalid-link error after the recipe param is cleaned up', async () => {
+        mockLocation.search = `?recipe=${encodeShare({ ...validShare, temperatureF: 250 })}&source=share`;
+
+        const { result } = await renderAndSettle();
+
+        expect(mockLocation.search).not.toContain('recipe=');
+        expect(result.current.sharedRecipeError).toBe(
+          'Invalid custom recipe data'
+        );
+        expect(result.current.isLoadingSharedRecipe).toBe(false);
+      });
+
+      it('clears the error when dismissed', async () => {
+        mockLocation.search = `?recipe=${encodeShare({ ...validShare, pushPull: 9 })}&source=share`;
+
+        const { result } = await renderAndSettle();
+        expect(result.current.sharedRecipeError).not.toBeNull();
+
+        act(() => {
+          result.current.dismissSharedRecipeError();
+        });
+
+        expect(result.current.sharedRecipeError).toBeNull();
+      });
+
+      it('still loads a valid shared recipe and cleans up the param', async () => {
+        mockLocation.search = `?recipe=${encodeShare(validShare)}&source=share`;
+
+        const hook = renderHook(() =>
+          useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+        );
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(0);
+        });
+
+        expect(hook.result.current.sharedCustomRecipe?.name).toBe('Shared');
+        expect(hook.result.current.sharedRecipeError).toBeNull();
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(1000);
+        });
+
+        expect(mockLocation.search).not.toContain('recipe=');
+        expect(hook.result.current.sharedRecipeError).toBeNull();
+      });
     });
 
     it('should handle invalid view parameter', () => {

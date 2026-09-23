@@ -9,52 +9,60 @@ import type { CustomRecipe } from '../types/custom-recipes';
  */
 const TEMPORARY_ID = -1 as const;
 
+const numericField = () =>
+  z
+    .number({
+      error: (issue) =>
+        issue.code === 'invalid_type'
+          ? 'Invalid numeric values provided'
+          : undefined,
+    })
+    .finite('Invalid numeric values provided');
+
+/**
+ * Physical limits and reasonable ranges for a recipe's numeric fields.
+ * The single source of truth for these ranges: the share-link decoder, the
+ * custom recipe mutations, and `createCombinationFromCustomRecipe` all use it.
+ */
+export const recipeNumericFieldSchemas = {
+  temperatureF: numericField()
+    .min(32, 'Temperature must be at least 32°F (freezing point)')
+    .max(212, 'Temperature must be at most 212°F (boiling point)'),
+  timeMinutes: numericField().positive('Time must be positive'),
+  shootingIso: numericField().positive('ISO must be positive'),
+  pushPull: numericField()
+    .min(-2, 'Push/pull must be at least -2 stops')
+    .max(5, 'Push/pull must be at most +5 stops'),
+};
+
 /**
  * Zod schema for validating recipe numeric inputs.
  * Enforces physical limits and reasonable ranges for development parameters.
  */
 const RecipeValidationSchema = z.object({
-  temperatureF: z
-    .number({
-      error: (issue) =>
-        issue.code === 'invalid_type'
-          ? 'Invalid numeric values provided'
-          : undefined,
-    })
-    .finite('Invalid numeric values provided')
-    .min(32, 'Temperature must be at least 32°F (freezing point)')
-    .max(212, 'Temperature must be at most 212°F (boiling point)'),
-  timeMinutes: z
-    .number({
-      error: (issue) =>
-        issue.code === 'invalid_type'
-          ? 'Invalid numeric values provided'
-          : undefined,
-    })
-    .finite('Invalid numeric values provided')
-    .positive('Time must be positive'),
-  shootingIso: z
-    .number({
-      error: (issue) =>
-        issue.code === 'invalid_type'
-          ? 'Invalid numeric values provided'
-          : undefined,
-    })
-    .finite('Invalid numeric values provided')
-    .positive('ISO must be positive'),
-  pushPull: z
-    .number({
-      error: (issue) =>
-        issue.code === 'invalid_type'
-          ? 'Invalid numeric values provided'
-          : undefined,
-    })
-    .finite('Invalid numeric values provided')
-    .min(-2, 'Push/pull must be at least -2 stops')
-    .max(5, 'Push/pull must be at most +5 stops')
-    .optional()
-    .nullable(),
+  ...recipeNumericFieldSchemas,
+  pushPull: recipeNumericFieldSchemas.pushPull.optional().nullable(),
 });
+
+/**
+ * Checks a recipe's numeric fields against {@link recipeNumericFieldSchemas}.
+ *
+ * @returns The first validation message, or null when every value is in range
+ */
+export function getRecipeValidationError(recipe: {
+  temperatureF: number;
+  timeMinutes: number;
+  shootingIso: number;
+  pushPull?: number | null;
+}): string | null {
+  const result = RecipeValidationSchema.safeParse({
+    temperatureF: recipe.temperatureF,
+    timeMinutes: recipe.timeMinutes,
+    shootingIso: recipe.shootingIso,
+    pushPull: recipe.pushPull,
+  });
+  return result.success ? null : result.error.issues[0].message;
+}
 
 /**
  * Validates numeric inputs for recipes to ensure they are within reasonable ranges.
