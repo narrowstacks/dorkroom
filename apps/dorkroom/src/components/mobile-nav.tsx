@@ -1,6 +1,6 @@
 import { MobileSidebar } from '@dorkroom/ui';
 import { Menu, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { cn } from '../app/lib/cn';
 import { usePresence } from './use-presence';
 
@@ -19,6 +19,24 @@ interface MobileNavProps {
 export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { mounted, visible } = usePresence(isMobileMenuOpen, 350);
+  const toggleButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const wasOpenRef = useRef(isMobileMenuOpen);
+
+  // The open drawer covers the toggle (#346), so move focus to the drawer's
+  // own close button on open and back to the toggle on close. Layout effect so
+  // focus leaves the close button before its nav turns aria-hidden. Not a
+  // focus trap; see #286.
+  useLayoutEffect(() => {
+    if (mounted && isMobileMenuOpen) {
+      closeButtonRef.current?.focus();
+    }
+
+    if (wasOpenRef.current && !isMobileMenuOpen) {
+      toggleButtonRef.current?.focus();
+    }
+    wasOpenRef.current = isMobileMenuOpen;
+  }, [mounted, isMobileMenuOpen]);
 
   // Lock body scroll while the menu is open
   useEffect(() => {
@@ -65,6 +83,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
           `calc(env(safe-area-inset-bottom)+5rem)` of bottom padding for
           (#345) — resize this button and update that reservation to match. */}
       <button
+        ref={toggleButtonRef}
         type="button"
         className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+1rem)] z-50 flex size-12 items-center justify-center rounded-full shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] sm:hidden"
         style={{
@@ -131,6 +150,7 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
                 setIsMobileMenuOpen(false);
               }}
               onClose={() => setIsMobileMenuOpen(false)}
+              closeButtonRef={closeButtonRef}
             />
           </nav>
         </>
