@@ -6,19 +6,29 @@ interface StatusAlertProps {
   message: string;
   action?: 'warning' | 'error';
   className?: string;
+  /**
+   * Skip setting the built-in `role`. Use this when a parent already owns
+   * a persistent live region (e.g. a wrapper that stays mounted so screen
+   * readers announce the first message, not just later swaps) and this
+   * component just renders content inside it — nesting two `role="status"`
+   * / `role="alert"` regions causes some screen readers to announce twice
+   * or not at all.
+   */
+  omitRole?: boolean;
 }
 
 export function StatusAlert({
   message,
   action = 'warning',
   className,
+  omitRole = false,
 }: StatusAlertProps) {
   const Icon = action === 'error' ? AlertCircle : AlertTriangle;
 
   return (
     <div
       className={cn('flex items-center gap-3 rounded-lg border p-3', className)}
-      role={action === 'error' ? 'alert' : 'status'}
+      role={omitRole ? undefined : action === 'error' ? 'alert' : 'status'}
       style={{
         borderColor:
           action === 'error'

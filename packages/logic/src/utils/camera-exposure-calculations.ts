@@ -12,7 +12,9 @@ import {
   type ExposureComparison,
   type ExposureValueResult,
   type ISOKey,
+  type PresetWarning,
   type ShutterSpeedKey,
+  type SolveFor,
   type StandardValue,
 } from '../types/camera-exposure-calculator';
 import { debugWarn } from './debug-logger';
@@ -118,6 +120,59 @@ export const findNearestStandard = (
   }
 
   return nearest;
+};
+
+// How far a preset's exact solved value may be from the standard value it
+// snaps to before it's considered out of the camera's dial range. Looser
+// than STANDARD_VALUE_TOLERANCE above (which just picks the nearest dial
+// setting): a solved value within a normal 1/3-stop step of its neighbor
+// is an ordinary snap, not a sign the preset is unreachable.
+const PRESET_RANGE_TOLERANCE = 1 / 3; // ~0.333 stops
+
+/**
+ * Aperture f-numbers move one stop every time the value changes by a
+ * factor of √2, not 2 — the light-gathering area is what halves/doubles,
+ * and area scales with the square of the f-number. So a stop in aperture
+ * is `2 * log2(ratio)`, twice as many "log2 units" per stop as shutter
+ * speed or ISO (where a stop is a literal factor of 2). Without this,
+ * PRESET_RANGE_TOLERANCE would let an aperture snap drift twice as far
+ * (in real stops) as a shutter/ISO snap before warning.
+ */
+const stopsPerLog2Unit = (variable: SolveFor): number =>
+  variable === 'aperture' ? 2 : 1;
+
+/**
+ * Compares a preset's exact solved value to the standard value it was
+ * snapped to (e.g. by `findNearestStandard`). When they differ by more
+ * than `PRESET_RANGE_TOLERANCE` stops, the snap silently clamped to a dial
+ * endpoint (30", f/64, …) far from what the preset's EV actually needs —
+ * returns a warning describing that instead of letting it apply silently.
+ * Returns `null` when the snap is a normal, in-range rounding, or when
+ * `solved` isn't a usable positive number.
+ */
+export const getPresetOutOfRangeWarning = (
+  presetEv: number,
+  variable: SolveFor,
+  solved: number,
+  nearest: StandardValue,
+  formatRequired: (value: number) => string
+): PresetWarning | null => {
+  if (!Number.isFinite(solved) || solved <= 0) return null;
+
+  const stopsOff =
+    stopsPerLog2Unit(variable) * Math.abs(Math.log2(solved / nearest.value));
+  if (stopsOff <= PRESET_RANGE_TOLERANCE) return null;
+
+  return {
+    presetEv,
+    variable,
+    required: formatRequired(solved),
+    limit: nearest.label,
+    // solved > nearest.value: the exact requirement overshoots the top of
+    // the standard range (nearest snapped to the range's max). Otherwise
+    // it undershoots the bottom (nearest snapped to the range's min).
+    direction: solved > nearest.value ? 'over' : 'under',
+  };
 };
 
 /**
