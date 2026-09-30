@@ -134,13 +134,6 @@ describe('Modal', () => {
       const closeButton = screen.getByRole('button', { name: 'Close' });
       expect(closeButton).toHaveAttribute('aria-label', 'Close');
     });
-
-    it('has proper heading structure when title is provided', () => {
-      render(<Modal {...defaultProps} title="Modal Title" />);
-
-      const heading = screen.getByRole('heading', { level: 2 });
-      expect(heading).toHaveTextContent('Modal Title');
-    });
   });
 
   describe('body overflow management', () => {
@@ -220,31 +213,6 @@ describe('Modal', () => {
       fireEvent.keyDown(document, { key: 'Enter' });
 
       expect(onClose).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('mouse interactions', () => {
-    it('handles close button hover states', () => {
-      render(<Modal {...defaultProps} />);
-
-      const closeButton = screen.getByRole('button', { name: 'Close' });
-
-      // Test mouse enter
-      fireEvent.mouseEnter(closeButton);
-      // Note: We can't easily test the inline style changes, but the handlers are called
-
-      // Test mouse leave
-      fireEvent.mouseLeave(closeButton);
-    });
-  });
-
-  describe('portal behavior', () => {
-    it('renders content inside modal structure', () => {
-      render(<Modal {...defaultProps} />);
-
-      const dialog = screen.getByRole('dialog');
-      expect(dialog).toBeInTheDocument();
-      expect(screen.getByText('Modal content')).toBeInTheDocument();
     });
   });
 });

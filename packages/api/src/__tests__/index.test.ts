@@ -28,10 +28,6 @@ describe('API Package Exports', () => {
     vi.restoreAllMocks();
   });
 
-  it('should export DorkroomApiClient', () => {
-    expect(new DorkroomApiClient()).toBeInstanceOf(DorkroomApiClient);
-  });
-
   it('should export apiClient instance', () => {
     expect(apiClient).toBeInstanceOf(DorkroomApiClient);
   });
@@ -67,11 +63,5 @@ describe('API Package Exports', () => {
 
   it('should export INTERNAL_API_BASE_URL', () => {
     expect(INTERNAL_API_BASE_URL).toBe('/api');
-  });
-
-  it('should export types', () => {
-    // TypeScript types are exported and can be used for type safety
-    // Film, Developer, Combination, etc. are all available from the module
-    expect(DorkroomApiClient).toBeDefined();
   });
 });

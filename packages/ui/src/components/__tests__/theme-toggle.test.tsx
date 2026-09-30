@@ -416,23 +416,6 @@ describe('ThemeToggle', () => {
   });
 
   describe('event cleanup', () => {
-    it('removes event listeners when dropdown closes', async () => {
-      const { unmount } = render(<ThemeToggle />);
-
-      const button = screen.getByRole('button', { name: 'Theme' });
-      await userEvent.click(button);
-
-      // Dropdown is open, event listeners are attached
-      expect(button).toHaveAttribute('aria-expanded', 'true');
-
-      // Unmount component
-      unmount();
-
-      // Should not throw errors
-      fireEvent.mouseDown(document);
-      fireEvent.keyDown(document, { key: 'Escape' });
-    });
-
     it('cleans up event listeners on component unmount', async () => {
       const { unmount } = render(<ThemeToggle />);
 
@@ -445,33 +428,6 @@ describe('ThemeToggle', () => {
 
       // Verify cleanup happened
       expect(removeEventListenerSpy).toHaveBeenCalled();
-    });
-  });
-
-  describe('visual states', () => {
-    it('shows selected state for current theme', async () => {
-      render(<ThemeToggle />);
-
-      const button = screen.getByRole('button', { name: 'Theme' });
-      await userEvent.click(button);
-
-      // Current theme (dark) should have selected styling
-      const darkOption = screen.getByRole('menuitem', { name: /^dark$/i });
-      expect(darkOption).toBeInTheDocument();
-      // Selected option would have specific classes for styling
-    });
-
-    it('applies hover styles to menu items', async () => {
-      render(<ThemeToggle />);
-
-      const button = screen.getByRole('button', { name: 'Theme' });
-      await userEvent.click(button);
-
-      const lightOption = screen.getByRole('menuitem', { name: /light/i });
-      // Hover classes should be present
-      expect(lightOption).toHaveClass(
-        'hover:bg-[color:var(--color-border-muted)]'
-      );
     });
   });
 

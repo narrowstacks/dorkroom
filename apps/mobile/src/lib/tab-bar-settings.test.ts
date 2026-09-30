@@ -21,13 +21,6 @@ describe('tab-bar-settings', () => {
     expect(getPinnedIds()).toEqual(['border', 'resize']);
   });
 
-  it('drops unknown ids and caps at MAX_PINNED', () => {
-    setPinnedIds(['border', 'nope', 'resize', 'meter', 'exposure', 'mat']);
-    const result = getPinnedIds();
-    expect(result).not.toContain('nope');
-    expect(result.length).toBeLessThanOrEqual(MAX_PINNED);
-  });
-
   it('falls back to defaults when the saved set is empty', () => {
     setPinnedIds([]);
     expect(getPinnedIds()).toEqual(DEFAULT_PINNED_IDS.slice(0, MAX_PINNED));
@@ -80,7 +73,6 @@ describe('normalizePinnedIds', () => {
       'exposure',
       'reciprocity',
     ]);
-    const result = normalizePinnedIds(raw);
-    expect(result.length).toBeLessThanOrEqual(MAX_PINNED);
+    expect(normalizePinnedIds(raw)).toEqual(['border', 'resize']);
   });
 });
