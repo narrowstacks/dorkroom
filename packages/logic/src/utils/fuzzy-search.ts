@@ -1,5 +1,5 @@
 import type { Film } from '@dorkroom/api';
-import type { FuseResult, FuseResultMatch, IFuseOptions } from 'fuse.js';
+import type { FuseResult, IFuseOptions } from 'fuse.js';
 import Fuse from 'fuse.js';
 import { z } from 'zod';
 
@@ -85,15 +85,6 @@ const FILM_SEARCH_OPTIONS: IFuseOptions<Film> = {
 export type FilmSearchResult = FuseResult<Film>;
 
 /**
- * Match information for highlighting
- */
-export interface MatchHighlight {
-  key: string;
-  value: string;
-  indices: readonly [number, number][];
-}
-
-/**
  * Creates a Fuse instance configured for searching Film objects
  *
  * @param films - Array of Film objects to search
@@ -109,33 +100,6 @@ export interface MatchHighlight {
  */
 export function createFilmSearcher(films: Film[]): Fuse<Film> {
   return new Fuse(films, FILM_SEARCH_OPTIONS);
-}
-
-/**
- * Extract match highlights from a search result for UI rendering
- *
- * @param result - Fuse search result
- * @returns Array of match highlights with indices
- *
- * @example
- * ```typescript
- * const results = searcher.search('kodak');
- * results.forEach(result => {
- *   const highlights = getMatchHighlights(result);
- *   // highlights: [{ key: 'brand', value: 'Kodak', indices: [[0, 4]] }]
- * });
- * ```
- */
-export function getMatchHighlights(result: FilmSearchResult): MatchHighlight[] {
-  if (!result.matches) {
-    return [];
-  }
-
-  return result.matches.map((match: FuseResultMatch) => ({
-    key: match.key ?? '',
-    value: match.value ?? '',
-    indices: match.indices ?? [],
-  }));
 }
 
 /**

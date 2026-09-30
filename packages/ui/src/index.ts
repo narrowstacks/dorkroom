@@ -41,8 +41,6 @@ export {
 export { LabeledSliderInput } from './components/labeled-slider-input';
 // Marketing Components
 export { Greeting } from './components/marketing/greeting';
-export type { StatCardProps } from './components/marketing/stat-card';
-export { StatCard } from './components/marketing/stat-card';
 export type {
   AccentColor,
   ToolCardProps,
@@ -128,11 +126,6 @@ export {
   useMeasurementFormatter,
   useMeasurementUtils,
 } from './hooks/use-measurement-conversion';
-export {
-  type ResponsiveTier,
-  type ResponsiveTierResult,
-  useResponsiveTier,
-} from './hooks/use-responsive-tier';
 export { useViewportWidth } from './hooks/use-viewport-width';
 export { useIsMobile } from './hooks/useIsMobile';
 // Utilities

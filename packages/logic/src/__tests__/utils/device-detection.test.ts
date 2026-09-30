@@ -1,5 +1,4 @@
 import {
-  isIOS,
   isMobileDevice,
   shouldUseWebShare,
 } from '../../utils/device-detection';
@@ -167,87 +166,6 @@ describe('device detection', () => {
       );
 
       expect(isMobileDevice()).toBe(false);
-    });
-  });
-
-  describe('isIOS', () => {
-    it('should return false in SSR environment', () => {
-      expect(isIOS()).toBe(false);
-    });
-
-    it('should return true for iPhone', () => {
-      vi.stubGlobal(
-        'window',
-        createMockWindow({
-          navigator: {
-            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X)',
-          },
-        })
-      );
-
-      expect(isIOS()).toBe(true);
-    });
-
-    it('should return true for iPad', () => {
-      vi.stubGlobal(
-        'window',
-        createMockWindow({
-          navigator: {
-            userAgent: 'Mozilla/5.0 (iPad; CPU OS 14_6 like Mac OS X)',
-          },
-        })
-      );
-
-      expect(isIOS()).toBe(true);
-    });
-
-    it('should return true for iPod', () => {
-      vi.stubGlobal(
-        'window',
-        createMockWindow({
-          navigator: {
-            userAgent:
-              'Mozilla/5.0 (iPod touch; CPU iPhone OS 14_6 like Mac OS X)',
-          },
-        })
-      );
-
-      expect(isIOS()).toBe(true);
-    });
-
-    it('should return false for Android', () => {
-      vi.stubGlobal(
-        'window',
-        createMockWindow({
-          navigator: { userAgent: 'Mozilla/5.0 (Linux; Android 11; SM-G975F)' },
-        })
-      );
-
-      expect(isIOS()).toBe(false);
-    });
-
-    it('should return false for desktop', () => {
-      vi.stubGlobal(
-        'window',
-        createMockWindow({
-          navigator: {
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0',
-          },
-        })
-      );
-
-      expect(isIOS()).toBe(false);
-    });
-
-    it('should handle missing navigator gracefully', () => {
-      vi.stubGlobal(
-        'window',
-        createMockWindow({
-          navigator: {},
-        })
-      );
-
-      expect(isIOS()).toBe(false);
     });
   });
 

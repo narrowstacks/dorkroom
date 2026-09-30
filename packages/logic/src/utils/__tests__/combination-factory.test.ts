@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import type { CustomRecipe } from '../../types/custom-recipes';
 import {
   createCombinationFromCustomRecipe,
-  createTemporaryCombination,
   getRecipeValidationError,
 } from '../combination-factory';
 
@@ -111,33 +110,6 @@ describe('combination-factory', () => {
       const veryHighIsoRecipe = { ...validRecipe, shootingIso: 102400 };
       const result = createCombinationFromCustomRecipe(veryHighIsoRecipe);
       expect(result.shootingIso).toBe(102400);
-    });
-  });
-
-  describe('createTemporaryCombination', () => {
-    const validData = {
-      name: 'Test',
-      filmStockId: 'film-1',
-      developerId: 'dev-1',
-      temperatureF: 68,
-      timeMinutes: 10,
-      shootingIso: 400,
-    };
-
-    it('creates a valid temporary combination', () => {
-      const result = createTemporaryCombination(validData);
-      expect(result.temperatureF).toBe(68);
-      expect(result.timeMinutes).toBe(10);
-    });
-
-    it('validates inputs similar to createCombinationFromCustomRecipe', () => {
-      expect(() =>
-        createTemporaryCombination({ ...validData, temperatureF: 0 })
-      ).toThrow('Temperature must be at least 32°F (freezing point)');
-
-      expect(() =>
-        createTemporaryCombination({ ...validData, timeMinutes: -5 })
-      ).toThrow('Time must be positive');
     });
   });
 

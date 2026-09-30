@@ -9,11 +9,7 @@ import {
   CALCULATION_CONSTANTS,
   DERIVED_CONSTANTS,
 } from '../constants/calculations';
-import {
-  createMemoKey,
-  roundToPrecision,
-  roundToStandardPrecision,
-} from './precision';
+import { createMemoKey, roundToPrecision } from './precision';
 
 const { BORDER_OPTIMIZATION, CACHE, PAPER } = CALCULATION_CONSTANTS;
 
@@ -176,89 +172,6 @@ export const computeMaxAllowedMinBorder = (
 ): number => {
   const smallerDimension = Math.min(paperW, paperH);
   return Math.max(0, smallerDimension / 2 - 0.125);
-};
-
-/* ------------------------------------------------------------------ *
-   Border optimisation helpers
- * ------------------------------------------------------------------ */
-
-const computeBorders = (
-  paperW: number,
-  paperH: number,
-  ratio: number,
-  minBorder: number
-) => {
-  const availableW = paperW - 2 * minBorder;
-  const availableH = paperH - 2 * minBorder;
-
-  if (availableW <= 0 || availableH <= 0) return null;
-
-  const [printW, printH] =
-    availableW / availableH > ratio
-      ? [availableH * ratio, availableH]
-      : [availableW, availableW / ratio];
-
-  const borderW = (paperW - printW) / 2;
-  const borderH = (paperH - printH) / 2;
-
-  return [borderW, borderW, borderH, borderH] as const;
-};
-
-/**
- * Calculates the optimal minimum border size to snap borders to convenient measurements.
- * Uses an optimization algorithm to find border values that align with common fractions.
- *
- * @param paperW - Paper width in inches
- * @param paperH - Paper height in inches
- * @param ratioW - Aspect ratio width component
- * @param ratioH - Aspect ratio height component
- * @param start - Starting minimum border value for optimization
- * @returns Optimized minimum border value that produces clean border measurements
- * @example
- * ```typescript
- * const optimal = calculateOptimalMinBorder(8, 10, 2, 3, 0.5);
- * console.log(optimal); // Returns border value that snaps to clean fractions
- * ```
- */
-export const calculateOptimalMinBorder = (
-  paperW: number,
-  paperH: number,
-  ratioW: number,
-  ratioH: number,
-  start: number
-) => {
-  if (ratioH === 0) return start;
-
-  const ratio = ratioW / ratioH;
-  const lower = Math.max(0.01, start - BORDER_OPTIMIZATION.SEARCH_SPAN);
-  const upper = start + BORDER_OPTIMIZATION.SEARCH_SPAN;
-  let best = start;
-  let bestScore = Infinity;
-
-  const adaptiveStep = Math.max(
-    BORDER_OPTIMIZATION.STEP,
-    (upper - lower) / BORDER_OPTIMIZATION.ADAPTIVE_STEP_DIVISOR
-  );
-
-  for (let candidate = lower; candidate <= upper; candidate += adaptiveStep) {
-    const borders = computeBorders(paperW, paperH, ratio, candidate);
-    if (!borders) continue;
-
-    let score = 0;
-    for (const border of borders) {
-      const remainder = border % BORDER_OPTIMIZATION.SNAP;
-      score += Math.min(remainder, BORDER_OPTIMIZATION.SNAP - remainder);
-      if (score >= bestScore) break;
-    }
-
-    if (score < bestScore - BORDER_OPTIMIZATION.EPSILON) {
-      bestScore = score;
-      best = candidate;
-      if (bestScore < BORDER_OPTIMIZATION.EPSILON) break;
-    }
-  }
-
-  return roundToStandardPrecision(best);
 };
 
 /* ------------------------------------------------------------------ *
@@ -428,42 +341,6 @@ export const bladeReadings = (
   top: printH - 2 * shiftY,
   bottom: printH + 2 * shiftY,
 });
-
-/**
- * Validates that a print with given dimensions and offsets fits within the paper boundaries.
- * Checks that all borders are non-negative after applying offsets.
- *
- * @param paperW - Paper width in inches
- * @param paperH - Paper height in inches
- * @param printW - Print width in inches
- * @param printH - Print height in inches
- * @param offsetH - Horizontal offset from center position
- * @param offsetV - Vertical offset from center position
- * @returns True if the print fits within paper bounds, false otherwise
- * @example
- * ```typescript
- * const fits = validatePrintFits(8, 10, 6, 8, 0.5, 0);
- * console.log(fits); // true if print fits, false if it extends beyond paper
- * ```
- */
-export const validatePrintFits = (
-  paperW: number,
-  paperH: number,
-  printW: number,
-  printH: number,
-  offsetH: number,
-  offsetV: number
-) => {
-  const halfW = (paperW - printW) / 2;
-  const halfH = (paperH - printH) / 2;
-
-  const left = halfW - offsetH;
-  const right = halfW + offsetH;
-  const top = halfH - offsetV;
-  const bottom = halfH + offsetV;
-
-  return left >= 0 && right >= 0 && top >= 0 && bottom >= 0;
-};
 
 /* ------------------------------------------------------------------ *
    Quarter-inch rounding helpers

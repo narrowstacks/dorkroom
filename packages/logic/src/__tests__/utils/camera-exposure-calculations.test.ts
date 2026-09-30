@@ -4,11 +4,6 @@ import {
   STANDARD_SHUTTER_SPEEDS,
 } from '../../constants/camera-exposure-defaults';
 import {
-  asApertureKey,
-  asISOKey,
-  asShutterSpeedKey,
-} from '../../types/camera-exposure-calculator';
-import {
   apertureToKey,
   calculateEV,
   calculateExposureValue,
@@ -20,9 +15,6 @@ import {
   getEVDescription,
   getPresetOutOfRangeWarning,
   isoToKey,
-  keyToAperture,
-  keyToISO,
-  keyToShutterSpeed,
   shutterSpeedToKey,
   solveForAperture,
   solveForISO,
@@ -807,51 +799,6 @@ describe('camera exposure calculations', () => {
         expect(key).toBe('1/333');
       });
     });
-
-    describe('keyToShutterSpeed', () => {
-      it('should convert standard labels to shutter speeds', () => {
-        expect(keyToShutterSpeed(asShutterSpeedKey('1/125'))).toBeCloseTo(
-          1 / 125,
-          5
-        );
-        expect(keyToShutterSpeed(asShutterSpeedKey('1/250'))).toBeCloseTo(
-          1 / 250,
-          5
-        );
-        expect(keyToShutterSpeed(asShutterSpeedKey('1"'))).toBe(1);
-        expect(keyToShutterSpeed(asShutterSpeedKey('2"'))).toBe(2);
-        expect(keyToShutterSpeed(asShutterSpeedKey('30"'))).toBe(30);
-      });
-
-      it('should parse "1/X" format for non-standards', () => {
-        expect(keyToShutterSpeed(asShutterSpeedKey('1/333'))).toBeCloseTo(
-          1 / 333,
-          5
-        );
-        expect(keyToShutterSpeed(asShutterSpeedKey('1/100'))).toBe(0.01);
-      });
-
-      it('should parse seconds with quote mark', () => {
-        expect(keyToShutterSpeed(asShutterSpeedKey('5"'))).toBe(5);
-        expect(keyToShutterSpeed(asShutterSpeedKey('15"'))).toBe(15);
-      });
-
-      it('should return fallback for invalid keys', () => {
-        expect(keyToShutterSpeed(asShutterSpeedKey('invalid'))).toBe(1 / 125);
-        expect(keyToShutterSpeed(asShutterSpeedKey(''))).toBe(1 / 125);
-        expect(keyToShutterSpeed(asShutterSpeedKey('abc'))).toBe(1 / 125);
-      });
-    });
-
-    describe('bidirectional conversion', () => {
-      it('should roundtrip standard shutter speeds', () => {
-        STANDARD_SHUTTER_SPEEDS.forEach((standard) => {
-          const key = shutterSpeedToKey(standard.value);
-          const value = keyToShutterSpeed(key);
-          expect(value).toBeCloseTo(standard.value, 5);
-        });
-      });
-    });
   });
 
   describe('key/value converters - aperture', () => {
@@ -875,37 +822,6 @@ describe('camera exposure calculations', () => {
         expect(key).toBe('f/3.5');
       });
     });
-
-    describe('keyToAperture', () => {
-      it('should convert standard labels to apertures', () => {
-        expect(keyToAperture(asApertureKey('f/1.4'))).toBe(1.4);
-        expect(keyToAperture(asApertureKey('f/2.8'))).toBe(2.8);
-        expect(keyToAperture(asApertureKey('f/5.6'))).toBe(5.6);
-        expect(keyToAperture(asApertureKey('f/8'))).toBe(8);
-        expect(keyToAperture(asApertureKey('f/16'))).toBe(16);
-      });
-
-      it('should parse "f/X" format for non-standards', () => {
-        expect(keyToAperture(asApertureKey('f/3.5'))).toBe(3.5);
-        expect(keyToAperture(asApertureKey('f/6.3'))).toBe(6.3);
-      });
-
-      it('should return fallback for invalid keys', () => {
-        expect(keyToAperture(asApertureKey('invalid'))).toBe(8);
-        expect(keyToAperture(asApertureKey(''))).toBe(8);
-        expect(keyToAperture(asApertureKey('abc'))).toBe(8);
-      });
-    });
-
-    describe('bidirectional conversion', () => {
-      it('should roundtrip standard apertures', () => {
-        STANDARD_APERTURES.forEach((standard) => {
-          const key = apertureToKey(standard.value);
-          const value = keyToAperture(key);
-          expect(value).toBe(standard.value);
-        });
-      });
-    });
   });
 
   describe('key/value converters - ISO', () => {
@@ -915,33 +831,6 @@ describe('camera exposure calculations', () => {
         expect(isoToKey(400)).toBe('ISO 400');
         expect(isoToKey(1600)).toBe('ISO 1600');
         expect(isoToKey(3200)).toBe('ISO 3200');
-      });
-    });
-
-    describe('keyToISO', () => {
-      it('should convert labeled keys to ISO values', () => {
-        expect(keyToISO(asISOKey('ISO 100'))).toBe(100);
-        expect(keyToISO(asISOKey('ISO 400'))).toBe(400);
-        expect(keyToISO(asISOKey('ISO 1600'))).toBe(1600);
-        expect(keyToISO(asISOKey('ISO 3200'))).toBe(3200);
-      });
-
-      it('should return fallback for invalid keys', () => {
-        expect(keyToISO(asISOKey('invalid'))).toBe(100);
-        expect(keyToISO(asISOKey(''))).toBe(100);
-        expect(keyToISO(asISOKey('abc'))).toBe(100);
-      });
-    });
-
-    describe('bidirectional conversion', () => {
-      it('should roundtrip ISO values', () => {
-        const isoValues = [25, 50, 100, 200, 400, 800, 1600, 3200, 6400];
-
-        isoValues.forEach((iso) => {
-          const key = isoToKey(iso);
-          const value = keyToISO(key);
-          expect(value).toBe(iso);
-        });
       });
     });
   });

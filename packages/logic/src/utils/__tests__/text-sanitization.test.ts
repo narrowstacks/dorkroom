@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  sanitizeRecipeName,
-  sanitizeRecipeNotes,
-  sanitizeText,
-} from '../text-sanitization';
+import { sanitizeRecipeName, sanitizeText } from '../text-sanitization';
 
 describe('text-sanitization', () => {
   describe('sanitizeText', () => {
@@ -201,59 +197,6 @@ describe('text-sanitization', () => {
 
     it('returns empty string for undefined', () => {
       const result = sanitizeRecipeName(undefined);
-      expect(result).toBe('');
-    });
-  });
-
-  describe('sanitizeRecipeNotes', () => {
-    it('sanitizes recipe notes with general rules', () => {
-      const input = 'These are notes <script>alert("xss")</script>';
-      const result = sanitizeRecipeNotes(input);
-      expect(result).not.toContain('<script>');
-      expect(result).toContain('These are notes');
-    });
-
-    it('respects max length of 2000 characters', () => {
-      const input = 'a'.repeat(3000);
-      const result = sanitizeRecipeNotes(input);
-      expect(result.length).toBeLessThanOrEqual(2003); // 2000 + '...'
-      expect(result).toContain('...');
-    });
-
-    it('allows more characters than recipe name', () => {
-      const input = 'Notes with @#$ special !@# characters %^&';
-      const result = sanitizeRecipeNotes(input);
-      // Should escape special chars but not remove them like recipe name does
-      expect(result).toContain('Notes');
-      expect(result).toContain('special');
-      expect(result).toContain('characters');
-    });
-
-    it('handles multiline notes', () => {
-      const input = 'Line 1\nLine 2\nLine 3';
-      const result = sanitizeRecipeNotes(input);
-      expect(result).toContain('Line 1');
-      expect(result).toContain('Line 2');
-      expect(result).toContain('Line 3');
-    });
-
-    it('removes XSS attempts in notes', () => {
-      const input =
-        'Notes about development.\n<img src=x onerror=alert("xss")>\nMore notes.';
-      const result = sanitizeRecipeNotes(input);
-      expect(result).not.toContain('<img');
-      expect(result).not.toContain('onerror=');
-      expect(result).toContain('Notes about development');
-      expect(result).toContain('More notes');
-    });
-
-    it('returns empty string for null', () => {
-      const result = sanitizeRecipeNotes(null);
-      expect(result).toBe('');
-    });
-
-    it('returns empty string for undefined', () => {
-      const result = sanitizeRecipeNotes(undefined);
       expect(result).toBe('');
     });
   });

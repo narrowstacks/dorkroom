@@ -3,11 +3,9 @@ import {
   bladeReadings,
   bordersFromGaps,
   calculateBladeThickness,
-  calculateOptimalMinBorder,
   clampOffsets,
   computePrintSize,
   findCenteringOffsets,
-  validatePrintFits,
 } from '../../utils/border-calculations';
 
 /**
@@ -225,14 +223,6 @@ describe('border-calculations: Edge Cases and Boundary Tests', () => {
       expect(result.printH).toBeLessThanOrEqual(12);
       expect(result.printW).toBeGreaterThan(0);
     });
-
-    it('should optimize border to snap to quarter-inch increments', () => {
-      const optimal = calculateOptimalMinBorder(8, 10, 3, 2, 0.6);
-
-      // Should prefer values divisible by 0.25
-      const remainder = optimal % 0.25;
-      expect(remainder).toBeCloseTo(0, 2);
-    });
   });
 
   describe('Offset Clamping Edge Cases', () => {
@@ -375,58 +365,6 @@ describe('border-calculations: Edge Cases and Boundary Tests', () => {
     });
   });
 
-  describe('Print Fit Validation', () => {
-    it('should validate print fits exactly on paper', () => {
-      expect(validatePrintFits(10, 10, 10, 10, 0, 0)).toBe(true);
-    });
-
-    it('should validate print fits with borders', () => {
-      expect(validatePrintFits(10, 10, 8, 8, 0, 0)).toBe(true);
-    });
-
-    it('should reject print too wide for paper', () => {
-      expect(validatePrintFits(10, 10, 12, 8, 0, 0)).toBe(false);
-    });
-
-    it('should reject print too tall for paper', () => {
-      expect(validatePrintFits(10, 10, 8, 12, 0, 0)).toBe(false);
-    });
-
-    it('should reject print with offset extending beyond left edge', () => {
-      expect(validatePrintFits(10, 10, 8, 8, -2, 0)).toBe(false);
-    });
-
-    it('should reject print with offset extending beyond right edge', () => {
-      expect(validatePrintFits(10, 10, 8, 8, 2, 0)).toBe(false);
-    });
-
-    it('should reject print with offset extending beyond top edge', () => {
-      expect(validatePrintFits(10, 10, 8, 8, 0, -2)).toBe(false);
-    });
-
-    it('should reject print with offset extending beyond bottom edge', () => {
-      expect(validatePrintFits(10, 10, 8, 8, 0, 2)).toBe(false);
-    });
-
-    it('should validate print at maximum valid offset (positive)', () => {
-      // Paper 10x10, print 8x8, max offset 1" each way
-      expect(validatePrintFits(10, 10, 8, 8, 1, 1)).toBe(true);
-    });
-
-    it('should validate print at maximum valid offset (negative)', () => {
-      expect(validatePrintFits(10, 10, 8, 8, -1, -1)).toBe(true);
-    });
-
-    it('should handle fractional dimensions and offsets', () => {
-      expect(validatePrintFits(10.5, 12.75, 8.25, 9.5, 0.125, 0.25)).toBe(true);
-    });
-
-    it('should reject barely-over-limit offset', () => {
-      // Paper 10x10, print 8x8, offset 1.01 just over limit
-      expect(validatePrintFits(10, 10, 8, 8, 1.01, 0)).toBe(false);
-    });
-  });
-
   describe('Easel Size Finding Edge Cases', () => {
     it('should find exact match for all standard paper sizes', () => {
       const standardSizes = [
@@ -532,47 +470,6 @@ describe('border-calculations: Edge Cases and Boundary Tests', () => {
     });
   });
 
-  describe('Optimal Border Calculation Edge Cases', () => {
-    it('should return start value when ratio height is zero', () => {
-      const result = calculateOptimalMinBorder(10, 10, 2, 0, 1);
-      expect(result).toBe(1);
-    });
-
-    it('should optimize border for common 3:2 ratio', () => {
-      const result = calculateOptimalMinBorder(8, 10, 3, 2, 0.6);
-
-      // Should snap to quarter-inch increment
-      expect(result % 0.25).toBeCloseTo(0, 2);
-    });
-
-    it('should handle very small start value', () => {
-      const result = calculateOptimalMinBorder(8, 10, 3, 2, 0.1);
-
-      expect(result).toBeGreaterThanOrEqual(0.01); // minimum allowed
-      expect(result).toBeLessThanOrEqual(0.6); // within search span
-    });
-
-    it('should handle large start value', () => {
-      const result = calculateOptimalMinBorder(20, 24, 3, 2, 5);
-
-      expect(result).toBeGreaterThanOrEqual(4.5);
-      expect(result).toBeLessThanOrEqual(5.5);
-    });
-
-    it('should handle square format (1:1)', () => {
-      const result = calculateOptimalMinBorder(10, 10, 1, 1, 1);
-
-      expect(result % 0.25).toBeCloseTo(0, 2);
-    });
-
-    it('should handle panoramic format (65:24)', () => {
-      const result = calculateOptimalMinBorder(24, 20, 65, 24, 1.5);
-
-      expect(result).toBeGreaterThan(1);
-      expect(result).toBeLessThan(2);
-    });
-  });
-
   describe('Physical Constraint Validation', () => {
     it('should ensure print never exceeds paper dimensions', () => {
       const testCases = [
@@ -628,48 +525,6 @@ describe('border-calculations: Edge Cases and Boundary Tests', () => {
       expect(readings.right).toBeGreaterThan(0);
       expect(readings.top).toBeGreaterThan(0);
       expect(readings.bottom).toBeGreaterThan(0);
-    });
-
-    it('should validate offset constraints for all paper sizes', () => {
-      const papers = [
-        [5, 7],
-        [8, 10],
-        [11, 14],
-        [16, 20],
-        [20, 24],
-      ] as const;
-
-      papers.forEach(([w, h]) => {
-        const printSize = computePrintSize(w, h, 3, 2, 0.5);
-
-        // Calculate max offset that keeps print on paper
-        const maxOffset = (w - printSize.printW) / 2;
-
-        // Offset at maximum should still fit
-        const fitsAtMax = validatePrintFits(
-          w,
-          h,
-          printSize.printW,
-          printSize.printH,
-          maxOffset,
-          0
-        );
-        expect(fitsAtMax).toBe(true);
-
-        // Offset slightly over should fail (if maxOffset > 0)
-        if (maxOffset > 0.01) {
-          expect(
-            validatePrintFits(
-              w,
-              h,
-              printSize.printW,
-              printSize.printH,
-              maxOffset + 0.1,
-              0
-            )
-          ).toBe(false);
-        }
-      });
     });
   });
 
