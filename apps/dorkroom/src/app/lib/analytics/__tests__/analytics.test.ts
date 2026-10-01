@@ -52,8 +52,10 @@ describe('event catalog', () => {
       // in that map is a member of AnalyticsValue, so each sample is already a
       // valid property bag. Object.entries only widens the key type.
       const bag = properties as Record<string, AnalyticsValue>;
-      expect(bag, `${name} loses data at the plan limit`).toEqual(properties);
-      expect(capEventProperties(bag)).toEqual(properties);
+      expect(
+        capEventProperties(bag),
+        `${name} loses data at the plan limit`
+      ).toEqual(properties);
     }
   });
 });

@@ -1,5 +1,4 @@
 import {
-  apiClient,
   DorkroomApiClient,
   fetchCombinations,
   fetchDevelopers,
@@ -591,12 +590,6 @@ describe('DorkroomApiClient', () => {
   });
 });
 
-describe('Default API Client', () => {
-  it('should provide a default client instance', () => {
-    expect(apiClient).toBeInstanceOf(DorkroomApiClient);
-  });
-});
-
 describe('Convenience Functions', () => {
   beforeEach(() => {
     mockFetch.mockClear();
@@ -679,13 +672,6 @@ describe('Data Transformation', () => {
 
   beforeEach(() => {
     client = new DorkroomApiClient({ baseUrl: 'https://test.api.com' });
-  });
-
-  it('should transform temperature correctly', () => {
-    // Test transformation logic
-    const tempC = 20;
-    const expectedF = Math.round((tempC * 9) / 5 + 32);
-    expect(expectedF).toBe(68);
   });
 
   it('should handle empty dilutions array', async () => {

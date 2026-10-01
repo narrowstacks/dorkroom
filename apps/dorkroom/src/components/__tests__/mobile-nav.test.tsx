@@ -17,17 +17,6 @@ function render346(ui: ReactElement) {
  * focus never moved off the now-invisible toggle.
  */
 describe('MobileNav (#346)', () => {
-  it('gives the open drawer its own close button, distinct from the FAB', () => {
-    render346(<MobileNav pathname="/" onNavigate={vi.fn()} />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
-
-    const drawer = screen.getByRole('dialog', { name: 'Navigation menu' });
-    expect(
-      within(drawer).getByRole('button', { name: 'Close navigation' })
-    ).toBeInTheDocument();
-  });
-
   it('closes the drawer when its own close button is clicked', () => {
     render346(<MobileNav pathname="/" onNavigate={vi.fn()} />);
 

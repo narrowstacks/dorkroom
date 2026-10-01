@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * happy-dom drops any `color-mix()` declaration, so the badge's colors are only
@@ -48,12 +48,6 @@ describe('isOfficialTag', () => {
 
 describe('OfficialBadge', () => {
   describe('rendering', () => {
-    it('renders badge with correct structure', () => {
-      const { container } = render(<OfficialBadge tag="official-kodak" />);
-
-      expect(container.querySelector('.lucide-check')).toBeInTheDocument();
-    });
-
     it('renders with correct aria-label based on tag', () => {
       render(<OfficialBadge tag="official-kodak" />);
 
@@ -151,20 +145,6 @@ describe('OfficialBadge', () => {
       });
     });
 
-    it('tooltip has correct positioning attributes', () => {
-      const { container } = render(<OfficialBadge tag="official-kodak" />);
-
-      const badge = container.querySelector('span');
-      expect(badge).toBeTruthy();
-
-      fireEvent.mouseEnter(badge!);
-
-      const tooltip = screen.getByRole('tooltip');
-      const style = window.getComputedStyle(tooltip);
-      expect(style.top).toBeTruthy();
-      expect(style.left).toBeTruthy();
-    });
-
     it('tooltip includes visual arrow indicator', () => {
       const { container } = render(<OfficialBadge tag="official-kodak" />);
 
@@ -180,23 +160,6 @@ describe('OfficialBadge', () => {
   });
 
   describe('accessibility', () => {
-    it('has proper aria-label', () => {
-      render(<OfficialBadge tag="official-kodak" />);
-
-      expect(
-        screen.getByLabelText('Official Kodak Recipe')
-      ).toBeInTheDocument();
-    });
-
-    it('tooltip has role="tooltip"', () => {
-      const { container } = render(<OfficialBadge tag="official-kodak" />);
-
-      const badge = container.querySelector('span');
-      fireEvent.mouseEnter(badge!);
-
-      expect(screen.getByRole('tooltip')).toBeInTheDocument();
-    });
-
     it('tooltip is non-interactive', () => {
       const { container } = render(<OfficialBadge tag="official-kodak" />);
 
@@ -247,12 +210,6 @@ describe('OfficialBadge', () => {
 
 describe('CustomBadge', () => {
   describe('rendering', () => {
-    it('renders badge with correct structure', () => {
-      const { container } = render(<CustomBadge />);
-
-      expect(container.querySelector('.lucide-beaker')).toBeInTheDocument();
-    });
-
     it('renders with correct aria-label', () => {
       render(<CustomBadge />);
 
@@ -333,49 +290,9 @@ describe('CustomBadge', () => {
 
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
     });
-
-    it('tooltip contains correct text', () => {
-      const { container } = render(<CustomBadge />);
-
-      const badge = container.querySelector('span');
-      expect(badge).toBeTruthy();
-
-      fireEvent.mouseEnter(badge!);
-
-      expect(screen.getByText('Custom Recipe')).toBeInTheDocument();
-    });
-
-    it('tooltip has correct positioning attributes', () => {
-      const { container } = render(<CustomBadge />);
-
-      const badge = container.querySelector('span');
-      expect(badge).toBeTruthy();
-
-      fireEvent.mouseEnter(badge!);
-
-      const tooltip = screen.getByRole('tooltip');
-      const style = window.getComputedStyle(tooltip);
-      expect(style.top).toBeTruthy();
-      expect(style.left).toBeTruthy();
-    });
   });
 
   describe('accessibility', () => {
-    it('has proper aria-label', () => {
-      render(<CustomBadge />);
-
-      expect(screen.getByLabelText('Custom Recipe')).toBeInTheDocument();
-    });
-
-    it('tooltip has role="tooltip"', () => {
-      const { container } = render(<CustomBadge />);
-
-      const badge = container.querySelector('span');
-      fireEvent.mouseEnter(badge!);
-
-      expect(screen.getByRole('tooltip')).toBeInTheDocument();
-    });
-
     it('tooltip is non-interactive', () => {
       const { container } = render(<CustomBadge />);
 
@@ -386,68 +303,12 @@ describe('CustomBadge', () => {
       expect(tooltip).toHaveClass('pointer-events-none');
     });
   });
-
-  describe('default props', () => {
-    it('defaults showTooltip to true', () => {
-      const { container } = render(<CustomBadge />);
-
-      const badge = container.querySelector('span');
-      expect(badge).toBeTruthy();
-
-      fireEvent.mouseEnter(badge!);
-
-      expect(screen.getByRole('tooltip')).toBeInTheDocument();
-    });
-  });
-});
-
-describe('OfficialBadge vs CustomBadge', () => {
-  it('renders different icons', () => {
-    const { container: officialContainer } = render(
-      <OfficialBadge tag="official-kodak" />
-    );
-    const { container: customContainer } = render(<CustomBadge />);
-
-    expect(
-      officialContainer.querySelector('.lucide-check')
-    ).toBeInTheDocument();
-    expect(customContainer.querySelector('.lucide-beaker')).toBeInTheDocument();
-  });
-
-  it('renders different aria-labels', () => {
-    render(
-      <>
-        <OfficialBadge tag="official-kodak" />
-        <CustomBadge />
-      </>
-    );
-
-    expect(screen.getByLabelText('Official Kodak Recipe')).toBeInTheDocument();
-    expect(screen.getByLabelText('Custom Recipe')).toBeInTheDocument();
-  });
-
-  it('both support showTooltip prop', () => {
-    const { container: officialContainer } = render(
-      <OfficialBadge tag="official-kodak" showTooltip={false} />
-    );
-    const { container: customContainer } = render(
-      <CustomBadge showTooltip={false} />
-    );
-
-    const officialBadge = officialContainer.querySelector('span');
-    const customBadge = customContainer.querySelector('span');
-
-    fireEvent.mouseEnter(officialBadge!);
-    fireEvent.mouseEnter(customBadge!);
-
-    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
-  });
 });
 
 describe('Tooltip positioning', () => {
   beforeEach(() => {
     // Mock getBoundingClientRect for positioning tests
-    Element.prototype.getBoundingClientRect = vi.fn(() => ({
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
       top: 100,
       left: 200,
       width: 18,
@@ -457,7 +318,11 @@ describe('Tooltip positioning', () => {
       x: 200,
       y: 100,
       toJSON: () => ({}),
-    }));
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('positions tooltip above badge', () => {

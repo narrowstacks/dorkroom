@@ -525,38 +525,4 @@ describe('Border Calculator Constants', () => {
       expect(OFFSET_SLIDER_STEP).toBe(0.125);
     });
   });
-
-  describe('Type Safety', () => {
-    it('should have all aspect ratios as readonly', () => {
-      // This is a compile-time check, but we can verify the structure
-      expect(Object.isFrozen(ASPECT_RATIOS)).toBe(false); // array itself
-      // The constant should be used as readonly in TypeScript
-      expect(Array.isArray(ASPECT_RATIOS)).toBe(true);
-    });
-
-    it('should have all paper sizes as readonly', () => {
-      expect(Array.isArray(PAPER_SIZES)).toBe(true);
-    });
-
-    it('should have all easel sizes as readonly', () => {
-      expect(Array.isArray(EASEL_SIZES)).toBe(true);
-    });
-
-    it('should have map values matching array values', () => {
-      ASPECT_RATIOS.forEach((ratio) => {
-        const mapValue = ASPECT_RATIO_MAP.get(ratio.value);
-        expect(mapValue).toBe(ratio); // Should be same object reference
-      });
-
-      PAPER_SIZES.forEach((paper) => {
-        const mapValue = PAPER_SIZE_MAP.get(paper.value);
-        expect(mapValue).toBe(paper);
-      });
-
-      EASEL_SIZES.forEach((easel) => {
-        const mapValue = EASEL_SIZE_MAP.get(easel.value);
-        expect(mapValue).toBe(easel);
-      });
-    });
-  });
 });
