@@ -2,12 +2,10 @@ import {
   bladeReadings,
   bordersFromGaps,
   calculateBladeThickness,
-  calculateOptimalMinBorder,
   calculateQuarterInchMinBorder,
   clampOffsets,
   computePrintSize,
   findCenteringOffsets,
-  validatePrintFits,
 } from '../../utils/border-calculations';
 
 describe('border calculations', () => {
@@ -99,31 +97,6 @@ describe('border calculations', () => {
     it('should handle negative dimensions gracefully', () => {
       expect(calculateBladeThickness(-5, 10)).toBe(15);
       expect(calculateBladeThickness(5, -10)).toBe(15);
-    });
-  });
-
-  describe('calculateOptimalMinBorder', () => {
-    it('should return start value when ratio height is zero', () => {
-      expect(calculateOptimalMinBorder(10, 10, 2, 0, 1)).toBe(1);
-    });
-
-    it('should find border that snaps to quarter increments', () => {
-      const result = calculateOptimalMinBorder(8, 10, 3, 2, 0.6);
-      // Should prefer values that divide evenly by 0.25
-      expect(result % 0.25).toBeCloseTo(0, 2);
-    });
-
-    it('should stay within search span', () => {
-      const start = 1;
-      const result = calculateOptimalMinBorder(8, 10, 3, 2, start);
-      expect(result).toBeGreaterThanOrEqual(start - 0.5);
-      expect(result).toBeLessThanOrEqual(start + 0.5);
-    });
-
-    it('should handle edge cases', () => {
-      expect(calculateOptimalMinBorder(1, 1, 1, 1, 0.5)).toBeGreaterThanOrEqual(
-        0.01
-      );
     });
   });
 
@@ -266,30 +239,6 @@ describe('border calculations', () => {
       expect(result.right).toBe(5.5); // 6 + 2*(-0.25)
       expect(result.top).toBe(4.25); // 4 - 2*(-0.125)
       expect(result.bottom).toBe(3.75); // 4 + 2*(-0.125)
-    });
-  });
-
-  describe('validatePrintFits', () => {
-    it('should return true when print fits on paper', () => {
-      expect(validatePrintFits(10, 8, 6, 4, 0, 0)).toBe(true);
-      expect(validatePrintFits(10, 8, 6, 4, 1, 1)).toBe(true);
-    });
-
-    it('should return false when print extends beyond paper', () => {
-      expect(validatePrintFits(10, 8, 12, 4, 0, 0)).toBe(false); // too wide
-      expect(validatePrintFits(10, 8, 6, 10, 0, 0)).toBe(false); // too tall
-      expect(validatePrintFits(10, 8, 6, 4, 3, 0)).toBe(false); // offset too large
-      expect(validatePrintFits(10, 8, 6, 4, 0, 3)).toBe(false); // offset too large
-    });
-
-    it('should handle edge cases', () => {
-      expect(validatePrintFits(10, 8, 10, 8, 0, 0)).toBe(true); // exact fit
-      expect(validatePrintFits(10, 8, 10, 8, 0.1, 0)).toBe(false); // barely over
-    });
-
-    it('should handle negative offsets', () => {
-      expect(validatePrintFits(10, 8, 6, 4, -1, -1)).toBe(true);
-      expect(validatePrintFits(10, 8, 6, 4, -3, 0)).toBe(false); // negative offset too large
     });
   });
 

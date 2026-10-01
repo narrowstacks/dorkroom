@@ -46,28 +46,6 @@ export const isMobileDevice = (): boolean => {
 };
 
 /**
- * Detects if the device is specifically an iOS device (iPhone, iPad, or iPod).
- *
- * @returns True if the device is running iOS, false otherwise
- *
- * @example
- * ```typescript
- * if (isIOS()) {
- *   // Apply iOS-specific styling or behavior
- *   document.body.classList.add('ios-device');
- * }
- * ```
- */
-export const isIOS = (): boolean => {
-  if (globalThis.window === undefined || window.navigator === undefined) {
-    return false;
-  }
-
-  const userAgent = window.navigator.userAgent ?? '';
-  return /iPad|iPhone|iPod/.test(userAgent);
-};
-
-/**
  * Determines if the Web Share API is available and should be used.
  * Returns true for mobile devices with Web Share API support, combining
  * API availability with mobile device detection for optimal UX.

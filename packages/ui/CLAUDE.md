@@ -89,7 +89,7 @@ disagrees, prefer the scale for new code; don't mass-refactor.
 
 | Element | Class |
 |---|---|
-| Cards (ToolCard, StatCard, CalculatorCard) | `rounded-2xl` |
+| Cards (ToolCard, CalculatorCard) | `rounded-2xl` |
 | Buttons, inputs, icon tiles | `rounded-xl` |
 | Badges, tags, small controls | `rounded-lg` |
 | Modals, dialogs | `rounded-2xl` |

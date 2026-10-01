@@ -17,7 +17,6 @@ import {
   type SolveFor,
   type StandardValue,
 } from '../types/camera-exposure-calculator';
-import { debugWarn } from './debug-logger';
 import { roundToPrecision } from './precision';
 
 // Practical shutter speed limits for camera bodies
@@ -357,35 +356,6 @@ export const shutterSpeedToKey = (seconds: number): ShutterSpeedKey => {
 };
 
 /**
- * Converts a shutter speed Select key back to a numeric value.
- *
- * Fallback: returns 1/125s if the key can't be parsed. This is safe because
- * keys only come from Select components with predefined options — an unparseable
- * key indicates corrupted localStorage or a programming error, not user input.
- * The debugWarn alerts developers during development without crashing the UI.
- */
-export const keyToShutterSpeed = (key: ShutterSpeedKey): number => {
-  const match = STANDARD_SHUTTER_SPEEDS.find((s) => s.label === key);
-  if (match) return match.value;
-
-  // Try parsing "1/X" format
-  if (key.startsWith('1/')) {
-    const denom = Number(key.slice(2));
-    if (Number.isFinite(denom) && denom > 0) return 1 / denom;
-  }
-
-  // Try parsing seconds with quote mark
-  const withoutQuote = key.replaceAll('"', '');
-  const parsed = Number(withoutQuote);
-  if (Number.isFinite(parsed) && parsed > 0) return parsed;
-
-  debugWarn(
-    `keyToShutterSpeed: unrecognized key "${key}", using fallback 1/125`
-  );
-  return 1 / 125;
-};
-
-/**
  * Converts an aperture value to a Select-compatible string key.
  */
 export const apertureToKey = (fNumber: number): ApertureKey => {
@@ -396,45 +366,8 @@ export const apertureToKey = (fNumber: number): ApertureKey => {
 };
 
 /**
- * Converts an aperture Select key back to a numeric value.
- *
- * Fallback: returns f/8 if the key can't be parsed. This is safe because
- * keys only come from Select components with predefined options — an unparseable
- * key indicates corrupted localStorage or a programming error, not user input.
- * The debugWarn alerts developers during development without crashing the UI.
- */
-export const keyToAperture = (key: ApertureKey): number => {
-  const match = STANDARD_APERTURES.find((a) => a.label === key);
-  if (match) return match.value;
-
-  // Try parsing "f/X" format
-  const withoutF = key.replace('f/', '');
-  const parsed = Number(withoutF);
-  if (Number.isFinite(parsed) && parsed > 0) return parsed;
-
-  debugWarn(`keyToAperture: unrecognized key "${key}", using fallback f/8`);
-  return 8;
-};
-
-/**
  * Converts an ISO value to a Select-compatible string key.
  */
 export const isoToKey = (iso: number): ISOKey => {
   return asISOKey(`ISO ${iso}`);
-};
-
-/**
- * Converts an ISO Select key back to a numeric value.
- *
- * Fallback: returns ISO 100 if the key can't be parsed. This is safe because
- * keys only come from Select components with predefined options — an unparseable
- * key indicates corrupted localStorage or a programming error, not user input.
- * The debugWarn alerts developers during development without crashing the UI.
- */
-export const keyToISO = (key: ISOKey): number => {
-  const withoutISO = key.replace('ISO ', '');
-  const parsed = Number(withoutISO);
-  if (Number.isFinite(parsed) && parsed > 0) return parsed;
-  debugWarn(`keyToISO: unrecognized key "${key}", using fallback ISO 100`);
-  return 100;
 };

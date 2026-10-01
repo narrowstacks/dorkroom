@@ -175,25 +175,6 @@ export function clearPresetFromUrl(): void {
 }
 
 /**
- * Checks if the current environment supports the Web Share API.
- * Used to determine if native sharing UI is available.
- *
- * @public
- * @returns True if Web Share API is supported, false otherwise
- * @example
- * ```typescript
- * if (isWebShareSupported()) {
- *   navigator.share({ title: 'My Preset', url: shareUrl });
- * } else {
- *   // Fall back to copy to clipboard
- * }
- * ```
- */
-export function isWebShareSupported(): boolean {
-  return globalThis.navigator !== undefined && 'share' in navigator;
-}
-
-/**
  * Checks if the current environment supports the Clipboard API.
  * Used to determine if copy-to-clipboard functionality is available.
  *
@@ -244,30 +225,5 @@ export function isFilmDevOrgUrl(value: string | null | undefined): boolean {
     return hostname === 'filmdev.org' || hostname.endsWith('.filmdev.org');
   } catch {
     return false;
-  }
-}
-
-/**
- * Gets a user-friendly URL for display purposes by removing the protocol.
- * Creates cleaner URLs for UI display while preserving path and hash.
- *
- * @public
- * @param url - Full URL to make display-friendly
- * @returns URL without protocol, or original string if parsing fails
- * @example
- * ```typescript
- * const displayUrl = getDisplayUrl('https://beta.dorkroom.art/border?preset=abc123');
- * console.log(displayUrl); // 'beta.dorkroom.art/border?preset=abc123'
- *
- * const invalid = getDisplayUrl('not-a-url');
- * console.log(invalid); // 'not-a-url'
- * ```
- */
-export function getDisplayUrl(url: string): string {
-  try {
-    const urlObj = new URL(url);
-    return urlObj.host + urlObj.pathname + urlObj.search + urlObj.hash;
-  } catch {
-    return url;
   }
 }

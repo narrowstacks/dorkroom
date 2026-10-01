@@ -1,11 +1,9 @@
 import {
   clearPresetFromUrl,
   generateSharingUrls,
-  getDisplayUrl,
   getDynamicShareUrl,
   getPresetFromUrl,
   isClipboardSupported,
-  isWebShareSupported,
   updateUrlWithPreset,
 } from '../../utils/url-helpers';
 
@@ -181,26 +179,6 @@ describe('url helpers', () => {
     });
   });
 
-  describe('isWebShareSupported', () => {
-    it('should return true when navigator.share exists', () => {
-      vi.stubGlobal('navigator', { share: vi.fn() });
-
-      expect(isWebShareSupported()).toBe(true);
-    });
-
-    it('should return false when navigator does not exist', () => {
-      vi.stubGlobal('navigator', undefined);
-
-      expect(isWebShareSupported()).toBe(false);
-    });
-
-    it('should return false when navigator.share does not exist', () => {
-      vi.stubGlobal('navigator', {});
-
-      expect(isWebShareSupported()).toBe(false);
-    });
-  });
-
   describe('isClipboardSupported', () => {
     it('should return true when navigator.clipboard.writeText exists', () => {
       vi.stubGlobal('navigator', { clipboard: { writeText: vi.fn() } });
@@ -224,41 +202,6 @@ describe('url helpers', () => {
       vi.stubGlobal('navigator', { clipboard: {} });
 
       expect(isClipboardSupported()).toBe(false);
-    });
-  });
-
-  describe('getDisplayUrl', () => {
-    it('should remove protocol from valid URLs', () => {
-      const url = 'https://dorkroom.art/border?test=1#preset';
-      const display = getDisplayUrl(url);
-      expect(display).toBe('dorkroom.art/border?test=1#preset');
-    });
-
-    it('should handle URLs with port numbers', () => {
-      const url = 'http://localhost:4200/border';
-      const display = getDisplayUrl(url);
-      expect(display).toBe('localhost:4200/border');
-    });
-
-    it('should return original string for invalid URLs', () => {
-      const invalid = 'not-a-url';
-      const display = getDisplayUrl(invalid);
-      expect(display).toBe('not-a-url');
-    });
-
-    it('should handle URLs without path', () => {
-      const url = 'https://example.com';
-      const display = getDisplayUrl(url);
-      expect(display).toBe('example.com/');
-    });
-
-    it('should handle complex URLs', () => {
-      const url =
-        'https://subdomain.example.com:8080/path/to/resource?query=value&other=param#fragment';
-      const display = getDisplayUrl(url);
-      expect(display).toBe(
-        'subdomain.example.com:8080/path/to/resource?query=value&other=param#fragment'
-      );
     });
   });
 });

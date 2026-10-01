@@ -91,17 +91,6 @@ export function sanitizeRecipeName(name: string | undefined | null): string {
   return sanitized.replace(/[^a-zA-Z0-9\s\-_.()&,]/g, '');
 }
 
-/**
- * Sanitize recipe notes/description field.
- * Allows more flexibility than recipe names but still safe.
- *
- * @param notes - Recipe notes to sanitize
- * @returns Sanitized notes
- */
-export function sanitizeRecipeNotes(notes: string | undefined | null): string {
-  return sanitizeText(notes, 2000);
-}
-
 // Import types for type-safe sanitization
 import type {
   CustomDeveloperData,

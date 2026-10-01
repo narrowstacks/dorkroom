@@ -2,7 +2,6 @@ import type { Film } from '@dorkroom/api';
 import { describe, expect, it } from 'vitest';
 import {
   createFilmSearcher,
-  getMatchHighlights,
   matchesSearchQuery,
   searchFilms,
 } from '../fuzzy-search';
@@ -319,78 +318,6 @@ describe('fuzzy-search', () => {
 
         expect(results.length).toBeGreaterThan(0);
         expect(results[0].item.name).toBe('HP5 Plus');
-      });
-    });
-  });
-
-  describe('getMatchHighlights', () => {
-    it('should extract match information correctly for brand match', () => {
-      const results = searchFilms(mockFilms, 'kodak');
-      expect(results.length).toBeGreaterThan(0);
-
-      const highlights = getMatchHighlights(results[0]);
-
-      expect(highlights.length).toBeGreaterThan(0);
-      // Should have highlighted the brand field
-      const brandHighlight = highlights.find((h) => h.key === 'brand');
-      expect(brandHighlight).toBeDefined();
-      expect(brandHighlight?.value).toBe('kodak');
-      expect(brandHighlight?.indices).toBeDefined();
-      expect(brandHighlight?.indices.length).toBeGreaterThan(0);
-    });
-
-    it('should extract match information correctly for name match', () => {
-      const results = searchFilms(mockFilms, 'tri-x');
-      expect(results.length).toBeGreaterThan(0);
-
-      const highlights = getMatchHighlights(results[0]);
-
-      expect(highlights.length).toBeGreaterThan(0);
-      // Should have highlighted the name field
-      const nameHighlight = highlights.find((h) => h.key === 'name');
-      expect(nameHighlight).toBeDefined();
-    });
-
-    it('should return empty array when no matches available', () => {
-      const results = searchFilms(mockFilms, 'kodak');
-      expect(results.length).toBeGreaterThan(0);
-
-      // Create a result without matches
-      const resultWithoutMatches = { ...results[0], matches: undefined };
-      const highlights = getMatchHighlights(resultWithoutMatches);
-
-      expect(highlights).toEqual([]);
-    });
-
-    it('should handle multiple field matches', () => {
-      const results = searchFilms(mockFilms, 'kodak portra');
-      expect(results.length).toBeGreaterThan(0);
-
-      const highlights = getMatchHighlights(results[0]);
-
-      // Should have highlights for multiple fields
-      expect(highlights.length).toBeGreaterThan(0);
-    });
-
-    it('should include valid indices for highlighting UI', () => {
-      const results = searchFilms(mockFilms, 'ilford');
-      expect(results.length).toBeGreaterThan(0);
-
-      const highlights = getMatchHighlights(results[0]);
-      expect(highlights.length).toBeGreaterThan(0);
-
-      highlights.forEach((highlight) => {
-        // Highlights can only name an indexed search key
-        expect(['name', 'brand', 'colorType', 'aliases']).toContain(
-          highlight.key
-        );
-        expect(highlight.value.length).toBeGreaterThan(0);
-        // Each index is a [start, end] range inside the matched value
-        highlight.indices.forEach(([start, end]) => {
-          expect(start).toBeGreaterThanOrEqual(0);
-          expect(start).toBeLessThanOrEqual(end);
-          expect(end).toBeLessThan(highlight.value.length);
-        });
       });
     });
   });
