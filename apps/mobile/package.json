@@ -43,7 +43,7 @@
     "expo-status-bar": "~57.0.1",
     "expo-symbols": "~57.0.2",
     "lucide-react-native": "^1.18.0",
-    "nativewind": "^4.2.6",
+    "nativewind": "^4.2.7",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.86.2",
