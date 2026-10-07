@@ -98,8 +98,8 @@ export function PresetsSection() {
               disabled={!presetName}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-110"
               style={{
-                color: 'var(--color-primary)',
-                borderColor: 'var(--color-primary)',
+                color: 'var(--color-brand)',
+                borderColor: 'var(--color-brand)',
                 borderWidth: 1,
                 backgroundColor: 'rgba(var(--color-background-rgb), 0.06)',
               }}

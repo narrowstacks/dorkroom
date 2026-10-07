@@ -256,7 +256,7 @@ export function CollapsibleFilters({
                     aria-label="Favorites only"
                     checked={favoritesOnly}
                     onChange={(e) => onFavoritesOnlyChange(e.target.checked)}
-                    style={{ accentColor: 'var(--color-primary)' }}
+                    style={{ accentColor: 'var(--color-brand)' }}
                   />
                   Favorites only
                 </label>

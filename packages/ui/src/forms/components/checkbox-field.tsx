@@ -72,7 +72,7 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
             className
           )}
           style={{
-            accentColor: 'var(--color-primary)',
+            accentColor: 'var(--color-brand)',
             borderColor: showErrors
               ? 'var(--color-semantic-error)'
               : 'var(--color-border-primary)',

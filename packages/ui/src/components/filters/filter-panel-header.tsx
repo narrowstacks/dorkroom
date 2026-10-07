@@ -25,7 +25,7 @@ export const FilterPanelHeader: FC<FilterPanelHeaderProps> = ({
         <div
           className="flex size-8 items-center justify-center rounded-lg darkroom-invert-icon"
           style={{
-            backgroundColor: 'var(--color-primary)',
+            backgroundColor: 'var(--color-brand)',
             color: 'var(--color-background)',
           }}
         >

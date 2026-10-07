@@ -110,7 +110,7 @@ describe('ConfirmModal', () => {
       render(<ConfirmModal {...defaultProps} />);
 
       const confirm = screen.getByRole('button', { name: 'Confirm' });
-      expect(confirm.style.backgroundColor).toBe('var(--color-primary)');
+      expect(confirm.style.backgroundColor).toBe('var(--color-brand)');
     });
 
     it('fills with the error token for a destructive action', () => {

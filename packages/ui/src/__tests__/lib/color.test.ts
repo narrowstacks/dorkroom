@@ -19,10 +19,8 @@ describe('color utilities', () => {
       });
 
       const { colorMixOr } = await import('../../lib/color');
-      const result = colorMixOr('var(--color-primary)', 50, 'white');
-      expect(result).toBe(
-        'color-mix(in srgb, var(--color-primary) 50%, white)'
-      );
+      const result = colorMixOr('var(--color-brand)', 50, 'white');
+      expect(result).toBe('color-mix(in srgb, var(--color-brand) 50%, white)');
     });
 
     it('uses default transparent for second color', async () => {
@@ -32,9 +30,9 @@ describe('color utilities', () => {
       });
 
       const { colorMixOr } = await import('../../lib/color');
-      const result = colorMixOr('var(--color-primary)', 75);
+      const result = colorMixOr('var(--color-brand)', 75);
       expect(result).toBe(
-        'color-mix(in srgb, var(--color-primary) 75%, transparent)'
+        'color-mix(in srgb, var(--color-brand) 75%, transparent)'
       );
     });
 
@@ -45,7 +43,7 @@ describe('color utilities', () => {
       });
 
       const { colorMixOr } = await import('../../lib/color');
-      const result = colorMixOr('var(--color-primary)', 50, 'white', 'red');
+      const result = colorMixOr('var(--color-brand)', 50, 'white', 'red');
       expect(result).toBe('red');
     });
 
@@ -56,8 +54,8 @@ describe('color utilities', () => {
       });
 
       const { colorMixOr } = await import('../../lib/color');
-      const result = colorMixOr('var(--color-primary)', 50, 'white');
-      expect(result).toBe('var(--color-primary)');
+      const result = colorMixOr('var(--color-brand)', 50, 'white');
+      expect(result).toBe('var(--color-brand)');
     });
 
     it('handles edge cases with percentages', async () => {

@@ -154,7 +154,7 @@
     background-color: rgba(var(--color-background-rgb), 0.18);
   }
   [data-theme="light"] .text-emerald-300 {
-    color: var(--color-primary);
+    color: var(--color-brand);
   }
 
   /* Gradient utility classes for easier component usage */
@@ -183,50 +183,6 @@
     background: var(--gradient-card-error);
   }
 
-  /* Custom text color utilities */
-  .text-primary {
-    color: var(--color-text-primary);
-  }
-  .text-secondary {
-    color: var(--color-text-secondary);
-  }
-  .text-tertiary {
-    color: var(--color-text-tertiary);
-  }
-  .text-muted {
-    color: var(--color-text-muted);
-  }
-
-  /* Custom background utilities */
-  .bg-border-muted {
-    background-color: var(--color-border-muted);
-  }
-  .bg-border-secondary {
-    background-color: var(--color-border-secondary);
-  }
-
-  /* Custom border utilities */
-  .border-secondary {
-    border-color: var(--color-border-secondary);
-  }
-  .border-primary {
-    border-color: var(--color-border-primary);
-  }
-  .border-muted {
-    border-color: var(--color-border-muted);
-  }
-
-  /* Theme-aware surface backgrounds */
-  .bg-surface {
-    background-color: var(--color-surface);
-  }
-  .bg-surface-muted {
-    background-color: var(--color-surface-muted);
-  }
-  .bg-background {
-    background-color: var(--color-background);
-  }
-
   /* Themed input pattern - for calculator inputs */
   .themed-input {
     background-color: var(--color-surface);
@@ -242,55 +198,6 @@
   }
   .themed-button:hover {
     background-color: var(--color-surface-muted);
-  }
-
-  /* Custom error color utilities */
-  .text-error {
-    color: var(--color-semantic-error);
-  }
-  /* Provide fallbacks, then enhance with color-mix when supported */
-  .bg-error\/10 {
-    background-color: var(--color-border-muted);
-  }
-  .bg-error\/20 {
-    background-color: var(--color-border-secondary);
-  }
-  .text-error\/80 {
-    color: var(--color-semantic-error);
-  }
-  .text-error\/90 {
-    color: var(--color-semantic-error);
-  }
-
-  @supports (color: color-mix(in srgb, red 50%, white)) {
-    .bg-error\/10 {
-      background-color: color-mix(
-        in srgb,
-        var(--color-semantic-error) 10%,
-        transparent
-      );
-    }
-    .bg-error\/20 {
-      background-color: color-mix(
-        in srgb,
-        var(--color-semantic-error) 20%,
-        transparent
-      );
-    }
-    .text-error\/80 {
-      color: color-mix(
-        in srgb,
-        var(--color-semantic-error) 80%,
-        var(--color-text-primary)
-      );
-    }
-    .text-error\/90 {
-      color: color-mix(
-        in srgb,
-        var(--color-semantic-error) 90%,
-        var(--color-text-primary)
-      );
-    }
   }
 
   /* CSS-based hover states to avoid JS style mutations and synchronous reflows */

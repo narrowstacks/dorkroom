@@ -225,7 +225,7 @@
     height: 8px;
     background: var(--color-border-secondary);
     border-radius: 4px;
-    accent-color: var(--color-primary);
+    accent-color: var(--color-brand);
     touch-action: none;
   }
 
@@ -249,7 +249,7 @@
 
   /* Firefox progress (filled) portion */
   .slider-track::-moz-range-progress {
-    background: var(--color-primary);
+    background: var(--color-brand);
     height: 8px;
     border-radius: 4px;
   }
@@ -331,7 +331,7 @@
     height: 8px;
     border-radius: 0;
     position: relative;
-    accent-color: var(--color-primary);
+    accent-color: var(--color-brand);
   }
 
   [data-theme="darkroom"] .slider-track::before {
@@ -344,8 +344,8 @@
     transform: translateY(-50%);
     background-image: repeating-linear-gradient(
       to right,
-      var(--color-primary) 0px,
-      var(--color-primary) 8px,
+      var(--color-brand) 0px,
+      var(--color-brand) 8px,
       transparent 8px,
       transparent 16px
     );
@@ -366,13 +366,13 @@
   }
 
   [data-theme="darkroom"] .slider-track::-webkit-slider-thumb {
-    background: var(--color-primary);
+    background: var(--color-brand);
     position: relative;
     z-index: 2;
   }
 
   [data-theme="darkroom"] .slider-track::-moz-range-thumb {
-    background: var(--color-primary);
+    background: var(--color-brand);
     position: relative;
     z-index: 2;
   }
@@ -380,28 +380,28 @@
   /* Stronger affordance in darkroom theme */
   [data-theme="darkroom"] .slider-track::-webkit-slider-thumb:hover,
   [data-theme="darkroom"] .slider-track:active::-webkit-slider-thumb {
-    box-shadow: 0 0 0 3px var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-brand);
   }
   [data-theme="darkroom"] .slider-track::-moz-range-thumb:hover,
   [data-theme="darkroom"] .slider-track:active::-moz-range-thumb {
-    box-shadow: 0 0 0 3px var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-brand);
   }
 
   @supports (color: color-mix(in srgb, red 50%, white)) {
     [data-theme="darkroom"] .slider-track::-webkit-slider-thumb:hover,
     [data-theme="darkroom"] .slider-track:active::-webkit-slider-thumb {
       box-shadow: 0 0 0 3px
-        color-mix(in srgb, var(--color-primary) 35%, transparent);
+        color-mix(in srgb, var(--color-brand) 35%, transparent);
     }
     [data-theme="darkroom"] .slider-track::-moz-range-thumb:hover,
     [data-theme="darkroom"] .slider-track:active::-moz-range-thumb {
       box-shadow: 0 0 0 3px
-        color-mix(in srgb, var(--color-primary) 35%, transparent);
+        color-mix(in srgb, var(--color-brand) 35%, transparent);
     }
   }
 
   [data-theme="darkroom"] .slider-track:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--color-brand);
     outline-offset: 2px;
   }
 
@@ -411,7 +411,7 @@
     height: 8px;
     border-radius: 0;
     position: relative;
-    accent-color: var(--color-primary);
+    accent-color: var(--color-brand);
   }
 
   [data-theme="high-contrast"] .slider-track::before {
@@ -424,8 +424,8 @@
     transform: translateY(-50%);
     background-image: repeating-linear-gradient(
       to right,
-      var(--color-primary) 0px,
-      var(--color-primary) 8px,
+      var(--color-brand) 0px,
+      var(--color-brand) 8px,
       transparent 8px,
       transparent 16px
     );
@@ -446,28 +446,28 @@
   }
 
   [data-theme="high-contrast"] .slider-track::-webkit-slider-thumb {
-    background: var(--color-primary);
+    background: var(--color-brand);
     position: relative;
     z-index: 2;
   }
 
   [data-theme="high-contrast"] .slider-track::-moz-range-thumb {
-    background: var(--color-primary);
+    background: var(--color-brand);
     position: relative;
     z-index: 2;
   }
 
   [data-theme="high-contrast"] .slider-track::-webkit-slider-thumb:hover,
   [data-theme="high-contrast"] .slider-track:active::-webkit-slider-thumb {
-    box-shadow: 0 0 0 3px var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-brand);
   }
   [data-theme="high-contrast"] .slider-track::-moz-range-thumb:hover,
   [data-theme="high-contrast"] .slider-track:active::-moz-range-thumb {
-    box-shadow: 0 0 0 3px var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-brand);
   }
 
   [data-theme="high-contrast"] .slider-track:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--color-brand);
     outline-offset: 2px;
   }
 
@@ -490,7 +490,7 @@
   [data-theme="high-contrast"] main a[href*="/exposure"],
   [data-theme="high-contrast"] main a[href*="/reciprocity"],
   [data-theme="high-contrast"] main a[href*="/development"] {
-    border: 2px solid var(--color-primary);
+    border: 2px solid var(--color-brand);
   }
 
   /* Calculator buttons with red borders in darkroom theme - only on home page.
@@ -503,7 +503,7 @@
   [data-theme="darkroom"] main a[href*="/exposure"],
   [data-theme="darkroom"] main a[href*="/reciprocity"],
   [data-theme="darkroom"] main a[href*="/development"] {
-    border: 2px solid var(--color-primary);
+    border: 2px solid var(--color-brand);
   }
 
   /* Home page CTA buttons */

@@ -52,9 +52,9 @@ function PresetRow({ outerW, outerH, onSelect }: PresetRowProps) {
             className="rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors"
             style={{
               borderColor: active
-                ? 'var(--color-primary)'
+                ? 'var(--color-brand)'
                 : 'var(--color-border-secondary)',
-              backgroundColor: active ? 'var(--color-primary)' : 'transparent',
+              backgroundColor: active ? 'var(--color-brand)' : 'transparent',
               color: active
                 ? 'var(--color-background)'
                 : 'var(--color-text-tertiary)',
@@ -117,7 +117,7 @@ function GuideBarCard({
     >
       <div
         className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em]"
-        style={{ color: 'var(--color-primary)' }}
+        style={{ color: 'var(--color-brand)' }}
       >
         {title}
       </div>
@@ -413,7 +413,7 @@ function ArtworkBestFitCard({
           className="rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors disabled:cursor-not-allowed"
           style={{
             backgroundColor: bestFitPreview
-              ? 'var(--color-primary)'
+              ? 'var(--color-brand)'
               : 'transparent',
             color: bestFitPreview
               ? 'var(--color-background)'
@@ -434,7 +434,7 @@ function ArtworkBestFitCard({
             checked={values.bottomWeight}
             onChange={(e) => set('bottomWeight', e.target.checked)}
             className="size-3.5 cursor-pointer"
-            style={{ accentColor: 'var(--color-primary)' }}
+            style={{ accentColor: 'var(--color-brand)' }}
             aria-label="Bottom-weight (optical center)"
           />
           Bottom-weight (optical center)

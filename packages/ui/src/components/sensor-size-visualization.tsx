@@ -84,7 +84,7 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
             width: outerWidth,
             height: outerHeight,
             borderColor: isSourceLarger
-              ? 'var(--color-primary)'
+              ? 'var(--color-brand)'
               : 'var(--color-secondary)',
           }}
         >
@@ -96,7 +96,7 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
               height: innerHeight,
               borderColor: isSourceLarger
                 ? 'var(--color-secondary)'
-                : 'var(--color-primary)',
+                : 'var(--color-brand)',
             }}
           />
 
@@ -133,7 +133,7 @@ export const SensorSizeVisualization: FC<SensorSizeVisualizationProps> = ({
             <div
               className="w-3 h-2 rounded-sm border-2"
               style={{
-                borderColor: 'var(--color-primary)',
+                borderColor: 'var(--color-brand)',
               }}
             />
             <span style={{ color: 'var(--color-on-accent-soft)' }}>

@@ -165,7 +165,7 @@ function ReciprocityResults({
             className="size-5"
             style={{
               color: showChart
-                ? 'var(--color-primary)'
+                ? 'var(--color-brand)'
                 : 'var(--color-text-secondary)',
             }}
           />
@@ -173,7 +173,7 @@ function ReciprocityResults({
             className="text-sm font-medium"
             style={{
               color: showChart
-                ? 'var(--color-primary)'
+                ? 'var(--color-brand)'
                 : 'var(--color-text-secondary)',
             }}
           >
@@ -213,7 +213,7 @@ function ReciprocityResults({
         <span
           className="align-super text-xs font-semibold"
           style={{
-            color: 'var(--color-primary)',
+            color: 'var(--color-brand)',
           }}
         >
           {calculation.factor.toFixed(2)}
@@ -294,7 +294,7 @@ function ReciprocityWideChart({
             <Minimize2
               className="size-5"
               style={{
-                color: 'var(--color-primary)',
+                color: 'var(--color-brand)',
               }}
             />
           </button>

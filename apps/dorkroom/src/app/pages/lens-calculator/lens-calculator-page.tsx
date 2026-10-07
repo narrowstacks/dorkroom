@@ -162,7 +162,7 @@ export default function LensCalculatorPage() {
               <button
                 type="button"
                 onClick={swapFormats}
-                className="p-2 rounded-lg border transition-colors themed-button hover:bg-surface-elevated"
+                className="p-2 rounded-lg border transition-colors themed-button"
                 aria-label="Swap source and target formats"
               >
                 <ArrowRightLeft

@@ -144,9 +144,9 @@ export function MobilePresetsSection({
                 style={
                   isActive
                     ? {
-                        borderColor: 'var(--color-primary)',
+                        borderColor: 'var(--color-brand)',
                         backgroundColor:
-                          'color-mix(in srgb, var(--color-primary) 12%, transparent)',
+                          'color-mix(in srgb, var(--color-brand) 12%, transparent)',
                       }
                     : undefined
                 }

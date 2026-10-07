@@ -297,7 +297,7 @@ function HoverLayer({
               cy={point.y}
               r={CHART_CONFIG.hover.markerRadius + 3}
               fill="none"
-              stroke="var(--color-primary)"
+              stroke="var(--color-brand)"
               strokeWidth="2"
               style={{ pointerEvents: 'none' }}
             />

@@ -49,7 +49,7 @@ export function useRecipeHoverStyles(): RecipeHoverStyles {
         },
         selected: {
           backgroundColor: 'var(--color-surface-muted)',
-          borderColor: 'var(--color-primary)',
+          borderColor: 'var(--color-brand)',
         },
       },
       custom: {
@@ -88,7 +88,7 @@ export function useRecipeHoverStyles(): RecipeHoverStyles {
             'transparent',
             'var(--color-surface-muted)'
           ),
-          borderColor: 'var(--color-primary)',
+          borderColor: 'var(--color-brand)',
         },
       },
     }),

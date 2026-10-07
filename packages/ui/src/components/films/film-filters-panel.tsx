@@ -130,11 +130,11 @@ export const FilmFiltersPanel: FC<FilmFiltersPanelProps> = ({
             })}
             onFocus={(e) => {
               setStyles(e.target, {
-                borderColor: 'var(--color-primary)',
+                borderColor: 'var(--color-brand)',
                 backgroundColor: 'var(--color-background)',
               });
               if (searchIconRef.current) {
-                searchIconRef.current.style.color = 'var(--color-primary)';
+                searchIconRef.current.style.color = 'var(--color-brand)';
               }
             }}
             onBlur={(e) => {

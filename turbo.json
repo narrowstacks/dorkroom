@@ -79,7 +79,9 @@
         "vitest.config.ts",
         "PRIVACY.md",
         "apps/dorkroom/src/app/lib/analytics/tracked-events.ts",
-        "apps/dorkroom/src/app/pages/privacy-page.tsx"
+        "apps/dorkroom/src/app/pages/privacy-page.tsx",
+        "apps/dorkroom/src/**/*.{css,ts,tsx}",
+        "packages/ui/src/**/*.{ts,tsx}"
       ]
     },
     "//#test:serverless": {
