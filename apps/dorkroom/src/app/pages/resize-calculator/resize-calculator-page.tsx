@@ -154,12 +154,12 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
         </p>
 
         <div className="space-y-3">
-          <h4
+          <h3
             className="text-sm font-semibold"
             style={{ color: 'var(--color-text-primary)' }}
           >
             How to use
-          </h4>
+          </h3>
           <ol className="ml-5 space-y-2 list-decimal">
             {howToUse.map((item) => (
               <li
@@ -174,12 +174,12 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
         </div>
 
         <div className="space-y-3">
-          <h4
+          <h3
             className="text-sm font-semibold"
             style={{ color: 'var(--color-text-primary)' }}
           >
             Formula
-          </h4>
+          </h3>
           <div
             className="overflow-x-auto rounded-2xl border p-4 font-mono text-xs"
             style={{
@@ -200,12 +200,12 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
         </div>
 
         <div className="space-y-3">
-          <h4
+          <h3
             className="text-sm font-semibold"
             style={{ color: 'var(--color-text-primary)' }}
           >
             Tips
-          </h4>
+          </h3>
           <ul className="ml-5 space-y-2 list-disc">
             {TIPS.map((tip) => (
               <li
