@@ -5,6 +5,7 @@ import {
   debugWarn,
   getCustomRecipeDeveloper,
   getCustomRecipeFilm,
+  matchesSearchQuery,
 } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { useCallback, useMemo } from 'react';
@@ -19,6 +20,8 @@ export interface UseRecipeDataProps {
   developerTypeFilter: string;
   dilutionFilter: string;
   isoFilter: string;
+  /** Debounced free-text search, applied the same way as to API recipes. */
+  searchQuery: string;
   customRecipeFilter: 'all' | 'hide-custom' | 'only-custom' | 'official';
   favoritesOnly: boolean;
   sharedCustomRecipe:
@@ -51,6 +54,26 @@ export interface UseRecipeDataReturn {
  * sit in localStorage; skipping them keeps one bad entry from crashing the
  * whole page during render.
  */
+/**
+ * Dilution label for a custom recipe view, resolved like API recipes in
+ * useDevelopmentRecipes: customDilution > the developer's dilution by id >
+ * 'Stock'.
+ */
+function getDilutionLabel({
+  combination,
+  developer,
+}: DevelopmentCombinationView): string {
+  return (
+    combination.customDilution?.trim() ||
+    (combination.dilutionId
+      ? developer?.dilutions
+          ?.find((d) => String(d.id) === String(combination.dilutionId))
+          ?.dilution?.trim()
+      : undefined) ||
+    'Stock'
+  );
+}
+
 function toCombinationOrNull(
   recipe:
     | CustomRecipe
@@ -80,6 +103,7 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     developerTypeFilter,
     dilutionFilter,
     isoFilter,
+    searchQuery,
     customRecipeFilter,
     favoritesOnly,
     sharedCustomRecipe,
@@ -261,8 +285,10 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
       return [];
     }
 
+    const query = searchQuery.trim();
+
     return customCombinationViews.filter((view) => {
-      const { combination, developer } = view;
+      const { combination, film, developer } = view;
 
       if (selectedFilm && combination.filmStockId !== selectedFilm.uuid) {
         return false;
@@ -279,20 +305,11 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
         return false;
       }
 
-      if (dilutionFilter) {
-        // Same resolution as the API-recipe filter in useDevelopmentRecipes:
-        // customDilution > the developer's dilution by id > 'Stock'.
-        const dilutionLabel =
-          combination.customDilution?.trim() ||
-          (combination.dilutionId
-            ? developer?.dilutions
-                ?.find((d) => String(d.id) === String(combination.dilutionId))
-                ?.dilution?.trim()
-            : undefined) ||
-          'Stock';
-        if (dilutionLabel.toLowerCase() !== dilutionFilter.toLowerCase()) {
-          return false;
-        }
+      if (
+        dilutionFilter &&
+        getDilutionLabel(view).toLowerCase() !== dilutionFilter.toLowerCase()
+      ) {
+        return false;
       }
 
       if (isoFilter) {
@@ -306,6 +323,20 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
         }
       }
 
+      // Same haystack as the API-recipe search in useDevelopmentRecipes. The
+      // view's film and developer already carry customFilm/customDeveloper
+      // names where the recipe uses them (#326).
+      if (query) {
+        const haystack = [
+          film ? `${film.brand} ${film.name}` : '',
+          developer ? `${developer.manufacturer} ${developer.name}` : '',
+          getDilutionLabel(view),
+        ].join(' ');
+        if (!matchesSearchQuery(haystack, query)) {
+          return false;
+        }
+      }
+
       return true;
     });
   }, [
@@ -315,6 +346,7 @@ export function useRecipeData(props: UseRecipeDataProps): UseRecipeDataReturn {
     developerTypeFilter,
     dilutionFilter,
     isoFilter,
+    searchQuery,
   ]);
 
   const combinedRows = useMemo<DevelopmentCombinationView[]>(() => {

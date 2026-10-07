@@ -250,6 +250,7 @@ export default function DevelopmentRecipesPage() {
     developerTypeFilter,
     dilutionFilter,
     isoFilter,
+    searchQuery: debouncedSearchQuery,
     customRecipeFilter,
     favoritesOnly,
     sharedCustomRecipe,
