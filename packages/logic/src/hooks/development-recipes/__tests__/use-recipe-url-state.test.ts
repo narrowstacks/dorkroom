@@ -1032,4 +1032,51 @@ describe('useRecipeUrlState', () => {
       vi.useRealTimers();
     });
   });
+  describe('invalid initial params (#371)', () => {
+    it('drops an invalid param and keeps the valid ones', () => {
+      mockLocation.search = '?film=hp5&iso=1';
+
+      const { result } = renderHook(() =>
+        useRecipeUrlState(mockFilms, mockDevelopers, mockCurrentState)
+      );
+
+      expect(result.current.initialUrlState.fromUrl).toBe(true);
+      expect(result.current.initialUrlState.selectedFilm?.slug).toBe('hp5');
+      expect(result.current.initialUrlState.isoFilter).toBeUndefined();
+    });
+
+    it.each([
+      ['?iso=1', 'iso'],
+      ['?dilution=1:2:3', 'dilution'],
+    ])('keeps writing filter changes to the URL after %s', (search, key) => {
+      vi.useFakeTimers();
+      mockLocation.search = search;
+
+      const { rerender } = renderHook(
+        ({ currentState }) =>
+          useRecipeUrlState(mockFilms, mockDevelopers, currentState),
+        { initialProps: { currentState: mockCurrentState } }
+      );
+
+      act(() => {
+        vi.runAllTimers();
+      });
+      mockReplaceState.mockClear();
+
+      rerender({
+        currentState: { ...mockCurrentState, selectedFilm: mockFilms[0] },
+      });
+      act(() => {
+        vi.runAllTimers();
+      });
+
+      expect(mockReplaceState).toHaveBeenCalled();
+      const lastCall =
+        mockReplaceState.mock.calls[mockReplaceState.mock.calls.length - 1];
+      expect(lastCall[2]).toContain('film=hp5');
+      expect(lastCall[2]).not.toContain(`${key}=`);
+
+      vi.useRealTimers();
+    });
+  });
 });
