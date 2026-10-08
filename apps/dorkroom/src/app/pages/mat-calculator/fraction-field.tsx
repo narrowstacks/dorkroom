@@ -110,7 +110,7 @@ export function FractionField({
           }}
           placeholder={placeholder}
           title={`Enter ${label}`}
-          className="w-full rounded-lg border py-2 pl-3 pr-11 font-mono focus:outline-none"
+          className="min-h-12.5 w-full rounded-lg border py-2 pl-3 pr-11 font-mono focus:outline-none"
           style={{
             borderColor: isFocused
               ? 'var(--color-border-primary)'
@@ -129,7 +129,7 @@ export function FractionField({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />
-        <div className="absolute inset-y-1 right-1 flex flex-col overflow-hidden rounded-md">
+        <div className="absolute inset-y-px right-px flex flex-col overflow-hidden rounded-md">
           <StepperButton
             label={`Increase ${label} by ${stepLabel}`}
             onTap={() => nudge(1)}
@@ -168,7 +168,7 @@ function StepperButton({ label, onTap, children }: StepperButtonProps) {
       // Keep focus on the input so the value isn't committed/blurred on tap.
       onMouseDown={(e) => e.preventDefault()}
       onClick={onTap}
-      className="flex h-1/2 w-8 items-center justify-center transition-colors active:opacity-70"
+      className="flex h-1/2 w-10 items-center justify-center transition-colors active:opacity-70"
       style={{
         color: 'var(--color-text-tertiary)',
         backgroundColor: colorMixOr(
