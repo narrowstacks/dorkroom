@@ -1,6 +1,6 @@
 /**
  * Mobile overflow audit: fails if any route scrolls horizontally, or if a
- * heading, button or footer link spills outside its box or the viewport, at
+ * heading, button or footer link (`.footer-link`) spills outside its box or the viewport, at
  * narrow widths. Not part of CI (the repo has no e2e project); run it against
  * a dev server before merging layout changes.
  *
@@ -11,7 +11,14 @@
  */
 import { chromium } from 'playwright';
 
-const base = process.argv[2] ?? 'http://127.0.0.1:4503';
+const base = process.argv[2];
+if (!base) {
+  console.error(
+    'Usage: node scripts/audit-overflow.mjs <dev server URL>\n' +
+      'Use the URL Vite prints; the port is not fixed (see CLAUDE.md "Dev Server Ports").'
+  );
+  process.exit(2);
+}
 const WIDTHS = [320, 360];
 const ROUTES = ['/', '/border'];
 
@@ -33,7 +40,7 @@ for (const width of WIDTHS) {
       if (root.scrollWidth > viewportWidth) {
         found.push(`page scrollWidth ${root.scrollWidth} > ${viewportWidth}`);
       }
-      for (const el of document.querySelectorAll('h1, button, footer a')) {
+      for (const el of document.querySelectorAll('h1, button, .footer-link')) {
         const label = (el.textContent ?? '').trim().slice(0, 24);
         const box = el.getBoundingClientRect();
         if (el.scrollWidth > el.clientWidth + 1) {
