@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { validateAndSanitizeQuery } from './queryValidation';
 import {
   logApiResponse,
@@ -11,6 +12,74 @@ import { type HandlerConfig, withHandler } from './withHandler';
 
 const TIMEOUT_MS = 30_000;
 const MAX_RESPONSE_SIZE = 1024 * 1024;
+const MAX_UPSTREAM_ERROR_LENGTH = 200;
+
+/**
+ * Only an upstream 400 is passed through. A 404 stays a 502: the data service
+ * answers missing records with empty data, so a 404 means the route is broken.
+ */
+const PASSTHROUGH_STATUS = 400;
+const PASSTHROUGH_FALLBACK = 'Invalid request parameter';
+
+/** Capped so a misbehaving upstream cannot push arbitrary text through the proxy. */
+const upstreamErrorSchema = z.object({
+  error: z.string().max(MAX_UPSTREAM_ERROR_LENGTH),
+});
+
+/**
+ * Pulls the short `error` string out of an upstream 400 body, or returns the
+ * fallback when the body is oversized, malformed JSON, or not a usable string.
+ * Returns null when the body cannot be read (for example the upstream closed the
+ * connection mid-body); the caller answers with the standard 502. Abort and
+ * timeout errors are rethrown so withHandler maps them to 504.
+ */
+async function readUpstreamError(
+  response: Response,
+  fallback: string
+): Promise<string | null> {
+  const contentLength = Number.parseInt(
+    response.headers.get('content-length') ?? '',
+    10
+  );
+  if (contentLength > MAX_RESPONSE_SIZE) {
+    return fallback;
+  }
+
+  let text: string;
+  try {
+    text = await response.text();
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.name === 'AbortError' || error.name === 'TimeoutError')
+    ) {
+      throw error;
+    }
+    return null;
+  }
+  if (text.length > MAX_RESPONSE_SIZE) {
+    return fallback;
+  }
+
+  let body: unknown;
+  try {
+    body = JSON.parse(text);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return fallback;
+    }
+    throw error;
+  }
+
+  const parsed = upstreamErrorSchema.safeParse(body);
+  if (parsed.success) {
+    const trimmed = parsed.data.error.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+  }
+  return fallback;
+}
 
 export interface SupabaseProxyConfig {
   name: string;
@@ -80,6 +149,20 @@ export function createSupabaseProxyHandler({
         requestId: ctx.requestId,
         status: response.status,
       });
+
+      if (response.status === PASSTHROUGH_STATUS) {
+        const upstreamError = await readUpstreamError(
+          response,
+          PASSTHROUGH_FALLBACK
+        );
+        if (upstreamError !== null) {
+          res.status(PASSTHROUGH_STATUS).json({
+            error: upstreamError,
+            requestId: ctx.requestId,
+          });
+          return;
+        }
+      }
 
       res.status(502).json({
         error: 'External API error',

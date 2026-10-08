@@ -84,6 +84,129 @@ describe.each([
       expect(res._json).not.toHaveProperty('status');
     });
 
+    it('should pass an upstream 400 through with its error string and requestId', async () => {
+      respondWith(
+        createUpstreamResponse(
+          JSON.stringify({ error: 'Invalid query parameter' }),
+          { status: 400 }
+        )
+      );
+
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
+
+      expect(res._status).toBe(400);
+      expect(res._json).toEqual({
+        error: 'Invalid query parameter',
+        requestId: 'test-request-id',
+      });
+    });
+
+    it('should fall back to a safe 400 message for unusable upstream bodies', async () => {
+      const bodies = [
+        '',
+        '<html>oops</html>',
+        JSON.stringify({ error: { nested: true } }),
+        JSON.stringify({ error: 'x'.repeat(500) }),
+      ];
+      for (const body of bodies) {
+        respondWith(createUpstreamResponse(body, { status: 400 }));
+        const res = createMockResponse();
+        await handler(createMockRequest(), res, createContext());
+
+        expect(res._status).toBe(400);
+        expect(res._json).toEqual({
+          error: 'Invalid request parameter',
+          requestId: 'test-request-id',
+        });
+      }
+    });
+
+    it('should keep an upstream 404 as a 502', async () => {
+      respondWith(
+        createUpstreamResponse(JSON.stringify({ error: 'Film not found' }), {
+          status: 404,
+        })
+      );
+
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
+
+      expect(res._status).toBe(502);
+      expect(res._json).toMatchObject({ error: 'External API error' });
+    });
+
+    it('should use the fallback for an oversized 400 body without reading it', async () => {
+      const upstream = createUpstreamResponse(
+        JSON.stringify({ error: 'big' }),
+        { status: 400, contentLength: String(2 * 1024 * 1024) }
+      );
+      const textSpy = vi.spyOn(upstream, 'text');
+      respondWith(upstream);
+
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
+
+      expect(res._status).toBe(400);
+      expect(res._json).toMatchObject({ error: 'Invalid request parameter' });
+      expect(textSpy).not.toHaveBeenCalled();
+    });
+
+    it('should use the fallback for an oversized 400 body without content-length', async () => {
+      respondWith(
+        createUpstreamResponse(
+          JSON.stringify({ error: 'x'.repeat(2 * 1024 * 1024) }),
+          { status: 400 }
+        )
+      );
+
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
+
+      expect(res._status).toBe(400);
+      expect(res._json).toMatchObject({ error: 'Invalid request parameter' });
+    });
+
+    it('should rethrow a body read abort instead of falling back', async () => {
+      const upstream = createUpstreamResponse('{}', { status: 400 });
+      vi.spyOn(upstream, 'text').mockRejectedValue(
+        new DOMException('aborted', 'AbortError')
+      );
+      respondWith(upstream);
+
+      const res = createMockResponse();
+      await expect(
+        handler(createMockRequest(), res, createContext())
+      ).rejects.toMatchObject({ name: 'AbortError' });
+    });
+
+    it('should answer 502 External API error when the 400 body is truncated', async () => {
+      const upstream = createUpstreamResponse('{}', { status: 400 });
+      vi.spyOn(upstream, 'text').mockRejectedValue(new TypeError('terminated'));
+      respondWith(upstream);
+
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
+
+      expect(res._status).toBe(502);
+      expect(res._json).toMatchObject({
+        error: 'External API error',
+        message: 'Upstream service returned an error',
+        requestId: expect.any(String),
+      });
+    });
+
+    it('should let network failures propagate to withHandler (which maps them to 502)', async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockRejectedValue(new TypeError('fetch failed'));
+
+      const res = createMockResponse();
+      await expect(
+        handler(createMockRequest(), res, createContext())
+      ).rejects.toThrow('fetch failed');
+    });
+
     it.each([
       401, 403, 500, 503,
     ])('should not include upstream status %i in the response', async (upstreamStatus) => {
