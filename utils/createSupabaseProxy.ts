@@ -14,11 +14,12 @@ const TIMEOUT_MS = 30_000;
 const MAX_RESPONSE_SIZE = 1024 * 1024;
 const MAX_UPSTREAM_ERROR_LENGTH = 200;
 
-/** Upstream statuses that mean "the caller's request was wrong", not "upstream is down". */
-const PASSTHROUGH_FALLBACKS: ReadonlyMap<number, string> = new Map([
-  [400, 'Invalid request parameter'],
-  [404, 'Not found'],
-]);
+/**
+ * Only an upstream 400 is passed through. A 404 stays a 502: the data service
+ * answers missing records with empty data, so a 404 means the route is broken.
+ */
+const PASSTHROUGH_STATUS = 400;
+const PASSTHROUGH_FALLBACK = 'Invalid request parameter';
 
 /** Capped so a misbehaving upstream cannot push arbitrary text through the proxy. */
 const upstreamErrorSchema = z.object({
@@ -26,23 +27,43 @@ const upstreamErrorSchema = z.object({
 });
 
 /**
- * Pulls the short `error` string out of an upstream 4xx body, or returns the
- * fallback when the body is missing, not JSON, or not a usable string.
+ * Pulls the short `error` string out of an upstream 400 body, or returns the
+ * fallback when the body is oversized, malformed JSON, or not a usable string.
+ * Read failures (abort, timeout, network) are not caught so withHandler maps them.
  */
 async function readUpstreamError(
   response: Response,
   fallback: string
 ): Promise<string> {
+  const contentLength = Number.parseInt(
+    response.headers.get('content-length') ?? '',
+    10
+  );
+  if (contentLength > MAX_RESPONSE_SIZE) {
+    return fallback;
+  }
+
+  const text = await response.text();
+  if (text.length > MAX_RESPONSE_SIZE) {
+    return fallback;
+  }
+
+  let body: unknown;
   try {
-    const parsed = upstreamErrorSchema.safeParse(await response.json());
-    if (parsed.success) {
-      const trimmed = parsed.data.error.trim();
-      if (trimmed) {
-        return trimmed;
-      }
+    body = JSON.parse(text);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return fallback;
     }
-  } catch {
-    // Empty or non-JSON body: fall through to the safe message.
+    throw error;
+  }
+
+  const parsed = upstreamErrorSchema.safeParse(body);
+  if (parsed.success) {
+    const trimmed = parsed.data.error.trim();
+    if (trimmed) {
+      return trimmed;
+    }
   }
   return fallback;
 }
@@ -116,10 +137,9 @@ export function createSupabaseProxyHandler({
         status: response.status,
       });
 
-      const fallback = PASSTHROUGH_FALLBACKS.get(response.status);
-      if (fallback !== undefined) {
-        res.status(response.status).json({
-          error: await readUpstreamError(response, fallback),
+      if (response.status === PASSTHROUGH_STATUS) {
+        res.status(PASSTHROUGH_STATUS).json({
+          error: await readUpstreamError(response, PASSTHROUGH_FALLBACK),
           requestId: ctx.requestId,
         });
         return;

@@ -122,7 +122,7 @@ describe.each([
       }
     });
 
-    it('should pass an upstream 404 through', async () => {
+    it('should keep an upstream 404 as a 502', async () => {
       respondWith(
         createUpstreamResponse(JSON.stringify({ error: 'Film not found' }), {
           status: 404,
@@ -132,11 +132,52 @@ describe.each([
       const res = createMockResponse();
       await handler(createMockRequest(), res, createContext());
 
-      expect(res._status).toBe(404);
-      expect(res._json).toEqual({
-        error: 'Film not found',
-        requestId: 'test-request-id',
-      });
+      expect(res._status).toBe(502);
+      expect(res._json).toMatchObject({ error: 'External API error' });
+    });
+
+    it('should use the fallback for an oversized 400 body without reading it', async () => {
+      const upstream = createUpstreamResponse(
+        JSON.stringify({ error: 'big' }),
+        { status: 400, contentLength: String(2 * 1024 * 1024) }
+      );
+      const textSpy = vi.spyOn(upstream, 'text');
+      respondWith(upstream);
+
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
+
+      expect(res._status).toBe(400);
+      expect(res._json).toMatchObject({ error: 'Invalid request parameter' });
+      expect(textSpy).not.toHaveBeenCalled();
+    });
+
+    it('should use the fallback for an oversized 400 body without content-length', async () => {
+      respondWith(
+        createUpstreamResponse(
+          JSON.stringify({ error: 'x'.repeat(2 * 1024 * 1024) }),
+          { status: 400 }
+        )
+      );
+
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
+
+      expect(res._status).toBe(400);
+      expect(res._json).toMatchObject({ error: 'Invalid request parameter' });
+    });
+
+    it('should rethrow a body read abort instead of falling back', async () => {
+      const upstream = createUpstreamResponse('{}', { status: 400 });
+      vi.spyOn(upstream, 'text').mockRejectedValue(
+        new DOMException('aborted', 'AbortError')
+      );
+      respondWith(upstream);
+
+      const res = createMockResponse();
+      await expect(
+        handler(createMockRequest(), res, createContext())
+      ).rejects.toMatchObject({ name: 'AbortError' });
     });
 
     it('should let network failures propagate to withHandler (which maps them to 502)', async () => {
