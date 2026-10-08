@@ -22,6 +22,7 @@ import {
   durationFromParts,
   durationToParts,
   moveStage,
+  parseTemperatureDraft,
   removeStageAt,
   updateStageAt,
 } from './stage-edits';
@@ -172,21 +173,9 @@ export function PresetEditor({
               </View>
             </View>
 
-            <LabeledTextField
-              label="Temperature °F (optional)"
-              value={
-                stage.temperatureF == null ? '' : String(stage.temperatureF)
-              }
-              keyboardType="numeric"
-              onChangeText={(text) => {
-                const trimmed = text.trim();
-                const parsed = Number.parseFloat(trimmed);
-                patch(index, {
-                  temperatureF:
-                    trimmed === '' || Number.isNaN(parsed) ? null : parsed,
-                });
-              }}
-              placeholder="—"
+            <TemperatureField
+              value={stage.temperatureF}
+              onChange={(temperatureF) => patch(index, { temperatureF })}
             />
 
             <View className="gap-1">
@@ -321,6 +310,39 @@ export function PresetEditor({
         </Pressable>
       </GlassCard>
     </View>
+  );
+}
+
+/**
+ * Keeps the typed text locally so a trailing "." or "," survives while the user
+ * types, and commits the parsed number upward. If the stage value changes from
+ * outside (draft no longer parses to it), the field shows the stage value.
+ */
+function TemperatureField({
+  value,
+  onChange,
+}: {
+  value: number | null;
+  onChange: (value: number | null) => void;
+}) {
+  const [draft, setDraft] = useState(value == null ? '' : String(value));
+  const text =
+    parseTemperatureDraft(draft) === value
+      ? draft
+      : value == null
+        ? ''
+        : String(value);
+  return (
+    <LabeledTextField
+      label="Temperature °F (optional)"
+      value={text}
+      keyboardType="decimal-pad"
+      onChangeText={(next) => {
+        setDraft(next);
+        onChange(parseTemperatureDraft(next));
+      }}
+      placeholder="—"
+    />
   );
 }
 

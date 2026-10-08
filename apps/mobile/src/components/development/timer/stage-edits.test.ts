@@ -5,6 +5,7 @@ import {
   durationFromParts,
   durationToParts,
   moveStage,
+  parseTemperatureDraft,
   removeStageAt,
   updateStageAt,
 } from './stage-edits';
@@ -90,5 +91,23 @@ describe('durationFromParts / durationToParts', () => {
   it('round-trips', () => {
     const { minutes, seconds } = durationToParts(275);
     expect(durationFromParts(minutes, seconds)).toBe(275);
+  });
+});
+
+describe('parseTemperatureDraft', () => {
+  it('accepts dot and comma decimals', () => {
+    expect(parseTemperatureDraft('68.5')).toBe(68.5);
+    expect(parseTemperatureDraft('68,5')).toBe(68.5);
+  });
+
+  it('keeps the number while a trailing separator is typed', () => {
+    expect(parseTemperatureDraft('68.')).toBe(68);
+    expect(parseTemperatureDraft('68,')).toBe(68);
+  });
+
+  it('returns null for empty or invalid text', () => {
+    expect(parseTemperatureDraft('')).toBeNull();
+    expect(parseTemperatureDraft('.')).toBeNull();
+    expect(parseTemperatureDraft('abc')).toBeNull();
   });
 });
