@@ -63,6 +63,8 @@ describe('api host routing', () => {
   it('sends unknown /api/* paths on the api host to the JSON 404 handler', () => {
     expect(resolve(API_HOST, '/api/nope')).toBe('/api/not-found');
     expect(resolve(API_HOST, '/api/filmsx')).toBe('/api/not-found');
+    expect(resolve(API_HOST, '/api/films/nope')).toBe('/api/not-found');
+    expect(resolve(API_HOST, '/api/films/')).toBe('/api/films');
   });
 
   // The api-host /api/* allowlist in vercel.json is hand-maintained; this keeps
