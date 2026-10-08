@@ -1,6 +1,5 @@
 import {
   Aperture,
-  Circle,
   Crop,
   Film,
   FlaskConical,
@@ -15,30 +14,33 @@ import {
   Timer,
 } from 'lucide-react-native';
 
-const ICONS = new Map<string, LucideIcon>([
-  ['crop', Crop],
-  ['film', Film],
-  ['flask-conical', FlaskConical],
-  ['ruler', Ruler],
-  ['gauge', Gauge],
-  ['frame', Frame],
-  ['timer', Timer],
-  ['focus', Focus],
-  ['aperture', Aperture],
-  ['sun-medium', SunMedium],
-  ['settings', Settings],
-  ['menu', Menu],
-]);
+const ICONS = {
+  crop: Crop,
+  film: Film,
+  'flask-conical': FlaskConical,
+  ruler: Ruler,
+  gauge: Gauge,
+  frame: Frame,
+  timer: Timer,
+  focus: Focus,
+  aperture: Aperture,
+  'sun-medium': SunMedium,
+  settings: Settings,
+  menu: Menu,
+} satisfies Record<string, LucideIcon>;
+
+/** A Lucide icon name `ToolIcon` can render. */
+export type ToolIconName = keyof typeof ICONS;
 
 export function ToolIcon({
   name,
   size = 20,
   color = '#ffffff',
 }: {
-  name: string;
+  name: ToolIconName;
   size?: number;
   color?: string;
 }) {
-  const Glyph = ICONS.get(name) ?? Circle;
+  const Glyph = ICONS[name];
   return <Glyph size={size} color={color} />;
 }

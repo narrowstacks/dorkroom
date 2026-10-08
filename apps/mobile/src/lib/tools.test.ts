@@ -29,12 +29,6 @@ describe('tool registry', () => {
   it('getTool returns undefined for unknown ids', () => {
     expect(getTool('nope')).toBeUndefined();
   });
-
-  it('every tool names its Lucide icon in kebab-case', () => {
-    for (const tool of TOOLS) {
-      expect(tool.icon).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
-    }
-  });
 });
 
 describe('isPinnable', () => {
