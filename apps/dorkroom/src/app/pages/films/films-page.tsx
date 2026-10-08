@@ -163,17 +163,16 @@ export function FilmsDesktopLayout({
 
 /**
  * Keeps an incoming ?film= slug in the URL until the selection effect has
- * processed it (or the catalog request failed). Without this, a catalog slower
- * than the 500ms URL sync would write film: undefined and strip the deep link.
+ * processed it. The effect leaves a slug unprocessed while the catalog request
+ * has failed with no match, so a failed load keeps the deep link too. Without
+ * this, a catalog slower than the 500ms URL sync would write film: undefined
+ * and strip the deep link.
  */
 function pendingFilm(
   slug: string | undefined,
-  processedSlug: { current: string | null },
-  hasError: boolean
+  processedSlug: { current: string | null }
 ): string | undefined {
-  return slug && (hasError || processedSlug.current !== slug)
-    ? slug
-    : undefined;
+  return slug && processedSlug.current !== slug ? slug : undefined;
 }
 
 export default function FilmsPage() {
@@ -264,7 +263,7 @@ export default function FilmsPage() {
           status: discontinuedFilter !== 'all' ? discontinuedFilter : undefined,
           film:
             selectedFilm?.slug ||
-            pendingFilm(urlFilmSlug, lastProcessedFilmSlug, !!error),
+            pendingFilm(urlFilmSlug, lastProcessedFilmSlug),
         },
         replace: true,
       });
