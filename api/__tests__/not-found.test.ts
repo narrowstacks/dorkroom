@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   createMockRequest,
@@ -60,6 +60,24 @@ describe('api host routing', () => {
     expect(resolve(API_HOST, path)).toBe(dest);
   });
 
+  it('sends unknown /api/* paths on the api host to the JSON 404 handler', () => {
+    expect(resolve(API_HOST, '/api/nope')).toBe('/api/not-found');
+    expect(resolve(API_HOST, '/api/filmsx')).toBe('/api/not-found');
+  });
+
+  // The api-host /api/* allowlist in vercel.json is hand-maintained; this keeps
+  // a new handler file from silently 404ing on api.dorkroom.art/api/<name>.
+  it('still routes every handler file under /api/<name> on the api host', () => {
+    const names = readdirSync(new URL('..', import.meta.url))
+      .filter((file) => /\.tsx?$/.test(file))
+      .map((file) => file.replace(/\.tsx?$/, ''))
+      .filter((name) => name !== 'not-found');
+    expect(names.length).toBeGreaterThan(0);
+    for (const name of names) {
+      expect(resolve(API_HOST, `/api/${name}`)).toBe(`/api/${name}`);
+    }
+  });
+
   it('leaves the site host on the SPA catch-all', () => {
     expect(resolve('dorkroom.art', '/film')).toBe('/');
   });
@@ -85,5 +103,9 @@ describe('not-found handler', () => {
     handler(createMockRequest({ method: 'OPTIONS', url: '/film' }), res);
 
     expect(res._status).toBe(204);
+    expect(res._headers['access-control-allow-headers']).toContain('X-API-Key');
+    expect(res._headers['access-control-allow-headers']).toContain(
+      'X-Client-Id'
+    );
   });
 });

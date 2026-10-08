@@ -30,6 +30,11 @@
       "has": [{ "type": "host", "value": "api.dorkroom.art" }],
       "dest": "/api/$1"
     },
+    {
+      "src": "/api/(?!(?:films|developers|combinations|stats|filmdev|docs|openapi|reference|meta|og)(?:/|$)).*",
+      "has": [{ "type": "host", "value": "api.dorkroom.art" }],
+      "dest": "/api/not-found"
+    },
     { "src": "/api/(.*)", "dest": "/api/$1" },
     {
       "src": "/(.*)",
