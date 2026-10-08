@@ -19,6 +19,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { filmColorFilterSchema } from '../../../routes/search-schemas';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
+import { useUrlFilterSync } from './use-url-filter-sync';
 
 type FilmDatabase = ReturnType<typeof useFilmDatabase>;
 
@@ -187,15 +188,10 @@ export default function FilmsPage() {
     isLoading,
     error,
     searchQuery,
-    setSearchQuery,
     colorTypeFilter,
-    setColorTypeFilter,
     isoSpeedFilter,
-    setIsoSpeedFilter,
     brandFilter,
-    setBrandFilter,
     discontinuedFilter,
-    setDiscontinuedFilter,
   } = db;
 
   const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
@@ -217,68 +213,7 @@ export default function FilmsPage() {
     // eslint-disable-next-line react-doctor/exhaustive-deps -- react-doctor reports "stale searchParams.film" via alias tracing through urlFilmSlug, but urlFilmSlug IS searchParams.film re-derived every render (line 189, not memoized); adding searchParams.film directly is flagged as a redundant dep by react-hooks/exhaustive-deps
   }, [films, urlFilmSlug]);
 
-  // Sync URL params to filter state when URL changes (back/forward navigation, bookmarks).
-  // Each param syncs in its own effect so a single effect never performs multiple state
-  // updates. Effects only run when their URL param changes - they do NOT include the
-  // matching state value in deps, to avoid clearing user input before the debounced
-  // state→URL sync fires. We don't clear state when a URL param is undefined; the
-  // debounced state→URL sync handles that.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
-  useEffect(() => {
-    if (
-      searchParams.search !== undefined &&
-      searchParams.search !== searchQuery
-    ) {
-      setSearchQuery(searchParams.search);
-    }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.search]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
-  useEffect(() => {
-    if (
-      searchParams.color !== undefined &&
-      searchParams.color !== colorTypeFilter
-    ) {
-      setColorTypeFilter(searchParams.color);
-    }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.color]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
-  useEffect(() => {
-    if (searchParams.iso !== undefined && searchParams.iso !== isoSpeedFilter) {
-      setIsoSpeedFilter(searchParams.iso);
-    }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.iso]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
-  useEffect(() => {
-    if (
-      searchParams.brand !== undefined &&
-      searchParams.brand !== brandFilter
-    ) {
-      setBrandFilter(searchParams.brand);
-    }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.brand]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
-  useEffect(() => {
-    if (
-      searchParams.status !== undefined &&
-      searchParams.status !== discontinuedFilter
-    ) {
-      setDiscontinuedFilter(searchParams.status);
-    }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.status]);
+  useUrlFilterSync(searchParams, db);
 
   // Select film from URL param when data loads or URL changes
   useEffect(() => {
@@ -295,6 +230,10 @@ export default function FilmsPage() {
     // Wait until loading is complete
     if (isLoading) return;
 
+    // A failed request says nothing about whether the slug exists. Leave it
+    // unprocessed so a later successful refetch (reconnect) can still open it.
+    if (error && !urlFilm) return;
+
     // Mark this slug as processed
     lastProcessedFilmSlug.current = urlFilmSlug;
 
@@ -303,7 +242,7 @@ export default function FilmsPage() {
       setSelectedFilm(urlFilm);
     }
     // eslint-disable-next-line react-doctor/exhaustive-deps -- same alias-tracing false positive as the urlFilm useMemo above: urlFilmSlug already IS searchParams.film re-derived every render, so it's already covered
-  }, [urlFilm, urlFilmSlug, isLoading]);
+  }, [urlFilm, urlFilmSlug, isLoading, error]);
 
   // Debounced URL sync (500ms)
   // biome-ignore lint/correctness/useExhaustiveDependencies: navigate is stable from TanStack Router
@@ -335,6 +274,7 @@ export default function FilmsPage() {
     brandFilter,
     discontinuedFilter,
     selectedFilm,
+    urlFilmSlug,
   ]);
 
   // Update ARIA live region when filteredFilms changes
@@ -412,6 +352,7 @@ export default function FilmsPage() {
   // Show when: URL has a film slug, but we haven't found/loaded the film yet, and general loading is done
   const shouldShowDetailSkeleton = Boolean(
     !isLoading &&
+      !error &&
       urlFilmSlug &&
       !urlFilm &&
       lastProcessedFilmSlug.current !== urlFilmSlug
