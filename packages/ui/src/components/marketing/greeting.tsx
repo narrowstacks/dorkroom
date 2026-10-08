@@ -4,7 +4,7 @@ export function Greeting({ className }: { className?: string }) {
   return (
     <div className={cn('space-y-1', className)}>
       <h1
-        className="text-5xl font-semibold tracking-tight md:text-6xl lg:text-7xl"
+        className="text-5xl max-[374px]:text-4xl font-semibold tracking-tight md:text-6xl lg:text-7xl"
         style={{ fontFamily: 'var(--font-family-display)' }}
       >
         <span

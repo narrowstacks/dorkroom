@@ -30,6 +30,7 @@ export function SettingsButton({
       onClick={onPress}
       className={cn(
         'w-full rounded-lg border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hoverable-settings-btn',
+        centerLabel && 'max-[374px]:px-2',
         isSelected && 'settings-btn-selected',
         className
       )}
@@ -47,7 +48,7 @@ export function SettingsButton({
         <div
           className={cn(
             'flex items-center gap-3',
-            centerLabel && 'flex-1 justify-center'
+            centerLabel && 'flex-1 justify-center max-[374px]:gap-1.5'
           )}
         >
           {Icon && (
