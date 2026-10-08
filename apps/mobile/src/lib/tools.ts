@@ -1,4 +1,5 @@
 import type { Href } from 'expo-router';
+import type { ToolIconName } from '@/components/tool-icon';
 
 export type ToolCategory =
   | 'printing'
@@ -10,7 +11,7 @@ export type ToolCategory =
 export interface Tool {
   id: string;
   label: string;
-  icon: string; // Lucide kebab icon name (e.g. 'crop', 'ruler')
+  icon: ToolIconName;
   route: Href; // expo-router pathname for the More-stack detail route
   category: ToolCategory;
   /**
