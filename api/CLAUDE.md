@@ -19,6 +19,9 @@ Everything else:
 
 - `filmdev.ts` - filmdev.org import endpoint; the one handler that calls `withHandler` directly
 - `docs.ts` - `api.dorkroom.art` landing page
+- `not-found.ts` - JSON 404 (`{ error, message, requestId }`) for any other path on
+  `api.dorkroom.art`. Deliberately not wrapped in `withHandler`, which would demand
+  an API key and turn a mistyped path into a 401
 - `openapi.ts` - serves the OpenAPI 3.1 spec (`/openapi.json`)
 - `reference.ts` - interactive API reference (Scalar) at `/reference`
 - `meta.ts` - server-rendered meta tags for social crawlers. `vercel.json`
