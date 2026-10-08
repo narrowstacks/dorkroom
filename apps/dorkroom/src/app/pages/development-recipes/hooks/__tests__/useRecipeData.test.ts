@@ -94,6 +94,7 @@ const filterCustom = (dilutionFilter: string) => {
     developerTypeFilter: '',
     dilutionFilter,
     isoFilter: '',
+    searchQuery: '',
     customRecipeFilter: 'all',
     favoritesOnly: false,
     sharedCustomRecipe: null,
@@ -165,6 +166,7 @@ const createProps = (
   developerTypeFilter: '',
   dilutionFilter: '',
   isoFilter: '',
+  searchQuery: '',
   customRecipeFilter: 'all',
   favoritesOnly: false,
   sharedCustomRecipe: null,
@@ -228,5 +230,57 @@ describe('useRecipeData with invalid stored recipes', () => {
     expect(result.current.sharedCustomRecipeView?.combination.uuid).toBe(
       'shared-custom'
     );
+  });
+});
+
+describe('custom recipe search (#326)', () => {
+  const ilford = makeDeveloper({
+    uuid: 'dev-uuid-2',
+    manufacturer: 'Ilford',
+    name: 'Ilfosol 3',
+  });
+  const searchCustom = (searchQuery: string) => {
+    const { result } = renderHook(() =>
+      useRecipeData(
+        createProps({
+          searchQuery,
+          customRecipes: [
+            createRecipe({ id: 'tri-x-hc110' }),
+            createRecipe({ id: 'tri-x-ilfosol', developerId: ilford.uuid }),
+            createRecipe({
+              id: 'custom-dev',
+              isCustomDeveloper: true,
+              customDeveloper: {
+                manufacturer: 'Homebrew',
+                name: 'Caffenol',
+                type: 'powder',
+                filmOrPaper: 'film',
+                dilutions: [],
+              },
+            }),
+          ],
+          getFilmById: (id) => (id === film.uuid ? film : undefined),
+          getDeveloperById: (id) =>
+            [developer, ilford].find((d) => d.uuid === id),
+        })
+      )
+    );
+    return result.current.filteredCustomViews.map((v) => v.combination.uuid);
+  };
+
+  it('hides custom recipes that do not match the query', () => {
+    expect(searchCustom('Rodinal')).toEqual([]);
+  });
+
+  it('matches on developer name', () => {
+    expect(searchCustom('ilfosol')).toEqual(['tri-x-ilfosol']);
+  });
+
+  it('matches a custom developer by its own name', () => {
+    expect(searchCustom('caffenol')).toEqual(['custom-dev']);
+  });
+
+  it('keeps every recipe when the query is blank', () => {
+    expect(searchCustom('  ')).toHaveLength(3);
   });
 });

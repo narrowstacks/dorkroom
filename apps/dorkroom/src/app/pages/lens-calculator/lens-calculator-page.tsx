@@ -162,7 +162,7 @@ export default function LensCalculatorPage() {
               <button
                 type="button"
                 onClick={swapFormats}
-                className="p-2 rounded-lg border transition-colors themed-button hover:bg-surface-elevated"
+                className="p-2 rounded-lg border transition-colors themed-button"
                 aria-label="Swap source and target formats"
               >
                 <ArrowRightLeft
@@ -270,12 +270,12 @@ export default function LensCalculatorPage() {
             </p>
 
             <div className="space-y-3">
-              <h4
+              <h3
                 className="text-sm font-semibold"
                 style={{ color: 'var(--color-text-primary)' }}
               >
                 How to use
-              </h4>
+              </h3>
               <ol className="ml-5 space-y-2 list-decimal">
                 {HOW_TO_USE.map((item) => (
                   <li
@@ -290,12 +290,12 @@ export default function LensCalculatorPage() {
             </div>
 
             <div className="space-y-3">
-              <h4
+              <h3
                 className="text-sm font-semibold"
                 style={{ color: 'var(--color-text-primary)' }}
               >
                 Tips
-              </h4>
+              </h3>
               <ul className="ml-5 space-y-2 list-disc">
                 {TIPS.map((tip) => (
                   <li

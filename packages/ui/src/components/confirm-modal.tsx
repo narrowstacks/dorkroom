@@ -153,7 +153,7 @@ export function ConfirmModal({
               color: 'var(--color-background)',
               backgroundColor: isDestructive
                 ? 'var(--color-semantic-error)'
-                : 'var(--color-primary)',
+                : 'var(--color-brand)',
             })}
             onMouseEnter={(e) => {
               if (!isProcessing) {

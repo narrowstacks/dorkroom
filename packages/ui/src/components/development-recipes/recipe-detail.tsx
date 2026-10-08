@@ -71,7 +71,7 @@ export function DevelopmentRecipeDetail({
             type="button"
             title="Share recipe"
             onClick={() => onShareRecipe(view)}
-            className="inline-flex items-center gap-2 rounded-full bg-border-muted px-3 py-1 text-xs font-medium text-secondary transition hover:bg-border-secondary hover:text-primary"
+            className="inline-flex items-center gap-2 rounded-full bg-border-muted px-3 py-1 text-xs font-medium text-secondary transition hoverable-action-btn"
           >
             <Share2 className="size-4" />
             Share
@@ -84,7 +84,7 @@ export function DevelopmentRecipeDetail({
               isFavorite?.(view) ? 'Remove from favorites' : 'Add to favorites'
             }
             onClick={() => onToggleFavorite(view)}
-            className="inline-flex items-center gap-2 rounded-full bg-border-muted px-3 py-1 text-xs font-medium text-secondary transition hover:bg-border-secondary hover:text-primary"
+            className="inline-flex items-center gap-2 rounded-full bg-border-muted px-3 py-1 text-xs font-medium text-secondary transition hoverable-action-btn"
           >
             <Star
               className="size-4"
@@ -169,7 +169,7 @@ export function DevelopmentRecipeDetail({
               <button
                 type="button"
                 onClick={() => onEditCustomRecipe(view)}
-                className="flex-1 inline-flex items-center justify-center rounded-full bg-border-muted p-2.5 text-sm font-medium text-secondary transition hover:bg-border-secondary hover:text-primary"
+                className="flex-1 inline-flex items-center justify-center rounded-full bg-border-muted p-2.5 text-sm font-medium text-secondary transition hoverable-action-btn"
                 aria-label="Edit"
                 title="Edit"
               >

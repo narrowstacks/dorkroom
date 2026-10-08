@@ -246,7 +246,7 @@ export const DevelopmentResultsTableVirtualized: FC<
                           ? rowStyles.selected.backgroundColor
                           : rowStyles.default.backgroundColor,
                         boxShadow: isSelected
-                          ? 'inset 3px 0 0 var(--color-primary)'
+                          ? 'inset 3px 0 0 var(--color-brand)'
                           : undefined,
                       })}
                     >

@@ -58,12 +58,12 @@ export function DevelopmentActionsBar({
           </div>
         )}
         <div>
-          <h2
+          <h1
             className="text-lg font-semibold"
             style={{ color: 'var(--color-text-primary)' }}
           >
             Development Recipes
-          </h2>
+          </h1>
           <p
             className="text-sm"
             style={{ color: 'var(--color-text-tertiary)' }}

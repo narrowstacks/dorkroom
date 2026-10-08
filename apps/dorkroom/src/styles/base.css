@@ -28,7 +28,7 @@
   }
 
   ::selection {
-    @apply bg-primary/40;
+    @apply bg-brand/40;
     color: var(--color-text-primary);
   }
 

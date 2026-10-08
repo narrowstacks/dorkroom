@@ -62,6 +62,15 @@ describe('reciprocityHydrationValidators (issue #239)', () => {
     );
   });
 
+  it('accepts "," as the decimal separator, like the parser (issue #373)', () => {
+    for (const time of ['1,5', '1,5m', '1h 2,5m', '0,5s']) {
+      expect(reciprocityHydrationValidators.meteredTime.validate(time)).toBe(
+        true
+      );
+    }
+    expect(hydrate({ meteredTime: '1,5m' }).meteredTime).toBe('1,5m');
+  });
+
   it('rejects out-of-bounds and malformed values', () => {
     expect(reciprocityHydrationValidators.filmType.validate('')).toBe(false);
     // Not a member of RECIPROCITY_FILM_TYPES, so no factor could be looked up

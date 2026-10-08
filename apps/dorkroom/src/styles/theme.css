@@ -7,12 +7,38 @@
   --color-background: #09090b;
   --color-surface: #121214;
   --color-surface-muted: #1c1c1f;
-  --color-primary: #6ef3a4;
+  --color-brand: #6ef3a4;
   --color-secondary: #7dd6ff;
   --color-accent: #f99f96;
   --color-highlight: #e5ff7d;
   --spacing-18: 4.5rem;
   --border-radius-hero: 36px;
+}
+
+/* Semantic colours as Tailwind theme tokens, so Tailwind generates their
+   utilities together with every variant and opacity modifier (hover:,
+   focus:, /10). Handwritten classes get neither, so a `hover:` prefix on one
+   silently emitted nothing (#297).
+
+   The per-property namespaces (--text-color-*, --background-color-*,
+   --border-color-*) win over --color-* for their own utility, which keeps
+   `text-primary` the primary text colour and `border-primary` the primary
+   border colour. The brand colour is `brand`, so no `primary` class can
+   resolve to it.
+
+   `inline` makes the utilities reference the per-theme variables directly,
+   so they follow whichever [data-theme] block is active. */
+@theme inline {
+  --color-error: var(--color-semantic-error);
+  --text-color-primary: var(--color-text-primary);
+  --text-color-secondary: var(--color-text-secondary);
+  --text-color-tertiary: var(--color-text-tertiary);
+  --text-color-muted: var(--color-text-muted);
+  --background-color-border-muted: var(--color-border-muted);
+  --background-color-border-secondary: var(--color-border-secondary);
+  --border-color-primary: var(--color-border-primary);
+  --border-color-secondary: var(--color-border-secondary);
+  --border-color-muted: var(--color-border-muted);
 }
 
 /* Darkroom theme checkbox */
@@ -110,7 +136,7 @@
   --settings-container-border: #ff0000;
   --color-surface: #000000;
   --color-surface-muted: #000000;
-  --color-primary: #ff0000;
+  --color-brand: #ff0000;
   --color-secondary: #ff0000;
   --color-accent: #ff0000;
   --color-highlight: #ff0000;
@@ -245,7 +271,7 @@
   --settings-container-border: rgba(255, 255, 255, 0.08);
   --color-surface: #121214;
   --color-surface-muted: #1c1c1f;
-  --color-primary: #6ef3a4;
+  --color-brand: #6ef3a4;
   --color-secondary: #7dd6ff;
   --color-accent: #f99f96;
   --color-highlight: #e5ff7d;
@@ -476,7 +502,7 @@
   --settings-container-border: rgba(0, 0, 0, 0.1);
   --color-surface: #f8f9fa;
   --color-surface-muted: #f1f3f4;
-  --color-primary: #256b40; /* deep green — ≥4.5:1 on white */
+  --color-brand: #256b40; /* deep green — ≥4.5:1 on white */
   --color-secondary: #1e6091; /* deep blue for links/secondary accents */
   --color-accent: #c4524a; /* warm accent for warnings/highlights */
   --color-highlight: #7a8c1f; /* slightly cooler olive for better contrast */
@@ -713,7 +739,7 @@
   --settings-container-border: #000000;
   --color-surface: #ffffff;
   --color-surface-muted: #ffffff;
-  --color-primary: #000000;
+  --color-brand: #000000;
   --color-secondary: #000000;
   --color-accent: #000000;
   --color-highlight: #000000;
@@ -852,7 +878,7 @@
   --settings-container-border: rgba(255, 255, 255, 0.08);
   --color-surface: #121214;
   --color-surface-muted: #1c1c1f;
-  --color-primary: #6ef3a4;
+  --color-brand: #6ef3a4;
   --color-secondary: #7dd6ff;
   --color-accent: #f99f96;
   --color-highlight: #e5ff7d;

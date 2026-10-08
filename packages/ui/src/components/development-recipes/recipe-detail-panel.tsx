@@ -180,7 +180,7 @@ const SidebarActionButtons: FC<
       <button
         type="button"
         onClick={() => onToggleFavorite(view)}
-        className="inline-flex items-center gap-2 rounded-full bg-border-muted px-3 py-1 text-xs font-medium text-secondary transition hover:bg-border-secondary hover:text-primary"
+        className="inline-flex items-center gap-2 rounded-full bg-border-muted px-3 py-1 text-xs font-medium text-secondary transition hoverable-action-btn"
       >
         <Star
           className="size-4"
@@ -198,7 +198,7 @@ const SidebarActionButtons: FC<
       <button
         type="button"
         onClick={() => onShareRecipe(view)}
-        className="inline-flex items-center gap-2 rounded-full bg-border-muted px-3 py-1 text-xs font-medium text-secondary transition hover:bg-border-secondary hover:text-primary"
+        className="inline-flex items-center gap-2 rounded-full bg-border-muted px-3 py-1 text-xs font-medium text-secondary transition hoverable-action-btn"
       >
         Share
       </button>

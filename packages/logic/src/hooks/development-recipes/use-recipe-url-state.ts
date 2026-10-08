@@ -381,10 +381,10 @@ export const useRecipeUrlState = (
       }
     }
 
+    // Invalid params are left out of `sanitized`, so they are dropped here and
+    // the URL-sync effect rewrites them away. Bailing out on them instead left
+    // the hook uninitialized, and it never wrote to the URL again (#371).
     const validation = validateUrlParams(params);
-    if (!validation.isValid) {
-      return {};
-    }
 
     const state: InitialUrlState = { fromUrl: true };
 

@@ -86,9 +86,9 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
             }}
             onMouseEnter={(e) => {
               setStyles(e.currentTarget, {
-                backgroundColor: 'var(--color-primary)',
+                backgroundColor: 'var(--color-brand)',
                 color: 'var(--color-background)',
-                borderColor: 'var(--color-primary)',
+                borderColor: 'var(--color-brand)',
                 transform: 'scale(1.05)',
               });
             }}
@@ -111,13 +111,13 @@ export const FilterPanelContainer: FC<FilterPanelContainerProps> = ({
               className="flex size-full items-center justify-center rounded-xl transition-all duration-200"
               style={{
                 backgroundColor: hasActiveFilters
-                  ? 'var(--color-primary)'
+                  ? 'var(--color-brand)'
                   : 'var(--color-surface-muted)',
                 color: hasActiveFilters
                   ? 'var(--color-background)'
                   : 'var(--color-text-muted)',
                 border: hasActiveFilters
-                  ? '1px solid var(--color-primary)'
+                  ? '1px solid var(--color-brand)'
                   : '1px solid var(--color-border-secondary)',
               }}
               title={
