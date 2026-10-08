@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { validateAndSanitizeQuery } from './queryValidation';
 import {
   logApiResponse,
@@ -11,6 +12,40 @@ import { type HandlerConfig, withHandler } from './withHandler';
 
 const TIMEOUT_MS = 30_000;
 const MAX_RESPONSE_SIZE = 1024 * 1024;
+const MAX_UPSTREAM_ERROR_LENGTH = 200;
+
+/** Upstream statuses that mean "the caller's request was wrong", not "upstream is down". */
+const PASSTHROUGH_FALLBACKS: ReadonlyMap<number, string> = new Map([
+  [400, 'Invalid request parameter'],
+  [404, 'Not found'],
+]);
+
+/** Capped so a misbehaving upstream cannot push arbitrary text through the proxy. */
+const upstreamErrorSchema = z.object({
+  error: z.string().max(MAX_UPSTREAM_ERROR_LENGTH),
+});
+
+/**
+ * Pulls the short `error` string out of an upstream 4xx body, or returns the
+ * fallback when the body is missing, not JSON, or not a usable string.
+ */
+async function readUpstreamError(
+  response: Response,
+  fallback: string
+): Promise<string> {
+  try {
+    const parsed = upstreamErrorSchema.safeParse(await response.json());
+    if (parsed.success) {
+      const trimmed = parsed.data.error.trim();
+      if (trimmed) {
+        return trimmed;
+      }
+    }
+  } catch {
+    // Empty or non-JSON body: fall through to the safe message.
+  }
+  return fallback;
+}
 
 export interface SupabaseProxyConfig {
   name: string;
@@ -80,6 +115,15 @@ export function createSupabaseProxyHandler({
         requestId: ctx.requestId,
         status: response.status,
       });
+
+      const fallback = PASSTHROUGH_FALLBACKS.get(response.status);
+      if (fallback !== undefined) {
+        res.status(response.status).json({
+          error: await readUpstreamError(response, fallback),
+          requestId: ctx.requestId,
+        });
+        return;
+      }
 
       res.status(502).json({
         error: 'External API error',

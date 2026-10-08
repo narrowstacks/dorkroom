@@ -84,6 +84,72 @@ describe.each([
       expect(res._json).not.toHaveProperty('status');
     });
 
+    it('should pass an upstream 400 through with its error string and requestId', async () => {
+      respondWith(
+        createUpstreamResponse(
+          JSON.stringify({ error: 'Invalid query parameter' }),
+          { status: 400 }
+        )
+      );
+
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
+
+      expect(res._status).toBe(400);
+      expect(res._json).toEqual({
+        error: 'Invalid query parameter',
+        requestId: 'test-request-id',
+      });
+    });
+
+    it('should fall back to a safe 400 message for unusable upstream bodies', async () => {
+      const bodies = [
+        '',
+        '<html>oops</html>',
+        JSON.stringify({ error: { nested: true } }),
+        JSON.stringify({ error: 'x'.repeat(500) }),
+      ];
+      for (const body of bodies) {
+        respondWith(createUpstreamResponse(body, { status: 400 }));
+        const res = createMockResponse();
+        await handler(createMockRequest(), res, createContext());
+
+        expect(res._status).toBe(400);
+        expect(res._json).toEqual({
+          error: 'Invalid request parameter',
+          requestId: 'test-request-id',
+        });
+      }
+    });
+
+    it('should pass an upstream 404 through', async () => {
+      respondWith(
+        createUpstreamResponse(JSON.stringify({ error: 'Film not found' }), {
+          status: 404,
+        })
+      );
+
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
+
+      expect(res._status).toBe(404);
+      expect(res._json).toEqual({
+        error: 'Film not found',
+        requestId: 'test-request-id',
+      });
+    });
+
+    it('should let network failures propagate to withHandler (which maps them to 502)', async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockRejectedValue(new TypeError('fetch failed'));
+
+      const res = createMockResponse();
+      await expect(
+        handler(createMockRequest(), res, createContext())
+      ).rejects.toThrow('fetch failed');
+    });
+
     it.each([
       401, 403, 500, 503,
     ])('should not include upstream status %i in the response', async (upstreamStatus) => {
