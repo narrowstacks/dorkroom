@@ -59,6 +59,15 @@ function isStaticRoute(pathname: string): pathname is StaticRoute {
   return hasOwn(ROUTE_TITLES, pathname);
 }
 
+/**
+ * True when `pathname` (trailing slashes ignored) is a page the SPA actually
+ * serves. Anything else lands on the `$` catch-all, so crawlers should get a
+ * 404 rather than indexable fallback metadata.
+ */
+export function isKnownRoutePath(pathname: string): boolean {
+  return isStaticRoute(normalizePath(pathname));
+}
+
 const DEFAULT_TITLE = 'Dorkroom';
 const DEFAULT_DESCRIPTION =
   'Film photography calculators and resources for analog photographers.';

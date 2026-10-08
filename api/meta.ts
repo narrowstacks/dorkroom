@@ -1,7 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { escapeHtml } from '../utils/htmlEscape';
 import type { MetadataQuery } from '../utils/routeMetadata';
-import { getRouteMetadata } from '../utils/routeMetadata';
+import {
+  getRouteMetadata,
+  isKnownRoutePath,
+  SITE_NAME,
+} from '../utils/routeMetadata';
 
 /** Slug pattern: lowercase alphanumeric + hyphens, 1-100 chars */
 const SLUG_RE = /^[a-z0-9-]{1,100}$/;
@@ -161,6 +165,7 @@ export default async function handler(
     if (value !== undefined) url.searchParams.set(key, value);
   }
 
+  const isKnownRoute = isKnownRoutePath(url.pathname);
   const query = extractMetadataQuery(url.searchParams);
   const meta = getRouteMetadata(url.pathname, query);
   const safeTitle = escapeHtml(meta.title);
@@ -182,6 +187,26 @@ export default async function handler(
   }
 
   let html = await originResponse.text();
+
+  if (!isKnownRoute) {
+    // The SPA's `$` catch-all renders "not found" for this path, but the
+    // origin answers it with a 200. Mirror the real outcome for crawlers: a
+    // 404, noindex, and no canonical, so typo or spam-linked URLs are not
+    // indexed as thin duplicates of the home page.
+    html = html.replace(
+      /<title>[^<]*<\/title>/,
+      () => `<title>Page Not Found - ${SITE_NAME}</title>`
+    );
+    html = html.replace(
+      '</head>',
+      () => '    <meta name="robots" content="noindex" />\n  </head>'
+    );
+    res.setHeader('content-type', 'text/html; charset=utf-8');
+    res.setHeader('x-robots-tag', 'noindex');
+    res.setHeader('cache-control', 'public, s-maxage=3600');
+    res.status(404).send(html);
+    return;
+  }
 
   // Replace <title>. A function replacer is used for every substitution
   // below — a string replacer interprets `$&`, `$``, `$'`, `$$`, `$n` in the
