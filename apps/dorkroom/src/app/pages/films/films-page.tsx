@@ -235,6 +235,10 @@ export default function FilmsPage() {
     // Wait until loading is complete
     if (isLoading) return;
 
+    // The URL moved to a slug that matches no film: drop the previous
+    // selection so the debounced sync cannot write the old slug back over it.
+    if (!urlFilm) setSelectedFilm(null);
+
     // A failed request says nothing about whether the slug exists. Leave it
     // unprocessed so a later successful refetch (reconnect) can still open it.
     if (error && !urlFilm) return;
