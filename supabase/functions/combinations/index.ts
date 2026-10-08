@@ -200,10 +200,11 @@ serve(async (req) => {
     }
   }
 
-  // Order by created_at for consistent results
-  dbQuery = dbQuery.order('created_at', {
-    ascending: false,
-  });
+  // created_at is not unique (rows share timestamps), so `id` breaks ties.
+  // Without it, OFFSET pagination can repeat or skip rows at page edges.
+  dbQuery = dbQuery
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false });
 
   const { data, error, count } = await dbQuery;
   if (error) {
