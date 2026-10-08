@@ -220,7 +220,7 @@ export function HomePage() {
             Open Source via the AGPLv3 license.
           </a>{' '}
         </p>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:flex-nowrap">
           <Link
             to="/privacy"
             className="flex items-center gap-2 transition-colors footer-link"
