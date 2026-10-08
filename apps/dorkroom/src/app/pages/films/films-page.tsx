@@ -160,6 +160,21 @@ export function FilmsDesktopLayout({
   );
 }
 
+/**
+ * Keeps an incoming ?film= slug in the URL until the selection effect has
+ * processed it (or the catalog request failed). Without this, a catalog slower
+ * than the 500ms URL sync would write film: undefined and strip the deep link.
+ */
+function pendingFilm(
+  slug: string | undefined,
+  processedSlug: { current: string | null },
+  hasError: boolean
+): string | undefined {
+  return slug && (hasError || processedSlug.current !== slug)
+    ? slug
+    : undefined;
+}
+
 export default function FilmsPage() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -270,9 +285,7 @@ export default function FilmsPage() {
     // Skip if no URL film param
     if (!urlFilmSlug) {
       // Clear selection if URL had a film but now doesn't
-      if (lastProcessedFilmSlug.current !== null) {
-        lastProcessedFilmSlug.current = null;
-      }
+      lastProcessedFilmSlug.current = null;
       return;
     }
 
@@ -304,7 +317,9 @@ export default function FilmsPage() {
           iso: isoSpeedFilter || undefined,
           brand: brandFilter || undefined,
           status: discontinuedFilter !== 'all' ? discontinuedFilter : undefined,
-          film: selectedFilm?.slug || undefined,
+          film:
+            selectedFilm?.slug ||
+            pendingFilm(urlFilmSlug, lastProcessedFilmSlug, !!error),
         },
         replace: true,
       });
