@@ -219,8 +219,14 @@ export default function FilmsPage() {
   useEffect(() => {
     // Skip if no URL film param
     if (!urlFilmSlug) {
-      // Clear selection if URL had a film but now doesn't
-      lastProcessedFilmSlug.current = null;
+      // The film param disappeared after being processed (Back, link to
+      // /films): drop the stale selection so the debounced sync does not
+      // write the removed param back. A null ref means the URL never had a
+      // film, so a selection made through the UI is left alone.
+      if (lastProcessedFilmSlug.current !== null) {
+        lastProcessedFilmSlug.current = null;
+        setSelectedFilm(null);
+      }
       return;
     }
 
@@ -275,6 +281,10 @@ export default function FilmsPage() {
     discontinuedFilter,
     selectedFilm,
     urlFilmSlug,
+    // The selection effect marks the slug processed in a ref (no render), so
+    // re-run when the lookup settles to let pendingFilm strip an invalid slug.
+    isLoading,
+    error,
   ]);
 
   // Update ARIA live region when filteredFilms changes
