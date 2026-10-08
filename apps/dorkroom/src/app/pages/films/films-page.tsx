@@ -19,6 +19,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { filmColorFilterSchema } from '../../../routes/search-schemas';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
+import { useUrlFilterSync } from './use-url-filter-sync';
 
 type FilmDatabase = ReturnType<typeof useFilmDatabase>;
 
@@ -160,6 +161,20 @@ export function FilmsDesktopLayout({
   );
 }
 
+/**
+ * Keeps an incoming ?film= slug in the URL until the selection effect has
+ * processed it. The effect leaves a slug unprocessed while the catalog request
+ * has failed with no match, so a failed load keeps the deep link too. Without
+ * this, a catalog slower than the 500ms URL sync would write film: undefined
+ * and strip the deep link.
+ */
+function pendingFilm(
+  slug: string | undefined,
+  processedSlug: { current: string | null }
+): string | undefined {
+  return slug && processedSlug.current !== slug ? slug : undefined;
+}
+
 export default function FilmsPage() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -172,15 +187,10 @@ export default function FilmsPage() {
     isLoading,
     error,
     searchQuery,
-    setSearchQuery,
     colorTypeFilter,
-    setColorTypeFilter,
     isoSpeedFilter,
-    setIsoSpeedFilter,
     brandFilter,
-    setBrandFilter,
     discontinuedFilter,
-    setDiscontinuedFilter,
   } = db;
 
   const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
@@ -202,76 +212,19 @@ export default function FilmsPage() {
     // eslint-disable-next-line react-doctor/exhaustive-deps -- react-doctor reports "stale searchParams.film" via alias tracing through urlFilmSlug, but urlFilmSlug IS searchParams.film re-derived every render (line 189, not memoized); adding searchParams.film directly is flagged as a redundant dep by react-hooks/exhaustive-deps
   }, [films, urlFilmSlug]);
 
-  // Sync URL params to filter state when URL changes (back/forward navigation, bookmarks).
-  // Each param syncs in its own effect so a single effect never performs multiple state
-  // updates. Effects only run when their URL param changes - they do NOT include the
-  // matching state value in deps, to avoid clearing user input before the debounced
-  // state→URL sync fires. We don't clear state when a URL param is undefined; the
-  // debounced state→URL sync handles that.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
-  useEffect(() => {
-    if (
-      searchParams.search !== undefined &&
-      searchParams.search !== searchQuery
-    ) {
-      setSearchQuery(searchParams.search);
-    }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.search]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
-  useEffect(() => {
-    if (
-      searchParams.color !== undefined &&
-      searchParams.color !== colorTypeFilter
-    ) {
-      setColorTypeFilter(searchParams.color);
-    }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.color]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
-  useEffect(() => {
-    if (searchParams.iso !== undefined && searchParams.iso !== isoSpeedFilter) {
-      setIsoSpeedFilter(searchParams.iso);
-    }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.iso]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
-  useEffect(() => {
-    if (
-      searchParams.brand !== undefined &&
-      searchParams.brand !== brandFilter
-    ) {
-      setBrandFilter(searchParams.brand);
-    }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.brand]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: setter is a stable ref; state value intentionally excluded
-  useEffect(() => {
-    if (
-      searchParams.status !== undefined &&
-      searchParams.status !== discontinuedFilter
-    ) {
-      setDiscontinuedFilter(searchParams.status);
-    }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-    // eslint-disable-next-line react-doctor/exhaustive-deps -- setter is a stable ref; state value intentionally excluded to avoid clearing user input before debounced URL sync
-  }, [searchParams.status]);
+  useUrlFilterSync(searchParams, db);
 
   // Select film from URL param when data loads or URL changes
   useEffect(() => {
     // Skip if no URL film param
     if (!urlFilmSlug) {
-      // Clear selection if URL had a film but now doesn't
+      // The film param disappeared after being processed (Back, link to
+      // /films): drop the stale selection so the debounced sync does not
+      // write the removed param back. A null ref means the URL never had a
+      // film, so a selection made through the UI is left alone.
       if (lastProcessedFilmSlug.current !== null) {
         lastProcessedFilmSlug.current = null;
+        setSelectedFilm(null);
       }
       return;
     }
@@ -282,6 +235,14 @@ export default function FilmsPage() {
     // Wait until loading is complete
     if (isLoading) return;
 
+    // The URL moved to a slug that matches no film: drop the previous
+    // selection so the debounced sync cannot write the old slug back over it.
+    if (!urlFilm) setSelectedFilm(null);
+
+    // A failed request says nothing about whether the slug exists. Leave it
+    // unprocessed so a later successful refetch (reconnect) can still open it.
+    if (error && !urlFilm) return;
+
     // Mark this slug as processed
     lastProcessedFilmSlug.current = urlFilmSlug;
 
@@ -290,7 +251,7 @@ export default function FilmsPage() {
       setSelectedFilm(urlFilm);
     }
     // eslint-disable-next-line react-doctor/exhaustive-deps -- same alias-tracing false positive as the urlFilm useMemo above: urlFilmSlug already IS searchParams.film re-derived every render, so it's already covered
-  }, [urlFilm, urlFilmSlug, isLoading]);
+  }, [urlFilm, urlFilmSlug, isLoading, error]);
 
   // Debounced URL sync (500ms)
   // biome-ignore lint/correctness/useExhaustiveDependencies: navigate is stable from TanStack Router
@@ -304,7 +265,9 @@ export default function FilmsPage() {
           iso: isoSpeedFilter || undefined,
           brand: brandFilter || undefined,
           status: discontinuedFilter !== 'all' ? discontinuedFilter : undefined,
-          film: selectedFilm?.slug || undefined,
+          film:
+            selectedFilm?.slug ||
+            pendingFilm(urlFilmSlug, lastProcessedFilmSlug),
         },
         replace: true,
       });
@@ -320,6 +283,11 @@ export default function FilmsPage() {
     brandFilter,
     discontinuedFilter,
     selectedFilm,
+    urlFilmSlug,
+    // The selection effect marks the slug processed in a ref (no render), so
+    // re-run when the lookup settles to let pendingFilm strip an invalid slug.
+    isLoading,
+    error,
   ]);
 
   // Update ARIA live region when filteredFilms changes
@@ -397,6 +365,7 @@ export default function FilmsPage() {
   // Show when: URL has a film slug, but we haven't found/loaded the film yet, and general loading is done
   const shouldShowDetailSkeleton = Boolean(
     !isLoading &&
+      !error &&
       urlFilmSlug &&
       !urlFilm &&
       lastProcessedFilmSlug.current !== urlFilmSlug
