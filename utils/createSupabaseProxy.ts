@@ -29,12 +29,14 @@ const upstreamErrorSchema = z.object({
 /**
  * Pulls the short `error` string out of an upstream 400 body, or returns the
  * fallback when the body is oversized, malformed JSON, or not a usable string.
- * Read failures (abort, timeout, network) are not caught so withHandler maps them.
+ * Returns null when the body cannot be read (for example the upstream closed the
+ * connection mid-body); the caller answers with the standard 502. Abort and
+ * timeout errors are rethrown so withHandler maps them to 504.
  */
 async function readUpstreamError(
   response: Response,
   fallback: string
-): Promise<string> {
+): Promise<string | null> {
   const contentLength = Number.parseInt(
     response.headers.get('content-length') ?? '',
     10
@@ -43,7 +45,18 @@ async function readUpstreamError(
     return fallback;
   }
 
-  const text = await response.text();
+  let text: string;
+  try {
+    text = await response.text();
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.name === 'AbortError' || error.name === 'TimeoutError')
+    ) {
+      throw error;
+    }
+    return null;
+  }
   if (text.length > MAX_RESPONSE_SIZE) {
     return fallback;
   }
@@ -138,11 +151,17 @@ export function createSupabaseProxyHandler({
       });
 
       if (response.status === PASSTHROUGH_STATUS) {
-        res.status(PASSTHROUGH_STATUS).json({
-          error: await readUpstreamError(response, PASSTHROUGH_FALLBACK),
-          requestId: ctx.requestId,
-        });
-        return;
+        const upstreamError = await readUpstreamError(
+          response,
+          PASSTHROUGH_FALLBACK
+        );
+        if (upstreamError !== null) {
+          res.status(PASSTHROUGH_STATUS).json({
+            error: upstreamError,
+            requestId: ctx.requestId,
+          });
+          return;
+        }
       }
 
       res.status(502).json({

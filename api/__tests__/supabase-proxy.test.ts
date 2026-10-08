@@ -180,6 +180,22 @@ describe.each([
       ).rejects.toMatchObject({ name: 'AbortError' });
     });
 
+    it('should answer 502 External API error when the 400 body is truncated', async () => {
+      const upstream = createUpstreamResponse('{}', { status: 400 });
+      vi.spyOn(upstream, 'text').mockRejectedValue(new TypeError('terminated'));
+      respondWith(upstream);
+
+      const res = createMockResponse();
+      await handler(createMockRequest(), res, createContext());
+
+      expect(res._status).toBe(502);
+      expect(res._json).toMatchObject({
+        error: 'External API error',
+        message: 'Upstream service returned an error',
+        requestId: expect.any(String),
+      });
+    });
+
     it('should let network failures propagate to withHandler (which maps them to 502)', async () => {
       globalThis.fetch = vi
         .fn()

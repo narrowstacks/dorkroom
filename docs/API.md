@@ -58,7 +58,7 @@ All error responses include a `requestId` for debugging.
 | `405` | `Method Not Allowed` | Non-GET request |
 | `429` | `Rate limit exceeded` | Too many requests |
 | `500` | `Internal server error` | Unexpected server failure |
-| `502` | `External API error` | Upstream service failed (5xx, unexpected 4xx, or unreachable) |
+| `502` | `External API error` | Upstream service returned an error (5xx or unexpected 4xx) |
 | `504` | `Request timeout` | Upstream did not respond within 30s |
 
 Error body shape:
