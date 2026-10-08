@@ -343,3 +343,31 @@ describe('meta handler - non-regression', () => {
     );
   });
 });
+
+describe('meta handler - unknown routes', () => {
+  it('returns a 404 with noindex and no canonical for an unknown path', async () => {
+    const req = createMockRequest({ query: { path: '/this-does-not-exist' } });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res._status).toBe(404);
+    expect(res._sent).toContain('<meta name="robots" content="noindex" />');
+    expect(res._sent).toContain('<title>Page Not Found - Dorkroom</title>');
+    expect(res._sent).not.toContain('rel="canonical"');
+    expect(res._headers['x-robots-tag']).toBe('noindex');
+  });
+
+  it('still serves a known route with 200 and a canonical', async () => {
+    const req = createMockRequest({ query: { path: '/stops/' } });
+    const res = createMockResponse();
+
+    await handler(req, res);
+
+    expect(res._status).toBe(200);
+    expect(res._sent).toContain(
+      '<link rel="canonical" href="https://dorkroom.art/stops" />'
+    );
+    expect(res._sent).not.toContain('noindex');
+  });
+});

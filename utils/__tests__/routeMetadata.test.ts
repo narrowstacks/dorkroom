@@ -3,6 +3,7 @@ import {
   BASE_URL,
   buildFilmFilterParts,
   getRouteMetadata,
+  isKnownRoutePath,
   prettifySlug,
   ROUTE_DESCRIPTIONS,
   ROUTE_TITLES,
@@ -174,5 +175,19 @@ describe('filter params inherited from Object.prototype', () => {
     expect(buildFilmFilterParts({ status: 'discontinued' })?.title).toBe(
       'Discontinued Film Stocks'
     );
+  });
+});
+
+describe('isKnownRoutePath', () => {
+  it('accepts every static route, with or without trailing slashes', () => {
+    for (const route of Object.keys(ROUTE_TITLES)) {
+      expect(isKnownRoutePath(route)).toBe(true);
+      expect(isKnownRoutePath(`${route}/`)).toBe(true);
+    }
+  });
+
+  it('rejects unknown paths and Object.prototype keys', () => {
+    expect(isKnownRoutePath('/nonexistent-page')).toBe(false);
+    expect(isKnownRoutePath('/constructor')).toBe(false);
   });
 });
