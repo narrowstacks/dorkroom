@@ -53,6 +53,7 @@ All error responses include a `requestId` for debugging.
 | Status | Error | Cause |
 | --- | --- | --- |
 | `401` | `Unauthorized` | Missing or invalid API key |
+| `404` | `Not found` | Path is not an endpoint (returned without an API key) |
 | `405` | `Method Not Allowed` | Non-GET request |
 | `429` | `Rate limit exceeded` | Too many requests |
 | `500` | `Internal server error` | Unexpected server failure |
