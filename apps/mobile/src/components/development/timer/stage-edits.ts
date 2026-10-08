@@ -1,5 +1,6 @@
 // Pure immutable helpers for the preset editor. The editor renders these; the
 // list transforms live here so they stay unit-tested and the .tsx is a thin view.
+import { parseDecimalInput } from '@dorkroom/logic';
 import { createBlankStage } from '@/lib/timer/presets';
 import type { TimerStage } from '@/lib/timer/types';
 
@@ -68,4 +69,10 @@ export function durationToParts(durationSeconds: number): DurationParts {
     ? Math.max(0, Math.round(durationSeconds))
     : 0;
   return { minutes: Math.floor(safe / 60), seconds: safe % 60 };
+}
+
+/** Parse the temperature field text ("68.5" or "68,5"); empty or invalid is null. */
+export function parseTemperatureDraft(text: string): number | null {
+  const parsed = parseDecimalInput(text);
+  return Number.isFinite(parsed) ? parsed : null;
 }
