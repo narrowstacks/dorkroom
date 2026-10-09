@@ -87,7 +87,7 @@
     "oxlint-tsgolint": "0.23.0",
     "playwright": "^1.61.1",
     "postcss": "^8.5.28",
-    "react-doctor": "0.9.12",
+    "react-doctor": "0.9.14",
     "tailwindcss": "4.3.3",
     "terser": "5.49.0",
     "tslib": "^2.3.0",
