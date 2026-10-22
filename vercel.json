@@ -51,6 +51,17 @@
       "headers": { "cache-control": "public, max-age=0, must-revalidate" },
       "continue": true
     },
+    {
+      "src": "/((?!api/).*)",
+      "headers": {
+        "content-security-policy": "frame-ancestors 'none'",
+        "x-frame-options": "DENY",
+        "x-content-type-options": "nosniff",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+      },
+      "continue": true
+    },
     { "handle": "filesystem" },
     {
       "src": "/((?!api/).*)",
