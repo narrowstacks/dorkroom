@@ -142,7 +142,7 @@ export function PresetEditor({
               <View className="flex-1 gap-1">
                 <Text className="text-sm text-white/60">Minutes</Text>
                 <Stepper
-                  label="Minutes"
+                  label={`Stage ${index + 1} minutes`}
                   value={String(minutes)}
                   onDecrement={() =>
                     patch(index, {
@@ -159,7 +159,7 @@ export function PresetEditor({
               <View className="flex-1 gap-1">
                 <Text className="text-sm text-white/60">Seconds</Text>
                 <Stepper
-                  label="Seconds"
+                  label={`Stage ${index + 1} seconds`}
                   value={String(seconds)}
                   onDecrement={() =>
                     patch(index, {
@@ -208,7 +208,7 @@ export function PresetEditor({
                   <View className="flex-1 gap-1">
                     <Text className="text-sm text-white/60">Initial (s)</Text>
                     <Stepper
-                      label="Initial (s)"
+                      label={`Stage ${index + 1} initial agitation, seconds`}
                       value={String(pattern.params.initialSeconds)}
                       onDecrement={() =>
                         patchAgitationParams(index, pattern, {
@@ -228,7 +228,7 @@ export function PresetEditor({
                   <View className="flex-1 gap-1">
                     <Text className="text-sm text-white/60">Agitate (s)</Text>
                     <Stepper
-                      label="Agitate (s)"
+                      label={`Stage ${index + 1} agitate, seconds`}
                       value={String(pattern.params.agitateSeconds)}
                       onDecrement={() =>
                         patchAgitationParams(index, pattern, {
@@ -248,7 +248,7 @@ export function PresetEditor({
                   <View className="flex-1 gap-1">
                     <Text className="text-sm text-white/60">Every (s)</Text>
                     <Stepper
-                      label="Every (s)"
+                      label={`Stage ${index + 1} agitate every, seconds`}
                       value={String(pattern.params.intervalSeconds)}
                       onDecrement={() =>
                         patchAgitationParams(index, pattern, {
