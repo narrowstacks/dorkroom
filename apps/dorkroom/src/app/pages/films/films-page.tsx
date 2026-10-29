@@ -4,7 +4,7 @@ import {
   getBaseFilm,
   useFilmDatabase,
 } from '@dorkroom/logic';
-import { getRouteIcon, useIsMobile } from '@dorkroom/ui';
+import { ErrorFallback, getRouteIcon, useIsMobile } from '@dorkroom/ui';
 import { CalculatorPageHeader } from '@dorkroom/ui/calculator';
 import { VirtualizedErrorBoundary } from '@dorkroom/ui/development-recipes';
 import {
@@ -397,34 +397,48 @@ export default function FilmsPage() {
         description="Browse and search the complete film stock database"
       />
 
-      {error && (
-        <div className="mb-6 rounded-2xl border border-secondary bg-border-muted px-4 py-3 text-sm text-primary">
-          {error}
-        </div>
-      )}
-
-      {isMobile ? (
-        <FilmsMobileLayout
-          db={trackedDb}
-          isMobile={isMobile}
-          selectedFilm={selectedFilm}
-          baseFilm={baseFilm}
-          shouldShowDetailSkeleton={shouldShowDetailSkeleton}
-          onSelectFilm={handleSelectFilm}
-          onClosePanel={handleClosePanel}
+      {/* With nothing loaded, an empty result list would blame the filters, so
+          replace it outright. A failed background refetch keeps the cached
+          catalog and only gets a notice. */}
+      {error && films.length === 0 ? (
+        <ErrorFallback
+          message="We couldn't load the film database. Check your connection and try again."
+          reloadLabel="Retry"
+          onReload={db.retry}
         />
       ) : (
-        <FilmsDesktopLayout
-          db={trackedDb}
-          isMobile={isMobile}
-          selectedFilm={selectedFilm}
-          baseFilm={baseFilm}
-          shouldShowDetailSkeleton={shouldShowDetailSkeleton}
-          onSelectFilm={handleSelectFilm}
-          onClosePanel={handleClosePanel}
-          isFiltersCollapsed={isFiltersCollapsed}
-          onCollapsedChange={setIsFiltersCollapsed}
-        />
+        <>
+          {error && (
+            <div className="mb-6 rounded-2xl border border-secondary bg-border-muted px-4 py-3 text-sm text-primary">
+              Couldn't refresh the film database, so these results may be out of
+              date.
+            </div>
+          )}
+
+          {isMobile ? (
+            <FilmsMobileLayout
+              db={trackedDb}
+              isMobile={isMobile}
+              selectedFilm={selectedFilm}
+              baseFilm={baseFilm}
+              shouldShowDetailSkeleton={shouldShowDetailSkeleton}
+              onSelectFilm={handleSelectFilm}
+              onClosePanel={handleClosePanel}
+            />
+          ) : (
+            <FilmsDesktopLayout
+              db={trackedDb}
+              isMobile={isMobile}
+              selectedFilm={selectedFilm}
+              baseFilm={baseFilm}
+              shouldShowDetailSkeleton={shouldShowDetailSkeleton}
+              onSelectFilm={handleSelectFilm}
+              onClosePanel={handleClosePanel}
+              isFiltersCollapsed={isFiltersCollapsed}
+              onCollapsedChange={setIsFiltersCollapsed}
+            />
+          )}
+        </>
       )}
     </div>
   );
