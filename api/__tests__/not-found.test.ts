@@ -14,6 +14,8 @@ interface Route {
   continue?: boolean;
 }
 
+// SAFETY: vercel.json is checked-in config whose `routes` entries match
+// `Route`; a malformed file fails these tests rather than passing silently.
 const { routes } = JSON.parse(
   readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8')
 ) as { routes: Route[] };
