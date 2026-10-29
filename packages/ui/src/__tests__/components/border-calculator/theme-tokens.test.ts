@@ -78,10 +78,11 @@ describe('border calculator theme tokens', () => {
     expect(files.length).toBeGreaterThan(10);
   });
 
-  it.each(
-    files.map((file) => [relative(componentsRoot, file), file])
-  )('%s uses theme tokens instead of raw Tailwind palette colors', (_name, file) => {
-    const matches = readFileSync(file, 'utf8').match(RAW_PALETTE_CLASS) ?? [];
-    expect([...new Set(matches)]).toEqual([]);
-  });
+  it.each(files.map((file) => [relative(componentsRoot, file), file]))(
+    '%s uses theme tokens instead of raw Tailwind palette colors',
+    (_name, file) => {
+      const matches = readFileSync(file, 'utf8').match(RAW_PALETTE_CLASS) ?? [];
+      expect([...new Set(matches)]).toEqual([]);
+    }
+  );
 });

@@ -174,7 +174,7 @@ async function run(browser: Browser, baseUrl: string): Promise<void> {
 
     await page.goto(baseUrl, { waitUntil: 'networkidle', timeout: 60_000 });
     await page
-      .locator('.hero-card')
+      .locator('.hero-grain')
       .first()
       .waitFor({ state: 'visible', timeout: 30_000 });
 
@@ -186,7 +186,7 @@ async function run(browser: Browser, baseUrl: string): Promise<void> {
       /-legacy-|polyfills-legacy/.test(u)
     );
 
-    check('modern: app renders (.hero-card visible)', true);
+    check('modern: app renders (.hero-grain visible)', true);
     check('modern: loads modern index-*.js module bundle', modernEntry);
     check(
       'modern: does NOT request any legacy/polyfill chunk',
@@ -234,7 +234,7 @@ async function run(browser: Browser, baseUrl: string): Promise<void> {
 
     await page.goto(baseUrl, { waitUntil: 'networkidle', timeout: 60_000 });
     await page
-      .locator('.hero-card')
+      .locator('.hero-grain')
       .first()
       .waitFor({ state: 'visible', timeout: 30_000 });
 
@@ -249,7 +249,7 @@ async function run(browser: Browser, baseUrl: string): Promise<void> {
     );
 
     check(
-      'legacy: ES5 nomodule bundle boots the app (.hero-card visible)',
+      'legacy: ES5 nomodule bundle boots the app (.hero-grain visible)',
       true
     );
     check('legacy: requested polyfills-legacy chunk', loadedPolyfills);

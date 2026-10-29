@@ -45,19 +45,20 @@ describe('dialog dismissal and colour tokens', () => {
     expect(source).toMatch(/\buseEscapeKey\(/);
   });
 
-  it.each(
-    DISMISSIBLE_DIALOGS
-  )('%s has no unreachable onKeyDown on a backdrop', (file) => {
-    const source = readDialog(file);
+  it.each(DISMISSIBLE_DIALOGS)(
+    '%s has no unreachable onKeyDown on a backdrop',
+    (file) => {
+      const source = readDialog(file);
 
-    // A backdrop div carries role="presentation" and no tabIndex, so it can
-    // never receive focus and an onKeyDown on it can never fire.
-    const backdropKeyHandlers = source.match(
-      /role="presentation"[\s\S]{0,200}?onKeyDown/g
-    );
+      // A backdrop div carries role="presentation" and no tabIndex, so it can
+      // never receive focus and an onKeyDown on it can never fire.
+      const backdropKeyHandlers = source.match(
+        /role="presentation"[\s\S]{0,200}?onKeyDown/g
+      );
 
-    expect(backdropKeyHandlers ?? []).toEqual([]);
-  });
+      expect(backdropKeyHandlers ?? []).toEqual([]);
+    }
+  );
 
   it.each(DISMISSIBLE_DIALOGS)('%s uses no raw palette overlay', (file) => {
     const source = readDialog(file);
@@ -67,71 +68,72 @@ describe('dialog dismissal and colour tokens', () => {
     expect(rawOverlays ?? []).toEqual([]);
   });
 
-  it.each(
-    DISMISSIBLE_DIALOGS
-  )('%s sets no raw colour keyword or hex in an inline style', (file) => {
-    const source = readDialog(file);
+  it.each(DISMISSIBLE_DIALOGS)(
+    '%s sets no raw colour keyword or hex in an inline style',
+    (file) => {
+      const source = readDialog(file);
 
-    // Find every color/backgroundColor/borderColor declaration and scan its
-    // whole value region, not just the string literal immediately after the
-    // colon. A conditional value such as
-    //   backgroundColor: isDestructive
-    //     ? 'color-mix(in srgb, var(--color-semantic-error) 15%, transparent)'
-    //     : 'color-mix(in srgb, var(--color-semantic-warning) 15%, transparent)'
-    // has to have BOTH ternary branches inspected, or a future edit could
-    // swap one branch for a raw literal and this guard would stay blind to
-    // it. The value region ends at the first top-level comma or closing
-    // brace, tracking paren depth so a nested call like color-mix(...)
-    // doesn't end the region early. A literal counts as tokenised, per the
-    // same exemption used elsewhere, if `var(--` appears anywhere inside it:
-    // share-modal.tsx and save-before-share-modal.tsx legitimately use
-    // `rgba(var(--color-background-rgb), 0.06)`.
-    const rawColours: string[] = [];
-    const propertyPattern = /\b(color|backgroundColor|borderColor):/g;
-    let propertyMatch = propertyPattern.exec(source);
+      // Find every color/backgroundColor/borderColor declaration and scan its
+      // whole value region, not just the string literal immediately after the
+      // colon. A conditional value such as
+      //   backgroundColor: isDestructive
+      //     ? 'color-mix(in srgb, var(--color-semantic-error) 15%, transparent)'
+      //     : 'color-mix(in srgb, var(--color-semantic-warning) 15%, transparent)'
+      // has to have BOTH ternary branches inspected, or a future edit could
+      // swap one branch for a raw literal and this guard would stay blind to
+      // it. The value region ends at the first top-level comma or closing
+      // brace, tracking paren depth so a nested call like color-mix(...)
+      // doesn't end the region early. A literal counts as tokenised, per the
+      // same exemption used elsewhere, if `var(--` appears anywhere inside it:
+      // share-modal.tsx and save-before-share-modal.tsx legitimately use
+      // `rgba(var(--color-background-rgb), 0.06)`.
+      const rawColours: string[] = [];
+      const propertyPattern = /\b(color|backgroundColor|borderColor):/g;
+      let propertyMatch = propertyPattern.exec(source);
 
-    while (propertyMatch !== null) {
-      const property = propertyMatch[1];
-      const valueStart = propertyMatch.index + propertyMatch[0].length;
-      let depth = 0;
-      let valueEnd = valueStart;
+      while (propertyMatch !== null) {
+        const property = propertyMatch[1];
+        const valueStart = propertyMatch.index + propertyMatch[0].length;
+        let depth = 0;
+        let valueEnd = valueStart;
 
-      while (valueEnd < source.length) {
-        const char = source[valueEnd];
+        while (valueEnd < source.length) {
+          const char = source[valueEnd];
 
-        if (char === '(') {
-          depth += 1;
-        } else if (char === ')') {
-          depth -= 1;
-        } else if (depth <= 0 && (char === ',' || char === '}')) {
-          break;
+          if (char === '(') {
+            depth += 1;
+          } else if (char === ')') {
+            depth -= 1;
+          } else if (depth <= 0 && (char === ',' || char === '}')) {
+            break;
+          }
+
+          valueEnd += 1;
         }
 
-        valueEnd += 1;
+        const valueRegion = source.slice(valueStart, valueEnd);
+        const literals = valueRegion.match(/'[^']*'/g) ?? [];
+
+        for (const literal of literals) {
+          // 'transparent' is the CSS keyword for zero alpha, not a hue, so it
+          // never needs a theme token. share-modal.tsx and
+          // save-before-share-modal.tsx pass it as a colorMixOr() fallback
+          // ingredient alongside a var(--...) token.
+          if (literal === "'transparent'") {
+            continue;
+          }
+
+          if (!literal.includes('var(--')) {
+            rawColours.push(`${property}: ${literal}`);
+          }
+        }
+
+        propertyMatch = propertyPattern.exec(source);
       }
 
-      const valueRegion = source.slice(valueStart, valueEnd);
-      const literals = valueRegion.match(/'[^']*'/g) ?? [];
-
-      for (const literal of literals) {
-        // 'transparent' is the CSS keyword for zero alpha, not a hue, so it
-        // never needs a theme token. share-modal.tsx and
-        // save-before-share-modal.tsx pass it as a colorMixOr() fallback
-        // ingredient alongside a var(--...) token.
-        if (literal === "'transparent'") {
-          continue;
-        }
-
-        if (!literal.includes('var(--')) {
-          rawColours.push(`${property}: ${literal}`);
-        }
-      }
-
-      propertyMatch = propertyPattern.exec(source);
+      expect(rawColours).toEqual([]);
     }
-
-    expect(rawColours).toEqual([]);
-  });
+  );
 
   it('every dialog backdrop paints with the overlay token', () => {
     const backdropOwners = [

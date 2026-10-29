@@ -9,7 +9,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import type { ErrorInfo } from 'react';
 import { RouteFallback } from '../../components/route-fallback';
 import { currentRouteLabel } from './analytics/redact';
 import { trackEvent } from './analytics/tracked-events';
@@ -38,7 +37,7 @@ export const routeFallbackOptions = {
    * error every time, so repeated clicks re-report `app_error` on every one —
    * that's accepted here; there's no dedupe.
    */
-  defaultOnCatch: (_error: Error, _errorInfo: ErrorInfo) => {
+  defaultOnCatch: () => {
     // A stale-chunk error whose reload is already in flight isn't a real,
     // still-broken error worth counting — the reload about to happen is the
     // fix, not a fresh failure. See wasRecentPreloadReload.

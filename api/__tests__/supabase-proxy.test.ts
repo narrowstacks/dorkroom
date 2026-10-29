@@ -207,17 +207,18 @@ describe.each([
       ).rejects.toThrow('fetch failed');
     });
 
-    it.each([
-      401, 403, 500, 503,
-    ])('should not include upstream status %i in the response', async (upstreamStatus) => {
-      respondWith(createUpstreamResponse('', { status: upstreamStatus }));
+    it.each([401, 403, 500, 503])(
+      'should not include upstream status %i in the response',
+      async (upstreamStatus) => {
+        respondWith(createUpstreamResponse('', { status: upstreamStatus }));
 
-      const res = createMockResponse();
-      await handler(createMockRequest(), res, createContext());
+        const res = createMockResponse();
+        await handler(createMockRequest(), res, createContext());
 
-      expect(res._status).toBe(502);
-      expect(res._json).not.toHaveProperty('status');
-    });
+        expect(res._status).toBe(502);
+        expect(res._json).not.toHaveProperty('status');
+      }
+    );
   });
 
   describe('content type error handling', () => {

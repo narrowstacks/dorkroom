@@ -128,18 +128,17 @@ describe('usePaperDimensionInput', () => {
     expect(onWidthChange).toHaveBeenCalledWith(10);
   });
 
-  it.each([
-    '',
-    '   ',
-    '12.',
-  ])('keeps incomplete input %o visible without pushing it to the parent', (value) => {
-    const { result, onWidthChange } = setup();
+  it.each(['', '   ', '12.'])(
+    'keeps incomplete input %o visible without pushing it to the parent',
+    (value) => {
+      const { result, onWidthChange } = setup();
 
-    act(() => result.current.handlePaperWidthChange(value));
+      act(() => result.current.handlePaperWidthChange(value));
 
-    expect(result.current.paperWidthInput).toBe(value);
-    expect(onWidthChange).not.toHaveBeenCalled();
-  });
+      expect(result.current.paperWidthInput).toBe(value);
+      expect(onWidthChange).not.toHaveBeenCalled();
+    }
+  );
 
   it('reformats to the canonical display value on blur', () => {
     const { result, onWidthChange, rerender } = setup();
@@ -153,19 +152,18 @@ describe('usePaperDimensionInput', () => {
     expect(result.current.isEditingPaperWidth).toBe(false);
   });
 
-  it.each([
-    '',
-    '  ',
-    'abc',
-  ])('reverts to the last committed dimension when blurring on %o', (value) => {
-    const { result } = setup();
+  it.each(['', '  ', 'abc'])(
+    'reverts to the last committed dimension when blurring on %o',
+    (value) => {
+      const { result } = setup();
 
-    act(() => result.current.handlePaperWidthChange(value));
-    act(() => result.current.handlePaperWidthBlur());
+      act(() => result.current.handlePaperWidthChange(value));
+      act(() => result.current.handlePaperWidthBlur());
 
-    expect(result.current.paperWidthInput).toBe('8');
-    expect(result.current.isEditingPaperWidth).toBe(false);
-  });
+      expect(result.current.paperWidthInput).toBe('8');
+      expect(result.current.isEditingPaperWidth).toBe(false);
+    }
+  );
 
   it('tracks height independently of width', () => {
     const { result, onHeightChange, onWidthChange } = setup();

@@ -3,7 +3,7 @@
  *
  * This file is loaded before each test via vite.config.ts setupFiles.
  */
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
 
 /**
  * Required for React 19 with Testing Library in jsdom.
