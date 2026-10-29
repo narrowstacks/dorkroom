@@ -23,6 +23,13 @@ export function Stepper({
 }: StepperProps) {
   const delay = useRef<ReturnType<typeof setTimeout> | null>(null);
   const repeat = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Callers compute an absolute value from render-time state, so the repeat
+  // timer must call the latest callback, not the one captured at press-in.
+  // Refreshed in an effect so render stays pure.
+  const handlers = useRef({ onDecrement, onIncrement });
+  useEffect(() => {
+    handlers.current = { onDecrement, onIncrement };
+  });
 
   const stop = () => {
     if (delay.current) {
@@ -44,13 +51,13 @@ export function Stepper({
     []
   );
 
-  const start = (fn: () => void) => () => {
+  const start = (key: keyof typeof handlers.current) => () => {
     Haptics.selectionAsync();
-    fn();
+    handlers.current[key]();
     delay.current = setTimeout(() => {
       repeat.current = setInterval(() => {
         Haptics.selectionAsync();
-        fn();
+        handlers.current[key]();
       }, 120);
     }, 350);
   };
@@ -75,7 +82,7 @@ export function Stepper({
       className="flex-row items-center justify-between rounded-xl bg-white/10 p-2"
     >
       <Pressable
-        onPressIn={start(onDecrement)}
+        onPressIn={start('onDecrement')}
         onPressOut={stop}
         className="h-10 w-12 items-center justify-center rounded-lg bg-white/10"
       >
@@ -83,7 +90,7 @@ export function Stepper({
       </Pressable>
       <Text className="text-base font-semibold text-white">{value}</Text>
       <Pressable
-        onPressIn={start(onIncrement)}
+        onPressIn={start('onIncrement')}
         onPressOut={stop}
         className="h-10 w-12 items-center justify-center rounded-lg bg-white/10"
       >
