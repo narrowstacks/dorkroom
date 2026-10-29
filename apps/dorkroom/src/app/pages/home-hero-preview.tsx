@@ -128,7 +128,8 @@ export function HomeHeroPreview() {
   useEffect(() => {
     // Only tick while the hero is on screen and the tab is visible, so the
     // box-property transitions never run for nobody. Browsers without
-    // IntersectionObserver (old legacy engines) count as always on screen.
+    // IntersectionObserver (old legacy engines) count as always on screen, and
+    // engines without the Page Visibility API count as always visible.
     let onScreen = true;
     let id: number | undefined;
 
@@ -138,7 +139,7 @@ export function HomeHeroPreview() {
       id = undefined;
     };
     const sync = () => {
-      if (!onScreen || document.visibilityState !== 'visible') {
+      if (!onScreen || document.visibilityState === 'hidden') {
         stop();
         return;
       }
