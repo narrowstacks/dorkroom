@@ -1,6 +1,8 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { MAX_FOCAL_LENGTH_MM } from '../../constants/lens-calculator-defaults';
 import { useLensCalculator } from '../../hooks/use-lens-calculator';
+import { LENS_STORAGE_KEY } from '../../types/lens-calculator';
 
 describe('useLensCalculator', () => {
   beforeEach(() => {
@@ -46,5 +48,24 @@ describe('useLensCalculator', () => {
 
     expect(result.current.values.sourceFormat).toBe(target);
     expect(result.current.values.targetFormat).toBe(source);
+  });
+
+  it('hydrates a persisted focal length longer than 2000mm', () => {
+    window.localStorage.setItem(
+      LENS_STORAGE_KEY,
+      JSON.stringify({ focalLength: 2400 })
+    );
+
+    const { result } = renderHook(() => useLensCalculator());
+
+    expect(result.current.values.focalLength).toBe(2400);
+  });
+
+  it('clamps focal lengths above the supported maximum', () => {
+    const { result } = renderHook(() => useLensCalculator());
+
+    act(() => result.current.setFocalLength(MAX_FOCAL_LENGTH_MM + 1));
+
+    expect(result.current.values.focalLength).toBe(MAX_FOCAL_LENGTH_MM);
   });
 });

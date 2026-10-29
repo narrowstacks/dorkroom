@@ -73,6 +73,14 @@ describe('usePaperDimensionInput', () => {
     expect(result.current.paperHeightInput).toBe('25.4');
   });
 
+  it('does not push a width the persisted schema would discard', () => {
+    const { result, onWidthChange } = setup();
+
+    act(() => result.current.handlePaperWidthChange('1200'));
+
+    expect(onWidthChange).not.toHaveBeenCalled();
+  });
+
   it('follows external dimension changes while not editing', () => {
     const { result, rerender } = setup();
 

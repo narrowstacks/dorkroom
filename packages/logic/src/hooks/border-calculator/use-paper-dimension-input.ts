@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { dimensionValidator } from '../../schemas/validators';
 import { formatForDisplay } from '../../utils/precision';
 
 /**
@@ -9,6 +10,8 @@ import { formatForDisplay } from '../../utils/precision';
  * conversion logic, making it more practical to keep together here than split across
  * packages. The conversion functions (toDisplay, toInches) are pure and framework-free.
  */
+
+const persistedDimension = dimensionValidator();
 
 interface UsePaperDimensionInputProps {
   initialWidth: number;
@@ -62,9 +65,10 @@ export function usePaperDimensionInput({
       return null;
     }
 
-    const parsed = parseFloat(value);
-    if (Number.isFinite(parsed) && parsed >= 0) {
-      return toInches(parsed);
+    // Reject anything the persisted schema would discard on reload (#374)
+    const inches = toInches(parseFloat(value));
+    if (persistedDimension.safeParse(inches).success) {
+      return inches;
     }
 
     return null;

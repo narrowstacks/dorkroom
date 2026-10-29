@@ -1,6 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import { z } from 'zod';
-import { SENSOR_FORMAT_MAP } from '../constants/lens-calculator-defaults';
+import {
+  MAX_FOCAL_LENGTH_MM,
+  SENSOR_FORMAT_MAP,
+} from '../constants/lens-calculator-defaults';
 import {
   LENS_STORAGE_KEY,
   type LensFormState,
@@ -26,7 +29,10 @@ export interface LensCalculatorResult {
 }
 
 /** Persisted focal lengths outside this range are discarded on hydration. */
-const persistedFocalLengthSchema = z.number().positive().max(2000);
+const persistedFocalLengthSchema = z
+  .number()
+  .positive()
+  .max(MAX_FOCAL_LENGTH_MM);
 
 const persistedSensorFormatSchema = z
   .string()
@@ -74,7 +80,9 @@ export function useLensCalculator(): UseLensCalculatorReturn {
     (value: number) =>
       setValues((prev) => ({
         ...prev,
-        focalLength: Number.isFinite(value) ? value : 0,
+        focalLength: Number.isFinite(value)
+          ? Math.min(value, MAX_FOCAL_LENGTH_MM)
+          : 0,
       })),
     []
   );

@@ -4,6 +4,12 @@
 
 import type { SensorFormat } from '../types/lens-calculator';
 
+/**
+ * Longest focal length the calculator accepts and persists. Real lenses reach
+ * 5200 mm, so this leaves headroom while still rejecting typos.
+ */
+export const MAX_FOCAL_LENGTH_MM = 10000;
+
 // Full frame 35mm diagonal for reference (used to calculate crop factors)
 const FULL_FRAME_DIAGONAL = Math.sqrt(36 * 36 + 24 * 24); // ~43.27mm
 
