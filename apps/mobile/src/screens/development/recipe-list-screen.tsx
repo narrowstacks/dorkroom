@@ -64,7 +64,6 @@ export function RecipeListScreen() {
       recipes.setSelectedFilm(
         slug ? (recipes.allFilms.find((f) => f.slug === slug) ?? null) : null
       );
-      recipes.setIsoFilter('');
       setPicker(null);
     },
     [recipes]
@@ -84,7 +83,6 @@ export function RecipeListScreen() {
 
   const onClearFilm = useCallback(() => {
     recipes.setSelectedFilm(null);
-    recipes.setIsoFilter('');
   }, [recipes]);
   const onClearDeveloper = useCallback(() => {
     recipes.setSelectedDeveloper(null);
