@@ -92,23 +92,25 @@ export function FiltersSheet({
           />
         ) : null}
 
-        {recipes.selectedFilm ? (
-          <OptionRow
-            label="ISO / push-pull"
-            accent="green"
-            options={recipes.getAvailableISOs()}
-            value={recipes.isoFilter}
-            onChange={recipes.setIsoFilter}
-          />
-        ) : null}
-
+        {/* ISO is a top-level filter that survives a film change, as on web. */}
         <OptionRow
-          label="Developer type"
+          label="ISO / push-pull"
           accent="green"
-          options={developerTypeOptions(recipes.allDevelopers)}
-          value={recipes.developerTypeFilter}
-          onChange={recipes.setDeveloperTypeFilter}
+          options={recipes.getAvailableISOs()}
+          value={recipes.isoFilter}
+          onChange={recipes.setIsoFilter}
         />
+
+        {/* A chosen developer pins its type, so the control is hidden (#325). */}
+        {recipes.selectedDeveloper ? null : (
+          <OptionRow
+            label="Developer type"
+            accent="green"
+            options={developerTypeOptions(recipes.allDevelopers)}
+            value={recipes.developerTypeFilter}
+            onChange={recipes.setDeveloperTypeFilter}
+          />
+        )}
 
         <OptionRow
           label="Tag"
