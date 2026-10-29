@@ -245,7 +245,10 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
         <div className="flex gap-4">
           <button
             type="button"
-            onClick={() => form.setFieldValue('isLandscape', !isLandscape)}
+            onClick={() => {
+              form.setFieldValue('isLandscape', !isLandscape);
+              form.setFieldValue('hasManuallyFlippedPaper', true);
+            }}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-primary bg-border-muted px-4 py-3 text-sm font-medium text-primary transition hover:opacity-80"
           >
             <RotateCw className="size-4" />
