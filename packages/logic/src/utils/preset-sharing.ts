@@ -93,6 +93,8 @@ function getBooleanBitmask(settings: BorderPresetSettings): number {
   if (settings.isLandscape) mask |= 8;
   if (settings.isRatioFlipped) mask |= 16;
   if (settings.showBladeReadings) mask |= 32;
+  // Added after the other bits; links without it decode as not flipped
+  if (settings.hasManuallyFlippedPaper) mask |= 64;
   return mask;
 }
 
@@ -117,6 +119,7 @@ function fromBooleanBitmask(mask: number): Partial<BorderPresetSettings> {
     isLandscape: !!(mask & 8),
     isRatioFlipped: !!(mask & 16),
     showBladeReadings: !!(mask & 32),
+    hasManuallyFlippedPaper: !!(mask & 64),
   };
 }
 

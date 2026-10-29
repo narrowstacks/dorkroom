@@ -65,14 +65,11 @@ const baseSettings: BorderPresetSettings = {
   hasManuallyFlippedPaper: false,
 };
 
-/** Fields decode always resets, so round-trip comparisons exclude them. */
 function expectSettingsMatch(
   actual: BorderPresetSettings,
   expected: BorderPresetSettings
 ): void {
-  const { hasManuallyFlippedPaper: _a, ...actualRest } = actual;
-  const { hasManuallyFlippedPaper: _e, ...expectedRest } = expected;
-  expect(actualRest).toEqual(expectedRest);
+  expect(actual).toEqual(expected);
 }
 
 describe('preset-sharing', () => {
@@ -90,6 +87,21 @@ describe('preset-sharing', () => {
   });
 
   describe('round-trip encode/decode', () => {
+    it('preserves a manual paper flip on custom paper (issue #339)', () => {
+      const settings: BorderPresetSettings = {
+        ...baseSettings,
+        paperSize: 'custom',
+        customPaperWidth: 11,
+        customPaperHeight: 17,
+        isLandscape: false,
+        hasManuallyFlippedPaper: true,
+      };
+      const decoded = decodePreset(encodePreset({ name: 'Flip', settings }));
+
+      expect(decoded).not.toBeNull();
+      expectSettingsMatch(decoded!.settings, settings);
+    });
+
     it('preserves a negative horizontal offset (issue #238)', () => {
       const settings = {
         ...baseSettings,

@@ -1,6 +1,7 @@
 import {
   ASPECT_RATIOS,
   BORDER_CALCULATOR_DEFAULTS,
+  CALC_STORAGE_KEY,
   OFFSET_SLIDER_MAX,
   OFFSET_SLIDER_MIN,
   PAPER_SIZES,
@@ -153,5 +154,52 @@ describe('useBorderCalculatorController preset application', () => {
     expect(result.current.formValues.aspectRatio).toBe(
       BORDER_CALCULATOR_DEFAULTS.aspectRatio
     );
+  });
+});
+
+describe('useBorderCalculatorController hydration', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    window.history.replaceState(null, '', '/border');
+  });
+
+  it('keeps a manual flip of custom paper across a reload (issue #339)', () => {
+    // 10x13 would derive isLandscape: true; the stored flip says otherwise
+    window.localStorage.setItem(
+      CALC_STORAGE_KEY,
+      JSON.stringify({
+        paperSize: 'custom',
+        customPaperWidth: 10,
+        customPaperHeight: 13,
+        isLandscape: false,
+        hasManuallyFlippedPaper: true,
+      })
+    );
+
+    const { result } = renderHook(() => useBorderCalculatorController(), {
+      wrapper,
+    });
+
+    expect(result.current.formValues.paperSize).toBe('custom');
+    expect(result.current.formValues.isLandscape).toBe(false);
+  });
+
+  it('derives orientation from custom paper when it was never flipped', () => {
+    window.localStorage.setItem(
+      CALC_STORAGE_KEY,
+      JSON.stringify({
+        paperSize: 'custom',
+        customPaperWidth: 10,
+        customPaperHeight: 13,
+        isLandscape: false,
+        hasManuallyFlippedPaper: false,
+      })
+    );
+
+    const { result } = renderHook(() => useBorderCalculatorController(), {
+      wrapper,
+    });
+
+    expect(result.current.formValues.isLandscape).toBe(true);
   });
 });
