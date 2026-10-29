@@ -2,8 +2,13 @@ import type { Developer, Film } from '@dorkroom/api';
 import type { CustomRecipe, CustomRecipeFormData } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { act, renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useCustomRecipeCrud } from '../useCustomRecipeCrud';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import {
+  type UseCustomRecipeCrudProps,
+  useCustomRecipeCrud,
+} from '../useCustomRecipeCrud';
+
+type Props = UseCustomRecipeCrudProps;
 
 // Mock data
 const mockFilm: Film = {
@@ -20,6 +25,8 @@ const mockFilm: Film = {
   reciprocityFailure: null,
   discontinued: false,
   staticImageUrl: null,
+  aliases: [],
+  baseFilmSlug: null,
   dateAdded: new Date().toISOString(),
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -119,19 +126,19 @@ const baseFormData: CustomRecipeFormData = {
 };
 
 describe('useCustomRecipeCrud', () => {
-  let mockSetIsCustomModalOpen: ReturnType<typeof vi.fn>;
-  let mockSetEditingRecipe: ReturnType<typeof vi.fn>;
-  let mockSetIsSubmittingRecipe: ReturnType<typeof vi.fn>;
-  let mockSetIsDetailOpen: ReturnType<typeof vi.fn>;
-  let mockSetDetailView: ReturnType<typeof vi.fn>;
-  let mockAddCustomRecipe: ReturnType<typeof vi.fn>;
-  let mockUpdateCustomRecipe: ReturnType<typeof vi.fn>;
-  let mockDeleteCustomRecipe: ReturnType<typeof vi.fn>;
-  let mockRefreshCustomRecipes: ReturnType<typeof vi.fn>;
-  let mockAddFavorite: ReturnType<typeof vi.fn>;
-  let mockShowToast: ReturnType<typeof vi.fn>;
-  let mockGetFilmById: ReturnType<typeof vi.fn>;
-  let mockGetDeveloperById: ReturnType<typeof vi.fn>;
+  let mockSetIsCustomModalOpen: Mock<Props['setIsCustomModalOpen']>;
+  let mockSetEditingRecipe: Mock<Props['setEditingRecipe']>;
+  let mockSetIsSubmittingRecipe: Mock<Props['setIsSubmittingRecipe']>;
+  let mockSetIsDetailOpen: Mock<Props['setIsDetailOpen']>;
+  let mockSetDetailView: Mock<Props['setDetailView']>;
+  let mockAddCustomRecipe: Mock<Props['addCustomRecipe']>;
+  let mockUpdateCustomRecipe: Mock<Props['updateCustomRecipe']>;
+  let mockDeleteCustomRecipe: Mock<Props['deleteCustomRecipe']>;
+  let mockRefreshCustomRecipes: Mock<Props['refreshCustomRecipes']>;
+  let mockAddFavorite: Mock<Props['addFavorite']>;
+  let mockShowToast: Mock<Props['showToast']>;
+  let mockGetFilmById: Mock<Props['getFilmById']>;
+  let mockGetDeveloperById: Mock<Props['getDeveloperById']>;
 
   beforeEach(() => {
     mockSetIsCustomModalOpen = vi.fn();
@@ -188,6 +195,10 @@ describe('useCustomRecipeCrud', () => {
           setDetailView: mockSetDetailView,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
+          deleteConfirmRecipe: null,
+          openDeleteConfirm: vi.fn(),
+          closeDeleteConfirm: vi.fn(),
+          setIsDeleting: vi.fn(),
           customRecipeSharingEnabled: true,
         })
       );
@@ -198,13 +209,16 @@ describe('useCustomRecipeCrud', () => {
 
       // Verify detailView was updated with fresh data
       expect(mockSetDetailView).toHaveBeenCalled();
-      const updatedDetailView = mockSetDetailView.mock.calls[0][0];
-      expect(updatedDetailView.combination.name).toBe('Updated Recipe');
-      expect(updatedDetailView.combination.temperatureF).toBe(70);
-      expect(updatedDetailView.combination.timeMinutes).toBe(10);
-      expect(updatedDetailView.combination.shootingIso).toBe(800);
-      expect(updatedDetailView.source).toBe('custom');
-      expect(updatedDetailView.canShare).toBe(true);
+      expect(mockSetDetailView.mock.calls[0][0]).toMatchObject({
+        combination: {
+          name: 'Updated Recipe',
+          temperatureF: 70,
+          timeMinutes: 10,
+          shootingIso: 800,
+        },
+        source: 'custom',
+        canShare: true,
+      });
     });
 
     it('does not update detailView if a different recipe is displayed', async () => {
@@ -247,6 +261,10 @@ describe('useCustomRecipeCrud', () => {
           setDetailView: mockSetDetailView,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
+          deleteConfirmRecipe: null,
+          openDeleteConfirm: vi.fn(),
+          closeDeleteConfirm: vi.fn(),
+          setIsDeleting: vi.fn(),
           customRecipeSharingEnabled: true,
         })
       );
@@ -286,6 +304,10 @@ describe('useCustomRecipeCrud', () => {
           setDetailView: mockSetDetailView,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
+          deleteConfirmRecipe: null,
+          openDeleteConfirm: vi.fn(),
+          closeDeleteConfirm: vi.fn(),
+          setIsDeleting: vi.fn(),
           customRecipeSharingEnabled: true,
         })
       );
@@ -323,6 +345,10 @@ describe('useCustomRecipeCrud', () => {
           setDetailView: mockSetDetailView,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
+          deleteConfirmRecipe: null,
+          openDeleteConfirm: vi.fn(),
+          closeDeleteConfirm: vi.fn(),
+          setIsDeleting: vi.fn(),
           customRecipeSharingEnabled: false, // Sharing disabled
         })
       );
@@ -331,8 +357,9 @@ describe('useCustomRecipeCrud', () => {
         await result.current.handleCustomRecipeSubmit(baseFormData);
       });
 
-      const updatedDetailView = mockSetDetailView.mock.calls[0][0];
-      expect(updatedDetailView.canShare).toBe(false);
+      expect(mockSetDetailView.mock.calls[0][0]).toMatchObject({
+        canShare: false,
+      });
     });
 
     it('closes modal and clears editing state after successful save', async () => {
@@ -360,6 +387,10 @@ describe('useCustomRecipeCrud', () => {
           setDetailView: mockSetDetailView,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
+          deleteConfirmRecipe: null,
+          openDeleteConfirm: vi.fn(),
+          closeDeleteConfirm: vi.fn(),
+          setIsDeleting: vi.fn(),
           customRecipeSharingEnabled: true,
         })
       );
@@ -397,6 +428,10 @@ describe('useCustomRecipeCrud', () => {
           setDetailView: mockSetDetailView,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
+          deleteConfirmRecipe: null,
+          openDeleteConfirm: vi.fn(),
+          closeDeleteConfirm: vi.fn(),
+          setIsDeleting: vi.fn(),
           customRecipeSharingEnabled: true,
         })
       );
@@ -431,6 +466,10 @@ describe('useCustomRecipeCrud', () => {
           setDetailView: mockSetDetailView,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
+          deleteConfirmRecipe: null,
+          openDeleteConfirm: vi.fn(),
+          closeDeleteConfirm: vi.fn(),
+          setIsDeleting: vi.fn(),
           customRecipeSharingEnabled: true,
         })
       );

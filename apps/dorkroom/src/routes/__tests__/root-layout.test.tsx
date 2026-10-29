@@ -11,10 +11,10 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  type RouteComponent,
   RouterProvider,
 } from '@tanstack/react-router';
 import { render, screen } from '@testing-library/react';
-import type { ComponentType } from 'react';
 import { describe, expect, it } from 'vitest';
 import { Route as rootRouteOptions } from '../__root';
 
@@ -27,7 +27,7 @@ import { Route as rootRouteOptions } from '../__root';
 // SAFETY: `createRootRoute({ component: RootComponent })` in `__root.tsx`
 // always sets `options.component` to a component function; the router relies
 // on this same field being set to render the route (see `Match.js` above).
-const RootComponent = rootRouteOptions.options.component as ComponentType;
+const RootComponent = rootRouteOptions.options.component as RouteComponent;
 
 /**
  * Regression cover for #345: on phones (<640px), the fixed mobile-nav toggle

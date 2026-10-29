@@ -5,10 +5,10 @@ import {
   createRoute,
   createRouter,
   Outlet,
+  type RouteComponent,
   RouterProvider,
 } from '@tanstack/react-router';
 import { render, screen } from '@testing-library/react';
-import type { ComponentType } from 'react';
 import { lazy, Suspense } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { routeFallbackOptions } from '../../app/lib/route-fallback-options';
@@ -23,7 +23,7 @@ function ThrowingPage(): never {
  * `routeFallbackOptions`, the exact object main.tsx uses, so this exercises
  * the real wiring rather than a copy that could silently drift from it.
  */
-function buildRouter(component: ComponentType) {
+function buildRouter(component: RouteComponent) {
   const rootRoute = createRootRoute({
     component: () => (
       <>
