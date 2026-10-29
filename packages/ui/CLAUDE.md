@@ -130,8 +130,9 @@ Don't reach for it in new code expecting a visible shadow.
 - Transitions only (`transition-colors` / `transition-all`, default duration).
 - The high-contrast and darkroom themes, plus the user's
   `data-animations-disabled="true"` setting, kill every animation and transition
-  globally with `!important` (`styles/utilities.css`). Never rely on motion to
-  convey state.
+  globally with `!important` (`styles/utilities.css`). So does the OS
+  `prefers-reduced-motion: reduce` setting, which also overrides an in-app
+  opt-in. Never rely on motion to convey state.
 - Interactive elements: `focus-visible:outline-none focus-visible:ring-2
   focus-visible:ring-[color:var(--color-focus-ring)]`. Never bare
   `focus:` rings; never remove an outline without adding a ring.

@@ -29,6 +29,7 @@ function renderTheme() {
 describe('ThemeProvider animations default', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    localStorage.clear();
   });
 
   it('disables animations by default when the OS prefers reduced motion', () => {
