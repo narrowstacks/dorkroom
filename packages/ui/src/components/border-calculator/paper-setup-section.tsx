@@ -23,7 +23,7 @@ export function PaperSetupSection() {
     handlePaperHeightBlur,
   } = useBorderCalculator();
 
-  const { customAspectWidth, customAspectHeight } = formValues;
+  const { customPaperWidth, customPaperHeight } = formValues;
 
   const aspectRatio = useStore(form.store, (state) => state.values.aspectRatio);
   const paperSize = useStore(form.store, (state) => state.values.paperSize);
@@ -99,7 +99,7 @@ export function PaperSetupSection() {
                 if (isCustom) {
                   // For custom paper, calculate orientation based on actual dimensions
                   const shouldBeLandscape =
-                    customAspectWidth < customAspectHeight;
+                    customPaperWidth < customPaperHeight;
                   form.setFieldValue('isLandscape', shouldBeLandscape);
                 } else {
                   // For standard paper sizes, default to landscape
