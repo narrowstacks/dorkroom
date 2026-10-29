@@ -1,14 +1,26 @@
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import {
+  handleStepperAction,
+  STEPPER_ACCESSIBILITY_ACTIONS,
+  stepperAccessibilityValue,
+} from '@/lib/stepper-a11y';
 
 interface StepperProps {
+  /** Spoken field name, e.g. "Minutes". Required so VoiceOver can tell steppers apart. */
+  label: string;
   value: string;
   onDecrement: () => void;
   onIncrement: () => void;
 }
 
-export function Stepper({ value, onDecrement, onIncrement }: StepperProps) {
+export function Stepper({
+  label,
+  value,
+  onDecrement,
+  onIncrement,
+}: StepperProps) {
   const delay = useRef<ReturnType<typeof setTimeout> | null>(null);
   const repeat = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -44,12 +56,27 @@ export function Stepper({ value, onDecrement, onIncrement }: StepperProps) {
   };
 
   return (
-    <View className="flex-row items-center justify-between rounded-xl bg-white/10 p-2">
+    // One adjustable element for VoiceOver: `accessible` groups the children so
+    // the inner buttons and value are not separate focus stops. Touch handling
+    // on the Pressables is unaffected.
+    <View
+      accessible
+      accessibilityRole="adjustable"
+      accessibilityLabel={label}
+      accessibilityValue={stepperAccessibilityValue(value)}
+      accessibilityActions={[...STEPPER_ACCESSIBILITY_ACTIONS]}
+      onAccessibilityAction={(event) => {
+        handleStepperAction(
+          event.nativeEvent.actionName,
+          onDecrement,
+          onIncrement
+        );
+      }}
+      className="flex-row items-center justify-between rounded-xl bg-white/10 p-2"
+    >
       <Pressable
         onPressIn={start(onDecrement)}
         onPressOut={stop}
-        accessibilityRole="button"
-        accessibilityLabel="Decrease"
         className="h-10 w-12 items-center justify-center rounded-lg bg-white/10"
       >
         <Text className="text-xl text-white">−</Text>
@@ -58,8 +85,6 @@ export function Stepper({ value, onDecrement, onIncrement }: StepperProps) {
       <Pressable
         onPressIn={start(onIncrement)}
         onPressOut={stop}
-        accessibilityRole="button"
-        accessibilityLabel="Increase"
         className="h-10 w-12 items-center justify-center rounded-lg bg-white/10"
       >
         <Text className="text-xl text-white">+</Text>

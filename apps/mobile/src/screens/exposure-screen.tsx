@@ -54,6 +54,7 @@ export function ExposureScreen() {
           keyboardType="default"
         />
         <Stepper
+          label="Stops"
           value={`${signed(stopsValue)} stops`}
           onDecrement={() => adjustStops(-1 / 3)}
           onIncrement={() => adjustStops(1 / 3)}

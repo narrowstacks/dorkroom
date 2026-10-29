@@ -116,6 +116,7 @@ export function VolumeMixer({ dilutionString }: VolumeMixerProps) {
                 keyboardType="decimal-pad"
               />
               <Stepper
+                label={`Total volume (${getVolumeUnitLabel(unit)})`}
                 value={`${text} ${getVolumeUnitLabel(unit)}`}
                 onDecrement={() => step(-1)}
                 onIncrement={() => step(1)}
