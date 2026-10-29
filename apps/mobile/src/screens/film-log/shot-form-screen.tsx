@@ -274,6 +274,7 @@ export function ShotFormScreen() {
             Frame #{form.frameNumber}
           </Text>
           <Stepper
+            label="Frame number"
             value={String(form.frameNumber)}
             onDecrement={() =>
               set('frameNumber', Math.max(1, form.frameNumber - 1))
