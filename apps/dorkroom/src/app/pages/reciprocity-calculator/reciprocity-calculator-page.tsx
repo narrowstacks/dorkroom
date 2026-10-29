@@ -47,7 +47,7 @@ const HOW_TO_USE = [
 
 const TIPS = [
   'Doubling exposure time while halving light should give the same result — until very long or very short exposures break that rule.',
-  'The effect varies by emulsion. Slow films like Pan F stay linear longer, while fast stocks like Delta 3200 drift sooner.',
+  'The effect varies by emulsion, and not simply with speed. T-Max 100 needs far less correction than Tri-X, while Pan F+ and Delta 3200 behave alike.',
   'Worth checking for night landscapes, astro, interiors, and anything over about a second.',
 ];
 
