@@ -69,6 +69,7 @@ function buildDb(): UseFilmDatabaseReturn {
     films: [rebrandedFilm, baseFilm],
     isLoading: false,
     error: null,
+    retry: noop,
     filteredFilms: [],
     searchQuery: '',
     setSearchQuery: noop,

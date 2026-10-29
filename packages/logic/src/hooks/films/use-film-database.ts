@@ -12,6 +12,8 @@ export interface UseFilmDatabaseReturn {
   films: Film[];
   isLoading: boolean;
   error: string | null;
+  /** Re-request the catalog, e.g. from a load-failure Retry button. */
+  retry: () => void;
 
   // Filtered results
   filteredFilms: Film[];
@@ -76,7 +78,10 @@ export interface UseFilmDatabaseReturn {
  */
 export function useFilmDatabase(): UseFilmDatabaseReturn {
   // Fetch all films
-  const { data: films = [], isPending, error } = useFilms();
+  const { data: films = [], isPending, error, refetch } = useFilms();
+  const retry = useCallback(() => {
+    void refetch();
+  }, [refetch]);
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -236,6 +241,7 @@ export function useFilmDatabase(): UseFilmDatabaseReturn {
     films: sortedFilms,
     isLoading: isPending,
     error: error?.message || null,
+    retry,
 
     // Filtered results
     filteredFilms,
