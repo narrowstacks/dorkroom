@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
 
 // Fix for "The current testing environment is not configured to support act(...)"
 // @ts-expect-error - Global property

@@ -111,88 +111,96 @@ describe('focus ring and outline tokens', () => {
     expect(files.length).toBeGreaterThan(50);
   });
 
-  it.each(
-    files.map((file) => [relative(srcRoot, file), file])
-  )('%s colours every focus ring with --color-focus-ring', (_name, file) => {
-    const source = readFileSync(file, 'utf8');
-    const wrong = [
-      ...new Set(
-        [...source.matchAll(FOCUS_RING_COLOR)]
-          .map((match) => match[1])
-          .filter((utility) => utility !== TOKEN)
-      ),
-    ];
-    expect(wrong).toEqual([]);
-  });
+  it.each(files.map((file) => [relative(srcRoot, file), file]))(
+    '%s colours every focus ring with --color-focus-ring',
+    (_name, file) => {
+      const source = readFileSync(file, 'utf8');
+      const wrong = [
+        ...new Set(
+          [...source.matchAll(FOCUS_RING_COLOR)]
+            .map((match) => match[1])
+            .filter((utility) => utility !== TOKEN)
+        ),
+      ];
+      expect(wrong).toEqual([]);
+    }
+  );
 
-  it.each(
-    files.map((file) => [relative(srcRoot, file), file])
-  )('%s colours every focus outline with --color-focus-ring', (_name, file) => {
-    const source = readFileSync(file, 'utf8');
-    const wrong = [
-      ...new Set(
-        [...source.matchAll(FOCUS_OUTLINE_COLOR)]
-          .map((match) => match[1])
-          .filter((utility) => utility !== OUTLINE_TOKEN)
-      ),
-    ];
-    expect(wrong).toEqual([]);
-  });
+  it.each(files.map((file) => [relative(srcRoot, file), file]))(
+    '%s colours every focus outline with --color-focus-ring',
+    (_name, file) => {
+      const source = readFileSync(file, 'utf8');
+      const wrong = [
+        ...new Set(
+          [...source.matchAll(FOCUS_OUTLINE_COLOR)]
+            .map((match) => match[1])
+            .filter((utility) => utility !== OUTLINE_TOKEN)
+        ),
+      ];
+      expect(wrong).toEqual([]);
+    }
+  );
 
-  it.each(
-    files.map((file) => [relative(srcRoot, file), file])
-  )('%s uses focus-visible, never a bare focus ring', (_name, file) => {
-    const source = readFileSync(file, 'utf8');
-    expect(source.match(BARE_FOCUS_RING) ?? []).toEqual([]);
-  });
+  it.each(files.map((file) => [relative(srcRoot, file), file]))(
+    '%s uses focus-visible, never a bare focus ring',
+    (_name, file) => {
+      const source = readFileSync(file, 'utf8');
+      expect(source.match(BARE_FOCUS_RING) ?? []).toEqual([]);
+    }
+  );
 
-  it.each(
-    files.map((file) => [relative(srcRoot, file), file])
-  )('%s uses focus-visible, never a bare focus outline', (_name, file) => {
-    const source = readFileSync(file, 'utf8');
-    expect(source.match(BARE_FOCUS_OUTLINE) ?? []).toEqual([]);
-  });
+  it.each(files.map((file) => [relative(srcRoot, file), file]))(
+    '%s uses focus-visible, never a bare focus outline',
+    (_name, file) => {
+      const source = readFileSync(file, 'utf8');
+      expect(source.match(BARE_FOCUS_OUTLINE) ?? []).toEqual([]);
+    }
+  );
 
-  it.each(
-    files.map((file) => [relative(srcRoot, file), file])
-  )('%s sets no ring colour from an inline style', (_name, file) => {
-    // An inline declaration outranks every stylesheet rule, so it also
-    // defeats the darkroom `*:focus-visible` correction in theme.css.
-    const source = readFileSync(file, 'utf8');
-    expect(source.match(INLINE_RING_COLOR) ?? []).toEqual([]);
-  });
+  it.each(files.map((file) => [relative(srcRoot, file), file]))(
+    '%s sets no ring colour from an inline style',
+    (_name, file) => {
+      // An inline declaration outranks every stylesheet rule, so it also
+      // defeats the darkroom `*:focus-visible` correction in theme.css.
+      const source = readFileSync(file, 'utf8');
+      expect(source.match(INLINE_RING_COLOR) ?? []).toEqual([]);
+    }
+  );
 
-  it.each(
-    files.map((file) => [relative(srcRoot, file), file])
-  )('%s pairs every focus ring width with the token colour', (_name, file) => {
-    // Count equality, not file-level containment: a file with several
-    // focus rings is otherwise only proven to colour one of them. A new
-    // colourless ring added alongside an existing coloured one would pass
-    // a mere "does the token appear somewhere" check silently.
-    const source = readFileSync(file, 'utf8');
-    const widths = source.match(FOCUS_RING_WIDTH_GLOBAL) ?? [];
-    expect(source.split(TOKEN).length - 1).toBe(widths.length);
-  });
+  it.each(files.map((file) => [relative(srcRoot, file), file]))(
+    '%s pairs every focus ring width with the token colour',
+    (_name, file) => {
+      // Count equality, not file-level containment: a file with several
+      // focus rings is otherwise only proven to colour one of them. A new
+      // colourless ring added alongside an existing coloured one would pass
+      // a mere "does the token appear somewhere" check silently.
+      const source = readFileSync(file, 'utf8');
+      const widths = source.match(FOCUS_RING_WIDTH_GLOBAL) ?? [];
+      expect(source.split(TOKEN).length - 1).toBe(widths.length);
+    }
+  );
 
-  it.each(
-    files.map((file) => [relative(srcRoot, file), file])
-  )('%s pairs every focus outline width with the token colour', (_name, file) => {
-    const source = readFileSync(file, 'utf8');
-    const widths = source.match(FOCUS_OUTLINE_WIDTH_GLOBAL) ?? [];
-    expect(source.split(OUTLINE_TOKEN).length - 1).toBe(widths.length);
-  });
+  it.each(files.map((file) => [relative(srcRoot, file), file]))(
+    '%s pairs every focus outline width with the token colour',
+    (_name, file) => {
+      const source = readFileSync(file, 'utf8');
+      const widths = source.match(FOCUS_OUTLINE_WIDTH_GLOBAL) ?? [];
+      expect(source.split(OUTLINE_TOKEN).length - 1).toBe(widths.length);
+    }
+  );
 
-  it.each(
-    files.map((file) => [relative(srcRoot, file), file])
-  )('%s never pairs a focus outline-none reset with an outline width', (_name, file) => {
-    // outline-none sets outline-style: none, which wins the cascade over
-    // any outline width utility in the same file, producing an invisible
-    // focus indicator regardless of colour (issue #244). outline-none
-    // paired with a *ring* is the mandated pattern and must not be
-    // flagged here.
-    const source = readFileSync(file, 'utf8');
-    const hasNone = FOCUS_OUTLINE_NONE.test(source);
-    const hasWidth = FOCUS_OUTLINE_WIDTH.test(source);
-    expect(hasNone && hasWidth).toBe(false);
-  });
+  it.each(files.map((file) => [relative(srcRoot, file), file]))(
+    '%s never pairs a focus outline-none reset with an outline width',
+    (_name, file) => {
+      // outline-none sets outline-style: none, which wins the cascade over
+      // any outline width utility in the same file, producing an invisible
+      // focus indicator regardless of colour (issue #244). outline-none
+      // paired with a *ring* is the mandated pattern and must not be
+      // flagged here.
+      const source = readFileSync(file, 'utf8');
+      const hasNone = FOCUS_OUTLINE_NONE.test(source);
+      const hasWidth = FOCUS_OUTLINE_WIDTH.test(source);
+      expect(hasNone && hasWidth).toBe(false);
+    }
+  );
 });

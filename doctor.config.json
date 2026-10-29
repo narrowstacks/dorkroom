@@ -6,7 +6,9 @@
       "deslop/unused-file",
       "deslop/unused-export",
       "deslop/unused-dependency",
-      "deslop/unused-dev-dependency"
+      "deslop/unused-dev-dependency",
+      "react-doctor/no-high-complexity-react-function",
+      "react-doctor/duplicate-jsx-subtree"
     ]
   }
 }

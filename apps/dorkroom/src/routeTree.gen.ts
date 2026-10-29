@@ -9,73 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as StopsRouteImport } from './routes/stops'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as ResizeRouteImport } from './routes/resize'
-import { Route as ReciprocityRouteImport } from './routes/reciprocity'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as MatRouteImport } from './routes/mat'
-import { Route as LensesRouteImport } from './routes/lenses'
-import { Route as FilmsRouteImport } from './routes/films'
-import { Route as ExposureRouteImport } from './routes/exposure'
-import { Route as DevelopmentRouteImport } from './routes/development'
-import { Route as BorderRouteImport } from './routes/border'
-import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SplatRouteImport } from './routes/$'
+import { Route as BorderRouteImport } from './routes/border'
+import { Route as DevelopmentRouteImport } from './routes/development'
+import { Route as ExposureRouteImport } from './routes/exposure'
+import { Route as FilmsRouteImport } from './routes/films'
+import { Route as LensesRouteImport } from './routes/lenses'
+import { Route as MatRouteImport } from './routes/mat'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ReciprocityRouteImport } from './routes/reciprocity'
+import { Route as ResizeRouteImport } from './routes/resize'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as StopsRouteImport } from './routes/stops'
 
-const StopsRoute = StopsRouteImport.update({
-  id: '/stops',
-  path: '/stops',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResizeRoute = ResizeRouteImport.update({
-  id: '/resize',
-  path: '/resize',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReciprocityRoute = ReciprocityRouteImport.update({
-  id: '/reciprocity',
-  path: '/reciprocity',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MatRoute = MatRouteImport.update({
-  id: '/mat',
-  path: '/mat',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LensesRoute = LensesRouteImport.update({
-  id: '/lenses',
-  path: '/lenses',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FilmsRoute = FilmsRouteImport.update({
-  id: '/films',
-  path: '/films',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ExposureRoute = ExposureRouteImport.update({
-  id: '/exposure',
-  path: '/exposure',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DevelopmentRoute = DevelopmentRouteImport.update({
-  id: '/development',
-  path: '/development',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BorderRoute = BorderRouteImport.update({
-  id: '/border',
-  path: '/border',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SplatRoute = SplatRouteImport.update({
@@ -83,9 +33,59 @@ const SplatRoute = SplatRouteImport.update({
   path: '/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const BorderRoute = BorderRouteImport.update({
+  id: '/border',
+  path: '/border',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevelopmentRoute = DevelopmentRouteImport.update({
+  id: '/development',
+  path: '/development',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExposureRoute = ExposureRouteImport.update({
+  id: '/exposure',
+  path: '/exposure',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FilmsRoute = FilmsRouteImport.update({
+  id: '/films',
+  path: '/films',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LensesRoute = LensesRouteImport.update({
+  id: '/lenses',
+  path: '/lenses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatRoute = MatRouteImport.update({
+  id: '/mat',
+  path: '/mat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReciprocityRoute = ReciprocityRouteImport.update({
+  id: '/reciprocity',
+  path: '/reciprocity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResizeRoute = ResizeRouteImport.update({
+  id: '/resize',
+  path: '/resize',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StopsRoute = StopsRouteImport.update({
+  id: '/stops',
+  path: '/stops',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -201,81 +201,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/stops': {
-      id: '/stops'
-      path: '/stops'
-      fullPath: '/stops'
-      preLoaderRoute: typeof StopsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resize': {
-      id: '/resize'
-      path: '/resize'
-      fullPath: '/resize'
-      preLoaderRoute: typeof ResizeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reciprocity': {
-      id: '/reciprocity'
-      path: '/reciprocity'
-      fullPath: '/reciprocity'
-      preLoaderRoute: typeof ReciprocityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mat': {
-      id: '/mat'
-      path: '/mat'
-      fullPath: '/mat'
-      preLoaderRoute: typeof MatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lenses': {
-      id: '/lenses'
-      path: '/lenses'
-      fullPath: '/lenses'
-      preLoaderRoute: typeof LensesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/films': {
-      id: '/films'
-      path: '/films'
-      fullPath: '/films'
-      preLoaderRoute: typeof FilmsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/exposure': {
-      id: '/exposure'
-      path: '/exposure'
-      fullPath: '/exposure'
-      preLoaderRoute: typeof ExposureRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/development': {
-      id: '/development'
-      path: '/development'
-      fullPath: '/development'
-      preLoaderRoute: typeof DevelopmentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/border': {
-      id: '/border'
-      path: '/border'
-      fullPath: '/border'
-      preLoaderRoute: typeof BorderRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$': {
@@ -285,11 +215,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/border': {
+      id: '/border'
+      path: '/border'
+      fullPath: '/border'
+      preLoaderRoute: typeof BorderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/development': {
+      id: '/development'
+      path: '/development'
+      fullPath: '/development'
+      preLoaderRoute: typeof DevelopmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/exposure': {
+      id: '/exposure'
+      path: '/exposure'
+      fullPath: '/exposure'
+      preLoaderRoute: typeof ExposureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/films': {
+      id: '/films'
+      path: '/films'
+      fullPath: '/films'
+      preLoaderRoute: typeof FilmsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lenses': {
+      id: '/lenses'
+      path: '/lenses'
+      fullPath: '/lenses'
+      preLoaderRoute: typeof LensesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mat': {
+      id: '/mat'
+      path: '/mat'
+      fullPath: '/mat'
+      preLoaderRoute: typeof MatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reciprocity': {
+      id: '/reciprocity'
+      path: '/reciprocity'
+      fullPath: '/reciprocity'
+      preLoaderRoute: typeof ReciprocityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resize': {
+      id: '/resize'
+      path: '/resize'
+      fullPath: '/resize'
+      preLoaderRoute: typeof ResizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stops': {
+      id: '/stops'
+      path: '/stops'
+      fullPath: '/stops'
+      preLoaderRoute: typeof StopsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

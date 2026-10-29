@@ -41,15 +41,12 @@ function resolve(host: string, path: string): string | undefined {
 const API_HOST = 'api.dorkroom.art';
 
 describe('api host routing', () => {
-  it.each([
-    '/film',
-    '/v1/films',
-    '/recipes',
-    '/nope',
-    '/index.html',
-  ])('sends unknown path %s to the JSON 404 handler', (path) => {
-    expect(resolve(API_HOST, path)).toBe('/api/not-found');
-  });
+  it.each(['/film', '/v1/films', '/recipes', '/nope', '/index.html'])(
+    'sends unknown path %s to the JSON 404 handler',
+    (path) => {
+      expect(resolve(API_HOST, path)).toBe('/api/not-found');
+    }
+  );
 
   it.each([
     ['/', '/api/docs'],

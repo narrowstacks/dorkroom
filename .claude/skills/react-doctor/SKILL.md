@@ -50,6 +50,17 @@ warnings.
   usage (e.g. `turbo-ignore` in `scripts/should-deploy.sh`, `lucide-static` in
   `apps/mobile/scripts/generate-tab-icons.mjs`) — so it reports those as
   "unused" false-positives. Circular-import detection stays on.
+- `react-doctor/no-high-complexity-react-function` and
+  `react-doctor/duplicate-jsx-subtree` are also ignored. Both arrived in 0.9.18
+  as maintainability heuristics (14 and 2 hits), and clearing them means
+  refactoring rendered components, which is not something to fold into a
+  dependency bump. They are real cleanup leads (notably the "How this calculator
+  works" sidebar repeated across four calculator pages): run `bunx react-doctor
+  --verbose` with the ignore removed to list them, and drop the ignore once
+  they are worked down.
+- Doctor also re-reports the project's oxlint findings, so a rule set to
+  `warn` in `.oxlintrc.json` still fails the gate. The React Compiler rules
+  there are `off`, not `warn`, for that reason (see the `toolchain` skill).
 - **Re-check every rule ignore in `doctor.config.json` on each react-doctor
   upgrade.** Ignores added for upstream false positives go stale once upstream
   fixes the rule.

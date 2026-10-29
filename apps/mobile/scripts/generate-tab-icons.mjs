@@ -45,9 +45,11 @@ for (const [id, name] of Object.entries(ICON_NAMES)) {
   const svgRaw = readFileSync(join(LUCIDE, `${name}.svg`), 'utf8');
   // Lucide strokes use currentColor; force white so iOS template-tints it.
   const svg = svgRaw.replaceAll('currentColor', '#ffffff');
-  for (const { suffix, px } of SIZES) {
-    const png = await sharp(Buffer.from(svg)).resize(px, px).png().toBuffer();
-    writeFileSync(join(OUT, `${id}${suffix}.png`), png);
-  }
+  await Promise.all(
+    SIZES.map(async ({ suffix, px }) => {
+      const png = await sharp(Buffer.from(svg)).resize(px, px).png().toBuffer();
+      writeFileSync(join(OUT, `${id}${suffix}.png`), png);
+    })
+  );
   console.log(`generated ${id} (${name})`);
 }

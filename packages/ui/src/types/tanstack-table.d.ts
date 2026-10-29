@@ -1,5 +1,5 @@
-import type { SortingFn } from '@tanstack/table-core';
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
+import type { SortingFn } from '@tanstack/table-core';
 
 declare module '@tanstack/table-core' {
   interface SortingFns {

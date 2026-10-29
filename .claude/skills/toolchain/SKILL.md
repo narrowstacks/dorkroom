@@ -10,6 +10,16 @@ description: Dorkroom's lint/format/typecheck/dependency toolchain — oxlint, B
 - **Lint with `oxlint`, format with Biome.** Each package's `lint` runs `oxlint` (lint, config in
   `.oxlintrc.json`) then `biome check --linter-enabled=false .` (formatting + import sorting only —
   Biome is no longer the linter). `bun run format` writes Biome formatting.
+- Biome 2.6 added Markdown and YAML formatters, on by default. Both are disabled in `biome.json`:
+  they rewrote ~50 docs and every GitHub workflow/issue template in a style the repo doesn't use
+  (blank lines stripped before lists, `*emphasis*` → `_emphasis_`, `[ "a" ]` arrays).
+- oxlint 1.78+ ships the React Compiler lint set (`react/set-state-in-effect`, `refs`, `purity`,
+  `immutability`, `static-components`, `incompatible-library`, `preserve-manual-memoization`) under
+  `correctness`. They are `off` in `.oxlintrc.json`: the app doesn't use React Compiler, many hits are
+  false positives here (Reanimated `sharedValue.value =` writes, TanStack Virtual/Table flagged as
+  "incompatible", the documented setState-during-render resync in `calculator-number-field`), and
+  React Doctor re-reports oxlint warnings as blocking, so `warn` isn't an option. Revisit if React
+  Compiler is adopted.
 - Several jsx-a11y rules are set to `warn` (consumer-labelled input primitives, intentional modal
   backdrops) rather than `error`; fix genuine findings and tighten to `error` over time.
 

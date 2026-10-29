@@ -471,31 +471,30 @@ describe('withHandler', () => {
       expect(res._headers['retry-after']).toBeDefined();
     });
 
-    it.each([
-      'short',
-      'has spaces!!',
-      'x'.repeat(65),
-    ])('malformed X-Client-Id (%s) is treated as absent: no ratelimit.limit call', async (badId) => {
-      setupKeyedEnv();
-      verifyKeyMock.mockResolvedValueOnce(validVerification());
+    it.each(['short', 'has spaces!!', 'x'.repeat(65)])(
+      'malformed X-Client-Id (%s) is treated as absent: no ratelimit.limit call',
+      async (badId) => {
+        setupKeyedEnv();
+        verifyKeyMock.mockResolvedValueOnce(validVerification());
 
-      let handlerRan = false;
-      const handler = await buildHandler({
-        name: 'test',
-        handler: async (_req, res) => {
-          handlerRan = true;
-          res.status(200).json({ ok: true });
-        },
-      });
+        let handlerRan = false;
+        const handler = await buildHandler({
+          name: 'test',
+          handler: async (_req, res) => {
+            handlerRan = true;
+            res.status(200).json({ ok: true });
+          },
+        });
 
-      const req = keyedRequest({ 'x-client-id': badId });
-      const res = createMockResponse();
-      await handler(req, res);
+        const req = keyedRequest({ 'x-client-id': badId });
+        const res = createMockResponse();
+        await handler(req, res);
 
-      expect(handlerRan).toBe(true);
-      expect(res._status).toBe(200);
-      expect(ratelimitLimitMock).not.toHaveBeenCalled();
-    });
+        expect(handlerRan).toBe(true);
+        expect(res._status).toBe(200);
+        expect(ratelimitLimitMock).not.toHaveBeenCalled();
+      }
+    );
 
     it('invalid key + X-Client-Id: still 401 (key auth runs first)', async () => {
       setupKeyedEnv();
