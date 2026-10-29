@@ -6,7 +6,7 @@ import {
 } from '@dorkroom/logic';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /* ------------------------------------------------------------------ *
    Read-only border-calculator preview for the home hero.
@@ -123,14 +123,51 @@ function animationsDisabled(): boolean {
 
 export function HomeHeroPreview() {
   const [setupIndex, setSetupIndex] = useState(0);
+  const paperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const id = window.setInterval(() => {
-      // Checked per tick so theme/toggle changes take effect immediately.
-      if (animationsDisabled()) return;
-      setSetupIndex((index) => (index + 1) % SETUPS.length);
-    }, CYCLE_MS);
-    return () => window.clearInterval(id);
+    // Only tick while the hero is on screen and the tab is visible, so the
+    // box-property transitions never run for nobody. Browsers without
+    // IntersectionObserver (old legacy engines) count as always on screen.
+    let onScreen = true;
+    let id: number | undefined;
+
+    const stop = () => {
+      if (id === undefined) return;
+      window.clearInterval(id);
+      id = undefined;
+    };
+    const sync = () => {
+      if (!onScreen || document.visibilityState !== 'visible') {
+        stop();
+        return;
+      }
+      if (id !== undefined) return;
+      id = window.setInterval(() => {
+        // Checked per tick so theme/toggle changes take effect immediately.
+        if (animationsDisabled()) return;
+        setSetupIndex((index) => (index + 1) % SETUPS.length);
+      }, CYCLE_MS);
+    };
+
+    let observer: IntersectionObserver | undefined;
+    const paper = paperRef.current;
+    if (paper && 'IntersectionObserver' in window) {
+      onScreen = false;
+      observer = new IntersectionObserver((entries) => {
+        onScreen = entries[entries.length - 1].isIntersecting;
+        sync();
+      });
+      observer.observe(paper);
+    }
+
+    document.addEventListener('visibilitychange', sync);
+    sync();
+    return () => {
+      document.removeEventListener('visibilitychange', sync);
+      observer?.disconnect();
+      stop();
+    };
   }, []);
 
   const { label, printW, printH, leftBorder, topBorder, readout } =
@@ -147,6 +184,7 @@ export function HomeHeroPreview() {
     >
       {/* The paper, with the print area and four easel blades */}
       <div
+        ref={paperRef}
         className="hero-preview-paper relative w-full overflow-hidden rounded-sm shadow-subtle transition group-hover/hero:-translate-y-0.5 group-hover/hero:shadow-lg"
         style={{
           aspectRatio: `${PAPER.width} / ${PAPER.height}`,
