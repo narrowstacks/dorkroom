@@ -32,17 +32,26 @@ function getInitialTheme(): Theme {
   return 'system';
 }
 
-// Read the persisted animations preference on first render, defaulting to true.
+// Whether the OS asks for reduced motion. False where matchMedia is missing
+// (prerender, some test environments).
+function prefersReducedMotion(): boolean {
+  if (!hasGlobal('matchMedia')) {
+    return false;
+  }
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+// Read the persisted animations preference on first render. With nothing
+// stored, seed from the OS reduce-motion setting and do not persist: only an
+// explicit user toggle is written.
 function getInitialAnimationsEnabled(): boolean {
-  if (!hasGlobal('localStorage')) {
-    return true;
+  if (hasGlobal('localStorage')) {
+    const savedAnimations = localStorage.getItem(ANIMATIONS_STORAGE_KEY);
+    if (savedAnimations === 'true' || savedAnimations === 'false') {
+      return savedAnimations === 'true';
+    }
   }
-  const savedAnimations = localStorage.getItem(ANIMATIONS_STORAGE_KEY);
-  if (savedAnimations === 'true' || savedAnimations === 'false') {
-    return savedAnimations === 'true';
-  }
-  localStorage.setItem(ANIMATIONS_STORAGE_KEY, 'true');
-  return true;
+  return !prefersReducedMotion();
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {

@@ -327,4 +327,15 @@
   [data-animations-disabled="true"] .animate-slide-fade-bottom {
     animation: none;
   }
+
+  /* The OS reduce-motion setting always wins, even if the in-app animations
+     toggle is on. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
 }
