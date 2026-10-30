@@ -145,6 +145,8 @@ export function BorderScreen() {
         <BorderSizeSection
           minBorder={calc.minBorder}
           unit={unit}
+          paperWidth={calculation.paperWidth}
+          paperHeight={calculation.paperHeight}
           onChange={calc.setMinBorderSlider}
         />
       </BottomSheet>

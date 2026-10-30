@@ -1,25 +1,21 @@
-export type {
-  CustomDeveloperData,
-  CustomFilmData,
-  CustomRecipeFormData,
-} from './custom-recipe.schema';
+// Calculator schemas live in @dorkroom/logic so iOS can reach them. Re-exported
+// here so existing `@dorkroom/ui/forms` importers keep working.
 export {
+  type CustomDeveloperSchemaData as CustomDeveloperData,
+  type CustomFilmSchemaData as CustomFilmData,
+  type CustomRecipeSchemaData as CustomRecipeFormData,
   customDeveloperSchema,
   customFilmSchema,
   customRecipeSchema,
-} from './custom-recipe.schema';
-export type { ExposureCalculatorFormData } from './exposure-calculator.schema';
-export { exposureCalculatorSchema } from './exposure-calculator.schema';
-export type { ImportRecipeFormData } from './import-recipe.schema';
-export { importRecipeSchema } from './import-recipe.schema';
-export type { ReciprocityCalculatorFormData } from './reciprocity-calculator.schema';
-export {
+  type ExposureCalculatorFormData,
+  exposureCalculatorSchema,
+  type ImportRecipeFormData,
+  importRecipeSchema,
+  type ReciprocityCalculatorFormData,
   reciprocityCalculatorSchema,
   reciprocityMeteredTimeSchema,
-} from './reciprocity-calculator.schema';
-export type { ResizeCalculatorFormData } from './resize-calculator.schema';
-export {
+  type ResizeCalculatorFormData,
   type ResizeEnlargerHeightMode,
   type ResizePrintSizeMode,
   resizeCalculatorSchema,
-} from './resize-calculator.schema';
+} from '@dorkroom/logic';

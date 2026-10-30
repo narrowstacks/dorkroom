@@ -1,5 +1,5 @@
-import { reciprocityFactorValidator } from '@dorkroom/logic';
 import { z } from 'zod';
+import { reciprocityFactorValidator } from './validators';
 
 /** Field schema for `meteredTime`, shared with localStorage hydration validation. */
 export const reciprocityMeteredTimeSchema = z

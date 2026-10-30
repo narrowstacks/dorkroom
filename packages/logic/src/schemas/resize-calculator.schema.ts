@@ -1,8 +1,8 @@
+import { z } from 'zod';
 import {
   exposureTimeValidator,
   positiveDimensionValidator,
-} from '@dorkroom/logic';
-import { z } from 'zod';
+} from './validators';
 
 /**
  * Validation schema for Resize Calculator Form
