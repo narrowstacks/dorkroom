@@ -25,8 +25,8 @@
     "test:docs": "vitest run --config vitest.config.ts --project docs",
     "typecheck:api": "node node_modules/typescript/bin/tsc --noEmit --project api/tsconfig.json",
     "doctor": "react-doctor -y --blocking warning --no-telemetry",
-    "lint": "oxlint && biome check --linter-enabled=false .",
-    "lint:fix": "oxlint --fix && biome check --linter-enabled=false --write .",
+    "lint": "oxlint api utils scripts tools postcss.config.js vitest.config.ts && biome check --linter-enabled=false api utils scripts tools supabase docs .github .vscode postcss.config.js vitest.config.ts .oxlintrc.json biome.json doctor.config.json package.json renovate.json tsconfig.base.json tsconfig.json turbo.json vercel.json",
+    "lint:fix": "oxlint --fix api utils scripts tools postcss.config.js vitest.config.ts && biome check --linter-enabled=false --write api utils scripts tools supabase docs .github .vscode postcss.config.js vitest.config.ts .oxlintrc.json biome.json doctor.config.json package.json renovate.json tsconfig.base.json tsconfig.json turbo.json vercel.json",
     "lint:types": "oxlint --type-aware",
     "format": "biome format --write ."
   },
