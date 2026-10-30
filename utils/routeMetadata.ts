@@ -339,7 +339,8 @@ function splitPresetPayload(
     }
   }
 
-  // Number('') is 0, so an empty part would otherwise slip through as zero
+  // Rejects NaN and Infinity. An empty part still reads as 0 (Number('')),
+  // matching splitRawPreset in @dorkroom/logic.
   if (parts.some((part) => !Number.isFinite(part))) return null;
   return { name, parts };
 }
