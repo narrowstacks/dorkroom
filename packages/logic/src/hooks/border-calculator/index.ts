@@ -166,10 +166,8 @@ export {
   initialState,
   useBorderCalculatorState,
 } from './use-border-calculator-state';
-export {
-  type PresetShareMethod,
-  useCalculatorSharing,
-} from './use-calculator-sharing';
+export type { PresetShareMethod } from './use-calculator-sharing';
+export { useCalculatorSharing } from './use-calculator-sharing';
 export { useDimensionCalculations } from './use-dimension-calculations';
 export { useGeometryCalculations } from './use-geometry-calculations';
 export { useImageHandling } from './use-image-handling';
