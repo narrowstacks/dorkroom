@@ -201,7 +201,7 @@ describe('useDevelopmentTable', () => {
     expect(uuidsOf(result.current)).toEqual(expected);
   });
 
-  it('sorts by film and developer label', () => {
+  it('sorts by film label', () => {
     const otherFilm: Film = {
       ...mockFilm,
       id: 2,
@@ -231,6 +231,35 @@ describe('useDevelopmentTable', () => {
     expect(uuidsOf(result.current)).toEqual(['c2', 'c3', 'c1']);
   });
 
+  it('sorts by developer label', () => {
+    const otherDeveloper: Developer = {
+      ...mockDeveloper,
+      id: 2,
+      uuid: 'd2',
+      slug: 'd-76',
+      name: 'D-76',
+      manufacturer: 'Kodak',
+    };
+    const rows = createMockRows();
+    // c2 -> Kodak D-76, c1 and c3 -> Ilford DD-X
+    rows[1] = { ...rows[1], developer: otherDeveloper };
+    const columns = createTestColumns();
+
+    const { result } = renderHook(() =>
+      useDevelopmentTable({
+        rows,
+        columns,
+        sorting: [{ id: 'developer', desc: false }],
+        onSortingChange: () => {},
+        pageIndex: 0,
+        onPageIndexChange: () => {},
+        isFavorite: () => false,
+      })
+    );
+
+    expect(uuidsOf(result.current)).toEqual(['c1', 'c3', 'c2']);
+  });
+
   it('keeps favorites first regardless of sorting', () => {
     const rows = createMockRows();
     const columns = createTestColumns();
@@ -251,6 +280,28 @@ describe('useDevelopmentTable', () => {
 
     // The favorite leads, then the rest by ISO: 200 (c2), 400 (c1).
     expect(uuidsOf(result.current)).toEqual(['c3', 'c2', 'c1']);
+  });
+
+  // Known bug, see #498: TanStack negates a sortingFn's result for descending
+  // sorts, so favorites sink to the bottom instead of staying first. Remove
+  // `.fails` when #498 is fixed.
+  it.fails('keeps favorites first on descending sorts (#498)', () => {
+    const rows = createMockRows();
+    const columns = createTestColumns();
+
+    const { result } = renderHook(() =>
+      useDevelopmentTable({
+        rows,
+        columns,
+        sorting: [{ id: 'combination.shootingIso', desc: true }],
+        onSortingChange: () => {},
+        pageIndex: 0,
+        onPageIndexChange: () => {},
+        isFavorite: (id) => id === 'c2',
+      })
+    );
+
+    expect(uuidsOf(result.current)[0]).toBe('c2');
   });
 
   it('reports the next sorting state through onSortingChange', () => {

@@ -645,29 +645,29 @@ describe('useFilmDatabase', () => {
       });
     });
 
-    it('should apply every other filter together with search', async () => {
+    it('should apply every filter together with search', async () => {
       const { result } = renderHook(() => useFilmDatabase(), { wrapper });
 
       act(() => {
-        result.current.setColorTypeFilter('bw');
+        result.current.setBrandFilter('Kodak');
         result.current.setIsoSpeedFilter('400');
         result.current.setDiscontinuedFilter('active');
       });
 
       // These filters alone leave two films, so the search below has real work
-      // to do. (Adding a brand filter would narrow to one and make it a no-op.)
+      // to do.
       expect(result.current.filteredFilms.map((f) => f.name).sort()).toEqual([
-        'HP5 Plus',
+        'Portra 400',
         'Tri-X 400',
       ]);
 
       act(() => {
-        result.current.setSearchQuery('hp5');
+        result.current.setSearchQuery('tri');
       });
 
       await waitFor(() => {
         expect(result.current.filteredFilms.map((f) => f.name)).toEqual([
-          'HP5 Plus',
+          'Tri-X 400',
         ]);
       });
     });
