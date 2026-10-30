@@ -1,35 +1,6 @@
+import { formatTemperatureWithUnit } from '@dorkroom/logic';
 import { Flame, Snowflake } from 'lucide-react';
 import { useTemperature } from '../contexts/temperature-context';
-import { formatTemperatureWithUnit } from '../lib/temperature';
-
-/** Standard development temperature is 68°F / 20°C */
-const STANDARD_TEMP_F = 68;
-
-/** Whether to warn about a temperature, and which direction it deviates. */
-interface TemperatureWarning {
-  show: boolean;
-  isHigher: boolean;
-}
-
-/**
- * Check if temperature differs from standard 68°F/20°C and return warning info.
- */
-function getTemperatureWarning(
-  tempF?: number | null,
-  tempC?: number | null
-): TemperatureWarning {
-  if (tempF != null && tempF !== STANDARD_TEMP_F) {
-    return { show: true, isHigher: tempF > STANDARD_TEMP_F };
-  }
-  // If only C is provided, convert to F for comparison
-  if (tempC != null) {
-    const equivalentF = (tempC * 9) / 5 + 32;
-    if (Math.abs(equivalentF - STANDARD_TEMP_F) > 0.5) {
-      return { show: true, isHigher: equivalentF > STANDARD_TEMP_F };
-    }
-  }
-  return { show: false, isHigher: false };
-}
 
 /** Color tokens for temperature warnings */
 const TEMP_WARNING_COLORS = {
@@ -66,24 +37,22 @@ export function TemperatureAlert({
   temperatureC,
 }: TemperatureAlertProps) {
   const { unit } = useTemperature();
-  const warning = getTemperatureWarning(temperatureF, temperatureC);
-
-  if (!warning.show) {
-    return null;
-  }
-
-  const colors = warning.isHigher
-    ? TEMP_WARNING_COLORS.higher
-    : TEMP_WARNING_COLORS.lower;
-
-  const Icon = warning.isHigher ? Flame : Snowflake;
-
-  // Format the recipe's temperature
+  // Same non-standard rule (more than 0.1 °F from 68 °F) as the recipe table.
   const recipeTemp = formatTemperatureWithUnit(
     temperatureF ?? null,
     temperatureC ?? null,
     unit
   );
+
+  if (!recipeTemp.isNonStandard) {
+    return null;
+  }
+
+  const colors = recipeTemp.isHigher
+    ? TEMP_WARNING_COLORS.higher
+    : TEMP_WARNING_COLORS.lower;
+
+  const Icon = recipeTemp.isHigher ? Flame : Snowflake;
 
   return (
     <div
@@ -99,7 +68,7 @@ export function TemperatureAlert({
           Non-standard temperature: {recipeTemp.text}
         </div>
         <div>
-          {warning.isHigher ? 'Raise' : 'Lower'} your chemistry (developer,
+          {recipeTemp.isHigher ? 'Raise' : 'Lower'} your chemistry (developer,
           stop, and fixer) temperature to {recipeTemp.text} before starting
           development.
         </div>

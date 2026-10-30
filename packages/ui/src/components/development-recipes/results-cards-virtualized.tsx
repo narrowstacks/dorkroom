@@ -2,6 +2,7 @@ import type { Dilution } from '@dorkroom/api';
 import {
   calculatePushPull,
   type DevelopmentCombinationView,
+  formatTemperatureWithUnit,
 } from '@dorkroom/logic';
 import type { Row, Table } from '@tanstack/react-table';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
@@ -19,7 +20,6 @@ import { type FC, useEffect, useMemo, useRef, useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { cn } from '../../lib/cn';
 import { cssVars, hasGlobal } from '../../lib/dom';
-import { formatTemperatureWithUnit } from '../../lib/temperature';
 import type { ShareResult } from '../share-button';
 import { ShareButton } from '../share-button';
 import {

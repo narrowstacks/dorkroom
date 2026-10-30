@@ -392,8 +392,12 @@ export class DorkroomApiClient {
    * Transform raw combination data to camelCase format
    */
   private transformCombination(raw: RawCombination): Combination {
-    // Convert temperature from Celsius to Fahrenheit
-    const temperatureF = Math.round((raw.temperature_celsius * 9) / 5 + 32);
+    // °C to °F, rounded to 0.1° (never whole degrees: 24 °C is 75.2 °F).
+    // This is the rule in @dorkroom/logic's temperature module, repeated here
+    // because api cannot import logic (logic depends on api). A logic test
+    // asserts the two agree.
+    const temperatureF =
+      Math.round(((raw.temperature_celsius * 9) / 5 + 32) * 10) / 10;
 
     // Tags come as an array from the API
     const tags = raw.tags ?? null;

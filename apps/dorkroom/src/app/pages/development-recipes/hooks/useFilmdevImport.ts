@@ -11,6 +11,8 @@ import {
   FilmdevApiError,
   isFilmdevInput,
   mapFilmdevRecipe,
+  roundTemperature,
+  toCelsius,
 } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
@@ -165,8 +167,8 @@ export function useFilmdevImport({
             shootingIso: mappingResult.formData.shootingIso,
             dilutionId: null,
             customDilution: mappingResult.formData.customDilution,
-            temperatureC: Math.round(
-              ((mappingResult.formData.temperatureF - 32) * 5) / 9
+            temperatureC: roundTemperature(
+              toCelsius(mappingResult.formData.temperatureF)
             ),
             temperatureF: mappingResult.formData.temperatureF,
             timeMinutes: mappingResult.formData.timeMinutes,
