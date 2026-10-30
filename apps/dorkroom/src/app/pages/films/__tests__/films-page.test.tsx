@@ -549,6 +549,32 @@ describe('FilmsPage across a breakpoint change', () => {
     expect(searchInput(true)).toBeVisible();
   });
 
+  it('drops an expanded panel back to the drawer when crossing to mobile', async () => {
+    await renderFilmsPage({ mobile: false });
+
+    fireEvent.click(await findFilmCard(/Ilford HP5 Plus/));
+    fireEvent.click(
+      within(
+        screen.getByRole('region', { name: 'Ilford HP5 Plus details' })
+      ).getByRole('button', { name: 'Expand to full screen' })
+    );
+    expect(
+      screen.getAllByRole('button', { name: 'Collapse to panel' }).length
+    ).toBeGreaterThan(0);
+
+    act(() => setViewport(true));
+
+    const drawer = screen.getByRole('dialog', {
+      name: 'Ilford HP5 Plus details',
+    });
+    expect(
+      within(drawer).getByRole('button', { name: /Drag handle/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Collapse to panel' })
+    ).not.toBeInTheDocument();
+  });
+
   it('carries a typed search across the breakpoint', async () => {
     await renderFilmsPage({ mobile: false });
     await findFilmCard(/Ilford HP5 Plus/);
