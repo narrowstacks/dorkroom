@@ -136,6 +136,9 @@
     "packages/api": {
       "name": "@dorkroom/api",
       "version": "2026.10.29",
+      "dependencies": {
+        "zod": "^4.6.7",
+      },
       "devDependencies": {
         "@types/node": "^26.6.5",
       },
