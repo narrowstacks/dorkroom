@@ -104,9 +104,10 @@ function reducer(
       // chosen on a big sheet cannot leave a degenerate print on a small one.
       // Custom/unknown sheets have no fixed size here, so they are not clamped.
       const paper = PAPER_SIZE_MAP.get(action.value);
-      const maxBorder = paper
-        ? computeMaxAllowedMinBorder(paper.width, paper.height)
-        : Number.POSITIVE_INFINITY;
+      const maxBorder =
+        paper && paper.width > 0 && paper.height > 0
+          ? computeMaxAllowedMinBorder(paper.width, paper.height)
+          : Number.POSITIVE_INFINITY;
       return {
         ...state,
         minBorder: Math.min(state.minBorder, maxBorder),
