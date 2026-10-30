@@ -101,7 +101,7 @@ function row(state: BorderCalculatorState, c: BorderCalculation): string {
     `preview ${c.previewScale}`,
     c.minBorderWarning ? `minBorderW "${c.minBorderWarning}"` : '',
     c.offsetWarning ? `offsetW "${c.offsetWarning}"` : '',
-    c.bladeWarning ? `bladeW "${c.bladeWarning.replace('\n', ' | ')}"` : '',
+    c.bladeWarning ? `bladeW "${c.bladeWarning.replaceAll('\n', ' | ')}"` : '',
     c.paperSizeWarning ? `paperW "${c.paperSizeWarning}"` : '',
   ]
     .filter(Boolean)
