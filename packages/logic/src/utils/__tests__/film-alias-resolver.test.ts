@@ -36,6 +36,7 @@ describe('film-alias-resolver', () => {
       const film = makeFilm();
       const index = buildFilmSlugIndex([film]);
 
+      expect(index.size).toBe(1);
       expect(index.get('kodak-tri-x-400')).toBe(film);
     });
 
@@ -52,14 +53,6 @@ describe('film-alias-resolver', () => {
       expect(index.get('kodak-tmax-400')).toBe(film);
       expect(index.get('kodak-t-max-400')).toBe(film);
       expect(index.get('kodak-tmx-400')).toBe(film);
-    });
-
-    it('handles films with no aliases', () => {
-      const film = makeFilm({ aliases: [] });
-      const index = buildFilmSlugIndex([film]);
-
-      expect(index.size).toBe(1);
-      expect(index.get('kodak-tri-x-400')).toBe(film);
     });
 
     it('later film wins when two films claim the same alias', () => {

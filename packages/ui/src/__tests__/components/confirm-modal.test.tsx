@@ -84,7 +84,7 @@ describe('ConfirmModal', () => {
       const onClose = vi.fn();
       render(<ConfirmModal {...defaultProps} onClose={onClose} />);
 
-      fireEvent.click(screen.getByTestId('confirm-modal-backdrop'));
+      fireEvent.click(screen.getByTestId('modal-backdrop'));
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });
@@ -92,7 +92,7 @@ describe('ConfirmModal', () => {
     it('is hidden from assistive technology and out of the tab order', () => {
       render(<ConfirmModal {...defaultProps} />);
 
-      const backdrop = screen.getByTestId('confirm-modal-backdrop');
+      const backdrop = screen.getByTestId('modal-backdrop');
       expect(backdrop).toHaveAttribute('aria-hidden', 'true');
       expect(backdrop).toHaveAttribute('tabindex', '-1');
     });

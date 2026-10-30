@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { PhotoViewer } from '@/components/film-log/photo-viewer';
 import { photoUri } from '@/lib/film-log-photos';
-import type { ShotPhoto } from '@/types/film-log';
+import type { ShotPhoto } from '@/schemas/film-log.schema';
 
 interface ShotPhotoRowProps {
   photo: ShotPhoto | undefined;

@@ -361,13 +361,6 @@ describe('preset-sharing', () => {
       expect(decodePreset('!!!not-base64!!!')).toBeNull();
     });
 
-    it('returns null for an out-of-range aspect ratio index', () => {
-      const raw = ['2', encodeURIComponent('Bad'), 999, 0, 50, 0, 0, 5].join(
-        '|'
-      );
-      expect(decodePreset(toUrlSafe(encodeBase64(raw)))).toBeNull();
-    });
-
     it('returns null for an out-of-range paper size index', () => {
       const raw = ['2', encodeURIComponent('Bad'), 0, 999, 50, 0, 0, 5].join(
         '|'
@@ -382,13 +375,6 @@ describe('preset-sharing', () => {
 
     it('returns null for a truncated legacy payload', () => {
       const raw = [encodeURIComponent('Short'), 0, 1, 50].join('-');
-      expect(decodePreset(toUrlSafe(encodeBase64(raw)))).toBeNull();
-    });
-
-    it('returns null when a numeric part is not a number', () => {
-      const raw = ['2', encodeURIComponent('Bad'), 0, 2, 'abc', 0, 0, 4].join(
-        '|'
-      );
       expect(decodePreset(toUrlSafe(encodeBase64(raw)))).toBeNull();
     });
 

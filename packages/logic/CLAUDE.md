@@ -42,9 +42,9 @@ unit-tested; hooks wire them to state.
 
 Use the factory pattern in `src/queries/query-keys.ts`:
 
-- Hierarchical: `all -> lists -> list` and `all -> details -> detail`
+- Hierarchical: `all -> lists -> list`
 - Every level is a function, including `all()`. Call it, don't spread the bare property
-- Example: `queryKeys.films.detail('film-id')`
+- Example: `queryKeys.films.list()`
 
 ### Mutations
 

@@ -109,10 +109,10 @@ bunx expo start --dev-client --host lan         # Metro; phone must be on same W
 - **Single React**: `react`/`react-dom` are hard-pinned to the app's copy
   (Expo's 19.1.x) in the Metro resolver, so `@dorkroom/logic` doesn't pull the
   repo-root React 19.2.x and mismatch `react-native-renderer`.
-- **Synchronous storage**: `index.js` → `src/polyfills/install-local-storage.ts`
+- **Synchronous storage**: `app/_layout.tsx` (first import, `installLocalStorage()`) → `src/polyfills/install-local-storage.ts`
   installs an MMKV-backed `globalThis.localStorage`, so persistence-using shared
-  hooks run unchanged. Requires `react-native-nitro-modules` (MMKV 3.x peer) —
-  without it the app **segfaults** on first `new MMKV(...)`.
+  hooks run unchanged. Requires `react-native-nitro-modules` (MMKV 4 peer) —
+  without it the app **segfaults** on first `createMMKV(...)`.
 - **Hermes polyfill**: `index.js` (the custom entry) imports
   `src/polyfills/hermes-polyfills.ts` before `expo-router/entry`, polyfilling
   `Array.prototype.toSorted` (used by `@dorkroom/logic`, missing in Hermes).

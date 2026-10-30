@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import tailwind from '@tailwindcss/postcss';
-import postcss from 'postcss';
+import postcss, { type AcceptedPlugin } from 'postcss';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 /**
@@ -45,7 +45,12 @@ describe('state-prefixed colour classes', () => {
   let css = '';
 
   beforeAll(async () => {
-    const result = await postcss([tailwind({ base: APP })]).process(
+    // SAFETY: @tailwindcss/postcss is typed against its own nested copy of
+    // postcss, so its plugin's types are nominally distinct from the root
+    // copy's even though the runtime object is the plugin postcss expects.
+    // Only `bun check` sees the difference; the build never does.
+    const plugin = tailwind({ base: APP }) as AcceptedPlugin;
+    const result = await postcss([plugin]).process(
       readFileSync(STYLESHEET, 'utf8'),
       { from: STYLESHEET }
     );

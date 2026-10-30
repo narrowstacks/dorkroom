@@ -44,14 +44,22 @@ export interface UseResizeCalculatorReturn {
  */
 export const useResizeCalculator = (): UseResizeCalculatorReturn => {
   const [isEnlargerHeightMode, setIsEnlargerHeightMode] = useState(false);
-  const [originalWidth, setOriginalWidth] = useState(DEFAULT_ORIGINAL_WIDTH);
-  const [originalLength, setOriginalLength] = useState(DEFAULT_ORIGINAL_LENGTH);
-  const [newWidth, setNewWidth] = useState(DEFAULT_NEW_WIDTH);
-  const [newLength, setNewLength] = useState(DEFAULT_NEW_LENGTH);
-  const [originalTime, setOriginalTime] = useState(DEFAULT_ORIGINAL_TIME);
+  const [originalWidth, setOriginalWidth] = useState(() =>
+    String(DEFAULT_ORIGINAL_WIDTH)
+  );
+  const [originalLength, setOriginalLength] = useState(() =>
+    String(DEFAULT_ORIGINAL_LENGTH)
+  );
+  const [newWidth, setNewWidth] = useState(() => String(DEFAULT_NEW_WIDTH));
+  const [newLength, setNewLength] = useState(() => String(DEFAULT_NEW_LENGTH));
+  const [originalTime, setOriginalTime] = useState(() =>
+    String(DEFAULT_ORIGINAL_TIME)
+  );
   const [isAspectRatioMatched, setIsAspectRatioMatched] = useState(true);
-  const [originalHeight, setOriginalHeight] = useState(DEFAULT_ORIGINAL_HEIGHT);
-  const [newHeight, setNewHeight] = useState(DEFAULT_NEW_HEIGHT);
+  const [originalHeight, setOriginalHeight] = useState(() =>
+    String(DEFAULT_ORIGINAL_HEIGHT)
+  );
+  const [newHeight, setNewHeight] = useState(() => String(DEFAULT_NEW_HEIGHT));
 
   const checkAspectRatio = useCallback(() => {
     setIsAspectRatioMatched(

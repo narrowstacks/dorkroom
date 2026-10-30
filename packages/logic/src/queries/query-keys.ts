@@ -9,8 +9,6 @@ export const queryKeys = {
     all: () => ['films'] as const,
     lists: () => [...queryKeys.films.all(), 'list'] as const,
     list: () => [...queryKeys.films.lists()] as const,
-    details: () => [...queryKeys.films.all(), 'detail'] as const,
-    detail: (id: string) => [...queryKeys.films.details(), id] as const,
   },
 
   // Developers
@@ -18,8 +16,6 @@ export const queryKeys = {
     all: () => ['developers'] as const,
     lists: () => [...queryKeys.developers.all(), 'list'] as const,
     list: () => [...queryKeys.developers.lists()] as const,
-    details: () => [...queryKeys.developers.all(), 'detail'] as const,
-    detail: (id: string) => [...queryKeys.developers.details(), id] as const,
   },
 
   // Combinations
@@ -27,25 +23,11 @@ export const queryKeys = {
     all: () => ['combinations'] as const,
     lists: () => [...queryKeys.combinations.all(), 'list'] as const,
     list: () => [...queryKeys.combinations.lists()] as const,
-    listByFilm: (filmId: string) =>
-      [...queryKeys.combinations.lists(), 'film', filmId] as const,
-    listByDeveloper: (developerId: string) =>
-      [...queryKeys.combinations.lists(), 'developer', developerId] as const,
-    details: () => [...queryKeys.combinations.all(), 'detail'] as const,
-    detail: (id: string) => [...queryKeys.combinations.details(), id] as const,
   },
 
   // Stats
   stats: {
     all: () => ['stats'] as const,
     counts: () => [...queryKeys.stats.all(), 'counts'] as const,
-  },
-
-  // Filmdev Import
-  filmdev: {
-    all: () => ['filmdev'] as const,
-    imports: () => [...queryKeys.filmdev.all(), 'import'] as const,
-    import: (recipeId: string) =>
-      [...queryKeys.filmdev.imports(), recipeId] as const,
   },
 };

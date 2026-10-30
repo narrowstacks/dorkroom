@@ -4,21 +4,20 @@ import {
   borderCalculatorSchema,
   type BorderPresetSettings,
   calculateQuarterInchMinBorder,
+  computeBorderLayout,
   computeMaxAllowedMinBorder,
   debugError,
   debugLog,
   DEFAULT_BORDER_PRESETS,
-  DESKTOP_BREAKPOINT,
   formatMeasurement,
   getDisplayUnitSymbol,
+  isMobileWidth,
   PAPER_SIZES,
   persistedBorderCalculatorFieldSchemas,
   type PersistedValue,
   shallowEqual,
   useBorderPresets,
   useCalculatorSharing,
-  useDimensionCalculations,
-  useGeometryCalculations,
   useLocalStorageFormPersistence,
   usePaperDimensionInput,
   usePresetManagement,
@@ -65,8 +64,10 @@ const borderPersistKeys = Object.keys(
 ) as Array<keyof typeof persistedBorderCalculatorFieldSchemas>;
 
 export function useBorderCalculatorController() {
-  const { width } = useWindowDimensions();
-  const isDesktop = width > DESKTOP_BREAKPOINT;
+  // The layout switch and the preview size read the same (debounced) window
+  // sample, so the preview always matches the layout that renders it.
+  const { width, height } = useWindowDimensions();
+  const isDesktop = !isMobileWidth(width);
   const { formatWithUnit, formatDimensions, unit } = useMeasurementFormatter();
   const { toInches, toDisplay } = useMeasurementConverter();
   const toast = useOptionalToast();
@@ -152,8 +153,13 @@ export function useBorderCalculatorController() {
     },
   });
 
-  const dimensionData = useDimensionCalculations(formValues, unit);
-  const { orientedPaper, orientedRatio } = dimensionData.orientedDimensions;
+  // The window size only sizes the on-screen preview.
+  const { calculation, orientedDimensions } = useMemo(
+    () =>
+      computeBorderLayout(formValues, { unit, viewport: { width, height } }),
+    [formValues, unit, width, height]
+  );
+  const { orientedPaper, orientedRatio } = orientedDimensions;
 
   // Maximum allowed minimum border for the current paper size
   const maxAllowedMinBorder = useMemo(
@@ -161,17 +167,7 @@ export function useBorderCalculatorController() {
     [orientedPaper.w, orientedPaper.h]
   );
 
-  const { calculation } = useGeometryCalculations(
-    formValues,
-    dimensionData.orientedDimensions,
-    dimensionData.minBorderData,
-    dimensionData.paperEntry,
-    dimensionData.paperSizeWarning
-  );
-
   const quarterRoundedMinBorder = useMemo(() => {
-    if (!calculation) return null;
-
     return calculateQuarterInchMinBorder({
       paperWidth: orientedPaper.w,
       paperHeight: orientedPaper.h,
@@ -210,17 +206,13 @@ export function useBorderCalculatorController() {
   }, [maxAllowedMinBorder, minBorder, form, toast, unit]);
 
   useEffect(() => {
-    if (!calculation) return;
     if (calculation.lastValidMinBorder !== lastValidMinBorder) {
       form.setFieldValue('lastValidMinBorder', calculation.lastValidMinBorder);
     }
   }, [calculation, form, lastValidMinBorder]);
 
-  const offsetWarning = calculation?.offsetWarning ?? null;
-  const bladeWarning = calculation?.bladeWarning ?? null;
-  const minBorderWarning = calculation?.minBorderWarning ?? null;
-  const paperSizeWarning =
-    calculation?.paperSizeWarning ?? dimensionData.paperSizeWarning;
+  const { offsetWarning, bladeWarning, minBorderWarning, paperSizeWarning } =
+    calculation;
 
   // Update orientation only when custom paper dimensions change
   useEffect(() => {

@@ -9,7 +9,7 @@ import type { Film } from '@dorkroom/api';
 import { useFilms } from '@dorkroom/logic';
 import { useMemo } from 'react';
 import { filmProcessSchema } from '@/schemas/film-log.schema';
-import type { FilmProcess, FilmStock } from '@/types/film-log';
+import type { FilmProcess, FilmStock } from '@/schemas/film-log.schema';
 
 // A new or malformed `colorType` reads as B&W rather than failing the row.
 const processOrBw = filmProcessSchema.catch('bw');

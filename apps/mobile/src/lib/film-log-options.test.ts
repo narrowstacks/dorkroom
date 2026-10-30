@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Shot } from '@/types/film-log';
+import type { Shot } from '@/schemas/film-log.schema';
 import { lastUsedLensId } from './film-log-options';
 
 const shot = (frameNumber: number, lensId?: string): Shot => ({

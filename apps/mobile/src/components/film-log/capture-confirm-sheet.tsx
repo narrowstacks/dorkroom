@@ -5,7 +5,7 @@ import { Pressable, Text, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
 import { SelectField } from '@/components/film-log/select-field';
 import { photoUri } from '@/lib/film-log-photos';
-import type { Lens, ShotPhoto } from '@/types/film-log';
+import type { Lens, ShotPhoto } from '@/schemas/film-log.schema';
 
 interface CaptureConfirmSheetProps {
   visible: boolean;

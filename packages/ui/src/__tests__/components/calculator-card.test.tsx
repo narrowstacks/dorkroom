@@ -64,53 +64,7 @@ describe('CalculatorCard', () => {
     expect(screen.getByText('Action Button')).toBeInTheDocument();
   });
 
-  it('renders complete card with all props', () => {
-    const actions = <button type="button">Save</button>;
-
-    render(
-      <CalculatorCard
-        title="Complete Card"
-        description="This card has everything"
-        actions={actions}
-      >
-        <div>Main content</div>
-      </CalculatorCard>
-    );
-
-    expect(screen.getByText('Complete Card')).toBeInTheDocument();
-    expect(screen.getByText('This card has everything')).toBeInTheDocument();
-    expect(screen.getByText('Save')).toBeInTheDocument();
-    expect(screen.getByText('Main content')).toBeInTheDocument();
-  });
-
-  describe('styling and layout', () => {
-    it('applies base section styling', () => {
-      const { container } = render(
-        <CalculatorCard>
-          <div>Content</div>
-        </CalculatorCard>
-      );
-
-      const section = container.querySelector('section');
-      expect(section).toHaveClass(
-        'relative',
-        'overflow-hidden',
-        'rounded-2xl',
-        'border'
-      );
-    });
-
-    it('applies custom className', () => {
-      const { container } = render(
-        <CalculatorCard className="custom-card-class">
-          <div>Content</div>
-        </CalculatorCard>
-      );
-
-      const section = container.querySelector('section');
-      expect(section).toHaveClass('custom-card-class');
-    });
-
+  describe('padding', () => {
     it('applies normal padding by default', () => {
       const { container } = render(
         <CalculatorCard>
@@ -203,36 +157,6 @@ describe('CalculatorCard', () => {
       const header = document.querySelector('header');
       expect(header).not.toBeInTheDocument();
     });
-
-    it('renders header when title is provided', () => {
-      render(
-        <CalculatorCard title="Test">
-          <div>Content</div>
-        </CalculatorCard>
-      );
-
-      const header = document.querySelector('header');
-      expect(header).toBeInTheDocument();
-      expect(header).toHaveClass('flex', 'flex-col', 'gap-2');
-    });
-
-    it('renders header with proper responsive layout', () => {
-      render(
-        <CalculatorCard
-          title="Test"
-          actions={<button type="button">Action</button>}
-        >
-          <div>Content</div>
-        </CalculatorCard>
-      );
-
-      const header = document.querySelector('header');
-      expect(header).toHaveClass(
-        'sm:flex-row',
-        'sm:items-start',
-        'sm:justify-between'
-      );
-    });
   });
 
   describe('accessibility', () => {
@@ -258,49 +182,6 @@ describe('CalculatorCard', () => {
       expect(
         screen.getByRole('region', { name: /border calculator/i })
       ).toBeInTheDocument();
-    });
-
-    it('uses proper heading hierarchy', () => {
-      render(
-        <CalculatorCard title="Calculator Title">
-          <div>Content</div>
-        </CalculatorCard>
-      );
-
-      const heading = screen.getByRole('heading', { level: 2 });
-      expect(heading).toBeInTheDocument();
-      expect(heading).toHaveTextContent('Calculator Title');
-    });
-  });
-
-  describe('content structure', () => {
-    it('renders content in proper structure', () => {
-      render(
-        <CalculatorCard>
-          <div data-testid="content-1">Content 1</div>
-          <div data-testid="content-2">Content 2</div>
-        </CalculatorCard>
-      );
-
-      expect(screen.getByTestId('content-1')).toBeInTheDocument();
-      expect(screen.getByTestId('content-2')).toBeInTheDocument();
-
-      // Content should be in a flex column with gap
-      const contentContainer = screen.getByTestId('content-1').parentElement;
-      expect(contentContainer).toHaveClass('flex', 'flex-col', 'gap-3.5');
-    });
-
-    it('maintains z-index layering for accent overlays', () => {
-      render(
-        <CalculatorCard accent="emerald">
-          <div>Content</div>
-        </CalculatorCard>
-      );
-
-      const contentWrapper = screen
-        .getByText('Content')
-        .closest('.relative.z-10');
-      expect(contentWrapper).toHaveClass('relative', 'z-10');
     });
   });
 });

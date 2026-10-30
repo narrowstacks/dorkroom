@@ -46,7 +46,6 @@ export type {
   ToolCardProps,
 } from './components/marketing/tool-card';
 export { ToolCard } from './components/marketing/tool-card';
-export { MeasurementUnitToggle } from './components/measurement-unit-toggle';
 export type { MobileSidebarProps } from './components/mobile-sidebar';
 export { MobileSidebar } from './components/mobile-sidebar';
 export { Modal } from './components/modal';
@@ -56,8 +55,6 @@ export type {
 } from './components/navigation-dropdown';
 export { NavigationDropdown } from './components/navigation-dropdown';
 export { NumberInput } from './components/number-input';
-export type { PlaceholderPageProps } from './components/placeholder-page';
-export { PlaceholderPage } from './components/placeholder-page';
 export { PushPullAlert } from './components/push-pull-alert';
 export { ReciprocityChart } from './components/reciprocity-chart';
 // Print resize aspect-ratio preview
@@ -124,22 +121,29 @@ export { useEscapeKey } from './hooks/use-escape-key';
 export {
   useMeasurementConverter,
   useMeasurementFormatter,
-  useMeasurementUtils,
 } from './hooks/use-measurement-conversion';
-export { useViewportWidth } from './hooks/use-viewport-width';
-export { useIsMobile } from './hooks/useIsMobile';
+export { useBreakpoint, useIsMobile } from './hooks/use-breakpoint';
 // Utilities
 export { cn } from './lib/cn';
 export { colorMixOr, supportsColorMix } from './lib/color';
 export * from './lib/measurement';
 // Navigation
-export type { MobileNavItem, NavigationCategory } from './lib/navigation';
+export type {
+  HomeToolCard,
+  MobileNavItem,
+  NavigationCategory,
+  ToolCategory,
+  ToolRoute,
+} from './lib/navigation';
 export {
   allNavItems,
   CATEGORY_LABELS,
+  CATEGORY_ORDER,
   cameraItems,
   filmItems,
+  getRouteAccent,
   getRouteIcon,
+  homeToolCards,
   mobileNavItems,
   navItems,
   navigationCategories,
@@ -149,8 +153,6 @@ export {
   referenceItems,
 } from './lib/navigation';
 export { optionChangeHandler } from './lib/select-options';
-export type { TemperatureUnit } from './lib/temperature';
-export { formatTemperatureWithUnit } from './lib/temperature';
 export type { Theme, ThemeColors } from './lib/themes';
 export {
   darkroomTheme,

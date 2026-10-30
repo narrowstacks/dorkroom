@@ -1,16 +1,19 @@
 import {
   calculateReciprocity,
+  DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
+  DEFAULT_RECIPROCITY_METERED_TIME,
   formatReciprocityTime,
   parseReciprocityTime,
   RECIPROCITY_EXPOSURE_PRESETS,
   RECIPROCITY_FILM_TYPES,
-  RECIPROCITY_STORAGE_KEY,
   type ReciprocityCalculation,
+  reciprocityCalculatorPersistence,
   type ReciprocityFormState,
   type SelectItem,
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
 import {
+  getRouteAccent,
   getRouteIcon,
   ReciprocityChart,
   ResultRow,
@@ -35,7 +38,6 @@ import { ChartLine, Maximize2, Minimize2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
-import { reciprocityHydrationValidators } from './hydration';
 
 const validateReciprocityForm = createZodFormValidator(
   reciprocityCalculatorSchema
@@ -430,9 +432,9 @@ function useReciprocityForm() {
   // TanStack Form for input state
   const form = useForm({
     defaultValues: {
-      filmType: 'tri-x',
-      meteredTime: '30s',
-      customFactor: 1.3,
+      filmType: RECIPROCITY_FILM_TYPES[0].value,
+      meteredTime: DEFAULT_RECIPROCITY_METERED_TIME,
+      customFactor: DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
     } satisfies ReciprocityFormState,
     validators: {
       onChange: validateReciprocityForm,
@@ -444,11 +446,9 @@ function useReciprocityForm() {
 
   // Persist and hydrate form state to/from localStorage
   const { resetToDefaults } = useLocalStorageFormPersistence({
-    storageKey: RECIPROCITY_STORAGE_KEY,
+    ...reciprocityCalculatorPersistence,
     form,
     formValues,
-    persistKeys: ['filmType', 'meteredTime', 'customFactor'],
-    validators: reciprocityHydrationValidators,
   });
 
   // Calculate derived values from form state
@@ -538,7 +538,7 @@ export default function ReciprocityCalculatorPage() {
       <CalculatorLayout
         title="Reciprocity Failure Calculator"
         icon={getRouteIcon('/reciprocity')}
-        accentTone="amber"
+        accentTone={getRouteAccent('/reciprocity')}
         onReset={resetToDefaults}
         description={
           <>

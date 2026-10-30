@@ -7,19 +7,20 @@
      - useBorderCalculator: Main hook that composes all functionality
 \* ------------------------------------------------------------------ */
 
+import { useMemo } from 'react';
 import type { BorderCalculation } from '../../types/border-calculator';
+import { computeBorderLayout } from '../../utils/border-layout';
 import type { MeasurementUnit } from '../../utils/unit-conversion';
+import { useWindowDimensions } from '../use-window-dimensions';
 import { useAlertSystem } from './use-alert-system';
 import { useBorderCalculatorState } from './use-border-calculator-state';
-import { useDimensionCalculations } from './use-dimension-calculations';
-import { useGeometryCalculations } from './use-geometry-calculations';
 import { useImageHandling } from './use-image-handling';
 import { useInputHandlers } from './use-input-handlers';
 
 /**
  * Main border calculator hook that orchestrates all border calculation functionality.
  * This is the primary interface for darkroom border calculations, composing multiple
- * specialized sub-hooks to provide a comprehensive calculation system.
+ * specialized sub-hooks and `computeBorderLayout` to provide a comprehensive calculation system.
  *
  * @param unit - Measurement unit the hook's warnings are written in. Results
  *   and state stay in inches either way. Defaults to imperial.
@@ -50,17 +51,16 @@ export const useBorderCalculator = (unit: MeasurementUnit = 'imperial') => {
   // Core state management
   const { state, dispatch } = useBorderCalculatorState();
 
-  // Dimension calculations
-  const { paperEntry, paperSizeWarning, orientedDimensions, minBorderData } =
-    useDimensionCalculations(state, unit);
-
-  // Geometry calculations
-  const { calculation } = useGeometryCalculations(
-    state,
-    orientedDimensions,
-    minBorderData,
-    paperEntry,
-    paperSizeWarning
+  // Geometry: the window size only sizes the on-screen preview
+  const { width: viewportWidth, height: viewportHeight } =
+    useWindowDimensions();
+  const { calculation } = useMemo(
+    () =>
+      computeBorderLayout(state, {
+        unit,
+        viewport: { width: viewportWidth, height: viewportHeight },
+      }),
+    [state, unit, viewportWidth, viewportHeight]
   );
 
   // Alert system management
@@ -167,8 +167,6 @@ export {
   useBorderCalculatorState,
 } from './use-border-calculator-state';
 export { useCalculatorSharing } from './use-calculator-sharing';
-export { useDimensionCalculations } from './use-dimension-calculations';
-export { useGeometryCalculations } from './use-geometry-calculations';
 export { useImageHandling } from './use-image-handling';
 export { useInputHandlers } from './use-input-handlers';
 // UI-focused hooks

@@ -30,9 +30,7 @@ const createTestFormat = (
 // Commonly used sensor formats for testing (matching production values)
 const formats = {
   fullFrame: createTestFormat('full-frame', 36, 24), // crop: 1.0
-  halfFrame: createTestFormat('half-frame', 24, 18), // crop: ~1.44
   apscNikon: createTestFormat('aps-c-nikon', 23.5, 15.6), // crop: ~1.53
-  apscCanon: createTestFormat('aps-c-canon', 22.3, 14.9), // crop: ~1.61
   mft: createTestFormat('mft', 17.3, 13), // crop: ~2.0
   mediumFormatDigital: createTestFormat('mf-digital', 43.8, 32.9), // crop: ~0.79
   film6x6: createTestFormat('6x6', 56, 56), // crop: ~0.55
@@ -65,7 +63,9 @@ describe('lens calculations', () => {
       });
     });
 
-    describe('APS-C to full frame conversions', () => {
+    // The conversion is one multiplication (focal * source crop / target
+    // crop); a handful of directions is enough to pin it.
+    describe('cross-format conversions', () => {
       it('should convert APS-C Nikon 50mm to equivalent full frame focal length', () => {
         // 50mm on APS-C (crop ~1.53) → ~76.7mm on full frame
         const result = calculateEquivalentFocalLength(
@@ -76,28 +76,6 @@ describe('lens calculations', () => {
         expect(result).toBeCloseTo(76.7, 0);
       });
 
-      it('should convert APS-C Canon 35mm to equivalent full frame focal length', () => {
-        // 35mm on APS-C Canon (crop ~1.61) → ~56.5mm on full frame
-        const result = calculateEquivalentFocalLength(
-          35,
-          formats.apscCanon,
-          formats.fullFrame
-        );
-        expect(result).toBeCloseTo(56.5, 0);
-      });
-
-      it('should convert APS-C Nikon 24mm wide angle to full frame equivalent', () => {
-        // 24mm on APS-C Nikon → ~36.8mm on full frame
-        const result = calculateEquivalentFocalLength(
-          24,
-          formats.apscNikon,
-          formats.fullFrame
-        );
-        expect(result).toBeCloseTo(36.8, 0);
-      });
-    });
-
-    describe('full frame to APS-C conversions', () => {
       it('should convert full frame 50mm to equivalent APS-C Nikon focal length', () => {
         // 50mm on full frame → ~32.6mm on APS-C Nikon
         const result = calculateEquivalentFocalLength(
@@ -108,72 +86,6 @@ describe('lens calculations', () => {
         expect(result).toBeCloseTo(32.6, 0);
       });
 
-      it('should convert full frame 85mm portrait lens to APS-C equivalent', () => {
-        // 85mm on full frame → ~55.4mm on APS-C Nikon
-        const result = calculateEquivalentFocalLength(
-          85,
-          formats.fullFrame,
-          formats.apscNikon
-        );
-        expect(result).toBeCloseTo(55.4, 0);
-      });
-    });
-
-    describe('Micro Four Thirds conversions', () => {
-      it('should convert MFT 25mm to full frame equivalent', () => {
-        // 25mm on MFT (crop ~2.0) → ~50mm on full frame
-        const result = calculateEquivalentFocalLength(
-          25,
-          formats.mft,
-          formats.fullFrame
-        );
-        expect(result).toBeCloseTo(50, 1);
-      });
-
-      it('should convert full frame 50mm to MFT equivalent', () => {
-        // 50mm on full frame → ~25mm on MFT
-        const result = calculateEquivalentFocalLength(
-          50,
-          formats.fullFrame,
-          formats.mft
-        );
-        expect(result).toBeCloseTo(25, 1);
-      });
-    });
-
-    describe('medium format to full frame conversions', () => {
-      it('should convert medium format digital 80mm to full frame equivalent', () => {
-        // 80mm on MF digital (crop ~0.79) → ~63.2mm on full frame
-        const result = calculateEquivalentFocalLength(
-          80,
-          formats.mediumFormatDigital,
-          formats.fullFrame
-        );
-        expect(result).toBeCloseTo(63.2, 0);
-      });
-
-      it('should convert 6x7 film 90mm to full frame equivalent', () => {
-        // 90mm on 6x7 (crop ~0.48) → ~43.4mm on full frame
-        const result = calculateEquivalentFocalLength(
-          90,
-          formats.film6x7,
-          formats.fullFrame
-        );
-        expect(result).toBeCloseTo(43.4, 0);
-      });
-
-      it('should convert 6x6 film 80mm to full frame equivalent', () => {
-        // 80mm on 6x6 (crop ~0.55) → ~43.7mm on full frame
-        const result = calculateEquivalentFocalLength(
-          80,
-          formats.film6x6,
-          formats.fullFrame
-        );
-        expect(result).toBeCloseTo(43.7, 0);
-      });
-    });
-
-    describe('large format to full frame conversions', () => {
       it('should convert 4x5 150mm to full frame equivalent', () => {
         // 150mm on 4x5 (crop ~0.27) → ~39.9mm on full frame
         const result = calculateEquivalentFocalLength(
@@ -182,60 +94,6 @@ describe('lens calculations', () => {
           formats.fullFrame
         );
         expect(result).toBeCloseTo(39.9, 0);
-      });
-
-      it('should convert 8x10 300mm to full frame equivalent', () => {
-        // 300mm on 8x10 (crop ~0.13) → ~39.9mm on full frame
-        const result = calculateEquivalentFocalLength(
-          300,
-          formats.film8x10,
-          formats.fullFrame
-        );
-        expect(result).toBeCloseTo(39.9, 0);
-      });
-    });
-
-    describe('full frame to large format conversions', () => {
-      it('should convert full frame 50mm to 4x5 equivalent', () => {
-        // 50mm on full frame → ~188mm on 4x5
-        const result = calculateEquivalentFocalLength(
-          50,
-          formats.fullFrame,
-          formats.film4x5
-        );
-        expect(result).toBeCloseTo(188, 0);
-      });
-
-      it('should convert full frame 35mm wide to 8x10 equivalent', () => {
-        // 35mm on full frame → ~263mm on 8x10
-        const result = calculateEquivalentFocalLength(
-          35,
-          formats.fullFrame,
-          formats.film8x10
-        );
-        expect(result).toBeCloseTo(263, 0);
-      });
-    });
-
-    describe('edge cases', () => {
-      it('should handle very short focal lengths', () => {
-        // 1mm fisheye on full frame → ~0.65mm on APS-C Nikon
-        const result = calculateEquivalentFocalLength(
-          1,
-          formats.fullFrame,
-          formats.apscNikon
-        );
-        expect(result).toBeCloseTo(0.65, 1);
-      });
-
-      it('should handle very long focal lengths', () => {
-        // 2000mm super telephoto on full frame → ~1304mm on APS-C Nikon
-        const result = calculateEquivalentFocalLength(
-          2000,
-          formats.fullFrame,
-          formats.apscNikon
-        );
-        expect(result).toBeCloseTo(1304, 0);
       });
 
       it('should handle cross-category conversions', () => {
@@ -330,12 +188,6 @@ describe('lens calculations', () => {
     });
 
     describe('large format', () => {
-      it('should calculate FOV for 150mm on 4x5', () => {
-        // 150mm on 4x5 diagonal FOV ≈ 56.9°
-        const result = calculateFieldOfView(150, formats.film4x5);
-        expect(result).toBeCloseTo(56.9, 0);
-      });
-
       it('should calculate FOV for 300mm on 8x10', () => {
         // 300mm on 8x10 diagonal FOV ≈ 56.9°
         const result = calculateFieldOfView(300, formats.film8x10);

@@ -18,7 +18,7 @@ import {
   ROLL_STATUS_OPTIONS,
 } from '@/lib/film-log-options';
 import { addRoll, updateRoll } from '@/lib/film-log-storage';
-import type { FilmStock } from '@/types/film-log';
+import type { FilmStock } from '@/schemas/film-log.schema';
 
 export function RollFormScreen() {
   const { rollId } = useLocalSearchParams<{ rollId?: string }>();

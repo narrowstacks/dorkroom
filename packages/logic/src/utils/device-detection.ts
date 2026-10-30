@@ -1,3 +1,5 @@
+import { MOBILE_MAX_WIDTH } from '../constants/breakpoints';
+
 /**
  * Device detection utilities for determining mobile vs desktop context
  */
@@ -39,7 +41,8 @@ export const isMobileDevice = (): boolean => {
     );
 
   // Check screen size (mobile-like dimensions)
-  const smallScreen = window.innerWidth <= 768 || window.innerHeight <= 768;
+  const smallScreen =
+    window.innerWidth <= MOBILE_MAX_WIDTH || window.innerHeight <= 768;
 
   // Consider it mobile if it has touch AND (mobile user agent OR small screen)
   return hasTouchscreen && (mobileUserAgent || smallScreen);

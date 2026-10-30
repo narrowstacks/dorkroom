@@ -318,6 +318,40 @@ describe('DorkroomApiClient', () => {
   });
 
   describe('fetchCombinations', () => {
+    it('converts temperature to °F rounded to 0.1°, not whole degrees', async () => {
+      const row = (id: number, celsius: number): RawCombination => ({
+        id,
+        uuid: `combo-${id}`,
+        name: 'Temp',
+        film_stock: 'test-film',
+        developer: 'test-developer',
+        shooting_iso: 400,
+        dilution_id: null,
+        custom_dilution: null,
+        temperature_celsius: celsius,
+        time_minutes: 10,
+        agitation_method: 'continuous',
+        push_pull: 0,
+        tags: null,
+        notes: null,
+        info_source: null,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+      });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [row(1, 20), row(2, 24), row(3, 21.5), row(4, 38)],
+        }),
+      });
+
+      const result = await client.fetchCombinations();
+
+      expect(result.map((c) => c.temperatureF)).toEqual([
+        68, 75.2, 70.7, 100.4,
+      ]);
+    });
+
     it('should fetch combinations successfully', async () => {
       const mockRawCombinations: RawCombination[] = [
         {

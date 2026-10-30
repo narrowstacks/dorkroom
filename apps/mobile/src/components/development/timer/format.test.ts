@@ -50,7 +50,13 @@ describe('formatDuration', () => {
 describe('formatTemp', () => {
   it('shows both scales for a finite temperature', () => {
     expect(formatTemp(68)).toBe('68°F · 20°C');
-    expect(formatTemp(75)).toBe('75°F · 24°C');
+    expect(formatTemp(75.2)).toBe('75.2°F · 24°C');
+  });
+
+  it('rounds both scales to 0.1°, never to whole degrees', () => {
+    // Whole-degree rounding used to show 75°F as "24°C" and 68.5°F as "69°F".
+    expect(formatTemp(75)).toBe('75°F · 23.9°C');
+    expect(formatTemp(68.5)).toBe('68.5°F · 20.3°C');
   });
 
   it('returns null when there is no process temperature', () => {

@@ -5,7 +5,7 @@
 // TODO(export): a real `.json` *file* share (expo-file-system + expo-sharing,
 // needs a dev build) and Lightroom/XMP/CSV formats are deferred follow-ups.
 import { formatAperture, formatShutterSpeed } from '@dorkroom/logic';
-import type { Camera, FilmRoll, Lens } from '@/types/film-log';
+import type { Camera, FilmRoll, Lens } from '@/schemas/film-log.schema';
 
 export const FILM_LOG_EXPORT_VERSION = 1;
 

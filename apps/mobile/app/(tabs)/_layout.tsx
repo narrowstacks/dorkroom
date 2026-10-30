@@ -1,33 +1,8 @@
 import { useQuickActionRouting } from 'expo-quick-actions/router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { usePinnedTabs } from '@/hooks/use-pinned-tabs';
+import { getTabIcon } from '@/lib/tab-icons';
 import { getTool } from '@/lib/tools';
-
-// Tool id -> route file name under `app/(tabs)`. `src/lib/deep-link.ts` mirrors
-// this pairing; keep both in sync when a new pinnable tool is added.
-const ROUTE_NAME = new Map([
-  ['border', 'index'],
-  ['exposure', 'exposure'],
-  ['reciprocity', 'reciprocity'],
-  ['resize', 'resize'],
-  ['meter', 'meter'],
-  ['mat', 'mat'],
-  ['lens', 'lenses'],
-  ['camera-exposure', 'camera-exposure'],
-  ['settings', 'settings'],
-]);
-
-const TAB_ICON = new Map<string, number>([
-  ['border', require('../../assets/tab-icons/border.png')],
-  ['exposure', require('../../assets/tab-icons/exposure.png')],
-  ['reciprocity', require('../../assets/tab-icons/reciprocity.png')],
-  ['resize', require('../../assets/tab-icons/resize.png')],
-  ['meter', require('../../assets/tab-icons/meter.png')],
-  ['mat', require('../../assets/tab-icons/mat.png')],
-  ['lens', require('../../assets/tab-icons/lens.png')],
-  ['camera-exposure', require('../../assets/tab-icons/camera-exposure.png')],
-  ['settings', require('../../assets/tab-icons/settings.png')],
-]);
 
 // Film Log is a multi-screen section that always lives in the tab bar (it can't
 // use the /more/[tool] access path other single-screen tools do, and a native
@@ -46,8 +21,10 @@ export default function TabsLayout() {
     <NativeTabs>
       {pinned.map((id) => {
         const tool = getTool(id);
-        const routeName = ROUTE_NAME.get(id);
-        const icon = TAB_ICON.get(id);
+        // Route name and icon both come from the tool manifest (`TOOLS` plus
+        // `TAB_ICONS`); film-log and recipes have neither and render below.
+        const routeName = tool?.tabRoute;
+        const icon = getTabIcon(id);
         if (!tool || routeName === undefined || icon === undefined) return null;
         return (
           <NativeTabs.Trigger key={id} name={routeName}>

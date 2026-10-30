@@ -1,5 +1,6 @@
 // Rasterizes Lucide SVGs into white template PNGs for the native tab bar.
-// Keep ICON_NAMES in sync with src/lib/tools.ts (+ the 'more' tab).
+// Keep ICON_NAMES in sync with src/lib/tools.ts (+ the 'more' tab);
+// src/lib/tool-manifest.test.ts fails if an icon here disagrees with TOOLS.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';

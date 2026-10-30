@@ -9,7 +9,6 @@
  * - Structured logging with metadata
  * - ISO timestamps
  * - Request correlation
- * - Performance timing
  */
 
 export interface LogContext {
@@ -19,12 +18,6 @@ export interface LogContext {
   userAgent?: string;
   timestamp?: string;
   [key: string]: string | number | boolean | null | undefined;
-}
-
-export interface TimingContext extends LogContext {
-  startTime?: number;
-  responseTime?: number;
-  operation?: string;
 }
 
 /**
@@ -81,30 +74,6 @@ export function serverlessError(message: string, context: LogContext = {}) {
     ...context,
   };
   console.error(JSON.stringify(logData));
-}
-
-/**
- * Record a timing entry for an operation and log its completion.
- *
- * @param message - Operation name used as the logged operation and in the completion message
- * @param startTime - Start timestamp in milliseconds (e.g., Date.now() when the operation began)
- * @param context - Optional additional metadata to include with the timing entry
- * @returns The elapsed time in milliseconds between now and `startTime`
- */
-export function logTiming(
-  message: string,
-  startTime: number,
-  context: LogContext = {}
-) {
-  const responseTime = Date.now() - startTime;
-  const timingContext: TimingContext = {
-    ...context,
-    responseTime,
-    operation: message,
-  };
-
-  serverlessLog(`${message} completed`, timingContext);
-  return responseTime;
 }
 
 /**

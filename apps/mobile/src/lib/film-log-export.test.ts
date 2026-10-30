@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Camera, FilmRoll, Lens } from '@/types/film-log';
+import type { Camera, FilmRoll, Lens } from '@/schemas/film-log.schema';
 import { buildRollsExport, FILM_LOG_EXPORT_VERSION } from './film-log-export';
 
 const cameras: Camera[] = [
@@ -57,7 +57,24 @@ describe('buildRollsExport', () => {
     expect(result.rolls[0]?.shots[0]?.shutterLabel).toBe('1/125');
   });
 
-  it('serializes to valid JSON', () => {
-    expect(() => JSON.stringify(result)).not.toThrow();
+  it('drops labels for a shot without aperture or shutter through JSON', () => {
+    const bare = buildRollsExport({
+      rolls: [
+        {
+          ...rolls[0],
+          shots: [{ id: 'shot2', frameNumber: 2, source: 'manual' }],
+        },
+      ],
+      cameras,
+      lenses,
+      exportedAt: '2026-06-23T00:00:00.000Z',
+    });
+    const parsed: { rolls: { shots: object[] }[] } = JSON.parse(
+      JSON.stringify(bare)
+    );
+    const shot = parsed.rolls[0].shots[0];
+    expect(shot).not.toHaveProperty('apertureLabel');
+    expect(shot).not.toHaveProperty('shutterLabel');
+    expect(shot).not.toHaveProperty('lensName');
   });
 });

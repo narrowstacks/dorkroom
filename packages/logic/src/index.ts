@@ -16,6 +16,7 @@
 
 // Constants exports
 export * from './constants/border-calculator';
+export * from './constants/breakpoints';
 export * from './constants/border-calculator-defaults';
 export * from './constants/calculations';
 export * from './constants/camera-exposure-defaults';
@@ -46,8 +47,6 @@ export {
   useBorderCalculator as useModularBorderCalculator,
   useBorderCalculatorState,
   useCalculatorSharing,
-  useDimensionCalculations,
-  useGeometryCalculations,
   useImageHandling,
   useInputHandlers,
   usePaperDimensionInput,
@@ -94,7 +93,7 @@ export {
   type UseCameraExposureCalculatorReturn,
   useCameraExposureCalculator,
 } from './hooks/use-camera-exposure-calculator';
-export { useDebounce, useDebouncedCallback } from './hooks/use-debounce';
+export { useDebounce } from './hooks/use-debounce';
 export {
   type UseExposureCalculatorReturn,
   useExposureCalculator,
@@ -135,6 +134,11 @@ export { useUrlPresetLoader } from './hooks/use-url-preset-loader';
 export { useWindowDimensions } from './hooks/use-window-dimensions';
 // Schemas
 export * from './schemas/border-calculator.schema';
+export * from './schemas/custom-recipe.schema';
+export * from './schemas/exposure-calculator.schema';
+export * from './schemas/import-recipe.schema';
+export * from './schemas/reciprocity-calculator.schema';
+export * from './schemas/resize-calculator.schema';
 export { customRecipeFilterSchema } from './schemas/development-recipes.schema';
 export * from './schemas/validators';
 // Services exports
@@ -165,6 +169,7 @@ export * from './types/reciprocity';
 // Utils exports
 export * from './utils/aspect-preview-geometry';
 export * from './utils/border-calculations';
+export * from './utils/border-layout';
 export * from './utils/camera-exposure-calculations';
 export * from './utils/combination-factory';
 export * from './utils/custom-recipe-helpers';
@@ -183,12 +188,13 @@ export {
 } from './utils/lens-calculations';
 export * from './utils/light-meter';
 export * from './utils/object-comparison';
+export * from './utils/persisted-form-fields';
 export * from './utils/precision';
 export * from './utils/preset-sharing';
 export * from './utils/recipe-sharing';
 export * from './utils/reciprocity-calculations';
 export * from './utils/resize-calculations';
-export * from './utils/temperature-formatting';
+export * from './utils/temperature';
 export * from './utils/text-sanitization';
 export * from './utils/time-formatting';
 export * from './utils/unit-conversion';

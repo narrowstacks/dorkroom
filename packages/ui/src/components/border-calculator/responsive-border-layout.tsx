@@ -1,7 +1,11 @@
 import type { FC } from 'react';
 import { SaveBeforeShareModal } from '../../components/save-before-share-modal';
 import { ShareModal } from '../../components/share-modal';
-import { getRouteIcon, ROUTE_DESCRIPTIONS } from '../../lib/navigation';
+import {
+  getRouteAccent,
+  getRouteIcon,
+  ROUTE_DESCRIPTIONS,
+} from '../../lib/navigation';
 import { CalculatorLayout } from '../calculator/calculator-layout';
 import { BladeReadingsSection } from './blade-readings-section';
 import { BladeVisualizationSection } from './blade-visualization-section';
@@ -43,7 +47,7 @@ export const ResponsiveBorderLayout: FC = () => {
     <CalculatorLayout
       title="Border Calculator"
       icon={BorderIcon}
-      accentTone="indigo"
+      accentTone={getRouteAccent('/border')}
       description={ROUTE_DESCRIPTIONS['/border']}
       sidebar={
         // Right column: Configuration (primary controls)

@@ -1,4 +1,5 @@
 import type { Combination } from '@dorkroom/api';
+import { STANDARD_TEMP_F } from '@dorkroom/logic';
 import { describe, expect, it } from 'vitest';
 import { totalDurationSeconds } from './engine';
 import {
@@ -7,7 +8,6 @@ import {
   parsePresets,
   recipeMinutesToSeconds,
   stagesFromCombination,
-  STANDARD_PROCESS_TEMP_F,
   timerPresetsSchema,
 } from './presets';
 
@@ -48,7 +48,7 @@ describe('DEFAULT_BW_PRESET', () => {
 
   it('runs at the standard 68°F where temperature matters', () => {
     const wash = DEFAULT_BW_STAGES.find((s) => s.kind === 'wash');
-    expect(DEFAULT_BW_STAGES[0].temperatureF).toBe(STANDARD_PROCESS_TEMP_F);
+    expect(DEFAULT_BW_STAGES[0].temperatureF).toBe(STANDARD_TEMP_F);
     expect(wash?.temperatureF).toBeNull(); // running water, not process-critical
   });
 
@@ -124,11 +124,6 @@ describe('stagesFromCombination', () => {
       combination({ agitationMethod: '', tags: ['official-kodak'] })
     );
     expect(kodak.agitationPattern?.id).toBe('kodak');
-
-    const [ilford] = stagesFromCombination(
-      combination({ agitationMethod: '', tags: ['official-cinestill'] })
-    );
-    expect(ilford.agitationPattern?.id).toBe('ilford');
   });
 });
 

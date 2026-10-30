@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { sanitizeRecipeName, sanitizeText } from '../text-sanitization';
+import type {
+  CustomDeveloperData,
+  CustomFilmData,
+} from '../../types/custom-recipes';
+import {
+  sanitizeCustomDeveloper,
+  sanitizeCustomFilm,
+  sanitizeRecipeName,
+  sanitizeTags,
+  sanitizeText,
+} from '../text-sanitization';
 
 describe('text-sanitization', () => {
   describe('sanitizeText', () => {
@@ -39,10 +49,11 @@ describe('text-sanitization', () => {
     });
 
     it('removes event handlers', () => {
-      const input = '<img src=x onerror=alert("xss")>';
-      const result = sanitizeText(input);
-      expect(result).not.toContain('onerror=');
-      expect(result).not.toContain('onclick=');
+      // Tagless, so the tag regex can't strip them first: only the
+      // event-handler regex removes these.
+      expect(sanitizeText('foo onclick=bar')).toBe('foo bar');
+      expect(sanitizeText('" onmouseover=alert(1) x="')).toBe('" alert(1) x="');
+      expect(sanitizeText('x ONERROR = y')).toBe('x  y');
     });
 
     it('removes data:text/html protocol', () => {
@@ -111,10 +122,7 @@ describe('text-sanitization', () => {
     it('preserves normal text with punctuation', () => {
       const input =
         'This is a normal sentence. It has punctuation! And questions? Yes.';
-      const result = sanitizeText(input);
-      expect(result).toContain('This is a normal sentence');
-      // Note: punctuation will be escaped
-      expect(result).toMatch(/sentence/);
+      expect(sanitizeText(input)).toBe(input);
     });
 
     it('handles nested HTML tags', () => {
@@ -133,12 +141,22 @@ describe('text-sanitization', () => {
     });
 
     it('handles numeric character references', () => {
+      // Entities are not decoded (React escapes on render); the bare word
+      // "script" between them is still stripped.
       const input = '&#60;script&#62;alert(&#34;xss&#34;)&#60;/script&#62;';
-      const result = sanitizeText(input);
-      // After HTML entity decoding and sanitization, script tags are removed
-      // but the text content is escaped
-      expect(result).not.toContain('<script>');
-      expect(result).not.toContain('</script>');
+      expect(sanitizeText(input)).toBe(
+        '&#60;&#62;alert(&#34;xss&#34;)&#60;/&#62;'
+      );
+    });
+
+    it('repeats removals until a spliced token cannot reappear', () => {
+      // One pass turns "scr[script]ipt" into "script"; the fixpoint loop
+      // removes that too.
+      expect(sanitizeText('scrscriptipt')).toBe('');
+      expect(sanitizeText('jajavascript:vascript:alert(1)')).toBe(
+        'java:alert(1)'
+      );
+      expect(sanitizeText('<scr<script>ipt>alert(1)')).toBe('ipt>alert(1)');
     });
   });
 
@@ -164,9 +182,7 @@ describe('text-sanitization', () => {
 
     it('allows parentheses and ampersands', () => {
       const input = 'Recipe (Test) & Development';
-      const result = sanitizeRecipeName(input);
-      expect(result).toContain('Recipe');
-      expect(result).toContain('Test');
+      expect(sanitizeRecipeName(input)).toBe(input);
     });
 
     it('removes special characters not in whitelist', () => {
@@ -235,14 +251,13 @@ describe('text-sanitization', () => {
   });
 
   describe('performance', () => {
-    it('handles very long strings efficiently', () => {
-      const input = 'a'.repeat(10000);
-      const start = Date.now();
-      const result = sanitizeText(input, 10000);
-      const end = Date.now();
-
-      expect(result).toBeTruthy();
-      expect(end - start).toBeLessThan(100); // Should complete in under 100ms
+    it('caps a tag match at 2000 inner characters (ReDoS guard)', () => {
+      // The `{0,2000}` bound (rather than `*`) keeps the tag regex linear on
+      // runs of "<" with no ">". Pin the bound itself: a tag body of up to
+      // 2000 characters is stripped, a longer one is left alone.
+      expect(sanitizeText(`<${'a'.repeat(1999)}>`)).toBe('');
+      expect(sanitizeText(`<${'a'.repeat(2000)}>`)).toBe('');
+      expect(sanitizeText(`<${'a'.repeat(2001)}>`)).toHaveLength(2003);
     });
 
     it('handles many HTML entities efficiently', () => {
@@ -253,6 +268,118 @@ describe('text-sanitization', () => {
 
       expect(result).toBeTruthy();
       expect(end - start).toBeLessThan(100);
+    });
+  });
+
+  describe('sanitizeCustomFilm', () => {
+    const film: CustomFilmData = {
+      brand: 'Ilford<script>x</script>',
+      name: 'HP5 <b>Plus</b>',
+      isoSpeed: 400,
+      colorType: 'bw',
+      grainStructure: 'Fine onclick=alert(1)',
+      description: 'd'.repeat(600),
+    };
+
+    it('sanitizes every text field and keeps the rest', () => {
+      expect(sanitizeCustomFilm(film)).toEqual({
+        brand: 'Ilfordx',
+        name: 'HP5 Plus',
+        isoSpeed: 400,
+        colorType: 'bw',
+        grainStructure: 'Fine alert(1)',
+        description: `${'d'.repeat(500)}...`,
+      });
+    });
+
+    it('falls back to "Unknown" when brand or name sanitize to nothing', () => {
+      const result = sanitizeCustomFilm({
+        ...film,
+        brand: '<script></script>',
+        name: '',
+      });
+      expect(result?.brand).toBe('Unknown');
+      expect(result?.name).toBe('Unknown');
+    });
+
+    it('returns undefined for missing input', () => {
+      expect(sanitizeCustomFilm(undefined)).toBeUndefined();
+      expect(sanitizeCustomFilm(null)).toBeUndefined();
+    });
+  });
+
+  describe('sanitizeCustomDeveloper', () => {
+    const developer: CustomDeveloperData = {
+      manufacturer: 'Kodak<script>x</script>',
+      name: 'D-76',
+      type: 'powder <img src=x>',
+      filmOrPaper: 'film',
+      workingLifeHours: 24,
+      notes: 'Notes javascript:alert(1)',
+      mixingInstructions: 'Mix at 50C',
+      safetyNotes: 'Gloves',
+      dilutions: [
+        { name: '<b>Stock</b>', dilution: '1+0' },
+        { name: '', dilution: '<script></script>' },
+      ],
+    };
+
+    it('sanitizes text fields and every dilution', () => {
+      expect(sanitizeCustomDeveloper(developer)).toEqual({
+        manufacturer: 'Kodakx',
+        name: 'D-76',
+        type: 'powder',
+        filmOrPaper: 'film',
+        workingLifeHours: 24,
+        notes: 'Notes alert(1)',
+        mixingInstructions: 'Mix at 50C',
+        safetyNotes: 'Gloves',
+        dilutions: [
+          { name: 'Stock', dilution: '1+0' },
+          // Empty after sanitizing: dilution fields fall back
+          { name: 'Unknown', dilution: '1:1' },
+        ],
+      });
+    });
+
+    it('falls back to "Unknown" for empty manufacturer, name, and type', () => {
+      const result = sanitizeCustomDeveloper({
+        ...developer,
+        manufacturer: '',
+        name: '<b></b>',
+        type: '',
+      });
+      expect(result?.manufacturer).toBe('Unknown');
+      expect(result?.name).toBe('Unknown');
+      expect(result?.type).toBe('Unknown');
+    });
+
+    it('returns undefined for missing input', () => {
+      expect(sanitizeCustomDeveloper(undefined)).toBeUndefined();
+      expect(sanitizeCustomDeveloper(null)).toBeUndefined();
+    });
+  });
+
+  describe('sanitizeTags', () => {
+    it('sanitizes each tag and drops tags left empty', () => {
+      expect(
+        sanitizeTags([
+          '<b>bold</b>',
+          'normal',
+          '',
+          '<script></script>',
+          ' pad ',
+        ])
+      ).toEqual(['bold', 'normal', 'pad']);
+    });
+
+    it('truncates tags to 50 characters', () => {
+      expect(sanitizeTags(['t'.repeat(60)])).toEqual([`${'t'.repeat(50)}...`]);
+    });
+
+    it('returns undefined for missing input', () => {
+      expect(sanitizeTags(undefined)).toBeUndefined();
+      expect(sanitizeTags(null)).toBeUndefined();
     });
   });
 });

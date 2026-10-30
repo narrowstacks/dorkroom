@@ -199,17 +199,27 @@ const blades = calculateBladeReadings({
 });
 ```
 
-### Temperature Formatting
+### Temperature
+
+One module owns every °C/°F conversion. Conversions are exact; values are
+rounded to 0.1° only when stored (`roundTemperature`) or displayed
+(`formatTemperature`).
 
 ```typescript
 import {
   formatTemperature,
-  celsiusToFahrenheit,
-  fahrenheitToCelsius
+  isNonStandardTemperature,
+  roundTemperature,
+  toCelsius,
+  toFahrenheit,
 } from '@dorkroom/logic';
 
-formatTemperature(20, 'C'); // "20°C"
-celsiusToFahrenheit(20);    // 68
+toFahrenheit(24);                   // 75.2 (exact, no rounding)
+roundTemperature(toCelsius(75));    // 23.9
+formatTemperature(20, 'celsius');   // "20.0°C"
+formatTemperature(68, 'fahrenheit', { trimTrailingZero: true }); // "68°F"
+formatTemperature(null, 'celsius'); // "—"
+isNonStandardTemperature(75);       // true (more than 0.1 °F from 68 °F)
 ```
 
 ### Time Formatting
@@ -248,12 +258,11 @@ Factory pattern for consistent query key management.
 import { queryKeys } from '@dorkroom/logic';
 
 // Hierarchical keys
-queryKeys.films.all;           // ['films']
+queryKeys.films.all();         // ['films']
 queryKeys.films.lists();       // ['films', 'list']
-queryKeys.films.detail(id);    // ['films', 'detail', id]
 
-queryKeys.developers.all;
-queryKeys.combinations.all;
+queryKeys.developers.all();
+queryKeys.combinations.all();
 ```
 
 ## Constants
