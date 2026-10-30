@@ -110,7 +110,7 @@ describe('useBorderCalculatorState', () => {
   });
 
   describe('SET_PAPER_SIZE Action', () => {
-    it('clamps minBorder to the smaller sheet (16x20 at 5 -> 4x6 gives 1.875)', () => {
+    it('clamps minBorder to the smaller sheet (16x20 at 5 -> 5x7 gives 2.375)', () => {
       const { result } = renderHook(() => useBorderCalculatorState());
 
       act(() => {
@@ -123,18 +123,18 @@ describe('useBorderCalculatorState', () => {
       expect(result.current.state.minBorder).toBe(5);
 
       act(() => {
-        result.current.dispatch({ type: 'SET_PAPER_SIZE', value: '4x6' });
+        result.current.dispatch({ type: 'SET_PAPER_SIZE', value: '5x7' });
       });
 
-      expect(result.current.state.minBorder).toBe(1.875);
-      expect(result.current.state.lastValidMinBorder).toBe(1.875);
+      expect(result.current.state.minBorder).toBe(2.375);
+      expect(result.current.state.lastValidMinBorder).toBe(2.375);
     });
 
     it('leaves a minBorder that already fits, and does not clamp custom', () => {
       const { result } = renderHook(() => useBorderCalculatorState());
 
       act(() => {
-        result.current.dispatch({ type: 'SET_PAPER_SIZE', value: '4x6' });
+        result.current.dispatch({ type: 'SET_PAPER_SIZE', value: '5x7' });
       });
       expect(result.current.state.minBorder).toBe(0.5);
 
