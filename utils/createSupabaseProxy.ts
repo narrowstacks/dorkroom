@@ -1,16 +1,14 @@
 import { z } from 'zod';
-import { validateAndSanitizeQuery } from './queryValidation';
 import {
-  logApiResponse,
-  logExternalApiCall,
-  logExternalApiResponse,
-  serverlessError,
-  serverlessWarn,
-} from './serverlessLogger';
+  fetchUpstreamJson,
+  MAX_UPSTREAM_RESPONSE_SIZE,
+} from './fetchUpstreamJson';
+import { validateAndSanitizeQuery } from './queryValidation';
 import { type HandlerConfig, withHandler } from './withHandler';
 
-const TIMEOUT_MS = 30_000;
-const MAX_RESPONSE_SIZE = 1024 * 1024;
+/** Website responses: short browser cache, longer CDN cache. */
+const ANONYMOUS_CACHE_CONTROL =
+  'public, max-age=60, s-maxage=300, stale-while-revalidate=600';
 const MAX_UPSTREAM_ERROR_LENGTH = 200;
 
 /**
@@ -30,7 +28,7 @@ const upstreamErrorSchema = z.object({
  * fallback when the body is oversized, malformed JSON, or not a usable string.
  * Returns null when the body cannot be read (for example the upstream closed the
  * connection mid-body); the caller answers with the standard 502. Abort and
- * timeout errors are rethrown so withHandler maps them to 504.
+ * timeout errors are rethrown so the request envelope maps them to 504.
  */
 async function readUpstreamError(
   response: Response,
@@ -40,7 +38,7 @@ async function readUpstreamError(
     response.headers.get('content-length') ?? '',
     10
   );
-  if (contentLength > MAX_RESPONSE_SIZE) {
+  if (contentLength > MAX_UPSTREAM_RESPONSE_SIZE) {
     return fallback;
   }
 
@@ -56,7 +54,7 @@ async function readUpstreamError(
     }
     return null;
   }
-  if (text.length > MAX_RESPONSE_SIZE) {
+  if (text.length > MAX_UPSTREAM_RESPONSE_SIZE) {
     return fallback;
   }
 
@@ -86,17 +84,8 @@ export interface SupabaseProxyConfig {
 }
 
 /**
- * The one field this proxy reads from an upstream payload: list endpoints answer
- * with `{ data: [...] }` and the row count goes into the log. The payload itself
- * is forwarded verbatim.
- */
-interface UpstreamListPayload {
-  data?: readonly unknown[];
-}
-
-/**
  * The proxy request itself, without the `withHandler` wrapper's host auth,
- * CORS, and env checks. Exported so callers — including tests — can drive it
+ * CORS, cache pinning, and env checks. Exported so callers — including tests — can drive it
  * with an explicit `HandlerContext`.
  */
 export function createSupabaseProxyHandler({
@@ -120,10 +109,8 @@ export function createSupabaseProxyHandler({
       ? `${supabaseEndpoint}?${queryString}`
       : supabaseEndpoint;
 
-    logExternalApiCall(ctx.requestId, targetUrl, 'GET');
-
-    const response = await fetch(targetUrl, {
-      method: 'GET',
+    await fetchUpstreamJson(res, ctx, {
+      url: targetUrl,
       headers: {
         Authorization: `Bearer ${supabaseMasterApiKey}`,
         'Content-Type': 'application/json',
@@ -131,117 +118,26 @@ export function createSupabaseProxyHandler({
         Accept: 'application/json',
         'x-proxy-secret': proxySecret,
       },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    });
-
-    const responseTime = Date.now() - ctx.startTime;
-
-    if (!response.ok) {
-      logExternalApiResponse(
-        ctx.requestId,
-        targetUrl,
-        response.status,
-        responseTime,
-        false
-      );
-      serverlessWarn('Upstream API returned non-OK response', {
-        requestId: ctx.requestId,
-        status: response.status,
-      });
-
-      if (response.status === PASSTHROUGH_STATUS) {
+      label: 'upstream API',
+      cache: ANONYMOUS_CACHE_CONTROL,
+      onUpstreamStatus: async (response) => {
+        if (response.status !== PASSTHROUGH_STATUS) {
+          return false;
+        }
         const upstreamError = await readUpstreamError(
           response,
           PASSTHROUGH_FALLBACK
         );
-        if (upstreamError !== null) {
-          res.status(PASSTHROUGH_STATUS).json({
-            error: upstreamError,
-            requestId: ctx.requestId,
-          });
-          return;
+        if (upstreamError === null) {
+          return false;
         }
-      }
-
-      res.status(502).json({
-        error: 'External API error',
-        message: 'Upstream service returned an error',
-        requestId: ctx.requestId,
-      });
-      return;
-    }
-
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      serverlessError('Invalid response content type', {
-        requestId: ctx.requestId,
-        contentType,
-      });
-
-      res.status(502).json({
-        error: 'Invalid response format',
-        message: 'Expected JSON response from upstream API',
-        requestId: ctx.requestId,
-      });
-      return;
-    }
-
-    const contentLength = response.headers.get('content-length');
-    if (
-      contentLength &&
-      Number.parseInt(contentLength, 10) > MAX_RESPONSE_SIZE
-    ) {
-      serverlessError('Response too large', {
-        requestId: ctx.requestId,
-        contentLength,
-        maxAllowed: MAX_RESPONSE_SIZE,
-      });
-
-      res.status(502).json({
-        error: 'Response too large',
-        message: 'Response from upstream API exceeds maximum allowed size',
-        requestId: ctx.requestId,
-      });
-      return;
-    }
-
-    let data: UpstreamListPayload | null = null;
-    try {
-      data = await response.json();
-    } catch (parseError) {
-      serverlessError('JSON parse error', {
-        requestId: ctx.requestId,
-        error:
-          parseError instanceof Error ? parseError.message : String(parseError),
-      });
-
-      res.status(502).json({
-        error: 'Response parse error',
-        message: 'Could not parse JSON response from upstream API',
-        requestId: ctx.requestId,
-      });
-      return;
-    }
-
-    logExternalApiResponse(
-      ctx.requestId,
-      targetUrl,
-      response.status,
-      responseTime,
-      true
-    );
-
-    logApiResponse(ctx.requestId, 200, responseTime, {
-      dataLength: Array.isArray(data?.data) ? data.data.length : 'N/A',
+        res.status(PASSTHROUGH_STATUS).json({
+          error: upstreamError,
+          requestId: ctx.requestId,
+        });
+        return true;
+      },
     });
-
-    res.setHeader(
-      'Cache-Control',
-      ctx.isPublicApi
-        ? 'private, no-store'
-        : 'public, max-age=60, s-maxage=300, stale-while-revalidate=600'
-    );
-    res.status(200).json(data);
   };
 }
 

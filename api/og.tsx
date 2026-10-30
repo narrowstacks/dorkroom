@@ -1,10 +1,5 @@
 import { ImageResponse } from '@vercel/og';
-import {
-  ANONYMOUS_RATE_LIMIT,
-  ANONYMOUS_RATE_WINDOW_MS,
-  checkEdgeRateLimit,
-  getRequestIp,
-} from '../utils/edgeRateLimit';
+import { checkEdgeRateLimit, getRequestIp } from '../utils/edgeRateLimit';
 import {
   BRAND_RE,
   ISO_RE,
@@ -12,6 +7,10 @@ import {
   SLUG_RE,
   UUID_RE,
 } from '../utils/queryPatterns';
+import {
+  ANONYMOUS_RATE_LIMIT,
+  ANONYMOUS_RATE_WINDOW_MS,
+} from '../utils/rateLimitPolicy';
 import {
   BASE_URL,
   buildFilmFilterParts,

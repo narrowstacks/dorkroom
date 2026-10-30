@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createMockRequest,
   createMockResponse,
+  type MockVercelResponse,
 } from '../../utils/__tests__/mock-vercel';
 import { createSupabaseProxyHandler } from '../../utils/createSupabaseProxy';
 import type { HandlerContext } from '../../utils/withHandler';
@@ -36,13 +37,23 @@ function respondWith(response: Response): void {
   globalThis.fetch = vi.fn().mockResolvedValue(response);
 }
 
-/** The context `withHandler` hands the proxy once host auth has passed. */
-function createContext(isPublicApi = false): HandlerContext {
+/**
+ * The context `withHandler` hands the proxy once host auth has passed. With no
+ * cache policy pinned (the website host), the envelope's `setCacheControl`
+ * writes straight through to the response.
+ */
+function createContext(
+  res?: MockVercelResponse,
+  isPublicApi = false
+): HandlerContext {
   return {
     requestId: 'test-request-id',
     startTime: Date.now(),
     userAgent: 'TestAgent/1.0',
     isPublicApi,
+    setCacheControl: (value) => {
+      res?.setHeader('Cache-Control', value);
+    },
   };
 }
 
@@ -292,16 +303,26 @@ describe('createSupabaseProxyHandler', () => {
   describe('cache-control header', () => {
     it('should set an edge-cacheable Cache-Control header for website requests', async () => {
       const res = createMockResponse();
-      await handler(createMockRequest(), res, createContext());
+      await handler(createMockRequest(), res, createContext(res));
 
       expect(res._headers['cache-control']).toContain('s-maxage=300');
     });
 
-    it('should keep the public API Cache-Control header as private, no-store', async () => {
+    it('should leave the public API cache policy to the envelope instead of branching on host', async () => {
+      // `private, no-store` on api.dorkroom.art is pinned by the envelope and
+      // asserted in withHandler.test.ts; the proxy asks for the same value on
+      // every host and never writes Cache-Control itself.
       const res = createMockResponse();
-      await handler(createMockRequest(), res, createContext(true));
+      const setCacheControl = vi.fn();
+      await handler(createMockRequest(), res, {
+        ...createContext(res, true),
+        setCacheControl,
+      });
 
-      expect(res._headers['cache-control']).toBe('private, no-store');
+      expect(setCacheControl).toHaveBeenCalledExactlyOnceWith(
+        'public, max-age=60, s-maxage=300, stale-while-revalidate=600'
+      );
+      expect(res._headers['cache-control']).toBeUndefined();
     });
   });
 
