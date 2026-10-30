@@ -61,7 +61,14 @@
         "@dorkroom/ui#build"
       ]
     },
-    "lint": {},
+    "lint": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/.oxlintrc.json",
+        "$TURBO_ROOT$/.prettierrc.json",
+        "$TURBO_ROOT$/bunfig.toml"
+      ]
+    },
     "//#lint:root": {
       "inputs": ["$TURBO_DEFAULT$", "!apps/**", "!packages/**", "!api/dist/**"]
     },

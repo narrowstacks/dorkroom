@@ -15,7 +15,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CaptureView, VIEWPORTS, type Viewport } from './webview-capture';
+import { CaptureView, type Viewport, VIEWPORTS } from './webview-capture';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 

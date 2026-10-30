@@ -5,9 +5,7 @@ import { LoadingSpinner } from '../components/loading-spinner';
 
 const CameraExposureCalculatorPage = lazy(
   () =>
-    import(
-      '../app/pages/camera-exposure-calculator/camera-exposure-calculator-page'
-    )
+    import('../app/pages/camera-exposure-calculator/camera-exposure-calculator-page')
 );
 
 export const Route = createFileRoute('/exposure')({

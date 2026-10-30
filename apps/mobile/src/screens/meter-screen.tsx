@@ -27,7 +27,7 @@ import {
   SpotMeteringIcon,
 } from '@/components/meter/metering-icons';
 import { PermissionFallback } from '@/components/meter/permission-fallback';
-import { RETICLE_SIZE, Reticle } from '@/components/meter/reticle';
+import { Reticle, RETICLE_SIZE } from '@/components/meter/reticle';
 import { ScrubOverlay } from '@/components/meter/scrub-overlay';
 import { SegmentedPill } from '@/components/meter/segmented-pill';
 import { useDragOffset } from '@/components/meter/use-drag-offset';

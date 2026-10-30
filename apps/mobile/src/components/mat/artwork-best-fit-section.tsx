@@ -1,6 +1,6 @@
 import {
-  type MatCalculatorState,
   matBorderToInput,
+  type MatCalculatorState,
   type UseMatCalculatorReturn,
 } from '@dorkroom/logic';
 import { Pressable, Text, View } from 'react-native';

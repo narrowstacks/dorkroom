@@ -3,8 +3,8 @@ import type { CustomRecipe } from '../../types/custom-recipes';
 import {
   createCustomRecipeFromEncoded,
   decodeCustomRecipe,
-  type EncodedCustomRecipe,
   encodeCustomRecipe,
+  type EncodedCustomRecipe,
   isValidCustomRecipeEncoding,
   MAX_ENCODED_LENGTH,
 } from '../recipe-sharing';

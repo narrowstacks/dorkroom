@@ -17,9 +17,7 @@ type LegacyStoredPreset = Omit<BorderPreset, 'settings'> & {
 };
 
 type StoredEntry =
-  | Record<string, PersistedValue>
-  | BorderPreset
-  | LegacyStoredPreset;
+  Record<string, PersistedValue> | BorderPreset | LegacyStoredPreset;
 
 const STORAGE_KEY = 'borderPresets';
 

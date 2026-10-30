@@ -25,11 +25,11 @@
     "test:docs": "vitest run --config vitest.config.ts --project docs",
     "typecheck:api": "node node_modules/typescript/bin/tsc --noEmit --project api/tsconfig.json",
     "doctor": "react-doctor -y --blocking warning --no-telemetry",
-    "lint": "oxlint && biome check --linter-enabled=false .",
-    "lint:fix": "oxlint --fix && biome check --linter-enabled=false --write .",
-    "lint:root": "oxlint api utils scripts tools supabase postcss.config.js vitest.config.ts && biome check --linter-enabled=false api utils scripts tools supabase docs .github .vscode postcss.config.js vitest.config.ts .oxlintrc.json biome.json doctor.config.json package.json renovate.json tsconfig.base.json tsconfig.json turbo.json vercel.json",
+    "lint": "oxlint && bun fmt --check",
+    "lint:fix": "oxlint --fix && bun fmt",
+    "lint:root": "oxlint api utils scripts tools supabase postcss.config.js vitest.config.ts && bun fmt --check api utils scripts tools supabase .vscode postcss.config.js vitest.config.ts .oxlintrc.json .prettierrc.json doctor.config.json package.json renovate.json tsconfig.base.json tsconfig.json turbo.json vercel.json",
     "lint:types": "oxlint --type-aware",
-    "format": "biome format --write ."
+    "format": "bun fmt"
   },
   "private": true,
   "dependencies": {
@@ -59,7 +59,6 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.2",
     "@oxlint/plugins": "1.89.0",
     "@swc-node/register": "~1.12.1",
     "@swc/cli": "~0.8.1",
@@ -98,11 +97,14 @@
     "vite": "8.3.5",
     "vitest": "5.0.5"
   },
-  "packageManager": "bun@1.4.3",
+  "packageManager": "bun@1.4.4",
   "engines": {
     "node": "24.x"
   },
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "optionalDependencies": {
     "supabase": "^2.107.0"
   },
@@ -110,5 +112,7 @@
     "sharp": "^0.35.5",
     "vite": "8.1.6"
   },
-  "trustedDependencies": ["@shopify/react-native-skia"]
+  "trustedDependencies": [
+    "@shopify/react-native-skia"
+  ]
 }

@@ -3,10 +3,10 @@ import {
   formatAperture,
   formatShutterSpeed,
   isoToKey,
+  shutterSpeedToKey,
   STANDARD_APERTURES,
   STANDARD_ISOS,
   STANDARD_SHUTTER_SPEEDS,
-  shutterSpeedToKey,
 } from '@dorkroom/logic';
 import { View } from 'react-native';
 import { PickerField } from '@/components/picker-field';

@@ -3,8 +3,8 @@ import {
   DEFAULT_PINNED_IDS,
   getTool,
   isPinnable,
-  TOOLS,
   type Tool,
+  TOOLS,
 } from './tools';
 
 describe('tool registry', () => {

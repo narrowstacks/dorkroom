@@ -195,35 +195,25 @@ export interface FieldApi<TValue = unknown> {
 export type FormInstance<
   TFormData = unknown,
   TOnMount extends undefined | FormValidateOrFn<TFormData> =
-    | undefined
-    | FormValidateOrFn<TFormData>,
+    undefined | FormValidateOrFn<TFormData>,
   TOnChange extends undefined | FormValidateOrFn<TFormData> =
-    | undefined
-    | FormValidateOrFn<TFormData>,
+    undefined | FormValidateOrFn<TFormData>,
   TOnChangeAsync extends undefined | FormAsyncValidateOrFn<TFormData> =
-    | undefined
-    | FormAsyncValidateOrFn<TFormData>,
+    undefined | FormAsyncValidateOrFn<TFormData>,
   TOnBlur extends undefined | FormValidateOrFn<TFormData> =
-    | undefined
-    | FormValidateOrFn<TFormData>,
+    undefined | FormValidateOrFn<TFormData>,
   TOnBlurAsync extends undefined | FormAsyncValidateOrFn<TFormData> =
-    | undefined
-    | FormAsyncValidateOrFn<TFormData>,
+    undefined | FormAsyncValidateOrFn<TFormData>,
   TOnSubmit extends undefined | FormValidateOrFn<TFormData> =
-    | undefined
-    | FormValidateOrFn<TFormData>,
+    undefined | FormValidateOrFn<TFormData>,
   TOnSubmitAsync extends undefined | FormAsyncValidateOrFn<TFormData> =
-    | undefined
-    | FormAsyncValidateOrFn<TFormData>,
+    undefined | FormAsyncValidateOrFn<TFormData>,
   TOnDynamic extends undefined | FormValidateOrFn<TFormData> =
-    | undefined
-    | FormValidateOrFn<TFormData>,
+    undefined | FormValidateOrFn<TFormData>,
   TOnDynamicAsync extends undefined | FormAsyncValidateOrFn<TFormData> =
-    | undefined
-    | FormAsyncValidateOrFn<TFormData>,
+    undefined | FormAsyncValidateOrFn<TFormData>,
   TOnServer extends undefined | FormAsyncValidateOrFn<TFormData> =
-    | undefined
-    | FormAsyncValidateOrFn<TFormData>,
+    undefined | FormAsyncValidateOrFn<TFormData>,
   TSubmitMeta = unknown,
 > = unknown extends TFormData
   ? // Bare usage (`FormInstance` with no explicit data shape): accept any form,

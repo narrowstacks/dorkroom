@@ -134,11 +134,11 @@ turbo run test --filter=@dorkroom/logic
 
 ## Technology Stack
 
-- **Frontend**: React 19 with TypeScript (typecheck/build run on stable TypeScript 7 via the `typescript-7` alias; `typescript` stays on 6.x to supply the compiler API that TypeScript 7.0 doesn't ship)
+- **Frontend**: React 19 with TypeScript (typecheck runs on `bun check`, Bun's built-in TypeScript 7 checker; build runs on stable TypeScript 7 via the `typescript-7` alias; `typescript` stays on 6.x to supply the compiler API that TypeScript 7.0 doesn't ship)
 - **Styling**: Tailwind CSS 4.3 with custom darkroom theme
 - **Build Tool**: Vite 8 (Rolldown/Oxc) with Turborepo
 - **Testing**: Vitest 4 with Testing Library (happy-dom environment)
-- **Linting**: oxlint (Rust) · **Formatting**: Biome (single quotes, semicolons, trailing commas)
+- **Linting**: oxlint (Rust) · **Formatting**: `bun fmt` (Prettier-compatible: single quotes, semicolons, trailing commas)
 - **State Management**: TanStack Query v5 for server state
 - **Routing**: TanStack Router v1 with file-based routing
 - **Forms**: TanStack Form v1 with Zod validation
@@ -231,7 +231,7 @@ and the `/privacy` page in the same PR. The rule is in
 5. Run quality checks on affected packages:
 
    ```bash
-   # Lint specific packages (oxlint + Biome format check)
+   # Lint specific packages (oxlint + bun fmt check)
    turbo run lint --filter=@dorkroom/logic
    turbo run lint --filter=@dorkroom/ui
    turbo run lint --filter=@dorkroom/dorkroom
@@ -241,7 +241,7 @@ and the `/privacy` page in the same PR. The rule is in
    turbo run typecheck --filter=@dorkroom/ui
    turbo run typecheck --filter=@dorkroom/dorkroom
 
-   # Format code with Biome
+   # Format code with bun fmt
    bun run format
    ```
 
@@ -294,10 +294,10 @@ turbo run typecheck --filter=@dorkroom/dorkroom # Type check main application
 # Run across all projects
 bun run test
 
-# Format code with Biome (single quotes, semicolons, trailing commas)
+# Format code with bun fmt (single quotes, semicolons, trailing commas)
 bun run format
 
-# Lint --fix (oxlint) and format (Biome)
+# Lint --fix (oxlint) and format (bun fmt)
 bun run lint:fix
 ```
 
@@ -310,9 +310,9 @@ bun run lint:fix
 | `bun run test`                             | Run lint, test, build, typecheck |
 | `bun run keys:anon-bootstrap`              | Bootstrap/check anonymous Unkey namespace |
 | `turbo run test --filter=@dorkroom/logic`  | Test specific package        |
-| `bun run lint`                             | Run oxlint + Biome format check |
-| `bun run format`                           | Format code with Biome       |
-| `bun run lint:fix`                         | oxlint --fix + Biome format  |
+| `bun run lint`                             | Run oxlint + bun fmt check   |
+| `bun run format`                           | Format code with bun fmt     |
+| `bun run lint:fix`                         | oxlint --fix + bun fmt       |
 
 ## Changelog
 

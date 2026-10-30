@@ -1,5 +1,4 @@
 import type { TemperatureUnit } from '../lib/temperature';
-
 import { createUnitContext } from './create-unit-context';
 
 const { Provider, useUnit } = createUnitContext<TemperatureUnit>({

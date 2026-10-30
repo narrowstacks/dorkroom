@@ -76,8 +76,7 @@ function getDilutionLabel({
 
 function toCombinationOrNull(
   recipe:
-    | CustomRecipe
-    | Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'>,
+    CustomRecipe | Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'>,
   uuid?: string
 ): Combination | null {
   try {

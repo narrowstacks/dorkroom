@@ -58,7 +58,7 @@ bun run openapi:generate
 
 A vitest drift guard (`packages/api/src/dorkroom/__tests__/openapi.test.ts`)
 fails if the committed JSON is stale. `openapi-spec.json` is excluded from
-Biome formatting (it is a generated artifact). It is named distinctly from
+`bun fmt` (it is a generated artifact; see `ignorePatterns` in `bunfig.toml`). It is named distinctly from
 `openapi.ts` because Vercel derives a function path from each file's basename:
 `openapi.json` would collide with the `openapi.ts` handler.
 

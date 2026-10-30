@@ -1,10 +1,10 @@
 import {
   formatAperture,
   formatShutterSpeed,
+  snapToStandardStop,
   STANDARD_APERTURES,
   STANDARD_ISOS,
   STANDARD_SHUTTER_SPEEDS,
-  snapToStandardStop,
   type useLightMeterSolver,
 } from '@dorkroom/logic';
 import { useMemo } from 'react';

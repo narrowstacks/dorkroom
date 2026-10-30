@@ -24,10 +24,7 @@ import { PositionOffsetsSection } from './sections/position-offsets-section';
 import { MobilePresetsSection } from './sections/presets-section';
 
 export type ActiveSection =
-  | 'paperSize'
-  | 'borderSize'
-  | 'positionOffsets'
-  | 'presets';
+  'paperSize' | 'borderSize' | 'positionOffsets' | 'presets';
 
 type Calculation = NonNullable<BorderCalculatorContextValue['calculation']>;
 type FormatDimensions = BorderCalculatorContextValue['formatDimensions'];

@@ -2,7 +2,7 @@ import type { Developer, Film } from '@dorkroom/api';
 import type { CustomRecipe } from '@dorkroom/logic';
 import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { type UseRecipeDataProps, useRecipeData } from '../useRecipeData';
+import { useRecipeData, type UseRecipeDataProps } from '../useRecipeData';
 
 const TIMESTAMP = '2026-01-01T00:00:00.000Z';
 

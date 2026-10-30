@@ -9,11 +9,11 @@ import {
   formatShutterSpeed,
   isoToKey,
   type PresetWarning,
+  shutterSpeedToKey,
   type SolveFor,
   STANDARD_APERTURES,
   STANDARD_ISOS,
   STANDARD_SHUTTER_SPEEDS,
-  shutterSpeedToKey,
   useCameraExposureCalculator,
 } from '@dorkroom/logic';
 import { getRouteIcon, ResultRow, Select, StatusAlert } from '@dorkroom/ui';

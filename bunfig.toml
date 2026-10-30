@@ -8,3 +8,42 @@ minimumReleaseAge = 604800 # 7 days, in seconds
 # former tracked the moving `rc` dist-tag, which could resolve to a same-day
 # pre-release. Both now sit on released versions that clear the gate on their
 # own, so it applies to the whole dependency tree with no holes.
+
+[fmt]
+# Style options (quotes, commas, width) live in .prettierrc.json so the
+# Prettier editor extension formats on save the same way `bun fmt` does.
+# Markdown and YAML stay hand-formatted, as they were under Biome.
+#
+# With a Prettier config present, `bun fmt` reads only the .gitignore in the
+# working directory, so the per-package `lint` runs would otherwise check
+# build output. The build and tool directories from .gitignore are repeated here.
+ignorePatterns = [
+  "**/dist/",
+  "**/out-tsc/",
+  "**/coverage/",
+  "**/test-output/",
+  "**/.turbo/",
+  "**/.vercel/",
+  "**/*.tsbuildinfo",
+  "**/vite.config.*.timestamp*",
+  "**/vitest.config.*.timestamp*",
+  "apps/mobile/.expo/",
+  "apps/mobile/ios/",
+  "apps/mobile/android/",
+  "apps/mobile/expo-env.d.ts",
+  "og-previews/",
+  "playwright-report/",
+  "test-results/",
+  "**/*.md",
+  "**/*.mdx",
+  "**/*.yml",
+  "**/*.yaml",
+  "**/routeTree.gen.ts",
+  "api/openapi-spec.json",
+  ".claude/",
+  "tools/oxlint/anti-slop/",
+]
+
+[fmt.sortImports]
+# One block of imports, no blank lines between groups, as Biome sorted them.
+newlinesBetween = false

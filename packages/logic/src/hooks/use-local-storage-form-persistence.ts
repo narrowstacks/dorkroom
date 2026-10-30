@@ -10,8 +10,7 @@ const persistedSnapshotSchema = z.record(z.string(), z.json());
  * when the snapshot held no entry for that field.
  */
 export type PersistedValue =
-  | z.infer<typeof persistedSnapshotSchema>[string]
-  | undefined;
+  z.infer<typeof persistedSnapshotSchema>[string] | undefined;
 
 /**
  * Options for validating a field value during hydration

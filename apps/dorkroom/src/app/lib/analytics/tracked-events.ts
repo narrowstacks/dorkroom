@@ -8,13 +8,7 @@ export type ShareMethod = 'native' | 'clipboard' | 'manual';
 
 /** Calculators, named after their route. */
 export type CalculatorTool =
-  | 'border'
-  | 'stops'
-  | 'resize'
-  | 'reciprocity'
-  | 'lenses'
-  | 'exposure'
-  | 'mat';
+  'border' | 'stops' | 'resize' | 'reciprocity' | 'lenses' | 'exposure' | 'mat';
 
 /** The two browse-and-filter pages. */
 export type BrowseTool = 'films' | 'development';
@@ -38,11 +32,7 @@ export type CalculatorMode =
 export type FilmsFilter = 'color' | 'iso' | 'brand' | 'status';
 
 export type DevelopmentFilter =
-  | 'developer_type'
-  | 'dilution'
-  | 'iso'
-  | 'recipe_type'
-  | 'favorites';
+  'developer_type' | 'dilution' | 'iso' | 'recipe_type' | 'favorites';
 
 /**
  * Every route the app can render, in the order the router declares them.
@@ -75,11 +65,7 @@ export type TrackedRoute = (typeof TRACKED_ROUTES)[number];
 export type RouteLabel = TrackedRoute | 'unknown';
 
 export type ThemeName =
-  | 'light'
-  | 'dark'
-  | 'darkroom'
-  | 'high-contrast'
-  | 'system';
+  'light' | 'dark' | 'darkroom' | 'high-contrast' | 'system';
 
 /**
  * Every custom event and the exact properties it carries.
