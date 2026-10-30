@@ -32,7 +32,8 @@ function borderShareUrl(preset: PresetToShare): string {
 
 /**
  * Opens the border share modal on a preset, then runs its native-first share.
- * `reportedMethod` is what reaches analytics; `modalOpen` is the modal after.
+ * `reportedMethod` is what reaches analytics; `modalOpen` and `shownUrl` are
+ * the modal and the link it shows afterwards.
  */
 async function shareBorderPreset(preset: PresetToShare) {
   const onShared = vi.fn();
@@ -51,6 +52,7 @@ async function shareBorderPreset(preset: PresetToShare) {
   return {
     reportedMethod: onShared.mock.calls[0]?.[0],
     modalOpen: result.current.isShareModalOpen,
+    shownUrl: result.current.shareUrls?.webUrl,
   };
 }
 
@@ -299,7 +301,11 @@ describe('border preset share fallback', () => {
 
     const outcome = await shareBorderPreset(borderPreset);
 
-    expect(outcome).toEqual({ reportedMethod: 'native', modalOpen: false });
+    expect(outcome).toEqual({
+      reportedMethod: 'native',
+      modalOpen: false,
+      shownUrl: url(),
+    });
     expect(share).toHaveBeenCalledWith({
       title: borderPreset.name,
       text: `Check out this border calculator preset: ${borderPreset.name}`,
@@ -317,7 +323,11 @@ describe('border preset share fallback', () => {
 
     const outcome = await shareBorderPreset(borderPreset);
 
-    expect(outcome).toEqual({ reportedMethod: undefined, modalOpen: true });
+    expect(outcome).toEqual({
+      reportedMethod: undefined,
+      modalOpen: true,
+      shownUrl: url(),
+    });
     expect(writeText).not.toHaveBeenCalled();
   });
 
@@ -330,7 +340,11 @@ describe('border preset share fallback', () => {
 
     const outcome = await shareBorderPreset(borderPreset);
 
-    expect(outcome).toEqual({ reportedMethod: 'clipboard', modalOpen: true });
+    expect(outcome).toEqual({
+      reportedMethod: 'clipboard',
+      modalOpen: true,
+      shownUrl: url(),
+    });
     expect(writeText).toHaveBeenCalledWith(url());
   });
 
@@ -349,7 +363,11 @@ describe('border preset share fallback', () => {
 
     const outcome = await shareBorderPreset(borderPreset);
 
-    expect(outcome).toEqual({ reportedMethod: 'manual', modalOpen: true });
+    expect(outcome).toEqual({
+      reportedMethod: 'manual',
+      modalOpen: true,
+      shownUrl: url(),
+    });
   });
 
   it('falls back to manual copy with no clipboard at all', async () => {
@@ -358,6 +376,7 @@ describe('border preset share fallback', () => {
     const outcome = await shareBorderPreset(borderPreset);
 
     expect(outcome.reportedMethod).toBe('manual');
+    expect(outcome.shownUrl).toBe(url());
   });
 });
 

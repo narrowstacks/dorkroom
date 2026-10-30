@@ -4,7 +4,11 @@ import { debugError } from '../../utils/debug-logger';
 import { shouldUseWebShare } from '../../utils/device-detection';
 import { shallowEqual } from '../../utils/object-comparison';
 import { buildPresetShareUrl } from '../../utils/preset-sharing';
-import { isClipboardSupported, shareLink } from '../../utils/share-link';
+import {
+  copyTextToClipboard,
+  isClipboardSupported,
+  shareLink,
+} from '../../utils/share-link';
 
 interface PresetWithSettings {
   id: string;
@@ -129,15 +133,17 @@ export function useCalculatorSharing({
   };
 
   const handleCopyToClipboard = async (url: string) => {
-    if (!canCopyToClipboard) return;
-
+    let copied: boolean;
     try {
-      await navigator.clipboard.writeText(url);
+      copied = await copyTextToClipboard(url);
     } catch (error) {
       debugError('Failed to copy to clipboard:', error);
       throw error;
     }
-    onShared?.('clipboard');
+    // No Clipboard API: a silent no-op, as the modal hides its copy button.
+    if (copied) {
+      onShared?.('clipboard');
+    }
   };
 
   /**
