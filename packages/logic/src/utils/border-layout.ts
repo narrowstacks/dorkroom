@@ -102,8 +102,9 @@ export interface BorderLayout {
  * preview box for the given window size. On the web this is the only place
  * the preview is sized: `AnimatedPreview` renders `previewWidth` x
  * `previewHeight` as is. iOS reaches it through
- * `useStandaloneBorderCalculator` but ignores `previewWidth`, `previewHeight`
- * and `previewScale`, sizing its preview natively in `apps/mobile/src/components/border/border-preview.tsx`.
+ * `useStandaloneBorderCalculator` but ignores `previewWidth`,
+ * `previewHeight` and `previewScale`, sizing its preview natively in
+ * `apps/mobile/src/components/border/border-preview.tsx`.
  *
  * The box is 400px wide on desktop-layout windows and `min(320, width - 80)`
  * on mobile-layout ones (`isMobileWidth`, 768px and below) so the preview

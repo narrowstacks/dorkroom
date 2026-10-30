@@ -1,13 +1,13 @@
 /* ------------------------------------------------------------------ *
    use-input-handlers.ts
    -------------------------------------------------------------
-   Hook for input validation and debounced field handlers
+   Hook for validated slider, select and toggle setters
    -------------------------------------------------------------
    Exports:
      - useInputHandlers: Input validation and setter functions
 \* ------------------------------------------------------------------ */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import {
   aspectRatioOptions,
   aspectRatioValueSchema,
@@ -21,7 +21,6 @@ import type {
   PaperSizeValue,
 } from '../../types/border-calculator';
 import { debugError } from '../../utils/debug-logger';
-import { debounce, tryNumber } from '../../utils/input-validation';
 
 /**
  * Validates a string against the AspectRatioValue contract.
@@ -58,9 +57,9 @@ function validatePaperSize(value: string): PaperSizeValue | null {
 }
 
 /**
- * Input handling hook for the border calculator that provides optimized setter functions
- * for different types of inputs (text, sliders, dropdowns, toggles).
- * Includes debouncing for text inputs and direct updates for sliders to ensure smooth UX.
+ * Input handling hook for the border calculator: setters for sliders,
+ * dropdowns and toggles, plus preset and reset actions. Every value it
+ * dispatches is already the field's type (numbers for numeric fields).
  *
  * @param state - Current border calculator state
  * @param dispatch - State update dispatch function
@@ -70,15 +69,11 @@ function validatePaperSize(value: string): PaperSizeValue | null {
  * ```typescript
  * const { state, dispatch } = useBorderCalculatorState();
  * const {
- *   setMinBorder,
  *   setMinBorderSlider,
  *   setAspectRatio,
  *   setEnableOffset,
  *   resetToDefaults
  * } = useInputHandlers(state, dispatch);
- *
- * // For text inputs (debounced)
- * setMinBorder('0.75');
  *
  * // For sliders (immediate updates)
  * setMinBorderSlider(0.75);
@@ -94,20 +89,6 @@ export const useInputHandlers = (
   state: BorderCalculatorState,
   dispatch: (action: BorderCalculatorAction) => void
 ) => {
-  // Debounced numeric field setter for text input only (not sliders). Only a
-  // complete number reaches state: the fields are numeric, so an in-progress
-  // string such as "0." stays in the caller's own input draft.
-  const debouncedNumericFieldSetter = useMemo(
-    () =>
-      debounce((key: keyof BorderCalculatorState, v: string) => {
-        const num = tryNumber(v);
-        if (num !== null) {
-          dispatch({ type: 'SET_FIELD', key, value: num });
-        }
-      }, 50), // 50ms for ultra-responsive input
-    [dispatch]
-  );
-
   // Optimized slider input handler - no debouncing, direct numeric conversion
   const setSliderField = useCallback(
     (key: keyof BorderCalculatorState, v: string | number) => {
@@ -120,28 +101,6 @@ export const useInputHandlers = (
       }
     },
     [dispatch, state]
-  );
-
-  // Text input handler with debouncing
-  const setNumericField = useCallback(
-    (key: keyof BorderCalculatorState, v: string) => {
-      debouncedNumericFieldSetter(key, v);
-    },
-    [debouncedNumericFieldSetter]
-  );
-
-  const setCustomDimensionField = useCallback(
-    (
-      key: keyof BorderCalculatorState,
-      lastKey: keyof BorderCalculatorState,
-      v: string
-    ) => {
-      const num = tryNumber(v);
-      if (num === null) return;
-      dispatch({ type: 'SET_FIELD', key, value: num });
-      if (num > 0) dispatch({ type: 'SET_FIELD', key: lastKey, value: num });
-    },
-    [dispatch]
   );
 
   // Basic field setters
@@ -163,80 +122,6 @@ export const useInputHandlers = (
       }
     },
     [dispatch]
-  );
-
-  // Custom dimension setters
-  const setCustomAspectWidth = useCallback(
-    (v: string | number) => {
-      const stringValue = String(v);
-      setCustomDimensionField(
-        'customAspectWidth',
-        'lastValidCustomAspectWidth',
-        stringValue
-      );
-    },
-    [setCustomDimensionField]
-  );
-
-  const setCustomAspectHeight = useCallback(
-    (v: string | number) => {
-      const stringValue = String(v);
-      setCustomDimensionField(
-        'customAspectHeight',
-        'lastValidCustomAspectHeight',
-        stringValue
-      );
-    },
-    [setCustomDimensionField]
-  );
-
-  const setCustomPaperWidth = useCallback(
-    (v: string | number) => {
-      const stringValue = String(v);
-      setCustomDimensionField(
-        'customPaperWidth',
-        'lastValidCustomPaperWidth',
-        stringValue
-      );
-    },
-    [setCustomDimensionField]
-  );
-
-  const setCustomPaperHeight = useCallback(
-    (v: string | number) => {
-      const stringValue = String(v);
-      setCustomDimensionField(
-        'customPaperHeight',
-        'lastValidCustomPaperHeight',
-        stringValue
-      );
-    },
-    [setCustomDimensionField]
-  );
-
-  // Numeric field setters (for text inputs)
-  const setMinBorder = useCallback(
-    (v: string | number) => {
-      const stringValue = String(v);
-      setNumericField('minBorder', stringValue);
-    },
-    [setNumericField]
-  );
-
-  const setHorizontalOffset = useCallback(
-    (v: string | number) => {
-      const stringValue = String(v);
-      setNumericField('horizontalOffset', stringValue);
-    },
-    [setNumericField]
-  );
-
-  const setVerticalOffset = useCallback(
-    (v: string | number) => {
-      const stringValue = String(v);
-      setNumericField('verticalOffset', stringValue);
-    },
-    [setNumericField]
   );
 
   // Slider field setters (optimized for continuous updates)
@@ -314,17 +199,6 @@ export const useInputHandlers = (
     // Basic setters
     setAspectRatio,
     setPaperSize,
-
-    // Custom dimension setters
-    setCustomAspectWidth,
-    setCustomAspectHeight,
-    setCustomPaperWidth,
-    setCustomPaperHeight,
-
-    // Numeric field setters (for text inputs)
-    setMinBorder,
-    setHorizontalOffset,
-    setVerticalOffset,
 
     // Slider field setters (optimized, no debouncing)
     setMinBorderSlider,

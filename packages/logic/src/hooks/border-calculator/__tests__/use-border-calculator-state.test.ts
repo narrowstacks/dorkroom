@@ -738,6 +738,26 @@ describe('useBorderCalculatorState', () => {
       expectDefaults(result.current.state);
     });
 
+    it('hydrates a snapshot that still carries fields the reducer dropped (#448)', () => {
+      // Builds before #448 never persisted these, but a snapshot carrying
+      // them must not be rejected whole: the schema strips unknown keys.
+      seed({
+        aspectRatio: '16:9',
+        minBorder: 1.25,
+        offsetWarning: 'Offset adjusted',
+        cropScale: 1.5,
+        selectedImageUri: 'file:///image.jpg',
+      });
+
+      const { result } = renderHook(() => useBorderCalculatorState());
+
+      expect(result.current.state.aspectRatio).toBe('16:9');
+      expect(result.current.state.minBorder).toBe(1.25);
+      expect(result.current.state).not.toHaveProperty('offsetWarning');
+      expect(result.current.state).not.toHaveProperty('cropScale');
+      expect(result.current.state).not.toHaveProperty('selectedImageUri');
+    });
+
     it('hydrates the zeroed lastValid dimensions the built-in preset writes', () => {
       // Applying DEFAULT_BORDER_PRESETS copies its zeroed custom dimensions
       // into the lastValid mirrors, so 0 has to survive a round trip.

@@ -76,6 +76,25 @@ describe('useStandaloneBorderCalculator', () => {
     );
   });
 
+  it('clears the shown warnings at once on reset', () => {
+    const { result } = renderHook(() => useStandaloneBorderCalculator());
+
+    act(() => {
+      result.current.setMinBorderSlider(4);
+    });
+    act(() => {
+      vi.advanceTimersByTime(DELAY);
+    });
+    expect(result.current.minBorderWarning).not.toBeNull();
+
+    act(() => {
+      result.current.resetToDefaults();
+    });
+    // No timers advanced: the card must not linger after a reset.
+    expect(result.current.minBorderWarning).toBeNull();
+    expect(result.current.minBorder).toBe(0.5);
+  });
+
   it('writes the last valid min border back into state immediately', () => {
     const { result } = renderHook(() => useStandaloneBorderCalculator());
 

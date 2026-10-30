@@ -7,15 +7,28 @@
      - useStandaloneBorderCalculator: Main hook that composes all functionality
 \* ------------------------------------------------------------------ */
 
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CALCULATION_CONSTANTS } from '../../constants/calculations';
 import type { BorderCalculation } from '../../types/border-calculator';
 import { computeBorderLayout } from '../../utils/border-layout';
 import type { MeasurementUnit } from '../../utils/unit-conversion';
-import { useDebounce } from '../use-debounce';
 import { useWindowDimensions } from '../use-window-dimensions';
 import { useBorderCalculatorState } from './use-border-calculator-state';
 import { useInputHandlers } from './use-input-handlers';
+
+type BorderWarnings = Pick<
+  BorderCalculation,
+  'offsetWarning' | 'bladeWarning' | 'minBorderWarning' | 'paperSizeWarning'
+>;
+
+const NO_WARNINGS: BorderWarnings = {
+  offsetWarning: null,
+  bladeWarning: null,
+  minBorderWarning: null,
+  paperSizeWarning: null,
+};
+
+const WARNING_DELAY = CALCULATION_CONSTANTS.DEBOUNCE_WARNING_DELAY;
 
 /**
  * Self-contained border calculator: it owns its state (a reducer persisted to
@@ -79,12 +92,12 @@ export const useStandaloneBorderCalculator = (
     }
   }, [calculation.lastValidMinBorder, state.lastValidMinBorder, dispatch]);
 
-  // Warnings are derived, never stored. The top-level ones trail the
-  // calculation by DEBOUNCE_WARNING_DELAY so the warnings card does not flash
-  // while a slider is dragged. Memoising on the four strings keeps the object
-  // stable until one of them changes, so the delay restarts only then, as it
-  // did when they were copied into reducer state.
-  const liveWarnings = useMemo(
+  // Warnings are derived, never stored in the reducer. The top-level ones
+  // trail the calculation by DEBOUNCE_WARNING_DELAY so the warnings card does
+  // not flash while a slider is dragged. Memoising on the four strings keeps
+  // the object stable until one of them changes, so the delay restarts only
+  // then, as it did when they were copied into reducer state.
+  const liveWarnings: BorderWarnings = useMemo(
     () => ({
       offsetWarning: calculation.offsetWarning,
       bladeWarning: calculation.bladeWarning,
@@ -98,13 +111,24 @@ export const useStandaloneBorderCalculator = (
       calculation.paperSizeWarning,
     ]
   );
-  const warnings = useDebounce(
-    liveWarnings,
-    CALCULATION_CONSTANTS.DEBOUNCE_WARNING_DELAY
-  );
+  const [warnings, setWarnings] = useState(liveWarnings);
+  useEffect(() => {
+    const timeout = setTimeout(() => setWarnings(liveWarnings), WARNING_DELAY);
+    return () => clearTimeout(timeout);
+  }, [liveWarnings]);
 
   // Input handlers
-  const inputHandlers = useInputHandlers(state, dispatch);
+  const { resetToDefaults: resetState, ...inputHandlers } = useInputHandlers(
+    state,
+    dispatch
+  );
+
+  // Reset clears the shown warnings at once, as the old reducer RESET did,
+  // instead of letting them linger for the debounce.
+  const resetToDefaults = useCallback(() => {
+    setWarnings(NO_WARNINGS);
+    resetState();
+  }, [resetState]);
 
   /* =============================================================== *
      Public API
@@ -179,6 +203,7 @@ export const useStandaloneBorderCalculator = (
 
     /* setters (from input handlers) */
     ...inputHandlers,
+    resetToDefaults,
   };
 };
 
