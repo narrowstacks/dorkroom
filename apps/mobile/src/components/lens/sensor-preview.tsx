@@ -59,9 +59,14 @@ export function SensorPreview({ source, target }: SensorPreviewProps) {
           rx={2}
         />
       </Svg>
-      <View className="flex-row gap-4">
-        <Text className="text-xs text-white/60">┅ {labels.source}</Text>
-        <Text className="text-xs" style={{ color: ACCENT.emerald }}>
+      <View className="flex-row flex-wrap justify-center gap-x-4 gap-y-1 self-stretch">
+        <Text className="shrink text-center text-xs text-white/60">
+          ┅ {labels.source}
+        </Text>
+        <Text
+          className="shrink text-center text-xs"
+          style={{ color: ACCENT.emerald }}
+        >
           ■ {labels.target}
         </Text>
       </View>
