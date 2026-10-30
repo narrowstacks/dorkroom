@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FAVORITE_RECIPES_STORAGE_KEY } from '../../constants/storage-keys';
 import {
   createStorageManager,
   isStringArray,
 } from '../../services/local-storage';
 
-const STORAGE_KEY = 'dorkroom_favorite_recipes';
-
-const favoritesStorage = createStorageManager<string[]>(STORAGE_KEY, {
-  defaultValue: [],
-  validate: isStringArray,
-  logContext: 'useFavorites',
-});
+const favoritesStorage = createStorageManager<string[]>(
+  FAVORITE_RECIPES_STORAGE_KEY,
+  {
+    defaultValue: [],
+    validate: isStringArray,
+    logContext: 'useFavorites',
+  }
+);
 
 /**
  * Hook for managing favorite recipe IDs stored in localStorage.

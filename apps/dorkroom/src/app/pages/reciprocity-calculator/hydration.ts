@@ -2,8 +2,8 @@ import {
   type PersistedValue,
   RECIPROCITY_FILM_TYPES,
   reciprocityFactorValidator,
+  reciprocityMeteredTimeSchema,
 } from '@dorkroom/logic';
-import { reciprocityMeteredTimeSchema } from '@dorkroom/ui/forms';
 
 // Not the form schema's customFactor: that one is optional-with-default, so
 // it would accept `undefined` and hydrate it into a numeric field.

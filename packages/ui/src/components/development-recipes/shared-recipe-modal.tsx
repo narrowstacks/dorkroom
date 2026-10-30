@@ -1,10 +1,8 @@
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
-import { X } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import { setStyles } from '../../lib/dom';
-import { Drawer, DrawerBody, DrawerContent } from '../drawer';
-import { Modal } from '../modal';
+import { ResponsiveModal } from '../responsive-modal';
 import { DevelopmentRecipeDetail } from './recipe-detail';
 
 interface SharedRecipeModalProps {
@@ -14,7 +12,11 @@ interface SharedRecipeModalProps {
   onAddToCollection: () => void;
   isProcessing?: boolean;
   recipeSource?: 'shared' | 'custom';
-  variant?: 'modal' | 'drawer';
+  /**
+   * Render as a bottom drawer instead of a centred modal. Defaults to the
+   * shared ResponsiveModal's own viewport detection.
+   */
+  isMobile?: boolean;
   hideAddToCollection?: boolean;
   isFavorite?: (view: DevelopmentCombinationView) => boolean;
   onToggleFavorite?: (view: DevelopmentCombinationView) => void;
@@ -28,7 +30,7 @@ export function SharedRecipeModal({
   onAddToCollection,
   isProcessing = false,
   recipeSource = 'shared',
-  variant = 'modal',
+  isMobile,
   hideAddToCollection = false,
   isFavorite,
   onToggleFavorite,
@@ -192,66 +194,17 @@ export function SharedRecipeModal({
     </div>
   );
 
-  if (variant === 'drawer') {
-    return (
-      <Drawer isOpen={isOpen} onClose={onClose} size="lg" anchor="bottom">
-        <DrawerContent className="h-full max-h-[85vh]">
-          <div
-            className="flex items-center justify-between border-b px-4 py-3"
-            style={{ borderColor: 'var(--color-border-secondary)' }}
-          >
-            <div
-              className="text-base font-semibold"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              {modalTitle}
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-full border p-2 transition"
-              style={{
-                borderColor: 'var(--color-border-primary)',
-                color: 'var(--color-text-secondary)',
-              }}
-              onMouseEnter={(e) => {
-                setStyles(e.currentTarget, {
-                  borderColor: 'var(--color-border-secondary)',
-                  color: 'var(--color-text-primary)',
-                });
-              }}
-              onMouseLeave={(e) => {
-                setStyles(e.currentTarget, {
-                  borderColor: 'var(--color-border-primary)',
-                  color: 'var(--color-text-secondary)',
-                });
-              }}
-            >
-              <span className="sr-only">Close</span>
-              <X className="size-5" />
-            </button>
-          </div>
-          <DrawerBody className="px-4 pb-6 pt-4">{body}</DrawerBody>
-          <div
-            className="border-t px-4 pb-4 pt-3"
-            style={{ borderColor: 'var(--color-border-secondary)' }}
-          >
-            {actions}
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
   return (
-    <Modal
+    <ResponsiveModal
       isOpen={isOpen}
       onClose={onClose}
       title={modalTitle}
       size="lg"
+      mobileSize="lg"
+      isMobile={isMobile}
       footer={actions}
     >
       {body}
-    </Modal>
+    </ResponsiveModal>
   );
 }

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   applyBadgeUpdates,
@@ -96,9 +98,17 @@ describe('deriveBadgeValues', () => {
 });
 
 describe('applyBadgeUpdates', () => {
+  // The target badges sit among others that share their shape, as in the
+  // real README: License shares Version's line, and TanStack Query's badge
+  // also ends in `-red`. A pattern that spans badges would eat them.
+  const neighbours = [
+    '[![License](https://img.shields.io/badge/License-AGPL_V3.0-blue)](https://github.com/narrowstacks/dorkroom/blob/main/LICENSE)',
+    '![TanStack Query](https://img.shields.io/badge/-TanStack%20Query-red?style=flat-square&logo=react-query&logoColor=white)',
+    '![Biome](https://img.shields.io/badge/Biome-60A5FA?logo=biome&logoColor=fff)',
+  ];
   const readme = [
-    '![Version](https://img.shields.io/badge/Version-2026.05.28-red)',
-    '![React 19](https://img.shields.io/badge/React-19-61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-7.0_beta-3178C6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.3.0-06B6D4)',
+    `![Version](https://img.shields.io/badge/Version-2026.05.28-red) ${neighbours[0]}`,
+    `![React 19](https://img.shields.io/badge/React-19-61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-7.0_beta-3178C6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.3.0-06B6D4) ${neighbours[1]} ${neighbours[2]}`,
   ].join('\n');
 
   it('rewrites only the four target badge values', () => {
@@ -114,6 +124,9 @@ describe('applyBadgeUpdates', () => {
     expect(out).toContain('badge/Tailwind-4.5.0-06B6D4');
     expect(out).not.toContain('2026.05.28');
     expect(out).not.toContain('7.0_beta');
+    for (const neighbour of neighbours) {
+      expect(out).toContain(neighbour);
+    }
   });
 
   it('is a no-op when values already match', () => {
@@ -124,5 +137,29 @@ describe('applyBadgeUpdates', () => {
       typescript: '7.0_beta',
     });
     expect(out).toBe(readme);
+  });
+
+  // The fixture above can only prove the patterns against a copy. This runs
+  // them against the README the workflow actually rewrites, so a renamed or
+  // duplicated badge there fails here instead of silently going stale.
+  it('matches each target badge in the real README exactly once', () => {
+    const real = readFileSync(
+      join(import.meta.dirname, '..', '..', 'README.md'),
+      'utf8'
+    );
+    const out = applyBadgeUpdates(real, {
+      version: 'SYNC_VERSION',
+      react: 'SYNC_REACT',
+      tailwind: 'SYNC_TAILWIND',
+      typescript: 'SYNC_TYPESCRIPT',
+    });
+    for (const badge of [
+      'badge/Version-SYNC_VERSION-red',
+      'badge/React-SYNC_REACT-61DAFB',
+      'badge/TypeScript-SYNC_TYPESCRIPT-3178C6',
+      'badge/Tailwind-SYNC_TAILWIND-06B6D4',
+    ]) {
+      expect(out.split(badge).length - 1, badge).toBe(1);
+    }
   });
 });

@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   ASPECT_RATIO_MAP,
   ASPECT_RATIOS,
-  BORDER_SLIDER_LABELS,
   DEFAULT_BORDER_PRESETS,
   EASEL_SIZE_MAP,
   EASEL_SIZES,
@@ -12,7 +11,6 @@ import {
   OFFSET_SLIDER_STEP,
   PAPER_SIZE_MAP,
   PAPER_SIZES,
-  SLIDER_MAX_BORDER,
   SLIDER_MIN_BORDER,
   SLIDER_STEP_BORDER,
 } from '../../constants/border-calculator';
@@ -226,8 +224,6 @@ describe('Border Calculator Constants', () => {
   describe('Border Slider Constants', () => {
     it('should have valid min/max border values', () => {
       expect(SLIDER_MIN_BORDER).toBe(0);
-      expect(SLIDER_MAX_BORDER).toBe(6);
-      expect(SLIDER_MAX_BORDER).toBeGreaterThan(SLIDER_MIN_BORDER);
     });
 
     it('should have step size as standard increment (1/8 inch)', () => {
@@ -235,26 +231,12 @@ describe('Border Calculator Constants', () => {
     });
 
     it('should have valid range for darkroom practice', () => {
-      // 0-6 inches is realistic for photographic borders
       expect(SLIDER_MIN_BORDER).toBeGreaterThanOrEqual(0);
-      expect(SLIDER_MAX_BORDER).toBeLessThanOrEqual(10); // practical maximum
     });
 
-    it('should have step size that divides range evenly', () => {
-      const steps =
-        (SLIDER_MAX_BORDER - SLIDER_MIN_BORDER) / SLIDER_STEP_BORDER;
+    it('should have step size that divides an inch evenly', () => {
+      const steps = 1 / SLIDER_STEP_BORDER;
       expect(steps).toBe(Math.floor(steps)); // should be whole number
-    });
-
-    it('should have slider labels at key positions', () => {
-      // BORDER_SLIDER_LABELS is an array like ['0', '1.5', '3', '4.5', '6']
-      expect(Array.isArray(BORDER_SLIDER_LABELS)).toBe(true);
-      expect(BORDER_SLIDER_LABELS.length).toBeGreaterThan(0);
-
-      // Should include min and max values
-      const labels = BORDER_SLIDER_LABELS.map((l) => parseFloat(l));
-      expect(Math.min(...labels)).toBe(SLIDER_MIN_BORDER);
-      expect(Math.max(...labels)).toBe(SLIDER_MAX_BORDER);
     });
   });
 
@@ -317,9 +299,6 @@ describe('Border Calculator Constants', () => {
       expect(BORDER_CALCULATOR_DEFAULTS.minBorder).toBe(0.5);
       expect(BORDER_CALCULATOR_DEFAULTS.minBorder).toBeGreaterThanOrEqual(
         SLIDER_MIN_BORDER
-      );
-      expect(BORDER_CALCULATOR_DEFAULTS.minBorder).toBeLessThanOrEqual(
-        SLIDER_MAX_BORDER
       );
     });
 
@@ -422,7 +401,6 @@ describe('Border Calculator Constants', () => {
 
         // Min border should be valid
         expect(minBorder).toBeGreaterThanOrEqual(SLIDER_MIN_BORDER);
-        expect(minBorder).toBeLessThanOrEqual(SLIDER_MAX_BORDER);
       });
     });
   });
@@ -453,13 +431,6 @@ describe('Border Calculator Constants', () => {
     it('should have border range suitable for photographic use', () => {
       // Border range should be practical for darkroom work
       expect(SLIDER_MIN_BORDER).toBe(0);
-      expect(SLIDER_MAX_BORDER).toBeGreaterThanOrEqual(5);
-      expect(SLIDER_MAX_BORDER).toBeLessThanOrEqual(10);
-
-      // For smallest standard paper (3.875x5.875), max border (6") would be too large
-      // But that's okay - users can choose appropriate borders for their paper
-      // Just verify the range is reasonable
-      expect(SLIDER_MAX_BORDER).toBe(6); // Standard max border
     });
   });
 

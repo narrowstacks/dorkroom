@@ -74,7 +74,7 @@ either directly (`filmdev.ts`) or through `createSupabaseProxy`.
 3. GET-only method guard
 4. Required env var validation
 5. Host-based Unkey auth and rate limiting
-6. Outer error mapping (`AbortError` => 504, fetch network => 502, generic => 500)
+6. Outer error mapping (`AbortError`/`TimeoutError` => 504, fetch network => 502, generic => 500)
 
 `docs.ts`, `openapi.ts`, `reference.ts`, `meta.ts`, and `og.tsx` are plain
 handlers. They serve static or derived content and need no key. `og.tsx` does
@@ -84,8 +84,8 @@ has its own rate limit (above).
 ### Supabase proxies
 
 A proxy route is a config object plus one call. `createSupabaseProxy` supplies
-the fetch, the 30s timeout, the 1 MB response cap, query sanitization against
-`allowedParams`, and structured logging:
+the fetch, the 30s timeout (`AbortSignal.timeout`), the 1 MB response cap,
+query sanitization against `allowedParams`, and structured logging:
 
 ```typescript
 export const filmsProxyConfig: SupabaseProxyConfig = {
@@ -114,10 +114,9 @@ All under `/utils`:
 - `queryPatterns.ts` - slug/UUID/ISO/brand/preset patterns shared by `meta.ts` and `og.tsx`
 - `createSupabaseProxy.ts` - the proxy factory described above
 - `queryValidation.ts` - allowlist-based query sanitization
-- `timeoutSignal.ts` - `createTimeoutSignal(timeoutMs)` helper
 - `serverlessLogger.ts` - structured serverless logs
 - `routeMetadata.ts` - per-route titles and descriptions used by `meta.ts` and `og.tsx`
-- `htmlEscape.ts` - escaping for the HTML that `meta.ts` and `docs.ts` emit
+- `htmlEscape.ts` - `escapeHtml` for the HTML that `meta.ts` emits
 
 ## Authentication + Rate Limiting
 
@@ -173,9 +172,8 @@ Operational note:
 
 `bun run test:serverless` runs the `serverless` vitest project, defined at the
 repo root in `vitest.config.ts`. It covers `api/__tests__`, `scripts/__tests__`,
-and three named suites under `utils/__tests__` (`withHandler`,
-`queryValidation`, `routeMetadata`). Adding a new `utils` test means adding it
-to that `include` list, or it silently never runs.
+and `utils/__tests__/*.test.ts` (a glob, so new `utils` tests are picked up
+automatically).
 
 `bun run typecheck:api` is a second, separate gate: it compiles `api/**` plus
 `../utils/**` with **TypeScript 6** through `api/tsconfig.json`, matching what

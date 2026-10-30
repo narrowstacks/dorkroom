@@ -78,9 +78,7 @@ describe('SaveBeforeShareModal', () => {
   it('hides the backdrop from assistive technology', () => {
     render(<SaveBeforeShareModal {...defaultProps} />);
 
-    const backdrop = document.querySelector(
-      '[data-testid="save-before-share-backdrop"]'
-    );
+    const backdrop = screen.getByTestId('modal-backdrop');
     expect(backdrop).toHaveAttribute('aria-hidden', 'true');
     expect(backdrop).toHaveAttribute('tabindex', '-1');
   });

@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
+import { BORDER_PRESETS_STORAGE_KEY } from '../constants/storage-keys';
 import { borderPresetSchema } from '../schemas/border-calculator.schema';
 import type {
   BorderPreset,
   BorderPresetSettings,
 } from '../types/border-calculator';
 import { isBrowser } from '../utils/environment';
-
-const STORAGE_KEY = 'borderPresets';
 
 /**
  * Hook for managing border calculator presets stored in localStorage.
@@ -45,7 +44,7 @@ export function useBorderPresets() {
     if (!isBrowser()) return;
 
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
+      const raw = window.localStorage.getItem(BORDER_PRESETS_STORAGE_KEY);
       if (!raw) return;
 
       const stored = JSON.parse(raw);
@@ -71,7 +70,10 @@ export function useBorderPresets() {
     setPresets(next);
     if (!isBrowser()) return;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      window.localStorage.setItem(
+        BORDER_PRESETS_STORAGE_KEY,
+        JSON.stringify(next)
+      );
     } catch (error) {
       console.warn('Failed to save presets', error);
     }

@@ -1,7 +1,7 @@
 import {
   ASPECT_RATIOS,
   BORDER_CALCULATOR_DEFAULTS,
-  CALC_STORAGE_KEY,
+  BORDER_CALCULATOR_STORAGE_KEY,
   encodePreset,
   OFFSET_SLIDER_MAX,
   OFFSET_SLIDER_MIN,
@@ -322,7 +322,10 @@ describe('useBorderCalculatorController manual paper flip', () => {
   });
 
   function persist(values: PersistedBorderCalculatorState) {
-    window.localStorage.setItem(CALC_STORAGE_KEY, JSON.stringify(values));
+    window.localStorage.setItem(
+      BORDER_CALCULATOR_STORAGE_KEY,
+      JSON.stringify(values)
+    );
   }
 
   it('keeps a manually flipped custom paper orientation across a reload', () => {

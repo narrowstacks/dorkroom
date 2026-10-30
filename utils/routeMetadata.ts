@@ -1,6 +1,8 @@
 export const SITE_NAME = 'Dorkroom';
 export const BASE_URL = 'https://dorkroom.art';
 
+// Copied verbatim in packages/ui/src/lib/navigation.ts; keep both in sync
+// (tools/__tests__/route-metadata-sync.test.ts fails if they diverge).
 export const ROUTE_TITLES = {
   '/': 'Home',
   '/border': 'Border Calculator',

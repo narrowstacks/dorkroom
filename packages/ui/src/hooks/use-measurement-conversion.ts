@@ -132,22 +132,3 @@ export function useMeasurementConverter() {
     [unit, toDisplay, toInches]
   );
 }
-
-/**
- * Hook that provides both formatting and conversion utilities
- * This is a convenience hook that combines both useMeasurementFormatter and useMeasurementConverter
- * @returns Combined utilities object
- */
-export function useMeasurementUtils() {
-  const formatter = useMeasurementFormatter();
-  const converter = useMeasurementConverter();
-  const { unit, setUnit, toggleUnit } = useMeasurement();
-
-  return {
-    ...formatter,
-    ...converter,
-    setUnit,
-    toggleUnit,
-    unit,
-  };
-}

@@ -7,6 +7,7 @@ import {
   type Mock,
   vi,
 } from 'vitest';
+import { ROUTE_TITLES } from '../../utils/routeMetadata';
 import handler, {
   clearFontCache,
   getDilutionLabel,
@@ -957,5 +958,11 @@ describe('og handler - rate limiting', () => {
 
     expect(res.status).toBe(400);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('getRouteIcon coverage', () => {
+  it.each(Object.keys(ROUTE_TITLES))('has an icon for %s', (route) => {
+    expect(getRouteIcon(route)).not.toBeNull();
   });
 });

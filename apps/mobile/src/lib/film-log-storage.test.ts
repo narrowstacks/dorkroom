@@ -1,5 +1,5 @@
 import { getInfoAsync, writeAsStringAsync } from 'expo-file-system/legacy';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ensurePhotoDir, photoUri } from '@/lib/film-log-photos';
 // The runner points 'expo-file-system/legacy' at this in-memory implementation;
 // its reset hook is not part of the real module's API, so it is imported from
@@ -76,12 +76,29 @@ describe('film-log storage', () => {
     expect(stored[0]?.id).toBe(roll.id);
   });
 
-  it('updates a roll and bumps updatedAt', () => {
+  it('patches a roll', () => {
     const roll = newRoll();
     updateRoll(roll.id, { status: 'finished', name: 'Trip' });
     const updated = getRolls()[0];
     expect(updated?.status).toBe('finished');
     expect(updated?.name).toBe('Trip');
+  });
+
+  describe('updatedAt', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('is bumped by updateRoll while createdAt stays put', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
+      const roll = newRoll();
+      vi.setSystemTime(new Date('2026-01-02T00:00:00.000Z'));
+      updateRoll(roll.id, { name: 'Trip' });
+      const updated = getRolls()[0];
+      expect(updated?.updatedAt).toBe('2026-01-02T00:00:00.000Z');
+      expect(updated?.createdAt).toBe(roll.createdAt);
+    });
   });
 
   it('deletes a roll', () => {

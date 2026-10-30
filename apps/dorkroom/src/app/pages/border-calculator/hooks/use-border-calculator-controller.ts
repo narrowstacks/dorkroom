@@ -1,8 +1,8 @@
 import {
+  BORDER_CALCULATOR_STORAGE_KEY,
   borderCalculatorInitialState,
   borderCalculatorSchema,
   type BorderPresetSettings,
-  CALC_STORAGE_KEY,
   calculateQuarterInchMinBorder,
   computeBorderLayout,
   computeMaxAllowedMinBorder,
@@ -105,7 +105,7 @@ export function useBorderCalculatorController() {
   // restores the form defaults and drops the stored snapshot, the same reset
   // every other persisted calculator uses.
   const { resetToDefaults } = useLocalStorageFormPersistence({
-    storageKey: CALC_STORAGE_KEY,
+    storageKey: BORDER_CALCULATOR_STORAGE_KEY,
     form,
     formValues,
     persistKeys: borderPersistKeys,

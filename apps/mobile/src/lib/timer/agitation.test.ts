@@ -62,18 +62,9 @@ describe('agitationWindows', () => {
   });
 
   it('merges/clamps overlapping Stand windows on a short stage', () => {
-    const windows = agitationWindows(pattern('stand'), 15);
-    // No overlap and sorted ascending.
-    for (let i = 1; i < windows.length; i += 1) {
-      expect(windows[i].startSeconds).toBeGreaterThanOrEqual(
-        windows[i - 1].endSeconds
-      );
-    }
-    for (const w of windows) {
-      expect(w.startSeconds).toBeGreaterThanOrEqual(0);
-      expect(w.endSeconds).toBeLessThanOrEqual(15);
-      expect(w.endSeconds).toBeGreaterThan(w.startSeconds);
-    }
+    expect(agitationWindows(pattern('stand'), 15)).toEqual([
+      { startSeconds: 0, endSeconds: 15 },
+    ]);
   });
 
   it('builds three Semi-stand windows (start, halfway, end)', () => {

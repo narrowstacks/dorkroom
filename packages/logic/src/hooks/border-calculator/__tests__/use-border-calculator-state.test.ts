@@ -109,6 +109,46 @@ describe('useBorderCalculatorState', () => {
     });
   });
 
+  describe('SET_PAPER_SIZE Action', () => {
+    it('clamps minBorder to the smaller sheet (16x20 at 5 -> 5x7 gives 2.375)', () => {
+      const { result } = renderHook(() => useBorderCalculatorState());
+
+      act(() => {
+        result.current.dispatch({ type: 'SET_PAPER_SIZE', value: '16x20' });
+        result.current.dispatch({
+          type: 'BATCH_UPDATE',
+          payload: { minBorder: 5, lastValidMinBorder: 5 },
+        });
+      });
+      expect(result.current.state.minBorder).toBe(5);
+
+      act(() => {
+        result.current.dispatch({ type: 'SET_PAPER_SIZE', value: '5x7' });
+      });
+
+      expect(result.current.state.minBorder).toBe(2.375);
+      expect(result.current.state.lastValidMinBorder).toBe(2.375);
+    });
+
+    it('leaves a minBorder that already fits, and does not clamp custom', () => {
+      const { result } = renderHook(() => useBorderCalculatorState());
+
+      act(() => {
+        result.current.dispatch({ type: 'SET_PAPER_SIZE', value: '5x7' });
+      });
+      expect(result.current.state.minBorder).toBe(0.5);
+
+      act(() => {
+        result.current.dispatch({
+          type: 'BATCH_UPDATE',
+          payload: { minBorder: 5, lastValidMinBorder: 5 },
+        });
+        result.current.dispatch({ type: 'SET_PAPER_SIZE', value: 'custom' });
+      });
+      expect(result.current.state.minBorder).toBe(5);
+    });
+  });
+
   describe('SET_FIELD Action', () => {
     it('should update a single field via SET_FIELD', () => {
       const { result } = renderHook(() => useBorderCalculatorState());
@@ -770,6 +810,17 @@ describe('useBorderCalculatorState', () => {
       expect(result.current.state.minBorder).toBe(1.75);
       expect(result.current.state.horizontalOffset).toBe(0.25);
       expect(result.current.state.isLandscape).toBe(false);
+    });
+
+    it('purges the superseded _v1 key and keeps _v2 on hydrate', () => {
+      localStorageMock.setItem('borderCalculatorState_v1', '{"old":true}');
+      const v2 = JSON.stringify({ aspectRatio: '16:9' });
+      localStorageMock.setItem(BORDER_CALCULATOR_STORAGE_KEY, v2);
+
+      renderHook(() => useBorderCalculatorState());
+
+      expect(localStorageMock.getItem('borderCalculatorState_v1')).toBeNull();
+      expect(localStorageMock.getItem(BORDER_CALCULATOR_STORAGE_KEY)).toBe(v2);
     });
 
     it('should handle corrupted localStorage data gracefully', () => {

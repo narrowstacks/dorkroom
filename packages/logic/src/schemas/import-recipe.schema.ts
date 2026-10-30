@@ -1,5 +1,5 @@
-import { isFilmDevOrgUrl } from '@dorkroom/logic';
 import { z } from 'zod';
+import { isFilmDevOrgUrl } from '../utils/url-helpers';
 
 /**
  * Validation schema for Import Recipe Form

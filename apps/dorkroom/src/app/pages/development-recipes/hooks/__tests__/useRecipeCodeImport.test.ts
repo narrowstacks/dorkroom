@@ -1,6 +1,5 @@
 import {
   createCustomRecipeFromEncoded,
-  decodeCustomRecipe,
   type EncodedCustomRecipe,
   type ImportedCustomRecipe,
 } from '@dorkroom/logic';
@@ -10,13 +9,6 @@ import {
   useRecipeCodeImport,
   type UseRecipeCodeImportProps,
 } from '../useRecipeCodeImport';
-
-const encode = (payload: EncodedCustomRecipe): string =>
-  Buffer.from(JSON.stringify(payload), 'utf8')
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
 
 const baseRecipe: EncodedCustomRecipe = {
   name: 'x',
@@ -31,18 +23,15 @@ const baseRecipe: EncodedCustomRecipe = {
   isPublic: false,
 };
 
-/** The real decode path, minus the React hook wrapper around it. */
-const decodeSharedCustomRecipe = (
-  input: string
-): ImportedCustomRecipe | null => {
-  const decoded = decodeCustomRecipe(input);
-  return decoded
-    ? {
-        recipe: createCustomRecipeFromEncoded(decoded),
-        encodedData: input,
-        isValid: true,
-      }
-    : null;
+/**
+ * What the real decoder hands back for a valid code. The hook is given the
+ * decoder as a prop, so these tests stub it: decoding and its range checks are
+ * covered where they live, in `packages/logic`'s recipe-sharing tests.
+ */
+const decoded: ImportedCustomRecipe = {
+  recipe: createCustomRecipeFromEncoded(baseRecipe),
+  encodedData: 'code',
+  isValid: true,
 };
 
 const createProps = (
@@ -50,7 +39,7 @@ const createProps = (
 ): UseRecipeCodeImportProps => ({
   addCustomRecipe: vi.fn().mockResolvedValue('new-id'),
   refreshCustomRecipes: vi.fn().mockResolvedValue([]),
-  decodeSharedCustomRecipe,
+  decodeSharedCustomRecipe: () => decoded,
   getFilmById: () => undefined,
   getDeveloperById: () => undefined,
   setIsImportModalOpen: vi.fn(),
@@ -59,8 +48,6 @@ const createProps = (
   ...overrides,
 });
 
-// Regression for #323: an out-of-range recipe code used to be saved to
-// localStorage and crash /development on every later visit.
 describe('useRecipeCodeImport', () => {
   let errorSpy: ReturnType<typeof vi.spyOn>;
 
@@ -72,14 +59,15 @@ describe('useRecipeCodeImport', () => {
     errorSpy.mockRestore();
   });
 
-  it('rejects an out-of-range recipe code without saving it', async () => {
-    const props = createProps();
+  // Regression for #323: a code the decoder rejects (an out-of-range one, for
+  // instance) used to be saved to localStorage and crash /development on every
+  // later visit. Whatever the reason the decoder returns null, nothing saves.
+  it('reports a code the decoder rejects without saving it', async () => {
+    const props = createProps({ decodeSharedCustomRecipe: () => null });
     const { result } = renderHook(() => useRecipeCodeImport(props));
 
     await act(async () => {
-      await result.current.handleCodeImport(
-        encode({ ...baseRecipe, temperatureF: 250 })
-      );
+      await result.current.handleCodeImport('rejected-code');
     });
 
     expect(props.addCustomRecipe).not.toHaveBeenCalled();
@@ -98,7 +86,7 @@ describe('useRecipeCodeImport', () => {
     const { result } = renderHook(() => useRecipeCodeImport(props));
 
     await act(async () => {
-      await result.current.handleCodeImport(encode(baseRecipe));
+      await result.current.handleCodeImport('code');
     });
 
     expect(props.setImportError).toHaveBeenLastCalledWith(
@@ -112,7 +100,7 @@ describe('useRecipeCodeImport', () => {
     const { result } = renderHook(() => useRecipeCodeImport(props));
 
     await act(async () => {
-      await result.current.handleCodeImport(encode(baseRecipe));
+      await result.current.handleCodeImport('code');
     });
 
     expect(props.addCustomRecipe).toHaveBeenCalledWith(
