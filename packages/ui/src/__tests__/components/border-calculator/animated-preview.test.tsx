@@ -29,12 +29,13 @@ function renderAt(width: number) {
 }
 
 describe('AnimatedPreview', () => {
-  it('renders the placeholder at 400x300 without a calculation', () => {
+  it('renders an evenly scaling 4:3 placeholder without a calculation', () => {
     const { container } = render(<AnimatedPreview calculation={null} />);
     // SAFETY: same single-root <div> as above.
     const previewEl = container.firstElementChild as HTMLElement;
-    expect(previewEl.style.width).toBe('400px');
-    expect(previewEl.style.height).toBe('300px');
+    expect(previewEl).toHaveClass('aspect-[4/3]', 'w-full', 'max-w-[400px]');
+    expect(previewEl.style.width).toBe('');
+    expect(previewEl.style.height).toBe('');
   });
 
   it('sizes itself as mobile at exactly 768px, matching the mobile layout', () => {

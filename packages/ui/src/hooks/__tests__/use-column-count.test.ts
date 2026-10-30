@@ -1,7 +1,7 @@
 import { BREAKPOINTS } from '@dorkroom/logic';
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RESIZE_DEBOUNCE_MS } from '../../components/development-recipes/virtualization-constants';
+import { RESIZE_DEBOUNCE_MS } from '../../lib/resize-debounce';
 import { useColumnCount } from '../use-column-count';
 
 const BREAKPOINT_XL = BREAKPOINTS.xl;

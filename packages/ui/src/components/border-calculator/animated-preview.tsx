@@ -14,8 +14,8 @@ import type { BorderCalculation } from '@dorkroom/logic';
 import { useMemo } from 'react';
 import { BladeReadingsOverlay } from './blade-readings-overlay';
 
-/** Size used before there is a calculation, or when it has no preview size. */
-const PLACEHOLDER_SIZE = { width: 400, height: 300 };
+/** Size used when a calculation carries no preview size. */
+const FALLBACK_SIZE = { width: 400, height: 300 };
 
 interface AnimatedPreviewProps {
   calculation: BorderCalculation | null;
@@ -88,15 +88,12 @@ export function AnimatedPreview({
 }: AnimatedPreviewProps) {
   // The preview is sized in one place, `computePreviewScale` in
   // @dorkroom/logic, which already fits it to the window (including the
-  // mobile-layout card cap). The placeholder has no paper to size from.
+  // mobile-layout card cap).
   const staticDimensions = useMemo(
-    () =>
-      calculation
-        ? {
-            width: calculation.previewWidth || PLACEHOLDER_SIZE.width,
-            height: calculation.previewHeight || PLACEHOLDER_SIZE.height,
-          }
-        : PLACEHOLDER_SIZE,
+    () => ({
+      width: calculation?.previewWidth || FALLBACK_SIZE.width,
+      height: calculation?.previewHeight || FALLBACK_SIZE.height,
+    }),
     [calculation]
   );
 
@@ -133,11 +130,13 @@ export function AnimatedPreview({
     };
   }, [calculation, staticDimensions]);
 
+  // Empty state. Both callers (the desktop and mobile layouts) always pass a
+  // calculation today, so this only renders for external or future callers.
+  // It scales evenly: up to 400px wide, never wider than its container.
   if (!calculation || !transformValues) {
     return (
       <div
-        className={`border bg-border-muted flex items-center justify-center mx-auto max-w-full ${className}`}
-        style={staticDimensions}
+        className={`border bg-border-muted flex items-center justify-center mx-auto aspect-[4/3] h-auto w-full max-w-[400px] ${className}`}
       >
         <div className="text-tertiary">Preview</div>
       </div>

@@ -1,6 +1,6 @@
 import { columnCountForWidth } from '@dorkroom/logic';
 import { type RefObject, useEffect, useState } from 'react';
-import { RESIZE_DEBOUNCE_MS } from '../components/development-recipes/virtualization-constants';
+import { RESIZE_DEBOUNCE_MS } from '../lib/resize-debounce';
 
 interface UseColumnCountOptions {
   /**
