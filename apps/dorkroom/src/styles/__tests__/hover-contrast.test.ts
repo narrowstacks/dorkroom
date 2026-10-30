@@ -309,16 +309,95 @@ describe('hoverable utilities keep their content legible in every theme', () => 
 
 // The hover states below used to be computed in JavaScript (onMouseEnter
 // mutating element.style), outside the guarantee above. They are now Tailwind
-// `hover:` utilities on theme tokens, so the same stylesheet read covers them.
-// A hover background that lands on its own foreground paints the control
-// invisible, which is the failure the monochrome themes invite (#273).
+// `hover:` utilities on theme tokens. Each pair is resolved the way the browser
+// would: utility -> `@theme inline` mapping -> per-theme variable, so editing
+// either the mapping or a palette value is caught. A hover background that
+// lands on its own foreground paints the control invisible, which is the
+// failure the monochrome themes invite (#273).
+const INLINE_THEME = (() => {
+  const open = /@theme inline\s*\{/.exec(themeCss);
+  if (open === null) throw new Error('theme.css has no @theme inline block');
+  const body = declarationsAfter(themeCss, open.index + open[0].length - 1)
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\( /g, '(')
+    .replace(/ \)/g, ')');
+  const map = new Map<string, string>();
+  for (const [, prop, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) {
+    map.set(prop, value.trim());
+  }
+  return map;
+})();
+
+const TRANSPARENT: Rgba = [0, 0, 0, 0];
+
+/** Evaluate the colour expressions the inline theme uses, for one theme. */
+function evalColor(theme: string, expr: string, depth = 0): Rgba {
+  if (depth > 8) throw new Error(`token cycle at ${expr}`);
+  const text = expr.trim();
+  if (text === 'transparent') return TRANSPARENT;
+  const alias = /^var\((--[\w-]+)\)$/.exec(text);
+  if (alias) {
+    const inline = INLINE_THEME.get(alias[1]);
+    if (inline !== undefined) return evalColor(theme, inline, depth + 1);
+    return mustParse(resolveToken(theme, alias[1]), alias[1]);
+  }
+  const veil = /^rgba\(var\((--[\w-]+)\),\s*([\d.]+)\)$/.exec(text);
+  if (veil) {
+    const channels = (resolveToken(theme, veil[1]) ?? '')
+      .split(',')
+      .map(Number);
+    if (channels.length !== 3 || channels.some(Number.isNaN)) {
+      throw new Error(`${veil[1]} is not an r, g, b triple in "${theme}"`);
+    }
+    return [channels[0], channels[1], channels[2], Number(veil[2])];
+  }
+  const mix = /^color-mix\(in srgb,\s*(.+?)\s+([\d.]+)%,\s*(.+)\)$/.exec(text);
+  if (mix) {
+    const first = evalColor(theme, mix[1], depth + 1);
+    const second = evalColor(theme, mix[3], depth + 1);
+    const w = Number(mix[2]) / 100;
+    const alpha = first[3] * w + second[3] * (1 - w);
+    if (alpha === 0) return TRANSPARENT;
+    const channel = (i: 0 | 1 | 2) =>
+      Math.round(
+        (first[i] * first[3] * w + second[i] * second[3] * (1 - w)) / alpha
+      );
+    return [channel(0), channel(1), channel(2), alpha];
+  }
+  return mustParse(text, text);
+}
+
+/**
+ * The colour a `bg-*` or `text-*` utility paints, following Tailwind's lookup:
+ * the per-property namespace first, then the shared `--color-*` namespace.
+ * An opacity modifier (`/90`) scales the alpha.
+ */
+function utilityColor(theme: string, utility: string): Rgba {
+  const match = /^(bg|text|border)-([\w-]+?)(?:\/(\d+))?$/.exec(utility);
+  if (match === null) throw new Error(`cannot read utility ${utility}`);
+  const [, kind, name, percent] = match;
+  const namespace = {
+    bg: 'background-color',
+    text: 'text-color',
+    border: 'border-color',
+  }[kind as 'bg' | 'text' | 'border'];
+  const variable = [`--${namespace}-${name}`, `--color-${name}`].find(
+    (candidate) => INLINE_THEME.has(candidate)
+  );
+  const [r, g, b, a] =
+    variable === undefined
+      ? // Not mapped in the inline theme: a plain @theme token, which Tailwind
+        // emits as var(--color-<name>) and the active palette overrides.
+        evalColor(theme, `var(--color-${name})`)
+      : evalColor(theme, INLINE_THEME.get(variable) ?? '');
+  return [r, g, b, a * (percent === undefined ? 1 : Number(percent) / 100)];
+}
+
 interface HoverPair {
   /** What the pair styles, for the failure message. */
   name: string;
-  /** Hover background: a token, optionally laid over the surface at `alpha`. */
   background: string;
-  alpha?: number;
-  /** Hover foreground token. */
   foreground: string;
 }
 
@@ -332,48 +411,56 @@ const MIN_HOVER_CONTRAST = 3;
 
 const MIGRATED_HOVER_PAIRS: HoverPair[] = [
   {
-    name: 'hover:bg-accent hover:text-background (clear filters)',
-    background: '--color-accent',
-    foreground: '--color-background',
+    name: 'clear filters',
+    background: 'bg-accent',
+    foreground: 'text-background',
   },
   {
-    name: 'hover:bg-brand hover:text-background (expand filters)',
-    background: '--color-brand',
-    foreground: '--color-background',
+    name: 'expand filters',
+    background: 'bg-brand',
+    foreground: 'text-background',
   },
   {
-    name: 'hover:bg-surface-muted hover:text-primary (collapse filters)',
-    background: '--color-surface-muted',
-    foreground: '--color-text-primary',
+    name: 'collapse filters',
+    background: 'bg-surface-muted',
+    foreground: 'text-primary',
   },
   {
-    name: 'hover:bg-hover-surface hover:text-on-hover-surface (confirm cancel)',
-    background: '--color-surface-hover',
-    foreground: '--color-on-surface-hover',
+    name: 'confirm cancel',
+    background: 'bg-hover-surface',
+    foreground: 'text-on-hover-surface',
   },
   {
-    name: 'hover:bg-text-secondary text-background (save recipe)',
-    background: '--color-text-secondary',
-    foreground: '--color-background',
+    name: 'save recipe',
+    background: 'bg-text-secondary',
+    foreground: 'text-background',
   },
   {
-    name: 'hover:bg-text-primary/90 text-background (primary buttons)',
-    background: '--color-text-primary',
-    alpha: 0.9,
-    foreground: '--color-background',
+    name: 'primary buttons',
+    background: 'bg-text-primary/90',
+    foreground: 'text-background',
   },
   {
-    name: 'hover:bg-veil-15 hover:text-primary (view toggle)',
-    background: '--color-background',
-    alpha: 0.15,
-    foreground: '--color-text-primary',
+    name: 'view toggle',
+    background: 'bg-veil-15',
+    foreground: 'text-primary',
+  },
+  {
+    name: 'custom recipe row',
+    background: 'bg-recipe-custom-hover',
+    foreground: 'text-primary',
+  },
+  {
+    name: 'delete button',
+    background: 'bg-delete-hover',
+    foreground: 'text-delete-hover',
   },
 ];
 
 describe('migrated hover utilities keep their content legible in every theme', () => {
   for (const pair of MIGRATED_HOVER_PAIRS) {
     for (const theme of THEMES) {
-      it(`${pair.name} on ${theme}`, () => {
+      it(`${pair.name} (${pair.background} / ${pair.foreground}) on ${theme}`, () => {
         const surface = opaque(
           mustParse(
             resolveToken(theme, '--color-surface') ??
@@ -381,13 +468,12 @@ describe('migrated hover utilities keep their content legible in every theme', (
             `${theme} surface`
           )
         );
-        const [r, g, b, a] = mustParse(
-          resolveToken(theme, pair.background),
-          pair.background
+        const background = flatten(
+          utilityColor(theme, pair.background),
+          surface
         );
-        const background = flatten([r, g, b, a * (pair.alpha ?? 1)], surface);
         const foreground = flatten(
-          mustParse(resolveToken(theme, pair.foreground), pair.foreground),
+          utilityColor(theme, pair.foreground),
           background
         );
         const ratio = contrastRatio(background, foreground);
@@ -399,21 +485,4 @@ describe('migrated hover utilities keep their content legible in every theme', (
       });
     }
   }
-
-  // The utilities above are only as theme-safe as the tokens they name, so
-  // check every theme declares each one rather than inheriting the default.
-  it('names only tokens that every theme declares', () => {
-    const names = new Set(
-      MIGRATED_HOVER_PAIRS.flatMap((pair) => [pair.background, pair.foreground])
-    );
-    names.add('--color-background-rgb');
-    for (const theme of THEMES.filter((t) => t !== 'default')) {
-      for (const token of names) {
-        expect(
-          THEME_TOKENS.get(theme)?.has(token),
-          `"${theme}" does not declare ${token}`
-        ).toBe(true);
-      }
-    }
-  });
 });

@@ -102,7 +102,7 @@ export function FilmdevPreviewModal({
           href={originalRecipe.recipe_link}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-sm text-[color:var(--color-text-link)] transition hover:text-primary"
+          className="inline-flex items-center gap-2 text-sm text-[color:var(--color-text-link,inherit)] transition hover:text-primary"
         >
           <ExternalLink className="size-4" />
           View original on filmdev.org

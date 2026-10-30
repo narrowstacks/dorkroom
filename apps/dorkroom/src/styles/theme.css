@@ -42,8 +42,8 @@
   --color-success: var(--color-semantic-success);
   --background-color-text-primary: var(--color-text-primary);
   --background-color-text-secondary: var(--color-text-secondary);
-  --background-color-hover-surface: var(--color-surface-hover);
-  --text-color-on-hover-surface: var(--color-on-surface-hover);
+  --background-color-hover-surface: var(--color-hover-surface);
+  --text-color-on-hover-surface: var(--color-on-hover-surface);
 
   /* Hover surfaces (#453). Each is derived from per-theme variables that every
      [data-theme] block already declares (--color-background-rgb, --color-accent,
@@ -225,8 +225,8 @@
   --color-border-secondary: #ff0000;
   --color-border-muted: #000000;
   --color-focus-ring: #ff0000;
-  --color-surface-hover: var(--color-border-muted);
-  --color-on-surface-hover: var(--color-text-secondary);
+  --color-hover-surface: var(--color-border-muted);
+  --color-on-hover-surface: var(--color-text-secondary);
   --color-semantic-success: #ff0000;
   --color-semantic-warning: #ff0000;
   --color-semantic-error: #ff0000;
@@ -357,8 +357,8 @@
   --color-border-secondary: rgba(255, 255, 255, 0.1);
   --color-border-muted: rgba(255, 255, 255, 0.05);
   --color-focus-ring: #7dd6ff;
-  --color-surface-hover: var(--color-border-muted);
-  --color-on-surface-hover: var(--color-text-secondary);
+  --color-hover-surface: var(--color-border-muted);
+  --color-on-hover-surface: var(--color-text-secondary);
   --color-semantic-success: #6ef3a4;
   --color-semantic-warning: #e5ff7d;
   --color-semantic-error: #f99f96;
@@ -590,8 +590,8 @@
   --color-border-secondary: rgba(9, 9, 11, 0.1);
   --color-border-muted: rgba(9, 9, 11, 0.06);
   --color-focus-ring: #1e6091;
-  --color-surface-hover: var(--color-border-muted);
-  --color-on-surface-hover: var(--color-text-secondary);
+  --color-hover-surface: var(--color-border-muted);
+  --color-on-hover-surface: var(--color-text-secondary);
   --color-semantic-success: #2d7a4a;
   --color-semantic-warning: #b83f16; /* 4.6:1 on white */
   --color-semantic-error: #d32323;
@@ -837,8 +837,8 @@
   /* Hover surface and its foreground. Monochrome palettes collapse the border
      and text tokens to one colour, so a hover built from those two would paint
      the label invisible; high-contrast inverts instead (see hover-contrast test). */
-  --color-surface-hover: #000000;
-  --color-on-surface-hover: #ffffff;
+  --color-hover-surface: #000000;
+  --color-on-hover-surface: #ffffff;
   --color-semantic-success: #000000;
   --color-semantic-warning: #000000;
   --color-semantic-error: #000000;
@@ -973,8 +973,8 @@
   --color-border-secondary: rgba(255, 255, 255, 0.1);
   --color-border-muted: rgba(255, 255, 255, 0.05);
   --color-focus-ring: #7dd6ff;
-  --color-surface-hover: var(--color-border-muted);
-  --color-on-surface-hover: var(--color-text-secondary);
+  --color-hover-surface: var(--color-border-muted);
+  --color-on-hover-surface: var(--color-text-secondary);
   --color-semantic-success: #6ef3a4;
   --color-semantic-warning: #e5ff7d;
   --color-semantic-error: #f99f96;
