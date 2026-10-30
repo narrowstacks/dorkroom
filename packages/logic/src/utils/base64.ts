@@ -1,33 +1,62 @@
+const utf8Decoder = new TextDecoder('utf-8', { fatal: true });
+
+/** Maps each byte to the char with that code point (the form btoa expects). */
+function bytesToBinary(bytes: Uint8Array): string {
+  let binary = '';
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return binary;
+}
+
 /**
- * Cross-environment base64 encoding.
- * Works in both browser (btoa) and Node.js (Buffer) environments.
+ * Cross-environment base64 encoding of a string's UTF-8 bytes.
+ * Works in both browser (btoa) and Node.js (Buffer) environments, and both
+ * produce the same output for any input, including text outside Latin-1.
  */
 export function encodeBase64(input: string): string {
+  const bytes = new TextEncoder().encode(input);
+
   if (globalThis.window !== undefined && window.btoa !== undefined) {
-    return window.btoa(input);
+    // btoa throws on any char above U+00FF, so hand it bytes, not text.
+    return window.btoa(bytesToBinary(bytes));
   }
 
   if (globalThis.Buffer !== undefined) {
-    return Buffer.from(input, 'utf8').toString('base64');
+    return Buffer.from(bytes).toString('base64');
   }
 
   throw new Error('Base64 encoding not supported in this environment');
 }
 
-/**
- * Cross-environment base64 decoding.
- * Works in both browser (atob) and Node.js (Buffer) environments.
- */
-export function decodeBase64(input: string): string {
+function decodeBase64Bytes(input: string): Uint8Array {
   if (globalThis.window !== undefined && window.atob !== undefined) {
-    return window.atob(input);
+    return Uint8Array.from(window.atob(input), (char) => char.charCodeAt(0));
   }
 
   if (globalThis.Buffer !== undefined) {
-    return Buffer.from(input, 'base64').toString('utf8');
+    return new Uint8Array(Buffer.from(input, 'base64'));
   }
 
   throw new Error('Base64 decoding not supported in this environment');
+}
+
+/**
+ * Cross-environment base64 decoding to a string, the inverse of
+ * {@link encodeBase64}. Works in both browser (atob) and Node.js (Buffer).
+ *
+ * Links shared from a browser before UTF-8 encoding was introduced carry
+ * Latin-1 bytes (one byte per char, e.g. `é` as 0xE9). Those are almost never
+ * valid UTF-8, so a strict UTF-8 decode that fails falls back to Latin-1.
+ * Pure-ASCII payloads are identical in both formats.
+ */
+export function decodeBase64(input: string): string {
+  const bytes = decodeBase64Bytes(input);
+  try {
+    return utf8Decoder.decode(bytes);
+  } catch {
+    return bytesToBinary(bytes);
+  }
 }
 
 /**
