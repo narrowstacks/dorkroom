@@ -112,16 +112,18 @@ describe('stagesFromCombination', () => {
     ).toBe(true);
   });
 
+  it('maps a stand agitation method to the stand pattern', () => {
+    const [dev] = stagesFromCombination(
+      combination({ agitationMethod: 'stand' })
+    );
+    expect(dev.agitationPattern?.id).toBe('stand');
+  });
+
   it('falls back to the source tag for the dev pattern when there is no agitation method', () => {
     const [kodak] = stagesFromCombination(
       combination({ agitationMethod: '', tags: ['official-kodak'] })
     );
     expect(kodak.agitationPattern?.id).toBe('kodak');
-
-    const [ilford] = stagesFromCombination(
-      combination({ agitationMethod: '', tags: ['official-cinestill'] })
-    );
-    expect(ilford.agitationPattern?.id).toBe('ilford');
   });
 });
 

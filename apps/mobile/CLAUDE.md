@@ -148,7 +148,7 @@ this because it is a permanent tab).
 ### Quality gate (run from `apps/mobile`)
 
 ```bash
-bun run test        # vitest, pure modules only (see Testing)
+bun run test        # vitest, pure modules only (see Testing); a pretest builds @dorkroom/logic and @dorkroom/api first
 bun run typecheck   # bun check (TypeScript 7), strict, no `any`
 bun run lint        # oxlint (lint) + bun fmt --check (formatting)
 ```
