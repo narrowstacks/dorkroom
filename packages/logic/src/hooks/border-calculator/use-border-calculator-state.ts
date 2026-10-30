@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { BORDER_CALCULATOR_DEFAULTS } from '../../constants/border-calculator-defaults';
 import { BORDER_CALCULATOR_STORAGE_KEY } from '../../constants/storage-keys';
 import { borderPresetSettingsFieldSchemas } from '../../schemas/border-calculator.schema';
+import { removeSupersededStorageKeys } from '../../services/local-storage';
 import type {
   BorderCalculatorAction,
   BorderCalculatorState,
@@ -198,6 +199,7 @@ export const useBorderCalculatorState = () => {
     try {
       const raw = window.localStorage.getItem(BORDER_CALCULATOR_STORAGE_KEY);
       if (!raw) return;
+      removeSupersededStorageKeys(BORDER_CALCULATOR_STORAGE_KEY);
 
       const cached = persistedBorderCalculatorSchema.safeParse(JSON.parse(raw));
       if (cached.success) {

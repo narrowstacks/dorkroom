@@ -772,6 +772,17 @@ describe('useBorderCalculatorState', () => {
       expect(result.current.state.isLandscape).toBe(false);
     });
 
+    it('purges the superseded _v1 key and keeps _v2 on hydrate', () => {
+      localStorageMock.setItem('borderCalculatorState_v1', '{"old":true}');
+      const v2 = JSON.stringify({ aspectRatio: '16:9' });
+      localStorageMock.setItem(BORDER_CALCULATOR_STORAGE_KEY, v2);
+
+      renderHook(() => useBorderCalculatorState());
+
+      expect(localStorageMock.getItem('borderCalculatorState_v1')).toBeNull();
+      expect(localStorageMock.getItem(BORDER_CALCULATOR_STORAGE_KEY)).toBe(v2);
+    });
+
     it('should handle corrupted localStorage data gracefully', () => {
       // Suppress expected console.warn from invalid JSON parse
       const warnSpy = vi
