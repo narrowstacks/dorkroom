@@ -1,7 +1,15 @@
 import { z } from 'zod';
 import { RECIPROCITY_FILM_TYPES } from '../constants/reciprocity';
-import { RECIPROCITY_STORAGE_KEY } from '../types/reciprocity';
-import { definePersistedFormFields } from '../utils/persisted-form-fields';
+import {
+  DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
+  DEFAULT_RECIPROCITY_METERED_TIME,
+  RECIPROCITY_CALCULATOR_DEFAULTS,
+} from '../constants/reciprocity-calculator-defaults';
+import {
+  RECIPROCITY_STORAGE_KEY,
+  type ReciprocityFormState,
+} from '../types/reciprocity';
+import { definePersistedCalculator } from '../utils/persisted-calculator';
 import { reciprocityFactorValidator } from './validators';
 
 /** Field schema for `meteredTime`, shared with localStorage hydration validation. */
@@ -54,9 +62,17 @@ export const reciprocityPersistedFieldSchemas = {
 };
 
 /** Storage key, persist keys and hydration validators for the form. */
-export const reciprocityCalculatorPersistence = definePersistedFormFields(
+/** The reciprocity calculator's form defaults. */
+export const RECIPROCITY_FORM_DEFAULTS: ReciprocityFormState = {
+  filmType: RECIPROCITY_CALCULATOR_DEFAULTS.filmType,
+  meteredTime: DEFAULT_RECIPROCITY_METERED_TIME,
+  customFactor: DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
+};
+
+export const reciprocityCalculatorPersistence = definePersistedCalculator(
   RECIPROCITY_STORAGE_KEY,
-  reciprocityPersistedFieldSchemas
+  reciprocityPersistedFieldSchemas,
+  RECIPROCITY_FORM_DEFAULTS
 );
 
 export type ReciprocityCalculatorFormData = z.infer<

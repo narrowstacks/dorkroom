@@ -20,7 +20,7 @@ const reported = new Set<string>();
  * How long a mode must hold before it counts as the one in use.
  *
  * The first render of a calculator shows its *default* mode, not the visitor's.
- * `useLocalStorageFormPersistence` hydrates the stored form in a mount effect
+ * `usePersistedCalculator` hydrates the stored form in a mount effect
  * and `useUrlPresetLoader` applies a shared preset in another, both of which
  * land after that first render. Reporting immediately therefore files everyone
  * with a saved non-default mode under the default one first and their real mode

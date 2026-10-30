@@ -1,6 +1,9 @@
 import { z } from 'zod';
-import { MAT_CALCULATOR_STORAGE_KEY } from '../constants/mat-calculator';
-import { definePersistedFormFields } from '../utils/persisted-form-fields';
+import {
+  MAT_CALCULATOR_DEFAULTS,
+  MAT_CALCULATOR_STORAGE_KEY,
+} from '../constants/mat-calculator';
+import { definePersistedCalculator } from '../utils/persisted-calculator';
 
 // Mat inputs are fraction-friendly free text ("3 1/2"); unparseable strings
 // already render as placeholders, so hydration only has to reject wrong types.
@@ -24,7 +27,8 @@ export const matCalculatorFieldSchemas = {
 };
 
 /** Storage key, persist keys and hydration validators for the mat form. */
-export const matCalculatorPersistence = definePersistedFormFields(
+export const matCalculatorPersistence = definePersistedCalculator(
   MAT_CALCULATOR_STORAGE_KEY,
-  matCalculatorFieldSchemas
+  matCalculatorFieldSchemas,
+  MAT_CALCULATOR_DEFAULTS
 );

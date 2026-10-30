@@ -211,7 +211,7 @@ build-time prerender snapshots stay deterministic.
 **Key components:**
 
 - `SensorSizeVisualization` - Visual comparison of sensor/film sizes
-- `useLocalStorageFormPersistence()` - Generic form state persistence hook
+- `usePersistedCalculator()` - Generic calculator state persistence hook
 
 ---
 
@@ -243,7 +243,7 @@ build-time prerender snapshots stay deterministic.
 
 - `EVResultCard` - EV display with formula
 - `EVPresetButton` - Lighting condition preset buttons
-- `useLocalStorageFormPersistence()` - Form state persistence
+- `usePersistedCalculator()` - Form state persistence
 
 ---
 
@@ -419,21 +419,31 @@ All calculator pages follow a consistent pattern:
 4. **Input card:** `CalculatorCard` with form fields
 5. **Results card:** `CalculatorCard` with the page's accent tone
 6. **Info cards:** How-to-use and educational content in sidebar
-7. **State persistence:** localStorage via `useLocalStorageFormPersistence()`
+7. **State persistence:** localStorage via `usePersistedCalculator()`
 
 ### State Persistence Pattern
 
+Each calculator has one persistence definition, built next to its schema:
+
 ```typescript
-useLocalStorageFormPersistence({
-  storageKey: STORAGE_KEY,
+export const myCalculatorPersistence = definePersistedCalculator(
+  MY_STORAGE_KEY,
+  { field1: positiveNumber, field2: z.boolean() }, // per-field bounds
+  MY_FORM_DEFAULTS
+);
+
+const form = useForm({ defaultValues: myCalculatorPersistence.defaults });
+const formValues = useStore(form.store, (state) => state.values);
+const { resetToDefaults } = usePersistedCalculator(myCalculatorPersistence, {
   form,
-  formValues,
-  persistKeys: ['field1', 'field2'],
-  validators: {
-    field1: { validate: (v) => typeof v === 'number' && Number.isFinite(v) },
-  },
+  values: formValues,
 });
 ```
+
+The hook hydrates each persisted field through its schema (an invalid field
+keeps its default), writes the persisted fields as one JSON object 300ms after
+the last change, and clears the snapshot on reset. Storage comes from
+`PersistenceStorageProvider` (MMKV on iOS) and falls back to `localStorage`.
 
 ### Form Validation
 

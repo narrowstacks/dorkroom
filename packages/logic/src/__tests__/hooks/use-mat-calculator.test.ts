@@ -4,8 +4,8 @@ import {
   MAT_CALCULATOR_DEFAULTS,
   MAT_CALCULATOR_STORAGE_KEY,
 } from '../../constants/mat-calculator';
-import type { PersistedValue } from '../../hooks/use-local-storage-form-persistence';
 import { useMatCalculator } from '../../hooks/use-mat-calculator';
+import type { PersistedValue } from '../../utils/persisted-calculator';
 import { convertDisplayToInches } from '../../utils/unit-conversion';
 
 describe('useMatCalculator', () => {

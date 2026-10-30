@@ -1,20 +1,13 @@
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
+import { usePersistedCalculator } from '../../hooks/use-persisted-calculator';
 import {
+  definePersistedCalculator,
   type PersistedValue,
-  useLocalStorageFormPersistence,
-} from '../../hooks/use-local-storage-form-persistence';
-import { definePersistedFormFields } from '../../utils/persisted-form-fields';
+} from '../../utils/persisted-calculator';
 
 const STORAGE_KEY = 'persistedFormFieldsTest_v1';
-
-const fields = definePersistedFormFields(STORAGE_KEY, {
-  count: z.number().min(1).max(10),
-  label: z.string().min(1),
-  enabled: z.boolean(),
-  withDefault: z.number().optional().default(5),
-});
 
 interface TestForm {
   count: number;
@@ -32,31 +25,41 @@ const DEFAULTS: TestForm = {
   notPersisted: 'untouched',
 };
 
+const fields = definePersistedCalculator(
+  STORAGE_KEY,
+  {
+    count: z.number().min(1).max(10),
+    label: z.string().min(1),
+    enabled: z.boolean(),
+    withDefault: z.number().optional().default(5),
+  },
+  DEFAULTS
+);
+
 const hydrate = (stored: Record<string, PersistedValue>) => {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
   const values: TestForm = { ...DEFAULTS };
   renderHook(() =>
-    useLocalStorageFormPersistence<TestForm>({
-      ...fields,
+    usePersistedCalculator(fields, {
       form: {
         setFieldValue: (key, value) => {
           Object.assign(values, { [key]: value });
         },
       },
-      formValues: values,
-      disablePersistence: true,
+      values,
     })
   );
   return values;
 };
 
-describe('definePersistedFormFields', () => {
+describe('definePersistedCalculator', () => {
   beforeEach(() => {
     window.localStorage.clear();
   });
 
-  it('returns the storage key and every schema key, in order', () => {
+  it('returns the storage key, every schema key in order, and the defaults', () => {
     expect(fields.storageKey).toBe(STORAGE_KEY);
+    expect(fields.defaults).toBe(DEFAULTS);
     expect(fields.persistKeys).toEqual([
       'count',
       'label',
@@ -115,15 +118,37 @@ describe('definePersistedFormFields', () => {
   });
 
   it('can express the border calculator field map', async () => {
-    const { persistedBorderCalculatorFieldSchemas } =
+    const { initialState, persistedBorderCalculatorFieldSchemas } =
       await import('../../hooks/border-calculator/use-border-calculator-state');
-    const border = definePersistedFormFields(
+    const border = definePersistedCalculator(
       'border',
-      persistedBorderCalculatorFieldSchemas
+      persistedBorderCalculatorFieldSchemas,
+      initialState
     );
     expect(border.persistKeys).toEqual(
       Object.keys(persistedBorderCalculatorFieldSchemas)
     );
     expect(border.validators.minBorder.validate(undefined)).toBe(false);
+  });
+
+  it('rejects, at compile time, a schema for a field the calculator lacks or cannot hold', () => {
+    definePersistedCalculator(
+      'typecheck',
+      // @ts-expect-error - `missing` is not a field of TestForm
+      { count: z.number(), missing: z.number() },
+      DEFAULTS
+    );
+    definePersistedCalculator(
+      'typecheck',
+      // @ts-expect-error - a string schema cannot feed the numeric `count`
+      { count: z.string() },
+      DEFAULTS
+    );
+    definePersistedCalculator(
+      'typecheck',
+      // @ts-expect-error - a string input transformed to a number is not a stored `count`
+      { count: z.string().transform(Number) },
+      DEFAULTS
+    );
   });
 });

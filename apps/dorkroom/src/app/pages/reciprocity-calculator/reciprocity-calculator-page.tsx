@@ -1,17 +1,14 @@
 import {
   calculateReciprocity,
-  DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
-  DEFAULT_RECIPROCITY_METERED_TIME,
   formatReciprocityTime,
   parseReciprocityTime,
-  RECIPROCITY_CALCULATOR_DEFAULTS,
   RECIPROCITY_EXPOSURE_PRESETS,
   RECIPROCITY_FILM_TYPES,
   type ReciprocityCalculation,
   reciprocityCalculatorPersistence,
   type ReciprocityFormState,
   type SelectItem,
-  useLocalStorageFormPersistence,
+  usePersistedCalculator,
 } from '@dorkroom/logic';
 import {
   getRouteAccent,
@@ -432,11 +429,7 @@ function useReciprocityForm() {
 
   // TanStack Form for input state
   const form = useForm({
-    defaultValues: {
-      filmType: RECIPROCITY_CALCULATOR_DEFAULTS.filmType,
-      meteredTime: DEFAULT_RECIPROCITY_METERED_TIME,
-      customFactor: DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
-    } satisfies ReciprocityFormState,
+    defaultValues: reciprocityCalculatorPersistence.defaults,
     validators: {
       onChange: validateReciprocityForm,
     },
@@ -446,11 +439,10 @@ function useReciprocityForm() {
   const formValues = useStore(form.store, (state) => state.values);
 
   // Persist and hydrate form state to/from localStorage
-  const { resetToDefaults } = useLocalStorageFormPersistence({
-    ...reciprocityCalculatorPersistence,
-    form,
-    formValues,
-  });
+  const { resetToDefaults } = usePersistedCalculator(
+    reciprocityCalculatorPersistence,
+    { form, values: formValues }
+  );
 
   // Calculate derived values from form state
   const meteredTime = form.getFieldValue('meteredTime');

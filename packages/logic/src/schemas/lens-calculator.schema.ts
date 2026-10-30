@@ -1,10 +1,11 @@
 import { z } from 'zod';
 import {
+  LENS_DEFAULTS,
   MAX_FOCAL_LENGTH_MM,
   SENSOR_FORMAT_MAP,
 } from '../constants/lens-calculator-defaults';
 import { LENS_STORAGE_KEY } from '../types/lens-calculator';
-import { definePersistedFormFields } from '../utils/persisted-form-fields';
+import { definePersistedCalculator } from '../utils/persisted-calculator';
 
 const sensorFormat = z
   .string()
@@ -21,7 +22,8 @@ export const lensCalculatorFieldSchemas = {
 };
 
 /** Storage key, persist keys and hydration validators for the form. */
-export const lensCalculatorPersistence = definePersistedFormFields(
+export const lensCalculatorPersistence = definePersistedCalculator(
   LENS_STORAGE_KEY,
-  lensCalculatorFieldSchemas
+  lensCalculatorFieldSchemas,
+  LENS_DEFAULTS
 );

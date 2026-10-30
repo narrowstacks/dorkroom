@@ -9,12 +9,14 @@ import { configureDorkroomApi } from '@/lib/api-config';
 // key) before any query runs.
 configureDorkroomApi();
 
+import { PersistenceStorageProvider } from '@dorkroom/logic';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Appearance } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { calculatorStorage } from '@/lib/mmkv-storage';
 import { queryClient } from '@/providers/query-client';
 import {
   QUERY_CACHE_MAX_AGE,
@@ -37,11 +39,15 @@ export default function RootLayout() {
             maxAge: QUERY_CACHE_MAX_AGE,
           }}
         >
-          <ThemeProvider value={DarkTheme}>
-            <Stack screenOptions={{ headerShown: false }} />
-            {/* oxlint-disable-next-line react/style-prop-object -- expo-status-bar's `style` is a preset string ('auto' | 'light' | 'dark'), not a React style object */}
-            <StatusBar style="light" />
-          </ThemeProvider>
+          {/* Persisted calculators (mat, lens, camera exposure, border) read
+              and write MMKV through this, not the window.localStorage alias. */}
+          <PersistenceStorageProvider value={calculatorStorage}>
+            <ThemeProvider value={DarkTheme}>
+              <Stack screenOptions={{ headerShown: false }} />
+              {/* oxlint-disable-next-line react/style-prop-object -- expo-status-bar's `style` is a preset string ('auto' | 'light' | 'dark'), not a React style object */}
+              <StatusBar style="light" />
+            </ThemeProvider>
+          </PersistenceStorageProvider>
         </PersistQueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

@@ -12,9 +12,8 @@ import {
   parseMatInput,
 } from '../constants/mat-calculator';
 import { matCalculatorPersistence } from '../schemas/mat-calculator.schema';
-import { createStateFormAdapter } from '../utils/persisted-form-fields';
 import type { MeasurementUnit } from '../utils/unit-conversion';
-import { useLocalStorageFormPersistence } from './use-local-storage-form-persistence';
+import { usePersistedCalculator } from './use-persisted-calculator';
 
 /** A single guide-bar cut card for the mat cutter. */
 export interface MatGuideBarCut {
@@ -81,7 +80,7 @@ export interface UseMatCalculatorOptions {
 
 /**
  * Hook for the single-window mat cut calculator. Owns the fraction-friendly
- * form state (persisted to localStorage) and derives the window opening,
+ * form state (persisted through the storage seam) and derives the window opening,
  * cutter guide-bar settings, and a best-fit border preview.
  *
  * @example
@@ -104,11 +103,10 @@ export function useMatCalculator(
     []
   );
 
-  const { resetToDefaults: reset } = useLocalStorageFormPersistence({
-    ...matCalculatorPersistence,
-    form: createStateFormAdapter(setValues, MAT_CALCULATOR_DEFAULTS),
-    formValues: values,
-  });
+  const { resetToDefaults: reset } = usePersistedCalculator(
+    matCalculatorPersistence,
+    { values, setValues }
+  );
 
   const ow = parseMatInput(values.outerW);
   const oh = parseMatInput(values.outerH);

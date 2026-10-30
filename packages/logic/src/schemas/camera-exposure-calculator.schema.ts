@@ -1,6 +1,7 @@
 import { z } from 'zod';
+import { CAMERA_EXPOSURE_DEFAULTS } from '../constants/camera-exposure-defaults';
 import { CAMERA_EXPOSURE_STORAGE_KEY } from '../types/camera-exposure-calculator';
-import { definePersistedFormFields } from '../utils/persisted-form-fields';
+import { definePersistedCalculator } from '../utils/persisted-calculator';
 
 const positiveNumber = z.number().positive();
 
@@ -19,7 +20,8 @@ export const cameraExposureFieldSchemas = {
 };
 
 /** Storage key, persist keys and hydration validators for the form. */
-export const cameraExposurePersistence = definePersistedFormFields(
+export const cameraExposurePersistence = definePersistedCalculator(
   CAMERA_EXPOSURE_STORAGE_KEY,
-  cameraExposureFieldSchemas
+  cameraExposureFieldSchemas,
+  CAMERA_EXPOSURE_DEFAULTS
 );

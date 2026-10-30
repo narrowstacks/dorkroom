@@ -10,8 +10,7 @@ import {
   calculateEquivalentFocalLength,
   calculateFieldOfView,
 } from '../utils/lens-calculations';
-import { createStateFormAdapter } from '../utils/persisted-form-fields';
-import { useLocalStorageFormPersistence } from './use-local-storage-form-persistence';
+import { usePersistedCalculator } from './use-persisted-calculator';
 
 /** Derived lens equivalency result, or null when inputs are invalid. */
 export interface LensCalculatorResult {
@@ -38,7 +37,7 @@ export interface UseLensCalculatorReturn {
 
 /**
  * Hook for the lens equivalency calculator. Owns the focal length and
- * source/target format selection (persisted to localStorage) and derives
+ * source/target format selection (persisted through the storage seam) and derives
  * the equivalent focal length and field of view on the target format.
  *
  * @example
@@ -79,11 +78,10 @@ export function useLensCalculator(): UseLensCalculatorReturn {
     []
   );
 
-  const { resetToDefaults: reset } = useLocalStorageFormPersistence({
-    ...lensCalculatorPersistence,
-    form: createStateFormAdapter(setValues, LENS_DEFAULTS),
-    formValues: values,
-  });
+  const { resetToDefaults: reset } = usePersistedCalculator(
+    lensCalculatorPersistence,
+    { values, setValues }
+  );
 
   const calculation = useMemo<LensCalculatorResult | null>(() => {
     const { focalLength } = values;
