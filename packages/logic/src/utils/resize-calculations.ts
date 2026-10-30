@@ -102,11 +102,23 @@ export interface AspectRatioInput {
 }
 
 /**
+ * Relative difference under which two print ratios count as the same.
+ *
+ * Metric input is stored as inches rounded to 3 decimals, which perturbs each
+ * dimension by up to 0.0005in. For a 1cm (0.394in) side that is 0.13%, so a
+ * ratio can move by about 0.26% without the user changing anything (#343:
+ * 11x16cm to 22x32cm used to warn). 0.5% clears that with margin, while the
+ * closest pair of standard papers (8x10 vs 11x14) differs by 1.8%, and a 0.5%
+ * crop is half a millimetre on a 10cm print.
+ */
+export const ASPECT_RATIO_TOLERANCE = 0.005;
+
+/**
  * Reports whether the original and new print dimensions share an aspect ratio.
  *
- * Ratios are compared at three decimals so that near-identical crops (6x4 to
- * 9x6) count as matched. Unusable dimensions report a match rather than warning
- * the user about input they have not finished typing.
+ * Ratios are compared with a relative tolerance (`ASPECT_RATIO_TOLERANCE`) so
+ * unit-conversion rounding never reads as a crop. Unusable dimensions report a
+ * match rather than warning the user about input they have not finished typing.
  */
 export const matchesAspectRatio = ({
   isEnlargerHeightMode,
@@ -123,8 +135,11 @@ export const matchesAspectRatio = ({
     return true;
   }
 
+  const originalRatio = originalWidth / originalLength;
+  const newRatio = newWidth / newLength;
+
   return (
-    (originalWidth / originalLength).toFixed(3) ===
-    (newWidth / newLength).toFixed(3)
+    Math.abs(originalRatio - newRatio) / Math.max(originalRatio, newRatio) <=
+    ASPECT_RATIO_TOLERANCE
   );
 };

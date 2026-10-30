@@ -4,6 +4,7 @@ import {
   matchesAspectRatio,
   type ResizeExposureInput,
 } from '../../utils/resize-calculations';
+import { convertDisplayToInches } from '../../utils/unit-conversion';
 
 /** A 6x4 print at 10s, with enlarger heights standing by for the other mode. */
 const BASE: ResizeExposureInput = {
@@ -135,5 +136,72 @@ describe('matchesAspectRatio', () => {
     expect(matchesAspectRatio({ ...DIMS, originalLength: Number.NaN })).toBe(
       true
     );
+  });
+});
+
+describe('matchesAspectRatio with metric input (#343)', () => {
+  const cm = (value: number) => convertDisplayToInches(value, 'metric');
+
+  it('matches 11×16cm scaled to 22×32cm despite inch rounding', () => {
+    expect(
+      matchesAspectRatio({
+        isEnlargerHeightMode: false,
+        originalWidth: cm(11),
+        originalLength: cm(16),
+        newWidth: cm(22),
+        newLength: cm(32),
+      })
+    ).toBe(true);
+  });
+
+  it('matches every exact doubling of a 1-30cm print in half-cm steps', () => {
+    const mismatched: string[] = [];
+    for (let w = 2; w <= 60; w++) {
+      for (let h = 2; h <= 60; h++) {
+        const ok = matchesAspectRatio({
+          isEnlargerHeightMode: false,
+          originalWidth: cm(w / 2),
+          originalLength: cm(h / 2),
+          newWidth: cm(w),
+          newLength: cm(h),
+        });
+        if (!ok) mismatched.push(`${w / 2}×${h / 2}`);
+      }
+    }
+    expect(mismatched).toEqual([]);
+  });
+
+  it('still warns for genuinely different ratios', () => {
+    const base = { isEnlargerHeightMode: false };
+    // 8x10 vs 4x6
+    expect(
+      matchesAspectRatio({
+        ...base,
+        originalWidth: 8,
+        originalLength: 10,
+        newWidth: 4,
+        newLength: 6,
+      })
+    ).toBe(false);
+    // 8x10 vs 11x14 (the closest pair of standard paper sizes, ~1.8%)
+    expect(
+      matchesAspectRatio({
+        ...base,
+        originalWidth: 8,
+        originalLength: 10,
+        newWidth: 11,
+        newLength: 14,
+      })
+    ).toBe(false);
+    // A 1% crop still warns
+    expect(
+      matchesAspectRatio({
+        ...base,
+        originalWidth: 10,
+        originalLength: 10,
+        newWidth: 10,
+        newLength: 10.1,
+      })
+    ).toBe(false);
   });
 });

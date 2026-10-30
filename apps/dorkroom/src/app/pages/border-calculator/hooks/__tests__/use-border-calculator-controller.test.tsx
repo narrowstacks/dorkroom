@@ -9,8 +9,12 @@ import {
   type PersistedBorderCalculatorState,
   SLIDER_MIN_BORDER,
 } from '@dorkroom/logic';
-import { MeasurementProvider } from '@dorkroom/ui';
-import { act, renderHook } from '@testing-library/react';
+import {
+  MeasurementProvider,
+  ToastProvider,
+  useMeasurement,
+} from '@dorkroom/ui';
+import { act, renderHook, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useBorderCalculatorController } from '../use-border-calculator-controller';
@@ -156,6 +160,146 @@ describe('useBorderCalculatorController preset application', () => {
     expect(result.current.formValues.aspectRatio).toBe(
       BORDER_CALCULATOR_DEFAULTS.aspectRatio
     );
+  });
+});
+
+describe('useBorderCalculatorController unit-aware messages (#343)', () => {
+  function toastWrapper({ children }: { children: ReactNode }) {
+    return (
+      <MeasurementProvider>
+        <ToastProvider>{children}</ToastProvider>
+      </MeasurementProvider>
+    );
+  }
+
+  function renderInUnit(unit: 'imperial' | 'metric') {
+    window.localStorage.clear();
+    window.localStorage.setItem('dorkroom-measurement-unit', unit);
+    window.history.replaceState(null, '', '/border');
+    return renderHook(() => useBorderCalculatorController(), {
+      wrapper: toastWrapper,
+    });
+  }
+
+  function setCustomPaper(
+    result: { current: ReturnType<typeof useBorderCalculatorController> },
+    width: string,
+    height: string
+  ) {
+    act(() => {
+      result.current.form.setFieldValue('paperSize', 'custom');
+    });
+    act(() => {
+      result.current.handlePaperWidthChange(width);
+    });
+    act(() => {
+      result.current.handlePaperWidthBlur();
+    });
+    act(() => {
+      result.current.handlePaperHeightChange(height);
+    });
+    act(() => {
+      result.current.handlePaperHeightBlur();
+    });
+  }
+
+  afterEach(() => {
+    window.localStorage.clear();
+  });
+
+  it('prints the oversized custom paper warning in centimetres', () => {
+    const { result } = renderInUnit('metric');
+    setCustomPaper(result, '60', '80');
+
+    expect(result.current.paperSizeWarning).toBe(
+      'Custom paper (60×80cm) exceeds largest standard easel (50.8×61cm).'
+    );
+  });
+
+  it('shows a typed cm paper size back unchanged after blur', () => {
+    const { result } = renderInUnit('metric');
+    setCustomPaper(result, '25', '30.3');
+
+    expect(result.current.paperWidthInput).toBe('25');
+    expect(result.current.paperHeightInput).toBe('30.3');
+  });
+
+  // Blurring a field shown in cm must not re-round an inch-entered size
+  it('keeps imperial-stored 8.125in when its field is blurred in metric', () => {
+    window.localStorage.clear();
+    window.localStorage.setItem('dorkroom-measurement-unit', 'imperial');
+    const { result } = renderHook(
+      () => ({
+        controller: useBorderCalculatorController(),
+        measurement: useMeasurement(),
+      }),
+      { wrapper: toastWrapper }
+    );
+    const controller = {
+      get current() {
+        return result.current.controller;
+      },
+    };
+    setCustomPaper(controller, '8.125', '10.125');
+    expect(result.current.controller.formValues.customPaperWidth).toBe(8.125);
+
+    act(() => {
+      result.current.measurement.setUnit('metric');
+    });
+    expect(result.current.controller.paperWidthInput).toBe('20.638');
+
+    // Click in and out without typing
+    act(() => {
+      result.current.controller.handlePaperWidthBlur();
+    });
+    expect(result.current.controller.formValues.customPaperWidth).toBe(8.125);
+
+    // Re-commit the shown text explicitly
+    act(() => {
+      result.current.controller.handlePaperWidthChange('20.638');
+    });
+    act(() => {
+      result.current.controller.handlePaperWidthBlur();
+    });
+    expect(result.current.controller.formValues.customPaperWidth).toBe(8.125);
+
+    act(() => {
+      result.current.measurement.setUnit('imperial');
+    });
+    expect(result.current.controller.paperWidthInput).toBe('8.125');
+  });
+
+  it('prints the oversized custom paper warning with inch marks', () => {
+    const { result } = renderInUnit('imperial');
+    setCustomPaper(result, '21', '25.5');
+
+    expect(result.current.paperSizeWarning).toBe(
+      'Custom paper (21×25.5") exceeds largest standard easel (20×24").'
+    );
+  });
+
+  it('announces a clamped min border in centimetres', async () => {
+    const { result } = renderInUnit('metric');
+    act(() => {
+      result.current.form.setFieldValue('minBorder', 2);
+    });
+    setCustomPaper(result, '5', '5');
+
+    expect(
+      await screen.findByText('Border reduced to 2.2cm to fit paper size')
+    ).toBeTruthy();
+  });
+
+  it('announces a clamped min border in inches', async () => {
+    const { result } = renderInUnit('imperial');
+    act(() => {
+      result.current.form.setFieldValue('minBorder', 2);
+    });
+    setCustomPaper(result, '2', '2');
+
+    expect(
+      await screen.findByText('Border reduced to 0.88" to fit paper size')
+    ).toBeTruthy();
   });
 });
 

@@ -127,6 +127,48 @@ export function convertDisplayToInches(
 }
 
 /**
+ * Most decimals a centimetre value shown in an editable field can carry.
+ *
+ * Three is enough to pin any stored value: stored inches have 3 decimals, and
+ * 0.001cm is finer than 0.001in, so a 3-decimal cm value always converts back
+ * to the same stored inches. See `convertInchesToInputValue`.
+ */
+export const METRIC_INPUT_MAX_DECIMALS = 3;
+
+/**
+ * Convert stored inches to the number shown in an editable input.
+ *
+ * Use this, not `convertInchesToDisplay`, wherever a value is written back
+ * into a field the user can re-commit. Metric returns the *shortest* cm value
+ * (0 to `METRIC_INPUT_MAX_DECIMALS` decimals) that converts back to the same
+ * stored inches, so both directions round-trip (#343):
+ *
+ * - a typed `25` cm is stored as 9.843in and reads back as `25`, not `25.001`;
+ * - an inch-entered 8.125in reads as `20.638` cm, and re-committing that text
+ *   stores 8.125in again rather than drifting to 8.126in.
+ *
+ * Imperial passes through as-is. Stored values are never changed here.
+ */
+export function convertInchesToInputValue(
+  inches: number,
+  unit: MeasurementUnit
+): number {
+  if (unit === 'imperial') {
+    return inches;
+  }
+  // What a re-commit of the displayed text would store
+  const stored = roundToPrecision(inches, 3);
+  const cm = inchesToCm(inches);
+  for (let decimals = 0; decimals < METRIC_INPUT_MAX_DECIMALS; decimals++) {
+    const candidate = roundToPrecision(cm, decimals);
+    if (convertDisplayToInches(candidate, unit) === stored) {
+      return candidate;
+    }
+  }
+  return roundToPrecision(cm, METRIC_INPUT_MAX_DECIMALS);
+}
+
+/**
  * Format a measurement value with appropriate precision and unit
  */
 export function formatMeasurement(

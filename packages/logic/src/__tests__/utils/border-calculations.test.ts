@@ -6,7 +6,9 @@ import {
   clampOffsets,
   computePrintSize,
   findCenteringOffsets,
+  formatPaperSizeWarning,
 } from '../../utils/border-calculations';
+import { convertDisplayToInches } from '../../utils/unit-conversion';
 
 describe('border calculations', () => {
   describe('findCenteringOffsets', () => {
@@ -361,5 +363,22 @@ describe('border calculations', () => {
       expect(recomputed.printW % 0.25).toBeCloseTo(0, 6);
       expect(recomputed.printH % 0.25).toBeCloseTo(0, 6);
     });
+  });
+});
+
+describe('formatPaperSizeWarning', () => {
+  it('prints a metric warning in centimetres at label precision', () => {
+    const w = convertDisplayToInches(60, 'metric');
+    const h = convertDisplayToInches(80, 'metric');
+
+    expect(formatPaperSizeWarning(w, h, 'metric')).toBe(
+      'Custom paper (60×80cm) exceeds largest standard easel (50.8×61cm).'
+    );
+  });
+
+  it('prints an imperial warning with inch marks on both sizes', () => {
+    expect(formatPaperSizeWarning(21, 25.5, 'imperial')).toBe(
+      'Custom paper (21×25.5") exceeds largest standard easel (20×24").'
+    );
   });
 });

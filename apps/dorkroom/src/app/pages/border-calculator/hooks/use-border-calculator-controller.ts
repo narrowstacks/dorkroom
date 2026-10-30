@@ -9,6 +9,8 @@ import {
   DESKTOP_BREAKPOINT,
   debugError,
   debugLog,
+  formatMeasurement,
+  getDisplayUnitSymbol,
   PAPER_SIZES,
   type PersistedValue,
   persistedBorderCalculatorFieldSchemas,
@@ -150,7 +152,7 @@ export function useBorderCalculatorController() {
     },
   });
 
-  const dimensionData = useDimensionCalculations(formValues);
+  const dimensionData = useDimensionCalculations(formValues, unit);
   const { orientedPaper, orientedRatio } = dimensionData.orientedDimensions;
 
   // Maximum allowed minimum border for the current paper size
@@ -201,11 +203,11 @@ export function useBorderCalculatorController() {
       form.setFieldValue('minBorder', maxAllowedMinBorder);
       form.setFieldValue('lastValidMinBorder', maxAllowedMinBorder);
       toast?.showToast(
-        `Border reduced to ${maxAllowedMinBorder.toFixed(2)}" to fit paper size`,
+        `Border reduced to ${formatMeasurement(maxAllowedMinBorder, unit, { includeUnit: false })}${getDisplayUnitSymbol(unit)} to fit paper size`,
         'info'
       );
     }
-  }, [maxAllowedMinBorder, minBorder, form, toast]);
+  }, [maxAllowedMinBorder, minBorder, form, toast, unit]);
 
   useEffect(() => {
     if (!calculation) return;

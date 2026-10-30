@@ -170,6 +170,8 @@ describe('useMatCalculator', () => {
   });
 });
 
+const PROPERTY_TIMEOUT_MS = 30_000;
+
 describe('best fit never trips the reveal-mismatch warning (issue #341)', () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -312,91 +314,103 @@ describe('best fit never trips the reveal-mismatch warning (issue #341)', () => 
     expect(metric.result.current.hasRevealMismatch).toBe(true);
   });
 
-  it('property: best fit never self-triggers the warning', () => {
-    const sixteenths = (n: number) => `${Math.floor(n / 16)} ${n % 16}/16`;
-    let checked = 0;
-    for (const [ow, oh] of [
-      [16, 20],
-      [11, 14],
-      [8, 10],
-      [20, 24],
-      [24, 30],
-    ]) {
-      for (let aw16 = 4 * 16; aw16 < 10 * 16; aw16 += 23) {
-        for (const rev of ['0', '1/8', '1/4', '3/16']) {
-          for (const bottomWeight of [false, true]) {
-            const calc = fit(
-              {
-                outerW: String(ow),
-                outerH: String(oh),
-                artW: sixteenths(aw16),
-                artH: sixteenths(aw16 + 33),
-                reveal: rev,
+  // Each property test renders the hook a few hundred times: ~0.7s alone, but
+  // several times that under the full parallel gate. Give them headroom so a
+  // loaded CI runner cannot fail them on the default 5s timeout.
+  it(
+    'property: best fit never self-triggers the warning',
+    () => {
+      const sixteenths = (n: number) => `${Math.floor(n / 16)} ${n % 16}/16`;
+      let checked = 0;
+      for (const [ow, oh] of [
+        [16, 20],
+        [11, 14],
+        [8, 10],
+        [20, 24],
+        [24, 30],
+      ]) {
+        for (let aw16 = 4 * 16; aw16 < 10 * 16; aw16 += 23) {
+          for (const rev of ['0', '1/8', '1/4', '3/16']) {
+            for (const bottomWeight of [false, true]) {
+              const calc = fit(
+                {
+                  outerW: String(ow),
+                  outerH: String(oh),
+                  artW: sixteenths(aw16),
+                  artH: sixteenths(aw16 + 33),
+                  reveal: rev,
+                  bottomWeight,
+                },
+                'imperial'
+              );
+              if (!calc.bestFitPreview) continue;
+              expect(calc.valid).toBe(true);
+              expect(calc.hasRevealMismatch).toBe(false);
+              checked += 1;
+            }
+          }
+        }
+      }
+      expect(checked).toBeGreaterThan(100);
+    },
+    PROPERTY_TIMEOUT_MS
+  );
+
+  it(
+    'property: metric best fit, via 3-decimal stored inches, never warns (also after switching to imperial)',
+    () => {
+      // Same path as the page: cm typed -> convertDisplayToInches.
+      const inches = (cm: number) =>
+        String(convertDisplayToInches(cm, 'metric'));
+      let checked = 0;
+      for (const [ow, oh] of [
+        [40, 50],
+        [40.6, 50.8],
+        [30.5, 40.5],
+        [27.9, 35.6],
+      ]) {
+        for (let mm = 150; mm < 290; mm += 7) {
+          for (const revMm of [0, 3, 5, 6.5]) {
+            for (const bottomWeight of [false, true]) {
+              const setup = {
+                outerW: inches(ow),
+                outerH: inches(oh),
+                artW: inches(mm / 10),
+                artH: inches((mm + 35) / 10),
+                reveal: inches(revMm / 10),
                 bottomWeight,
-              },
-              'imperial'
-            );
-            if (!calc.bestFitPreview) continue;
-            expect(calc.valid).toBe(true);
-            expect(calc.hasRevealMismatch).toBe(false);
-            checked += 1;
+              };
+              const calc = fit(setup, 'metric');
+              if (!calc.bestFitPreview) continue;
+              expect(calc.hasRevealMismatch).toBe(false);
+              checked += 1;
+
+              // Same stored values read by an imperial-unit hook.
+              const switched = renderHook(() => useMatCalculator());
+              act(() => {
+                const { set } = switched.result.current;
+                for (const key of [
+                  'outerW',
+                  'outerH',
+                  'artW',
+                  'artH',
+                  'reveal',
+                  'borderTop',
+                  'borderBottom',
+                  'borderLeft',
+                  'borderRight',
+                ] as const) {
+                  set(key, calc.values[key]);
+                }
+                set('bottomWeight', bottomWeight);
+              });
+              expect(switched.result.current.hasRevealMismatch).toBe(false);
+            }
           }
         }
       }
-    }
-    expect(checked).toBeGreaterThan(100);
-  });
-
-  it('property: metric best fit, via 3-decimal stored inches, never warns (also after switching to imperial)', () => {
-    // Same path as the page: cm typed -> convertDisplayToInches.
-    const inches = (cm: number) => String(convertDisplayToInches(cm, 'metric'));
-    let checked = 0;
-    for (const [ow, oh] of [
-      [40, 50],
-      [40.6, 50.8],
-      [30.5, 40.5],
-      [27.9, 35.6],
-    ]) {
-      for (let mm = 150; mm < 290; mm += 7) {
-        for (const revMm of [0, 3, 5, 6.5]) {
-          for (const bottomWeight of [false, true]) {
-            const setup = {
-              outerW: inches(ow),
-              outerH: inches(oh),
-              artW: inches(mm / 10),
-              artH: inches((mm + 35) / 10),
-              reveal: inches(revMm / 10),
-              bottomWeight,
-            };
-            const calc = fit(setup, 'metric');
-            if (!calc.bestFitPreview) continue;
-            expect(calc.hasRevealMismatch).toBe(false);
-            checked += 1;
-
-            // Same stored values read by an imperial-unit hook.
-            const switched = renderHook(() => useMatCalculator());
-            act(() => {
-              const { set } = switched.result.current;
-              for (const key of [
-                'outerW',
-                'outerH',
-                'artW',
-                'artH',
-                'reveal',
-                'borderTop',
-                'borderBottom',
-                'borderLeft',
-                'borderRight',
-              ] as const) {
-                set(key, calc.values[key]);
-              }
-              set('bottomWeight', bottomWeight);
-            });
-            expect(switched.result.current.hasRevealMismatch).toBe(false);
-          }
-        }
-      }
-    }
-    expect(checked).toBeGreaterThan(100);
-  });
+      expect(checked).toBeGreaterThan(100);
+    },
+    PROPERTY_TIMEOUT_MS
+  );
 });

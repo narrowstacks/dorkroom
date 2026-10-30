@@ -43,8 +43,8 @@ describe('formatMatPreview', () => {
   });
 
   it('uses centimetres in metric, at the field precision', () => {
-    // 3.25in is 3 1/4in, which the border field will show as 8.26cm.
-    expect(formatMatPreview(3.25, 'metric')).toBe('8.26cm');
+    // 3.25in snaps to 3 1/4in, which the border field will show as 8.255cm.
+    expect(formatMatPreview(3.25, 'metric')).toBe('8.255cm');
   });
 });
 
@@ -99,11 +99,11 @@ describe('matDisplayToValue', () => {
     }
   });
 
-  it('shows a sub-millimetre inch value at the field precision', () => {
-    // 1/4" is 0.635cm; the field rounds to 0.64cm, and only an edit there
-    // (not the preference switch itself) writes that back as inches.
-    expect(matValueToDisplay('1/4', 'metric')).toBe('0.64');
-    expect(matDisplayToValue('0.64', 'metric')).toBe('0.252');
+  it('shows a sub-millimetre inch value exactly enough to round-trip', () => {
+    // 1/4" is 0.635cm. Rounding it to 0.64cm would re-commit as 0.252in on
+    // blur (#343), so the field keeps the third decimal it needs.
+    expect(matValueToDisplay('1/4', 'metric')).toBe('0.635');
+    expect(matDisplayToValue('0.635', 'metric')).toBe('0.25');
   });
 });
 
