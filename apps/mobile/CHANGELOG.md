@@ -11,6 +11,9 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 
 - **Mat "Best fit borders" no longer trips its own mismatch warning.** Best fit rounded each border on its own, so the window could miss the reveal and the app flagged its own suggestion. It now splits each pair of borders on the 1/16" grid so the window is exact, and the "Proposed" preview matches what gets applied. (#442, fixes #341)
 - **Resize no longer reports an aspect-ratio mismatch for sizes that only differ by rounding.** Ratios within 0.5% now count as matching; genuinely different papers still warn. The border calculator's custom-paper warning also shows the inch mark on the paper size. (#445, fixes #343)
+- **VoiceOver reads each stepper as one labeled control.** Steppers used to read as an unnamed "Decrease, button / Increase, button" pair. Each now announces its field name and value (for example "Stage 1 minutes, 6, adjustable") and changes with a swipe up or down. This covers the Process Timer preset editor, Exposure, the film log's frame number and the volume mixer. (#416, fixes #321)
+- **The timer's temperature field accepts decimals.** Typing a decimal point (or comma) in a preset's temperature was dropped, so values like 68.5 couldn't be entered. The field now uses the decimal keyboard. (#397, fixes #320)
+- **Recipe filters match the web.** The ISO filter is kept when you pick or clear a film, and the developer type filter is cleared and hidden once you pick a developer. (#421, fixes #375; #365, fixes #325)
 
 ## [2026.09.22]
 
