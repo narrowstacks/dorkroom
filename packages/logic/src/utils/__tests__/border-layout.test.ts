@@ -13,7 +13,19 @@ import { computeBorderLayout, computePreviewScale } from '../border-layout';
 // this function replaced (#290), so any change to them is a change to the
 // numbers the border calculator displays.
 
-const papers: Array<Partial<BorderCalculatorState>> = [
+// A slice of calculator input. The grid deliberately includes values outside
+// the declared unions ('unknown-size', 'unknown-ratio') to pin the lookup
+// fallbacks, so slices are loosely typed and merged by makeState.
+type GridPart = Record<string, string | number | boolean>;
+
+function makeState(...parts: GridPart[]): BorderCalculatorState {
+  // SAFETY: every field comes from initialState; the parts only override
+  // calculator inputs with numbers, booleans or paper/ratio identifiers, the
+  // last of which may be unknown on purpose to exercise the fallbacks.
+  return Object.assign({ ...initialState }, ...parts) as BorderCalculatorState;
+}
+
+const papers: GridPart[] = [
   ...PAPER_SIZES.filter((p) => p.value !== 'custom').map((p) => ({
     paperSize: p.value,
   })),
@@ -32,7 +44,7 @@ const papers: Array<Partial<BorderCalculatorState>> = [
   })),
 ];
 
-const ratios: Array<Partial<BorderCalculatorState>> = [
+const ratios: GridPart[] = [
   ...ASPECT_RATIOS.filter((r) => r.value !== 'custom').map((r) => ({
     aspectRatio: r.value,
   })),
@@ -55,7 +67,7 @@ const orientations = [
   { isLandscape: false, isRatioFlipped: true },
   { isLandscape: true, isRatioFlipped: true },
 ];
-const offsets: Array<Partial<BorderCalculatorState>> = [
+const offsets: GridPart[] = [
   { enableOffset: false, horizontalOffset: 2, verticalOffset: -1 },
   { enableOffset: true, horizontalOffset: 0, verticalOffset: 0 },
   { enableOffset: true, horizontalOffset: 1, verticalOffset: -0.5 },
@@ -69,14 +81,12 @@ function buildCases(): BorderCalculatorState[] {
     for (const ratio of ratios)
       for (const orientation of orientations)
         for (const minBorder of minBorders)
-          cases.push({
-            ...initialState,
-            ...paper,
-            ...ratio,
-            ...orientation,
-            minBorder,
-            lastValidMinBorder: 0.75,
-          } as BorderCalculatorState);
+          cases.push(
+            makeState(paper, ratio, orientation, {
+              minBorder,
+              lastValidMinBorder: 0.75,
+            })
+          );
 
   // Offsets and ignoreMinBorder over a smaller paper x ratio slice
   for (const paper of papers.slice(0, 9))
@@ -85,16 +95,14 @@ function buildCases(): BorderCalculatorState[] {
         for (const ignoreMinBorder of [false, true])
           for (const minBorder of [0.5, 2])
             for (const isLandscape of [false, true])
-              cases.push({
-                ...initialState,
-                ...paper,
-                ...ratio,
-                ...offset,
-                ignoreMinBorder,
-                isLandscape,
-                minBorder,
-                lastValidMinBorder: 0.5,
-              } as BorderCalculatorState);
+              cases.push(
+                makeState(paper, ratio, offset, {
+                  ignoreMinBorder,
+                  isLandscape,
+                  minBorder,
+                  lastValidMinBorder: 0.5,
+                })
+              );
   return cases;
 }
 
@@ -200,7 +208,7 @@ describe('computeBorderLayout', () => {
   });
 
   it('writes the paper-size warning in the requested unit', () => {
-    const state = {
+    const state: BorderCalculatorState = {
       ...initialState,
       paperSize: 'custom',
       lastValidCustomPaperWidth: 30,
@@ -220,29 +228,25 @@ describe('computeBorderLayout', () => {
   it('matches the golden rows from the replaced hook pipeline', () => {
     const rows: string[] = [];
     for (const paper of papers)
-      for (const ratio of [ratios[0], ratios[1], ratios[2], ratios.at(-1)])
+      for (const ratio of [
+        ratios[0],
+        ratios[1],
+        ratios[2],
+        ratios[ratios.length - 1],
+      ])
         for (const minBorder of [-1, 0.5, 3.5])
           for (const orientation of [orientations[0], orientations[3]]) {
-            const state = {
-              ...initialState,
-              ...paper,
-              ...ratio,
-              ...orientation,
+            const state = makeState(paper, ratio, orientation, {
               minBorder,
               lastValidMinBorder: 0.75,
-            } as BorderCalculatorState;
+            });
             rows.push(
               row(state, computeBorderLayout(state, { viewport }).calculation)
             );
           }
     for (const offset of offsets.slice(1))
       for (const ignoreMinBorder of [false, true]) {
-        const state = {
-          ...initialState,
-          ...offset,
-          ignoreMinBorder,
-          minBorder: 2,
-        } as BorderCalculatorState;
+        const state = makeState(offset, { ignoreMinBorder, minBorder: 2 });
         rows.push(
           row(state, computeBorderLayout(state, { viewport }).calculation)
         );
@@ -250,22 +254,17 @@ describe('computeBorderLayout', () => {
     expect(rows).toMatchSnapshot();
   });
 
+  // ~115k layouts, so the timeout is generous for a parallel turbo run.
   it('matches the digest of the full input grid from the replaced hook pipeline', () => {
     const hash = createHash('sha256');
     for (const unit of ['imperial', 'metric'] as const)
-      for (const vp of [
-        { width: 1024, height: 768 },
-        { width: 375, height: 667 },
-        { width: 444, height: 800 },
-        { width: 445, height: 801 },
-        { width: 1920, height: 1080 },
-      ])
+      for (const vp of viewports)
         for (const state of buildCases())
           hash.update(
             JSON.stringify(computeBorderLayout(state, { viewport: vp, unit }))
           );
     expect(hash.digest('hex')).toMatchSnapshot();
-  });
+  }, 60_000);
 });
 
 describe('computePreviewScale', () => {

@@ -39,8 +39,6 @@ export {
   useBorderCalculator as useModularBorderCalculator,
   useBorderCalculatorState,
   useCalculatorSharing,
-  useDimensionCalculations,
-  useGeometryCalculations,
   useImageHandling,
   useInputHandlers,
   usePaperDimensionInput,
@@ -153,6 +151,7 @@ export * from './types/reciprocity';
 // Utils exports
 export * from './utils/aspect-preview-geometry';
 export * from './utils/border-calculations';
+export * from './utils/border-layout';
 export * from './utils/camera-exposure-calculations';
 export * from './utils/combination-factory';
 export * from './utils/custom-recipe-helpers';

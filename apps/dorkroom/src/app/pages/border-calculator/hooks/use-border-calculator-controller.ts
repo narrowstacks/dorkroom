@@ -4,6 +4,7 @@ import {
   type BorderPresetSettings,
   CALC_STORAGE_KEY,
   calculateQuarterInchMinBorder,
+  computeBorderLayout,
   computeMaxAllowedMinBorder,
   debugError,
   debugLog,
@@ -17,8 +18,6 @@ import {
   shallowEqual,
   useBorderPresets,
   useCalculatorSharing,
-  useDimensionCalculations,
-  useGeometryCalculations,
   useLocalStorageFormPersistence,
   usePaperDimensionInput,
   usePresetManagement,
@@ -65,7 +64,7 @@ const borderPersistKeys = Object.keys(
 ) as Array<keyof typeof persistedBorderCalculatorFieldSchemas>;
 
 export function useBorderCalculatorController() {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const isDesktop = width > DESKTOP_BREAKPOINT;
   const { formatWithUnit, formatDimensions, unit } = useMeasurementFormatter();
   const { toInches, toDisplay } = useMeasurementConverter();
@@ -152,21 +151,18 @@ export function useBorderCalculatorController() {
     },
   });
 
-  const dimensionData = useDimensionCalculations(formValues, unit);
-  const { orientedPaper, orientedRatio } = dimensionData.orientedDimensions;
+  // The window size only sizes the on-screen preview.
+  const { calculation, orientedDimensions } = useMemo(
+    () =>
+      computeBorderLayout(formValues, { unit, viewport: { width, height } }),
+    [formValues, unit, width, height]
+  );
+  const { orientedPaper, orientedRatio } = orientedDimensions;
 
   // Maximum allowed minimum border for the current paper size
   const maxAllowedMinBorder = useMemo(
     () => computeMaxAllowedMinBorder(orientedPaper.w, orientedPaper.h),
     [orientedPaper.w, orientedPaper.h]
-  );
-
-  const { calculation } = useGeometryCalculations(
-    formValues,
-    dimensionData.orientedDimensions,
-    dimensionData.minBorderData,
-    dimensionData.paperEntry,
-    dimensionData.paperSizeWarning
   );
 
   const quarterRoundedMinBorder = useMemo(() => {
@@ -219,8 +215,7 @@ export function useBorderCalculatorController() {
   const offsetWarning = calculation?.offsetWarning ?? null;
   const bladeWarning = calculation?.bladeWarning ?? null;
   const minBorderWarning = calculation?.minBorderWarning ?? null;
-  const paperSizeWarning =
-    calculation?.paperSizeWarning ?? dimensionData.paperSizeWarning;
+  const paperSizeWarning = calculation?.paperSizeWarning ?? null;
 
   // Update orientation only when custom paper dimensions change
   useEffect(() => {
