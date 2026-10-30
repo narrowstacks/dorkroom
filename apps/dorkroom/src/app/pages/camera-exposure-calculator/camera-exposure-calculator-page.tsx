@@ -615,6 +615,7 @@ export default function CameraExposureCalculatorPage() {
   const {
     values,
     set,
+    reset,
     applyPreset,
     presetWarning,
     exposureValue,
@@ -687,6 +688,7 @@ export default function CameraExposureCalculatorPage() {
       title="Camera Exposure Calculator"
       icon={getRouteIcon('/exposure')}
       accentTone="teal"
+      onReset={reset}
       description={
         <>
           Balance aperture, shutter speed, and ISO for correct exposure.

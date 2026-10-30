@@ -70,6 +70,11 @@ export interface UseCameraExposureCalculatorReturn {
     key: K,
     value: CameraExposureFormState[K]
   ) => void;
+  /**
+   * Restore the default settings, clear any preset notice, and drop the
+   * persisted snapshot.
+   */
+  reset: () => void;
   /** Solve for the selected value (aperture/shutter/ISO) to match an EV preset. */
   applyPreset: (ev: number) => void;
   /**
@@ -133,9 +138,14 @@ export function useCameraExposureCalculator(): UseCameraExposureCalculatorReturn
       key: keyof CameraExposureFormState,
       value: CameraExposureFormState[keyof CameraExposureFormState]
     ) => setValues((prev) => ({ ...prev, [key]: value })),
+    // A preset notice describes the inputs being discarded, so it goes too.
+    reset: () => {
+      setLastPresetEv(null);
+      setValues(CAMERA_EXPOSURE_DEFAULTS);
+    },
   };
 
-  useLocalStorageFormPersistence({
+  const { resetToDefaults: reset } = useLocalStorageFormPersistence({
     storageKey: CAMERA_EXPOSURE_STORAGE_KEY,
     form: persistenceForm,
     formValues: values,
@@ -287,6 +297,7 @@ export function useCameraExposureCalculator(): UseCameraExposureCalculatorReturn
   return {
     values,
     set,
+    reset,
     applyPreset,
     presetWarning,
     exposureValue,

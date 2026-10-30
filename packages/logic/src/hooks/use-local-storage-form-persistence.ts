@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { z } from 'zod';
 import { debugWarn } from '../utils/debug-logger';
 import { isBrowser } from '../utils/environment';
@@ -40,9 +40,13 @@ export interface LocalStorageFormPersistenceOptions<T extends object> {
   /**
    * The form instance from TanStack Form.
    * Only requires setFieldValue method with compatible signature.
+   * `reset` is what `resetToDefaults` calls to restore the form's defaults:
+   * TanStack Form's own `form.reset()` fits as-is, and a `useState` adapter
+   * passes a setter back to its defaults object.
    */
   form: {
     setFieldValue: (field: keyof T, value: T[keyof T]) => void;
+    reset?: () => void;
   };
   /**
    * Current form values to persist
@@ -92,6 +96,12 @@ export interface LocalStorageFormPersistenceReturn {
    * Clear persisted data from localStorage
    */
   clearPersistedData: () => void;
+  /**
+   * Restore the form's defaults (via `form.reset`) and drop the stored
+   * snapshot, so the reset holds across a reload even if one lands before
+   * the debounced write of the default values.
+   */
+  resetToDefaults: () => void;
 }
 
 /**
@@ -241,7 +251,7 @@ export function useLocalStorageFormPersistence<T extends object>(
     return () => clearTimeout(timer);
   }, [storageKey, persistableSnapshot, disablePersistence, onPersisted]);
 
-  const clearPersistedData = () => {
+  const clearPersistedData = useCallback(() => {
     if (!isBrowser()) return;
     try {
       window.localStorage.removeItem(storageKey);
@@ -251,10 +261,17 @@ export function useLocalStorageFormPersistence<T extends object>(
         error
       );
     }
-  };
+  }, [storageKey]);
+
+  const formReset = form.reset;
+  const resetToDefaults = useCallback(() => {
+    formReset?.();
+    clearPersistedData();
+  }, [formReset, clearPersistedData]);
 
   return {
     isHydrated: isHydratedRef.current,
     clearPersistedData,
+    resetToDefaults,
   };
 }

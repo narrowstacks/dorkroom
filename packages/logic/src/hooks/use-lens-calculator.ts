@@ -57,6 +57,8 @@ export interface UseLensCalculatorReturn {
   setTargetFormat: (value: string) => void;
   /** Swap the source and target formats. */
   swapFormats: () => void;
+  /** Restore the default inputs and drop the persisted snapshot. */
+  reset: () => void;
   /** Equivalent focal length / field-of-view result, or null when invalid. */
   calculation: LensCalculatorResult | null;
 }
@@ -110,9 +112,10 @@ export function useLensCalculator(): UseLensCalculatorReturn {
       key: keyof LensFormState,
       value: LensFormState[keyof LensFormState]
     ) => setValues((prev) => ({ ...prev, [key]: value })),
+    reset: () => setValues(LENS_DEFAULTS),
   };
 
-  useLocalStorageFormPersistence({
+  const { resetToDefaults: reset } = useLocalStorageFormPersistence({
     storageKey: LENS_STORAGE_KEY,
     form: persistenceForm,
     formValues: values,
@@ -153,6 +156,7 @@ export function useLensCalculator(): UseLensCalculatorReturn {
     setSourceFormat,
     setTargetFormat,
     swapFormats,
+    reset,
     calculation,
   };
 }

@@ -509,6 +509,7 @@ export default function MatCalculatorPage() {
       title="Mat Cut Calculator"
       icon={getRouteIcon('/mat')}
       accentTone="cyan"
+      onReset={calc.reset}
       description="Plan single-window mats with independent borders and get exact window openings and cutter guide-bar settings."
       results={results}
       sidebar={

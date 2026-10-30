@@ -1,6 +1,9 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { MAT_CALCULATOR_STORAGE_KEY } from '../../constants/mat-calculator';
+import {
+  MAT_CALCULATOR_DEFAULTS,
+  MAT_CALCULATOR_STORAGE_KEY,
+} from '../../constants/mat-calculator';
 import type { PersistedValue } from '../../hooks/use-local-storage-form-persistence';
 import { useMatCalculator } from '../../hooks/use-mat-calculator';
 import { convertDisplayToInches } from '../../utils/unit-conversion';
@@ -150,6 +153,20 @@ describe('useMatCalculator', () => {
       expect(result.current.values.bottomWeight).toBe(false);
       expect(result.current.values.outerH).toBe('18');
     });
+  });
+
+  it('reset restores the defaults and drops the persisted snapshot', () => {
+    window.localStorage.setItem(
+      MAT_CALCULATOR_STORAGE_KEY,
+      JSON.stringify({ outerW: '11', bottomWeight: true })
+    );
+    const { result } = renderHook(() => useMatCalculator());
+    expect(result.current.values.outerW).toBe('11');
+
+    act(() => result.current.reset());
+
+    expect(result.current.values).toEqual(MAT_CALCULATOR_DEFAULTS);
+    expect(window.localStorage.getItem(MAT_CALCULATOR_STORAGE_KEY)).toBeNull();
   });
 });
 

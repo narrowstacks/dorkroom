@@ -68,4 +68,23 @@ describe('useLensCalculator', () => {
 
     expect(result.current.values.focalLength).toBe(MAX_FOCAL_LENGTH_MM);
   });
+
+  it('reset restores the defaults and drops the persisted snapshot', () => {
+    window.localStorage.setItem(
+      LENS_STORAGE_KEY,
+      JSON.stringify({ focalLength: 135 })
+    );
+    const { result } = renderHook(() => useLensCalculator());
+    act(() => result.current.swapFormats());
+    expect(result.current.values.focalLength).toBe(135);
+
+    act(() => result.current.reset());
+
+    expect(result.current.values).toEqual({
+      focalLength: 50,
+      sourceFormat: 'full-frame',
+      targetFormat: 'aps-c-nikon',
+    });
+    expect(window.localStorage.getItem(LENS_STORAGE_KEY)).toBeNull();
+  });
 });
