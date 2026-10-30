@@ -704,7 +704,7 @@ describe('Data Transformation', () => {
   });
 
   it('should keep a developer whose dilution has no name', async () => {
-    const mockRawDeveloper = {
+    const mockRawDeveloper: RawDeveloper = {
       id: 1,
       uuid: 'dev-uuid',
       slug: 'test-developer',
@@ -771,7 +771,8 @@ describe('Data Transformation', () => {
 
     const result = await client.fetchDevelopers();
 
-    expect(result[0].dilutions.map((d) => d.name)).toEqual(['1+9', '1:14', '']);
+    // { id: 3 } has no label at all, so it is dropped rather than shown blank
+    expect(result[0].dilutions.map((d) => d.name)).toEqual(['1+9', '1:14']);
   });
 });
 
