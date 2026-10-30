@@ -6,7 +6,11 @@ import {
   PAPER_SIZES,
   SLIDER_MIN_BORDER,
 } from '@dorkroom/logic';
-import { MeasurementProvider, ToastProvider } from '@dorkroom/ui';
+import {
+  MeasurementProvider,
+  ToastProvider,
+  useMeasurement,
+} from '@dorkroom/ui';
 import { act, renderHook, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -175,7 +179,7 @@ describe('useBorderCalculatorController unit-aware messages (#343)', () => {
   }
 
   function setCustomPaper(
-    result: ReturnType<typeof renderInUnit>['result'],
+    result: { current: ReturnType<typeof useBorderCalculatorController> },
     width: string,
     height: string
   ) {
@@ -205,7 +209,7 @@ describe('useBorderCalculatorController unit-aware messages (#343)', () => {
     setCustomPaper(result, '60', '80');
 
     expect(result.current.paperSizeWarning).toBe(
-      'Custom paper (60×80cm) exceeds largest standard easel (50.8×60.96cm).'
+      'Custom paper (60×80cm) exceeds largest standard easel (50.8×61cm).'
     );
   });
 
@@ -215,6 +219,51 @@ describe('useBorderCalculatorController unit-aware messages (#343)', () => {
 
     expect(result.current.paperWidthInput).toBe('25');
     expect(result.current.paperHeightInput).toBe('30.3');
+  });
+
+  // Blurring a field shown in cm must not re-round an inch-entered size
+  it('keeps imperial-stored 8.125in when its field is blurred in metric', () => {
+    window.localStorage.clear();
+    window.localStorage.setItem('dorkroom-measurement-unit', 'imperial');
+    const { result } = renderHook(
+      () => ({
+        controller: useBorderCalculatorController(),
+        measurement: useMeasurement(),
+      }),
+      { wrapper: toastWrapper }
+    );
+    const controller = {
+      get current() {
+        return result.current.controller;
+      },
+    };
+    setCustomPaper(controller, '8.125', '10.125');
+    expect(result.current.controller.formValues.customPaperWidth).toBe(8.125);
+
+    act(() => {
+      result.current.measurement.setUnit('metric');
+    });
+    expect(result.current.controller.paperWidthInput).toBe('20.638');
+
+    // Click in and out without typing
+    act(() => {
+      result.current.controller.handlePaperWidthBlur();
+    });
+    expect(result.current.controller.formValues.customPaperWidth).toBe(8.125);
+
+    // Re-commit the shown text explicitly
+    act(() => {
+      result.current.controller.handlePaperWidthChange('20.638');
+    });
+    act(() => {
+      result.current.controller.handlePaperWidthBlur();
+    });
+    expect(result.current.controller.formValues.customPaperWidth).toBe(8.125);
+
+    act(() => {
+      result.current.measurement.setUnit('imperial');
+    });
+    expect(result.current.controller.paperWidthInput).toBe('8.125');
   });
 
   it('prints the oversized custom paper warning with inch marks', () => {
@@ -246,7 +295,7 @@ describe('useBorderCalculatorController unit-aware messages (#343)', () => {
     setCustomPaper(result, '2', '2');
 
     expect(
-      await screen.findByText('Border reduced to 0.88in to fit paper size')
+      await screen.findByText('Border reduced to 0.88" to fit paper size')
     ).toBeTruthy();
   });
 });

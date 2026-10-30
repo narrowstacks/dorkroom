@@ -127,22 +127,27 @@ export function convertDisplayToInches(
 }
 
 /**
- * Decimals kept when a centimetre value is shown back in an editable field.
+ * Most decimals a centimetre value shown in an editable field can carry.
  *
- * Stored inches carry 3 decimals (`convertDisplayToInches`), so a typed cm
- * value comes back off by at most 0.0005in = 0.00127cm. That is under half of
- * 0.01cm, so rounding the display to 2 decimals recovers exactly what the user
- * typed at 1 or 2 decimals (25 stays 25, never 25.001). See #343.
+ * Three is enough to pin any stored value: stored inches have 3 decimals, and
+ * 0.001cm is finer than 0.001in, so a 3-decimal cm value always converts back
+ * to the same stored inches. See `convertInchesToInputValue`.
  */
-export const METRIC_INPUT_DECIMALS = 2;
+export const METRIC_INPUT_MAX_DECIMALS = 3;
 
 /**
  * Convert stored inches to the number shown in an editable input.
  *
  * Use this, not `convertInchesToDisplay`, wherever a value is written back
- * into a field the user types in: it absorbs the 3-decimal inch rounding so a
- * typed metric value round-trips unchanged. Imperial passes through as-is.
- * Stored values are untouched; this only changes what is displayed.
+ * into a field the user can re-commit. Metric returns the *shortest* cm value
+ * (0 to `METRIC_INPUT_MAX_DECIMALS` decimals) that converts back to the same
+ * stored inches, so both directions round-trip (#343):
+ *
+ * - a typed `25` cm is stored as 9.843in and reads back as `25`, not `25.001`;
+ * - an inch-entered 8.125in reads as `20.638` cm, and re-committing that text
+ *   stores 8.125in again rather than drifting to 8.126in.
+ *
+ * Imperial passes through as-is. Stored values are never changed here.
  */
 export function convertInchesToInputValue(
   inches: number,
@@ -151,7 +156,16 @@ export function convertInchesToInputValue(
   if (unit === 'imperial') {
     return inches;
   }
-  return roundToPrecision(inchesToCm(inches), METRIC_INPUT_DECIMALS);
+  // What a re-commit of the displayed text would store
+  const stored = roundToPrecision(inches, 3);
+  const cm = inchesToCm(inches);
+  for (let decimals = 0; decimals < METRIC_INPUT_MAX_DECIMALS; decimals++) {
+    const candidate = roundToPrecision(cm, decimals);
+    if (convertDisplayToInches(candidate, unit) === stored) {
+      return candidate;
+    }
+  }
+  return roundToPrecision(cm, METRIC_INPUT_MAX_DECIMALS);
 }
 
 /**

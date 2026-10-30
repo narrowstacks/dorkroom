@@ -10,6 +10,7 @@ import {
   debugError,
   debugLog,
   formatMeasurement,
+  getDisplayUnitSymbol,
   PAPER_SIZES,
   type PersistedValue,
   persistedBorderCalculatorFieldSchemas,
@@ -197,7 +198,7 @@ export function useBorderCalculatorController() {
       form.setFieldValue('minBorder', maxAllowedMinBorder);
       form.setFieldValue('lastValidMinBorder', maxAllowedMinBorder);
       toast?.showToast(
-        `Border reduced to ${formatMeasurement(maxAllowedMinBorder, unit)} to fit paper size`,
+        `Border reduced to ${formatMeasurement(maxAllowedMinBorder, unit, { includeUnit: false })}${getDisplayUnitSymbol(unit)} to fit paper size`,
         'info'
       );
     }

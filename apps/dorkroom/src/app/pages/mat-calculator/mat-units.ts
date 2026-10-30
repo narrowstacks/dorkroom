@@ -76,8 +76,8 @@ export function matValueToDisplay(
   if (Number.isNaN(inches)) {
     return '';
   }
-  // Two cm decimals (`METRIC_INPUT_DECIMALS`), shared with every calculator's
-  // metric inputs, so a typed value survives the round trip to inches.
+  // Shortest cm text that maps back to the same stored inches, shared with
+  // every calculator's metric inputs, so neither unit drifts on re-commit.
   return String(convertInchesToInputValue(inches, unit));
 }
 

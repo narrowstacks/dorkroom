@@ -109,8 +109,8 @@ export function getUnitSymbol(unit: MeasurementUnit): string {
 
 /**
  * Convert inches to display value (number only, no formatting)
- * Use this for number inputs where you need the raw value. Metric is kept to
- * `METRIC_INPUT_DECIMALS` so a typed cm value reads back unchanged (#343).
+ * Use this for number inputs where you need the raw value. Metric shows
+ * the shortest cm value that maps back to the same stored inches (#343).
  * @param inches - Value in inches
  * @param unit - Display unit preference
  * @returns Converted number

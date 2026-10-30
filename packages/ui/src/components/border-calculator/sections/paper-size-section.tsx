@@ -85,6 +85,9 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
 
   // Handle width blur - convert to inches when stable
   const handleWidthBlur = () => {
+    // An untouched field has nothing to commit; re-parsing its derived text
+    // could only round the stored value.
+    if (!isEditingWidthRef.current) return;
     isEditingWidthRef.current = false;
     const inches = validateAndConvert(paperWidthInput);
     if (inches !== null) {
@@ -117,6 +120,9 @@ export function PaperSizeSection({ onClose }: PaperSizeSectionProps) {
 
   // Handle height blur - convert to inches when stable
   const handleHeightBlur = () => {
+    // An untouched field has nothing to commit; re-parsing its derived text
+    // could only round the stored value.
+    if (!isEditingHeightRef.current) return;
     isEditingHeightRef.current = false;
     const inches = validateAndConvert(paperHeightInput);
     if (inches !== null) {

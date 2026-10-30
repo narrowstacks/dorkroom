@@ -13,7 +13,6 @@ import { createMemoKey, roundToPrecision } from './precision';
 import {
   formatDimensionPair,
   getDisplayUnitSymbol,
-  METRIC_INPUT_DECIMALS,
   type MeasurementUnit,
 } from './unit-conversion';
 
@@ -41,7 +40,8 @@ const formatSizeInUnit = (
 ): string =>
   `${formatDimensionPair(widthInches, heightInches, unit, {
     includeUnit: false,
-    maxPrecision: unit === 'imperial' ? 3 : METRIC_INPUT_DECIMALS,
+    // Label precision, not input precision: mm in metric (as the results show)
+    maxPrecision: unit === 'imperial' ? 3 : 1,
   })}${getDisplayUnitSymbol(unit)}`;
 
 /**
@@ -51,7 +51,7 @@ const formatSizeInUnit = (
  * @example
  * ```typescript
  * formatPaperSizeWarning(23.622, 31.496, 'metric');
- * // 'Custom paper (60×80cm) exceeds largest standard easel (50.8×60.96cm).'
+ * // 'Custom paper (60×80cm) exceeds largest standard easel (50.8×61cm).'
  * ```
  */
 export const formatPaperSizeWarning = (

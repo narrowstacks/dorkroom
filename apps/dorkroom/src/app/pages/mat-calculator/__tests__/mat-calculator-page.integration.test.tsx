@@ -207,7 +207,7 @@ describe('MatCalculatorPage', () => {
       renderPage('metric');
 
       expect(
-        screen.getByText(/Would set borders to 8.26cm T/)
+        screen.getByText(/Would set borders to 8.255cm T/)
       ).toBeInTheDocument();
     });
 

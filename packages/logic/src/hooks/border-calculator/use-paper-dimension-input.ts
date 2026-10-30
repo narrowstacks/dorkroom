@@ -88,7 +88,10 @@ export function usePaperDimensionInput({
   // Handle width blur - convert to inches when stable. Dropping the draft falls
   // back to the derived display value, which reformats away typing artifacts
   // ("9.5000" → "9.5") and reverts empty or invalid input to the last commit.
+  // Blurring an untouched field commits nothing: re-parsing the derived text
+  // could only round the stored value, never improve it.
   const handlePaperWidthBlur = () => {
+    if (widthDraft === null) return;
     const inches = validateAndConvert(paperWidthInput);
     if (inches !== null) {
       onWidthChange(inches);
@@ -109,6 +112,7 @@ export function usePaperDimensionInput({
 
   // Handle height blur - see handlePaperWidthBlur.
   const handlePaperHeightBlur = () => {
+    if (heightDraft === null) return;
     const inches = validateAndConvert(paperHeightInput);
     if (inches !== null) {
       onHeightChange(inches);
