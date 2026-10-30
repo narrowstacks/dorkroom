@@ -131,6 +131,26 @@ describe('definePersistedCalculator', () => {
     expect(border.validators.minBorder.validate(undefined)).toBe(false);
   });
 
+  it('rejects a stored value a .catch(), coerce or preprocess schema would replace', () => {
+    // These type-check (zod types their input loosely), so the runtime check
+    // is what keeps a stored string out of a numeric field.
+    const loose = definePersistedCalculator(
+      'loose',
+      {
+        count: z.number().catch(0),
+        withDefault: z.coerce.number(),
+        label: z.preprocess((v) => String(v), z.string()),
+      },
+      DEFAULTS
+    );
+    expect(loose.validators.count.validate('abc')).toBe(false);
+    expect(loose.validators.count.validate(4)).toBe(true);
+    expect(loose.validators.withDefault.validate('5')).toBe(false);
+    expect(loose.validators.withDefault.validate(5)).toBe(true);
+    expect(loose.validators.label.validate(7)).toBe(false);
+    expect(loose.validators.label.validate('ok')).toBe(true);
+  });
+
   it('rejects, at compile time, a schema for a field the calculator lacks or cannot hold', () => {
     definePersistedCalculator(
       'typecheck',

@@ -30,13 +30,13 @@ export type ExposureCalculatorFormData = z.infer<
   typeof exposureCalculatorSchema
 >;
 
-/** Storage key, persist keys and hydration validators for the form. */
 /** The stops calculator's form defaults. */
 export const EXPOSURE_FORM_DEFAULTS: ExposureFormState = {
   originalTime: DEFAULT_EXPOSURE_ORIGINAL_TIME,
   stops: DEFAULT_EXPOSURE_STOPS,
 };
 
+/** Storage key, persist keys, hydration validators and defaults for the form. */
 export const exposureCalculatorPersistence = definePersistedCalculator(
   EXPOSURE_STORAGE_KEY,
   exposureCalculatorFieldSchemas,

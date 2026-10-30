@@ -5,6 +5,11 @@ import { calculatorStorage, sharedStorage } from './mmkv-storage';
 describe('calculatorStorage', () => {
   beforeEach(() => sharedStorage.clearAll());
 
+  it('uses the dorkroom-mobile instance the localStorage shim always used', () => {
+    // Changing this id would orphan every user's saved calculator state.
+    expect(sharedStorage.id).toBe('dorkroom-mobile');
+  });
+
   it('round-trips, overwrites and removes strings', () => {
     expect(calculatorStorage.getItem('missing')).toBeNull();
 

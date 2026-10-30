@@ -45,8 +45,11 @@ export interface PersistedCalculatorDefinition<
  *
  * Hydration applies the stored value as is, not the schema's parsed output,
  * so a schema here must not change its input. A `.transform()` is caught by
- * this type; `z.coerce.*` and `z.preprocess` are not (zod types their input
- * loosely), so do not use them in a persisted field map.
+ * this type; `z.coerce.*`, `z.preprocess` and `.catch()` are not (zod types
+ * their input loosely), so do not use them in a persisted field map. As a
+ * runtime backstop, a stored primitive is only accepted when the schema
+ * returns it unchanged, so those schemas cannot pass a value of the wrong
+ * type through for the primitive fields every calculator persists today.
  */
 export type PersistedFieldSchemas<T extends object, S> = {
   [K in keyof S]: K extends keyof T ? z.ZodType<T[K], T[K] | undefined> : never;
@@ -92,8 +95,15 @@ export function definePersistedCalculator<
       return [
         key,
         {
-          validate: (value: PersistedValue) =>
-            value !== undefined && schema.safeParse(value).success,
+          validate: (value: PersistedValue) => {
+            if (value === undefined) return false;
+            const result = schema.safeParse(value);
+            if (!result.success) return false;
+            // A coercing, preprocessing or `.catch()` schema can succeed with
+            // a different value ('5' -> 5, 'abc' -> 0). The raw value is what
+            // hydrates, so require a primitive to come back unchanged.
+            return value instanceof Object || Object.is(result.data, value);
+          },
         },
       ];
     })
@@ -105,9 +115,11 @@ export function definePersistedCalculator<
     // SAFETY: built from persistKeys, so it holds exactly one entry per Key,
     // and each `validate` is a sound guard for T[Key]: it accepts only values
     // its schema parses, a schema's accepted input is typed T[Key] | undefined
-    // by the PersistedFieldSchemas constraint (bar the coerce/preprocess gap
-    // documented there), and undefined is rejected first. TypeScript cannot
-    // derive a type predicate from safeParse, hence the cast.
+    // by the PersistedFieldSchemas constraint, and undefined is rejected
+    // first. The constraint misses coerce/preprocess/.catch() (documented
+    // there); for primitive values the Object.is check closes that at runtime,
+    // and an object value relies on the schema alone. TypeScript cannot derive
+    // a type predicate from safeParse, hence the cast.
     validators: validators as PersistedCalculatorDefinition<
       T,
       Key

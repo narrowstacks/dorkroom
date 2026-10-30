@@ -61,7 +61,6 @@ export const reciprocityPersistedFieldSchemas = {
   customFactor: reciprocityFactorValidator(),
 };
 
-/** Storage key, persist keys and hydration validators for the form. */
 /** The reciprocity calculator's form defaults. */
 export const RECIPROCITY_FORM_DEFAULTS: ReciprocityFormState = {
   filmType: RECIPROCITY_CALCULATOR_DEFAULTS.filmType,
@@ -69,6 +68,7 @@ export const RECIPROCITY_FORM_DEFAULTS: ReciprocityFormState = {
   customFactor: DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
 };
 
+/** Storage key, persist keys, hydration validators and defaults for the form. */
 export const reciprocityCalculatorPersistence = definePersistedCalculator(
   RECIPROCITY_STORAGE_KEY,
   reciprocityPersistedFieldSchemas,
