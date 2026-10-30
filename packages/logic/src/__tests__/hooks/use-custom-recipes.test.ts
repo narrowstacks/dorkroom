@@ -4,6 +4,7 @@ import { CUSTOM_RECIPES_STORAGE_KEY } from '../../constants/storage-keys';
 import { useCustomRecipes } from '../../hooks/custom-recipes/use-custom-recipes';
 import {
   createCustomRecipeStore,
+  createLocalStorageRecipeAdapter,
   createMemoryRecipeAdapter,
 } from '../../services/custom-recipe-store';
 import type {
@@ -119,5 +120,17 @@ describe('useCustomRecipes', () => {
       a.result.current.addCustomRecipe(formData);
     });
     expect(b.result.current.customRecipes).toHaveLength(1);
+  });
+
+  it('shows storage written after a read outside React', () => {
+    const store = createCustomRecipeStore(createLocalStorageRecipeAdapter());
+    expect(store.read()).toEqual([]);
+    window.localStorage.setItem(
+      CUSTOM_RECIPES_STORAGE_KEY,
+      JSON.stringify([stored])
+    );
+
+    const { result } = renderHook(() => useCustomRecipes(store));
+    expect(result.current.customRecipes).toEqual([stored]);
   });
 });

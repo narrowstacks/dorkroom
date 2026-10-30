@@ -4,6 +4,7 @@ import {
   createCustomRecipeStore,
   createLocalStorageRecipeAdapter,
   createMemoryRecipeAdapter,
+  type CustomRecipeStorageAdapter,
 } from '../../services/custom-recipe-store';
 import type {
   CustomRecipe,
@@ -128,6 +129,26 @@ describe('localStorage adapter', () => {
       new StorageEvent('storage', { key: CUSTOM_RECIPES_STORAGE_KEY })
     );
     expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('subscribes as a no-op where window has no addEventListener (React Native)', () => {
+    const realWindow = globalThis.window;
+    // React Native defines a global `window` that is not a DOM event target.
+    vi.stubGlobal('window', { localStorage: realWindow.localStorage });
+    try {
+      const onChange = vi.fn();
+      const adapter = createLocalStorageRecipeAdapter();
+      let unsubscribe: (() => void) | undefined;
+      expect(() => {
+        unsubscribe = adapter.subscribe?.(onChange);
+      }).not.toThrow();
+      expect(() => unsubscribe?.()).not.toThrow();
+
+      const store = createCustomRecipeStore(adapter);
+      expect(() => store.subscribe(() => {})()).not.toThrow();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
 
@@ -295,6 +316,70 @@ describe('customRecipeStore', () => {
       JSON.stringify([later])
     );
     expect(store.read()).toEqual([later]);
+  });
+
+  it('re-reads on first subscribe after a read outside React', () => {
+    const store = localStore();
+    expect(store.read()).toEqual([]);
+
+    const fromOtherTab = createStoredRecipe({ id: 'other-tab' });
+    window.localStorage.setItem(
+      CUSTOM_RECIPES_STORAGE_KEY,
+      JSON.stringify([fromOtherTab])
+    );
+
+    const unsubscribe = store.subscribe(() => {});
+    expect(store.read()).toEqual([fromOtherTab]);
+    unsubscribe();
+  });
+
+  it('keeps the cached array on first subscribe when nothing changed', () => {
+    const store = localStore();
+    store.add(baseFormData);
+    const before = store.read();
+    const unsubscribe = store.subscribe(() => {});
+    expect(store.read()).toBe(before);
+    unsubscribe();
+  });
+
+  describe('when storage silently drops writes', () => {
+    const existing = createStoredRecipe();
+    const droppingAdapter = (): CustomRecipeStorageAdapter => ({
+      read: () => [existing],
+      write: () => {},
+    });
+
+    it('throws on add instead of returning an unsaved recipe', () => {
+      const store = createCustomRecipeStore(droppingAdapter());
+      const listener = vi.fn();
+      store.subscribe(listener);
+      expect(() => store.add(baseFormData)).toThrow(
+        /Could not save custom recipes/
+      );
+      expect(store.read()).toEqual([existing]);
+    });
+
+    it('throws on update', () => {
+      const store = createCustomRecipeStore(droppingAdapter());
+      expect(() =>
+        store.update(existing.id, { ...baseFormData, name: 'Renamed' })
+      ).toThrow(/Could not save custom recipes/);
+      expect(store.read()[0].name).toBe('Stored Recipe');
+    });
+
+    it('throws on remove', () => {
+      const store = createCustomRecipeStore(droppingAdapter());
+      expect(() => store.remove(existing.id)).toThrow(
+        /Could not save custom recipes/
+      );
+      expect(store.read()).toEqual([existing]);
+    });
+  });
+
+  it('returns the entry as storage holds it', () => {
+    const store = localStore();
+    const saved = store.add(baseFormData);
+    expect(saved).toBe(store.read()[0]);
   });
 });
 

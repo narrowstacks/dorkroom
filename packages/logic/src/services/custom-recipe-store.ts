@@ -2,10 +2,11 @@
  * Custom recipe store.
  *
  * Custom recipes are a synchronous array persisted under
- * `CUSTOM_RECIPES_STORAGE_KEY`. Writes cannot be pending and cannot fail
- * later, so this is a plain external store (read, add, update, remove,
- * subscribe) behind a storage adapter, not a TanStack Query cache. React reads
- * it through `useCustomRecipes`, which is built on `useSyncExternalStore`.
+ * `CUSTOM_RECIPES_STORAGE_KEY`. Writes are synchronous: they either persist
+ * or throw before returning, never resolve or roll back later. So this is a
+ * plain external store (read, add, update, remove, subscribe) behind a storage
+ * adapter, not a TanStack Query cache. React reads it through
+ * `useCustomRecipes`, which is built on `useSyncExternalStore`.
  */
 
 import { CUSTOM_RECIPES_STORAGE_KEY } from '../constants/storage-keys';
@@ -53,8 +54,10 @@ export interface CustomRecipeStore {
 
 /**
  * Adapter over `globalThis.localStorage` (the MMKV shim on iOS). Reads are
- * validated as an array; anything else reads as `[]`. Cross-tab changes arrive
- * through the `storage` event.
+ * validated as an array; anything else reads as `[]`. In a browser, cross-tab
+ * changes arrive through the `storage` event. Where there is no DOM event
+ * target (SSR, or React Native, whose global `window` has no
+ * `addEventListener`), `subscribe` is a no-op.
  */
 export function createLocalStorageRecipeAdapter(
   storageKey: string = CUSTOM_RECIPES_STORAGE_KEY
@@ -70,6 +73,13 @@ export function createLocalStorageRecipeAdapter(
     write: manager.write,
     subscribe: (onExternalChange) => {
       if (!isBrowser()) {
+        return () => undefined;
+      }
+      // React Native defines a global `window` without DOM event methods.
+      const target: Partial<
+        Pick<Window, 'addEventListener' | 'removeEventListener'>
+      > = window;
+      if (!target.addEventListener || !target.removeEventListener) {
         return () => undefined;
       }
 
@@ -198,17 +208,42 @@ export function createCustomRecipeStore(
     return snapshot;
   };
 
-  // Writes start from storage rather than the cache, so a change another tab
-  // made since the last read is not overwritten.
-  const commit = (next: CustomRecipe[]) => {
+  /**
+   * Writes `next`, then re-reads storage and checks it holds exactly that.
+   * The localStorage adapter swallows failures such as a full quota, so this
+   * is the only way to know the write landed. Throws when it did not, after
+   * syncing the cache to what storage actually holds.
+   *
+   * Writes start from storage rather than the cache (see callers), so a
+   * change another tab made since the last read is not overwritten.
+   */
+  const commit = (next: CustomRecipe[]): CustomRecipe[] => {
     adapter.write(next);
     refresh();
+    const persisted = read();
+    if (JSON.stringify(persisted) !== JSON.stringify(next)) {
+      throw new Error(
+        'Could not save custom recipes: storage did not keep the change (it may be full or unavailable).'
+      );
+    }
+    return persisted;
+  };
+
+  /** The entry with `id` as storage returned it. */
+  const persistedEntry = (
+    persisted: CustomRecipe[],
+    id: string
+  ): CustomRecipe => {
+    const entry = persisted.find((recipe) => recipe.id === id);
+    if (!entry) {
+      throw new Error(`Recipe with id ${id} was not saved`);
+    }
+    return entry;
   };
 
   const add = (formData: CustomRecipeFormData): CustomRecipe => {
     const recipe = createRecipeFromFormData(formData);
-    commit([...adapter.read(), recipe]);
-    return recipe;
+    return persistedEntry(commit([...adapter.read(), recipe]), recipe.id);
   };
 
   const update = (id: string, formData: CustomRecipeFormData): CustomRecipe => {
@@ -220,8 +255,7 @@ export function createCustomRecipeStore(
     const updated = createRecipeFromFormData(formData, current[index]);
     const next = [...current];
     next[index] = updated;
-    commit(next);
-    return updated;
+    return persistedEntry(commit(next), id);
   };
 
   const remove = (id: string): void => {
@@ -231,6 +265,13 @@ export function createCustomRecipeStore(
   const subscribe = (listener: () => void): (() => void) => {
     listeners.add(listener);
     if (listeners.size === 1) {
+      // A snapshot cached while nobody was subscribed may have missed
+      // external changes. Re-read, keeping the cached array (and so avoiding
+      // a re-render) only when the content is unchanged.
+      const fresh = adapter.read();
+      if (JSON.stringify(fresh) !== JSON.stringify(snapshot)) {
+        snapshot = fresh;
+      }
       detachAdapter = adapter.subscribe?.(refresh);
     }
     return () => {
