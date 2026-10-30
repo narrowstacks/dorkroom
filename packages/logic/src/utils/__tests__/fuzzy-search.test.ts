@@ -348,6 +348,61 @@ describe('fuzzy-search', () => {
     });
   });
 
+  describe('alias search with real-world alias data', () => {
+    const base = mockFilms[0];
+    const make = (id: number, name: string, aliasNames: string[]): Film => ({
+      ...base,
+      id,
+      uuid: `r${id}`,
+      slug: `kodak-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      brand: 'Kodak',
+      name,
+      aliases: aliasNames.map((n) => ({ slug: `s${id}`, name: n })),
+    });
+    // Mirrors the migration shape: brand-prefixed display names and
+    // slug-form names on the same model as the current name.
+    const withAliases: Film[] = [
+      make(201, 'Tri-X 400', ['Kodak Tri-X 400', 'kodak-tri-x-400']),
+      make(202, 'T-Max 400', ['Kodak T-Max 400', 'kodak-t-max-400']),
+      make(203, 'Portra 400', []),
+      make(204, 'UltraMax 400', [
+        'Kodak Gold Ultra 400',
+        'Kodacolor Gold',
+        'kodak-ultramax-400',
+      ]),
+      make(205, 'Gold 200', ['Kodak Gold 200']),
+    ];
+    const withoutAliases = withAliases.map((f) => ({ ...f, aliases: [] }));
+    const summary = (films: Film[], q: string) =>
+      searchFilms(films, q).map((r) => [r.item.uuid, r.score]);
+
+    it('ranks a current-name query first despite redundant aliases', () => {
+      expect(searchFilms(withAliases, 'Gold')[0].item.name).toBe('Gold 200');
+    });
+
+    it.each(['400', 'kodak'])(
+      'leaves "%s" ordering and scores unchanged',
+      (q) => {
+        expect(summary(withAliases, q)).toEqual(summary(withoutAliases, q));
+      }
+    );
+
+    it('finds a film by a former name that adds new information', () => {
+      const results = searchFilms(withAliases, 'Kodacolor');
+      expect(results.map((r) => r.item.uuid)).toEqual(['r204']);
+    });
+
+    it('finds a film by a multi-word former-name query', () => {
+      const results = searchFilms(withAliases, 'kodak kodacolor');
+      expect(results.map((r) => r.item.uuid)).toContain('r204');
+    });
+
+    it('still works when films have no aliases', () => {
+      const results = searchFilms(withAliases, 'portra');
+      expect(results[0].item.uuid).toBe('r203');
+    });
+  });
+
   describe('matchesSearchQuery', () => {
     it('matches "tri x" against "Kodak Tri-X 400" (the reported bug)', () => {
       expect(matchesSearchQuery('Kodak Tri-X 400', 'tri x')).toBe(true);

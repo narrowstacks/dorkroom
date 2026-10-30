@@ -12,7 +12,8 @@ const CUSTOM_PREFIX = 'custom-';
 const YOUR_FILMS_TITLE = 'Your films';
 
 function matches(film: FilmStock, query: string): boolean {
-  return `${film.brand} ${film.name}`.toLowerCase().includes(query);
+  const haystack = [`${film.brand} ${film.name}`, ...(film.aliases ?? [])];
+  return haystack.some((text) => text.toLowerCase().includes(query));
 }
 
 /**

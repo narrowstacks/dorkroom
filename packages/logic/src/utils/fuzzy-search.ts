@@ -31,6 +31,61 @@ export function matchesSearchQuery(haystack: string, query: string): boolean {
   );
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function compact(value: string): string {
+  return normalizeSearchText(value).replace(/\s+/g, '');
+}
+
+function isContainedIn(haystack: string, needle: string): boolean {
+  return haystack.indexOf(needle) !== -1;
+}
+
+/**
+ * Alias names that add searchable information beyond the film's current
+ * "{brand} {name}". Real alias data holds full display names ("Kodak Tri-X
+ * 400") and slug-form names ("kodak-tri-x-400"), which would otherwise boost
+ * a film on tokens its current name already matches. A leading brand prefix
+ * is stripped, and aliases whose remaining text is contained in the current
+ * brand + name are dropped. Returned names keep their original punctuation
+ * (minus any brand prefix and words the current name already has).
+ */
+export function getInformativeAliasNames(
+  film: Pick<Film, 'brand' | 'name' | 'aliases'>
+): string[] {
+  const aliases = Array.isArray(film.aliases) ? film.aliases : [];
+  if (aliases.length === 0) return [];
+  const current = compact(`${film.brand} ${film.name}`);
+  const currentWords = new Set(
+    `${film.brand} ${film.name}`.split(/\s+/).map(compact)
+  );
+  const brand = film.brand.trim();
+  const brandPrefix = brand
+    ? new RegExp(`^${escapeRegExp(brand)}[\\s\\-_]+`, 'i')
+    : null;
+  const result: string[] = [];
+  for (const alias of aliases) {
+    const stripped = (
+      brandPrefix ? alias.name.trim().replace(brandPrefix, '') : alias.name
+    ).trim();
+    if (!stripped || isContainedIn(current, compact(stripped))) continue;
+    // Drop individual words the current name already carries ("Gold Ultra
+    // 400" on "UltraMax 400" keeps "Gold Ultra"), so shared tokens such as
+    // an ISO never boost the film.
+    const novel = stripped
+      .split(/\s+/)
+      .filter((word) => {
+        const text = compact(word);
+        return text && !currentWords.has(text);
+      })
+      .join(' ');
+    if (novel) result.push(novel);
+  }
+  return result;
+}
+
 /** Snapshot of the default getFn to avoid depending on mutable global config */
 const defaultGetFn = Fuse.config.getFn;
 
@@ -42,15 +97,20 @@ const FILM_SEARCH_KEYS = [
   { name: 'name', weight: 2.0 }, // High priority - film name
   { name: 'brand', weight: 2.0 }, // High priority - manufacturer
   { name: 'colorType', weight: 1.0 }, // Medium priority - color/BW classification
-  { name: 'aliases.name', weight: 1.5 }, // Former names should be findable
 ];
+
+/** Former names live in their own index so they can find a film but never boost one. */
+const ALIAS_SEARCH_KEYS = [{ name: 'aliases.name', weight: 1.0 }];
 
 /**
  * Configuration options for film search
  */
-const FILM_SEARCH_OPTIONS: IFuseOptions<Film> = {
+const BASE_SEARCH_OPTIONS: IFuseOptions<Film> = {
   // Normalize indexed values so punctuation doesn't block matches
   getFn: (obj, path) => {
+    if ((Array.isArray(path) ? path.join('.') : path) === 'aliases.name') {
+      return getInformativeAliasNames(obj).map(normalizeSearchText);
+    }
     const value = defaultGetFn(obj, path);
     if (Array.isArray(value)) {
       return value.map((item) => {
@@ -61,7 +121,6 @@ const FILM_SEARCH_OPTIONS: IFuseOptions<Film> = {
     const text = indexedText.safeParse(value);
     return text.success ? normalizeSearchText(text.data) : value;
   },
-  keys: FILM_SEARCH_KEYS,
   // Fuzzy matching threshold (0.0 = exact, 1.0 = match anything)
   // 0.2 keeps results relevant — avoids matching "Retro"/"Pro" for "Portra"
   threshold: 0.2,
@@ -99,7 +158,56 @@ export type FilmSearchResult = FuseResult<Film>;
  * ```
  */
 export function createFilmSearcher(films: Film[]): Fuse<Film> {
-  return new Fuse(films, FILM_SEARCH_OPTIONS);
+  const searcher = new Fuse(films, {
+    ...BASE_SEARCH_OPTIONS,
+    keys: FILM_SEARCH_KEYS,
+  });
+  aliasSearchers.set(
+    searcher,
+    new Fuse(films, { ...BASE_SEARCH_OPTIONS, keys: ALIAS_SEARCH_KEYS })
+  );
+  return searcher;
+}
+
+/** Alias index paired with each searcher from `createFilmSearcher`. */
+const aliasSearchers = new WeakMap<Fuse<Film>, Fuse<Film>>();
+
+function runSearch(
+  searcher: Fuse<Film>,
+  keyNames: string[],
+  trimmed: string
+): FilmSearchResult[] {
+  const normalized = normalizeSearchText(trimmed);
+  const tokens = trimmed.split(/\s+/).map(normalizeSearchText);
+
+  // Single word: search directly
+  if (tokens.length === 1) {
+    return searcher.search(normalized);
+  }
+
+  // Multi-word: search both the joined form ("tri x" -> "trix") and
+  // the tokenized AND form ("kodak portra" -> kodak AND portra),
+  // then merge results by best score
+  const joinedResults = searcher.search(tokens.join(''));
+
+  const expression = {
+    $and: tokens.map((token) => ({
+      $or: keyNames.map((name) => ({ [name]: token })),
+    })),
+  };
+  const tokenResults = searcher.search(expression);
+
+  // Merge and deduplicate, keeping the best score for each film
+  const seen = new Map<string, FilmSearchResult>();
+  for (const result of [...joinedResults, ...tokenResults]) {
+    const id = result.item.uuid;
+    const existing = seen.get(id);
+    if (!existing || (result.score ?? 1) < (existing.score ?? 1)) {
+      seen.set(id, result);
+    }
+  }
+
+  return [...seen.values()].toSorted((a, b) => (a.score ?? 1) - (b.score ?? 1));
 }
 
 /**
@@ -130,37 +238,21 @@ export function searchFilms(
   }
 
   const searcher = existingSearcher ?? createFilmSearcher(films);
-  const normalized = normalizeSearchText(trimmed);
-  const tokens = trimmed.split(/\s+/).map(normalizeSearchText);
+  const direct = runSearch(
+    searcher,
+    FILM_SEARCH_KEYS.map((key) => key.name),
+    trimmed
+  );
 
-  // Single word: search directly
-  if (tokens.length === 1) {
-    return searcher.search(normalized);
-  }
-
-  // Multi-word: search both the joined form ("tri x" -> "trix") and
-  // the tokenized AND form ("kodak portra" -> kodak AND portra),
-  // then merge results by best score
-  const joinedResults = searcher.search(tokens.join(''));
-
-  const keyNames = FILM_SEARCH_KEYS.map((key) => key.name);
-
-  const expression = {
-    $and: tokens.map((token) => ({
-      $or: keyNames.map((name) => ({ [name]: token })),
-    })),
-  };
-  const tokenResults = searcher.search(expression);
-
-  // Merge and deduplicate, keeping the best score for each film
-  const seen = new Map<string, FilmSearchResult>();
-  for (const result of [...joinedResults, ...tokenResults]) {
-    const id = result.item.uuid;
-    const existing = seen.get(id);
-    if (!existing || (result.score ?? 1) < (existing.score ?? 1)) {
-      seen.set(id, result);
-    }
-  }
-
-  return [...seen.values()].toSorted((a, b) => (a.score ?? 1) - (b.score ?? 1));
+  // Films matched only by a former name follow every direct match, so an
+  // alias can find a film but never outrank or re-score one.
+  const aliasSearcher = aliasSearchers.get(searcher);
+  if (!aliasSearcher) return direct;
+  const found = new Set(direct.map((result) => result.item.uuid));
+  const aliasOnly = runSearch(
+    aliasSearcher,
+    ALIAS_SEARCH_KEYS.map((key) => key.name),
+    trimmed
+  ).filter((result) => !found.has(result.item.uuid));
+  return [...direct, ...aliasOnly];
 }

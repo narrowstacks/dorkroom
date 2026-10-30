@@ -34,7 +34,21 @@ describe('mapFilmToStock', () => {
       name: 'Tri-X 400',
       iso: 400,
       process: 'bw',
+      aliases: [],
     });
+  });
+
+  it('keeps only alias names that add info beyond brand + name', () => {
+    const stock = mapFilmToStock(
+      makeFilm({
+        aliases: [
+          { slug: 'a', name: 'Kodak Tri-X 400' },
+          { slug: 'b', name: 'kodak-tri-x-400' },
+          { slug: 'c', name: 'Kodak Triple Ex' },
+        ],
+      })
+    );
+    expect(stock.aliases).toEqual(['Triple Ex']);
   });
 
   it('passes through the color and slide process values', () => {

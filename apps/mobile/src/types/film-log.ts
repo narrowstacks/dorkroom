@@ -19,6 +19,8 @@ export interface FilmStock {
   name: string;
   iso: number;
   process: FilmProcess;
+  /** Former names that add searchable info beyond brand + name. */
+  aliases?: string[];
 }
 
 export interface Camera {
