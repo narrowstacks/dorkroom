@@ -100,7 +100,7 @@ interface UseRecipeActionsProps {
   allFilms: Film[];
   allDevelopers: Developer[];
 
-  // Feature flags
+  // Whether a custom recipe can be shared (currently off in the page)
   customRecipeSharingEnabled: boolean;
 }
 

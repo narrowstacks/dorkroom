@@ -67,7 +67,8 @@ function isAddressInfo(
 
 function startStaticServer(
   transformHtml?: (html: string) => string,
-  requestLog?: string[]
+  requestLog?: string[],
+  notFoundLog?: string[]
 ): Promise<{
   url: string;
   close: () => Promise<void>;
@@ -89,6 +90,7 @@ function startStaticServer(
         // JS/CSS/asset path to index.html, or the browser parses HTML as JS.
         if (/\.[a-z0-9]+$/i.test(rel) && !rel.endsWith('.html')) {
           console.warn(`  [404] ${urlPath}`);
+          notFoundLog?.push(urlPath);
           res.writeHead(404, { 'content-type': 'text/plain' });
           res.end('Not found');
           return;
@@ -187,77 +189,89 @@ async function run(): Promise<void> {
   // ---- 1. MODERN PATH ------------------------------------------------------
   {
     const requests: string[] = [];
-    const server = await startStaticServer(undefined, requests);
-    const view = await openAndWait(server.url);
+    const notFound: string[] = [];
+    const server = await startStaticServer(undefined, requests, notFound);
+    let view: CaptureView | undefined;
+    try {
+      view = await openAndWait(server.url);
 
-    const assetJs = requests.filter((u) => /\/assets\/.*\.js$/.test(u));
-    const modernEntry = assetJs.some(
-      (u) => /\/assets\/index-[^/]+\.js/.test(u) && !u.includes('-legacy-')
-    );
-    const anyLegacy = assetJs.filter((u) =>
-      /-legacy-|polyfills-legacy/.test(u)
-    );
-    // /_vercel/* analytics scripts only exist on the deployed platform; their
-    // 404s here are environmental, not a legacy-build defect.
-    const errors = await readErrors(view, [/_vercel\//]);
+      const assetJs = requests.filter((u) => /\/assets\/.*\.js$/.test(u));
+      const modernEntry = assetJs.some(
+        (u) => /\/assets\/index-[^/]+\.js/.test(u) && !u.includes('-legacy-')
+      );
+      const anyLegacy = assetJs.filter((u) =>
+        /-legacy-|polyfills-legacy/.test(u)
+      );
+      // /_vercel/* analytics scripts only exist on the deployed platform; their
+      // 404s here are environmental, not a legacy-build defect.
+      const errors = await readErrors(view, [/_vercel\//]);
 
-    check('modern: app renders (.hero-grain visible)', true);
-    check('modern: loads modern index-*.js module bundle', modernEntry);
-    check(
-      'modern: does NOT request any legacy/polyfill chunk',
-      anyLegacy.length === 0,
-      anyLegacy.length
-        ? anyLegacy.map((u) => u.split('/').pop()).join(', ')
-        : 'none'
-    );
-    check(
-      'modern: no console/page errors',
-      errors.length === 0,
-      errors.join(' | ')
-    );
-
-    view.close();
-    await server.close();
+      check('modern: app renders (.hero-grain visible)', true);
+      check('modern: loads modern index-*.js module bundle', modernEntry);
+      check(
+        'modern: does NOT request any legacy/polyfill chunk',
+        anyLegacy.length === 0,
+        anyLegacy.length
+          ? anyLegacy.map((u) => u.split('/').pop()).join(', ')
+          : 'none'
+      );
+      const missing = notFound.filter((u) => !u.startsWith('/_vercel/'));
+      check('modern: no 404s', missing.length === 0, missing.join(', '));
+      check(
+        'modern: no console/page errors',
+        errors.length === 0,
+        errors.join(' | ')
+      );
+    } finally {
+      view?.close();
+      await server.close();
+    }
   }
 
   // ---- 2. LEGACY PATH ------------------------------------------------------
   {
     const requests: string[] = [];
-    const server = await startStaticServer(forceLegacyHtml, requests);
-    const view = await openAndWait(server.url);
-    const errors = await readErrors(view, [
-      /loading legacy chunks/i,
-      /_vercel\//,
-    ]);
+    const notFound: string[] = [];
+    const server = await startStaticServer(forceLegacyHtml, requests, notFound);
+    let view: CaptureView | undefined;
+    try {
+      view = await openAndWait(server.url);
+      const errors = await readErrors(view, [
+        /loading legacy chunks/i,
+        /_vercel\//,
+      ]);
 
-    const loadedPolyfills = requests.some((u) =>
-      /polyfills-legacy-[^/]+\.js/.test(u)
-    );
-    const loadedLegacyEntry = requests.some((u) =>
-      /index-legacy-[^/]+\.js/.test(u)
-    );
-    const loadedModern = requests.some(
-      (u) => /\/assets\/index-[^/]+\.js/.test(u) && !u.includes('-legacy-')
-    );
+      const loadedPolyfills = requests.some((u) =>
+        /polyfills-legacy-[^/]+\.js/.test(u)
+      );
+      const loadedLegacyEntry = requests.some((u) =>
+        /index-legacy-[^/]+\.js/.test(u)
+      );
+      const loadedModern = requests.some(
+        (u) => /\/assets\/index-[^/]+\.js/.test(u) && !u.includes('-legacy-')
+      );
 
-    check(
-      'legacy: ES5 nomodule bundle boots the app (.hero-grain visible)',
-      true
-    );
-    check('legacy: requested polyfills-legacy chunk', loadedPolyfills);
-    check(
-      'legacy: requested index-legacy chunk (via SystemJS)',
-      loadedLegacyEntry
-    );
-    check('legacy: did NOT load the modern bundle', !loadedModern);
-    check(
-      'legacy: no console/page errors',
-      errors.length === 0,
-      errors.join(' | ')
-    );
-
-    view.close();
-    await server.close();
+      check(
+        'legacy: ES5 nomodule bundle boots the app (.hero-grain visible)',
+        true
+      );
+      check('legacy: requested polyfills-legacy chunk', loadedPolyfills);
+      check(
+        'legacy: requested index-legacy chunk (via SystemJS)',
+        loadedLegacyEntry
+      );
+      check('legacy: did NOT load the modern bundle', !loadedModern);
+      const missing = notFound.filter((u) => !u.startsWith('/_vercel/'));
+      check('legacy: no 404s', missing.length === 0, missing.join(', '));
+      check(
+        'legacy: no console/page errors',
+        errors.length === 0,
+        errors.join(' | ')
+      );
+    } finally {
+      view?.close();
+      await server.close();
+    }
   }
 }
 

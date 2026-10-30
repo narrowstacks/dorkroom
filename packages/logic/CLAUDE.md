@@ -17,7 +17,7 @@ sibling (Metro picks it up automatically; see `use-window-dimensions.native.ts`)
 
 ```
 src/
-├── constants/           # Per-calculator defaults, storage keys, feature flags
+├── constants/           # Per-calculator defaults, storage keys
 ├── hooks/               # Calculator hooks (use-*-calculator.ts) at the top level
 │   ├── api/             # TanStack Query hooks
 │   ├── border-calculator/

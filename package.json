@@ -36,6 +36,7 @@
   "dependencies": {
     "@tailwindcss/postcss": "4.3.3",
     "@unkey/api": "^2.5.4",
+    "@vercel/microfrontends": "^2.4.2",
     "@vercel/node": "^5.10.2",
     "@vercel/og": "^0.11.1",
     "clsx": "^2.1.1",
@@ -46,7 +47,6 @@
   },
   "devDependencies": {
     "@oxlint/plugins": "1.89.0",
-    "@tanstack/react-query-devtools": "^5.104.5",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "16.3.3",
@@ -55,7 +55,6 @@
     "@types/node": "^26.6.5",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "@vercel/speed-insights": "^2.0.0",
     "@vitejs/plugin-legacy": "8.2.3",
     "@vitejs/plugin-react": "6.1.2",
     "@vitest/coverage-v8": "5.0.5",

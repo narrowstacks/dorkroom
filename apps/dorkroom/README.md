@@ -1,22 +1,16 @@
 # Dorkroom App
 
-Main React application for analog photography calculations.
+Main React application (Vite SPA) for analog photography calculations.
 
-## E2E Testing
+## Commands
 
-E2E tests use Playwright with Chromatic for visual regression testing.
-
-### How it works
-
-1. Playwright runs functional tests (page loads, elements visible)
-2. Chromatic automatically captures screenshots at the end of each test
-3. Chromatic compares screenshots on consistent cloud infrastructure (no platform differences)
-4. Visual changes are reviewed in Chromatic's UI
-
-### Running locally
+Run from the repo root:
 
 ```bash
-bun run test:e2e
+bun run dev            # dev server
+bun run build          # production build
+bun run test:unit      # unit tests for this app and the packages
+bun run verify:legacy  # build, then check the legacy (ES5) and modern bundles in headless Chrome
 ```
 
-Note: Chromatic visual comparison only runs in CI. Local runs verify functional behavior only.
+The dev server port is not fixed. See the root `CLAUDE.md` for how ports are chosen.
