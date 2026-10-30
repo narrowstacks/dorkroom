@@ -49,6 +49,8 @@ Working today:
 
 - **Border**, **Mat Cut**, **Reciprocity**, and **Resize** calculators
 - **Lens Equivalency**, converting focal lengths between sensor and film formats
+- **Camera Exposure**, EV from aperture, shutter speed, and ISO, with lighting
+  presets, equivalent exposures, and an A/B comparison
 - **Exposure**, the f-stop and time calculator the web app calls
   [Stops](https://dorkroom.art/stops)
 - **Light Meter**, metering through the camera, with aperture- and
@@ -58,15 +60,12 @@ Working today:
 - **Film Log** for rolls, shots, and gear, using the live film database as its
   film picker
 
-Still a placeholder: **Camera Exposure** appears in the tool list but renders a
-Coming Soon screen.
-
 The app versions independently of the web app. See
 [apps/mobile/CHANGELOG.md](apps/mobile/CHANGELOG.md).
 
 ## In the Works
 
-- **iOS parity** - Camera Exposure still needs a native screen, and the film database is not yet browsable on iOS.
+- **iOS parity** - The film database is not yet browsable on iOS.
 - **Kindle browser support** - Support for the app on the strange Kindle browser.
   - _**Help needed!** The site currently does not render on Kindle browsers_ ☹️
 

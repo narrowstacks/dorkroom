@@ -72,3 +72,15 @@ export function buildLensShare(p: {
     `Crop factors: ${p.sourceCropFactor.toFixed(2)}× → ${p.targetCropFactor.toFixed(2)}×`,
   ].join('\n');
 }
+
+export function buildCameraExposureShare(p: {
+  settings: string;
+  ev: number;
+  description: string;
+}): string {
+  return [
+    'Camera Exposure',
+    `Settings: ${p.settings}`,
+    `EV: ${p.ev}${p.description ? ` (${p.description})` : ''}`,
+  ].join('\n');
+}

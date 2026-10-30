@@ -10,6 +10,10 @@ interface SegmentedControlProps<T extends string | number | boolean> {
   accent?: AccentColor;
   /** What the choice is about, read by VoiceOver after each segment's label. */
   accessibilityHint?: string;
+  /** What the control chooses, e.g. "When selecting a preset, adjust".
+   * Prefixed to each segment's spoken label so VoiceOver gives the context
+   * with every segment, not only on a separate label element. */
+  accessibilityLabel?: string;
 }
 
 export function SegmentedControl<T extends string | number | boolean>({
@@ -18,6 +22,7 @@ export function SegmentedControl<T extends string | number | boolean>({
   onChange,
   accent,
   accessibilityHint,
+  accessibilityLabel,
 }: SegmentedControlProps<T>) {
   const tint = accent ? selectionTint(accent) : null;
   return (
@@ -34,6 +39,11 @@ export function SegmentedControl<T extends string | number | boolean>({
               }
             }}
             accessibilityRole="button"
+            accessibilityLabel={
+              accessibilityLabel
+                ? `${accessibilityLabel}: ${option.label}`
+                : undefined
+            }
             accessibilityState={{ selected }}
             accessibilityHint={accessibilityHint}
             className={`flex-1 items-center rounded-lg py-2 ${

@@ -11,6 +11,8 @@ interface PickerFieldProps<T extends string | number> {
   options: PickerOption<T>[];
   value: T;
   onChange: (value: T) => void;
+  /** Trigger text when `value` matches no option (e.g. an off-dial value). */
+  placeholder?: string;
 }
 
 /**
@@ -23,6 +25,7 @@ export function PickerField<T extends string | number>({
   options,
   value,
   onChange,
+  placeholder = 'Select',
 }: PickerFieldProps<T>) {
   const [open, setOpen] = useState(false);
   const selected = options.find((option) => option.value === value);
@@ -41,13 +44,13 @@ export function PickerField<T extends string | number>({
       <Pressable
         onPress={() => setOpen(true)}
         accessibilityRole="button"
-        accessibilityLabel={`${label}: ${selected?.label ?? 'Select'}`}
+        accessibilityLabel={`${label}: ${selected?.label ?? placeholder}`}
         accessibilityHint="Opens a list to choose from"
         className="min-h-11 flex-row items-center justify-between gap-3 rounded-xl bg-white/10 px-4 py-3"
       >
         <View className="flex-1">
           <Text className="text-base text-white" numberOfLines={1}>
-            {selected?.label ?? 'Select'}
+            {selected?.label ?? placeholder}
           </Text>
           {selected?.sublabel ? (
             <Text className="text-sm text-white/50" numberOfLines={1}>

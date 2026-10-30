@@ -98,7 +98,6 @@ export const TOOLS: readonly Tool[] = [
     icon: 'aperture',
     route: '/more/camera-exposure',
     category: 'camera',
-    comingSoon: true,
   },
   {
     id: 'meter',
