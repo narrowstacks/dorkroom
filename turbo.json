@@ -62,6 +62,9 @@
       ]
     },
     "lint": {},
+    "//#lint:root": {
+      "inputs": ["$TURBO_DEFAULT$", "!apps/**", "!packages/**", "!api/dist/**"]
+    },
     "//#typecheck:api": {
       "inputs": ["api/**", "!api/dist/**", "utils/**"]
     },

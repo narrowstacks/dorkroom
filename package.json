@@ -19,7 +19,7 @@
     "build": "turbo run build",
     "verify:legacy": "turbo run build --filter=@dorkroom/dorkroom && bun run scripts/verify-legacy-build.ts",
     "dev": "turbo run dev --filter=@dorkroom/dorkroom",
-    "test": "turbo run lint test build typecheck typecheck:api test:serverless test:docs doctor --filter='@dorkroom/*' --filter='//'",
+    "test": "turbo run lint lint:root test build typecheck typecheck:api test:serverless test:docs doctor --filter='@dorkroom/*' --filter='//'",
     "test:unit": "turbo run test --filter='@dorkroom/*' -- --passWithNoTests",
     "test:serverless": "vitest run --config vitest.config.ts --project serverless",
     "test:docs": "vitest run --config vitest.config.ts --project docs",
@@ -27,6 +27,7 @@
     "doctor": "react-doctor -y --blocking warning --no-telemetry",
     "lint": "oxlint && biome check --linter-enabled=false .",
     "lint:fix": "oxlint --fix && biome check --linter-enabled=false --write .",
+    "lint:root": "oxlint api utils scripts tools supabase postcss.config.js vitest.config.ts && biome check --linter-enabled=false api utils scripts tools supabase docs .github .vscode postcss.config.js vitest.config.ts .oxlintrc.json biome.json doctor.config.json package.json renovate.json tsconfig.base.json tsconfig.json turbo.json vercel.json",
     "lint:types": "oxlint --type-aware",
     "format": "biome format --write ."
   },
