@@ -49,4 +49,13 @@ describe('spoken units', () => {
   ])('spokenStops(%j) → %j', (stops, spoken) => {
     expect(spokenStops(stops)).toBe(spoken);
   });
+
+  // Regression for CodeQL js/polynomial-redos: pathological inputs must pass
+  // through unchanged without backtracking blowup.
+  it('leaves long unitless digit and space runs untouched', () => {
+    const digits = '9'.repeat(50_000);
+    const spaces = `1${' '.repeat(50_000)}x`;
+    expect(spokenDuration(digits)).toBe(digits);
+    expect(spokenLength(spaces)).toBe(spaces);
+  });
 });

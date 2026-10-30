@@ -24,13 +24,16 @@ const TIME_UNITS = new Map<string, UnitNames>([
 
 /** "40s" → "40 seconds", "1m 20s" → "1 minute 20 seconds", "2h" → "2 hours". */
 export function spokenDuration(display: string): string {
-  return display.replace(
-    /(\d+(?:\.\d+)?)\s*([hms])\b/g,
-    (match: string, value: string, unit: string) => {
-      const names = TIME_UNITS.get(unit);
-      return names ? withUnit(value, names) : match;
-    }
-  );
+  // Token by token with an anchored pattern: an unanchored global regex here
+  // backtracks polynomially on long digit runs (CodeQL js/polynomial-redos).
+  return display
+    .split(' ')
+    .map((token) => {
+      const match = /^(\d+(?:\.\d+)?)([hms])$/.exec(token);
+      const names = match?.[2] ? TIME_UNITS.get(match[2]) : undefined;
+      return match?.[1] && names ? withUnit(match[1], names) : token;
+    })
+    .join(' ');
 }
 
 /** `2"` → "2 seconds", "1/60" → "1/60 second". */
@@ -54,11 +57,15 @@ const LENGTH_UNITS = new Map<string, UnitNames>([
  * "19.1cm" → "19.1 centimeters", "50mm" → "50 millimeters".
  */
 export function spokenLength(display: string): string {
-  const match = /^(.*?)\s*("|″|in|cm|mm)$/.exec(display);
-  const value = match?.[1];
-  const units = match?.[2] ? LENGTH_UNITS.get(match[2]) : undefined;
-  if (!value || !units) return display;
-  return withUnit(value, units);
+  // Suffix check instead of a regex: `(.*?)\s*` backtracks polynomially on
+  // long runs of spaces (CodeQL js/polynomial-redos).
+  for (const [suffix, units] of LENGTH_UNITS) {
+    if (display.endsWith(suffix)) {
+      const value = display.slice(0, -suffix.length).trimEnd();
+      return value ? withUnit(value, units) : display;
+    }
+  }
+  return display;
 }
 
 /** 2 → "plus 2 stops", "-1.06" → "minus 1.06 stops", 1 → "plus 1 stop", 0 → "0 stops". */
