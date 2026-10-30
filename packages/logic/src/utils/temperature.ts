@@ -1,6 +1,7 @@
 /**
  * The one temperature module. Every °C/°F conversion, rounding, and
- * display string in the web and iOS apps goes through here.
+ * display string in the web and iOS apps goes through here, with the one
+ * exception noted below.
  *
  * Rounding rule: conversions are exact. A converted value is rounded to the
  * nearest 0.1° only where it leaves the module, either as a stored field
@@ -8,9 +9,11 @@
  * whole-degree rounding anywhere, because a whole-°F intermediate turns 24 °C
  * into 75 °F and then back into 23.9 °C.
  *
- * `@dorkroom/api` cannot import this (logic depends on api), so its client
- * repeats the 0.1° rule inline; `temperature.test.ts` guards the two against
- * drifting apart.
+ * Documented exception: the `@dorkroom/api` client (`transformCombination`
+ * in `packages/api/src/dorkroom/client.ts`) derives `temperatureF` with its
+ * own inline copy of the 0.1° rule, because api cannot import this module
+ * (logic depends on api, so the reverse would be circular). The drift guard
+ * in `__tests__/utils/temperature.test.ts` fails if the two disagree.
  */
 
 /** Temperature unit selected for display. */
