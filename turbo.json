@@ -62,30 +62,8 @@
       ]
     },
     "lint": {},
-    "//#lint": {
-      "inputs": [
-        "api/**",
-        "!api/dist/**",
-        "utils/**",
-        "scripts/**",
-        "tools/**",
-        "supabase/**",
-        "docs/**",
-        ".github/**",
-        ".vscode/**",
-        "postcss.config.js",
-        "vitest.config.ts",
-        ".oxlintrc.json",
-        "biome.json",
-        ".editorconfig",
-        "doctor.config.json",
-        "package.json",
-        "renovate.json",
-        "tsconfig.base.json",
-        "tsconfig.json",
-        "turbo.json",
-        "vercel.json"
-      ]
+    "//#lint:root": {
+      "inputs": ["$TURBO_DEFAULT$", "!apps/**", "!packages/**", "!api/dist/**"]
     },
     "//#typecheck:api": {
       "inputs": ["api/**", "!api/dist/**", "utils/**"]
