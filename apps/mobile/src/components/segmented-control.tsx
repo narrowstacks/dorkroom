@@ -8,6 +8,8 @@ interface SegmentedControlProps<T extends string | number | boolean> {
   onChange: (value: T) => void;
   /** Tool signature accent for the selected segment. Omit for the brand rose fill. */
   accent?: AccentColor;
+  /** What the choice is about, read by VoiceOver after each segment's label. */
+  accessibilityHint?: string;
 }
 
 export function SegmentedControl<T extends string | number | boolean>({
@@ -15,6 +17,7 @@ export function SegmentedControl<T extends string | number | boolean>({
   value,
   onChange,
   accent,
+  accessibilityHint,
 }: SegmentedControlProps<T>) {
   const tint = accent ? selectionTint(accent) : null;
   return (
@@ -32,6 +35,7 @@ export function SegmentedControl<T extends string | number | boolean>({
             }}
             accessibilityRole="button"
             accessibilityState={{ selected }}
+            accessibilityHint={accessibilityHint}
             className={`flex-1 items-center rounded-lg py-2 ${
               selected && !tint ? 'bg-rose-600' : ''
             }`}

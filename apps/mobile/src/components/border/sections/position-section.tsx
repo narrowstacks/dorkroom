@@ -1,16 +1,19 @@
 import {
+  type MeasurementUnit,
   OFFSET_SLIDER_MAX,
   OFFSET_SLIDER_MIN,
   OFFSET_SLIDER_STEP,
 } from '@dorkroom/logic';
 import { View } from 'react-native';
 import { ToggleRow } from '@/components/toggle-row';
+import { formatLength } from '../format';
 import { SliderRow } from '../slider-row';
 
 interface PositionSectionProps {
   enableOffset: boolean;
   horizontalOffset: number;
   verticalOffset: number;
+  unit: MeasurementUnit;
   ignoreMinBorder: boolean;
   onToggleOffset: (value: boolean) => void;
   onHorizontalChange: (value: number) => void;
@@ -22,6 +25,7 @@ export function PositionSection({
   enableOffset,
   horizontalOffset,
   verticalOffset,
+  unit,
   ignoreMinBorder,
   onToggleOffset,
   onHorizontalChange,
@@ -49,7 +53,7 @@ export function PositionSection({
             min={OFFSET_SLIDER_MIN}
             max={OFFSET_SLIDER_MAX}
             step={OFFSET_SLIDER_STEP}
-            displayValue={horizontalOffset.toFixed(2)}
+            displayValue={formatLength(horizontalOffset, unit)}
             onChange={onHorizontalChange}
           />
           <SliderRow
@@ -58,7 +62,7 @@ export function PositionSection({
             min={OFFSET_SLIDER_MIN}
             max={OFFSET_SLIDER_MAX}
             step={OFFSET_SLIDER_STEP}
-            displayValue={verticalOffset.toFixed(2)}
+            displayValue={formatLength(verticalOffset, unit)}
             onChange={onVerticalChange}
           />
         </>

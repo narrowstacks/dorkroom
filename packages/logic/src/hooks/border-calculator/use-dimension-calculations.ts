@@ -35,7 +35,8 @@ const MAX_EASEL_DIMENSION = Math.max(
  *
  * @param state - Current border calculator state
  * @param unit - Measurement unit the paper-size warning is written in. Defaults
- *   to imperial, which is all the iOS app displays.
+ *   to imperial. The iOS app passes its global unit preference through
+ *   `useBorderCalculator(unit)`.
  * @returns Object containing paper entry, warnings, ratio entry, oriented dimensions, and border data
  *
  * @example

@@ -1,15 +1,16 @@
-import type { BorderCalculation } from '@dorkroom/logic';
+import type { BorderCalculation, MeasurementUnit } from '@dorkroom/logic';
 import { Text, View } from 'react-native';
 import {
   bladeLabelOffset,
   computeBladeReadings,
 } from './blade-readings-layout';
-import { formatInches } from './format';
+import { formatLength } from './format';
 
 interface BladeReadingsProps {
   calculation: BorderCalculation;
   boxWidth: number;
   boxHeight: number;
+  unit: MeasurementUnit;
 }
 
 // Fixed label sizes (per orientation) keep each label's box stable as the
@@ -23,6 +24,7 @@ export function BladeReadings({
   calculation,
   boxWidth,
   boxHeight,
+  unit,
 }: BladeReadingsProps) {
   const readings = computeBladeReadings(calculation, boxWidth, boxHeight);
 
@@ -56,8 +58,14 @@ export function BladeReadings({
             {r.arrowFirst && (
               <Text className="text-xs text-white">{r.arrow}</Text>
             )}
-            <Text numberOfLines={1} className="text-xs font-medium text-white">
-              {formatInches(r.reading)}
+            {/* Shrinks rather than truncates when a cm reading ("-12.7cm") runs
+                wider than the inch readings the fixed boxes were sized for. */}
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              className="text-xs font-medium text-white"
+            >
+              {formatLength(r.reading, unit)}
             </Text>
             {!r.arrowFirst && (
               <Text className="text-xs text-white">{r.arrow}</Text>

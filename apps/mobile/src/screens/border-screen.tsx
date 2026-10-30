@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { BorderPreview } from '@/components/border/border-preview';
 import {
-  formatInches,
+  formatLength,
   formatPosition,
   formatPreviewCaption,
 } from '@/components/border/format';
@@ -15,6 +15,7 @@ import { GlassCard } from '@/components/glass-card';
 import { NavRow } from '@/components/nav-row';
 import { Screen } from '@/components/screen';
 import { WarningsCard } from '@/components/warnings-card';
+import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
 
 type SheetId = 'paperImage' | 'borderSize' | 'position' | null;
 
@@ -42,11 +43,14 @@ function ToggleButton({
 }
 
 export function BorderScreen() {
-  const calc = useBorderCalculator();
+  const [unit] = useMeasurementUnit();
+  const calc = useBorderCalculator(unit);
   const { calculation } = calc;
   const [sheet, setSheet] = useState<SheetId>(null);
   const closeSheet = () => setSheet(null);
 
+  // Paper is named by its trade size ("8×10"), matching the picker pills, in
+  // either unit; only measured lengths are converted.
   const paperLabel = `${calculation.paperWidth}×${calculation.paperHeight}`;
   const warnings = [
     calc.bladeWarning,
@@ -62,9 +66,10 @@ export function BorderScreen() {
           calculation={calculation}
           showBlades={calc.showBlades}
           showBladeReadings={calc.showBladeReadings}
+          unit={unit}
         />
         <Text className="text-center text-sm text-white/60">
-          {formatPreviewCaption(calculation, paperLabel)}
+          {formatPreviewCaption(calculation, paperLabel, unit)}
         </Text>
       </GlassCard>
 
@@ -78,7 +83,7 @@ export function BorderScreen() {
         />
         <NavRow
           label="Border size"
-          value={formatInches(calc.minBorder)}
+          value={formatLength(calc.minBorder, unit)}
           onPress={() => setSheet('borderSize')}
         />
         <NavRow
@@ -86,7 +91,8 @@ export function BorderScreen() {
           value={formatPosition(
             calc.enableOffset,
             calc.horizontalOffset,
-            calc.verticalOffset
+            calc.verticalOffset,
+            unit
           )}
           onPress={() => setSheet('position')}
         />
@@ -138,6 +144,7 @@ export function BorderScreen() {
       >
         <BorderSizeSection
           minBorder={calc.minBorder}
+          unit={unit}
           onChange={calc.setMinBorderSlider}
         />
       </BottomSheet>
@@ -152,6 +159,7 @@ export function BorderScreen() {
           enableOffset={calc.enableOffset}
           horizontalOffset={calc.horizontalOffset}
           verticalOffset={calc.verticalOffset}
+          unit={unit}
           ignoreMinBorder={calc.ignoreMinBorder}
           onToggleOffset={calc.setEnableOffset}
           onHorizontalChange={calc.setHorizontalOffsetSlider}

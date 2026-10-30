@@ -8,6 +8,7 @@
 \* ------------------------------------------------------------------ */
 
 import type { BorderCalculation } from '../../types/border-calculator';
+import type { MeasurementUnit } from '../../utils/unit-conversion';
 import { useAlertSystem } from './use-alert-system';
 import { useBorderCalculatorState } from './use-border-calculator-state';
 import { useDimensionCalculations } from './use-dimension-calculations';
@@ -20,6 +21,8 @@ import { useInputHandlers } from './use-input-handlers';
  * This is the primary interface for darkroom border calculations, composing multiple
  * specialized sub-hooks to provide a comprehensive calculation system.
  *
+ * @param unit - Measurement unit the hook's warnings are written in. Results
+ *   and state stay in inches either way. Defaults to imperial.
  * @returns Complete border calculator state and control functions
  *
  * @example
@@ -43,13 +46,13 @@ import { useInputHandlers } from './use-input-handlers';
  * console.log(`Print size: ${calculation.printWidth}" x ${calculation.printHeight}"`);
  * ```
  */
-export const useBorderCalculator = () => {
+export const useBorderCalculator = (unit: MeasurementUnit = 'imperial') => {
   // Core state management
   const { state, dispatch } = useBorderCalculatorState();
 
   // Dimension calculations
   const { paperEntry, paperSizeWarning, orientedDimensions, minBorderData } =
-    useDimensionCalculations(state);
+    useDimensionCalculations(state, unit);
 
   // Geometry calculations
   const { calculation } = useGeometryCalculations(
