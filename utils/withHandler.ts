@@ -722,7 +722,10 @@ export function withHandler(config: HandlerConfig): VercelApiHandler {
         return;
       }
 
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (
+        error instanceof Error &&
+        (error.name === 'AbortError' || error.name === 'TimeoutError')
+      ) {
         res.status(504).json({
           error: 'Request timeout',
           message: 'Request to upstream service timed out',

@@ -7,7 +7,6 @@ import {
   serverlessError,
   serverlessWarn,
 } from './serverlessLogger';
-import { createTimeoutSignal } from './timeoutSignal';
 import { type HandlerConfig, withHandler } from './withHandler';
 
 const TIMEOUT_MS = 30_000;
@@ -132,7 +131,7 @@ export function createSupabaseProxyHandler({
         Accept: 'application/json',
         'x-proxy-secret': proxySecret,
       },
-      signal: createTimeoutSignal(TIMEOUT_MS),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
     });
 
     const responseTime = Date.now() - ctx.startTime;

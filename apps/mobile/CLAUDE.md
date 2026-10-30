@@ -122,7 +122,7 @@ this because it is a permanent tab).
     backed by the MMKV shim installed in `app/_layout.tsx` via
     `installLocalStorage()`. That call **must** stay first, before anything reads
     persisted state.
-  - Mobile-only state uses `new MMKV({ id: '…' })` directly with a named id
+  - Mobile-only state uses `createMMKV({ id: '…' })` (MMKV 4) directly with a named id
     (`meter-settings.ts`, `meter-calibration.ts`, `tab-bar-settings.ts`,
     `film-log-storage.ts`). Pull defaults from `@dorkroom/logic` constants and
     guard reads with `Number.isFinite`.
