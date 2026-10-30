@@ -1,91 +1,5 @@
 import { isBrowser } from './environment';
 
-/*
- * URL configuration for different environments
- */
-const URL_CONFIG = {
-  // Base URLs for different environments
-  PRODUCTION_WEB: 'https://beta.dorkroom.art',
-  DEVELOPMENT_WEB: 'http://localhost:4200',
-
-  // Paths
-  BORDER_CALCULATOR_PATH: '/border',
-};
-
-/**
- * Gets the base URL for the current environment.
- * Automatically detects development vs production and constructs appropriate URL.
- *
- * @internal
- * @returns Base URL string for the current environment
- * @example
- * ```typescript
- * const baseUrl = getBaseUrl();
- * // Development: 'http://localhost:4200'
- * // Production: 'https://beta.dorkroom.art'
- * ```
- */
-function getBaseUrl(): string {
-  if (!isBrowser()) {
-    // Server-side rendering - default to production
-    return URL_CONFIG.PRODUCTION_WEB;
-  }
-
-  const { hostname, port, protocol } = window.location;
-
-  // Development environment detection
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return `${protocol}//${hostname}${port ? `:${port}` : ''}`;
-  }
-
-  // Production or staging
-  return `${protocol}//${hostname}`;
-}
-
-/**
- * Generates a dynamic share URL for the border calculator.
- * Uses current environment's base URL for context-appropriate sharing.
- *
- * @public
- * @param path - Path to append to base URL, defaults to border calculator path
- * @returns Complete shareable URL for the specified path
- * @example
- * ```typescript
- * const url = getDynamicShareUrl();
- * console.log(url); // 'https://beta.dorkroom.art/border'
- *
- * const customUrl = getDynamicShareUrl('/custom-path');
- * console.log(customUrl); // 'https://beta.dorkroom.art/custom-path'
- * ```
- */
-export function getDynamicShareUrl(
-  path: string = URL_CONFIG.BORDER_CALCULATOR_PATH
-): string {
-  const baseUrl = getBaseUrl();
-  return `${baseUrl}${path}`;
-}
-
-/**
- * Generates sharing URL for a preset.
- * Provides shareable web URL for the preset.
- *
- * @public
- * @param encoded - Encoded preset string
- * @returns Object containing web URL
- * @example
- * ```typescript
- * const urls = generateSharingUrls('preset123abc');
- * console.log(urls.webUrl); // 'https://beta.dorkroom.art/border?preset=preset123abc'
- * ```
- */
-export function generateSharingUrls(encoded: string) {
-  const webUrl = `${getDynamicShareUrl()}?preset=${encoded}`;
-
-  return {
-    webUrl,
-  };
-}
-
 /**
  * Extracts encoded preset from the current URL.
  * Checks `?preset=` query param first, falls back to URL hash for backwards compatibility.
@@ -172,29 +86,6 @@ export function clearPresetFromUrl(): void {
     ? `${window.location.pathname}?${qs}`
     : window.location.pathname;
   window.history.replaceState(null, '', newUrl);
-}
-
-/**
- * Checks if the current environment supports the Clipboard API.
- * Used to determine if copy-to-clipboard functionality is available.
- *
- * @public
- * @returns True if Clipboard API is supported, false otherwise
- * @example
- * ```typescript
- * if (isClipboardSupported()) {
- *   navigator.clipboard.writeText(shareUrl);
- * } else {
- *   // Show manual copy instructions
- * }
- * ```
- */
-export function isClipboardSupported(): boolean {
-  return (
-    globalThis.navigator !== undefined &&
-    'clipboard' in navigator &&
-    'writeText' in navigator.clipboard
-  );
 }
 
 /**

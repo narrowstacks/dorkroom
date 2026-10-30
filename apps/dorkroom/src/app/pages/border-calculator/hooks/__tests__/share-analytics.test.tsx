@@ -14,12 +14,21 @@ const shareEvent = (method: string) => [
   { name: 'share', data: { tool: 'border', method }, options: undefined },
 ];
 
+/** The slice of `navigator` the share flow reads. */
+interface FakeNavigator {
+  userAgent: string;
+  maxTouchPoints: number;
+  share?: (data: ShareData) => Promise<void>;
+  clipboard?: { writeText: (text: string) => Promise<void> };
+}
+
 function stubClipboard(writeText?: (text: string) => Promise<void>) {
-  vi.stubGlobal('navigator', {
+  const fake: FakeNavigator = {
     userAgent: 'Mozilla/5.0 (X11; Linux x86_64)',
     maxTouchPoints: 0,
-    ...(writeText ? { clipboard: { writeText } } : {}),
-  });
+  };
+  if (writeText) fake.clipboard = { writeText };
+  vi.stubGlobal('navigator', fake);
 }
 
 const renderController = () =>

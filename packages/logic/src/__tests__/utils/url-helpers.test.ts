@@ -1,9 +1,7 @@
+import { isClipboardSupported } from '../../utils/share-link';
 import {
   clearPresetFromUrl,
-  generateSharingUrls,
-  getDynamicShareUrl,
   getPresetFromUrl,
-  isClipboardSupported,
   updateUrlWithPreset,
 } from '../../utils/url-helpers';
 
@@ -44,55 +42,6 @@ describe('url helpers', () => {
   afterEach(() => {
     // Auto-restores window/navigator stubbed via vi.stubGlobal below.
     vi.unstubAllGlobals();
-  });
-
-  describe('getDynamicShareUrl', () => {
-    beforeEach(() => {
-      vi.stubGlobal('window', mockWindow);
-    });
-
-    it('should generate localhost URL in development', () => {
-      const url = getDynamicShareUrl();
-      expect(url).toBe('http://localhost:4200/border');
-    });
-
-    it('should use custom path when provided', () => {
-      const url = getDynamicShareUrl('/custom-path');
-      expect(url).toBe('http://localhost:4200/custom-path');
-    });
-
-    it('should handle production hostname', () => {
-      mockWindow.location.hostname = 'beta.dorkroom.art';
-      mockWindow.location.protocol = 'https:';
-      delete mockWindow.location.port;
-
-      const url = getDynamicShareUrl();
-      expect(url).toBe('https://beta.dorkroom.art/border');
-    });
-
-    it('should handle SSR (no window)', () => {
-      vi.stubGlobal('window', undefined);
-      const url = getDynamicShareUrl();
-      expect(url).toBe('https://beta.dorkroom.art/border');
-    });
-  });
-
-  describe('generateSharingUrls', () => {
-    beforeEach(() => {
-      // Reset mockWindow to localhost configuration before each test
-      mockWindow.location.hostname = 'localhost';
-      mockWindow.location.port = '4200';
-      mockWindow.location.protocol = 'http:';
-
-      vi.stubGlobal('window', mockWindow);
-    });
-
-    it('should generate web URL with query param', () => {
-      const encoded = 'abc123';
-      const urls = generateSharingUrls(encoded);
-
-      expect(urls.webUrl).toBe('http://localhost:4200/border?preset=abc123');
-    });
   });
 
   describe('getPresetFromUrl', () => {

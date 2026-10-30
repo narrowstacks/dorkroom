@@ -12,6 +12,7 @@ import type {
 } from '../types/border-calculator';
 import { decodeBase64, encodeBase64, fromUrlSafe, toUrlSafe } from './base64';
 import { debugError } from './debug-logger';
+import { getShareBaseUrl } from './share-link';
 
 const encodedPresetStringSchema = z.string().regex(/^[A-Za-z0-9_-]+$/);
 
@@ -356,4 +357,27 @@ export function isValidEncodedPreset(encoded: string): boolean {
   }
 
   return decodePreset(encoded) !== null;
+}
+
+/**
+ * Builds the share link for a border preset.
+ *
+ * Off the browser the link falls back to the beta host, and on a non-loopback
+ * dev host the port is dropped (see `loopbackPortOnly`); both are how border
+ * links have always been built.
+ *
+ * @param preset - Preset values to encode into the link
+ * @returns `<origin>/border?preset=<encoded>`, or null when encoding fails
+ */
+export function buildPresetShareUrl(preset: PresetToShare): string | null {
+  const encoded = encodePreset(preset);
+  if (!encoded) {
+    return null;
+  }
+
+  const base = getShareBaseUrl({
+    fallback: 'https://beta.dorkroom.art',
+    loopbackPortOnly: true,
+  });
+  return `${base}/border?preset=${encoded}`;
 }

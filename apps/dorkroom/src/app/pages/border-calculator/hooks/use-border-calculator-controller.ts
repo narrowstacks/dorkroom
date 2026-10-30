@@ -14,7 +14,6 @@ import {
   PAPER_SIZES,
   persistedBorderCalculatorFieldSchemas,
   type PersistedValue,
-  shallowEqual,
   useBorderPresets,
   useCalculatorSharing,
   useDimensionCalculations,
@@ -22,7 +21,6 @@ import {
   useLocalStorageFormPersistence,
   usePaperDimensionInput,
   usePresetManagement,
-  usePresetSharing,
   useUrlPresetLoader,
   useWindowDimensions,
 } from '@dorkroom/logic';
@@ -328,29 +326,6 @@ export function useBorderCalculatorController() {
     ]
   );
 
-  // Sharing hooks
-  const {
-    sharePreset,
-    getSharingUrls,
-    canShareNatively,
-    canCopyToClipboard,
-    isSharing,
-  } = usePresetSharing({
-    onShareSuccess: (result) => {
-      if (result.method) {
-        trackEvent('share', { tool: 'border', method: result.method });
-      }
-      if (result.method === 'clipboard') {
-        debugLog('Preset link copied to clipboard!');
-      } else if (result.method === 'native') {
-        setIsShareModalOpen(false);
-      }
-    },
-    onShareError: (error: string) => {
-      debugError('Sharing failed:', error);
-    },
-  });
-
   // URL preset loader
   const { loadedPreset, clearLoadedPreset } = useUrlPresetLoader({
     onPresetLoaded: (preset: {
@@ -407,21 +382,14 @@ export function useBorderCalculatorController() {
     [selectPreset]
   );
 
-  const sharePresetWrapper = useCallback(
-    async (
-      preset: { name: string; settings: BorderPresetSettings },
-      preferNative: boolean
-    ): Promise<void> => {
-      await sharePreset(preset, preferNative);
-    },
-    [sharePreset]
-  );
-
   const {
     isShareModalOpen,
     isSaveBeforeShareOpen,
     shareUrls,
     isGeneratingShareUrl,
+    isSharing,
+    canShareNatively,
+    canCopyToClipboard,
     setIsShareModalOpen,
     setIsSaveBeforeShareOpen,
     handleShareClick,
@@ -432,23 +400,11 @@ export function useBorderCalculatorController() {
     presets,
     currentSettings,
     presetName,
-    getSharingUrls,
-    sharePreset: sharePresetWrapper,
-    canShareNatively,
-    canCopyToClipboard,
     onAddPreset: addPreset,
-    shallowEqual,
-  });
-
-  // The share modal's copy button writes to the clipboard directly rather than
-  // going through `sharePreset`, so it never reaches `onShareSuccess` above.
-  const handleCopyToClipboardTracked = useCallback(
-    async (url: string) => {
-      await handleCopyToClipboard(url);
-      trackEvent('share', { tool: 'border', method: 'clipboard' });
+    onShared: (method) => {
+      trackEvent('share', { tool: 'border', method });
     },
-    [handleCopyToClipboard]
-  );
+  });
 
   return {
     isDesktop,
@@ -503,7 +459,7 @@ export function useBorderCalculatorController() {
     // Sharing Handlers
     handleShareClick,
     handleSaveAndShare,
-    handleCopyToClipboard: handleCopyToClipboardTracked,
+    handleCopyToClipboard,
     handleNativeShare,
     setIsShareModalOpen,
     setIsSaveBeforeShareOpen,

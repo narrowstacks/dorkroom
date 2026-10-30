@@ -9,19 +9,15 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_BORDER_PRESETS } from '../../constants/border-calculator';
+import { useCalculatorSharing } from '../../hooks/border-calculator/use-calculator-sharing';
 import { useRecipeSharing } from '../../hooks/development-recipes/use-recipe-sharing';
-import { usePresetSharing } from '../../hooks/use-preset-sharing';
 import type { CustomRecipe } from '../../types/custom-recipes';
-import { encodePreset, type PresetToShare } from '../../utils/preset-sharing';
+import {
+  buildPresetShareUrl,
+  encodePreset,
+  type PresetToShare,
+} from '../../utils/preset-sharing';
 import { encodeCustomRecipe } from '../../utils/recipe-sharing';
-import { generateSharingUrls } from '../../utils/url-helpers';
-
-// Lets a test take the "no browser window" branch without removing `window`,
-// which React itself needs to dispatch the hooks' state updates.
-const environment = vi.hoisted(() => ({ browser: true }));
-vi.mock('../../utils/environment', () => ({
-  isBrowser: () => environment.browser,
-}));
 
 // ---------------------------------------------------------------------------
 // Adapters: the only part of this file that names the implementation.
@@ -29,23 +25,32 @@ vi.mock('../../utils/environment', () => ({
 
 /** The link the border calculator's share modal shows for a preset. */
 function borderShareUrl(preset: PresetToShare): string {
-  return generateSharingUrls(encodePreset(preset)).webUrl;
+  const url = buildPresetShareUrl(preset);
+  if (!url) throw new Error('preset failed to encode');
+  return url;
 }
 
-/** Runs the border calculator's native-first share for a preset. */
+/**
+ * Opens the border share modal on a preset, then runs its native-first share.
+ * `reportedMethod` is what reaches analytics; `modalOpen` is the modal after.
+ */
 async function shareBorderPreset(preset: PresetToShare) {
-  const onShareSuccess = vi.fn();
-  const { result } = renderHook(() => usePresetSharing({ onShareSuccess }));
-  let outcome: Awaited<ReturnType<typeof result.current.sharePreset>>;
-  await act(async () => {
-    outcome = await result.current.sharePreset(preset);
-  });
-  // SAFETY: assigned inside the awaited act() above.
-  const shared = outcome!;
+  const onShared = vi.fn();
+  const { result } = renderHook(() =>
+    useCalculatorSharing({
+      presets: [],
+      currentSettings: preset.settings,
+      presetName: preset.name,
+      onAddPreset: vi.fn(),
+      onShared,
+    })
+  );
+  await act(() => result.current.handleShareClick());
+  await act(() => result.current.handleNativeShare());
+  expect(onShared.mock.calls.length).toBeLessThanOrEqual(1);
   return {
-    method: shared.method,
-    url: shared.url,
-    reportedMethod: onShareSuccess.mock.calls[0]?.[0]?.method,
+    reportedMethod: onShared.mock.calls[0]?.[0],
+    modalOpen: result.current.isShareModalOpen,
   };
 }
 
@@ -53,11 +58,18 @@ async function shareBorderPreset(preset: PresetToShare) {
 // Environment helpers
 // ---------------------------------------------------------------------------
 
+/** Points `window.location` (the page the link is built from) at `url`. */
 const setUrl = (url: string) => {
-  (
-    window as unknown as { happyDOM: { setURL(next: string): void } }
-  ).happyDOM.setURL(url);
+  vi.stubGlobal('location', new URL(url));
 };
+
+/** The slice of `navigator` the share flow reads. */
+interface FakeNavigator {
+  userAgent: string;
+  maxTouchPoints: number;
+  share?: (data: ShareData) => Promise<void>;
+  clipboard?: { writeText: (text: string) => Promise<void> };
+}
 
 interface FakeNavigatorOptions {
   share?: (data: ShareData) => Promise<void>;
@@ -69,7 +81,7 @@ interface FakeNavigatorOptions {
  * whether `share` exists) with optional Web Share and Clipboard APIs.
  */
 function stubNavigator({ share, writeText }: FakeNavigatorOptions = {}) {
-  const fake: Record<string, unknown> = {
+  const fake: FakeNavigator = {
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
     maxTouchPoints: 5,
   };
@@ -123,8 +135,6 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
-  setUrl('http://localhost:3000/');
-  environment.browser = true;
 });
 
 // ---------------------------------------------------------------------------
@@ -247,7 +257,7 @@ describe('share link URLs', () => {
 
   describe('without a browser window', () => {
     it('border links fall back to the beta host', () => {
-      environment.browser = false;
+      vi.stubGlobal('window', undefined);
       expect(borderShareUrl(borderPreset)).toBe(
         `https://beta.dorkroom.art/border?preset=${encodedPreset}`
       );
@@ -255,7 +265,7 @@ describe('share link URLs', () => {
 
     it('regular recipe links fall back to a relative path', () => {
       const result = renderRecipeSharing();
-      environment.browser = false;
+      vi.stubGlobal('window', undefined);
       expect(
         result.current.generateRegularRecipeShareUrl({ recipeId: 'r1' })
       ).toBe('/development?recipe=r1&source=share');
@@ -263,7 +273,7 @@ describe('share link URLs', () => {
 
     it('custom recipe links fall back to dorkroom.art', () => {
       const result = renderRecipeSharing();
-      environment.browser = false;
+      vi.stubGlobal('window', undefined);
       expect(
         result.current.generateCustomRecipeShareUrl({ recipe: customRecipe })
       ).toBe(
@@ -289,11 +299,7 @@ describe('border preset share fallback', () => {
 
     const outcome = await shareBorderPreset(borderPreset);
 
-    expect(outcome).toEqual({
-      method: 'native',
-      url: url(),
-      reportedMethod: 'native',
-    });
+    expect(outcome).toEqual({ reportedMethod: 'native', modalOpen: false });
     expect(share).toHaveBeenCalledWith({
       title: borderPreset.name,
       text: `Check out this border calculator preset: ${borderPreset.name}`,
@@ -311,11 +317,7 @@ describe('border preset share fallback', () => {
 
     const outcome = await shareBorderPreset(borderPreset);
 
-    expect(outcome).toEqual({
-      method: 'native',
-      url: url(),
-      reportedMethod: undefined,
-    });
+    expect(outcome).toEqual({ reportedMethod: undefined, modalOpen: true });
     expect(writeText).not.toHaveBeenCalled();
   });
 
@@ -328,11 +330,7 @@ describe('border preset share fallback', () => {
 
     const outcome = await shareBorderPreset(borderPreset);
 
-    expect(outcome).toEqual({
-      method: 'clipboard',
-      url: url(),
-      reportedMethod: 'clipboard',
-    });
+    expect(outcome).toEqual({ reportedMethod: 'clipboard', modalOpen: true });
     expect(writeText).toHaveBeenCalledWith(url());
   });
 
@@ -342,7 +340,6 @@ describe('border preset share fallback', () => {
 
     const outcome = await shareBorderPreset(borderPreset);
 
-    expect(outcome.method).toBe('clipboard');
     expect(outcome.reportedMethod).toBe('clipboard');
     expect(writeText).toHaveBeenCalledWith(url());
   });
@@ -352,11 +349,7 @@ describe('border preset share fallback', () => {
 
     const outcome = await shareBorderPreset(borderPreset);
 
-    expect(outcome).toEqual({
-      method: 'manual',
-      url: url(),
-      reportedMethod: 'manual',
-    });
+    expect(outcome).toEqual({ reportedMethod: 'manual', modalOpen: true });
   });
 
   it('falls back to manual copy with no clipboard at all', async () => {
@@ -364,7 +357,6 @@ describe('border preset share fallback', () => {
 
     const outcome = await shareBorderPreset(borderPreset);
 
-    expect(outcome.method).toBe('manual');
     expect(outcome.reportedMethod).toBe('manual');
   });
 });

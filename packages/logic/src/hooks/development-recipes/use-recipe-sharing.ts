@@ -1,236 +1,62 @@
-import { useCallback, useState } from 'react';
-import { shouldUseWebShare } from '../../utils/device-detection';
-import { isBrowser } from '../../utils/environment';
+import {
+  buildRecipeShareUrl,
+  type RecipeShareUrlOptions,
+} from '../../utils/recipe-sharing';
+import { shareLink } from '../../utils/share-link';
+import {
+  copyRecipeLink,
+  type RecipeShareResult,
+  toRecipeShareResult,
+} from './recipe-share-result';
 import { useCustomRecipeSharing } from './use-custom-recipe-sharing';
 
-export interface RegularRecipeShareOptions {
-  recipeId: string;
+export type { RecipeShareResult } from './recipe-share-result';
+
+export interface RegularRecipeShareOptions extends RecipeShareUrlOptions {
+  /** Shown in the share sheet's title. */
   recipeName?: string;
-  filmSlug?: string;
-  developerSlug?: string;
-  baseUrl?: string;
-  includeSource?: boolean;
 }
 
-export interface RecipeShareResult {
-  success: boolean;
-  method?: 'webShare' | 'clipboard';
-  url?: string;
-  error?: string;
-  showToast?: boolean;
-}
-
-const getBaseUrl = (): string => {
-  if (!isBrowser()) {
-    return '';
-  }
-  return `${window.location.protocol}//${window.location.host}`;
+const shareRegularRecipe = async (
+  options: RegularRecipeShareOptions
+): Promise<RecipeShareResult> => {
+  const url = buildRecipeShareUrl(options);
+  const outcome = await shareLink({
+    url,
+    title: `Development Recipe${
+      options.recipeName ? `: ${options.recipeName}` : ''
+    }`,
+    legacyFallback: true,
+  });
+  return toRecipeShareResult(outcome, url, 'Failed to share recipe');
 };
 
-const copyToClipboard = async (text: string): Promise<void> => {
-  if (globalThis.navigator !== undefined && navigator.clipboard) {
-    await navigator.clipboard.writeText(text);
-  } else {
-    // Fallback for older browsers
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-  }
-};
+const copyRegularRecipeToClipboard = (
+  options: RegularRecipeShareOptions
+): Promise<RecipeShareResult> => copyRecipeLink(buildRecipeShareUrl(options));
 
 /**
- * Hook for sharing development recipes via URLs, supporting both regular recipes
- * and custom recipes. Provides platform-appropriate sharing methods (Web Share API
- * on mobile, clipboard fallback on desktop).
- *
- * @returns Object containing recipe sharing functions for both regular and custom recipes
+ * Shares development recipes, both database recipes and custom ones, through
+ * the common share flow in `utils/share-link` (share sheet on mobile, then
+ * clipboard).
  *
  * @example
  * ```typescript
- * const {
- *   shareRegularRecipe,
- *   copyRegularRecipeToClipboard,
- *   shareCustomRecipe,
- *   getSharingMethodDescription
- * } = useRecipeSharing();
- *
- * // Share a regular recipe
+ * const { shareRegularRecipe } = useRecipeSharing();
  * const result = await shareRegularRecipe({
  *   recipeId: 'recipe-123',
  *   filmSlug: 'kodak-tmax-400',
- *   developerSlug: 'kodak-d76'
+ *   developerSlug: 'kodak-d76',
  * });
- *
- * // Get appropriate sharing method description
- * const method = await getSharingMethodDescription(); // "Share recipe" or "Copy link"
  * ```
  */
 export function useRecipeSharing() {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [lastSharedUrl, setLastSharedUrl] = useState<string | null>(null);
-
   const customRecipeSharing = useCustomRecipeSharing();
 
-  const generateRegularRecipeShareUrl = useCallback(
-    ({
-      recipeId,
-      filmSlug,
-      developerSlug,
-      baseUrl,
-      includeSource = true,
-    }: RegularRecipeShareOptions): string | null => {
-      try {
-        setIsGenerating(true);
-
-        const base = baseUrl || getBaseUrl();
-        const params = new URLSearchParams();
-
-        // Add film and developer slugs if provided
-        if (filmSlug) {
-          params.set('film', filmSlug);
-        }
-        if (developerSlug) {
-          params.set('developer', developerSlug);
-        }
-
-        params.set('recipe', recipeId);
-        if (includeSource) {
-          params.set('source', 'share');
-        }
-
-        const shareUrl = `${base}/development?${params.toString()}`;
-        setLastSharedUrl(shareUrl);
-        return shareUrl;
-      } catch (error) {
-        console.error('[RECIPE SHARE] Failed to generate share URL:', error);
-        return null;
-      } finally {
-        setIsGenerating(false);
-      }
-    },
-    []
-  );
-
-  const shareRegularRecipe = useCallback(
-    async (options: RegularRecipeShareOptions): Promise<RecipeShareResult> => {
-      try {
-        const shareUrl = generateRegularRecipeShareUrl(options);
-        if (!shareUrl) {
-          return {
-            success: false,
-            error: 'Failed to generate share URL',
-            showToast: true,
-          };
-        }
-
-        // Use Web Share API only on mobile devices
-        if (shouldUseWebShare()) {
-          try {
-            await navigator.share({
-              title: `Development Recipe${
-                options.recipeName ? `: ${options.recipeName}` : ''
-              }`,
-              url: shareUrl,
-            });
-            return { success: true, method: 'webShare', url: shareUrl };
-          } catch (shareError) {
-            // Check if user cancelled the share (AbortError)
-            if (
-              shareError instanceof Error &&
-              shareError.name === 'AbortError'
-            ) {
-              // User cancelled - don't show error, just return cancelled state
-              return { success: false, showToast: false };
-            }
-            // Other errors - log and fall back to clipboard
-            console.log(
-              '[RECIPE SHARE] Web Share failed, falling back:',
-              shareError
-            );
-          }
-        }
-
-        await copyToClipboard(shareUrl);
-        return {
-          success: true,
-          method: 'clipboard',
-          url: shareUrl,
-          showToast: true,
-        };
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Failed to share recipe';
-        return { success: false, error: errorMessage, showToast: true };
-      }
-    },
-    [generateRegularRecipeShareUrl]
-  );
-
-  const copyRegularRecipeToClipboard = useCallback(
-    async (options: RegularRecipeShareOptions): Promise<RecipeShareResult> => {
-      try {
-        const shareUrl = generateRegularRecipeShareUrl(options);
-        if (!shareUrl) {
-          return {
-            success: false,
-            error: 'Failed to generate share URL',
-            showToast: true,
-          };
-        }
-
-        await copyToClipboard(shareUrl);
-        return {
-          success: true,
-          method: 'clipboard',
-          url: shareUrl,
-          showToast: true,
-        };
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Failed to copy to clipboard';
-        return { success: false, error: errorMessage, showToast: true };
-      }
-    },
-    [generateRegularRecipeShareUrl]
-  );
-
-  const getSharingMethodDescription = useCallback(async (): Promise<string> => {
-    if (shouldUseWebShare()) {
-      return 'Share recipe';
-    }
-
-    return 'Copy link';
-  }, []);
-
-  const isSharingAvailable = useCallback(async (): Promise<boolean> => {
-    // Sharing is always available - either via Web Share API or clipboard
-    return true;
-  }, []);
-
   return {
-    // Regular recipe sharing
-    generateRegularRecipeShareUrl,
+    generateRegularRecipeShareUrl: buildRecipeShareUrl,
     shareRegularRecipe,
     copyRegularRecipeToClipboard,
-
-    // Custom recipe sharing (delegated)
-    generateCustomRecipeShareUrl:
-      customRecipeSharing.generateCustomRecipeShareUrl,
-    shareCustomRecipe: customRecipeSharing.shareCustomRecipe,
-    copyCustomRecipeToClipboard:
-      customRecipeSharing.copyCustomRecipeToClipboard,
-    decodeSharedCustomRecipe: customRecipeSharing.decodeSharedCustomRecipe,
-    isCustomRecipeUrl: customRecipeSharing.isCustomRecipeUrl,
-
-    // Common utilities
-    getSharingMethodDescription,
-    isSharingAvailable,
-    isGenerating: isGenerating || customRecipeSharing.isGenerating,
-    lastSharedUrl: lastSharedUrl || customRecipeSharing.lastSharedUrl,
+    ...customRecipeSharing,
   };
 }
