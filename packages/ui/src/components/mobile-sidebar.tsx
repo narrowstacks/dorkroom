@@ -1,8 +1,12 @@
 import { Settings, X } from 'lucide-react';
-import type { Ref } from 'react';
+import { Fragment, type Ref } from 'react';
 import { cn } from '../lib/cn';
 import type { MobileNavItem } from '../lib/navigation';
-import { mobileNavItems } from '../lib/navigation';
+import {
+  CATEGORY_LABELS,
+  CATEGORY_ORDER,
+  mobileNavItems,
+} from '../lib/navigation';
 import { ThemeToggle } from './theme-toggle';
 
 interface SidebarNavItemProps {
@@ -115,12 +119,10 @@ export function MobileSidebar({
   );
 
   const utilityItems = navItems.filter((item) => item.category === 'utility');
-  const printingItems = navItems.filter((item) => item.category === 'printing');
-  const filmItems = navItems.filter((item) => item.category === 'film');
-  const cameraItems = navItems.filter((item) => item.category === 'camera');
-  const referenceItems = navItems.filter(
-    (item) => item.category === 'reference'
-  );
+  const sections = CATEGORY_ORDER.map((category) => ({
+    category,
+    items: navItems.filter((item) => item.category === category),
+  }));
 
   const settingsItem = mobileNavItems.find((item) => item.type === 'settings');
 
@@ -176,21 +178,14 @@ export function MobileSidebar({
             style={{ backgroundColor: 'var(--color-border-muted)' }}
           />
 
-          {/* Printing section */}
-          {printingItems.length > 0 && renderSectionHeader('Printing')}
-          {printingItems.map(renderNavItem)}
-
-          {/* Film section */}
-          {filmItems.length > 0 && renderSectionHeader('Film')}
-          {filmItems.map(renderNavItem)}
-
-          {/* Camera section */}
-          {cameraItems.length > 0 && renderSectionHeader('Camera')}
-          {cameraItems.map(renderNavItem)}
-
-          {/* Reference section */}
-          {referenceItems.length > 0 && renderSectionHeader('Reference')}
-          {referenceItems.map(renderNavItem)}
+          {/* Tool sections, titled from CATEGORY_LABELS */}
+          {sections.map(({ category, items }) => (
+            <Fragment key={category}>
+              {items.length > 0 &&
+                renderSectionHeader(CATEGORY_LABELS[category])}
+              {items.map(renderNavItem)}
+            </Fragment>
+          ))}
         </nav>
       </div>
 

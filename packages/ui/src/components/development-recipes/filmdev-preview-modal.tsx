@@ -2,12 +2,11 @@ import type {
   DevelopmentCombinationView,
   FilmdevMappingResult,
 } from '@dorkroom/logic';
-import { ExternalLink, X } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import { setStyles } from '../../lib/dom';
-import { Drawer, DrawerBody, DrawerContent } from '../drawer';
-import { Modal } from '../modal';
+import { ResponsiveModal } from '../responsive-modal';
 import { DevelopmentRecipeDetail } from './recipe-detail';
 
 interface FilmdevPreviewModalProps {
@@ -17,7 +16,11 @@ interface FilmdevPreviewModalProps {
   mappingResult: FilmdevMappingResult | null;
   previewRecipe: DevelopmentCombinationView | null;
   isProcessing?: boolean;
-  variant?: 'modal' | 'drawer';
+  /**
+   * Render as a bottom drawer instead of a centred modal. Defaults to the
+   * shared ResponsiveModal's own viewport detection.
+   */
+  isMobile?: boolean;
 }
 
 export function FilmdevPreviewModal({
@@ -27,7 +30,7 @@ export function FilmdevPreviewModal({
   mappingResult,
   previewRecipe,
   isProcessing = false,
-  variant = 'modal',
+  isMobile,
 }: FilmdevPreviewModalProps) {
   if (!mappingResult || !previewRecipe) {
     return null;
@@ -226,66 +229,18 @@ export function FilmdevPreviewModal({
     </div>
   );
 
-  if (variant === 'drawer') {
-    return (
-      <Drawer isOpen={isOpen} onClose={onClose} size="lg" anchor="bottom">
-        <DrawerContent className="h-full max-h-[80vh]">
-          <div
-            className="flex items-center justify-between border-b px-4 py-3"
-            style={{ borderColor: 'var(--color-border-secondary)' }}
-          >
-            <div
-              className="text-base font-semibold"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              {modalTitle}
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-full border p-2 transition"
-              style={{
-                borderColor: 'var(--color-border-primary)',
-                color: 'var(--color-text-secondary)',
-              }}
-              onMouseEnter={(e) => {
-                setStyles(e.currentTarget, {
-                  borderColor: 'var(--color-border-secondary)',
-                  color: 'var(--color-text-primary)',
-                });
-              }}
-              onMouseLeave={(e) => {
-                setStyles(e.currentTarget, {
-                  borderColor: 'var(--color-border-primary)',
-                  color: 'var(--color-text-secondary)',
-                });
-              }}
-            >
-              <span className="sr-only">Close</span>
-              <X className="size-5" />
-            </button>
-          </div>
-          <DrawerBody className="px-4 pb-6 pt-4">{body}</DrawerBody>
-          <div
-            className="border-t px-4 pb-4 pt-3"
-            style={{ borderColor: 'var(--color-border-secondary)' }}
-          >
-            {actions}
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
   return (
-    <Modal
+    <ResponsiveModal
       isOpen={isOpen}
       onClose={onClose}
       title={modalTitle}
       size="md"
+      mobileSize="lg"
+      mobileMaxHeight="80vh"
+      isMobile={isMobile}
       footer={actions}
     >
       {body}
-    </Modal>
+    </ResponsiveModal>
   );
 }

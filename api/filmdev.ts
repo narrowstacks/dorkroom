@@ -5,7 +5,6 @@ import {
   serverlessError,
   serverlessWarn,
 } from '../utils/serverlessLogger';
-import { createTimeoutSignal } from '../utils/timeoutSignal';
 import { withHandler } from '../utils/withHandler';
 
 const FILMDEV_API_BASE = 'https://filmdev.org/api';
@@ -51,7 +50,7 @@ export default withHandler({
         Accept: 'application/json',
         'User-Agent': 'Dorkroom-API/1.0',
       },
-      signal: createTimeoutSignal(TIMEOUT_MS),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
     });
 
     const responseTime = Date.now() - ctx.startTime;

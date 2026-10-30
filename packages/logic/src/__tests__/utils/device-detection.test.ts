@@ -17,17 +17,19 @@ type MockWindow = {
   ontouchstart?: unknown;
 };
 
+// `ontouchstart` is left off by default: the source checks
+// `'ontouchstart' in window`, so even an `undefined` value would read as a
+// touchscreen. Pass `ontouchstart` explicitly to simulate one.
 const createMockWindow = (overrides: Partial<MockWindow> = {}): MockWindow => {
   return {
+    innerWidth: 1920,
+    innerHeight: 1080,
+    ...overrides,
     navigator: {
       userAgent: '',
       maxTouchPoints: 0,
       ...overrides.navigator,
     },
-    innerWidth: 1920,
-    innerHeight: 1080,
-    ontouchstart: undefined,
-    ...overrides,
   };
 };
 
@@ -123,6 +125,54 @@ describe('device detection', () => {
       expect(isMobileDevice()).toBe(true);
     });
 
+    it('should return false for a small screen without touch', () => {
+      vi.stubGlobal(
+        'window',
+        createMockWindow({
+          navigator: {
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0',
+            maxTouchPoints: 0,
+          },
+          innerWidth: 600,
+          innerHeight: 800,
+        })
+      );
+
+      expect(isMobileDevice()).toBe(false);
+    });
+
+    it('should return false for a mobile user agent without touch', () => {
+      vi.stubGlobal(
+        'window',
+        createMockWindow({
+          navigator: {
+            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X)',
+            maxTouchPoints: 0,
+          },
+          innerWidth: 1920,
+          innerHeight: 1080,
+        })
+      );
+
+      expect(isMobileDevice()).toBe(false);
+    });
+
+    it('should treat maxTouchPoints alone as a touchscreen', () => {
+      vi.stubGlobal(
+        'window',
+        createMockWindow({
+          navigator: {
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0',
+            maxTouchPoints: 1,
+          },
+          innerWidth: 600,
+          innerHeight: 800,
+        })
+      );
+
+      expect(isMobileDevice()).toBe(true);
+    });
+
     it('should return false for touch device with large screen and desktop user agent', () => {
       vi.stubGlobal(
         'window',
@@ -171,6 +221,7 @@ describe('device detection', () => {
 
   describe('shouldUseWebShare', () => {
     it('should return false when navigator is undefined', () => {
+      vi.stubGlobal('navigator', undefined);
       expect(shouldUseWebShare()).toBe(false);
     });
 

@@ -6,7 +6,12 @@ import {
   useMatCalculator,
   type UseMatCalculatorReturn,
 } from '@dorkroom/logic';
-import { getRouteIcon, StatusAlert, useMeasurement } from '@dorkroom/ui';
+import {
+  getRouteAccent,
+  getRouteIcon,
+  StatusAlert,
+  useMeasurement,
+} from '@dorkroom/ui';
 import {
   CalculatorCard,
   CalculatorLayout,
@@ -518,7 +523,7 @@ export default function MatCalculatorPage() {
       <CalculatorLayout
         title="Mat Cut Calculator"
         icon={getRouteIcon('/mat')}
-        accentTone="cyan"
+        accentTone={getRouteAccent('/mat')}
         onReset={calc.reset}
         description="Plan single-window mats with independent borders and get exact window openings and cutter guide-bar settings."
         results={results}

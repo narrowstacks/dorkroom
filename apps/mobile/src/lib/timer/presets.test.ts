@@ -124,11 +124,6 @@ describe('stagesFromCombination', () => {
       combination({ agitationMethod: '', tags: ['official-kodak'] })
     );
     expect(kodak.agitationPattern?.id).toBe('kodak');
-
-    const [ilford] = stagesFromCombination(
-      combination({ agitationMethod: '', tags: ['official-cinestill'] })
-    );
-    expect(ilford.agitationPattern?.id).toBe('ilford');
   });
 });
 

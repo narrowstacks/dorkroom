@@ -3,7 +3,8 @@ import type { FC } from 'react';
 
 interface FilmRebrandInfoProps {
   film: Film;
-  baseFilm?: Film | null;
+  /** Null when the film is not a rebrand or its base is not in the catalog. */
+  baseFilm: Film | null;
 }
 
 /**

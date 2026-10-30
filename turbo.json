@@ -72,6 +72,16 @@
     "//#lint:root": {
       "inputs": ["$TURBO_DEFAULT$", "!apps/**", "!packages/**", "!api/dist/**"]
     },
+    "//#typecheck:tools": {
+      "inputs": [
+        "tools/__tests__/**",
+        "scripts/**",
+        "utils/**",
+        "packages/ui/src/**",
+        "tsconfig.tools.json",
+        "tsconfig.base.json"
+      ]
+    },
     "//#typecheck:api": {
       "inputs": ["api/**", "!api/dist/**", "utils/**"]
     },
@@ -88,6 +98,7 @@
         "tools/__tests__/**",
         "vitest.config.ts",
         "PRIVACY.md",
+        "utils/routeMetadata.ts",
         "apps/dorkroom/src/app/lib/analytics/tracked-events.ts",
         "apps/dorkroom/src/app/pages/privacy-page.tsx",
         "apps/dorkroom/src/**/*.{css,ts,tsx}",
@@ -101,6 +112,7 @@
         "!api/dist/**",
         "utils/**",
         "scripts/**",
+        "README.md",
         "vitest.config.ts"
       ]
     }

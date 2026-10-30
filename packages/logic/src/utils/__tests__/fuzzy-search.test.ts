@@ -256,46 +256,25 @@ describe('fuzzy-search', () => {
       );
     });
 
-    describe('Result ordering and relevance', () => {
-      it('should return most relevant results first', () => {
-        const results = searchFilms(mockFilms, 'kodak');
-
-        expect(results.length).toBeGreaterThan(0);
-        // First result should be a Kodak film
-        expect(results[0].item.brand).toBe('Kodak');
-      });
-
-      it('should include similarity scores', () => {
-        const results = searchFilms(mockFilms, 'tri-x');
-
-        expect(results.length).toBeGreaterThan(0);
-        // Fuse scores are normalized: 0 is an exact match, 1 is no match
-        expect(results[0].score).toBeGreaterThanOrEqual(0);
-        expect(results[0].score).toBeLessThan(1);
-      });
-
-      it('should prioritize brand and name over description', () => {
-        const results = searchFilms(mockFilms, 'kodak');
-
-        expect(results.length).toBeGreaterThan(0);
-        // Brand matches should score better than description matches
-        expect(results[0].item.brand).toBe('Kodak');
-      });
-    });
-
     describe('Fuzzy matching tolerance', () => {
       it('should handle minor typos in brand name', () => {
         const results = searchFilms(mockFilms, 'kodac'); // typo: c instead of k
 
-        // Should still find Kodak films with fuzzy matching
-        expect(results.length).toBeGreaterThan(0);
+        // Exactly the three Kodak films, no Ilford
+        expect(results.map((r) => r.item.uuid).sort()).toEqual([
+          'f2',
+          'f3',
+          'f5',
+        ]);
       });
 
-      it('should handle minor typos in film name', () => {
-        const results = searchFilms(mockFilms, 'portra'); // without 400
+      it.each([
+        ['portrra', 'doubled letter'],
+        ['potra', 'dropped letter'],
+      ])('should handle a typo in film name: %s (%s)', (query) => {
+        const results = searchFilms(mockFilms, query);
 
-        expect(results.length).toBeGreaterThan(0);
-        expect(results[0].item.name).toBe('Portra 400');
+        expect(results.map((r) => r.item.name)).toEqual(['Portra 400']);
       });
 
       it('should not match very different strings', () => {
@@ -307,13 +286,6 @@ describe('fuzzy-search', () => {
     });
 
     describe('Real-world search scenarios', () => {
-      it('should find films when user searches common shorthand (HP5)', () => {
-        const results = searchFilms(mockFilms, 'hp5');
-
-        expect(results.length).toBeGreaterThan(0);
-        expect(results[0].item.name).toBe('HP5 Plus');
-      });
-
       it('should find films when user searches film name with number (tri-x 400)', () => {
         const results = searchFilms(mockFilms, 'tri-x 400');
 

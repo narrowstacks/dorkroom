@@ -2,7 +2,11 @@ import type { BorderPreset } from '@dorkroom/logic';
 import { useMemo, useState } from 'react';
 import { useTheme } from '../../contexts/theme-context';
 import { commitFocusedField } from '../../lib/commit-focused-field';
-import { getRouteIcon, ROUTE_DESCRIPTIONS } from '../../lib/navigation';
+import {
+  getRouteAccent,
+  getRouteIcon,
+  ROUTE_DESCRIPTIONS,
+} from '../../lib/navigation';
 import { CalculatorPageHeader } from '../calculator/calculator-page-header';
 import { useBorderCalculator } from './border-calculator-context';
 import {
@@ -204,7 +208,7 @@ export function MobileBorderLayout() {
         <CalculatorPageHeader
           title="Border Calculator"
           icon={BorderIcon}
-          accentTone="indigo"
+          accentTone={getRouteAccent('/border')}
           description={ROUTE_DESCRIPTIONS['/border']}
         />
 

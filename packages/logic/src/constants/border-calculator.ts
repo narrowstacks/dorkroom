@@ -14,7 +14,6 @@ export const DESKTOP_BREAKPOINT = 768;
 
 // ---- Border slider ----
 export const SLIDER_MIN_BORDER = 0;
-export const SLIDER_MAX_BORDER = 6;
 export const SLIDER_STEP_BORDER = 0.125;
 
 // ---- Offset sliders ----
@@ -197,7 +196,6 @@ export const DEFAULT_BORDER_PRESETS: BorderPreset[] = [
 export default {
   DESKTOP_BREAKPOINT,
   SLIDER_MIN_BORDER,
-  SLIDER_MAX_BORDER,
   SLIDER_STEP_BORDER,
   OFFSET_SLIDER_MIN,
   OFFSET_SLIDER_MAX,

@@ -10,6 +10,7 @@
  */
 
 import { z } from 'zod';
+import { SUPERSEDED_STORAGE_KEYS } from '../constants/storage-keys';
 import { debugError, debugWarn } from '../utils/debug-logger';
 import { isBrowser } from '../utils/environment';
 
@@ -69,6 +70,32 @@ function getStorage(): Storage | null {
     return window.localStorage;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Remove the keys `currentKey` superseded, once `currentKey` exists. This
+ * guard only prevents purging before the new key has been written; it does not
+ * make the purge safe for unmigrated data, so list a key as superseded only
+ * after a migration has copied its data forward. Safe where no `localStorage`
+ * exists (SSR, iOS before the MMKV shim) and never throws.
+ */
+export function removeSupersededStorageKeys(currentKey: string): void {
+  const olderKeys: readonly string[] | undefined = Object.entries(
+    SUPERSEDED_STORAGE_KEYS
+  ).find(([key]) => key === currentKey)?.[1];
+  if (!olderKeys?.length) return;
+
+  const storage = getStorage();
+  if (!storage) return;
+
+  try {
+    if (!storage.getItem(currentKey)) return;
+    for (const key of olderKeys) {
+      storage.removeItem(key);
+    }
+  } catch {
+    // Cleanup is best-effort; a failure must not break hydration.
   }
 }
 

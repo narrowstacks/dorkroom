@@ -6,14 +6,17 @@
 
 import { useEffect, useMemo, useReducer, useRef } from 'react';
 import { z } from 'zod';
+import { PAPER_SIZE_MAP } from '../../constants/border-calculator';
 import { BORDER_CALCULATOR_DEFAULTS } from '../../constants/border-calculator-defaults';
 import { BORDER_CALCULATOR_STORAGE_KEY } from '../../constants/storage-keys';
 import { borderPresetSettingsFieldSchemas } from '../../schemas/border-calculator.schema';
+import { removeSupersededStorageKeys } from '../../services/local-storage';
 import type {
   BorderCalculatorAction,
   BorderCalculatorState,
   BorderPresetSettings,
 } from '../../types/border-calculator';
+import { computeMaxAllowedMinBorder } from '../../utils/border-calculations';
 import { isBrowser } from '../../utils/environment';
 
 /**
@@ -98,8 +101,18 @@ function reducer(
 
     case 'SET_PAPER_SIZE': {
       const isCustom = action.value === 'custom';
+      // A smaller sheet allows a smaller minimum border; clamp so a value
+      // chosen on a big sheet cannot leave a degenerate print on a small one.
+      // Custom/unknown sheets have no fixed size here, so they are not clamped.
+      const paper = PAPER_SIZE_MAP.get(action.value);
+      const maxBorder =
+        paper && paper.width > 0 && paper.height > 0
+          ? computeMaxAllowedMinBorder(paper.width, paper.height)
+          : Number.POSITIVE_INFINITY;
       return {
         ...state,
+        minBorder: Math.min(state.minBorder, maxBorder),
+        lastValidMinBorder: Math.min(state.lastValidMinBorder, maxBorder),
         paperSize: action.value,
         isLandscape: !isCustom,
         isRatioFlipped: false,
@@ -198,6 +211,7 @@ export const useBorderCalculatorState = () => {
     try {
       const raw = window.localStorage.getItem(BORDER_CALCULATOR_STORAGE_KEY);
       if (!raw) return;
+      removeSupersededStorageKeys(BORDER_CALCULATOR_STORAGE_KEY);
 
       const cached = persistedBorderCalculatorSchema.safeParse(JSON.parse(raw));
       if (cached.success) {

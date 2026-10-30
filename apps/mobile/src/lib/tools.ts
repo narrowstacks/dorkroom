@@ -11,6 +11,15 @@ export interface Tool {
   route: Href; // expo-router pathname for the More-stack detail route
   category: ToolCategory;
   /**
+   * Route file name under `app/(tabs)` for a single-screen tool that can be
+   * pinned as a tab (`border` lives at `index`, `lens` at `lenses`). Tools
+   * with a `tabRoute` must also have an entry in `TOOL_SCREENS`
+   * (`tool-screens.ts`) and `TAB_ICONS` (`tab-icons.ts`), which the compiler
+   * enforces. Film Log and Recipes
+   * have none: they are permanent directory tabs with their own stacks.
+   */
+  tabRoute?: string;
+  /**
    * Whether the user can pin/unpin this tool via Edit Tabs. Defaults to true.
    * `film-log` is a permanent tab (always in the bar, not user-managed), so it
    * sets this false to stay out of the pin editor and the pinned-id store.
@@ -24,12 +33,18 @@ export interface Tool {
   comingSoon?: boolean;
 }
 
-export const TOOLS: readonly Tool[] = [
+// The iOS tool manifest (#455). Every other tool table is derived from it:
+// the tab bar (`app/(tabs)/_layout.tsx`), the More detail route
+// (`more/[tool].tsx`, via `TOOL_SCREENS`; tab icons via `TAB_ICONS`), and the deep-link resolver.
+// `tool-manifest.test.ts` checks the route files, tab icons, icon generator
+// and App Intents against it.
+const TOOL_LIST = [
   {
     id: 'border',
     label: 'Border',
     icon: 'crop',
     route: '/more/border',
+    tabRoute: 'index',
     category: 'printing',
   },
   {
@@ -37,6 +52,7 @@ export const TOOLS: readonly Tool[] = [
     label: 'Resize',
     icon: 'ruler',
     route: '/more/resize',
+    tabRoute: 'resize',
     category: 'printing',
   },
   {
@@ -44,6 +60,7 @@ export const TOOLS: readonly Tool[] = [
     label: 'Exposure',
     icon: 'gauge',
     route: '/more/exposure',
+    tabRoute: 'exposure',
     category: 'printing',
   },
   {
@@ -51,6 +68,7 @@ export const TOOLS: readonly Tool[] = [
     label: 'Mat Cut',
     icon: 'frame',
     route: '/more/mat',
+    tabRoute: 'mat',
     category: 'printing',
   },
   {
@@ -58,6 +76,7 @@ export const TOOLS: readonly Tool[] = [
     label: 'Reciprocity',
     icon: 'timer',
     route: '/more/reciprocity',
+    tabRoute: 'reciprocity',
     category: 'film',
   },
   {
@@ -86,6 +105,7 @@ export const TOOLS: readonly Tool[] = [
     label: 'Lenses',
     icon: 'focus',
     route: '/more/lens',
+    tabRoute: 'lenses',
     category: 'camera',
   },
   {
@@ -93,6 +113,7 @@ export const TOOLS: readonly Tool[] = [
     label: 'Camera Exposure',
     icon: 'aperture',
     route: '/more/camera-exposure',
+    tabRoute: 'camera-exposure',
     category: 'camera',
   },
   {
@@ -100,6 +121,7 @@ export const TOOLS: readonly Tool[] = [
     label: 'Meter',
     icon: 'sun-medium',
     route: '/more/meter',
+    tabRoute: 'meter',
     category: 'camera',
   },
   {
@@ -107,9 +129,18 @@ export const TOOLS: readonly Tool[] = [
     label: 'Settings',
     icon: 'settings',
     route: '/more/settings',
+    tabRoute: 'settings',
     category: 'system',
   },
-];
+] as const satisfies readonly Tool[];
+
+export const TOOLS: readonly Tool[] = TOOL_LIST;
+
+/** Id of a single-screen tool: one with a tab route and a screen binding. */
+export type ScreenToolId = Extract<
+  (typeof TOOL_LIST)[number],
+  { tabRoute: string }
+>['id'];
 
 export const DEFAULT_PINNED_IDS: readonly string[] = [
   'meter',
@@ -138,6 +169,17 @@ const TOOL_BY_ID = new Map(TOOLS.map((t) => [t.id, t]));
 
 export function getTool(id: string): Tool | undefined {
   return TOOL_BY_ID.get(id);
+}
+
+const TOOL_ID_BY_TAB_ROUTE = new Map(
+  TOOLS.flatMap((t): [string, string][] =>
+    t.tabRoute === undefined ? [] : [[t.tabRoute, t.id]]
+  )
+);
+
+/** Reverse of `Tool.tabRoute`: the tool a tab route file belongs to. */
+export function getToolIdForTabRoute(routeName: string): string | undefined {
+  return TOOL_ID_BY_TAB_ROUTE.get(routeName);
 }
 
 /** Whether a tool can be pinned/unpinned via Edit Tabs: opted out via

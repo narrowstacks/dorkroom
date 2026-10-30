@@ -1,22 +1,18 @@
 import type {
+  BorderCalculation,
   BorderCalculatorState,
   BorderPreset,
   BorderPresetSettings,
   PaperSize,
   SelectItem,
-  useGeometryCalculations,
 } from '@dorkroom/logic';
 import { createContext, use } from 'react';
 import type { FormInstance } from '../../forms/utils/form-api-types';
 
-type GeometryCalculationResult = ReturnType<
-  typeof useGeometryCalculations
->['calculation'];
-
 export interface BorderCalculatorContextValue {
   form: FormInstance;
   formValues: BorderCalculatorState;
-  calculation: GeometryCalculationResult | null;
+  calculation: BorderCalculation | null;
   paperWidthInput: string;
   paperHeightInput: string;
   displayPaperSizes: PaperSize[];
