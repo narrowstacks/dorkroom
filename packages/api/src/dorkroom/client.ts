@@ -103,7 +103,7 @@ export class DorkroomApiClient {
 
   /**
    * Reconfigure an existing client in place. Lets a consumer that depends on
-   * the shared `apiClient` singleton (and the `fetch*ForQuery` helpers bound to
+   * the shared `apiClient` singleton (and the `fetch*` helpers bound to
    * it) point at a different base URL / API key at runtime — e.g. the mobile
    * app switching from the same-origin default to `api.dorkroom.art` with a
    * shipped key. Omitted fields are left unchanged.
@@ -431,7 +431,7 @@ export const apiClient = new DorkroomApiClient({
 
 /**
  * Reconfigure the shared `apiClient` singleton (and therefore every
- * `fetch*ForQuery` helper bound to it, including the `@dorkroom/logic` API
+ * `fetch*` helper bound to it, including the `@dorkroom/logic` API
  * hooks). External consumers such as the mobile app call this once at startup
  * to switch from the same-origin default to the public API with a key.
  */
@@ -447,16 +447,6 @@ export const fetchDevelopers = (options?: { signal?: AbortSignal }) =>
 
 export const fetchCombinations = (options?: { signal?: AbortSignal }) =>
   apiClient.fetchCombinations(options);
-
-// For TanStack Query compatibility - provide a separate export
-export const fetchFilmsForQuery = (context?: { signal?: AbortSignal }) =>
-  apiClient.fetchFilms(context);
-
-export const fetchDevelopersForQuery = (context?: { signal?: AbortSignal }) =>
-  apiClient.fetchDevelopers(context);
-
-export const fetchCombinationsForQuery = (context?: { signal?: AbortSignal }) =>
-  apiClient.fetchCombinations(context);
 
 export const fetchStatsForQuery = (context?: { signal?: AbortSignal }) =>
   apiClient.fetchStats(context);

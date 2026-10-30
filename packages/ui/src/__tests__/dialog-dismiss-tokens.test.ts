@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest';
 //
 // Deliberately scoped to the dialog family. packages/ui carries a wider
 // pre-existing raw-colour debt (border-calculator/sections/*.tsx,
-// development-recipes/filters-panel.tsx, error-boundary.tsx) that issue #245
+// error-boundary.tsx) that issue #245
 // does not cover; widening this guard is a separate change.
 
 const componentsDir = join(

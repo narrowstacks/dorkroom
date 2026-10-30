@@ -5,6 +5,5 @@ export * from './calculator-number-field';
 export * from './calculator-page-header';
 export * from './calculator-reset-button';
 export * from './calculator-stat';
-export * from './info-card';
 export * from './result-announcer';
 export * from './spoken-units';
