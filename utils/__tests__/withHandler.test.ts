@@ -540,6 +540,26 @@ describe('withHandler', () => {
       });
     });
 
+    it('should return the same 504 for TimeoutError (AbortSignal.timeout)', async () => {
+      const handler = await buildHandler({
+        name: 'test',
+        handler: async () => {
+          throw new DOMException('signal timed out', 'TimeoutError');
+        },
+      });
+
+      const req = createMockRequest();
+      const res = createMockResponse();
+      await handler(req, res);
+
+      expect(res._status).toBe(504);
+      expect(res._json).toEqual({
+        error: 'Request timeout',
+        message: 'Request to upstream service timed out',
+        requestId: expect.stringMatching(UUID_REGEX),
+      });
+    });
+
     it('should return 502 for fetch TypeError', async () => {
       const handler = await buildHandler({
         name: 'test',
