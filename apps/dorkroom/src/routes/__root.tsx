@@ -1,5 +1,6 @@
 import {
   allNavItems,
+  cn,
   navigationCategories,
   NavigationDropdown,
   ROUTE_TITLES,
@@ -18,7 +19,6 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Beaker, GitBranch, Home, Newspaper, Settings } from 'lucide-react';
 import { useEffect } from 'react';
 import { usePreferenceAnalytics } from '../app/lib/analytics/use-preference-analytics';
-import { cn } from '../app/lib/cn';
 import { MobileNav } from '../components/mobile-nav';
 
 function RootComponent() {

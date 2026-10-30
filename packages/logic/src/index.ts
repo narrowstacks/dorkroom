@@ -90,7 +90,7 @@ export {
   type UseCameraExposureCalculatorReturn,
   useCameraExposureCalculator,
 } from './hooks/use-camera-exposure-calculator';
-export { useDebounce, useDebouncedCallback } from './hooks/use-debounce';
+export { useDebounce } from './hooks/use-debounce';
 export {
   type UseExposureCalculatorReturn,
   useExposureCalculator,

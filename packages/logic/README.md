@@ -250,7 +250,6 @@ import { queryKeys } from '@dorkroom/logic';
 // Hierarchical keys
 queryKeys.films.all;           // ['films']
 queryKeys.films.lists();       // ['films', 'list']
-queryKeys.films.detail(id);    // ['films', 'detail', id]
 
 queryKeys.developers.all;
 queryKeys.combinations.all;

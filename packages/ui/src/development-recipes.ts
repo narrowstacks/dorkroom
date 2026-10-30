@@ -6,7 +6,6 @@ export { CustomRecipeForm } from './components/development-recipes/custom-recipe
 export { FavoriteMessageSkeleton } from './components/development-recipes/favorite-message-skeleton';
 export { FilmDeveloperSelection } from './components/development-recipes/film-developer-selection';
 export { FilmdevPreviewModal } from './components/development-recipes/filmdev-preview-modal';
-export { DevelopmentFiltersPanel } from './components/development-recipes/filters-panel';
 export { FiltersSidebar } from './components/development-recipes/filters-sidebar';
 export { ImportRecipeForm } from './components/development-recipes/import-recipe-form';
 export { MobileSortingControls } from './components/development-recipes/mobile-sorting-controls';
