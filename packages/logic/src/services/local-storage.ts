@@ -10,6 +10,7 @@
  */
 
 import { z } from 'zod';
+import { SUPERSEDED_STORAGE_KEYS } from '../constants/storage-keys';
 import { debugError, debugWarn } from '../utils/debug-logger';
 import { isBrowser } from '../utils/environment';
 
@@ -69,6 +70,31 @@ function getStorage(): Storage | null {
     return window.localStorage;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Remove the keys `currentKey` superseded, but only once `currentKey` holds
+ * data (it has hydrated). If the new key is empty the old one may be the only
+ * copy of the user's state, so it is left alone. Safe where no `localStorage`
+ * exists (SSR, iOS before the MMKV shim) and never throws.
+ */
+export function removeSupersededStorageKeys(currentKey: string): void {
+  const olderKeys: readonly string[] | undefined = Object.entries(
+    SUPERSEDED_STORAGE_KEYS
+  ).find(([key]) => key === currentKey)?.[1];
+  if (!olderKeys?.length) return;
+
+  const storage = getStorage();
+  if (!storage) return;
+
+  try {
+    if (!storage.getItem(currentKey)) return;
+    for (const key of olderKeys) {
+      storage.removeItem(key);
+    }
+  } catch {
+    // Cleanup is best-effort; a failure must not break hydration.
   }
 }
 

@@ -1,12 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
+import { CUSTOM_RECIPES_STORAGE_KEY } from '../../constants/storage-keys';
 import { queryKeys } from '../../queries/query-keys';
 import { createStorageManager, isArray } from '../../services/local-storage';
 import type { CustomRecipe } from '../../types/custom-recipes';
 import { debugError } from '../../utils/debug-logger';
 import { isBrowser } from '../../utils/environment';
 
-const STORAGE_KEY = 'dorkroom_custom_recipes';
+const STORAGE_KEY = CUSTOM_RECIPES_STORAGE_KEY;
 
 // Use centralized storage manager
 const recipesStorage = createStorageManager<CustomRecipe[]>(STORAGE_KEY, {

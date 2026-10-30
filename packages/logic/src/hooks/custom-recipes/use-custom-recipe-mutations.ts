@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { CUSTOM_RECIPES_STORAGE_KEY } from '../../constants/storage-keys';
 import { queryKeys } from '../../queries/query-keys';
 import { createStorageManager, isArray } from '../../services/local-storage';
 import type {
@@ -14,7 +15,7 @@ import {
   sanitizeText,
 } from '../../utils/text-sanitization';
 
-const STORAGE_KEY = 'dorkroom_custom_recipes';
+const STORAGE_KEY = CUSTOM_RECIPES_STORAGE_KEY;
 const CUSTOM_RECIPES_QUERY_KEY = queryKeys.customRecipes.list();
 
 // Use the centralized storage manager

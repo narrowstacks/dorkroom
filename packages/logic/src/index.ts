@@ -28,6 +28,7 @@ export * from './constants/mat-calculator';
 export * from './constants/reciprocity';
 export * from './constants/reciprocity-calculator-defaults';
 export * from './constants/resize-calculator';
+export * from './constants/storage-keys';
 // API Hooks
 export * from './hooks/api';
 // Border calculator modular hooks (recommended)
@@ -139,6 +140,7 @@ export {
   createStorageManager,
   isArray,
   isStringArray,
+  removeSupersededStorageKeys,
   type StorageManager,
   type StorageManagerOptions,
 } from './services/local-storage';
