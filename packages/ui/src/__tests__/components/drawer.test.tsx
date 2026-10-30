@@ -200,7 +200,7 @@ describe('Drawer', () => {
       expect(screen.queryByText('Drawer content')).not.toBeInTheDocument();
     });
 
-    it('applies correct transform for different anchors when closed', () => {
+    it('slides the top-anchored drawer in on open and out on close', () => {
       const { rerender } = render(
         <Drawer {...defaultProps} anchor="top" isOpen={true} />
       );

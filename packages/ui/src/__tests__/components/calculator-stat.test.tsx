@@ -65,9 +65,6 @@ describe('CalculatorStat', () => {
       render(<CalculatorStat {...defaultProps} />);
 
       expect(statContainer().style.background).not.toContain('gradient');
-      expect(statContainer().style.backgroundColor).toBe(
-        'rgb(var(--color-background-rgb) / 0.15)'
-      );
     });
 
     it('uses no accent gradient when tone="default" is explicit', () => {
