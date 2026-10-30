@@ -60,15 +60,25 @@ export default BorderScreen;
 ```
 
 This exists because **every tool is reachable two ways**: as a pinned tab, and
-as a `/more/<tool>` detail route inside the More stack. `app/(tabs)/more/[tool].tsx`
-maps a tool id onto the same screen component through a `SCREENS` map. Adding a
-tool means touching three places: the screen in `src/screens/`, an entry in
-`TOOLS` in `src/lib/tools.ts`, and the `SCREENS` map in `more/[tool].tsx`. Miss
-the third and the tool renders "Unknown tool."
+as a `/more/<tool>` detail route inside the More stack. Both render the same
+screen component.
 
-`src/lib/tools.ts` is the registry: id, label, Lucide icon name, route, and
-category. `pinnable: false` keeps a tool out of the pin editor (`film-log` uses
-this because it is a permanent tab).
+`TOOLS` in `src/lib/tools.ts` is the **tool manifest**: id, label, Lucide icon
+name, More route, category, and (for single-screen tools) `tabRoute`, the route
+file name under `app/(tabs)`. Its native half, `TOOL_SCREENS` in
+`src/lib/tool-screens.ts`, binds each single-screen tool id to its screen
+component and tab icon `require()`; it is split out because screens and image
+assets can't load under vitest, so `tools.ts` stays pure. The tab bar, the
+`more/[tool].tsx` detail route, and the deep-link resolver all derive from these
+two. Adding a single-screen tool means: the screen in `src/screens/`, a `TOOLS`
+entry with a `tabRoute`, a `TOOL_SCREENS` entry (a missing one is a compile
+error), the two-line route file, and the icon in
+`scripts/generate-tab-icons.mjs`. `src/lib/tool-manifest.test.ts` fails if a
+route file, tab icon, generator entry, or App Intent disagrees with the
+manifest.
+
+`pinnable: false` keeps a tool out of the pin editor (`film-log` uses this
+because it is a permanent tab).
 
 ### Routing and screens
 
