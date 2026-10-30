@@ -514,23 +514,22 @@ describe('recipe-sharing', () => {
 
   describe('round-trip encoding and decoding', () => {
     it('preserves recipe data through encode-decode cycle', () => {
-      const encoded = encodeCustomRecipe(mockCustomRecipe);
-      const decoded = decodeCustomRecipe(encoded);
+      const decoded = decodeOrFail(encodeCustomRecipe(mockCustomRecipe));
 
-      expect(decoded?.name).toBe(mockCustomRecipe.name);
-      expect(decoded?.filmId).toBe(mockCustomRecipe.filmId);
-      expect(decoded?.developerId).toBe(mockCustomRecipe.developerId);
-      expect(decoded?.temperatureF).toBe(mockCustomRecipe.temperatureF);
-      expect(decoded?.timeMinutes).toBe(mockCustomRecipe.timeMinutes);
-      expect(decoded?.shootingIso).toBe(mockCustomRecipe.shootingIso);
-      expect(decoded?.pushPull).toBe(mockCustomRecipe.pushPull);
-      expect(decoded?.agitationSchedule).toBe(
+      expect(decoded.name).toBe(mockCustomRecipe.name);
+      expect(decoded.filmId).toBe(mockCustomRecipe.filmId);
+      expect(decoded.developerId).toBe(mockCustomRecipe.developerId);
+      expect(decoded.temperatureF).toBe(mockCustomRecipe.temperatureF);
+      expect(decoded.timeMinutes).toBe(mockCustomRecipe.timeMinutes);
+      expect(decoded.shootingIso).toBe(mockCustomRecipe.shootingIso);
+      expect(decoded.pushPull).toBe(mockCustomRecipe.pushPull);
+      expect(decoded.agitationSchedule).toBe(
         mockCustomRecipe.agitationSchedule
       );
-      expect(decoded?.notes).toBe(mockCustomRecipe.notes);
-      expect(decoded?.dilutionId).toBe(mockCustomRecipe.dilutionId);
-      expect(decoded?.customDilution).toBe(mockCustomRecipe.customDilution);
-      expect(decoded?.isPublic).toBe(mockCustomRecipe.isPublic);
+      expect(decoded.notes).toBe(mockCustomRecipe.notes);
+      expect(decoded.dilutionId).toBe(mockCustomRecipe.dilutionId);
+      expect(decoded.customDilution).toBe(mockCustomRecipe.customDilution);
+      expect(decoded.isPublic).toBe(mockCustomRecipe.isPublic);
     });
 
     it('preserves custom film data through encode-decode cycle', () => {
@@ -609,12 +608,22 @@ describe('recipe-sharing', () => {
       expect(encoded.length).toBeLessThanOrEqual(MAX_ENCODED_LENGTH);
     });
 
+    // Size the notes so the payload encodes to exactly MAX_ENCODED_LENGTH:
+    // unpadded base64 is 4 chars per 3 bytes, so the limit holds
+    // MAX_ENCODED_LENGTH * 3 / 4 bytes of JSON. Subtract the JSON size of the
+    // same recipe with empty notes (each ASCII notes char adds one byte).
+    const notesLengthAtLimit = () => {
+      expect(MAX_ENCODED_LENGTH % 4).toBe(0);
+      const emptyNotes = encodeCustomRecipe({ ...mockCustomRecipe, notes: '' });
+      expect(emptyNotes).not.toBe('');
+      const baseJsonBytes = Buffer.from(emptyNotes, 'base64url').length;
+      return (MAX_ENCODED_LENGTH * 3) / 4 - baseJsonBytes;
+    };
+
     it('should encode a recipe that lands exactly on the limit', () => {
-      // With this base recipe, 2665 notes characters encode to exactly
-      // MAX_ENCODED_LENGTH characters.
       const atLimit = encodeCustomRecipe({
         ...mockCustomRecipe,
-        notes: 'x'.repeat(2665),
+        notes: 'x'.repeat(notesLengthAtLimit()),
       });
 
       expect(atLimit).toHaveLength(MAX_ENCODED_LENGTH);
@@ -623,7 +632,7 @@ describe('recipe-sharing', () => {
     it('should reject a recipe one character over the limit', () => {
       const overLimit = encodeCustomRecipe({
         ...mockCustomRecipe,
-        notes: 'x'.repeat(2666),
+        notes: 'x'.repeat(notesLengthAtLimit() + 1),
       });
 
       expect(overLimit).toBe('');

@@ -251,26 +251,12 @@ describe('text-sanitization', () => {
   });
 
   describe('performance', () => {
-    it('stays linear on unclosed "<" runs (ReDoS guard)', () => {
-      // The `{0,2000}` bound in the tag regex exists for this input: an
-      // unbounded `[^>]*` backtracks quadratically on a run of "<" with no
-      // ">". Compare two sizes rather than a wall-clock budget, so the check
-      // holds on slow machines: doubling the input should roughly double the
-      // time (linear), not quadruple it (quadratic).
-      const time = (length: number) => {
-        const input = '<'.repeat(length);
-        const start = performance.now();
-        const result = sanitizeText(input, length);
-        const elapsed = performance.now() - start;
-        expect(result).toBe(input);
-        return elapsed;
-      };
-
-      time(4000); // warm up the regex engine
-      const small = time(20000);
-      const large = time(40000);
-
-      expect(large / small).toBeLessThan(3);
+    it('caps a tag match at 2000 inner characters (ReDoS guard)', () => {
+      // The `{0,2000}` bound (rather than `*`) keeps the tag regex linear on
+      // runs of "<" with no ">". Pin the bound itself: a tag body of up to
+      // 2000 characters is stripped, a longer one is left alone.
+      expect(sanitizeText(`<${'a'.repeat(1999)}>`)).toBe('');
+      expect(sanitizeText(`<${'a'.repeat(2001)}>`)).toHaveLength(2003);
     });
 
     it('handles many HTML entities efficiently', () => {
