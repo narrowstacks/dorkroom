@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
 import { GlassPill } from '@/components/meter/glass-pill';
 import { useMeterRoll } from '@/hooks/use-meter-roll';
-import type { FilmRoll } from '@/types/film-log';
+import type { FilmRoll } from '@/schemas/film-log.schema';
 
 function rollLabel(roll: FilmRoll): string {
   return roll.name?.trim() ? roll.name : (roll.filmStockName ?? 'Roll');

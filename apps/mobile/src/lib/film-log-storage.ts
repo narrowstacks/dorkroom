@@ -18,7 +18,7 @@ import type {
   Lens,
   Shot,
   ShotPhoto,
-} from '@/types/film-log';
+} from '@/schemas/film-log.schema';
 
 export const storage = createMMKV({ id: 'dorkroom-film-log' });
 

@@ -7,7 +7,7 @@ import { LabeledTextField } from '@/components/labeled-text-field';
 import { useCameras } from '@/hooks/use-film-log';
 import { useFormState } from '@/hooks/use-form-state';
 import { addLens, deleteLens, updateLens } from '@/lib/film-log-storage';
-import type { Lens } from '@/types/film-log';
+import type { Lens } from '@/schemas/film-log.schema';
 
 const ANY_CAMERA = '__any__';
 

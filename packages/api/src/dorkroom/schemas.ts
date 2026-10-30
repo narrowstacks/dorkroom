@@ -17,6 +17,13 @@ export const rawDilutionSchema = z.object({
 });
 
 /**
+ * A former slug + display name for a film that was renamed or rebranded.
+ * Carrying the display name alongside the slug avoids lossy slug->title
+ * heuristics in the UI (e.g. "Tri-X" vs "Tri X").
+ */
+export const filmAliasSchema = z.object({ slug: z.string(), name: z.string() });
+
+/**
  * Schema for raw film data from API (snake_case).
  * Note: manufacturer_notes comes as a PostgreSQL array string format, not JSON array
  */
@@ -34,9 +41,7 @@ export const rawFilmSchema = z.object({
   reciprocity_failure: z.string().nullable(),
   discontinued: z.boolean(),
   static_image_url: z.string().nullable(),
-  aliases: z
-    .array(z.object({ slug: z.string(), name: z.string() }))
-    .default([]),
+  aliases: z.array(filmAliasSchema).default([]),
   base_film_slug: z.string().nullable(),
   date_added: z.string(),
   created_at: z.string(),
@@ -95,8 +100,3 @@ export const statsSchema = z.object({
   developers: z.number(),
   combinations: z.number(),
 });
-
-// Export inferred types for use in client
-export type RawFilmFromSchema = z.infer<typeof rawFilmSchema>;
-export type RawDeveloperFromSchema = z.infer<typeof rawDeveloperSchema>;
-export type RawCombinationFromSchema = z.infer<typeof rawCombinationSchema>;

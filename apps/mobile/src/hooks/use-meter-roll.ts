@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useMMKVString } from 'react-native-mmkv';
 import { useRolls } from '@/hooks/use-film-log';
 import { meterStorage } from '@/lib/meter-settings';
-import type { FilmRoll } from '@/types/film-log';
+import type { FilmRoll } from '@/schemas/film-log.schema';
 
 const METER_ROLL_KEY = 'meterRollId';
 

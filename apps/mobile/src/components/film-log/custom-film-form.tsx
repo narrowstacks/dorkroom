@@ -6,7 +6,7 @@ import { SegmentedControl } from '@/components/segmented-control';
 import { useFormState } from '@/hooks/use-form-state';
 import { PROCESS_OPTIONS } from '@/lib/film-log-options';
 import { addCustomFilm } from '@/lib/film-log-storage';
-import type { FilmProcess, FilmStock } from '@/types/film-log';
+import type { FilmProcess, FilmStock } from '@/schemas/film-log.schema';
 
 interface CustomFilmDraft {
   brand: string;

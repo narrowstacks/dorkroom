@@ -30,7 +30,7 @@ import {
   shouldGrayscale,
 } from '@/lib/film-log-photos';
 import { addShot, updateShot } from '@/lib/film-log-storage';
-import type { ShotPhoto } from '@/types/film-log';
+import type { ShotPhoto } from '@/schemas/film-log.schema';
 
 const APERTURE_OPTIONS = STANDARD_APERTURES.map((a) => ({
   value: a.value,

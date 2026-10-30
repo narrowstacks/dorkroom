@@ -10,7 +10,7 @@ import { useCameras, useLenses, useRoll } from '@/hooks/use-film-log';
 import { formatProcess } from '@/lib/film-log-options';
 import { photoUri } from '@/lib/film-log-photos';
 import { deleteRoll } from '@/lib/film-log-storage';
-import type { Shot } from '@/types/film-log';
+import type { Shot } from '@/schemas/film-log.schema';
 
 function exposureSummary(shot: Shot, rollIso: number | undefined): string {
   const parts: string[] = [];

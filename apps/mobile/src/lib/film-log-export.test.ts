@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Camera, FilmRoll, Lens } from '@/types/film-log';
+import type { Camera, FilmRoll, Lens } from '@/schemas/film-log.schema';
 import { buildRollsExport, FILM_LOG_EXPORT_VERSION } from './film-log-export';
 
 const cameras: Camera[] = [
