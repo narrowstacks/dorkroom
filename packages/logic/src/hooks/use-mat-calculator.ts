@@ -85,7 +85,7 @@ export interface UseMatCalculatorOptions {
   formatValue?: (inches: number) => string;
   /**
    * Grid that best fit snaps to and the matching reveal-mismatch tolerance:
-   * 'imperial' (default) is 1/32", 'metric' is 1mm. Form state stays inches
+   * 'imperial' (default) is 1/16", 'metric' is 1mm. Form state stays inches
    * either way.
    */
   unit?: MeasurementUnit;
@@ -198,8 +198,8 @@ export function useMatCalculator(
   const hasRevealMismatch =
     valid &&
     revealMode &&
-    (Math.abs(windowMismatchW) > matRevealTolerance(unit) ||
-      Math.abs(windowMismatchH) > matRevealTolerance(unit));
+    (Math.abs(windowMismatchW) > matRevealTolerance() ||
+      Math.abs(windowMismatchH) > matRevealTolerance());
 
   const applyBestFit = () => {
     // Same snapped borders the preview shows.

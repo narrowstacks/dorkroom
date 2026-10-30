@@ -142,12 +142,12 @@ export function bottomWeightFor(vTotal: number): number {
 
 const MM_PER_INCH = 25.4;
 
-/** Imperial best-fit denominator: borders land on the 1/32" grid. */
-export const MAT_BEST_FIT_DENOM = 32;
+/** Imperial best-fit denominator: borders land on the 1/16" grid, the one every display and cutter scale speaks. */
+export const MAT_BEST_FIT_DENOM = 16;
 
 /**
- * Grid, in inches, that "Best fit borders" snaps to: 1/32" imperial (a 1/16"
- * art-plus-reveal sum splits into two on-grid halves) and 1mm metric.
+ * Grid, in inches, that "Best fit borders" snaps to: 1/16" imperial and 1mm
+ * metric.
  */
 export function matSnapStep(unit: MeasurementUnit = 'imperial'): number {
   return unit === 'metric' ? 1 / MM_PER_INCH : 1 / MAT_BEST_FIT_DENOM;
@@ -155,16 +155,19 @@ export function matSnapStep(unit: MeasurementUnit = 'imperial'): number {
 
 /**
  * How far the window may sit from the reveal target before the page warns.
- * Best fit snaps the total border to the grid, so it can leave up to half a
- * step; anything beyond that (plus float noise) is a real mismatch.
+ * Best fit snaps the total border to its grid, so it can leave up to half a
+ * step. The tolerance is one unit-independent constant (the larger half-step
+ * across units, plus float noise), so a best fit made in metric does not warn
+ * after switching to imperial or vice versa. Hand-entered mismatches below it
+ * (about 1/32") are not flagged; that is below mat-cutter precision.
  */
-export function matRevealTolerance(unit: MeasurementUnit = 'imperial'): number {
-  return matSnapStep(unit) / 2 + 1e-3;
+export function matRevealTolerance(): number {
+  return Math.max(matSnapStep('imperial'), matSnapStep('metric')) / 2 + 1e-3;
 }
 
 /**
  * Render best-fit borders (inches, already on the snap grid) as the string
- * written into a form field. Imperial gives a 1/32 fraction; metric gives
+ * written into a form field. Imperial gives a 1/16 fraction; metric gives
  * decimal inches precise enough that the centimetre field shows exact mm.
  */
 export function matBorderToInput(

@@ -55,7 +55,7 @@ export function formatMatValue(inches: number, unit: MeasurementUnit): string {
 /**
  * Format one measurement for the best-fit preview line. It previews what
  * `applyBestFit` will write, so it renders through the same `matBorderToInput`
- * (1/32" imperial, 1mm metric) and never falls back to the invalid-input
+ * (1/16" imperial, 1mm metric) and never falls back to the invalid-input
  * placeholder; metric then reads the result at the field's own precision, so
  * the preview and the field agree.
  */

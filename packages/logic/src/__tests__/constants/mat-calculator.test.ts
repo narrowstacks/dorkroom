@@ -228,18 +228,14 @@ describe('mat calculator logic', () => {
 
 describe('bestFitBorders with a snap step (issue #341)', () => {
   it('splits an off-grid half with floor/ceil so the total is exact', () => {
-    // 16 - 7 9/16 = 8 7/16 total; halves are 4 7/32 on the 1/32 grid.
-    const fit = bestFitBorders(16, 20, 8 + 1 / 16, 10, 0.25, false, 1 / 32);
-    expect(fit?.left).toBeCloseTo(4 + 7 / 32, 12);
-    expect(fit?.right).toBeCloseTo(4 + 7 / 32, 12);
-    // 1/16 grid: left floors, right takes the remainder; total stays exact.
-    const coarse = bestFitBorders(16, 20, 8 + 1 / 16, 10, 0.25, false, 1 / 16);
-    expect(coarse?.left).toBeCloseTo(4 + 3 / 16, 12);
-    expect(coarse?.right).toBeCloseTo(4 + 4 / 16, 12);
+    // 16 - 7 9/16 = 8 7/16 total; its halves are off the 1/16 grid.
+    const fit = bestFitBorders(16, 20, 8 + 1 / 16, 10, 0.25, false, 1 / 16);
+    expect(fit?.left).toBeCloseTo(4 + 3 / 16, 12);
+    expect(fit?.right).toBeCloseTo(4 + 4 / 16, 12);
   });
 
   it('keeps totals within half a step of exact for odd sizes', () => {
-    const step = 1 / 32;
+    const step = 1 / 16;
     for (let i = 0; i < 200; i++) {
       const aw = 4 + i * 0.0371;
       const ah = 6 + i * 0.0213;

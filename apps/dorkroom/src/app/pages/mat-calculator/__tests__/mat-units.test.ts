@@ -1,4 +1,10 @@
-import { MAT_PRESETS } from '@dorkroom/logic';
+import {
+  convertDisplayToInches,
+  MAT_PRESETS,
+  parseMatInput,
+  useMatCalculator,
+} from '@dorkroom/logic';
+import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import {
   formatMatPresetLabel,
@@ -34,10 +40,6 @@ describe('formatMatValue', () => {
 describe('formatMatPreview', () => {
   it('uses a prime mark in imperial, matching the preview line', () => {
     expect(formatMatPreview(3.25, 'imperial')).toBe('3 1/4″');
-  });
-
-  it('shows the 1/32 borders best fit writes', () => {
-    expect(formatMatPreview(4 + 7 / 32, 'imperial')).toBe('4 7/32″');
   });
 
   it('uses centimetres in metric, at the field precision', () => {
@@ -146,5 +148,70 @@ describe('formatMatPresetLabel', () => {
     expect(formatMatPresetLabel({ label: '8×10', w: 8, h: 10 }, 'metric')).toBe(
       '20.3×25.4cm'
     );
+  });
+});
+
+describe('best fit and the displayed cut cards (issue #341)', () => {
+  const num = (text: string) => parseMatInput(text.replace(/(cm|")$/, ''));
+
+  interface Inputs {
+    outerW?: string;
+    outerH?: string;
+    artW: string;
+    artH: string;
+    reveal: string;
+  }
+
+  const cards = (unit: 'imperial' | 'metric', inputs: Inputs) => {
+    window.localStorage.clear();
+    const hook = renderHook(() =>
+      useMatCalculator({ unit, formatValue: (v) => formatMatValue(v, unit) })
+    );
+    act(() => {
+      const { set } = hook.result.current;
+      if (inputs.outerW) set('outerW', inputs.outerW);
+      if (inputs.outerH) set('outerH', inputs.outerH);
+      set('artW', inputs.artW);
+      set('artH', inputs.artH);
+      set('reveal', inputs.reveal);
+    });
+    act(() => hook.result.current.applyBestFit());
+    return hook.result.current;
+  };
+
+  it('imperial cut-card offsets and stops sum to the outer board', () => {
+    const calc = cards('imperial', {
+      artW: '8 1/16',
+      artH: '10',
+      reveal: '1/4',
+    });
+    const [top, , left] = calc.guideBarCuts;
+    const rightBorder = 16 - num(top.stop);
+    // Displayed left + right border + target window (7 9/16) = 16.
+    expect(num(left.offset) + rightBorder + (8 + 1 / 16 - 0.5)).toBeCloseTo(
+      16,
+      9
+    );
+  });
+
+  it('metric cut-card offsets and stops sum to the outer board', () => {
+    const cm = (v: number) => String(convertDisplayToInches(v, 'metric'));
+    const calc = cards('metric', {
+      outerW: cm(40),
+      outerH: cm(50),
+      artW: cm(20),
+      artH: cm(25),
+      reveal: cm(0.5),
+    });
+    const [top, , left] = calc.guideBarCuts;
+    // left border + right border + 19cm window = 40cm, to the displayed mm.
+    expect(num(left.offset) + (40 - num(top.stop)) + 19).toBeCloseTo(40, 6);
+  });
+});
+
+describe('inch strings written by metric best fit', () => {
+  it('a 5-decimal inch string parses back losslessly', () => {
+    expect(parseMatInput('4.13386')).toBe(4.13386);
+    expect(parseMatInput('0.03937')).toBe(0.03937);
   });
 });
