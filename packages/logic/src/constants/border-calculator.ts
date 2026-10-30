@@ -10,8 +10,6 @@ import type {
   PaperSize,
 } from '../types/border-calculator';
 
-export const DESKTOP_BREAKPOINT = 768;
-
 // ---- Border slider ----
 export const SLIDER_MIN_BORDER = 0;
 export const SLIDER_MAX_BORDER = 6;
@@ -196,7 +194,6 @@ export const DEFAULT_BORDER_PRESETS: BorderPreset[] = [
 
 // Export everything as a single object for convenience
 export default {
-  DESKTOP_BREAKPOINT,
   SLIDER_MIN_BORDER,
   SLIDER_MAX_BORDER,
   SLIDER_STEP_BORDER,

@@ -126,8 +126,7 @@ export {
   useMeasurementFormatter,
   useMeasurementUtils,
 } from './hooks/use-measurement-conversion';
-export { useViewportWidth } from './hooks/use-viewport-width';
-export { useIsMobile } from './hooks/useIsMobile';
+export { useBreakpoint, useIsMobile } from './hooks/use-breakpoint';
 // Utilities
 export { cn } from './lib/cn';
 export { colorMixOr, supportsColorMix } from './lib/color';

@@ -267,20 +267,38 @@ describe('computePreviewScale', () => {
     expect(computePreviewScale(8, 10, { width: 1920, height: 1080 })).toBe(40);
   });
 
-  it('shrinks to 90% width and 50% height on small windows', () => {
+  it('fits a phone window: width - 80 wide, 50% of the height tall', () => {
     expect(computePreviewScale(8, 10, { width: 375, height: 667 })).toBe(
-      Math.min((375 * 0.9) / 8, (667 * 0.5) / 10)
+      Math.min((375 - 80) / 8, (667 * 0.5) / 10)
     );
   });
 
-  it('switches to the fixed 400px box just above 444x800', () => {
-    // Width-limited paper shows the 444px width breakpoint
-    expect(computePreviewScale(10, 8, { width: 444, height: 800 })).toBe(
-      (444 * 0.9) / 10
-    );
-    expect(computePreviewScale(10, 8, { width: 445, height: 801 })).toBe(40);
-    // At 800px tall, 50% of the height is already 400px
-    expect(computePreviewScale(8, 10, { width: 444, height: 800 })).toBe(40);
-    expect(computePreviewScale(8, 10, { width: 445, height: 801 })).toBe(40);
+  it('switches to the fixed 400px height just above 800px', () => {
+    expect(computePreviewScale(8, 10, { width: 1024, height: 700 })).toBe(35);
+    expect(computePreviewScale(8, 10, { width: 1024, height: 800 })).toBe(40);
+    expect(computePreviewScale(8, 10, { width: 1024, height: 801 })).toBe(40);
+  });
+
+  describe('mobile card cap (#457)', () => {
+    const tall = { height: 1000 };
+
+    it('caps the width at 320px up to and including 768px', () => {
+      // 10in wide paper would be 400px; the cap brings it to 320px.
+      expect(computePreviewScale(10, 8, { width: 767, ...tall })).toBe(32);
+      expect(computePreviewScale(10, 8, { width: 768, ...tall })).toBe(32);
+    });
+
+    it('drops the cap at 769px, where the desktop layout takes over', () => {
+      expect(computePreviewScale(10, 8, { width: 769, ...tall })).toBe(40);
+    });
+
+    it('shrinks to width - 80 on windows narrower than 400px', () => {
+      expect(computePreviewScale(10, 8, { width: 320, ...tall })).toBe(24);
+    });
+
+    it('leaves height-limited paper alone', () => {
+      // 8x10 portrait is 320px wide at the 400px height limit already.
+      expect(computePreviewScale(8, 10, { width: 768, ...tall })).toBe(40);
+    });
   });
 });

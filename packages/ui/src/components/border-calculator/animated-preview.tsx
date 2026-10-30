@@ -12,9 +12,10 @@
 
 import type { BorderCalculation } from '@dorkroom/logic';
 import { useMemo } from 'react';
-import { useViewportWidth } from '../../hooks/use-viewport-width';
-import { useIsMobile } from '../../hooks/useIsMobile';
 import { BladeReadingsOverlay } from './blade-readings-overlay';
+
+/** Size used before there is a calculation, or when it has no preview size. */
+const PLACEHOLDER_SIZE = { width: 400, height: 300 };
 
 interface AnimatedPreviewProps {
   calculation: BorderCalculation | null;
@@ -85,40 +86,19 @@ export function AnimatedPreview({
   showBladeReadings = false,
   className,
 }: AnimatedPreviewProps) {
-  // Subscribed to viewport changes so rotating/resizing rescales the preview
-  // instead of waiting for the next `calculation` change. 767 keeps the
-  // original strict `< 768` boundary: the hook's default `max-width: 768px`
-  // would also match iPad portrait (exactly 768px), which is desktop here.
-  const isMobile = useIsMobile(767);
-  const viewportWidth = useViewportWidth();
-
-  // Static dimensions for consistent layout - make responsive for mobile
-  const staticDimensions = useMemo(() => {
-    if (!calculation) {
-      // Use responsive dimensions that fit mobile screens better
-      return {
-        width: isMobile ? Math.min(320, viewportWidth - 80) : 400,
-        height: isMobile ? Math.min(240, (viewportWidth - 80) * 0.75) : 300,
-      };
-    }
-
-    // Ensure preview dimensions are mobile-friendly
-    const baseWidth = calculation.previewWidth || 400;
-    const baseHeight = calculation.previewHeight || 300;
-
-    if (isMobile) {
-      const maxWidth = Math.min(320, viewportWidth - 80);
-      const aspectRatio = baseHeight / baseWidth;
-      const width = Math.min(baseWidth, maxWidth);
-      const height = Math.min(baseHeight, width * aspectRatio);
-      return { width, height };
-    }
-
-    return {
-      width: baseWidth,
-      height: baseHeight,
-    };
-  }, [calculation, isMobile, viewportWidth]);
+  // The preview is sized in one place, `computePreviewScale` in
+  // @dorkroom/logic, which already fits it to the window (including the
+  // mobile-layout card cap). The placeholder has no paper to size from.
+  const staticDimensions = useMemo(
+    () =>
+      calculation
+        ? {
+            width: calculation.previewWidth || PLACEHOLDER_SIZE.width,
+            height: calculation.previewHeight || PLACEHOLDER_SIZE.height,
+          }
+        : PLACEHOLDER_SIZE,
+    [calculation]
+  );
 
   // Calculate transform values
   const transformValues = useMemo(() => {
@@ -156,7 +136,7 @@ export function AnimatedPreview({
   if (!calculation || !transformValues) {
     return (
       <div
-        className={`border bg-border-muted flex items-center justify-center mx-auto ${className}`}
+        className={`border bg-border-muted flex items-center justify-center mx-auto max-w-full ${className}`}
         style={staticDimensions}
       >
         <div className="text-tertiary">Preview</div>

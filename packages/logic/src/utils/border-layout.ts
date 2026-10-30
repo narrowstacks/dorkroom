@@ -15,6 +15,7 @@ import {
   EASEL_SIZES,
   PAPER_SIZE_MAP,
 } from '../constants/border-calculator';
+import { isMobileWidth } from '../constants/breakpoints';
 import type {
   BladeData,
   BorderCalculation,
@@ -98,7 +99,13 @@ export interface BorderLayout {
 
 /**
  * Scale factor (pixels per inch) that fits the oriented paper into the
- * preview box for the given window size.
+ * preview box for the given window size. This is the only place the preview
+ * is sized: the web preview renders `previewWidth` x `previewHeight` as is.
+ *
+ * The box is 400px wide on desktop-layout windows and `min(320, width - 80)`
+ * on mobile-layout ones (`isMobileWidth`, 768px and below) so the preview
+ * fits its card. It is 400px tall above 800px of window height and 50% of the
+ * height at 800px and below.
  *
  * @param paperWidth - Oriented paper width in inches
  * @param paperHeight - Oriented paper height in inches
@@ -114,7 +121,11 @@ export function computePreviewScale(
 ): number {
   if (!paperWidth || !paperHeight) return 1;
 
-  const maxW = viewport.width > 444 ? 400 : viewport.width * 0.9;
+  // The mobile cap is always the tighter of the two, so the old "90% of the
+  // width below 445px" rule could never win and is gone.
+  const maxW = isMobileWidth(viewport.width)
+    ? Math.min(320, viewport.width - 80)
+    : 400;
   const maxH = viewport.height > 800 ? 400 : viewport.height * 0.5;
 
   const scaleW = maxW / paperWidth;

@@ -1,10 +1,12 @@
+import { BREAKPOINTS } from '@dorkroom/logic';
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { RESIZE_DEBOUNCE_MS } from '../../components/development-recipes/virtualization-constants';
+import { useColumnCount } from '../use-column-count';
 
-// Breakpoint constants (matching the component)
-const BREAKPOINT_XL = 1280;
-const BREAKPOINT_LG = 1024;
-const BREAKPOINT_SM = 640;
+const BREAKPOINT_XL = BREAKPOINTS.xl;
+const BREAKPOINT_LG = BREAKPOINTS.lg;
+const BREAKPOINT_SM = BREAKPOINTS.sm;
 
 // In-memory ResizeObserver: records what it observes and lets a test push a
 // width through the real callback contract.
@@ -61,62 +63,38 @@ class MockResizeObserver implements ResizeObserver {
   }
 }
 
-// Hook implementation extracted for testing
-function useResponsiveColumnCount(
+/** The films grid: a fixed two columns on mobile. */
+function useFixedMobileColumnCount(
   containerRef: React.RefObject<HTMLDivElement | null>,
   isMobile: boolean
 ): number {
-  const { useState, useEffect } = require('react');
-  const [columnCount, setColumnCount] = useState(isMobile ? 2 : 3);
-
-  // eslint-disable-next-line react-doctor/no-cascading-set-state -- test fixture hook reproducing responsive behavior; not production code
-  useEffect(() => {
-    if (isMobile) {
-      setColumnCount(2);
-      return;
-    }
-
-    const container = containerRef.current;
-    if (!container) return;
-
-    const calculateColumns = (width: number): number => {
-      if (width >= BREAKPOINT_XL) return 4;
-      if (width >= BREAKPOINT_LG) return 3;
-      if (width >= BREAKPOINT_SM) return 2;
-      return 1;
-    };
-
-    let isMounted = true;
-
-    const observer = new ResizeObserver((entries) => {
-      if (!isMounted) return;
-
-      for (const entry of entries) {
-        const width = entry.contentRect.width;
-        setColumnCount(calculateColumns(width));
-      }
-    });
-
-    observer.observe(container);
-    setColumnCount(calculateColumns(container.clientWidth));
-
-    return () => {
-      isMounted = false;
-      observer.disconnect();
-    };
-  }, [containerRef, isMobile]);
-
-  return columnCount;
+  return useColumnCount(containerRef, isMobile, { mobileColumns: 2 });
 }
 
-describe('useResponsiveColumnCount', () => {
+/** Pushes a resize through the observer and past the debounce. */
+function resizeTo(width: number) {
+  act(() => {
+    MockResizeObserver.getLatest().simulateResize(width);
+    vi.advanceTimersByTime(RESIZE_DEBOUNCE_MS);
+  });
+}
+
+function containerOf(width: number) {
+  const container = document.createElement('div');
+  Object.defineProperty(container, 'clientWidth', { value: width });
+  return { current: container };
+}
+
+describe('useColumnCount', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
     vi.clearAllMocks();
     MockResizeObserver.reset();
     global.ResizeObserver = MockResizeObserver;
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     MockResizeObserver.reset();
   });
 
@@ -125,7 +103,7 @@ describe('useResponsiveColumnCount', () => {
       const containerRef = { current: document.createElement('div') };
 
       const { result } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, true)
+        useFixedMobileColumnCount(containerRef, true)
       );
 
       expect(result.current).toBe(2);
@@ -136,9 +114,7 @@ describe('useResponsiveColumnCount', () => {
       Object.defineProperty(container, 'clientWidth', { value: 1100 });
       const containerRef = { current: container };
 
-      const { result } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, false)
-      );
+      const { result } = renderHook(() => useColumnCount(containerRef, false));
 
       // Should calculate based on container width (1100px = lg breakpoint = 3 columns)
       expect(result.current).toBe(3);
@@ -151,9 +127,7 @@ describe('useResponsiveColumnCount', () => {
       Object.defineProperty(container, 'clientWidth', { value: 500 });
       const containerRef = { current: container };
 
-      const { result } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, false)
-      );
+      const { result } = renderHook(() => useColumnCount(containerRef, false));
 
       expect(result.current).toBe(1);
     });
@@ -163,9 +137,7 @@ describe('useResponsiveColumnCount', () => {
       Object.defineProperty(container, 'clientWidth', { value: 800 });
       const containerRef = { current: container };
 
-      const { result } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, false)
-      );
+      const { result } = renderHook(() => useColumnCount(containerRef, false));
 
       expect(result.current).toBe(2);
     });
@@ -175,9 +147,7 @@ describe('useResponsiveColumnCount', () => {
       Object.defineProperty(container, 'clientWidth', { value: 1100 });
       const containerRef = { current: container };
 
-      const { result } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, false)
-      );
+      const { result } = renderHook(() => useColumnCount(containerRef, false));
 
       expect(result.current).toBe(3);
     });
@@ -187,9 +157,7 @@ describe('useResponsiveColumnCount', () => {
       Object.defineProperty(container, 'clientWidth', { value: 1400 });
       const containerRef = { current: container };
 
-      const { result } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, false)
-      );
+      const { result } = renderHook(() => useColumnCount(containerRef, false));
 
       expect(result.current).toBe(4);
     });
@@ -199,9 +167,7 @@ describe('useResponsiveColumnCount', () => {
       Object.defineProperty(container, 'clientWidth', { value: BREAKPOINT_SM });
       const containerRef = { current: container };
 
-      const { result } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, false)
-      );
+      const { result } = renderHook(() => useColumnCount(containerRef, false));
 
       expect(result.current).toBe(2);
     });
@@ -211,9 +177,7 @@ describe('useResponsiveColumnCount', () => {
       Object.defineProperty(container, 'clientWidth', { value: BREAKPOINT_LG });
       const containerRef = { current: container };
 
-      const { result } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, false)
-      );
+      const { result } = renderHook(() => useColumnCount(containerRef, false));
 
       expect(result.current).toBe(3);
     });
@@ -223,9 +187,7 @@ describe('useResponsiveColumnCount', () => {
       Object.defineProperty(container, 'clientWidth', { value: BREAKPOINT_XL });
       const containerRef = { current: container };
 
-      const { result } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, false)
-      );
+      const { result } = renderHook(() => useColumnCount(containerRef, false));
 
       expect(result.current).toBe(4);
     });
@@ -237,7 +199,7 @@ describe('useResponsiveColumnCount', () => {
       Object.defineProperty(container, 'clientWidth', { value: 1000 });
       const containerRef = { current: container };
 
-      renderHook(() => useResponsiveColumnCount(containerRef, false));
+      renderHook(() => useColumnCount(containerRef, false));
 
       expect(MockResizeObserver.instances.length).toBe(1);
     });
@@ -245,7 +207,7 @@ describe('useResponsiveColumnCount', () => {
     it('does not create ResizeObserver in mobile mode', () => {
       const containerRef = { current: document.createElement('div') };
 
-      renderHook(() => useResponsiveColumnCount(containerRef, true));
+      renderHook(() => useFixedMobileColumnCount(containerRef, true));
 
       // No ResizeObserver should be created for mobile
       expect(MockResizeObserver.instances.length).toBe(0);
@@ -256,16 +218,12 @@ describe('useResponsiveColumnCount', () => {
       Object.defineProperty(container, 'clientWidth', { value: 1100 });
       const containerRef = { current: container };
 
-      const { result } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, false)
-      );
+      const { result } = renderHook(() => useColumnCount(containerRef, false));
 
       expect(result.current).toBe(3); // lg breakpoint
 
       // Simulate resize to xl breakpoint
-      act(() => {
-        MockResizeObserver.getLatest().simulateResize(1400);
-      });
+      resizeTo(1400);
 
       expect(result.current).toBe(4);
     });
@@ -275,16 +233,12 @@ describe('useResponsiveColumnCount', () => {
       Object.defineProperty(container, 'clientWidth', { value: 1400 });
       const containerRef = { current: container };
 
-      const { result } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, false)
-      );
+      const { result } = renderHook(() => useColumnCount(containerRef, false));
 
       expect(result.current).toBe(4); // xl breakpoint
 
       // Simulate resize to sm breakpoint
-      act(() => {
-        MockResizeObserver.getLatest().simulateResize(700);
-      });
+      resizeTo(700);
 
       expect(result.current).toBe(2);
     });
@@ -294,9 +248,7 @@ describe('useResponsiveColumnCount', () => {
       Object.defineProperty(container, 'clientWidth', { value: 1000 });
       const containerRef = { current: container };
 
-      const { unmount } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, false)
-      );
+      const { unmount } = renderHook(() => useColumnCount(containerRef, false));
 
       const disconnectSpy = vi.spyOn(
         MockResizeObserver.getLatest(),
@@ -313,7 +265,7 @@ describe('useResponsiveColumnCount', () => {
       Object.defineProperty(container, 'clientWidth', { value: 1000 });
       const containerRef = { current: container };
 
-      renderHook(() => useResponsiveColumnCount(containerRef, false));
+      renderHook(() => useColumnCount(containerRef, false));
 
       expect(
         MockResizeObserver.getLatest().observedElements.has(container)
@@ -328,7 +280,7 @@ describe('useResponsiveColumnCount', () => {
       const containerRef = { current: container };
 
       const { result } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, true)
+        useFixedMobileColumnCount(containerRef, true)
       );
 
       expect(result.current).toBe(2);
@@ -340,7 +292,7 @@ describe('useResponsiveColumnCount', () => {
       const containerRef = { current: container };
 
       const { result, rerender } = renderHook(
-        ({ isMobile }) => useResponsiveColumnCount(containerRef, isMobile),
+        ({ isMobile }) => useFixedMobileColumnCount(containerRef, isMobile),
         { initialProps: { isMobile: false } }
       );
 
@@ -357,7 +309,7 @@ describe('useResponsiveColumnCount', () => {
       const containerRef = { current: container };
 
       const { result, rerender } = renderHook(
-        ({ isMobile }) => useResponsiveColumnCount(containerRef, isMobile),
+        ({ isMobile }) => useFixedMobileColumnCount(containerRef, isMobile),
         { initialProps: { isMobile: true } }
       );
 
@@ -373,9 +325,7 @@ describe('useResponsiveColumnCount', () => {
     it('handles null container ref gracefully', () => {
       const containerRef = { current: null };
 
-      const { result } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, false)
-      );
+      const { result } = renderHook(() => useColumnCount(containerRef, false));
 
       // Should use default (3 columns for non-mobile)
       expect(result.current).toBe(3);
@@ -386,9 +336,7 @@ describe('useResponsiveColumnCount', () => {
       Object.defineProperty(container, 'clientWidth', { value: 0 });
       const containerRef = { current: container };
 
-      const { result } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, false)
-      );
+      const { result } = renderHook(() => useColumnCount(containerRef, false));
 
       expect(result.current).toBe(1); // Below sm breakpoint
     });
@@ -399,19 +347,82 @@ describe('useResponsiveColumnCount', () => {
       const containerRef = { current: container };
 
       const { result, unmount } = renderHook(() =>
-        useResponsiveColumnCount(containerRef, false)
+        useColumnCount(containerRef, false)
       );
 
       const initialValue = result.current;
       unmount();
 
       // Simulate resize after unmount
-      act(() => {
-        MockResizeObserver.getLatest().simulateResize(1400);
-      });
+      resizeTo(1400);
 
       // Value should not have changed (component is unmounted)
       expect(result.current).toBe(initialValue);
+    });
+  });
+
+  describe('boundary widths (#457)', () => {
+    it.each([
+      [639, 1],
+      [640, 2],
+      [641, 2],
+      [767, 2],
+      [768, 2],
+      [769, 2],
+      [1023, 2],
+      [1024, 3],
+      [1279, 3],
+      [1280, 4],
+    ])('desktop container %ipx -> %i columns', (width, columns) => {
+      const containerRef = containerOf(width);
+      const { result } = renderHook(() => useColumnCount(containerRef, false));
+      expect(result.current).toBe(columns);
+    });
+
+    it.each([
+      [479, 1],
+      [480, 2],
+      [481, 2],
+      [768, 2],
+    ])('fluid mobile container %ipx -> %i columns', (width, columns) => {
+      const containerRef = containerOf(width);
+      const { result } = renderHook(() => useColumnCount(containerRef, true));
+      expect(result.current).toBe(columns);
+    });
+
+    it('fixed mobile columns ignore the container width', () => {
+      const containerRef = containerOf(320);
+      const { result } = renderHook(() =>
+        useFixedMobileColumnCount(containerRef, true)
+      );
+      expect(result.current).toBe(2);
+    });
+
+    it('fluid mobile follows resizes across 480px', () => {
+      const containerRef = containerOf(600);
+      const { result } = renderHook(() => useColumnCount(containerRef, true));
+      expect(result.current).toBe(2);
+
+      resizeTo(479);
+      expect(result.current).toBe(1);
+
+      resizeTo(480);
+      expect(result.current).toBe(2);
+    });
+
+    it('debounces resizes', () => {
+      const containerRef = containerOf(1100);
+      const { result } = renderHook(() => useColumnCount(containerRef, false));
+
+      act(() => {
+        MockResizeObserver.getLatest().simulateResize(1400);
+      });
+      expect(result.current).toBe(3);
+
+      act(() => {
+        vi.advanceTimersByTime(RESIZE_DEBOUNCE_MS);
+      });
+      expect(result.current).toBe(4);
     });
   });
 });

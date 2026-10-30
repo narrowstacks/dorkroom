@@ -9,9 +9,9 @@ import {
   debugError,
   debugLog,
   DEFAULT_BORDER_PRESETS,
-  DESKTOP_BREAKPOINT,
   formatMeasurement,
   getDisplayUnitSymbol,
+  isMobileWidth,
   PAPER_SIZES,
   persistedBorderCalculatorFieldSchemas,
   type PersistedValue,
@@ -64,8 +64,10 @@ const borderPersistKeys = Object.keys(
 ) as Array<keyof typeof persistedBorderCalculatorFieldSchemas>;
 
 export function useBorderCalculatorController() {
+  // The layout switch and the preview size read the same (debounced) window
+  // sample, so the preview always matches the layout that renders it.
   const { width, height } = useWindowDimensions();
-  const isDesktop = width > DESKTOP_BREAKPOINT;
+  const isDesktop = !isMobileWidth(width);
   const { formatWithUnit, formatDimensions, unit } = useMeasurementFormatter();
   const { toInches, toDisplay } = useMeasurementConverter();
   const toast = useOptionalToast();
