@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildSensorFormatOptions,
   focalLengthFieldText,
+  formatPairLabels,
   formatSensorDetail,
   parseFocalLengthInput,
   sensorOverlay,
@@ -72,6 +73,21 @@ describe('focalLengthFieldText', () => {
 
   it('leaves the field empty for a zero value with no draft', () => {
     expect(focalLengthFieldText(null, 0)).toBe('');
+  });
+});
+
+describe('formatPairLabels', () => {
+  it('uses short names when they differ', () => {
+    expect(formatPairLabels(fullFrame, mft)).toEqual({
+      source: 'Full Frame',
+      target: 'MFT',
+    });
+  });
+
+  it('uses full names when the short names collide', () => {
+    expect(
+      formatPairLabels(format('aps-c-canon'), format('aps-c-nikon'))
+    ).toEqual({ source: 'APS-C (Canon)', target: 'APS-C (Nikon/Sony)' });
   });
 });
 

@@ -51,6 +51,26 @@ export function focalLengthFieldText(
   return focalLength > 0 ? String(focalLength) : '';
 }
 
+export interface FormatPairLabels {
+  source: string;
+  target: string;
+}
+
+/**
+ * Display names for a source/target pair. Short names normally, but some
+ * formats share one (both APS-C variants are "APS-C"), so when they collide
+ * both sides use the full name instead of reading "APS-C … APS-C".
+ */
+export function formatPairLabels(
+  source: SensorFormat,
+  target: SensorFormat
+): FormatPairLabels {
+  if (source.shortName === target.shortName) {
+    return { source: source.name, target: target.name };
+  }
+  return { source: source.shortName, target: target.shortName };
+}
+
 export interface SensorRect {
   x: number;
   y: number;

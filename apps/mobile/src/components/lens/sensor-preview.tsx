@@ -2,7 +2,7 @@ import type { SensorFormat } from '@dorkroom/logic';
 import { Text, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { ACCENT } from '@/theme/accents';
-import { sensorOverlay } from './format';
+import { formatPairLabels, sensorOverlay } from './format';
 
 const BOX_W = 220;
 const BOX_H = 140;
@@ -22,6 +22,7 @@ export function SensorPreview({ source, target }: SensorPreviewProps) {
   );
   const sourceRect = sourceIsOuter ? outer : inner;
   const targetRect = sourceIsOuter ? inner : outer;
+  const labels = formatPairLabels(source, target);
   const areaRatio =
     (target.width * target.height) / (source.width * source.height);
 
@@ -30,7 +31,7 @@ export function SensorPreview({ source, target }: SensorPreviewProps) {
       className="items-center gap-2 py-1"
       accessible
       accessibilityRole="image"
-      accessibilityLabel={`${source.shortName} compared with ${target.shortName}: the target has ${areaRatio.toFixed(2)} times the area of the source`}
+      accessibilityLabel={`${labels.source} compared with ${labels.target}: the target has ${areaRatio.toFixed(2)} times the area of the source`}
     >
       <Svg width={BOX_W} height={BOX_H}>
         <Rect
@@ -57,9 +58,9 @@ export function SensorPreview({ source, target }: SensorPreviewProps) {
         />
       </Svg>
       <View className="flex-row gap-4">
-        <Text className="text-xs text-white/60">┅ {source.shortName}</Text>
+        <Text className="text-xs text-white/60">┅ {labels.source}</Text>
         <Text className="text-xs" style={{ color: ACCENT.emerald }}>
-          ■ {target.shortName}
+          ■ {labels.target}
         </Text>
       </View>
     </View>

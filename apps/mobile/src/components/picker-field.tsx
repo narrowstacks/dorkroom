@@ -11,9 +11,6 @@ interface PickerFieldProps<T extends string | number> {
   options: PickerOption<T>[];
   value: T;
   onChange: (value: T) => void;
-  /** Show a search field in the sheet (for long lists). */
-  searchable?: boolean;
-  className?: string;
 }
 
 /**
@@ -26,8 +23,6 @@ export function PickerField<T extends string | number>({
   options,
   value,
   onChange,
-  searchable = false,
-  className,
 }: PickerFieldProps<T>) {
   const [open, setOpen] = useState(false);
   const selected = options.find((option) => option.value === value);
@@ -41,7 +36,7 @@ export function PickerField<T extends string | number>({
   );
 
   return (
-    <View className={`gap-1 ${className ?? ''}`}>
+    <View className="gap-1">
       <Text className="text-sm text-white/60">{label}</Text>
       <Pressable
         onPress={() => setOpen(true)}
@@ -69,7 +64,6 @@ export function PickerField<T extends string | number>({
         value={value}
         onChange={handleChange}
         onClose={close}
-        searchable={searchable}
       />
     </View>
   );

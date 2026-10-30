@@ -12,7 +12,9 @@ import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import {
   buildSensorFormatOptions,
+  type FormatPairLabels,
   focalLengthFieldText,
+  formatPairLabels,
   parseFocalLengthInput,
 } from '@/components/lens/format';
 import { SensorPreview } from '@/components/lens/sensor-preview';
@@ -25,6 +27,7 @@ import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { ShareButton } from '@/components/share-button';
 import { buildLensShare } from '@/lib/share-text';
+import { tokens } from '@/theme/tokens';
 
 const FORMAT_OPTIONS = buildSensorFormatOptions(SENSOR_FORMATS);
 
@@ -32,6 +35,12 @@ const FOCAL_LENGTH_PRESETS = [24, 35, 50, 85, 135].map((value) => ({
   label: `${value}mm`,
   value,
 }));
+
+const lensFormula = (
+  focal: string,
+  equivalent: string,
+  labels: FormatPairLabels
+) => `${focal} on ${labels.source} = ${equivalent} on ${labels.target}`;
 
 export function LensScreen() {
   const {
@@ -91,7 +100,7 @@ export function LensScreen() {
           accessibilityLabel="Swap source and target formats"
           className="min-h-11 flex-row items-center justify-center gap-2 self-center rounded-full bg-white/10 px-4 py-2"
         >
-          <ArrowUpDown size={16} color="#ffffffb3" />
+          <ArrowUpDown size={16} color={tokens.color.textMuted} />
           <Text className="text-white/70">Swap</Text>
         </Pressable>
         <PickerField
@@ -111,11 +120,14 @@ export function LensScreen() {
             helper={`On ${calculation.targetFormat.shortName}`}
           />
           <FormulaRow
-            formula={`${formatFocalLength(calculation.focalLength)} on ${
-              calculation.sourceFormat.shortName
-            } = ${formatFocalLength(calculation.equivalentFocalLength)} on ${
-              calculation.targetFormat.shortName
-            }`}
+            formula={lensFormula(
+              formatFocalLength(calculation.focalLength),
+              formatFocalLength(calculation.equivalentFocalLength),
+              formatPairLabels(
+                calculation.sourceFormat,
+                calculation.targetFormat
+              )
+            )}
           />
           <SensorPreview
             source={calculation.sourceFormat}
