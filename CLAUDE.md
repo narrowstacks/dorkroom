@@ -28,8 +28,9 @@ bun run dev                               # Start dev server (port comes from th
 bun run build                             # Build all packages
 
 # Verification (run before considering done)
-bun run test                              # lint, test, build, typecheck, typecheck:api,
-                                          # test:serverless, test:docs, doctor
+bun run test                              # lint, lint:root, test, build, typecheck,
+                                          # typecheck:api, test:serverless, test:docs, doctor
+bun run lint                              # oxlint + Biome check over the whole repo
 bun run test:unit "pattern"               # Run only tests matching pattern
 bun run doctor                            # React Doctor alone; fails on any warning
 
