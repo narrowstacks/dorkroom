@@ -1,6 +1,6 @@
 import {
-  BORDER_CALCULATOR_STORAGE_KEY,
   borderCalculatorInitialState,
+  borderCalculatorPersistence,
   borderCalculatorSchema,
   type BorderPresetSettings,
   calculateQuarterInchMinBorder,
@@ -13,8 +13,6 @@ import {
   getDisplayUnitSymbol,
   isMobileWidth,
   PAPER_SIZES,
-  persistedBorderCalculatorFieldSchemas,
-  type PersistedValue,
   useBorderPresets,
   useCalculatorSharing,
   useLocalStorageFormPersistence,
@@ -35,31 +33,6 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { trackEvent } from '../../../lib/analytics/tracked-events';
 
 const validateBorderCalculator = createZodFormValidator(borderCalculatorSchema);
-
-// Per-key hydration validators sharing the persisted snapshot's field bounds,
-// so a tampered localStorage value falls back to the default instead of
-// flowing into form state. `undefined` is rejected up front: a schema that
-// ever gains a default would otherwise parse it and hydrate the raw value.
-// The whole-snapshot readers of this key (the state hook and the mobile-width
-// layout) discard a bad payload entirely; this hook validates key by key, so
-// here a bad field falls back on its own.
-const borderFieldValidators = Object.fromEntries(
-  Object.entries(persistedBorderCalculatorFieldSchemas).map(([key, schema]) => [
-    key,
-    {
-      validate: (value: PersistedValue) =>
-        value !== undefined && schema.safeParse(value).success,
-    },
-  ])
-);
-
-// Derived rather than listed, so a persisted key without a bounds schema
-// cannot silently fall back to the hook's `value !== undefined` default.
-// SAFETY: Object.keys over a literal object returns exactly its own keys; the
-// assertion only recovers the literal key union TypeScript widens to string.
-const borderPersistKeys = Object.keys(
-  persistedBorderCalculatorFieldSchemas
-) as Array<keyof typeof persistedBorderCalculatorFieldSchemas>;
 
 export function useBorderCalculatorController() {
   // The layout switch and the preview size read the same (debounced) window
@@ -103,11 +76,9 @@ export function useBorderCalculatorController() {
   // restores the form defaults and drops the stored snapshot, the same reset
   // every other persisted calculator uses.
   const { resetToDefaults } = useLocalStorageFormPersistence({
-    storageKey: BORDER_CALCULATOR_STORAGE_KEY,
+    ...borderCalculatorPersistence,
     form,
     formValues,
-    persistKeys: borderPersistKeys,
-    validators: borderFieldValidators,
     onHydrated: (loadedValues) => {
       // Recalculate orientation for custom paper after loading from storage,
       // unless the user flipped it by hand: then the persisted isLandscape is

@@ -18,6 +18,7 @@ import type {
 } from '../../types/border-calculator';
 import { computeMaxAllowedMinBorder } from '../../utils/border-calculations';
 import { isBrowser } from '../../utils/environment';
+import { definePersistedFormFields } from '../../utils/persisted-form-fields';
 
 /**
  * Field bounds for the persisted border-calculator snapshot: the preset
@@ -38,6 +39,15 @@ export const persistedBorderCalculatorFieldSchemas = {
     borderPresetSettingsFieldSchemas.customPaperHeight,
   lastValidMinBorder: borderPresetSettingsFieldSchemas.minBorder,
 };
+
+/**
+ * Storage key, persist keys and per-key hydration validators for the web
+ * form, which hydrates field by field (a bad field falls back on its own).
+ */
+export const borderCalculatorPersistence = definePersistedFormFields(
+  BORDER_CALCULATOR_STORAGE_KEY,
+  persistedBorderCalculatorFieldSchemas
+);
 
 /**
  * The persisted border-calculator snapshot. Fields are optional so a snapshot

@@ -1,11 +1,9 @@
 import { useCallback, useState } from 'react';
-import { z } from 'zod';
 import {
   bestFitBorders,
   formatSignedMatValue,
   makeMatFormatter,
   MAT_CALCULATOR_DEFAULTS,
-  MAT_CALCULATOR_STORAGE_KEY,
   type MatBorders,
   matBorderToInput,
   type MatCalculatorState,
@@ -13,22 +11,10 @@ import {
   matSnapStep,
   parseMatInput,
 } from '../constants/mat-calculator';
+import { matCalculatorPersistence } from '../schemas/mat-calculator.schema';
+import { createStateFormAdapter } from '../utils/persisted-form-fields';
 import type { MeasurementUnit } from '../utils/unit-conversion';
-import {
-  type PersistedValue,
-  useLocalStorageFormPersistence,
-} from './use-local-storage-form-persistence';
-
-// Mat inputs are fraction-friendly free text ("3 1/2"); unparseable strings
-// already render as placeholders, so hydration only has to reject wrong types.
-const matInputSchema = z.string();
-const matFlagSchema = z.boolean();
-const isPersistedMatInput = (v: PersistedValue): boolean =>
-  matInputSchema.safeParse(v).success;
-const isPersistedMatFlag = (v: PersistedValue): boolean =>
-  matFlagSchema.safeParse(v).success;
-const matInput = { validate: isPersistedMatInput };
-const matFlag = { validate: isPersistedMatFlag };
+import { useLocalStorageFormPersistence } from './use-local-storage-form-persistence';
 
 /** A single guide-bar cut card for the mat cutter. */
 export interface MatGuideBarCut {
@@ -118,43 +104,10 @@ export function useMatCalculator(
     []
   );
 
-  // Adapter so the TanStack-Form-shaped persistence hook can drive useState.
-  const persistenceForm = {
-    setFieldValue: (
-      key: keyof MatCalculatorState,
-      value: MatCalculatorState[keyof MatCalculatorState]
-    ) => setValues((prev) => ({ ...prev, [key]: value })),
-    reset: () => setValues(MAT_CALCULATOR_DEFAULTS),
-  };
-
   const { resetToDefaults: reset } = useLocalStorageFormPersistence({
-    storageKey: MAT_CALCULATOR_STORAGE_KEY,
-    form: persistenceForm,
+    ...matCalculatorPersistence,
+    form: createStateFormAdapter(setValues, MAT_CALCULATOR_DEFAULTS),
     formValues: values,
-    persistKeys: [
-      'outerW',
-      'outerH',
-      'borderTop',
-      'borderBottom',
-      'borderLeft',
-      'borderRight',
-      'artW',
-      'artH',
-      'reveal',
-      'bottomWeight',
-    ],
-    validators: {
-      outerW: matInput,
-      outerH: matInput,
-      borderTop: matInput,
-      borderBottom: matInput,
-      borderLeft: matInput,
-      borderRight: matInput,
-      artW: matInput,
-      artH: matInput,
-      reveal: matInput,
-      bottomWeight: matFlag,
-    },
   });
 
   const ow = parseMatInput(values.outerW);
