@@ -5,7 +5,9 @@
     "declarationMap": false,
     "emitDeclarationOnly": false,
     "noEmit": true,
-    "types": ["node"]
+    "types": ["node"],
+    "jsx": "react-jsx",
+    "lib": ["dom", "dom.iterable", "es2023"]
   },
   "include": ["tools/__tests__/**/*.ts", "scripts/__tests__/**/*.ts"]
 }

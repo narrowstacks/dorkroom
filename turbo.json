@@ -76,6 +76,8 @@
       "inputs": [
         "tools/__tests__/**",
         "scripts/**",
+        "utils/**",
+        "packages/ui/src/**",
         "tsconfig.tools.json",
         "tsconfig.base.json"
       ]
