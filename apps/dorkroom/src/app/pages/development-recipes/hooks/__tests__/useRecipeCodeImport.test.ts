@@ -37,8 +37,7 @@ const decoded: ImportedCustomRecipe = {
 const createProps = (
   overrides: Partial<UseRecipeCodeImportProps> = {}
 ): UseRecipeCodeImportProps => ({
-  addCustomRecipe: vi.fn().mockResolvedValue('new-id'),
-  refreshCustomRecipes: vi.fn().mockResolvedValue([]),
+  addCustomRecipe: vi.fn().mockReturnValue('new-id'),
   decodeSharedCustomRecipe: () => decoded,
   getFilmById: () => undefined,
   getDeveloperById: () => undefined,
@@ -79,9 +78,9 @@ describe('useRecipeCodeImport', () => {
 
   it('surfaces a validation error from the save as the import error', async () => {
     const props = createProps({
-      addCustomRecipe: vi
-        .fn()
-        .mockRejectedValue(new Error('Time must be positive')),
+      addCustomRecipe: vi.fn().mockImplementation(() => {
+        throw new Error('Time must be positive');
+      }),
     });
     const { result } = renderHook(() => useRecipeCodeImport(props));
 

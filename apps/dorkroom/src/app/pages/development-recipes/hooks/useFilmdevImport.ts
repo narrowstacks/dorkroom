@@ -1,6 +1,5 @@
 import type { Developer, Film } from '@dorkroom/api';
 import type {
-  CustomRecipe,
   CustomRecipeFormData,
   FilmdevMappingResult,
 } from '@dorkroom/logic';
@@ -20,8 +19,7 @@ import { trackEvent } from '../../../lib/analytics/tracked-events';
 
 export interface UseFilmdevImportProps {
   // Recipe operations
-  addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
-  refreshCustomRecipes: () => Promise<CustomRecipe[]>;
+  addCustomRecipe: (data: CustomRecipeFormData) => string;
 
   // Film/Developer data
   allFilms: Film[];
@@ -53,7 +51,6 @@ export interface UseFilmdevImportReturn {
  */
 export function useFilmdevImport({
   addCustomRecipe,
-  refreshCustomRecipes,
   allFilms,
   allDevelopers,
   filmdevPreviewData,
@@ -83,8 +80,7 @@ export function useFilmdevImport({
 
     setIsImporting(true);
     try {
-      await addCustomRecipe(filmdevPreviewData.formData);
-      await refreshCustomRecipes();
+      addCustomRecipe(filmdevPreviewData.formData);
       trackEvent('recipe_saved', { action: 'created', source: 'import' });
       setIsImportModalOpen(false);
       handleCloseFilmdevPreview();
@@ -98,7 +94,6 @@ export function useFilmdevImport({
   }, [
     filmdevPreviewData,
     addCustomRecipe,
-    refreshCustomRecipes,
     handleCloseFilmdevPreview,
     setIsImporting,
     setImportError,

@@ -1,4 +1,4 @@
-import type { CustomRecipe, CustomRecipeFormData } from '@dorkroom/logic';
+import type { CustomRecipeFormData } from '@dorkroom/logic';
 import { debugError } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
@@ -18,8 +18,7 @@ const importedDilutionSelection = (
 
 export interface UseSharedRecipeImportProps {
   // Recipe operations
-  addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
-  refreshCustomRecipes: () => Promise<CustomRecipe[]>;
+  addCustomRecipe: (data: CustomRecipeFormData) => string;
 
   // Modal state
   sharedRecipeView: DevelopmentCombinationView | null;
@@ -46,7 +45,6 @@ export interface UseSharedRecipeImportReturn {
  */
 export function useSharedRecipeImport({
   addCustomRecipe,
-  refreshCustomRecipes,
   sharedRecipeView,
   sharedRecipeSource,
   setIsSharedRecipeModalOpen,
@@ -149,8 +147,7 @@ export function useSharedRecipeImport({
           isPublic: false,
         };
 
-        await addCustomRecipe(formData);
-        await refreshCustomRecipes();
+        addCustomRecipe(formData);
         showToast('Custom recipe added to your collection!', 'success');
       } else {
         // Handle regular API recipe - add to custom recipes
@@ -171,8 +168,7 @@ export function useSharedRecipeImport({
           isPublic: false,
         };
 
-        await addCustomRecipe(formData);
-        await refreshCustomRecipes();
+        addCustomRecipe(formData);
         showToast('Recipe added to your collection!', 'success');
       }
 
@@ -228,7 +224,6 @@ export function useSharedRecipeImport({
     sharedRecipeView,
     sharedRecipeSource,
     addCustomRecipe,
-    refreshCustomRecipes,
     showToast,
     setIsAddingSharedRecipe,
     setIsSharedRecipeModalOpen,

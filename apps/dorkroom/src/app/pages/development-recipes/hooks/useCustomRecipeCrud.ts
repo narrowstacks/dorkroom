@@ -13,10 +13,9 @@ import { getCombinationIdentifier } from '../utils/recipeUtils';
 
 export interface UseCustomRecipeCrudProps {
   customRecipes: CustomRecipe[];
-  addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
-  updateCustomRecipe: (id: string, data: CustomRecipeFormData) => Promise<void>;
-  deleteCustomRecipe: (id: string) => Promise<void>;
-  refreshCustomRecipes: () => Promise<CustomRecipe[]>;
+  addCustomRecipe: (data: CustomRecipeFormData) => string;
+  updateCustomRecipe: (id: string, data: CustomRecipeFormData) => CustomRecipe;
+  deleteCustomRecipe: (id: string) => void;
   addFavorite: (id: string) => void;
   showToast: (message: string, type: 'success' | 'error') => void;
   // Modal state
@@ -57,7 +56,6 @@ export function useCustomRecipeCrud({
   addCustomRecipe,
   updateCustomRecipe,
   deleteCustomRecipe,
-  refreshCustomRecipes,
   addFavorite,
   showToast,
   editingRecipe,
@@ -80,6 +78,7 @@ export function useCustomRecipeCrud({
       setIsSubmittingRecipe(true);
       try {
         let recipeId: string;
+        let savedRecipe: CustomRecipe | undefined;
 
         if (editingRecipe) {
           // Update existing recipe
@@ -93,37 +92,32 @@ export function useCustomRecipeCrud({
             );
             return;
           }
-          await updateCustomRecipe(customRecipe.id, data);
+          savedRecipe = updateCustomRecipe(customRecipe.id, data);
           recipeId = customRecipe.id;
         } else {
           // Add new recipe
-          recipeId = await addCustomRecipe(data);
+          recipeId = addCustomRecipe(data);
           if (data.isFavorite) {
             addFavorite(recipeId);
           }
         }
 
-        // Refresh and get the updated recipes
-        const updatedRecipes = await refreshCustomRecipes();
-
         // If detail view is showing the edited recipe, update it with fresh data
         const detailViewId = getCombinationIdentifier(detailView?.combination);
-        if (editingRecipe && detailViewId === recipeId) {
-          const updatedRecipe = updatedRecipes.find((r) => r.id === recipeId);
-          if (updatedRecipe) {
-            const updatedView: DevelopmentCombinationView = {
-              combination: createCombinationFromCustomRecipe(updatedRecipe),
-              film: getCustomRecipeFilm(recipeId, updatedRecipes, getFilmById),
-              developer: getCustomRecipeDeveloper(
-                recipeId,
-                updatedRecipes,
-                getDeveloperById
-              ),
-              source: 'custom',
-              canShare: customRecipeSharingEnabled,
-            };
-            setDetailView(updatedView);
-          }
+        if (savedRecipe && detailViewId === recipeId) {
+          const saved = [savedRecipe];
+          const updatedView: DevelopmentCombinationView = {
+            combination: createCombinationFromCustomRecipe(savedRecipe),
+            film: getCustomRecipeFilm(recipeId, saved, getFilmById),
+            developer: getCustomRecipeDeveloper(
+              recipeId,
+              saved,
+              getDeveloperById
+            ),
+            source: 'custom',
+            canShare: customRecipeSharingEnabled,
+          };
+          setDetailView(updatedView);
         }
 
         trackEvent('recipe_saved', {
@@ -144,7 +138,6 @@ export function useCustomRecipeCrud({
     [
       addCustomRecipe,
       updateCustomRecipe,
-      refreshCustomRecipes,
       editingRecipe,
       customRecipes,
       detailView,
@@ -189,8 +182,7 @@ export function useCustomRecipeCrud({
       const recipeId = getCombinationIdentifier(
         deleteConfirmRecipe.combination
       );
-      await deleteCustomRecipe(recipeId);
-      await refreshCustomRecipes();
+      deleteCustomRecipe(recipeId);
 
       // Close detail modal if it's showing the deleted recipe
       if (getCombinationIdentifier(detailView?.combination) === recipeId) {
@@ -209,7 +201,6 @@ export function useCustomRecipeCrud({
   }, [
     deleteConfirmRecipe,
     deleteCustomRecipe,
-    refreshCustomRecipes,
     detailView,
     setIsDetailOpen,
     setDetailView,

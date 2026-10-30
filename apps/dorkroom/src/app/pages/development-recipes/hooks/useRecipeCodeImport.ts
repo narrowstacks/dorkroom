@@ -1,6 +1,5 @@
 import type { Developer, Film } from '@dorkroom/api';
 import type {
-  CustomRecipe,
   CustomRecipeFormData,
   ImportedCustomRecipe,
 } from '@dorkroom/logic';
@@ -8,8 +7,7 @@ import { type Dispatch, type SetStateAction, useCallback } from 'react';
 
 export interface UseRecipeCodeImportProps {
   // Recipe operations
-  addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
-  refreshCustomRecipes: () => Promise<CustomRecipe[]>;
+  addCustomRecipe: (data: CustomRecipeFormData) => string;
   decodeSharedCustomRecipe: (input: string) => ImportedCustomRecipe | null;
 
   // Data helpers
@@ -32,7 +30,6 @@ export interface UseRecipeCodeImportReturn {
  */
 export function useRecipeCodeImport({
   addCustomRecipe,
-  refreshCustomRecipes,
   decodeSharedCustomRecipe,
   getFilmById,
   getDeveloperById,
@@ -111,8 +108,7 @@ export function useRecipeCodeImport({
             : undefined,
         };
 
-        await addCustomRecipe(formData);
-        await refreshCustomRecipes();
+        addCustomRecipe(formData);
         setIsImportModalOpen(false);
       } catch (err) {
         setImportError(
@@ -124,7 +120,6 @@ export function useRecipeCodeImport({
     },
     [
       addCustomRecipe,
-      refreshCustomRecipes,
       decodeSharedCustomRecipe,
       getDeveloperById,
       getFilmById,
