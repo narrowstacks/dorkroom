@@ -7,7 +7,6 @@ import { cn } from '../../lib/cn';
 import { cssVars } from '../../lib/dom';
 import { SkeletonTableRow } from '../ui/skeleton';
 import { FavoriteMessageSkeleton } from './favorite-message-skeleton';
-import { useRecipeHoverStyles } from './use-recipe-hover-styles';
 import {
   createDebouncedObserveElementRect,
   DEFAULT_CONTAINER_HEIGHT,
@@ -44,9 +43,6 @@ export const DevelopmentResultsTableVirtualized: FC<
 
   const internalRef = useRef<HTMLDivElement>(null);
   const parentRef = scrollContainerRef || internalRef;
-
-  // Pre-compute hover styles to avoid recalculating on every hover event
-  const hoverStyles = useRecipeHoverStyles();
 
   // Memoize the debounced observer to prevent recreation on every render
   const debouncedObserveElementRect = useMemo(
@@ -213,11 +209,7 @@ export const DevelopmentResultsTableVirtualized: FC<
                     }
                   }
 
-                  // Pre-select styles based on source to avoid calculation in event handlers
-                  const rowStyles =
-                    rowData.source === 'custom'
-                      ? hoverStyles.custom
-                      : hoverStyles.api;
+                  const isCustom = rowData.source === 'custom';
                   const isSelected = id === selectedRecipeId;
 
                   return (
@@ -235,20 +227,19 @@ export const DevelopmentResultsTableVirtualized: FC<
                       className={cn(
                         'cursor-pointer transition-colors duration-200',
                         'animate-slide-fade-bottom',
-                        !isSelected && 'hoverable-row'
+                        isSelected
+                          ? isCustom
+                            ? 'bg-recipe-custom-selected'
+                            : 'bg-surface-muted'
+                          : isCustom
+                            ? 'bg-recipe-custom hover:bg-recipe-custom-hover'
+                            : 'bg-veil-25 hover:bg-veil-35'
                       )}
-                      style={cssVars({
-                        '--row-bg': isSelected
-                          ? rowStyles.selected.backgroundColor
-                          : rowStyles.default.backgroundColor,
-                        '--row-bg-hover': rowStyles.hover.backgroundColor,
-                        backgroundColor: isSelected
-                          ? rowStyles.selected.backgroundColor
-                          : rowStyles.default.backgroundColor,
+                      style={{
                         boxShadow: isSelected
                           ? 'inset 3px 0 0 var(--color-brand)'
                           : undefined,
-                      })}
+                      }}
                     >
                       {row
                         .getVisibleCells()

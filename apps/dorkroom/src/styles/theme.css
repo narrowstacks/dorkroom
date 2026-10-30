@@ -39,6 +39,74 @@
   --border-color-primary: var(--color-border-primary);
   --border-color-secondary: var(--color-border-secondary);
   --border-color-muted: var(--color-border-muted);
+  --color-success: var(--color-semantic-success);
+  --background-color-text-primary: var(--color-text-primary);
+  --background-color-text-secondary: var(--color-text-secondary);
+  --background-color-hover-surface: var(--color-surface-hover);
+  --text-color-on-hover-surface: var(--color-on-surface-hover);
+
+  /* Hover surfaces (#453). Each is derived from per-theme variables that every
+     [data-theme] block already declares (--color-background-rgb, --color-accent,
+     --color-semantic-error, ...), so the value follows the active theme with no
+     copy in each block. They replace colours that components used to compute
+     in JavaScript on mouseenter. */
+
+  /* The page background laid over a surface at N% opacity. */
+  --color-veil-05: rgba(var(--color-background-rgb), 0.05);
+  --color-veil-10: rgba(var(--color-background-rgb), 0.1);
+  --color-veil-15: rgba(var(--color-background-rgb), 0.15);
+  --color-veil-25: rgba(var(--color-background-rgb), 0.25);
+  --color-veil-30: rgba(var(--color-background-rgb), 0.3);
+  --color-veil-35: rgba(var(--color-background-rgb), 0.35);
+
+  /* Custom (user-saved) recipe rows and cards: the accent mixed into the surface. */
+  --color-recipe-custom: color-mix(
+    in srgb,
+    var(--color-accent) 15%,
+    transparent
+  );
+  --color-recipe-custom-hover: color-mix(
+    in srgb,
+    var(--color-accent) 20%,
+    transparent
+  );
+  --color-recipe-custom-selected: color-mix(
+    in srgb,
+    var(--color-accent) 25%,
+    transparent
+  );
+  --color-recipe-custom-edge: color-mix(
+    in srgb,
+    var(--color-accent) 30%,
+    transparent
+  );
+  --color-recipe-custom-edge-hover: color-mix(
+    in srgb,
+    var(--color-accent) 40%,
+    transparent
+  );
+
+  /* Delete button on a recipe card. */
+  --background-color-delete: color-mix(
+    in srgb,
+    var(--color-semantic-error) 10%,
+    transparent
+  );
+  --background-color-delete-hover: color-mix(
+    in srgb,
+    var(--color-semantic-error) 20%,
+    transparent
+  );
+  --text-color-delete: color-mix(
+    in srgb,
+    var(--color-semantic-error) 80%,
+    var(--color-text-primary)
+  );
+  --text-color-delete-hover: color-mix(
+    in srgb,
+    var(--color-semantic-error) 90%,
+    var(--color-text-primary)
+  );
 }
 
 /* Darkroom theme checkbox */
@@ -157,6 +225,8 @@
   --color-border-secondary: #ff0000;
   --color-border-muted: #000000;
   --color-focus-ring: #ff0000;
+  --color-surface-hover: var(--color-border-muted);
+  --color-on-surface-hover: var(--color-text-secondary);
   --color-semantic-success: #ff0000;
   --color-semantic-warning: #ff0000;
   --color-semantic-error: #ff0000;
@@ -287,6 +357,8 @@
   --color-border-secondary: rgba(255, 255, 255, 0.1);
   --color-border-muted: rgba(255, 255, 255, 0.05);
   --color-focus-ring: #7dd6ff;
+  --color-surface-hover: var(--color-border-muted);
+  --color-on-surface-hover: var(--color-text-secondary);
   --color-semantic-success: #6ef3a4;
   --color-semantic-warning: #e5ff7d;
   --color-semantic-error: #f99f96;
@@ -518,6 +590,8 @@
   --color-border-secondary: rgba(9, 9, 11, 0.1);
   --color-border-muted: rgba(9, 9, 11, 0.06);
   --color-focus-ring: #1e6091;
+  --color-surface-hover: var(--color-border-muted);
+  --color-on-surface-hover: var(--color-text-secondary);
   --color-semantic-success: #2d7a4a;
   --color-semantic-warning: #b83f16; /* 4.6:1 on white */
   --color-semantic-error: #d32323;
@@ -760,6 +834,11 @@
   --color-border-secondary: #000000;
   --color-border-muted: #000000;
   --color-focus-ring: #000000;
+  /* Hover surface and its foreground. Monochrome palettes collapse the border
+     and text tokens to one colour, so a hover built from those two would paint
+     the label invisible; high-contrast inverts instead (see hover-contrast test). */
+  --color-surface-hover: #000000;
+  --color-on-surface-hover: #ffffff;
   --color-semantic-success: #000000;
   --color-semantic-warning: #000000;
   --color-semantic-error: #000000;
@@ -894,6 +973,8 @@
   --color-border-secondary: rgba(255, 255, 255, 0.1);
   --color-border-muted: rgba(255, 255, 255, 0.05);
   --color-focus-ring: #7dd6ff;
+  --color-surface-hover: var(--color-border-muted);
+  --color-on-surface-hover: var(--color-text-secondary);
   --color-semantic-success: #6ef3a4;
   --color-semantic-warning: #e5ff7d;
   --color-semantic-error: #f99f96;

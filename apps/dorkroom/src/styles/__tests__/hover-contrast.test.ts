@@ -306,3 +306,114 @@ describe('hoverable utilities keep their content legible in every theme', () => 
     }
   });
 });
+
+// The hover states below used to be computed in JavaScript (onMouseEnter
+// mutating element.style), outside the guarantee above. They are now Tailwind
+// `hover:` utilities on theme tokens, so the same stylesheet read covers them.
+// A hover background that lands on its own foreground paints the control
+// invisible, which is the failure the monochrome themes invite (#273).
+interface HoverPair {
+  /** What the pair styles, for the failure message. */
+  name: string;
+  /** Hover background: a token, optionally laid over the surface at `alpha`. */
+  background: string;
+  alpha?: number;
+  /** Hover foreground token. */
+  foreground: string;
+}
+
+/**
+ * Deliberately below AA. Several migrated pairs keep exactly what the JS hover
+ * painted before (darkroom's red on black clears 4.3:1, light's accent button
+ * 4.5:1), and this guard exists to catch a hover that erases its own label
+ * (1.00:1), not to re-grade the palettes.
+ */
+const MIN_HOVER_CONTRAST = 3;
+
+const MIGRATED_HOVER_PAIRS: HoverPair[] = [
+  {
+    name: 'hover:bg-accent hover:text-background (clear filters)',
+    background: '--color-accent',
+    foreground: '--color-background',
+  },
+  {
+    name: 'hover:bg-brand hover:text-background (expand filters)',
+    background: '--color-brand',
+    foreground: '--color-background',
+  },
+  {
+    name: 'hover:bg-surface-muted hover:text-primary (collapse filters)',
+    background: '--color-surface-muted',
+    foreground: '--color-text-primary',
+  },
+  {
+    name: 'hover:bg-hover-surface hover:text-on-hover-surface (confirm cancel)',
+    background: '--color-surface-hover',
+    foreground: '--color-on-surface-hover',
+  },
+  {
+    name: 'hover:bg-text-secondary text-background (save recipe)',
+    background: '--color-text-secondary',
+    foreground: '--color-background',
+  },
+  {
+    name: 'hover:bg-text-primary/90 text-background (primary buttons)',
+    background: '--color-text-primary',
+    alpha: 0.9,
+    foreground: '--color-background',
+  },
+  {
+    name: 'hover:bg-veil-15 hover:text-primary (view toggle)',
+    background: '--color-background',
+    alpha: 0.15,
+    foreground: '--color-text-primary',
+  },
+];
+
+describe('migrated hover utilities keep their content legible in every theme', () => {
+  for (const pair of MIGRATED_HOVER_PAIRS) {
+    for (const theme of THEMES) {
+      it(`${pair.name} on ${theme}`, () => {
+        const surface = opaque(
+          mustParse(
+            resolveToken(theme, '--color-surface') ??
+              resolveToken(theme, '--color-background'),
+            `${theme} surface`
+          )
+        );
+        const [r, g, b, a] = mustParse(
+          resolveToken(theme, pair.background),
+          pair.background
+        );
+        const background = flatten([r, g, b, a * (pair.alpha ?? 1)], surface);
+        const foreground = flatten(
+          mustParse(resolveToken(theme, pair.foreground), pair.foreground),
+          background
+        );
+        const ratio = contrastRatio(background, foreground);
+        expect(
+          ratio,
+          `${pair.name} in "${theme}" renders ${pair.foreground} on ` +
+            `${pair.background} at ${ratio.toFixed(2)}:1`
+        ).toBeGreaterThan(MIN_HOVER_CONTRAST);
+      });
+    }
+  }
+
+  // The utilities above are only as theme-safe as the tokens they name, so
+  // check every theme declares each one rather than inheriting the default.
+  it('names only tokens that every theme declares', () => {
+    const names = new Set(
+      MIGRATED_HOVER_PAIRS.flatMap((pair) => [pair.background, pair.foreground])
+    );
+    names.add('--color-background-rgb');
+    for (const theme of THEMES.filter((t) => t !== 'default')) {
+      for (const token of names) {
+        expect(
+          THEME_TOKENS.get(theme)?.has(token),
+          `"${theme}" does not declare ${token}`
+        ).toBe(true);
+      }
+    }
+  });
+});

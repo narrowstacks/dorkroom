@@ -103,22 +103,22 @@ describe('ConfirmModal', () => {
       render(<ConfirmModal {...defaultProps} />);
 
       const confirm = screen.getByRole('button', { name: 'Confirm' });
-      expect(confirm.style.color).toBe('var(--color-background)');
+      expect(confirm).toHaveClass('text-background');
     });
 
     it('fills with the primary token for a non-destructive action', () => {
       render(<ConfirmModal {...defaultProps} />);
 
       const confirm = screen.getByRole('button', { name: 'Confirm' });
-      expect(confirm.style.backgroundColor).toBe('var(--color-brand)');
+      expect(confirm).toHaveClass('bg-brand');
     });
 
     it('fills with the error token for a destructive action', () => {
       render(<ConfirmModal {...defaultProps} isDestructive={true} />);
 
       const confirm = screen.getByRole('button', { name: 'Confirm' });
-      expect(confirm.style.backgroundColor).toBe('var(--color-semantic-error)');
-      expect(confirm.style.color).toBe('var(--color-background)');
+      expect(confirm).toHaveClass('bg-error');
+      expect(confirm).toHaveClass('text-background');
     });
   });
 });

@@ -1,6 +1,5 @@
 import { ChevronLeft, Filter } from 'lucide-react';
 import type { FC } from 'react';
-import { setStyles } from '../../lib/dom';
 import { useFilterPanel } from './filter-panel-context';
 
 interface FilterPanelHeaderProps {
@@ -52,25 +51,7 @@ export const FilterPanelHeader: FC<FilterPanelHeaderProps> = ({
       <button
         type="button"
         onClick={toggle}
-        className="flex size-8 items-center justify-center rounded-lg transition-all duration-200"
-        style={{
-          color: 'var(--color-text-muted)',
-          border: '1px solid transparent',
-        }}
-        onMouseEnter={(e) => {
-          setStyles(e.currentTarget, {
-            backgroundColor: 'var(--color-surface-muted)',
-            borderColor: 'var(--color-border-secondary)',
-            color: 'var(--color-text-primary)',
-          });
-        }}
-        onMouseLeave={(e) => {
-          setStyles(e.currentTarget, {
-            backgroundColor: 'transparent',
-            borderColor: 'transparent',
-            color: 'var(--color-text-muted)',
-          });
-        }}
+        className="flex size-8 items-center justify-center rounded-lg border border-transparent text-muted transition-all duration-200 hover:border-secondary hover:bg-surface-muted hover:text-primary"
         aria-label="Collapse filters"
         title="Collapse filters"
       >
