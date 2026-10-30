@@ -84,8 +84,8 @@ has its own rate limit (above).
 ### Supabase proxies
 
 A proxy route is a config object plus one call. `createSupabaseProxy` supplies
-the fetch, the 30s timeout (`AbortSignal.timeout`), the 1 MB response cap, query sanitization against
-`allowedParams`, and structured logging:
+the fetch, the 30s timeout (`AbortSignal.timeout`), the 1 MB response cap,
+query sanitization against `allowedParams`, and structured logging:
 
 ```typescript
 export const filmsProxyConfig: SupabaseProxyConfig = {
