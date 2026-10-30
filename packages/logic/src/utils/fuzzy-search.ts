@@ -148,8 +148,10 @@ export function searchFilms(
   }
 
   const searcher = existingSearcher ?? createFilmSearcher(films);
-  const tokens = trimmed.split(/\s+/).map(normalizeSearchText);
-  if (tokens.every((token) => !token)) {
+  // Drop words that are pure punctuation ("kodak - portra"): an empty token
+  // in the AND query below would match nothing and empty the whole result.
+  const tokens = trimmed.split(/\s+/).map(normalizeSearchText).filter(Boolean);
+  if (tokens.length === 0) {
     // Nothing searchable left (e.g. "!!!"): return every film, in input
     // order, as an empty Fuse query does, rather than "no results".
     return searcher.search('');

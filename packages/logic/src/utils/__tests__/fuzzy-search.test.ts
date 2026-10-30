@@ -330,6 +330,30 @@ describe('fuzzy-search', () => {
         expect(results[0].item.name).toBe('HP5 Plus');
       });
     });
+
+    describe('Punctuation-only words', () => {
+      const uuids = (query: string) =>
+        searchFilms(mockFilms, query).map((r) => r.item.uuid);
+
+      it.each([
+        ['kodak - portra', 'kodak portra'],
+        ['kodak -- portra', 'kodak portra'],
+        ['ilford !! hp5', 'ilford hp5'],
+        ['- kodak', 'kodak'],
+      ])('treats "%s" like "%s"', (query, clean) => {
+        const expected = uuids(clean);
+
+        expect(expected.length).toBeGreaterThan(0);
+        expect(uuids(query)).toEqual(expected);
+      });
+
+      it.each(['!!!', '- -'])(
+        'returns every film in input order for "%s"',
+        (query) => {
+          expect(uuids(query)).toEqual(mockFilms.map((film) => film.uuid));
+        }
+      );
+    });
   });
 
   describe('alias search', () => {
