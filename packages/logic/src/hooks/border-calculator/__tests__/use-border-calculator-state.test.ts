@@ -109,6 +109,46 @@ describe('useBorderCalculatorState', () => {
     });
   });
 
+  describe('SET_PAPER_SIZE Action', () => {
+    it('clamps minBorder to the smaller sheet (16x20 at 5 -> 4x6 gives 1.875)', () => {
+      const { result } = renderHook(() => useBorderCalculatorState());
+
+      act(() => {
+        result.current.dispatch({ type: 'SET_PAPER_SIZE', value: '16x20' });
+        result.current.dispatch({
+          type: 'BATCH_UPDATE',
+          payload: { minBorder: 5, lastValidMinBorder: 5 },
+        });
+      });
+      expect(result.current.state.minBorder).toBe(5);
+
+      act(() => {
+        result.current.dispatch({ type: 'SET_PAPER_SIZE', value: '4x6' });
+      });
+
+      expect(result.current.state.minBorder).toBe(1.875);
+      expect(result.current.state.lastValidMinBorder).toBe(1.875);
+    });
+
+    it('leaves a minBorder that already fits, and does not clamp custom', () => {
+      const { result } = renderHook(() => useBorderCalculatorState());
+
+      act(() => {
+        result.current.dispatch({ type: 'SET_PAPER_SIZE', value: '4x6' });
+      });
+      expect(result.current.state.minBorder).toBe(0.5);
+
+      act(() => {
+        result.current.dispatch({
+          type: 'BATCH_UPDATE',
+          payload: { minBorder: 5, lastValidMinBorder: 5 },
+        });
+        result.current.dispatch({ type: 'SET_PAPER_SIZE', value: 'custom' });
+      });
+      expect(result.current.state.minBorder).toBe(5);
+    });
+  });
+
   describe('SET_FIELD Action', () => {
     it('should update a single field via SET_FIELD', () => {
       const { result } = renderHook(() => useBorderCalculatorState());
