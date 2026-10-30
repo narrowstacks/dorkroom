@@ -51,8 +51,6 @@ Thumbs.db
 # Turbo
 .turbo
 
-# Nx (legacy, may regenerate from dependencies)
-
 # AI
 # Shared config (skills, agents, hooks) is committed; only local state is not.
 # Without these negations, `.claude/*` silently swallows every new skill.
