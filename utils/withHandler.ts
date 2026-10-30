@@ -7,6 +7,11 @@ import type {
   VercelResponse,
 } from '@vercel/node';
 import {
+  ANONYMOUS_RATE_LIMIT,
+  ANONYMOUS_RATE_WINDOW_MS,
+  getAnonymousNamespace,
+} from './edgeRateLimit';
+import {
   logApiError,
   logApiRequest,
   serverlessError,
@@ -54,8 +59,6 @@ export interface HandlerConfig {
   createUnkeyClient?: CreateUnkeyClient;
 }
 
-const ANONYMOUS_RATE_LIMIT = 30;
-const ANONYMOUS_RATE_WINDOW_MS = 60_000;
 // Per-client rate limiting on the keyed (api.dorkroom.art) path — see
 // applyClientIdentityRateLimit. The shared key's own Unkey ratelimit remains
 // a global DDoS brake; these bound a single install / IP address instead.
@@ -579,15 +582,8 @@ async function applyAnonymousRateLimit(
   requestId: string,
   createUnkeyClient: CreateUnkeyClient
 ): Promise<boolean> {
-  const configuredNamespace = process.env.UNKEY_ANON_NAMESPACE?.trim();
-  const namespace =
-    configuredNamespace ||
-    (process.env.UNKEY_API_ID
-      ? `${process.env.UNKEY_API_ID}-anonymous`
-      : 'dorkroom-anonymous');
-
   return applyNamespaceRateLimit(res, requestId, createUnkeyClient, {
-    namespace,
+    namespace: getAnonymousNamespace(),
     identifier: getClientIp(req),
     limit: ANONYMOUS_RATE_LIMIT,
     durationMs: ANONYMOUS_RATE_WINDOW_MS,
