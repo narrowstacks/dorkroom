@@ -14,6 +14,7 @@ import type {
   RawFilm,
   Stats,
 } from './types';
+import { DorkroomApiError } from './types';
 
 /**
  * Minimal envelope schema - validates only that the response has a data array.
@@ -54,7 +55,28 @@ export interface DorkroomApiClientConfig {
    * limits on the shared key.
    */
   clientId?: string;
+  /**
+   * Called when a collection response contained rows that failed validation
+   * and were dropped. Lets callers surface partial data (telemetry, a banner)
+   * instead of relying on the `console.warn`. Optional; omit to ignore.
+   */
+  onInvalidRows?: (info: InvalidRowsInfo) => void;
 }
+
+/** Collection endpoints that validate and drop rows individually. */
+export type CollectionResource = 'films' | 'developers' | 'combinations';
+
+/** Describes rows dropped from a collection response during validation. */
+export interface InvalidRowsInfo {
+  resource: CollectionResource;
+  /** Number of rows dropped. */
+  dropped: number;
+  /** Number of rows in the response, before dropping. */
+  total: number;
+}
+
+const isAbortError = (error: Error, signal?: AbortSignal): boolean =>
+  signal?.aborted === true || error.name === 'AbortError';
 
 /**
  * API client for Dorkroom API
@@ -63,11 +85,13 @@ export class DorkroomApiClient {
   private baseUrl: string;
   private apiKey: string | undefined;
   private clientId: string | undefined;
+  private onInvalidRows: DorkroomApiClientConfig['onInvalidRows'];
 
   constructor(config: DorkroomApiClientConfig = {}) {
     this.baseUrl = config.baseUrl ?? PUBLIC_API_BASE_URL;
     this.apiKey = config.apiKey;
     this.clientId = config.clientId;
+    this.onInvalidRows = config.onInvalidRows;
   }
 
   /**
@@ -87,6 +111,9 @@ export class DorkroomApiClient {
     if (config.clientId !== undefined) {
       this.clientId = config.clientId;
     }
+    if (config.onInvalidRows !== undefined) {
+      this.onInvalidRows = config.onInvalidRows;
+    }
   }
 
   private buildHeaders(): Record<string, string> | undefined {
@@ -101,163 +128,168 @@ export class DorkroomApiClient {
   }
 
   /**
-   * Fetch films from the API with runtime validation.
-   * Invalid individual items are filtered out rather than failing the entire request.
+   * GET `path`, parse the JSON body, and validate it against `schema`.
+   *
+   * Every failure surfaces as a {@link DorkroomApiError}, except an abort,
+   * which is rethrown untouched so TanStack Query cancellation keeps working:
+   * - non-OK HTTP response: `statusCode` is the HTTP status
+   * - network failure, unparseable JSON, or a body failing `schema`:
+   *   `statusCode` is `undefined`
    */
-  async fetchFilms(options?: { signal?: AbortSignal }): Promise<Film[]> {
-    const response = await fetch(`${this.baseUrl}/films`, {
-      signal: options?.signal,
-      headers: this.buildHeaders(),
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch films: ${response.statusText}`);
-    }
-
-    const json: unknown = await response.json();
-
-    // Validate the outer envelope structure
-    const envelope = envelopeSchema.safeParse(json);
-    if (!envelope.success) {
-      console.error(
-        '[DorkroomApiClient] Films API response envelope invalid:',
-        envelope.error
+  private async getValidated<T>(
+    path: string,
+    noun: string,
+    schema: z.ZodType<T>,
+    signal?: AbortSignal
+  ): Promise<T> {
+    const endpoint = `${this.baseUrl}${path}`;
+    let response: Response;
+    try {
+      response = await fetch(endpoint, {
+        signal,
+        headers: this.buildHeaders(),
+      });
+    } catch (caught) {
+      const error =
+        caught instanceof Error ? caught : new Error(String(caught));
+      if (isAbortError(error, signal)) throw caught;
+      throw new DorkroomApiError(
+        `Network error while fetching ${noun}: ${error.message}`,
+        undefined,
+        endpoint,
+        { cause: caught }
       );
-      throw new Error('Invalid API response format for films');
     }
 
-    // Validate each item individually, filter out invalid ones
-    const validItems: RawFilm[] = [];
-    let invalidCount = 0;
-    for (const item of envelope.data.data) {
-      const result = rawFilmSchema.safeParse(item);
+    if (!response.ok) {
+      throw new DorkroomApiError(
+        `Failed to fetch ${noun}: ${response.statusText || response.status}`,
+        response.status,
+        endpoint
+      );
+    }
+
+    let json: unknown;
+    try {
+      json = await response.json();
+    } catch (caught) {
+      const error =
+        caught instanceof Error ? caught : new Error(String(caught));
+      if (isAbortError(error, signal)) throw caught;
+      throw new DorkroomApiError(
+        `Invalid JSON in API response for ${noun}: ${error.message}`,
+        undefined,
+        endpoint,
+        { cause: caught }
+      );
+    }
+
+    const parsed = schema.safeParse(json);
+    if (!parsed.success) {
+      console.error(
+        `[DorkroomApiClient] ${noun} API response invalid:`,
+        parsed.error
+      );
+      throw new DorkroomApiError(
+        `Invalid API response format for ${noun}`,
+        undefined,
+        endpoint,
+        { cause: parsed.error }
+      );
+    }
+    return parsed.data;
+  }
+
+  /**
+   * Fetch a collection endpoint: validate the envelope (throws on failure),
+   * then validate each item individually and drop the invalid ones, reporting
+   * the drop count through `onInvalidRows` and `console.warn`.
+   */
+  private async fetchCollection<Raw, Out>(
+    resource: CollectionResource,
+    schema: z.ZodType<Raw>,
+    transform: (raw: Raw) => Out,
+    signal?: AbortSignal
+  ): Promise<Out[]> {
+    const envelope = await this.getValidated(
+      `/${resource}`,
+      resource,
+      envelopeSchema,
+      signal
+    );
+
+    const validItems: Raw[] = [];
+    for (const item of envelope.data) {
+      const result = schema.safeParse(item);
       if (result.success) {
         validItems.push(result.data);
-      } else {
-        invalidCount++;
       }
     }
-    if (invalidCount > 0) {
+    const dropped = envelope.data.length - validItems.length;
+    if (dropped > 0) {
       console.warn(
-        `[DorkroomApiClient] Filtered out ${invalidCount} invalid film(s) from API response`
+        `[DorkroomApiClient] Filtered out ${dropped} invalid ${resource} from API response`
       );
+      this.onInvalidRows?.({
+        resource,
+        dropped,
+        total: envelope.data.length,
+      });
     }
 
-    return validItems.map(this.transformFilm.bind(this));
+    return validItems.map(transform);
+  }
+
+  /**
+   * Fetch films from the API with runtime validation.
+   * Invalid individual items are filtered out rather than failing the entire request.
+   * @throws DorkroomApiError on HTTP, network, JSON, or envelope failure.
+   */
+  fetchFilms(options?: { signal?: AbortSignal }): Promise<Film[]> {
+    return this.fetchCollection(
+      'films',
+      rawFilmSchema,
+      this.transformFilm.bind(this),
+      options?.signal
+    );
   }
 
   /**
    * Fetch developers from the API with runtime validation.
    * Invalid individual items are filtered out rather than failing the entire request.
+   * @throws DorkroomApiError on HTTP, network, JSON, or envelope failure.
    */
-  async fetchDevelopers(options?: {
-    signal?: AbortSignal;
-  }): Promise<Developer[]> {
-    const response = await fetch(`${this.baseUrl}/developers`, {
-      signal: options?.signal,
-      headers: this.buildHeaders(),
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch developers: ${response.statusText}`);
-    }
-
-    const json: unknown = await response.json();
-
-    // Validate the outer envelope structure
-    const envelope = envelopeSchema.safeParse(json);
-    if (!envelope.success) {
-      console.error(
-        '[DorkroomApiClient] Developers API response envelope invalid:',
-        envelope.error
-      );
-      throw new Error('Invalid API response format for developers');
-    }
-
-    // Validate each item individually, filter out invalid ones
-    const validItems: RawDeveloper[] = [];
-    let invalidCount = 0;
-    for (const item of envelope.data.data) {
-      const result = rawDeveloperSchema.safeParse(item);
-      if (result.success) {
-        validItems.push(result.data);
-      } else {
-        invalidCount++;
-      }
-    }
-    if (invalidCount > 0) {
-      console.warn(
-        `[DorkroomApiClient] Filtered out ${invalidCount} invalid developer(s) from API response`
-      );
-    }
-
-    return validItems.map(this.transformDeveloper.bind(this));
+  fetchDevelopers(options?: { signal?: AbortSignal }): Promise<Developer[]> {
+    return this.fetchCollection(
+      'developers',
+      rawDeveloperSchema,
+      this.transformDeveloper.bind(this),
+      options?.signal
+    );
   }
 
   /**
    * Fetch combinations from the API with runtime validation.
    * Invalid individual items are filtered out rather than failing the entire request.
+   * @throws DorkroomApiError on HTTP, network, JSON, or envelope failure.
    */
-  async fetchCombinations(options?: {
+  fetchCombinations(options?: {
     signal?: AbortSignal;
   }): Promise<Combination[]> {
-    const response = await fetch(`${this.baseUrl}/combinations`, {
-      signal: options?.signal,
-      headers: this.buildHeaders(),
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch combinations: ${response.statusText}`);
-    }
-
-    const json: unknown = await response.json();
-
-    // Validate the outer envelope structure
-    const envelope = envelopeSchema.safeParse(json);
-    if (!envelope.success) {
-      console.error(
-        '[DorkroomApiClient] Combinations API response envelope invalid:',
-        envelope.error
-      );
-      throw new Error('Invalid API response format for combinations');
-    }
-
-    // Validate each item individually, filter out invalid ones
-    const validItems: RawCombination[] = [];
-    let invalidCount = 0;
-    for (const item of envelope.data.data) {
-      const result = rawCombinationSchema.safeParse(item);
-      if (result.success) {
-        validItems.push(result.data);
-      } else {
-        invalidCount++;
-      }
-    }
-    if (invalidCount > 0) {
-      console.warn(
-        `[DorkroomApiClient] Filtered out ${invalidCount} invalid combination(s) from API response`
-      );
-    }
-
-    return validItems.map(this.transformCombination.bind(this));
+    return this.fetchCollection(
+      'combinations',
+      rawCombinationSchema,
+      this.transformCombination.bind(this),
+      options?.signal
+    );
   }
 
   /**
    * Fetch aggregate stats (film, developer, combination counts) from the API.
+   * @throws DorkroomApiError on HTTP, network, JSON, or validation failure.
    */
-  async fetchStats(options?: { signal?: AbortSignal }): Promise<Stats> {
-    const response = await fetch(`${this.baseUrl}/stats`, {
-      signal: options?.signal,
-      headers: this.buildHeaders(),
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch stats: ${response.statusText}`);
-    }
-
-    const json: unknown = await response.json();
-    const result = statsSchema.safeParse(json);
-    if (!result.success) {
-      throw new Error('Invalid API response format for stats');
-    }
-
-    return result.data;
+  fetchStats(options?: { signal?: AbortSignal }): Promise<Stats> {
+    return this.getValidated('/stats', 'stats', statsSchema, options?.signal);
   }
 
   /**

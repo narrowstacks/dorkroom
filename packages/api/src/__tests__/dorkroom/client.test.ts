@@ -11,6 +11,7 @@ import type {
   RawDeveloper,
   RawFilm,
 } from '../../dorkroom/types';
+import { DorkroomApiError } from '../../dorkroom/types';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -731,6 +732,174 @@ describe('Data Transformation', () => {
       id: '1',
       name: '1+9',
       dilution: '1+9',
+    });
+  });
+});
+
+/** Await a call expected to reject and return what it rejected with. */
+const caught = async (call: () => Promise<object>): Promise<Error> => {
+  try {
+    await call();
+  } catch (error) {
+    if (error instanceof Error) return error;
+    throw new Error('Rejected with a non-Error value', { cause: error });
+  }
+  throw new Error('Expected the call to reject');
+};
+
+/** Like `caught`, but asserts and narrows to DorkroomApiError. */
+const caughtApiError = async (
+  call: () => Promise<object>
+): Promise<DorkroomApiError> => {
+  const error = await caught(call);
+  if (!(error instanceof DorkroomApiError)) {
+    throw new Error(`Expected DorkroomApiError, got ${error.name}`);
+  }
+  return error;
+};
+
+describe('DorkroomApiError contract', () => {
+  const base = 'https://test.api.com';
+  const client = new DorkroomApiClient({ baseUrl: base });
+  const fns = [
+    ['films', () => client.fetchFilms()],
+    ['developers', () => client.fetchDevelopers()],
+    ['combinations', () => client.fetchCombinations()],
+    ['stats', () => client.fetchStats()],
+  ] as const;
+
+  beforeEach(() => mockFetch.mockReset());
+
+  describe.each(fns)('%s', (name, call) => {
+    it.each([
+      [404, 'Not Found'],
+      [500, 'Internal Server Error'],
+    ])('throws DorkroomApiError with status %i', async (status, statusText) => {
+      mockFetch.mockResolvedValueOnce({ ok: false, status, statusText });
+      const apiError = await caughtApiError(call);
+      expect(apiError.statusCode).toBe(status);
+      expect(apiError.endpoint).toBe(`${base}/${name}`);
+      expect(apiError.message).toBe(`Failed to fetch ${name}: ${statusText}`);
+    });
+
+    it('wraps network failures with undefined statusCode and a cause', async () => {
+      const cause = new TypeError('Failed to fetch');
+      mockFetch.mockRejectedValueOnce(cause);
+      const error = await caughtApiError(call);
+      expect(error).toBeInstanceOf(DorkroomApiError);
+      expect(error.statusCode).toBeUndefined();
+      expect(error.endpoint).toBe(`${base}/${name}`);
+      expect(error.cause).toBe(cause);
+    });
+
+    it('wraps JSON parse failures with undefined statusCode', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new SyntaxError('Unexpected token <');
+        },
+      });
+      const error = await caughtApiError(call);
+      expect(error).toBeInstanceOf(DorkroomApiError);
+      expect(error.statusCode).toBeUndefined();
+      expect(error.endpoint).toBe(`${base}/${name}`);
+    });
+
+    it('throws DorkroomApiError for an invalid response shape', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ nope: true }),
+      });
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const error = await caughtApiError(call);
+      vi.mocked(console.error).mockRestore();
+      expect(error).toBeInstanceOf(DorkroomApiError);
+      expect(error.statusCode).toBeUndefined();
+      expect(error.endpoint).toBe(`${base}/${name}`);
+      expect(error.message).toBe(`Invalid API response format for ${name}`);
+    });
+
+    it('rethrows an AbortError from fetch unwrapped', async () => {
+      const abort = new DOMException('Aborted', 'AbortError');
+      mockFetch.mockRejectedValueOnce(abort);
+      const error = await caught(call);
+      expect(error).toBe(abort);
+      expect(error).not.toBeInstanceOf(DorkroomApiError);
+    });
+
+    it('rethrows an AbortError from response.json() unwrapped', async () => {
+      const abort = new DOMException('Aborted', 'AbortError');
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw abort;
+        },
+      });
+      const error = await caught(call);
+      expect(error).toBe(abort);
+    });
+  });
+
+  describe('dropped rows', () => {
+    const cases = [
+      ['films', (c: DorkroomApiClient) => c.fetchFilms()],
+      ['developers', (c: DorkroomApiClient) => c.fetchDevelopers()],
+      ['combinations', (c: DorkroomApiClient) => c.fetchCombinations()],
+    ] as const;
+
+    it.each(cases)(
+      'reports invalid %s via onInvalidRows',
+      async (name, call) => {
+        const onInvalidRows = vi.fn();
+        const observed = new DorkroomApiClient({
+          baseUrl: base,
+          onInvalidRows,
+        });
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ data: [{ bogus: 1 }, { bogus: 2 }] }),
+        });
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const result = await call(observed);
+        warn.mockRestore();
+        expect(result).toEqual([]);
+        expect(onInvalidRows).toHaveBeenCalledExactlyOnceWith({
+          resource: name,
+          dropped: 2,
+          total: 2,
+        });
+      }
+    );
+
+    it('does not call onInvalidRows when every row is valid', async () => {
+      const onInvalidRows = vi.fn();
+      const observed = new DorkroomApiClient({ baseUrl: base, onInvalidRows });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [] }),
+      });
+      await observed.fetchFilms();
+      expect(onInvalidRows).not.toHaveBeenCalled();
+    });
+
+    it('configure() can install onInvalidRows', async () => {
+      const onInvalidRows = vi.fn();
+      const c = new DorkroomApiClient({ baseUrl: base });
+      c.configure({ onInvalidRows });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [{ bogus: 1 }] }),
+      });
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      await c.fetchDevelopers();
+      vi.mocked(console.warn).mockRestore();
+      expect(onInvalidRows).toHaveBeenCalledOnce();
     });
   });
 });

@@ -206,18 +206,35 @@ The API client automatically transforms raw API responses from snake_case to cam
 
 ## Error Handling
 
-The API client throws descriptive errors for:
+The API client throws a `DorkroomApiError` for HTTP error responses, network
+failures, unparseable JSON, and invalid response data. An aborted request
+rethrows the original `AbortError` instead.
 
-- Network failures
-- HTTP error responses
-- Invalid response data
+- `statusCode` - the HTTP status for a non-OK response, `undefined` otherwise
+- `endpoint` - the full request URL
+- `cause` - the underlying error, when there is one
 
 ```typescript
+import { DorkroomApiError } from '@dorkroom/api';
+
 try {
   const films = await apiClient.fetchFilms();
 } catch (error) {
-  console.error('Failed to fetch films:', error.message);
+  if (error instanceof DorkroomApiError && error.statusCode === 404) {
+    // handle not found
+  }
 }
+```
+
+Rows that fail validation inside an otherwise valid response are dropped. To
+observe that, pass `onInvalidRows` to the constructor or `configure()`:
+
+```typescript
+const client = new DorkroomApiClient({
+  apiKey: 'dk_...',
+  onInvalidRows: ({ resource, dropped, total }) =>
+    console.warn(`${dropped}/${total} ${resource} rows were invalid`),
+});
 ```
 
 ## TanStack Query Integration
