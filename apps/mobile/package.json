@@ -9,7 +9,7 @@
     "ios": "expo run:ios",
     "native:prebuild": "expo prebuild --platform ios",
     "lint": "oxlint && bun fmt --check",
-    "pretest": "turbo run build --filter=@dorkroom/mobile^...",
+    "pretest": "[ -n \"$TURBO_HASH\" ] || turbo run build --filter=@dorkroom/mobile^...",
     "test": "vitest run",
     "build": "echo 'no-op: native app builds run via expo/EAS, not turbo'",
     "typecheck": "bun check",
