@@ -1,16 +1,19 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "composite": false,
+    "declarationMap": false,
+    "emitDeclarationOnly": false,
     "outDir": "./out-tsc/vitest",
+    "jsx": "react-jsx",
+    "lib": ["DOM", "DOM.Iterable", "ES2023"],
     "types": [
       "vitest/globals",
       "vitest/importMeta",
       "vite/client",
       "node",
       "vitest"
-    ],
-    "lib": ["DOM", "DOM.Iterable", "ES2023"],
-    "jsx": "react-jsx"
+    ]
   },
   "include": [
     "vite.config.ts",
@@ -25,11 +28,18 @@
     "src/**/*.spec.js",
     "src/**/*.test.jsx",
     "src/**/*.spec.jsx",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "src/test-setup.ts"
   ],
   "references": [
     {
-      "path": "./tsconfig.app.json"
+      "path": "../../packages/api/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/logic/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/ui/tsconfig.lib.json"
     }
   ]
 }
