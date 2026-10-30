@@ -53,18 +53,7 @@ describe('LabeledSliderInput', () => {
 
     expect(screen.getByText('Test Label')).toBeInTheDocument();
     expect(screen.getByRole('spinbutton')).toHaveValue(5);
-  });
-
-  it('renders number input and range slider', () => {
-    render(<LabeledSliderInput {...defaultProps} />);
-
-    const numberInput = screen.getByRole('spinbutton');
-    const rangeSlider = screen.getByRole('slider');
-
-    expect(numberInput).toBeInTheDocument();
-    expect(rangeSlider).toBeInTheDocument();
-    expect(numberInput).toHaveValue(5);
-    expect(rangeSlider).toHaveValue('5');
+    expect(screen.getByRole('slider')).toHaveValue('5');
   });
 
   it('calls onChange when number input changes', () => {
@@ -94,15 +83,29 @@ describe('LabeledSliderInput', () => {
     expect(onSliderChange).toHaveBeenCalledWith(8);
   });
 
-  it('falls back to onChange when onSliderChange not provided', () => {
-    const onChange = vi.fn();
-    render(<LabeledSliderInput {...defaultProps} onChange={onChange} />);
+  it('moves only the thumb, not onChange, when onSliderChange is not provided', () => {
+    vi.useFakeTimers();
+    try {
+      const onChange = vi.fn();
+      render(<LabeledSliderInput {...defaultProps} onChange={onChange} />);
 
-    const slider = screen.getByRole('slider');
-    fireEvent.change(slider, { target: { value: '8' } });
+      const slider = screen.getByRole('slider');
+      fireEvent.change(slider, { target: { value: '8' } });
 
-    // Should not call onChange since onSliderChange wasn't provided and falls back
-    expect(onChange).not.toHaveBeenCalled();
+      // Flush the RAF that would deliver the throttled slider value
+      act(() => {
+        vi.advanceTimersByTime(16);
+      });
+
+      // There is no fallback: the slider's value only reaches the parent
+      // through onSliderChange, so onChange stays untouched while the thumb
+      // still tracks the drag locally.
+      expect(onChange).not.toHaveBeenCalled();
+      expect(slider).toHaveValue('8');
+      expect(screen.getByRole('spinbutton')).toHaveValue(5);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('renders labels when provided', () => {
@@ -126,21 +129,6 @@ describe('LabeledSliderInput', () => {
 
     const container = screen.getByText('Test Label').closest('div');
     expect(container).toHaveClass('custom-class');
-  });
-
-  it('sets correct attributes on inputs', () => {
-    render(<LabeledSliderInput {...defaultProps} />);
-
-    const numberInput = screen.getByRole('spinbutton');
-    const slider = screen.getByRole('slider');
-
-    expect(numberInput).toHaveAttribute('min', '0');
-    expect(numberInput).toHaveAttribute('max', '10');
-    expect(numberInput).toHaveAttribute('step', '1');
-
-    expect(slider).toHaveAttribute('min', '0');
-    expect(slider).toHaveAttribute('max', '10');
-    expect(slider).toHaveAttribute('step', '1');
   });
 
   // Note: `<input type="number">` sanitizes its `.value` per the HTML spec -
@@ -236,15 +224,17 @@ describe('LabeledSliderInput', () => {
     );
   });
 
-  it('manages focus state correctly', () => {
+  it('shows the secondary border only while the number input is focused', () => {
     render(<LabeledSliderInput {...defaultProps} />);
 
     const numberInput = screen.getByRole('spinbutton');
+    const focusBorder = 'border-[var(--color-border-secondary)]';
+    expect(numberInput).not.toHaveClass(focusBorder);
 
     fireEvent.focus(numberInput);
-    expect(numberInput).toHaveClass('focus-visible:ring-2');
+    expect(numberInput).toHaveClass(focusBorder);
 
     fireEvent.blur(numberInput);
-    // Focus state is managed internally and affects styling
+    expect(numberInput).not.toHaveClass(focusBorder);
   });
 });

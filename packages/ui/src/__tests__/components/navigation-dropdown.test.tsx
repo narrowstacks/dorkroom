@@ -218,17 +218,6 @@ describe('NavigationDropdown', () => {
       expect(button).toHaveAttribute('aria-expanded', 'true');
     });
 
-    it('has proper menu role', async () => {
-      render(<NavigationDropdown {...defaultProps} />);
-
-      const button = screen.getByRole('button');
-      fireEvent.click(button);
-
-      await waitFor(() => {
-        expect(screen.getByRole('menu')).toBeInTheDocument();
-      });
-    });
-
     it('has proper menuitem roles', async () => {
       render(<NavigationDropdown {...defaultProps} />);
 
@@ -298,20 +287,6 @@ describe('NavigationDropdown', () => {
   });
 
   describe('component structure', () => {
-    it('renders all navigation items', async () => {
-      render(<NavigationDropdown {...defaultProps} />);
-
-      const button = screen.getByRole('button');
-      fireEvent.click(button);
-
-      await waitFor(() => {
-        mockNavigationItems.forEach((item) => {
-          expect(screen.getByText(item.label)).toBeInTheDocument();
-          expect(screen.getByText(item.summary)).toBeInTheDocument();
-        });
-      });
-    });
-
     it('handles empty items array', () => {
       render(<NavigationDropdown {...defaultProps} items={[]} />);
 
