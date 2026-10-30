@@ -1,12 +1,15 @@
 import {
   getDisplayUnitLabel,
+  type MeasurementUnit,
   parseDecimalInput,
   useResizeCalculator,
 } from '@dorkroom/logic';
+import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import { AspectPreview } from '@/components/resize/aspect-preview';
+import { convertResizeLengths } from '@/components/resize/units';
 import { ResultCard } from '@/components/result-card';
 import { ResultRow } from '@/components/result-row';
 import { ResultStat } from '@/components/result-stat';
@@ -44,10 +47,37 @@ export function ResizeScreen() {
 
   // The global preference, not a screen-local override: like web, where the
   // one Imperial/Metric toggle drives every page, flipping it here also flips
-  // Settings and Border. Sizes are only relabelled, never converted; the
-  // exposure math uses their ratio, which is unit-free.
+  // Settings and Border.
   const [measurementUnit, setMeasurementUnit] = useMeasurementUnit();
   const unit = getDisplayUnitLabel(measurementUnit);
+
+  // The unit the length fields' text is currently in. The hook seeds inch
+  // defaults, so this starts imperial; whenever the preference differs (on
+  // first render for a metric user, or after a toggle here or in Settings)
+  // every length is converted during render, so a number is never shown under
+  // the wrong label.
+  const [fieldsUnit, setFieldsUnit] = useState<MeasurementUnit>('imperial');
+  if (fieldsUnit !== measurementUnit) {
+    const converted = convertResizeLengths(
+      {
+        originalWidth,
+        originalLength,
+        newWidth,
+        newLength,
+        originalHeight,
+        newHeight,
+      },
+      fieldsUnit,
+      measurementUnit
+    );
+    setFieldsUnit(measurementUnit);
+    setOriginalWidth(converted.originalWidth);
+    setOriginalLength(converted.originalLength);
+    setNewWidth(converted.newWidth);
+    setNewLength(converted.newLength);
+    setOriginalHeight(converted.originalHeight);
+    setNewHeight(converted.newHeight);
+  }
 
   const stopsHelper = (() => {
     const diff = Number.parseFloat(stopsDifference);
@@ -68,11 +98,24 @@ export function ResizeScreen() {
           onChange={setIsEnlargerHeightMode}
         />
 
+        <View className="gap-2">
+          <SectionLabel>Units</SectionLabel>
+          <SegmentedControl
+            accent="teal"
+            options={[
+              { label: 'Inches', value: 'imperial' },
+              { label: 'Centimeters', value: 'metric' },
+            ]}
+            value={measurementUnit}
+            onChange={setMeasurementUnit}
+          />
+        </View>
+
         {isEnlargerHeightMode ? (
           <View className="flex-row gap-3">
             <View className="flex-1">
               <LabeledTextField
-                label="Orig. height"
+                label={`Orig. height (${unit})`}
                 value={originalHeight}
                 onChangeText={setOriginalHeight}
                 keyboardType="decimal-pad"
@@ -80,7 +123,7 @@ export function ResizeScreen() {
             </View>
             <View className="flex-1">
               <LabeledTextField
-                label="New height"
+                label={`New height (${unit})`}
                 value={newHeight}
                 onChangeText={setNewHeight}
                 keyboardType="decimal-pad"
@@ -89,18 +132,6 @@ export function ResizeScreen() {
           </View>
         ) : (
           <>
-            <View className="gap-2">
-              <SectionLabel>Units</SectionLabel>
-              <SegmentedControl
-                accent="teal"
-                options={[
-                  { label: 'Inches', value: 'imperial' },
-                  { label: 'Centimeters', value: 'metric' },
-                ]}
-                value={measurementUnit}
-                onChange={setMeasurementUnit}
-              />
-            </View>
             <View className="flex-row gap-3">
               <View className="flex-1">
                 <LabeledTextField

@@ -28,6 +28,9 @@ export function SettingsScreen() {
           onChange={setUnit}
           accessibilityHint="Units for lengths in Border and Resize"
         />
+        <Text className="text-xs text-white/50">
+          Applies to Border and Resize. Mat stays in inches for now.
+        </Text>
       </GlassCard>
 
       <GlassCard>
