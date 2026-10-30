@@ -94,22 +94,15 @@ export const useInputHandlers = (
   state: BorderCalculatorState,
   dispatch: (action: BorderCalculatorAction) => void
 ) => {
-  // Debounced numeric field setter for text input only (not sliders)
+  // Debounced numeric field setter for text input only (not sliders). Only a
+  // complete number reaches state: the fields are numeric, so an in-progress
+  // string such as "0." stays in the caller's own input draft.
   const debouncedNumericFieldSetter = useMemo(
     () =>
       debounce((key: keyof BorderCalculatorState, v: string) => {
         const num = tryNumber(v);
-
         if (num !== null) {
-          // The user has entered a complete number – store it as a number.
           dispatch({ type: 'SET_FIELD', key, value: num });
-          return;
-        }
-
-        // Allow "in-progress" numeric strings such as "", "-", ".", "0.", "-."
-        // so the user can keep typing without the input being overridden.
-        if (/^-?\d*\.?$/.test(v)) {
-          dispatch({ type: 'SET_FIELD', key, value: v });
         }
       }, 50), // 50ms for ultra-responsive input
     [dispatch]
@@ -132,16 +125,9 @@ export const useInputHandlers = (
   // Text input handler with debouncing
   const setNumericField = useCallback(
     (key: keyof BorderCalculatorState, v: string) => {
-      // For immediate UI feedback, allow the input to update immediately
-      // but debounce the actual number parsing and validation
-      if (/^-?\d*\.?\d*$/.test(v) || v === '') {
-        dispatch({ type: 'SET_FIELD', key, value: v });
-      }
-
-      // Debounce the heavy number validation
       debouncedNumericFieldSetter(key, v);
     },
-    [debouncedNumericFieldSetter, dispatch]
+    [debouncedNumericFieldSetter]
   );
 
   const setCustomDimensionField = useCallback(
@@ -150,10 +136,10 @@ export const useInputHandlers = (
       lastKey: keyof BorderCalculatorState,
       v: string
     ) => {
-      dispatch({ type: 'SET_FIELD', key, value: v });
       const num = tryNumber(v);
-      if (num && num > 0)
-        dispatch({ type: 'SET_FIELD', key: lastKey, value: num });
+      if (num === null) return;
+      dispatch({ type: 'SET_FIELD', key, value: num });
+      if (num > 0) dispatch({ type: 'SET_FIELD', key: lastKey, value: num });
     },
     [dispatch]
   );

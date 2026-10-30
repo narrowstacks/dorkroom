@@ -1,5 +1,4 @@
 import {
-  borderCalculatorInitialState,
   borderCalculatorPersistence,
   borderCalculatorSchema,
   type BorderPresetSettings,
@@ -43,8 +42,10 @@ export function useBorderCalculatorController() {
   const { toInches, toDisplay } = useMeasurementConverter();
   const toast = useOptionalToast();
 
+  // Seeded from the persisted fields' defaults only: the form holds exactly
+  // what `borderCalculatorState_v2` stores. Warnings come from the layout.
   const form = useForm({
-    defaultValues: borderCalculatorInitialState,
+    defaultValues: borderCalculatorPersistence.defaults,
     validators: {
       onBlur: validateBorderCalculator,
     },

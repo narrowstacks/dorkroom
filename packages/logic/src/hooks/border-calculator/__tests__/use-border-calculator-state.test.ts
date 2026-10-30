@@ -6,7 +6,10 @@ import { PersistenceStorageProvider } from '../../../hooks/use-persisted-calcula
 import { createMemoryStorage } from '../../../services/key-value-storage';
 import type { BorderCalculatorState } from '../../../types/border-calculator';
 import type { PersistedValue } from '../../../utils/persisted-calculator';
-import { useBorderCalculatorState } from '../use-border-calculator-state';
+import {
+  persistedBorderCalculatorFieldSchemas,
+  useBorderCalculatorState,
+} from '../use-border-calculator-state';
 
 /**
  * Comprehensive test suite for the useBorderCalculatorState hook.
@@ -78,28 +81,6 @@ describe('useBorderCalculatorState', () => {
       expect(result.current.state.customAspectHeight).toBe(3);
       expect(result.current.state.customPaperWidth).toBe(10);
       expect(result.current.state.customPaperHeight).toBe(13);
-    });
-
-    it('should initialize warning states to null', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      expect(result.current.state.offsetWarning).toBeNull();
-      expect(result.current.state.bladeWarning).toBeNull();
-      expect(result.current.state.minBorderWarning).toBeNull();
-      expect(result.current.state.paperSizeWarning).toBeNull();
-    });
-
-    it('should initialize image-related fields', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      expect(result.current.state.selectedImageUri).toBeNull();
-      expect(result.current.state.imageDimensions).toEqual({
-        width: 0,
-        height: 0,
-      });
-      expect(result.current.state.isCropping).toBe(false);
-      expect(result.current.state.cropOffset).toEqual({ x: 0, y: 0 });
-      expect(result.current.state.cropScale).toBe(1);
     });
 
     it('should provide a dispatch identity that survives re-renders', () => {
@@ -384,190 +365,6 @@ describe('useBorderCalculatorState', () => {
     });
   });
 
-  describe('SET_IMAGE_FIELD Action', () => {
-    it('should update selectedImageUri field', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      act(() => {
-        result.current.dispatch({
-          type: 'SET_IMAGE_FIELD',
-          key: 'selectedImageUri',
-          value: 'file:///path/to/image.jpg',
-        });
-      });
-
-      expect(result.current.state.selectedImageUri).toBe(
-        'file:///path/to/image.jpg'
-      );
-    });
-
-    it('should update isCropping field', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      act(() => {
-        result.current.dispatch({
-          type: 'SET_IMAGE_FIELD',
-          key: 'isCropping',
-          value: true,
-        });
-      });
-
-      expect(result.current.state.isCropping).toBe(true);
-    });
-
-    it('should update cropScale field', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      act(() => {
-        result.current.dispatch({
-          type: 'SET_IMAGE_FIELD',
-          key: 'cropScale',
-          value: 1.5,
-        });
-      });
-
-      expect(result.current.state.cropScale).toBe(1.5);
-    });
-
-    it('should clear selectedImageUri with null', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      // Set image first
-      act(() => {
-        result.current.dispatch({
-          type: 'SET_IMAGE_FIELD',
-          key: 'selectedImageUri',
-          value: 'file:///path/to/image.jpg',
-        });
-      });
-
-      // Clear it
-      act(() => {
-        result.current.dispatch({
-          type: 'SET_IMAGE_FIELD',
-          key: 'selectedImageUri',
-          value: null,
-        });
-      });
-
-      expect(result.current.state.selectedImageUri).toBeNull();
-    });
-  });
-
-  describe('SET_IMAGE_DIMENSIONS Action', () => {
-    it('should update image dimensions', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      act(() => {
-        result.current.dispatch({
-          type: 'SET_IMAGE_DIMENSIONS',
-          value: { width: 1920, height: 1080 },
-        });
-      });
-
-      expect(result.current.state.imageDimensions).toEqual({
-        width: 1920,
-        height: 1080,
-      });
-    });
-
-    it('should handle different dimension values', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      const dimensions = [
-        { width: 4032, height: 3024 },
-        { width: 6000, height: 4000 },
-        { width: 800, height: 600 },
-      ];
-
-      dimensions.forEach((dim) => {
-        act(() => {
-          result.current.dispatch({
-            type: 'SET_IMAGE_DIMENSIONS',
-            value: dim,
-          });
-        });
-
-        expect(result.current.state.imageDimensions).toEqual(dim);
-      });
-    });
-  });
-
-  describe('SET_CROP_OFFSET Action', () => {
-    it('should update crop offset', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      act(() => {
-        result.current.dispatch({
-          type: 'SET_CROP_OFFSET',
-          value: { x: 100, y: 50 },
-        });
-      });
-
-      expect(result.current.state.cropOffset).toEqual({ x: 100, y: 50 });
-    });
-
-    it('should handle negative offset values', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      act(() => {
-        result.current.dispatch({
-          type: 'SET_CROP_OFFSET',
-          value: { x: -25, y: -10 },
-        });
-      });
-
-      expect(result.current.state.cropOffset).toEqual({ x: -25, y: -10 });
-    });
-  });
-
-  describe('SET_IMAGE_CROP_DATA Action', () => {
-    it('should update multiple image crop fields at once', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      act(() => {
-        result.current.dispatch({
-          type: 'SET_IMAGE_CROP_DATA',
-          payload: {
-            selectedImageUri: 'file:///image.jpg',
-            imageDimensions: { width: 2000, height: 1500 },
-            isCropping: true,
-            cropOffset: { x: 50, y: 75 },
-            cropScale: 1.25,
-          },
-        });
-      });
-
-      expect(result.current.state.selectedImageUri).toBe('file:///image.jpg');
-      expect(result.current.state.imageDimensions).toEqual({
-        width: 2000,
-        height: 1500,
-      });
-      expect(result.current.state.isCropping).toBe(true);
-      expect(result.current.state.cropOffset).toEqual({ x: 50, y: 75 });
-      expect(result.current.state.cropScale).toBe(1.25);
-    });
-
-    it('should partially update crop data fields', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      act(() => {
-        result.current.dispatch({
-          type: 'SET_IMAGE_CROP_DATA',
-          payload: {
-            cropScale: 2.0,
-            isCropping: true,
-          },
-        });
-      });
-
-      expect(result.current.state.cropScale).toBe(2.0);
-      expect(result.current.state.isCropping).toBe(true);
-      // Other fields should remain at defaults
-      expect(result.current.state.selectedImageUri).toBeNull();
-    });
-  });
-
   describe('RESET Action', () => {
     it('should reset all state to initial values', () => {
       const { result } = renderHook(() => useBorderCalculatorState());
@@ -611,91 +408,21 @@ describe('useBorderCalculatorState', () => {
       expect(result.current.state.enableOffset).toBe(false);
       expect(result.current.state.horizontalOffset).toBe(0);
     });
-
-    it('should reset image-related fields to initial state', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      // Set image data
-      act(() => {
-        result.current.dispatch({
-          type: 'SET_IMAGE_CROP_DATA',
-          payload: {
-            selectedImageUri: 'file:///image.jpg',
-            imageDimensions: { width: 1000, height: 800 },
-            isCropping: true,
-            cropScale: 1.5,
-          },
-        });
-      });
-
-      // Reset
-      act(() => {
-        result.current.dispatch({ type: 'RESET' });
-      });
-
-      expect(result.current.state.selectedImageUri).toBeNull();
-      expect(result.current.state.imageDimensions).toEqual({
-        width: 0,
-        height: 0,
-      });
-      expect(result.current.state.isCropping).toBe(false);
-      expect(result.current.state.cropScale).toBe(1);
-    });
   });
 
-  describe('INTERNAL_UPDATE Action', () => {
-    it('should update warning fields via INTERNAL_UPDATE', () => {
+  describe('lastValidMinBorder', () => {
+    it('is an ordinary field set through SET_FIELD', () => {
       const { result } = renderHook(() => useBorderCalculatorState());
 
       act(() => {
         result.current.dispatch({
-          type: 'INTERNAL_UPDATE',
-          payload: {
-            offsetWarning: 'Image extends beyond paper edges',
-            bladeWarning: 'Blade positions too close to edge',
-          },
-        });
-      });
-
-      expect(result.current.state.offsetWarning).toBe(
-        'Image extends beyond paper edges'
-      );
-      expect(result.current.state.bladeWarning).toBe(
-        'Blade positions too close to edge'
-      );
-    });
-
-    it('should update lastValidMinBorder field', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      act(() => {
-        result.current.dispatch({
-          type: 'INTERNAL_UPDATE',
-          payload: {
-            lastValidMinBorder: 1.25,
-          },
+          type: 'SET_FIELD',
+          key: 'lastValidMinBorder',
+          value: 1.25,
         });
       });
 
       expect(result.current.state.lastValidMinBorder).toBe(1.25);
-    });
-
-    it('should partially update internal fields', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      act(() => {
-        result.current.dispatch({
-          type: 'INTERNAL_UPDATE',
-          payload: {
-            minBorderWarning: 'Border too small',
-          },
-        });
-      });
-
-      expect(result.current.state.minBorderWarning).toBe('Border too small');
-      // Other warning fields should remain null
-      expect(result.current.state.offsetWarning).toBeNull();
-      expect(result.current.state.bladeWarning).toBeNull();
     });
   });
 
@@ -951,18 +678,8 @@ describe('useBorderCalculatorState', () => {
       expect(parsed.isRatioFlipped).toBe(true);
     });
 
-    it('should not persist non-persistable fields like warnings', async () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-
-      act(() => {
-        result.current.dispatch({
-          type: 'INTERNAL_UPDATE',
-          payload: {
-            offsetWarning: 'Warning message',
-            bladeWarning: 'Blade warning',
-          },
-        });
-      });
+    it('persists exactly the persisted field set, nothing derived', async () => {
+      renderHook(() => useBorderCalculatorState());
 
       await waitFor(
         () => {
@@ -974,9 +691,9 @@ describe('useBorderCalculatorState', () => {
       const savedData = localStorageMock.setItem.mock.calls[0][1];
       const parsed = JSON.parse(savedData);
 
-      // Warning fields should not be in persisted data
-      expect(parsed.offsetWarning).toBeUndefined();
-      expect(parsed.bladeWarning).toBeUndefined();
+      expect(Object.keys(parsed).sort()).toEqual(
+        Object.keys(persistedBorderCalculatorFieldSchemas).sort()
+      );
     });
   });
 
@@ -1128,24 +845,6 @@ describe('useBorderCalculatorState', () => {
       expect(state1.minBorder).toBe(0.5);
       // New state should have update
       expect(state2.minBorder).toBe(5.0);
-    });
-
-    it('should create new objects for nested updates', () => {
-      const { result } = renderHook(() => useBorderCalculatorState());
-      const state1 = result.current.state;
-
-      act(() => {
-        result.current.dispatch({
-          type: 'SET_IMAGE_DIMENSIONS',
-          value: { width: 1000, height: 800 },
-        });
-      });
-
-      const state2 = result.current.state;
-
-      expect(state1.imageDimensions).not.toBe(state2.imageDimensions);
-      expect(state1.imageDimensions).toEqual({ width: 0, height: 0 });
-      expect(state2.imageDimensions).toEqual({ width: 1000, height: 800 });
     });
   });
 

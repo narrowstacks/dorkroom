@@ -14,7 +14,6 @@ import { removeSupersededStorageKeys } from '../../services/local-storage';
 import type {
   BorderCalculatorAction,
   BorderCalculatorState,
-  BorderPresetSettings,
 } from '../../types/border-calculator';
 import { computeMaxAllowedMinBorder } from '../../utils/border-calculations';
 import { definePersistedCalculator } from '../../utils/persisted-calculator';
@@ -77,25 +76,20 @@ const createInitialState = (): BorderCalculatorState => {
     isLandscape: BORDER_CALCULATOR_DEFAULTS.isLandscape,
     isRatioFlipped: BORDER_CALCULATOR_DEFAULTS.isRatioFlipped,
     hasManuallyFlippedPaper: false,
-    offsetWarning: null,
-    bladeWarning: null,
-    minBorderWarning: null,
-    paperSizeWarning: null,
     lastValidMinBorder: BORDER_CALCULATOR_DEFAULTS.minBorder,
-    selectedImageUri: null,
-    imageDimensions: { width: 0, height: 0 },
-    isCropping: false,
-    cropOffset: { x: 0, y: 0 },
-    cropScale: 1,
   };
 };
 
+/**
+ * Defaults for every persisted field, and nothing else: the iOS reducer starts
+ * from it and the web form uses it as its default values.
+ */
 export const initialState = createInitialState();
 
 /**
  * Storage key, persist keys, per-key hydration validators and defaults for
  * the web form, which hydrates field by field (a bad field falls back on its
- * own).
+ * own). The defaults hold exactly the persisted fields.
  */
 export const borderCalculatorPersistence = definePersistedCalculator(
   BORDER_CALCULATOR_STORAGE_KEY,
@@ -135,23 +129,8 @@ function reducer(
     case 'SET_ASPECT_RATIO':
       return { ...state, aspectRatio: action.value, isRatioFlipped: false };
 
-    case 'SET_IMAGE_FIELD':
-      return { ...state, [action.key]: action.value };
-
-    case 'SET_IMAGE_DIMENSIONS':
-      return { ...state, imageDimensions: action.value };
-
-    case 'SET_CROP_OFFSET':
-      return { ...state, cropOffset: action.value };
-
-    case 'SET_IMAGE_CROP_DATA':
-      return { ...state, ...action.payload };
-
     case 'RESET':
       return createInitialState();
-
-    case 'INTERNAL_UPDATE':
-      return { ...state, ...action.payload };
 
     case 'BATCH_UPDATE':
       return { ...state, ...action.payload };
@@ -190,33 +169,32 @@ export const useBorderCalculatorState = () => {
   const storage = usePersistenceStorage();
   const persistTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const persistableState: BorderPresetSettings & Required<PersistedState> =
-    useMemo(
-      () => ({
-        aspectRatio: state.aspectRatio,
-        paperSize: state.paperSize,
-        customAspectWidth: state.customAspectWidth,
-        customAspectHeight: state.customAspectHeight,
-        customPaperWidth: state.customPaperWidth,
-        customPaperHeight: state.customPaperHeight,
-        minBorder: state.minBorder,
-        enableOffset: state.enableOffset,
-        ignoreMinBorder: state.ignoreMinBorder,
-        horizontalOffset: state.horizontalOffset,
-        verticalOffset: state.verticalOffset,
-        showBlades: state.showBlades,
-        showBladeReadings: state.showBladeReadings,
-        isLandscape: state.isLandscape,
-        isRatioFlipped: state.isRatioFlipped,
-        hasManuallyFlippedPaper: state.hasManuallyFlippedPaper,
-        lastValidCustomAspectWidth: state.lastValidCustomAspectWidth,
-        lastValidCustomAspectHeight: state.lastValidCustomAspectHeight,
-        lastValidCustomPaperWidth: state.lastValidCustomPaperWidth,
-        lastValidCustomPaperHeight: state.lastValidCustomPaperHeight,
-        lastValidMinBorder: state.lastValidMinBorder,
-      }),
-      [state]
-    );
+  const persistableState: Required<PersistedState> = useMemo(
+    () => ({
+      aspectRatio: state.aspectRatio,
+      paperSize: state.paperSize,
+      customAspectWidth: state.customAspectWidth,
+      customAspectHeight: state.customAspectHeight,
+      customPaperWidth: state.customPaperWidth,
+      customPaperHeight: state.customPaperHeight,
+      minBorder: state.minBorder,
+      enableOffset: state.enableOffset,
+      ignoreMinBorder: state.ignoreMinBorder,
+      horizontalOffset: state.horizontalOffset,
+      verticalOffset: state.verticalOffset,
+      showBlades: state.showBlades,
+      showBladeReadings: state.showBladeReadings,
+      isLandscape: state.isLandscape,
+      isRatioFlipped: state.isRatioFlipped,
+      hasManuallyFlippedPaper: state.hasManuallyFlippedPaper,
+      lastValidCustomAspectWidth: state.lastValidCustomAspectWidth,
+      lastValidCustomAspectHeight: state.lastValidCustomAspectHeight,
+      lastValidCustomPaperWidth: state.lastValidCustomPaperWidth,
+      lastValidCustomPaperHeight: state.lastValidCustomPaperHeight,
+      lastValidMinBorder: state.lastValidMinBorder,
+    }),
+    [state]
+  );
 
   // Hydrate once on mount. This reducer path validates the snapshot whole
   // (see persistedBorderCalculatorSchema) rather than field by field, so it

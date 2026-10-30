@@ -38,20 +38,18 @@ export {
 } from './constants/storage-keys';
 // API Hooks
 export * from './hooks/api';
-// Border calculator modular hooks (recommended)
+// Border calculator hooks. `useStandaloneBorderCalculator` owns its state
+// (iOS); the web page reads its form through @dorkroom/ui's
+// `useBorderCalculator` context hook.
 export {
   initialState as borderCalculatorInitialState,
-  useAlertSystem,
-  useBorderCalculator,
-  // Alias for backwards compatibility
-  useBorderCalculator as useModularBorderCalculator,
   useBorderCalculatorState,
   type PresetShareMethod,
   useCalculatorSharing,
-  useImageHandling,
   useInputHandlers,
   usePaperDimensionInput,
   usePresetManagement,
+  useStandaloneBorderCalculator,
 } from './hooks/border-calculator';
 export {
   type PersistedBorderCalculatorState,

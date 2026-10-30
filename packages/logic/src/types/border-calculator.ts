@@ -128,25 +128,18 @@ export interface BorderPreset {
   settings: BorderPresetSettings;
 }
 
+/**
+ * Everything the border calculator holds: the preset settings plus the
+ * `lastValid*` fallbacks the geometry uses while an input is out of range.
+ * This is exactly the persisted `borderCalculatorState_v2` field set. Warnings
+ * are not here: they are derived from these fields by `computeBorderLayout`.
+ */
 export interface BorderCalculatorState extends BorderPresetSettings {
-  offsetWarning: string | null;
-  bladeWarning: string | null;
-  minBorderWarning: string | null;
-  paperSizeWarning: string | null;
   lastValidMinBorder: number;
   lastValidCustomAspectWidth: number;
   lastValidCustomAspectHeight: number;
   lastValidCustomPaperWidth: number;
   lastValidCustomPaperHeight: number;
-  selectedImageUri: string | null;
-  imageDimensions: { width: number; height: number };
-  isCropping: boolean;
-  cropOffset: { x: number; y: number };
-  cropScale: number;
-  // Form state fields from preset management
-  selectedPresetId?: string;
-  presetName?: string;
-  isEditingPreset?: boolean;
 }
 
 // Calculation output
@@ -232,58 +225,7 @@ export type BorderCalculatorAction =
     }
   | { type: 'SET_PAPER_SIZE'; value: PaperSizeValue }
   | { type: 'SET_ASPECT_RATIO'; value: AspectRatioValue }
-  | {
-      type: 'SET_IMAGE_FIELD';
-      key: 'selectedImageUri';
-      value: string | null;
-    }
-  | {
-      type: 'SET_IMAGE_FIELD';
-      key: 'isCropping';
-      value: boolean;
-    }
-  | {
-      type: 'SET_IMAGE_FIELD';
-      key: 'cropScale';
-      value: number;
-    }
-  | {
-      type: 'SET_IMAGE_FIELD';
-      key: 'cropOffset';
-      value: { x: number; y: number };
-    }
-  | {
-      type: 'SET_IMAGE_DIMENSIONS';
-      value: { width: number; height: number };
-    }
-  | { type: 'SET_CROP_OFFSET'; value: { x: number; y: number } }
   | { type: 'RESET' }
-  | {
-      type: 'INTERNAL_UPDATE';
-      payload: Partial<
-        Pick<
-          BorderCalculatorState,
-          | 'offsetWarning'
-          | 'bladeWarning'
-          | 'minBorderWarning'
-          | 'paperSizeWarning'
-          | 'lastValidMinBorder'
-        >
-      >;
-    }
-  | {
-      type: 'SET_IMAGE_CROP_DATA';
-      payload: Partial<
-        Pick<
-          BorderCalculatorState,
-          | 'selectedImageUri'
-          | 'imageDimensions'
-          | 'isCropping'
-          | 'cropOffset'
-          | 'cropScale'
-        >
-      >;
-    }
   | {
       type: 'BATCH_UPDATE';
       payload: Partial<BorderCalculatorState>;
