@@ -3,11 +3,11 @@ import {
   allNavItems,
   cameraItems,
   filmItems,
-  navItems,
   navigationCategories,
+  navItems,
   printingItems,
-  ROUTE_TITLES,
   referenceItems,
+  ROUTE_TITLES,
 } from '../../lib/navigation';
 
 describe('navigation utilities', () => {

@@ -83,13 +83,7 @@ export type AspectRatioValue =
   | '2.39:1'
   | '2.76:1';
 export type PaperSizeValue =
-  | 'custom'
-  | '5x7'
-  | '3.875x5.875'
-  | '8x10'
-  | '11x14'
-  | '16x20'
-  | '20x24';
+  'custom' | '5x7' | '3.875x5.875' | '8x10' | '11x14' | '16x20' | '20x24';
 
 export interface BorderPresetSettings {
   /** Selected aspect ratio identifier */

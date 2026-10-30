@@ -12,8 +12,8 @@ import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
 import {
   buildSensorFormatOptions,
-  type FormatPairLabels,
   focalLengthFieldText,
+  type FormatPairLabels,
   formatPairLabels,
   parseFocalLengthInput,
 } from '@/components/lens/format';

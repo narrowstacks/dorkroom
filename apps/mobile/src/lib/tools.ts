@@ -2,11 +2,7 @@ import type { Href } from 'expo-router';
 import type { ToolIconName } from '@/components/tool-icon';
 
 export type ToolCategory =
-  | 'printing'
-  | 'film'
-  | 'camera'
-  | 'reference'
-  | 'system';
+  'printing' | 'film' | 'camera' | 'reference' | 'system';
 
 export interface Tool {
   id: string;

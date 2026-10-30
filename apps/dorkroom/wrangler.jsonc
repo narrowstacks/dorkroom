@@ -7,6 +7,6 @@
   "assets": {
     "directory": "./dist",
     // Client-side routing: serve index.html for unmatched paths instead of 404.
-    "not_found_handling": "single-page-application"
-  }
+    "not_found_handling": "single-page-application",
+  },
 }

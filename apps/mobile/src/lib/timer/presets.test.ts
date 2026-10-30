@@ -6,8 +6,8 @@ import {
   DEFAULT_BW_STAGES,
   parsePresets,
   recipeMinutesToSeconds,
-  STANDARD_PROCESS_TEMP_F,
   stagesFromCombination,
+  STANDARD_PROCESS_TEMP_F,
   timerPresetsSchema,
 } from './presets';
 

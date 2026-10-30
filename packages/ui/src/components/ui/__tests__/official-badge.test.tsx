@@ -11,9 +11,8 @@ Object.defineProperty(globalThis, 'CSS', {
   writable: true,
 });
 
-const { CustomBadge, isOfficialTag, OfficialBadge } = await import(
-  '../official-badge'
-);
+const { CustomBadge, isOfficialTag, OfficialBadge } =
+  await import('../official-badge');
 const { colorMixOr } = await import('../../../lib/color');
 const { getTagThemeStyle } = await import('../../../lib/tag-colors');
 

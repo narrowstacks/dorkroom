@@ -8,8 +8,8 @@
 import { useCallback, useMemo } from 'react';
 import { useMeasurement } from '../contexts/measurement-context';
 import {
-  type FormatDimensionsOptions,
   formatDimensions,
+  type FormatDimensionsOptions,
   formatMeasurementRange,
   formatMeasurementValue,
   formatMeasurementWithUnit,

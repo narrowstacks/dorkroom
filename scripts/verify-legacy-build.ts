@@ -26,7 +26,7 @@ import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { type Browser, type ConsoleMessage, chromium } from 'playwright';
+import { type Browser, chromium, type ConsoleMessage } from 'playwright';
 
 const root = join(dirname(import.meta.url), '..');
 const distDir = join(root, 'apps', 'dorkroom', 'dist');

@@ -1,10 +1,10 @@
 import {
   formatAperture,
   formatShutterSpeed,
-  STANDARD_APERTURES,
-  STANDARD_SHUTTER_SPEEDS,
   sanitizeText,
   snapToStandardStop,
+  STANDARD_APERTURES,
+  STANDARD_SHUTTER_SPEEDS,
 } from '@dorkroom/logic';
 import * as ImagePicker from 'expo-image-picker';
 import { router, Stack, useLocalSearchParams } from 'expo-router';

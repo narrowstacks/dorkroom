@@ -1,7 +1,7 @@
 import {
   allNavItems,
-  NavigationDropdown,
   navigationCategories,
+  NavigationDropdown,
   ROUTE_TITLES,
   ThemeToggle,
   Tooltip,

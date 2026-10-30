@@ -365,10 +365,10 @@ export default function FilmsPage() {
   // Show when: URL has a film slug, but we haven't found/loaded the film yet, and general loading is done
   const shouldShowDetailSkeleton = Boolean(
     !isLoading &&
-      !error &&
-      urlFilmSlug &&
-      !urlFilm &&
-      lastProcessedFilmSlug.current !== urlFilmSlug
+    !error &&
+    urlFilmSlug &&
+    !urlFilm &&
+    lastProcessedFilmSlug.current !== urlFilmSlug
   );
 
   return (

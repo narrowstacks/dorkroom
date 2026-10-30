@@ -1,4 +1,4 @@
-import { MAT_CALCULATOR_DEFAULTS, makeMatFormatter } from '@dorkroom/logic';
+import { makeMatFormatter, MAT_CALCULATOR_DEFAULTS } from '@dorkroom/logic';
 import { describe, expect, it } from 'vitest';
 import {
   buildMatWarnings,

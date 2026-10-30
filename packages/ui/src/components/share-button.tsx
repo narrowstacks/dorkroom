@@ -18,10 +18,7 @@ export interface ShareResult {
 
 export interface ShareButtonProps {
   onClick: () =>
-    | void
-    | undefined
-    | ShareResult
-    | Promise<undefined | ShareResult>;
+    void | undefined | ShareResult | Promise<undefined | ShareResult>;
   isLoading?: boolean;
   disabled?: boolean;
   variant?: 'primary' | 'secondary' | 'outline';

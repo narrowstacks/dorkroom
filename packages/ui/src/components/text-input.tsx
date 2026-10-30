@@ -10,13 +10,7 @@ interface TextInputProps {
   className?: string;
   description?: string;
   inputMode?:
-    | 'text'
-    | 'decimal'
-    | 'numeric'
-    | 'tel'
-    | 'search'
-    | 'email'
-    | 'url';
+    'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url';
 }
 
 export function TextInput({

@@ -1,9 +1,9 @@
 import type { Developer, Film } from '@dorkroom/api';
 import {
+  calculatePushPull,
   type CustomDeveloperData,
   type CustomFilmData,
   type CustomRecipeFormData,
-  calculatePushPull,
   type SelectItem,
 } from '@dorkroom/logic';
 import { useMemo, useState } from 'react';
@@ -572,8 +572,8 @@ export function CustomRecipeForm({
   // Show dilution dropdown only when using existing developer with dilutions
   const showDilutionDropdown = Boolean(
     formData.useExistingDeveloper &&
-      formData.selectedDeveloperId &&
-      dilutionOptions.length > 2 // More than just "Select" and "Custom"
+    formData.selectedDeveloperId &&
+    dilutionOptions.length > 2 // More than just "Select" and "Custom"
   );
 
   // Show custom dilution input when: custom developer OR "custom" selected in dropdown

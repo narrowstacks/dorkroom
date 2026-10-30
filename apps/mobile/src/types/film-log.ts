@@ -5,12 +5,7 @@
 export type FilmProcess = 'bw' | 'color' | 'slide';
 
 export type CameraFormat =
-  | '35mm'
-  | '120'
-  | '4x5'
-  | '8x10'
-  | 'digital'
-  | 'other';
+  '35mm' | '120' | '4x5' | '8x10' | 'digital' | 'other';
 
 /** Stub shape; mirrors a subset of @dorkroom/api `Film` (colorType→process, isoSpeed→iso). */
 export interface FilmStock {

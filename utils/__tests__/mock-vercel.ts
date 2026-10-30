@@ -5,12 +5,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 /** Any value `JSON.stringify` round-trips — the contract of `res.json(body)`. */
 export type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [key: string]: JsonValue };
+  string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 export function createMockRequest(
   overrides: {

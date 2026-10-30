@@ -7,8 +7,8 @@ import {
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  type UseRecipeCodeImportProps,
   useRecipeCodeImport,
+  type UseRecipeCodeImportProps,
 } from '../useRecipeCodeImport';
 
 const encode = (payload: EncodedCustomRecipe): string =>

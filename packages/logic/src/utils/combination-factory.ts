@@ -105,8 +105,7 @@ function validateNumericInputs(
  */
 export function createCombinationFromCustomRecipe(
   recipe:
-    | CustomRecipe
-    | Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'>,
+    CustomRecipe | Omit<CustomRecipe, 'id' | 'dateCreated' | 'dateModified'>,
   uuid?: string
 ): Combination {
   validateNumericInputs(

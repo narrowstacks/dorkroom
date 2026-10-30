@@ -9,10 +9,10 @@ import { SectionLabel } from '@/components/section-label';
 import { Stepper } from '@/components/stepper';
 import {
   AGITATION_PRESETS,
+  agitationLabel,
   type AgitationParams,
   type AgitationPattern,
   type AgitationPatternId,
-  agitationLabel,
   agitationSummary,
 } from '@/lib/timer/agitation';
 import type { StageKind, TimerStage } from '@/lib/timer/types';
