@@ -1,12 +1,27 @@
 import { ImageResponse } from '@vercel/og';
 import {
+  ANONYMOUS_RATE_LIMIT,
+  ANONYMOUS_RATE_WINDOW_MS,
+  checkEdgeRateLimit,
+  getRequestIp,
+} from '../utils/edgeRateLimit';
+import {
+  BRAND_RE,
+  ISO_RE,
+  PRESET_RE,
+  SLUG_RE,
+  UUID_RE,
+} from '../utils/queryPatterns';
+import {
   BASE_URL,
   buildFilmFilterParts,
   decodeBorderPreset,
   getRouteMetadata,
+  isKnownRoutePath,
   prettifySlug,
   SITE_NAME,
 } from '../utils/routeMetadata';
+import { serverlessError } from '../utils/serverlessLogger';
 
 export const config = { runtime: 'edge' };
 
@@ -94,7 +109,7 @@ async function fetchJson<T>(url: string): Promise<T | null> {
   }
 }
 
-async function loadFontData(url: string): Promise<ArrayBuffer | null> {
+async function fetchFontData(url: string): Promise<ArrayBuffer | null> {
   try {
     const res = await fetch(url);
     if (!res.ok) return null;
@@ -102,6 +117,33 @@ async function loadFontData(url: string): Promise<ArrayBuffer | null> {
   } catch {
     return null;
   }
+}
+
+/**
+ * Font downloads keyed by URL, held in module scope so a warm edge isolate
+ * fetches each face once rather than once per render. The promise itself is
+ * stored, so concurrent renders share one in-flight download. A failed
+ * download (null) is evicted, so the next render retries instead of pinning
+ * the fallback face for the isolate's lifetime.
+ */
+const fontCache = new Map<string, Promise<ArrayBuffer | null>>();
+
+export async function loadFontData(url: string): Promise<ArrayBuffer | null> {
+  const cached = fontCache.get(url);
+  if (cached) return cached;
+
+  const pending = fetchFontData(url);
+  fontCache.set(url, pending);
+  const data = await pending;
+  if (data === null && fontCache.get(url) === pending) {
+    fontCache.delete(url);
+  }
+  return data;
+}
+
+/** Test hook: forget every cached font so each test starts cold. */
+export function clearFontCache(): void {
+  fontCache.clear();
 }
 
 async function lookupFilm(slug: string): Promise<FilmInfo | null> {
@@ -543,6 +585,103 @@ function OgCard({
   );
 }
 
+/** Never cached: a limited or failed request must not stick to its URL at the CDN. */
+const NO_STORE = 'no-store';
+
+/**
+ * Params after shape validation. A value that fails its check is treated as
+ * absent — the same values `meta.ts` would have dropped before writing the
+ * `og:image` URL — so no upstream lookup ever runs on a malformed slug and
+ * attacker-chosen text never reaches the rendered card.
+ */
+interface OgParams {
+  route: string;
+  film: string | null;
+  developer: string | null;
+  recipe: string | null;
+  color: string | null;
+  iso: string | null;
+  brand: string | null;
+  status: string | null;
+  preset: string | null;
+}
+
+function validated(value: string | null, pattern: RegExp): string | null {
+  return value !== null && pattern.test(value) ? value : null;
+}
+
+function parseOgParams(searchParams: URLSearchParams): OgParams {
+  return {
+    route: searchParams.get('route') ?? '/',
+    film: validated(searchParams.get('film'), SLUG_RE),
+    developer: validated(searchParams.get('developer'), SLUG_RE),
+    recipe: validated(searchParams.get('recipe'), UUID_RE),
+    // color and status are checked against closed sets in buildFilmFilterParts.
+    color: searchParams.get('color'),
+    iso: validated(searchParams.get('iso'), ISO_RE),
+    brand: validated(searchParams.get('brand'), BRAND_RE),
+    status: searchParams.get('status'),
+    preset: validated(searchParams.get('preset'), PRESET_RE),
+  };
+}
+
+/**
+ * True for the static page cards: a known route in its normalized form and no
+ * other param. That set is small and fixed (one URL per route), so the CDN's
+ * `s-maxage` absorbs it entirely and it needs no rate limit. It is also where
+ * a rate-limited request is sent.
+ */
+function isStaticCardRequest(searchParams: URLSearchParams): boolean {
+  for (const key of searchParams.keys()) {
+    if (key !== 'route') return false;
+  }
+  const route = searchParams.get('route') ?? '/';
+  return staticCardRoute(route) === route;
+}
+
+/** `route` when it names a known page in normalized form, else null. */
+function staticCardRoute(route: string): string | null {
+  if (!isKnownRoutePath(route)) return null;
+  if (route !== '/' && route.endsWith('/')) return null;
+  return route;
+}
+
+/**
+ * Over-limit response: a temporary redirect to the static card for the same
+ * route (the home card when the route is unknown). That target is CDN-cached,
+ * so a throttled requester costs no render and no upstream call, while a
+ * social crawler that trips the limit still gets a usable image instead of a
+ * broken preview. `no-store` keeps the redirect itself from being cached
+ * under the dynamic URL, so the real card renders once the window resets.
+ */
+function rateLimitedResponse(
+  request: Request,
+  route: string,
+  limit: { limit: number; remaining: number; resetMs: number }
+): Response {
+  const target = new URL('/api/og', request.url);
+  const staticRoute = staticCardRoute(route);
+  if (staticRoute && staticRoute !== '/') {
+    target.searchParams.set('route', staticRoute);
+  }
+  const retryAfter = Math.max(
+    1,
+    Math.ceil((limit.resetMs - Date.now()) / 1000)
+  );
+
+  return new Response(null, {
+    status: 307,
+    headers: {
+      Location: target.toString(),
+      'Cache-Control': NO_STORE,
+      'Retry-After': String(retryAfter),
+      'X-RateLimit-Limit': String(limit.limit),
+      'X-RateLimit-Remaining': String(limit.remaining),
+      'X-RateLimit-Reset': String(Math.ceil(limit.resetMs / 1000)),
+    },
+  });
+}
+
 export default async function handler(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
 
@@ -553,17 +692,47 @@ export default async function handler(request: Request): Promise<Response> {
     });
   }
 
-  const route = searchParams.get('route') ?? '/';
-  const filmSlug = searchParams.get('film');
-  const developerSlug = searchParams.get('developer');
-  const recipeUuid = searchParams.get('recipe');
+  const params = parseOgParams(searchParams);
+
+  // Every request that is not one of the fixed static cards can name a fresh
+  // CDN cache key, and so costs a render and possibly upstream lookups.
+  // Budget those per client IP, like the anonymous limit on /api/*.
+  if (!isStaticCardRequest(searchParams)) {
+    const limit = await checkEdgeRateLimit({
+      identifier: `og:${getRequestIp(request)}`,
+      limit: ANONYMOUS_RATE_LIMIT,
+      durationMs: ANONYMOUS_RATE_WINDOW_MS,
+    });
+    if (limit.status === 'limited') {
+      return rateLimitedResponse(request, params.route, limit);
+    }
+  }
+
+  try {
+    return await renderCard(params);
+  } catch (cause) {
+    serverlessError('OG image render failed', {
+      route: params.route,
+      cause: cause instanceof Error ? cause.message : String(cause),
+    });
+    return new Response('Internal Server Error', {
+      status: 500,
+      headers: { 'Cache-Control': NO_STORE },
+    });
+  }
+}
+
+async function renderCard(params: OgParams): Promise<Response> {
+  const {
+    route,
+    film: filmSlug,
+    developer: developerSlug,
+    recipe: recipeUuid,
+  } = params;
 
   // Film filter card (e.g. /films?color=bw&brand=Kodak)
   if (route === '/films' && !filmSlug) {
-    const color = searchParams.get('color');
-    const iso = searchParams.get('iso');
-    const brand = searchParams.get('brand');
-    const status = searchParams.get('status');
+    const { color, iso, brand, status } = params;
     const filterParts = buildFilmFilterParts({
       color: color ?? undefined,
       iso: iso ?? undefined,
@@ -742,7 +911,7 @@ export default async function handler(request: Request): Promise<Response> {
 
   // Border preset card (e.g. /border?preset=encoded)
   if (route === '/border') {
-    const presetParam = searchParams.get('preset');
+    const presetParam = params.preset;
     if (presetParam) {
       const decoded = decodeBorderPreset(presetParam);
       if (decoded) {
