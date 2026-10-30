@@ -340,7 +340,9 @@ describe('recipe-sharing', () => {
     });
 
     it('generates temporary IDs for custom film', () => {
-      const decoded = decodeOrFail(encodeCustomRecipe(mockCustomRecipeWithCustomFilm));
+      const decoded = decodeOrFail(
+        encodeCustomRecipe(mockCustomRecipeWithCustomFilm)
+      );
       const recipe = createCustomRecipeFromEncoded(decoded);
 
       expect(recipe.filmId).toMatch(/^custom_film_\d+$/);
@@ -351,7 +353,9 @@ describe('recipe-sharing', () => {
     });
 
     it('generates temporary IDs for custom developer', () => {
-      const decoded = decodeOrFail(encodeCustomRecipe(mockCustomRecipeWithCustomDeveloper));
+      const decoded = decodeOrFail(
+        encodeCustomRecipe(mockCustomRecipeWithCustomDeveloper)
+      );
       const recipe = createCustomRecipeFromEncoded(decoded);
 
       expect(recipe.developerId).toMatch(/^custom_dev_\d+$/);

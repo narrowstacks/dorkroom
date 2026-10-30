@@ -462,9 +462,7 @@ describe('findBestDeveloperMatch', () => {
 
   it('prefers an exact full-name match over an earlier partial match', () => {
     // "kodak" alone would partially match D-76 first in the list.
-    expect(findBestDeveloperMatch('Kodak XTOL', developers)?.uuid).toBe(
-      'xtol'
-    );
+    expect(findBestDeveloperMatch('Kodak XTOL', developers)?.uuid).toBe('xtol');
   });
 
   it('matches when the filmdev string contains the developer name', () => {

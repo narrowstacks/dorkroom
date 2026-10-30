@@ -768,7 +768,6 @@ describe('border-calculations: Edge Cases and Boundary Tests', () => {
       // Larger paper should have thinner blade (visually)
       expect(thickness).toBeLessThan(15);
     });
-
   });
 
   describe('Physical Constraint Validation', () => {

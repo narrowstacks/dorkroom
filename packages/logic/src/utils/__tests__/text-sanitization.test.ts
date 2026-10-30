@@ -52,9 +52,7 @@ describe('text-sanitization', () => {
       // Tagless, so the tag regex can't strip them first: only the
       // event-handler regex removes these.
       expect(sanitizeText('foo onclick=bar')).toBe('foo bar');
-      expect(sanitizeText('" onmouseover=alert(1) x="')).toBe(
-        '" alert(1) x="'
-      );
+      expect(sanitizeText('" onmouseover=alert(1) x="')).toBe('" alert(1) x="');
       expect(sanitizeText('x ONERROR = y')).toBe('x  y');
     });
 
@@ -378,7 +376,13 @@ describe('text-sanitization', () => {
   describe('sanitizeTags', () => {
     it('sanitizes each tag and drops tags left empty', () => {
       expect(
-        sanitizeTags(['<b>bold</b>', 'normal', '', '<script></script>', ' pad '])
+        sanitizeTags([
+          '<b>bold</b>',
+          'normal',
+          '',
+          '<script></script>',
+          ' pad ',
+        ])
       ).toEqual(['bold', 'normal', 'pad']);
     });
 
