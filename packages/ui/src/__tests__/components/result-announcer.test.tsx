@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  BASELINE_SETTLE_MS,
   RESULT_ANNOUNCEMENT_DELAY_MS,
   ResultAnnouncer,
 } from '../../components/calculator/result-announcer';
@@ -50,6 +51,16 @@ describe('ResultAnnouncer', () => {
     advance(DELAY * 2);
 
     expect(screen.getByRole('status')).toHaveTextContent('');
+  });
+
+  it('announces a real edit made soon after load, once the baseline has settled', () => {
+    const { rerender } = render(<ResultAnnouncer message="first" />);
+    advance(BASELINE_SETTLE_MS);
+
+    rerender(<ResultAnnouncer message="second" />);
+    advance(DELAY);
+
+    expect(screen.getByRole('status')).toHaveTextContent('second');
   });
 
   it('announces a changed result once it has settled for the delay', () => {

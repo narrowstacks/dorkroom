@@ -26,6 +26,7 @@ import {
   CalculatorNumberField,
   CalculatorStat,
   ResultAnnouncer,
+  spokenStops,
 } from '@dorkroom/ui/calculator';
 import {
   createZodFormValidator,
@@ -239,7 +240,7 @@ const RESIZE_FORM_DEFAULTS: ResizeCalculatorState = {
 function describeResizeResult(values: ResizeCalculatorState): string {
   const { newTime, stopsDifference } = calculateResizeExposure(values);
   if (!newTime) return '';
-  return `New time ${newTime} seconds, ${stopsDifference || '0.00'} stops`;
+  return `New time ${newTime} seconds, ${spokenStops(stopsDifference || '0.00')}`;
 }
 
 type ResizeForm = ReturnType<typeof useResizeForm>['form'];

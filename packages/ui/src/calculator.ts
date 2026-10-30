@@ -18,4 +18,8 @@ export {
   InfoCardList,
   RESULT_ANNOUNCEMENT_DELAY_MS,
   ResultAnnouncer,
+  spokenDuration,
+  spokenLength,
+  spokenShutterSpeed,
+  spokenStops,
 } from './components/calculator';

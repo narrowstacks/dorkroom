@@ -7,6 +7,13 @@ import { useEffect, useRef, useState } from 'react';
  */
 export const RESULT_ANNOUNCEMENT_DELAY_MS = 750;
 
+/**
+ * How long the message must stay still after mount before it is taken as the
+ * silent baseline. Hydration is synchronous (mount effects plus the renders
+ * they trigger), so it settles well inside this.
+ */
+export const BASELINE_SETTLE_MS = 100;
+
 export interface ResultAnnouncerProps {
   /**
    * A short, human summary of the calculator's primary result, e.g.
@@ -27,10 +34,17 @@ export interface ResultAnnouncerProps {
  * updated only after `message` has been stable for `delayMs`, so rapid typing
  * produces a single announcement instead of a flood.
  *
- * The first settled message, which covers the initial render plus any
- * localStorage / URL hydration that lands right after mount, becomes the
- * baseline and is never announced: only later changes are. Mount exactly one
- * per page; several live regions updating at once race on most screen readers.
+ * The message on page load is a baseline and is never announced: only later
+ * changes are. The baseline is taken once the message has been still for
+ * `BASELINE_SETTLE_MS` after mount, so it includes the localStorage / URL
+ * hydration that the page's own mount effects apply. Those effects run after
+ * this component's (React runs child effects first) and can cascade through a
+ * few renders, so capturing on the first commit would announce hydration as a
+ * change. The window is far shorter than the announcement delay, so a real
+ * edit made soon after load is still announced.
+ *
+ * Mount exactly one per page; several live regions updating at once race on
+ * most screen readers.
  */
 export function ResultAnnouncer({
   message,
@@ -41,12 +55,16 @@ export function ResultAnnouncer({
   const settledRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const previous = settledRef.current;
-      settledRef.current = message;
-      if (previous === undefined || previous === message) return;
-      setAnnouncement(message);
-    }, delayMs);
+    const isBaseline = settledRef.current === undefined;
+    const timer = setTimeout(
+      () => {
+        const previous = settledRef.current;
+        settledRef.current = message;
+        if (previous === undefined || previous === message) return;
+        setAnnouncement(message);
+      },
+      isBaseline ? BASELINE_SETTLE_MS : delayMs
+    );
     return () => clearTimeout(timer);
   }, [message, delayMs]);
 

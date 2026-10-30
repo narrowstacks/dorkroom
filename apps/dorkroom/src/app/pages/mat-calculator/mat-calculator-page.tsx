@@ -12,6 +12,7 @@ import {
   CalculatorLayout,
   CalculatorStat,
   ResultAnnouncer,
+  spokenLength,
 } from '@dorkroom/ui/calculator';
 import { useCallback, useMemo } from 'react';
 import { trackEvent } from '../../lib/analytics/tracked-events';
@@ -510,7 +511,7 @@ export default function MatCalculatorPage() {
       <ResultAnnouncer
         message={
           calc.valid
-            ? `Window opening ${calc.fmt(calc.windowW)} by ${calc.fmt(calc.windowH)}`
+            ? `Window opening ${spokenLength(calc.fmt(calc.windowW))} by ${spokenLength(calc.fmt(calc.windowH))}`
             : ''
         }
       />

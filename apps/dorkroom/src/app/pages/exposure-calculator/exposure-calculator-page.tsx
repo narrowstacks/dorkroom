@@ -16,6 +16,8 @@ import {
   CalculatorNumberField,
   CalculatorStat,
   ResultAnnouncer,
+  spokenDuration,
+  spokenStops,
 } from '@dorkroom/ui/calculator';
 import {
   createZodFormValidator,
@@ -49,8 +51,7 @@ function describeStopsResult(values: ExposureFormState): string {
     values.stops
   );
   if (!calculation) return '';
-  const sign = calculation.stopsValue > 0 ? '+' : '';
-  return `New exposure time ${formatExposureTime(calculation.newTimeValue)}, ${sign}${calculation.stopsValue} stops`;
+  return `New exposure time ${spokenDuration(formatExposureTime(calculation.newTimeValue))}, ${spokenStops(calculation.stopsValue)}`;
 }
 
 interface StopButtonProps {

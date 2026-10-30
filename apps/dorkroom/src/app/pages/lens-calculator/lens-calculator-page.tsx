@@ -15,6 +15,7 @@ import {
   CalculatorPageHeader,
   CalculatorStat,
   ResultAnnouncer,
+  spokenLength,
 } from '@dorkroom/ui/calculator';
 import { ArrowRightLeft } from 'lucide-react';
 import { type FC, useCallback } from 'react';
@@ -124,7 +125,7 @@ export default function LensCalculatorPage() {
       <ResultAnnouncer
         message={
           calculation
-            ? `Equivalent focal length ${formatFocalLength(calculation.equivalentFocalLength)} on ${calculation.targetFormat.shortName}, field of view ${calculation.fieldOfView.toFixed(1)}°`
+            ? `Equivalent focal length ${spokenLength(formatFocalLength(calculation.equivalentFocalLength))} on ${calculation.targetFormat.shortName}, field of view ${calculation.fieldOfView.toFixed(1)} degrees`
             : ''
         }
       />

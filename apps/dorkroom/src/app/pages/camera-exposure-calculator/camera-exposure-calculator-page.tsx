@@ -22,6 +22,8 @@ import {
   CalculatorLayout,
   CalculatorStat,
   ResultAnnouncer,
+  spokenShutterSpeed,
+  spokenStops,
 } from '@dorkroom/ui/calculator';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { type FC, useCallback, useMemo, useState } from 'react';
@@ -123,10 +125,9 @@ function describeExposureResult(
   comparison: ExposureComparison
 ): string {
   if (!exposureValue.isValid) return '';
-  const summary = `EV ${exposureValue.ev} at ${formatAperture(values.aperture)}, ${formatShutterSpeed(values.shutterSpeed)}, ISO ${values.iso}`;
+  const summary = `EV ${exposureValue.ev} at ${formatAperture(values.aperture)}, ${spokenShutterSpeed(formatShutterSpeed(values.shutterSpeed))}, ISO ${values.iso}`;
   if (!comparison.isValid) return summary;
-  const sign = comparison.stopsDifference > 0 ? '+' : '';
-  return `${summary}. Stops difference ${sign}${comparison.stopsDifference}`;
+  return `${summary}. Stops difference ${spokenStops(comparison.stopsDifference)}`;
 }
 
 function EVResultCard({

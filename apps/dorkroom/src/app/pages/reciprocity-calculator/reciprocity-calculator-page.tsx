@@ -23,6 +23,7 @@ import {
   CalculatorNumberField,
   CalculatorStat,
   ResultAnnouncer,
+  spokenDuration,
 } from '@dorkroom/ui/calculator';
 import {
   createZodFormValidator,
@@ -78,7 +79,7 @@ function describeReciprocityResult(
   calculation: ReciprocityCalculation | null
 ): string {
   if (!calculation) return '';
-  return `Adjusted exposure ${formatReciprocityTime(calculation.adjustedTime)} for ${calculation.filmName}`;
+  return `Adjusted exposure ${spokenDuration(formatReciprocityTime(calculation.adjustedTime))} for ${calculation.filmName}`;
 }
 
 function ReciprocitySidebar() {

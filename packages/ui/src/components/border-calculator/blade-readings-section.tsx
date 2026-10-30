@@ -2,6 +2,7 @@ import { CalculatorCard } from '../calculator/calculator-card';
 import { CalculatorStat } from '../calculator/calculator-stat';
 import { StatusAlert } from '../status-alert';
 import { useBorderCalculator } from './border-calculator-context';
+import { getEaselBladeReadings } from './easel-blade-readings';
 
 /**
  * Section displaying blade readings and calculated dimensions
@@ -19,14 +20,7 @@ export function BladeReadingsSection() {
 
   if (!calculation) return null;
 
-  // Determine actual paper orientation from calculated dimensions
-  // This correctly handles custom paper sizes where width > height (already landscape)
-  const isPaperActuallyLandscape =
-    calculation.paperWidth > calculation.paperHeight;
-
-  // Swap blade readings when paper is in portrait orientation (not landscape)
-  // This accounts for the easel being rotated 90° when the paper is vertical
-  const shouldSwapBlades = !isPaperActuallyLandscape;
+  const blades = getEaselBladeReadings(calculation);
 
   return (
     <CalculatorCard
@@ -38,35 +32,16 @@ export function BladeReadingsSection() {
       <div className="grid gap-2 sm:grid-cols-2">
         <CalculatorStat
           label="Left Blade"
-          value={formatWithUnit(
-            shouldSwapBlades
-              ? calculation.topBladeReading
-              : calculation.leftBladeReading
-          )}
+          value={formatWithUnit(blades.left)}
         />
         <CalculatorStat
           label="Right Blade"
-          value={formatWithUnit(
-            shouldSwapBlades
-              ? calculation.bottomBladeReading
-              : calculation.rightBladeReading
-          )}
+          value={formatWithUnit(blades.right)}
         />
-        <CalculatorStat
-          label="Top Blade"
-          value={formatWithUnit(
-            shouldSwapBlades
-              ? calculation.leftBladeReading
-              : calculation.topBladeReading
-          )}
-        />
+        <CalculatorStat label="Top Blade" value={formatWithUnit(blades.top)} />
         <CalculatorStat
           label="Bottom Blade"
-          value={formatWithUnit(
-            shouldSwapBlades
-              ? calculation.rightBladeReading
-              : calculation.bottomBladeReading
-          )}
+          value={formatWithUnit(blades.bottom)}
         />
         <CalculatorStat
           label="Image Size"
