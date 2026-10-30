@@ -29,8 +29,15 @@ Everything else:
   crawler, so link previews get per-route titles out of an SPA. Unknown or
   duplicated query params get a 308 to the canonical URL rather than a 400,
   because shared links routinely carry `utm_*` junk.
-- `og.tsx` - Open Graph card images via `@vercel/og`. Reads `route`, `film`,
-  `developer`, and `recipe` params. See the `og-image-routes` skill.
+- `og.tsx` - Open Graph card images via `@vercel/og` (edge runtime). Reads
+  `route`, `film`, `developer`, and `recipe` params. See the `og-image-routes`
+  skill. Not wrapped in `withHandler` (Node-only), so it carries its own
+  guards: unknown params 400; malformed values (checked by
+  `utils/queryPatterns.ts`, the same patterns `meta.ts` uses) are treated as
+  absent before any upstream lookup; fonts are cached per isolate; and every
+  request other than a bare static card (`?route=<known page>`) is limited per
+  IP through `utils/edgeRateLimit.ts`. Over the limit it answers a `no-store`
+  307 to the static card rather than a 429, so crawlers still get an image.
 
 Host-based routing lives in `vercel.json`: on `api.dorkroom.art` the bare paths
 (`/films`, `/openapi.json`, `/reference`, …) map onto these handlers, while
@@ -70,8 +77,9 @@ either directly (`filmdev.ts`) or through `createSupabaseProxy`.
 6. Outer error mapping (`AbortError` => 504, fetch network => 502, generic => 500)
 
 `docs.ts`, `openapi.ts`, `reference.ts`, `meta.ts`, and `og.tsx` are plain
-handlers. They serve static or derived content, hit no upstream, and need no
-key.
+handlers. They serve static or derived content and need no key. `og.tsx` does
+call `/api/films`, `/api/developers`, and `/api/combinations`, which is why it
+has its own rate limit (above).
 
 ### Supabase proxies
 
@@ -101,6 +109,9 @@ on that list is dropped before the upstream call.
 All under `/utils`:
 
 - `withHandler.ts` - common wrapper and Unkey integration
+- `edgeRateLimit.ts` - edge-safe Unkey rate limit over plain `fetch` (no SDK,
+  no Node imports) plus the shared anonymous namespace and 30 req/min budget
+- `queryPatterns.ts` - slug/UUID/ISO/brand/preset patterns shared by `meta.ts` and `og.tsx`
 - `createSupabaseProxy.ts` - the proxy factory described above
 - `queryValidation.ts` - allowlist-based query sanitization
 - `timeoutSignal.ts` - `createTimeoutSignal(timeoutMs)` helper
@@ -132,6 +143,8 @@ Two access modes are supported from one Vercel project:
 - `dorkroom.art/api/*`
   - No API key required
   - Anonymous rate limiting by client IP (30 req/min)
+  - `/api/og` uses the same namespace and budget under a separate `og:<ip>`
+    identifier, and fails open if Unkey is unreachable
 
 When Unkey is not configured (`UNKEY_ROOT_KEY` missing), anonymous rate limiting is skipped with warning logs for local development.
 

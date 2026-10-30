@@ -206,8 +206,9 @@ describe('MatCalculatorPage', () => {
     it('previews the best fit in centimetres', () => {
       renderPage('metric');
 
+      // 6.5in of vertical border is 165mm, split 82/83 on the 1mm grid.
       expect(
-        screen.getByText(/Would set borders to 8.255cm T/)
+        screen.getByText(/Would set borders to 8.2cm T · 8.3cm B/)
       ).toBeInTheDocument();
     });
 

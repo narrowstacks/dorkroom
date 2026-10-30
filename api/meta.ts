@@ -1,5 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { escapeHtml } from '../utils/htmlEscape';
+import {
+  BRAND_RE,
+  ISO_RE,
+  PRESET_RE,
+  SLUG_RE,
+  UUID_RE,
+} from '../utils/queryPatterns';
 import type { MetadataQuery } from '../utils/routeMetadata';
 import {
   getRouteMetadata,
@@ -7,22 +14,10 @@ import {
   SITE_NAME,
 } from '../utils/routeMetadata';
 
-/** Slug pattern: lowercase alphanumeric + hyphens, 1-100 chars */
-const SLUG_RE = /^[a-z0-9-]{1,100}$/;
-/** UUID v4 pattern */
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-
 /** Valid color filter values */
 const COLOR_VALUES = new Set(['bw', 'color', 'slide']);
 /** Valid status filter values */
 const STATUS_VALUES = new Set(['active', 'discontinued', 'all']);
-/** ISO must be a positive integer up to 5 digits */
-const ISO_RE = /^[1-9]\d{0,4}$/;
-/** Brand: alphanumeric with spaces/hyphens/dots, 1-50 chars */
-const BRAND_RE = /^[\w\s.'-]{1,50}$/;
-/** Preset: base64-safe chars (alphanumeric, -, _), 1-500 chars */
-const PRESET_RE = /^[A-Za-z0-9_-]{1,500}$/;
 
 /**
  * Every query param this endpoint reads, `path` included. Anything else is

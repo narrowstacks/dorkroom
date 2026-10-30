@@ -65,14 +65,46 @@ const baseSettings: BorderPresetSettings = {
   hasManuallyFlippedPaper: false,
 };
 
-/** Fields decode always resets, so round-trip comparisons exclude them. */
+/** Round-trip comparison: every setting, the manual paper flip included. */
 function expectSettingsMatch(
   actual: BorderPresetSettings,
   expected: BorderPresetSettings
 ): void {
-  const { hasManuallyFlippedPaper: _a, ...actualRest } = actual;
-  const { hasManuallyFlippedPaper: _e, ...expectedRest } = expected;
-  expect(actualRest).toEqual(expectedRest);
+  expect(actual).toEqual(expected);
+}
+
+/**
+ * Reproduces the v2 encoding as it shipped before issue #339: the same
+ * '|'-delimited layout, but a boolean bitmask with no bit for
+ * `hasManuallyFlippedPaper`. Links of this shape are in the wild.
+ */
+function encodePreFlipBitV2Preset(
+  name: string,
+  settings: BorderPresetSettings
+): string {
+  const parts: (string | number)[] = ['2', encodeURIComponent(name)];
+  parts.push(ASPECT_RATIOS.findIndex((o) => o.value === settings.aspectRatio));
+  parts.push(PAPER_SIZES.findIndex((o) => o.value === settings.paperSize));
+  parts.push(Math.round(settings.minBorder * 100));
+  parts.push(Math.round(settings.horizontalOffset * 100));
+  parts.push(Math.round(settings.verticalOffset * 100));
+  let mask = 0;
+  if (settings.enableOffset) mask |= 1;
+  if (settings.ignoreMinBorder) mask |= 2;
+  if (settings.showBlades) mask |= 4;
+  if (settings.isLandscape) mask |= 8;
+  if (settings.isRatioFlipped) mask |= 16;
+  if (settings.showBladeReadings) mask |= 32;
+  parts.push(mask);
+  if (settings.aspectRatio === 'custom') {
+    parts.push(Math.round(settings.customAspectWidth * 100));
+    parts.push(Math.round(settings.customAspectHeight * 100));
+  }
+  if (settings.paperSize === 'custom') {
+    parts.push(Math.round(settings.customPaperWidth * 100));
+    parts.push(Math.round(settings.customPaperHeight * 100));
+  }
+  return toUrlSafe(encodeBase64(parts.join('|')));
 }
 
 describe('preset-sharing', () => {
@@ -195,6 +227,76 @@ describe('preset-sharing', () => {
         expect(decoded?.settings.horizontalOffset).toBe(offset);
         expect(decoded?.settings.verticalOffset).toBe(mirrored);
       }
+    });
+  });
+
+  describe('manual paper flip (issue #339)', () => {
+    const flippedCustomPaper: BorderPresetSettings = {
+      ...baseSettings,
+      paperSize: 'custom',
+      customPaperWidth: 11,
+      customPaperHeight: 17,
+      // Auto orientation for 11x17 custom paper is isLandscape: true; the
+      // user flipped it back.
+      isLandscape: false,
+      hasManuallyFlippedPaper: true,
+    };
+
+    it('round-trips a manual flip of custom paper', () => {
+      const decoded = decodePreset(
+        encodePreset({ name: 'Flipped', settings: flippedCustomPaper })
+      );
+
+      expect(decoded).not.toBeNull();
+      expect(decoded?.settings.hasManuallyFlippedPaper).toBe(true);
+      expect(decoded?.settings.isLandscape).toBe(false);
+      expectSettingsMatch(decoded!.settings, flippedCustomPaper);
+    });
+
+    it('round-trips an unflipped preset with the flag cleared', () => {
+      const settings = {
+        ...flippedCustomPaper,
+        hasManuallyFlippedPaper: false,
+      };
+      const decoded = decodePreset(encodePreset({ name: 'Auto', settings }));
+
+      expect(decoded?.settings.hasManuallyFlippedPaper).toBe(false);
+      expectSettingsMatch(decoded!.settings, settings);
+    });
+
+    it('decodes a v2 link from before the flip bit exactly as before', () => {
+      const encoded = encodePreFlipBitV2Preset('Pre-339', flippedCustomPaper);
+      const decoded = decodePreset(encoded);
+
+      expect(decoded).not.toBeNull();
+      expect(decoded?.name).toBe('Pre-339');
+      expectSettingsMatch(decoded!.settings, {
+        ...flippedCustomPaper,
+        hasManuallyFlippedPaper: false,
+      });
+    });
+
+    it('leaves the encoding of an unflipped preset byte-identical to the old format', () => {
+      const settings = {
+        ...flippedCustomPaper,
+        hasManuallyFlippedPaper: false,
+      };
+
+      expect(encodePreset({ name: 'Same', settings })).toBe(
+        encodePreFlipBitV2Preset('Same', settings)
+      );
+    });
+
+    it('decodes a legacy (v1) link with the flag cleared', () => {
+      const decoded = decodePreset(
+        encodeLegacyPreset('Old', flippedCustomPaper)
+      );
+
+      expect(decoded).not.toBeNull();
+      expectSettingsMatch(decoded!.settings, {
+        ...flippedCustomPaper,
+        hasManuallyFlippedPaper: false,
+      });
     });
   });
 

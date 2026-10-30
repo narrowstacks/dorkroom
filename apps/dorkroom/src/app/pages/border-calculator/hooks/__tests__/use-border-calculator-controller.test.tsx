@@ -1,9 +1,12 @@
 import {
   ASPECT_RATIOS,
   BORDER_CALCULATOR_DEFAULTS,
+  CALC_STORAGE_KEY,
+  encodePreset,
   OFFSET_SLIDER_MAX,
   OFFSET_SLIDER_MIN,
   PAPER_SIZES,
+  type PersistedBorderCalculatorState,
   SLIDER_MIN_BORDER,
 } from '@dorkroom/logic';
 import {
@@ -297,5 +300,91 @@ describe('useBorderCalculatorController unit-aware messages (#343)', () => {
     expect(
       await screen.findByText('Border reduced to 0.88" to fit paper size')
     ).toBeTruthy();
+  });
+});
+
+// Issue #339: a manual Flip Paper on custom paper must survive a reload and a
+// share link. 10x13 and 11x17 custom paper auto-orient to isLandscape: true
+// (width < height), so isLandscape: false here can only come from a flip.
+describe('useBorderCalculatorController manual paper flip', () => {
+  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    window.localStorage.clear();
+    window.history.replaceState(null, '', '/border');
+    consoleLogSpy = vi
+      .spyOn(console, 'log')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    consoleLogSpy.mockRestore();
+  });
+
+  function persist(values: PersistedBorderCalculatorState) {
+    window.localStorage.setItem(CALC_STORAGE_KEY, JSON.stringify(values));
+  }
+
+  it('keeps a manually flipped custom paper orientation across a reload', () => {
+    persist({
+      paperSize: 'custom',
+      customPaperWidth: 10,
+      customPaperHeight: 13,
+      isLandscape: false,
+      hasManuallyFlippedPaper: true,
+    });
+
+    const { result, rerender } = renderHook(
+      () => useBorderCalculatorController(),
+      { wrapper }
+    );
+    rerender();
+
+    expect(result.current.formValues.paperSize).toBe('custom');
+    expect(result.current.formValues.hasManuallyFlippedPaper).toBe(true);
+    expect(result.current.formValues.isLandscape).toBe(false);
+  });
+
+  it('still derives orientation on reload when the paper was never flipped', () => {
+    persist({
+      paperSize: 'custom',
+      customPaperWidth: 10,
+      customPaperHeight: 13,
+      isLandscape: false,
+      hasManuallyFlippedPaper: false,
+    });
+
+    const { result, rerender } = renderHook(
+      () => useBorderCalculatorController(),
+      { wrapper }
+    );
+    rerender();
+
+    expect(result.current.formValues.isLandscape).toBe(true);
+  });
+
+  it('keeps a manually flipped custom paper orientation from a share link', () => {
+    const encoded = encodePreset({
+      name: 'Flipped 11x17',
+      settings: {
+        ...BORDER_CALCULATOR_DEFAULTS,
+        paperSize: 'custom',
+        customPaperWidth: 11,
+        customPaperHeight: 17,
+        isLandscape: false,
+        hasManuallyFlippedPaper: true,
+      },
+    });
+
+    const { result, rerender } = renderControllerWithPreset(encoded);
+    rerender();
+
+    expect(result.current.formValues).toMatchObject({
+      paperSize: 'custom',
+      customPaperWidth: 11,
+      customPaperHeight: 17,
+      isLandscape: false,
+      hasManuallyFlippedPaper: true,
+    });
   });
 });

@@ -2,8 +2,11 @@ import type { Developer, Film } from '@dorkroom/api';
 import type { CustomRecipe, CustomRecipeFormData } from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { act, renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useCustomRecipeCrud } from '../useCustomRecipeCrud';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import {
+  type UseCustomRecipeCrudProps,
+  useCustomRecipeCrud,
+} from '../useCustomRecipeCrud';
 
 // Mock data
 const mockFilm: Film = {
@@ -20,6 +23,8 @@ const mockFilm: Film = {
   reciprocityFailure: null,
   discontinued: false,
   staticImageUrl: null,
+  aliases: [],
+  baseFilmSlug: null,
   dateAdded: new Date().toISOString(),
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -118,20 +123,53 @@ const baseFormData: CustomRecipeFormData = {
   isFavorite: false,
 };
 
+// The delete-confirmation props are not exercised by the submit/edit tests.
+const deleteConfirmProps = {
+  deleteConfirmRecipe: null,
+  openDeleteConfirm: vi.fn(),
+  closeDeleteConfirm: vi.fn(),
+  setIsDeleting: vi.fn(),
+} satisfies Pick<
+  UseCustomRecipeCrudProps,
+  | 'deleteConfirmRecipe'
+  | 'openDeleteConfirm'
+  | 'closeDeleteConfirm'
+  | 'setIsDeleting'
+>;
+
+/** The first value passed to setDetailView. */
+function firstDetailViewArg(
+  setDetailView: Mock<UseCustomRecipeCrudProps['setDetailView']>
+): DevelopmentCombinationView {
+  // SAFETY: the hook calls `setDetailView(updatedView)` with a concrete view,
+  // never an updater function or null, on the paths these tests exercise.
+  return setDetailView.mock.calls[0][0] as DevelopmentCombinationView;
+}
+
 describe('useCustomRecipeCrud', () => {
-  let mockSetIsCustomModalOpen: ReturnType<typeof vi.fn>;
-  let mockSetEditingRecipe: ReturnType<typeof vi.fn>;
-  let mockSetIsSubmittingRecipe: ReturnType<typeof vi.fn>;
-  let mockSetIsDetailOpen: ReturnType<typeof vi.fn>;
-  let mockSetDetailView: ReturnType<typeof vi.fn>;
-  let mockAddCustomRecipe: ReturnType<typeof vi.fn>;
-  let mockUpdateCustomRecipe: ReturnType<typeof vi.fn>;
-  let mockDeleteCustomRecipe: ReturnType<typeof vi.fn>;
-  let mockRefreshCustomRecipes: ReturnType<typeof vi.fn>;
-  let mockAddFavorite: ReturnType<typeof vi.fn>;
-  let mockShowToast: ReturnType<typeof vi.fn>;
-  let mockGetFilmById: ReturnType<typeof vi.fn>;
-  let mockGetDeveloperById: ReturnType<typeof vi.fn>;
+  let mockSetIsCustomModalOpen: Mock<
+    UseCustomRecipeCrudProps['setIsCustomModalOpen']
+  >;
+  let mockSetEditingRecipe: Mock<UseCustomRecipeCrudProps['setEditingRecipe']>;
+  let mockSetIsSubmittingRecipe: Mock<
+    UseCustomRecipeCrudProps['setIsSubmittingRecipe']
+  >;
+  let mockSetIsDetailOpen: Mock<UseCustomRecipeCrudProps['setIsDetailOpen']>;
+  let mockSetDetailView: Mock<UseCustomRecipeCrudProps['setDetailView']>;
+  let mockAddCustomRecipe: Mock<UseCustomRecipeCrudProps['addCustomRecipe']>;
+  let mockUpdateCustomRecipe: Mock<
+    UseCustomRecipeCrudProps['updateCustomRecipe']
+  >;
+  let mockDeleteCustomRecipe: Mock<
+    UseCustomRecipeCrudProps['deleteCustomRecipe']
+  >;
+  let mockRefreshCustomRecipes: Mock<
+    UseCustomRecipeCrudProps['refreshCustomRecipes']
+  >;
+  let mockAddFavorite: Mock<UseCustomRecipeCrudProps['addFavorite']>;
+  let mockShowToast: Mock<UseCustomRecipeCrudProps['showToast']>;
+  let mockGetFilmById: Mock<UseCustomRecipeCrudProps['getFilmById']>;
+  let mockGetDeveloperById: Mock<UseCustomRecipeCrudProps['getDeveloperById']>;
 
   beforeEach(() => {
     mockSetIsCustomModalOpen = vi.fn();
@@ -186,6 +224,7 @@ describe('useCustomRecipeCrud', () => {
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
           setIsDetailOpen: mockSetIsDetailOpen,
           setDetailView: mockSetDetailView,
+          ...deleteConfirmProps,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
           customRecipeSharingEnabled: true,
@@ -198,7 +237,7 @@ describe('useCustomRecipeCrud', () => {
 
       // Verify detailView was updated with fresh data
       expect(mockSetDetailView).toHaveBeenCalled();
-      const updatedDetailView = mockSetDetailView.mock.calls[0][0];
+      const updatedDetailView = firstDetailViewArg(mockSetDetailView);
       expect(updatedDetailView.combination.name).toBe('Updated Recipe');
       expect(updatedDetailView.combination.temperatureF).toBe(70);
       expect(updatedDetailView.combination.timeMinutes).toBe(10);
@@ -245,6 +284,7 @@ describe('useCustomRecipeCrud', () => {
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
           setIsDetailOpen: mockSetIsDetailOpen,
           setDetailView: mockSetDetailView,
+          ...deleteConfirmProps,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
           customRecipeSharingEnabled: true,
@@ -284,6 +324,7 @@ describe('useCustomRecipeCrud', () => {
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
           setIsDetailOpen: mockSetIsDetailOpen,
           setDetailView: mockSetDetailView,
+          ...deleteConfirmProps,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
           customRecipeSharingEnabled: true,
@@ -321,6 +362,7 @@ describe('useCustomRecipeCrud', () => {
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
           setIsDetailOpen: mockSetIsDetailOpen,
           setDetailView: mockSetDetailView,
+          ...deleteConfirmProps,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
           customRecipeSharingEnabled: false, // Sharing disabled
@@ -331,7 +373,7 @@ describe('useCustomRecipeCrud', () => {
         await result.current.handleCustomRecipeSubmit(baseFormData);
       });
 
-      const updatedDetailView = mockSetDetailView.mock.calls[0][0];
+      const updatedDetailView = firstDetailViewArg(mockSetDetailView);
       expect(updatedDetailView.canShare).toBe(false);
     });
 
@@ -358,6 +400,7 @@ describe('useCustomRecipeCrud', () => {
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
           setIsDetailOpen: mockSetIsDetailOpen,
           setDetailView: mockSetDetailView,
+          ...deleteConfirmProps,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
           customRecipeSharingEnabled: true,
@@ -395,6 +438,7 @@ describe('useCustomRecipeCrud', () => {
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
           setIsDetailOpen: mockSetIsDetailOpen,
           setDetailView: mockSetDetailView,
+          ...deleteConfirmProps,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
           customRecipeSharingEnabled: true,
@@ -429,6 +473,7 @@ describe('useCustomRecipeCrud', () => {
           setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
           setIsDetailOpen: mockSetIsDetailOpen,
           setDetailView: mockSetDetailView,
+          ...deleteConfirmProps,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
           customRecipeSharingEnabled: true,

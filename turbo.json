@@ -85,6 +85,7 @@
       ]
     },
     "//#test:serverless": {
+      "dependsOn": ["@dorkroom/logic#build"],
       "inputs": [
         "api/**",
         "!api/dist/**",

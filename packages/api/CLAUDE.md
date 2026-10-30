@@ -58,6 +58,7 @@ interface DorkroomApiClientConfig {
   baseUrl?: string;   // defaults to PUBLIC_API_BASE_URL
   apiKey?: string;    // sent as X-API-Key
   clientId?: string;  // sent as X-Client-Id
+  onInvalidRows?: (info: InvalidRowsInfo) => void;  // see Runtime Validation
 }
 new DorkroomApiClient(config?: DorkroomApiClientConfig)
 ```
@@ -97,15 +98,37 @@ grainStructure?: string;
 Every response is parsed with Zod before it reaches the app, and the failure
 modes differ on purpose:
 
-- A malformed **envelope** (missing `data` array) throws.
+- A malformed **envelope** (missing `data` array) throws `DorkroomApiError`.
 - A malformed **item** inside a valid envelope is dropped, the rest are
-  returned, and the count is logged with `console.warn`. One bad film row does
-  not blank the films page.
+  returned, and the drop is reported two ways: a `console.warn`, and the
+  optional `onInvalidRows({ resource, dropped, total })` callback on
+  `DorkroomApiClientConfig` (also settable via `configure()`). One bad film
+  row does not blank the films page.
 
-So a short result list is a valid outcome, not necessarily a bug. Check the
-console warning before assuming a filter dropped the rows.
+So a short result list is a valid outcome, not necessarily a bug. Pass
+`onInvalidRows` (or check the console warning) before assuming a filter
+dropped the rows. All three collection fetchers share one private
+`fetchCollection` helper, so the behavior cannot drift between them.
 
 ## Error Handling
+
+Every client failure is a `DorkroomApiError`, except an abort:
+
+| Failure | Thrown | `statusCode` |
+| --- | --- | --- |
+| Non-OK HTTP response | `DorkroomApiError` | the HTTP status (404, 500, ...) |
+| Network failure (fetch rejects) | `DorkroomApiError` | `undefined` |
+| Body is not valid JSON | `DorkroomApiError` | `undefined` |
+| Envelope / stats shape invalid | `DorkroomApiError` | `undefined` |
+| Aborted request | the original `AbortError`, **not wrapped** | n/a |
+
+`endpoint` is the full request URL (e.g. `https://api.dorkroom.art/films`).
+`cause` carries the underlying error for the non-HTTP cases. Never wrap an
+abort: an unwrapped `AbortError` is the conventional cancellation contract
+for consumers outside TanStack Query (Query itself rejects with its own
+`CancelledError` when its signal aborts). Any error raised after the signal
+has aborted is passed through as-is, which also covers React Native's fetch
+polyfill, whose abort error is not a real `DOMException`.
 
 ```typescript
 import { DorkroomApiError } from '@dorkroom/api';
@@ -114,12 +137,18 @@ try {
   await fetchFilms();
 } catch (error) {
   if (error instanceof DorkroomApiError) {
-    console.error(error.statusCode, error.endpoint);
+    if (error.statusCode === 404) {
+      // not found
+    } else if (error.statusCode === undefined) {
+      // network, JSON, or response-shape failure
+    }
   }
 }
 ```
 
-`statusCode` and `endpoint` are both optional, so guard them before use.
+`statusCode` and `endpoint` are both optional on the type, so guard them
+before use. `instanceof` is safe across transpilation (the constructor resets
+the prototype).
 
 ## Exports
 

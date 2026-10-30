@@ -20,5 +20,8 @@ export function clampText(
   if (max !== undefined && Number.isFinite(max)) {
     clamped = Math.min(max, clamped);
   }
-  return clamped === parsed ? null : String(clamped);
+  // Normalize negative zero: "-0" would otherwise pass as "already in range"
+  // (0 === -0) and stay on screen after blur.
+  if (Object.is(clamped, -0)) clamped = 0;
+  return Object.is(clamped, parsed) ? null : String(clamped);
 }

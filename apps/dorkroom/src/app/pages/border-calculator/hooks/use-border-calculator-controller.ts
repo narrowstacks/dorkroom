@@ -100,17 +100,22 @@ export function useBorderCalculatorController() {
     lastValidMinBorder,
   } = formValues;
 
-  // Persist and hydrate form state to/from localStorage
-  useLocalStorageFormPersistence({
+  // Persist and hydrate form state to/from localStorage. `resetToDefaults`
+  // restores the form defaults and drops the stored snapshot, the same reset
+  // every other persisted calculator uses.
+  const { resetToDefaults } = useLocalStorageFormPersistence({
     storageKey: CALC_STORAGE_KEY,
     form,
     formValues,
     persistKeys: borderPersistKeys,
     validators: borderFieldValidators,
     onHydrated: (loadedValues) => {
-      // Recalculate orientation for custom paper after loading from storage
+      // Recalculate orientation for custom paper after loading from storage,
+      // unless the user flipped it by hand: then the persisted isLandscape is
+      // the user's choice and re-deriving it would undo the flip (#339).
       if (
         loadedValues.paperSize === 'custom' &&
+        !loadedValues.hasManuallyFlippedPaper &&
         loadedValues.customPaperWidth !== undefined &&
         loadedValues.customPaperHeight !== undefined
       ) {
@@ -264,10 +269,6 @@ export function useBorderCalculatorController() {
     },
     [form]
   );
-
-  const resetToDefaults = () => {
-    form.reset();
-  };
 
   const displayPaperSizes = useMemo(() => {
     return PAPER_SIZES.map((size) => {

@@ -481,7 +481,7 @@ export default function MatCalculatorPage() {
     [unit]
   );
 
-  const calc = useMatCalculator({ formatValue });
+  const calc = useMatCalculator({ formatValue, unit });
 
   const results = useMemo(
     () => (
@@ -509,6 +509,7 @@ export default function MatCalculatorPage() {
       title="Mat Cut Calculator"
       icon={getRouteIcon('/mat')}
       accentTone="cyan"
+      onReset={calc.reset}
       description="Plan single-window mats with independent borders and get exact window openings and cutter guide-bar settings."
       results={results}
       sidebar={

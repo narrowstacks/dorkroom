@@ -8,9 +8,12 @@ import {
   type MatBorders,
   type MatCalculatorState,
   makeMatFormatter,
+  matBorderToInput,
+  matRevealTolerance,
+  matSnapStep,
   parseMatInput,
-  toFractionInput,
 } from '../constants/mat-calculator';
+import type { MeasurementUnit } from '../utils/unit-conversion';
 import {
   type PersistedValue,
   useLocalStorageFormPersistence,
@@ -44,6 +47,8 @@ export interface UseMatCalculatorReturn {
   values: MatCalculatorState;
   /** Update a single field. */
   set: (key: keyof MatCalculatorState, value: string | boolean) => void;
+  /** Restore the default inputs and drop the persisted snapshot. */
+  reset: () => void;
   /** Snap the borders to a centered best fit around the artwork. */
   applyBestFit: () => void;
   /** Preview of the best-fit borders, or null when the art cannot fit. */
@@ -80,6 +85,12 @@ export interface UseMatCalculatorOptions {
    * formatter so metric users read centimetres.
    */
   formatValue?: (inches: number) => string;
+  /**
+   * Grid that best fit snaps to and the matching reveal-mismatch tolerance:
+   * 'imperial' (default) is 1/16", 'metric' is 1mm. Form state stays inches
+   * either way.
+   */
+  unit?: MeasurementUnit;
 }
 
 /**
@@ -113,9 +124,10 @@ export function useMatCalculator(
       key: keyof MatCalculatorState,
       value: MatCalculatorState[keyof MatCalculatorState]
     ) => setValues((prev) => ({ ...prev, [key]: value })),
+    reset: () => setValues(MAT_CALCULATOR_DEFAULTS),
   };
 
-  useLocalStorageFormPersistence({
+  const { resetToDefaults: reset } = useLocalStorageFormPersistence({
     storageKey: MAT_CALCULATOR_STORAGE_KEY,
     form: persistenceForm,
     formValues: values,
@@ -174,9 +186,11 @@ export function useMatCalculator(
 
   const artValid = !isNaN(aw) && !isNaN(ah) && aw > 0 && ah > 0;
   const revealMode = artValid;
+  const unit = options?.unit ?? 'imperial';
+  const snapStep = matSnapStep(unit);
   const bestFitPreview =
     artValid && outerValid
-      ? bestFitBorders(ow, oh, aw, ah, revVal, values.bottomWeight)
+      ? bestFitBorders(ow, oh, aw, ah, revVal, values.bottomWeight, snapStep)
       : null;
   const targetWindowW = revealMode ? aw - 2 * revVal : windowW;
   const targetWindowH = revealMode ? ah - 2 * revVal : windowH;
@@ -187,15 +201,16 @@ export function useMatCalculator(
   const hasRevealMismatch =
     valid &&
     revealMode &&
-    (Math.abs(windowMismatchW) > 1e-3 || Math.abs(windowMismatchH) > 1e-3);
+    (Math.abs(windowMismatchW) > matRevealTolerance() ||
+      Math.abs(windowMismatchH) > matRevealTolerance());
 
   const applyBestFit = () => {
-    const fit = bestFitBorders(ow, oh, aw, ah, revVal, values.bottomWeight);
-    if (!fit) return;
-    set('borderTop', toFractionInput(fit.top));
-    set('borderBottom', toFractionInput(fit.bottom));
-    set('borderLeft', toFractionInput(fit.left));
-    set('borderRight', toFractionInput(fit.right));
+    // Same snapped borders the preview shows.
+    if (!bestFitPreview) return;
+    set('borderTop', matBorderToInput(bestFitPreview.top, unit));
+    set('borderBottom', matBorderToInput(bestFitPreview.bottom, unit));
+    set('borderLeft', matBorderToInput(bestFitPreview.left, unit));
+    set('borderRight', matBorderToInput(bestFitPreview.right, unit));
   };
 
   const guideBarCuts: MatGuideBarCut[] = [
@@ -256,6 +271,7 @@ export function useMatCalculator(
   return {
     values,
     set,
+    reset,
     applyBestFit,
     bestFitPreview,
     fmt,

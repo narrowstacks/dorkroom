@@ -215,6 +215,15 @@ export function buildFilmFilterParts(
 }
 
 // ---- Inline border preset decode (mirrors @dorkroom/logic, no dependency) ----
+//
+// A copy rather than an import of `decodePreset`: this module ships in
+// `api/og.tsx` (edge runtime, bundle-size bound) and `api/meta.ts`, which
+// `@vercel/node` compiles with TypeScript 6 against `api/tsconfig.json`, and
+// nothing under `api/` or `utils/` depends on a workspace package. Importing
+// @dorkroom/logic would pull Zod, React hooks, and a built `dist/` into those
+// functions. Drift is caught instead by the parity tests in
+// `utils/__tests__/routeMetadata.test.ts`, which encode with the real
+// `encodePreset`.
 
 /** Minimal paper size lookup for OG decode */
 const PAPER_SIZES_MINI: { label: string; w: number; h: number }[] = [
@@ -282,21 +291,81 @@ export interface DecodedBorderPreset {
 }
 
 /**
+ * Longest `preset` param worth decoding. Matches the `PRESET_RE` bound in
+ * `api/meta.ts`; real links are well under 200 characters.
+ */
+const MAX_PRESET_PARAM_LENGTH = 500;
+
+/** v2 payloads are `2|name|…`; mirrors V2_DELIMITER in preset-sharing.ts */
+const PRESET_V2_DELIMITER = '|';
+const PRESET_V2_VERSION_MARKER = '2';
+
+/**
+ * Split a decoded preset payload into its name and numeric parts, for both
+ * share-link formats. Mirrors `splitRawPreset` in @dorkroom/logic's
+ * preset-sharing.ts. Returns null for an unknown version or a non-numeric
+ * part; throws only from `decodeURIComponent`, which the caller catches.
+ *
+ * - v2: `2|<uri-encoded name>|<numbers…>`. `|` never appears in a v1
+ *   payload (the name is URI-encoded), so its presence identifies v2.
+ * - v1: `<uri-encoded name>-<numbers…>`. A negative horizontal offset was
+ *   written raw, so its minus sign left a double hyphen; the empty part is
+ *   merged back into the next one as a negative number.
+ *
+ * Offsets are not read here, so the v1 vertical-offset bias (+10000) needs
+ * no correction.
+ */
+function splitPresetPayload(
+  raw: string
+): { name: string; parts: number[] } | null {
+  let name: string;
+  const parts: number[] = [];
+
+  if (raw.includes(PRESET_V2_DELIMITER)) {
+    const stringParts = raw.split(PRESET_V2_DELIMITER);
+    if (stringParts.shift() !== PRESET_V2_VERSION_MARKER) return null;
+    name = decodeURIComponent(stringParts.shift() ?? '');
+    for (const part of stringParts) parts.push(Number(part));
+  } else {
+    const stringParts = raw.split('-');
+    name = decodeURIComponent(stringParts.shift() ?? '');
+    for (let i = 0; i < stringParts.length; i++) {
+      if (stringParts[i] === '' && i + 1 < stringParts.length) {
+        parts.push(-Number(stringParts[i + 1]));
+        i++;
+      } else {
+        parts.push(Number(stringParts[i]));
+      }
+    }
+  }
+
+  // Rejects NaN and Infinity. An empty part still reads as 0 (Number('')),
+  // matching splitRawPreset in @dorkroom/logic.
+  if (parts.some((part) => !Number.isFinite(part))) return null;
+  return { name, parts };
+}
+
+/**
  * Decode a border calculator preset from its URL-safe encoded string.
- * Self-contained — does not depend on @dorkroom/logic.
+ * Accepts the current (v2) and legacy (v1) share-link formats.
+ * Self-contained — does not depend on @dorkroom/logic (see the section
+ * comment above). Returns null, never throws, for any malformed input.
  */
 export function decodeBorderPreset(
   encoded: string
 ): DecodedBorderPreset | null {
   try {
+    if (encoded.length === 0 || encoded.length > MAX_PRESET_PARAM_LENGTH) {
+      return null;
+    }
+
     // Restore base64: - → +, _ → /, pad with =
     let base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
     while (base64.length % 4) base64 += '=';
 
-    const raw = atob(base64);
-    const stringParts = raw.split('-');
-    const name = decodeURIComponent(stringParts.shift() || '');
-    const parts = stringParts.map(Number);
+    const payload = splitPresetPayload(atob(base64));
+    if (!payload) return null;
+    const { name, parts } = payload;
     if (parts.length < 6) return null;
 
     let i = 0;
@@ -319,7 +388,7 @@ export function decodeBorderPreset(
     let ratioW = ratio.w;
     let ratioH = ratio.h;
 
-    // Handle custom values
+    // Handle custom values (aspect first, then paper, as encodePreset writes)
     if (ratio.label === 'Custom' && parts.length > i + 1) {
       ratioW = parts[i++] / 100;
       ratioH = parts[i++] / 100;
@@ -328,6 +397,12 @@ export function decodeBorderPreset(
       paperW = parts[i++] / 100;
       paperH = parts[i++] / 100;
     }
+
+    // Paper label: the size as entered (before orientation is applied)
+    const paperLabel =
+      paper.label === 'Custom'
+        ? `${formatDim(paperW)}×${formatDim(paperH)}`
+        : paper.label;
 
     // Apply orientation
     if (isLandscape) [paperW, paperH] = [paperH, paperW];
@@ -340,7 +415,7 @@ export function decodeBorderPreset(
     }
 
     const minBorder = minBorder100 / 100;
-    if (ratioH <= 0 || paperW <= 0 || paperH <= 0) return null;
+    if (ratioW <= 0 || ratioH <= 0 || paperW <= 0 || paperH <= 0) return null;
 
     // computePrintSize
     const availW = paperW - 2 * minBorder;
@@ -358,12 +433,6 @@ export function decodeBorderPreset(
       printW = availW;
       printH = printW / targetRatio;
     }
-
-    // Paper label: use the original (portrait) label, or build one for custom
-    const paperLabel =
-      paper.label === 'Custom'
-        ? `${formatDim(paper.w)}×${formatDim(paper.h)}`
-        : paper.label;
 
     // Always show smaller dimension first (portrait convention)
     const [dimA, dimB] = printW <= printH ? [printW, printH] : [printH, printW];
