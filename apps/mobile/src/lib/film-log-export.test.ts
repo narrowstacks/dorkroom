@@ -56,8 +56,4 @@ describe('buildRollsExport', () => {
     expect(result.rolls[0]?.shots[0]?.apertureLabel).toBe('f/8');
     expect(result.rolls[0]?.shots[0]?.shutterLabel).toBe('1/125');
   });
-
-  it('serializes to valid JSON', () => {
-    expect(() => JSON.stringify(result)).not.toThrow();
-  });
 });

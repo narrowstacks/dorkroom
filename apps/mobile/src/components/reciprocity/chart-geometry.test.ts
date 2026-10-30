@@ -1,3 +1,4 @@
+import { applyReciprocity } from '@dorkroom/logic';
 import { describe, expect, it } from 'vitest';
 import {
   buildCurve,
@@ -54,5 +55,15 @@ describe('chart-geometry', () => {
     expect(pts[0].x).toBeCloseTo(PADDING.left, 5);
     expect(pts[0].y).toBeCloseTo(l.height - PADDING.bottom, 5); // metered 0 -> adjusted 0
     expect(pts[pts.length - 1].x).toBeCloseTo(l.width - PADDING.right, 5);
+    // The y of each sample is the reciprocity-adjusted time, not the metered one.
+    for (const i of [3, 5, 10]) {
+      const metered = (i / 10) * l.maxMetered;
+      expect(pts[i].y).toBeCloseTo(
+        scaleY(applyReciprocity(metered, 1.5), l),
+        5
+      );
+    }
+    // The last sample sits at the metered max, whose curve value is the top of the plot.
+    expect(pts[10].y).toBeCloseTo(PADDING.top, 5);
   });
 });
