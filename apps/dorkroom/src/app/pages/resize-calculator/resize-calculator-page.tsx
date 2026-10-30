@@ -373,15 +373,12 @@ function PrintSizeInputs({
                 value={String(toDisplay(field.state.value))}
                 onChange={(value: string) => {
                   const parsed = parseFloat(value);
-                  const finiteValue =
-                    Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                  field.handleChange(
-                    parseFloat(toInches(finiteValue).toFixed(3))
-                  );
+                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
                 }}
                 onBlur={field.handleBlur}
                 placeholder={String(toDisplay(Number(DEFAULT_ORIGINAL_WIDTH)))}
                 step={0.1}
+                min={0}
                 unit={unitLabel}
               />
             )}
@@ -393,15 +390,12 @@ function PrintSizeInputs({
                 value={String(toDisplay(field.state.value))}
                 onChange={(value) => {
                   const parsed = parseFloat(value);
-                  const finiteValue =
-                    Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                  field.handleChange(
-                    parseFloat(toInches(finiteValue).toFixed(3))
-                  );
+                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
                 }}
                 onBlur={field.handleBlur}
                 placeholder={String(toDisplay(Number(DEFAULT_ORIGINAL_LENGTH)))}
                 step={0.1}
+                min={0}
                 unit={unitLabel}
               />
             )}
@@ -424,15 +418,12 @@ function PrintSizeInputs({
                 value={String(toDisplay(field.state.value))}
                 onChange={(value) => {
                   const parsed = parseFloat(value);
-                  const finiteValue =
-                    Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                  field.handleChange(
-                    parseFloat(toInches(finiteValue).toFixed(3))
-                  );
+                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
                 }}
                 onBlur={field.handleBlur}
                 placeholder={String(toDisplay(Number(DEFAULT_NEW_WIDTH)))}
                 step={0.1}
+                min={0}
                 unit={unitLabel}
               />
             )}
@@ -444,15 +435,12 @@ function PrintSizeInputs({
                 value={String(toDisplay(field.state.value))}
                 onChange={(value) => {
                   const parsed = parseFloat(value);
-                  const finiteValue =
-                    Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                  field.handleChange(
-                    parseFloat(toInches(finiteValue).toFixed(3))
-                  );
+                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
                 }}
                 onBlur={field.handleBlur}
                 placeholder={String(toDisplay(Number(DEFAULT_NEW_LENGTH)))}
                 step={0.1}
+                min={0}
                 unit={unitLabel}
               />
             )}
@@ -486,15 +474,12 @@ function EnlargerHeightInputs({
               value={String(toDisplay(field.state.value))}
               onChange={(value) => {
                 const parsed = parseFloat(value);
-                const finiteValue =
-                  Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                field.handleChange(
-                  parseFloat(toInches(finiteValue).toFixed(3))
-                );
+                field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
               }}
               onBlur={field.handleBlur}
               placeholder={String(toDisplay(Number(DEFAULT_ORIGINAL_HEIGHT)))}
               step={1}
+              min={0}
               unit={unitLabel}
             />
           )}
@@ -506,15 +491,12 @@ function EnlargerHeightInputs({
               value={String(toDisplay(field.state.value))}
               onChange={(value) => {
                 const parsed = parseFloat(value);
-                const finiteValue =
-                  Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                field.handleChange(
-                  parseFloat(toInches(finiteValue).toFixed(3))
-                );
+                field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
               }}
               onBlur={field.handleBlur}
               placeholder={String(toDisplay(Number(DEFAULT_NEW_HEIGHT)))}
               step={1}
+              min={0}
               unit={unitLabel}
             />
           )}
@@ -587,13 +569,12 @@ function ResizeInputs({
               value={String(field.state.value)}
               onChange={(value) => {
                 const parsed = parseFloat(value);
-                const finiteValue =
-                  Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                field.handleChange(finiteValue);
+                field.handleChange(parsed);
               }}
               onBlur={field.handleBlur}
               placeholder={DEFAULT_ORIGINAL_TIME}
               step={0.5}
+              min={0}
               unit="seconds"
               helperText="This is the exposure that worked for your original print."
             />

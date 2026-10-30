@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { clampText } from '../../lib/clamp-text';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import { NumberInput } from '../number-input';
@@ -9,6 +10,13 @@ interface CalculatorNumberFieldProps {
   onChange: (value: string) => void;
   placeholder?: string;
   step?: number;
+  /**
+   * Lower bound in display units: native `min` attribute. Out-of-range
+   * keystrokes are not committed; blur clamps and commits.
+   */
+  min?: number;
+  /** Upper bound in display units; same semantics as `min`. */
+  max?: number;
   unit?: string;
   inputTitle?: string;
   helperText?: string;
@@ -24,6 +32,8 @@ export function CalculatorNumberField({
   onChange,
   placeholder,
   step,
+  min,
+  max,
   unit,
   inputTitle,
   helperText,
@@ -48,7 +58,11 @@ export function CalculatorNumberField({
   const handleChangeText = (raw: string) => {
     setDraft(raw);
     const parsed = parseFloat(raw);
-    if (Number.isFinite(parsed)) {
+    // The draft stays as typed (so "-" -> "-5" isn't fought mid-edit) but
+    // out-of-range values are held back rather than clamped per keystroke:
+    // with min={10}, typing "25" passes through "2", which must not commit
+    // 10. NumberInput's blur clamp commits the in-range value.
+    if (Number.isFinite(parsed) && clampText(raw, min, max) === null) {
       onChange(raw);
     }
   };
@@ -59,6 +73,8 @@ export function CalculatorNumberField({
 
   const handleBlur = () => {
     isFocusedRef.current = false;
+    // Out-of-range drafts were already snapped by NumberInput's own blur
+    // clamp (which runs first and routes through handleChangeText).
     if (!Number.isFinite(parseFloat(draft))) {
       // Never propagated (nor commit) an unparseable draft - revert the
       // visible text to the last known-good value instead of showing 0.
@@ -98,6 +114,8 @@ export function CalculatorNumberField({
         onFocus={handleFocus}
         placeholder={placeholder}
         step={step}
+        min={min}
+        max={max}
         inputTitle={inputTitle ?? `Enter ${label}`}
         className="w-full"
         onBlur={handleBlur}

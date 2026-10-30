@@ -156,4 +156,110 @@ describe('CalculatorNumberField', () => {
 
     expect(screen.getByText('Helper text')).toBeInTheDocument();
   });
+
+  describe('min/max', () => {
+    it('passes min and max to the native input', () => {
+      render(<CalculatorNumberField {...defaultProps} min={0} max={10} />);
+      const input = screen.getByRole('spinbutton');
+      expect(input).toHaveAttribute('min', '0');
+      expect(input).toHaveAttribute('max', '10');
+    });
+
+    it('holds back a value below min while typing, then commits the clamp on blur', () => {
+      const onChange = vi.fn();
+      render(
+        <ControlledWrapperWithBounds
+          initialValue="5"
+          onChange={onChange}
+          min={0}
+        />
+      );
+      const input = screen.getByRole('spinbutton');
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '-4' } });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveDisplayValue('-4');
+      fireEvent.blur(input);
+      expect(onChange).toHaveBeenLastCalledWith('0');
+      expect(input).toHaveDisplayValue('0');
+    });
+
+    it('does not commit min on a partial entry that is still growing', () => {
+      const onChange = vi.fn();
+      render(
+        <ControlledWrapperWithBounds
+          initialValue="15"
+          onChange={onChange}
+          min={10}
+        />
+      );
+      const input = screen.getByRole('spinbutton');
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '2' } });
+      fireEvent.change(input, { target: { value: '25' } });
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith('25');
+    });
+
+    it('snaps the visible draft into range on blur', () => {
+      const onChange = vi.fn();
+      render(
+        <ControlledWrapperWithBounds
+          initialValue="5"
+          onChange={onChange}
+          min={0}
+          max={10}
+        />
+      );
+      const input = screen.getByRole('spinbutton');
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '42' } });
+      expect(onChange).not.toHaveBeenCalled();
+      fireEvent.blur(input);
+      expect(onChange).toHaveBeenLastCalledWith('10');
+      expect(input).toHaveDisplayValue('10');
+    });
+
+    it('commits in-range values unchanged', () => {
+      const onChange = vi.fn();
+      render(
+        <CalculatorNumberField
+          {...defaultProps}
+          onChange={onChange}
+          min={0}
+          max={10}
+        />
+      );
+      const input = screen.getByRole('spinbutton');
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '7.5' } });
+      expect(onChange).toHaveBeenCalledWith('7.5');
+    });
+  });
 });
+
+function ControlledWrapperWithBounds({
+  initialValue,
+  onChange,
+  min,
+  max,
+}: {
+  initialValue: string;
+  onChange: (value: string) => void;
+  min?: number;
+  max?: number;
+}) {
+  const [value, setValue] = useState(initialValue);
+  return (
+    <CalculatorNumberField
+      label="Width"
+      value={value}
+      min={min}
+      max={max}
+      onChange={(next) => {
+        setValue(next);
+        onChange(next);
+      }}
+    />
+  );
+}
