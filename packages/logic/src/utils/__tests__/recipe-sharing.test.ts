@@ -17,6 +17,14 @@ const toUrlSafeBase64 = (payload: string): string =>
     .replace(/\//g, '_')
     .replace(/=+$/, '');
 
+/** Decode a link, failing the test (rather than silently passing) on null. */
+const decodeOrFail = (encoded: string): EncodedCustomRecipe => {
+  const decoded = decodeCustomRecipe(encoded);
+  expect(decoded).not.toBeNull();
+  if (!decoded) throw new Error('decodeCustomRecipe returned null');
+  return decoded;
+};
+
 describe('recipe-sharing', () => {
   // Suppress expected console.error/warn from debugError/debugWarn in error-path tests
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
@@ -102,30 +110,22 @@ describe('recipe-sharing', () => {
       expect(encoded).not.toContain('=');
     });
 
-    it('encodes a recipe with custom film', () => {
-      const encoded = encodeCustomRecipe(mockCustomRecipeWithCustomFilm);
-
-      expect(encoded).toBeTruthy();
-      expect(encoded).toMatch(/^[A-Za-z0-9_-]+$/);
-    });
-
-    it('encodes a recipe with custom developer', () => {
-      const encoded = encodeCustomRecipe(mockCustomRecipeWithCustomDeveloper);
-
-      expect(encoded).toBeTruthy();
-      expect(encoded).toMatch(/^[A-Za-z0-9_-]+$/);
-    });
-
-    it('handles recipes with special characters in notes', () => {
+    it('round-trips HTML and quote characters in text fields', () => {
+      // Encoding is lossless; sanitizing is createCustomRecipeFromEncoded's job.
       const recipeWithSpecialChars: CustomRecipe = {
         ...mockCustomRecipe,
         notes: 'Test with <script>alert("xss")</script> and & symbols',
-        agitationSchedule: 'Test "quotes" and \'apostrophes\'',
+        agitationSchedule: 'Test "quotes" and \'apostrophes\' ?/+=',
       };
 
       const encoded = encodeCustomRecipe(recipeWithSpecialChars);
-      expect(encoded).toBeTruthy();
       expect(encoded).toMatch(/^[A-Za-z0-9_-]+$/);
+
+      const decoded = decodeOrFail(encoded);
+      expect(decoded.notes).toBe(recipeWithSpecialChars.notes);
+      expect(decoded.agitationSchedule).toBe(
+        recipeWithSpecialChars.agitationSchedule
+      );
     });
 
     it('returns empty string on encoding failure', () => {
@@ -143,20 +143,6 @@ describe('recipe-sharing', () => {
   });
 
   describe('decodeCustomRecipe', () => {
-    it('decodes a valid encoded recipe', () => {
-      const encoded = encodeCustomRecipe(mockCustomRecipe);
-      const decoded = decodeCustomRecipe(encoded);
-
-      expect(decoded).toBeTruthy();
-      expect(decoded?.name).toBe(mockCustomRecipe.name);
-      expect(decoded?.filmId).toBe(mockCustomRecipe.filmId);
-      expect(decoded?.developerId).toBe(mockCustomRecipe.developerId);
-      expect(decoded?.temperatureF).toBe(mockCustomRecipe.temperatureF);
-      expect(decoded?.timeMinutes).toBe(mockCustomRecipe.timeMinutes);
-      expect(decoded?.shootingIso).toBe(mockCustomRecipe.shootingIso);
-      expect(decoded?.pushPull).toBe(mockCustomRecipe.pushPull);
-    });
-
     it('round-trips a UUID dilution id (#322)', () => {
       const uuid = '69affee4-6a3f-44d2-8ec3-1dc83eca7449';
       const decoded = decodeCustomRecipe(
@@ -172,30 +158,6 @@ describe('recipe-sharing', () => {
       );
 
       expect(decoded?.dilutionId).toBe('2');
-    });
-
-    it('decodes a recipe with custom film', () => {
-      const encoded = encodeCustomRecipe(mockCustomRecipeWithCustomFilm);
-      const decoded = decodeCustomRecipe(encoded);
-
-      expect(decoded).toBeTruthy();
-      expect(decoded?.isCustomFilm).toBe(true);
-      expect(decoded?.customFilm).toBeDefined();
-      expect(decoded?.customFilm?.brand).toBe('Custom Brand');
-      expect(decoded?.customFilm?.name).toBe('Custom Film');
-    });
-
-    it('decodes a recipe with custom developer', () => {
-      const encoded = encodeCustomRecipe(mockCustomRecipeWithCustomDeveloper);
-      const decoded = decodeCustomRecipe(encoded);
-
-      expect(decoded).toBeTruthy();
-      expect(decoded?.isCustomDeveloper).toBe(true);
-      expect(decoded?.customDeveloper).toBeDefined();
-      expect(decoded?.customDeveloper?.manufacturer).toBe(
-        'Custom Manufacturer'
-      );
-      expect(decoded?.customDeveloper?.name).toBe('Custom Developer');
     });
 
     it('returns null for invalid base64 string', () => {
@@ -366,11 +328,7 @@ describe('recipe-sharing', () => {
 
   describe('createCustomRecipeFromEncoded', () => {
     it('creates a recipe from encoded data', () => {
-      const encoded = encodeCustomRecipe(mockCustomRecipe);
-      const decoded = decodeCustomRecipe(encoded);
-
-      expect(decoded).toBeTruthy();
-      if (!decoded) return;
+      const decoded = decodeOrFail(encodeCustomRecipe(mockCustomRecipe));
       const recipe = createCustomRecipeFromEncoded(decoded);
 
       expect(recipe.name).toBe(mockCustomRecipe.name);
@@ -382,47 +340,44 @@ describe('recipe-sharing', () => {
     });
 
     it('generates temporary IDs for custom film', () => {
-      const encoded = encodeCustomRecipe(mockCustomRecipeWithCustomFilm);
-      const decoded = decodeCustomRecipe(encoded);
-
-      expect(decoded).toBeTruthy();
-      if (!decoded) return;
+      const decoded = decodeOrFail(encodeCustomRecipe(mockCustomRecipeWithCustomFilm));
       const recipe = createCustomRecipeFromEncoded(decoded);
 
       expect(recipe.filmId).toMatch(/^custom_film_\d+$/);
       expect(recipe.isCustomFilm).toBe(true);
-      expect(recipe.customFilm).toBeDefined();
+      expect(recipe.customFilm).toEqual(
+        mockCustomRecipeWithCustomFilm.customFilm
+      );
     });
 
     it('generates temporary IDs for custom developer', () => {
-      const encoded = encodeCustomRecipe(mockCustomRecipeWithCustomDeveloper);
-      const decoded = decodeCustomRecipe(encoded);
-
-      expect(decoded).toBeTruthy();
-      if (!decoded) return;
+      const decoded = decodeOrFail(encodeCustomRecipe(mockCustomRecipeWithCustomDeveloper));
       const recipe = createCustomRecipeFromEncoded(decoded);
 
       expect(recipe.developerId).toMatch(/^custom_dev_\d+$/);
       expect(recipe.isCustomDeveloper).toBe(true);
-      expect(recipe.customDeveloper).toBeDefined();
+      expect(recipe.customDeveloper).toEqual(
+        mockCustomRecipeWithCustomDeveloper.customDeveloper
+      );
     });
 
     it('sanitizes text fields to prevent XSS', () => {
       const maliciousRecipe: CustomRecipe = {
         ...mockCustomRecipe,
-        name: 'Test Recipe with script tags',
-        notes: 'Test notes with img tags',
-        agitationSchedule: 'Test agitation',
+        name: 'Rodinal <script>alert("xss")</script> 1+50',
+        notes: 'Stand <a href="javascript:alert(1)">develop</a> 1 hour',
+        agitationSchedule: 'Agitate <img src=x onerror=alert(1)> every 30s',
+        customDilution: '1+1 <svg onload=alert(1)>',
       };
 
-      const encoded = encodeCustomRecipe(maliciousRecipe);
-      const decoded = decodeCustomRecipe(encoded);
-      if (!decoded) return;
+      const decoded = decodeOrFail(encodeCustomRecipe(maliciousRecipe));
       const recipe = createCustomRecipeFromEncoded(decoded);
 
-      expect(recipe.name).toBeTruthy();
-      expect(recipe.notes).toBeTruthy();
-      expect(recipe.agitationSchedule).toBeTruthy();
+      // Tags are stripped; the recipe-name pass also drops `"` and `+`.
+      expect(recipe.name).toBe('Rodinal alert(xss) 150');
+      expect(recipe.notes).toBe('Stand develop 1 hour');
+      expect(recipe.agitationSchedule).toBe('Agitate  every 30s');
+      expect(recipe.customDilution).toBe('1+1');
     });
 
     it('uses fallback values for empty required fields', () => {
@@ -441,14 +396,11 @@ describe('recipe-sharing', () => {
       };
 
       const recipe = createCustomRecipeFromEncoded(encodedWithEmptyName);
-      if (!recipe) return;
       expect(recipe.name).toBe('Untitled Recipe');
     });
 
     it('omits id, dateCreated, and dateModified fields', () => {
-      const encoded = encodeCustomRecipe(mockCustomRecipe);
-      const decoded = decodeCustomRecipe(encoded);
-      if (!decoded) return;
+      const decoded = decodeOrFail(encodeCustomRecipe(mockCustomRecipe));
       const recipe = createCustomRecipeFromEncoded(decoded);
 
       expect(recipe).not.toHaveProperty('id');
@@ -460,58 +412,61 @@ describe('recipe-sharing', () => {
       const maliciousCustomFilm: CustomRecipe = {
         ...mockCustomRecipeWithCustomFilm,
         customFilm: {
-          brand: 'Brand with script tags',
-          name: 'Film with img tags',
+          brand: 'Ilford<script>steal()</script>',
+          name: 'HP5 <img src=x onerror=alert(1)>Plus',
           isoSpeed: 400,
           colorType: 'bw',
-          grainStructure: 'Fine grain',
-          description: 'Description with test content',
+          grainStructure: '<b>Fine</b> grain',
+          description: 'Classic onmouseover=alert(1) stock',
         },
       };
 
-      const encoded = encodeCustomRecipe(maliciousCustomFilm);
-      const decoded = decodeCustomRecipe(encoded);
-      if (!decoded) return;
+      const decoded = decodeOrFail(encodeCustomRecipe(maliciousCustomFilm));
       const recipe = createCustomRecipeFromEncoded(decoded);
 
-      expect(recipe.customFilm?.brand).toBeTruthy();
-      expect(recipe.customFilm?.name).toBeTruthy();
-      expect(recipe.customFilm?.grainStructure).toBeTruthy();
-      expect(recipe.customFilm?.description).toBeTruthy();
+      expect(recipe.customFilm).toEqual({
+        brand: 'Ilfordsteal()',
+        name: 'HP5 Plus',
+        isoSpeed: 400,
+        colorType: 'bw',
+        grainStructure: 'Fine grain',
+        description: 'Classic alert(1) stock',
+      });
     });
 
     it('sanitizes custom developer data', () => {
       const maliciousCustomDev: CustomRecipe = {
         ...mockCustomRecipeWithCustomDeveloper,
         customDeveloper: {
-          manufacturer: 'Manufacturer with script tags',
-          name: 'Developer with img tags',
+          manufacturer: 'Kodak<script>alert(1)</script>',
+          name: 'D-76 <img src=x onerror=alert(1)>',
           type: 'powder',
           dilutions: [
             {
-              name: 'Stock dilution',
-              dilution: '1+0',
+              name: '<b>Stock</b>',
+              dilution: '1+0 onclick=alert(1)',
             },
           ],
-          notes: 'Notes with test content',
-          mixingInstructions: 'Mix carefully',
-          safetyNotes: 'Safety notes',
+          notes: 'Notes <iframe src="//evil"></iframe>here',
+          mixingInstructions: 'Mix at <a href="javascript:void(0)">50C</a>',
+          safetyNotes: 'Wear gloves <svg onload=alert(1)>',
           filmOrPaper: 'film',
         },
       };
 
-      const encoded = encodeCustomRecipe(maliciousCustomDev);
-      const decoded = decodeCustomRecipe(encoded);
-      if (!decoded) return;
+      const decoded = decodeOrFail(encodeCustomRecipe(maliciousCustomDev));
       const recipe = createCustomRecipeFromEncoded(decoded);
 
-      expect(recipe.customDeveloper?.manufacturer).toBeTruthy();
-      expect(recipe.customDeveloper?.name).toBeTruthy();
-      expect(recipe.customDeveloper?.notes).toBeTruthy();
-      expect(recipe.customDeveloper?.mixingInstructions).toBeTruthy();
-      expect(recipe.customDeveloper?.safetyNotes).toBeTruthy();
-      expect(recipe.customDeveloper?.dilutions[0].name).toBeTruthy();
-      expect(recipe.customDeveloper?.dilutions[0].dilution).toBeTruthy();
+      expect(recipe.customDeveloper).toEqual({
+        manufacturer: 'Kodakalert(1)',
+        name: 'D-76',
+        type: 'powder',
+        dilutions: [{ name: 'Stock', dilution: '1+0 alert(1)' }],
+        notes: 'Notes here',
+        mixingInstructions: 'Mix at 50C',
+        safetyNotes: 'Wear gloves',
+        filmOrPaper: 'film',
+      });
     });
   });
 
@@ -576,57 +531,32 @@ describe('recipe-sharing', () => {
 
     it('preserves custom film data through encode-decode cycle', () => {
       const encoded = encodeCustomRecipe(mockCustomRecipeWithCustomFilm);
-      const decoded = decodeCustomRecipe(encoded);
+      expect(encoded).toMatch(/^[A-Za-z0-9_-]+$/);
+      const decoded = decodeOrFail(encoded);
 
-      expect(decoded?.customFilm?.brand).toBe(
-        mockCustomRecipeWithCustomFilm.customFilm?.brand
-      );
-      expect(decoded?.customFilm?.name).toBe(
-        mockCustomRecipeWithCustomFilm.customFilm?.name
-      );
-      expect(decoded?.customFilm?.isoSpeed).toBe(
-        mockCustomRecipeWithCustomFilm.customFilm?.isoSpeed
+      expect(decoded.isCustomFilm).toBe(true);
+      expect(decoded.filmId).toBe(mockCustomRecipeWithCustomFilm.filmId);
+      expect(decoded.customFilm).toEqual(
+        mockCustomRecipeWithCustomFilm.customFilm
       );
     });
 
     it('preserves custom developer data through encode-decode cycle', () => {
       const encoded = encodeCustomRecipe(mockCustomRecipeWithCustomDeveloper);
-      const decoded = decodeCustomRecipe(encoded);
-
-      expect(decoded?.customDeveloper?.manufacturer).toBe(
-        mockCustomRecipeWithCustomDeveloper.customDeveloper?.manufacturer
-      );
-      expect(decoded?.customDeveloper?.name).toBe(
-        mockCustomRecipeWithCustomDeveloper.customDeveloper?.name
-      );
-      expect(decoded?.customDeveloper?.dilutions).toEqual(
-        mockCustomRecipeWithCustomDeveloper.customDeveloper?.dilutions
-      );
-    });
-  });
-
-  describe('cross-environment compatibility', () => {
-    // Test that encoding works in both browser and Node.js environments
-    it('handles base64 encoding in Node.js environment', () => {
-      // This test runs in Node.js by default with Vitest
-      const encoded = encodeCustomRecipe(mockCustomRecipe);
-      expect(encoded).toBeTruthy();
       expect(encoded).toMatch(/^[A-Za-z0-9_-]+$/);
-    });
+      const decoded = decodeOrFail(encoded);
 
-    it('handles base64 decoding in Node.js environment', () => {
-      const encoded = encodeCustomRecipe(mockCustomRecipe);
-      const decoded = decodeCustomRecipe(encoded);
-      expect(decoded).toBeTruthy();
-      expect(decoded?.name).toBe(mockCustomRecipe.name);
+      expect(decoded.isCustomDeveloper).toBe(true);
+      expect(decoded.developerId).toBe(
+        mockCustomRecipeWithCustomDeveloper.developerId
+      );
+      expect(decoded.customDeveloper).toEqual(
+        mockCustomRecipeWithCustomDeveloper.customDeveloper
+      );
     });
   });
 
   describe('URL length limits', () => {
-    it('should have a reasonable max encoded length constant', () => {
-      expect(MAX_ENCODED_LENGTH).toBe(4000);
-    });
-
     it('should return empty string for oversized recipes', () => {
       // Create a recipe with very long notes that will exceed the limit
       const oversizedRecipe: CustomRecipe = {
@@ -675,18 +605,24 @@ describe('recipe-sharing', () => {
       expect(encoded.length).toBeLessThanOrEqual(MAX_ENCODED_LENGTH);
     });
 
-    it('should handle recipes near the limit boundary', () => {
-      // Create a recipe that's close to but under the limit
-      const nearLimitRecipe: CustomRecipe = {
+    it('should encode a recipe that lands exactly on the limit', () => {
+      // With this base recipe, 2665 notes characters encode to exactly
+      // MAX_ENCODED_LENGTH characters.
+      const atLimit = encodeCustomRecipe({
         ...mockCustomRecipe,
-        notes: 'x'.repeat(2000), // Moderate length notes
-      };
+        notes: 'x'.repeat(2665),
+      });
 
-      const encoded = encodeCustomRecipe(nearLimitRecipe);
-      // Should encode successfully if under limit
-      if (encoded.length > 0) {
-        expect(encoded.length).toBeLessThanOrEqual(MAX_ENCODED_LENGTH);
-      }
+      expect(atLimit).toHaveLength(MAX_ENCODED_LENGTH);
+    });
+
+    it('should reject a recipe one character over the limit', () => {
+      const overLimit = encodeCustomRecipe({
+        ...mockCustomRecipe,
+        notes: 'x'.repeat(2666),
+      });
+
+      expect(overLimit).toBe('');
     });
   });
 });
