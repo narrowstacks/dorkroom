@@ -7,6 +7,7 @@
  */
 
 import { parseDecimalInput } from '../utils/input-validation';
+import type { MeasurementUnit } from '../utils/unit-conversion';
 
 export const MAT_CALCULATOR_STORAGE_KEY = 'matCalculatorState_v1';
 
@@ -139,11 +140,56 @@ export function bottomWeightFor(vTotal: number): number {
   return 0.25;
 }
 
+const MM_PER_INCH = 25.4;
+
+/** Imperial best-fit denominator: borders land on the 1/16" grid, the one every display and cutter scale speaks. */
+export const MAT_BEST_FIT_DENOM = 16;
+
+/**
+ * Grid, in inches, that "Best fit borders" snaps to: 1/16" imperial and 1mm
+ * metric.
+ */
+export function matSnapStep(unit: MeasurementUnit = 'imperial'): number {
+  return unit === 'metric' ? 1 / MM_PER_INCH : 1 / MAT_BEST_FIT_DENOM;
+}
+
+/**
+ * How far the window may sit from the reveal target before the page warns.
+ * Best fit snaps the total border to its grid, so it can leave up to half a
+ * step. The tolerance is one unit-independent constant (the larger half-step
+ * across units, plus float noise), so a best fit made in metric does not warn
+ * after switching to imperial or vice versa. Hand-entered mismatches below it
+ * (about 1/32") are not flagged; that is below mat-cutter precision.
+ */
+export function matRevealTolerance(): number {
+  return Math.max(matSnapStep('imperial'), matSnapStep('metric')) / 2 + 1e-3;
+}
+
+/**
+ * Render best-fit borders (inches, already on the snap grid) as the string
+ * written into a form field. Imperial gives a 1/16 fraction; metric gives
+ * decimal inches precise enough that the centimetre field shows exact mm.
+ */
+export function matBorderToInput(
+  inches: number,
+  unit: MeasurementUnit = 'imperial'
+): string {
+  if (unit === 'metric') return String(Number(inches.toFixed(5)));
+  return toFractionInput(inches, MAT_BEST_FIT_DENOM);
+}
+
 /**
  * Compute borders that center the artwork in the outer mat, optionally
  * bottom-weighting the vertical split for optical center. `rev` is the reveal
  * (how far the mat overlaps the art per side). Returns null when the artwork
  * plus reveal cannot fit inside the outer mat.
+ *
+ * With `snapStep` (inches) every border lands on that grid while the totals
+ * left+right and top+bottom stay as close to exact as the grid allows (exact
+ * whenever the total is itself on the grid). Each pair is split by flooring
+ * left/top and giving the remainder to right/bottom, so the two sides never
+ * round the same way and drift the window. Rounding each border independently
+ * is what made #341's best fit trip the reveal-mismatch warning.
  */
 export function bestFitBorders(
   ow: number,
@@ -151,7 +197,8 @@ export function bestFitBorders(
   aw: number,
   ah: number,
   rev: number,
-  bottomWeight: boolean
+  bottomWeight: boolean,
+  snapStep?: number
 ): MatBorders | null {
   const winW = aw - 2 * rev;
   const winH = ah - 2 * rev;
@@ -159,9 +206,27 @@ export function bestFitBorders(
   const vTotal = oh - winH;
   if (winW <= 0 || winH <= 0 || hTotal <= 0 || vTotal <= 0) return null;
   const weight = bottomWeight ? Math.min(bottomWeightFor(vTotal), vTotal) : 0;
-  const left = hTotal / 2;
-  const right = hTotal / 2;
-  const top = (vTotal - weight) / 2;
-  const bottom = (vTotal + weight) / 2;
-  return { top, bottom, left, right };
+  if (!snapStep) {
+    return {
+      top: (vTotal - weight) / 2,
+      bottom: (vTotal + weight) / 2,
+      left: hTotal / 2,
+      right: hTotal / 2,
+    };
+  }
+  const EPS = 1e-6;
+  const hUnits = Math.round(hTotal / snapStep);
+  const vUnits = Math.round(vTotal / snapStep);
+  const weightUnits = weight / snapStep;
+  const leftUnits = Math.floor(hUnits / 2 + EPS);
+  const topUnits = Math.min(
+    vUnits,
+    Math.max(0, Math.floor((vUnits - weightUnits) / 2 + EPS))
+  );
+  return {
+    top: topUnits * snapStep,
+    bottom: (vUnits - topUnits) * snapStep,
+    left: leftUnits * snapStep,
+    right: (hUnits - leftUnits) * snapStep,
+  };
 }

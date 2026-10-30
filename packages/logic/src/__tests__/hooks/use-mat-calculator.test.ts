@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { MAT_CALCULATOR_STORAGE_KEY } from '../../constants/mat-calculator';
 import type { PersistedValue } from '../../hooks/use-local-storage-form-persistence';
 import { useMatCalculator } from '../../hooks/use-mat-calculator';
+import { convertDisplayToInches } from '../../utils/unit-conversion';
 
 describe('useMatCalculator', () => {
   beforeEach(() => {
@@ -149,5 +150,236 @@ describe('useMatCalculator', () => {
       expect(result.current.values.bottomWeight).toBe(false);
       expect(result.current.values.outerH).toBe('18');
     });
+  });
+});
+
+describe('best fit never trips the reveal-mismatch warning (issue #341)', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  type Setup = {
+    outerW: string;
+    outerH: string;
+    artW: string;
+    artH: string;
+    reveal: string;
+    bottomWeight?: boolean;
+  };
+
+  const fit = (setup: Setup, unit?: 'imperial' | 'metric') => {
+    const hook = renderHook(() => useMatCalculator({ unit }));
+    act(() => {
+      const { set } = hook.result.current;
+      set('outerW', setup.outerW);
+      set('outerH', setup.outerH);
+      set('artW', setup.artW);
+      set('artH', setup.artH);
+      set('reveal', setup.reveal);
+      set('bottomWeight', setup.bottomWeight ?? false);
+    });
+    act(() => hook.result.current.applyBestFit());
+    return hook.result.current;
+  };
+
+  it('imperial repro: 16×20 outer, 8 1/16×10 art, 1/4 reveal', () => {
+    const calc = fit({
+      outerW: '16',
+      outerH: '20',
+      artW: '8 1/16',
+      artH: '10',
+      reveal: '1/4',
+    });
+
+    // True border is 4 7/32 per side; independent 1/16 rounding gave 4 1/4
+    // both sides. Floor/ceil keeps the 8 7/16 total, so the window is exact.
+    expect(calc.values.borderLeft).toBe('4 3/16');
+    expect(calc.values.borderRight).toBe('4 1/4');
+    expect(calc.windowW).toBeCloseTo(7.5625, 9);
+    expect(calc.hasRevealMismatch).toBe(false);
+  });
+
+  it('metric repro: 40×50 cm outer, 20×25 cm art, 0.5 cm reveal', () => {
+    const cm = (v: number) => String(v / 2.54);
+    const calc = fit(
+      {
+        outerW: cm(40),
+        outerH: cm(50),
+        artW: cm(20),
+        artH: cm(25),
+        reveal: cm(0.5),
+      },
+      'metric'
+    );
+
+    // 40 - 19 = 21cm of border: 10.5cm per side, exactly on the mm grid.
+    expect(calc.windowW * 2.54).toBeCloseTo(19, 3);
+    expect(calc.windowH * 2.54).toBeCloseTo(24, 3);
+    expect(calc.hasRevealMismatch).toBe(false);
+    // Stored inch strings read back as whole millimetres in the cm fields.
+    for (const key of [
+      'borderLeft',
+      'borderRight',
+      'borderTop',
+      'borderBottom',
+    ] as const) {
+      const mm = parseFloat(calc.values[key]) * 25.4;
+      expect(Math.abs(mm - Math.round(mm))).toBeLessThan(1e-3);
+    }
+  });
+
+  it('metric odd-mm total splits floor/ceil by one mm', () => {
+    const calc = fit(
+      {
+        outerW: String(40 / 2.54),
+        outerH: String(50 / 2.54),
+        artW: String(20.1 / 2.54),
+        artH: String(25 / 2.54),
+        reveal: String(0.5 / 2.54),
+      },
+      'metric'
+    );
+    const l = parseFloat(calc.values.borderLeft) * 25.4;
+    const r = parseFloat(calc.values.borderRight) * 25.4;
+    expect(Math.round(r - l)).toBe(1);
+    expect(calc.hasRevealMismatch).toBe(false);
+  });
+
+  it('keeps bottom weighting', () => {
+    const calc = fit({
+      outerW: '16',
+      outerH: '20',
+      artW: '11',
+      artH: '14',
+      reveal: '1/4',
+      bottomWeight: true,
+    });
+    expect(calc.values.borderTop).toBe('3');
+    expect(calc.values.borderBottom).toBe('3 1/2');
+    expect(calc.hasRevealMismatch).toBe(false);
+  });
+
+  it('previews exactly what it applies', () => {
+    const hook = renderHook(() => useMatCalculator());
+    act(() => {
+      hook.result.current.set('artW', '8 1/16');
+      hook.result.current.set('artH', '10');
+    });
+    const preview = hook.result.current.bestFitPreview;
+    act(() => hook.result.current.applyBestFit());
+    expect(preview).not.toBeNull();
+    expect(hook.result.current.bl).toBeCloseTo(preview?.left ?? NaN, 9);
+    expect(hook.result.current.br).toBeCloseTo(preview?.right ?? NaN, 9);
+    expect(hook.result.current.bt).toBeCloseTo(preview?.top ?? NaN, 9);
+    expect(hook.result.current.bb).toBeCloseTo(preview?.bottom ?? NaN, 9);
+  });
+
+  it('still warns for a hand-entered mismatched mat', () => {
+    const hook = renderHook(() => useMatCalculator());
+    act(() => {
+      hook.result.current.set('artW', '8 1/16');
+      hook.result.current.set('artH', '10');
+      hook.result.current.set('borderLeft', '4 1/4');
+      hook.result.current.set('borderRight', '4 1/4');
+      hook.result.current.set('borderTop', '5');
+      hook.result.current.set('borderBottom', '5');
+    });
+    // Window 7.5 vs 7.5625 target: 1/16" off, well over the 1/64" tolerance.
+    expect(hook.result.current.hasRevealMismatch).toBe(true);
+
+    const metric = renderHook(() => useMatCalculator({ unit: 'metric' }));
+    act(() => {
+      metric.result.current.set('borderLeft', '2');
+      metric.result.current.set('borderRight', '2');
+    });
+    expect(metric.result.current.hasRevealMismatch).toBe(true);
+  });
+
+  it('property: best fit never self-triggers the warning', () => {
+    const sixteenths = (n: number) => `${Math.floor(n / 16)} ${n % 16}/16`;
+    let checked = 0;
+    for (const [ow, oh] of [
+      [16, 20],
+      [11, 14],
+      [8, 10],
+      [20, 24],
+      [24, 30],
+    ]) {
+      for (let aw16 = 4 * 16; aw16 < 10 * 16; aw16 += 23) {
+        for (const rev of ['0', '1/8', '1/4', '3/16']) {
+          for (const bottomWeight of [false, true]) {
+            const calc = fit(
+              {
+                outerW: String(ow),
+                outerH: String(oh),
+                artW: sixteenths(aw16),
+                artH: sixteenths(aw16 + 33),
+                reveal: rev,
+                bottomWeight,
+              },
+              'imperial'
+            );
+            if (!calc.bestFitPreview) continue;
+            expect(calc.valid).toBe(true);
+            expect(calc.hasRevealMismatch).toBe(false);
+            checked += 1;
+          }
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(100);
+  });
+
+  it('property: metric best fit, via 3-decimal stored inches, never warns (also after switching to imperial)', () => {
+    // Same path as the page: cm typed -> convertDisplayToInches.
+    const inches = (cm: number) => String(convertDisplayToInches(cm, 'metric'));
+    let checked = 0;
+    for (const [ow, oh] of [
+      [40, 50],
+      [40.6, 50.8],
+      [30.5, 40.5],
+      [27.9, 35.6],
+    ]) {
+      for (let mm = 150; mm < 290; mm += 7) {
+        for (const revMm of [0, 3, 5, 6.5]) {
+          for (const bottomWeight of [false, true]) {
+            const setup = {
+              outerW: inches(ow),
+              outerH: inches(oh),
+              artW: inches(mm / 10),
+              artH: inches((mm + 35) / 10),
+              reveal: inches(revMm / 10),
+              bottomWeight,
+            };
+            const calc = fit(setup, 'metric');
+            if (!calc.bestFitPreview) continue;
+            expect(calc.hasRevealMismatch).toBe(false);
+            checked += 1;
+
+            // Same stored values read by an imperial-unit hook.
+            const switched = renderHook(() => useMatCalculator());
+            act(() => {
+              const { set } = switched.result.current;
+              for (const key of [
+                'outerW',
+                'outerH',
+                'artW',
+                'artH',
+                'reveal',
+                'borderTop',
+                'borderBottom',
+                'borderLeft',
+                'borderRight',
+              ] as const) {
+                set(key, calc.values[key]);
+              }
+              set('bottomWeight', bottomWeight);
+            });
+            expect(switched.result.current.hasRevealMismatch).toBe(false);
+          }
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(100);
   });
 });
