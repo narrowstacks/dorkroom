@@ -6,7 +6,7 @@
 // iso=isoSpeed, process=colorType). `colorType` is already the same
 // 'bw'|'color'|'slide' union as `FilmProcess`, so the mapping is direct.
 import type { Film } from '@dorkroom/api';
-import { getInformativeAliasNames, useFilms } from '@dorkroom/logic';
+import { useFilms } from '@dorkroom/logic';
 import { useMemo } from 'react';
 import { filmProcessSchema } from '@/schemas/film-log.schema';
 import type { FilmProcess, FilmStock } from '@/types/film-log';
@@ -26,7 +26,6 @@ export function mapFilmToStock(film: Film): FilmStock {
     name: film.name,
     iso: film.isoSpeed,
     process: toProcess(film.colorType),
-    aliases: getInformativeAliasNames(film),
   };
 }
 

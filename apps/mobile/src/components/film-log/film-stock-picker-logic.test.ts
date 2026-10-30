@@ -17,22 +17,6 @@ const FUJI_400H = stock('fuji-400h', 'Fujifilm', '400H');
 const CUSTOM_A = stock('custom-1', 'Custom', 'Homebrew A');
 const CUSTOM_B = stock('custom-2', 'Custom', 'Homebrew B');
 
-describe('buildFilmSections alias search', () => {
-  const FORMER = {
-    ...stock('kodak-gold-200', 'Kodak', 'Gold 200', 200),
-    aliases: ['Kodacolor Gold'],
-  };
-
-  it('matches a film by a former name', () => {
-    const sections = buildFilmSections([KODAK_PORTRA, FORMER], 'kodacolor');
-    expect(sections).toEqual([{ title: 'Kodak', data: [FORMER] }]);
-  });
-
-  it('does not match films without a matching alias', () => {
-    expect(buildFilmSections([KODAK_PORTRA], 'kodacolor')).toEqual([]);
-  });
-});
-
 describe('buildFilmSections', () => {
   it('puts custom stocks in a single leading "Your films" section, preserving order', () => {
     const sections = buildFilmSections([CUSTOM_A, CUSTOM_B, KODAK_PORTRA], '');

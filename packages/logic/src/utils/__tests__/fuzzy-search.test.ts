@@ -377,7 +377,14 @@ describe('fuzzy-search', () => {
       searchFilms(films, q).map((r) => [r.item.uuid, r.score]);
 
     it('ranks a current-name query first despite redundant aliases', () => {
-      expect(searchFilms(withAliases, 'Gold')[0].item.name).toBe('Gold 200');
+      const results = searchFilms(withAliases, 'Gold');
+      expect(results.map((r) => r.item.uuid)).toEqual(['r205', 'r204']);
+    });
+
+    it('scores an alias identical to the current name like no alias', () => {
+      expect(summary(withAliases, 'gold 200')).toEqual(
+        summary(withoutAliases, 'gold 200')
+      );
     });
 
     it.each(['400', 'kodak'])(
@@ -395,6 +402,18 @@ describe('fuzzy-search', () => {
     it('finds a film by a multi-word former-name query', () => {
       const results = searchFilms(withAliases, 'kodak kodacolor');
       expect(results.map((r) => r.item.uuid)).toContain('r204');
+    });
+
+    it('matches brand and former-name words together', () => {
+      // "kodak" only matches the brand; "elite chrome" only the alias.
+      const ektachrome = make(206, 'Ektachrome E100', [
+        'Kodak Elite Chrome 100',
+      ]);
+      const results = searchFilms(
+        [...withAliases, ektachrome],
+        'kodak elite chrome'
+      );
+      expect(results.map((r) => r.item.uuid)).toEqual(['r206']);
     });
 
     it('still works when films have no aliases', () => {
