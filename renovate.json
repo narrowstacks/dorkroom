@@ -18,6 +18,12 @@
       "enabled": false
     },
     {
+      "description": "`@tanstack/react-table` is held on v8: v9 is an API rewrite (useTable + explicit features, sortingFns -> sortFns, no SortingFns interface to augment), not a bot-mergeable bump. The migration is tracked in #423, to be done by hand. Minors/patches on 8.x are fine. Remove this rule in the PR that does the migration. Matches every manifest, including the `^8.0.0` peer range in packages/logic.",
+      "matchDepNames": ["@tanstack/react-table"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
       "description": "The TypeScript 7 compiler is installed as an npm alias (typescript-7 = npm:typescript@^7.0.2). Match on depName, NOT packageName: the alias resolves to packageName `typescript`, which would also match the 6.x compiler-API pin above. The global `rangeStrategy: bump` is load-bearing here — under `replace`, an in-range release like 7.1.0 (the one we are waiting for) would satisfy ^7.0.2 and produce no PR.",
       "matchDepNames": ["typescript-7"],
       "commitMessageTopic": "the TypeScript 7 compiler (`typescript-7` alias)"
