@@ -39,7 +39,7 @@ export interface Dilution {
 
 export interface RawDilution {
   id: number | string;
-  name: string;
+  name?: string; // Some stored dilutions omit it; transformDeveloper falls back to dilution/ratio
   dilution?: string;
   ratio?: string; // Some API entries use 'ratio' instead of 'dilution'
 }

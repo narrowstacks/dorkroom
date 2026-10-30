@@ -45,13 +45,13 @@ describe('API Response Schemas', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should reject dilution with missing name', () => {
-      const invalidDilution = {
-        id: 1,
-        // missing name
-      };
+    it('should accept dilution with missing name', () => {
+      const result = rawDilutionSchema.safeParse({ id: 1, dilution: '1+0' });
+      expect(result.success).toBe(true);
+    });
 
-      const result = rawDilutionSchema.safeParse(invalidDilution);
+    it('should still reject dilution with missing id', () => {
+      const result = rawDilutionSchema.safeParse({ name: 'Stock' });
       expect(result.success).toBe(false);
     });
   });
@@ -186,14 +186,14 @@ describe('API Response Schemas', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should reject developer with missing dilution name', () => {
-      const developerInvalidDilution = {
+    it('should accept developer with a dilution that has no name', () => {
+      const developerUnnamedDilution = {
         ...validDeveloper,
-        dilutions: [{ id: 1 }], // missing name
+        dilutions: [{ id: 1, dilution: '1+15' }], // missing name
       };
 
-      const result = rawDeveloperSchema.safeParse(developerInvalidDilution);
-      expect(result.success).toBe(false);
+      const result = rawDeveloperSchema.safeParse(developerUnnamedDilution);
+      expect(result.success).toBe(true);
     });
   });
 

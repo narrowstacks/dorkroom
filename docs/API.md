@@ -232,7 +232,7 @@ curl -H "X-API-Key: dk_..." \
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | integer \| string | Dilution ID |
-| `name` | string | Display name (e.g. `1+25`) |
+| `name` | string (optional) | Display name (e.g. `1+25`). May be absent; clients fall back to `dilution` or `ratio` |
 | `dilution` | string | Dilution ratio (e.g. `1:25`) |
 
 ---
