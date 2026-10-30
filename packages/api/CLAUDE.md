@@ -58,7 +58,7 @@ interface DorkroomApiClientConfig {
   baseUrl?: string;   // defaults to PUBLIC_API_BASE_URL
   apiKey?: string;    // sent as X-API-Key
   clientId?: string;  // sent as X-Client-Id
-  onInvalidRows?: (info: { resource; dropped; total }) => void;  // see Runtime Validation
+  onInvalidRows?: (info: InvalidRowsInfo) => void;  // see Runtime Validation
 }
 new DorkroomApiClient(config?: DorkroomApiClientConfig)
 ```
@@ -124,8 +124,11 @@ Every client failure is a `DorkroomApiError`, except an abort:
 
 `endpoint` is the full request URL (e.g. `https://api.dorkroom.art/films`).
 `cause` carries the underlying error for the non-HTTP cases. Never wrap an
-`AbortError`: TanStack Query relies on it to treat cancellation as
-cancellation rather than failure.
+abort: an unwrapped `AbortError` is the conventional cancellation contract
+for consumers outside TanStack Query (Query itself rejects with its own
+`CancelledError` when its signal aborts). Any error raised after the signal
+has aborted is passed through as-is, which also covers React Native's fetch
+polyfill, whose abort error is not a real `DOMException`.
 
 ```typescript
 import { DorkroomApiError } from '@dorkroom/api';

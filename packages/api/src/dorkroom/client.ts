@@ -66,6 +66,13 @@ export interface DorkroomApiClientConfig {
 /** Collection endpoints that validate and drop rows individually. */
 export type CollectionResource = 'films' | 'developers' | 'combinations';
 
+/** Row nouns for the drop warning, kept identical to the pre-refactor text. */
+const ROW_NOUNS = {
+  films: 'film(s)',
+  developers: 'developer(s)',
+  combinations: 'combination(s)',
+} as const satisfies Record<CollectionResource, string>;
+
 /** Describes rows dropped from a collection response during validation. */
 export interface InvalidRowsInfo {
   resource: CollectionResource;
@@ -228,13 +235,22 @@ export class DorkroomApiClient {
     const dropped = envelope.data.length - validItems.length;
     if (dropped > 0) {
       console.warn(
-        `[DorkroomApiClient] Filtered out ${dropped} invalid ${resource} from API response`
+        `[DorkroomApiClient] Filtered out ${dropped} invalid ${ROW_NOUNS[resource]} from API response`
       );
-      this.onInvalidRows?.({
-        resource,
-        dropped,
-        total: envelope.data.length,
-      });
+      // The rows are already validated; a throwing telemetry callback must
+      // not turn a successful partial response into a failed query.
+      try {
+        this.onInvalidRows?.({
+          resource,
+          dropped,
+          total: envelope.data.length,
+        });
+      } catch (callbackError) {
+        console.error(
+          '[DorkroomApiClient] onInvalidRows callback threw',
+          callbackError
+        );
+      }
     }
 
     return validItems.map(transform);

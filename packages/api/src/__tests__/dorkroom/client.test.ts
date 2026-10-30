@@ -829,6 +829,37 @@ describe('DorkroomApiError contract', () => {
       expect(error).not.toBeInstanceOf(DorkroomApiError);
     });
 
+    it('falls back to the status number when statusText is empty', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        statusText: '',
+      });
+      const apiError = await caughtApiError(call);
+      expect(apiError.statusCode).toBe(503);
+      expect(apiError.message).toBe(`Failed to fetch ${name}: 503`);
+    });
+
+    it('passes through a non-AbortError raised after the signal aborted', async () => {
+      // React Native's fetch polyfill rejects an aborted request with a plain
+      // TypeError, not a DOMException named AbortError.
+      const controller = new AbortController();
+      controller.abort();
+      const polyfillAbort = new TypeError('Network request failed');
+      mockFetch.mockRejectedValueOnce(polyfillAbort);
+      const signalled = new DorkroomApiClient({ baseUrl: base });
+      const byName = {
+        films: () => signalled.fetchFilms({ signal: controller.signal }),
+        developers: () =>
+          signalled.fetchDevelopers({ signal: controller.signal }),
+        combinations: () =>
+          signalled.fetchCombinations({ signal: controller.signal }),
+        stats: () => signalled.fetchStats({ signal: controller.signal }),
+      };
+      const error = await caught(byName[name]);
+      expect(error).toBe(polyfillAbort);
+    });
+
     it('rethrows an AbortError from response.json() unwrapped', async () => {
       const abort = new DOMException('Aborted', 'AbortError');
       mockFetch.mockResolvedValueOnce({
@@ -885,6 +916,69 @@ describe('DorkroomApiError contract', () => {
       });
       await observed.fetchFilms();
       expect(onInvalidRows).not.toHaveBeenCalled();
+    });
+
+    it('reports only the invalid rows of a mixed response', async () => {
+      const validFilm: RawFilm = {
+        id: 1,
+        uuid: 'test-uuid',
+        slug: 'test-film',
+        brand: 'Test Brand',
+        name: 'Test Film',
+        color_type: 'black_and_white',
+        iso_speed: 400,
+        grain_structure: 'fine',
+        description: 'Test description',
+        manufacturer_notes: null,
+        reciprocity_failure: null,
+        discontinued: false,
+        static_image_url: null,
+        aliases: [],
+        base_film_slug: null,
+        date_added: '2023-01-01',
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+      };
+      const onInvalidRows = vi.fn();
+      const observed = new DorkroomApiClient({ baseUrl: base, onInvalidRows });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [validFilm, { bogus: 1 }, { bogus: 2 }] }),
+      });
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const result = await observed.fetchFilms();
+      expect(warn).toHaveBeenCalledWith(
+        '[DorkroomApiClient] Filtered out 2 invalid film(s) from API response'
+      );
+      warn.mockRestore();
+      expect(result.map((film) => film.slug)).toEqual(['test-film']);
+      expect(onInvalidRows).toHaveBeenCalledExactlyOnceWith({
+        resource: 'films',
+        dropped: 2,
+        total: 3,
+      });
+    });
+
+    it('still resolves when the onInvalidRows callback throws', async () => {
+      const observed = new DorkroomApiClient({
+        baseUrl: base,
+        onInvalidRows: () => {
+          throw new Error('telemetry down');
+        },
+      });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [{ bogus: 1 }] }),
+      });
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const result = await observed.fetchFilms();
+      expect(error).toHaveBeenCalledOnce();
+      warn.mockRestore();
+      error.mockRestore();
+      expect(result).toEqual([]);
     });
 
     it('configure() can install onInvalidRows', async () => {
