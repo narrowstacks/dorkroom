@@ -1,7 +1,7 @@
 import {
   calculateExposureAdjustment,
   EXPOSURE_PRESETS,
-  EXPOSURE_STORAGE_KEY,
+  exposureCalculatorPersistence,
   type ExposureFormState,
   type ExposurePreset,
   formatExposureTime,
@@ -155,18 +155,9 @@ export default function ExposureCalculatorPage() {
 
   // Persist and hydrate form state to/from localStorage
   const { resetToDefaults } = useLocalStorageFormPersistence({
-    storageKey: EXPOSURE_STORAGE_KEY,
+    ...exposureCalculatorPersistence,
     form,
     formValues,
-    persistKeys: ['originalTime', 'stops'],
-    validators: {
-      originalTime: {
-        validate: (v) => Number.isFinite(v),
-      },
-      stops: {
-        validate: (v) => Number.isFinite(v),
-      },
-    },
   });
 
   const handleAdjustStops = (increment: number) => {

@@ -8,7 +8,7 @@ import {
   DEFAULT_ORIGINAL_TIME,
   DEFAULT_ORIGINAL_WIDTH,
   matchesAspectRatio,
-  RESIZE_STORAGE_KEY,
+  resizeCalculatorPersistence,
   type ResizeCalculatorState,
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
@@ -37,7 +37,6 @@ import { useForm } from '@tanstack/react-form';
 import { useStore } from '@tanstack/react-store';
 import { useMemo } from 'react';
 import { useCalculatorAnalytics } from '../../lib/analytics/use-calculator-analytics';
-import { resizeHydrationValidators } from './hydration';
 
 const validateResizeForm = createZodFormValidator(resizeCalculatorSchema);
 
@@ -228,13 +227,13 @@ function InfoSection({ isEnlargerHeightMode }: InfoSectionProps) {
 
 const RESIZE_FORM_DEFAULTS: ResizeCalculatorState = {
   isEnlargerHeightMode: false,
-  originalWidth: Number(DEFAULT_ORIGINAL_WIDTH),
-  originalLength: Number(DEFAULT_ORIGINAL_LENGTH),
-  newWidth: Number(DEFAULT_NEW_WIDTH),
-  newLength: Number(DEFAULT_NEW_LENGTH),
-  originalTime: Number(DEFAULT_ORIGINAL_TIME),
-  originalHeight: Number(DEFAULT_ORIGINAL_HEIGHT),
-  newHeight: Number(DEFAULT_NEW_HEIGHT),
+  originalWidth: DEFAULT_ORIGINAL_WIDTH,
+  originalLength: DEFAULT_ORIGINAL_LENGTH,
+  newWidth: DEFAULT_NEW_WIDTH,
+  newLength: DEFAULT_NEW_LENGTH,
+  originalTime: DEFAULT_ORIGINAL_TIME,
+  originalHeight: DEFAULT_ORIGINAL_HEIGHT,
+  newHeight: DEFAULT_NEW_HEIGHT,
 };
 
 /** Screen-reader summary of the result; empty while any input is non-positive. */
@@ -386,7 +385,7 @@ function PrintSizeInputs({
                   field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
                 }}
                 onBlur={field.handleBlur}
-                placeholder={String(toDisplay(Number(DEFAULT_ORIGINAL_WIDTH)))}
+                placeholder={String(toDisplay(DEFAULT_ORIGINAL_WIDTH))}
                 step={0.1}
                 min={0}
                 unit={unitLabel}
@@ -403,7 +402,7 @@ function PrintSizeInputs({
                   field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
                 }}
                 onBlur={field.handleBlur}
-                placeholder={String(toDisplay(Number(DEFAULT_ORIGINAL_LENGTH)))}
+                placeholder={String(toDisplay(DEFAULT_ORIGINAL_LENGTH))}
                 step={0.1}
                 min={0}
                 unit={unitLabel}
@@ -431,7 +430,7 @@ function PrintSizeInputs({
                   field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
                 }}
                 onBlur={field.handleBlur}
-                placeholder={String(toDisplay(Number(DEFAULT_NEW_WIDTH)))}
+                placeholder={String(toDisplay(DEFAULT_NEW_WIDTH))}
                 step={0.1}
                 min={0}
                 unit={unitLabel}
@@ -448,7 +447,7 @@ function PrintSizeInputs({
                   field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
                 }}
                 onBlur={field.handleBlur}
-                placeholder={String(toDisplay(Number(DEFAULT_NEW_LENGTH)))}
+                placeholder={String(toDisplay(DEFAULT_NEW_LENGTH))}
                 step={0.1}
                 min={0}
                 unit={unitLabel}
@@ -487,7 +486,7 @@ function EnlargerHeightInputs({
                 field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
               }}
               onBlur={field.handleBlur}
-              placeholder={String(toDisplay(Number(DEFAULT_ORIGINAL_HEIGHT)))}
+              placeholder={String(toDisplay(DEFAULT_ORIGINAL_HEIGHT))}
               step={1}
               min={0}
               unit={unitLabel}
@@ -504,7 +503,7 @@ function EnlargerHeightInputs({
                 field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
               }}
               onBlur={field.handleBlur}
-              placeholder={String(toDisplay(Number(DEFAULT_NEW_HEIGHT)))}
+              placeholder={String(toDisplay(DEFAULT_NEW_HEIGHT))}
               step={1}
               min={0}
               unit={unitLabel}
@@ -582,7 +581,7 @@ function ResizeInputs({
                 field.handleChange(parsed);
               }}
               onBlur={field.handleBlur}
-              placeholder={DEFAULT_ORIGINAL_TIME}
+              placeholder={String(DEFAULT_ORIGINAL_TIME)}
               step={0.5}
               min={0}
               unit="seconds"
@@ -609,22 +608,13 @@ function useResizeForm() {
   // Subscribe to form values
   const formValues = useStore(form.store, (state) => state.values);
 
-  // Persist and hydrate form state to/from localStorage
+  // Persist and hydrate form state to/from localStorage. Persist keys and
+  // hydration validators derive from the schema's field bounds, so a tampered
+  // stored value falls back to its default.
   const { resetToDefaults } = useLocalStorageFormPersistence({
-    storageKey: RESIZE_STORAGE_KEY,
+    ...resizeCalculatorPersistence,
     form,
     formValues,
-    persistKeys: [
-      'isEnlargerHeightMode',
-      'originalWidth',
-      'originalLength',
-      'newWidth',
-      'newLength',
-      'originalTime',
-      'originalHeight',
-      'newHeight',
-    ],
-    validators: resizeHydrationValidators,
   });
 
   return { form, formValues, resetToDefaults };

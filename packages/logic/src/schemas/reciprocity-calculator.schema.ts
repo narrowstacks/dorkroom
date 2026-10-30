@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { RECIPROCITY_FILM_TYPES } from '../constants/reciprocity';
+import { RECIPROCITY_STORAGE_KEY } from '../types/reciprocity';
+import { definePersistedFormFields } from '../utils/persisted-form-fields';
 import { reciprocityFactorValidator } from './validators';
 
 /** Field schema for `meteredTime`, shared with localStorage hydration validation. */
@@ -30,6 +33,31 @@ export const reciprocityCalculatorSchema = z.object({
 
   meteredTime: reciprocityMeteredTimeSchema,
 });
+
+const filmTypeValues = new Set(
+  RECIPROCITY_FILM_TYPES.map((film) => film.value)
+);
+
+/**
+ * Per-field bounds for restoring the Reciprocity Calculator from localStorage.
+ *
+ * Stricter than the form schema in two places, because hydration has none of
+ * the form's guarantees: `filmType` must be a member of the film list the
+ * calculator looks factors up in (the form only needs a non-empty string, as
+ * the select can never produce anything else), and `customFactor` is required
+ * (the form's is optional-with-default, which would accept `undefined`).
+ */
+export const reciprocityPersistedFieldSchemas = {
+  filmType: z.string().refine((value) => filmTypeValues.has(value)),
+  meteredTime: reciprocityMeteredTimeSchema,
+  customFactor: reciprocityFactorValidator(),
+};
+
+/** Storage key, persist keys and hydration validators for the form. */
+export const reciprocityCalculatorPersistence = definePersistedFormFields(
+  RECIPROCITY_STORAGE_KEY,
+  reciprocityPersistedFieldSchemas
+);
 
 export type ReciprocityCalculatorFormData = z.infer<
   typeof reciprocityCalculatorSchema
