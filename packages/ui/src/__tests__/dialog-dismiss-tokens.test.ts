@@ -20,15 +20,33 @@ const componentsDir = join(
   'components'
 );
 
-/** Dialog components that must dismiss on Escape through the shared hook. */
+/**
+ * Dialog shells: the components that own a backdrop and must dismiss on
+ * Escape through the shared hook. Every other dialog renders through one of
+ * these (issue #458), so it inherits both.
+ */
 const DISMISSIBLE_DIALOGS = [
   'modal.tsx',
-  'confirm-modal.tsx',
-  'share-modal.tsx',
-  'save-before-share-modal.tsx',
   'drawer.tsx',
   'detail-panel/detail-panel.tsx',
 ] as const;
+
+/**
+ * Dialogs built on `Modal` or `ResponsiveModal` rather than a shell of their
+ * own (issue #458). They must not grow their own portal, backdrop or Escape
+ * listener back, or a focus-trap / scroll-lock fix would have to be repeated
+ * in each.
+ */
+const SHELL_DIALOGS = [
+  'confirm-modal.tsx',
+  'share-modal.tsx',
+  'save-before-share-modal.tsx',
+  'development-recipes/filmdev-preview-modal.tsx',
+  'development-recipes/shared-recipe-modal.tsx',
+] as const;
+
+/** Every dialog file, for the colour-token checks. */
+const ALL_DIALOGS = [...DISMISSIBLE_DIALOGS, ...SHELL_DIALOGS] as const;
 
 function readDialog(relativePath: string): string {
   return readFileSync(join(componentsDir, relativePath), 'utf8');
@@ -60,7 +78,7 @@ describe('dialog dismissal and colour tokens', () => {
     }
   );
 
-  it.each(DISMISSIBLE_DIALOGS)('%s uses no raw palette overlay', (file) => {
+  it.each(ALL_DIALOGS)('%s uses no raw palette overlay', (file) => {
     const source = readDialog(file);
 
     const rawOverlays = source.match(/bg-(?:black|white)(?:\/\d+)?\b/g);
@@ -68,7 +86,7 @@ describe('dialog dismissal and colour tokens', () => {
     expect(rawOverlays ?? []).toEqual([]);
   });
 
-  it.each(DISMISSIBLE_DIALOGS)(
+  it.each(ALL_DIALOGS)(
     '%s sets no raw colour keyword or hex in an inline style',
     (file) => {
       const source = readDialog(file);
@@ -136,13 +154,7 @@ describe('dialog dismissal and colour tokens', () => {
   );
 
   it('every dialog backdrop paints with the overlay token', () => {
-    const backdropOwners = [
-      'modal.tsx',
-      'confirm-modal.tsx',
-      'share-modal.tsx',
-      'save-before-share-modal.tsx',
-      'drawer.tsx',
-    ];
+    const backdropOwners = ['modal.tsx', 'drawer.tsx'];
 
     const missing = backdropOwners.filter(
       (file) => !readDialog(file).includes('--color-visualization-overlay')
@@ -150,4 +162,21 @@ describe('dialog dismissal and colour tokens', () => {
 
     expect(missing).toEqual([]);
   });
+
+  it.each(SHELL_DIALOGS)(
+    '%s renders through the shared Modal / ResponsiveModal shell',
+    (file) => {
+      const source = readDialog(file);
+
+      expect(source).toMatch(/<(?:Responsive)?Modal\b/);
+      // No shell of its own: no portal, no hand-rolled backdrop, no Escape
+      // listener, no inline Drawer/Modal switch.
+      expect(source).not.toMatch(/\bcreatePortal\(/);
+      expect(source).not.toMatch(/\buseEscapeKey\(/);
+      expect(source).not.toMatch(/\buseBodyScrollLock\(/);
+      expect(source).not.toMatch(/<Drawer\b/);
+      expect(source).not.toContain('--color-visualization-overlay');
+      expect(source).not.toMatch(/\bfixed inset-0\b/);
+    }
+  );
 });

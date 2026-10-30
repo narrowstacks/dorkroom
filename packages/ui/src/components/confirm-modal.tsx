@@ -1,8 +1,7 @@
 import { AlertTriangle } from 'lucide-react';
-import { createPortal } from 'react-dom';
-import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
-import { useEscapeKey } from '../hooks/use-escape-key';
-import { cssVars, hasGlobal } from '../lib/dom';
+import { useId } from 'react';
+import { cssVars } from '../lib/dom';
+import { Modal } from './modal';
 
 interface ConfirmModalProps {
   /** Whether the modal is currently visible */
@@ -44,8 +43,7 @@ export function ConfirmModal({
   isDestructive = false,
   isProcessing = false,
 }: ConfirmModalProps) {
-  useBodyScrollLock(isOpen);
-  useEscapeKey(isOpen, onClose);
+  const titleId = useId();
 
   const handleConfirm = () => {
     if (!isProcessing) {
@@ -53,40 +51,24 @@ export function ConfirmModal({
     }
   };
 
-  if (!hasGlobal('document') || !isOpen) {
-    return null;
-  }
-
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center px-4"
-      style={{ height: '100dvh' }}
+  // The shared Modal owns the portal, backdrop, scroll lock and Escape. The
+  // confirm keeps its own compact panel (max-w-sm, p-5) and heading, and
+  // lays the body out itself, so the body's overflow clip is lifted to keep
+  // the footer buttons' focus rings from being cut off at the panel edge.
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="sm"
+      hideCloseButton
+      ariaLabelledBy={titleId}
+      className="max-w-sm p-5"
+      bodyClassName="overflow-visible"
     >
-      {/* Backdrop: a real button so click-to-close works; hidden from AT and
-          the tab sequence since Escape and the Cancel button already cover
-          keyboard dismissal. */}
-      <button
-        type="button"
-        aria-hidden="true"
-        tabIndex={-1}
-        data-testid="confirm-modal-backdrop"
-        className="absolute inset-0 cursor-default backdrop-blur"
-        style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
-        onClick={onClose}
-      />
-      <dialog
-        open
-        aria-modal="true"
-        aria-label={title}
-        className="relative z-10 m-0 max-h-none w-full max-w-sm rounded-2xl border p-5 shadow-xl backdrop-blur-lg animate-scale-fade-in"
-        style={{
-          borderColor: 'var(--color-border-secondary)',
-          backgroundColor: 'var(--color-surface)',
-          color: 'var(--color-text-primary)',
-        }}
-      >
+      <div>
         {/* Header */}
         <h2
+          id={titleId}
           className="text-base font-semibold mb-3"
           style={{ color: 'var(--color-text-primary)' }}
         >
@@ -167,8 +149,7 @@ export function ConfirmModal({
             {isProcessing ? 'Deleting…' : confirmText}
           </button>
         </div>
-      </dialog>
-    </div>,
-    document.body
+      </div>
+    </Modal>
   );
 }
