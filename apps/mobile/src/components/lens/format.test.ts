@@ -121,4 +121,26 @@ describe('sensorOverlay', () => {
     expect(outer.h).toBeCloseTo(140);
     expect(outer.w).toBeCloseTo(140);
   });
+
+  it('keeps both rects inside the inset margin for every format pair', () => {
+    const inset = 1.5;
+    const within = (r: { x: number; y: number; w: number; h: number }) => {
+      expect(r.x).toBeGreaterThanOrEqual(inset - 1e-9);
+      expect(r.y).toBeGreaterThanOrEqual(inset - 1e-9);
+      expect(r.x + r.w).toBeLessThanOrEqual(220 - inset + 1e-9);
+      expect(r.y + r.h).toBeLessThanOrEqual(140 - inset + 1e-9);
+    };
+    for (const source of SENSOR_FORMATS) {
+      for (const target of SENSOR_FORMATS) {
+        const { outer, inner } = sensorOverlay(source, target, 220, 140, inset);
+        within(outer);
+        within(inner);
+        // The inner rect stays nested in the outer one.
+        expect(inner.x).toBeGreaterThanOrEqual(outer.x - 1e-9);
+        expect(inner.y).toBeGreaterThanOrEqual(outer.y - 1e-9);
+        expect(inner.x + inner.w).toBeLessThanOrEqual(outer.x + outer.w + 1e-9);
+        expect(inner.y + inner.h).toBeLessThanOrEqual(outer.y + outer.h + 1e-9);
+      }
+    }
+  });
 });

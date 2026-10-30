@@ -90,18 +90,24 @@ export interface SensorOverlay {
 /**
  * Lay two formats out to scale, larger one fitted to a `boxW`×`boxH` box and
  * the smaller one centred inside it. Mirrors the web SensorSizeVisualization.
+ * `inset` keeps that much margin on every side, so a stroke centred on the
+ * outer rect's edge isn't clipped by the box.
  */
 export function sensorOverlay(
   source: SensorFormat,
   target: SensorFormat,
   boxW: number,
-  boxH: number
+  boxH: number,
+  inset = 0
 ): SensorOverlay {
   const sourceIsOuter =
     source.width * source.height >= target.width * target.height;
   const big = sourceIsOuter ? source : target;
   const small = sourceIsOuter ? target : source;
-  const scale = Math.min(boxW / big.width, boxH / big.height);
+  const scale = Math.min(
+    (boxW - 2 * inset) / big.width,
+    (boxH - 2 * inset) / big.height
+  );
   const outerW = big.width * scale;
   const outerH = big.height * scale;
   const innerW = small.width * scale;

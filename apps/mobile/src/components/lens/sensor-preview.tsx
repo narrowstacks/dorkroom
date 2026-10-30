@@ -6,6 +6,7 @@ import { formatPairLabels, sensorOverlay } from './format';
 
 const BOX_W = 220;
 const BOX_H = 140;
+const STROKE_WIDTH = 1.5;
 
 interface SensorPreviewProps {
   source: SensorFormat;
@@ -18,7 +19,8 @@ export function SensorPreview({ source, target }: SensorPreviewProps) {
     source,
     target,
     BOX_W,
-    BOX_H
+    BOX_H,
+    STROKE_WIDTH
   );
   const sourceRect = sourceIsOuter ? outer : inner;
   const targetRect = sourceIsOuter ? inner : outer;
@@ -41,7 +43,7 @@ export function SensorPreview({ source, target }: SensorPreviewProps) {
           height={targetRect.h}
           fill={`${ACCENT.emerald}22`}
           stroke={ACCENT.emerald}
-          strokeWidth={1.5}
+          strokeWidth={STROKE_WIDTH}
           rx={2}
         />
         <Rect
@@ -53,7 +55,7 @@ export function SensorPreview({ source, target }: SensorPreviewProps) {
           stroke="#ffffff"
           strokeOpacity={0.5}
           strokeDasharray="4 3"
-          strokeWidth={1.5}
+          strokeWidth={STROKE_WIDTH}
           rx={2}
         />
       </Svg>

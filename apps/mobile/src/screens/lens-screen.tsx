@@ -60,6 +60,10 @@ export function LensScreen() {
     setFocalLength(parseFocalLengthInput(text));
   };
 
+  const labels = calculation
+    ? formatPairLabels(calculation.sourceFormat, calculation.targetFormat)
+    : null;
+
   const onSwap = () => {
     Haptics.selectionAsync();
     swapFormats();
@@ -111,22 +115,19 @@ export function LensScreen() {
         />
       </GlassCard>
 
-      {calculation ? (
+      {calculation && labels ? (
         <ResultCard accent="emerald" className="gap-3">
           <ResultStat
             accent="emerald"
             label="Equivalent focal length"
             value={formatFocalLength(calculation.equivalentFocalLength)}
-            helper={`On ${calculation.targetFormat.shortName}`}
+            helper={`On ${labels.target}`}
           />
           <FormulaRow
             formula={lensFormula(
               formatFocalLength(calculation.focalLength),
               formatFocalLength(calculation.equivalentFocalLength),
-              formatPairLabels(
-                calculation.sourceFormat,
-                calculation.targetFormat
-              )
+              labels
             )}
           />
           <SensorPreview
