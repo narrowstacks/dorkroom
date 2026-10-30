@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildCameraExposureShare,
   buildExposureShare,
   buildLensShare,
   buildReciprocityShare,
@@ -89,5 +90,16 @@ describe('share-text', () => {
     expect(out).toContain('80mm on 6×6 (Square) = 44mm on Full Frame (35mm)');
     expect(out).toContain('Field of view: 52.5° diagonal');
     expect(out).toContain('Crop factors: 0.55× → 1.00×');
+  });
+
+  it('formats a camera exposure result', () => {
+    const out = buildCameraExposureShare({
+      settings: 'f/16 · 1/125 · ISO 125',
+      ev: 15,
+      description: 'Bright sun',
+    });
+    expect(out).toBe(
+      'Camera Exposure\nSettings: f/16 · 1/125 · ISO 125\nEV: 15 (Bright sun)'
+    );
   });
 });

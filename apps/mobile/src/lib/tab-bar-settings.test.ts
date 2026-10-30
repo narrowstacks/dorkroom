@@ -26,20 +26,20 @@ describe('tab-bar-settings', () => {
     expect(getPinnedIds()).toEqual(DEFAULT_PINNED_IDS.slice(0, MAX_PINNED));
   });
 
-  it('drops a comingSoon tool (camera-exposure) from a stored set', () => {
-    setPinnedIds(['camera-exposure', 'border']);
+  it('drops a non-pinnable tool (film-log) from a stored set', () => {
+    setPinnedIds(['film-log', 'border']);
     const result = getPinnedIds();
-    expect(result).not.toContain('camera-exposure');
+    expect(result).not.toContain('film-log');
     expect(result).toContain('border');
   });
 
-  it('keeps a pinned lens tool now that it is implemented', () => {
-    setPinnedIds(['lens', 'border']);
-    expect(getPinnedIds()).toEqual(['lens', 'border']);
+  it('keeps pinned lens and camera-exposure tools now that both are implemented', () => {
+    setPinnedIds(['lens', 'camera-exposure']);
+    expect(getPinnedIds()).toEqual(['lens', 'camera-exposure']);
   });
 
-  it('falls back to defaults when the stored set is only comingSoon ids', () => {
-    setPinnedIds(['camera-exposure']);
+  it('falls back to defaults when the stored set is only non-pinnable ids', () => {
+    setPinnedIds(['film-log', 'recipes']);
     expect(getPinnedIds()).toEqual(DEFAULT_PINNED_IDS.slice(0, MAX_PINNED));
   });
 });

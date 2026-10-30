@@ -32,10 +32,17 @@ describe('tool registry', () => {
 });
 
 describe('isPinnable', () => {
-  it('returns false for every comingSoon tool', () => {
-    for (const tool of TOOLS.filter((t) => t.comingSoon)) {
-      expect(isPinnable(tool)).toBe(false);
-    }
+  it('returns false for a comingSoon tool', () => {
+    // No tool is a stub today; the flag stays for the next one.
+    const stub: Tool = {
+      id: 'stub',
+      label: 'Stub',
+      icon: 'focus',
+      route: '/more/lens',
+      category: 'camera',
+      comingSoon: true,
+    };
+    expect(isPinnable(stub)).toBe(false);
   });
 
   it('returns false for film-log and recipes', () => {
@@ -45,9 +52,11 @@ describe('isPinnable', () => {
     expect(isPinnable(getTool('recipes') as Tool)).toBe(false);
   });
 
-  it('returns true for lens now that its screen is implemented', () => {
+  it('returns true for lens and camera-exposure now that both are implemented', () => {
     // SAFETY: 'lens' is an id hardcoded in TOOLS (see tools.ts).
     expect(isPinnable(getTool('lens') as Tool)).toBe(true);
+    // SAFETY: 'camera-exposure' is an id hardcoded in TOOLS (see tools.ts).
+    expect(isPinnable(getTool('camera-exposure') as Tool)).toBe(true);
   });
 
   it('returns true for border', () => {
@@ -55,11 +64,11 @@ describe('isPinnable', () => {
     expect(isPinnable(getTool('border') as Tool)).toBe(true);
   });
 
-  // Update this set when a stub screen (camera-exposure) gets ported to a real
-  // screen — see issues #259 and #260.
+  // Add an id here when a new tool lands as a stub screen. Lenses and Camera
+  // Exposure were the last ones (issues #259, #260).
   it('flags exactly the current stub screens as comingSoon', () => {
     const comingSoonIds = TOOLS.filter((t) => t.comingSoon).map((t) => t.id);
-    expect(comingSoonIds).toEqual(['camera-exposure']);
+    expect(comingSoonIds).toEqual([]);
   });
 
   it('DEFAULT_PINNED_IDS contains no non-pinnable tool', () => {
