@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { FilmRoll, FilmStock } from '@/types/film-log';
+import type { FilmRoll, FilmStock } from '@/schemas/film-log.schema';
 import {
   buildFilmSections,
   resolveFilmStockName,

@@ -5,7 +5,7 @@
 import { ImageFormat, Skia } from '@shopify/react-native-skia';
 import * as FileSystem from 'expo-file-system/legacy';
 import { generateId } from '@/lib/id';
-import type { FilmProcess, ShotPhoto } from '@/types/film-log';
+import type { FilmProcess, ShotPhoto } from '@/schemas/film-log.schema';
 
 if (!FileSystem.documentDirectory) {
   throw new Error('expo-file-system documentDirectory unavailable');

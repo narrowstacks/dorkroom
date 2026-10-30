@@ -6,7 +6,7 @@ import { GradientBackground } from '@/components/gradient-background';
 import { useCameras, useRolls } from '@/hooks/use-film-log';
 import { formatProcess } from '@/lib/film-log-options';
 import { shareRollsAsJson } from '@/lib/film-log-share';
-import type { FilmRoll } from '@/types/film-log';
+import type { FilmRoll } from '@/schemas/film-log.schema';
 
 const STATUS_LABEL = {
   active: 'Active',

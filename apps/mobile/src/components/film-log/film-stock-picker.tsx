@@ -9,7 +9,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomSheet } from '@/components/bottom-sheet';
 import { SearchBar } from '@/components/development/search-bar';
-import type { FilmStock } from '@/types/film-log';
+import type { FilmStock } from '@/schemas/film-log.schema';
 import { buildFilmSections, type FilmSection } from './film-stock-picker-logic';
 
 interface FilmStockPickerProps {

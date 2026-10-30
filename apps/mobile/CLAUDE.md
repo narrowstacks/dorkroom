@@ -140,6 +140,10 @@ because it is a permanent tab).
     guard reads with `Number.isFinite`.
   - Film log data is validated with Zod on read (`src/schemas/film-log.schema.ts`).
     It is user data with no server copy, so a parse failure must degrade, not throw.
+    The film-log types (`FilmRoll`, `Shot`, `Camera`, ...) are `z.infer` of
+    those schemas and exported from the same file. Add a field to the schema
+    only: zod strips unlisted keys, so a field on a hand-written type would be
+    erased on the next MMKV read.
 - Server data goes through TanStack Query (`providers/query-client.ts`: no
   window-focus refetch, retry 2, 5-min `staleTime`) and is **persisted to MMKV**
   by `PersistQueryClientProvider`. `gcTime` is kept equal to the persister's

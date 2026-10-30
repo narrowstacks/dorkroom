@@ -1,5 +1,10 @@
 // Shared option lists + label helpers for the film-log forms.
-import type { Camera, CameraFormat, FilmProcess, Shot } from '@/types/film-log';
+import type {
+  Camera,
+  CameraFormat,
+  FilmProcess,
+  Shot,
+} from '@/schemas/film-log.schema';
 
 /** The lens used on the most recent shot of a roll that recorded one, if any.
  * Used to pre-select the likely lens for the next shot. */

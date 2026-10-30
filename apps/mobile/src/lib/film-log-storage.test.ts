@@ -4,6 +4,14 @@ import { ensurePhotoDir, photoUri } from '@/lib/film-log-photos';
 // The runner points 'expo-file-system/legacy' at this in-memory implementation;
 // its reset hook is not part of the real module's API, so it is imported from
 // the implementation itself (same module, so the same store).
+import type {
+  Camera,
+  FilmRoll,
+  FilmStock,
+  Lens,
+  Shot,
+  ShotPhoto,
+} from '@/schemas/film-log.schema';
 import { resetFileSystem } from '@/test/expo-file-system';
 import {
   addCamera,
@@ -19,6 +27,10 @@ import {
   KEYS,
   parseRolls,
   removeShot,
+  setCameras,
+  setCustomFilms,
+  setLenses,
+  setRolls,
   setShotPhoto,
   storage,
   updateRoll,
@@ -52,6 +64,80 @@ async function shotWithPhoto(fileName: string) {
   });
   return { rollId: roll.id, shotId: shot.id };
 }
+
+// Every optional field populated. The primary guard against fields being
+// erased on read (issue #452) is that the types are `z.infer` of the schemas,
+// so a field exists in both or neither; `Required<>` then makes a new schema
+// field a compile error here until the fixture sets it. The round-trip
+// assertion below catches a future transform or pick on the read/write path
+// that drops a field.
+const fullPhoto = {
+  fileName: 'p.jpg',
+  width: 4032,
+  height: 3024,
+  capturedAt: '2026-06-24T00:00:00.000Z',
+  source: 'meter',
+  grayscale: true,
+} satisfies Required<ShotPhoto>;
+
+const fullShot = {
+  id: 's1',
+  frameNumber: 3,
+  aperture: 8,
+  shutterSpeed: 0.008,
+  photo: fullPhoto,
+  lensId: 'lens1',
+  back: 'A12 #2',
+  notes: 'backlit',
+  takenAt: '2026-06-24T00:00:00.000Z',
+  source: 'meter',
+} satisfies Required<Shot>;
+
+const fullRoll = {
+  id: 'r1',
+  name: 'Trip',
+  cameraId: 'cam1',
+  filmStockId: 'kodak-tri-x',
+  filmStockName: 'Kodak Tri-X 400',
+  process: 'bw',
+  iso: 800,
+  pushPull: 1,
+  back: 'A12 #1',
+  status: 'finished',
+  shots: [fullShot],
+  startedAt: '2026-06-20T00:00:00.000Z',
+  finishedAt: '2026-06-25T00:00:00.000Z',
+  notes: 'pushed one stop',
+  createdAt: '2026-06-20T00:00:00.000Z',
+  updatedAt: '2026-06-25T00:00:00.000Z',
+} satisfies Required<FilmRoll>;
+
+const fullCamera = {
+  id: 'cam1',
+  name: 'Hasselblad 500C/M',
+  format: '120',
+  backs: ['A12 #1', 'A12 #2'],
+  notes: 'needs new seals',
+  createdAt: '2026-01-01T00:00:00.000Z',
+} satisfies Required<Camera>;
+
+const fullLens = {
+  id: 'lens1',
+  name: 'Planar 80mm',
+  cameraId: 'cam1',
+  focalLength: 80,
+  maxAperture: 2.8,
+  notes: 'C T*',
+  createdAt: '2026-01-01T00:00:00.000Z',
+} satisfies Required<Lens>;
+
+const fullFilm = {
+  id: 'custom-1',
+  brand: 'Kodak',
+  name: 'Double-X',
+  iso: 250,
+  process: 'bw',
+} satisfies Required<FilmStock>;
 
 describe('film-log storage', () => {
   beforeEach(async () => {
@@ -152,6 +238,22 @@ describe('film-log storage', () => {
     expect(film.id.startsWith('custom-')).toBe(true);
     expect(getCustomFilms()).toHaveLength(1);
     expect(getCustomFilms()[0]?.iso).toBe(250);
+  });
+
+  it('round-trips every field of every collection unchanged', () => {
+    setRolls([fullRoll]);
+    setCameras([fullCamera]);
+    setLenses([fullLens]);
+    setCustomFilms([fullFilm]);
+    expect(getRolls()).toEqual([fullRoll]);
+    expect(getCameras()).toEqual([fullCamera]);
+    expect(getLenses()).toEqual([fullLens]);
+    expect(getCustomFilms()).toEqual([fullFilm]);
+  });
+
+  it('keeps a null lens cameraId (used across bodies)', () => {
+    setLenses([{ ...fullLens, cameraId: null }]);
+    expect(getLenses()[0]?.cameraId).toBeNull();
   });
 
   it('falls back to [] on corrupt JSON', () => {

@@ -1,7 +1,7 @@
 // Pure grouping/filtering + save-guard logic for the film stock picker.
 // Kept free of React so it's covered by fast, colocated vitest tests
 // (see apps/mobile/CLAUDE.md "Testing reality").
-import type { FilmRoll, FilmStock } from '@/types/film-log';
+import type { FilmRoll, FilmStock } from '@/schemas/film-log.schema';
 
 export interface FilmSection {
   title: string;
