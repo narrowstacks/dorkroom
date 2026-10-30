@@ -1,4 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  ANONYMOUS_RATE_LIMIT,
+  ANONYMOUS_RATE_WINDOW_MS,
+} from '../edgeRateLimit';
 import type { HandlerConfig, UnkeyClient } from '../withHandler';
 import { createMockRequest, createMockResponse } from './mock-vercel';
 
@@ -630,8 +634,8 @@ describe('withHandler', () => {
       expect(ratelimitLimitMock).toHaveBeenCalledExactlyOnceWith({
         namespace: 'test-api-anonymous',
         identifier: '203.0.113.5',
-        limit: 30,
-        duration: 60_000,
+        limit: ANONYMOUS_RATE_LIMIT,
+        duration: ANONYMOUS_RATE_WINDOW_MS,
       });
       expect(ran).toHaveBeenCalledOnce();
       expect(res._status).toBe(200);
@@ -653,6 +657,7 @@ describe('withHandler', () => {
     });
 
     it('fails open outside production when the create_namespace permission is missing', async () => {
+      vi.stubEnv('NODE_ENV', 'development');
       ratelimitLimitMock.mockRejectedValueOnce(
         new Error('Missing permission: ratelimit.*.create_namespace')
       );
