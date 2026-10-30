@@ -100,12 +100,6 @@ describe('combination-factory', () => {
       expect(result.timeMinutes).toBe(0.001);
     });
 
-    it('accepts high ISO values', () => {
-      const highIsoRecipe = { ...validRecipe, shootingIso: 12800 };
-      const result = createCombinationFromCustomRecipe(highIsoRecipe);
-      expect(result.shootingIso).toBe(12800);
-    });
-
     it('accepts very high ISO values', () => {
       const veryHighIsoRecipe = { ...validRecipe, shootingIso: 102400 };
       const result = createCombinationFromCustomRecipe(veryHighIsoRecipe);

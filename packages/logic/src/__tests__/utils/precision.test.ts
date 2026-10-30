@@ -1,5 +1,6 @@
 import {
   createMemoKey,
+  formatForDisplay,
   roundToPrecision,
   roundToStandardPrecision,
 } from '../../utils/precision';
@@ -93,6 +94,24 @@ describe('precision utilities', () => {
       const key1 = createMemoKey(1, 2, 3);
       const key2 = createMemoKey(3, 2, 1);
       expect(key1).not.toBe(key2);
+    });
+  });
+
+  describe('formatForDisplay', () => {
+    it('rounds to three decimals and drops trailing zeros', () => {
+      expect(formatForDisplay(Math.PI)).toBe('3.142');
+      expect(formatForDisplay(2.5)).toBe('2.5');
+      expect(formatForDisplay(8)).toBe('8');
+    });
+
+    it('hides floating-point artifacts', () => {
+      expect(formatForDisplay(1.00001)).toBe('1');
+      expect(formatForDisplay(0.1 + 0.2)).toBe('0.3');
+      expect(formatForDisplay(25.4 / 2.54)).toBe('10');
+    });
+
+    it('keeps the sign on negative values', () => {
+      expect(formatForDisplay(-1.23456)).toBe('-1.235');
     });
   });
 });

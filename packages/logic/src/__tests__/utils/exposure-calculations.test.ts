@@ -1,6 +1,8 @@
 import {
+  calculateExposureAdjustment,
   calculateNewExposureTime,
   calculatePercentageIncrease,
+  calculatePushPull,
   formatExposureTime,
   parseExposureTime,
   roundStopsToThirds,
@@ -54,7 +56,8 @@ describe('exposure calculations', () => {
     it('should handle negative values', () => {
       expect(roundStopsToThirds(-1.15)).toBe(-1.15); // not close enough to round
       expect(roundStopsToThirds(-1.34)).toBeCloseTo(-1.33, 2); // close enough to round
-      expect(roundStopsToThirds(-0.67)).toBeCloseTo(-0.67, 2); // exact third
+      // -0.67 is within tolerance of -2/3 and snaps to it exactly
+      expect(roundStopsToThirds(-0.67)).toBeCloseTo(-2 / 3, 4);
     });
 
     it('should preserve values within tolerance', () => {
@@ -118,11 +121,10 @@ describe('exposure calculations', () => {
       expect(parseExposureTime('120')).toBe(120);
     });
 
+    // Comma parsing itself is covered by input-validation.test.ts; this
+    // pins that parseExposureTime routes through it (#318).
     it('should accept a comma decimal separator (#318)', () => {
       expect(parseExposureTime('12,5')).toBe(12.5);
-      expect(parseExposureTime(',5')).toBe(0.5);
-      expect(parseExposureTime(' 0,25 ')).toBe(0.25);
-      expect(parseExposureTime('12,')).toBe(12);
     });
 
     it('should handle whitespace', () => {
@@ -182,6 +184,72 @@ describe('exposure calculations', () => {
       expect(calculatePercentageIncrease(2.5, 5)).toBe(100);
       expect(calculatePercentageIncrease(3.33, 6.66)).toBeCloseTo(100, 1);
       expect(calculatePercentageIncrease(1.5, 1.8)).toBeCloseTo(20, 1);
+    });
+  });
+
+  describe('calculatePushPull', () => {
+    it('returns positive stops for a push, rounded to two decimals', () => {
+      expect(calculatePushPull(800, 400)).toBe(1);
+      expect(calculatePushPull(1600, 400)).toBe(2);
+      // FP4 (125) at 400: log2(3.2) = 1.678...
+      expect(calculatePushPull(400, 125)).toBe(1.68);
+    });
+
+    it('returns negative stops for a pull', () => {
+      expect(calculatePushPull(200, 400)).toBe(-1);
+      // log2(0.75) = -0.415...
+      expect(calculatePushPull(75, 100)).toBe(-0.42);
+    });
+
+    it('returns 0 at box speed', () => {
+      expect(calculatePushPull(400, 400)).toBe(0);
+    });
+
+    it('returns 0 for non-positive inputs', () => {
+      expect(calculatePushPull(0, 400)).toBe(0);
+      expect(calculatePushPull(400, 0)).toBe(0);
+      expect(calculatePushPull(-400, 400)).toBe(0);
+      expect(calculatePushPull(400, -400)).toBe(0);
+    });
+  });
+
+  describe('calculateExposureAdjustment', () => {
+    it('assembles the readout for a one-stop increase', () => {
+      expect(calculateExposureAdjustment(10, 1)).toEqual({
+        originalTimeValue: 10,
+        stopsValue: 1,
+        newTimeValue: 20,
+        addedTime: 10,
+        percentageIncrease: 100,
+        isValid: true,
+      });
+    });
+
+    it('reports a negative added time and percentage for a decrease', () => {
+      expect(calculateExposureAdjustment(20, -1)).toEqual({
+        originalTimeValue: 20,
+        stopsValue: -1,
+        newTimeValue: 10,
+        addedTime: -10,
+        percentageIncrease: -50,
+        isValid: true,
+      });
+    });
+
+    it('returns null for a non-positive or non-finite metered time', () => {
+      expect(calculateExposureAdjustment(0, 1)).toBeNull();
+      expect(calculateExposureAdjustment(-5, 1)).toBeNull();
+      expect(calculateExposureAdjustment(Number.NaN, 1)).toBeNull();
+      expect(
+        calculateExposureAdjustment(Number.POSITIVE_INFINITY, 1)
+      ).toBeNull();
+    });
+
+    it('returns null for non-finite stops', () => {
+      expect(calculateExposureAdjustment(10, Number.NaN)).toBeNull();
+      expect(
+        calculateExposureAdjustment(10, Number.POSITIVE_INFINITY)
+      ).toBeNull();
     });
   });
 });
