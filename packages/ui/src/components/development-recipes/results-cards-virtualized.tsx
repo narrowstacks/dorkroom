@@ -15,7 +15,7 @@ import {
   Star,
   Trash2,
 } from 'lucide-react';
-import { type FC, useMemo, useRef, useState } from 'react';
+import { type FC, useCallback, useMemo, useRef, useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { useColumnCount } from '../../hooks/use-column-count';
 import { cn } from '../../lib/cn';
@@ -474,8 +474,21 @@ export const DevelopmentResultsCardsVirtualized: FC<
   const internalRef = useRef<HTMLDivElement>(null);
   const parentRef = scrollContainerRef || internalRef;
 
+  // The container also lives in state so useColumnCount re-measures whenever
+  // the element mounts or changes; the ref stays for the caller's scrolling.
+  const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
+    null
+  );
+  const attachScrollContainer = useCallback(
+    (element: HTMLDivElement | null) => {
+      parentRef.current = element;
+      setScrollElement(element);
+    },
+    [parentRef]
+  );
+
   // Calculate number of columns based on container width (responsive)
-  const columnCount = useColumnCount(parentRef, isMobile);
+  const columnCount = useColumnCount(scrollElement, isMobile);
 
   // Memoize the debounced observer to prevent recreation on every render
   const debouncedObserveElementRect = useMemo(
@@ -503,7 +516,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
 
   return (
     <div
-      ref={parentRef}
+      ref={attachScrollContainer}
       // p-2 (8px) adds padding so the card hover scale effect isn't clipped
       // at the scroll container edges; overflow-auto enables virtualized scroll.
       className="overflow-auto p-2"

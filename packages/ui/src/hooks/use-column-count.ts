@@ -1,5 +1,5 @@
 import { columnCountForWidth } from '@dorkroom/logic';
-import { type RefObject, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { RESIZE_DEBOUNCE_MS } from '../lib/resize-debounce';
 
 interface UseColumnCountOptions {
@@ -19,11 +19,17 @@ interface UseColumnCountOptions {
  * The first measurement is immediate; later resizes go through a debounced
  * `ResizeObserver` so rapid resizing cannot lock up the browser.
  *
- * @param containerRef - The scroll container whose width sets the columns
+ * Takes the element itself rather than a ref, so callers hold it in state via
+ * a callback ref. A container that mounts after the first render (behind a
+ * loading skeleton, say) then re-runs the effect; a ref object would not, and
+ * the grid would stay on its default count with no observer attached.
+ *
+ * @param container - The scroll container whose width sets the columns, or
+ *   null while it is not mounted
  * @param isMobile - Whether the page is in its mobile layout
  */
 export function useColumnCount(
-  containerRef: RefObject<HTMLDivElement | null>,
+  container: HTMLElement | null,
   isMobile: boolean,
   { mobileColumns }: UseColumnCountOptions = {}
 ): number {
@@ -31,10 +37,7 @@ export function useColumnCount(
   const isFixed = isMobile && mobileColumns !== undefined;
 
   useEffect(() => {
-    if (isFixed) return;
-
-    const container = containerRef.current;
-    if (!container) return;
+    if (isFixed || !container) return;
 
     // Track mount state to prevent updates after unmount
     let isMounted = true;
@@ -81,7 +84,7 @@ export function useColumnCount(
       }
       observer.disconnect();
     };
-  }, [containerRef, isMobile, isFixed]);
+  }, [container, isMobile, isFixed]);
 
   return isFixed ? mobileColumns : observedColumnCount;
 }

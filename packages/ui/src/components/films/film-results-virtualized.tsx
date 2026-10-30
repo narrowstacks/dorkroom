@@ -1,7 +1,7 @@
 import type { Film } from '@dorkroom/api';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { Film as FilmIcon } from 'lucide-react';
-import { type FC, useMemo, useRef } from 'react';
+import { type FC, useMemo, useState } from 'react';
 import { useColumnCount } from '../../hooks/use-column-count';
 import { cn } from '../../lib/cn';
 import {
@@ -63,11 +63,14 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
   onClearFilters,
   hasActiveFilters = false,
 }) => {
-  const parentRef = useRef<HTMLDivElement>(null);
+  // The measured element changes with the state (skeleton grid while loading,
+  // scroll container once results render), so it lives in state: each mount
+  // re-renders and lets useColumnCount measure and observe the new element.
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
 
   // Base column count from the container width. The mobile film grid is
   // always two columns of compact cards.
-  const baseColumnCount = useColumnCount(parentRef, isMobile, {
+  const baseColumnCount = useColumnCount(container, isMobile, {
     mobileColumns: 2,
   });
 
@@ -91,7 +94,7 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
 
   const rowVirtualizer = useVirtualizer({
     count: Math.ceil(films.length / columnCount),
-    getScrollElement: () => parentRef.current,
+    getScrollElement: () => container,
     estimateSize: () => CARD_ROW_ESTIMATED_HEIGHT,
     overscan: CARD_OVERSCAN,
     // Use debounced resize observation to prevent browser lockups during rapid resizing
@@ -108,6 +111,7 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
     const skeletonColumns = isDetailOpen && !isMobile ? 1 : columnCount;
     return (
       <div
+        ref={setContainer}
         className={cn('grid gap-2', className)}
         style={{
           gridTemplateColumns: `repeat(${skeletonColumns}, minmax(0, 1fr))`,
@@ -174,7 +178,7 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
 
   return (
     <div
-      ref={parentRef}
+      ref={setContainer}
       // p-2 (8px) adds padding so the card hover scale effect isn't clipped
       // at the scroll container edges; overflow-auto enables virtualized scroll.
       className={cn('overflow-auto p-2', className)}

@@ -299,12 +299,10 @@ describe.each([
     expect(filmCard(/Store Brand 400/)).toBeInTheDocument();
     expect(filmCard(/Kodak Portra 400/)).toBeInTheDocument();
 
-    // Desktop shows the hook's 3-column default, not the 4 a 1300px container
-    // measures: the catalog arrives after the loading skeleton, which has no
-    // container ref, so the measuring effect ran once against null and never
-    // re-ran. Pinned as current behavior; it is not a breakpoint concern.
+    // Desktop measures the 1300px results container (Tailwind xl) even though
+    // the catalog arrives after the loading skeleton has unmounted.
     expect(hp5.parentElement?.style.gridTemplateColumns).toBe(
-      mobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))'
+      mobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))'
     );
   });
 
@@ -445,10 +443,10 @@ describe.each([
     await renderFilmsPage({ mobile });
 
     expect(screen.queryByText('No films found')).not.toBeInTheDocument();
-    // Three rows of the column count: 2 on mobile, and on desktop the 3-column
-    // default, since the skeleton grid has no container to measure.
+    // Three rows of the column count: 2 on mobile, and on desktop the 4 the
+    // 1300px skeleton grid measures.
     expect(screen.getAllByLabelText('Loading film card')).toHaveLength(
-      mobile ? 6 : 9
+      mobile ? 6 : 12
     );
   });
 
