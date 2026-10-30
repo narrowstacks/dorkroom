@@ -256,6 +256,7 @@ describe('text-sanitization', () => {
       // runs of "<" with no ">". Pin the bound itself: a tag body of up to
       // 2000 characters is stripped, a longer one is left alone.
       expect(sanitizeText(`<${'a'.repeat(1999)}>`)).toBe('');
+      expect(sanitizeText(`<${'a'.repeat(2000)}>`)).toBe('');
       expect(sanitizeText(`<${'a'.repeat(2001)}>`)).toHaveLength(2003);
     });
 
