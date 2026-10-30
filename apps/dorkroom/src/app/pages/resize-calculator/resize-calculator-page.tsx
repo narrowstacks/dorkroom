@@ -25,6 +25,7 @@ import {
   CalculatorLayout,
   CalculatorNumberField,
   CalculatorStat,
+  ResultAnnouncer,
 } from '@dorkroom/ui/calculator';
 import {
   createZodFormValidator,
@@ -233,6 +234,13 @@ const RESIZE_FORM_DEFAULTS: ResizeCalculatorState = {
   originalHeight: Number(DEFAULT_ORIGINAL_HEIGHT),
   newHeight: Number(DEFAULT_NEW_HEIGHT),
 };
+
+/** Screen-reader summary of the result; empty while any input is non-positive. */
+function describeResizeResult(values: ResizeCalculatorState): string {
+  const { newTime, stopsDifference } = calculateResizeExposure(values);
+  if (!newTime) return '';
+  return `New time ${newTime} seconds, ${stopsDifference || '0.00'} stops`;
+}
 
 type ResizeForm = ReturnType<typeof useResizeForm>['form'];
 type MeasurementConverter = ReturnType<typeof useMeasurementConverter>;
@@ -661,23 +669,26 @@ export default function ResizeCalculatorPage() {
   );
 
   return (
-    <CalculatorLayout
-      title="Print Resize Calculator"
-      icon={getRouteIcon('/resize')}
-      accentTone="teal"
-      description="Scale a print up or down and get a solid starting exposure without burning through paper."
-      results={results}
-      sidebar={
-        <InfoSection isEnlargerHeightMode={formValues.isEnlargerHeightMode} />
-      }
-    >
-      <ResizeInputs
-        form={form}
-        unitLabel={unitLabel}
-        toDisplay={toDisplay}
-        toInches={toInches}
-        formValues={formValues}
-      />
-    </CalculatorLayout>
+    <>
+      <ResultAnnouncer message={describeResizeResult(formValues)} />
+      <CalculatorLayout
+        title="Print Resize Calculator"
+        icon={getRouteIcon('/resize')}
+        accentTone="teal"
+        description="Scale a print up or down and get a solid starting exposure without burning through paper."
+        results={results}
+        sidebar={
+          <InfoSection isEnlargerHeightMode={formValues.isEnlargerHeightMode} />
+        }
+      >
+        <ResizeInputs
+          form={form}
+          unitLabel={unitLabel}
+          toDisplay={toDisplay}
+          toInches={toInches}
+          formValues={formValues}
+        />
+      </CalculatorLayout>
+    </>
   );
 }

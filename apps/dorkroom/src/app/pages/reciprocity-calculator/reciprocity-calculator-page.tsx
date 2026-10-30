@@ -22,6 +22,7 @@ import {
   CalculatorLayout,
   CalculatorNumberField,
   CalculatorStat,
+  ResultAnnouncer,
 } from '@dorkroom/ui/calculator';
 import {
   createZodFormValidator,
@@ -70,6 +71,14 @@ function selectReciprocityCalculation(
     filmType: values.filmType,
     customFactor: values.customFactor,
   });
+}
+
+/** Screen-reader summary of the result; empty while the metered time is unparseable. */
+function describeReciprocityResult(
+  calculation: ReciprocityCalculation | null
+): string {
+  if (!calculation) return '';
+  return `Adjusted exposure ${formatReciprocityTime(calculation.adjustedTime)} for ${calculation.filmName}`;
 }
 
 function ReciprocitySidebar() {
@@ -516,27 +525,36 @@ export default function ReciprocityCalculatorPage() {
   );
 
   return (
-    <CalculatorLayout
-      title="Reciprocity Failure Calculator"
-      icon={getRouteIcon('/reciprocity')}
-      accentTone="amber"
-      description={
-        <>
-          Long exposures need more time than your meter says.
-          <br />
-          Pick a film, enter the metered time, and get the corrected exposure.
-        </>
-      }
-      sidebar={<ReciprocitySidebar />}
-      results={results}
-      footer={wideChartFooter || undefined}
-    >
-      <ReciprocityInputs
-        form={form}
-        filmOptions={filmOptions}
-        exposurePresets={exposurePresets}
-        parsedDisplay={parsedDisplay}
-      />
-    </CalculatorLayout>
+    <>
+      <form.Subscribe
+        selector={(state) =>
+          describeReciprocityResult(selectReciprocityCalculation(state.values))
+        }
+      >
+        {(message) => <ResultAnnouncer message={message} />}
+      </form.Subscribe>
+      <CalculatorLayout
+        title="Reciprocity Failure Calculator"
+        icon={getRouteIcon('/reciprocity')}
+        accentTone="amber"
+        description={
+          <>
+            Long exposures need more time than your meter says.
+            <br />
+            Pick a film, enter the metered time, and get the corrected exposure.
+          </>
+        }
+        sidebar={<ReciprocitySidebar />}
+        results={results}
+        footer={wideChartFooter || undefined}
+      >
+        <ReciprocityInputs
+          form={form}
+          filmOptions={filmOptions}
+          exposurePresets={exposurePresets}
+          parsedDisplay={parsedDisplay}
+        />
+      </CalculatorLayout>
+    </>
   );
 }

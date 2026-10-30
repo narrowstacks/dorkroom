@@ -15,6 +15,7 @@ import {
   CalculatorLayout,
   CalculatorNumberField,
   CalculatorStat,
+  ResultAnnouncer,
 } from '@dorkroom/ui/calculator';
 import {
   createZodFormValidator,
@@ -40,6 +41,17 @@ const TIPS = [
   'The math is logarithmic: new exposure = original × 2^stops. Fractional stops give you finer control.',
   'For consistent print density, recalculate exposure any time you change aperture between test strip and final print.',
 ];
+
+/** Screen-reader summary of the result; empty while the inputs are invalid. */
+function describeStopsResult(values: ExposureFormState): string {
+  const calculation = calculateExposureAdjustment(
+    values.originalTime,
+    values.stops
+  );
+  if (!calculation) return '';
+  const sign = calculation.stopsValue > 0 ? '+' : '';
+  return `New exposure time ${formatExposureTime(calculation.newTimeValue)}, ${sign}${calculation.stopsValue} stops`;
+}
 
 interface StopButtonProps {
   preset: ExposurePreset;
@@ -241,167 +253,170 @@ export default function ExposureCalculatorPage() {
   );
 
   return (
-    <CalculatorLayout
-      title="Exposure Stop Calculator"
-      icon={getRouteIcon('/stops')}
-      accentTone="blue"
-      description={
-        <>
-          Adjust exposure times by stops for darkroom printing.
-          <br />
-          Recalculate your exposure when switching apertures between test strips
-          and final prints.
-        </>
-      }
-      sidebar={
-        <CalculatorCard
-          title="How this calculator works"
-          padding="normal"
-          className="bg-surface-muted/80"
-        >
-          <div className="space-y-6">
-            <p
-              className="text-[15px] leading-relaxed"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              Each stop doubles or halves the amount of light hitting your
-              paper. When you change aperture between a test strip and your
-              final print, use this to figure out the new exposure time.
-            </p>
-
-            <div className="space-y-3">
-              <h3
-                className="text-sm font-semibold"
-                style={{ color: 'var(--color-text-primary)' }}
+    <>
+      <ResultAnnouncer message={describeStopsResult(formValues)} />
+      <CalculatorLayout
+        title="Exposure Stop Calculator"
+        icon={getRouteIcon('/stops')}
+        accentTone="blue"
+        description={
+          <>
+            Adjust exposure times by stops for darkroom printing.
+            <br />
+            Recalculate your exposure when switching apertures between test
+            strips and final prints.
+          </>
+        }
+        sidebar={
+          <CalculatorCard
+            title="How this calculator works"
+            padding="normal"
+            className="bg-surface-muted/80"
+          >
+            <div className="space-y-6">
+              <p
+                className="text-[15px] leading-relaxed"
+                style={{ color: 'var(--color-text-secondary)' }}
               >
-                How to use
-              </h3>
-              <ol className="ml-5 space-y-2 list-decimal">
-                {HOW_TO_USE.map((item) => (
-                  <li
-                    key={item}
-                    className="pl-2 text-[15px] leading-relaxed"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ol>
-            </div>
+                Each stop doubles or halves the amount of light hitting your
+                paper. When you change aperture between a test strip and your
+                final print, use this to figure out the new exposure time.
+              </p>
 
-            <div className="space-y-3">
-              <h3
-                className="text-sm font-semibold"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                Tips
-              </h3>
-              <ul className="ml-5 space-y-2 list-disc">
-                {TIPS.map((tip) => (
-                  <li
-                    key={tip}
-                    className="pl-2 text-[15px] leading-relaxed"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                  >
-                    {tip}
-                  </li>
-                ))}
-              </ul>
+              <div className="space-y-3">
+                <h3
+                  className="text-sm font-semibold"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  How to use
+                </h3>
+                <ol className="ml-5 space-y-2 list-decimal">
+                  {HOW_TO_USE.map((item) => (
+                    <li
+                      key={item}
+                      className="pl-2 text-[15px] leading-relaxed"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                    >
+                      {item}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              <div className="space-y-3">
+                <h3
+                  className="text-sm font-semibold"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  Tips
+                </h3>
+                <ul className="ml-5 space-y-2 list-disc">
+                  {TIPS.map((tip) => (
+                    <li
+                      key={tip}
+                      className="pl-2 text-[15px] leading-relaxed"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                    >
+                      {tip}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </div>
-        </CalculatorCard>
-      }
-      results={results}
-    >
-      <CalculatorCard
-        title="Exposure inputs"
-        description="Set your base time and dial in the stop adjustment."
+          </CalculatorCard>
+        }
+        results={results}
       >
-        <form.Field name="originalTime">
-          {(field) => (
-            <CalculatorNumberField
-              label="Original exposure time (seconds)"
-              value={String(field.state.value)}
-              onChange={(value: string) => {
-                const parsed = parseFloat(value);
-                // CalculatorNumberField only calls onChange once the draft
-                // parses to a finite number, so this guard is unreachable
-                // from normal typing - it only protects against
-                // programmatic misuse.
-                if (Number.isFinite(parsed)) {
-                  field.handleChange(parsed);
+        <CalculatorCard
+          title="Exposure inputs"
+          description="Set your base time and dial in the stop adjustment."
+        >
+          <form.Field name="originalTime">
+            {(field) => (
+              <CalculatorNumberField
+                label="Original exposure time (seconds)"
+                value={String(field.state.value)}
+                onChange={(value: string) => {
+                  const parsed = parseFloat(value);
+                  // CalculatorNumberField only calls onChange once the draft
+                  // parses to a finite number, so this guard is unreachable
+                  // from normal typing - it only protects against
+                  // programmatic misuse.
+                  if (Number.isFinite(parsed)) {
+                    field.handleChange(parsed);
+                  }
+                }}
+                onBlur={field.handleBlur}
+                placeholder="10"
+                step={0.1}
+                helperText="Base exposure time you want to adjust"
+                error={
+                  field.state.meta.errors.length > 0
+                    ? field.state.meta.errors.join(', ')
+                    : undefined
                 }
-              }}
-              onBlur={field.handleBlur}
-              placeholder="10"
-              step={0.1}
-              helperText="Base exposure time you want to adjust"
-              error={
-                field.state.meta.errors.length > 0
-                  ? field.state.meta.errors.join(', ')
-                  : undefined
-              }
-            />
-          )}
-        </form.Field>
+              />
+            )}
+          </form.Field>
 
-        <fieldset className="space-y-3 border-0 p-0 m-0">
-          <legend className="text-sm font-medium text-primary">
-            Stop adjustment
-          </legend>
+          <fieldset className="space-y-3 border-0 p-0 m-0">
+            <legend className="text-sm font-medium text-primary">
+              Stop adjustment
+            </legend>
 
-          <div className="space-y-4">
-            {/* All adjustment buttons and input on same line */}
-            <div className="flex flex-wrap items-center gap-3 justify-center">
-              {/* Negative adjustment buttons */}
-              {EXPOSURE_PRESETS.flatMap((preset) =>
-                preset.stops < 0
-                  ? [
-                      <StopButton
-                        key={preset.label}
-                        preset={preset}
-                        onPress={handleAdjustStops}
-                      />,
-                    ]
-                  : []
-              )}
-
-              {/* Custom stop value input */}
-              <form.Field name="stops">
-                {(field) => (
-                  <StopsNumberInput
-                    value={field.state.value}
-                    onChange={field.handleChange}
-                    onBlur={field.handleBlur}
-                    error={
-                      field.state.meta.errors.length > 0
-                        ? field.state.meta.errors.join(', ')
-                        : undefined
-                    }
-                  />
+            <div className="space-y-4">
+              {/* All adjustment buttons and input on same line */}
+              <div className="flex flex-wrap items-center gap-3 justify-center">
+                {/* Negative adjustment buttons */}
+                {EXPOSURE_PRESETS.flatMap((preset) =>
+                  preset.stops < 0
+                    ? [
+                        <StopButton
+                          key={preset.label}
+                          preset={preset}
+                          onPress={handleAdjustStops}
+                        />,
+                      ]
+                    : []
                 )}
-              </form.Field>
 
-              {/* Positive adjustment buttons */}
-              {EXPOSURE_PRESETS.flatMap((preset) =>
-                preset.stops > 0
-                  ? [
-                      <StopButton
-                        key={preset.label}
-                        preset={preset}
-                        onPress={handleAdjustStops}
-                      />,
-                    ]
-                  : []
-              )}
+                {/* Custom stop value input */}
+                <form.Field name="stops">
+                  {(field) => (
+                    <StopsNumberInput
+                      value={field.state.value}
+                      onChange={field.handleChange}
+                      onBlur={field.handleBlur}
+                      error={
+                        field.state.meta.errors.length > 0
+                          ? field.state.meta.errors.join(', ')
+                          : undefined
+                      }
+                    />
+                  )}
+                </form.Field>
+
+                {/* Positive adjustment buttons */}
+                {EXPOSURE_PRESETS.flatMap((preset) =>
+                  preset.stops > 0
+                    ? [
+                        <StopButton
+                          key={preset.label}
+                          preset={preset}
+                          onPress={handleAdjustStops}
+                        />,
+                      ]
+                    : []
+                )}
+              </div>
+
+              <p className="text-xs text-center text-tertiary">
+                Positive values increase exposure, negative decrease
+              </p>
             </div>
-
-            <p className="text-xs text-center text-tertiary">
-              Positive values increase exposure, negative decrease
-            </p>
-          </div>
-        </fieldset>
-      </CalculatorCard>
-    </CalculatorLayout>
+          </fieldset>
+        </CalculatorCard>
+      </CalculatorLayout>
+    </>
   );
 }
