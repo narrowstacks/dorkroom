@@ -1,5 +1,8 @@
-import { parseDecimalInput, useResizeCalculator } from '@dorkroom/logic';
-import { useState } from 'react';
+import {
+  getDisplayUnitLabel,
+  parseDecimalInput,
+  useResizeCalculator,
+} from '@dorkroom/logic';
 import { Text, View } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
 import { LabeledTextField } from '@/components/labeled-text-field';
@@ -11,6 +14,7 @@ import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { SegmentedControl } from '@/components/segmented-control';
 import { ShareButton } from '@/components/share-button';
+import { useMeasurementUnit } from '@/hooks/use-measurement-unit';
 import { buildResizeShare } from '@/lib/share-text';
 
 const num = (s: string) => parseDecimalInput(s) || 0;
@@ -38,7 +42,12 @@ export function ResizeScreen() {
     isAspectRatioMatched,
   } = useResizeCalculator();
 
-  const [unit, setUnit] = useState<'in' | 'cm'>('in');
+  // The global preference, not a screen-local override: like web, where the
+  // one Imperial/Metric toggle drives every page, flipping it here also flips
+  // Settings and Border. Sizes are only relabelled, never converted; the
+  // exposure math uses their ratio, which is unit-free.
+  const [measurementUnit, setMeasurementUnit] = useMeasurementUnit();
+  const unit = getDisplayUnitLabel(measurementUnit);
 
   const stopsHelper = (() => {
     const diff = Number.parseFloat(stopsDifference);
@@ -85,11 +94,11 @@ export function ResizeScreen() {
               <SegmentedControl
                 accent="teal"
                 options={[
-                  { label: 'Inches', value: 'in' },
-                  { label: 'Centimeters', value: 'cm' },
+                  { label: 'Inches', value: 'imperial' },
+                  { label: 'Centimeters', value: 'metric' },
                 ]}
-                value={unit}
-                onChange={setUnit}
+                value={measurementUnit}
+                onChange={setMeasurementUnit}
               />
             </View>
             <View className="flex-row gap-3">

@@ -1,4 +1,4 @@
-import type { BorderCalculation } from '@dorkroom/logic';
+import type { BorderCalculation, MeasurementUnit } from '@dorkroom/logic';
 import { useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { BladeReadings } from './blade-readings';
@@ -11,6 +11,7 @@ interface BorderPreviewProps {
   calculation: BorderCalculation;
   showBlades: boolean;
   showBladeReadings: boolean;
+  unit: MeasurementUnit;
 }
 
 /** Native paper/print/blade visualization (replaces the web CSS preview). */
@@ -18,6 +19,7 @@ export function BorderPreview({
   calculation,
   showBlades,
   showBladeReadings,
+  unit,
 }: BorderPreviewProps) {
   const [containerWidth, setContainerWidth] = useState(0);
 
@@ -108,6 +110,7 @@ export function BorderPreview({
               calculation={calculation}
               boxWidth={box.width}
               boxHeight={box.height}
+              unit={unit}
             />
           )}
         </View>
