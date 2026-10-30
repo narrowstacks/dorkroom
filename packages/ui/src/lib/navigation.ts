@@ -172,6 +172,8 @@ interface RouteTextByPath {
   readonly [path: string]: string;
 }
 
+// Copied verbatim in utils/routeMetadata.ts; keep both in sync
+// (tools/__tests__/route-metadata-sync.test.ts fails if they diverge).
 export const ROUTE_TITLES: RouteTextByPath = {
   '/': 'Home',
   '/border': 'Border Calculator',
