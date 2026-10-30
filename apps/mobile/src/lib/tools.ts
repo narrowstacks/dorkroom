@@ -91,7 +91,6 @@ export const TOOLS: readonly Tool[] = [
     icon: 'focus',
     route: '/more/lens',
     category: 'camera',
-    comingSoon: true,
   },
   {
     id: 'camera-exposure',

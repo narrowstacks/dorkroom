@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildExposureShare,
+  buildLensShare,
   buildReciprocityShare,
   buildResizeShare,
 } from './share-text';
@@ -72,5 +73,21 @@ describe('share-text', () => {
     expect(out).toContain('Added: 3m 42s (740%)');
     expect(out).toContain('Factor: 1.54');
     expect(out).not.toContain('dorkroom.art');
+  });
+
+  it('formats a lens equivalency result', () => {
+    const out = buildLensShare({
+      focalLength: '80mm',
+      sourceFormat: '6×6 (Square)',
+      equivalentFocalLength: '44mm',
+      targetFormat: 'Full Frame (35mm)',
+      fieldOfView: 52.5,
+      sourceCropFactor: 0.546,
+      targetCropFactor: 1,
+    });
+    expect(out).toContain('Lens Equivalency');
+    expect(out).toContain('80mm on 6×6 (Square) = 44mm on Full Frame (35mm)');
+    expect(out).toContain('Field of view: 52.5° diagonal');
+    expect(out).toContain('Crop factors: 0.55× → 1.00×');
   });
 });

@@ -26,15 +26,20 @@ describe('tab-bar-settings', () => {
     expect(getPinnedIds()).toEqual(DEFAULT_PINNED_IDS.slice(0, MAX_PINNED));
   });
 
-  it('drops a comingSoon tool (lens) from a stored set', () => {
-    setPinnedIds(['lens', 'border']);
+  it('drops a comingSoon tool (camera-exposure) from a stored set', () => {
+    setPinnedIds(['camera-exposure', 'border']);
     const result = getPinnedIds();
-    expect(result).not.toContain('lens');
+    expect(result).not.toContain('camera-exposure');
     expect(result).toContain('border');
   });
 
+  it('keeps a pinned lens tool now that it is implemented', () => {
+    setPinnedIds(['lens', 'border']);
+    expect(getPinnedIds()).toEqual(['lens', 'border']);
+  });
+
   it('falls back to defaults when the stored set is only comingSoon ids', () => {
-    setPinnedIds(['lens', 'camera-exposure']);
+    setPinnedIds(['camera-exposure']);
     expect(getPinnedIds()).toEqual(DEFAULT_PINNED_IDS.slice(0, MAX_PINNED));
   });
 });
