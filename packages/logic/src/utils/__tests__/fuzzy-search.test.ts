@@ -244,6 +244,16 @@ describe('fuzzy-search', () => {
 
         expect(results).toEqual([]);
       });
+
+      it.each(['!!!', '- -'])(
+        'returns every film, in input order, for punctuation-only "%s"',
+        (query) => {
+          const results = searchFilms(mockFilms, query);
+          expect(results.map((r) => r.item.uuid)).toEqual(
+            mockFilms.map((f) => f.uuid)
+          );
+        }
+      );
     });
 
     describe('Result ordering and relevance', () => {
@@ -343,6 +353,106 @@ describe('fuzzy-search', () => {
           expect(uuids(query)).toEqual(mockFilms.map((film) => film.uuid));
         }
       );
+    });
+  });
+
+  describe('alias search', () => {
+    const aliasFilm: Film = {
+      ...mockFilms[0],
+      id: 99,
+      uuid: 'f99',
+      slug: 'agfa-apx-400',
+      brand: 'Agfa',
+      name: 'APX 400',
+      aliases: [
+        { slug: 'agfa-apx-400', name: 'Zebrafoo Classic' },
+        { slug: 'agfa-apx-400-b', name: 'Quux-Ultra/Pro' },
+      ],
+    };
+    const films = [...mockFilms, aliasFilm];
+
+    it('returns a film when the query matches an alias name', () => {
+      const results = searchFilms(films, 'Zebrafoo');
+      expect(results.map((r) => r.item.slug)).toContain('agfa-apx-400');
+    });
+
+    it('normalizes punctuation in alias names like other fields', () => {
+      const results = searchFilms(films, 'quuxultrapro');
+      expect(results.map((r) => r.item.slug)).toContain('agfa-apx-400');
+    });
+  });
+
+  describe('alias search with real-world alias data', () => {
+    const base = mockFilms[0];
+    const make = (id: number, name: string, aliasNames: string[]): Film => ({
+      ...base,
+      id,
+      uuid: `r${id}`,
+      slug: `kodak-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      brand: 'Kodak',
+      name,
+      aliases: aliasNames.map((n) => ({ slug: `s${id}`, name: n })),
+    });
+    // Mirrors the migration shape: brand-prefixed display names and
+    // slug-form names on the same model as the current name.
+    const withAliases: Film[] = [
+      make(201, 'Tri-X 400', ['Kodak Tri-X 400', 'kodak-tri-x-400']),
+      make(202, 'T-Max 400', ['Kodak T-Max 400', 'kodak-t-max-400']),
+      make(203, 'Portra 400', []),
+      make(204, 'UltraMax 400', [
+        'Kodak Gold Ultra 400',
+        'Kodacolor Gold',
+        'kodak-ultramax-400',
+      ]),
+      make(205, 'Gold 200', ['Kodak Gold 200']),
+    ];
+    const withoutAliases = withAliases.map((f) => ({ ...f, aliases: [] }));
+    const summary = (films: Film[], q: string) =>
+      searchFilms(films, q).map((r) => [r.item.uuid, r.score]);
+
+    it('ranks a current-name query first despite redundant aliases', () => {
+      const results = searchFilms(withAliases, 'Gold');
+      expect(results.map((r) => r.item.uuid)).toEqual(['r205', 'r204']);
+    });
+
+    it('gives a redundant alias the same scores as no alias', () => {
+      expect(summary(withAliases, 'gold 200')).toEqual(
+        summary(withoutAliases, 'gold 200')
+      );
+    });
+
+    it.each(['400', 'kodak'])(
+      'scores "%s" the same with and without aliases',
+      (q) => {
+        expect(summary(withAliases, q)).toEqual(summary(withoutAliases, q));
+      }
+    );
+
+    it('finds a film by a former name that adds new information', () => {
+      const results = searchFilms(withAliases, 'Kodacolor');
+      expect(results.map((r) => r.item.uuid)).toEqual(['r204']);
+    });
+
+    it('finds a film by a multi-word former-name query', () => {
+      const results = searchFilms(withAliases, 'kodak kodacolor');
+      expect(results.map((r) => r.item.uuid)).toContain('r204');
+    });
+
+    it('matches brand and former-name words together', () => {
+      // "kodak" only matches the brand; "elite chrome" only the alias.
+      const ektachrome = make(206, 'Ektachrome E100', [
+        'Kodak Elite Chrome 100',
+      ]);
+      const results = searchFilms(
+        [...withAliases, ektachrome],
+        'kodak elite chrome'
+      );
+      expect(results.map((r) => r.item.uuid)).toEqual(['r206']);
+    });
+
+    it('still works when films have no aliases', () => {
+      const results = searchFilms(withAliases, 'portra');
+      expect(results[0].item.uuid).toBe('r203');
     });
   });
 

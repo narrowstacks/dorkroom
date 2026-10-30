@@ -1,5 +1,5 @@
 import type { Film } from '@dorkroom/api';
-import type { FuseResult, IFuseOptions } from 'fuse.js';
+import type { Expression, FuseResult, IFuseOptions } from 'fuse.js';
 import Fuse from 'fuse.js';
 import { z } from 'zod';
 
@@ -37,13 +37,21 @@ const defaultGetFn = Fuse.config.getFn;
 /** Fuse's default getFn is untyped and yields undefined for absent paths. */
 const indexedText = z.string();
 
-/** Search keys with weights (higher = more important) */
-const FILM_SEARCH_KEYS = [
+/** Keys describing a film as it is sold today (higher weight = more important) */
+const CURRENT_SEARCH_KEYS = [
   { name: 'name', weight: 2.0 }, // High priority - film name
   { name: 'brand', weight: 2.0 }, // High priority - manufacturer
   { name: 'colorType', weight: 1.0 }, // Medium priority - color/BW classification
-  { name: 'aliases', weight: 1.5 }, // Former names should be findable
 ];
+
+/**
+ * Former names. Searched only as a fallback (see searchFilms): alias names
+ * usually repeat the brand and current name, so scoring them alongside the
+ * current keys would boost every aliased film on its own name.
+ */
+const ALIAS_SEARCH_KEY = { name: 'aliases.name', weight: 1.0 };
+
+const FILM_SEARCH_KEYS = [...CURRENT_SEARCH_KEYS, ALIAS_SEARCH_KEY];
 
 /**
  * Configuration options for film search
@@ -102,8 +110,18 @@ export function createFilmSearcher(films: Film[]): Fuse<Film> {
   return new Fuse(films, FILM_SEARCH_OPTIONS);
 }
 
+/** Fuse logical expression: the term must match at least one of `keys`. */
+function anyKey(keys: string[], term: string): Expression {
+  return { $or: keys.map((key) => ({ [key]: term })) };
+}
+
 /**
  * Search films with a query string
+ *
+ * Films matching on their current name, brand, or color type come first,
+ * ranked by score. Films found only through a former name (alias) follow,
+ * so an alias makes a film findable without lifting it above films whose
+ * current name is the better match.
  *
  * Convenience wrapper that creates a searcher and executes the search.
  * For repeated searches on the same dataset, create a searcher once
@@ -138,25 +156,38 @@ export function searchFilms(
     // order, as an empty Fuse query does, rather than "no results".
     return searcher.search('');
   }
+  const currentKeys = CURRENT_SEARCH_KEYS.map((key) => key.name);
+  const allKeys = FILM_SEARCH_KEYS.map((key) => key.name);
 
-  // Single word: search directly
+  const currentResults = searchKeys(searcher, tokens, currentKeys);
+  const currentIds = new Set(currentResults.map((r) => r.item.uuid));
+  const aliasOnlyResults = searchKeys(searcher, tokens, allKeys).filter(
+    (r) => !currentIds.has(r.item.uuid)
+  );
+
+  return [...currentResults, ...aliasOnlyResults];
+}
+
+/**
+ * Run one ranked search restricted to `keys`.
+ *
+ * A single word is matched directly. Multi-word queries search both the
+ * joined form ("tri x" -> "trix") and the tokenized AND form
+ * ("kodak portra" -> kodak AND portra), then merge results by best score.
+ */
+function searchKeys(
+  searcher: Fuse<Film>,
+  tokens: string[],
+  keys: string[]
+): FilmSearchResult[] {
+  const joinedResults = searcher.search(anyKey(keys, tokens.join('')));
   if (tokens.length === 1) {
-    return searcher.search(tokens[0]);
+    return joinedResults;
   }
 
-  // Multi-word: search both the joined form ("tri x" -> "trix") and
-  // the tokenized AND form ("kodak portra" -> kodak AND portra),
-  // then merge results by best score
-  const joinedResults = searcher.search(tokens.join(''));
-
-  const keyNames = FILM_SEARCH_KEYS.map((key) => key.name);
-
-  const expression = {
-    $and: tokens.map((token) => ({
-      $or: keyNames.map((name) => ({ [name]: token })),
-    })),
-  };
-  const tokenResults = searcher.search(expression);
+  const tokenResults = searcher.search({
+    $and: tokens.map((token) => anyKey(keys, token)),
+  });
 
   // Merge and deduplicate, keeping the best score for each film
   const seen = new Map<string, FilmSearchResult>();
