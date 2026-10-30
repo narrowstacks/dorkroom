@@ -1,4 +1,4 @@
-import { cn, MobileSidebar } from '@dorkroom/ui';
+import { cn, MobileSidebar, useBreakpoint } from '@dorkroom/ui';
 import { Menu, X } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePresence } from './use-presence';
@@ -51,18 +51,15 @@ export function MobileNav({ pathname, onNavigate }: MobileNavProps) {
     return undefined;
   }, [isMobileMenuOpen]);
 
-  // Close when the viewport crosses the sm breakpoint (640px)
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 640px)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      if (e.matches) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    mq.addEventListener('change', handleChange);
-    return () => mq.removeEventListener('change', handleChange);
-  }, []);
+  // Close when the viewport crosses up past the sm breakpoint (640px), where
+  // the toggle is hidden. React's "adjust state when a value changes" pattern:
+  // compared during render, so the drawer never paints open past sm.
+  const isSmUp = useBreakpoint('sm');
+  const [wasSmUp, setWasSmUp] = useState(isSmUp);
+  if (isSmUp !== wasSmUp) {
+    setWasSmUp(isSmUp);
+    if (isSmUp) setIsMobileMenuOpen(false);
+  }
 
   // Close on Escape
   useEffect(() => {

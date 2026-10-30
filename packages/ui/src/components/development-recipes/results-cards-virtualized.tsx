@@ -16,8 +16,9 @@ import {
   Star,
   Trash2,
 } from 'lucide-react';
-import { type FC, useEffect, useMemo, useRef, useState } from 'react';
+import { type FC, useMemo, useRef, useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
+import { useColumnCount } from '../../hooks/use-column-count';
 import { cn } from '../../lib/cn';
 import { cssVars, hasGlobal } from '../../lib/dom';
 import type { ShareResult } from '../share-button';
@@ -42,96 +43,7 @@ import {
   DEFAULT_CONTAINER_HEIGHT,
   MAX_CONTAINER_HEIGHT,
   MIN_CONTAINER_HEIGHT,
-  RESIZE_DEBOUNCE_MS,
 } from './virtualization-constants';
-
-/** Tailwind breakpoint widths in pixels */
-const BREAKPOINT_XL = 1280;
-const BREAKPOINT_LG = 1024;
-const BREAKPOINT_SM = 640;
-/** Below this width the mobile grid collapses to 1 column (plan 009 item 5). */
-const BREAKPOINT_MOBILE_2COL = 480;
-
-/**
- * Hook to calculate responsive column count based on container width.
- *
- * Desktop: matches Tailwind breakpoints sm:640px, lg:1024px, xl:1280px.
- * Mobile: 1 column below 480px, 2 columns at 480px and above.
- *
- * Uses debounced ResizeObserver to prevent browser lockups during rapid resizing.
- */
-function useResponsiveColumnCount(
-  containerRef: React.RefObject<HTMLDivElement | null>,
-  isMobile: boolean
-): number {
-  const [observedColumnCount, setColumnCount] = useState(isMobile ? 2 : 3);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const calculateColumns = (width: number): number => {
-      if (isMobile) {
-        // 1-col below 480px, 2-col at 480px+ (plan 009 item 5)
-        return width >= BREAKPOINT_MOBILE_2COL ? 2 : 1;
-      }
-      // Match Tailwind breakpoints for grid-cols
-      if (width >= BREAKPOINT_XL) return 4; // xl
-      if (width >= BREAKPOINT_LG) return 3; // lg
-      if (width >= BREAKPOINT_SM) return 2; // sm
-      return 1;
-    };
-
-    // Track mount state to prevent updates after unmount
-    let isMounted = true;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-    let lastColumnCount: number | null = null;
-
-    const updateColumnCount = (width: number) => {
-      const newColumnCount = calculateColumns(width);
-      // Skip update if column count hasn't changed
-      if (lastColumnCount === newColumnCount) return;
-      lastColumnCount = newColumnCount;
-      setColumnCount(newColumnCount);
-    };
-
-    const debouncedUpdate = (width: number) => {
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-      }
-      timeoutId = setTimeout(() => {
-        if (isMounted) {
-          updateColumnCount(width);
-        }
-        timeoutId = null;
-      }, RESIZE_DEBOUNCE_MS);
-    };
-
-    const observer = new ResizeObserver((entries) => {
-      // Prevent state updates if component unmounted during async callback
-      if (!isMounted) return;
-
-      for (const entry of entries) {
-        const width = entry.contentRect.width;
-        debouncedUpdate(width);
-      }
-    });
-
-    observer.observe(container);
-    // Initial calculation (not debounced)
-    updateColumnCount(container.clientWidth);
-
-    return () => {
-      isMounted = false; // Set flag first to prevent any in-flight callbacks
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-      }
-      observer.disconnect();
-    };
-  }, [containerRef, isMobile]);
-
-  return observedColumnCount;
-}
 
 interface DevelopmentResultsCardsVirtualizedProps {
   table: Table<DevelopmentCombinationView>;
@@ -563,7 +475,7 @@ export const DevelopmentResultsCardsVirtualized: FC<
   const parentRef = scrollContainerRef || internalRef;
 
   // Calculate number of columns based on container width (responsive)
-  const columnCount = useResponsiveColumnCount(parentRef, isMobile);
+  const columnCount = useColumnCount(parentRef, isMobile);
 
   // Memoize the debounced observer to prevent recreation on every render
   const debouncedObserveElementRect = useMemo(

@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import type { FC, ReactNode } from 'react';
-import { useIsMobile } from '../hooks/useIsMobile';
+import { useIsMobile } from '../hooks/use-breakpoint';
 import { cn } from '../lib/cn';
 import { Drawer, DrawerBody, DrawerContent } from './drawer';
 import { Modal } from './modal';

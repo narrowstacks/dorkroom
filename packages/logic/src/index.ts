@@ -16,6 +16,7 @@
 
 // Constants exports
 export * from './constants/border-calculator';
+export * from './constants/breakpoints';
 export * from './constants/border-calculator-defaults';
 export * from './constants/calculations';
 export * from './constants/camera-exposure-defaults';
