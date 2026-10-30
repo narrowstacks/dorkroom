@@ -19,11 +19,7 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **`@dorkroom/api` throws its documented `DorkroomApiError`.** Every client failure used to be a plain `Error` with the status folded into the message, so callers couldn't tell a 404 from a 500. Errors now carry `statusCode` and `endpoint` (and `cause` for network and parse failures), aborted requests pass through unwrapped, and a new optional `onInvalidRows` callback reports rows dropped by validation. Existing messages are unchanged. (#446, part of #289 and #254)
 - **The site honors your system's "reduce motion" setting by default.** Animations used to be on for everyone until switched off in Settings. With nothing chosen, they now follow the OS setting, and the OS setting stops CSS motion even if the in-app toggle is on. A choice you made in Settings still applies. (#414, fixes #351)
 - **The home page preview pauses when you can't see it.** The animated border preview on the home page stops cycling while it is scrolled offscreen or the tab is hidden. (#415, fixes #355)
-- **Bigger stepper buttons on /mat.** The up/down buttons next to each mat measurement are larger and easier to tap. (#398, fixes #349)
-- **Clearer reciprocity tip.** The tip on /reciprocity claimed Pan F+ stays linear longer than Delta 3200, which the calculator's own table contradicts. It now uses T-Max 100 vs. Tri-X as the example. (#413, fixes #344)
-- **Dorkroom can be installed as an app on desktop Chrome and Edge.** The installed app also always opens on the home page, not the page you installed it from. (#412, fixes #335)
 - **Stricter security headers and patched dependencies.** dorkroom.art can no longer be embedded in frames on other sites, and dependencies with known vulnerabilities were upgraded. (#405, #388, #406)
-- **The public API returns 400 for bad requests instead of 502.** An invalid query now gets a 400 with the reason, so clients stop retrying requests that will never succeed. (#394, fixes #332)
 
 ### Fixed
 
@@ -38,13 +34,17 @@ This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.
 - **The desktop film detail panel names the real base film** on the "Repackaged …" line, as the mobile layout already did. (#363, fixes #329)
 - **Recipe filters on /development behave as expected.** "Clear filters" now also turns off "Favorites only" (#364, fixes #327). Picking a developer clears the hidden developer-type filter, which could leave 0 results with no way to undo it (#365, fixes #325). An invalid value in the URL no longer stops filters from syncing to the address bar, and search now covers your custom recipes too (#389, fixes #371 and #326).
 - **Reciprocity accepts a decimal comma.** `1,5` was flagged as invalid and lost on reload. (#389, fixes #373)
+- **Clearer reciprocity tip.** The tip on /reciprocity claimed Pan F+ stays linear longer than Delta 3200, which the calculator's own table contradicts. It now uses T-Max 100 vs. Tri-X as the example. (#413, fixes #344)
 - **Hover states work on recipe details.** The pills, Edit/Delete buttons and links in a recipe's details had no hover effect. (#389, fixes #297)
 - **/development has a proper page heading** for screen readers, and the "How this calculator works" cards no longer skip heading levels. (#389, fixes #350)
 - **Mat gap values show up.** When the window is larger than the art, the "Actual overlap" warning and "Actual reveal" row were blank. They now show negative values. (#366, fixes #342)
+- **Bigger stepper buttons on /mat.** The up/down buttons next to each mat measurement are larger and easier to tap. (#398, fixes #349)
 - **The phone navigation menu has its own close button.** The button that opened it was hidden under the open menu, so tapping where it had been opened Settings instead. (#367, fixes #346)
 - **The home page no longer scrolls sideways on 320px-wide screens.** The heading, footer links and the /border Readings button now fit. (#392, fixes #348)
 - **Unknown pages tell search engines they don't exist.** They return 404 and are marked not to be indexed. (#395, fixes #334)
+- **Dorkroom can be installed as an app on desktop Chrome and Edge.** The installed app also always opens on the home page, not the page you installed it from. (#412, fixes #335)
 - **Unknown `api.dorkroom.art` paths return a JSON 404** instead of the website's HTML. (#391, fixes #331)
+- **The public API returns 400 for bad requests instead of 502.** An invalid query now gets a 400 with the reason, so clients stop retrying requests that will never succeed. (#394, fixes #332)
 - **API recipe pages no longer repeat or skip recipes.** Recipes created at the same moment could show up on two pages of `/combinations` results, or on none. (#390, fixes #336)
 
 ## [2026.09.22]
