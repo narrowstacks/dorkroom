@@ -66,6 +66,25 @@ function makeRequest(params?: Record<string, string>): Request {
   return new Request(url.toString());
 }
 
+const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+
+/**
+ * `ImageResponse` answers 200 + image/png before anything is drawn and renders
+ * lazily, so a status check passes even when the render is broken. Reading the
+ * body forces the render; the PNG signature proves it produced an image.
+ */
+async function pngBytes(res: Response): Promise<Buffer> {
+  expect(res.status).toBe(200);
+  const bytes = Buffer.from(await res.arrayBuffer());
+  expect(Array.from(bytes.subarray(0, PNG_MAGIC.length))).toEqual(PNG_MAGIC);
+  return bytes;
+}
+
+/** Render `params` against the default stub (every upstream lookup is empty). */
+async function renderCard(params?: Record<string, string>): Promise<Buffer> {
+  return pngBytes(await handler(makeRequest(params)));
+}
+
 const originalFetch = globalThis.fetch;
 
 beforeEach(() => {
@@ -83,14 +102,8 @@ afterEach(() => {
 });
 
 describe('og handler - static routes', () => {
-  it('returns a 200 response for known route', async () => {
-    const res = await handler(makeRequest({ route: '/border' }));
-    expect(res.status).toBe(200);
-  });
-
-  it('returns image/png content type', async () => {
-    const res = await handler(makeRequest({ route: '/border' }));
-    expect(res.headers.get('content-type')).toBe('image/png');
+  it('renders a PNG for a known route', async () => {
+    await renderCard({ route: '/border' });
   });
 
   it('sets cache-control header', async () => {
@@ -98,14 +111,35 @@ describe('og handler - static routes', () => {
     expect(res.headers.get('cache-control')).toContain('s-maxage=86400');
   });
 
-  it('defaults to home route when no route param', async () => {
-    const res = await handler(makeRequest());
-    expect(res.status).toBe(200);
+  it('draws a different card for each page', async () => {
+    const [home, border, settings] = await Promise.all([
+      renderCard({ route: '/' }),
+      renderCard({ route: '/border' }),
+      renderCard({ route: '/settings' }),
+    ]);
+
+    expect(border.equals(home)).toBe(false);
+    expect(settings.equals(home)).toBe(false);
+    expect(settings.equals(border)).toBe(false);
   });
 
-  it('handles unknown routes without throwing', async () => {
-    const res = await handler(makeRequest({ route: '/some-unknown-page' }));
-    expect(res.status).toBe(200);
+  it('defaults to the home card when there is no route param', async () => {
+    const [bare, home] = await Promise.all([
+      renderCard(),
+      renderCard({ route: '/' }),
+    ]);
+
+    expect(bare.equals(home)).toBe(true);
+  });
+
+  it('renders an unknown route as a generic card without any upstream lookup', async () => {
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(EMPTY_LIST))
+    );
+
+    await renderCard({ route: '/some-unknown-page' });
+
+    expect(upstreamCalls(fetchMock)).toEqual([]);
   });
 
   it('selects a dedicated icon and accent for /settings instead of the home fallback', () => {
@@ -117,47 +151,60 @@ describe('og handler - static routes', () => {
     expect(settingsIcon).not.toEqual(getRouteIcon('/some-unknown-page'));
     expect(getRouteAccent('/settings')).not.toBe(getRouteAccent('/'));
   });
-
-  it('still renders /settings successfully', async () => {
-    const res = await handler(makeRequest({ route: '/settings' }));
-    expect(res.status).toBe(200);
-  });
 });
 
 describe('og handler - film detail', () => {
-  it('renders film card with API data', async () => {
-    stubFetch(() =>
-      Promise.resolve(
-        jsonResponse(
-          JSON.stringify({
-            data: [
-              {
-                slug: 'adox-chs-100-ii',
-                brand: 'Adox',
-                name: 'CHS 100 II',
-                iso_speed: 100,
-                color_type: 'bw',
-              },
-            ],
-            count: 1,
-          })
-        )
-      )
-    );
+  const ADOX = {
+    data: [
+      {
+        slug: 'adox-chs-100-ii',
+        brand: 'Adox',
+        name: 'CHS 100 II',
+        iso_speed: 100,
+        color_type: 'bw',
+      },
+    ],
+    count: 1,
+  };
 
-    const res = await handler(
-      makeRequest({ route: '/films', film: 'adox-chs-100-ii' })
+  it('looks the film up and draws its API data on the card', async () => {
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(JSON.stringify(ADOX)))
     );
-    expect(res.status).toBe(200);
+    const withData = await renderCard({
+      route: '/films',
+      film: 'adox-chs-100-ii',
+    });
+
+    expect(upstreamCalls(fetchMock)).toEqual([
+      expect.stringContaining('/api/films?slug=adox-chs-100-ii'),
+    ]);
+
+    // Same slug, nothing returned: the card shows the prettified slug instead
+    stubFetch(() => Promise.resolve(jsonResponse(EMPTY_LIST)));
+    const slugOnly = await renderCard({
+      route: '/films',
+      film: 'adox-chs-100-ii',
+    });
+    expect(withData.equals(slugOnly)).toBe(false);
   });
 
-  it('falls back to prettified slug when API fails', async () => {
-    stubFetch(() => Promise.reject(new Error('Network error')));
+  it('falls back to the prettified slug when the API fails', async () => {
+    const empty = await renderCard({
+      route: '/films',
+      film: 'adox-chs-100-ii',
+    });
 
-    const res = await handler(
-      makeRequest({ route: '/films', film: 'adox-chs-100-ii' })
+    const fetchMock = stubFetch(() =>
+      Promise.reject(new Error('Network error'))
     );
-    expect(res.status).toBe(200);
+    const failed = await renderCard({
+      route: '/films',
+      film: 'adox-chs-100-ii',
+    });
+
+    expect(upstreamCalls(fetchMock)).toHaveLength(1);
+    expect(failed.equals(empty)).toBe(true);
   });
 });
 
@@ -174,105 +221,88 @@ function requestedPage(url: string): number {
 }
 
 describe('og handler - development recipe', () => {
-  it('renders recipe card with API data', async () => {
-    stubFetch((url) => {
+  const FILM_ROW = {
+    slug: 'kodak-tri-x-400',
+    brand: 'Kodak',
+    name: 'Tri-X 400',
+  };
+  const DEVELOPER_ROW = {
+    slug: 'ilford-perceptol',
+    name: 'Perceptol',
+    manufacturer: 'Ilford',
+    dilutions: [
+      { id: 1, name: 'Stock', ratio: '1+0' },
+      { id: 2, name: '1+1', ratio: '1+1' },
+    ],
+  };
+
+  /** Answers the film and developer lookups with real rows, nothing else. */
+  function stubKnownFilmAndDeveloper(): Mock<typeof fetch> {
+    return stubFetch((url) => {
       if (url.includes('/api/films')) {
         return Promise.resolve(
-          jsonResponse(
-            JSON.stringify({
-              data: [
-                { slug: 'kodak-tri-x-400', brand: 'Kodak', name: 'Tri-X 400' },
-              ],
-            })
-          )
+          jsonResponse(JSON.stringify({ data: [FILM_ROW] }))
         );
       }
       if (url.includes('/api/developers')) {
         return Promise.resolve(
-          jsonResponse(
-            JSON.stringify({
-              data: [
-                {
-                  slug: 'ilford-perceptol',
-                  name: 'Perceptol',
-                  manufacturer: 'Ilford',
-                },
-              ],
-            })
-          )
+          jsonResponse(JSON.stringify({ data: [DEVELOPER_ROW] }))
         );
       }
-      if (url.includes('/api/combinations')) {
-        return Promise.resolve(
-          jsonResponse(
-            JSON.stringify({
-              data: [
-                {
-                  uuid: 'abc-123',
-                  time_minutes: 13,
-                  temperature_celsius: 20,
-                  shooting_iso: 400,
-                  push_pull: 0,
-                },
-              ],
-            })
-          )
-        );
-      }
-      return Promise.resolve(jsonResponse(JSON.stringify({ data: [] })));
+      return Promise.resolve(jsonResponse(EMPTY_LIST));
     });
+  }
 
-    const res = await handler(
-      makeRequest({
-        route: '/development',
-        film: 'kodak-tri-x-400',
-        developer: 'ilford-perceptol',
-      })
+  it('looks up the film and developer, but no combination, for the search card', async () => {
+    const fetchMock = stubKnownFilmAndDeveloper();
+    const params = {
+      route: '/development',
+      film: 'kodak-tri-x-400',
+      developer: 'ilford-perceptol',
+    };
+
+    const withData = await renderCard(params);
+
+    const calls = upstreamCalls(fetchMock);
+    expect(calls).toHaveLength(2);
+    expect(calls).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('/api/films?slug=kodak-tri-x-400'),
+        expect.stringContaining('/api/developers?slug=ilford-perceptol'),
+      ])
     );
-    expect(res.status).toBe(200);
+
+    stubFetch(() => Promise.resolve(jsonResponse(EMPTY_LIST)));
+    expect(withData.equals(await renderCard(params))).toBe(false);
   });
 
-  it('renders recipe card with film only (no developer)', async () => {
-    stubFetch(() =>
-      Promise.resolve(jsonResponse(JSON.stringify({ data: [] })))
-    );
+  it('looks up only the film for a film-only card', async () => {
+    const fetchMock = stubKnownFilmAndDeveloper();
 
-    const res = await handler(
-      makeRequest({ route: '/development', film: 'kodak-tri-x-400' })
-    );
-    expect(res.status).toBe(200);
+    await renderCard({ route: '/development', film: 'kodak-tri-x-400' });
+
+    expect(upstreamCalls(fetchMock)).toEqual([
+      expect.stringContaining('/api/films?slug=kodak-tri-x-400'),
+    ]);
   });
 
-  it('renders developer-only card', async () => {
-    stubFetch(() =>
-      Promise.resolve(
-        jsonResponse(
-          JSON.stringify({
-            data: [
-              {
-                slug: 'ilford-perceptol',
-                name: 'Perceptol',
-                manufacturer: 'Ilford',
-                dilutions: [
-                  { id: 1, name: 'Stock', ratio: '1+0' },
-                  { id: 2, name: '1+1', ratio: '1+1' },
-                ],
-              },
-            ],
-          })
-        )
-      )
-    );
+  it('looks up only the developer for a developer-only card, and lists its dilutions', async () => {
+    const fetchMock = stubKnownFilmAndDeveloper();
+    const params = { route: '/development', developer: 'ilford-perceptol' };
 
-    const res = await handler(
-      makeRequest({ route: '/development', developer: 'ilford-perceptol' })
-    );
-    expect(res.status).toBe(200);
+    const withData = await renderCard(params);
+
+    expect(upstreamCalls(fetchMock)).toEqual([
+      expect.stringContaining('/api/developers?slug=ilford-perceptol'),
+    ]);
+
+    stubFetch(() => Promise.resolve(jsonResponse(EMPTY_LIST)));
+    expect(withData.equals(await renderCard(params))).toBe(false);
   });
 
   it('handles API timeout gracefully', async () => {
     // Stall every upstream lookup until the handler's own 3s timeout aborts it.
-    stubFetch(
+    const fetchMock = stubFetch(
       (_url, init) =>
         new Promise((_resolve, reject) => {
           const timer = setTimeout(() => {}, 30_000);
@@ -285,14 +315,21 @@ describe('og handler - development recipe', () => {
         })
     );
 
-    const res = await handler(
-      makeRequest({
-        route: '/development',
-        film: 'kodak-tri-x-400',
-        developer: 'ilford-perceptol',
-      })
-    );
-    expect(res.status).toBe(200);
+    const stalled = await renderCard({
+      route: '/development',
+      film: 'kodak-tri-x-400',
+      developer: 'ilford-perceptol',
+    });
+
+    // Both lookups were attempted and abandoned; the card is the slug-only one
+    expect(upstreamCalls(fetchMock)).toHaveLength(2);
+    stubFetch(() => Promise.resolve(jsonResponse(EMPTY_LIST)));
+    const slugOnly = await renderCard({
+      route: '/development',
+      film: 'kodak-tri-x-400',
+      developer: 'ilford-perceptol',
+    });
+    expect(stalled.equals(slugOnly)).toBe(true);
   }, 10_000);
 
   it('pages through /api/combinations when the recipe uuid is not on page 1', async () => {
@@ -361,16 +398,17 @@ describe('og handler - development recipe', () => {
       return Promise.resolve(jsonResponse(JSON.stringify({ data: [] })));
     });
 
-    const res = await handler(
-      makeRequest({
-        route: '/development',
-        film: 'kodak-tri-x-400',
-        developer: 'ilford-perceptol',
-        recipe: TARGET_UUID,
-      })
+    await pngBytes(
+      await handler(
+        makeRequest({
+          route: '/development',
+          film: 'kodak-tri-x-400',
+          developer: 'ilford-perceptol',
+          recipe: TARGET_UUID,
+        })
+      )
     );
 
-    expect(res.status).toBe(200);
     expect(combinationUrls.some((url) => requestedPage(url) === 2)).toBe(true);
   });
 });
@@ -532,52 +570,82 @@ describe('lookupCombination', () => {
 });
 
 describe('og handler - film filters', () => {
-  it('renders card for single color filter', async () => {
-    const res = await handler(makeRequest({ route: '/films', color: 'bw' }));
-    expect(res.status).toBe(200);
-  });
-
-  it('renders card for single brand filter', async () => {
-    const res = await handler(makeRequest({ route: '/films', brand: 'Kodak' }));
-    expect(res.status).toBe(200);
-  });
-
-  it('renders card for single iso filter', async () => {
-    const res = await handler(makeRequest({ route: '/films', iso: '400' }));
-    expect(res.status).toBe(200);
-  });
-
-  it('renders card for combined filters', async () => {
-    const res = await handler(
-      makeRequest({ route: '/films', color: 'bw', brand: 'Kodak', iso: '400' })
+  it('draws a filter card, not the generic /films card, with no upstream lookup', async () => {
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(EMPTY_LIST))
     );
-    expect(res.status).toBe(200);
+    const generic = await renderCard({ route: '/films' });
+
+    const byColor = await renderCard({ route: '/films', color: 'bw' });
+    const byBrand = await renderCard({ route: '/films', brand: 'Kodak' });
+    const byIso = await renderCard({ route: '/films', iso: '400' });
+
+    expect(byColor.equals(generic)).toBe(false);
+    expect(byBrand.equals(generic)).toBe(false);
+    expect(byIso.equals(generic)).toBe(false);
+    // Each filter names itself on the card
+    expect(byColor.equals(byBrand)).toBe(false);
+    expect(byBrand.equals(byIso)).toBe(false);
+    expect(upstreamCalls(fetchMock)).toEqual([]);
   });
 
-  it('renders card with status subtitle', async () => {
-    const res = await handler(
-      makeRequest({ route: '/films', color: 'bw', status: 'active' })
-    );
-    expect(res.status).toBe(200);
+  it('adds every filter in a combined card', async () => {
+    const byColor = await renderCard({ route: '/films', color: 'bw' });
+    const combined = await renderCard({
+      route: '/films',
+      color: 'bw',
+      brand: 'Kodak',
+      iso: '400',
+    });
+
+    expect(combined.equals(byColor)).toBe(false);
   });
 
-  it('falls through to generic card when status=all and no other filters', async () => {
-    const res = await handler(makeRequest({ route: '/films', status: 'all' }));
-    // Should still return 200 — just uses the generic /films card
-    expect(res.status).toBe(200);
+  it('adds a status subtitle', async () => {
+    const byColor = await renderCard({ route: '/films', color: 'bw' });
+    const withStatus = await renderCard({
+      route: '/films',
+      color: 'bw',
+      status: 'active',
+    });
+
+    expect(withStatus.equals(byColor)).toBe(false);
+  });
+
+  it('falls through to the generic /films card for status=all with no other filter', async () => {
+    const generic = await renderCard({ route: '/films' });
+    const statusAll = await renderCard({ route: '/films', status: 'all' });
+
+    expect(statusAll.equals(generic)).toBe(true);
   });
 
   it('film slug takes priority over filters', async () => {
-    const res = await handler(
-      makeRequest({
-        route: '/films',
-        film: 'kodak-tri-x-400',
-        color: 'bw',
-        brand: 'Kodak',
-      })
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(EMPTY_LIST))
     );
-    // film slug present → film detail card, not filter card
-    expect(res.status).toBe(200);
+    const filmOnly = await renderCard({
+      route: '/films',
+      film: 'kodak-tri-x-400',
+    });
+    const filterOnly = await renderCard({
+      route: '/films',
+      color: 'bw',
+      brand: 'Kodak',
+    });
+    fetchMock.mockClear();
+
+    const both = await renderCard({
+      route: '/films',
+      film: 'kodak-tri-x-400',
+      color: 'bw',
+      brand: 'Kodak',
+    });
+
+    expect(upstreamCalls(fetchMock)).toEqual([
+      expect.stringContaining('/api/films?slug=kodak-tri-x-400'),
+    ]);
+    expect(both.equals(filmOnly)).toBe(true);
+    expect(both.equals(filterOnly)).toBe(false);
   });
 });
 
@@ -604,12 +672,8 @@ describe('og handler - unknown query params', () => {
     expect(res.headers.get('cache-control')).toContain('s-maxage=86400');
   });
 
-  it('still returns 200 for a request with only legitimate params', async () => {
-    const res = await handler(
-      makeRequest({ route: '/films', film: 'kodak-tri-x-400' })
-    );
-
-    expect(res.status).toBe(200);
+  it('still renders a request with only legitimate params', async () => {
+    await renderCard({ route: '/films', film: 'kodak-tri-x-400' });
   });
 
   it('returns 400 for a duplicated allowed param', async () => {
@@ -634,24 +698,18 @@ describe('og handler - border preset', () => {
   const validPreset =
     'MzVtbSUyMG9uJTIwOHgxMCUyQyUyMDZ4OWluLTAtMi01MC0wLTEwMDAwLTg';
 
-  it('renders custom card for valid encoded preset', async () => {
-    const res = await handler(
-      makeRequest({ route: '/border', preset: validPreset })
-    );
-    expect(res.status).toBe(200);
+  it('draws a custom card for a valid encoded preset', async () => {
+    const generic = await renderCard({ route: '/border' });
+    const custom = await renderCard({ route: '/border', preset: validPreset });
+
+    expect(custom.equals(generic)).toBe(false);
   });
 
-  it('falls through to generic card for invalid preset string', async () => {
-    const res = await handler(
-      makeRequest({ route: '/border', preset: 'AAAA' })
-    );
-    // Still returns 200 — just the generic /border card
-    expect(res.status).toBe(200);
-  });
+  it('falls through to the generic card for an invalid preset string', async () => {
+    const generic = await renderCard({ route: '/border' });
+    const invalid = await renderCard({ route: '/border', preset: 'AAAA' });
 
-  it('renders generic card when no preset param', async () => {
-    const res = await handler(makeRequest({ route: '/border' }));
-    expect(res.status).toBe(200);
+    expect(invalid.equals(generic)).toBe(true);
   });
 });
 
@@ -720,9 +778,8 @@ describe('og handler - param validation before upstream work', () => {
         Promise.resolve(jsonResponse(EMPTY_LIST))
       );
 
-      const res = await handler(makeRequest({ route: '/films', film }));
+      await pngBytes(await handler(makeRequest({ route: '/films', film })));
 
-      expect(res.status).toBe(200);
       expect(upstreamCalls(fetchMock)).toEqual([]);
     }
   );
@@ -775,15 +832,16 @@ describe('og handler - param validation before upstream work', () => {
       Promise.resolve(jsonResponse(EMPTY_LIST))
     );
 
-    const res = await handler(
-      makeRequest({
-        route: '/not-a-page',
-        film: 'kodak-tri-x-400',
-        developer: 'ilford-perceptol',
-      })
+    await pngBytes(
+      await handler(
+        makeRequest({
+          route: '/not-a-page',
+          film: 'kodak-tri-x-400',
+          developer: 'ilford-perceptol',
+        })
+      )
     );
 
-    expect(res.status).toBe(200);
     expect(upstreamCalls(fetchMock)).toEqual([]);
   });
 
@@ -846,11 +904,10 @@ describe('og handler - rate limiting', () => {
   it('checks dynamic cards against the anonymous namespace, keyed by IP', async () => {
     const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(true));
 
-    const res = await handler(
-      ogRequest({ route: '/films', film: 'kodak-tri-x-400' })
+    await pngBytes(
+      await handler(ogRequest({ route: '/films', film: 'kodak-tri-x-400' }))
     );
 
-    expect(res.status).toBe(200);
     const unkeyCall = fetchMock.mock.calls.find(
       ([input]) => String(input) === UNKEY_URL
     );
@@ -871,8 +928,7 @@ describe('og handler - rate limiting', () => {
     const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(false));
 
     for (const params of [{}, { route: '/' }, { route: '/border' }]) {
-      const res = await handler(ogRequest(params));
-      expect(res.status).toBe(200);
+      await pngBytes(await handler(ogRequest(params)));
     }
 
     expect(fetchMock.mock.calls.map(([input]) => String(input))).not.toContain(
@@ -930,22 +986,19 @@ describe('og handler - rate limiting', () => {
   ])('fails open on %s from Unkey', async (_label, answer) => {
     stubFetchWithUnkey(answer);
 
-    const res = await handler(
-      ogRequest({ route: '/films', film: 'kodak-tri-x-400' })
+    await pngBytes(
+      await handler(ogRequest({ route: '/films', film: 'kodak-tri-x-400' }))
     );
-
-    expect(res.status).toBe(200);
   });
 
   it('skips the limiter when Unkey is not configured', async () => {
     vi.stubEnv('UNKEY_ROOT_KEY', '');
     const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(false));
 
-    const res = await handler(
-      ogRequest({ route: '/films', film: 'kodak-tri-x-400' })
+    await pngBytes(
+      await handler(ogRequest({ route: '/films', film: 'kodak-tri-x-400' }))
     );
 
-    expect(res.status).toBe(200);
     expect(fetchMock.mock.calls.map(([input]) => String(input))).not.toContain(
       UNKEY_URL
     );

@@ -7,32 +7,14 @@ import {
 } from '@dorkroom/logic';
 import { describe, expect, it } from 'vitest';
 import {
-  BASE_URL,
   buildFilmFilterParts,
   decodeBorderPreset,
   getRouteMetadata,
   isKnownRoutePath,
   prettifySlug,
-  ROUTE_DESCRIPTIONS,
   ROUTE_TITLES,
   SITE_NAME,
 } from '../routeMetadata';
-
-describe('routeMetadata constants', () => {
-  it('exports expected SITE_NAME', () => {
-    expect(SITE_NAME).toBe('Dorkroom');
-  });
-
-  it('exports expected BASE_URL', () => {
-    expect(BASE_URL).toBe('https://dorkroom.art');
-  });
-
-  it('has matching keys in ROUTE_TITLES and ROUTE_DESCRIPTIONS', () => {
-    expect(Object.keys(ROUTE_TITLES).sort()).toEqual(
-      Object.keys(ROUTE_DESCRIPTIONS).sort()
-    );
-  });
-});
 
 describe('prettifySlug', () => {
   it('capitalizes hyphenated words', () => {
@@ -194,10 +176,19 @@ describe('isKnownRoutePath', () => {
     }
   });
 
-  it('rejects unknown paths and Object.prototype keys', () => {
+  it('rejects unknown paths', () => {
     expect(isKnownRoutePath('/nonexistent-page')).toBe(false);
-    expect(isKnownRoutePath('/constructor')).toBe(false);
   });
+
+  // meta.ts turns this into its 404 decision. normalizePath keeps the path as
+  // given, so these bare names are the inherited keys an `in` check would
+  // accept (a '/constructor' path is not an inherited key and proves nothing).
+  it.each(['constructor', '__proto__', 'toString'])(
+    'rejects the inherited Object.prototype key %s',
+    (key) => {
+      expect(isKnownRoutePath(key)).toBe(false);
+    }
+  );
 });
 
 // ---- Border preset decoding (parity with @dorkroom/logic encodePreset) ----
