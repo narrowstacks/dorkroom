@@ -10,9 +10,12 @@ interface CalculatorNumberFieldProps {
   onChange: (value: string) => void;
   placeholder?: string;
   step?: number;
-  /** Lower bound: native `min` attribute, enforced on every committed value. */
+  /**
+   * Lower bound in display units: native `min` attribute. Out-of-range
+   * keystrokes are not committed; blur clamps and commits.
+   */
   min?: number;
-  /** Upper bound: native `max` attribute, enforced on every committed value. */
+  /** Upper bound in display units; same semantics as `min`. */
   max?: number;
   unit?: string;
   inputTitle?: string;
@@ -55,11 +58,12 @@ export function CalculatorNumberField({
   const handleChangeText = (raw: string) => {
     setDraft(raw);
     const parsed = parseFloat(raw);
-    if (Number.isFinite(parsed)) {
-      // The draft stays as typed (so "-" -> "-5" isn't fought mid-edit) but
-      // out-of-range values never reach the consumer; they're clamped on
-      // commit and the draft snaps into range on blur.
-      onChange(clampText(raw, min, max) ?? raw);
+    // The draft stays as typed (so "-" -> "-5" isn't fought mid-edit) but
+    // out-of-range values are held back rather than clamped per keystroke:
+    // with min={10}, typing "25" passes through "2", which must not commit
+    // 10. NumberInput's blur clamp commits the in-range value.
+    if (Number.isFinite(parsed) && clampText(raw, min, max) === null) {
+      onChange(raw);
     }
   };
 

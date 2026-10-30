@@ -165,16 +165,40 @@ describe('CalculatorNumberField', () => {
       expect(input).toHaveAttribute('max', '10');
     });
 
-    it('never commits a value below min, but keeps the typed draft until blur', () => {
+    it('holds back a value below min while typing, then commits the clamp on blur', () => {
       const onChange = vi.fn();
       render(
-        <CalculatorNumberField {...defaultProps} onChange={onChange} min={0} />
+        <ControlledWrapperWithBounds
+          initialValue="5"
+          onChange={onChange}
+          min={0}
+        />
       );
       const input = screen.getByRole('spinbutton');
       fireEvent.focus(input);
       fireEvent.change(input, { target: { value: '-4' } });
-      expect(onChange).toHaveBeenCalledWith('0');
+      expect(onChange).not.toHaveBeenCalled();
       expect(input).toHaveDisplayValue('-4');
+      fireEvent.blur(input);
+      expect(onChange).toHaveBeenLastCalledWith('0');
+      expect(input).toHaveDisplayValue('0');
+    });
+
+    it('does not commit min on a partial entry that is still growing', () => {
+      const onChange = vi.fn();
+      render(
+        <ControlledWrapperWithBounds
+          initialValue="15"
+          onChange={onChange}
+          min={10}
+        />
+      );
+      const input = screen.getByRole('spinbutton');
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '2' } });
+      fireEvent.change(input, { target: { value: '25' } });
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith('25');
     });
 
     it('snaps the visible draft into range on blur', () => {
@@ -190,8 +214,9 @@ describe('CalculatorNumberField', () => {
       const input = screen.getByRole('spinbutton');
       fireEvent.focus(input);
       fireEvent.change(input, { target: { value: '42' } });
-      expect(onChange).toHaveBeenLastCalledWith('10');
+      expect(onChange).not.toHaveBeenCalled();
       fireEvent.blur(input);
+      expect(onChange).toHaveBeenLastCalledWith('10');
       expect(input).toHaveDisplayValue('10');
     });
 

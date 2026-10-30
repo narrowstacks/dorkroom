@@ -4,6 +4,7 @@
  * Returns the clamped value as a string when `raw` parses to a finite number
  * outside the range, otherwise `null` (unparseable text, or already in range),
  * so callers only need to commit when something actually changed.
+ * Non-finite bounds are ignored. If min > max, max wins.
  */
 export function clampText(
   raw: string,
@@ -13,7 +14,11 @@ export function clampText(
   const parsed = parseFloat(raw);
   if (!Number.isFinite(parsed)) return null;
   let clamped = parsed;
-  if (min !== undefined) clamped = Math.max(min, clamped);
-  if (max !== undefined) clamped = Math.min(max, clamped);
+  if (min !== undefined && Number.isFinite(min)) {
+    clamped = Math.max(min, clamped);
+  }
+  if (max !== undefined && Number.isFinite(max)) {
+    clamped = Math.min(max, clamped);
+  }
   return clamped === parsed ? null : String(clamped);
 }
