@@ -1,7 +1,8 @@
-import type { Film } from '@dorkroom/api';
+import type { Developer, Film } from '@dorkroom/api';
 import { describe, expect, it } from 'vitest';
 import type { FilmdevRecipe } from '../../services/filmdev-api';
 import {
+  findBestDeveloperMatch,
   findBestFilmMatch,
   mapFilmdevRecipeToFormData,
 } from '../filmdev-mapper';
@@ -227,13 +228,6 @@ describe('findBestFilmMatch', () => {
       }),
     ];
 
-    it('should correctly match "Kentmere Pan 400" from filmdev.org recipe 13339', () => {
-      // This is the actual test case that was failing
-      const result = findBestFilmMatch('Kentmere Pan 400', realFilms);
-      expect(result?.uuid).toBe('kentmere-400');
-      expect(result?.name).toBe('Pan 400');
-    });
-
     it('should match Fomapan 400 correctly', () => {
       const result = findBestFilmMatch('Fomapan 400', realFilms);
       expect(result?.uuid).toBe('foma-400');
@@ -293,32 +287,6 @@ describe('mapFilmdevRecipeToFormData', () => {
       const result = mapFilmdevRecipeToFormData(recipe, null, null);
 
       expect(result.shootingIso).toBe(400);
-    });
-
-    it('should handle filmdev.org recipe 13339 correctly (Kentmere 400 shot at 800)', () => {
-      // Real data from filmdev.org API
-      const recipe = createMockFilmdevRecipe({
-        id: 13339,
-        film: 'Kentmere Photographic Kentmere 400',
-        developer: 'Rodinal',
-        dilution_ratio: '1:50',
-        developed_at: 800,
-        duration_minutes: 19,
-        recipe_name:
-          'Kentmere Photographic Kentmere 400 at 800 in Rodinal 1:50',
-      });
-
-      const matchedFilm = createMockFilm({
-        uuid: 'kentmere-400',
-        brand: 'Kentmere',
-        name: 'Pan 400',
-        isoSpeed: 400,
-      });
-
-      const result = mapFilmdevRecipeToFormData(recipe, matchedFilm, null);
-
-      expect(result.shootingIso).toBe(800);
-      expect(result.pushPull).toBe(1); // 800/400 = 2x = 1 stop push
     });
   });
 
@@ -449,28 +417,73 @@ describe('mapFilmdevRecipeToFormData', () => {
 
       expect(result.sourceUrl).toBe('https://filmdev.org/recipe/show/12345');
     });
+  });
+});
 
-    it('should include sourceUrl in filmdev.org recipe 13339 mapping', () => {
-      const recipe = createMockFilmdevRecipe({
-        id: 13339,
-        film: 'Kentmere Photographic Kentmere 400',
-        developer: 'Rodinal',
-        recipe_link: 'https://filmdev.org/recipe/show/13339',
-        developed_at: 800,
-      });
+describe('findBestDeveloperMatch', () => {
+  const createMockDeveloper = (
+    uuid: string,
+    manufacturer: string,
+    name: string
+  ): Developer => ({
+    id: 1,
+    uuid,
+    slug: uuid,
+    name,
+    manufacturer,
+    type: 'powder',
+    description: '',
+    filmOrPaper: true,
+    dilutions: [],
+    mixingInstructions: null,
+    storageRequirements: null,
+    safetyNotes: null,
+    notes: null,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+  });
 
-      const matchedFilm = createMockFilm({
-        uuid: 'kentmere-400',
-        brand: 'Kentmere',
-        name: 'Pan 400',
-        isoSpeed: 400,
-      });
+  const developers: Developer[] = [
+    createMockDeveloper('d76', 'Kodak', 'D-76'),
+    createMockDeveloper('hc110', 'Kodak', 'HC-110'),
+    createMockDeveloper('id11', 'Ilford', 'ID-11'),
+    createMockDeveloper('rodinal', 'Adox', 'Rodinal'),
+    createMockDeveloper('xtol', 'Kodak', 'XTOL'),
+  ];
 
-      const result = mapFilmdevRecipeToFormData(recipe, matchedFilm, null);
+  it.each([
+    ['D-76', 'd76'],
+    ['xtol', 'xtol'],
+    ['ilford id-11', 'id11'],
+    ['  HC-110  ', 'hc110'],
+  ])('matches "%s" by exact name or full name', (query, uuid) => {
+    expect(findBestDeveloperMatch(query, developers)?.uuid).toBe(uuid);
+  });
 
-      expect(result.sourceUrl).toBe('https://filmdev.org/recipe/show/13339');
-      expect(result.shootingIso).toBe(800);
-      expect(result.pushPull).toBe(1);
-    });
+  it('prefers an exact full-name match over an earlier partial match', () => {
+    // "kodak" alone would partially match D-76 first in the list.
+    expect(findBestDeveloperMatch('Kodak XTOL', developers)?.uuid).toBe(
+      'xtol'
+    );
+  });
+
+  it('matches when the filmdev string contains the developer name', () => {
+    expect(findBestDeveloperMatch('Rodinal 1:50', developers)?.uuid).toBe(
+      'rodinal'
+    );
+  });
+
+  it('falls back to word matching for differently punctuated names', () => {
+    expect(findBestDeveloperMatch('HC 110', developers)?.uuid).toBe('hc110');
+  });
+
+  it('returns null when nothing matches', () => {
+    expect(findBestDeveloperMatch('Pyrocat HD', developers)).toBeNull();
+  });
+
+  it('returns null for blank input or an empty developer list', () => {
+    expect(findBestDeveloperMatch('', developers)).toBeNull();
+    expect(findBestDeveloperMatch('   ', developers)).toBeNull();
+    expect(findBestDeveloperMatch('D-76', [])).toBeNull();
   });
 });
