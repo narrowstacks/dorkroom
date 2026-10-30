@@ -23,11 +23,12 @@
     "test:unit": "turbo run test --filter='@dorkroom/*' -- --passWithNoTests",
     "test:serverless": "vitest run --config vitest.config.ts --project serverless",
     "test:docs": "vitest run --config vitest.config.ts --project docs",
+    "typecheck": "bun check -p tsconfig.tools.json",
     "typecheck:api": "node node_modules/typescript/bin/tsc --noEmit --project api/tsconfig.json",
     "doctor": "react-doctor -y --blocking warning --no-telemetry",
     "lint": "oxlint && bun fmt --check",
     "lint:fix": "oxlint --fix && bun fmt",
-    "lint:root": "oxlint api utils scripts tools supabase postcss.config.js vitest.config.ts && bun fmt --check api utils scripts tools supabase .vscode postcss.config.js vitest.config.ts .oxlintrc.json .prettierrc.json doctor.config.json package.json renovate.json tsconfig.base.json tsconfig.json turbo.json vercel.json",
+    "lint:root": "oxlint api utils scripts tools supabase postcss.config.js vitest.config.ts && bun fmt --check api utils scripts tools supabase .vscode postcss.config.js vitest.config.ts .oxlintrc.json .prettierrc.json doctor.config.json package.json renovate.json tsconfig.base.json tsconfig.json tsconfig.tools.json turbo.json vercel.json",
     "lint:types": "oxlint --type-aware",
     "format": "bun fmt"
   },

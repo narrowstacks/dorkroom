@@ -72,6 +72,14 @@
     "//#lint:root": {
       "inputs": ["$TURBO_DEFAULT$", "!apps/**", "!packages/**", "!api/dist/**"]
     },
+    "//#typecheck": {
+      "inputs": [
+        "tools/__tests__/**",
+        "scripts/**",
+        "tsconfig.tools.json",
+        "tsconfig.base.json"
+      ]
+    },
     "//#typecheck:api": {
       "inputs": ["api/**", "!api/dist/**", "utils/**"]
     },
@@ -101,6 +109,7 @@
         "!api/dist/**",
         "utils/**",
         "scripts/**",
+        "README.md",
         "vitest.config.ts"
       ]
     }

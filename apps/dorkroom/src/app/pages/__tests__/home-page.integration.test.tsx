@@ -11,6 +11,7 @@ import {
 } from '@tanstack/react-router';
 import { render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { TRACKED_ROUTES } from '../../lib/analytics/tracked-events';
 import { HomePage } from '../home-page';
 
 // The page's numbers come through the real chain: useStats → apiClient.fetchStats
@@ -196,8 +197,16 @@ describe('HomePage', () => {
         .filter((href) => !href.startsWith('http'));
       expect(internalHrefs.length).toBeGreaterThan(0);
 
+      // Checked against the app's real route list, not LINKED_PATHS: that
+      // list only exists to give this test's stand-in router somewhere to
+      // point, so a link to a route the app has since dropped would still
+      // find itself there. TRACKED_ROUTES is pinned to routeTree.gen.ts by
+      // analytics.test.ts.
+      const knownRoutes: readonly string[] = TRACKED_ROUTES;
       for (const href of internalHrefs) {
-        expect(LINKED_PATHS).toContain(href);
+        expect(knownRoutes, `${href} is not a route the app has`).toContain(
+          new URL(href, 'https://dorkroom.art').pathname
+        );
       }
     });
   });
