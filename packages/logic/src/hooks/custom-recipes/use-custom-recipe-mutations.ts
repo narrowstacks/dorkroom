@@ -15,15 +15,17 @@ import {
   sanitizeText,
 } from '../../utils/text-sanitization';
 
-const STORAGE_KEY = CUSTOM_RECIPES_STORAGE_KEY;
 const CUSTOM_RECIPES_QUERY_KEY = queryKeys.customRecipes.list();
 
 // Use the centralized storage manager
-const recipesStorage = createStorageManager<CustomRecipe[]>(STORAGE_KEY, {
-  defaultValue: [],
-  validate: isArray(),
-  logContext: 'useCustomRecipeMutations',
-});
+const recipesStorage = createStorageManager<CustomRecipe[]>(
+  CUSTOM_RECIPES_STORAGE_KEY,
+  {
+    defaultValue: [],
+    validate: isArray(),
+    logContext: 'useCustomRecipeMutations',
+  }
+);
 
 const readRecipesFromStorage = (): CustomRecipe[] => {
   return recipesStorage.read();

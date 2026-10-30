@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
+import { RECIPES_VIEW_MODE_STORAGE_KEY } from '../../constants/storage-keys';
 import { isBrowser } from '../../utils/environment';
 
 export type ViewMode = 'table' | 'grid';
 
-const STORAGE_KEY = 'dorkroom-development-recipes-view-mode';
 const DEFAULT_VIEW_MODE: ViewMode = 'table';
 
 export function useViewPreference() {
@@ -13,7 +13,7 @@ export function useViewPreference() {
     if (!isBrowser()) return;
 
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(RECIPES_VIEW_MODE_STORAGE_KEY);
       if (saved === 'table' || saved === 'grid') {
         setViewModeState(saved);
       }
@@ -28,7 +28,7 @@ export function useViewPreference() {
     if (!isBrowser()) return;
 
     try {
-      localStorage.setItem(STORAGE_KEY, mode);
+      localStorage.setItem(RECIPES_VIEW_MODE_STORAGE_KEY, mode);
     } catch (error) {
       console.warn('Failed to save view preference:', error);
     }

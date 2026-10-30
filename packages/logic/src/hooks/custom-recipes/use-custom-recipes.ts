@@ -7,14 +7,15 @@ import type { CustomRecipe } from '../../types/custom-recipes';
 import { debugError } from '../../utils/debug-logger';
 import { isBrowser } from '../../utils/environment';
 
-const STORAGE_KEY = CUSTOM_RECIPES_STORAGE_KEY;
-
 // Use centralized storage manager
-const recipesStorage = createStorageManager<CustomRecipe[]>(STORAGE_KEY, {
-  defaultValue: [],
-  validate: isArray(),
-  logContext: 'useCustomRecipes',
-});
+const recipesStorage = createStorageManager<CustomRecipe[]>(
+  CUSTOM_RECIPES_STORAGE_KEY,
+  {
+    defaultValue: [],
+    validate: isArray(),
+    logContext: 'useCustomRecipes',
+  }
+);
 
 const readRecipesFromStorage = (): CustomRecipe[] => {
   return recipesStorage.read();
@@ -53,7 +54,7 @@ export function useCustomRecipes() {
       // Ignore events that aren't for our specific key
       // Also ignore localStorage.clear() events (where key is null)
       // as we don't want to wipe the in-memory cache unexpectedly if other data is cleared
-      if (!event.key || event.key !== STORAGE_KEY) {
+      if (!event.key || event.key !== CUSTOM_RECIPES_STORAGE_KEY) {
         return;
       }
 

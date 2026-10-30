@@ -74,9 +74,10 @@ function getStorage(): Storage | null {
 }
 
 /**
- * Remove the keys `currentKey` superseded, but only once `currentKey` holds
- * data (it has hydrated). If the new key is empty the old one may be the only
- * copy of the user's state, so it is left alone. Safe where no `localStorage`
+ * Remove the keys `currentKey` superseded, once `currentKey` exists. This
+ * guard only prevents purging before the new key has been written; it does not
+ * make the purge safe for unmigrated data, so list a key as superseded only
+ * after a migration has copied its data forward. Safe where no `localStorage`
  * exists (SSR, iOS before the MMKV shim) and never throws.
  */
 export function removeSupersededStorageKeys(currentKey: string): void {
