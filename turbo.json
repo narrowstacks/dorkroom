@@ -88,6 +88,7 @@
         "tools/__tests__/**",
         "vitest.config.ts",
         "PRIVACY.md",
+        "utils/routeMetadata.ts",
         "apps/dorkroom/src/app/lib/analytics/tracked-events.ts",
         "apps/dorkroom/src/app/pages/privacy-page.tsx",
         "apps/dorkroom/src/**/*.{css,ts,tsx}",
