@@ -15,8 +15,10 @@ endpoint that has metadata.
 
 ## Procedure
 
-1. **Update `utils/routeMetadata.ts`** — add/update `ROUTE_TITLES` and
-   `ROUTE_DESCRIPTIONS` for new routes.
+1. **Update `ROUTE_TITLES` and `ROUTE_DESCRIPTIONS` in both
+   `utils/routeMetadata.ts` and `packages/ui/src/lib/navigation.ts`** — they are
+   verbatim copies, and `tools/__tests__/route-metadata-sync.test.ts` fails if
+   they diverge.
 2. **Update `api/og.tsx`** — add a Lucide icon for the new route in
    `getRouteIcon()`. Download the SVG from
    `unpkg.com/lucide-static@latest/icons/<name>.svg` to get exact element data.
