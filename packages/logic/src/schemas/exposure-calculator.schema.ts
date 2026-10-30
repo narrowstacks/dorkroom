@@ -1,5 +1,5 @@
-import { exposureTimeValidator, stopsValidator } from '@dorkroom/logic';
 import { z } from 'zod';
+import { exposureTimeValidator, stopsValidator } from './validators';
 
 /**
  * Validation schema for Exposure Calculator Form
