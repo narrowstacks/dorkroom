@@ -1,9 +1,10 @@
 import { debugError } from '@dorkroom/logic';
-import { useState } from 'react';
-import { useEscapeKey } from '../hooks/use-escape-key';
+import { useId, useState } from 'react';
 import { cn } from '../lib/cn';
 import { colorMixOr } from '../lib/color';
 import { cssVars } from '../lib/dom';
+import { SHARE_DIALOG_PANEL_CLASS } from '../lib/share-dialog';
+import { Modal } from './modal';
 
 export interface ShareModalProps {
   isOpen: boolean;
@@ -53,7 +54,13 @@ function ModalFooter({
 /**
  * Error state shown when no valid web URL is available to share.
  */
-function ShareModalError({ onClose }: { onClose: () => void }) {
+function ShareModalError({
+  onClose,
+  titleId,
+}: {
+  onClose: () => void;
+  titleId: string;
+}) {
   return (
     <>
       <div
@@ -91,6 +98,7 @@ function ShareModalError({ onClose }: { onClose: () => void }) {
           </div>
           <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
             <h3
+              id={titleId}
               className="text-lg font-medium leading-6"
               style={{ color: 'var(--color-text-primary)' }}
             >
@@ -308,6 +316,7 @@ function ShareModalContent({
   copySuccess,
   onCopy,
   onClose,
+  titleId,
 }: {
   presetName: string;
   displayUrl: string;
@@ -319,6 +328,7 @@ function ShareModalContent({
   copySuccess: boolean;
   onCopy: () => void;
   onClose: () => void;
+  titleId: string;
 }) {
   return (
     <>
@@ -357,6 +367,7 @@ function ShareModalContent({
           </div>
           <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
             <h3
+              id={titleId}
               className="text-lg font-medium leading-6"
               style={{ color: 'var(--color-text-primary)' }}
             >
@@ -414,12 +425,7 @@ export function ShareModal({
 }: ShareModalProps) {
   const [copySuccess, setCopySuccess] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
-
-  useEscapeKey(isOpen, onClose);
-
-  if (!isOpen) {
-    return null;
-  }
+  const titleId = useId();
 
   // Check if we have valid URLs to share
   const hasValidUrl = webUrl && webUrl.length > 0;
@@ -448,44 +454,36 @@ export function ShareModal({
 
   const displayUrl = hasValidUrl ? webUrl.replace(/^https?:\/\//, '') : '';
 
+  // The shared Modal owns the portal, backdrop, scroll lock and Escape; the
+  // single wrapper keeps the body's `space-y-4` and `text-sm` off the
+  // sections, which set their own spacing and type.
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:items-center sm:p-0">
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop overlay dismiss pattern */}
-        <div
-          className="fixed inset-0 backdrop-blur-sm transition-opacity"
-          style={{ backgroundColor: 'var(--color-visualization-overlay)' }}
-          role="presentation"
-          onClick={onClose}
-        />
-
-        {/* Modal */}
-        <div
-          className="relative z-10 inline-block transform overflow-hidden rounded-2xl text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle border"
-          style={{
-            borderColor: 'var(--color-border-secondary)',
-            backgroundColor: 'var(--color-surface)',
-            color: 'var(--color-text-primary)',
-          }}
-        >
-          {!hasValidUrl ? (
-            <ShareModalError onClose={onClose} />
-          ) : (
-            <ShareModalContent
-              presetName={presetName}
-              displayUrl={displayUrl}
-              canShareNatively={canShareNatively}
-              onNativeShare={onNativeShare}
-              isSharing={isSharing}
-              onShare={handleNativeShare}
-              canCopyToClipboard={canCopyToClipboard}
-              copySuccess={copySuccess}
-              onCopy={handleCopyWeb}
-              onClose={onClose}
-            />
-          )}
-        </div>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      hideCloseButton
+      ariaLabelledBy={titleId}
+      className={SHARE_DIALOG_PANEL_CLASS}
+    >
+      <div className="text-base" style={{ color: 'var(--color-text-primary)' }}>
+        {!hasValidUrl ? (
+          <ShareModalError onClose={onClose} titleId={titleId} />
+        ) : (
+          <ShareModalContent
+            presetName={presetName}
+            displayUrl={displayUrl}
+            canShareNatively={canShareNatively}
+            onNativeShare={onNativeShare}
+            isSharing={isSharing}
+            onShare={handleNativeShare}
+            canCopyToClipboard={canCopyToClipboard}
+            copySuccess={copySuccess}
+            onCopy={handleCopyWeb}
+            onClose={onClose}
+            titleId={titleId}
+          />
+        )}
       </div>
-    </div>
+    </Modal>
   );
 }
