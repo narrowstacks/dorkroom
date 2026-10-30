@@ -85,8 +85,8 @@ export interface SupabaseProxyConfig {
 
 /**
  * The proxy request itself, without the `withHandler` wrapper's host auth,
- * CORS, cache pinning, and env checks. Exported so callers — including tests — can drive it
- * with an explicit `HandlerContext`.
+ * CORS, cache pinning, and env checks. Exported so callers, including tests,
+ * can drive it with an explicit `HandlerContext`.
  */
 export function createSupabaseProxyHandler({
   name,

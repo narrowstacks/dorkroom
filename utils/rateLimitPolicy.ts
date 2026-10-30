@@ -55,12 +55,6 @@ export const KEY_TIERS = {
 
 export type RateLimitScope = 'anonymous' | 'client';
 
-/** The env var that pins each scope's namespace to a pre-created one. */
-const NAMESPACE_ENV = {
-  anonymous: 'UNKEY_ANON_NAMESPACE',
-  client: 'UNKEY_CLIENT_NAMESPACE',
-} as const satisfies Record<RateLimitScope, string>;
-
 /** The budget `keys:anon-bootstrap` checks a namespace against, per scope. */
 export const SCOPE_DEFAULT_LIMIT = {
   anonymous: ANONYMOUS_RATE_LIMIT,
@@ -80,7 +74,13 @@ export function getRateLimitNamespace(
   scope: RateLimitScope,
   env: Readonly<Record<string, string | undefined>> = process.env
 ): string {
-  const configured = env[NAMESPACE_ENV[scope]]?.trim();
+  // Literal property reads, never `env[name]`: bundlers that inline env vars
+  // at build time (the edge bundle) only recognize `env.NAME`.
+  const configured = (
+    scope === 'anonymous'
+      ? env.UNKEY_ANON_NAMESPACE
+      : env.UNKEY_CLIENT_NAMESPACE
+  )?.trim();
   if (configured) {
     return configured;
   }

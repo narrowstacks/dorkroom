@@ -86,16 +86,29 @@ const UUID_REGEX =
 const originalFetch = globalThis.fetch;
 const fetchSpy = vi.fn<typeof fetch>();
 
+/** Calls the real Unkey SDK made through the stubbed `fetch`. */
+function unkeyCalls(): string[] {
+  return fetchSpy.mock.calls
+    .map(([input]) => (input instanceof Request ? input.url : String(input)))
+    .filter((url) => url.includes('unkey'));
+}
+
 beforeEach(() => {
   for (const method of ['log', 'warn', 'error'] as const) {
     vi.spyOn(console, method).mockImplementation(() => {});
   }
   globalThis.fetch = fetchSpy;
   fetchSpy.mockReset();
+  // Fully configured Unkey, so a request that reached the key layer would
+  // call it.
+  vi.stubEnv('UNKEY_ROOT_KEY', 'root-key');
+  vi.stubEnv('UNKEY_API_ID', 'test-api');
+  vi.stubEnv('UNKEY_API_KEY_PERMISSION', 'read');
 });
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
   globalThis.fetch = originalFetch;
 });
 
@@ -137,6 +150,25 @@ describe.each(CASES)(
       }
     );
 
+    it.each(['OPTIONS', 'POST'])(
+      'answers %s on api.dorkroom.art without any Unkey call (no key check, no rate limit)',
+      async (method) => {
+        const res = createMockResponse();
+        await handler(
+          createMockRequest({
+            method,
+            headers: { host: 'api.dorkroom.art', 'x-api-key': 'dk_f_test' },
+          }),
+          res
+        );
+
+        expect(res._status).toBe(
+          method === 'OPTIONS' ? 204 : allow === null ? 404 : 405
+        );
+        expect(unkeyCalls()).toEqual([]);
+      }
+    );
+
     it.each([
       ['dorkroom.art', corsOn === 'any-host'],
       ['api.dorkroom.art', corsOn !== 'none'],
@@ -164,6 +196,33 @@ describe.each(CASES)(
     });
   }
 );
+
+describe('Unkey traffic (control for the key-check assertions above)', () => {
+  it('is what a keyed GET on a data endpoint actually calls', async () => {
+    vi.stubEnv('SUPABASE_MASTER_API_KEY', 'k');
+    vi.stubEnv('SUPABASE_ENDPOINT', 'https://test.supabase.co');
+    vi.stubEnv('SUPABASE_PROXY_SECRET', 's');
+    fetchSpy.mockResolvedValue(
+      Response.json(
+        {
+          meta: { requestId: 'unkey' },
+          data: { valid: false, code: 'NOT_FOUND' },
+        },
+        { status: 200 }
+      )
+    );
+    const res = createMockResponse();
+    await films(
+      createMockRequest({
+        headers: { host: 'api.dorkroom.art', 'x-api-key': 'dk_f_test' },
+      }),
+      res
+    );
+
+    expect(unkeyCalls()).toEqual([expect.stringContaining('keys.verifyKey')]);
+    expect(res._status).toBe(401);
+  });
+});
 
 describe('withEnvelope', () => {
   async function load() {

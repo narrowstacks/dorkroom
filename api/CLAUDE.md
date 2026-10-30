@@ -32,7 +32,8 @@ Everything else:
   because shared links routinely carry `utm_*` junk.
 - `og.tsx` - Open Graph card images via `@vercel/og` (edge runtime). Reads
   `route`, `film`, `developer`, and `recipe` params. See the `og-image-routes`
-  skill. The envelope is Node-only, so it carries its own guards: unknown params 400; malformed values (checked by
+  skill. `og.tsx` runs on the edge, outside the Node-only envelope, so it
+  carries its own guards: unknown params 400; malformed values (checked by
   `utils/queryPatterns.ts`, the same patterns `meta.ts` uses) are treated as
   absent before any upstream lookup; fonts are cached per isolate; and every
   request other than a bare static card (`?route=<known page>`) is limited per
@@ -142,7 +143,7 @@ All under `/utils`:
   (envelope + key layer) for data endpoints; Unkey integration
 - `fetchUpstreamJson.ts` - the shared upstream JSON fetch described above
 - `rateLimitPolicy.ts` - the one home for rate-limit policy: anonymous and
-  per-client budgets, per-key tiers (60/300 req/min), and namespace
+  per-client budgets, per-key tiers, and namespace
   resolution. Imported by `withHandler.ts`, `edgeRateLimit.ts`,
   `scripts/unkey-keys.ts`, and `api/docs.ts`. Edge-safe (no Node imports).
   `utils/__tests__/rateLimitPolicy.test.ts` fails if the limits quoted in

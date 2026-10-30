@@ -148,7 +148,7 @@ function isPublicApiRequest(req: VercelRequest, requestId: string): boolean {
   }
 
   if (observedHosts.length === 0) {
-    serverlessWarn('Missing host headers, treating as public API host', {
+    serverlessWarn('Missing host headers, enforcing API-key auth', {
       requestId,
     });
     return true;
@@ -164,7 +164,7 @@ function isPublicApiRequest(req: VercelRequest, requestId: string): boolean {
     return false;
   }
 
-  serverlessWarn('Unknown host, treating as public API host', {
+  serverlessWarn('Unknown host, enforcing API-key auth', {
     requestId,
     host,
     forwardedHost,
