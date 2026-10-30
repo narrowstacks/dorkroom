@@ -143,7 +143,7 @@ export const ResponsiveModal: FC<ResponsiveModalProps> = ({
           </DrawerBody>
           {footer && (
             <div
-              className="border-t px-4 pb-4 pt-3"
+              className="flex flex-col gap-2 border-t px-4 pb-4 pt-3"
               style={{ borderColor: 'var(--color-border-secondary)' }}
             >
               {footer}

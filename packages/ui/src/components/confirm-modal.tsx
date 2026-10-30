@@ -53,8 +53,10 @@ export function ConfirmModal({
 
   // The shared Modal owns the portal, backdrop, scroll lock and Escape. The
   // confirm keeps its own compact panel (max-w-sm, p-5) and heading, and
-  // lays the body out itself, so the body's overflow clip is lifted to keep
-  // the footer buttons' focus rings from being cut off at the panel edge.
+  // lays the body out itself. The body's height cap and overflow clip are
+  // both lifted: the clip would cut off the footer buttons' focus rings at
+  // the panel edge, and keeping the cap without the clip would let a long
+  // message spill past the panel on short screens.
   return (
     <Modal
       isOpen={isOpen}
@@ -63,7 +65,7 @@ export function ConfirmModal({
       hideCloseButton
       ariaLabelledBy={titleId}
       className="max-w-sm p-5"
-      bodyClassName="overflow-visible"
+      bodyClassName="max-h-none overflow-visible"
     >
       <div>
         {/* Header */}

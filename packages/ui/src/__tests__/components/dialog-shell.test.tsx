@@ -256,6 +256,28 @@ describe.each(MODAL_CASES)('$name renders through the shared Modal', (c) => {
   });
 });
 
+it.each(MODAL_CASES)('$name has a non-empty accessible name', (c) => {
+  renderDialog(c.render(vi.fn()));
+
+  const dialog = screen.getByRole('dialog');
+  const labelId = dialog.getAttribute('aria-labelledby');
+  const label = labelId ? document.getElementById(labelId) : null;
+
+  expect(label?.textContent?.trim()).toBeTruthy();
+  expect(dialog).toHaveAccessibleName(label?.textContent ?? '');
+});
+
+it('ConfirmModal lifts both the body height cap and its overflow clip', () => {
+  renderDialog(MODAL_CASES[0].render(vi.fn()));
+
+  // A cap without a clip would let a long message spill past the panel; a
+  // clip would cut off the footer buttons' focus rings.
+  const body = screen.getByText('Are you sure?').closest('.overflow-visible');
+  expect(body).toHaveClass('max-h-none');
+  expect(body).not.toHaveClass('overflow-y-auto');
+  expect(body?.className).not.toMatch(/max-h-\[/);
+});
+
 const DRAWER_CASES = MODAL_CASES.filter(
   (c) => c.name === 'SharedRecipeModal' || c.name === 'FilmdevPreviewModal'
 );
