@@ -5,6 +5,13 @@ Web app changes live in the [root CHANGELOG](../../CHANGELOG.md).
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.10.29]
+
+### Fixed
+
+- **Mat "Best fit borders" no longer trips its own mismatch warning.** Best fit rounded each border on its own, so the window could miss the reveal and the app flagged its own suggestion. It now splits each pair of borders on the 1/16" grid so the window is exact, and the "Proposed" preview matches what gets applied. (#442, fixes #341)
+- **Resize no longer reports an aspect-ratio mismatch for sizes that only differ by rounding.** Ratios within 0.5% now count as matching; genuinely different papers still warn. The border calculator's custom-paper warning also shows the inch mark on the paper size. (#445, fixes #343)
+
 ## [2026.09.22]
 
 ### Fixed

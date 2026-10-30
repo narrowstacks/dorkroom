@@ -5,6 +5,27 @@ The iOS app has its own changelog: [`apps/mobile/CHANGELOG.md`](apps/mobile/CHAN
 
 This project uses [CalVer](https://calver.org/) date-based versioning: `YYYY.MM.DD`.
 
+## [2026.10.29]
+
+### Added
+
+- **Every calculator that remembers your inputs now has a "Reset to defaults" button.** /stops, /resize, /reciprocity, /lenses, /mat and /exposure saved their inputs indefinitely with no way back short of clearing site data; only /border had a reset. The new button sits at the right of each page header (icon-only on phones). It restores the defaults and drops the saved values, so a reload right after a reset doesn't bring them back. /border's existing reset now clears its saved values the same way. (#426, fixes #249)
+- **Screen readers announce calculator results.** Changing an input recalculated silently, so a screen-reader user had to go and find the result card after every edit. Each calculator now has one hidden live region that reads the main result once you stop typing, with units spelled out ("New exposure time 40 seconds, plus 2 stops"). It stays quiet on page load and while input is invalid. On /border the announced blade names match the Blade Readings card in portrait too. (#432, fixes #347)
+
+### Changed
+
+- **Number fields clamp out-of-range values when you leave them.** The resize fields no longer accept negative sizes or times: a negative value is held back while you type and snaps to 0 on blur (including `-0`). The shared number inputs gain optional `min`/`max`, so other calculators can do the same. (#425, fixes #248)
+- **The Open Graph image endpoint is rate limited and does less work per request.** Fonts are downloaded once per server instance instead of per image, and malformed film, developer, recipe or preset values are ignored before any lookup runs. Link previews beyond a per-IP budget are redirected to the page's standard card instead of being rendered again. (#436, fixes #253)
+
+- **`@dorkroom/api` throws its documented `DorkroomApiError`.** Every client failure used to be a plain `Error` with the status folded into the message, so callers couldn't tell a 404 from a 500. Errors now carry `statusCode` and `endpoint` (and `cause` for network and parse failures), aborted requests pass through unwrapped, and a new optional `onInvalidRows` callback reports rows dropped by validation. Existing messages are unchanged. (#446, part of #289 and #254)
+
+### Fixed
+
+- **A manual "Flip Paper" on custom paper survives reloads and share links.** The flip was undone on reload, and a shared link could open in the other orientation with different blade readings. Old share links decode exactly as before. (#429, fixes #339)
+- **Shared border presets get their own link preview again.** Every share link made since the current link format shipped showed the generic Border Calculator card and description. Previews now show the preset name, paper and print size; old links keep working, and custom paper sizes no longer read "0×0". (#434, fixes #430)
+- **Mat "Best fit borders" no longer trips its own mismatch warning.** Rounding each border on its own could make the window miss the reveal (16×20 board, 8 1/16" art, 1/4" reveal gave a 7 1/2" window and a warning). Best fit now splits each pair of borders so the window is exact, on a 1/16" grid in imperial and 1 mm in metric, and the cut cards agree with the borders. (#442, fixes #341)
+- **Metric values stay as you typed them.** Typing 25 cm showed 25.001 after leaving the field; values entered in inches no longer drift when viewed and saved in metric; doubling 11×16 to 22×32 cm no longer warns that the aspect ratios differ; and the custom-paper warning and min-border toast print in your unit instead of raw inches. (#445, fixes #343)
+
 ## [2026.09.22]
 
 ### Fixed
