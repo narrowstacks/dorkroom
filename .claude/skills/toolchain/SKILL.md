@@ -32,6 +32,8 @@ description: Dorkroom's lint/format/typecheck/dependency toolchain — oxlint, b
   task only if `turbo.json` declares it as `//#<task>`. Its `inputs` are `$TURBO_DEFAULT$` minus the
   workspaces, so turbo needs no change, but a new root-owned directory with JS/TS must go in **both**
   lists of the `lint:root` script (format-list-only means it is format-checked but never linted).
+- Root `typecheck:tools` (turbo `//#typecheck:tools`) runs `bun check -p tsconfig.tools.json`, which
+  typechecks the `tools/__tests__/` and `scripts/__tests__/` tests that no workspace tsconfig covers.
 - The `// biome-ignore lint/...` comments left in the source are dead: Biome's linter stopped
   running when oxlint took over. They are harmless; remove them as you touch those lines.
 - oxlint 1.78+ ships the React Compiler lint set (`react/set-state-in-effect`, `refs`, `purity`,

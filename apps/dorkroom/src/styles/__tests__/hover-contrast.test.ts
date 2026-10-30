@@ -28,18 +28,18 @@ type Rgba = readonly [number, number, number, number];
 const THEMES = ['default', 'dark', 'light', 'darkroom', 'high-contrast'];
 
 /**
- * The utilities that repaint a background on hover, with the foreground they
- * end up against. `hoverable-favorite` and `hoverable-link-tile` set no colour
- * of their own, so they render whatever the consumer carries: those consumers
- * use `text-primary`, and in both monochrome themes `--color-text-secondary`
- * is `--color-text-primary` anyway, so inherited text resolves the same.
+ * The utilities that repaint a background on hover from a border token, read
+ * from utilities.css so a new one is checked without anyone listing it here.
+ * `hoverable-favorite` and `hoverable-link-tile` set no colour of their own,
+ * so they render whatever the consumer carries: those consumers use
+ * `text-primary`, and in both monochrome themes `--color-text-secondary` is
+ * `--color-text-primary` anyway, so inherited text resolves the same.
  */
 const REPAINTING_UTILITIES = [
-  'hoverable-action-btn',
-  'hoverable-icon-btn',
-  'hoverable-favorite',
-  'hoverable-link-tile',
-] as const;
+  ...utilitiesCss.matchAll(
+    /^\s*\.(hoverable-[\w-]+):hover\s*\{[^}]*\bbackground-color\s*:\s*var\(--color-border-[\w-]+\)/gm
+  ),
+].map((match) => match[1]);
 
 /** WCAG 1.4.3 AA for normal text. */
 const AA_TEXT = 4.5;
@@ -201,6 +201,48 @@ function declaredToken(
   }
   return null;
 }
+
+/**
+ * Tokens the contrast checks below read. Each theme has to declare these
+ * itself: `resolveToken` falls back to the default palette for anything a
+ * theme leaves out, so a theme whose selector stopped matching would quietly
+ * be checked as the default one.
+ */
+const CHECKED_TOKENS = [
+  '--color-background',
+  '--color-surface',
+  '--color-text-primary',
+  '--color-border-primary',
+  '--color-border-secondary',
+  '--color-border-muted',
+];
+
+describe('the stylesheet parse sees what it checks', () => {
+  it.each(THEMES)('reads a full palette for %s', (theme) => {
+    const tokens = THEME_TOKENS.get(theme);
+    expect(tokens, `no token block matched for "${theme}"`).toBeDefined();
+    // A real palette declares dozens; a stray one-off block declares a few.
+    expect(tokens?.size ?? 0).toBeGreaterThan(20);
+    for (const token of CHECKED_TOKENS) {
+      expect(tokens?.has(token), `"${theme}" does not declare ${token}`).toBe(
+        true
+      );
+    }
+  });
+
+  it('finds the repainting utilities', () => {
+    // The four this was written for (#273). More is fine; fewer means the
+    // pattern no longer matches how utilities.css writes them.
+    expect(REPAINTING_UTILITIES).toEqual(
+      expect.arrayContaining([
+        'hoverable-action-btn',
+        'hoverable-icon-btn',
+        'hoverable-favorite',
+        'hoverable-link-tile',
+      ])
+    );
+  });
+});
 
 describe('hoverable utilities keep their content legible in every theme', () => {
   // A grouped `[data-theme]` selector list only matches the regex above when the
