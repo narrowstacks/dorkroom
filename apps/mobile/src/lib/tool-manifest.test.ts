@@ -82,7 +82,7 @@ describe('tab route names', () => {
       )?.[1];
       const key = id.includes('-') ? `'${id}'` : id;
       const boundScreen = bindings.match(
-        new RegExp(`\\n  ${key}: \\{\\s*screen: (\\w+),`)
+        new RegExp(`\\n  ${key}: (\\w+),`)
       )?.[1];
       expect(routeScreen, route).toBeDefined();
       expect(boundScreen, id).toBe(routeScreen);
@@ -121,8 +121,8 @@ describe('tab icons', () => {
     }
   });
 
-  it('TOOL_SCREENS requires tab-icons/<id>.png for each tab tool', () => {
-    const bindings = read('src', 'lib', 'tool-screens.ts');
+  it('TAB_ICONS requires tab-icons/<id>.png for each tab tool', () => {
+    const bindings = read('src', 'lib', 'tab-icons.ts');
     const required = [
       ...bindings.matchAll(
         /require\('\.\.\/\.\.\/assets\/tab-icons\/([\w-]+)\.png'\)/g

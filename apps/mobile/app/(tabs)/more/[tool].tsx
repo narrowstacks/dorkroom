@@ -6,7 +6,7 @@ import { getTool } from '@/lib/tools';
 export default function MoreToolDetail() {
   const { tool } = useLocalSearchParams<{ tool: string }>();
   const meta = getTool(tool);
-  const ScreenComponent = tool ? getToolScreen(tool)?.screen : undefined;
+  const ScreenComponent = tool ? getToolScreen(tool) : undefined;
   if (!meta || !ScreenComponent) {
     return (
       <View className="flex-1 items-center justify-center">

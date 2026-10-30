@@ -65,14 +65,16 @@ screen component.
 
 `TOOLS` in `src/lib/tools.ts` is the **tool manifest**: id, label, Lucide icon
 name, More route, category, and (for single-screen tools) `tabRoute`, the route
-file name under `app/(tabs)`. Its native half, `TOOL_SCREENS` in
-`src/lib/tool-screens.ts`, binds each single-screen tool id to its screen
-component and tab icon `require()`; it is split out because screens and image
-assets can't load under vitest, so `tools.ts` stays pure. The tab bar, the
-`more/[tool].tsx` detail route, and the deep-link resolver all derive from these
-two. Adding a single-screen tool means: the screen in `src/screens/`, a `TOOLS`
-entry with a `tabRoute`, a `TOOL_SCREENS` entry (a missing one is a compile
-error), the two-line route file, and the icon in
+file name under `app/(tabs)`. Its native half is two id-keyed tables:
+`TOOL_SCREENS` in `src/lib/tool-screens.ts` (the screen component) and
+`TAB_ICONS` in `src/lib/tab-icons.ts` (the tab icon `require()`). They are split
+out because screens and image assets can't load under vitest, so `tools.ts`
+stays pure; icons are separate from screens so the tab layout doesn't load
+every screen up front. The tab bar, the `more/[tool].tsx` detail route, and the
+deep-link resolver all derive from these. Adding a single-screen tool means:
+the screen in `src/screens/`, a `TOOLS` entry with a `tabRoute`, a
+`TOOL_SCREENS` and a `TAB_ICONS` entry (a missing one is a compile error), the
+two-line route file, and the icon in
 `scripts/generate-tab-icons.mjs`. `src/lib/tool-manifest.test.ts` fails if a
 route file, tab icon, generator entry, or App Intent disagrees with the
 manifest.

@@ -1,7 +1,7 @@
 import { useQuickActionRouting } from 'expo-quick-actions/router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { usePinnedTabs } from '@/hooks/use-pinned-tabs';
-import { getToolScreen } from '@/lib/tool-screens';
+import { getTabIcon } from '@/lib/tab-icons';
 import { getTool } from '@/lib/tools';
 
 // Film Log is a multi-screen section that always lives in the tab bar (it can't
@@ -22,9 +22,9 @@ export default function TabsLayout() {
       {pinned.map((id) => {
         const tool = getTool(id);
         // Route name and icon both come from the tool manifest (`TOOLS` plus
-        // `TOOL_SCREENS`); film-log and recipes have neither and render below.
+        // `TAB_ICONS`); film-log and recipes have neither and render below.
         const routeName = tool?.tabRoute;
-        const icon = getToolScreen(id)?.tabIcon;
+        const icon = getTabIcon(id);
         if (!tool || routeName === undefined || icon === undefined) return null;
         return (
           <NativeTabs.Trigger key={id} name={routeName}>

@@ -14,7 +14,8 @@ export interface Tool {
    * Route file name under `app/(tabs)` for a single-screen tool that can be
    * pinned as a tab (`border` lives at `index`, `lens` at `lenses`). Tools
    * with a `tabRoute` must also have an entry in `TOOL_SCREENS`
-   * (`tool-screens.ts`), which the compiler enforces. Film Log and Recipes
+   * (`tool-screens.ts`) and `TAB_ICONS` (`tab-icons.ts`), which the compiler
+   * enforces. Film Log and Recipes
    * have none: they are permanent directory tabs with their own stacks.
    */
   tabRoute?: string;
@@ -34,7 +35,7 @@ export interface Tool {
 
 // The iOS tool manifest (#455). Every other tool table is derived from it:
 // the tab bar (`app/(tabs)/_layout.tsx`), the More detail route
-// (`more/[tool].tsx`, via `TOOL_SCREENS`), and the deep-link resolver.
+// (`more/[tool].tsx`, via `TOOL_SCREENS`; tab icons via `TAB_ICONS`), and the deep-link resolver.
 // `tool-manifest.test.ts` checks the route files, tab icons, icon generator
 // and App Intents against it.
 const TOOL_LIST = [
