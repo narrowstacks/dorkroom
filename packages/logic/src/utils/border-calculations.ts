@@ -10,6 +10,12 @@ import {
   DERIVED_CONSTANTS,
 } from '../constants/calculations';
 import { createMemoKey, roundToPrecision } from './precision';
+import {
+  formatDimensionPair,
+  getDisplayUnitSymbol,
+  METRIC_INPUT_DECIMALS,
+  type MeasurementUnit,
+} from './unit-conversion';
 
 const { BORDER_OPTIMIZATION, CACHE, PAPER } = CALCULATION_CONSTANTS;
 
@@ -20,6 +26,40 @@ const { BORDER_OPTIMIZATION, CACHE, PAPER } = CALCULATION_CONSTANTS;
 const SORTED_EASEL_SIZES = EASEL_SIZES.toSorted(
   (a, b) => a.width * a.height - b.width * b.height
 );
+
+/** The biggest easel by area, short side first ("20×24"); the custom-paper warning names it. */
+const LARGEST_EASEL = (() => {
+  const { width, height } = SORTED_EASEL_SIZES[SORTED_EASEL_SIZES.length - 1];
+  return { width: Math.min(width, height), height: Math.max(width, height) };
+})();
+
+/** "21×25.5\"" or "60×80cm": a size in the user's unit, trailing zeros dropped. */
+const formatSizeInUnit = (
+  widthInches: number,
+  heightInches: number,
+  unit: MeasurementUnit
+): string =>
+  `${formatDimensionPair(widthInches, heightInches, unit, {
+    includeUnit: false,
+    maxPrecision: unit === 'imperial' ? 3 : METRIC_INPUT_DECIMALS,
+  })}${getDisplayUnitSymbol(unit)}`;
+
+/**
+ * Warning shown when a custom paper is bigger than any standard easel, with
+ * both sizes in the user's measurement unit.
+ *
+ * @example
+ * ```typescript
+ * formatPaperSizeWarning(23.622, 31.496, 'metric');
+ * // 'Custom paper (60×80cm) exceeds largest standard easel (50.8×60.96cm).'
+ * ```
+ */
+export const formatPaperSizeWarning = (
+  widthInches: number,
+  heightInches: number,
+  unit: MeasurementUnit
+): string =>
+  `Custom paper (${formatSizeInUnit(widthInches, heightInches, unit)}) exceeds largest standard easel (${formatSizeInUnit(LARGEST_EASEL.width, LARGEST_EASEL.height, unit)}).`;
 
 const exactMatchLookup = new Set(
   EASEL_SIZES.flatMap((e) => [

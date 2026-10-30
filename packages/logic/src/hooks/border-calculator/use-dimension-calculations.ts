@@ -20,6 +20,8 @@ import type {
   PaperEntry,
   RatioEntry,
 } from '../../types/border-calculator';
+import { formatPaperSizeWarning } from '../../utils/border-calculations';
+import type { MeasurementUnit } from '../../utils/unit-conversion';
 
 // Pre-calculate max easel dimension for O(1) lookup
 const MAX_EASEL_DIMENSION = Math.max(
@@ -32,6 +34,8 @@ const MAX_EASEL_DIMENSION = Math.max(
  * and validation of minimum border constraints.
  *
  * @param state - Current border calculator state
+ * @param unit - Measurement unit the paper-size warning is written in. Defaults
+ *   to imperial, which is all the iOS app displays.
  * @returns Object containing paper entry, warnings, ratio entry, oriented dimensions, and border data
  *
  * @example
@@ -52,7 +56,10 @@ const MAX_EASEL_DIMENSION = Math.max(
  * }
  * ```
  */
-export const useDimensionCalculations = (state: BorderCalculatorState) => {
+export const useDimensionCalculations = (
+  state: BorderCalculatorState,
+  unit: MeasurementUnit = 'imperial'
+) => {
   // Optimized paper size calculations with better caching
   const paperEntry = useMemo((): PaperEntry => {
     if (state.paperSize === 'custom') {
@@ -81,9 +88,9 @@ export const useDimensionCalculations = (state: BorderCalculatorState) => {
     const exceedsMax =
       paperEntry.w > MAX_EASEL_DIMENSION || paperEntry.h > MAX_EASEL_DIMENSION;
     return exceedsMax
-      ? `Custom paper (${paperEntry.w}×${paperEntry.h}) exceeds largest standard easel (20×24").`
+      ? formatPaperSizeWarning(paperEntry.w, paperEntry.h, unit)
       : null;
-  }, [paperEntry.custom, paperEntry.w, paperEntry.h]);
+  }, [paperEntry.custom, paperEntry.w, paperEntry.h, unit]);
 
   // Optimized aspect ratio calculations
   const ratioEntry = useMemo((): RatioEntry => {

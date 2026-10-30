@@ -1,6 +1,7 @@
 import {
   convertDisplayToInches,
   convertInchesToDisplay,
+  convertInchesToInputValue,
   formatMeasurement,
   type MatPreset,
   type MeasurementUnit,
@@ -21,14 +22,6 @@ import {
 /** Stepper / arrow-key increment: 1/16" imperial, 1mm metric. */
 const STEP_INCHES = 1 / 16;
 const STEP_CM = 0.1;
-
-/**
- * Decimals kept in a centimetre **input**. Two is deliberate: stored inches are
- * rounded to 3 decimals by `convertDisplayToInches`, which is at most 0.0013cm
- * of drift, so anything the user types at 2 decimals survives the round trip to
- * inches and back unchanged.
- */
-const CM_INPUT_DECIMALS = 2;
 
 /** Drop the padding `toFixed` adds, so 20.40 reads as "20.4" and 40.64 as "40.64". */
 function trimDecimals(value: number, decimals: number): string {
@@ -83,7 +76,9 @@ export function matValueToDisplay(
   if (Number.isNaN(inches)) {
     return '';
   }
-  return trimDecimals(convertInchesToDisplay(inches, unit), CM_INPUT_DECIMALS);
+  // Two cm decimals (`METRIC_INPUT_DECIMALS`), shared with every calculator's
+  // metric inputs, so a typed value survives the round trip to inches.
+  return String(convertInchesToInputValue(inches, unit));
 }
 
 /**

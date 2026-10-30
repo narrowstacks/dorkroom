@@ -127,6 +127,34 @@ export function convertDisplayToInches(
 }
 
 /**
+ * Decimals kept when a centimetre value is shown back in an editable field.
+ *
+ * Stored inches carry 3 decimals (`convertDisplayToInches`), so a typed cm
+ * value comes back off by at most 0.0005in = 0.00127cm. That is under half of
+ * 0.01cm, so rounding the display to 2 decimals recovers exactly what the user
+ * typed at 1 or 2 decimals (25 stays 25, never 25.001). See #343.
+ */
+export const METRIC_INPUT_DECIMALS = 2;
+
+/**
+ * Convert stored inches to the number shown in an editable input.
+ *
+ * Use this, not `convertInchesToDisplay`, wherever a value is written back
+ * into a field the user types in: it absorbs the 3-decimal inch rounding so a
+ * typed metric value round-trips unchanged. Imperial passes through as-is.
+ * Stored values are untouched; this only changes what is displayed.
+ */
+export function convertInchesToInputValue(
+  inches: number,
+  unit: MeasurementUnit
+): number {
+  if (unit === 'imperial') {
+    return inches;
+  }
+  return roundToPrecision(inchesToCm(inches), METRIC_INPUT_DECIMALS);
+}
+
+/**
  * Format a measurement value with appropriate precision and unit
  */
 export function formatMeasurement(
