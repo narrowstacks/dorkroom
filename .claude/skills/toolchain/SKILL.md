@@ -11,11 +11,13 @@ description: Dorkroom's lint/format/typecheck/dependency toolchain — oxlint, B
   `.oxlintrc.json`) then `biome check --linter-enabled=false .` (formatting + import sorting only —
   Biome is no longer the linter). `bun run format` writes Biome formatting.
 - Root `bun run lint` / `lint:fix` walk the **whole repo** (a local convenience). CI instead runs root
-  `lint:root` as turbo's `//#lint:root` task, which lints only root-owned files (`api/ utils/ scripts/
-  tools/ supabase/ docs/ .github/ .vscode/` and the root config files, listed explicitly; workspaces own
-  `apps/*` and `packages/*`). Turbo schedules a root task only if `turbo.json` declares it as `//#<task>`.
-  Its `inputs` are `$TURBO_DEFAULT$` minus the workspaces, so a new root-owned directory only needs adding
-  to the `lint:root` script.
+  `lint:root` as turbo's `//#lint:root` task, which covers only root-owned files (workspaces own
+  `apps/*` and `packages/*`). The script has **two path lists**: `oxlint` lints `api/ utils/ scripts/
+  tools/ supabase/` and the root JS/TS configs (`postcss.config.js`, `vitest.config.ts`); Biome
+  format-checks those plus `docs/ .github/ .vscode/` and the root JSON configs. Turbo schedules a root
+  task only if `turbo.json` declares it as `//#<task>`. Its `inputs` are `$TURBO_DEFAULT$` minus the
+  workspaces, so turbo needs no change, but a new root-owned directory with JS/TS must go in **both**
+  lists of the `lint:root` script (Biome-only means it is format-checked but never linted).
 - Biome 2.6 added Markdown and YAML formatters, on by default. Both are disabled in `biome.json`:
   they rewrote ~50 docs and every GitHub workflow/issue template in a style the repo doesn't use
   (blank lines stripped before lists, `*emphasis*` → `_emphasis_`, `[ "a" ]` arrays).
