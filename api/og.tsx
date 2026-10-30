@@ -85,10 +85,11 @@ interface DilutionInfo {
 
 /**
  * Same fallback chain as the API client's transformDeveloper: a dilution may
- * omit `name`, and some entries carry `ratio` instead of `dilution`.
+ * omit `name`, and some entries carry `ratio` instead of `dilution`. Each field
+ * is trimmed so a whitespace-only value falls through to the next one.
  */
 export function getDilutionLabel(dil: DilutionInfo): string | null {
-  return dil.name || dil.dilution || dil.ratio || null;
+  return dil.name?.trim() || dil.dilution?.trim() || dil.ratio?.trim() || null;
 }
 
 interface DeveloperInfo {

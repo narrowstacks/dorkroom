@@ -386,6 +386,15 @@ describe('getDilutionLabel', () => {
   it('returns null for a dilution with no label', () => {
     expect(getDilutionLabel({ id: 4 })).toBeNull();
   });
+
+  it('skips whitespace-only fields and trims the label', () => {
+    expect(getDilutionLabel({ id: 5, name: '  ', dilution: ' 1+9 ' })).toBe(
+      '1+9'
+    );
+    expect(
+      getDilutionLabel({ id: 6, name: ' ', dilution: '', ratio: ' ' })
+    ).toBeNull();
+  });
 });
 
 describe('lookupCombination', () => {
