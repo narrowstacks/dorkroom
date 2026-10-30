@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { clampText } from '../../lib/clamp-text';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import { NumberInput } from '../number-input';
@@ -9,6 +10,10 @@ interface CalculatorNumberFieldProps {
   onChange: (value: string) => void;
   placeholder?: string;
   step?: number;
+  /** Lower bound: native `min` attribute, enforced on every committed value. */
+  min?: number;
+  /** Upper bound: native `max` attribute, enforced on every committed value. */
+  max?: number;
   unit?: string;
   inputTitle?: string;
   helperText?: string;
@@ -24,6 +29,8 @@ export function CalculatorNumberField({
   onChange,
   placeholder,
   step,
+  min,
+  max,
   unit,
   inputTitle,
   helperText,
@@ -49,7 +56,10 @@ export function CalculatorNumberField({
     setDraft(raw);
     const parsed = parseFloat(raw);
     if (Number.isFinite(parsed)) {
-      onChange(raw);
+      // The draft stays as typed (so "-" -> "-5" isn't fought mid-edit) but
+      // out-of-range values never reach the consumer; they're clamped on
+      // commit and the draft snaps into range on blur.
+      onChange(clampText(raw, min, max) ?? raw);
     }
   };
 
@@ -59,6 +69,8 @@ export function CalculatorNumberField({
 
   const handleBlur = () => {
     isFocusedRef.current = false;
+    // Out-of-range drafts were already snapped by NumberInput's own blur
+    // clamp (which runs first and routes through handleChangeText).
     if (!Number.isFinite(parseFloat(draft))) {
       // Never propagated (nor commit) an unparseable draft - revert the
       // visible text to the last known-good value instead of showing 0.
@@ -98,6 +110,8 @@ export function CalculatorNumberField({
         onFocus={handleFocus}
         placeholder={placeholder}
         step={step}
+        min={min}
+        max={max}
         inputTitle={inputTitle ?? `Enter ${label}`}
         className="w-full"
         onBlur={handleBlur}

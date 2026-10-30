@@ -156,4 +156,85 @@ describe('CalculatorNumberField', () => {
 
     expect(screen.getByText('Helper text')).toBeInTheDocument();
   });
+
+  describe('min/max', () => {
+    it('passes min and max to the native input', () => {
+      render(<CalculatorNumberField {...defaultProps} min={0} max={10} />);
+      const input = screen.getByRole('spinbutton');
+      expect(input).toHaveAttribute('min', '0');
+      expect(input).toHaveAttribute('max', '10');
+    });
+
+    it('never commits a value below min, but keeps the typed draft until blur', () => {
+      const onChange = vi.fn();
+      render(
+        <CalculatorNumberField {...defaultProps} onChange={onChange} min={0} />
+      );
+      const input = screen.getByRole('spinbutton');
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '-4' } });
+      expect(onChange).toHaveBeenCalledWith('0');
+      expect(input).toHaveDisplayValue('-4');
+    });
+
+    it('snaps the visible draft into range on blur', () => {
+      const onChange = vi.fn();
+      render(
+        <ControlledWrapperWithBounds
+          initialValue="5"
+          onChange={onChange}
+          min={0}
+          max={10}
+        />
+      );
+      const input = screen.getByRole('spinbutton');
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '42' } });
+      expect(onChange).toHaveBeenLastCalledWith('10');
+      fireEvent.blur(input);
+      expect(input).toHaveDisplayValue('10');
+    });
+
+    it('commits in-range values unchanged', () => {
+      const onChange = vi.fn();
+      render(
+        <CalculatorNumberField
+          {...defaultProps}
+          onChange={onChange}
+          min={0}
+          max={10}
+        />
+      );
+      const input = screen.getByRole('spinbutton');
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '7.5' } });
+      expect(onChange).toHaveBeenCalledWith('7.5');
+    });
+  });
 });
+
+function ControlledWrapperWithBounds({
+  initialValue,
+  onChange,
+  min,
+  max,
+}: {
+  initialValue: string;
+  onChange: (value: string) => void;
+  min?: number;
+  max?: number;
+}) {
+  const [value, setValue] = useState(initialValue);
+  return (
+    <CalculatorNumberField
+      label="Width"
+      value={value}
+      min={min}
+      max={max}
+      onChange={(next) => {
+        setValue(next);
+        onChange(next);
+      }}
+    />
+  );
+}

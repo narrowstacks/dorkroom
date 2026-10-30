@@ -1,4 +1,5 @@
 import { useMeasurement } from '../contexts/measurement-context';
+import { clampText } from '../lib/clamp-text';
 import { cn } from '../lib/cn';
 import { cssVars } from '../lib/dom';
 import { getUnitLabel } from '../lib/measurement';
@@ -18,6 +19,10 @@ interface DimensionInputGroupProps {
   showUnits?: boolean; // Whether to show unit labels
   onWidthBlur?: () => void;
   onHeightBlur?: () => void;
+  /** Native `min` for both inputs; out-of-range values are clamped on blur. */
+  min?: number;
+  /** Native `max` for both inputs; out-of-range values are clamped on blur. */
+  max?: number;
 }
 
 export function DimensionInputGroup({
@@ -33,6 +38,8 @@ export function DimensionInputGroup({
   showUnits = true,
   onWidthBlur,
   onHeightBlur,
+  min,
+  max,
 }: DimensionInputGroupProps) {
   const { unit } = useMeasurement();
   const unitLabel = getUnitLabel(unit);
@@ -55,6 +62,8 @@ export function DimensionInputGroup({
           value={widthValue}
           onChange={(e) => onWidthChange(e.target.value)}
           placeholder={widthPlaceholder}
+          min={min}
+          max={max}
           className="w-full rounded-lg border px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
           style={cssVars({
             borderColor: 'var(--color-border-secondary)',
@@ -68,6 +77,8 @@ export function DimensionInputGroup({
           }}
           onBlur={(e) => {
             e.target.style.borderColor = 'var(--color-border-secondary)';
+            const clamped = clampText(e.target.value, min, max);
+            if (clamped !== null) onWidthChange(clamped);
             onWidthBlur?.();
           }}
         />
@@ -88,6 +99,8 @@ export function DimensionInputGroup({
           value={heightValue}
           onChange={(e) => onHeightChange(e.target.value)}
           placeholder={heightPlaceholder}
+          min={min}
+          max={max}
           className="w-full rounded-lg border px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
           style={cssVars({
             borderColor: 'var(--color-border-secondary)',
@@ -101,6 +114,8 @@ export function DimensionInputGroup({
           }}
           onBlur={(e) => {
             e.target.style.borderColor = 'var(--color-border-secondary)';
+            const clamped = clampText(e.target.value, min, max);
+            if (clamped !== null) onHeightChange(clamped);
             onHeightBlur?.();
           }}
         />

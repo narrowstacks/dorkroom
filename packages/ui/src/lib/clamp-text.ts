@@ -1,0 +1,19 @@
+/**
+ * Clamp a numeric text value into an optional [min, max] range.
+ *
+ * Returns the clamped value as a string when `raw` parses to a finite number
+ * outside the range, otherwise `null` (unparseable text, or already in range),
+ * so callers only need to commit when something actually changed.
+ */
+export function clampText(
+  raw: string,
+  min?: number,
+  max?: number
+): string | null {
+  const parsed = parseFloat(raw);
+  if (!Number.isFinite(parsed)) return null;
+  let clamped = parsed;
+  if (min !== undefined) clamped = Math.max(min, clamped);
+  if (max !== undefined) clamped = Math.min(max, clamped);
+  return clamped === parsed ? null : String(clamped);
+}
