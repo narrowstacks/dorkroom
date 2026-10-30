@@ -42,7 +42,7 @@ const FILM_SEARCH_KEYS = [
   { name: 'name', weight: 2.0 }, // High priority - film name
   { name: 'brand', weight: 2.0 }, // High priority - manufacturer
   { name: 'colorType', weight: 1.0 }, // Medium priority - color/BW classification
-  { name: 'aliases', weight: 1.5 }, // Former names should be findable
+  { name: 'aliases.name', weight: 1.5 }, // Former names should be findable
 ];
 
 /**

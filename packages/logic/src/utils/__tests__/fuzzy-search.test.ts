@@ -322,6 +322,32 @@ describe('fuzzy-search', () => {
     });
   });
 
+  describe('alias search', () => {
+    const aliasFilm: Film = {
+      ...mockFilms[0],
+      id: 99,
+      uuid: 'f99',
+      slug: 'agfa-apx-400',
+      brand: 'Agfa',
+      name: 'APX 400',
+      aliases: [
+        { slug: 'agfa-apx-400', name: 'Zebrafoo Classic' },
+        { slug: 'agfa-apx-400-b', name: 'Quux-Ultra/Pro' },
+      ],
+    };
+    const films = [...mockFilms, aliasFilm];
+
+    it('returns a film when the query matches an alias name', () => {
+      const results = searchFilms(films, 'Zebrafoo');
+      expect(results.map((r) => r.item.slug)).toContain('agfa-apx-400');
+    });
+
+    it('normalizes punctuation in alias names like other fields', () => {
+      const results = searchFilms(films, 'quuxultrapro');
+      expect(results.map((r) => r.item.slug)).toContain('agfa-apx-400');
+    });
+  });
+
   describe('matchesSearchQuery', () => {
     it('matches "tri x" against "Kodak Tri-X 400" (the reported bug)', () => {
       expect(matchesSearchQuery('Kodak Tri-X 400', 'tri x')).toBe(true);
