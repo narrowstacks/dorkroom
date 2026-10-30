@@ -9,6 +9,7 @@ import {
 } from 'vitest';
 import handler, {
   clearFontCache,
+  getDilutionLabel,
   getRouteAccent,
   getRouteIcon,
   loadFontData,
@@ -370,6 +371,20 @@ describe('og handler - development recipe', () => {
 
     expect(res.status).toBe(200);
     expect(combinationUrls.some((url) => requestedPage(url) === 2)).toBe(true);
+  });
+});
+
+describe('getDilutionLabel', () => {
+  it('prefers name, then dilution, then ratio', () => {
+    expect(getDilutionLabel({ id: 1, name: '1+1', dilution: '1:1' })).toBe(
+      '1+1'
+    );
+    expect(getDilutionLabel({ id: 2, dilution: '1+9' })).toBe('1+9');
+    expect(getDilutionLabel({ id: 3, ratio: '1:14' })).toBe('1:14');
+  });
+
+  it('returns null for a dilution with no label', () => {
+    expect(getDilutionLabel({ id: 4 })).toBeNull();
   });
 });
 

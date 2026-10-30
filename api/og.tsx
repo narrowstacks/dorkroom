@@ -79,7 +79,16 @@ interface FilmInfo {
 interface DilutionInfo {
   id: string | number;
   name?: string;
+  dilution?: string;
   ratio?: string;
+}
+
+/**
+ * Same fallback chain as the API client's transformDeveloper: a dilution may
+ * omit `name`, and some entries carry `ratio` instead of `dilution`.
+ */
+export function getDilutionLabel(dil: DilutionInfo): string | null {
+  return dil.name || dil.dilution || dil.ratio || null;
 }
 
 interface DeveloperInfo {
@@ -808,7 +817,7 @@ async function renderCard(params: OgParams): Promise<Response> {
       const dil = developer.dilutions.find(
         (d) => String(d.id) === combo.dilution_id
       );
-      if (dil) dilutionLabel = dil.name ?? dil.ratio ?? null;
+      if (dil) dilutionLabel = getDilutionLabel(dil);
     }
 
     const subtitle = dilutionLabel
@@ -893,7 +902,7 @@ async function renderCard(params: OgParams): Promise<Response> {
     const details: string[] = [];
     if (developer?.dilutions?.length) {
       for (const dil of developer.dilutions) {
-        const label = dil.name ?? dil.ratio;
+        const label = getDilutionLabel(dil);
         if (label) details.push(label);
       }
     }
