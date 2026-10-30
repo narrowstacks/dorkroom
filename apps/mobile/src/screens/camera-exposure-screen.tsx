@@ -23,6 +23,8 @@ import { ShareButton } from '@/components/share-button';
 import { WarningsCard } from '@/components/warnings-card';
 import { buildCameraExposureShare } from '@/lib/share-text';
 
+const SOLVE_FOR_LABEL = 'When selecting a preset, adjust';
+
 export function CameraExposureScreen() {
   const {
     values,
@@ -39,9 +41,14 @@ export function CameraExposureScreen() {
     : null;
 
   // The notice appears below the preset grid the user just tapped, often off
-  // screen, so VoiceOver is told about it directly.
+  // screen, so VoiceOver is told about it directly. Queued so it is spoken
+  // after the activated preset button rather than dropped (iOS only option).
   useEffect(() => {
-    if (warning) AccessibilityInfo.announceForAccessibility(warning);
+    if (warning) {
+      AccessibilityInfo.announceForAccessibilityWithOptions(warning, {
+        queue: true,
+      });
+    }
   }, [warning]);
 
   const settings = formatSettings(
@@ -64,39 +71,43 @@ export function CameraExposureScreen() {
         />
       </GlassCard>
 
-      {exposureValue.isValid ? (
-        <ResultCard accent="violet" className="gap-3">
-          <ResultStat
-            accent="violet"
-            label="Exposure value"
-            value={`EV ${exposureValue.ev}`}
-            helper={exposureValue.description}
-          />
-          <FormulaRow
-            formula={`EV = log₂(N² × 100 / (t × S)) = ${exposureValue.ev}`}
-          />
-          <ResultRow label="Settings" value={settings} />
-          <ShareButton
-            message={buildCameraExposureShare({
-              settings,
-              ev: exposureValue.ev,
-              description: exposureValue.description,
-            })}
-          />
-        </ResultCard>
-      ) : (
-        <GlassCard>
-          <Text className="text-white/60">Choose valid settings.</Text>
-        </GlassCard>
-      )}
+      {/* No invalid-EV fallback: the pickers only offer positive standard
+          values and hydration only accepts positive numbers. */}
+      <ResultCard accent="violet" className="gap-3">
+        <ResultStat
+          accent="violet"
+          label="Exposure value"
+          value={`EV ${exposureValue.ev}`}
+          helper={exposureValue.description}
+        />
+        <FormulaRow
+          formula={`EV = log₂(N² × 100 / (t × S)) = ${exposureValue.ev}`}
+        />
+        <ResultRow label="Settings" value={settings} />
+        <ShareButton
+          message={buildCameraExposureShare({
+            settings,
+            ev: exposureValue.ev,
+            description: exposureValue.description,
+          })}
+        />
+      </ResultCard>
 
       <GlassCard className="gap-3">
         <SectionLabel>Lighting presets</SectionLabel>
         <Text className="text-sm text-white/60">
           Pick a scene. The calculator adjusts the value you choose to match.
         </Text>
+        <Text
+          className="text-sm text-white/60"
+          // Each segment speaks this label itself (see accessibilityLabel).
+          accessibilityElementsHidden
+        >
+          {SOLVE_FOR_LABEL}
+        </Text>
         <SegmentedControl
           accent="violet"
+          accessibilityLabel={SOLVE_FOR_LABEL}
           options={SOLVE_FOR_OPTIONS}
           value={values.solveFor}
           onChange={(v) => set('solveFor', v)}
