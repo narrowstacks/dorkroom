@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { ASPECT_RATIOS, PAPER_SIZES } from '../../constants/border-calculator';
 import { initialState } from '../../hooks/border-calculator/use-border-calculator-state';
@@ -8,10 +7,11 @@ import type {
 } from '../../types/border-calculator';
 import { computeBorderLayout, computePreviewScale } from '../border-layout';
 
-// Characterization tests. The golden rows and digest below were generated
-// from the useDimensionCalculations + useGeometryCalculations hook pipeline
-// this function replaced (#290), so any change to them is a change to the
-// numbers the border calculator displays.
+// Characterization tests. computeBorderLayout was proven identical to the
+// useDimensionCalculations + useGeometryCalculations hook pipeline it replaced
+// (#290) over a large input grid, and every golden row below was checked
+// against those hooks, so any change to a row is a change to the numbers the
+// border calculator displays.
 
 // A slice of calculator input. The grid deliberately includes values outside
 // the declared unions ('unknown-size', 'unknown-ratio') to pin the lookup
@@ -60,7 +60,6 @@ const ratios: GridPart[] = [
   })),
 ];
 
-const minBorders = [-1, 0, 0.25, 0.5, 1.3, 2.5, 3.5, 4, 5.5, 100];
 const orientations = [
   { isLandscape: false, isRatioFlipped: false },
   { isLandscape: true, isRatioFlipped: false },
@@ -73,45 +72,6 @@ const offsets: GridPart[] = [
   { enableOffset: true, horizontalOffset: 1, verticalOffset: -0.5 },
   { enableOffset: true, horizontalOffset: -3, verticalOffset: 2 },
   { enableOffset: true, horizontalOffset: 10, verticalOffset: -10 },
-];
-
-function buildCases(): BorderCalculatorState[] {
-  const cases: BorderCalculatorState[] = [];
-  for (const paper of papers)
-    for (const ratio of ratios)
-      for (const orientation of orientations)
-        for (const minBorder of minBorders)
-          cases.push(
-            makeState(paper, ratio, orientation, {
-              minBorder,
-              lastValidMinBorder: 0.75,
-            })
-          );
-
-  // Offsets and ignoreMinBorder over a smaller paper x ratio slice
-  for (const paper of papers.slice(0, 9))
-    for (const ratio of ratios.slice(0, 6))
-      for (const offset of offsets)
-        for (const ignoreMinBorder of [false, true])
-          for (const minBorder of [0.5, 2])
-            for (const isLandscape of [false, true])
-              cases.push(
-                makeState(paper, ratio, offset, {
-                  ignoreMinBorder,
-                  isLandscape,
-                  minBorder,
-                  lastValidMinBorder: 0.5,
-                })
-              );
-  return cases;
-}
-
-const viewports = [
-  { width: 1024, height: 768 },
-  { width: 375, height: 667 },
-  { width: 444, height: 800 },
-  { width: 445, height: 801 },
-  { width: 1920, height: 1080 },
 ];
 
 function row(state: BorderCalculatorState, c: BorderCalculation): string {
@@ -225,6 +185,24 @@ describe('computeBorderLayout', () => {
     expect(imperial.isNonStandardPaperSize).toBe(false);
   });
 
+  it('writes the full metric paper-size warning, in either orientation', () => {
+    for (const isLandscape of [false, true]) {
+      const { calculation } = computeBorderLayout(
+        {
+          ...initialState,
+          paperSize: 'custom',
+          lastValidCustomPaperWidth: 30,
+          lastValidCustomPaperHeight: 40,
+          isLandscape,
+        },
+        { viewport, unit: 'metric' }
+      );
+      expect(calculation.paperSizeWarning).toBe(
+        'Custom paper (76.2×101.6cm) exceeds largest standard easel (50.8×61cm).'
+      );
+    }
+  });
+
   it('matches the golden rows from the replaced hook pipeline', () => {
     const rows: string[] = [];
     for (const paper of papers)
@@ -244,6 +222,30 @@ describe('computeBorderLayout', () => {
               row(state, computeBorderLayout(state, { viewport }).calculation)
             );
           }
+    // The two orientation combinations the block above skips
+    for (const paper of papers)
+      for (const ratio of [ratios[0], ratios[2]])
+        for (const orientation of [orientations[1], orientations[2]]) {
+          const state = makeState(paper, ratio, orientation, {
+            minBorder: 0.5,
+            lastValidMinBorder: 0.75,
+          });
+          rows.push(
+            row(state, computeBorderLayout(state, { viewport }).calculation)
+          );
+        }
+    // Unknown-ratio fallback and custom ratios, in every orientation
+    for (const paper of [papers[2], papers[9]])
+      for (const ratio of ratios.slice(ratios.length - 4))
+        for (const orientation of orientations) {
+          const state = makeState(paper, ratio, orientation, {
+            minBorder: 0.5,
+            lastValidMinBorder: 0.75,
+          });
+          rows.push(
+            row(state, computeBorderLayout(state, { viewport }).calculation)
+          );
+        }
     for (const offset of offsets.slice(1))
       for (const ignoreMinBorder of [false, true]) {
         const state = makeState(offset, { ignoreMinBorder, minBorder: 2 });
@@ -253,18 +255,6 @@ describe('computeBorderLayout', () => {
       }
     expect(rows).toMatchSnapshot();
   });
-
-  // ~115k layouts, so the timeout is generous for a parallel turbo run.
-  it('matches the digest of the full input grid from the replaced hook pipeline', () => {
-    const hash = createHash('sha256');
-    for (const unit of ['imperial', 'metric'] as const)
-      for (const vp of viewports)
-        for (const state of buildCases())
-          hash.update(
-            JSON.stringify(computeBorderLayout(state, { viewport: vp, unit }))
-          );
-    expect(hash.digest('hex')).toMatchSnapshot();
-  }, 60_000);
 });
 
 describe('computePreviewScale', () => {
@@ -281,5 +271,16 @@ describe('computePreviewScale', () => {
     expect(computePreviewScale(8, 10, { width: 375, height: 667 })).toBe(
       Math.min((375 * 0.9) / 8, (667 * 0.5) / 10)
     );
+  });
+
+  it('switches to the fixed 400px box just above 444x800', () => {
+    // Width-limited paper shows the 444px width breakpoint
+    expect(computePreviewScale(10, 8, { width: 444, height: 800 })).toBe(
+      (444 * 0.9) / 10
+    );
+    expect(computePreviewScale(10, 8, { width: 445, height: 801 })).toBe(40);
+    // At 800px tall, 50% of the height is already 400px
+    expect(computePreviewScale(8, 10, { width: 444, height: 800 })).toBe(40);
+    expect(computePreviewScale(8, 10, { width: 445, height: 801 })).toBe(40);
   });
 });

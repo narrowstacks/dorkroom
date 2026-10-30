@@ -41,9 +41,8 @@ const MAX_EASEL_DIMENSION = Math.max(
 );
 
 /**
- * The calculator state fields the layout depends on. Every other field
- * (warnings, blade visibility, image crop, presets) leaves it unchanged, so a
- * caller memoising on these fields alone recomputes exactly when it must.
+ * The calculator state fields the layout reads. Any object carrying them,
+ * such as the full calculator state, can be passed in.
  *
  * @public
  */

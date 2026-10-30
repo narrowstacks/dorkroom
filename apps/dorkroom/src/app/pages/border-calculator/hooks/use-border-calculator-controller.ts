@@ -166,8 +166,6 @@ export function useBorderCalculatorController() {
   );
 
   const quarterRoundedMinBorder = useMemo(() => {
-    if (!calculation) return null;
-
     return calculateQuarterInchMinBorder({
       paperWidth: orientedPaper.w,
       paperHeight: orientedPaper.h,
@@ -206,16 +204,13 @@ export function useBorderCalculatorController() {
   }, [maxAllowedMinBorder, minBorder, form, toast, unit]);
 
   useEffect(() => {
-    if (!calculation) return;
     if (calculation.lastValidMinBorder !== lastValidMinBorder) {
       form.setFieldValue('lastValidMinBorder', calculation.lastValidMinBorder);
     }
   }, [calculation, form, lastValidMinBorder]);
 
-  const offsetWarning = calculation?.offsetWarning ?? null;
-  const bladeWarning = calculation?.bladeWarning ?? null;
-  const minBorderWarning = calculation?.minBorderWarning ?? null;
-  const paperSizeWarning = calculation?.paperSizeWarning ?? null;
+  const { offsetWarning, bladeWarning, minBorderWarning, paperSizeWarning } =
+    calculation;
 
   // Update orientation only when custom paper dimensions change
   useEffect(() => {
