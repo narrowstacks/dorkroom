@@ -2,7 +2,11 @@ import { type ComponentType, createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import {
+  CATEGORY_LABELS,
+  CATEGORY_ORDER,
+  getRouteAccent,
   getRouteIcon,
+  homeToolCards,
   mobileNavItems,
   navigationCategories,
   navItems,
@@ -274,5 +278,60 @@ describe('getRouteIcon (pinned)', () => {
       '/settings': undefined,
       '/privacy': undefined,
     });
+  });
+});
+
+describe('tool manifest derivations', () => {
+  it('resolves each page accent tone from the manifest', () => {
+    const routes = [
+      '/border',
+      '/resize',
+      '/stops',
+      '/mat',
+      '/development',
+      '/reciprocity',
+      '/lenses',
+      '/exposure',
+      '/films',
+      '/docs',
+      '/',
+      '/settings',
+    ];
+    expect(
+      Object.fromEntries(routes.map((r) => [r, getRouteAccent(r)]))
+    ).toEqual({
+      '/border': 'indigo',
+      '/resize': 'teal',
+      '/stops': 'blue',
+      '/mat': 'cyan',
+      '/development': 'rose',
+      '/reciprocity': 'amber',
+      '/lenses': 'emerald',
+      '/exposure': 'teal',
+      '/films': 'cyan',
+      '/docs': undefined,
+      '/': undefined,
+      '/settings': undefined,
+    });
+  });
+
+  it('gives each home card its page accent and a nav entry', () => {
+    const navRoutes = navigationCategories.flatMap((c) =>
+      c.items.map((i) => i.to)
+    );
+    for (const card of homeToolCards) {
+      expect(navRoutes).toContain(card.href);
+      expect(card.accent).toBe(getRouteAccent(card.href));
+    }
+    // Every tool except Docs (served by another app) has a home card.
+    expect(homeToolCards.map((c) => c.href).sort()).toEqual(
+      navRoutes.filter((to) => to !== '/docs').sort()
+    );
+  });
+
+  it('titles sidebar sections from CATEGORY_LABELS in CATEGORY_ORDER', () => {
+    expect(CATEGORY_ORDER.map((c) => CATEGORY_LABELS[c])).toEqual(
+      navigationCategories.map((c) => c.label)
+    );
   });
 });

@@ -4,7 +4,12 @@ import {
   getBaseFilm,
   useFilmDatabase,
 } from '@dorkroom/logic';
-import { ErrorFallback, getRouteIcon, useIsMobile } from '@dorkroom/ui';
+import {
+  ErrorFallback,
+  getRouteAccent,
+  getRouteIcon,
+  useIsMobile,
+} from '@dorkroom/ui';
 import { CalculatorPageHeader } from '@dorkroom/ui/calculator';
 import { VirtualizedErrorBoundary } from '@dorkroom/ui/development-recipes';
 import {
@@ -393,7 +398,7 @@ export default function FilmsPage() {
       <CalculatorPageHeader
         title="Film Database"
         icon={getRouteIcon('/films')}
-        accentTone="cyan"
+        accentTone={getRouteAccent('/films')}
         description="Browse and search the complete film stock database"
       />
 
