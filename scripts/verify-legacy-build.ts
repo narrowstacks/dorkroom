@@ -1,5 +1,6 @@
 /**
- * Verify the @vitejs/plugin-legacy dual-bundle output in a real browser.
+ * Verify the @vitejs/plugin-legacy dual-bundle output in a real browser
+ * (headless Chrome through `Bun.WebView`, see webview-capture.ts).
  *
  * Two things must hold for the Kindle-browser support (PR #92) to be both
  * effective and safe:
@@ -26,7 +27,7 @@ import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { type Browser, chromium, type ConsoleMessage } from 'playwright';
+import { CaptureView } from './webview-capture';
 
 const root = join(dirname(import.meta.url), '..');
 const distDir = join(root, 'apps', 'dorkroom', 'dist');
@@ -64,13 +65,17 @@ function isAddressInfo(
   return typeof address === 'object' && address !== null;
 }
 
-function startStaticServer(transformHtml?: (html: string) => string): Promise<{
+function startStaticServer(
+  transformHtml?: (html: string) => string,
+  requestLog?: string[]
+): Promise<{
   url: string;
   close: () => Promise<void>;
 }> {
   const server = createServer(async (req, res) => {
     try {
       const urlPath = decodeURIComponent((req.url ?? '/').split('?')[0]);
+      requestLog?.push(urlPath);
       // Resolve within distDir; reject path traversal.
       const rel = normalize(urlPath).replace(/^(\.\.[/\\])+/, '');
       let filePath = join(distDir, rel);
@@ -135,23 +140,30 @@ function forceLegacyHtml(html: string): string {
 
 type Errors = string[];
 
-function attachErrorCollectors(
-  page: import('playwright').Page,
-  errors: Errors,
-  ignore: RegExp[] = []
-): void {
-  page.on('pageerror', (e) => {
-    if (!ignore.some((re) => re.test(e.message)))
-      errors.push(`pageerror: ${e.message}`);
+/** Installed before any page script: collects uncaught errors and console.error calls. */
+const ERROR_COLLECTOR = `
+  window.__pageErrors = [];
+  window.addEventListener('error', function (e) {
+    window.__pageErrors.push('pageerror: ' + e.message);
   });
-  page.on('console', (msg: ConsoleMessage) => {
-    if (msg.type() !== 'error') return;
-    // Match ignore patterns against both the message and its source URL — a
-    // failed-resource console error carries the URL only in location().
-    const subject = `${msg.text()} ${msg.location()?.url ?? ''}`;
-    if (!ignore.some((re) => re.test(subject)))
-      errors.push(`console.error: ${msg.text()}`);
+  window.addEventListener('unhandledrejection', function (e) {
+    window.__pageErrors.push('unhandledrejection: ' + String(e.reason));
   });
+  var origError = console.error;
+  console.error = function () {
+    window.__pageErrors.push('console.error: ' + Array.prototype.join.call(arguments, ' '));
+    return origError.apply(console, arguments);
+  };
+`;
+
+async function readErrors(
+  view: CaptureView,
+  ignore: RegExp[]
+): Promise<Errors> {
+  const all = await view.evaluate<string[]>(
+    'function () { return window.__pageErrors || []; }'
+  );
+  return all.filter((message) => !ignore.some((re) => re.test(message)));
 }
 
 const assertions: { name: string; pass: boolean; detail?: string }[] = [];
@@ -160,31 +172,34 @@ function check(name: string, pass: boolean, detail?: string): void {
   console.log(`${pass ? '✓' : '✗'} ${name}${detail ? ` — ${detail}` : ''}`);
 }
 
-async function run(browser: Browser, baseUrl: string): Promise<void> {
+async function openAndWait(url: string): Promise<CaptureView> {
+  const view = await CaptureView.open({
+    width: 1280,
+    height: 918,
+    initScript: ERROR_COLLECTOR,
+  });
+  await view.goto(url);
+  await view.waitForVisible('.hero-grain', 30_000);
+  return view;
+}
+
+async function run(): Promise<void> {
   // ---- 1. MODERN PATH ------------------------------------------------------
   {
-    const ctx = await browser.newContext();
-    const page = await ctx.newPage();
     const requests: string[] = [];
-    const errors: Errors = [];
-    page.on('request', (r) => requests.push(r.url()));
-    // /_vercel/* analytics scripts only exist on the deployed platform; their
-    // 404s here are environmental, not a legacy-build defect.
-    attachErrorCollectors(page, errors, [/_vercel\//]);
+    const server = await startStaticServer(undefined, requests);
+    const view = await openAndWait(server.url);
 
-    await page.goto(baseUrl, { waitUntil: 'networkidle', timeout: 60_000 });
-    await page
-      .locator('.hero-grain')
-      .first()
-      .waitFor({ state: 'visible', timeout: 30_000 });
-
-    const assetJs = requests.filter((u) => /\/assets\/.*\.js(\?|$)/.test(u));
+    const assetJs = requests.filter((u) => /\/assets\/.*\.js$/.test(u));
     const modernEntry = assetJs.some(
       (u) => /\/assets\/index-[^/]+\.js/.test(u) && !u.includes('-legacy-')
     );
     const anyLegacy = assetJs.filter((u) =>
       /-legacy-|polyfills-legacy/.test(u)
     );
+    // /_vercel/* analytics scripts only exist on the deployed platform; their
+    // 404s here are environmental, not a legacy-build defect.
+    const errors = await readErrors(view, [/_vercel\//]);
 
     check('modern: app renders (.hero-grain visible)', true);
     check('modern: loads modern index-*.js module bundle', modernEntry);
@@ -201,42 +216,19 @@ async function run(browser: Browser, baseUrl: string): Promise<void> {
       errors.join(' | ')
     );
 
-    await ctx.close();
+    view.close();
+    await server.close();
   }
 
   // ---- 2. LEGACY PATH ------------------------------------------------------
   {
-    const ctx = await browser.newContext();
-    const page = await ctx.newPage();
     const requests: string[] = [];
-    // Vite prints a benign warning telling users to ignore the legacy syntax
-    // error; not applicable here (we removed the detector) but ignore defensively.
-    const errors: Errors = [];
-    attachErrorCollectors(page, errors, [
+    const server = await startStaticServer(forceLegacyHtml, requests);
+    const view = await openAndWait(server.url);
+    const errors = await readErrors(view, [
       /loading legacy chunks/i,
       /_vercel\//,
     ]);
-
-    await page.route('**/*', async (route) => {
-      if (route.request().resourceType() === 'document') {
-        const res = await route.fetch();
-        const html = await res.text();
-        await route.fulfill({
-          response: res,
-          body: forceLegacyHtml(html),
-          headers: { 'content-type': 'text/html; charset=utf-8' },
-        });
-      } else {
-        await route.continue();
-      }
-    });
-    page.on('request', (r) => requests.push(r.url()));
-
-    await page.goto(baseUrl, { waitUntil: 'networkidle', timeout: 60_000 });
-    await page
-      .locator('.hero-grain')
-      .first()
-      .waitFor({ state: 'visible', timeout: 30_000 });
 
     const loadedPolyfills = requests.some((u) =>
       /polyfills-legacy-[^/]+\.js/.test(u)
@@ -264,7 +256,8 @@ async function run(browser: Browser, baseUrl: string): Promise<void> {
       errors.join(' | ')
     );
 
-    await ctx.close();
+    view.close();
+    await server.close();
   }
 }
 
@@ -288,15 +281,8 @@ if (process.argv.includes('--serve-legacy')) {
   await new Promise(() => {});
 }
 
-const { url, close } = await startStaticServer();
-const browser = await chromium.launch();
-try {
-  console.log(`Serving ${distDir}\n  at ${url}\n`);
-  await run(browser, url);
-} finally {
-  await browser.close();
-  await close();
-}
+console.log(`Serving ${distDir}\n`);
+await run();
 
 const failed = assertions.filter((a) => !a.pass);
 console.log(

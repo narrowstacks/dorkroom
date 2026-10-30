@@ -17,11 +17,10 @@ interface DevelopmentActionsBarProps {
   isRefreshing?: boolean;
   /** Whether the initial data load is still in flight; suppresses the "0 pairings" subtitle. */
   isLoading?: boolean;
-  showImportButton?: boolean;
   isMobile?: boolean;
 }
 
-// eslint-disable-next-line react-doctor/no-many-boolean-props -- isRefreshing / isLoading / showImportButton / isMobile are independent display/state flags on a toolbar, not a variant axis; compound-component split would add more indirection than value here
+// eslint-disable-next-line react-doctor/no-many-boolean-props -- isRefreshing / isLoading / isMobile are independent display/state flags on a toolbar, not a variant axis; compound-component split would add more indirection than value here
 export function DevelopmentActionsBar({
   totalResults,
   viewMode,
@@ -31,7 +30,6 @@ export function DevelopmentActionsBar({
   onRefresh,
   isRefreshing,
   isLoading = false,
-  showImportButton = true,
   isMobile = false,
 }: DevelopmentActionsBarProps) {
   return (
@@ -196,32 +194,30 @@ export function DevelopmentActionsBar({
           Refresh
         </button>
 
-        {showImportButton && (
-          <button
-            type="button"
-            onClick={onOpenImportModal}
-            className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition"
-            style={{
+        <button
+          type="button"
+          onClick={onOpenImportModal}
+          className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition"
+          style={{
+            borderColor: 'var(--color-border-primary)',
+            color: 'var(--color-text-secondary)',
+          }}
+          onMouseEnter={(e) => {
+            setStyles(e.currentTarget, {
+              borderColor: 'var(--color-border-primary)',
+              color: 'var(--color-text-primary)',
+            });
+          }}
+          onMouseLeave={(e) => {
+            setStyles(e.currentTarget, {
               borderColor: 'var(--color-border-primary)',
               color: 'var(--color-text-secondary)',
-            }}
-            onMouseEnter={(e) => {
-              setStyles(e.currentTarget, {
-                borderColor: 'var(--color-border-primary)',
-                color: 'var(--color-text-primary)',
-              });
-            }}
-            onMouseLeave={(e) => {
-              setStyles(e.currentTarget, {
-                borderColor: 'var(--color-border-primary)',
-                color: 'var(--color-text-secondary)',
-              });
-            }}
-          >
-            <Upload className="size-4" />
-            Import recipe
-          </button>
-        )}
+            });
+          }}
+        >
+          <Upload className="size-4" />
+          Import recipe
+        </button>
         <button
           type="button"
           onClick={onOpenCustomRecipeModal}

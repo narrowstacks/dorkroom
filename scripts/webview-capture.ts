@@ -155,6 +155,14 @@ export class CaptureView {
   }
 
   /**
+   * Run `functionDeclaration` in the page with JSON-serialisable `args` and
+   * return its (awaited) JSON-serialisable result.
+   */
+  evaluate<T>(functionDeclaration: string, args: unknown[] = []): Promise<T> {
+    return this.call<T>(functionDeclaration, args);
+  }
+
+  /**
    * Wait for the first match of `selector` to be rendered — attached with a
    * non-zero box. `Bun.WebView` only bundles this wait inside click(), so a
    * standalone wait has to poll.
