@@ -8,26 +8,28 @@ import {
   DEFAULT_ORIGINAL_WIDTH,
   type PersistedValue,
   RESIZE_STORAGE_KEY,
+  resizeCalculatorPersistence,
   type ResizeCalculatorState,
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { resizeHydrationValidators } from '../hydration';
+
+const { validators: resizeHydrationValidators } = resizeCalculatorPersistence;
 
 /** The page's own defaults, so "falls back to the default" means the real one. */
 const DEFAULTS = {
   isEnlargerHeightMode: false,
-  originalWidth: Number(DEFAULT_ORIGINAL_WIDTH),
-  originalLength: Number(DEFAULT_ORIGINAL_LENGTH),
-  newWidth: Number(DEFAULT_NEW_WIDTH),
-  newLength: Number(DEFAULT_NEW_LENGTH),
-  originalTime: Number(DEFAULT_ORIGINAL_TIME),
-  originalHeight: Number(DEFAULT_ORIGINAL_HEIGHT),
-  newHeight: Number(DEFAULT_NEW_HEIGHT),
+  originalWidth: DEFAULT_ORIGINAL_WIDTH,
+  originalLength: DEFAULT_ORIGINAL_LENGTH,
+  newWidth: DEFAULT_NEW_WIDTH,
+  newLength: DEFAULT_NEW_LENGTH,
+  originalTime: DEFAULT_ORIGINAL_TIME,
+  originalHeight: DEFAULT_ORIGINAL_HEIGHT,
+  newHeight: DEFAULT_NEW_HEIGHT,
 } satisfies ResizeCalculatorState;
 
-const PERSIST_KEYS = [
+const EXPECTED_PERSIST_KEYS = [
   'isEnlargerHeightMode',
   'originalWidth',
   'originalLength',
@@ -45,15 +47,13 @@ const hydrate = (stored: Partial<Record<string, PersistedValue>>) => {
 
   renderHook(() =>
     useLocalStorageFormPersistence({
-      storageKey: RESIZE_STORAGE_KEY,
+      ...resizeCalculatorPersistence,
       form: {
         setFieldValue: (key, value) => {
           Object.assign(values, { [key]: value });
         },
       },
       formValues: values,
-      persistKeys: [...PERSIST_KEYS],
-      validators: resizeHydrationValidators,
       disablePersistence: true,
     })
   );
@@ -64,6 +64,13 @@ const hydrate = (stored: Partial<Record<string, PersistedValue>>) => {
 describe('resizeHydrationValidators (issue #239)', () => {
   beforeEach(() => {
     window.localStorage.clear();
+  });
+
+  it('persists every form field under the existing storage key', () => {
+    expect(resizeCalculatorPersistence.storageKey).toBe(RESIZE_STORAGE_KEY);
+    expect(resizeCalculatorPersistence.persistKeys).toEqual([
+      ...EXPECTED_PERSIST_KEYS,
+    ]);
   });
 
   it('accepts values the form schema accepts', () => {

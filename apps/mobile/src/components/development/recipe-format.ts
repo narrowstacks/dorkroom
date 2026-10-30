@@ -1,4 +1,5 @@
 import type { Combination, Developer } from '@dorkroom/api';
+import { formatTemperature } from '@dorkroom/logic';
 
 /** Temperature unit shown in recipe UI (mobile-local preference). */
 export type TempUnit = 'C' | 'F';
@@ -63,18 +64,17 @@ export function pushPullDisplay(stops: number): PushPullDisplay | null {
 
 /**
  * Format a recipe temperature in the selected unit, e.g. (20, 68, 'C') -> "20°C".
- * Whole numbers render without decimals; fractional values keep one decimal.
+ * Whole numbers render without decimals; fractional values keep one decimal
+ * (the shared 0.1° rule from @dorkroom/logic).
  */
 export function formatRecipeTemp(
   temperatureC: number,
   temperatureF: number,
   unit: TempUnit
 ): string {
-  const value = unit === 'C' ? temperatureC : temperatureF;
-  if (!Number.isFinite(value)) return '—';
-  const rounded = Math.round(value * 10) / 10;
-  const text = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
-  return `${text}°${unit}`;
+  return unit === 'C'
+    ? formatTemperature(temperatureC, 'celsius', { trimTrailingZero: true })
+    : formatTemperature(temperatureF, 'fahrenheit', { trimTrailingZero: true });
 }
 
 /** Brand accent hexes for official-source tags — mirrors the web dark

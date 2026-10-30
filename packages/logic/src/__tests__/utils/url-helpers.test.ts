@@ -2,6 +2,7 @@ import { isClipboardSupported } from '../../utils/share-link';
 import {
   clearPresetFromUrl,
   getPresetFromUrl,
+  isFilmDevOrgUrl,
   updateUrlWithPreset,
 } from '../../utils/url-helpers';
 
@@ -122,6 +123,17 @@ describe('url helpers', () => {
       );
     });
 
+    it('should drop the "?" entirely when preset was the only param', () => {
+      mockWindow.location.search = '?preset=some-preset';
+      clearPresetFromUrl();
+
+      expect(mockWindow.history.replaceState).toHaveBeenCalledWith(
+        null,
+        '',
+        '/border'
+      );
+    });
+
     it('should handle SSR environment gracefully', () => {
       vi.stubGlobal('window', undefined);
       expect(() => clearPresetFromUrl()).not.toThrow();
@@ -151,6 +163,44 @@ describe('url helpers', () => {
       vi.stubGlobal('navigator', { clipboard: {} });
 
       expect(isClipboardSupported()).toBe(false);
+    });
+  });
+
+  describe('isFilmDevOrgUrl', () => {
+    it.each([
+      'https://filmdev.org/recipe/123',
+      'https://www.filmdev.org/recipe/123',
+      'https://api.filmdev.org',
+      'http://filmdev.org/recipe/123',
+      'HTTPS://FILMDEV.ORG/recipe/123',
+      'filmdev.org/12345',
+      'www.filmdev.org/recipe/123',
+      '  https://filmdev.org/recipe/123  ',
+    ])('accepts %s', (value) => {
+      expect(isFilmDevOrgUrl(value)).toBe(true);
+    });
+
+    it.each([
+      // lookalike hosts
+      'https://filmdev.org.attacker.com/recipe/123',
+      'https://evilfilmdev.org/recipe/123',
+      'https://filmdev.organic.com',
+      'https://filmdev.com/recipe/123',
+      // filmdev.org only in the path, query, or credentials
+      'https://evil.com/filmdev.org',
+      'https://evil.com/?next=https://filmdev.org',
+      'https://filmdev.org@evil.com/recipe/123',
+      'evil.com/filmdev.org',
+      // not a URL at all
+      'not a url',
+      '',
+    ])('rejects %s', (value) => {
+      expect(isFilmDevOrgUrl(value)).toBe(false);
+    });
+
+    it('rejects null and undefined', () => {
+      expect(isFilmDevOrgUrl(null)).toBe(false);
+      expect(isFilmDevOrgUrl(undefined)).toBe(false);
     });
   });
 });

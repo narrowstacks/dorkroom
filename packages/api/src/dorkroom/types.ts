@@ -1,14 +1,21 @@
 // Core data types for the Dorkroom API
+import type { z } from 'zod';
+import type {
+  filmAliasSchema,
+  rawCombinationSchema,
+  rawDeveloperSchema,
+  rawDilutionSchema,
+  rawFilmSchema,
+  statsSchema,
+} from './schemas';
 
-/**
- * A former slug + display name for a film that was renamed or rebranded.
- * Carrying the display name alongside the slug avoids lossy slug→title
- * heuristics in the UI (e.g. "Tri-X" vs "Tri X").
- */
-export interface FilmAlias {
-  slug: string;
-  name: string;
-}
+// Wire shapes are inferred from the zod schemas in ./schemas, which the client
+// validates every response against. The schema is the only declaration, so a
+// field added there reaches these types, and a field the client reads that the
+// schema lacks is a compile error rather than an always-undefined value.
+
+/** See `filmAliasSchema`. */
+export type FilmAlias = z.infer<typeof filmAliasSchema>;
 
 export interface Film {
   id: number;
@@ -37,12 +44,11 @@ export interface Dilution {
   dilution: string;
 }
 
-export interface RawDilution {
-  id: number | string;
-  name?: string; // Some stored dilutions omit it; transformDeveloper falls back to dilution/ratio
-  dilution?: string;
-  ratio?: string; // Some API entries use 'ratio' instead of 'dilution'
-}
+/**
+ * Some stored dilutions omit `name` (transformDeveloper falls back to
+ * dilution/ratio), and some use `ratio` instead of `dilution`.
+ */
+export type RawDilution = z.infer<typeof rawDilutionSchema>;
 
 export interface Developer {
   id: number;
@@ -102,70 +108,13 @@ export interface CombinationsApiResponse {
   count: number;
 }
 
-// API raw response types (snake_case from server)
-export interface RawFilm {
-  id: number;
-  uuid: string;
-  slug: string;
-  brand: string;
-  name: string;
-  color_type: string;
-  iso_speed: number;
-  grain_structure: string | null;
-  description: string;
-  manufacturer_notes: string | null; // PostgreSQL array format string
-  reciprocity_failure: string | null;
-  discontinued: boolean;
-  static_image_url: string | null;
-  aliases: FilmAlias[];
-  base_film_slug: string | null;
-  date_added: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface RawDeveloper {
-  id: number;
-  uuid: string;
-  slug: string;
-  name: string;
-  manufacturer: string;
-  type: string;
-  description: string;
-  film_or_paper: boolean;
-  dilutions: RawDilution[];
-  mixing_instructions: string | null;
-  storage_requirements: string | null;
-  safety_notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface RawCombination {
-  id: number;
-  uuid: string;
-  name: string | null;
-  film_stock: string;
-  developer: string;
-  shooting_iso: number;
-  dilution_id: string | null; // String in API, not number
-  custom_dilution: string | null;
-  temperature_celsius: number;
-  time_minutes: number;
-  agitation_method: string | null;
-  push_pull: number | null;
-  tags: string[] | null; // Array, not string
-  notes: string | null;
-  info_source: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Stats {
-  films: number;
-  developers: number;
-  combinations: number;
-}
+// API raw response types (snake_case from server), inferred from the schemas.
+// `manufacturer_notes` is a PostgreSQL array-format string; `dilution_id` is a
+// string; `tags` is an array.
+export type RawFilm = z.infer<typeof rawFilmSchema>;
+export type RawDeveloper = z.infer<typeof rawDeveloperSchema>;
+export type RawCombination = z.infer<typeof rawCombinationSchema>;
+export type Stats = z.infer<typeof statsSchema>;
 
 // Error types
 

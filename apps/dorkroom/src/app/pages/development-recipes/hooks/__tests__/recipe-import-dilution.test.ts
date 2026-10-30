@@ -1,6 +1,5 @@
 import type { Combination, Developer, Film } from '@dorkroom/api';
 import type {
-  CustomRecipe,
   CustomRecipeFormData,
   ImportedCustomRecipe,
 } from '@dorkroom/logic';
@@ -89,9 +88,9 @@ const combination: Combination = {
 };
 
 const renderSharedImport = (source: 'shared' | 'custom') => {
-  const addCustomRecipe = vi.fn<
-    (data: CustomRecipeFormData) => Promise<string>
-  >(async () => 'new-id');
+  const addCustomRecipe = vi.fn<(data: CustomRecipeFormData) => string>(
+    () => 'new-id'
+  );
   const view: DevelopmentCombinationView = {
     combination,
     film,
@@ -101,7 +100,6 @@ const renderSharedImport = (source: 'shared' | 'custom') => {
   const { result } = renderHook(() =>
     useSharedRecipeImport({
       addCustomRecipe,
-      refreshCustomRecipes: async (): Promise<CustomRecipe[]> => [],
       sharedRecipeView: view,
       sharedRecipeSource: source,
       setIsSharedRecipeModalOpen: vi.fn(),
@@ -141,9 +139,9 @@ describe('recipe imports keep the dropdown dilution (#322)', () => {
   });
 
   it('carries dilutionId when importing a recipe code', async () => {
-    const addCustomRecipe = vi.fn<
-      (data: CustomRecipeFormData) => Promise<string>
-    >(async () => 'new-id');
+    const addCustomRecipe = vi.fn<(data: CustomRecipeFormData) => string>(
+      () => 'new-id'
+    );
     const imported: ImportedCustomRecipe = {
       encodedData: 'code',
       isValid: true,
@@ -166,7 +164,6 @@ describe('recipe imports keep the dropdown dilution (#322)', () => {
     const { result } = renderHook(() =>
       useRecipeCodeImport({
         addCustomRecipe,
-        refreshCustomRecipes: async (): Promise<CustomRecipe[]> => [],
         decodeSharedCustomRecipe: () => imported,
         getFilmById: (id) => (id === film.uuid ? film : undefined),
         getDeveloperById: (id) =>

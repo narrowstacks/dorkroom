@@ -25,16 +25,15 @@ run `bun run openapi:generate` from the repo root, or the drift guard fails.
 
 ```typescript
 // Singleton client uses INTERNAL_API_BASE_URL ('/api') for same-origin requests
-import { apiClient, fetchFilmsForQuery } from '@dorkroom/api';
+import { apiClient, fetchFilms } from '@dorkroom/api';
 
 // TanStack Query integration
-useQuery({ queryKey: ['films'], queryFn: fetchFilmsForQuery });
+useQuery({ queryKey: ['films'], queryFn: fetchFilms });
 ```
 
-Each endpoint has two exported helpers: `fetchFilms(options)` takes
-`{ signal }` directly, and `fetchFilmsForQuery(context)` takes the TanStack
-Query context so it can be dropped straight into `queryFn`. Same for
-developers, combinations, and stats.
+`fetchFilms`, `fetchDevelopers`, and `fetchCombinations` take an optional
+`{ signal }`, so the TanStack Query context can be passed straight through as
+`queryFn`. Stats is exported as `fetchStatsForQuery` with the same shape.
 
 ### External (npm consumers)
 
@@ -80,6 +79,11 @@ API returns snake_case, app uses camelCase:
 - `RawCombination` becomes `Combination`
 
 The client transforms automatically.
+
+The Raw types (and `FilmAlias`, `Stats`) are `z.infer` of the zod schemas in
+`src/dorkroom/schemas.ts`, which the client validates every response against.
+Add or change a wire field in the schema only, never in a hand-written
+interface; the type follows, and drift becomes a compile error.
 
 ### Null Handling
 

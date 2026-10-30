@@ -7,7 +7,7 @@ import { Screen } from '@/components/screen';
 import { SectionLabel } from '@/components/section-label';
 import { useCameras, useLenses } from '@/hooks/use-film-log';
 import { formatCameraFormat } from '@/lib/film-log-options';
-import type { Camera, Lens } from '@/types/film-log';
+import type { Camera, Lens } from '@/schemas/film-log.schema';
 
 type CameraEdit = { mode: 'new' } | { mode: 'edit'; camera: Camera } | null;
 type LensEdit = { mode: 'new' } | { mode: 'edit'; lens: Lens } | null;

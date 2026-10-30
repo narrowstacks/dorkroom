@@ -1,6 +1,5 @@
 import type { Developer, Film } from '@dorkroom/api';
 import type {
-  CustomRecipe,
   CustomRecipeFormData,
   FilmdevMappingResult,
   ImportedCustomRecipe,
@@ -14,8 +13,7 @@ import { useSharedRecipeImport } from './useSharedRecipeImport';
 
 export interface UseRecipeImportActionsProps {
   // Recipe operations
-  addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
-  refreshCustomRecipes: () => Promise<CustomRecipe[]>;
+  addCustomRecipe: (data: CustomRecipeFormData) => string;
   decodeSharedCustomRecipe: (input: string) => ImportedCustomRecipe | null;
 
   // Film/Developer data
@@ -64,7 +62,6 @@ export interface UseRecipeImportActionsReturn {
  */
 export function useRecipeImportActions({
   addCustomRecipe,
-  refreshCustomRecipes,
   decodeSharedCustomRecipe,
   allFilms,
   allDevelopers,
@@ -88,7 +85,6 @@ export function useRecipeImportActions({
   const { handleAcceptSharedRecipe, handleDeclineSharedRecipe } =
     useSharedRecipeImport({
       addCustomRecipe,
-      refreshCustomRecipes,
       sharedRecipeView,
       sharedRecipeSource,
       setIsSharedRecipeModalOpen,
@@ -104,7 +100,6 @@ export function useRecipeImportActions({
     handleConfirmFilmdevImport,
   } = useFilmdevImport({
     addCustomRecipe,
-    refreshCustomRecipes,
     allFilms,
     allDevelopers,
     filmdevPreviewData,
@@ -119,7 +114,6 @@ export function useRecipeImportActions({
   // Recipe code import
   const { handleCodeImport } = useRecipeCodeImport({
     addCustomRecipe,
-    refreshCustomRecipes,
     decodeSharedCustomRecipe,
     getFilmById,
     getDeveloperById,

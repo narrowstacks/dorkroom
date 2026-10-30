@@ -1,6 +1,7 @@
 import type { Combination } from '@dorkroom/api';
 import { z } from 'zod';
 import type { CustomRecipe } from '../types/custom-recipes';
+import { roundTemperature, toCelsius } from './temperature';
 
 /**
  * Sentinel value used for temporary combinations that don't have a database ID.
@@ -115,7 +116,7 @@ export function createCombinationFromCustomRecipe(
     recipe.pushPull
   );
 
-  const temperatureC = ((recipe.temperatureF - 32) * 5) / 9;
+  const temperatureC = roundTemperature(toCelsius(recipe.temperatureF));
   const timestamp = new Date().toISOString();
 
   // For partial recipes (shared), use the provided uuid or a default

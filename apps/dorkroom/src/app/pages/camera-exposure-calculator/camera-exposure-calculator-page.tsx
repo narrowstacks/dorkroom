@@ -16,7 +16,13 @@ import {
   STANDARD_SHUTTER_SPEEDS,
   useCameraExposureCalculator,
 } from '@dorkroom/logic';
-import { getRouteIcon, ResultRow, Select, StatusAlert } from '@dorkroom/ui';
+import {
+  getRouteAccent,
+  getRouteIcon,
+  ResultRow,
+  Select,
+  StatusAlert,
+} from '@dorkroom/ui';
 import {
   CalculatorCard,
   CalculatorLayout,
@@ -709,7 +715,7 @@ export default function CameraExposureCalculatorPage() {
       <CalculatorLayout
         title="Camera Exposure Calculator"
         icon={getRouteIcon('/exposure')}
-        accentTone="teal"
+        accentTone={getRouteAccent('/exposure')}
         onReset={reset}
         description={
           <>

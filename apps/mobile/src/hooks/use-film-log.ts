@@ -12,7 +12,12 @@ import {
   storage,
 } from '@/lib/film-log-storage';
 import { useFilmStocks } from '@/lib/film-stocks';
-import type { Camera, FilmRoll, FilmStock, Lens } from '@/types/film-log';
+import type {
+  Camera,
+  FilmRoll,
+  FilmStock,
+  Lens,
+} from '@/schemas/film-log.schema';
 
 export function useRolls(): FilmRoll[] {
   const [raw] = useMMKVString(KEYS.rolls, storage);

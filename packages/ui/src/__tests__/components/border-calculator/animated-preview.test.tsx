@@ -1,125 +1,56 @@
-import { act, render } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {
+  borderCalculatorInitialState,
+  computeBorderLayout,
+} from '@dorkroom/logic';
+import { render } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { AnimatedPreview } from '../../../components/border-calculator/animated-preview';
+import { MeasurementProvider } from '../../../contexts/measurement-context';
 
 /**
- * A `(max-width: 768px)` media query list backed by a real `EventTarget`, so
- * `useIsMobile` subscribes and unsubscribes exactly as it does in a browser.
- * `matches` is recomputed from the fake viewport width on every read.
+ * The preview renders the size `computePreviewScale` chose and reads no
+ * viewport of its own (#457): the layout switch and the preview size come
+ * from the same window sample.
  */
-class FakeMediaQueryList extends EventTarget implements MediaQueryList {
-  readonly media: string;
-  onchange: ((this: MediaQueryList, ev: MediaQueryListEvent) => void) | null =
-    null;
-  private readonly maxWidth: number;
-  private readonly currentWidth: () => number;
-
-  constructor(media: string, currentWidth: () => number) {
-    super();
-    this.media = media;
-    const maxWidth = media.match(/max-width:\s*(\d+)px/);
-    this.maxWidth = maxWidth ? Number.parseInt(maxWidth[1], 10) : 0;
-    this.currentWidth = currentWidth;
-  }
-
-  get matches(): boolean {
-    return this.currentWidth() <= this.maxWidth;
-  }
-
-  addListener(): never {
-    throw new Error('FakeMediaQueryList: use addEventListener');
-  }
-
-  removeListener(): never {
-    throw new Error('FakeMediaQueryList: use removeEventListener');
-  }
+function renderAt(width: number) {
+  // 8x10 landscape: 10in wide, so the width cap is what limits it.
+  const { calculation } = computeBorderLayout(
+    { ...borderCalculatorInitialState, paperSize: '8x10', isLandscape: true },
+    { viewport: { width, height: 1000 } }
+  );
+  const { container } = render(
+    <MeasurementProvider>
+      <AnimatedPreview calculation={calculation} />
+    </MeasurementProvider>
+  );
+  // SAFETY: AnimatedPreview renders exactly one root element, a <div>, which
+  // is always an HTMLElement in the DOM environment.
+  return container.firstElementChild as HTMLElement;
 }
 
 describe('AnimatedPreview', () => {
-  let originalMatchMedia: typeof window.matchMedia;
-  let originalInnerWidth: number;
-  let width: number;
-  let lists: FakeMediaQueryList[];
-
-  const setInnerWidth = (value: number) => {
-    width = value;
-    Object.defineProperty(window, 'innerWidth', {
-      value,
-      writable: true,
-      configurable: true,
-    });
-  };
-
-  beforeEach(() => {
-    originalMatchMedia = window.matchMedia;
-    originalInnerWidth = window.innerWidth;
-    lists = [];
-
-    window.matchMedia = (query: string): MediaQueryList => {
-      const list = new FakeMediaQueryList(query, () => width);
-      lists.push(list);
-      return list;
-    };
-
-    setInnerWidth(1024);
-  });
-
-  afterEach(() => {
-    window.matchMedia = originalMatchMedia;
-    Object.defineProperty(window, 'innerWidth', {
-      value: originalInnerWidth,
-      writable: true,
-      configurable: true,
-    });
-  });
-
-  /** Flips the viewport to mobile and notifies every listener that would fire in a browser. */
-  const resizeTo = (newWidth: number) => {
-    setInnerWidth(newWidth);
-
-    for (const list of lists) {
-      const matches = list.matches;
-      list.dispatchEvent(
-        new MediaQueryListEvent('change', { matches, media: list.media })
-      );
-    }
-
-    window.dispatchEvent(new Event('resize'));
-  };
-
-  it('rescales the preview when the viewport crosses into mobile without a calculation change', () => {
+  it('renders an evenly scaling 4:3 placeholder without a calculation', () => {
     const { container } = render(<AnimatedPreview calculation={null} />);
-
-    // SAFETY: AnimatedPreview's placeholder branch renders exactly one root
-    // element, a <div>, which is always an HTMLElement in the DOM environment.
-    const previewEl = container.firstElementChild as HTMLElement;
-    expect(previewEl.style.width).toBe('400px');
-
-    act(() => {
-      resizeTo(320);
-    });
-
-    // Mobile branch: min(320, innerWidth - 80) = min(320, 240) = 240.
-    expect(previewEl.style.width).toBe('240px');
-  });
-
-  it('keeps the desktop size at exactly 768px and switches at 767px', () => {
-    const { container } = render(<AnimatedPreview calculation={null} />);
-
     // SAFETY: same single-root <div> as above.
     const previewEl = container.firstElementChild as HTMLElement;
+    expect(previewEl).toHaveClass('aspect-[4/3]', 'w-full', 'max-w-[400px]');
+    expect(previewEl.style.width).toBe('');
+    expect(previewEl.style.height).toBe('');
+  });
 
-    // iPad portrait is 768px wide and was desktop under the original
-    // `innerWidth < 768` check; the subscription must not move that boundary.
-    act(() => {
-      resizeTo(768);
-    });
-    expect(previewEl.style.width).toBe('400px');
+  it('sizes itself as mobile at exactly 768px, matching the mobile layout', () => {
+    expect(renderAt(768).style.width).toBe('320px');
+    expect(renderAt(768).style.height).toBe('256px');
+  });
 
-    act(() => {
-      resizeTo(767);
-    });
-    // min(320, 767 - 80) = 320.
-    expect(previewEl.style.width).toBe('320px');
+  it('keeps the mobile size at 767px and the desktop size at 769px', () => {
+    expect(renderAt(767).style.width).toBe('320px');
+    expect(renderAt(769).style.width).toBe('400px');
+    expect(renderAt(769).style.height).toBe('320px');
+  });
+
+  it('shrinks to width - 80 on narrow phones', () => {
+    // min(320, 320 - 80) = 240.
+    expect(renderAt(320).style.width).toBe('240px');
   });
 });

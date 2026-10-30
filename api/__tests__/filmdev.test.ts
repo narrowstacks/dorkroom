@@ -51,6 +51,18 @@ afterEach(() => {
 });
 
 describe('filmdev endpoint', () => {
+  it('should bound the upstream fetch with AbortSignal.timeout', async () => {
+    const timeoutSpy = vi.spyOn(AbortSignal, 'timeout');
+
+    await handler(
+      createMockRequest({ query: { id: '12345' } }),
+      createMockResponse()
+    );
+
+    expect(timeoutSpy).toHaveBeenCalledWith(30_000);
+    timeoutSpy.mockRestore();
+  });
+
   describe('recipe ID validation', () => {
     it('should reject missing recipe ID', async () => {
       const res = createMockResponse();

@@ -54,8 +54,8 @@ fi
 # - supabase/ (Deno edge functions + DB migrations) deploys to Supabase, and
 #   docker/ (self-host entrypoint) deploys outside Vercel — neither feeds the build.
 # - resources/ holds README/marketing assets only.
-# NOTE: types/ and utils/ are intentionally NOT here — they're imported by the
-# app and api/, so changes there must still trigger a build.
+# NOTE: utils/ is intentionally NOT here — it's imported by api/, so changes
+# there must still trigger a build.
 NON_BUILD_PATTERNS="(^docs/|^scripts/|^\.github/|^\.cursor/|^\.vscode/|^\.claude/|^\.superpowers/|^apps/mobile/|^supabase/|^docker/|^resources/|\.md$|^LICENSE$|^NOTICE$|^\.gitignore$|^\.dockerignore$|^\.editorconfig$)"
 
 # Check if ANY changed file is NOT in the skip patterns

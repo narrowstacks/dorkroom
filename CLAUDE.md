@@ -29,7 +29,9 @@ bun run build                             # Build all packages
 
 # Verification (run before considering done)
 bun run test                              # lint, lint:root, test, build, typecheck,
-                                          # typecheck:api, test:serverless, test:docs, doctor
+                                          # typecheck:api, typecheck:tools, test:serverless,
+                                          # test:docs, doctor (typecheck:tools runs
+                                          # tsconfig.tools.json over tools/ and scripts/ tests)
 bun run lint                              # oxlint + `bun fmt --check` over the whole repo
 bun run test:unit "pattern"               # Run only tests matching pattern
 bun run doctor                            # React Doctor alone; fails on any warning

@@ -12,7 +12,7 @@ import {
 } from '@/lib/film-log-photos';
 import { addShot } from '@/lib/film-log-storage';
 import { getSaveMeterPhotosToLibrary } from '@/lib/photo-settings';
-import type { ShotPhoto } from '@/types/film-log';
+import type { ShotPhoto } from '@/schemas/film-log.schema';
 
 interface Pending {
   photo: ShotPhoto;

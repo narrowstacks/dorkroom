@@ -207,11 +207,15 @@ const args = parseArgs(process.argv.slice(2));
 const list: ShotList = await Bun.file(args.listPath).json();
 validate(list);
 
-const baseUrl = (
-  args.baseUrl ??
-  list.baseUrl ??
-  'http://localhost:4200'
-).replace(/\/$/, '');
+const rawBaseUrl = args.baseUrl ?? list.baseUrl;
+if (!rawBaseUrl) {
+  // The dev port is hash-assigned and shifts when taken: read it from Vite's
+  // output (see the skill's Step 3) instead of guessing one here.
+  throw new Error(
+    'No base URL. Pass --base-url <url> or set "baseUrl" in the shot list.'
+  );
+}
+const baseUrl = rawBaseUrl.replace(/\/$/, '');
 const outDir = args.outDir ?? list.outDir ?? '.pr-screenshots';
 if (isAbsolute(outDir)) {
   // Upload backends can only read files inside the workspace root, so the

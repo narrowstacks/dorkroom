@@ -1,12 +1,15 @@
 import {
   type PersistedValue,
   RECIPROCITY_STORAGE_KEY,
+  reciprocityCalculatorPersistence,
   type ReciprocityFormState,
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { reciprocityHydrationValidators } from '../hydration';
+
+const { validators: reciprocityHydrationValidators } =
+  reciprocityCalculatorPersistence;
 
 const DEFAULTS = {
   filmType: 'tri-x',
@@ -14,7 +17,11 @@ const DEFAULTS = {
   customFactor: 1.3,
 } satisfies ReciprocityFormState;
 
-const PERSIST_KEYS = ['filmType', 'meteredTime', 'customFactor'] as const;
+const EXPECTED_PERSIST_KEYS = [
+  'filmType',
+  'meteredTime',
+  'customFactor',
+] as const;
 
 /** Run the real hydration path over a stored payload and return what landed. */
 const hydrate = (stored: Partial<Record<string, PersistedValue>>) => {
@@ -23,15 +30,13 @@ const hydrate = (stored: Partial<Record<string, PersistedValue>>) => {
 
   renderHook(() =>
     useLocalStorageFormPersistence({
-      storageKey: RECIPROCITY_STORAGE_KEY,
+      ...reciprocityCalculatorPersistence,
       form: {
         setFieldValue: (key, value) => {
           Object.assign(values, { [key]: value });
         },
       },
       formValues: values,
-      persistKeys: [...PERSIST_KEYS],
-      validators: reciprocityHydrationValidators,
       disablePersistence: true,
     })
   );
@@ -42,6 +47,15 @@ const hydrate = (stored: Partial<Record<string, PersistedValue>>) => {
 describe('reciprocityHydrationValidators (issue #239)', () => {
   beforeEach(() => {
     window.localStorage.clear();
+  });
+
+  it('persists every form field under the existing storage key', () => {
+    expect(reciprocityCalculatorPersistence.storageKey).toBe(
+      RECIPROCITY_STORAGE_KEY
+    );
+    expect(reciprocityCalculatorPersistence.persistKeys).toEqual([
+      ...EXPECTED_PERSIST_KEYS,
+    ]);
   });
 
   it('accepts values the form schema accepts', () => {

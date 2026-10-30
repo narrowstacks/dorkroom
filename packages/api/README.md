@@ -59,26 +59,26 @@ For React projects using TanStack Query:
 
 ```typescript
 import { useQuery } from '@tanstack/react-query';
-import { fetchFilmsForQuery, fetchDevelopersForQuery, fetchCombinationsForQuery } from '@dorkroom/api';
+import { fetchFilms, fetchDevelopers, fetchCombinations } from '@dorkroom/api';
 
 function useFilms() {
   return useQuery({
     queryKey: ['films'],
-    queryFn: fetchFilmsForQuery,
+    queryFn: fetchFilms,
   });
 }
 
 function useDevelopers() {
   return useQuery({
     queryKey: ['developers'],
-    queryFn: fetchDevelopersForQuery,
+    queryFn: fetchDevelopers,
   });
 }
 
 function useCombinations() {
   return useQuery({
     queryKey: ['combinations'],
-    queryFn: fetchCombinationsForQuery,
+    queryFn: fetchCombinations,
   });
 }
 ```

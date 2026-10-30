@@ -1,97 +1,51 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo } from 'react';
-import { queryKeys } from '../../queries/query-keys';
-import { createStorageManager, isArray } from '../../services/local-storage';
-import type { CustomRecipe } from '../../types/custom-recipes';
-import { debugError } from '../../utils/debug-logger';
-import { isBrowser } from '../../utils/environment';
+import { useMemo, useSyncExternalStore } from 'react';
+import {
+  type CustomRecipeStore,
+  customRecipeStore,
+} from '../../services/custom-recipe-store';
+import type {
+  CustomRecipe,
+  CustomRecipeFormData,
+} from '../../types/custom-recipes';
 
-const STORAGE_KEY = 'dorkroom_custom_recipes';
-
-// Use centralized storage manager
-const recipesStorage = createStorageManager<CustomRecipe[]>(STORAGE_KEY, {
-  defaultValue: [],
-  validate: isArray(),
-  logContext: 'useCustomRecipes',
-});
-
-const readRecipesFromStorage = (): CustomRecipe[] => {
-  return recipesStorage.read();
-};
-
-/**
- * Hook to fetch and cache custom recipes from localStorage
- * Uses TanStack Query to provide consistent cache management
- *
- * @returns TanStack Query result with custom recipes data, loading state, and error handling
- *
- * Error Handling:
- * - Returns empty array if localStorage is unavailable
- * - Logs parsing errors but continues with empty state
- * - Exposes `error` state through TanStack Query for UI error handling
- *
- * @example
- * ```typescript
- * const { data: recipes, isPending, error } = useCustomRecipes();
- *
- * if (error) {
- *   return <ErrorMessage>Failed to load custom recipes</ErrorMessage>;
- * }
- * ```
- */
-export function useCustomRecipes() {
-  const queryClient = useQueryClient();
-  const queryKey = useMemo(() => queryKeys.customRecipes.list(), []);
-
-  useEffect(() => {
-    if (!isBrowser()) {
-      return undefined;
-    }
-
-    const handleStorage = (event: StorageEvent) => {
-      // Ignore events that aren't for our specific key
-      // Also ignore localStorage.clear() events (where key is null)
-      // as we don't want to wipe the in-memory cache unexpectedly if other data is cleared
-      if (!event.key || event.key !== STORAGE_KEY) {
-        return;
-      }
-
-      try {
-        queryClient.setQueryData(queryKey, readRecipesFromStorage());
-      } catch (error) {
-        debugError(
-          '[useCustomRecipes] Failed to update cache from storage event:',
-          error
-        );
-      }
-    };
-
-    window.addEventListener('storage', handleStorage);
-    return () => {
-      window.removeEventListener('storage', handleStorage);
-    };
-  }, [queryClient, queryKey]);
-
-  return useQuery<CustomRecipe[]>({
-    queryKey,
-    queryFn: readRecipesFromStorage,
-    // Custom recipes are purely client-side, no stale time
-    staleTime: Infinity,
-    // Keep in cache for the session
-    gcTime: Infinity,
-  });
+export interface UseCustomRecipesResult {
+  customRecipes: CustomRecipe[];
+  /** Saves a new recipe and returns its id. Throws on invalid input. */
+  addCustomRecipe: (formData: CustomRecipeFormData) => string;
+  /** Replaces a recipe and returns the saved version. Throws on invalid input. */
+  updateCustomRecipe: (
+    id: string,
+    formData: CustomRecipeFormData
+  ) => CustomRecipe;
+  deleteCustomRecipe: (id: string) => void;
 }
 
 /**
- * Hook to refetch custom recipes manually
- * Useful for syncing changes across tabs
+ * Reads and edits the user's custom recipes. Everything is synchronous: the
+ * list is current on first render, and each write is visible on the next.
+ * Changes from other tabs arrive through the store's `storage` listener.
+ *
+ * @param store - Defaults to the app-wide localStorage store. Pass another
+ *   (for example one built on `createMemoryRecipeAdapter`) in tests.
  */
-export function useRefreshCustomRecipes() {
-  const queryClient = useQueryClient();
+export function useCustomRecipes(
+  store: CustomRecipeStore = customRecipeStore
+): UseCustomRecipesResult {
+  const customRecipes = useSyncExternalStore(
+    store.subscribe,
+    store.read,
+    store.read
+  );
 
-  return () => {
-    return queryClient.invalidateQueries({
-      queryKey: queryKeys.customRecipes.list(),
-    });
-  };
+  const actions = useMemo(
+    () => ({
+      addCustomRecipe: (formData: CustomRecipeFormData) =>
+        store.add(formData).id,
+      updateCustomRecipe: store.update,
+      deleteCustomRecipe: store.remove,
+    }),
+    [store]
+  );
+
+  return { customRecipes, ...actions };
 }

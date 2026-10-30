@@ -21,12 +21,12 @@ src/
 ├── hooks/               # Calculator hooks (use-*-calculator.ts) at the top level
 │   ├── api/             # TanStack Query hooks
 │   ├── border-calculator/
-│   ├── custom-recipes/  # Mutation hooks
+│   ├── custom-recipes/  # useCustomRecipes (reads services/custom-recipe-store)
 │   ├── development-recipes/
 │   └── films/
 ├── queries/             # Query keys and fetch functions
 ├── schemas/             # Zod validation schemas
-├── services/            # filmdev.org client, localStorage wrapper
+├── services/            # filmdev.org client, localStorage wrapper, custom recipe store
 ├── types/               # TypeScript definitions
 ├── utils/               # Pure calculation and parsing helpers
 └── index.ts             # Public exports (the only entry point)
@@ -42,19 +42,25 @@ unit-tested; hooks wire them to state.
 
 Use the factory pattern in `src/queries/query-keys.ts`:
 
-- Hierarchical: `all -> lists -> list` and `all -> details -> detail`
+- Hierarchical: `all -> lists -> list`
 - Every level is a function, including `all()`. Call it, don't spread the bare property
-- Example: `queryKeys.films.detail('film-id')`
+- Example: `queryKeys.films.list()`
 
 ### Mutations
 
-All mutations must implement:
+TanStack Query mutations against server state must implement:
 
 - `onMutate` for the optimistic update, with `cancelQueries` first
 - `onError` for rollback using the context returned by `onMutate`
 - `onSettled` to invalidate affected queries
 
-See `src/hooks/custom-recipes/use-custom-recipe-mutations.ts` for the worked example.
+This applies to server state only. Synchronous local data is not a query and
+must not be wrapped in one: a `localStorage` write cannot be pending or fail
+later, so there is nothing to roll back. Custom recipes are the example: they
+live in a plain external store (`src/services/custom-recipe-store.ts`: `read`,
+`add`, `update`, `remove`, `subscribe`) behind a storage adapter (localStorage,
+or in-memory for tests), and React reads it through `useCustomRecipes`, built on
+`useSyncExternalStore`. There are no query keys or mutation hooks for them.
 
 ### Schemas
 

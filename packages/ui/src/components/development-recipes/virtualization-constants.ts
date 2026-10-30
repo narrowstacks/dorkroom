@@ -3,6 +3,8 @@
  * These values are calibrated for the development recipes UI layout.
  */
 
+import { RESIZE_DEBOUNCE_MS } from '../../lib/resize-debounce';
+
 /**
  * Estimated height for each table row in pixels.
  * Accounts for:
@@ -55,12 +57,9 @@ export const MIN_CONTAINER_HEIGHT = '400px';
  */
 export const MAX_CONTAINER_HEIGHT = 'calc(100dvh - 120px)';
 
-/**
- * Debounce delay for resize observations in milliseconds.
- * This prevents the virtualizer from recalculating on every frame during
- * rapid window resizing, which can cause browser lockups.
- */
-export const RESIZE_DEBOUNCE_MS = 100;
+// Re-exported so existing importers keep working; the constant lives in lib
+// because the shared `useColumnCount` hook needs it too.
+export { RESIZE_DEBOUNCE_MS } from '../../lib/resize-debounce';
 
 /**
  * Type for the rect object used by TanStack Virtual's observeElementRect.

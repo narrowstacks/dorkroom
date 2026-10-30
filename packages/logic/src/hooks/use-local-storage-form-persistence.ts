@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { z } from 'zod';
+import { removeSupersededStorageKeys } from '../services/local-storage';
 import { debugWarn } from '../utils/debug-logger';
 import { isBrowser } from '../utils/environment';
 
@@ -180,6 +181,8 @@ export function useLocalStorageFormPersistence<T extends object>(
         return;
       }
 
+      removeSupersededStorageKeys(storageKey);
+
       const snapshot = persistedSnapshotSchema.safeParse(JSON.parse(raw));
       if (!snapshot.success) {
         isHydratedRef.current = true;
@@ -206,8 +209,8 @@ export function useLocalStorageFormPersistence<T extends object>(
         // SAFETY: narrowed only as far as the caller's validator for `key` goes.
         // `defaultValidator` is just `value !== undefined`, so a call site that
         // relies on it can hydrate a stored string into a numeric field. Pass a
-        // per-key schema validator to make this sound, as the call sites listed
-        // in issue #239 now do; the exposure calculator still checks types only.
+        // per-key schema validator to make this sound; `definePersistedFormFields`
+        // derives one per key from a field-schema map (issue #284).
         const fieldValue = transformedValue as T[typeof key];
         form.setFieldValue(key, fieldValue);
         loadedValues[key] = fieldValue;

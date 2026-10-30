@@ -65,6 +65,44 @@ describe('computeBladeReadings', () => {
     expect(left.arrow).toBe('→');
     expect(left.arrowFirst).toBe(false);
   });
+
+  // The clamps keep an outside label from running off the paper when the print
+  // sits close to that edge. The small-print fixture above is too central to
+  // reach either clamp, so these two put the print flush against opposite
+  // corners of the 400x400 box (print is 80x80, outside labels either way).
+  it('clamps outside labels away from the near paper edges', () => {
+    const nearTopLeft = {
+      ...smallPrint,
+      leftBorderPercent: 5, // printLeft 20  < labelWidth + padding (72)
+      rightBorderPercent: 75, // printRight 100
+      topBorderPercent: 5, // printTop 20   < labelHeight + padding (44)
+      bottomBorderPercent: 75, // printBottom 100
+    };
+    const readings = computeBladeReadings(nearTopLeft, 400, 400, opts);
+    expect(readings.every((r) => !r.isInside)).toBe(true);
+    const [left, right, top, bottom] = readings;
+    expect(left.x).toBe(72); // lifted from 20 to labelWidth + padding
+    expect(right.x).toBe(100); // 100 < 400 - 64 - 8, not clamped
+    expect(top.y).toBe(44); // lifted from 20 to labelHeight + padding
+    expect(bottom.y).toBe(100); // 100 < 400 - 36 - 8, not clamped
+  });
+
+  it('clamps outside labels away from the far paper edges', () => {
+    const nearBottomRight = {
+      ...smallPrint,
+      leftBorderPercent: 75, // printLeft 300
+      rightBorderPercent: 5, // printRight 380 > 400 - labelWidth - padding (328)
+      topBorderPercent: 75, // printTop 300
+      bottomBorderPercent: 5, // printBottom 380 > 400 - labelHeight - padding (356)
+    };
+    const readings = computeBladeReadings(nearBottomRight, 400, 400, opts);
+    expect(readings.every((r) => !r.isInside)).toBe(true);
+    const [left, right, top, bottom] = readings;
+    expect(left.x).toBe(300); // 300 > 72, not clamped
+    expect(right.x).toBe(328); // pulled in from 380
+    expect(top.y).toBe(300); // 300 > 44, not clamped
+    expect(bottom.y).toBe(356); // pulled in from 380
+  });
 });
 
 describe('bladeLabelOffset', () => {

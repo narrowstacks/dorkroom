@@ -1,22 +1,17 @@
 import type { Film } from '@dorkroom/api';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { Film as FilmIcon } from 'lucide-react';
-import { type FC, useEffect, useMemo, useRef, useState } from 'react';
+import { type FC, useMemo, useRef } from 'react';
+import { useColumnCount } from '../../hooks/use-column-count';
 import { cn } from '../../lib/cn';
 import {
   createDebouncedObserveElementRect,
   DEFAULT_CONTAINER_HEIGHT,
   MAX_CONTAINER_HEIGHT,
   MIN_CONTAINER_HEIGHT,
-  RESIZE_DEBOUNCE_MS,
 } from '../development-recipes/virtualization-constants';
 import { FilmCard } from './film-card';
 import { FilmCardSkeleton } from './film-card-skeleton';
-
-/** Tailwind breakpoint widths in pixels */
-const BREAKPOINT_XL = 1280;
-const BREAKPOINT_LG = 1024;
-const BREAKPOINT_SM = 640;
 
 /** Card height constants for virtualization */
 const CARD_ROW_ESTIMATED_HEIGHT = 110; // Card height + small gap
@@ -31,83 +26,6 @@ const SKELETON_KEYS = Array.from(
   { length: 12 },
   (_, index) => `film-skeleton-${index}`
 );
-
-/**
- * Hook to calculate responsive column count based on container width
- * Matches Tailwind breakpoints: sm:640px, lg:1024px, xl:1280px
- *
- * Uses debounced ResizeObserver to prevent browser lockups during rapid resizing.
- */
-function useResponsiveColumnCount(
-  containerRef: React.RefObject<HTMLDivElement | null>,
-  isMobile: boolean
-): number {
-  const [observedColumnCount, setColumnCount] = useState(3);
-
-  useEffect(() => {
-    if (isMobile) return;
-
-    const container = containerRef.current;
-    if (!container) return;
-
-    const calculateColumns = (width: number): number => {
-      // Match Tailwind breakpoints for grid-cols
-      if (width >= BREAKPOINT_XL) return 4; // xl
-      if (width >= BREAKPOINT_LG) return 3; // lg
-      if (width >= BREAKPOINT_SM) return 2; // sm
-      return 1;
-    };
-
-    // Track mount state to prevent updates after unmount
-    let isMounted = true;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-    let lastColumnCount: number | null = null;
-
-    const updateColumnCount = (width: number) => {
-      const newColumnCount = calculateColumns(width);
-      // Skip update if column count hasn't changed
-      if (lastColumnCount === newColumnCount) return;
-      lastColumnCount = newColumnCount;
-      setColumnCount(newColumnCount);
-    };
-
-    const debouncedUpdate = (width: number) => {
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-      }
-      timeoutId = setTimeout(() => {
-        if (isMounted) {
-          updateColumnCount(width);
-        }
-        timeoutId = null;
-      }, RESIZE_DEBOUNCE_MS);
-    };
-
-    const observer = new ResizeObserver((entries) => {
-      // Prevent state updates if component unmounted during async callback
-      if (!isMounted) return;
-
-      for (const entry of entries) {
-        const width = entry.contentRect.width;
-        debouncedUpdate(width);
-      }
-    });
-
-    observer.observe(container);
-    // Initial calculation (not debounced)
-    updateColumnCount(container.clientWidth);
-
-    return () => {
-      isMounted = false; // Set flag first to prevent any in-flight callbacks
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-      }
-      observer.disconnect();
-    };
-  }, [containerRef, isMobile]);
-
-  return isMobile ? 2 : observedColumnCount;
-}
 
 interface FilmResultsVirtualizedProps {
   films: Film[];
@@ -147,8 +65,11 @@ export const FilmResultsVirtualized: FC<FilmResultsVirtualizedProps> = ({
 }) => {
   const parentRef = useRef<HTMLDivElement>(null);
 
-  // Calculate base number of columns based on container width (responsive)
-  const baseColumnCount = useResponsiveColumnCount(parentRef, isMobile);
+  // Base column count from the container width. The mobile film grid is
+  // always two columns of compact cards.
+  const baseColumnCount = useColumnCount(parentRef, isMobile, {
+    mobileColumns: 2,
+  });
 
   // Calculate final column count based on layout state (detail panel, filters)
   const getColumnCount = () => {

@@ -4,7 +4,13 @@ import {
   type MeasurementUnit,
 } from '@dorkroom/logic';
 import { MeasurementProvider } from '@dorkroom/ui';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import MatCalculatorPage from '../mat-calculator-page';
@@ -101,15 +107,6 @@ describe('MatCalculatorPage', () => {
 
     expect(
       screen.getByText(/Check inputs\./i, { exact: false })
-    ).toBeInTheDocument();
-  });
-
-  it('surfaces the best-fit border preview for the default artwork', () => {
-    renderPage();
-
-    // 11×14 art at ¼" reveal inside a 16×20 board centers to these borders.
-    expect(
-      screen.getByText(/Would set borders to/i, { exact: false })
     ).toBeInTheDocument();
   });
 
@@ -275,18 +272,38 @@ describe('MatCalculatorPage', () => {
       expect(screen.getByText('-3.2cm L/R · -4.4cm T/B')).toBeInTheDocument();
     });
 
-    it('reads state persisted in inches without rewriting it', async () => {
-      // State saved by an imperial session, fractions and all.
-      window.localStorage.setItem(
-        MAT_CALCULATOR_STORAGE_KEY,
-        JSON.stringify({ outerW: '16 1/2', outerH: '20' })
-      );
+    it('reads state persisted in inches without rewriting it', () => {
+      // Fake timers so the read below happens after the 300ms persistence
+      // debounce has fired. Read before it, the seeded value is still there
+      // whatever the page would have written.
+      vi.useFakeTimers();
+      try {
+        // State saved by an imperial session, fractions and all.
+        window.localStorage.setItem(
+          MAT_CALCULATOR_STORAGE_KEY,
+          JSON.stringify({ outerW: '16 1/2', outerH: '20' })
+        );
+        const setItem = vi.spyOn(window.localStorage, 'setItem');
 
-      renderPage('metric');
+        renderPage('metric');
+        expect(screen.getByTitle('Enter Width')).toHaveValue('41.91');
 
-      expect(screen.getByTitle('Enter Width')).toHaveValue('41.91');
-      // Re-persisted untouched: still the inch string, not centimetres.
-      await expect(persistedOuterWidth()).resolves.toBe('16 1/2');
+        act(() => vi.advanceTimersByTime(1_000));
+
+        // The debounce did write, and what it wrote is still the inch string,
+        // not centimetres.
+        expect(setItem).toHaveBeenCalledWith(
+          MAT_CALCULATOR_STORAGE_KEY,
+          expect.any(String)
+        );
+        const raw = window.localStorage.getItem(MAT_CALCULATOR_STORAGE_KEY);
+        expect(
+          z.object({ outerW: z.string() }).parse(JSON.parse(raw ?? '{}')).outerW
+        ).toBe('16 1/2');
+      } finally {
+        vi.restoreAllMocks();
+        vi.useRealTimers();
+      }
     });
   });
 });

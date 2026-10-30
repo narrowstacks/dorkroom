@@ -143,7 +143,7 @@ export const RecipeModals: FC<RecipeModalsProps> = (props) => {
         onAddToCollection={onAcceptSharedRecipe}
         isProcessing={isAddingSharedRecipe}
         recipeSource={sharedRecipeSource}
-        variant={isMobile ? 'drawer' : 'modal'}
+        isMobile={isMobile}
         hideAddToCollection={false}
         isFavorite={(view) =>
           isFavorite(String(view.combination.uuid || view.combination.id))
@@ -160,7 +160,7 @@ export const RecipeModals: FC<RecipeModalsProps> = (props) => {
         mappingResult={filmdevPreviewData}
         previewRecipe={filmdevPreviewRecipe}
         isProcessing={isImporting}
-        variant={isMobile ? 'drawer' : 'modal'}
+        isMobile={isMobile}
       />
     </>
   );

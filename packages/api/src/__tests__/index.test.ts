@@ -3,11 +3,8 @@ import {
   apiClient,
   DorkroomApiClient,
   fetchCombinations,
-  fetchCombinationsForQuery,
   fetchDevelopers,
-  fetchDevelopersForQuery,
   fetchFilms,
-  fetchFilmsForQuery,
   INTERNAL_API_BASE_URL,
   PUBLIC_API_BASE_URL,
 } from '../index.js';
@@ -42,14 +39,14 @@ describe('API Package Exports', () => {
     expect(combinations).toHaveBeenCalledTimes(1);
   });
 
-  it('should export TanStack Query compatible functions that forward the query signal', async () => {
+  it('should forward the TanStack Query signal from the convenience functions', async () => {
     const { films, developers, combinations } = spyOnClientFetches();
     const { signal } = new AbortController();
 
     await Promise.all([
-      fetchFilmsForQuery({ signal }),
-      fetchDevelopersForQuery({ signal }),
-      fetchCombinationsForQuery({ signal }),
+      fetchFilms({ signal }),
+      fetchDevelopers({ signal }),
+      fetchCombinations({ signal }),
     ]);
 
     expect(films).toHaveBeenCalledWith({ signal });

@@ -49,12 +49,12 @@ describe('convertLengthInput', () => {
 
 describe('convertResizeLengths', () => {
   const inchDefaults = {
-    originalWidth: DEFAULT_ORIGINAL_WIDTH,
-    originalLength: DEFAULT_ORIGINAL_LENGTH,
-    newWidth: DEFAULT_NEW_WIDTH,
-    newLength: DEFAULT_NEW_LENGTH,
-    originalHeight: DEFAULT_ORIGINAL_HEIGHT,
-    newHeight: DEFAULT_NEW_HEIGHT,
+    originalWidth: String(DEFAULT_ORIGINAL_WIDTH),
+    originalLength: String(DEFAULT_ORIGINAL_LENGTH),
+    newWidth: String(DEFAULT_NEW_WIDTH),
+    newLength: String(DEFAULT_NEW_LENGTH),
+    originalHeight: String(DEFAULT_ORIGINAL_HEIGHT),
+    newHeight: String(DEFAULT_NEW_HEIGHT),
   };
 
   it('shows the inch defaults in centimetres for a metric user', () => {

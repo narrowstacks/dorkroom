@@ -8,7 +8,7 @@ import {
   type RouteComponent,
   RouterProvider,
 } from '@tanstack/react-router';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { lazy, Suspense } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { routeFallbackOptions } from '../../app/lib/route-fallback-options';
@@ -48,6 +48,17 @@ function buildRouter(component: RouteComponent) {
   });
 }
 
+/**
+ * The fallback's action labels in DOM order. `ErrorFallback` renders the
+ * primary action first and the secondary after it, and RouteFallback always
+ * offers both, so the order is the only thing a chunk-load error changes.
+ */
+function fallbackActions(): string[] {
+  return within(screen.getByRole('alert'))
+    .getAllByRole('button')
+    .map((button) => button.textContent ?? '');
+}
+
 describe('RouteFallback', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
@@ -79,9 +90,8 @@ describe('RouteFallback', () => {
     expect(await screen.findByText('Something went wrong')).toBeInTheDocument();
     expect(screen.getByText('App Header')).toBeInTheDocument();
     expect(screen.getByText('App Nav')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Try Again' })
-    ).toBeInTheDocument();
+    // An ordinary render error leads with the in-app retry.
+    expect(fallbackActions()).toEqual(['Try Again', 'Reload Page']);
   });
 
   it('reports app_error exactly once, and does not also reach an outer boundary', async () => {
@@ -104,7 +114,7 @@ describe('RouteFallback', () => {
     expect(outerOnError).not.toHaveBeenCalled();
   });
 
-  it('offers a Reload Page action for a chunk-load failure, since a retry alone cannot recover from it', async () => {
+  it('leads with Reload Page for a chunk-load failure, since a retry alone cannot recover from it', async () => {
     // React.lazy caches a rejected import permanently: once this module
     // "fails to load", every subsequent render throws the same error again,
     // exactly like a stale chunk after a deploy. router.invalidate() (the
@@ -124,13 +134,54 @@ describe('RouteFallback', () => {
     render(<RouterProvider router={buildRouter(ChunkFailurePage)} />);
 
     expect(await screen.findByText('Something went wrong')).toBeInTheDocument();
-    // Both actions are offered — a retry never helps here, but it's still on
-    // offer alongside the reload in case the failure was misclassified.
-    expect(
-      screen.getByRole('button', { name: 'Reload Page' })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Try Again' })
-    ).toBeInTheDocument();
+    // Reload leads, since it is the only action that can recover. The retry
+    // stays on offer second in case the failure was misclassified.
+    expect(fallbackActions()).toEqual(['Reload Page', 'Try Again']);
+  });
+});
+
+/**
+ * `defaultOnCatch` skips `app_error` while a stale-chunk reload is already in
+ * flight: that reload is the fix, and every render before it lands re-throws
+ * the same cached rejection. The key and window come from
+ * `preload-chunk-recovery.ts`; only `Date` is faked, so nothing here depends on
+ * how long the test takes to run.
+ */
+describe('routeFallbackOptions.defaultOnCatch', () => {
+  const RELOAD_GUARD_KEY = 'vite-preload-reload-at';
+  const NOW = 1_700_000_000_000;
+
+  beforeEach(() => {
+    window.history.replaceState({}, '', '/border');
+    window.va = vi.fn();
+    sessionStorage.clear();
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(NOW);
+  });
+
+  afterEach(() => {
+    delete window.va;
+    sessionStorage.clear();
+    vi.useRealTimers();
+  });
+
+  it('does not report app_error while a preload reload is in flight', () => {
+    sessionStorage.setItem(RELOAD_GUARD_KEY, String(NOW - 500));
+
+    routeFallbackOptions.defaultOnCatch();
+
+    expect(window.va).not.toHaveBeenCalled();
+  });
+
+  it('reports app_error once the preload reload is no longer recent', () => {
+    sessionStorage.setItem(RELOAD_GUARD_KEY, String(NOW - 2_001));
+
+    routeFallbackOptions.defaultOnCatch();
+
+    expect(window.va).toHaveBeenCalledWith('event', {
+      name: 'app_error',
+      data: { route: '/border' },
+      options: undefined,
+    });
   });
 });

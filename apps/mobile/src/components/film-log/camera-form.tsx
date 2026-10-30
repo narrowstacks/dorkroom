@@ -6,7 +6,7 @@ import { LabeledTextField } from '@/components/labeled-text-field';
 import { useFormState } from '@/hooks/use-form-state';
 import { FORMAT_OPTIONS } from '@/lib/film-log-options';
 import { addCamera, deleteCamera, updateCamera } from '@/lib/film-log-storage';
-import type { Camera } from '@/types/film-log';
+import type { Camera } from '@/schemas/film-log.schema';
 
 interface CameraFormProps {
   visible: boolean;

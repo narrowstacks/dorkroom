@@ -2,12 +2,12 @@ import type { Dilution } from '@dorkroom/api';
 import {
   calculatePushPull,
   type DevelopmentCombinationView,
+  formatTemperatureWithUnit,
   isFilmDevOrgUrl,
 } from '@dorkroom/logic';
 import { Edit2, ExternalLink, Share2, Star, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
-import { formatTemperatureWithUnit } from '../../lib/temperature';
 import { PushPullAlert } from '../push-pull-alert';
 import { CollapsibleSection } from '../ui/collapsible-section';
 import { Tag } from '../ui/tag';
