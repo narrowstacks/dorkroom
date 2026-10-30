@@ -8,8 +8,10 @@ import {
   vi,
 } from 'vitest';
 import handler, {
+  clearFontCache,
   getRouteAccent,
   getRouteIcon,
+  loadFontData,
   lookupCombination,
 } from '../og';
 
@@ -28,6 +30,9 @@ function jsonResponse(body: string): Response {
 }
 
 const EMPTY_LIST = JSON.stringify({ data: [], count: 0 });
+
+/** UUID-shaped, as `meta.ts` only ever emits; a malformed `recipe` is ignored. */
+const TARGET_UUID = '6f1c2d3e-4a5b-4c6d-8e7f-901234567890';
 
 /**
  * Stub global fetch. Font requests answer 404, so `loadFontData` returns null
@@ -62,12 +67,17 @@ function makeRequest(params?: Record<string, string>): Request {
 const originalFetch = globalThis.fetch;
 
 beforeEach(() => {
+  clearFontCache();
+  // `bun run` loads the repo .env, which may carry a real root key. Keep the
+  // limiter unconfigured unless a test opts in.
+  vi.stubEnv('UNKEY_ROOT_KEY', '');
   // Default: every upstream lookup answers empty (API unavailable).
   stubFetch(() => Promise.resolve(jsonResponse(EMPTY_LIST)));
 });
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
+  vi.unstubAllEnvs();
 });
 
 describe('og handler - static routes', () => {
@@ -320,7 +330,7 @@ describe('og handler - development recipe', () => {
               JSON.stringify({
                 data: [
                   {
-                    uuid: 'target-uuid',
+                    uuid: TARGET_UUID,
                     time_minutes: 13,
                     temperature_celsius: 20,
                     shooting_iso: 400,
@@ -354,7 +364,7 @@ describe('og handler - development recipe', () => {
         route: '/development',
         film: 'kodak-tri-x-400',
         developer: 'ilford-perceptol',
-        recipe: 'target-uuid',
+        recipe: TARGET_UUID,
       })
     );
 
@@ -610,5 +620,311 @@ describe('og handler - border preset', () => {
   it('renders generic card when no preset param', async () => {
     const res = await handler(makeRequest({ route: '/border' }));
     expect(res.status).toBe(200);
+  });
+});
+
+describe('loadFontData - module-scope cache', () => {
+  const FONT = 'https://fonts.gstatic.com/s/test/font.ttf';
+
+  it('fetches a font once and reuses it across invocations', async () => {
+    const fetchMock = vi.fn<typeof fetch>(() =>
+      Promise.resolve(new Response(new Uint8Array([1, 2, 3])))
+    );
+    globalThis.fetch = fetchMock;
+
+    const first = await loadFontData(FONT);
+    const second = await loadFontData(FONT);
+
+    expect(first?.byteLength).toBe(3);
+    expect(second).toBe(first);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('shares one in-flight download between concurrent callers', async () => {
+    const fetchMock = vi.fn<typeof fetch>(() =>
+      Promise.resolve(new Response(new Uint8Array([1])))
+    );
+    globalThis.fetch = fetchMock;
+
+    await Promise.all([loadFontData(FONT), loadFontData(FONT)]);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not cache a failed download', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(null, { status: 503 }))
+      .mockRejectedValueOnce(new TypeError('fetch failed'))
+      .mockResolvedValueOnce(new Response(new Uint8Array([7])));
+    globalThis.fetch = fetchMock;
+
+    expect(await loadFontData(FONT)).toBeNull();
+    expect(await loadFontData(FONT)).toBeNull();
+    const data = await loadFontData(FONT);
+
+    expect(data?.byteLength).toBe(1);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+});
+
+/** Every non-font URL the handler fetched. */
+function upstreamCalls(fetchMock: Mock<typeof fetch>): string[] {
+  return fetchMock.mock.calls
+    .map(([input]) => String(input))
+    .filter((url) => !isFontRequest(url));
+}
+
+describe('og handler - param validation before upstream work', () => {
+  it.each([
+    ['uppercase', 'Kodak-Tri-X'],
+    ['path characters', '../../stats'],
+    ['query smuggling', 'x&limit=1000'],
+    ['over-long', 'a'.repeat(101)],
+  ])(
+    'skips the film lookup for a malformed slug (%s)',
+    async (_label, film) => {
+      const fetchMock = stubFetch(() =>
+        Promise.resolve(jsonResponse(EMPTY_LIST))
+      );
+
+      const res = await handler(makeRequest({ route: '/films', film }));
+
+      expect(res.status).toBe(200);
+      expect(upstreamCalls(fetchMock)).toEqual([]);
+    }
+  );
+
+  it('skips the developer lookup for a malformed developer slug', async () => {
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(EMPTY_LIST))
+    );
+
+    await handler(
+      makeRequest({ route: '/development', developer: 'Not A Slug' })
+    );
+
+    expect(upstreamCalls(fetchMock)).toEqual([]);
+  });
+
+  it('ignores a malformed recipe instead of paging /api/combinations', async () => {
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(EMPTY_LIST))
+    );
+
+    await handler(
+      makeRequest({
+        route: '/development',
+        film: 'kodak-tri-x-400',
+        developer: 'ilford-perceptol',
+        recipe: 'not-a-uuid',
+      })
+    );
+
+    const calls = upstreamCalls(fetchMock);
+    expect(calls.some((url) => url.includes('/api/combinations'))).toBe(false);
+    expect(calls).toHaveLength(2); // film + developer lookups only
+  });
+
+  it('still looks up a well-formed slug', async () => {
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(EMPTY_LIST))
+    );
+
+    await handler(makeRequest({ route: '/films', film: 'kodak-tri-x-400' }));
+
+    expect(upstreamCalls(fetchMock)).toEqual([
+      expect.stringContaining('/api/films?slug=kodak-tri-x-400'),
+    ]);
+  });
+
+  it('does no upstream work for an unknown route, even with slugs attached', async () => {
+    const fetchMock = stubFetch(() =>
+      Promise.resolve(jsonResponse(EMPTY_LIST))
+    );
+
+    const res = await handler(
+      makeRequest({
+        route: '/not-a-page',
+        film: 'kodak-tri-x-400',
+        developer: 'ilford-perceptol',
+      })
+    );
+
+    expect(res.status).toBe(200);
+    expect(upstreamCalls(fetchMock)).toEqual([]);
+  });
+
+  it('keeps the long success cache header', async () => {
+    const res = await handler(
+      makeRequest({ route: '/films', film: 'kodak-tri-x-400' })
+    );
+
+    // @vercel/og prepends its own defaults; the CDN honours s-maxage.
+    expect(res.headers.get('cache-control')).toContain(
+      'public, s-maxage=86400, stale-while-revalidate=3600'
+    );
+  });
+});
+
+const UNKEY_URL = 'https://api.unkey.com/v2/ratelimit.limit';
+
+/**
+ * Stub fetch with a fake Unkey limiter in front of the default upstream
+ * stub. `unkey` answers the rate-limit call; everything else behaves as in
+ * `stubFetch`.
+ */
+function stubFetchWithUnkey(
+  unkey: (init?: RequestInit) => Promise<Response>
+): Mock<typeof fetch> {
+  return stubFetch((url, init) =>
+    url === UNKEY_URL ? unkey(init) : Promise.resolve(jsonResponse(EMPTY_LIST))
+  );
+}
+
+function unkeyAnswer(success: boolean): Promise<Response> {
+  return Promise.resolve(
+    jsonResponse(
+      JSON.stringify({
+        meta: { requestId: 'req_test' },
+        data: {
+          limit: 30,
+          remaining: success ? 29 : 0,
+          reset: Date.now() + 42_000,
+          success,
+        },
+      })
+    )
+  );
+}
+
+describe('og handler - rate limiting', () => {
+  beforeEach(() => {
+    vi.stubEnv('UNKEY_ROOT_KEY', 'unkey_test_root');
+    vi.stubEnv('UNKEY_API_ID', 'api_test');
+    vi.stubEnv('UNKEY_ANON_NAMESPACE', '');
+  });
+
+  function ogRequest(params: Record<string, string>, ip = '203.0.113.7') {
+    const req = makeRequest(params);
+    req.headers.set('x-real-ip', ip);
+    return req;
+  }
+
+  it('checks dynamic cards against the anonymous namespace, keyed by IP', async () => {
+    const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(true));
+
+    const res = await handler(
+      ogRequest({ route: '/films', film: 'kodak-tri-x-400' })
+    );
+
+    expect(res.status).toBe(200);
+    const unkeyCall = fetchMock.mock.calls.find(
+      ([input]) => String(input) === UNKEY_URL
+    );
+    expect(unkeyCall).toBeDefined();
+    const init = unkeyCall?.[1];
+    expect(new Headers(init?.headers).get('authorization')).toBe(
+      'Bearer unkey_test_root'
+    );
+    expect(JSON.parse(String(init?.body))).toEqual({
+      namespace: 'api_test-anonymous',
+      identifier: 'og:203.0.113.7',
+      limit: 30,
+      duration: 60_000,
+    });
+  });
+
+  it('never consults the limiter for a static page card', async () => {
+    const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(false));
+
+    for (const params of [{}, { route: '/' }, { route: '/border' }]) {
+      const res = await handler(ogRequest(params));
+      expect(res.status).toBe(200);
+    }
+
+    expect(fetchMock.mock.calls.map(([input]) => String(input))).not.toContain(
+      UNKEY_URL
+    );
+  });
+
+  it('limits an unknown route and a known route with a trailing slash', async () => {
+    stubFetchWithUnkey(() => unkeyAnswer(false));
+
+    expect((await handler(ogRequest({ route: '/random-123' }))).status).toBe(
+      307
+    );
+    expect((await handler(ogRequest({ route: '/films/' }))).status).toBe(307);
+  });
+
+  it('redirects an over-limit request to the static card, uncached, with no upstream work', async () => {
+    const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(false));
+
+    const res = await handler(
+      ogRequest({
+        route: '/development',
+        film: 'kodak-tri-x-400',
+        developer: 'ilford-perceptol',
+      })
+    );
+
+    expect(res.status).toBe(307);
+    expect(res.headers.get('location')).toBe(
+      'https://dorkroom.art/api/og?route=%2Fdevelopment'
+    );
+    expect(res.headers.get('cache-control')).toBe('no-store');
+    expect(Number(res.headers.get('retry-after'))).toBeGreaterThan(0);
+    expect(res.headers.get('x-ratelimit-remaining')).toBe('0');
+    expect(fetchMock.mock.calls.map(([input]) => String(input))).toEqual([
+      UNKEY_URL,
+    ]);
+  });
+
+  it('sends an over-limit unknown route to the home card', async () => {
+    stubFetchWithUnkey(() => unkeyAnswer(false));
+
+    const res = await handler(ogRequest({ route: '/nope', film: 'x' }));
+
+    expect(res.headers.get('location')).toBe('https://dorkroom.art/api/og');
+  });
+
+  it.each([
+    [
+      'a non-2xx answer',
+      () => Promise.resolve(new Response('', { status: 500 })),
+    ],
+    ['a network failure', () => Promise.reject(new TypeError('fetch failed'))],
+    ['an unexpected body', () => Promise.resolve(jsonResponse('{"data":{}}'))],
+  ])('fails open on %s from Unkey', async (_label, answer) => {
+    stubFetchWithUnkey(answer);
+
+    const res = await handler(
+      ogRequest({ route: '/films', film: 'kodak-tri-x-400' })
+    );
+
+    expect(res.status).toBe(200);
+  });
+
+  it('skips the limiter when Unkey is not configured', async () => {
+    vi.stubEnv('UNKEY_ROOT_KEY', '');
+    const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(false));
+
+    const res = await handler(
+      ogRequest({ route: '/films', film: 'kodak-tri-x-400' })
+    );
+
+    expect(res.status).toBe(200);
+    expect(fetchMock.mock.calls.map(([input]) => String(input))).not.toContain(
+      UNKEY_URL
+    );
+  });
+
+  it('does not rate limit the cheap 400 for unknown params', async () => {
+    const fetchMock = stubFetchWithUnkey(() => unkeyAnswer(false));
+
+    const res = await handler(ogRequest({ route: '/', cachebust: '1' }));
+
+    expect(res.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

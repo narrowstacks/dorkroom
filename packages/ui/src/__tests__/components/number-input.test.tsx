@@ -149,4 +149,84 @@ describe('NumberInput', () => {
       expect(input).toHaveAccessibleDescription(); // Title provides description
     });
   });
+
+  describe('min/max', () => {
+    it('applies native min and max attributes', () => {
+      render(<NumberInput {...defaultProps} min={0} max={10} />);
+      const input = screen.getByRole('spinbutton');
+      expect(input).toHaveAttribute('min', '0');
+      expect(input).toHaveAttribute('max', '10');
+    });
+
+    it('omits min and max attributes by default', () => {
+      render(<NumberInput {...defaultProps} />);
+      const input = screen.getByRole('spinbutton');
+      expect(input).not.toHaveAttribute('min');
+      expect(input).not.toHaveAttribute('max');
+    });
+
+    it('clamps a value below min on blur', () => {
+      const onChangeText = vi.fn();
+      render(
+        <NumberInput value="-3" onChangeText={onChangeText} min={0} max={10} />
+      );
+      fireEvent.blur(screen.getByRole('spinbutton'));
+      expect(onChangeText).toHaveBeenCalledWith('0');
+    });
+
+    it('clamps a value above max on blur', () => {
+      const onChangeText = vi.fn();
+      render(
+        <NumberInput value="99" onChangeText={onChangeText} min={0} max={10} />
+      );
+      fireEvent.blur(screen.getByRole('spinbutton'));
+      expect(onChangeText).toHaveBeenCalledWith('10');
+    });
+
+    it('does not clamp on change, only on blur', () => {
+      const onChangeText = vi.fn();
+      render(
+        <NumberInput value="5" onChangeText={onChangeText} min={0} max={10} />
+      );
+      fireEvent.change(screen.getByRole('spinbutton'), {
+        target: { value: '-1' },
+      });
+      expect(onChangeText).toHaveBeenCalledTimes(1);
+      expect(onChangeText).toHaveBeenCalledWith('-1');
+    });
+
+    it('leaves in-range and empty values alone on blur, and still calls onBlur', () => {
+      const onChangeText = vi.fn();
+      const onBlur = vi.fn();
+      const { rerender } = render(
+        <NumberInput
+          value="5"
+          onChangeText={onChangeText}
+          onBlur={onBlur}
+          min={0}
+          max={10}
+        />
+      );
+      fireEvent.blur(screen.getByRole('spinbutton'));
+      rerender(
+        <NumberInput
+          value=""
+          onChangeText={onChangeText}
+          onBlur={onBlur}
+          min={0}
+          max={10}
+        />
+      );
+      fireEvent.blur(screen.getByRole('spinbutton'));
+      expect(onChangeText).not.toHaveBeenCalled();
+      expect(onBlur).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not clamp when no bounds are given', () => {
+      const onChangeText = vi.fn();
+      render(<NumberInput value="-50" onChangeText={onChangeText} />);
+      fireEvent.blur(screen.getByRole('spinbutton'));
+      expect(onChangeText).not.toHaveBeenCalled();
+    });
+  });
 });

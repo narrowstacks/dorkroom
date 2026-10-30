@@ -168,13 +168,27 @@ export interface Stats {
 }
 
 // Error types
+
+/**
+ * Thrown by the API client for every failure except an abort (an aborted
+ * request rethrows the platform `AbortError` so query cancellation works).
+ *
+ * - `statusCode` is the HTTP status for a non-OK response, and `undefined`
+ *   for failures with no HTTP status (network error, bad JSON, response that
+ *   fails envelope/shape validation).
+ * - `endpoint` is the full request URL.
+ * - `cause` holds the underlying error when there is one.
+ */
 export class DorkroomApiError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
-    public endpoint?: string
+    public endpoint?: string,
+    options?: { cause?: unknown }
   ) {
-    super(message);
+    super(message, options);
+    // Keep `instanceof` working when transpiled to ES5-style classes.
+    Object.setPrototypeOf(this, new.target.prototype);
     this.name = 'DorkroomApiError';
   }
 }

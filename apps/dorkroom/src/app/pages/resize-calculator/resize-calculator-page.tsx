@@ -382,15 +382,12 @@ function PrintSizeInputs({
                 value={String(toDisplay(field.state.value))}
                 onChange={(value: string) => {
                   const parsed = parseFloat(value);
-                  const finiteValue =
-                    Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                  field.handleChange(
-                    parseFloat(toInches(finiteValue).toFixed(3))
-                  );
+                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
                 }}
                 onBlur={field.handleBlur}
                 placeholder={String(toDisplay(Number(DEFAULT_ORIGINAL_WIDTH)))}
                 step={0.1}
+                min={0}
                 unit={unitLabel}
               />
             )}
@@ -402,15 +399,12 @@ function PrintSizeInputs({
                 value={String(toDisplay(field.state.value))}
                 onChange={(value) => {
                   const parsed = parseFloat(value);
-                  const finiteValue =
-                    Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                  field.handleChange(
-                    parseFloat(toInches(finiteValue).toFixed(3))
-                  );
+                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
                 }}
                 onBlur={field.handleBlur}
                 placeholder={String(toDisplay(Number(DEFAULT_ORIGINAL_LENGTH)))}
                 step={0.1}
+                min={0}
                 unit={unitLabel}
               />
             )}
@@ -433,15 +427,12 @@ function PrintSizeInputs({
                 value={String(toDisplay(field.state.value))}
                 onChange={(value) => {
                   const parsed = parseFloat(value);
-                  const finiteValue =
-                    Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                  field.handleChange(
-                    parseFloat(toInches(finiteValue).toFixed(3))
-                  );
+                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
                 }}
                 onBlur={field.handleBlur}
                 placeholder={String(toDisplay(Number(DEFAULT_NEW_WIDTH)))}
                 step={0.1}
+                min={0}
                 unit={unitLabel}
               />
             )}
@@ -453,15 +444,12 @@ function PrintSizeInputs({
                 value={String(toDisplay(field.state.value))}
                 onChange={(value) => {
                   const parsed = parseFloat(value);
-                  const finiteValue =
-                    Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                  field.handleChange(
-                    parseFloat(toInches(finiteValue).toFixed(3))
-                  );
+                  field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
                 }}
                 onBlur={field.handleBlur}
                 placeholder={String(toDisplay(Number(DEFAULT_NEW_LENGTH)))}
                 step={0.1}
+                min={0}
                 unit={unitLabel}
               />
             )}
@@ -495,15 +483,12 @@ function EnlargerHeightInputs({
               value={String(toDisplay(field.state.value))}
               onChange={(value) => {
                 const parsed = parseFloat(value);
-                const finiteValue =
-                  Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                field.handleChange(
-                  parseFloat(toInches(finiteValue).toFixed(3))
-                );
+                field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
               }}
               onBlur={field.handleBlur}
               placeholder={String(toDisplay(Number(DEFAULT_ORIGINAL_HEIGHT)))}
               step={1}
+              min={0}
               unit={unitLabel}
             />
           )}
@@ -515,15 +500,12 @@ function EnlargerHeightInputs({
               value={String(toDisplay(field.state.value))}
               onChange={(value) => {
                 const parsed = parseFloat(value);
-                const finiteValue =
-                  Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                field.handleChange(
-                  parseFloat(toInches(finiteValue).toFixed(3))
-                );
+                field.handleChange(parseFloat(toInches(parsed).toFixed(3)));
               }}
               onBlur={field.handleBlur}
               placeholder={String(toDisplay(Number(DEFAULT_NEW_HEIGHT)))}
               step={1}
+              min={0}
               unit={unitLabel}
             />
           )}
@@ -596,13 +578,12 @@ function ResizeInputs({
               value={String(field.state.value)}
               onChange={(value) => {
                 const parsed = parseFloat(value);
-                const finiteValue =
-                  Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-                field.handleChange(finiteValue);
+                field.handleChange(parsed);
               }}
               onBlur={field.handleBlur}
               placeholder={DEFAULT_ORIGINAL_TIME}
               step={0.5}
+              min={0}
               unit="seconds"
               helperText="This is the exposure that worked for your original print."
             />
@@ -628,7 +609,7 @@ function useResizeForm() {
   const formValues = useStore(form.store, (state) => state.values);
 
   // Persist and hydrate form state to/from localStorage
-  useLocalStorageFormPersistence({
+  const { resetToDefaults } = useLocalStorageFormPersistence({
     storageKey: RESIZE_STORAGE_KEY,
     form,
     formValues,
@@ -645,14 +626,14 @@ function useResizeForm() {
     validators: resizeHydrationValidators,
   });
 
-  return { form, formValues };
+  return { form, formValues, resetToDefaults };
 }
 
 export default function ResizeCalculatorPage() {
   const { unit } = useMeasurement();
   const unitLabel = unit === 'imperial' ? 'in' : 'cm';
   const { toInches, toDisplay } = useMeasurementConverter();
-  const { form, formValues } = useResizeForm();
+  const { form, formValues, resetToDefaults } = useResizeForm();
 
   useCalculatorAnalytics({
     tool: 'resize',
@@ -676,6 +657,7 @@ export default function ResizeCalculatorPage() {
         title="Print Resize Calculator"
         icon={getRouteIcon('/resize')}
         accentTone="teal"
+        onReset={resetToDefaults}
         description="Scale a print up or down and get a solid starting exposure without burning through paper."
         results={results}
         sidebar={

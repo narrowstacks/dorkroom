@@ -99,6 +99,7 @@ export default function LensCalculatorPage() {
     setSourceFormat,
     setTargetFormat,
     swapFormats,
+    reset,
     calculation,
   } = useLensCalculator();
 
@@ -119,6 +120,7 @@ export default function LensCalculatorPage() {
         icon={getRouteIcon('/lenses')}
         accentTone="emerald"
         title="Lens Equivalency Calculator"
+        onReset={reset}
         description="Calculate equivalent focal lengths between different sensor and film formats. Find out what lens gives you the same field of view when switching between cameras or formats."
       />
 

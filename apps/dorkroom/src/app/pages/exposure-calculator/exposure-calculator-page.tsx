@@ -154,7 +154,7 @@ export default function ExposureCalculatorPage() {
   const formValues = useStore(form.store, (state) => state.values);
 
   // Persist and hydrate form state to/from localStorage
-  useLocalStorageFormPersistence({
+  const { resetToDefaults } = useLocalStorageFormPersistence({
     storageKey: EXPOSURE_STORAGE_KEY,
     form,
     formValues,
@@ -260,6 +260,7 @@ export default function ExposureCalculatorPage() {
         title="Exposure Stop Calculator"
         icon={getRouteIcon('/stops')}
         accentTone="blue"
+        onReset={resetToDefaults}
         description={
           <>
             Adjust exposure times by stops for darkroom printing.

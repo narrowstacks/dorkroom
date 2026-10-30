@@ -1,5 +1,6 @@
 import { useStore } from '@tanstack/react-store';
 import { RotateCcw, RotateCw, Square } from 'lucide-react';
+import { commitFocusedField } from '../../lib/commit-focused-field';
 import { CalculatorCard } from '../calculator/calculator-card';
 import { AnimatedPreview } from './animated-preview';
 import { useBorderCalculator } from './border-calculator-context';
@@ -76,7 +77,10 @@ export function PreviewAndControlsSection() {
       </div>
       <button
         type="button"
-        onClick={resetToDefaults}
+        onClick={() => {
+          commitFocusedField();
+          resetToDefaults();
+        }}
         className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] hover:brightness-110"
         style={{
           color: 'var(--color-on-accent)',

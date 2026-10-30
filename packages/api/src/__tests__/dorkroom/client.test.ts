@@ -11,6 +11,7 @@ import type {
   RawDeveloper,
   RawFilm,
 } from '../../dorkroom/types';
+import { DorkroomApiError } from '../../dorkroom/types';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -731,6 +732,268 @@ describe('Data Transformation', () => {
       id: '1',
       name: '1+9',
       dilution: '1+9',
+    });
+  });
+});
+
+/** Await a call expected to reject and return what it rejected with. */
+const caught = async (call: () => Promise<object>): Promise<Error> => {
+  try {
+    await call();
+  } catch (error) {
+    if (error instanceof Error) return error;
+    throw new Error('Rejected with a non-Error value', { cause: error });
+  }
+  throw new Error('Expected the call to reject');
+};
+
+/** Like `caught`, but asserts and narrows to DorkroomApiError. */
+const caughtApiError = async (
+  call: () => Promise<object>
+): Promise<DorkroomApiError> => {
+  const error = await caught(call);
+  if (!(error instanceof DorkroomApiError)) {
+    throw new Error(`Expected DorkroomApiError, got ${error.name}`);
+  }
+  return error;
+};
+
+describe('DorkroomApiError contract', () => {
+  const base = 'https://test.api.com';
+  const client = new DorkroomApiClient({ baseUrl: base });
+  const fns = [
+    ['films', () => client.fetchFilms()],
+    ['developers', () => client.fetchDevelopers()],
+    ['combinations', () => client.fetchCombinations()],
+    ['stats', () => client.fetchStats()],
+  ] as const;
+
+  beforeEach(() => mockFetch.mockReset());
+
+  describe.each(fns)('%s', (name, call) => {
+    it.each([
+      [404, 'Not Found'],
+      [500, 'Internal Server Error'],
+    ])('throws DorkroomApiError with status %i', async (status, statusText) => {
+      mockFetch.mockResolvedValueOnce({ ok: false, status, statusText });
+      const apiError = await caughtApiError(call);
+      expect(apiError.statusCode).toBe(status);
+      expect(apiError.endpoint).toBe(`${base}/${name}`);
+      expect(apiError.message).toBe(`Failed to fetch ${name}: ${statusText}`);
+    });
+
+    it('wraps network failures with undefined statusCode and a cause', async () => {
+      const cause = new TypeError('Failed to fetch');
+      mockFetch.mockRejectedValueOnce(cause);
+      const error = await caughtApiError(call);
+      expect(error).toBeInstanceOf(DorkroomApiError);
+      expect(error.statusCode).toBeUndefined();
+      expect(error.endpoint).toBe(`${base}/${name}`);
+      expect(error.cause).toBe(cause);
+    });
+
+    it('wraps JSON parse failures with undefined statusCode', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new SyntaxError('Unexpected token <');
+        },
+      });
+      const error = await caughtApiError(call);
+      expect(error).toBeInstanceOf(DorkroomApiError);
+      expect(error.statusCode).toBeUndefined();
+      expect(error.endpoint).toBe(`${base}/${name}`);
+    });
+
+    it('throws DorkroomApiError for an invalid response shape', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ nope: true }),
+      });
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const error = await caughtApiError(call);
+      vi.mocked(console.error).mockRestore();
+      expect(error).toBeInstanceOf(DorkroomApiError);
+      expect(error.statusCode).toBeUndefined();
+      expect(error.endpoint).toBe(`${base}/${name}`);
+      expect(error.message).toBe(`Invalid API response format for ${name}`);
+    });
+
+    it('rethrows an AbortError from fetch unwrapped', async () => {
+      const abort = new DOMException('Aborted', 'AbortError');
+      mockFetch.mockRejectedValueOnce(abort);
+      const error = await caught(call);
+      expect(error).toBe(abort);
+      expect(error).not.toBeInstanceOf(DorkroomApiError);
+    });
+
+    it('falls back to the status number when statusText is empty', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        statusText: '',
+      });
+      const apiError = await caughtApiError(call);
+      expect(apiError.statusCode).toBe(503);
+      expect(apiError.message).toBe(`Failed to fetch ${name}: 503`);
+    });
+
+    it('passes through a non-AbortError raised after the signal aborted', async () => {
+      // React Native's fetch polyfill rejects an aborted request with a plain
+      // TypeError, not a DOMException named AbortError.
+      const controller = new AbortController();
+      controller.abort();
+      const polyfillAbort = new TypeError('Network request failed');
+      mockFetch.mockRejectedValueOnce(polyfillAbort);
+      const signalled = new DorkroomApiClient({ baseUrl: base });
+      const byName = {
+        films: () => signalled.fetchFilms({ signal: controller.signal }),
+        developers: () =>
+          signalled.fetchDevelopers({ signal: controller.signal }),
+        combinations: () =>
+          signalled.fetchCombinations({ signal: controller.signal }),
+        stats: () => signalled.fetchStats({ signal: controller.signal }),
+      };
+      const error = await caught(byName[name]);
+      expect(error).toBe(polyfillAbort);
+    });
+
+    it('rethrows an AbortError from response.json() unwrapped', async () => {
+      const abort = new DOMException('Aborted', 'AbortError');
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw abort;
+        },
+      });
+      const error = await caught(call);
+      expect(error).toBe(abort);
+    });
+  });
+
+  describe('dropped rows', () => {
+    const cases = [
+      ['films', (c: DorkroomApiClient) => c.fetchFilms()],
+      ['developers', (c: DorkroomApiClient) => c.fetchDevelopers()],
+      ['combinations', (c: DorkroomApiClient) => c.fetchCombinations()],
+    ] as const;
+
+    it.each(cases)(
+      'reports invalid %s via onInvalidRows',
+      async (name, call) => {
+        const onInvalidRows = vi.fn();
+        const observed = new DorkroomApiClient({
+          baseUrl: base,
+          onInvalidRows,
+        });
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ data: [{ bogus: 1 }, { bogus: 2 }] }),
+        });
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const result = await call(observed);
+        warn.mockRestore();
+        expect(result).toEqual([]);
+        expect(onInvalidRows).toHaveBeenCalledExactlyOnceWith({
+          resource: name,
+          dropped: 2,
+          total: 2,
+        });
+      }
+    );
+
+    it('does not call onInvalidRows when every row is valid', async () => {
+      const onInvalidRows = vi.fn();
+      const observed = new DorkroomApiClient({ baseUrl: base, onInvalidRows });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [] }),
+      });
+      await observed.fetchFilms();
+      expect(onInvalidRows).not.toHaveBeenCalled();
+    });
+
+    it('reports only the invalid rows of a mixed response', async () => {
+      const validFilm: RawFilm = {
+        id: 1,
+        uuid: 'test-uuid',
+        slug: 'test-film',
+        brand: 'Test Brand',
+        name: 'Test Film',
+        color_type: 'black_and_white',
+        iso_speed: 400,
+        grain_structure: 'fine',
+        description: 'Test description',
+        manufacturer_notes: null,
+        reciprocity_failure: null,
+        discontinued: false,
+        static_image_url: null,
+        aliases: [],
+        base_film_slug: null,
+        date_added: '2023-01-01',
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+      };
+      const onInvalidRows = vi.fn();
+      const observed = new DorkroomApiClient({ baseUrl: base, onInvalidRows });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [validFilm, { bogus: 1 }, { bogus: 2 }] }),
+      });
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const result = await observed.fetchFilms();
+      expect(warn).toHaveBeenCalledWith(
+        '[DorkroomApiClient] Filtered out 2 invalid film(s) from API response'
+      );
+      warn.mockRestore();
+      expect(result.map((film) => film.slug)).toEqual(['test-film']);
+      expect(onInvalidRows).toHaveBeenCalledExactlyOnceWith({
+        resource: 'films',
+        dropped: 2,
+        total: 3,
+      });
+    });
+
+    it('still resolves when the onInvalidRows callback throws', async () => {
+      const observed = new DorkroomApiClient({
+        baseUrl: base,
+        onInvalidRows: () => {
+          throw new Error('telemetry down');
+        },
+      });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [{ bogus: 1 }] }),
+      });
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const result = await observed.fetchFilms();
+      expect(error).toHaveBeenCalledOnce();
+      warn.mockRestore();
+      error.mockRestore();
+      expect(result).toEqual([]);
+    });
+
+    it('configure() can install onInvalidRows', async () => {
+      const onInvalidRows = vi.fn();
+      const c = new DorkroomApiClient({ baseUrl: base });
+      c.configure({ onInvalidRows });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [{ bogus: 1 }] }),
+      });
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      await c.fetchDevelopers();
+      vi.mocked(console.warn).mockRestore();
+      expect(onInvalidRows).toHaveBeenCalledOnce();
     });
   });
 });

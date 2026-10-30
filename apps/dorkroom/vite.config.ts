@@ -193,6 +193,7 @@ export default defineConfig(() => ({
           if (id.includes('node_modules/zod/')) {
             return 'zod';
           }
+          return undefined;
         },
       },
     },

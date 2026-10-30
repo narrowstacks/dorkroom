@@ -1,6 +1,7 @@
 import type { BorderPreset } from '@dorkroom/logic';
 import { useMemo, useState } from 'react';
 import { useTheme } from '../../contexts/theme-context';
+import { commitFocusedField } from '../../lib/commit-focused-field';
 import { getRouteIcon, ROUTE_DESCRIPTIONS } from '../../lib/navigation';
 import { CalculatorPageHeader } from '../calculator/calculator-page-header';
 import { useBorderCalculator } from './border-calculator-context';
@@ -243,7 +244,10 @@ export function MobileBorderLayout() {
 
         <MobileResetButton
           isHighContrast={isHighContrast}
-          onReset={resetToDefaults}
+          onReset={() => {
+            commitFocusedField();
+            resetToDefaults();
+          }}
         />
 
         <MobileSettingsDrawer
