@@ -72,7 +72,7 @@
     "//#lint:root": {
       "inputs": ["$TURBO_DEFAULT$", "!apps/**", "!packages/**", "!api/dist/**"]
     },
-    "//#typecheck": {
+    "//#typecheck:tools": {
       "inputs": [
         "tools/__tests__/**",
         "scripts/**",

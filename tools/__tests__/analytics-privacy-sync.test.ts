@@ -87,7 +87,10 @@ function interfaceMembers(body: string): string[] {
   }
   if (current.trim() !== '') {
     throw new Error(
-      `tracked-events.ts: AnalyticsEvents member is not terminated by \`;\`:\n  ${current.trim()}`
+      'tracked-events.ts: AnalyticsEvents member is not terminated by `;`. ' +
+        'Note that `//` inside a string literal type is unsupported: comments ' +
+        'are stripped before parsing, so it cuts the member short.\n  ' +
+        current.trim()
     );
   }
   return members.filter((member) => member !== '');
