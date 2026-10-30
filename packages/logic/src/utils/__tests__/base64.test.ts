@@ -145,3 +145,98 @@ describe('recipe sharing with non-Latin-1 text (browser path)', () => {
     });
   });
 });
+
+describe('base64 without the Encoding API (legacy bundle)', () => {
+  // The Kindle Experimental Browser and the other legacy-bundle targets have
+  // no TextEncoder/TextDecoder, and core-js does not polyfill them.
+  type Base64Module = typeof import('../base64');
+  let legacy: Base64Module;
+
+  const bytesToBase64 = (bytes: number[]): string =>
+    Buffer.from(bytes).toString('base64');
+
+  beforeEach(async () => {
+    vi.resetModules();
+    vi.stubGlobal('TextEncoder', undefined);
+    vi.stubGlobal('TextDecoder', undefined);
+    legacy = await import('../base64');
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  it('imports without touching the Encoding API', () => {
+    expect(globalThis.TextEncoder).toBeUndefined();
+    expect(globalThis.TextDecoder).toBeUndefined();
+    expect(legacy.encodeBase64).toBeInstanceOf(Function);
+  });
+
+  const SAMPLES = [
+    '{"name":"HC-110 (B)","notes":"1+31"}',
+    ...NON_LATIN1_SAMPLES,
+  ];
+
+  it.each(SAMPLES)('encodes %s exactly like the Encoding API path', (text) => {
+    expect(legacy.encodeBase64(text)).toBe(encodeBase64(text));
+  });
+
+  it.each(SAMPLES)('round-trips %s', (text) => {
+    expect(
+      legacy.decodeBase64(fromUrlSafe(toUrlSafe(legacy.encodeBase64(text))))
+    ).toBe(text);
+  });
+
+  it('encodes lone surrogates as U+FFFD, like TextEncoder', () => {
+    const text = 'a\uD800b\uDC00c\uD83D';
+    expect(legacy.encodeBase64(text)).toBe(encodeBase64(text));
+  });
+
+  it('decodes old Latin-1 browser links', () => {
+    const latin1 = 'Rodinal à 20 °C, café';
+    expect(legacy.decodeBase64(window.btoa(latin1))).toBe(latin1);
+  });
+
+  it.each([
+    ['lone continuation byte', [0x41, 0x80, 0x42]],
+    ['truncated sequence', [0x41, 0xe2, 0x80]],
+    ['overlong encoding', [0xc0, 0xaf]],
+    ['overlong three-byte form', [0xe0, 0x80, 0xaf]],
+    ['UTF-16 surrogate', [0xed, 0xa0, 0x80]],
+    ['code point above U+10FFFF', [0xf4, 0x90, 0x80, 0x80]],
+    ['invalid lead byte', [0xff, 0x41]],
+  ])(
+    'falls back to Latin-1 on invalid UTF-8 (%s), like the Encoding API path',
+    (_label, bytes) => {
+      const base64 = bytesToBase64(bytes);
+      const expected = String.fromCharCode(...bytes);
+      expect(legacy.decodeBase64(base64)).toBe(expected);
+      expect(decodeBase64(base64)).toBe(expected);
+    }
+  );
+
+  it('strips a leading byte order mark, like TextDecoder', () => {
+    const base64 = bytesToBase64([0xef, 0xbb, 0xbf, 0x68, 0x69]);
+    expect(decodeBase64(base64)).toBe('hi');
+    expect(legacy.decodeBase64(base64)).toBe('hi');
+  });
+
+  it('handles every UTF-8 length boundary like the Encoding API path', () => {
+    const text = String.fromCodePoint(
+      0x7f,
+      0x80,
+      0x7ff,
+      0x800,
+      0xd7ff,
+      0xe000,
+      0xfffd,
+      0xffff,
+      0x10000,
+      0x10ffff
+    );
+    const base64 = encodeBase64(text);
+    expect(legacy.encodeBase64(text)).toBe(base64);
+    expect(legacy.decodeBase64(base64)).toBe(text);
+  });
+});
