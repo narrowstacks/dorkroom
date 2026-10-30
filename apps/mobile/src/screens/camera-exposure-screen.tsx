@@ -1,5 +1,5 @@
 import { useCameraExposureCalculator } from '@dorkroom/logic';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AccessibilityInfo, Text, View } from 'react-native';
 import { EquivalentExposureList } from '@/components/camera-exposure/equivalent-exposure-list';
 import { EvPresetGrid } from '@/components/camera-exposure/ev-preset-grid';
@@ -36,6 +36,14 @@ export function CameraExposureScreen() {
     comparison,
   } = useCameraExposureCalculator();
 
+  // Counts preset taps so the announcement below re-fires when the same
+  // out-of-range preset is tapped again and the warning text is unchanged.
+  const [presetTaps, setPresetTaps] = useState(0);
+  const onPresetSelect = (ev: number) => {
+    applyPreset(ev);
+    setPresetTaps((n) => n + 1);
+  };
+
   const warning = presetWarning
     ? formatPresetWarning(presetWarning, values)
     : null;
@@ -43,13 +51,15 @@ export function CameraExposureScreen() {
   // The notice appears below the preset grid the user just tapped, often off
   // screen, so VoiceOver is told about it directly. Queued so it is spoken
   // after the activated preset button rather than dropped (iOS only option).
+  // Keyed on the tap count as well as the text: a warning only ever comes
+  // from a preset tap, and each such tap should be announced.
   useEffect(() => {
-    if (warning) {
+    if (presetTaps > 0 && warning) {
       AccessibilityInfo.announceForAccessibilityWithOptions(warning, {
         queue: true,
       });
     }
-  }, [warning]);
+  }, [presetTaps, warning]);
 
   const settings = formatSettings(
     values.aperture,
@@ -112,7 +122,7 @@ export function CameraExposureScreen() {
           value={values.solveFor}
           onChange={(v) => set('solveFor', v)}
         />
-        <EvPresetGrid onSelect={applyPreset} />
+        <EvPresetGrid onSelect={onPresetSelect} />
       </GlassCard>
 
       <WarningsCard warnings={warning ? [warning] : []} />
