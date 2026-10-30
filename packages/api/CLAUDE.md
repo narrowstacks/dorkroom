@@ -81,6 +81,11 @@ API returns snake_case, app uses camelCase:
 
 The client transforms automatically.
 
+The Raw types (and `FilmAlias`, `Stats`) are `z.infer` of the zod schemas in
+`src/dorkroom/schemas.ts`, which the client validates every response against.
+Add or change a wire field in the schema only, never in a hand-written
+interface; the type follows, and drift becomes a compile error.
+
 ### Null Handling
 
 Use explicit `null` for API nulls (not optional):

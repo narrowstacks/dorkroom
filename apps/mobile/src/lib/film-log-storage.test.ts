@@ -65,11 +65,12 @@ async function shotWithPhoto(fileName: string) {
   return { rollId: roll.id, shotId: shot.id };
 }
 
-// Every optional field populated. `Required<>` makes a field added to a schema
-// (and so to its inferred type) a compile error here until the fixture sets it,
-// and the round-trip below then proves the read path keeps it. zod strips keys
-// a schema does not list, so this is what catches a field being written to
-// MMKV and silently erased on the next read (issue #452).
+// Every optional field populated. The primary guard against fields being
+// erased on read (issue #452) is that the types are `z.infer` of the schemas,
+// so a field exists in both or neither; `Required<>` then makes a new schema
+// field a compile error here until the fixture sets it. The round-trip
+// assertion below catches a future transform or pick on the read/write path
+// that drops a field.
 const fullPhoto = {
   fileName: 'p.jpg',
   width: 4032,
