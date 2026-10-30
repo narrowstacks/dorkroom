@@ -27,4 +27,10 @@ describe('clampText', () => {
   it('lets max win when min > max', () => {
     expect(clampText('5', 10, 0)).toBe('0');
   });
+
+  it('normalizes negative zero to "0"', () => {
+    expect(clampText('-0', 0)).toBe('0');
+    expect(clampText('-0.0', 0, 10)).toBe('0');
+    expect(clampText('0', 0)).toBeNull();
+  });
 });
