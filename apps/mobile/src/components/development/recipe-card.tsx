@@ -1,5 +1,9 @@
 import type { DevelopmentCombinationView } from '@dorkroom/logic';
-import { calculatePushPull } from '@dorkroom/logic';
+import {
+  calculatePushPull,
+  isHigherTemperature,
+  isNonStandardTemperature,
+} from '@dorkroom/logic';
 import { ArrowDown, ArrowUp, Flame, Snowflake } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { GlassCard } from '@/components/glass-card';
@@ -53,12 +57,10 @@ export function RecipeCard({
       : ACCENT.blue
     : undefined;
 
-  // Temp segment: Flame (hotter) / Snowflake (colder) when non-standard
-  // (|68°F delta| > 0.1), matching the web table's TemperatureCellRenderer.
-  const nonStandardTemp =
-    Number.isFinite(combination.temperatureF) &&
-    Math.abs(combination.temperatureF - 68) > 0.1;
-  const tempHigher = combination.temperatureF > 68;
+  // Temp segment: Flame (hotter) / Snowflake (colder) when non-standard,
+  // the same shared rule as the web table's TemperatureCellRenderer.
+  const nonStandardTemp = isNonStandardTemperature(combination.temperatureF);
+  const tempHigher = isHigherTemperature(combination.temperatureF);
   const tempColor = nonStandardTemp
     ? tempHigher
       ? ACCENT.amber

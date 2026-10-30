@@ -1,6 +1,7 @@
 // Pure display helpers for the film-processing timer UI. No native deps, no React
 // — just number/string formatting, kept here so it's unit-testable beside the
 // presentation components.
+import { formatTemperature, toCelsius } from '@dorkroom/logic';
 import type { StageKind, TimerStage } from '@/lib/timer/types';
 
 /**
@@ -28,18 +29,15 @@ export function formatDuration(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-/** °F → °C, rounded to the nearest whole degree. */
-function toCelsius(f: number): number {
-  return Math.round(((f - 32) * 5) / 9);
-}
-
 /**
- * Render a stage temperature as `68°F · 20°C`, or null when the stage has no
- * process-critical temperature (e.g. a running-water wash).
+ * Render a stage temperature as `68°F · 20°C` (or `75.2°F · 24°C`), or null
+ * when the stage has no process-critical temperature (e.g. a running-water
+ * wash). Both scales use the shared 0.1° rule; whole values drop the `.0`.
  */
 export function formatTemp(temperatureF: number | null): string | null {
   if (temperatureF == null || !Number.isFinite(temperatureF)) return null;
-  return `${Math.round(temperatureF)}°F · ${toCelsius(temperatureF)}°C`;
+  const opts = { trimTrailingZero: true };
+  return `${formatTemperature(temperatureF, 'fahrenheit', opts)} · ${formatTemperature(toCelsius(temperatureF), 'celsius', opts)}`;
 }
 
 /** Human label for a stage kind, used in the preset editor's kind picker. */
