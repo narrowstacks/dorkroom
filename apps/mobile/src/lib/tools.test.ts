@@ -45,16 +45,21 @@ describe('isPinnable', () => {
     expect(isPinnable(getTool('recipes') as Tool)).toBe(false);
   });
 
+  it('returns true for lens now that its screen is implemented', () => {
+    // SAFETY: 'lens' is an id hardcoded in TOOLS (see tools.ts).
+    expect(isPinnable(getTool('lens') as Tool)).toBe(true);
+  });
+
   it('returns true for border', () => {
     // SAFETY: 'border' is an id hardcoded in TOOLS (see tools.ts).
     expect(isPinnable(getTool('border') as Tool)).toBe(true);
   });
 
-  // Update this set when a stub screen (lens, camera-exposure) gets ported to
-  // a real screen — see issue #259.
+  // Update this set when a stub screen (camera-exposure) gets ported to a real
+  // screen — see issues #259 and #260.
   it('flags exactly the current stub screens as comingSoon', () => {
     const comingSoonIds = TOOLS.filter((t) => t.comingSoon).map((t) => t.id);
-    expect(comingSoonIds).toEqual(['lens', 'camera-exposure']);
+    expect(comingSoonIds).toEqual(['camera-exposure']);
   });
 
   it('DEFAULT_PINNED_IDS contains no non-pinnable tool', () => {

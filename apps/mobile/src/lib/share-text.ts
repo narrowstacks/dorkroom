@@ -55,3 +55,20 @@ export function buildReciprocityShare(p: {
     `Factor: ${p.factor.toFixed(2)}`,
   ].join('\n');
 }
+
+export function buildLensShare(p: {
+  focalLength: string;
+  sourceFormat: string;
+  equivalentFocalLength: string;
+  targetFormat: string;
+  fieldOfView: number;
+  sourceCropFactor: number;
+  targetCropFactor: number;
+}): string {
+  return [
+    'Lens Equivalency',
+    `${p.focalLength} on ${p.sourceFormat} = ${p.equivalentFocalLength} on ${p.targetFormat}`,
+    `Field of view: ${p.fieldOfView.toFixed(1)}° diagonal`,
+    `Crop factors: ${p.sourceCropFactor.toFixed(2)}× → ${p.targetCropFactor.toFixed(2)}×`,
+  ].join('\n');
+}
