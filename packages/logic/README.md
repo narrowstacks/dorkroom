@@ -248,11 +248,11 @@ Factory pattern for consistent query key management.
 import { queryKeys } from '@dorkroom/logic';
 
 // Hierarchical keys
-queryKeys.films.all;           // ['films']
+queryKeys.films.all();         // ['films']
 queryKeys.films.lists();       // ['films', 'list']
 
-queryKeys.developers.all;
-queryKeys.combinations.all;
+queryKeys.developers.all();
+queryKeys.combinations.all();
 ```
 
 ## Constants
