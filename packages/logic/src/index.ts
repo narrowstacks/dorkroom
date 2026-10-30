@@ -59,12 +59,9 @@ export {
   persistedBorderCalculatorSchema,
 } from './hooks/border-calculator/use-border-calculator-state';
 export {
-  useAddCustomRecipe,
-  useClearCustomRecipes,
-  useDeleteCustomRecipe,
-  useUpdateCustomRecipe,
-} from './hooks/custom-recipes/use-custom-recipe-mutations';
-export { useCustomRecipes } from './hooks/custom-recipes/use-custom-recipes-unified';
+  type UseCustomRecipesResult,
+  useCustomRecipes,
+} from './hooks/custom-recipes/use-custom-recipes';
 export {
   type CustomRecipeShareOptions,
   type CustomRecipeShareResult,
@@ -141,6 +138,14 @@ export * from './schemas/border-calculator.schema';
 export { customRecipeFilterSchema } from './schemas/development-recipes.schema';
 export * from './schemas/validators';
 // Services exports
+export {
+  type CustomRecipeStorageAdapter,
+  type CustomRecipeStore,
+  createCustomRecipeStore,
+  createLocalStorageRecipeAdapter,
+  createMemoryRecipeAdapter,
+  customRecipeStore,
+} from './services/custom-recipe-store';
 export * from './services/filmdev-api';
 export {
   createStorageManager,

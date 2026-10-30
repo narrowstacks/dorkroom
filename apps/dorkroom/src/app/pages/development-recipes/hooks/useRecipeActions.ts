@@ -21,10 +21,9 @@ import { useRecipeSharingActions } from './useRecipeSharingActions';
 interface UseRecipeActionsProps {
   // Custom recipe mutations
   customRecipes: CustomRecipe[];
-  addCustomRecipe: (data: CustomRecipeFormData) => Promise<string>;
-  updateCustomRecipe: (id: string, data: CustomRecipeFormData) => Promise<void>;
-  deleteCustomRecipe: (id: string) => Promise<void>;
-  refreshCustomRecipes: () => Promise<CustomRecipe[]>;
+  addCustomRecipe: (data: CustomRecipeFormData) => string;
+  updateCustomRecipe: (id: string, data: CustomRecipeFormData) => CustomRecipe;
+  deleteCustomRecipe: (id: string) => void;
 
   // Sharing functions
   shareCustomRecipe: (
@@ -115,7 +114,6 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     addCustomRecipe,
     updateCustomRecipe,
     deleteCustomRecipe,
-    refreshCustomRecipes,
     shareCustomRecipe,
     copyCustomRecipeToClipboard,
     shareRegularRecipe,
@@ -190,7 +188,6 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     addCustomRecipe,
     updateCustomRecipe,
     deleteCustomRecipe,
-    refreshCustomRecipes,
     addFavorite,
     showToast,
     editingRecipe,
@@ -227,7 +224,6 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     handleConfirmFilmdevImport,
   } = useRecipeImportActions({
     addCustomRecipe,
-    refreshCustomRecipes,
     decodeSharedCustomRecipe,
     allFilms,
     allDevelopers,
@@ -253,15 +249,17 @@ export function useRecipeActions(props: UseRecipeActionsProps) {
     debugLog('handleRefreshAll() triggered from Refresh button');
     setIsRefreshingData(true);
     try {
-      debugLog('Calling forceRefresh() and refreshCustomRecipes()...');
-      await Promise.all([forceRefresh(), refreshCustomRecipes()]);
+      // Custom recipes are a synchronous store that is always current, so
+      // only the catalogue needs refetching.
+      debugLog('Calling forceRefresh()...');
+      await forceRefresh();
       debugLog('All refreshes completed');
     } catch (error) {
       debugError('handleRefreshAll error:', error);
     } finally {
       setIsRefreshingData(false);
     }
-  }, [forceRefresh, refreshCustomRecipes, setIsRefreshingData]);
+  }, [forceRefresh, setIsRefreshingData]);
 
   return {
     handleOpenDetail,

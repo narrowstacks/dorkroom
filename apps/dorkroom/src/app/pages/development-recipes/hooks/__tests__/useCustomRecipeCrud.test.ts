@@ -163,9 +163,6 @@ describe('useCustomRecipeCrud', () => {
   let mockDeleteCustomRecipe: Mock<
     UseCustomRecipeCrudProps['deleteCustomRecipe']
   >;
-  let mockRefreshCustomRecipes: Mock<
-    UseCustomRecipeCrudProps['refreshCustomRecipes']
-  >;
   let mockAddFavorite: Mock<UseCustomRecipeCrudProps['addFavorite']>;
   let mockShowToast: Mock<UseCustomRecipeCrudProps['showToast']>;
   let mockGetFilmById: Mock<UseCustomRecipeCrudProps['getFilmById']>;
@@ -177,10 +174,11 @@ describe('useCustomRecipeCrud', () => {
     mockSetIsSubmittingRecipe = vi.fn();
     mockSetIsDetailOpen = vi.fn();
     mockSetDetailView = vi.fn();
-    mockAddCustomRecipe = vi.fn().mockResolvedValue('new-recipe-id');
-    mockUpdateCustomRecipe = vi.fn().mockResolvedValue(undefined);
-    mockDeleteCustomRecipe = vi.fn().mockResolvedValue(undefined);
-    mockRefreshCustomRecipes = vi.fn().mockResolvedValue([]);
+    mockAddCustomRecipe = vi.fn().mockReturnValue('new-recipe-id');
+    mockUpdateCustomRecipe = vi
+      .fn()
+      .mockImplementation((id: string) => createMockCustomRecipe({ id }));
+    mockDeleteCustomRecipe = vi.fn();
     mockAddFavorite = vi.fn();
     mockShowToast = vi.fn();
     mockGetFilmById = vi.fn().mockReturnValue(mockFilm);
@@ -205,8 +203,8 @@ describe('useCustomRecipeCrud', () => {
       // Detail view is showing the recipe being edited
       const currentDetailView = createMockDetailView(originalRecipe);
 
-      // After refresh, return the updated recipe
-      mockRefreshCustomRecipes.mockResolvedValue([updatedRecipe]);
+      // The store returns the saved recipe
+      mockUpdateCustomRecipe.mockReturnValue(updatedRecipe);
 
       const { result } = renderHook(() =>
         useCustomRecipeCrud({
@@ -214,7 +212,6 @@ describe('useCustomRecipeCrud', () => {
           addCustomRecipe: mockAddCustomRecipe,
           updateCustomRecipe: mockUpdateCustomRecipe,
           deleteCustomRecipe: mockDeleteCustomRecipe,
-          refreshCustomRecipes: mockRefreshCustomRecipes,
           addFavorite: mockAddFavorite,
           showToast: mockShowToast,
           editingRecipe: currentDetailView, // Editing the same recipe shown in detail
@@ -266,7 +263,7 @@ describe('useCustomRecipeCrud', () => {
       const currentDetailView = createMockDetailView(differentRecipe);
       const editingView = createMockDetailView(recipeBeingEdited);
 
-      mockRefreshCustomRecipes.mockResolvedValue([updatedRecipe]);
+      mockUpdateCustomRecipe.mockReturnValue(updatedRecipe);
 
       const { result } = renderHook(() =>
         useCustomRecipeCrud({
@@ -274,7 +271,6 @@ describe('useCustomRecipeCrud', () => {
           addCustomRecipe: mockAddCustomRecipe,
           updateCustomRecipe: mockUpdateCustomRecipe,
           deleteCustomRecipe: mockDeleteCustomRecipe,
-          refreshCustomRecipes: mockRefreshCustomRecipes,
           addFavorite: mockAddFavorite,
           showToast: mockShowToast,
           editingRecipe: editingView,
@@ -300,13 +296,7 @@ describe('useCustomRecipeCrud', () => {
     });
 
     it('does not update detailView when adding a new recipe', async () => {
-      const newRecipe = createMockCustomRecipe({
-        id: 'new-recipe-id',
-        name: 'New Recipe',
-      });
-
-      mockAddCustomRecipe.mockResolvedValue('new-recipe-id');
-      mockRefreshCustomRecipes.mockResolvedValue([newRecipe]);
+      mockAddCustomRecipe.mockReturnValue('new-recipe-id');
 
       const { result } = renderHook(() =>
         useCustomRecipeCrud({
@@ -314,7 +304,6 @@ describe('useCustomRecipeCrud', () => {
           addCustomRecipe: mockAddCustomRecipe,
           updateCustomRecipe: mockUpdateCustomRecipe,
           deleteCustomRecipe: mockDeleteCustomRecipe,
-          refreshCustomRecipes: mockRefreshCustomRecipes,
           addFavorite: mockAddFavorite,
           showToast: mockShowToast,
           editingRecipe: null, // No recipe being edited (adding new)
@@ -344,7 +333,7 @@ describe('useCustomRecipeCrud', () => {
       const updatedRecipe = createMockCustomRecipe({ id: 'recipe-to-edit' });
       const currentDetailView = createMockDetailView(originalRecipe);
 
-      mockRefreshCustomRecipes.mockResolvedValue([updatedRecipe]);
+      mockUpdateCustomRecipe.mockReturnValue(updatedRecipe);
 
       const { result } = renderHook(() =>
         useCustomRecipeCrud({
@@ -352,7 +341,6 @@ describe('useCustomRecipeCrud', () => {
           addCustomRecipe: mockAddCustomRecipe,
           updateCustomRecipe: mockUpdateCustomRecipe,
           deleteCustomRecipe: mockDeleteCustomRecipe,
-          refreshCustomRecipes: mockRefreshCustomRecipes,
           addFavorite: mockAddFavorite,
           showToast: mockShowToast,
           editingRecipe: currentDetailView,
@@ -382,7 +370,7 @@ describe('useCustomRecipeCrud', () => {
       const updatedRecipe = createMockCustomRecipe({ id: 'recipe-to-edit' });
       const currentDetailView = createMockDetailView(originalRecipe);
 
-      mockRefreshCustomRecipes.mockResolvedValue([updatedRecipe]);
+      mockUpdateCustomRecipe.mockReturnValue(updatedRecipe);
 
       const { result } = renderHook(() =>
         useCustomRecipeCrud({
@@ -390,7 +378,6 @@ describe('useCustomRecipeCrud', () => {
           addCustomRecipe: mockAddCustomRecipe,
           updateCustomRecipe: mockUpdateCustomRecipe,
           deleteCustomRecipe: mockDeleteCustomRecipe,
-          refreshCustomRecipes: mockRefreshCustomRecipes,
           addFavorite: mockAddFavorite,
           showToast: mockShowToast,
           editingRecipe: currentDetailView,
@@ -428,7 +415,6 @@ describe('useCustomRecipeCrud', () => {
           addCustomRecipe: mockAddCustomRecipe,
           updateCustomRecipe: mockUpdateCustomRecipe,
           deleteCustomRecipe: mockDeleteCustomRecipe,
-          refreshCustomRecipes: mockRefreshCustomRecipes,
           addFavorite: mockAddFavorite,
           showToast: mockShowToast,
           editingRecipe: null,
@@ -463,7 +449,6 @@ describe('useCustomRecipeCrud', () => {
           addCustomRecipe: mockAddCustomRecipe,
           updateCustomRecipe: mockUpdateCustomRecipe,
           deleteCustomRecipe: mockDeleteCustomRecipe,
-          refreshCustomRecipes: mockRefreshCustomRecipes,
           addFavorite: mockAddFavorite,
           showToast: mockShowToast,
           editingRecipe: null,

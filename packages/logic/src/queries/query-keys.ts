@@ -35,15 +35,6 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.combinations.details(), id] as const,
   },
 
-  // Custom Recipes
-  customRecipes: {
-    all: () => ['customRecipes'] as const,
-    lists: () => [...queryKeys.customRecipes.all(), 'list'] as const,
-    list: () => [...queryKeys.customRecipes.lists()] as const,
-    details: () => [...queryKeys.customRecipes.all(), 'detail'] as const,
-    detail: (id: string) => [...queryKeys.customRecipes.details(), id] as const,
-  },
-
   // Stats
   stats: {
     all: () => ['stats'] as const,

@@ -285,7 +285,7 @@ build-time prerender snapshots stay deterministic.
 **Data dependencies:**
 
 - `useDevelopmentRecipes()` - Main data hook
-- `useCustomRecipes()` - CRUD for custom recipes
+- `useCustomRecipes()` - CRUD for custom recipes (synchronous localStorage store)
 - `useFavorites()` - Favorite management
 - `useRecipeSharing()` - Share/copy functionality
 

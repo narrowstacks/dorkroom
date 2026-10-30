@@ -122,7 +122,6 @@ export default function DevelopmentRecipesPage() {
     addCustomRecipe,
     updateCustomRecipe,
     deleteCustomRecipe,
-    forceRefresh: refreshCustomRecipes,
   } = useCustomRecipes();
 
   const {
@@ -297,7 +296,6 @@ export default function DevelopmentRecipesPage() {
     addCustomRecipe,
     updateCustomRecipe,
     deleteCustomRecipe,
-    refreshCustomRecipes,
     shareCustomRecipe,
     copyCustomRecipeToClipboard,
     shareRegularRecipe,
