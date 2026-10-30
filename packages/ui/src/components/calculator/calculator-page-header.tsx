@@ -2,6 +2,7 @@ import type { ComponentType, ReactNode } from 'react';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import type { AccentTone } from './accent-tone';
+import { CalculatorResetButton } from './calculator-reset-button';
 
 interface CalculatorPageHeaderProps {
   title: string;
@@ -16,6 +17,11 @@ interface CalculatorPageHeaderProps {
   /** Accent identity for the icon tile (see theme.css `--accent-*`). */
   accentTone?: AccentTone;
   align?: 'center' | 'start';
+  /**
+   * When provided, renders the shared "Reset to defaults" control at the end
+   * of the title row. Pages that persist their inputs pass this.
+   */
+  onReset?: () => void;
   children?: ReactNode;
 }
 
@@ -26,6 +32,7 @@ export function CalculatorPageHeader({
   icon: Icon,
   accentTone,
   align = 'center',
+  onReset,
   children,
 }: CalculatorPageHeaderProps) {
   // An icon anchors the header to the left regardless of the align default.
@@ -97,6 +104,12 @@ export function CalculatorPageHeader({
             {description}
           </div>
         </div>
+        {onReset && (
+          <CalculatorResetButton
+            onReset={onReset}
+            className={cn('ml-auto', Icon && 'self-start')}
+          />
+        )}
       </div>
       {children && (
         <div

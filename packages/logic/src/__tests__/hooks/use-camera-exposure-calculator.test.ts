@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useCameraExposureCalculator } from '../../hooks/use-camera-exposure-calculator';
+import { CAMERA_EXPOSURE_STORAGE_KEY } from '../../types/camera-exposure-calculator';
 
 describe('useCameraExposureCalculator', () => {
   beforeEach(() => {
@@ -171,5 +172,29 @@ describe('useCameraExposureCalculator', () => {
     expect(result.current.presetWarning?.required).toBe('125.4"');
     expect(result.current.presetWarning?.limit).toBe('30"');
     expect(result.current.values.shutterSpeed).toBe(30);
+  });
+
+  it('reset restores the defaults, clears a preset notice, and drops the persisted snapshot', () => {
+    const { result } = renderHook(() => useCameraExposureCalculator());
+    const defaults = result.current.values;
+
+    act(() => {
+      result.current.set('solveFor', 'aperture');
+      result.current.set('shutterSpeed', 1 / 30);
+      result.current.set('iso', 12800);
+    });
+    // Needs roughly f/529, past the f/64 end of the dial: a clamped preset.
+    act(() => result.current.applyPreset(16));
+    expect(result.current.presetWarning).not.toBeNull();
+    window.localStorage.setItem(
+      CAMERA_EXPOSURE_STORAGE_KEY,
+      JSON.stringify(result.current.values)
+    );
+
+    act(() => result.current.reset());
+
+    expect(result.current.values).toEqual(defaults);
+    expect(result.current.presetWarning).toBeNull();
+    expect(window.localStorage.getItem(CAMERA_EXPOSURE_STORAGE_KEY)).toBeNull();
   });
 });

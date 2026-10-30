@@ -12,6 +12,11 @@ export interface CalculatorLayoutProps {
   icon?: ComponentType<{ className?: string }>;
   /** Per-calculator accent identity (see theme.css `--accent-*`). */
   accentTone?: AccentTone;
+  /**
+   * Restores the calculator's defaults. When provided, the header shows the
+   * shared "Reset to defaults" control.
+   */
+  onReset?: () => void;
   /** Optional children to render in the header (e.g., toggle buttons) */
   headerChildren?: ReactNode;
   /** Main content (inputs) */
@@ -35,6 +40,7 @@ export function CalculatorLayout({
   description,
   icon,
   accentTone,
+  onReset,
   headerChildren,
   children,
   results,
@@ -54,6 +60,7 @@ export function CalculatorLayout({
         description={description}
         icon={icon}
         accentTone={accentTone}
+        onReset={onReset}
       >
         {headerChildren}
       </CalculatorPageHeader>

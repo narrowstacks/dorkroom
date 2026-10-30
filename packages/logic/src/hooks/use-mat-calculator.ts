@@ -44,6 +44,8 @@ export interface UseMatCalculatorReturn {
   values: MatCalculatorState;
   /** Update a single field. */
   set: (key: keyof MatCalculatorState, value: string | boolean) => void;
+  /** Restore the default inputs and drop the persisted snapshot. */
+  reset: () => void;
   /** Snap the borders to a centered best fit around the artwork. */
   applyBestFit: () => void;
   /** Preview of the best-fit borders, or null when the art cannot fit. */
@@ -113,9 +115,10 @@ export function useMatCalculator(
       key: keyof MatCalculatorState,
       value: MatCalculatorState[keyof MatCalculatorState]
     ) => setValues((prev) => ({ ...prev, [key]: value })),
+    reset: () => setValues(MAT_CALCULATOR_DEFAULTS),
   };
 
-  useLocalStorageFormPersistence({
+  const { resetToDefaults: reset } = useLocalStorageFormPersistence({
     storageKey: MAT_CALCULATOR_STORAGE_KEY,
     form: persistenceForm,
     formValues: values,
@@ -256,6 +259,7 @@ export function useMatCalculator(
   return {
     values,
     set,
+    reset,
     applyBestFit,
     bestFitPreview,
     fmt,

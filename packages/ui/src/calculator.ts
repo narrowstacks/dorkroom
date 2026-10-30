@@ -2,6 +2,7 @@
 export type {
   AccentTone,
   CalculatorLayoutProps,
+  CalculatorResetButtonProps,
   InfoCardItem,
   InfoCardListProps,
   InfoCardProps,
@@ -12,6 +13,7 @@ export {
   CalculatorLayout,
   CalculatorNumberField,
   CalculatorPageHeader,
+  CalculatorResetButton,
   CalculatorStat,
   InfoCard,
   InfoCardList,

@@ -433,7 +433,7 @@ function useReciprocityForm() {
   const formValues = useStore(form.store, (state) => state.values);
 
   // Persist and hydrate form state to/from localStorage
-  useLocalStorageFormPersistence({
+  const { resetToDefaults } = useLocalStorageFormPersistence({
     storageKey: RECIPROCITY_STORAGE_KEY,
     form,
     formValues,
@@ -456,7 +456,7 @@ function useReciprocityForm() {
     [filmTypes]
   );
 
-  return { form, filmTypes, filmOptions, parsedDisplay };
+  return { form, filmTypes, filmOptions, parsedDisplay, resetToDefaults };
 }
 
 /**
@@ -471,7 +471,8 @@ function useReciprocityForm() {
 export default function ReciprocityCalculatorPage() {
   useCalculatorAnalytics({ tool: 'reciprocity' });
 
-  const { form, filmOptions, parsedDisplay } = useReciprocityForm();
+  const { form, filmOptions, parsedDisplay, resetToDefaults } =
+    useReciprocityForm();
 
   const [showChart, setShowChart] = useState(false);
   const [isWideChart, setIsWideChart] = useState(false);
@@ -520,6 +521,7 @@ export default function ReciprocityCalculatorPage() {
       title="Reciprocity Failure Calculator"
       icon={getRouteIcon('/reciprocity')}
       accentTone="amber"
+      onReset={resetToDefaults}
       description={
         <>
           Long exposures need more time than your meter says.
