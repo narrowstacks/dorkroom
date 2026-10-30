@@ -21,7 +21,7 @@
           {
             "type": "command",
             "command": ".claude/hooks/format-on-save.sh",
-            "statusMessage": "Formatting with Biome..."
+            "statusMessage": "Formatting with bun fmt..."
           }
         ]
       }

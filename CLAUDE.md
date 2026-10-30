@@ -30,7 +30,7 @@ bun run build                             # Build all packages
 # Verification (run before considering done)
 bun run test                              # lint, lint:root, test, build, typecheck,
                                           # typecheck:api, test:serverless, test:docs, doctor
-bun run lint                              # oxlint + Biome check over the whole repo
+bun run lint                              # oxlint + `bun fmt --check` over the whole repo
 bun run test:unit "pattern"               # Run only tests matching pattern
 bun run doctor                            # React Doctor alone; fails on any warning
 
@@ -139,8 +139,9 @@ main.
 
 ## Toolchain
 
-Lint with `oxlint`, format with Biome. Typecheck/build run on **stable
-TypeScript 7** via the `typescript-7` npm alias; `typescript` is deliberately
+Lint with `oxlint`, format with `bun fmt`, typecheck with `bun check` (Bun's
+built-in TypeScript 7 checker). Build runs on **stable TypeScript 7** via the
+`typescript-7` npm alias, since `bun check` emits no `.d.ts`; `typescript` is deliberately
 held on **6.x** because TS 7.0 ships no programmatic API and `@vercel/node`
 resolves `typescript` from the project to build the functions in `api/`. Do not
 collapse the two. **Renovate** manages all dependencies (`renovate.json`);

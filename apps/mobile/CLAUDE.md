@@ -149,8 +149,8 @@ this because it is a permanent tab).
 
 ```bash
 bun run test        # vitest, pure modules only (see Testing)
-bun run typecheck   # tsc --noEmit, strict, no `any`
-bun run lint        # oxlint (lint) + biome (formatting only)
+bun run typecheck   # bun check (TypeScript 7), strict, no `any`
+bun run lint        # oxlint (lint) + bun fmt --check (formatting)
 ```
 
 `bun run build` here is a deliberate no-op: native builds go through Expo/EAS,

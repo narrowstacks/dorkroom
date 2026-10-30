@@ -23,6 +23,7 @@
 # Configuration files
 /.github/ @narrowstacks
 /nx.json @narrowstacks
-/biome.json @narrowstacks
+/.prettierrc.json @narrowstacks
+/bunfig.toml @narrowstacks
 /package.json @narrowstacks
 /tsconfig*.json @narrowstacks

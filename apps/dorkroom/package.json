@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite --host=0.0.0.0",
     "build": "vite build",
-    "lint": "oxlint && biome check --linter-enabled=false .",
+    "lint": "oxlint && bun fmt --check",
     "test": "vitest run",
-    "typecheck": "node ../../node_modules/typescript-7/bin/tsc --noEmit --project tsconfig.app.json && node ../../node_modules/typescript-7/bin/tsc --noEmit --project tsconfig.spec.json"
+    "typecheck": "bun check"
   }
 }

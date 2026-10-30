@@ -33,7 +33,12 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "!dist/**/*.tsbuildinfo", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "!dist/**/*.tsbuildinfo",
+    "README.md",
+    "LICENSE"
+  ],
   "sideEffects": false,
   "engines": {
     "node": ">=18.0.0"
@@ -44,9 +49,9 @@
   "type": "module",
   "scripts": {
     "build": "node ../../node_modules/typescript-7/bin/tsc --project tsconfig.lib.json",
-    "lint": "oxlint && biome check --linter-enabled=false .",
+    "lint": "oxlint && bun fmt --check",
     "test": "vitest run",
-    "typecheck": "node ../../node_modules/typescript-7/bin/tsc --noEmit --project tsconfig.lib.json && node ../../node_modules/typescript-7/bin/tsc --noEmit --project tsconfig.spec.json"
+    "typecheck": "bun check"
   },
   "devDependencies": {
     "@types/node": "^26.6.5"

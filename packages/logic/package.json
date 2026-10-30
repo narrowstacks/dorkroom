@@ -15,9 +15,9 @@
   },
   "scripts": {
     "build": "node ../../node_modules/typescript-7/bin/tsc --project tsconfig.lib.json",
-    "lint": "oxlint && biome check --linter-enabled=false .",
+    "lint": "oxlint && bun fmt --check",
     "test": "vitest run",
-    "typecheck": "node ../../node_modules/typescript-7/bin/tsc --noEmit --project tsconfig.lib.json && node ../../node_modules/typescript-7/bin/tsc --noEmit --project tsconfig.spec.json"
+    "typecheck": "bun check"
   },
   "dependencies": {
     "@dorkroom/api": "workspace:*",
