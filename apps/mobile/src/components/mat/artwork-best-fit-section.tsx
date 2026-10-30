@@ -1,6 +1,6 @@
 import {
   type MatCalculatorState,
-  toFractionInput,
+  matBorderToInput,
   type UseMatCalculatorReturn,
 } from '@dorkroom/logic';
 import { Pressable, Text, View } from 'react-native';
@@ -64,10 +64,10 @@ export function ArtworkBestFitSection({
       />
       {bestFitPreview ? (
         <Text className="text-xs text-white/50">
-          Proposed: {toFractionInput(bestFitPreview.top)} T ·{' '}
-          {toFractionInput(bestFitPreview.bottom)} B ·{' '}
-          {toFractionInput(bestFitPreview.left)} L ·{' '}
-          {toFractionInput(bestFitPreview.right)} R
+          Proposed: {matBorderToInput(bestFitPreview.top)} T ·{' '}
+          {matBorderToInput(bestFitPreview.bottom)} B ·{' '}
+          {matBorderToInput(bestFitPreview.left)} L ·{' '}
+          {matBorderToInput(bestFitPreview.right)} R
         </Text>
       ) : null}
       <Pressable

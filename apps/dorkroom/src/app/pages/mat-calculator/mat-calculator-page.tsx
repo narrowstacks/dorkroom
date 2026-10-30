@@ -481,7 +481,7 @@ export default function MatCalculatorPage() {
     [unit]
   );
 
-  const calc = useMatCalculator({ formatValue });
+  const calc = useMatCalculator({ formatValue, unit });
 
   const results = useMemo(
     () => (

@@ -4,6 +4,7 @@ import {
   formatMeasurement,
   type MatPreset,
   type MeasurementUnit,
+  matBorderToInput,
   parseMatInput,
   toFraction,
   toFractionInput,
@@ -53,15 +54,16 @@ export function formatMatValue(inches: number, unit: MeasurementUnit): string {
 
 /**
  * Format one measurement for the best-fit preview line. It previews what
- * `applyBestFit` will write, so it snaps to the same 1/16" grid the borders do
- * and never falls back to the invalid-input placeholder; metric then reads the
- * result at the field's own precision, so the preview and the field agree.
+ * `applyBestFit` will write, so it renders through the same `matBorderToInput`
+ * (1/32" imperial, 1mm metric) and never falls back to the invalid-input
+ * placeholder; metric then reads the result at the field's own precision, so
+ * the preview and the field agree.
  */
 export function formatMatPreview(
   inches: number,
   unit: MeasurementUnit
 ): string {
-  const snapped = toFractionInput(inches);
+  const snapped = matBorderToInput(inches, unit);
   if (unit === 'imperial') {
     return `${snapped}″`;
   }

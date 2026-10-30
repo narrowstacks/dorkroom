@@ -36,8 +36,12 @@ describe('formatMatPreview', () => {
     expect(formatMatPreview(3.25, 'imperial')).toBe('3 1/4″');
   });
 
+  it('shows the 1/32 borders best fit writes', () => {
+    expect(formatMatPreview(4 + 7 / 32, 'imperial')).toBe('4 7/32″');
+  });
+
   it('uses centimetres in metric, at the field precision', () => {
-    // 3.25in snaps to 3 1/4in, which the border field will show as 8.26cm.
+    // 3.25in is 3 1/4in, which the border field will show as 8.26cm.
     expect(formatMatPreview(3.25, 'metric')).toBe('8.26cm');
   });
 });
