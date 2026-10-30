@@ -130,12 +130,18 @@ export function searchFilms(
   }
 
   const searcher = existingSearcher ?? createFilmSearcher(films);
-  const normalized = normalizeSearchText(trimmed);
-  const tokens = trimmed.split(/\s+/).map(normalizeSearchText);
+  // Drop words that are pure punctuation ("kodak - portra"): an empty token
+  // in the AND query below would match nothing and empty the whole result.
+  const tokens = trimmed.split(/\s+/).map(normalizeSearchText).filter(Boolean);
+  if (tokens.length === 0) {
+    // Nothing searchable left (e.g. "!!!"): return every film, in input
+    // order, as an empty Fuse query does, rather than "no results".
+    return searcher.search('');
+  }
 
   // Single word: search directly
   if (tokens.length === 1) {
-    return searcher.search(normalized);
+    return searcher.search(tokens[0]);
   }
 
   // Multi-word: search both the joined form ("tri x" -> "trix") and
