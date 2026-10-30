@@ -12,10 +12,10 @@ import { RECIPROCITY_FILM_TYPES } from './reciprocity';
 export const DEFAULT_RECIPROCITY_METERED_TIME = '30s';
 
 /**
- * Default custom reciprocity factor (as string for input handling).
+ * Default custom reciprocity factor, a number like the form state and schema.
  * Value of 1.3 is a reasonable middle-ground for most film types.
  */
-export const DEFAULT_RECIPROCITY_CUSTOM_FACTOR = '1.3';
+export const DEFAULT_RECIPROCITY_CUSTOM_FACTOR = 1.3;
 
 /**
  * Maximum width of the reciprocity time bar visualization in pixels.
@@ -30,7 +30,7 @@ export const RECIPROCITY_MAX_BAR_WIDTH = 300;
 export const RECIPROCITY_CALCULATOR_DEFAULTS = {
   filmType: RECIPROCITY_FILM_TYPES[0].value,
   meteredTime: DEFAULT_RECIPROCITY_METERED_TIME,
-  customFactor: DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
+  customFactor: String(DEFAULT_RECIPROCITY_CUSTOM_FACTOR),
   formattedTime: '30s',
   timeFormatError: null,
   lastValidCalculation: null,

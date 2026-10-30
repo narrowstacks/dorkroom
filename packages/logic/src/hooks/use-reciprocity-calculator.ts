@@ -158,8 +158,8 @@ export function useReciprocityCalculator(): ReciprocityCalculatorState & {
   const [meteredTime, setMeteredTime] = useState(
     DEFAULT_RECIPROCITY_METERED_TIME
   );
-  const [customFactor, setCustomFactor] = useState(
-    DEFAULT_RECIPROCITY_CUSTOM_FACTOR
+  const [customFactor, setCustomFactor] = useState(() =>
+    String(DEFAULT_RECIPROCITY_CUSTOM_FACTOR)
   );
   const [formattedTime, setFormattedTime] = useState<string | null>(() => {
     const initialSeconds = parseReciprocityTime(
