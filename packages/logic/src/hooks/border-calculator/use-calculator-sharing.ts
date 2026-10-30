@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import type { BorderPresetSettings } from '../../types/border-calculator';
 import { debugError } from '../../utils/debug-logger';
+import { shouldUseWebShare } from '../../utils/device-detection';
+import { shallowEqual } from '../../utils/object-comparison';
+import { buildPresetShareUrl } from '../../utils/preset-sharing';
+import {
+  copyTextToClipboard,
+  isClipboardSupported,
+  shareLink,
+} from '../../utils/share-link';
 
 interface PresetWithSettings {
   id: string;
@@ -8,24 +16,20 @@ interface PresetWithSettings {
   settings: BorderPresetSettings;
 }
 
+/** How a border preset link reached the user. */
+export type PresetShareMethod = 'native' | 'clipboard' | 'manual';
+
 interface UseCalculatorSharingProps {
   presets: PresetWithSettings[];
   currentSettings: BorderPresetSettings;
   presetName: string;
-  getSharingUrls: (preset: {
-    name: string;
-    settings: BorderPresetSettings;
-  }) => {
-    webUrl: string;
-  } | null;
-  sharePreset: (
-    preset: { name: string; settings: BorderPresetSettings },
-    preferNative: boolean
-  ) => Promise<void>;
-  canShareNatively: boolean;
-  canCopyToClipboard: boolean;
   onAddPreset: (preset: PresetWithSettings) => void;
-  shallowEqual: (a: BorderPresetSettings, b: BorderPresetSettings) => boolean;
+  /**
+   * Called once a link has reached the user: copied from the share modal, or
+   * sent through the native share flow. Not called for a cancelled share
+   * sheet or a failed copy.
+   */
+  onShared?: (method: PresetShareMethod) => void;
 }
 
 interface UseCalculatorSharingReturn {
@@ -33,6 +37,9 @@ interface UseCalculatorSharingReturn {
   isSaveBeforeShareOpen: boolean;
   shareUrls: { webUrl: string } | null;
   isGeneratingShareUrl: boolean;
+  isSharing: boolean;
+  canShareNatively: boolean;
+  canCopyToClipboard: boolean;
   setIsShareModalOpen: (open: boolean) => void;
   setIsSaveBeforeShareOpen: (open: boolean) => void;
   handleShareClick: () => Promise<void>;
@@ -41,20 +48,25 @@ interface UseCalculatorSharingReturn {
   handleNativeShare: () => Promise<void>;
 }
 
+const toShareUrls = (preset: {
+  name: string;
+  settings: BorderPresetSettings;
+}) => {
+  const webUrl = buildPresetShareUrl(preset);
+  return webUrl ? { webUrl } : null;
+};
+
 /**
- * Hook to manage border calculator preset sharing workflows
- * Handles sharing, saving before sharing, URL generation, and clipboard/native share
+ * The border calculator's one share hook: picks the link for the current
+ * settings (saving them first when they have no name), drives the share
+ * modal, and copies or natively shares the link through `utils/share-link`.
  */
 export function useCalculatorSharing({
   presets,
   currentSettings,
   presetName,
-  getSharingUrls,
-  sharePreset,
-  canShareNatively,
-  canCopyToClipboard,
   onAddPreset,
-  shallowEqual,
+  onShared,
 }: UseCalculatorSharingProps): UseCalculatorSharingReturn {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isSaveBeforeShareOpen, setIsSaveBeforeShareOpen] = useState(false);
@@ -62,56 +74,39 @@ export function useCalculatorSharing({
     webUrl: string;
   } | null>(null);
   const [isGeneratingShareUrl, setIsGeneratingShareUrl] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+
+  const canShareNatively = shouldUseWebShare();
+  const canCopyToClipboard = isClipboardSupported();
+
+  /** Opens the modal on a link, or on its error state when there is none. */
+  const openShareModal = (urls: { webUrl: string } | null) => {
+    if (!urls) {
+      debugError('Failed to generate sharing URLs');
+    }
+    setShareUrls(urls);
+    setIsShareModalOpen(true);
+  };
 
   const handleShareClick = async () => {
     setIsGeneratingShareUrl(true);
 
     try {
-      // Check if current settings match a saved preset
+      // A saved preset is shared under its own name; unsaved settings under
+      // the name typed so far, or after asking for one.
       const matchedPreset = presets.find((p) =>
         shallowEqual(p.settings, currentSettings)
       );
+      const name = matchedPreset ? matchedPreset.name : presetName.trim();
 
-      if (matchedPreset) {
-        // If it's a saved preset, share it directly
-        const urls = getSharingUrls({
-          name: matchedPreset.name,
-          settings: currentSettings,
-        });
-        if (urls) {
-          setShareUrls(urls);
-          setIsShareModalOpen(true);
-        } else {
-          debugError('Failed to generate sharing URLs for saved preset');
-          // Still open modal to show error state
-          setShareUrls(null);
-          setIsShareModalOpen(true);
-        }
+      if (matchedPreset || name) {
+        openShareModal(toShareUrls({ name, settings: currentSettings }));
       } else {
-        // If not saved, check if user has a preset name already entered
-        if (presetName.trim()) {
-          // User has entered a name, generate URLs and share directly
-          const urls = getSharingUrls({
-            name: presetName.trim(),
-            settings: currentSettings,
-          });
-          if (urls) {
-            setShareUrls(urls);
-            setIsShareModalOpen(true);
-          } else {
-            debugError('Failed to generate sharing URLs for named settings');
-            setShareUrls(null);
-            setIsShareModalOpen(true);
-          }
-        } else {
-          // No name entered, open save-before-share modal
-          setIsSaveBeforeShareOpen(true);
-        }
+        setIsSaveBeforeShareOpen(true);
       }
     } catch (error) {
       debugError('Error during share URL generation:', error);
-      setShareUrls(null);
-      setIsShareModalOpen(true);
+      openShareModal(null);
     } finally {
       setIsGeneratingShareUrl(false);
     }
@@ -121,63 +116,61 @@ export function useCalculatorSharing({
     setIsGeneratingShareUrl(true);
 
     try {
-      // Create and save the new preset
-      const newPreset = {
+      onAddPreset({
         id: `user-${Date.now()}`,
         name,
         settings: currentSettings,
-      };
-      onAddPreset(newPreset);
-
-      // Generate share URLs and open share modal
-      const urls = getSharingUrls({ name, settings: currentSettings });
+      });
       setIsSaveBeforeShareOpen(false);
-
-      if (urls) {
-        setShareUrls(urls);
-        setIsShareModalOpen(true);
-      } else {
-        debugError('Failed to generate sharing URLs after saving preset');
-        // Still open modal to show error state
-        setShareUrls(null);
-        setIsShareModalOpen(true);
-      }
+      openShareModal(toShareUrls({ name, settings: currentSettings }));
     } catch (error) {
       debugError('Error during save and share:', error);
       setIsSaveBeforeShareOpen(false);
-      setShareUrls(null);
-      setIsShareModalOpen(true);
+      openShareModal(null);
     } finally {
       setIsGeneratingShareUrl(false);
     }
   };
 
   const handleCopyToClipboard = async (url: string) => {
-    if (!canCopyToClipboard) return;
-
+    let copied: boolean;
     try {
-      await navigator.clipboard.writeText(url);
+      copied = await copyTextToClipboard(url);
     } catch (error) {
       debugError('Failed to copy to clipboard:', error);
       throw error;
     }
+    // No Clipboard API: a silent no-op, as the modal hides its copy button.
+    if (copied) {
+      onShared?.('clipboard');
+    }
   };
 
+  /**
+   * Shares the link the modal shows through the share sheet, falling back to
+   * the clipboard and then to manual copying. The layouts currently pass
+   * `canShareNatively={false}` to the modal, so nothing calls this yet.
+   */
   const handleNativeShare = async () => {
-    if (!canShareNatively) return;
     if (!shareUrls) return;
 
+    const title = presetName || 'Border Calculator Settings';
+    setIsSharing(true);
     try {
-      await sharePreset(
-        {
-          name: presetName || 'Border Calculator Settings',
-          settings: currentSettings,
-        },
-        true // prefer native share
-      );
-    } catch (error) {
-      debugError('Native share failed:', error);
-      throw error;
+      const outcome = await shareLink({
+        url: shareUrls.webUrl,
+        title,
+        text: `Check out this border calculator preset: ${title}`,
+      });
+      if (outcome.status === 'cancelled') return;
+
+      const method = outcome.status === 'shared' ? outcome.method : 'manual';
+      onShared?.(method);
+      if (method === 'native') {
+        setIsShareModalOpen(false);
+      }
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -186,6 +179,9 @@ export function useCalculatorSharing({
     isSaveBeforeShareOpen,
     shareUrls,
     isGeneratingShareUrl,
+    isSharing,
+    canShareNatively,
+    canCopyToClipboard,
     setIsShareModalOpen,
     setIsSaveBeforeShareOpen,
     handleShareClick,

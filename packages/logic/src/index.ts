@@ -46,6 +46,7 @@ export {
   // Alias for backwards compatibility
   useBorderCalculator as useModularBorderCalculator,
   useBorderCalculatorState,
+  type PresetShareMethod,
   useCalculatorSharing,
   useImageHandling,
   useInputHandlers,
@@ -122,7 +123,6 @@ export {
   type UseMatCalculatorReturn,
   useMatCalculator,
 } from './hooks/use-mat-calculator';
-export { usePresetSharing } from './hooks/use-preset-sharing';
 export {
   formatReciprocityTime,
   parseReciprocityTime,
@@ -194,6 +194,7 @@ export * from './utils/preset-sharing';
 export * from './utils/recipe-sharing';
 export * from './utils/reciprocity-calculations';
 export * from './utils/resize-calculations';
+export * from './utils/share-link';
 export * from './utils/temperature';
 export * from './utils/text-sanitization';
 export * from './utils/time-formatting';

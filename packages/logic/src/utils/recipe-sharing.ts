@@ -7,6 +7,7 @@ import type {
 import { decodeBase64, encodeBase64, fromUrlSafe, toUrlSafe } from './base64';
 import { recipeNumericFieldSchemas } from './combination-factory';
 import { debugError } from './debug-logger';
+import { getShareBaseUrl } from './share-link';
 import {
   sanitizeCustomDeveloper,
   sanitizeCustomFilm,
@@ -280,3 +281,77 @@ export const isValidCustomRecipeEncoding = (
 
   return decodeCustomRecipe(candidate.data) !== null;
 };
+
+export interface RecipeShareUrlOptions {
+  recipeId: string;
+  filmSlug?: string;
+  developerSlug?: string;
+  /** Origin to build on; defaults to the current page's. */
+  baseUrl?: string;
+  /** Appends `source=share` so the landing page can tell a shared link. */
+  includeSource?: boolean;
+}
+
+/**
+ * Builds the share link for a database development recipe. Outside a browser
+ * the link is relative (`/development?...`).
+ */
+export function buildRecipeShareUrl({
+  recipeId,
+  filmSlug,
+  developerSlug,
+  baseUrl,
+  includeSource = true,
+}: RecipeShareUrlOptions): string {
+  const base = baseUrl || getShareBaseUrl();
+  const params = new URLSearchParams();
+  if (filmSlug) {
+    params.set('film', filmSlug);
+  }
+  if (developerSlug) {
+    params.set('developer', developerSlug);
+  }
+  params.set('recipe', recipeId);
+  if (includeSource) {
+    params.set('source', 'share');
+  }
+  return `${base}/development?${params.toString()}`;
+}
+
+export interface CustomRecipeShareUrlOptions {
+  recipe: CustomRecipe;
+  /** Origin to build on; defaults to the current page's. */
+  baseUrl?: string;
+  /** Appends `source=share` so the landing page can tell a shared link. */
+  includeSource?: boolean;
+}
+
+/**
+ * Builds the share link for a custom recipe, with the whole recipe encoded in
+ * the `recipe` param. Outside a browser it falls back to `PUBLIC_URL`, then
+ * `https://dorkroom.art`.
+ *
+ * @returns The link, or null when the recipe cannot be encoded (too large)
+ */
+export function buildCustomRecipeShareUrl({
+  recipe,
+  baseUrl,
+  includeSource = true,
+}: CustomRecipeShareUrlOptions): string | null {
+  const encodedData = encodeCustomRecipe(recipe);
+  if (!encodedData) {
+    return null;
+  }
+
+  const base =
+    baseUrl ||
+    getShareBaseUrl({
+      fallback: globalThis.process?.env.PUBLIC_URL || 'https://dorkroom.art',
+    });
+  const params = new URLSearchParams();
+  params.set('recipe', encodedData);
+  if (includeSource) {
+    params.set('source', 'share');
+  }
+  return `${base}/development?${params.toString()}`;
+}
