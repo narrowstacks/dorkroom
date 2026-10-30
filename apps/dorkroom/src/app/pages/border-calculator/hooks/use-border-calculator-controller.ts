@@ -106,9 +106,12 @@ export function useBorderCalculatorController() {
     persistKeys: borderPersistKeys,
     validators: borderFieldValidators,
     onHydrated: (loadedValues) => {
-      // Recalculate orientation for custom paper after loading from storage
+      // Recalculate orientation for custom paper after loading from storage,
+      // unless the user flipped it by hand: then the persisted isLandscape is
+      // the user's choice and re-deriving it would undo the flip (#339).
       if (
         loadedValues.paperSize === 'custom' &&
+        !loadedValues.hasManuallyFlippedPaper &&
         loadedValues.customPaperWidth !== undefined &&
         loadedValues.customPaperHeight !== undefined
       ) {
