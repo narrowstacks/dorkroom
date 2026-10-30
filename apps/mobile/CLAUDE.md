@@ -149,6 +149,8 @@ this because it is a permanent tab).
 
 ```bash
 bun run test        # vitest, pure modules only (see Testing)
+                    # (pretest builds @dorkroom/logic and @dorkroom/api first,
+                    # skipped when already running under turbo)
 bun run typecheck   # bun check (TypeScript 7), strict, no `any`
 bun run lint        # oxlint (lint) + bun fmt --check (formatting)
 ```

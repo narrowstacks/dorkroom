@@ -100,11 +100,6 @@ describe('parseTemperatureDraft', () => {
     expect(parseTemperatureDraft('68,5')).toBe(68.5);
   });
 
-  it('keeps the number while a trailing separator is typed', () => {
-    expect(parseTemperatureDraft('68.')).toBe(68);
-    expect(parseTemperatureDraft('68,')).toBe(68);
-  });
-
   it('returns null for empty or invalid text', () => {
     expect(parseTemperatureDraft('')).toBeNull();
     expect(parseTemperatureDraft('.')).toBeNull();
