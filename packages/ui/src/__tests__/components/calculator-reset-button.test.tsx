@@ -14,6 +14,33 @@ describe('CalculatorResetButton', () => {
     expect(onReset).toHaveBeenCalledTimes(1);
   });
 
+  it('blurs a focused field before resetting, so its draft commits first', () => {
+    const calls: string[] = [];
+    render(
+      <>
+        <input aria-label="Width" onBlur={() => calls.push('blur')} />
+        <CalculatorResetButton onReset={() => calls.push('reset')} />
+      </>
+    );
+    const input = screen.getByRole('textbox', { name: 'Width' });
+    input.focus();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset to defaults' }));
+
+    expect(calls).toEqual(['blur', 'reset']);
+    expect(input).not.toHaveFocus();
+  });
+
+  it('keeps keyboard focus on the button itself', () => {
+    render(<CalculatorResetButton onReset={() => undefined} />);
+    const button = screen.getByRole('button', { name: 'Reset to defaults' });
+    button.focus();
+
+    fireEvent.click(button);
+
+    expect(button).toHaveFocus();
+  });
+
   it('is a plain button, never a form submit', () => {
     render(<CalculatorResetButton onReset={() => undefined} />);
 

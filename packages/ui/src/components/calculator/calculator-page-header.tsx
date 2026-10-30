@@ -55,8 +55,10 @@ export function CalculatorPageHeader({
       }}
     >
       <div
+        // Above the card's `.card-ring::before` overlay, which otherwise sits
+        // on top of the header and swallows clicks on the reset button.
         className={cn(
-          'flex w-full gap-4',
+          'relative z-10 flex w-full gap-4',
           Icon ? 'items-center' : 'flex-col',
           !Icon && (alignStart ? 'items-start' : 'items-center')
         )}
@@ -114,7 +116,7 @@ export function CalculatorPageHeader({
       {children && (
         <div
           className={cn(
-            'flex w-full flex-col gap-3 sm:flex-row',
+            'relative z-10 flex w-full flex-col gap-3 sm:flex-row',
             alignStart ? 'sm:justify-start' : 'items-center sm:justify-center'
           )}
         >

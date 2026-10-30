@@ -1,5 +1,6 @@
 import { RotateCcw } from 'lucide-react';
 import { cn } from '../../lib/cn';
+import { commitFocusedField } from '../../lib/commit-focused-field';
 
 export interface CalculatorResetButtonProps {
   /** Restore the calculator's defaults (and drop its saved inputs). */
@@ -24,10 +25,13 @@ export function CalculatorResetButton({
   return (
     <button
       type="button"
-      onClick={onReset}
+      onClick={() => {
+        commitFocusedField();
+        onReset();
+      }}
       title={label}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-colors',
+        'relative z-10 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-colors',
         'border-[color:var(--color-border-secondary)] text-[color:var(--color-text-secondary)]',
         'hover:bg-[rgba(var(--color-background-rgb),0.08)] hover:text-[color:var(--color-text-primary)]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]',
