@@ -1,12 +1,32 @@
 import { describe, expect, it } from 'vitest';
-import { borderCalculatorPersistence } from '../../hooks/border-calculator/use-border-calculator-state';
+import { CAMERA_EXPOSURE_DEFAULTS } from '../../constants/camera-exposure-defaults';
+import {
+  DEFAULT_EXPOSURE_ORIGINAL_TIME,
+  DEFAULT_EXPOSURE_STOPS,
+} from '../../constants/exposure-calculator-defaults';
+import { LENS_DEFAULTS } from '../../constants/lens-calculator-defaults';
+import { MAT_CALCULATOR_DEFAULTS } from '../../constants/mat-calculator';
+import {
+  DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
+  DEFAULT_RECIPROCITY_METERED_TIME,
+  RECIPROCITY_CALCULATOR_DEFAULTS,
+} from '../../constants/reciprocity-calculator-defaults';
+import { RESIZE_FORM_DEFAULTS } from '../../constants/resize-calculator';
+import {
+  borderCalculatorPersistence,
+  initialState as borderInitialState,
+} from '../../hooks/border-calculator/use-border-calculator-state';
+import type { PersistedValue } from '../../hooks/use-local-storage-form-persistence';
 import { cameraExposurePersistence } from '../../schemas/camera-exposure-calculator.schema';
 import { exposureCalculatorPersistence } from '../../schemas/exposure-calculator.schema';
 import { lensCalculatorPersistence } from '../../schemas/lens-calculator.schema';
 import { matCalculatorPersistence } from '../../schemas/mat-calculator.schema';
 import { reciprocityCalculatorPersistence } from '../../schemas/reciprocity-calculator.schema';
 import { resizeCalculatorPersistence } from '../../schemas/resize-calculator.schema';
+import type { PersistedFormFields } from '../../utils/persisted-form-fields';
 
+// Storage keys and persist-key order for exposure, resize and reciprocity are
+// pinned in the web app's hydration tests (#488); this table covers the rest.
 // Existing users' saved snapshots are keyed by these exact storage keys and
 // field names. Changing one silently drops their saved state, so they are
 // pinned here rather than inferred.
@@ -50,10 +70,32 @@ describe('calculator persistence contract', () => {
       ['focalLength', 'sourceFormat', 'targetFormat'],
     ],
     [
-      'exposure',
-      exposureCalculatorPersistence,
-      'exposureCalculatorState_v1',
-      ['originalTime', 'stops'],
+      'border',
+      borderCalculatorPersistence,
+      'borderCalculatorState_v2',
+      [
+        'aspectRatio',
+        'paperSize',
+        'customAspectWidth',
+        'customAspectHeight',
+        'customPaperWidth',
+        'customPaperHeight',
+        'minBorder',
+        'enableOffset',
+        'ignoreMinBorder',
+        'horizontalOffset',
+        'verticalOffset',
+        'showBlades',
+        'showBladeReadings',
+        'isLandscape',
+        'isRatioFlipped',
+        'hasManuallyFlippedPaper',
+        'lastValidCustomAspectWidth',
+        'lastValidCustomAspectHeight',
+        'lastValidCustomPaperWidth',
+        'lastValidCustomPaperHeight',
+        'lastValidMinBorder',
+      ],
     ],
   ])('%s keeps its storage key and persist keys', (_, p, key, keys) => {
     expect(p.storageKey).toBe(key);
@@ -61,19 +103,33 @@ describe('calculator persistence contract', () => {
     expect(Object.keys(p.validators)).toEqual(keys);
   });
 
-  it('border, resize and reciprocity keep their storage keys', () => {
-    expect(borderCalculatorPersistence.storageKey).toBe(
-      'borderCalculatorState_v2'
-    );
-    expect(borderCalculatorPersistence.persistKeys).toHaveLength(
-      Object.keys(borderCalculatorPersistence.validators).length
-    );
-    expect(resizeCalculatorPersistence.storageKey).toBe(
-      'resizeCalculatorState_v1'
-    );
-    expect(reciprocityCalculatorPersistence.storageKey).toBe(
-      'reciprocityCalculatorState_v1'
-    );
+  it('every persisted default passes its own validator', () => {
+    const check = <K extends string>(
+      name: string,
+      persistence: PersistedFormFields<K>,
+      defaults: Record<K, PersistedValue>
+    ) => {
+      for (const key of persistence.persistKeys) {
+        expect(
+          persistence.validators[key].validate(defaults[key]),
+          `${name}.${key}`
+        ).toBe(true);
+      }
+    };
+    check('mat', matCalculatorPersistence, MAT_CALCULATOR_DEFAULTS);
+    check('camera', cameraExposurePersistence, CAMERA_EXPOSURE_DEFAULTS);
+    check('lens', lensCalculatorPersistence, LENS_DEFAULTS);
+    check('exposure', exposureCalculatorPersistence, {
+      originalTime: DEFAULT_EXPOSURE_ORIGINAL_TIME,
+      stops: DEFAULT_EXPOSURE_STOPS,
+    });
+    check('reciprocity', reciprocityCalculatorPersistence, {
+      filmType: RECIPROCITY_CALCULATOR_DEFAULTS.filmType,
+      meteredTime: DEFAULT_RECIPROCITY_METERED_TIME,
+      customFactor: DEFAULT_RECIPROCITY_CUSTOM_FACTOR,
+    });
+    check('resize', resizeCalculatorPersistence, RESIZE_FORM_DEFAULTS);
+    check('border', borderCalculatorPersistence, borderInitialState);
   });
 
   it('camera exposure rejects an unknown solveFor and non-positive numbers', () => {
