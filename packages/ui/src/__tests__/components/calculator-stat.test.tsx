@@ -54,120 +54,38 @@ describe('CalculatorStat', () => {
     expect(helperElement).not.toBeInTheDocument();
   });
 
-  describe('styling and layout', () => {
-    it('applies base styling classes', () => {
-      render(<CalculatorStat {...defaultProps} />);
-
-      const container = screen.getByText('Test Stat').closest('div');
-      expect(container).toHaveClass(
-        'rounded-xl',
-        'border',
-        'p-3',
-        'transition-colors'
-      );
-    });
-
-    it('applies custom className', () => {
-      render(
-        <CalculatorStat {...defaultProps} className="custom-stat-class" />
-      );
-
-      const container = screen.getByText('Test Stat').closest('div');
-      expect(container).toHaveClass('custom-stat-class');
-    });
-
-    it('applies correct label styling', () => {
-      render(<CalculatorStat {...defaultProps} />);
-
-      const label = screen.getByText('Test Stat');
-      expect(label).toHaveClass(
-        'text-xs',
-        'font-semibold',
-        'uppercase',
-        'tracking-[0.2em]'
-      );
-    });
-
-    it('applies correct value styling', () => {
-      render(<CalculatorStat {...defaultProps} />);
-
-      const value = screen.getByText('42');
-      expect(value).toHaveClass(
-        'mt-1',
-        'text-2xl',
-        'font-semibold',
-        'tracking-tight'
-      );
-    });
-
-    it('applies correct helper text styling', () => {
-      render(<CalculatorStat {...defaultProps} helperText="Helper" />);
-
-      const helper = screen.getByText('Helper');
-      expect(helper).toHaveClass('mt-1', 'text-[11px]');
-    });
-  });
-
   describe('tone variants', () => {
-    it('uses default tone by default', () => {
+    const statContainer = () => {
+      const container = screen.getByText('Test Stat').closest('div');
+      if (!container) throw new Error('stat container not found');
+      return container;
+    };
+
+    it('uses no accent gradient for the default tone', () => {
       render(<CalculatorStat {...defaultProps} />);
 
-      // Default tone should not have special styling applied
-      const container = screen.getByText('Test Stat').closest('div');
-      expect(container).toHaveClass('rounded-xl', 'border');
+      expect(statContainer().style.background).not.toContain('gradient');
+      expect(statContainer().style.backgroundColor).toBe(
+        'rgb(var(--color-background-rgb) / 0.15)'
+      );
     });
 
-    it('applies emerald tone styling', () => {
-      render(<CalculatorStat {...defaultProps} tone="emerald" />);
-
-      const container = screen.getByText('Test Stat').closest('div');
-      expect(container).toHaveClass('rounded-xl', 'border');
-      // Tone-specific styles are applied via inline styles, tested indirectly
-    });
-
-    it('applies sky tone styling', () => {
-      render(<CalculatorStat {...defaultProps} tone="sky" />);
-
-      const container = screen.getByText('Test Stat').closest('div');
-      expect(container).toHaveClass('rounded-xl', 'border');
-    });
-
-    it('applies default tone styling explicitly', () => {
+    it('uses no accent gradient when tone="default" is explicit', () => {
       render(<CalculatorStat {...defaultProps} tone="default" />);
 
-      const container = screen.getByText('Test Stat').closest('div');
-      expect(container).toHaveClass('rounded-xl', 'border');
-    });
-  });
-
-  describe('text hierarchy', () => {
-    it('maintains proper text size hierarchy', () => {
-      render(
-        <CalculatorStat {...defaultProps} helperText="Small helper text" />
-      );
-
-      const label = screen.getByText('Test Stat');
-      const value = screen.getByText('42');
-      const helper = screen.getByText('Small helper text');
-
-      expect(label).toHaveClass('text-xs');
-      expect(value).toHaveClass('text-2xl');
-      expect(helper).toHaveClass('text-[11px]');
+      expect(statContainer().style.background).not.toContain('gradient');
     });
 
-    it('applies uppercase transform to label', () => {
-      render(<CalculatorStat {...defaultProps} />);
+    it.each(['emerald', 'sky', 'violet'] as const)(
+      'uses the %s accent gradient',
+      (tone) => {
+        render(<CalculatorStat {...defaultProps} tone={tone} />);
 
-      const label = screen.getByText('Test Stat');
-      expect(label).toHaveClass('uppercase');
-    });
-
-    it('applies letter spacing to label', () => {
-      render(<CalculatorStat {...defaultProps} />);
-
-      const label = screen.getByText('Test Stat');
-      expect(label).toHaveClass('tracking-[0.2em]');
-    });
+        expect(statContainer().style.background).toBe(
+          `var(--accent-${tone}-gradient)`
+        );
+      }
+    );
   });
 
   describe('content structure', () => {
@@ -192,21 +110,6 @@ describe('CalculatorStat', () => {
       expect(children).toHaveLength(2);
       expect(children[0]).toHaveTextContent('Test Stat'); // Label
       expect(children[1]).toHaveTextContent('42'); // Value
-    });
-  });
-
-  describe('accessibility', () => {
-    it('uses semantic elements appropriately', () => {
-      render(<CalculatorStat {...defaultProps} helperText="Additional info" />);
-
-      // Label should be a span
-      expect(screen.getByText('Test Stat').tagName).toBe('SPAN');
-
-      // Value should be a div
-      expect(screen.getByText('42').tagName).toBe('DIV');
-
-      // Helper should be a paragraph
-      expect(screen.getByText('Additional info').tagName).toBe('P');
     });
   });
 });

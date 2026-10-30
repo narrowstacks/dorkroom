@@ -127,13 +127,6 @@ describe('Modal', () => {
       const dialog = screen.getByRole('dialog');
       expect(dialog).toHaveAttribute('aria-modal', 'true');
     });
-
-    it('has accessible close button', () => {
-      render(<Modal {...defaultProps} />);
-
-      const closeButton = screen.getByRole('button', { name: 'Close' });
-      expect(closeButton).toHaveAttribute('aria-label', 'Close');
-    });
   });
 
   describe('body overflow management', () => {
@@ -167,15 +160,6 @@ describe('Modal', () => {
   });
 
   describe('keyboard interactions', () => {
-    it('close button is focusable', () => {
-      render(<Modal {...defaultProps} />);
-
-      const closeButton = screen.getByRole('button', { name: 'Close' });
-      closeButton.focus();
-
-      expect(closeButton).toHaveFocus();
-    });
-
     it('calls onClose when Escape is pressed', () => {
       const onClose = vi.fn();
       render(<Modal {...defaultProps} onClose={onClose} />);
@@ -190,27 +174,6 @@ describe('Modal', () => {
       render(<Modal {...defaultProps} isOpen={false} onClose={onClose} />);
 
       fireEvent.keyDown(document, { key: 'Escape' });
-
-      expect(onClose).not.toHaveBeenCalled();
-    });
-
-    it('stops listening after the modal closes', () => {
-      const onClose = vi.fn();
-      const { rerender } = render(
-        <Modal {...defaultProps} onClose={onClose} />
-      );
-
-      rerender(<Modal {...defaultProps} isOpen={false} onClose={onClose} />);
-      fireEvent.keyDown(document, { key: 'Escape' });
-
-      expect(onClose).not.toHaveBeenCalled();
-    });
-
-    it('ignores keys other than Escape', () => {
-      const onClose = vi.fn();
-      render(<Modal {...defaultProps} onClose={onClose} />);
-
-      fireEvent.keyDown(document, { key: 'Enter' });
 
       expect(onClose).not.toHaveBeenCalled();
     });

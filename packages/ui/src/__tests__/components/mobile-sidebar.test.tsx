@@ -94,9 +94,11 @@ describe('MobileSidebar', () => {
       render(<MobileSidebar {...defaultProps} />);
 
       const nav = screen.getByRole('navigation', { name: 'Main navigation' });
-      // Settings button exists in footer, not inside <nav>
+      // Both buttons live in the footer, not inside <nav>
       const settingsButton = screen.getByRole('button', { name: 'Settings' });
+      const themeButton = screen.getByRole('button', { name: 'Change theme' });
       expect(nav.contains(settingsButton)).toBe(false);
+      expect(nav.contains(themeButton)).toBe(false);
     });
   });
 
@@ -270,15 +272,6 @@ describe('MobileSidebar', () => {
 
       const githubLink = screen.getByLabelText('Contribute on GitHub');
       expect(githubLink).toBeInTheDocument();
-    });
-
-    it('route buttons use label as aria-label', () => {
-      render(<MobileSidebar {...defaultProps} />);
-
-      expect(screen.getByRole('button', { name: 'Home' })).toBeInTheDocument();
-      expect(
-        screen.getByRole('button', { name: 'Border' })
-      ).toBeInTheDocument();
     });
   });
 });

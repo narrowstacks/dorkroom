@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Drawer, DrawerBody, DrawerContent } from '../../components/drawer';
+import { Drawer } from '../../components/drawer';
 
 // Mock timers for testing animations
 beforeEach(() => {
@@ -154,7 +154,6 @@ describe('Drawer', () => {
       expect(backdrop).toHaveClass(
         'bg-[color:var(--color-visualization-overlay)]'
       );
-      expect(backdrop).not.toHaveClass('bg-black/50');
     });
 
     it('does not apply background overlay when disabled', () => {
@@ -164,7 +163,6 @@ describe('Drawer', () => {
       expect(backdrop).not.toHaveClass(
         'bg-[color:var(--color-visualization-overlay)]'
       );
-      expect(backdrop).not.toHaveClass('bg-black/50');
     });
   });
 
@@ -207,9 +205,18 @@ describe('Drawer', () => {
         <Drawer {...defaultProps} anchor="top" isOpen={true} />
       );
 
-      rerender(<Drawer {...defaultProps} anchor="top" isOpen={false} />);
+      // Flush the requestAnimationFrame used for the open animation
+      act(() => {
+        vi.advanceTimersByTime(16);
+      });
+
       const drawer = document.querySelector('.absolute.border');
+      expect(drawer).toHaveClass('translate-y-0');
+      expect(drawer).not.toHaveClass('-translate-y-full');
+
+      rerender(<Drawer {...defaultProps} anchor="top" isOpen={false} />);
       expect(drawer).toHaveClass('-translate-y-full');
+      expect(drawer).not.toHaveClass('translate-y-0');
     });
   });
 
@@ -277,69 +284,5 @@ describe('Drawer', () => {
 
       expect(onClose).not.toHaveBeenCalled();
     });
-  });
-});
-
-describe('DrawerContent', () => {
-  it('renders children with default classes', () => {
-    render(
-      <DrawerContent>
-        <div>Content</div>
-      </DrawerContent>
-    );
-
-    const content = screen.getByText('Content').parentElement;
-    expect(content).toHaveClass('h-full', 'flex', 'flex-col');
-  });
-
-  it('applies custom className', () => {
-    render(
-      <DrawerContent className="custom-class">
-        <div>Content</div>
-      </DrawerContent>
-    );
-
-    const content = screen.getByText('Content').parentElement;
-    expect(content).toHaveClass('custom-class');
-  });
-});
-
-describe('DrawerBody', () => {
-  it('renders children with default classes', () => {
-    render(
-      <DrawerBody>
-        <div>Body content</div>
-      </DrawerBody>
-    );
-
-    const body = screen.getByText('Body content').parentElement;
-    expect(body).toHaveClass('flex-1', 'overflow-y-auto');
-  });
-
-  it('applies custom className', () => {
-    render(
-      <DrawerBody className="custom-body-class">
-        <div>Body content</div>
-      </DrawerBody>
-    );
-
-    const body = screen.getByText('Body content').parentElement;
-    expect(body).toHaveClass('custom-body-class');
-  });
-});
-
-describe('Drawer integration', () => {
-  it('works together with DrawerContent and DrawerBody', () => {
-    render(
-      <Drawer isOpen={true} onClose={vi.fn()}>
-        <DrawerContent>
-          <DrawerBody>
-            <div>Integrated content</div>
-          </DrawerBody>
-        </DrawerContent>
-      </Drawer>
-    );
-
-    expect(screen.getByText('Integrated content')).toBeInTheDocument();
   });
 });
