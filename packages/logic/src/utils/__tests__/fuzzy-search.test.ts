@@ -244,6 +244,16 @@ describe('fuzzy-search', () => {
 
         expect(results).toEqual([]);
       });
+
+      it.each(['!!!', '- -'])(
+        'returns every film, in input order, for punctuation-only "%s"',
+        (query) => {
+          const results = searchFilms(mockFilms, query);
+          expect(results.map((r) => r.item.uuid)).toEqual(
+            mockFilms.map((f) => f.uuid)
+          );
+        }
+      );
     });
 
     describe('Result ordering and relevance', () => {
@@ -381,14 +391,14 @@ describe('fuzzy-search', () => {
       expect(results.map((r) => r.item.uuid)).toEqual(['r205', 'r204']);
     });
 
-    it('scores an alias identical to the current name like no alias', () => {
+    it('gives a redundant alias the same scores as no alias', () => {
       expect(summary(withAliases, 'gold 200')).toEqual(
         summary(withoutAliases, 'gold 200')
       );
     });
 
     it.each(['400', 'kodak'])(
-      'leaves "%s" ordering and scores unchanged',
+      'scores "%s" the same with and without aliases',
       (q) => {
         expect(summary(withAliases, q)).toEqual(summary(withoutAliases, q));
       }

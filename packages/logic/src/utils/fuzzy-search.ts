@@ -149,6 +149,11 @@ export function searchFilms(
 
   const searcher = existingSearcher ?? createFilmSearcher(films);
   const tokens = trimmed.split(/\s+/).map(normalizeSearchText);
+  if (tokens.every((token) => !token)) {
+    // Nothing searchable left (e.g. "!!!"): return every film, in input
+    // order, as an empty Fuse query does, rather than "no results".
+    return searcher.search('');
+  }
   const currentKeys = CURRENT_SEARCH_KEYS.map((key) => key.name);
   const allKeys = FILM_SEARCH_KEYS.map((key) => key.name);
 
