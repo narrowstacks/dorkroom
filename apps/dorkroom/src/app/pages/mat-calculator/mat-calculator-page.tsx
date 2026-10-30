@@ -11,6 +11,8 @@ import {
   CalculatorCard,
   CalculatorLayout,
   CalculatorStat,
+  ResultAnnouncer,
+  spokenLength,
 } from '@dorkroom/ui/calculator';
 import { useCallback, useMemo } from 'react';
 import { trackEvent } from '../../lib/analytics/tracked-events';
@@ -505,34 +507,43 @@ export default function MatCalculatorPage() {
   );
 
   return (
-    <CalculatorLayout
-      title="Mat Cut Calculator"
-      icon={getRouteIcon('/mat')}
-      accentTone="cyan"
-      onReset={calc.reset}
-      description="Plan single-window mats with independent borders and get exact window openings and cutter guide-bar settings."
-      results={results}
-      sidebar={
-        <MatSidebar
-          guideBarCuts={calc.guideBarCuts}
-          dimensionRows={calc.dimensionRows}
-        />
-      }
-    >
-      <OuterMatCard values={calc.values} set={calc.set} />
-      <BordersCard values={calc.values} set={calc.set} />
-      <ArtworkBestFitCard
-        values={calc.values}
-        set={calc.set}
-        applyBestFit={calc.applyBestFit}
-        bestFitPreview={calc.bestFitPreview}
-        fmt={calc.fmt}
-        valid={calc.valid}
-        revVal={calc.revVal}
-        overlapLeft={calc.overlapLeft}
-        overlapTop={calc.overlapTop}
-        hasRevealMismatch={calc.hasRevealMismatch}
+    <>
+      <ResultAnnouncer
+        message={
+          calc.valid
+            ? `Window opening ${spokenLength(calc.fmt(calc.windowW))} by ${spokenLength(calc.fmt(calc.windowH))}`
+            : ''
+        }
       />
-    </CalculatorLayout>
+      <CalculatorLayout
+        title="Mat Cut Calculator"
+        icon={getRouteIcon('/mat')}
+        accentTone="cyan"
+        onReset={calc.reset}
+        description="Plan single-window mats with independent borders and get exact window openings and cutter guide-bar settings."
+        results={results}
+        sidebar={
+          <MatSidebar
+            guideBarCuts={calc.guideBarCuts}
+            dimensionRows={calc.dimensionRows}
+          />
+        }
+      >
+        <OuterMatCard values={calc.values} set={calc.set} />
+        <BordersCard values={calc.values} set={calc.set} />
+        <ArtworkBestFitCard
+          values={calc.values}
+          set={calc.set}
+          applyBestFit={calc.applyBestFit}
+          bestFitPreview={calc.bestFitPreview}
+          fmt={calc.fmt}
+          valid={calc.valid}
+          revVal={calc.revVal}
+          overlapLeft={calc.overlapLeft}
+          overlapTop={calc.overlapTop}
+          hasRevealMismatch={calc.hasRevealMismatch}
+        />
+      </CalculatorLayout>
+    </>
   );
 }

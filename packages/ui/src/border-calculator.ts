@@ -1,5 +1,8 @@
 // Border calculator components subpath export
-export type { BorderCalculatorContextValue } from './components/border-calculator';
+export type {
+  BorderCalculatorContextValue,
+  EaselBladeReadings,
+} from './components/border-calculator';
 export {
   AnimatedPreview,
   BladeReadingsOverlay,
@@ -10,6 +13,7 @@ export {
   BorderInfoSection,
   BorderSizeSection,
   BordersOffsetsSection,
+  getEaselBladeReadings,
   MobileBorderLayout,
   MobilePresetsSection,
   PaperSetupSection,

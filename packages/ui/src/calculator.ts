@@ -7,6 +7,7 @@ export type {
   InfoCardListProps,
   InfoCardProps,
   InfoCardVariant,
+  ResultAnnouncerProps,
 } from './components/calculator';
 export {
   CalculatorCard,
@@ -17,4 +18,10 @@ export {
   CalculatorStat,
   InfoCard,
   InfoCardList,
+  RESULT_ANNOUNCEMENT_DELAY_MS,
+  ResultAnnouncer,
+  spokenDuration,
+  spokenLength,
+  spokenShutterSpeed,
+  spokenStops,
 } from './components/calculator';

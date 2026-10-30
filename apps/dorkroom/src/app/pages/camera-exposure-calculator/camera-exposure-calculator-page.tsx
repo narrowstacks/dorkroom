@@ -21,6 +21,9 @@ import {
   CalculatorCard,
   CalculatorLayout,
   CalculatorStat,
+  ResultAnnouncer,
+  spokenShutterSpeed,
+  spokenStops,
 } from '@dorkroom/ui/calculator';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { type FC, useCallback, useMemo, useState } from 'react';
@@ -111,6 +114,21 @@ const EVPresetButton: FC<EVPresetButtonProps> = ({
     </button>
   );
 };
+
+/**
+ * Screen-reader summary of the result: the EV with the settings that produce
+ * it, plus the comparison when it is valid. Empty while the EV is invalid.
+ */
+function describeExposureResult(
+  exposureValue: ExposureValueResult,
+  values: CameraExposureFormState,
+  comparison: ExposureComparison
+): string {
+  if (!exposureValue.isValid) return '';
+  const summary = `EV ${exposureValue.ev} at ${formatAperture(values.aperture)}, ${spokenShutterSpeed(formatShutterSpeed(values.shutterSpeed))}, ISO ${values.iso}`;
+  if (!comparison.isValid) return summary;
+  return `${summary}. Stops difference ${spokenStops(comparison.stopsDifference)}`;
+}
 
 function EVResultCard({
   exposureValue,
@@ -684,61 +702,66 @@ export default function CameraExposureCalculatorPage() {
   );
 
   return (
-    <CalculatorLayout
-      title="Camera Exposure Calculator"
-      icon={getRouteIcon('/exposure')}
-      accentTone="teal"
-      onReset={reset}
-      description={
-        <>
-          Balance aperture, shutter speed, and ISO for correct exposure.
-          <br />
-          Find equivalent exposures and compare settings across different
-          lighting conditions.
-        </>
-      }
-      sidebar={<CameraExposureSidebar />}
-      results={results}
-    >
-      {/* Exposure Settings — always visible */}
-      <ExposureSettingsCard values={values} set={set} />
-
-      {/* EV Result — mobile only; on desktop this lives in the results column */}
-      <div className="md:hidden">
-        <EVResultCard exposureValue={exposureValue} values={values} />
-      </div>
-
-      {/* Preset out-of-range notice — mobile only; on desktop this lives in the results column */}
-      <div className="md:hidden">
-        <PresetWarningNotice presetWarning={presetWarning} values={values} />
-      </div>
-
-      {/* Equivalent Exposures — mobile only; on desktop this lives in the results column */}
-      <div className="md:hidden">
-        <EquivalentExposuresCard
-          equivalentExposures={equivalentExposures}
-          exposureValue={exposureValue}
-          iso={values.iso}
-        />
-      </div>
-
-      {/* Exposure Comparison — always visible */}
-      <ExposureComparisonCard
-        values={values}
-        set={set}
-        comparison={comparison}
+    <>
+      <ResultAnnouncer
+        message={describeExposureResult(exposureValue, values, comparison)}
       />
+      <CalculatorLayout
+        title="Camera Exposure Calculator"
+        icon={getRouteIcon('/exposure')}
+        accentTone="teal"
+        onReset={reset}
+        description={
+          <>
+            Balance aperture, shutter speed, and ISO for correct exposure.
+            <br />
+            Find equivalent exposures and compare settings across different
+            lighting conditions.
+          </>
+        }
+        sidebar={<CameraExposureSidebar />}
+        results={results}
+      >
+        {/* Exposure Settings — always visible */}
+        <ExposureSettingsCard values={values} set={set} />
 
-      {/* EV Presets — mobile only; on desktop this lives in the results column */}
-      <div className="md:hidden">
-        <EVPresetsCard
+        {/* EV Result — mobile only; on desktop this lives in the results column */}
+        <div className="md:hidden">
+          <EVResultCard exposureValue={exposureValue} values={values} />
+        </div>
+
+        {/* Preset out-of-range notice — mobile only; on desktop this lives in the results column */}
+        <div className="md:hidden">
+          <PresetWarningNotice presetWarning={presetWarning} values={values} />
+        </div>
+
+        {/* Equivalent Exposures — mobile only; on desktop this lives in the results column */}
+        <div className="md:hidden">
+          <EquivalentExposuresCard
+            equivalentExposures={equivalentExposures}
+            exposureValue={exposureValue}
+            iso={values.iso}
+          />
+        </div>
+
+        {/* Exposure Comparison — always visible */}
+        <ExposureComparisonCard
           values={values}
           set={set}
-          presetsOpen={presetsOpen}
-          onToggle={() => setPresetsOpen((prev) => !prev)}
-          onPresetClick={handlePresetClick}
+          comparison={comparison}
         />
-      </div>
-    </CalculatorLayout>
+
+        {/* EV Presets — mobile only; on desktop this lives in the results column */}
+        <div className="md:hidden">
+          <EVPresetsCard
+            values={values}
+            set={set}
+            presetsOpen={presetsOpen}
+            onToggle={() => setPresetsOpen((prev) => !prev)}
+            onPresetClick={handlePresetClick}
+          />
+        </div>
+      </CalculatorLayout>
+    </>
   );
 }

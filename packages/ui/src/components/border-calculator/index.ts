@@ -9,6 +9,8 @@ export { useBorderCalculator } from './border-calculator-context';
 export { BorderCalculatorProvider } from './border-calculator-provider';
 export { BorderInfoSection } from './border-info-section';
 export { BordersOffsetsSection } from './borders-offsets-section';
+export type { EaselBladeReadings } from './easel-blade-readings';
+export { getEaselBladeReadings } from './easel-blade-readings';
 export { MobileBorderLayout } from './mobile-border-layout';
 export { PaperSetupSection } from './paper-setup-section';
 export { PresetsSection } from './presets-section';

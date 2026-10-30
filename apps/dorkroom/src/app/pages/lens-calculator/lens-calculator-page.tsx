@@ -14,6 +14,8 @@ import {
   CalculatorNumberField,
   CalculatorPageHeader,
   CalculatorStat,
+  ResultAnnouncer,
+  spokenLength,
 } from '@dorkroom/ui/calculator';
 import { ArrowRightLeft } from 'lucide-react';
 import { type FC, useCallback } from 'react';
@@ -120,6 +122,14 @@ export default function LensCalculatorPage() {
         title="Lens Equivalency Calculator"
         onReset={reset}
         description="Calculate equivalent focal lengths between different sensor and film formats. Find out what lens gives you the same field of view when switching between cameras or formats."
+      />
+
+      <ResultAnnouncer
+        message={
+          calculation
+            ? `Equivalent focal length ${spokenLength(formatFocalLength(calculation.equivalentFocalLength))} on ${calculation.targetFormat.shortName}, field of view ${calculation.fieldOfView.toFixed(1)} degrees`
+            : ''
+        }
       />
 
       {/* 2-column grid on desktop */}
