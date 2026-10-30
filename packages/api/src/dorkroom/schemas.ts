@@ -11,7 +11,7 @@ import { z } from 'zod';
  */
 export const rawDilutionSchema = z.object({
   id: z.union([z.number(), z.string()]),
-  name: z.string(),
+  name: z.string().optional(),
   dilution: z.string().optional(),
   ratio: z.string().optional(),
 });

@@ -76,10 +76,34 @@ interface FilmInfo {
   static_image_url?: string | null;
 }
 
+/**
+ * The `/api/developers` response is cast, not validated, so the label fields
+ * are typed `unknown`: a row could carry a number or null where a string is
+ * expected.
+ */
 interface DilutionInfo {
   id: string | number;
-  name?: string;
-  ratio?: string;
+  name?: unknown;
+  dilution?: unknown;
+  ratio?: unknown;
+}
+
+function isLabelString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+/**
+ * Same fallback chain as the API client's transformDeveloper: a dilution may
+ * omit `name`, and some entries carry `ratio` instead of `dilution`. Each field
+ * is trimmed so a whitespace-only value falls through to the next one, and a
+ * non-string value is skipped rather than throwing.
+ */
+export function getDilutionLabel(dil: DilutionInfo): string | null {
+  for (const value of [dil.name, dil.dilution, dil.ratio]) {
+    const label = isLabelString(value) ? value.trim() : '';
+    if (label) return label;
+  }
+  return null;
 }
 
 interface DeveloperInfo {
@@ -808,7 +832,7 @@ async function renderCard(params: OgParams): Promise<Response> {
       const dil = developer.dilutions.find(
         (d) => String(d.id) === combo.dilution_id
       );
-      if (dil) dilutionLabel = dil.name ?? dil.ratio ?? null;
+      if (dil) dilutionLabel = getDilutionLabel(dil);
     }
 
     const subtitle = dilutionLabel
@@ -893,7 +917,7 @@ async function renderCard(params: OgParams): Promise<Response> {
     const details: string[] = [];
     if (developer?.dilutions?.length) {
       for (const dil of developer.dilutions) {
-        const label = dil.name ?? dil.ratio;
+        const label = getDilutionLabel(dil);
         if (label) details.push(label);
       }
     }

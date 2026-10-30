@@ -703,7 +703,7 @@ describe('Data Transformation', () => {
     expect(result[0].dilutions).toEqual([]);
   });
 
-  it('should handle dilution without name', async () => {
+  it('should keep a developer whose dilution has no name', async () => {
     const mockRawDeveloper: RawDeveloper = {
       id: 1,
       uuid: 'dev-uuid',
@@ -713,7 +713,7 @@ describe('Data Transformation', () => {
       type: 'concentrate',
       description: 'Test description',
       film_or_paper: true,
-      dilutions: [{ id: 1, name: '1+9', dilution: '1+9' }],
+      dilutions: [{ id: 1, dilution: '1+9' }],
       mixing_instructions: null,
       storage_requirements: null,
       safety_notes: null,
@@ -728,10 +728,62 @@ describe('Data Transformation', () => {
 
     const result = await client.fetchDevelopers();
 
+    expect(result).toHaveLength(1);
     expect(result[0].dilutions[0]).toEqual({
       id: '1',
       name: '1+9',
       dilution: '1+9',
+    });
+  });
+
+  it('should fall back name to dilution, then ratio, when name is missing', async () => {
+    const base = {
+      id: 1,
+      uuid: 'dev-uuid',
+      slug: 'test-developer',
+      name: 'Test Developer',
+      manufacturer: 'Test Manufacturer',
+      type: 'concentrate',
+      description: 'Test description',
+      film_or_paper: true,
+      mixing_instructions: null,
+      storage_requirements: null,
+      safety_notes: null,
+      created_at: '2023-01-01T00:00:00Z',
+      updated_at: '2023-01-01T00:00:00Z',
+    };
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            ...base,
+            dilutions: [
+              { id: 1, dilution: '1+9', ratio: '1:9' },
+              { id: 2, ratio: '1:14' },
+              { id: 3 },
+              { id: 4, name: '  ', dilution: ' 1+4 ' },
+              { id: 5, name: ' ', dilution: ' ', ratio: '  ' },
+            ],
+          },
+        ],
+      }),
+    });
+
+    const result = await client.fetchDevelopers();
+
+    // { id: 3 } has no label at all and { id: 5 } only whitespace, so both are
+    // dropped rather than shown blank; whitespace falls through and is trimmed
+    expect(result[0].dilutions.map((d) => d.name)).toEqual([
+      '1+9',
+      '1:14',
+      '1+4',
+    ]);
+    expect(result[0].dilutions[2]).toEqual({
+      id: '4',
+      name: '1+4',
+      dilution: '1+4',
     });
   });
 });

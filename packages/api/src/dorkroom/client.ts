@@ -366,11 +366,19 @@ export class DorkroomApiClient {
       description: raw.description,
       filmOrPaper: raw.film_or_paper,
       dilutions:
-        raw.dilutions?.map((d) => ({
-          id: String(d.id), // Convert number/string ID to string
-          name: d.name || d.dilution || d.ratio || '', // Use name if available, fallback to dilution/ratio
-          dilution: d.dilution || d.ratio || '', // Some API entries use 'ratio' instead of 'dilution'
-        })) || [],
+        raw.dilutions
+          ?.map((d) => ({
+            id: String(d.id), // Convert number/string ID to string
+            // Use name if available, fallback to dilution/ratio. Trimmed so a
+            // whitespace-only field falls through to the next one.
+            name: d.name?.trim() || d.dilution?.trim() || d.ratio?.trim() || '',
+            // Some API entries use 'ratio' instead of 'dilution'
+            dilution: d.dilution?.trim() || d.ratio?.trim() || '',
+          }))
+          // A dilution with no non-blank name, dilution or ratio has nothing to
+          // show; drop it so the UI never renders a blank option. Recipes
+          // pointing at it fall back to 'Stock'.
+          .filter((d) => d.name !== '') || [],
       mixingInstructions: raw.mixing_instructions,
       storageRequirements: raw.storage_requirements,
       safetyNotes: raw.safety_notes,

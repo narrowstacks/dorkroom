@@ -9,6 +9,7 @@ import {
 } from 'vitest';
 import handler, {
   clearFontCache,
+  getDilutionLabel,
   getRouteAccent,
   getRouteIcon,
   loadFontData,
@@ -370,6 +371,36 @@ describe('og handler - development recipe', () => {
 
     expect(res.status).toBe(200);
     expect(combinationUrls.some((url) => requestedPage(url) === 2)).toBe(true);
+  });
+});
+
+describe('getDilutionLabel', () => {
+  it('prefers name, then dilution, then ratio', () => {
+    expect(getDilutionLabel({ id: 1, name: '1+1', dilution: '1:1' })).toBe(
+      '1+1'
+    );
+    expect(getDilutionLabel({ id: 2, dilution: '1+9' })).toBe('1+9');
+    expect(getDilutionLabel({ id: 3, ratio: '1:14' })).toBe('1:14');
+  });
+
+  it('returns null for a dilution with no label', () => {
+    expect(getDilutionLabel({ id: 4 })).toBeNull();
+  });
+
+  it('skips whitespace-only fields and trims the label', () => {
+    expect(getDilutionLabel({ id: 5, name: '  ', dilution: ' 1+9 ' })).toBe(
+      '1+9'
+    );
+    expect(
+      getDilutionLabel({ id: 6, name: ' ', dilution: '', ratio: ' ' })
+    ).toBeNull();
+  });
+
+  it('skips non-string fields instead of throwing', () => {
+    expect(getDilutionLabel({ id: 7, name: 25, dilution: '1+4' })).toBe('1+4');
+    expect(
+      getDilutionLabel({ id: 8, name: null, dilution: { v: 1 }, ratio: 1 })
+    ).toBeNull();
   });
 });
 
