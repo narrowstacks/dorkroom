@@ -184,6 +184,108 @@ describe('HomePage', () => {
     });
   });
 
+  describe('tool cards (pinned, #455)', () => {
+    it('keeps the cards in order with their copy, links, icons and accents', async () => {
+      serveStats(() => statsResponse(STATS));
+
+      await renderHomePage();
+
+      const cards = screen
+        .getAllByRole('link')
+        .filter((link) => link.querySelector('h3') !== null)
+        .map((link) => {
+          const svg = link.querySelector('svg');
+          const iconClass = svg?.getAttribute('class') ?? '';
+          const accentHost = link.querySelector('[class*="--accent-"]');
+          return {
+            title: link.getAttribute('aria-label'),
+            href: link.getAttribute('href'),
+            category: link.querySelector('p.uppercase')?.textContent,
+            description: link.querySelector('p.text-sm')?.textContent,
+            icon: iconClass.match(/\blucide-(?!icon\b)([a-z0-9-]+)/)?.[1],
+            accent: accentHost
+              ?.getAttribute('class')
+              ?.match(/--accent-([a-z]+)-text/)?.[1],
+          };
+        });
+
+      expect(cards).toEqual([
+        {
+          title: 'Border Calculator',
+          href: '/border',
+          category: 'Printing',
+          description: 'Print borders & trim guides',
+          icon: 'crop',
+          accent: 'indigo',
+        },
+        {
+          title: 'Stops Calculator',
+          href: '/stops',
+          category: 'Printing',
+          description: 'F-stop & time math',
+          icon: 'gauge',
+          accent: 'blue',
+        },
+        {
+          title: 'Resize Calculator',
+          href: '/resize',
+          category: 'Printing',
+          description: 'Scale prints, no wasting test strips',
+          icon: 'ruler',
+          accent: 'teal',
+        },
+        {
+          title: 'Mat Cut Calculator',
+          href: '/mat',
+          category: 'Printing',
+          description: 'Window openings & cut guides',
+          icon: 'frame',
+          accent: 'cyan',
+        },
+        {
+          title: 'Reciprocity',
+          href: '/reciprocity',
+          category: 'Film',
+          description: 'Film long exposure correction',
+          icon: 'timer',
+          accent: 'amber',
+        },
+        {
+          title: 'Film Development Recipes',
+          href: '/development',
+          category: 'Film',
+          description: 'B&W film development database',
+          icon: 'flask-conical',
+          accent: 'rose',
+        },
+        {
+          title: 'Lens Equivalency',
+          href: '/lenses',
+          category: 'Camera',
+          description: 'Compare format lens differences',
+          icon: 'focus',
+          accent: 'emerald',
+        },
+        {
+          title: 'Camera Exposure',
+          href: '/exposure',
+          category: 'Camera',
+          description: 'Equivalent exposure calculator',
+          icon: 'camera',
+          accent: 'teal',
+        },
+        {
+          title: 'Film Database',
+          href: '/films',
+          category: 'Reference',
+          description: 'Browse film stocks by brand & ISO',
+          icon: 'film',
+          accent: 'cyan',
+        },
+      ]);
+    });
+  });
+
   describe('navigation', () => {
     it('calculator links point to routes the router knows', async () => {
       serveStats(() => statsResponse(STATS));
