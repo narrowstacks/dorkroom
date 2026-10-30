@@ -266,6 +266,38 @@ describe('MobileSidebar', () => {
     });
   });
 
+  describe('section order (pinned, #455)', () => {
+    it("renders the section headers and items in today's order", () => {
+      render(<MobileSidebar {...defaultProps} />);
+
+      const nav = screen.getByRole('navigation', { name: 'Main navigation' });
+      // Each direct child is a nav item, a section header, or the divider.
+      const sequence = Array.from(nav.children).map(
+        (el) => el.textContent?.trim() || '---'
+      );
+      expect(sequence).toEqual([
+        'Home',
+        'GitHub',
+        'Newsletter',
+        '---',
+        'Printing',
+        'Border',
+        'Resize',
+        'Stops',
+        'Mat',
+        'Film',
+        'Development',
+        'Reciprocity',
+        'Camera',
+        'Lenses',
+        'Exposure',
+        'Reference',
+        'Films',
+        'Docs',
+      ]);
+    });
+  });
+
   describe('accessibility', () => {
     it('external links use ariaLabel when provided', () => {
       render(<MobileSidebar {...defaultProps} />);

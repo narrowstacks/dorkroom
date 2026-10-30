@@ -10,6 +10,7 @@ import {
   Gauge,
   GitBranch,
   Home,
+  type LucideIcon,
   Newspaper,
   Printer,
   Ruler,
@@ -17,6 +18,7 @@ import {
   Timer,
 } from 'lucide-react';
 import { type ComponentType, createElement } from 'react';
+import type { AccentTone } from '../components/calculator/accent-tone';
 import type { NavigationItem } from '../components/navigation-dropdown';
 
 // Wrap Lucide icons so typeof component is 'function' in tests
@@ -25,80 +27,219 @@ const asFunctionComponent =
   (props: { className?: string; size?: number | string }) =>
     createElement(Icon, props);
 
-export const printingItems: NavigationItem[] = [
+export const CATEGORY_LABELS = {
+  printing: 'Printing',
+  film: 'Film',
+  camera: 'Camera',
+  reference: 'Reference',
+} as const;
+
+export type ToolCategory = keyof typeof CATEGORY_LABELS;
+
+/** Section order in the desktop dropdowns and the mobile sidebar. */
+export const CATEGORY_ORDER: readonly ToolCategory[] = [
+  'printing',
+  'film',
+  'camera',
+  'reference',
+];
+
+interface ToolManifestEntry {
+  /** Route pathname. */
+  to: string;
+  /** Short nav label (desktop dropdown and mobile sidebar). */
+  label: string;
+  /** One-line summary in the desktop dropdown. */
+  summary: string;
+  icon: LucideIcon;
+  category: ToolCategory;
+  /** Page identity tone: the page header tile and the home card. */
+  accent?: AccentTone;
+  /** Full document navigation: the path is owned by another microfrontend
+   *  (e.g. /docs), so the edge must route the real request. */
+  reload?: boolean;
+  /** Home page tool card copy. Tools without one get no card. */
+  card?: {
+    title: string;
+    description: string;
+    /** Position in the home grid. It groups by category like the nav but
+     *  orders within a category differently (Stops before Resize,
+     *  Reciprocity before Development). */
+    order: number;
+    /** Overrides `icon` on the card only. */
+    icon?: LucideIcon;
+  };
+}
+
+/**
+ * The web tool manifest (#455): every tool the nav, mobile sidebar, home cards
+ * and page header accents list, in nav order. Those tables are all derived
+ * from this array, so adding a tool is one entry here plus its route.
+ * ROUTE_TITLES / ROUTE_DESCRIPTIONS below stay separate: the OG image and meta
+ * endpoints read them for non-tool routes too.
+ */
+const TOOL_LIST = [
   {
-    label: 'Border',
     to: '/border',
-    icon: asFunctionComponent(Crop),
+    label: 'Border',
     summary: 'Trim-safe borders with print guides.',
+    icon: Crop,
+    category: 'printing',
+    accent: 'indigo',
+    card: {
+      title: 'Border Calculator',
+      description: 'Print borders & trim guides',
+      order: 1,
+    },
   },
   {
-    label: 'Resize',
     to: '/resize',
-    icon: asFunctionComponent(Ruler),
+    label: 'Resize',
     summary: 'Scale prints without endless test strips.',
+    icon: Ruler,
+    category: 'printing',
+    accent: 'teal',
+    card: {
+      title: 'Resize Calculator',
+      description: 'Scale prints, no wasting test strips',
+      order: 3,
+    },
   },
   {
-    label: 'Stops',
     to: '/stops',
-    icon: asFunctionComponent(Gauge),
+    label: 'Stops',
     summary: 'Translate exposure stops into seconds.',
+    icon: Gauge,
+    category: 'printing',
+    accent: 'blue',
+    card: {
+      title: 'Stops Calculator',
+      description: 'F-stop & time math',
+      order: 2,
+    },
   },
   {
-    label: 'Mat',
     to: '/mat',
-    icon: asFunctionComponent(Frame),
+    label: 'Mat',
     summary: 'Window openings and cutter settings for mats.',
+    icon: Frame,
+    category: 'printing',
+    accent: 'cyan',
+    card: {
+      title: 'Mat Cut Calculator',
+      description: 'Window openings & cut guides',
+      order: 4,
+    },
   },
-];
-
-export const filmItems: NavigationItem[] = [
   {
-    label: 'Development',
     to: '/development',
-    icon: asFunctionComponent(FlaskConical),
+    label: 'Development',
     summary: 'Film and developer pairings with times.',
+    icon: FlaskConical,
+    category: 'film',
+    // Home card only: the recipes page header sets no accent tone.
+    accent: 'rose',
+    card: {
+      title: 'Film Development Recipes',
+      description: 'B&W film development database',
+      order: 6,
+    },
   },
   {
-    label: 'Reciprocity',
     to: '/reciprocity',
-    icon: asFunctionComponent(Timer),
+    label: 'Reciprocity',
     summary: 'Correct for long exposure failure.',
+    icon: Timer,
+    category: 'film',
+    accent: 'amber',
+    card: {
+      title: 'Reciprocity',
+      description: 'Film long exposure correction',
+      order: 5,
+    },
   },
-];
-
-export const cameraItems: NavigationItem[] = [
   {
-    label: 'Lenses',
     to: '/lenses',
-    icon: asFunctionComponent(Focus),
+    label: 'Lenses',
     summary: 'Equivalent focal lengths across formats.',
+    icon: Focus,
+    category: 'camera',
+    accent: 'emerald',
+    card: {
+      title: 'Lens Equivalency',
+      description: 'Compare format lens differences',
+      order: 7,
+    },
   },
   {
-    label: 'Exposure',
     to: '/exposure',
-    icon: asFunctionComponent(Aperture),
+    label: 'Exposure',
     summary: 'Balance aperture, shutter, and ISO on set.',
+    icon: Aperture,
+    category: 'camera',
+    accent: 'teal',
+    card: {
+      title: 'Camera Exposure',
+      description: 'Equivalent exposure calculator',
+      order: 8,
+      icon: Camera,
+    },
   },
-];
-
-export const referenceItems: NavigationItem[] = [
   {
-    label: 'Films',
     to: '/films',
-    icon: asFunctionComponent(Film),
+    label: 'Films',
     summary: 'Browse and search the film stock database.',
+    icon: Film,
+    category: 'reference',
+    accent: 'cyan',
+    card: {
+      title: 'Film Database',
+      description: 'Browse film stocks by brand & ISO',
+      order: 9,
+    },
   },
   {
-    label: 'Docs',
     to: '/docs',
-    icon: asFunctionComponent(BookOpen),
+    label: 'Docs',
     summary: 'Guides and documentation for analog photography.',
+    icon: BookOpen,
+    category: 'reference',
     // Served by the docs microfrontend, not this SPA — force a full document
     // navigation so the edge routes /docs to the docs app. See navigation-dropdown.
     reload: true,
   },
-];
+] as const satisfies readonly ToolManifestEntry[];
+
+/** A route pathname that has a tool manifest entry. */
+export type ToolRoute = (typeof TOOL_LIST)[number]['to'];
+
+// Widened for iteration: the literal union has entries without `card`,
+// `accent` or `reload`, so reading those fields needs the declared shape.
+const TOOL_MANIFEST: readonly (ToolManifestEntry & { to: ToolRoute })[] =
+  TOOL_LIST;
+
+// One wrapped icon per tool, shared by the desktop and mobile nav entries.
+const TOOL_NAV = TOOL_MANIFEST.map((tool) => ({
+  tool,
+  icon: asFunctionComponent(tool.icon),
+}));
+
+function navItemsIn(category: ToolCategory): NavigationItem[] {
+  return TOOL_NAV.filter(({ tool }) => tool.category === category).map(
+    ({ tool, icon }) => ({
+      label: tool.label,
+      to: tool.to,
+      icon,
+      summary: tool.summary,
+      ...(tool.reload && { reload: true }),
+    })
+  );
+}
+
+export const printingItems: NavigationItem[] = navItemsIn('printing');
+export const filmItems: NavigationItem[] = navItemsIn('film');
+export const cameraItems: NavigationItem[] = navItemsIn('camera');
+export const referenceItems: NavigationItem[] = navItemsIn('reference');
 
 export const navItems: NavigationItem[] = [
   {
@@ -115,35 +256,27 @@ export interface NavigationCategory {
   items: NavigationItem[];
 }
 
-export const CATEGORY_LABELS = {
-  printing: 'Printing',
-  film: 'Film',
-  camera: 'Camera',
-  reference: 'Reference',
-} as const;
+const CATEGORY_ICONS = {
+  printing: Printer,
+  film: Film,
+  camera: Camera,
+  reference: BookOpen,
+} satisfies Record<ToolCategory, LucideIcon>;
 
-export const navigationCategories: NavigationCategory[] = [
-  {
-    label: CATEGORY_LABELS.printing,
-    icon: asFunctionComponent(Printer),
-    items: printingItems,
-  },
-  {
-    label: CATEGORY_LABELS.film,
-    icon: asFunctionComponent(Film),
-    items: filmItems,
-  },
-  {
-    label: CATEGORY_LABELS.camera,
-    icon: asFunctionComponent(Camera),
-    items: cameraItems,
-  },
-  {
-    label: CATEGORY_LABELS.reference,
-    icon: asFunctionComponent(BookOpen),
-    items: referenceItems,
-  },
-];
+const ITEMS_BY_CATEGORY = {
+  printing: printingItems,
+  film: filmItems,
+  camera: cameraItems,
+  reference: referenceItems,
+} satisfies Record<ToolCategory, NavigationItem[]>;
+
+export const navigationCategories: NavigationCategory[] = CATEGORY_ORDER.map(
+  (category) => ({
+    label: CATEGORY_LABELS[category],
+    icon: asFunctionComponent(CATEGORY_ICONS[category]),
+    items: ITEMS_BY_CATEGORY[category],
+  })
+);
 
 export const allNavItems = [
   ...navItems,
@@ -163,6 +296,45 @@ export function getRouteIcon(
 ): ComponentType<{ className?: string }> | undefined {
   return allNavItems.find((item) => item.to === to)?.icon;
 }
+
+/**
+ * Resolve a page's accent tone from the tool manifest, so the page header
+ * tile matches its home card. Returns `undefined` for routes without one.
+ */
+export function getRouteAccent(to: ToolRoute): AccentTone | undefined {
+  return TOOL_MANIFEST.find((tool) => tool.to === to)?.accent;
+}
+
+export interface HomeToolCard {
+  category: (typeof CATEGORY_LABELS)[ToolCategory];
+  title: string;
+  description: string;
+  href: ToolRoute;
+  icon: LucideIcon;
+  accent: AccentTone;
+}
+
+/** Home page tool cards, derived from the tool manifest, in `card.order`. */
+export const homeToolCards: readonly HomeToolCard[] = TOOL_MANIFEST.flatMap(
+  (tool) =>
+    tool.card && tool.accent
+      ? [
+          {
+            order: tool.card.order,
+            card: {
+              category: CATEGORY_LABELS[tool.category],
+              title: tool.card.title,
+              description: tool.card.description,
+              href: tool.to,
+              icon: tool.card.icon ?? tool.icon,
+              accent: tool.accent,
+            },
+          },
+        ]
+      : []
+)
+  .sort((a, b) => a.order - b.order)
+  .map(({ card }) => card);
 
 /**
  * Page copy keyed by route pathname. The root route and the OG image/meta
@@ -223,7 +395,7 @@ export interface MobileNavItem {
   icon: ComponentType<{ className?: string }>;
   ariaLabel?: string;
   type: 'route' | 'external' | 'theme' | 'settings';
-  category?: 'utility' | 'printing' | 'film' | 'camera' | 'reference';
+  category?: 'utility' | ToolCategory;
   /** When true, a `type: 'route'` item navigates with a full document load
    *  instead of client routing — required for paths owned by another
    *  microfrontend (e.g. /docs) so the edge can route the real request. */
@@ -268,80 +440,13 @@ export const mobileNavItems: MobileNavItem[] = [
     type: 'settings',
     category: 'utility',
   },
-  // Printing section
-  {
-    label: 'Border',
-    to: '/border',
-    icon: asFunctionComponent(Crop),
+  // Tool sections, in manifest (nav) order
+  ...TOOL_NAV.map(({ tool, icon }): MobileNavItem => ({
+    label: tool.label,
+    to: tool.to,
+    icon,
     type: 'route',
-    category: 'printing',
-  },
-  {
-    label: 'Resize',
-    to: '/resize',
-    icon: asFunctionComponent(Ruler),
-    type: 'route',
-    category: 'printing',
-  },
-  {
-    label: 'Stops',
-    to: '/stops',
-    icon: asFunctionComponent(Gauge),
-    type: 'route',
-    category: 'printing',
-  },
-  {
-    label: 'Mat',
-    to: '/mat',
-    icon: asFunctionComponent(Frame),
-    type: 'route',
-    category: 'printing',
-  },
-  // Film section
-  {
-    label: 'Development',
-    to: '/development',
-    icon: asFunctionComponent(FlaskConical),
-    type: 'route',
-    category: 'film',
-  },
-  {
-    label: 'Reciprocity',
-    to: '/reciprocity',
-    icon: asFunctionComponent(Timer),
-    type: 'route',
-    category: 'film',
-  },
-  // Camera section
-  {
-    label: 'Lenses',
-    to: '/lenses',
-    icon: asFunctionComponent(Focus),
-    type: 'route',
-    category: 'camera',
-  },
-  {
-    label: 'Exposure',
-    to: '/exposure',
-    icon: asFunctionComponent(Aperture),
-    type: 'route',
-    category: 'camera',
-  },
-  // Reference section
-  {
-    label: 'Films',
-    to: '/films',
-    icon: asFunctionComponent(Film),
-    type: 'route',
-    category: 'reference',
-  },
-  {
-    label: 'Docs',
-    to: '/docs',
-    icon: asFunctionComponent(BookOpen),
-    type: 'route',
-    category: 'reference',
-    // Served by the docs microfrontend — full document load, not client routing.
-    reload: true,
-  },
+    category: tool.category,
+    ...(tool.reload && { reload: true }),
+  })),
 ];

@@ -15,6 +15,7 @@ import {
 import {
   AspectPreview,
   colorMixOr,
+  getRouteAccent,
   getRouteIcon,
   StatusAlert,
   useMeasurement,
@@ -656,7 +657,7 @@ export default function ResizeCalculatorPage() {
       <CalculatorLayout
         title="Print Resize Calculator"
         icon={getRouteIcon('/resize')}
-        accentTone="teal"
+        accentTone={getRouteAccent('/resize')}
         onReset={resetToDefaults}
         description="Scale a print up or down and get a solid starting exposure without burning through paper."
         results={results}

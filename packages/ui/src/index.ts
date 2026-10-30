@@ -133,13 +133,22 @@ export { cn } from './lib/cn';
 export { colorMixOr, supportsColorMix } from './lib/color';
 export * from './lib/measurement';
 // Navigation
-export type { MobileNavItem, NavigationCategory } from './lib/navigation';
+export type {
+  HomeToolCard,
+  MobileNavItem,
+  NavigationCategory,
+  ToolCategory,
+  ToolRoute,
+} from './lib/navigation';
 export {
   allNavItems,
   CATEGORY_LABELS,
+  CATEGORY_ORDER,
   cameraItems,
   filmItems,
+  getRouteAccent,
   getRouteIcon,
+  homeToolCards,
   mobileNavItems,
   navItems,
   navigationCategories,
