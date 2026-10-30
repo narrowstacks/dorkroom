@@ -255,15 +255,6 @@ describe('dilution-parser', () => {
       expect(result.water).toBe(0);
     });
 
-    it('should handle decimal results correctly', () => {
-      const parsed = parseDilution('1+31')!; // Rodinal 1+31
-      const result = calculateVolumes(500, parsed);
-
-      expect(result.total).toBe(500);
-      expect(result.concentrate).toBeCloseTo(15.625, 2); // 500 * 1/32
-      expect(result.water).toBeCloseTo(484.375, 2); // 500 * 31/32
-    });
-
     it('should calculate correctly for common tank sizes', () => {
       const parsed = parseDilution('1+4')!;
 

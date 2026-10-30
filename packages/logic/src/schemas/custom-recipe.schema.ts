@@ -149,6 +149,8 @@ export const customRecipeSchema = z
     }
   );
 
-export type CustomRecipeFormData = z.infer<typeof customRecipeSchema>;
-export type CustomFilmData = z.infer<typeof customFilmSchema>;
-export type CustomDeveloperData = z.infer<typeof customDeveloperSchema>;
+// Named *Schema* to avoid colliding with the hand-written interfaces of the
+// same base names in types/custom-recipes.ts (also exported from the root).
+export type CustomRecipeSchemaData = z.infer<typeof customRecipeSchema>;
+export type CustomFilmSchemaData = z.infer<typeof customFilmSchema>;
+export type CustomDeveloperSchemaData = z.infer<typeof customDeveloperSchema>;

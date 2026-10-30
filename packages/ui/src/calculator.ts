@@ -3,10 +3,6 @@ export type {
   AccentTone,
   CalculatorLayoutProps,
   CalculatorResetButtonProps,
-  InfoCardItem,
-  InfoCardListProps,
-  InfoCardProps,
-  InfoCardVariant,
   ResultAnnouncerProps,
 } from './components/calculator';
 export {
@@ -16,8 +12,6 @@ export {
   CalculatorPageHeader,
   CalculatorResetButton,
   CalculatorStat,
-  InfoCard,
-  InfoCardList,
   RESULT_ANNOUNCEMENT_DELAY_MS,
   ResultAnnouncer,
   spokenDuration,

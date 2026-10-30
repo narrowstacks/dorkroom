@@ -1,6 +1,6 @@
+import { importRecipeSchema } from '@dorkroom/logic';
 import { useForm } from '@tanstack/react-form';
 import { TanStackTextInput } from '../../forms/components/tanstack-text-input';
-import { importRecipeSchema } from '../../forms/schemas/import-recipe.schema';
 import { cn } from '../../lib/cn';
 import { colorMixOr } from '../../lib/color';
 import { setStyles } from '../../lib/dom';

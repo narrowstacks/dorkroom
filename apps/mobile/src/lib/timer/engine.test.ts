@@ -69,8 +69,10 @@ describe('start / pause / resume', () => {
   });
 
   it('START is a no-op for an empty sequence', () => {
-    const empty = createTimerState([]);
-    expect(run(empty, { type: 'START' }).status).toBe('completed');
+    // createTimerState([]) is already 'completed', which would trip the status
+    // guard before the length check. Force 'idle' so only the length guard applies.
+    const empty = { ...createTimerState([]), status: 'idle' as const };
+    expect(run(empty, { type: 'START' })).toBe(empty);
   });
 
   it('PAUSE only applies while running, RESUME only while paused', () => {

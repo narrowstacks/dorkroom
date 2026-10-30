@@ -15,8 +15,12 @@ import { FilmRebrandInfo } from './film-rebrand-info';
 interface FilmDetailPanelProps {
   /** The film to display, or null when closed */
   film: Film | null;
-  /** The base/OEM film if this film is a rebrand, or null */
-  baseFilm?: Film | null;
+  /**
+   * The base/OEM film if this film is a rebrand, or null. Required so a caller
+   * cannot silently drop it: omitted, the rebrand line falls back to a
+   * slug-derived title (#329).
+   */
+  baseFilm: Film | null;
   /** Whether the panel is currently visible */
   isOpen: boolean;
   /** Callback function called when the panel should be closed */
@@ -51,6 +55,7 @@ const FormattedDateAdded: FC<{ dateAdded: string }> = ({ dateAdded }) => {
  * Renders nothing during server-side rendering or when `isOpen` is false or `film` is null.
  *
  * @param film - The film object to display details for
+ * @param baseFilm - The base film a rebrand repackages, or null
  * @param isOpen - Whether the panel is visible
  * @param onClose - Callback invoked to request closing the panel
  * @param isMobile - If true, renders as mobile bottom drawer; if false, renders as desktop sidebar
@@ -255,7 +260,7 @@ export const FilmDetailPanel: FC<FilmDetailPanelProps> = ({
 /** Props for the internal FilmDetailContent component */
 interface FilmDetailContentProps {
   film: Film;
-  baseFilm?: Film | null;
+  baseFilm: Film | null;
   developmentRecipesUrl: string;
 }
 

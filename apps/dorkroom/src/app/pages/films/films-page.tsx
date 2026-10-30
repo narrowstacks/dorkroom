@@ -4,162 +4,20 @@ import {
   getBaseFilm,
   useFilmDatabase,
 } from '@dorkroom/logic';
-import { ErrorFallback, getRouteIcon, useIsMobile } from '@dorkroom/ui';
-import { CalculatorPageHeader } from '@dorkroom/ui/calculator';
-import { VirtualizedErrorBoundary } from '@dorkroom/ui/development-recipes';
 import {
-  FilmDetailPanel,
-  FilmDetailPanelSkeleton,
-  FilmFiltersMobile,
-  FilmFiltersPanel,
-  FilmResultsVirtualized,
-} from '@dorkroom/ui/films';
+  ErrorFallback,
+  getRouteAccent,
+  getRouteIcon,
+  useIsMobile,
+} from '@dorkroom/ui';
+import { CalculatorPageHeader } from '@dorkroom/ui/calculator';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { filmColorFilterSchema } from '../../../routes/search-schemas';
 import { trackEvent } from '../../lib/analytics/tracked-events';
 import { useSearchDeadEndAnalytics } from '../../lib/analytics/use-search-analytics';
+import { FilmsPageBody } from './films-page-body';
 import { useUrlFilterSync } from './use-url-filter-sync';
-
-type FilmDatabase = ReturnType<typeof useFilmDatabase>;
-
-interface FilmLayoutProps {
-  db: FilmDatabase;
-  isMobile: boolean;
-  selectedFilm: Film | null;
-  baseFilm: Film | undefined;
-  shouldShowDetailSkeleton: boolean;
-  onSelectFilm: (film: Film) => void;
-  onClosePanel: () => void;
-}
-
-function FilmsMobileLayout({
-  db,
-  isMobile,
-  selectedFilm,
-  baseFilm,
-  shouldShowDetailSkeleton,
-  onSelectFilm,
-  onClosePanel,
-}: FilmLayoutProps) {
-  return (
-    <div className="space-y-4">
-      <FilmFiltersMobile
-        searchQuery={db.searchQuery}
-        onSearchChange={db.setSearchQuery}
-        colorTypeFilter={db.colorTypeFilter}
-        onColorTypeChange={db.setColorTypeFilter}
-        isoSpeedFilter={db.isoSpeedFilter}
-        onIsoSpeedChange={db.setIsoSpeedFilter}
-        brandFilter={db.brandFilter}
-        onBrandChange={db.setBrandFilter}
-        discontinuedFilter={db.discontinuedFilter}
-        onDiscontinuedChange={db.setDiscontinuedFilter}
-        brandOptions={db.brandOptions}
-        isoOptions={db.isoOptions}
-        onClearFilters={db.clearFilters}
-        hasActiveFilters={db.hasActiveFilters}
-        resultCount={db.filteredFilms.length}
-      />
-
-      <VirtualizedErrorBoundary>
-        <FilmResultsVirtualized
-          films={db.filteredFilms}
-          selectedFilmId={selectedFilm?.uuid ?? null}
-          onSelectFilm={onSelectFilm}
-          isMobile={isMobile}
-          isLoading={db.isLoading}
-          isDetailOpen={!!selectedFilm || shouldShowDetailSkeleton}
-          isFiltersCollapsed={false}
-          onClearFilters={db.clearFilters}
-          hasActiveFilters={db.hasActiveFilters}
-        />
-      </VirtualizedErrorBoundary>
-
-      {shouldShowDetailSkeleton ? (
-        <FilmDetailPanelSkeleton isMobile={isMobile} />
-      ) : (
-        <FilmDetailPanel
-          film={selectedFilm}
-          baseFilm={baseFilm}
-          isOpen={!!selectedFilm}
-          onClose={onClosePanel}
-          isMobile={isMobile}
-        />
-      )}
-    </div>
-  );
-}
-
-// eslint-disable-next-line react-doctor/no-multi-component-file -- exported alongside the default FilmsPage export solely so this layout's props (notably baseFilm) are unit-testable in isolation; see #329
-export function FilmsDesktopLayout({
-  db,
-  isMobile,
-  selectedFilm,
-  baseFilm,
-  shouldShowDetailSkeleton,
-  onSelectFilm,
-  onClosePanel,
-  isFiltersCollapsed,
-  onCollapsedChange,
-}: FilmLayoutProps & {
-  isFiltersCollapsed: boolean;
-  onCollapsedChange: (collapsed: boolean) => void;
-}) {
-  return (
-    <div className="mt-6 flex gap-6">
-      <aside className="flex-shrink-0 transition-[width] duration-300">
-        <FilmFiltersPanel
-          onCollapsedChange={onCollapsedChange}
-          searchQuery={db.searchQuery}
-          onSearchChange={db.setSearchQuery}
-          colorTypeFilter={db.colorTypeFilter}
-          onColorTypeChange={db.setColorTypeFilter}
-          isoSpeedFilter={db.isoSpeedFilter}
-          onIsoSpeedChange={db.setIsoSpeedFilter}
-          brandFilter={db.brandFilter}
-          onBrandChange={db.setBrandFilter}
-          discontinuedFilter={db.discontinuedFilter}
-          onDiscontinuedChange={db.setDiscontinuedFilter}
-          brandOptions={db.brandOptions}
-          isoOptions={db.isoOptions}
-          onClearFilters={db.clearFilters}
-          hasActiveFilters={db.hasActiveFilters}
-        />
-      </aside>
-
-      <main id="film-results" className="flex-1 min-w-0">
-        <VirtualizedErrorBoundary>
-          <FilmResultsVirtualized
-            films={db.filteredFilms}
-            selectedFilmId={selectedFilm?.uuid ?? null}
-            onSelectFilm={onSelectFilm}
-            isMobile={isMobile}
-            isLoading={db.isLoading}
-            isDetailOpen={!!selectedFilm || shouldShowDetailSkeleton}
-            isFiltersCollapsed={isFiltersCollapsed}
-            onClearFilters={db.clearFilters}
-            hasActiveFilters={db.hasActiveFilters}
-          />
-        </VirtualizedErrorBoundary>
-      </main>
-
-      {shouldShowDetailSkeleton ? (
-        <FilmDetailPanelSkeleton isMobile={isMobile} />
-      ) : (
-        selectedFilm && (
-          <FilmDetailPanel
-            film={selectedFilm}
-            baseFilm={baseFilm}
-            isOpen={!!selectedFilm}
-            onClose={onClosePanel}
-            isMobile={isMobile}
-          />
-        )
-      )}
-    </div>
-  );
-}
 
 /**
  * Keeps an incoming ?film= slug in the URL until the selection effect has
@@ -303,7 +161,7 @@ export default function FilmsPage() {
   const filmSlugIndex = useMemo(() => buildFilmSlugIndex(films), [films]);
 
   const baseFilm = useMemo(
-    () => (selectedFilm ? getBaseFilm(selectedFilm, filmSlugIndex) : undefined),
+    () => (selectedFilm && getBaseFilm(selectedFilm, filmSlugIndex)) ?? null,
     [selectedFilm, filmSlugIndex]
   );
 
@@ -393,7 +251,7 @@ export default function FilmsPage() {
       <CalculatorPageHeader
         title="Film Database"
         icon={getRouteIcon('/films')}
-        accentTone="cyan"
+        accentTone={getRouteAccent('/films')}
         description="Browse and search the complete film stock database"
       />
 
@@ -415,29 +273,17 @@ export default function FilmsPage() {
             </div>
           )}
 
-          {isMobile ? (
-            <FilmsMobileLayout
-              db={trackedDb}
-              isMobile={isMobile}
-              selectedFilm={selectedFilm}
-              baseFilm={baseFilm}
-              shouldShowDetailSkeleton={shouldShowDetailSkeleton}
-              onSelectFilm={handleSelectFilm}
-              onClosePanel={handleClosePanel}
-            />
-          ) : (
-            <FilmsDesktopLayout
-              db={trackedDb}
-              isMobile={isMobile}
-              selectedFilm={selectedFilm}
-              baseFilm={baseFilm}
-              shouldShowDetailSkeleton={shouldShowDetailSkeleton}
-              onSelectFilm={handleSelectFilm}
-              onClosePanel={handleClosePanel}
-              isFiltersCollapsed={isFiltersCollapsed}
-              onCollapsedChange={setIsFiltersCollapsed}
-            />
-          )}
+          <FilmsPageBody
+            db={trackedDb}
+            isMobile={isMobile}
+            selectedFilm={selectedFilm}
+            baseFilm={baseFilm}
+            shouldShowDetailSkeleton={shouldShowDetailSkeleton}
+            onSelectFilm={handleSelectFilm}
+            onClosePanel={handleClosePanel}
+            isFiltersCollapsed={isFiltersCollapsed}
+            onCollapsedChange={setIsFiltersCollapsed}
+          />
         </>
       )}
     </div>

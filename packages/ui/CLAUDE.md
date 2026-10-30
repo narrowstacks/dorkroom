@@ -149,6 +149,12 @@ Don't reach for it in new code expecting a visible shadow.
 - Keyboard navigation
 - `bun run doctor` blocks on accessibility warnings, so a missing label fails
   the build rather than the review
+- Every dialog renders through `Modal` (centred) or `ResponsiveModal`
+  (drawer on mobile, `Modal` on desktop). Don't build another portal,
+  backdrop or inline Drawer/Modal switch: the shell owns the portal, backdrop,
+  scroll lock and Escape, so a fix there lands once. A dialog with its own
+  heading passes `ariaLabelledBy`; `className` / `bodyClassName` adjust the
+  panel. `__tests__/dialog-dismiss-tokens.test.ts` enforces this
 - Dialog dismissal on Escape goes through the shared `useEscapeKey` hook
   (`hooks/use-escape-key.ts`). Don't add a component-local `document` keydown
   listener for it: the hook owns a single listener plus a LIFO stack so only

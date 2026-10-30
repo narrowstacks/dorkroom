@@ -45,13 +45,13 @@ describe('camera exposure calculations', () => {
         expect(ev).toBeCloseTo(11.9, 0);
       });
 
-      it('should calculate EV 8 for indoor lighting (f/2.8, 1/60s, ISO 400)', () => {
+      it('should calculate EV ~6.9 for indoor lighting (f/2.8, 1/60s, ISO 400)', () => {
         // Normal indoor room lighting — actual EV ≈ 6.9, within 0.5 of 7
         const ev = calculateEV(2.8, 1 / 60, 400);
         expect(ev).toBeCloseTo(6.9, 0);
       });
 
-      it('should calculate EV 5 for night street (f/2, 1/30s, ISO 1600)', () => {
+      it('should calculate EV ~2.9 for night street (f/2, 1/30s, ISO 1600)', () => {
         // Well-lit night street scene — actual EV ≈ 2.9, within 0.5 of 3
         const ev = calculateEV(2, 1 / 30, 1600);
         expect(ev).toBeCloseTo(2.9, 0);
@@ -86,33 +86,23 @@ describe('camera exposure calculations', () => {
 
     describe('boundary and edge cases', () => {
       it('should handle wide apertures (f/1.4)', () => {
-        const ev = calculateEV(1.4, 1 / 1000, 100);
-        expect(ev).toBeGreaterThan(0);
-        expect(Number.isFinite(ev)).toBe(true);
+        expect(calculateEV(1.4, 1 / 1000, 100)).toBeCloseTo(10.9366, 4);
       });
 
       it('should handle narrow apertures (f/64)', () => {
-        const ev = calculateEV(64, 1, 100);
-        expect(ev).toBeGreaterThan(0);
-        expect(Number.isFinite(ev)).toBe(true);
+        expect(calculateEV(64, 1, 100)).toBeCloseTo(12, 10);
       });
 
       it('should handle very fast shutter speeds (1/8000s)', () => {
-        const ev = calculateEV(2.8, 1 / 8000, 100);
-        expect(ev).toBeGreaterThan(0);
-        expect(Number.isFinite(ev)).toBe(true);
+        expect(calculateEV(2.8, 1 / 8000, 100)).toBeCloseTo(15.9366, 4);
       });
 
       it('should handle long exposures (30s)', () => {
-        const ev = calculateEV(16, 30, 100);
-        expect(ev).toBeGreaterThan(0);
-        expect(Number.isFinite(ev)).toBe(true);
+        expect(calculateEV(16, 30, 100)).toBeCloseTo(3.0931, 4);
       });
 
       it('should handle high ISO (12800)', () => {
-        const ev = calculateEV(4, 1 / 60, 12800);
-        expect(ev).toBeGreaterThan(0);
-        expect(Number.isFinite(ev)).toBe(true);
+        expect(calculateEV(4, 1 / 60, 12800)).toBeCloseTo(2.9069, 4);
       });
 
       it('should return NaN for invalid inputs (zero aperture)', () => {
@@ -186,12 +176,9 @@ describe('camera exposure calculations', () => {
       });
 
       it('should handle extreme EV values', () => {
-        const shutterHigh = solveForShutterSpeed(20, 8, 100);
-        const shutterLow = solveForShutterSpeed(-5, 8, 100);
-        expect(Number.isFinite(shutterHigh)).toBe(true);
-        expect(Number.isFinite(shutterLow)).toBe(true);
-        expect(shutterHigh).toBeGreaterThan(0);
-        expect(shutterLow).toBeGreaterThan(0);
+        // 8^2 * 100 / (100 * 2^20) = 64 / 2^20; at EV -5 it is 64 * 2^5
+        expect(solveForShutterSpeed(20, 8, 100)).toBeCloseTo(64 / 2 ** 20, 10);
+        expect(solveForShutterSpeed(-5, 8, 100)).toBeCloseTo(2048, 6);
       });
     });
   });
@@ -200,12 +187,14 @@ describe('camera exposure calculations', () => {
     describe('solving for known scenarios', () => {
       it('should solve for f/16 when EV 15, 1/125s, ISO 100 (Sunny 16)', () => {
         const aperture = solveForAperture(15, 1 / 125, 100);
-        expect(aperture).toBeCloseTo(15.81, 0);
+        // sqrt((1/125) * 100 * 2^15 / 100) = sqrt(262.144)
+        expect(aperture).toBeCloseTo(16.19, 2);
       });
 
       it('should solve for f/5.6 when EV 12, 1/125s, ISO 100', () => {
         const aperture = solveForAperture(12, 1 / 125, 100);
-        expect(aperture).toBeCloseTo(5.54, 0);
+        // sqrt((1/125) * 100 * 2^12 / 100) = sqrt(32.768)
+        expect(aperture).toBeCloseTo(5.72, 2);
       });
 
       it('should solve for wide apertures in low light', () => {
@@ -248,12 +237,9 @@ describe('camera exposure calculations', () => {
       });
 
       it('should handle extreme EV values', () => {
-        const apertureHigh = solveForAperture(20, 1 / 125, 100);
-        const apertureLow = solveForAperture(-5, 1 / 125, 100);
-        expect(Number.isFinite(apertureHigh)).toBe(true);
-        expect(Number.isFinite(apertureLow)).toBe(true);
-        expect(apertureHigh).toBeGreaterThan(0);
-        expect(apertureLow).toBeGreaterThan(0);
+        // sqrt(2^20 / 125) and sqrt(2^-5 / 125)
+        expect(solveForAperture(20, 1 / 125, 100)).toBeCloseTo(91.5893, 4);
+        expect(solveForAperture(-5, 1 / 125, 100)).toBeCloseTo(0.015811, 6);
       });
     });
   });
@@ -309,12 +295,9 @@ describe('camera exposure calculations', () => {
       });
 
       it('should handle extreme EV values', () => {
-        const isoHigh = solveForISO(20, 8, 1 / 125);
-        const isoLow = solveForISO(-5, 8, 1 / 125);
-        expect(Number.isFinite(isoHigh)).toBe(true);
-        expect(Number.isFinite(isoLow)).toBe(true);
-        expect(isoHigh).toBeGreaterThan(0);
-        expect(isoLow).toBeGreaterThan(0);
+        // 8^2 * 100 * 125 / 2^20 and 8^2 * 100 * 125 * 2^5
+        expect(solveForISO(20, 8, 1 / 125)).toBeCloseTo(0.762939, 6);
+        expect(solveForISO(-5, 8, 1 / 125)).toBeCloseTo(25_600_000, 0);
       });
     });
   });
@@ -562,16 +545,17 @@ describe('camera exposure calculations', () => {
       });
 
       it('should mark current setting in equivalent exposures', () => {
-        const equivalents = getEquivalentExposures(13, 400, 8, 1 / 250);
+        // f/8 at 1/250s, ISO 400 is EV 12 (ISO 100); f/8 solves to 1/256s,
+        // which snaps to the 1/250 dial value the user has set.
+        const equivalents = getEquivalentExposures(12, 400, 8, 1 / 250);
 
-        // Find entry closest to current settings
-        const f8Entry = equivalents.find((e) => e.aperture === 8);
-        expect(f8Entry).toBeDefined();
-
-        if (f8Entry) {
-          // The calculated shutter speed should be close to 1/250
-          expect(f8Entry.shutterSpeed).toBeCloseTo(1 / 244, 1);
-        }
+        const current = equivalents.filter((e) => e.isCurrentSetting);
+        expect(current).toHaveLength(1);
+        expect(current[0]).toMatchObject({
+          aperture: 8,
+          shutterSpeedLabel: '1/250',
+        });
+        expect(equivalents.length).toBeGreaterThan(1);
       });
 
       it('rounds every shutter speed to a real dial value', () => {
@@ -594,39 +578,24 @@ describe('camera exposure calculations', () => {
         // Very bright scene with wide aperture would require impossibly fast shutter
         const equivalents = getEquivalentExposures(15, 100, 1.4, 1 / 8000);
 
-        // Should not include combinations requiring faster than 1/8000s
-        equivalents.forEach((e) => {
-          expect(e.shutterSpeed).toBeGreaterThan(1 / 10000);
-        });
+        // f/1.4 would need ~1/16700s, past the 1/8000s body limit (plus
+        // buffer); f/2 needs exactly 1/8192s and stays.
+        const apertures = equivalents.map((e) => e.aperture);
+        expect(apertures).not.toContain(1.4);
+        expect(apertures).not.toContain(1);
+        expect(apertures[0]).toBe(2);
       });
 
       it('should exclude extremely long exposures outside practical range', () => {
         // Very dark scene with narrow aperture would require impractically long exposure
         const equivalents = getEquivalentExposures(5, 100, 22, 30);
 
-        // Should not include combinations requiring longer than ~30s
-        equivalents.forEach((e) => {
-          expect(e.shutterSpeed).toBeLessThan(50);
-        });
-      });
-    });
-
-    describe('labels and formatting', () => {
-      it('should include formatted aperture labels', () => {
-        const equivalents = getEquivalentExposures(13, 200, 5.6, 1 / 125);
-
-        equivalents.forEach((e) => {
-          expect(e.apertureLabel).toMatch(/^f\//);
-        });
-      });
-
-      it('should include formatted shutter speed labels', () => {
-        const equivalents = getEquivalentExposures(13, 200, 5.6, 1 / 125);
-
-        equivalents.forEach((e) => {
-          expect(e.shutterSpeedLabel).toBeTruthy();
-          expect(e.shutterSpeedLabel).not.toBe('—');
-        });
+        // f/64 would need 128s, past the 30s practical limit (plus buffer);
+        // f/32 needs exactly 32s and stays.
+        const apertures = equivalents.map((e) => e.aperture);
+        expect(apertures).not.toContain(64);
+        expect(apertures).not.toContain(45);
+        expect(apertures.at(-1)).toBe(32);
       });
     });
 
@@ -641,14 +610,47 @@ describe('camera exposure calculations', () => {
         expect(equivalents).toEqual([]);
       });
 
+      const rows = (equivalents: ReturnType<typeof getEquivalentExposures>) =>
+        equivalents.map((e) => `${e.apertureLabel} ${e.shutterSpeedLabel}`);
+
       it('should handle high ISO scenarios', () => {
+        // EV 8 at ISO 3200 is EV 13 at ISO 100: f/1 needs 1/8192s
         const equivalents = getEquivalentExposures(8, 3200, 2.8, 1 / 60);
-        expect(equivalents.length).toBeGreaterThan(0);
+        expect(rows(equivalents)).toEqual([
+          'f/1 1/8000',
+          'f/1.4 1/4000',
+          'f/2 1/2000',
+          'f/2.8 1/1000',
+          'f/4 1/500',
+          'f/5.6 1/250',
+          'f/8 1/125',
+          'f/11 1/60',
+          'f/16 1/30',
+          'f/22 1/15',
+          'f/32 1/8',
+          'f/45 1/4',
+          'f/64 1/2',
+        ]);
       });
 
       it('should handle low light scenarios', () => {
+        // EV 3 at ISO 1600 is EV 7 at ISO 100: f/64 needs 32s
         const equivalents = getEquivalentExposures(3, 1600, 2, 1 / 15);
-        expect(equivalents.length).toBeGreaterThan(0);
+        expect(rows(equivalents)).toEqual([
+          'f/1 1/125',
+          'f/1.4 1/60',
+          'f/2 1/30',
+          'f/2.8 1/15',
+          'f/4 1/8',
+          'f/5.6 1/4',
+          'f/8 1/2',
+          'f/11 1"',
+          'f/16 2"',
+          'f/22 4"',
+          'f/32 8"',
+          'f/45 15"',
+          'f/64 30"',
+        ]);
       });
     });
   });
@@ -772,8 +774,9 @@ describe('camera exposure calculations', () => {
       it('should handle extreme exposure differences', () => {
         const comparison = compareExposures(1.4, 1 / 8000, 25, 64, 30, 12800);
 
+        // log2(1.96 * 100 * 8000 / 25) - log2(4096 * 100 / (30 * 12800))
         expect(comparison.isValid).toBe(true);
-        expect(Number.isFinite(comparison.stopsDifference)).toBe(true);
+        expect(comparison.stopsDifference).toBe(15.84);
       });
     });
   });

@@ -53,9 +53,7 @@ describe('ShareModal', () => {
     const onClose = vi.fn();
     render(<ShareModal {...defaultProps} onClose={onClose} />);
 
-    const backdrop = document.querySelector('[role="presentation"]');
-    if (!backdrop) throw new Error('backdrop not found');
-    fireEvent.click(backdrop);
+    fireEvent.click(screen.getByTestId('modal-backdrop'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });

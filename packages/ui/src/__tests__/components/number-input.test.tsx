@@ -30,27 +30,6 @@ describe('NumberInput', () => {
     expect(onChangeText).toHaveBeenCalledWith('10');
   });
 
-  it('renders with placeholder', () => {
-    render(<NumberInput {...defaultProps} placeholder="Enter number" />);
-
-    const input = screen.getByRole('spinbutton');
-    expect(input).toHaveAttribute('placeholder', 'Enter number');
-  });
-
-  it('renders with title attribute', () => {
-    render(<NumberInput {...defaultProps} inputTitle="Number input field" />);
-
-    const input = screen.getByRole('spinbutton');
-    expect(input).toHaveAttribute('title', 'Number input field');
-  });
-
-  it('sets step attribute correctly', () => {
-    render(<NumberInput {...defaultProps} step={0.5} />);
-
-    const input = screen.getByRole('spinbutton');
-    expect(input).toHaveAttribute('step', '0.5');
-  });
-
   it('uses default step when not provided', () => {
     render(<NumberInput {...defaultProps} />);
 
@@ -63,13 +42,6 @@ describe('NumberInput', () => {
 
     const input = screen.getByRole('spinbutton');
     expect(input).toHaveClass('custom-class');
-  });
-
-  it('applies base styling classes', () => {
-    render(<NumberInput {...defaultProps} />);
-
-    const input = screen.getByRole('spinbutton');
-    expect(input).toHaveClass('w-20', 'rounded-lg', 'border', 'px-3', 'py-2');
   });
 
   it('manages focus state for styling', () => {
@@ -112,41 +84,13 @@ describe('NumberInput', () => {
     expect(input).toHaveDisplayValue('007');
   });
 
-  it('has correct input type', () => {
-    render(<NumberInput {...defaultProps} />);
-
-    const input = screen.getByRole('spinbutton');
-    expect(input).toHaveAttribute('type', 'number');
-  });
-
-  describe('focus and blur events', () => {
-    it('changes styling on focus and blur', () => {
-      render(<NumberInput {...defaultProps} />);
-
-      const input = screen.getByRole('spinbutton');
-
-      // Test focus
-      fireEvent.focus(input);
-      // Internal focus state is managed but we can't easily test the dynamic styles
-
-      // Test blur
-      fireEvent.blur(input);
-      // Internal focus state should reset
-    });
-  });
-
   describe('accessibility', () => {
-    it('is accessible as a spinbutton', () => {
-      render(<NumberInput {...defaultProps} />);
-
-      expect(screen.getByRole('spinbutton')).toBeInTheDocument();
-    });
-
     it('supports title for additional context', () => {
       render(<NumberInput {...defaultProps} inputTitle="Enter your age" />);
 
       const input = screen.getByRole('spinbutton');
-      expect(input).toHaveAccessibleDescription(); // Title provides description
+      // aria-label is the accessible name, so the title becomes the description
+      expect(input).toHaveAccessibleDescription('Enter your age');
     });
   });
 

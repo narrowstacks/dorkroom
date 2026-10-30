@@ -38,11 +38,6 @@ export function resetCalculatorAnalytics(): void {
   reported.clear();
 }
 
-/** Exposed for tests, so they can assert what shipped without a mocked wire. */
-export function reportedCalculatorModes(): readonly string[] {
-  return Array.from(reported);
-}
-
 interface CalculatorAnalyticsOptions {
   tool: CalculatorTool;
   mode?: CalculatorMode;

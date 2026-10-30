@@ -1,100 +1,16 @@
 import { useStats } from '@dorkroom/logic';
-import { CATEGORY_LABELS, Greeting, ToolCard } from '@dorkroom/ui';
+import { Greeting, homeToolCards, ToolCard } from '@dorkroom/ui';
 import { Link } from '@tanstack/react-router';
 import {
   CalculatorIcon,
-  Camera,
   Crop,
-  Film,
   FlaskConical,
-  Focus,
-  Frame,
-  Gauge,
   GitBranch,
   HandCoins,
-  Ruler,
   ShieldCheck,
-  Timer,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { HomeHeroPreview } from './home-hero-preview';
-
-// Calculator tools configuration - module level to prevent recreation on each
-// render. Accents match each target page's tone (see plan 007).
-const CALCULATORS = [
-  {
-    category: CATEGORY_LABELS.printing,
-    title: 'Border Calculator',
-    description: 'Print borders & trim guides',
-    href: '/border',
-    icon: Crop,
-    accent: 'indigo',
-  },
-  {
-    category: CATEGORY_LABELS.printing,
-    title: 'Stops Calculator',
-    description: 'F-stop & time math',
-    href: '/stops',
-    icon: Gauge,
-    accent: 'blue',
-  },
-  {
-    category: CATEGORY_LABELS.printing,
-    title: 'Resize Calculator',
-    description: 'Scale prints, no wasting test strips',
-    href: '/resize',
-    icon: Ruler,
-    accent: 'teal',
-  },
-  {
-    category: CATEGORY_LABELS.printing,
-    title: 'Mat Cut Calculator',
-    description: 'Window openings & cut guides',
-    href: '/mat',
-    icon: Frame,
-    accent: 'cyan',
-  },
-  {
-    category: CATEGORY_LABELS.film,
-    title: 'Reciprocity',
-    description: 'Film long exposure correction',
-    href: '/reciprocity',
-    icon: Timer,
-    accent: 'amber',
-  },
-  {
-    category: CATEGORY_LABELS.film,
-    title: 'Film Development Recipes',
-    description: 'B&W film development database',
-    href: '/development',
-    icon: FlaskConical,
-    accent: 'rose',
-  },
-  {
-    category: CATEGORY_LABELS.camera,
-    title: 'Lens Equivalency',
-    description: 'Compare format lens differences',
-    href: '/lenses',
-    icon: Focus,
-    accent: 'emerald',
-  },
-  {
-    category: CATEGORY_LABELS.camera,
-    title: 'Camera Exposure',
-    description: 'Equivalent exposure calculator',
-    href: '/exposure',
-    icon: Camera,
-    accent: 'teal',
-  },
-  {
-    category: CATEGORY_LABELS.reference,
-    title: 'Film Database',
-    description: 'Browse film stocks by brand & ISO',
-    href: '/films',
-    icon: Film,
-    accent: 'cyan',
-  },
-] as const;
 
 export function HomePage() {
   const { data: stats, isPending: isStatsLoading } = useStats();
@@ -185,14 +101,14 @@ export function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr">
-          {CALCULATORS.map((tool, index) => (
+          {homeToolCards.map((tool, index) => (
             <ToolCard
               key={tool.title}
               {...tool}
               as={Link}
               href={tool.href}
               className={
-                index === CALCULATORS.length - 1
+                index === homeToolCards.length - 1
                   ? 'sm:col-span-2 lg:col-span-1'
                   : undefined
               }

@@ -3,10 +3,27 @@ import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CalculatorMode } from '../tracked-events';
 import {
-  reportedCalculatorModes,
   resetCalculatorAnalytics,
   useCalculatorAnalytics,
 } from '../use-calculator-analytics';
+
+/**
+ * `@vercel/analytics`'s `track` only forwards to `window.va`, the queue the
+ * real script installs in production. Stubbing that global lets the event
+ * travel through the real `trackEvent` -> `track` call chain, so these tests
+ * fail if the hook stops sending, not just if its bookkeeping changes.
+ */
+const va = vi.fn();
+
+/** The exact `window.va` call one `calculator_used` event produces. */
+const sent = (mode: CalculatorMode) => [
+  'event',
+  {
+    name: 'calculator_used',
+    data: { tool: 'border', mode },
+    options: undefined,
+  },
+];
 
 /**
  * The settle window exists because a calculator's first render shows its
@@ -19,10 +36,13 @@ describe('useCalculatorAnalytics', () => {
   beforeEach(() => {
     resetCalculatorAnalytics();
     vi.useFakeTimers();
+    va.mockReset();
+    window.va = va;
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    delete window.va;
   });
 
   const render = (mode: CalculatorMode, hasResult = true) =>
@@ -38,14 +58,14 @@ describe('useCalculatorAnalytics', () => {
     render('symmetric');
     settle();
 
-    expect(reportedCalculatorModes()).toEqual(['border:symmetric']);
+    expect(va.mock.calls).toEqual([sent('symmetric')]);
   });
 
   it('reports nothing until the window has passed', () => {
     render('symmetric');
     act(() => vi.advanceTimersByTime(100));
 
-    expect(reportedCalculatorModes()).toEqual([]);
+    expect(va).not.toHaveBeenCalled();
   });
 
   it('skips the default a hydrated setting replaces', () => {
@@ -55,7 +75,7 @@ describe('useCalculatorAnalytics', () => {
     rerender({ mode: 'asymmetric', hasResult: true });
     settle();
 
-    expect(reportedCalculatorModes()).toEqual(['border:asymmetric']);
+    expect(va.mock.calls).toEqual([sent('asymmetric')]);
   });
 
   it('still reports a mode the visitor switches to later', () => {
@@ -64,10 +84,7 @@ describe('useCalculatorAnalytics', () => {
     rerender({ mode: 'asymmetric', hasResult: true });
     settle();
 
-    expect(reportedCalculatorModes()).toEqual([
-      'border:symmetric',
-      'border:asymmetric',
-    ]);
+    expect(va.mock.calls).toEqual([sent('symmetric'), sent('asymmetric')]);
   });
 
   it('reports each mode once however often it is returned to', () => {
@@ -78,16 +95,13 @@ describe('useCalculatorAnalytics', () => {
     rerender({ mode: 'symmetric', hasResult: true });
     settle();
 
-    expect(reportedCalculatorModes()).toEqual([
-      'border:symmetric',
-      'border:asymmetric',
-    ]);
+    expect(va.mock.calls).toEqual([sent('symmetric'), sent('asymmetric')]);
   });
 
   it('does not count a calculator sitting without a result', () => {
     render('symmetric', false);
     settle();
 
-    expect(reportedCalculatorModes()).toEqual([]);
+    expect(va).not.toHaveBeenCalled();
   });
 });
