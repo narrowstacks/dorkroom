@@ -1,5 +1,10 @@
 import type { Developer, Film } from '@dorkroom/api';
-import type { CustomRecipe, CustomRecipeFormData } from '@dorkroom/logic';
+import {
+  type CustomRecipe,
+  type CustomRecipeFormData,
+  roundTemperature,
+  toCelsius,
+} from '@dorkroom/logic';
 import type { DevelopmentCombinationView } from '@dorkroom/ui';
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
@@ -83,7 +88,7 @@ const createMockDetailView = (
     developerId: recipe.developerId,
     developerSlug: recipe.developerId,
     temperatureF: recipe.temperatureF,
-    temperatureC: ((recipe.temperatureF - 32) * 5) / 9,
+    temperatureC: roundTemperature(toCelsius(recipe.temperatureF)),
     timeMinutes: recipe.timeMinutes,
     shootingIso: recipe.shootingIso,
     pushPull: recipe.pushPull ?? 0,

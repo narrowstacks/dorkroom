@@ -2,12 +2,10 @@
 // mapping. Pure data + pure builders (no native deps, no MMKV) so it's fully
 // unit-tested. The MMKV persistence layer lives in `presets-storage.ts`.
 import type { Combination } from '@dorkroom/api';
+import { STANDARD_TEMP_F } from '@dorkroom/logic';
 import { z } from 'zod';
 import { AGITATION_PRESETS, patternFromRecipe } from './agitation';
 import type { StageKind, TimerPreset, TimerStage } from './types';
-
-/** Standard B&W process temperature: 20 °C === 68 °F. */
-export const STANDARD_PROCESS_TEMP_F = 68;
 
 const stageKindSchema = z.enum(['dev', 'stop', 'fix', 'wash', 'custom']);
 
@@ -122,11 +120,11 @@ export const DEFAULT_BW_STAGES: TimerStage[] = [
     kind: 'dev',
     name: 'Develop',
     durationSeconds: minutes(7),
-    temperatureF: STANDARD_PROCESS_TEMP_F,
+    temperatureF: STANDARD_TEMP_F,
     agitation: 'First 30s, then 10s every minute',
     agitationPattern: { id: 'ilford', params: AGITATION_PRESETS.ilford },
   },
-  ...bwTailStages(STANDARD_PROCESS_TEMP_F),
+  ...bwTailStages(STANDARD_TEMP_F),
 ];
 
 /** The built-in default preset, always offered alongside user-saved presets. */

@@ -5,6 +5,7 @@ import type {
   CustomFilmData,
   CustomRecipeFormData,
 } from '../types/custom-recipes';
+import { roundTemperature, toFahrenheit } from './temperature';
 
 /**
  * Extracts ISO speed from a film name string.
@@ -267,21 +268,6 @@ export function createCustomDeveloperFromFilmdev(
 }
 
 /**
- * Converts temperature from Celsius to Fahrenheit with rounding to one decimal place.
- *
- * @param celsius - Temperature in Celsius
- * @returns Temperature in Fahrenheit, rounded to one decimal place
- * @example
- * ```typescript
- * const fahrenheit = celsiusToFahrenheit(20);
- * console.log(fahrenheit); // 68.0
- * ```
- */
-export function celsiusToFahrenheit(celsius: number): number {
-  return Math.round(((celsius * 9) / 5 + 32) * 10) / 10;
-}
-
-/**
  * Parses temperature from filmdev.org string format, preferring Fahrenheit.
  * Falls back to Celsius conversion if Fahrenheit is not available.
  *
@@ -310,7 +296,7 @@ export function parseTemperature(
   // Fall back to Celsius and convert
   const celsius = parseFloat(celsiusString);
   if (!Number.isNaN(celsius) && celsius > 0) {
-    return celsiusToFahrenheit(celsius);
+    return roundTemperature(toFahrenheit(celsius));
   }
 
   // Default to room temperature

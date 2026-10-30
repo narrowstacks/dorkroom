@@ -1,4 +1,4 @@
-import type { TemperatureUnit } from '../lib/temperature';
+import type { TemperatureUnit } from '@dorkroom/logic';
 import { createUnitContext } from './create-unit-context';
 
 const { Provider, useUnit } = createUnitContext<TemperatureUnit>({

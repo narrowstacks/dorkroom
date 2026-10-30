@@ -176,7 +176,7 @@ export * from './utils/preset-sharing';
 export * from './utils/recipe-sharing';
 export * from './utils/reciprocity-calculations';
 export * from './utils/resize-calculations';
-export * from './utils/temperature-formatting';
+export * from './utils/temperature';
 export * from './utils/text-sanitization';
 export * from './utils/time-formatting';
 export * from './utils/unit-conversion';

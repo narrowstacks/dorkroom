@@ -1,6 +1,7 @@
 import {
   calculatePushPull,
   type DevelopmentCombinationView,
+  formatTemperatureWithUnit,
   isFilmDevOrgUrl,
 } from '@dorkroom/logic';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
@@ -19,7 +20,6 @@ import { memo, useCallback } from 'react';
 import { useTemperature } from '../../contexts/temperature-context';
 import { useTheme } from '../../contexts/theme-context';
 import { cn } from '../../lib/cn';
-import { formatTemperatureWithUnit } from '../../lib/temperature';
 import type { ShareResult } from '../share-button';
 import { ShareButton } from '../share-button';
 import {
