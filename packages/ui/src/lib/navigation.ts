@@ -62,6 +62,10 @@ interface ToolManifestEntry {
   card?: {
     title: string;
     description: string;
+    /** Position in the home grid. It groups by category like the nav but
+     *  orders within a category differently (Stops before Resize,
+     *  Reciprocity before Development). */
+    order: number;
     /** Overrides `icon` on the card only. */
     icon?: LucideIcon;
   };
@@ -74,7 +78,7 @@ interface ToolManifestEntry {
  * ROUTE_TITLES / ROUTE_DESCRIPTIONS below stay separate: the OG image and meta
  * endpoints read them for non-tool routes too.
  */
-const TOOL_MANIFEST: readonly ToolManifestEntry[] = [
+const TOOL_LIST = [
   {
     to: '/border',
     label: 'Border',
@@ -85,6 +89,7 @@ const TOOL_MANIFEST: readonly ToolManifestEntry[] = [
     card: {
       title: 'Border Calculator',
       description: 'Print borders & trim guides',
+      order: 1,
     },
   },
   {
@@ -97,6 +102,7 @@ const TOOL_MANIFEST: readonly ToolManifestEntry[] = [
     card: {
       title: 'Resize Calculator',
       description: 'Scale prints, no wasting test strips',
+      order: 3,
     },
   },
   {
@@ -106,7 +112,11 @@ const TOOL_MANIFEST: readonly ToolManifestEntry[] = [
     icon: Gauge,
     category: 'printing',
     accent: 'blue',
-    card: { title: 'Stops Calculator', description: 'F-stop & time math' },
+    card: {
+      title: 'Stops Calculator',
+      description: 'F-stop & time math',
+      order: 2,
+    },
   },
   {
     to: '/mat',
@@ -118,6 +128,7 @@ const TOOL_MANIFEST: readonly ToolManifestEntry[] = [
     card: {
       title: 'Mat Cut Calculator',
       description: 'Window openings & cut guides',
+      order: 4,
     },
   },
   {
@@ -131,6 +142,7 @@ const TOOL_MANIFEST: readonly ToolManifestEntry[] = [
     card: {
       title: 'Film Development Recipes',
       description: 'B&W film development database',
+      order: 6,
     },
   },
   {
@@ -143,6 +155,7 @@ const TOOL_MANIFEST: readonly ToolManifestEntry[] = [
     card: {
       title: 'Reciprocity',
       description: 'Film long exposure correction',
+      order: 5,
     },
   },
   {
@@ -155,6 +168,7 @@ const TOOL_MANIFEST: readonly ToolManifestEntry[] = [
     card: {
       title: 'Lens Equivalency',
       description: 'Compare format lens differences',
+      order: 7,
     },
   },
   {
@@ -167,6 +181,7 @@ const TOOL_MANIFEST: readonly ToolManifestEntry[] = [
     card: {
       title: 'Camera Exposure',
       description: 'Equivalent exposure calculator',
+      order: 8,
       icon: Camera,
     },
   },
@@ -180,6 +195,7 @@ const TOOL_MANIFEST: readonly ToolManifestEntry[] = [
     card: {
       title: 'Film Database',
       description: 'Browse film stocks by brand & ISO',
+      order: 9,
     },
   },
   {
@@ -192,7 +208,15 @@ const TOOL_MANIFEST: readonly ToolManifestEntry[] = [
     // navigation so the edge routes /docs to the docs app. See navigation-dropdown.
     reload: true,
   },
-];
+] as const satisfies readonly ToolManifestEntry[];
+
+/** A route pathname that has a tool manifest entry. */
+export type ToolRoute = (typeof TOOL_LIST)[number]['to'];
+
+// Widened for iteration: the literal union has entries without `card`,
+// `accent` or `reload`, so reading those fields needs the declared shape.
+const TOOL_MANIFEST: readonly (ToolManifestEntry & { to: ToolRoute })[] =
+  TOOL_LIST;
 
 // One wrapped icon per tool, shared by the desktop and mobile nav entries.
 const TOOL_NAV = TOOL_MANIFEST.map((tool) => ({
@@ -207,7 +231,7 @@ function navItemsIn(category: ToolCategory): NavigationItem[] {
       to: tool.to,
       icon,
       summary: tool.summary,
-      reload: tool.reload,
+      ...(tool.reload && { reload: true }),
     })
   );
 }
@@ -277,50 +301,40 @@ export function getRouteIcon(
  * Resolve a page's accent tone from the tool manifest, so the page header
  * tile matches its home card. Returns `undefined` for routes without one.
  */
-export function getRouteAccent(to: string): AccentTone | undefined {
+export function getRouteAccent(to: ToolRoute): AccentTone | undefined {
   return TOOL_MANIFEST.find((tool) => tool.to === to)?.accent;
 }
 
 export interface HomeToolCard {
-  category: string;
+  category: (typeof CATEGORY_LABELS)[ToolCategory];
   title: string;
   description: string;
-  href: string;
+  href: ToolRoute;
   icon: LucideIcon;
   accent: AccentTone;
 }
 
-// The home grid groups by category like the nav but orders within a category
-// differently (Stops before Resize, Reciprocity before Development).
-const HOME_CARD_ORDER = [
-  '/border',
-  '/stops',
-  '/resize',
-  '/mat',
-  '/reciprocity',
-  '/development',
-  '/lenses',
-  '/exposure',
-  '/films',
-];
-
-/** Home page tool cards, derived from the tool manifest. */
-export const homeToolCards: readonly HomeToolCard[] = HOME_CARD_ORDER.flatMap(
-  (to) => {
-    const tool = TOOL_MANIFEST.find((entry) => entry.to === to);
-    if (!tool?.card || !tool.accent) return [];
-    return [
-      {
-        category: CATEGORY_LABELS[tool.category],
-        title: tool.card.title,
-        description: tool.card.description,
-        href: tool.to,
-        icon: tool.card.icon ?? tool.icon,
-        accent: tool.accent,
-      },
-    ];
-  }
-);
+/** Home page tool cards, derived from the tool manifest, in `card.order`. */
+export const homeToolCards: readonly HomeToolCard[] = TOOL_MANIFEST.flatMap(
+  (tool) =>
+    tool.card && tool.accent
+      ? [
+          {
+            order: tool.card.order,
+            card: {
+              category: CATEGORY_LABELS[tool.category],
+              title: tool.card.title,
+              description: tool.card.description,
+              href: tool.to,
+              icon: tool.card.icon ?? tool.icon,
+              accent: tool.accent,
+            },
+          },
+        ]
+      : []
+)
+  .sort((a, b) => a.order - b.order)
+  .map(({ card }) => card);
 
 /**
  * Page copy keyed by route pathname. The root route and the OG image/meta
@@ -431,6 +445,6 @@ export const mobileNavItems: MobileNavItem[] = [
     icon,
     type: 'route',
     category: tool.category,
-    reload: tool.reload,
+    ...(tool.reload && { reload: true }),
   })),
 ];

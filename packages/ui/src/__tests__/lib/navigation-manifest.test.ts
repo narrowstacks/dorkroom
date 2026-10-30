@@ -10,6 +10,7 @@ import {
   mobileNavItems,
   navigationCategories,
   navItems,
+  type ToolRoute,
 } from '../../lib/navigation';
 
 // Pins the web navigation exactly as it renders today (#455), so deriving the
@@ -294,9 +295,7 @@ describe('tool manifest derivations', () => {
       '/exposure',
       '/films',
       '/docs',
-      '/',
-      '/settings',
-    ];
+    ] as const satisfies readonly ToolRoute[];
     expect(
       Object.fromEntries(routes.map((r) => [r, getRouteAccent(r)]))
     ).toEqual({
@@ -310,8 +309,6 @@ describe('tool manifest derivations', () => {
       '/exposure': 'teal',
       '/films': 'cyan',
       '/docs': undefined,
-      '/': undefined,
-      '/settings': undefined,
     });
   });
 

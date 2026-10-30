@@ -138,6 +138,7 @@ export type {
   MobileNavItem,
   NavigationCategory,
   ToolCategory,
+  ToolRoute,
 } from './lib/navigation';
 export {
   allNavItems,
