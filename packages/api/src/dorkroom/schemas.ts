@@ -88,30 +88,6 @@ export const rawCombinationSchema = z.object({
 });
 
 /**
- * Schema for films API response.
- */
-export const filmsResponseSchema = z.object({
-  data: z.array(rawFilmSchema),
-  count: z.number().optional(),
-});
-
-/**
- * Schema for developers API response.
- */
-export const developersResponseSchema = z.object({
-  data: z.array(rawDeveloperSchema),
-  count: z.number().optional(),
-});
-
-/**
- * Schema for combinations API response.
- */
-export const combinationsResponseSchema = z.object({
-  data: z.array(rawCombinationSchema),
-  count: z.number().optional(),
-});
-
-/**
  * Schema for stats API response.
  */
 export const statsSchema = z.object({
@@ -124,10 +100,3 @@ export const statsSchema = z.object({
 export type RawFilmFromSchema = z.infer<typeof rawFilmSchema>;
 export type RawDeveloperFromSchema = z.infer<typeof rawDeveloperSchema>;
 export type RawCombinationFromSchema = z.infer<typeof rawCombinationSchema>;
-export type FilmsResponseFromSchema = z.infer<typeof filmsResponseSchema>;
-export type DevelopersResponseFromSchema = z.infer<
-  typeof developersResponseSchema
->;
-export type CombinationsResponseFromSchema = z.infer<
-  typeof combinationsResponseSchema
->;

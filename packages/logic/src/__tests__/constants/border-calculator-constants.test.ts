@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   ASPECT_RATIO_MAP,
   ASPECT_RATIOS,
-  BORDER_SLIDER_LABELS,
   DEFAULT_BORDER_PRESETS,
   EASEL_SIZE_MAP,
   EASEL_SIZES,
@@ -244,17 +243,6 @@ describe('Border Calculator Constants', () => {
       const steps =
         (SLIDER_MAX_BORDER - SLIDER_MIN_BORDER) / SLIDER_STEP_BORDER;
       expect(steps).toBe(Math.floor(steps)); // should be whole number
-    });
-
-    it('should have slider labels at key positions', () => {
-      // BORDER_SLIDER_LABELS is an array like ['0', '1.5', '3', '4.5', '6']
-      expect(Array.isArray(BORDER_SLIDER_LABELS)).toBe(true);
-      expect(BORDER_SLIDER_LABELS.length).toBeGreaterThan(0);
-
-      // Should include min and max values
-      const labels = BORDER_SLIDER_LABELS.map((l) => parseFloat(l));
-      expect(Math.min(...labels)).toBe(SLIDER_MIN_BORDER);
-      expect(Math.max(...labels)).toBe(SLIDER_MAX_BORDER);
     });
   });
 
