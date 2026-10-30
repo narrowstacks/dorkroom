@@ -395,6 +395,13 @@ describe('getDilutionLabel', () => {
       getDilutionLabel({ id: 6, name: ' ', dilution: '', ratio: ' ' })
     ).toBeNull();
   });
+
+  it('skips non-string fields instead of throwing', () => {
+    expect(getDilutionLabel({ id: 7, name: 25, dilution: '1+4' })).toBe('1+4');
+    expect(
+      getDilutionLabel({ id: 8, name: null, dilution: { v: 1 }, ratio: 1 })
+    ).toBeNull();
+  });
 });
 
 describe('lookupCombination', () => {

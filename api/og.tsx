@@ -76,20 +76,34 @@ interface FilmInfo {
   static_image_url?: string | null;
 }
 
+/**
+ * The `/api/developers` response is cast, not validated, so the label fields
+ * are typed `unknown`: a row could carry a number or null where a string is
+ * expected.
+ */
 interface DilutionInfo {
   id: string | number;
-  name?: string;
-  dilution?: string;
-  ratio?: string;
+  name?: unknown;
+  dilution?: unknown;
+  ratio?: unknown;
+}
+
+function isLabelString(value: unknown): value is string {
+  return typeof value === 'string';
 }
 
 /**
  * Same fallback chain as the API client's transformDeveloper: a dilution may
  * omit `name`, and some entries carry `ratio` instead of `dilution`. Each field
- * is trimmed so a whitespace-only value falls through to the next one.
+ * is trimmed so a whitespace-only value falls through to the next one, and a
+ * non-string value is skipped rather than throwing.
  */
 export function getDilutionLabel(dil: DilutionInfo): string | null {
-  return dil.name?.trim() || dil.dilution?.trim() || dil.ratio?.trim() || null;
+  for (const value of [dil.name, dil.dilution, dil.ratio]) {
+    const label = isLabelString(value) ? value.trim() : '';
+    if (label) return label;
+  }
+  return null;
 }
 
 interface DeveloperInfo {
