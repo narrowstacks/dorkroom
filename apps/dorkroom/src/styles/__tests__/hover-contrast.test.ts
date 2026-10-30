@@ -377,11 +377,11 @@ function utilityColor(theme: string, utility: string): Rgba {
   const match = /^(bg|text|border)-([\w-]+?)(?:\/(\d+))?$/.exec(utility);
   if (match === null) throw new Error(`cannot read utility ${utility}`);
   const [, kind, name, percent] = match;
-  const namespace = {
-    bg: 'background-color',
-    text: 'text-color',
-    border: 'border-color',
-  }[kind as 'bg' | 'text' | 'border'];
+  const namespace = new Map([
+    ['bg', 'background-color'],
+    ['text', 'text-color'],
+    ['border', 'border-color'],
+  ]).get(kind);
   const variable = [`--${namespace}-${name}`, `--color-${name}`].find(
     (candidate) => INLINE_THEME.has(candidate)
   );
