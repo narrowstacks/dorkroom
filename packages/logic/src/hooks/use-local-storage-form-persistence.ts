@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { z } from 'zod';
+import { removeSupersededStorageKeys } from '../services/local-storage';
 import { debugWarn } from '../utils/debug-logger';
 import { isBrowser } from '../utils/environment';
 
@@ -179,6 +180,8 @@ export function useLocalStorageFormPersistence<T extends object>(
         isHydratedRef.current = true;
         return;
       }
+
+      removeSupersededStorageKeys(storageKey);
 
       const snapshot = persistedSnapshotSchema.safeParse(JSON.parse(raw));
       if (!snapshot.success) {

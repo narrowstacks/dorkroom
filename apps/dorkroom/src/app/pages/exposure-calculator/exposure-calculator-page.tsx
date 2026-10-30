@@ -9,7 +9,7 @@ import {
   roundToStandardPrecision,
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
-import { getRouteIcon, ResultRow } from '@dorkroom/ui';
+import { getRouteAccent, getRouteIcon, ResultRow } from '@dorkroom/ui';
 import {
   CalculatorCard,
   CalculatorLayout,
@@ -250,7 +250,7 @@ export default function ExposureCalculatorPage() {
       <CalculatorLayout
         title="Exposure Stop Calculator"
         icon={getRouteIcon('/stops')}
-        accentTone="blue"
+        accentTone={getRouteAccent('/stops')}
         onReset={resetToDefaults}
         description={
           <>

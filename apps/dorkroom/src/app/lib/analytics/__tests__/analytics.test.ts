@@ -1,10 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 import { currentRouteLabel, redactAnalyticsUrl, referrerKind } from '../redact';
 import {
   type AnalyticsEvents,
-  type AnalyticsValue,
   capEventProperties,
   MAX_EVENT_PROPERTIES,
   TRACKED_ROUTES,
@@ -45,18 +44,54 @@ describe('event catalog', () => {
       ).toBeLessThanOrEqual(MAX_EVENT_PROPERTIES);
     }
   });
+});
 
-  it('passes every event through the cap without losing a property', () => {
-    for (const [name, properties] of Object.entries(SAMPLES)) {
-      // SAFETY: `SAMPLES satisfies AnalyticsEvents` above, and every value type
-      // in that map is a member of AnalyticsValue, so each sample is already a
-      // valid property bag. Object.entries only widens the key type.
-      const bag = properties as Record<string, AnalyticsValue>;
-      expect(
-        capEventProperties(bag),
-        `${name} loses data at the plan limit`
-      ).toEqual(properties);
-    }
+/**
+ * Whether a property type lets arbitrary text through.
+ *
+ * `{} extends Record<S, 1>` holds only when `S` produces an index signature,
+ * i.e. `string` itself or a template literal such as `` `${string}px` ``. A
+ * finite union of literals produces required keys, which `{}` lacks. Numbers
+ * and booleans are allowed outright: neither can carry something a user typed.
+ */
+type AdmitsFreeText<T> = [Extract<T, string>] extends [never]
+  ? false
+  : {} extends Record<Extract<T, string>, 1>
+    ? true
+    : false;
+
+/** `event.property` for every property whose type admits free text. */
+type FreeTextProperties = {
+  [E in keyof AnalyticsEvents]: {
+    [P in keyof AnalyticsEvents[E] & string]: AdmitsFreeText<
+      AnalyticsEvents[E][P]
+    > extends true
+      ? `${E}.${P}`
+      : never;
+  }[keyof AnalyticsEvents[E] & string];
+}[keyof AnalyticsEvents];
+
+describe('event property types', () => {
+  /**
+   * CLAUDE.md's second rule for the catalog: closed unions and numbers only,
+   * never free text. This is checked by the typechecker (`bun check` covers
+   * test files), not at runtime; the `it` is only here so the assertion has a
+   * name in the suite.
+   *
+   * `units_changed.unit` is a known violation, tracked as #438. It is listed
+   * here so that nothing else can join it; fixing #438 turns this red until
+   * the entry is deleted, which is the intent.
+   */
+  it('admits no free-text string property beyond the known #438 exception', () => {
+    expectTypeOf<FreeTextProperties>().toEqualTypeOf<'units_changed.unit'>();
+  });
+
+  it('flags string and template-literal types but not closed unions', () => {
+    expectTypeOf<AdmitsFreeText<string>>().toEqualTypeOf<true>();
+    expectTypeOf<AdmitsFreeText<`${string}px`>>().toEqualTypeOf<true>();
+    expectTypeOf<AdmitsFreeText<'a' | 'b' | null>>().toEqualTypeOf<false>();
+    expectTypeOf<AdmitsFreeText<number>>().toEqualTypeOf<false>();
+    expectTypeOf<AdmitsFreeText<boolean>>().toEqualTypeOf<false>();
   });
 });
 

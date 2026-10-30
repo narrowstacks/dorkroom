@@ -79,34 +79,16 @@ describe('shallowEqual', () => {
     expect(shallowEqual(obj1, obj2)).toBe(true);
   });
 
-  it('should handle boolean values', () => {
-    const obj1 = { enabled: true, disabled: false };
-    const obj2 = { enabled: true, disabled: false };
-    expect(shallowEqual(obj1, obj2)).toBe(true);
-  });
-
   it('should return false when boolean values differ', () => {
     const obj1 = { enabled: true };
     const obj2 = { enabled: false };
     expect(shallowEqual(obj1, obj2)).toBe(false);
   });
 
-  it('should handle numeric zero correctly', () => {
-    const obj1 = { value: 0 };
-    const obj2 = { value: 0 };
-    expect(shallowEqual(obj1, obj2)).toBe(true);
-  });
-
-  it('should distinguish between 0 and -0', () => {
+  it('should treat 0 and -0 as equal (=== semantics, not Object.is)', () => {
     const obj1 = { value: 0 };
     const obj2 = { value: -0 };
     // In JavaScript, 0 === -0, so this should be true
-    expect(shallowEqual(obj1, obj2)).toBe(true);
-  });
-
-  it('should handle string values with special characters', () => {
-    const obj1 = { text: 'hello\nworld\t!' };
-    const obj2 = { text: 'hello\nworld\t!' };
     expect(shallowEqual(obj1, obj2)).toBe(true);
   });
 

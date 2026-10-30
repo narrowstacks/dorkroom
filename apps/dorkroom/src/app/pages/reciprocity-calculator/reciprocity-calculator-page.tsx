@@ -13,6 +13,7 @@ import {
   useLocalStorageFormPersistence,
 } from '@dorkroom/logic';
 import {
+  getRouteAccent,
   getRouteIcon,
   ReciprocityChart,
   ResultRow,
@@ -537,7 +538,7 @@ export default function ReciprocityCalculatorPage() {
       <CalculatorLayout
         title="Reciprocity Failure Calculator"
         icon={getRouteIcon('/reciprocity')}
-        accentTone="amber"
+        accentTone={getRouteAccent('/reciprocity')}
         onReset={resetToDefaults}
         description={
           <>

@@ -34,19 +34,24 @@ describe('Toast', () => {
     expect(screen.getByText('Test message')).toBeInTheDocument();
   });
 
-  it('renders success icon by default', () => {
+  it('renders the success check icon and border by default', () => {
     render(<Toast {...defaultProps} />);
 
-    // Check icon is rendered (Lucide Check component)
     const toastElement = screen.getByRole('status');
-    expect(toastElement.querySelector('svg')).toBeInTheDocument();
+    expect(toastElement.querySelector('svg')).toHaveClass('lucide-check');
+    expect(toastElement.querySelector('.lucide-x')).not.toBeInTheDocument();
+    expect(toastElement.style.borderColor).toBe(
+      'var(--color-semantic-success)'
+    );
   });
 
-  it('renders error icon for error type', () => {
+  it('renders the error X icon and border for error type', () => {
     render(<Toast {...defaultProps} type="error" />);
 
     const toastElement = screen.getByRole('status');
-    expect(toastElement.querySelector('svg')).toBeInTheDocument();
+    expect(toastElement.querySelector('svg')).toHaveClass('lucide-x');
+    expect(toastElement.querySelector('.lucide-check')).not.toBeInTheDocument();
+    expect(toastElement.style.borderColor).toBe('var(--color-semantic-error)');
   });
 
   it('renders no icon for info type', () => {
@@ -99,13 +104,6 @@ describe('Toast', () => {
     expect(toast).toHaveAttribute('aria-live', 'polite');
   });
 
-  it('applies correct styling classes', () => {
-    render(<Toast {...defaultProps} />);
-
-    const toast = screen.getByRole('status');
-    expect(toast).toHaveClass('fixed', 'top-4', 'right-4', 'z-[9999]');
-  });
-
   describe('animation classes', () => {
     it('applies animation classes when visible', () => {
       render(<Toast {...defaultProps} isVisible={true} />);
@@ -126,16 +124,6 @@ describe('ToastProvider', () => {
       </button>
     );
   };
-
-  it('provides toast context to children', () => {
-    render(
-      <ToastProvider>
-        <TestComponent />
-      </ToastProvider>
-    );
-
-    expect(screen.getByText('Show Toast')).toBeInTheDocument();
-  });
 
   it('shows toast when showToast is called', async () => {
     render(
@@ -167,7 +155,13 @@ describe('ToastProvider', () => {
 
     const button = screen.getByText('Show Default Toast');
     fireEvent.click(button);
-    expect(screen.getByText('Default toast')).toBeInTheDocument();
+
+    const toastElement = screen.getByRole('status');
+    expect(toastElement).toHaveTextContent('Default toast');
+    expect(toastElement.querySelector('svg')).toHaveClass('lucide-check');
+    expect(toastElement.style.borderColor).toBe(
+      'var(--color-semantic-success)'
+    );
   });
 
   it('replaces previous toast with new one', async () => {

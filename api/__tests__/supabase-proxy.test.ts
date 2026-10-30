@@ -167,6 +167,22 @@ describe.each([
       expect(res._json).toMatchObject({ error: 'Invalid request parameter' });
     });
 
+    it('should send an AbortSignal.timeout signal and rethrow a TimeoutError', async () => {
+      const timeoutSpy = vi.spyOn(AbortSignal, 'timeout');
+      const fetchMock = vi
+        .fn()
+        .mockRejectedValue(new DOMException('timed out', 'TimeoutError'));
+      globalThis.fetch = fetchMock;
+
+      const res = createMockResponse();
+      await expect(
+        handler(createMockRequest(), res, createContext())
+      ).rejects.toMatchObject({ name: 'TimeoutError' });
+      expect(timeoutSpy).toHaveBeenCalledWith(30_000);
+      expect(fetchMock.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
+      timeoutSpy.mockRestore();
+    });
+
     it('should rethrow a body read abort instead of falling back', async () => {
       const upstream = createUpstreamResponse('{}', { status: 400 });
       vi.spyOn(upstream, 'text').mockRejectedValue(

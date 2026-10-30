@@ -1,4 +1,5 @@
 import { X } from 'lucide-react';
+import { useId } from 'react';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '../hooks/use-body-scroll-lock';
 import { useEscapeKey } from '../hooks/use-escape-key';
@@ -26,6 +27,19 @@ interface ModalProps {
   footer?: React.ReactNode;
   /** Whether to hide the X close button in the header */
   hideCloseButton?: boolean;
+  /**
+   * Id of an element inside `children` that names the dialog. Use it when the
+   * dialog renders its own heading instead of passing `title`. Ignored when
+   * `title` is set, since the built-in heading names the dialog then.
+   */
+  ariaLabelledBy?: string;
+  /**
+   * Extra classes for the dialog panel, merged over the defaults (width,
+   * padding). For dialogs that lay out their own sections edge to edge.
+   */
+  className?: string;
+  /** Extra classes for the scrolling body that wraps `children`. */
+  bodyClassName?: string;
 }
 
 const SIZE_CLASSES = {
@@ -59,9 +73,13 @@ export function Modal({
   size = 'md',
   footer,
   hideCloseButton,
+  ariaLabelledBy,
+  className,
+  bodyClassName,
 }: ModalProps) {
   useBodyScrollLock(isOpen);
   useEscapeKey(isOpen, onClose);
+  const titleId = useId();
 
   if (!hasGlobal('document') || !isOpen) {
     return null;
@@ -87,10 +105,11 @@ export function Modal({
       <dialog
         open
         aria-modal="true"
-        aria-label={title}
+        aria-labelledby={title ? titleId : ariaLabelledBy}
         className={cn(
           'relative z-10 m-0 max-h-none w-full rounded-2xl border p-6 shadow-xl backdrop-blur-lg animate-scale-fade-in',
-          SIZE_CLASSES[size]
+          SIZE_CLASSES[size],
+          className
         )}
         style={{
           borderColor: 'var(--color-border-secondary)',
@@ -111,6 +130,7 @@ export function Modal({
         {title && (
           <div className="mb-4 pr-10">
             <h2
+              id={titleId}
               className="text-lg font-semibold"
               style={{ color: 'var(--color-text-primary)' }}
             >
@@ -119,7 +139,10 @@ export function Modal({
           </div>
         )}
         <div
-          className="max-h-[calc(100dvh-12rem)] space-y-4 overflow-y-auto text-sm"
+          className={cn(
+            'max-h-[calc(100dvh-12rem)] space-y-4 overflow-y-auto text-sm',
+            bodyClassName
+          )}
           style={{ color: 'var(--color-text-secondary)' }}
         >
           {children}

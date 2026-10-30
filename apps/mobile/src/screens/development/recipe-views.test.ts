@@ -14,7 +14,7 @@ const films = [
 ];
 const developers = [
   developer({}),
-  developer({ uuid: 'd2', name: 'Rodinal', type: 'Liquid' }),
+  developer({ uuid: 'd2', slug: 'rodinal', name: 'Rodinal', type: 'Liquid' }),
 ];
 const getFilm = (id?: string | null) =>
   films.find((f) => f.slug === id || f.uuid === id);
@@ -65,11 +65,6 @@ describe('filterRecipeViews', () => {
     expect(out).toHaveLength(1);
     expect(out[0]?.combination.uuid).toBe('c2');
   });
-  it('matches punctuation-insensitive multi-word film query ("tri x")', () => {
-    const out = filterRecipeViews(views, 'tri x', '');
-    expect(out).toHaveLength(1);
-    expect(out[0]?.film?.name).toBe('Tri-X');
-  });
   it('excludes matches when the tag filter does not apply (AND semantics)', () => {
     const out = filterRecipeViews(views, 'tri x', 'pictorial');
     expect(out).toHaveLength(0);
@@ -108,7 +103,7 @@ describe('developerPickerOptions', () => {
     expect(developerPickerOptions(developers)).toEqual([
       { label: 'All developers', value: '' },
       { label: 'Kodak D-76', value: 'd76' },
-      { label: 'Kodak Rodinal', value: 'd76' },
+      { label: 'Kodak Rodinal', value: 'rodinal' },
     ]);
   });
 

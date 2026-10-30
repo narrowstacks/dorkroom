@@ -4,6 +4,7 @@ import {
   useLensCalculator,
 } from '@dorkroom/logic';
 import {
+  getRouteAccent,
   getRouteIcon,
   ResultRow,
   Select,
@@ -118,7 +119,7 @@ export default function LensCalculatorPage() {
       <CalculatorPageHeader
         eyebrow="Format Comparison"
         icon={getRouteIcon('/lenses')}
-        accentTone="emerald"
+        accentTone={getRouteAccent('/lenses')}
         title="Lens Equivalency Calculator"
         onReset={reset}
         description="Calculate equivalent focal lengths between different sensor and film formats. Find out what lens gives you the same field of view when switching between cameras or formats."

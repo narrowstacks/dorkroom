@@ -1,6 +1,6 @@
 /**
  * Capture the homepage screenshot used in README.md (written as WebP).
- * Usage: SCREENSHOT_URL=http://localhost:4300/ bun run scripts/screenshot-homepage.ts
+ * Usage: SCREENSHOT_URL=http://localhost:<port>/ bun run scripts/screenshot-homepage.ts
  * Requires a running server (vite preview or dev) at SCREENSHOT_URL.
  */
 import { mkdir } from 'node:fs/promises';
@@ -13,7 +13,12 @@ const HEIGHT = 918;
 // WebP quality 90 keeps UI text and gradients crisp while cutting the file to
 // roughly a tenth of the equivalent PNG.
 const WEBP_QUALITY = 90;
-const url = process.env.SCREENSHOT_URL ?? 'http://localhost:4300/';
+const url = process.env.SCREENSHOT_URL;
+if (!url) {
+  throw new Error(
+    'SCREENSHOT_URL is not set. Point it at the running server, e.g. the "Local:" URL Vite prints.'
+  );
+}
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const outPath = join(root, 'resources', 'dorkroom-homepage.webp');

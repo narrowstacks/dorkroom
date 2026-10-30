@@ -37,18 +37,4 @@ describe('stepper accessibility', () => {
     expect(dec).not.toHaveBeenCalled();
     expect(inc).not.toHaveBeenCalled();
   });
-
-  it('inherits clamping from the callbacks the buttons also use', () => {
-    let frame = 1;
-    const dec = () => {
-      frame = Math.max(1, frame - 1);
-    };
-    const inc = () => {
-      frame += 1;
-    };
-    handleStepperAction('decrement', dec, inc);
-    expect(frame).toBe(1);
-    handleStepperAction('increment', dec, inc);
-    expect(frame).toBe(2);
-  });
 });

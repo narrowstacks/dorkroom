@@ -1,5 +1,4 @@
 {
-  "nxConsole.generateAiAgentRules": true,
   "cSpell.words": [
     "agplv",
     "behaviour",
@@ -18,7 +17,6 @@
     "waldzellai",
     "OLED"
   ],
-  "nxConsole.nxWorkspacePath": "",
   "npm.autoDetect": "off",
   "npm.packageManager": "bun",
   "editor.defaultFormatter": "esbenp.prettier-vscode",

@@ -71,3 +71,26 @@ describe('useLocalStorageFormPersistence resetToDefaults', () => {
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
 });
+
+describe('useLocalStorageFormPersistence superseded keys', () => {
+  it('purges the superseded key when the current key hydrates', () => {
+    window.localStorage.clear();
+    window.localStorage.setItem('borderCalculatorState_v1', '{}');
+    window.localStorage.setItem(
+      'borderCalculatorState_v2',
+      JSON.stringify({ time: 5, label: 'kept' })
+    );
+    renderHook(() => {
+      const [values, setValues] = useState<State>(DEFAULTS);
+      return useLocalStorageFormPersistence({
+        storageKey: 'borderCalculatorState_v2',
+        form: {
+          setFieldValue: (key: keyof State, value: State[keyof State]) =>
+            setValues((prev) => ({ ...prev, [key]: value })),
+        },
+        formValues: values,
+      });
+    });
+    expect(window.localStorage.getItem('borderCalculatorState_v1')).toBeNull();
+  });
+});

@@ -27,7 +27,10 @@ export interface ResponsiveModalProps {
    * Pass this when you already have mobile state from parent to avoid extra hook calls.
    */
   isMobile?: boolean;
-  /** Optional footer content displayed at the bottom of the modal/drawer */
+  /**
+   * Optional footer content displayed at the bottom of the modal/drawer. On
+   * mobile it is pinned below the scrolling drawer body.
+   */
   footer?: ReactNode;
   /** Custom max-height for mobile drawer (defaults to size-based value) */
   mobileMaxHeight?: string;
@@ -137,8 +140,15 @@ export const ResponsiveModal: FC<ResponsiveModalProps> = ({
           </div>
           <DrawerBody className={cn('px-4 pb-6 pt-4', drawerBodyClassName)}>
             {children}
-            {footer && <div className="flex flex-col gap-2 pt-4">{footer}</div>}
           </DrawerBody>
+          {footer && (
+            <div
+              className="flex flex-col gap-2 border-t px-4 pb-4 pt-3"
+              style={{ borderColor: 'var(--color-border-secondary)' }}
+            >
+              {footer}
+            </div>
+          )}
         </DrawerContent>
       </Drawer>
     );
