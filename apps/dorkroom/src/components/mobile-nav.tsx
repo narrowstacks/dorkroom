@@ -1,7 +1,6 @@
-import { MobileSidebar, useBreakpoint } from '@dorkroom/ui';
+import { cn, MobileSidebar, useBreakpoint } from '@dorkroom/ui';
 import { Menu, X } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { cn } from '../app/lib/cn';
 import { usePresence } from './use-presence';
 
 interface MobileNavProps {
