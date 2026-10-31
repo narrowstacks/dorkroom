@@ -35,8 +35,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           EVENT: ${{ github.event_name }}
-          # Squash merges fold the PR title and every commit message in here.
-          MESSAGE: ${{ github.event.head_commit.message }}
+          # Every commit in the push, so a rebase merge counts a [screenshot]
+          # on any of its commits. A squash merge is one commit whose message
+          # already folds in the PR title and each original commit message.
+          MESSAGE: ${{ toJSON(github.event.commits.*.message) }}
         run: |
           run=false
           if [ "$EVENT" = "workflow_dispatch" ]; then
