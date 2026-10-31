@@ -12,6 +12,7 @@ import { decodeImageFile, releaseCanvas } from './decode-image';
 import {
   createInversionRenderer,
   type InversionRenderer,
+  type RendererOptions,
 } from './inversion-renderer';
 
 export type ExportFormat = 'jpeg' | 'png';
@@ -37,6 +38,12 @@ export interface ExportRequest {
   limits?: ExportLimits;
   /** Called after each tile with the fraction done, 0..1. */
   onProgress?: (fraction: number) => void;
+  /** Stops the export between steps and frees its memory, for example when
+   *  the user loads another photo. The promise then rejects with an
+   *  `AbortError`. */
+  signal?: AbortSignal;
+  /** Renderer factory; tests swap it to simulate a lost GPU context. */
+  createRenderer?: (options: RendererOptions) => InversionRenderer | null;
 }
 
 export interface ExportResult {
@@ -48,6 +55,12 @@ const MIME = {
   jpeg: 'image/jpeg',
   png: 'image/png',
 } satisfies Record<ExportFormat, string>;
+
+function checkAborted(signal: AbortSignal | undefined) {
+  if (signal?.aborted) {
+    throw new DOMException('The export was cancelled.', 'AbortError');
+  }
+}
 
 /** Yield to the event loop so the page can paint progress between tiles. */
 function nextTask(): Promise<void> {
@@ -90,7 +103,10 @@ export async function exportPositive({
   format,
   limits = DEFAULT_EXPORT_LIMITS,
   onProgress,
+  signal,
+  createRenderer = createInversionRenderer,
 }: ExportRequest): Promise<ExportResult> {
+  checkAborted(signal);
   const plan = planExportSize(region, limits);
   const scale = plan.width / region.width;
 
@@ -110,6 +126,7 @@ export async function exportPositive({
           }
         : undefined
     );
+    checkAborted(signal);
     const sx = bitmap.width / original.width;
     const sy = bitmap.height / original.height;
 
@@ -133,8 +150,10 @@ export async function exportPositive({
     bitmap.close();
     bitmap = null;
 
-    renderer = createInversionRenderer({ preserveDrawingBuffer: true });
+    renderer = createRenderer({ preserveDrawingBuffer: true });
     if (!renderer) throw new Error('The browser could not create a canvas.');
+    // Tiles stay within the CPU limit too, so a lost GPU context can hand
+    // the remaining tiles to the CPU without replanning.
     const tiles = planTiles(
       plan,
       Math.min(EXPORT_TILE_SIDE, renderer.maxSourceSide)
@@ -142,15 +161,28 @@ export async function exportPositive({
     for (const [index, tile] of tiles.entries()) {
       const pixels = ctx.getImageData(tile.x, tile.y, tile.width, tile.height);
       renderer.setSource(pixels);
-      renderer.render(coefficients);
+      if (!renderer.render(coefficients)) {
+        // A lost GPU context leaves its canvas blank; copying it would leave
+        // this tile negative. Finish on the CPU instead.
+        renderer.dispose();
+        renderer = createRenderer({ forceCpu: true });
+        if (!renderer)
+          throw new Error('The browser could not create a canvas.');
+        renderer.setSource(pixels);
+        if (!renderer.render(coefficients)) {
+          throw new Error('The browser could not render the image.');
+        }
+      }
       ctx.drawImage(renderer.canvas, tile.x, tile.y);
       onProgress?.((index + 1) / tiles.length);
       await nextTask();
+      checkAborted(signal);
     }
     renderer.dispose();
     renderer = null;
 
     const blob = await canvasToBlob(output, format);
+    checkAborted(signal);
     return { blob, plan };
   } finally {
     bitmap?.close();

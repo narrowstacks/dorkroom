@@ -19,8 +19,13 @@ export interface InversionRenderer {
   readonly canvas: HTMLCanvasElement;
   /** Largest source side one pass can take. */
   readonly maxSourceSide: number;
+  /** True while the GPU context is lost; nothing can be drawn until it is
+   *  restored. Always false on the CPU backend. */
+  readonly isLost: boolean;
   setSource(pixels: ImageData): void;
-  render(coeffs: InversionCoefficients): void;
+  /** Draws the positive. Returns false when it could not (context lost), in
+   *  which case the canvas holds no usable pixels. */
+  render(coeffs: InversionCoefficients): boolean;
   /** Frees the GPU context and the canvas memory. The renderer is unusable after. */
   dispose(): void;
 }
@@ -31,6 +36,9 @@ export interface RendererOptions {
   preserveDrawingBuffer?: boolean;
   /** Skip WebGL and use the CPU path. */
   forceCpu?: boolean;
+  /** Called when the GPU context is lost (iOS drops them under memory
+   *  pressure). The renderer may or may not be restored later. */
+  onContextLost?: () => void;
 }
 
 type GlContext = WebGLRenderingContext | WebGL2RenderingContext;
@@ -158,7 +166,8 @@ function getGlContext(
 }
 
 function createGlRenderer(
-  preserveDrawingBuffer: boolean
+  preserveDrawingBuffer: boolean,
+  onContextLost: (() => void) | undefined
 ): InversionRenderer | null {
   const canvas = document.createElement('canvas');
   const context = getGlContext(canvas, preserveDrawingBuffer);
@@ -190,8 +199,8 @@ function createGlRenderer(
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
   };
 
-  const draw = (coeffs: InversionCoefficients) => {
-    if (!resources || lost) return;
+  const draw = (coeffs: InversionCoefficients): boolean => {
+    if (!resources || lost || gl.isContextLost()) return false;
     const u = inversionUniforms(coeffs);
     const loc = resources.uniforms;
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -218,12 +227,14 @@ function createGlRenderer(
     gl.uniform1f(loc.u_ditherAmount, DITHER_AMOUNT);
     gl.uniform1f(loc.u_height, canvas.height);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    return true;
   };
 
   const onLost = (event: Event) => {
     // Without preventDefault the browser never offers to restore it.
     event.preventDefault();
     lost = true;
+    onContextLost?.();
   };
   const onRestored = () => {
     lost = false;
@@ -238,6 +249,9 @@ function createGlRenderer(
     backend,
     canvas,
     maxSourceSide,
+    get isLost() {
+      return lost || gl.isContextLost();
+    },
     setSource(pixels) {
       if (pixels.width > maxSourceSide || pixels.height > maxSourceSide) {
         throw new RangeError(
@@ -249,7 +263,7 @@ function createGlRenderer(
     },
     render(coeffs) {
       lastCoeffs = coeffs;
-      draw(coeffs);
+      return draw(coeffs);
     },
     dispose() {
       canvas.removeEventListener('webglcontextlost', onLost);
@@ -279,6 +293,7 @@ function createCpuRenderer(): InversionRenderer | null {
     backend: 'cpu',
     canvas,
     maxSourceSide: CPU_MAX_SOURCE_SIDE,
+    isLost: false,
     setSource(pixels) {
       source = pixels;
       canvas.width = pixels.width;
@@ -286,9 +301,10 @@ function createCpuRenderer(): InversionRenderer | null {
       output = ctx.createImageData(pixels.width, pixels.height);
     },
     render(coeffs) {
-      if (!source || !output) return;
+      if (!source || !output) return false;
       invertPixelsDithered(source, coeffs, output.data);
       ctx.putImageData(output, 0, 0);
+      return true;
     },
     dispose() {
       source = null;
@@ -307,7 +323,10 @@ export function createInversionRenderer(
   options: RendererOptions = {}
 ): InversionRenderer | null {
   if (!options.forceCpu) {
-    const gl = createGlRenderer(options.preserveDrawingBuffer ?? false);
+    const gl = createGlRenderer(
+      options.preserveDrawingBuffer ?? false,
+      options.onContextLost
+    );
     if (gl) return gl;
   }
   return createCpuRenderer();

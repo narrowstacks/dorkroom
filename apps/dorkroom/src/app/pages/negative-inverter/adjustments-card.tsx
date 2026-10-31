@@ -11,8 +11,10 @@ interface AdjustmentsCardProps {
   hasNeutral: boolean;
   pickingNeutral: boolean;
   onAdjust: (key: keyof InversionAdjustments, value: number) => void;
-  onPickNeutral: () => void;
+  /** Opens the neutral picker, or closes it while it is open. */
+  onToggleNeutralPicker: () => void;
   onClearNeutral: () => void;
+  className?: string;
 }
 
 interface SliderSpec {
@@ -69,8 +71,9 @@ export function AdjustmentsCard({
   hasNeutral,
   pickingNeutral,
   onAdjust,
-  onPickNeutral,
+  onToggleNeutralPicker,
   onClearNeutral,
+  className,
 }: AdjustmentsCardProps) {
   if (!enabled) {
     return (
@@ -90,6 +93,7 @@ export function AdjustmentsCard({
     <CalculatorCard
       title="Adjustments"
       description="Changes apply to the preview instantly and to the download."
+      className={className}
     >
       {sliders.map((slider) => (
         <LabeledSliderInput
@@ -116,13 +120,11 @@ export function AdjustmentsCard({
               : 'Tap something that should be neutral grey (a road, a grey card, a white wall in shade) to balance the colour.'}
           </p>
           <div className="flex flex-wrap gap-2">
-            <ActionButton
-              icon={Pipette}
-              onClick={onPickNeutral}
-              disabled={pickingNeutral}
-            >
+            {/* Stays enabled while picking, so keyboard focus is never
+                dropped onto a disabled button. */}
+            <ActionButton icon={Pipette} onClick={onToggleNeutralPicker}>
               {pickingNeutral
-                ? 'Tap the photo…'
+                ? 'Cancel picking'
                 : hasNeutral
                   ? 'Pick again'
                   : 'Pick neutral grey'}

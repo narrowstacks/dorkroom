@@ -182,6 +182,39 @@ describe('NegativeInverterPage', () => {
     );
     expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
     expect(clickedDownloads).toEqual(['frame-07-positive.jpg']);
+
+    // The note describes that file only until the options change.
+    fireEvent.click(screen.getByRole('button', { name: 'PNG' }));
+    expect(screen.queryByText(/Saved at full resolution/)).toBeNull();
+    expect(
+      screen.getByText('Will save at 380 × 300 px, full resolution.')
+    ).toBeInTheDocument();
+  });
+
+  it('commits a crop drag from where the pointer is released', async () => {
+    await loadPhoto();
+    await screen.findByRole('figure', { name: 'Negative' });
+    const edge = screen.getByRole('button', { name: 'Crop right edge' });
+    // A quick flick: React never rendered a move before the release.
+    fireEvent.pointerDown(edge, { pointerId: 3, clientX: 400, clientY: 150 });
+    fireEvent.pointerUp(edge, { pointerId: 3, clientX: 300, clientY: 150 });
+    expect(screen.getByText(/Crop: 300 × 300 px/)).toBeInTheDocument();
+  });
+
+  it('cancels a running export when a new photo is chosen', async () => {
+    await loadPhoto();
+    await screen.findByRole('figure', { name: 'Negative' });
+    await pickBaseAt(10, 150);
+    fireEvent.click(screen.getByRole('button', { name: 'Download JPEG' }));
+    const photoCard = screen.getByRole('region', { name: 'frame-07.jpg' });
+    fireEvent.click(
+      within(photoCard).getByRole('button', { name: 'New photo' })
+    );
+    await new Promise((resolve) => {
+      setTimeout(resolve, 50);
+    });
+    expect(clickedDownloads).toEqual([]);
+    expect(env.toBlob).not.toHaveBeenCalled();
   });
 
   it('offers colour controls and the neutral picker for C-41', async () => {
@@ -204,6 +237,11 @@ describe('NegativeInverterPage', () => {
     const surface = screen.getByRole('button', {
       name: /should be neutral grey/,
     });
+    // Focus follows the picker to the photo, and the button can cancel it.
+    expect(surface).toHaveFocus();
+    expect(
+      screen.getByRole('button', { name: 'Cancel picking' })
+    ).toBeEnabled();
     // Keyboard picking: Enter picks at the crosshair (the centre).
     fireEvent.click(surface, { detail: 0 });
     expect(

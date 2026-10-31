@@ -17,6 +17,11 @@ import {
   JPEG_QUALITY,
 } from '../export-positive';
 import {
+  createInversionRenderer,
+  type InversionRenderer,
+  type RendererOptions,
+} from '../inversion-renderer';
+import {
   canvasPixels,
   type FakeCanvasEnvironment,
   installFakeCanvas,
@@ -237,6 +242,85 @@ describe('exportPositive', () => {
       expect(canvas.width).toBe(0);
       expect(canvas.height).toBe(0);
     }
+    for (const bitmap of env.bitmaps) expect(bitmap.close).toHaveBeenCalled();
+  });
+});
+
+describe('exportPositive interruptions', () => {
+  /** A stand-in for a WebGL renderer whose context is already lost: it
+   *  cannot draw, and its canvas is blank. */
+  function lostGpuRenderer(): InversionRenderer {
+    const canvas = document.createElement('canvas');
+    return {
+      backend: 'webgl2',
+      canvas,
+      maxSourceSide: 4096,
+      isLost: true,
+      setSource(pixels) {
+        canvas.width = pixels.width;
+        canvas.height = pixels.height;
+      },
+      render: () => false,
+      dispose: vi.fn(() => {
+        canvas.width = 0;
+        canvas.height = 0;
+      }),
+    };
+  }
+
+  it('finishes on the CPU when the GPU context is lost, never leaving it negative', async () => {
+    env = installFakeCanvas(() => syntheticNegative(120, 80));
+    const loaded = await loadNegative(photo());
+    env.toBlob.mockImplementation(function (
+      this: HTMLCanvasElement,
+      callback: (blob: Blob | null) => void,
+      type?: string
+    ) {
+      const pixels = canvasPixels(this);
+      callback(
+        new Blob([Uint8Array.from(pixels ? pixels.data : [])], { type })
+      );
+    });
+    const gpu = lostGpuRenderer();
+    const requested: RendererOptions[] = [];
+    const createRenderer = (options: RendererOptions) => {
+      requested.push(options);
+      return options.forceCpu ? createInversionRenderer(options) : gpu;
+    };
+
+    const { blob } = await exportPositive({
+      file: loaded.file,
+      original: loaded.original,
+      region: { x: 0, y: 0, width: 120, height: 80 },
+      coefficients: coefficientsFor(loaded.proxy),
+      format: 'png',
+      createRenderer,
+    });
+
+    expect(requested.at(-1)).toMatchObject({ forceCpu: true });
+    expect(gpu.dispose).toHaveBeenCalled();
+    const pixels = new Uint8Array(await blob.arrayBuffer());
+    const at = (x: number, y: number) => pixels[(y * 120 + x) * 4 + 1];
+    // Inverted: the clear base is black, not the bright negative.
+    expect(at(2, 40)).toBeLessThan(16);
+    expect(at(118, 40)).toBeGreaterThan(235);
+  });
+
+  it('stops and frees everything when aborted', async () => {
+    env = installFakeCanvas(() => syntheticNegative(64, 48));
+    const loaded = await loadNegative(photo());
+    const controller = new AbortController();
+    const exporting = exportPositive({
+      file: loaded.file,
+      original: loaded.original,
+      region: { x: 0, y: 0, width: 64, height: 48 },
+      coefficients: coefficientsFor(loaded.proxy),
+      format: 'jpeg',
+      signal: controller.signal,
+      onProgress: () => controller.abort(),
+    });
+    await expect(exporting).rejects.toMatchObject({ name: 'AbortError' });
+    expect(env.toBlob).not.toHaveBeenCalled();
     for (const bitmap of env.bitmaps) expect(bitmap.close).toHaveBeenCalled();
   });
 });

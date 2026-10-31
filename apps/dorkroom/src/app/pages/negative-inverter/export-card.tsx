@@ -9,7 +9,7 @@ import {
 import { StatusAlert } from '@dorkroom/ui';
 import { CalculatorCard } from '@dorkroom/ui/calculator';
 import { Download } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActionButton, SegmentedControl } from './controls';
 import type { LoadedNegative } from './decode-image';
 import { describeExport, describePlannedExport } from './export-notes';
@@ -26,11 +26,41 @@ interface ExportCardProps {
   coefficients: InversionCoefficients | null;
 }
 
+/** What an export was run with, so its outcome is shown only while the
+ *  options still match. */
+interface ExportInputs {
+  region: PixelRect;
+  format: ExportFormat;
+  coefficients: InversionCoefficients;
+}
+
 type ExportStatus =
   | { phase: 'idle' }
   | { phase: 'working'; progress: number }
-  | { phase: 'done'; plan: ExportPlan; cropped: boolean }
-  | { phase: 'failed' };
+  | {
+      phase: 'done';
+      plan: ExportPlan;
+      cropped: boolean;
+      inputs: ExportInputs;
+    }
+  | { phase: 'failed'; inputs: ExportInputs };
+
+const sameRect = (a: PixelRect, b: PixelRect) =>
+  a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+
+function matchesInputs(
+  inputs: ExportInputs,
+  region: PixelRect | null,
+  format: ExportFormat,
+  coefficients: InversionCoefficients | null
+): boolean {
+  return (
+    region !== null &&
+    sameRect(inputs.region, region) &&
+    inputs.format === format &&
+    inputs.coefficients === coefficients
+  );
+}
 
 const FORMAT_OPTIONS = [
   { value: 'jpeg', label: 'JPEG' },
@@ -40,7 +70,17 @@ const FORMAT_OPTIONS = [
 export function ExportCard({ negative, crop, coefficients }: ExportCardProps) {
   const [format, setFormat] = useState<ExportFormat>('jpeg');
   const [cropOnly, setCropOnly] = useState(true);
-  const [status, setStatus] = useState<ExportStatus>({ phase: 'idle' });
+  const [exportStatus, setStatus] = useState<ExportStatus>({ phase: 'idle' });
+  const abortRef = useRef<AbortController | null>(null);
+
+  // The card remounts for each new photo; stop a running export so it does
+  // not download the old photo or overlap the new photo's decode.
+  useEffect(
+    () => () => {
+      abortRef.current?.abort();
+    },
+    []
+  );
 
   const hasCrop = !!negative && !!crop && !isFullCrop(crop, negative.proxy);
   const cropped = hasCrop && cropOnly;
@@ -50,10 +90,20 @@ export function ExportCard({ negative, crop, coefficients }: ExportCardProps) {
       : { x: 0, y: 0, ...negative.original }
     : null;
   const planned = region ? planExportSize(region) : null;
+  // A finished or failed export describes the options it ran with; once the
+  // crop, format or adjustments change, show the plan for the next one.
+  const status: ExportStatus =
+    (exportStatus.phase === 'done' || exportStatus.phase === 'failed') &&
+    !matchesInputs(exportStatus.inputs, region, format, coefficients)
+      ? { phase: 'idle' }
+      : exportStatus;
   const working = status.phase === 'working';
 
   const onDownload = async () => {
     if (!negative || !region || !coefficients || working) return;
+    const inputs: ExportInputs = { region, format, coefficients };
+    const controller = new AbortController();
+    abortRef.current = controller;
     setStatus({ phase: 'working', progress: 0 });
     try {
       const { blob, plan } = await exportPositive({
@@ -62,12 +112,18 @@ export function ExportCard({ negative, crop, coefficients }: ExportCardProps) {
         region,
         coefficients,
         format,
+        signal: controller.signal,
         onProgress: (progress) => setStatus({ phase: 'working', progress }),
       });
+      if (controller.signal.aborted) return;
       downloadBlob(blob, exportFileName(negative.file.name, format));
-      setStatus({ phase: 'done', plan, cropped });
+      setStatus({ phase: 'done', plan, cropped, inputs });
     } catch {
-      setStatus({ phase: 'failed' });
+      // An aborted export rejects too; the card it belonged to is gone.
+      if (controller.signal.aborted) return;
+      setStatus({ phase: 'failed', inputs });
+    } finally {
+      if (abortRef.current === controller) abortRef.current = null;
     }
   };
 

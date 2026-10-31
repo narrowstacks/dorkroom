@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { LOUPE_GAP, LOUPE_SIZE, loupeBelow } from './loupe-placement';
 
 interface PickSurfaceProps {
   image: PixelSize;
@@ -23,10 +24,11 @@ interface PickSurfaceProps {
   /** Side of the sampled patch, in image pixels; outlined in the loupe. */
   patchSize: number;
   onPick: (point: PixelPoint) => void;
+  /** Focus the surface (and scroll the photo into view) when it mounts, for
+   *  a picker opened from a control elsewhere on the page. */
+  focusOnMount?: boolean;
 }
 
-/** Loupe diameter in CSS pixels. */
-const LOUPE_SIZE = 132;
 /** Image pixels from the centre to the loupe's edge. */
 const LOUPE_RADIUS = 22;
 
@@ -73,15 +75,18 @@ function Loupe({ image, point, below, patchSize, getSource }: LoupeProps) {
       canvas.height = size;
     }
     const zoom = size / (LOUPE_RADIUS * 2);
+    // The source may be smaller than the proxy (the CPU preview is), so map
+    // proxy pixels onto it.
+    const scale = source.width / image.width || 1;
     ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, size, size);
     ctx.drawImage(
       source,
-      point.x - LOUPE_RADIUS,
-      point.y - LOUPE_RADIUS,
-      LOUPE_RADIUS * 2,
-      LOUPE_RADIUS * 2,
+      (point.x - LOUPE_RADIUS) * scale,
+      (point.y - LOUPE_RADIUS) * scale,
+      LOUPE_RADIUS * 2 * scale,
+      LOUPE_RADIUS * 2 * scale,
       0,
       0,
       size,
@@ -96,7 +101,7 @@ function Loupe({ image, point, below, patchSize, getSource }: LoupeProps) {
     ctx.lineWidth = 1.5 * ratio;
     ctx.strokeStyle = '#fff';
     ctx.strokeRect(at, at, side, side);
-  }, [getSource, patchSize, point]);
+  }, [getSource, image.width, patchSize, point]);
 
   return (
     <div
@@ -108,8 +113,8 @@ function Loupe({ image, point, below, patchSize, getSource }: LoupeProps) {
         left: `clamp(${LOUPE_SIZE / 2}px, ${(point.x / image.width) * 100}%, calc(100% - ${LOUPE_SIZE / 2}px))`,
         top: `${(point.y / image.height) * 100}%`,
         transform: below
-          ? 'translate(-50%, 40px)'
-          : `translate(-50%, calc(-100% - 40px))`,
+          ? `translate(-50%, ${LOUPE_GAP}px)`
+          : `translate(-50%, calc(-100% - ${LOUPE_GAP}px))`,
         borderColor: 'var(--color-text-primary)',
       }}
     >
@@ -121,12 +126,9 @@ function Loupe({ image, point, below, patchSize, getSource }: LoupeProps) {
 interface PressState {
   pointerId: number;
   point: PixelPoint;
-  /** Pointer height in the viewport, to keep the loupe on screen. */
-  clientY: number;
+  /** Show the loupe under the finger; see {@link loupeBelow}. */
+  below: boolean;
 }
-
-/** Room the loupe needs above the finger, in CSS pixels. */
-const LOUPE_CLEARANCE = LOUPE_SIZE + 56;
 
 /**
  * A tap target over the whole photo for sampling a colour. Touch and pen show
@@ -141,13 +143,28 @@ export function PickSurface({
   getLoupeSource,
   patchSize,
   onPick,
+  focusOnMount = false,
 }: PickSurfaceProps) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const [press, setPress] = useState<PressState | null>(null);
   const [cursor, setCursor] = useState<PixelPoint>({
     x: image.width / 2,
     y: image.height / 2,
   });
+  const [cursorBelow, setCursorBelow] = useState(false);
   const [showCursor, setShowCursor] = useState(false);
+
+  useEffect(() => {
+    if (!focusOnMount) return;
+    buttonRef.current?.focus({ preventScroll: true });
+    frameRef.current?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+  }, [focusOnMount, frameRef]);
+
+  /** Where the loupe goes for a point at this height in the viewport. */
+  const placeBelow = (clientY: number): boolean => {
+    const box = frameRef.current?.getBoundingClientRect();
+    return loupeBelow({ yInFrame: clientY - (box?.top ?? 0), clientY });
+  };
 
   const toImage = (event: PointerEvent): PixelPoint | null => {
     const box = frameRef.current?.getBoundingClientRect();
@@ -165,14 +182,22 @@ export function PickSurface({
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
     setShowCursor(false);
-    setPress({ pointerId: event.pointerId, point, clientY: event.clientY });
+    setPress({
+      pointerId: event.pointerId,
+      point,
+      below: placeBelow(event.clientY),
+    });
   };
 
   const onPointerMove = (event: PointerEvent) => {
     if (!press || press.pointerId !== event.pointerId) return;
     const point = toImage(event);
     if (point) {
-      setPress({ pointerId: event.pointerId, point, clientY: event.clientY });
+      setPress({
+        pointerId: event.pointerId,
+        point,
+        below: placeBelow(event.clientY),
+      });
     }
   };
 
@@ -193,16 +218,19 @@ export function PickSurface({
     const step =
       Math.max(1, Math.round(Math.max(image.width, image.height) / 100)) *
       (event.shiftKey ? 5 : 1);
-    setCursor((current) => ({
-      x: Math.max(
-        0,
-        Math.min(image.width - 1, current.x + direction[0] * step)
-      ),
+    const next = {
+      x: Math.max(0, Math.min(image.width - 1, cursor.x + direction[0] * step)),
       y: Math.max(
         0,
-        Math.min(image.height - 1, current.y + direction[1] * step)
+        Math.min(image.height - 1, cursor.y + direction[1] * step)
       ),
-    }));
+    };
+    setCursor(next);
+    const box = frameRef.current?.getBoundingClientRect();
+    const yInFrame = box ? (next.y / image.height) * box.height : 0;
+    setCursorBelow(
+      loupeBelow({ yInFrame, clientY: (box?.top ?? 0) + yInFrame })
+    );
   };
 
   // Enter and Space arrive as a click with no pointer detail; pointer taps
@@ -214,6 +242,7 @@ export function PickSurface({
   return (
     <>
       <button
+        ref={buttonRef}
         type="button"
         aria-label={`${label}. Tap the photo, or move with the arrow keys and press Enter.`}
         className="absolute inset-0 z-20 cursor-crosshair touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-focus-ring)]"
@@ -239,7 +268,7 @@ export function PickSurface({
           <Loupe
             image={image}
             point={cursor}
-            below={cursor.y / image.height < 0.3}
+            below={cursorBelow}
             patchSize={patchSize}
             getSource={getLoupeSource}
           />
@@ -249,7 +278,7 @@ export function PickSurface({
         <Loupe
           image={image}
           point={press.point}
-          below={press.clientY < LOUPE_CLEARANCE}
+          below={press.below}
           patchSize={patchSize}
           getSource={getLoupeSource}
         />

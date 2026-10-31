@@ -2,6 +2,7 @@ import { type NegativeFilmType, scaleRect } from '@dorkroom/logic';
 import { getRouteAccent, getRouteIcon } from '@dorkroom/ui';
 import { CalculatorCard, CalculatorLayout } from '@dorkroom/ui/calculator';
 import { Crop, ImagePlus, Pipette, SwatchBook } from 'lucide-react';
+import { useState } from 'react';
 import { AdjustmentsCard } from './adjustments-card';
 import { ActionButton, SegmentedControl, type SegmentOption } from './controls';
 import { ExportCard } from './export-card';
@@ -46,6 +47,10 @@ function stageHint(state: InverterState): string {
 export default function NegativeInverterPage() {
   const { state, coefficients, actions } = useNegativeInverter();
   const { negative, crop, filmType, tool, view } = state;
+  // The sidebar's neutral picker button is far from the photo (below it on
+  // phones), so a picker opened from there takes focus and scrolls into view.
+  const [focusNeutralPicker, setFocusNeutralPicker] = useState(false);
+  const converted = coefficients !== null;
 
   const toolOptions: SegmentOption<InverterTool>[] = [
     { value: 'crop', label: 'Crop', icon: Crop },
@@ -75,7 +80,9 @@ export default function NegativeInverterPage() {
       onReset={actions.resetAdjustments}
       description="Turn a phone photo of a negative into a positive preview, for black and white or C-41 colour film. Everything runs in your browser; your photos never leave this device."
       sidebar={
-        <>
+        // A flex column so that on phones, once converted, the adjustments
+        // move up to sit right under the photo.
+        <div className="flex flex-col gap-4">
           <CalculatorCard
             title="Film type"
             description={
@@ -92,14 +99,18 @@ export default function NegativeInverterPage() {
             />
           </CalculatorCard>
           <AdjustmentsCard
-            enabled={coefficients !== null}
+            enabled={converted}
             filmType={filmType}
             adjustments={state.adjustments}
             hasNeutral={state.neutral !== null}
             pickingNeutral={tool === 'neutral'}
             onAdjust={actions.adjust}
-            onPickNeutral={() => actions.setTool('neutral')}
+            onToggleNeutralPicker={() => {
+              setFocusNeutralPicker(true);
+              actions.setTool(tool === 'neutral' ? null : 'neutral');
+            }}
             onClearNeutral={actions.clearNeutral}
+            className={converted ? 'max-md:order-first' : undefined}
           />
           <ExportCard
             key={state.generation}
@@ -107,7 +118,7 @@ export default function NegativeInverterPage() {
             crop={crop}
             coefficients={coefficients}
           />
-        </>
+        </div>
       }
       footer={<NegativeInverterInfo />}
     >
@@ -125,12 +136,16 @@ export default function NegativeInverterPage() {
               onCropChange={actions.setCrop}
               onPickBase={actions.pickBase}
               onPickNeutral={actions.pickNeutral}
+              focusNeutralPicker={focusNeutralPicker}
             />
             <SegmentedControl
               legend="Tool"
               options={toolOptions}
               value={tool}
-              onChange={(next) => actions.setTool(next === tool ? null : next)}
+              onChange={(next) => {
+                setFocusNeutralPicker(false);
+                actions.setTool(next === tool ? null : next);
+              }}
             />
             <p
               aria-live="polite"

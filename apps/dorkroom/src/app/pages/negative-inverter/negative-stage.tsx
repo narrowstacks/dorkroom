@@ -4,8 +4,15 @@ import type {
   PixelRect,
 } from '@dorkroom/logic';
 import { cn } from '@dorkroom/ui';
-import { useCallback, useEffect, useRef } from 'react';
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { CropOverlay } from './crop-overlay';
+import { downscaleImageData } from './decode-image';
 import {
   createInversionRenderer,
   type InversionRenderer,
@@ -30,7 +37,21 @@ interface NegativeStageProps {
   onCropChange: (crop: PixelRect) => void;
   onPickBase: (point: PixelPoint) => void;
   onPickNeutral: (point: PixelPoint) => void;
+  /** Move focus to the neutral picker when it opens (it was opened from the
+   *  sidebar, far from the photo). */
+  focusNeutralPicker?: boolean;
 }
+
+/**
+ * Long edge of the CPU preview. The CPU pass re-runs on every slider step,
+ * and over the full 2048 px proxy that takes most of a second; a quarter of
+ * the pixels keeps the sliders usable. The browser scales it up to fit.
+ */
+const CPU_PREVIEW_LONG_EDGE = 1024;
+
+/** How long to wait for a lost GPU context to come back before switching
+ *  the preview to the CPU. */
+const CONTEXT_RESTORE_WAIT_MS = 1500;
 
 interface MarkerProps {
   sample: PickedSample;
@@ -74,11 +95,14 @@ export function NegativeStage({
   onCropChange,
   onPickBase,
   onPickNeutral,
+  focusNeutralPicker = false,
 }: NegativeStageProps) {
   const frameRef = useRef<HTMLElement>(null);
   const negativeRef = useRef<HTMLCanvasElement>(null);
   const positiveHostRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<InversionRenderer | null>(null);
+  const latestCoefficients = useRef<InversionCoefficients | null>(null);
+  const [cpuOnly, setCpuOnly] = useState(false);
   const { width, height } = proxy;
 
   useEffect(() => {
@@ -86,24 +110,42 @@ export function NegativeStage({
   }, [proxy]);
 
   // One renderer per photo. Its canvas lives outside React's tree because a
-  // canvas that failed to get a WebGL context cannot fall back to 2D.
+  // canvas that failed to get a WebGL context cannot fall back to 2D. If the
+  // GPU context is lost and not restored soon, start over on the CPU.
   useEffect(() => {
     const host = positiveHostRef.current;
-    const renderer = createInversionRenderer({ preserveDrawingBuffer: true });
+    let restoreTimer: ReturnType<typeof setTimeout> | undefined;
+    const renderer = createInversionRenderer({
+      preserveDrawingBuffer: true,
+      forceCpu: cpuOnly,
+      onContextLost: () => {
+        clearTimeout(restoreTimer);
+        restoreTimer = setTimeout(() => {
+          if (renderer?.isLost) setCpuOnly(true);
+        }, CONTEXT_RESTORE_WAIT_MS);
+      },
+    });
     if (!host || !renderer) return undefined;
     renderer.canvas.className = 'block size-full';
     renderer.canvas.setAttribute('aria-hidden', 'true');
-    renderer.setSource(proxy);
+    renderer.setSource(
+      renderer.backend === 'cpu'
+        ? downscaleImageData(proxy, CPU_PREVIEW_LONG_EDGE)
+        : proxy
+    );
     host.append(renderer.canvas);
     rendererRef.current = renderer;
+    if (latestCoefficients.current) renderer.render(latestCoefficients.current);
     return () => {
+      clearTimeout(restoreTimer);
       rendererRef.current = null;
       renderer.canvas.remove();
       renderer.dispose();
     };
-  }, [proxy]);
+  }, [proxy, cpuOnly]);
 
   useEffect(() => {
+    latestCoefficients.current = coefficients;
     const renderer = rendererRef.current;
     if (!renderer || !coefficients) return undefined;
     const frame = requestAnimationFrame(() => renderer.render(coefficients));
@@ -118,17 +160,25 @@ export function NegativeStage({
 
   const showPositive = view === 'positive' && coefficients !== null;
   const image = { width, height };
+  // CSSProperties has no custom properties; a wider type passes as one.
+  const stageStyle: CSSProperties & Record<'--stage-aspect', number> = {
+    aspectRatio: `${width} / ${height}`,
+    '--stage-aspect': width / height,
+  };
 
   return (
     <div className="flex justify-center">
       <figure
         ref={frameRef}
         aria-label={showPositive ? 'Positive preview' : 'Negative'}
-        className={cn('relative m-0 select-none', tool && 'touch-none')}
-        style={{
-          aspectRatio: `${width} / ${height}`,
-          width: `min(100%, calc(65vh * ${width / height}))`,
-        }}
+        // Pickers own every touch on the photo; the crop leaves swipes to
+        // the page so it still scrolls, and only its handles take them.
+        // Shorter on phones, so the controls below stay in reach.
+        className={cn(
+          'relative m-0 w-[min(100%,calc(45vh*var(--stage-aspect)))] select-none md:w-[min(100%,calc(65vh*var(--stage-aspect)))]',
+          (tool === 'base' || tool === 'neutral') && 'touch-none'
+        )}
+        style={stageStyle}
       >
         <canvas
           ref={negativeRef}
@@ -192,6 +242,7 @@ export function NegativeStage({
             getLoupeSource={getPositiveCanvas}
             patchSize={NEUTRAL_PATCH_SIZE}
             onPick={onPickNeutral}
+            focusOnMount={focusNeutralPicker}
           />
         )}
       </figure>

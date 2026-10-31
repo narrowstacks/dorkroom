@@ -105,7 +105,9 @@ function reducer(state: InverterState, action: InverterAction): InverterState {
     case 'unload':
       return {
         ...INITIAL_STATE,
-        generation: state.generation,
+        // A new generation remounts the export card, which cancels any
+        // export still running for the photo being put away.
+        generation: state.generation + 1,
         filmType: state.filmType,
         adjustments: state.adjustments,
       };

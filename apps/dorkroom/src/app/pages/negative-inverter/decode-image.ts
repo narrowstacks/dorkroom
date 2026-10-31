@@ -91,6 +91,39 @@ export function releaseCanvas(canvas: HTMLCanvasElement): void {
 }
 
 /**
+ * A copy of `pixels` scaled so its long edge is at most `longEdge`, or
+ * `pixels` itself when it already fits.
+ */
+export function downscaleImageData(
+  pixels: ImageData,
+  longEdge: number
+): ImageData {
+  const size = fitLongEdge(pixels, longEdge);
+  if (size.width >= pixels.width && size.height >= pixels.height) {
+    return pixels;
+  }
+  const source = document.createElement('canvas');
+  const target = document.createElement('canvas');
+  try {
+    source.width = pixels.width;
+    source.height = pixels.height;
+    target.width = size.width;
+    target.height = size.height;
+    const from = source.getContext('2d');
+    const to = target.getContext('2d', { willReadFrequently: true });
+    if (!from || !to) return pixels;
+    from.putImageData(pixels, 0, 0);
+    to.imageSmoothingEnabled = true;
+    to.imageSmoothingQuality = 'high';
+    to.drawImage(source, 0, 0, size.width, size.height);
+    return to.getImageData(0, 0, size.width, size.height);
+  } finally {
+    releaseCanvas(source);
+    releaseCanvas(target);
+  }
+}
+
+/**
  * Decode a photo and build its proxy (long edge {@link PREVIEW_LONG_EDGE}).
  * The full-size bitmap is closed before this returns: the original is decoded
  * again only at export.

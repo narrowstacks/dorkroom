@@ -5,6 +5,7 @@ import {
   type PixelRect,
   type PixelSize,
 } from '@dorkroom/logic';
+import { Move } from 'lucide-react';
 import {
   type KeyboardEvent,
   type PointerEvent,
@@ -74,8 +75,8 @@ function handlePosition(handle: CropHandle, rect: PixelRect) {
 const pct = (value: number, total: number) => `${(value / total) * 100}%`;
 
 /**
- * The statistics crop: a dimmed surround plus eight large handles and a move
- * area. Pointer drags work with mouse, pen and touch; every handle is also a
+ * The statistics crop: a dimmed surround plus eight large handles and a
+ * centre move grip. Pointer drags work with mouse, pen and touch; every handle is also a
  * button that the arrow keys nudge (Shift for bigger steps).
  */
 export function CropOverlay({
@@ -101,21 +102,38 @@ export function CropOverlay({
     };
   };
 
-  const onPointerMove = (event: PointerEvent) => {
+  /** The crop a pointer at this event's position gives, or null when the
+   *  event is not part of the current drag. */
+  const rectAt = (event: PointerEvent): PixelRect | null => {
     const state = drag.current;
     const box = frameRef.current?.getBoundingClientRect();
-    if (!state || state.pointerId !== event.pointerId || !box) return;
-    if (box.width === 0 || box.height === 0) return;
+    if (!state || state.pointerId !== event.pointerId || !box) return null;
+    if (box.width === 0 || box.height === 0) return null;
     const dx = ((event.clientX - state.startX) * image.width) / box.width;
     const dy = ((event.clientY - state.startY) * image.height) / box.height;
-    setDraft(dragCropRect(state.start, state.handle, dx, dy, image));
+    return dragCropRect(state.start, state.handle, dx, dy, image);
   };
 
-  const endDrag = (event: PointerEvent) => {
+  const onPointerMove = (event: PointerEvent) => {
+    const next = rectAt(event);
+    if (next) setDraft(next);
+  };
+
+  // Computed from the release itself, not the last rendered draft: React
+  // may not have rendered the final move before the pointer comes up.
+  const onPointerUp = (event: PointerEvent) => {
     const state = drag.current;
     if (!state || state.pointerId !== event.pointerId) return;
+    const final = rectAt(event);
     drag.current = null;
-    if (draft) onCommit(draft);
+    setDraft(null);
+    if (final) onCommit(final);
+  };
+
+  // A cancelled drag (the browser took over the gesture) puts the crop back.
+  const onPointerCancel = (event: PointerEvent) => {
+    if (drag.current?.pointerId !== event.pointerId) return;
+    drag.current = null;
     setDraft(null);
   };
 
@@ -176,7 +194,7 @@ export function CropOverlay({
         }}
       />
 
-      {/* Frame line; the move area doubles as it while active. */}
+      {/* Frame line. */}
       <div
         className="absolute border-2"
         style={{
@@ -189,17 +207,31 @@ export function CropOverlay({
             : 'var(--color-border-primary)',
         }}
       >
+        {/* A centre grip rather than the whole area, so a swipe across the
+            photo still scrolls the page on a touchscreen. */}
         {active && (
           <button
             type="button"
             aria-label={HANDLE_NAMES.move}
             onPointerDown={(event) => onPointerDown('move', event)}
             onPointerMove={onPointerMove}
-            onPointerUp={endDrag}
-            onPointerCancel={endDrag}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerCancel}
             onKeyDown={(event) => onKeyDown('move', event)}
-            className="pointer-events-auto absolute inset-0 cursor-move touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
-          />
+            className="pointer-events-auto absolute left-1/2 top-1/2 flex size-11 -translate-x-1/2 -translate-y-1/2 cursor-move touch-none items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
+          >
+            <span
+              aria-hidden="true"
+              className="flex size-8 items-center justify-center rounded-full border-2"
+              style={{
+                backgroundColor: 'var(--color-brand)',
+                borderColor: 'var(--color-background)',
+                color: 'var(--color-background)',
+              }}
+            >
+              <Move className="size-4" />
+            </span>
+          </button>
         )}
       </div>
 
@@ -215,8 +247,8 @@ export function CropOverlay({
               aria-label={HANDLE_NAMES[handle]}
               onPointerDown={(event) => onPointerDown(handle, event)}
               onPointerMove={onPointerMove}
-              onPointerUp={endDrag}
-              onPointerCancel={endDrag}
+              onPointerUp={onPointerUp}
+              onPointerCancel={onPointerCancel}
               onKeyDown={(event) => onKeyDown(handle, event)}
               className="group pointer-events-auto absolute flex size-11 -translate-x-1/2 -translate-y-1/2 touch-none items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)]"
               style={{
