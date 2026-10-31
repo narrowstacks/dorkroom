@@ -479,30 +479,12 @@
     color: var(--color-text-primary);
   }
 
-  /* Home-page calculator buttons: use black borders in high-contrast.
-     Exclude the hero border-calculator preview (it's an <a href="/border">
-     too, but the framed stroke around its box reads as noise). */
-  [data-theme="high-contrast"]
-    main
-    a[href*="/border"]:not([aria-label="Open the border calculator"]),
-  [data-theme="high-contrast"] main a[href*="/stops"],
-  [data-theme="high-contrast"] main a[href*="/resize"],
-  [data-theme="high-contrast"] main a[href*="/exposure"],
-  [data-theme="high-contrast"] main a[href*="/reciprocity"],
-  [data-theme="high-contrast"] main a[href*="/development"] {
-    border: 2px solid var(--color-brand);
-  }
-
-  /* Calculator buttons with red borders in darkroom theme - only on home page.
-     Exclude the hero border-calculator preview (see note above). */
-  [data-theme="darkroom"]
-    main
-    a[href*="/border"]:not([aria-label="Open the border calculator"]),
-  [data-theme="darkroom"] main a[href*="/stops"],
-  [data-theme="darkroom"] main a[href*="/resize"],
-  [data-theme="darkroom"] main a[href*="/exposure"],
-  [data-theme="darkroom"] main a[href*="/reciprocity"],
-  [data-theme="darkroom"] main a[href*="/development"] {
+  /* Home-page tool cards: a heavier brand border in the two-tone themes,
+     where the card's own accent border is too faint to read as a button.
+     Keyed to the card itself, so other links to the same routes are left
+     alone. */
+  [data-theme="high-contrast"] .tool-card,
+  [data-theme="darkroom"] .tool-card {
     border: 2px solid var(--color-brand);
   }
 
