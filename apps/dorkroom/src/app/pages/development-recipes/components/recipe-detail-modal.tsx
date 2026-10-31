@@ -16,7 +16,6 @@ export interface RecipeDetailModalProps {
   onDeleteCustomRecipe: (view: DevelopmentCombinationView) => void;
   onShareRecipe: (view: DevelopmentCombinationView) => Promise<void>;
   onCopyRecipe: (view: DevelopmentCombinationView) => Promise<void>;
-  customRecipeSharingEnabled: boolean;
 }
 
 export const RecipeDetailModal: FC<RecipeDetailModalProps> = ({
@@ -30,7 +29,6 @@ export const RecipeDetailModal: FC<RecipeDetailModalProps> = ({
   onDeleteCustomRecipe,
   onShareRecipe,
   onCopyRecipe,
-  customRecipeSharingEnabled,
 }) => {
   if (!detailView) {
     return null;
@@ -38,34 +36,33 @@ export const RecipeDetailModal: FC<RecipeDetailModalProps> = ({
 
   const isCustomRecipe = detailView.source === 'custom';
 
-  const actionButtons =
-    isCustomRecipe && customRecipeSharingEnabled ? (
-      <div className={isMobile ? 'flex flex-col gap-2' : 'flex gap-2 pt-4'}>
-        <button
-          type="button"
-          onClick={() => onShareRecipe(detailView)}
-          className={`${isMobile ? 'w-full' : 'flex-1'} rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-105`}
-          style={{
-            backgroundColor: 'var(--color-text-primary)',
-            color: 'var(--color-background)',
-          }}
-        >
-          Share recipe
-        </button>
-        <button
-          type="button"
-          onClick={() => onCopyRecipe(detailView)}
-          className={`${isMobile ? 'w-full' : 'flex-1'} rounded-full px-4 py-2 text-sm font-medium transition`}
-          style={{
-            color: 'var(--color-text-secondary)',
-            borderColor: 'var(--color-border-secondary)',
-            borderWidth: 1,
-          }}
-        >
-          Copy link
-        </button>
-      </div>
-    ) : null;
+  const actionButtons = isCustomRecipe ? (
+    <div className={isMobile ? 'flex flex-col gap-2' : 'flex gap-2 pt-4'}>
+      <button
+        type="button"
+        onClick={() => onShareRecipe(detailView)}
+        className={`${isMobile ? 'w-full' : 'flex-1'} rounded-full px-4 py-2 text-sm font-semibold transition hover:brightness-105`}
+        style={{
+          backgroundColor: 'var(--color-text-primary)',
+          color: 'var(--color-background)',
+        }}
+      >
+        Share recipe
+      </button>
+      <button
+        type="button"
+        onClick={() => onCopyRecipe(detailView)}
+        className={`${isMobile ? 'w-full' : 'flex-1'} rounded-full px-4 py-2 text-sm font-medium transition`}
+        style={{
+          color: 'var(--color-text-secondary)',
+          borderColor: 'var(--color-border-secondary)',
+          borderWidth: 1,
+        }}
+      >
+        Copy link
+      </button>
+    </div>
+  ) : null;
 
   return (
     <ResponsiveModal

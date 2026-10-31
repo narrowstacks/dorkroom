@@ -35,7 +35,6 @@ export interface UseCustomRecipeCrudProps {
   // Data helpers for building updated views
   getFilmById: (id: string) => Film | undefined;
   getDeveloperById: (id: string) => Developer | undefined;
-  customRecipeSharingEnabled: boolean;
 }
 
 export interface UseCustomRecipeCrudReturn {
@@ -71,7 +70,6 @@ export function useCustomRecipeCrud({
   setIsDeleting,
   getFilmById,
   getDeveloperById,
-  customRecipeSharingEnabled,
 }: UseCustomRecipeCrudProps): UseCustomRecipeCrudReturn {
   const handleCustomRecipeSubmit = useCallback(
     async (data: CustomRecipeFormData) => {
@@ -115,7 +113,6 @@ export function useCustomRecipeCrud({
               getDeveloperById
             ),
             source: 'custom',
-            canShare: customRecipeSharingEnabled,
           };
           setDetailView(updatedView);
         }
@@ -149,7 +146,6 @@ export function useCustomRecipeCrud({
       setDetailView,
       getFilmById,
       getDeveloperById,
-      customRecipeSharingEnabled,
     ]
   );
 

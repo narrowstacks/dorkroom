@@ -105,7 +105,6 @@ const createMockDetailView = (
   film: mockFilm,
   developer: mockDeveloper,
   source: 'custom',
-  canShare: true,
 });
 
 const baseFormData: CustomRecipeFormData = {
@@ -229,7 +228,6 @@ describe('useCustomRecipeCrud', () => {
           ...deleteConfirmProps,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
-          customRecipeSharingEnabled: true,
         })
       );
 
@@ -245,7 +243,6 @@ describe('useCustomRecipeCrud', () => {
       expect(updatedDetailView.combination.timeMinutes).toBe(10);
       expect(updatedDetailView.combination.shootingIso).toBe(800);
       expect(updatedDetailView.source).toBe('custom');
-      expect(updatedDetailView.canShare).toBe(true);
     });
 
     it('does not update detailView if a different recipe is displayed', async () => {
@@ -288,7 +285,6 @@ describe('useCustomRecipeCrud', () => {
           ...deleteConfirmProps,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
-          customRecipeSharingEnabled: true,
         })
       );
 
@@ -321,7 +317,6 @@ describe('useCustomRecipeCrud', () => {
           ...deleteConfirmProps,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
-          customRecipeSharingEnabled: true,
         })
       );
 
@@ -331,43 +326,6 @@ describe('useCustomRecipeCrud', () => {
 
       // setDetailView should NOT have been called for new recipes
       expect(mockSetDetailView).not.toHaveBeenCalled();
-    });
-
-    it('respects customRecipeSharingEnabled flag when updating detailView', async () => {
-      const originalRecipe = createMockCustomRecipe({ id: 'recipe-to-edit' });
-      const updatedRecipe = createMockCustomRecipe({ id: 'recipe-to-edit' });
-      const currentDetailView = createMockDetailView(originalRecipe);
-
-      mockUpdateCustomRecipe.mockReturnValue(updatedRecipe);
-
-      const { result } = renderHook(() =>
-        useCustomRecipeCrud({
-          customRecipes: [originalRecipe],
-          addCustomRecipe: mockAddCustomRecipe,
-          updateCustomRecipe: mockUpdateCustomRecipe,
-          deleteCustomRecipe: mockDeleteCustomRecipe,
-          addFavorite: mockAddFavorite,
-          showToast: mockShowToast,
-          editingRecipe: currentDetailView,
-          detailView: currentDetailView,
-          setIsCustomModalOpen: mockSetIsCustomModalOpen,
-          setEditingRecipe: mockSetEditingRecipe,
-          setIsSubmittingRecipe: mockSetIsSubmittingRecipe,
-          setIsDetailOpen: mockSetIsDetailOpen,
-          setDetailView: mockSetDetailView,
-          ...deleteConfirmProps,
-          getFilmById: mockGetFilmById,
-          getDeveloperById: mockGetDeveloperById,
-          customRecipeSharingEnabled: false, // Sharing disabled
-        })
-      );
-
-      await act(async () => {
-        await result.current.handleCustomRecipeSubmit(baseFormData);
-      });
-
-      const updatedDetailView = firstDetailViewArg(mockSetDetailView);
-      expect(updatedDetailView.canShare).toBe(false);
     });
 
     it('closes modal and clears editing state after successful save', async () => {
@@ -395,7 +353,6 @@ describe('useCustomRecipeCrud', () => {
           ...deleteConfirmProps,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
-          customRecipeSharingEnabled: true,
         })
       );
 
@@ -432,7 +389,6 @@ describe('useCustomRecipeCrud', () => {
           ...deleteConfirmProps,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
-          customRecipeSharingEnabled: true,
         })
       );
 
@@ -466,7 +422,6 @@ describe('useCustomRecipeCrud', () => {
           ...deleteConfirmProps,
           getFilmById: mockGetFilmById,
           getDeveloperById: mockGetDeveloperById,
-          customRecipeSharingEnabled: true,
         })
       );
 

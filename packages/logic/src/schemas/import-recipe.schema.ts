@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MAX_ENCODED_LENGTH } from '../utils/recipe-sharing';
 import { isFilmDevOrgUrl } from '../utils/url-helpers';
 
 /**
@@ -15,8 +16,12 @@ export const importRecipeSchema = z.object({
       if (isFilmDevOrgUrl(trimmed)) return true;
       // Match filmdev recipe ID (typically numeric)
       if (/^\d+$/.test(trimmed)) return true;
-      // Match shared recipe code (alphanumeric)
-      if (/^[a-zA-Z0-9]+$/.test(trimmed)) return true;
+      // Match shared recipe code (URL-safe base64: letters, digits, "-" and "_")
+      if (
+        trimmed.length <= MAX_ENCODED_LENGTH &&
+        /^[A-Za-z0-9_-]+$/.test(trimmed)
+      )
+        return true;
       return false;
     }, 'Enter a valid filmdev.org URL, recipe ID, or shared code'),
 });

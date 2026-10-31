@@ -55,7 +55,6 @@ export interface RecipeModalsProps {
   onDeleteCustomRecipe: (view: DevelopmentCombinationView) => void;
   onShareRecipe: (view: DevelopmentCombinationView) => Promise<void>;
   onCopyRecipe: (view: DevelopmentCombinationView) => Promise<void>;
-  customRecipeSharingEnabled: boolean;
 }
 
 export const RecipeModals: FC<RecipeModalsProps> = (props) => {
@@ -95,7 +94,6 @@ export const RecipeModals: FC<RecipeModalsProps> = (props) => {
     onDeleteCustomRecipe,
     onShareRecipe,
     onCopyRecipe,
-    customRecipeSharingEnabled,
   } = props;
 
   return (
@@ -111,7 +109,6 @@ export const RecipeModals: FC<RecipeModalsProps> = (props) => {
         onDeleteCustomRecipe={onDeleteCustomRecipe}
         onShareRecipe={onShareRecipe}
         onCopyRecipe={onCopyRecipe}
-        customRecipeSharingEnabled={customRecipeSharingEnabled}
       />
 
       <CustomRecipeModal
