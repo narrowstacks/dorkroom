@@ -45,12 +45,17 @@ function announce(result: HomeSearchResult, loadError: string | null): string {
   const { answer, count, pending } = result;
   if (answer) {
     const figure = answer.figure
-      ? `: ${answer.figure.value}${answer.figure.unit ? ` ${answer.figure.unit}` : ''}, ${answer.figure.caption}`
-      : '';
-    return `${answer.title}${figure}`;
+      ? `${answer.figure.value}${answer.figure.unit ? ` ${answer.figure.unit}` : ''}, ${answer.figure.caption}`
+      : null;
+    // The notice comes before the number, as on the card.
+    if (answer.notice) {
+      return `${answer.title}. ${answer.notice}${figure ? ` ${figure}.` : ''}`;
+    }
+    return figure ? `${answer.title}: ${figure}` : answer.title;
   }
   if (pending) return pendingText(loadError);
-  return count ? `${count} matches.` : 'No matches.';
+  if (!count) return 'No matches.';
+  return `${count} ${count === 1 ? 'match' : 'matches'}.`;
 }
 
 function TryChips({
@@ -123,6 +128,7 @@ export function HomeSearch() {
         suggestions={suggestions}
         onSelect={(suggestion: HomeSuggestion) => fill(suggestion.query)}
         onIntent={load}
+        hasAnswer={searching && result.answer !== null}
         placeholder="Ask: hp5 at 800 in dd-x"
       />
       <output className="sr-only">{announcement}</output>

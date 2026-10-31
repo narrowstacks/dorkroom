@@ -13,6 +13,7 @@ import {
   getCatalog,
   matchCatalog,
   recipeAnswer,
+  recipesOf,
   reciprocityAnswer,
 } from './catalog';
 import {
@@ -32,6 +33,7 @@ import {
   findTemperature,
   findTime,
   prepare,
+  tokenize,
 } from './query';
 import { RELATED_TOOLS, toolsForTokens } from './tools';
 import type {
@@ -51,48 +53,95 @@ export interface QueryReading {
   seconds: number | null;
   /** The text with the time blanked out. */
   untimed: string;
+  /** The EI asked for: after "at", "@", "ei" or "iso", or see `bareEi`. */
   iso: number | null;
   dilution: ReturnType<typeof findDilution>;
   celsius: number | null;
+  /** Words that could name a film or developer (no connectives). */
   tokens: string[];
+  /**
+   * Every word left once times, speeds, dilutions and temperatures are read.
+   * Tool names ("reciprocity", "exposure") are stop words to the catalog, so
+   * tools are found from these rather than from `tokens`.
+   */
+  words: string[];
   catalog: Catalog;
   match: CatalogMatch;
+  /** Numbers that belong to the film or developer named ("delta 100"). */
+  nameNumbers: Set<string>;
+}
+
+/** On the ISO third-stop series (100, 125, 160, 200, ...), to within rounding. */
+const onIsoSeries = (n: number) => {
+  const thirds = 3 * Math.log2(n / 100);
+  return Math.abs(thirds - Math.round(thirds)) < 0.05;
+};
+
+/**
+ * A bare number beside a film and developer that is part of neither name, read
+ * as the EI ("tri-x xtol 1600"). Only an EI the pair has a recipe at, or a
+ * film speed of 100 or more, counts, so a dilution or temperature ("hp5
+ * rodinal 50", "hp5 xtol 68") is not one. A box speed typed beside a push
+ * ("hp5 400 xtol 1600") gives way to the push.
+ */
+function bareEi(
+  catalog: Catalog,
+  match: CatalogMatch,
+  tokens: readonly string[],
+  used: ReadonlySet<number>
+): number | null {
+  const film = match.film?.entry;
+  const developer = match.developer?.entry;
+  if (!film || !developer) return null;
+  const speeds = new Set(
+    recipesOf(catalog, { film, developer }).map((c) => c.shootingIso)
+  );
+  const numbers = tokens
+    .filter((t, i) => /^\d{2,5}$/.test(t) && !used.has(i))
+    .map(Number)
+    .filter((n) => speeds.has(n) || (n >= 100 && onIsoSeries(n)));
+  return (
+    numbers.findLast((n) => n !== film.film.isoSpeed) ?? numbers.at(-1) ?? null
+  );
 }
 
 export function readQuery(query: string, data: HomeSearchData): QueryReading {
   const text = prepare(query);
   const time = findTime(text);
   const untimed = time ? blank(text, time.index, time.length) : text;
-  const iso = findIso(untimed);
-  const dilution = findDilution(untimed);
+  // Temperature first, so "at 24c" is never read as EI 24.
   const temperature = findTemperature(untimed);
-  let words = untimed;
-  for (const span of [iso, dilution, temperature]) {
+  let words = temperature
+    ? blank(untimed, temperature.index, temperature.length)
+    : untimed;
+  const iso = findIso(words);
+  const dilution = findDilution(words);
+  for (const span of [iso, dilution]) {
     if (span) words = blank(words, span.index, span.length);
   }
   const catalog = getCatalog(data);
   const tokens = catalogTokens(words);
+  const match = matchCatalog(catalog, tokens);
+  const used = new Set([
+    ...(match.film?.used ?? []),
+    ...(match.developer?.used ?? []),
+  ]);
+  const bareIso = bareEi(catalog, match, tokens, used);
   return {
     text,
     seconds: time?.seconds ?? null,
     untimed,
-    iso: iso?.iso ?? null,
+    iso: iso?.iso ?? bareIso,
     dilution,
     celsius: temperature?.celsius ?? null,
     tokens,
+    words: tokenize(words),
     catalog,
-    match: matchCatalog(catalog, tokens),
+    match,
+    nameNumbers: new Set(
+      tokens.filter((t, i) => /^\d+$/.test(t) && used.has(i))
+    ),
   };
-}
-
-/** Numbers that belong to the film or developer the query names ("delta 100"). */
-function nameNumbers({ tokens, match }: QueryReading): Set<string> {
-  const names = [match.film?.entry.own, match.developer?.entry.own];
-  return new Set(
-    tokens.filter(
-      (t) => /^\d+$/.test(t) && names.some((own) => own?.includes(t))
-    )
-  );
 }
 
 /** The answer a calculator gives, or null when the query is not one. */
@@ -102,9 +151,6 @@ export function calculatorAnswer(reading: QueryReading): HomeAnswer | null {
     const stops = findStops(untimed);
     if (stops) return stopsAnswer(seconds, stops);
   }
-  if (isCameraExposure(text, findDims(text).length > 0)) {
-    return cameraExposureAnswer();
-  }
   const mat = matAnswer(untimed);
   if (mat) return mat;
   const resize = readResize(untimed, seconds !== null);
@@ -112,7 +158,7 @@ export function calculatorAnswer(reading: QueryReading): HomeAnswer | null {
     const answer = resizeAnswer(resize, seconds);
     if (answer) return answer;
   }
-  const easel = readEasel(untimed, nameNumbers(reading));
+  const easel = readEasel(untimed, reading.nameNumbers);
   const lens = readLens(untimed);
   // With paper in the query, a mm number is a border, unless "lens" says
   // otherwise or it could never fit on that paper as one.
@@ -139,7 +185,11 @@ export function calculatorAnswer(reading: QueryReading): HomeAnswer | null {
   ) {
     return borderAnswer(easel);
   }
-  return null;
+  // Last, so an f-number never hides an answer read above ("8x10 to 16x20
+  // 20s f/8" is a resize).
+  return isCameraExposure(text, findDims(text).length > 0)
+    ? cameraExposureAnswer()
+    : null;
 }
 
 function catalogAnswer(
@@ -213,7 +263,7 @@ export function searchHome(
   if (calculator) {
     const groups = toolsGroup([
       ...RELATED_TOOLS[calculator.kind],
-      ...toolsForTokens(reading.tokens),
+      ...toolsForTokens(reading.words),
     ]);
     return {
       answer: calculator,
@@ -233,7 +283,7 @@ export function searchHome(
     ),
     ...toolsGroup([
       ...(answer ? RELATED_TOOLS[answer.kind] : []),
-      ...toolsForTokens(reading.tokens),
+      ...toolsForTokens(reading.words),
     ]),
   ];
   return {

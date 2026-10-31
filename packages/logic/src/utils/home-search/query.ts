@@ -19,13 +19,31 @@ const GLYPH_VALUES = new Map(
 );
 
 /**
+ * ISO paper sizes, in centimetres. The border calculator has no ISO presets,
+ * so "a4" reads as the custom metric size it is.
+ */
+const ISO_PAPERS = new Map([
+  ['a6', '10.5x14.8cm'],
+  ['a5', '14.8x21cm'],
+  ['a4', '21x29.7cm'],
+  ['a3', '29.7x42cm'],
+  ['a2', '42x59.4cm'],
+]);
+const ISO_PAPER_RE = new RegExp(
+  String.raw`\b(?:${[...ISO_PAPERS.keys()].join('|')})\b`,
+  'g'
+);
+
+/**
  * Lowercase and canonicalise a query: `×` to `x`, inch marks to ` in `,
- * fraction glyphs to decimals ("1½" -> "1.5"), the true minus to `-`.
+ * fraction glyphs to decimals ("1½" -> "1.5"), the true minus to `-`, ISO
+ * paper names to their size ("a4" -> "21x29.7cm").
  */
 export function prepare(query: string): string {
   return query
     .toLowerCase()
     .replace(/×/g, 'x')
+    .replace(ISO_PAPER_RE, (name) => ISO_PAPERS.get(name) ?? name)
     .replace(/[″"]/g, ' in ')
     .replace(/−/g, '-')
     .replace(/[’‘]/g, "'")
@@ -44,12 +62,16 @@ export function blank(text: string, index: number, length: number): string {
   return text.slice(0, index) + ' '.repeat(length) + text.slice(index + length);
 }
 
-/** Collapse words to search tokens: "DD-X" -> "ddx", "Rodinal/Adonal" -> "rodinal adonal". */
+/**
+ * Collapse words to search tokens: "DD-X" -> "ddx", "Rodinal/Adonal" ->
+ * "rodinal adonal", "HP5+" -> "hp5 plus".
+ */
 export function tokenize(text: string): string[] {
   return text
     .toLowerCase()
+    .replace(/\+/g, ' plus ')
     .replace(/[-'’.]/g, '')
-    .replace(/[^a-z0-9+]+/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
     .trim()
     .split(' ')
     .filter(Boolean);
@@ -227,7 +249,9 @@ export function findDilution(
 export function findTemperature(
   text: string
 ): (Span & { celsius: number }) | null {
-  const match = /(^|[^\d.])(\d{2,3}(?:\.\d)?)\s*°?\s*([cf])\b/.exec(text);
+  const match = /(^|[^\d.])(\d{2,3}(?:\.\d)?)\s*°?\s*([cf])(?![\w/])/.exec(
+    text
+  );
   if (!match) return null;
   const value = Number(match[2]);
   return {

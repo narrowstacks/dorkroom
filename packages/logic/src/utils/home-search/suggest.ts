@@ -1,7 +1,6 @@
 import { PAPER_SIZES } from '../../constants/border-calculator';
 import { MAT_PRESETS } from '../../constants/mat-calculator';
 import { formatExposureTime } from '../exposure-calculations';
-import { isCameraExposure } from './camera';
 import {
   type Catalog,
   catalogTokens,
@@ -77,7 +76,8 @@ export function suggestHome(
   };
 
   const dims = findDims(text);
-  if (isCameraExposure(text, dims.length > 0)) {
+  const answer = calculatorAnswer(reading);
+  if (answer?.kind === 'camera_exposure') {
     out.push({
       label: 'Camera Exposure calculator',
       query: query.trim(),
@@ -86,7 +86,7 @@ export function suggestHome(
   }
 
   // A calculator query names no film or developer, whatever its words match.
-  const calculator = calculatorAnswer(reading) !== null;
+  const calculator = answer !== null;
   const numbered = calculator ? [] : filmsByNumber(catalog, text);
   const film = numbered[0] ?? (calculator ? undefined : match.film?.entry);
   const developer = calculator ? undefined : match.developer?.entry;
@@ -195,7 +195,10 @@ function filmTemplates(
   if (film.factor !== null) add(`${film.film.name} 30s`, 'reciprocity');
 }
 
-/** Other speeds and dilutions the data has for a film and developer. */
+/**
+ * The speeds the data has for a film and developer: the EI typed first when
+ * it has one, else the others than box speed (which the answer shows).
+ */
 function pairTemplates(
   catalog: Catalog,
   film: FilmEntry,
@@ -205,8 +208,8 @@ function pairTemplates(
 ) {
   const recipes = recipesOf(catalog, { film, developer });
   const speeds = [...new Set(recipes.map((c) => c.shootingIso))]
-    .filter((s) => s !== (iso ?? film.film.isoSpeed))
-    .sort((a, b) => a - b);
+    .filter((s) => iso !== null || s !== film.film.isoSpeed)
+    .sort((a, b) => Number(b === iso) - Number(a === iso) || a - b);
   for (const speed of speeds.slice(0, 3)) {
     add(
       `${film.film.name} at ${speed} in ${developer.developer.name}`,

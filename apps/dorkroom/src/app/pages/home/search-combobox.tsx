@@ -42,12 +42,27 @@ interface SearchComboboxProps {
   onSelect: (suggestion: HomeSuggestion) => void;
   /** First interest in searching (focus, pointer, key), to start loading data. */
   onIntent: () => void;
+  /**
+   * The page shows an answer for the box's query. Typing then leaves the
+   * list shut so it never covers the answer; the arrow keys, or a tap on the
+   * box once it has focus (touch has no arrow keys), still open it.
+   */
+  hasAnswer: boolean;
   placeholder: string;
 }
 
 /**
+ * Why the list is open: the box was typed in or first clicked (`typing`,
+ * which yields to an answer), or the arrow keys or a further click asked for
+ * it (`asked`).
+ */
+type OpenState = 'closed' | 'typing' | 'asked';
+
+/**
  * The home search box: a WAI-ARIA 1.2 combobox with a list of suggestions.
- * Arrow keys move through the list (focus stays in the box), Enter picks,
+ * The list opens as you type until the query has an answer; arrow keys (or
+ * a click on the focused box) open it any time and move through it (focus
+ * stays in the box), Enter picks,
  * Escape closes the list or else clears the box, Tab closes it and moves on.
  * "/" anywhere on the page focuses the box.
  */
@@ -58,13 +73,16 @@ export function SearchCombobox({
   suggestions,
   onSelect,
   onIntent,
+  hasAnswer,
   placeholder,
 }: SearchComboboxProps) {
   const listId = useId();
   const optionId = (index: number) => `${listId}-option-${index}`;
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<OpenState>('closed');
   const [active, setActive] = useState(-1);
-  const expanded = open && suggestions.length > 0;
+  const expanded =
+    suggestions.length > 0 &&
+    (open === 'asked' || (open === 'typing' && !hasAnswer));
   const activeIndex = active < suggestions.length ? active : -1;
 
   useEffect(() => {
@@ -86,7 +104,7 @@ export function SearchCombobox({
   }, [inputRef]);
 
   const close = () => {
-    setOpen(false);
+    setOpen('closed');
     setActive(-1);
   };
 
@@ -98,7 +116,7 @@ export function SearchCombobox({
   const move = (step: 1 | -1) => {
     onIntent();
     if (!expanded) {
-      setOpen(true);
+      setOpen('asked');
       setActive(step === 1 ? 0 : suggestions.length - 1);
       return;
     }
@@ -112,7 +130,7 @@ export function SearchCombobox({
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
-        if (event.altKey) setOpen(true);
+        if (event.altKey) setOpen('asked');
         else move(1);
         break;
       case 'ArrowUp':
@@ -174,12 +192,14 @@ export function SearchCombobox({
         onChange={(event) => {
           onIntent();
           onChange(event.target.value);
-          setOpen(true);
+          setOpen('typing');
           setActive(-1);
         }}
         onFocus={onIntent}
         onPointerEnter={onIntent}
-        onClick={() => setOpen(true)}
+        onClick={() =>
+          setOpen((state) => (state === 'closed' ? 'typing' : 'asked'))
+        }
         onBlur={close}
         onKeyDown={onKeyDown}
         className="w-full rounded-xl border border-[color:var(--color-border-primary)] bg-[color:var(--color-background)] py-3.5 pl-12 pr-12 text-base text-[color:var(--color-text-primary)] transition-colors placeholder:text-[color:var(--color-text-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-focus-ring)] sm:text-lg"
